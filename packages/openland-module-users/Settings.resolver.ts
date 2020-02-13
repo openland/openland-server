@@ -7,6 +7,8 @@ import { inTx } from '@openland/foundationdb';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
+import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
+import NotificationPreviewRoot = GQLRoots.NotificationPreviewRoot;
 
 const updateSettingsResolver = withUser(async (parent, args: GQL.MutationSettingsUpdateArgs, uid: number) => {
     return await inTx(parent, async (ctx) => {
@@ -238,7 +240,7 @@ export const Resolver: GQLResolver = {
         mobile: src => src.mobile
     },
     PlatformNotificationSettings: {
-        notificationPreview: src => src.notificationPreview.toUpperCase()
+        notificationPreview: src => src.notificationPreview.toUpperCase() as NotificationPreviewRoot
     },
     Query: {
         settings: withUser(async (ctx, args, uid) => {

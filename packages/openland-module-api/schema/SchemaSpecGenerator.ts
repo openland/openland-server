@@ -297,7 +297,13 @@ function genFunctionArguments(type: GenericTypeNode | ObjectTypeExtensionNode, f
 }
 
 function genEnum(type: EnumTypeDefinitionNode) {
-    return `export type ${type.name.value} = GQLRoots.${type.name.value}Root;`;
+    let out = ``;
+
+    let values = type.values!.map(val => `'${val.name.value}'`);
+    out += `export type ${type.name.value}Values = ${values.join(' | ')};\n`;
+    out +=  `export type ${type.name.value} = GQLRoots.${type.name.value}Root;`;
+
+    return out;
 }
 
 function genUnion(type: UnionTypeDefinitionNode) {

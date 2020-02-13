@@ -56,7 +56,20 @@ import {
     ChatPowerup,
     Powerup,
     UserStripeCard,
-    PermissionRequest, Payment, Wallet, WalletTransaction, WalletTransactionCreateShape, WalletBalanceChanged, WalletTransactionSuccess, WalletTransactionCanceled, WalletTransactionPending, PaymentStatusChanged, WalletSubscription, PremiumChatSettings, WalletSubscriptionCreateShape
+    PermissionRequest,
+    Payment,
+    Wallet,
+    WalletTransaction,
+    WalletTransactionCreateShape,
+    WalletBalanceChanged,
+    WalletTransactionSuccess,
+    WalletTransactionCanceled,
+    WalletTransactionPending,
+    PaymentStatusChanged,
+    WalletSubscription,
+    PremiumChatSettings,
+    WalletSubscriptionCreateShape,
+    SuperAdmin
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -87,6 +100,38 @@ export namespace GQLRoots {
     //
     //  Basic
     //
+    import DebugEmailTypeValues = GQL.DebugEmailTypeValues;
+    import PaymentStatusValues = GQL.PaymentStatusValues;
+    import WalletTransactionStatusValues = GQL.WalletTransactionStatusValues;
+    import WalletSubscriptionStateValues = GQL.WalletSubscriptionStateValues;
+    import WalletSubscriptionIntervalValues = GQL.WalletSubscriptionIntervalValues;
+    import SuperNotificationTypeValues = GQL.SuperNotificationTypeValues;
+    import DialogKindValues = GQL.DialogKindValues;
+    import NotificationPreviewValues = GQL.NotificationPreviewValues;
+    import OauthScopeValues = GQL.OauthScopeValues;
+    import OrganizationMemberRoleValues = GQL.OrganizationMemberRoleValues;
+    import PlatformValues = GQL.PlatformValues;
+    import SuperAdminRoleValues = GQL.SuperAdminRoleValues;
+    import EventPlatformValues = GQL.EventPlatformValues;
+    import TaskStatusValues = GQL.TaskStatusValues;
+    import MediaStreamStateValues = GQL.MediaStreamStateValues;
+    import ConferencePeerConnectionStateValues = GQL.ConferencePeerConnectionStateValues;
+    import MessageButtonStyleValues = GQL.MessageButtonStyleValues;
+    import MessageTypeValues = GQL.MessageTypeValues;
+    import PostMessageTypeValues = GQL.PostMessageTypeValues;
+    import PushTypeValues = GQL.PushTypeValues;
+    import MatchmakingQuestionTypeValues = GQL.MatchmakingQuestionTypeValues;
+    import SlideTypeValues = GQL.SlideTypeValues;
+    import SlideCoverAlignValues = GQL.SlideCoverAlignValues;
+    import FeedChannelSubscriberRoleValues = GQL.FeedChannelSubscriberRoleValues;
+    import GlobalSearchEntryKindValues = GQL.GlobalSearchEntryKindValues;
+    import SharedMediaTypeValues = GQL.SharedMediaTypeValues;
+    import ModernMessageButtonStyleValues = GQL.ModernMessageButtonStyleValues;
+    import MessageReactionTypeValues = GQL.MessageReactionTypeValues;
+    import MessageSpanTypeValues = GQL.MessageSpanTypeValues;
+    import SharedRoomKindValues = GQL.SharedRoomKindValues;
+    import SharedRoomMembershipStatusValues = GQL.SharedRoomMembershipStatusValues;
+    import RoomMemberRoleValues = GQL.RoomMemberRoleValues;
     export type MutationRoot = any;
     export type QueryRoot = any;
     export type SubscriptionRoot = any;
@@ -118,6 +163,9 @@ export namespace GQLRoots {
     export type FeedChannelSubscriberRoot = { user: User, channelId: number };
     export type FeedChannelSubscriberEdgeRoot = { node: FeedChannelSubscriberRoot, cursor: string };
     export type FeedChannelSubscriberConnectionRoot = { edges: FeedChannelSubscriberEdgeRoot[], pageInfo: PageInfoRoot };
+    export type SlideTypeRoot = SlideTypeValues;
+    export type SlideCoverAlignRoot = SlideCoverAlignValues;
+    export type FeedChannelSubscriberRoleRoot = FeedChannelSubscriberRoleValues;
 
     //
     // Calls
@@ -130,6 +178,8 @@ export namespace GQLRoots {
     export type ConferenceJoinResultRoot = { peerId: string, conference: ConferenceRoot };
     export type ConferenceRoot = ConferenceRoom;
     export type ConferenceMediaRoot = { id: number, peerId: number };
+    export type MediaStreamStateRoot = MediaStreamStateValues;
+    export type ConferencePeerConnectionStateRoot = ConferencePeerConnectionStateValues;
 
     //
     // Dialogs Updates
@@ -189,6 +239,7 @@ export namespace GQLRoots {
     export type InviteHistotyInfoRoot = any;
     export type ReactionRoot = any;
     export type DialogRoot = { cid: number };
+    export type DialogKindRoot = DialogKindValues;
     export type DialogsConnectionRoot = any;
 
     //
@@ -209,12 +260,16 @@ export namespace GQLRoots {
     export type NotificationCommentsRoot = 'all' | 'direct' | 'none';
     export type NotificationsDelayRoot = 'none' | '1min' | '15min';
     export type CommentsNotificationDeliveryRoot = 'all' | 'none';
+    export type NotificationPreviewRoot = NotificationPreviewValues;
 
+    export type OrganizationMemberRoleRoot = OrganizationMemberRoleValues;
     export type OrganizationMemberRoot = any;
     export type OrganizationIvitedMemberRoot = any;
     export type OrganizationJoinedMemberRoot = any;
     export type SuperAccountRoot = Organization;
-    export type SuperAdminRoot = any;
+    export type SuperAccountStateRoot = 'pending' | 'activated' | 'suspended' | 'deleted';
+    export type SuperAdminRoot = SuperAdmin;
+    export type SuperAdminRoleRoot = SuperAdminRoleValues;
     export type PageInfoRoot = any;
     export type TaskRoot = any;
     export type ImageCropRoot = any;
@@ -229,9 +284,20 @@ export namespace GQLRoots {
     export type OrganizationProfileRoot = any;
     export type PermissionsRoot = { roles: string[] };
     export type ProfilePrefillRoot = GQL.ProfilePrefill;
+
+    //
+    // Push
+    //
     export type PushSettingsRoot = any;
+    export type PushTypeRoot = PushTypeValues;
+
     export type SessionStateRoot = any;
+    //
+    // Typings
+    //
     export type TypingEventRoot = any;
+    export type TypingTypeRoot = 'text' | 'photo' | 'file' | 'video' | 'sticker';
+
     export type UserRoot = User | UserProfile | number | UserFullRoot;
     export type UserEdgeRoot = any;
     export type UserConnectionRoot = any;
@@ -256,6 +322,9 @@ export namespace GQLRoots {
     export type RoomSuperRoot = any;
     export type MessageAttachmentRoot = GQL.MessageAttachment;
     export type MessageButtonRoot = GQL.MessageButton;
+    export type MessageButtonStyleRoot = MessageButtonStyleValues;
+    export type MessageTypeRoot = MessageTypeValues;
+    export type PostMessageTypeRoot = PostMessageTypeValues;
     export type MentionRoot = any;
     export type UserMentionRoot = MessageMention;
     export type SharedRoomMentionRoot = MessageMention;
@@ -314,6 +383,13 @@ export namespace GQLRoots {
     export type MentionPeerRoot = UserProfile | ConversationRoom | Organization;
     export type MessageWithMentionRoot = FeedEvent | Message;
     export type SharedMediaCountersRoot = GQL.SharedMediaCounters;
+    export type SharedMediaTypeRoot = SharedMediaTypeValues;
+    export type ModernMessageButtonStyleRoot = ModernMessageButtonStyleValues;
+    export type MessageReactionTypeRoot = MessageReactionTypeValues;
+    export type MessageSpanTypeRoot = MessageSpanTypeValues;
+    export type SharedRoomKindRoot = SharedRoomKindValues;
+    export type SharedRoomMembershipStatusRoot = SharedRoomMembershipStatusValues;
+    export type RoomMemberRoleRoot = RoomMemberRoleValues;
 
     //
     //  Chat updates
@@ -355,6 +431,7 @@ export namespace GQLRoots {
     export type MessageConnectionRoot = { edges: MessageEdgeRoot[], pageInfo: PageInfoRoot };
     export type MessageWithChatRoot = { message: Message, chat: RoomRoot };
     export type GlobalSearchConnectionRoot = { globalItems: GlobalSearchEntryRoot[], localItems: User[], cursor?: string };
+    export type GlobalSearchEntryKindRoot = GlobalSearchEntryKindValues;
 
     //
     //  Debug
@@ -363,6 +440,8 @@ export namespace GQLRoots {
     export type DebugUserPresenceRoot = Presence;
     export type EnvVarRoot = EnvironmentVariable;
     export type OrganizationChatStatsRoot = any;
+    export type DebugEmailTypeRoot = DebugEmailTypeValues;
+    export type SuperNotificationTypeRoot = SuperNotificationTypeValues;
 
     //
     //  Comments
@@ -380,6 +459,7 @@ export namespace GQLRoots {
     export type CommentSubscriptionRoot = CommentsSubscription;
     export type CommentPeerRootMessageRoot = Message;
     export type CommentPeerRootFeedItemRoot = FeedEvent;
+    export type CommentSubscriptionTypeRoot = 'all' | 'direct';
 
     export type CommentGlobalUpdateContainerRoot = LiveStreamItem<CommentEventGlobal>;
     export type CommentGlobalUpdateSingleRoot = LiveStreamItem<CommentEventGlobal>;
@@ -401,6 +481,7 @@ export namespace GQLRoots {
     export type OnlineEventRoot = any;
     export type ChatOnlineEventRoot = any;
     export type IsAppInstalledResponseRoot = { installed: boolean, installedAt?: string };
+    export type PlatformRoot = PlatformValues;
 
     //
     // Stats
@@ -452,6 +533,7 @@ export namespace GQLRoots {
     export type MultiselectMatchmakingQuestionRoot = { type: 'multiselect', id: string, title: string, subtitle?: string | null, tags: string[] };
     export type MatchmakingQuestionRoot = TextMatchmakingQuestionRoot | MultiselectMatchmakingQuestionRoot;
     export type MatchmakingPeerRoot = ConversationRoom | Conversation;
+    export type MatchmakingQuestionTypeRoot = MatchmakingQuestionTypeValues;
 
     //
     //  Shortnames
@@ -463,6 +545,7 @@ export namespace GQLRoots {
     //
     export type OauthAppRoot = OauthApplication;
     export type OauthContextRoot = OauthContext;
+    export type OauthScopeRoot = OauthScopeValues;
 
     //
     // Geo location
@@ -510,9 +593,24 @@ export namespace GQLRoots {
     export type WalletSubscriptionProductGroupRoot = WalletSubscriptionCreateShape['proudct'];
     export type WalletSubscriptionProductDonationRoot = WalletSubscriptionCreateShape['proudct'];
 
+    export type PaymentStatusRoot = PaymentStatusValues;
+    export type WalletTransactionStatusRoot = WalletTransactionStatusValues;
+    export type WalletSubscriptionStateRoot = WalletSubscriptionStateValues;
+    export type WalletSubscriptionIntervalRoot = WalletSubscriptionIntervalValues;
+
     //
     // Permissions
     //
     export type PermissionRequestRoot = PermissionRequest;
     export type PermissionGroupRoot = PermissionGroup;
+    export type PermissionScopeRoot = 'group' | 'chat';
+    export type PermissionAppTypeRoot = 'powerup';
+
+    //
+    // Log
+    //
+    export type EventPlatformRoot = EventPlatformValues;
+
+    export type TaskStatusRoot = TaskStatusValues;
+
 }

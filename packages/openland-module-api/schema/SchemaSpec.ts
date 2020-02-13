@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'bc4158ccecb0399ed89edd85381da6d4';
+export const GQL_SPEC_VERSION = 'df5cb33af99f49e9d440e9d1417f8240';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -528,6 +528,7 @@ export namespace GQL {
     }
     export interface PaymentIntentIdArgs { }
     export interface PaymentIntentClientSecretArgs { }
+    export type PaymentStatusValues = 'PENDING' | 'CANCELED' | 'FAILING' | 'ACTION_REQUIRED' | 'SUCCESS';
     export type PaymentStatus = GQLRoots.PaymentStatusRoot;
     export interface Payment {
         id: string;
@@ -555,6 +556,7 @@ export namespace GQL {
     export interface WalletTransactionDateArgs { }
     export interface WalletTransactionStatusArgs { }
     export interface WalletTransactionOperationArgs { }
+    export type WalletTransactionStatusValues = 'PENDING' | 'CANCELING' | 'CANCELED' | 'SUCCESS';
     export type WalletTransactionStatus = GQLRoots.WalletTransactionStatusRoot;
     export interface WalletTransactionDeposit {
         amount: number;
@@ -605,7 +607,9 @@ export namespace GQL {
     export interface WalletSubscriptionIntervalArgs { }
     export interface WalletSubscriptionProductArgs { }
     export interface WalletSubscriptionExpiresArgs { }
+    export type WalletSubscriptionStateValues = 'STARTED' | 'GRACE_PERIOD' | 'RETRYING' | 'CANCELED' | 'EXPIRED';
     export type WalletSubscriptionState = GQLRoots.WalletSubscriptionStateRoot;
+    export type WalletSubscriptionIntervalValues = 'MONTH' | 'WEEK';
     export type WalletSubscriptionInterval = GQLRoots.WalletSubscriptionIntervalRoot;
     export interface WalletSubscriptionProductGroup {
         group: SharedRoom;
@@ -755,6 +759,7 @@ export namespace GQL {
     export interface MessageTextArgs { }
     export interface MessageQuotedArgs { }
     export interface MessageAlphaReactionsArgs { }
+    export type DebugEmailTypeValues = 'WELCOME' | 'ACCOUNT_ACTIVATED' | 'ACCOUNT_DEACTIVATED' | 'MEMBER_REMOVED' | 'MEMBERSHIP_LEVEL_CHANGED' | 'INVITE' | 'MEMBER_JOINED' | 'SIGNUP_CODE' | 'SIGIN_CODE' | 'UNREAD_MESSAGE' | 'UNREAD_MESSAGES' | 'PUBLIC_ROOM_INVITE' | 'PRIVATE_ROOM_INVITE' | 'ROOM_INVITE_ACCEPTED' | 'WEEKLY_DIGEST';
     export type DebugEmailType = GQLRoots.DebugEmailTypeRoot;
     export interface DebugID {
         numberID: Nullable<number>;
@@ -826,7 +831,9 @@ export namespace GQL {
     export interface DebugGlobalCountersUnreadMessagesWithoutMutedArgs { }
     export interface DebugGlobalCountersAllUnreadChatsArgs { }
     export interface DebugGlobalCountersUnreadChatsWithoutMutedArgs { }
+    export type SuperNotificationTypeValues = 'ON_SIGN_UP' | 'ON_USER_PROFILE_CREATED' | 'ON_ORG_ACTIVATED_BY_ADMIN' | 'ON_ORG_ACTIVATED_VIA_INVITE' | 'ON_ORG_SUSPEND';
     export type SuperNotificationType = GQLRoots.SuperNotificationTypeRoot;
+    export type DialogKindValues = 'PRIVATE' | 'INTERNAL' | 'PUBLIC' | 'GROUP';
     export type DialogKind = GQLRoots.DialogKindRoot;
     export interface Dialog {
         id: string;
@@ -862,11 +869,17 @@ export namespace GQL {
     }
     export interface DialogsConnectionItemsArgs { }
     export interface DialogsConnectionCursorArgs { }
+    export type EmailFrequencyValues = 'NEVER' | 'MIN_15' | 'HOUR_1' | 'HOUR_24' | 'WEEK_1';
     export type EmailFrequency = GQLRoots.EmailFrequencyRoot;
+    export type NotificationMessagesValues = 'ALL' | 'DIRECT' | 'NONE';
     export type NotificationMessages = GQLRoots.NotificationMessagesRoot;
+    export type NotificationCommentsValues = 'ALL' | 'DIRECT' | 'NONE';
     export type NotificationComments = GQLRoots.NotificationCommentsRoot;
+    export type CommentsNotificationDeliveryValues = 'ALL' | 'NONE';
     export type CommentsNotificationDelivery = GQLRoots.CommentsNotificationDeliveryRoot;
+    export type NotificationsDelayValues = 'NONE' | 'MIN_1' | 'MIN_15';
     export type NotificationsDelay = GQLRoots.NotificationsDelayRoot;
+    export type NotificationPreviewValues = 'NAME_TEXT' | 'NAME';
     export type NotificationPreview = GQLRoots.NotificationPreviewRoot;
     export interface ChatTypeNotificationSettings {
         showNotification: boolean;
@@ -947,6 +960,7 @@ export namespace GQL {
     export interface SettingsMobileAlertArgs { }
     export interface SettingsMobileIncludeTextArgs { }
     export interface SettingsMuteArgs { }
+    export type OauthScopeValues = 'All' | 'Zapier';
     export type OauthScope = GQLRoots.OauthScopeRoot;
     export interface OauthApp {
         id: string;
@@ -982,6 +996,7 @@ export namespace GQL {
         redirectUrls: Nullable<string[]>;
         image: Nullable<ImageRefInput>;
     }
+    export type OrganizationMemberRoleValues = 'OWNER' | 'ADMIN' | 'MEMBER';
     export type OrganizationMemberRole = GQLRoots.OrganizationMemberRoleRoot;
     export interface OrganizationMember {
         email: string;
@@ -1030,7 +1045,9 @@ export namespace GQL {
         firstName: Nullable<string>;
         lastName: Nullable<string>;
     }
+    export type PermissionScopeValues = 'GLOBAL' | 'CHAT';
     export type PermissionScope = GQLRoots.PermissionScopeRoot;
+    export type PermissionAppTypeValues = 'POWERUP';
     export type PermissionAppType = GQLRoots.PermissionAppTypeRoot;
     export interface PermissionGroup {
         id: string;
@@ -1056,6 +1073,7 @@ export namespace GQL {
     export interface PermissionRequestPowerupArgs { }
     export interface PermissionRequestScopeArgs { }
     export interface PermissionRequestChatArgs { }
+    export type PlatformValues = 'WEB' | 'IOS' | 'ANDROID';
     export type Platform = GQLRoots.PlatformRoot;
     export interface OnlineEvent {
         userId: string;
@@ -1083,6 +1101,7 @@ export namespace GQL {
     }
     export interface IsAppInstalledResponseInstalledArgs { }
     export interface IsAppInstalledResponseInstalledAtArgs { }
+    export type SuperAccountStateValues = 'PENDING' | 'ACTIVATED' | 'SUSPENDED' | 'DELETED';
     export type SuperAccountState = GQLRoots.SuperAccountStateRoot;
     export interface SuperAccount {
         id: string;
@@ -1106,6 +1125,7 @@ export namespace GQL {
     export interface SuperAccountAlphaPublishedArgs { }
     export interface SuperAccountCreatedAtArgs { }
     export interface SuperAccountCreatedByArgs { }
+    export type SuperAdminRoleValues = 'SUPER_ADMIN' | 'SOFTWARE_DEVELOPER' | 'EDITOR';
     export type SuperAdminRole = GQLRoots.SuperAdminRoleRoot;
     export interface SuperAdmin {
         user: User;
@@ -1124,6 +1144,7 @@ export namespace GQL {
         deviceModel: Nullable<string>;
         platform: Nullable<EventPlatform>;
     }
+    export type EventPlatformValues = 'Android' | 'iOS' | 'WEB' | 'MobileWeb';
     export type EventPlatform = GQLRoots.EventPlatformRoot;
     export interface PowerupInput {
         name: Nullable<string>;
@@ -1169,6 +1190,7 @@ export namespace GQL {
     export interface PageInfoPagesCountArgs { }
     export interface PageInfoCurrentPageArgs { }
     export interface PageInfoOpenEndedArgs { }
+    export type TaskStatusValues = 'IN_PROGRESS' | 'FAILED' | 'COMPLETED';
     export type TaskStatus = GQLRoots.TaskStatusRoot;
     export interface Task {
         id: string;
@@ -1381,6 +1403,7 @@ export namespace GQL {
         item: FeedItem;
     }
     export interface CommentPeerRootFeedItemItemArgs { }
+    export type CommentSubscriptionTypeValues = 'ALL' | 'DIRECT';
     export type CommentSubscriptionType = GQLRoots.CommentSubscriptionTypeRoot;
     export interface CommentSubscription {
         type: Nullable<CommentSubscriptionType>;
@@ -1627,6 +1650,7 @@ export namespace GQL {
     export interface ConferenceMediaIdArgs { }
     export interface ConferenceMediaStreamsArgs { }
     export interface ConferenceMediaIceServersArgs { }
+    export type MediaStreamStateValues = 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY';
     export type MediaStreamState = GQLRoots.MediaStreamStateRoot;
     export interface MediaStream {
         id: string;
@@ -1640,6 +1664,7 @@ export namespace GQL {
     export interface MediaStreamStateArgs { }
     export interface MediaStreamSdpArgs { }
     export interface MediaStreamIceArgs { }
+    export type ConferencePeerConnectionStateValues = 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY';
     export type ConferencePeerConnectionState = GQLRoots.ConferencePeerConnectionStateRoot;
     export interface ConferencePeerConnection {
         state: ConferencePeerConnectionState;
@@ -1708,6 +1733,7 @@ export namespace GQL {
     export interface MessageAttachmentFileIdArgs { }
     export interface MessageAttachmentFileMetadataArgs { }
     export interface MessageAttachmentFilePreviewArgs { }
+    export type MessageButtonStyleValues = 'DEFAULT' | 'LIGHT';
     export type MessageButtonStyle = GQLRoots.MessageButtonStyleRoot;
     export interface MessageButton {
         title: string;
@@ -1722,7 +1748,9 @@ export namespace GQL {
         style: MessageButtonStyle;
         id: string;
     }
+    export type MessageTypeValues = 'MESSAGE' | 'POST';
     export type MessageType = GQLRoots.MessageTypeRoot;
+    export type PostMessageTypeValues = 'BLANK' | 'JOB_OPPORTUNITY' | 'OFFICE_HOURS' | 'REQUEST_FOR_STARTUPS';
     export type PostMessageType = GQLRoots.PostMessageTypeRoot;
     export interface Mutation {
         lifecheck: Nullable<string>;
@@ -3378,6 +3406,7 @@ export namespace GQL {
         webPushKey: Nullable<string>;
     }
     export interface PushSettingsWebPushKeyArgs { }
+    export type PushTypeValues = 'WEB_PUSH' | 'IOS' | 'ANDROID' | 'SAFARI';
     export type PushType = GQLRoots.PushTypeRoot;
     export interface Query {
         lifecheck: Nullable<string>;
@@ -4151,6 +4180,7 @@ export namespace GQL {
     export interface MatchmakingRoomProfilesArgs { }
     export interface MatchmakingRoomMyProfileArgs { }
     export interface MatchmakingRoomPeerArgs { }
+    export type MatchmakingQuestionTypeValues = 'Text' | 'Multiselect';
     export type MatchmakingQuestionType = GQLRoots.MatchmakingQuestionTypeRoot;
     export interface MatchmakingQuestionInput {
         id: Nullable<string>;
@@ -4189,6 +4219,7 @@ export namespace GQL {
     export interface TypingEventUserArgs { }
     export interface TypingEventTypeArgs { }
     export interface TypingEventCancelArgs { }
+    export type TypingTypeValues = 'TEXT' | 'PHOTO' | 'FILE' | 'STICKER' | 'VIDEO';
     export type TypingType = GQLRoots.TypingTypeRoot;
     export interface User {
         id: string;
@@ -4359,7 +4390,9 @@ export namespace GQL {
     export interface TextSlideCoverArgs { }
     export interface TextSlideCoverAlignArgs { }
     export interface TextSlideAttachmentsArgs { }
+    export type SlideTypeValues = 'Text';
     export type SlideType = GQLRoots.SlideTypeRoot;
+    export type SlideCoverAlignValues = 'Top' | 'Bottom' | 'Cover';
     export type SlideCoverAlign = GQLRoots.SlideCoverAlignRoot;
     export interface SlideInput {
         type: SlideType;
@@ -4415,6 +4448,7 @@ export namespace GQL {
     export interface FeedChannelSearchConnectionEdgesArgs { }
     export interface FeedChannelSearchConnectionPageInfoArgs { }
     export type FeedSubscription = FeedChannel;
+    export type FeedChannelSubscriberRoleValues = 'Creator' | 'Editor' | 'Subscriber' | 'None';
     export type FeedChannelSubscriberRole = GQLRoots.FeedChannelSubscriberRoleRoot;
     export interface FeedChannelAdmin {
         user: User;
@@ -4449,6 +4483,7 @@ export namespace GQL {
     export interface FeedChannelSubscriberConnectionEdgesArgs { }
     export interface FeedChannelSubscriberConnectionPageInfoArgs { }
     export type GlobalSearchEntry = Organization | User | SharedRoom;
+    export type GlobalSearchEntryKindValues = 'ORGANIZATION' | 'USER' | 'SHAREDROOM';
     export type GlobalSearchEntryKind = GQLRoots.GlobalSearchEntryKindRoot;
     export interface MessageWithChat {
         message: ModernMessage;
@@ -4609,6 +4644,7 @@ export namespace GQL {
     export interface GammaMessagesBatchMessagesArgs { }
     export interface GammaMessagesBatchHaveMoreForwardArgs { }
     export interface GammaMessagesBatchHaveMoreBackwardArgs { }
+    export type SharedMediaTypeValues = 'LINK' | 'IMAGE' | 'DOCUMENT' | 'VIDEO';
     export type SharedMediaType = GQLRoots.SharedMediaTypeRoot;
     export interface SharedMediaCounters {
         links: number;
@@ -4705,6 +4741,7 @@ export namespace GQL {
     export interface ModernMessageButtonTitleArgs { }
     export interface ModernMessageButtonStyleArgs { }
     export interface ModernMessageButtonUrlArgs { }
+    export type ModernMessageButtonStyleValues = 'DEFAULT' | 'LIGHT';
     export type ModernMessageButtonStyle = GQLRoots.ModernMessageButtonStyleRoot;
     export interface MessageKeyboardInput {
         buttons: Nullable<ModernMessageButtonInput[]>[];
@@ -4714,6 +4751,7 @@ export namespace GQL {
         title: string;
         style: ModernMessageButtonStyle;
     }
+    export type MessageReactionTypeValues = 'LIKE' | 'THUMB_UP' | 'JOY' | 'SCREAM' | 'CRYING' | 'ANGRY';
     export type MessageReactionType = GQLRoots.MessageReactionTypeRoot;
     export interface ModernMessageReaction {
         user: User;
@@ -4839,6 +4877,7 @@ export namespace GQL {
     }
     export interface MessageSpanAllMentionOffsetArgs { }
     export interface MessageSpanAllMentionLengthArgs { }
+    export type MessageSpanTypeValues = 'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock' | 'Insane' | 'Loud' | 'Rotating' | 'Link';
     export type MessageSpanType = GQLRoots.MessageSpanTypeRoot;
     export interface MessageSpanInput {
         offset: number;
@@ -4859,8 +4898,11 @@ export namespace GQL {
     export interface PrivateRoomSettingsArgs { }
     export interface PrivateRoomPinnedMessageArgs { }
     export interface PrivateRoomMyBadgeArgs { }
+    export type SharedRoomKindValues = 'INTERNAL' | 'PUBLIC' | 'GROUP';
     export type SharedRoomKind = GQLRoots.SharedRoomKindRoot;
+    export type SharedRoomMembershipStatusValues = 'MEMBER' | 'REQUESTED' | 'LEFT' | 'KICKED' | 'NONE';
     export type SharedRoomMembershipStatus = GQLRoots.SharedRoomMembershipStatusRoot;
+    export type RoomMemberRoleValues = 'OWNER' | 'ADMIN' | 'MEMBER';
     export type RoomMemberRole = GQLRoots.RoomMemberRoleRoot;
     export interface WelcomeMessage {
         isOn: boolean;
