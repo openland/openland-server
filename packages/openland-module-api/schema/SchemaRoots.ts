@@ -190,6 +190,10 @@ export namespace GQLRoots {
     export type ReactionRoot = any;
     export type DialogRoot = { cid: number };
     export type DialogsConnectionRoot = any;
+
+    //
+    // Settings
+    //
     export type SettingsRoot = UserSettings;
     export type ChatTypeNotificationSettingsRoot = { showNotification: boolean, sound: boolean };
     export type PlatformNotificationSettingsRoot = {
@@ -200,6 +204,12 @@ export namespace GQLRoots {
         comments: ChatTypeNotificationSettingsRoot,
         notificationPreview: 'name_text' | 'name',
     };
+    export type EmailFrequencyRoot = 'never' | '15min' | '1hour' | '24hour' | '1week';
+    export type NotificationMessagesRoot = 'all' | 'direct' | 'none';
+    export type NotificationCommentsRoot = 'all' | 'direct' | 'none';
+    export type NotificationsDelayRoot = 'none' | '1min' | '15min';
+    export type CommentsNotificationDeliveryRoot = 'all' | 'none';
+
     export type OrganizationMemberRoot = any;
     export type OrganizationIvitedMemberRoot = any;
     export type OrganizationJoinedMemberRoot = any;
