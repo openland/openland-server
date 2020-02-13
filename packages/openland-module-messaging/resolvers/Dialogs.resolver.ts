@@ -7,7 +7,7 @@ import { AuthContext } from 'openland-module-auth/AuthContext';
 import { AppContext } from 'openland-modules/AppContext';
 import { encoders } from '@openland/foundationdb';
 
-export default {
+export const Resolver: GQLResolver = {
     Dialog: {
         id: (src: { cid: number }) => IDs.Dialog.serialize(src.cid),
         cid: (src: { cid: number }) => IDs.Conversation.serialize(src.cid),
@@ -108,4 +108,4 @@ export default {
             }
         })
     }
-} as GQLResolver;
+};
