@@ -115,7 +115,7 @@ export const Resolver: GQLResolver = {
             if (!haveAccess) {
                 return {
                     items: [],
-                    cursor: ''
+                    cursor: null
                 };
             }
 
@@ -145,7 +145,7 @@ export const Resolver: GQLResolver = {
 
             return {
                 items: roomsFull.filter(isDefined).map(r => r!.room),
-                cursor: haveMore ? IDs.Conversation.serialize(roomsFull[roomsFull.length - 1]!.room.id) : ''
+                cursor: haveMore ? IDs.Conversation.serialize(roomsFull[roomsFull.length - 1]!.room.id) : null
             };
         })
     }
