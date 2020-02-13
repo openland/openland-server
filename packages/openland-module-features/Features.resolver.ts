@@ -5,7 +5,7 @@ import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 
-export default {
+export const Resolver: GQLResolver = {
     FeatureFlag: {
         id: (src: FeatureFlag) => src.key /* TODO: FIXME */,
         title: (src: FeatureFlag) => src.title,
@@ -37,4 +37,4 @@ export default {
             return org;
         }),
     }
-} as GQLResolver;
+};
