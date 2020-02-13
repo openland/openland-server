@@ -13,6 +13,7 @@ import { AuthContext } from 'openland-module-auth/AuthContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { Context } from '@openland/context';
 import { NotFoundError } from '../openland-errors/NotFoundError';
+import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
 async function resolveOrgInvite(ctx: Context, key: string) {
     let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(ctx, key);
@@ -49,7 +50,7 @@ async function resolveOrgInvite(ctx: Context, key: string) {
     };
 }
 
-export default {
+export const Resolver: GQLResolver = {
     InviteInfo: {
         id: src => src.id,
         key: src => src.key,
@@ -171,7 +172,7 @@ export default {
         joinAppInvite: withAny(async (ctx, args) => {
             let uid = AuthContext.get(ctx).uid;
             if (uid === undefined) {
-                return;
+                throw new AccessDeniedError();
             }
             return await Modules.Invites.joinAppInvite(ctx, uid, args.key, (args.isNewUser !== null && args.isNewUser !== undefined) ? args.isNewUser : false);
         }),
@@ -197,4 +198,4 @@ export default {
             return 'deprecated';
         })
     }
-} as GQLResolver;
+};
