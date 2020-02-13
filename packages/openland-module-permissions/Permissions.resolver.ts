@@ -4,7 +4,7 @@ import { Modules } from '../openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
 import { AuthContext } from '../openland-module-auth/AuthContext';
 
-export default {
+export const Resolver: GQLResolver = {
     PermissionGroup: {
       id: root => IDs.PermissionGroup.serialize(root.id),
         description: root => root.description,
@@ -15,7 +15,7 @@ export default {
         }
     },
     Query: {
-        permissionGroups: withPermission('super-admin', (ctx) => {
+        permissionGroups: withPermission('super-admin', async (ctx) => {
             return Modules.Permissions.getPermissionGroups(ctx);
         }),
         waitingPermissionRequests: withPermission('super-admin', (ctx) => {
@@ -23,4 +23,4 @@ export default {
             return Modules.Permissions.getWaitingPermissions(ctx, auth.uid!);
         })
     }
-} as GQLResolver;
+};
