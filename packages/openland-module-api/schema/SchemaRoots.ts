@@ -355,7 +355,7 @@ export namespace GQLRoots {
     export type StickerMessageRoot = Message | Comment;
     export type ServiceMessageRoot = Message;
     export type MessageSpanRoot = MessageSpan;
-    export type MessageKeyboardRoot = { buttons: MessageButton & { id: string } };
+    export type MessageKeyboardRoot = { buttons: (MessageButton & { id: string })[][] };
     export type ModernMessageButtonRoot = any;
     export type ModernMessageReactionRoot = { userId: number, reaction: string };
     export type MessageSpanUserMentionRoot = UserMentionSpan;
@@ -373,7 +373,7 @@ export namespace GQLRoots {
     export type MessageSpanRotatingRoot = RotatingTextSpan;
     export type MessageSpanDateRoot = DateTextSpan;
     export type MessageSpanAllMentionRoot = DateTextSpan;
-    export type ModernMessageAttachmentRoot = { attachment: MessageAttachment, message: Message | RichMessage };
+    export type ModernMessageAttachmentRoot = { attachment: MessageAttachment, message: Message | RichMessage | Comment };
     export type MessageAttachmentFileRoot = { attachment: MessageAttachmentFile, message: Message };
     export type MessageAttachmentPostRoot = any;
     export type MessageRichAttachmentRoot = { attachment: MessageRichAttachment, message: Message };
