@@ -31,7 +31,6 @@ const resolveOrganizationRooms = async (src: Organization, args: {}, ctx: AppCon
         .map(r => r!.room);
 };
 
-// @ts-ignore
 export const Resolver: GQLResolver = {
     Organization: {
         id: (src: Organization) => IDs.Organization.serialize(src.id),

@@ -7,7 +7,7 @@ import { IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
-export default {
+export const Resolver: GQLResolver = {
     Mutation: {
         alphaAlterPublished: withPermission(['super-admin', 'editor'], async (parent, args) => {
             return await inTx(parent, async (ctx) => {
@@ -25,4 +25,4 @@ export default {
             });
         }),
     }
-} as GQLResolver;
+};
