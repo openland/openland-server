@@ -11,8 +11,10 @@ import { CommentSpan } from '../repositories/CommentsRepository';
 import { FeedEvent, Message } from '../../openland-module-db/store';
 import { resolveRichMessageCreation } from '../../openland-module-rich-message/resolvers/resolveRichMessageCreation';
 import { UserError } from '../../openland-errors/UserError';
+import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
+import CommentSubscriptionTypeRoot = GQLRoots.CommentSubscriptionTypeRoot;
 
-export default {
+export const Resolver: GQLResolver = {
     CommentsPeer: {
         id: src => {
             if (src.peerType === 'message') {
@@ -25,15 +27,15 @@ export default {
         },
         state: async (src, args, ctx) => {
             let tail = await Store.CommentEvent.user.stream(src.peerType, src.peerId).tail(ctx);
-            return { state: tail };
+            return { state: tail || '' };
         },
         count: src => src.comments.length,
         comments: src => src.comments,
         peerRoot: async (src, args, ctx) => {
             if (src.peerType === 'message') {
-                return await Store.Message.findById(ctx, src.peerId);
+                return (await Store.Message.findById(ctx, src.peerId))!;
             }  else if (src.peerType === 'feed_item') {
-                return await Store.FeedEvent.findById(ctx, src.peerId);
+                return (await Store.FeedEvent.findById(ctx, src.peerId))!;
             } else {
                 throw new Error('Unknown comments peer type: ' + src.peerType);
             }
@@ -51,7 +53,7 @@ export default {
         deleted: src => src.deleted !== null ? src.deleted : false,
         comment: src => src,
         betaComment: src => src,
-        parentComment: (src, args, ctx) => src.parentCommentId && Store.Comment.findById(ctx, src.parentCommentId!),
+        parentComment: async (src, args, ctx) => src.parentCommentId ? (await Store.Comment.findById(ctx, src.parentCommentId!))! : null,
         childComments: async (src, args, ctx) => (await Store.Comment.child.findAll(ctx, src.id)).filter(c => c.visible)
     },
     CommentPeerRoot: {
@@ -73,7 +75,7 @@ export default {
         item: async (src, args, ctx) => src
     },
     CommentSubscription: {
-        type: src => src.kind.toUpperCase()
+        type: src => src.kind.toUpperCase() as CommentSubscriptionTypeRoot
     },
 
     Mutation: {
@@ -499,4 +501,4 @@ export default {
             };
         }),
     },
-} as GQLResolver;
+};

@@ -460,7 +460,7 @@ export namespace GQLRoots {
     export type CommentReceivedRoot = CommentEvent;
     export type CommentUpdatedRoot = CommentEvent;
     export type CommentUpdatesStateRoot = { state: string };
-    export type CommentPeerRootRoot = Message;
+    export type CommentPeerRootRoot = Message | FeedEvent;
     export type CommentSubscriptionRoot = CommentsSubscription;
     export type CommentPeerRootMessageRoot = Message;
     export type CommentPeerRootFeedItemRoot = FeedEvent;
