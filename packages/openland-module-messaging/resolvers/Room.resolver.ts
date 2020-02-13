@@ -1,6 +1,4 @@
 import {
-    ChannelInvitation,
-    ChannelLink,
     UserDialogSettings,
     Conversation,
     RoomProfile,
@@ -39,11 +37,17 @@ import { MessageMention } from '../MessageInput';
 import { MaybePromise } from '../../openland-module-api/schema/SchemaUtils';
 import { buildElasticQuery, QueryParser } from '../../openland-utils/QueryParser';
 import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
+import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
+import SharedRoomRoot = GQLRoots.SharedRoomRoot;
+import RoomMemberRoleRoot = GQLRoots.RoomMemberRoleRoot;
+import { isDefined } from '../../openland-utils/misc';
+import MessageTypeRoot = GQLRoots.MessageTypeRoot;
+import PostMessageTypeRoot = GQLRoots.PostMessageTypeRoot;
 
 type RoomRoot = Conversation | number;
 
 function withConverationId<T, R>(handler: (ctx: AppContext, src: number, args: T, showPlaceholder: boolean) => MaybePromise<R>) {
-    return async (src: RoomRoot, args: T, ctx: AppContext) => {
+    return async (src: SharedRoomRoot, args: T, ctx: AppContext) => {
         if (typeof src === 'number') {
             let showPlaceholder = ctx.auth!.uid ? await Modules.Messaging.room.userWasKickedFromRoom(ctx, ctx.auth!.uid!, src) : false;
             return handler(ctx, src, args, showPlaceholder);
@@ -55,7 +59,7 @@ function withConverationId<T, R>(handler: (ctx: AppContext, src: number, args: T
 }
 
 function withRoomProfile(handler: (ctx: AppContext, src: RoomProfile | null, showPlaceholder: boolean) => any) {
-    return async (src: RoomRoot, args: {}, ctx: AppContext) => {
+    return async (src: SharedRoomRoot, args: {}, ctx: AppContext) => {
         if (typeof src === 'number') {
             let showPlaceholder = ctx.auth!.uid ? await Modules.Messaging.room.userWasKickedFromRoom(ctx, ctx.auth!.uid!, src) : false;
             return handler(ctx, (await Store.RoomProfile.findById(ctx, src)), showPlaceholder);
@@ -66,7 +70,7 @@ function withRoomProfile(handler: (ctx: AppContext, src: RoomProfile | null, sho
     };
 }
 
-export default {
+export const Resolver: GQLResolver = {
     Room: {
         __resolveType: async (src: Conversation | number, ctx: AppContext) => {
             let conv: Conversation;
@@ -116,7 +120,7 @@ export default {
         NONE: 'none',
     },
     SharedRoom: {
-        id: (root: RoomRoot) => IDs.Conversation.serialize(typeof root === 'number' ? root : root.id),
+        id: (src) => IDs.Conversation.serialize(typeof src === 'number' ? src : src.id),
         kind: withConverationId(async (ctx, id) => {
             let room = (await Store.ConversationRoom.findById(ctx, id))!;
             // temp fix resolve openland internal chat
@@ -154,11 +158,11 @@ export default {
             if (!premiumChatSettings) {
                 return null;
             }
-            let interval: string;
+            let interval: 'month' | 'week';
             if (premiumChatSettings.interval === 'month') {
-                interval = 'MONTH';
+                interval = 'month';
             } else if (premiumChatSettings.interval === 'week') {
-                interval = 'WEEK';
+                interval = 'week';
             } else {
                 throw Error('Unknown subscription interval: ' + premiumChatSettings.interval);
             }
@@ -183,7 +187,7 @@ export default {
         pinnedMessage: withAuthFallback(withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? null : (profile && profile.pinnedMessage && Store.Message.findById(ctx, profile.pinnedMessage))), null),
 
         membership: withConverationId(async (ctx, id, args, showPlaceholder) => (showPlaceholder ? 'none' : (ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none')) as any),
-        role: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'MEMBER' : (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase()), 'MEMBER'),
+        role: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'MEMBER' : (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase() as RoomMemberRoleRoot), 'MEMBER'),
         membersCount: withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? 0 : (profile && profile.activeMembersCount) || 0),
         onlineMembersCount: withConverationId(async (ctx, id, args, showPlaceholder) => {
             if (showPlaceholder) {
@@ -232,8 +236,8 @@ export default {
 
             return (await Store.RoomParticipant.active.query(ctx, id, { limit: args.first || 1000 })).items;
         }), []),
-        requests: withAuthFallback(withConverationId(async (ctx, id) => ctx.auth.uid && await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)), []),
-        settings: withAuthFallback(async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)), {
+        requests: withAuthFallback(withConverationId(async (ctx, id) => ctx.auth.uid && (await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)) || []) , []),
+        settings: withAuthFallback(async (root, args, ctx) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)), {
             cid: 0,
             mute: true
         } as any),
@@ -251,12 +255,12 @@ export default {
         matchmaking: withAuthFallback(withConverationId(async (ctx, id) => await Modules.Matchmaking.getRoom(ctx, id, 'room')), null),
     },
     RoomMessage: {
-        id: (src: Message) => {
+        id: (src) => {
             return IDs.ConversationMessage.serialize(src.id);
         },
-        message: (src: Message) => src.text,
-        file: (src: Message) => src.fileId as any,
-        fileMetadata: (src: Message) => {
+        message: (src) => src.text,
+        file: (src) => src.fileId as any,
+        fileMetadata: (src) => {
             if (src.fileId && src.fileMetadata) {
                 return {
                     name: src.fileMetadata.name,
@@ -271,24 +275,24 @@ export default {
                 return null;
             }
         },
-        filePreview: (src: Message) => null,
-        sender: (src: Message, _: any, ctx: AppContext) => Store.User.findById(ctx, src.uid),
-        date: (src: Message) => src.metadata.createdAt,
-        repeatKey: (src: Message, args: any, ctx: AppContext) => src.uid === ctx.auth.uid ? src.repeatKey : null,
-        isService: (src: Message) => src.isService,
-        serviceMetadata: (src: Message) => {
+        filePreview: (src) => null,
+        sender: async (src, _, ctx) => (await Store.User.findById(ctx, src.uid))!,
+        date: (src) => src.metadata.createdAt,
+        repeatKey: (src, args, ctx) => src.uid === ctx.auth.uid ? src.repeatKey : null,
+        isService: (src) => src.isService,
+        serviceMetadata: (src) => {
             if (src.serviceMetadata && (src.serviceMetadata as any).type) {
                 return src.serviceMetadata;
             }
 
             return null;
         },
-        urlAugmentation: (src: Message) => src.augmentation || null,
-        edited: (src: Message) => (src.edited) || false,
-        reactions: (src: Message) => src.reactions || [],
-        replyMessages: async (src: Message, args: {}, ctx: AppContext) => {
+        urlAugmentation: (src) => src.augmentation || null,
+        edited: (src) => (src.edited) || false,
+        reactions: (src) => src.reactions || [],
+        replyMessages: async (src, args, ctx) => {
             if (src.replyMessages) {
-                let messages = await Promise.all((src.replyMessages as number[]).map(id => Store.Message.findById(ctx, id)));
+                let messages = (await Promise.all((src.replyMessages).map(id => Store.Message.findById(ctx, id)))).filter(isDefined);
                 let filtered = messages.filter(m => !!m);
                 if (filtered.length > 0) {
                     return filtered;
@@ -296,13 +300,17 @@ export default {
                 return null;
             }
             return null;
-            // return src.replyMessages ? (src.replyMessages as number[]).map(id => FDB.Message.findById(id)).filter(m => !!m) : [];
         },
-        plainText: async (src: Message) => null,
-        mentions: async (src: Message, args: {}, ctx: AppContext) => src.mentions ? (src.mentions as number[]).map(id => Store.User.findById(ctx, id)) : null,
+        plainText: async (src) => null,
+        mentions: async (src, args, ctx) => {
+            if (src.mentions) {
+                return (await Promise.all((src.mentions as number[]).map(uid => Store.User.findById(ctx, uid)))).filter(isDefined);
+            }
+            return [];
+        },
 
-        alphaAttachments: async (src: Message) => {
-            let attachments: { fileId: string, fileMetadata: any, filePreview?: string | null }[] = [];
+        alphaAttachments: async (src) => {
+            let attachments: { fileId: string, fileMetadata: any, filePreview: string | null }[] = [];
 
             if (src.fileId) {
                 attachments.push({
@@ -318,25 +326,25 @@ export default {
 
             return attachments;
         },
-        alphaButtons: async (src: Message) => src.buttons ? src.buttons : [],
-        alphaType: async (src: Message) => src.type ? src.type : 'MESSAGE',
-        alphaPostType: async (src: Message) => src.postType,
-        alphaTitle: async (src: Message) => src.title,
-        alphaMentions: async (src: Message) => src.complexMentions
+        alphaButtons: async (src) => src.buttons ? src.buttons : [],
+        alphaType: async (src) => (src.type ? src.type : 'MESSAGE') as MessageTypeRoot,
+        alphaPostType: async (src) => src.postType as PostMessageTypeRoot,
+        alphaTitle: async (src) => src.title,
+        alphaMentions: async (src) => src.complexMentions
     },
     RoomMember: {
-        user: async (src: RoomParticipant, args: {}, ctx: AppContext) => await Store.User.findById(ctx, src.uid),
-        role: async (src: RoomParticipant) => src.role.toUpperCase(),
-        membership: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.status as any,
-        invitedBy: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.invitedBy,
+        user: async (src, args, ctx) => (await Store.User.findById(ctx, src.uid))!,
+        role: async (src) => src.role.toUpperCase() as RoomMemberRoleRoot,
+        membership: async (src, args, ctx) => src.status,
+        invitedBy: async (src, args, ctx) => src.invitedBy,
         canKick: async (src, args, ctx) => await Modules.Messaging.room.canKickFromRoom(ctx, src.cid, ctx.auth.uid!, src.uid),
-        badge: (src: RoomParticipant, args: {}, ctx: AppContext) => Modules.Users.getUserBadge(ctx, src.uid, src.cid),
+        badge: (src, args, ctx) => Modules.Users.getUserBadge(ctx, src.uid, src.cid),
     },
 
     RoomInvite: {
-        id: (src: ChannelInvitation | ChannelLink) => src.id,
-        room: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => Store.Conversation.findById(ctx, src.channelId),
-        invitedByUser: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => Store.User.findById(ctx, src.creatorId)
+        id: src => src.id,
+        room: async (src, args, ctx) => (await Store.Conversation.findById(ctx, src.channelId))!,
+        invitedByUser: async (src, args, ctx) => (await Store.User.findById(ctx, src.creatorId))!
     },
 
     RoomUserNotificaionSettings: {
@@ -389,11 +397,11 @@ export default {
     },
 
     UserMention: {
-        user: (src, _, ctx) => Modules.Users.profileById(ctx, src.id)
+        user: async (src, _, ctx) => (await Modules.Users.profileById(ctx, src.id))!
     },
 
     SharedRoomMention: {
-        sharedRoom: (src, _, ctx) => Store.ConversationRoom.findById(ctx, src.id)
+        sharedRoom: async (src, _, ctx) => (await Store.ConversationRoom.findById(ctx, src.id))!
     },
 
     SharedRoomConnection: {
@@ -406,11 +414,11 @@ export default {
             let id = IdsFactory.resolve(args.id);
             if (id.type === IDs.Conversation) {
                 if (await Modules.Messaging.room.userWasKickedFromRoom(ctx, uid, id.id as number)) {
-                    return id.id;
+                    return id.id as number;
                 } else {
                     await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, id.id as number);
                 }
-                return id.id;
+                return id.id as number;
             } else if (id.type === IDs.User) {
                 return await Modules.Messaging.room.resolvePrivateChat(ctx, id.id as number, uid);
             } else if (id.type === IDs.Organization) {
@@ -418,22 +426,22 @@ export default {
                 if (!member || member.status !== 'joined') {
                     throw new IDMailformedError('Invalid id');
                 }
-                return Modules.Messaging.room.resolveOrganizationChat(ctx, id.id as number);
+                return await Modules.Messaging.room.resolveOrganizationChat(ctx, id.id as number);
             } else {
                 throw new IDMailformedError('Invalid id');
             }
         }),
         rooms: withAccount(async (ctx, args, uid, oid) => {
-            let res = [];
+            let res: RoomRoot[] = [];
             for (let idRaw of args.ids) {
                 let id = IdsFactory.resolve(idRaw);
                 if (id.type === IDs.Conversation) {
                     if (await Modules.Messaging.room.userWasKickedFromRoom(ctx, uid, id.id as number)) {
-                        res.push(id.id);
+                        res.push(id.id as number);
                     } else {
                         await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, id.id as number);
                     }
-                    res.push(id.id);
+                    res.push(id.id as number);
                 } else if (id.type === IDs.User) {
                     res.push(await Modules.Messaging.room.resolvePrivateChat(ctx, id.id as number, uid));
                 } else if (id.type === IDs.Organization) {
@@ -441,7 +449,7 @@ export default {
                     if (!member || member.status !== 'joined') {
                         throw new IDMailformedError('Invalid id');
                     }
-                    res.push(Modules.Messaging.room.resolveOrganizationChat(ctx, id.id as number));
+                    res.push(await Modules.Messaging.room.resolveOrganizationChat(ctx, id.id as number));
                 } else {
                     throw new IDMailformedError('Invalid id');
                 }
@@ -501,12 +509,14 @@ export default {
             }
             if (conversation.kind === 'organization') {
                 let convOrg = await Store.ConversationOrganization.findById(ctx, roomId);
+                let org = (await Store.Organization.findById(ctx, convOrg!.oid))!;
                 let members = await Store.OrganizationMember.organization.findAll(ctx, 'joined', convOrg!.oid);
                 return members.map(m => ({
                     cid: roomId,
                     uid: m.uid,
                     role: 'member',
                     status: 'joined',
+                    invitedBy: m.invitedBy || org.ownerId
                 }));
             } else {
                 let afterMember: RoomParticipant | null = null;
@@ -531,7 +541,7 @@ export default {
                 throw new Error('Room not found');
             }
             let badges = (await Store.UserRoomBadge.chat.query(ctx, roomId, { limit: args.first || 1000 })).items;
-            return await Promise.all(badges.map(b => Store.RoomParticipant.findById(ctx, b.cid, b.uid)));
+            return (await Promise.all(badges.map(b => Store.RoomParticipant.findById(ctx, b.cid, b.uid)))).filter(isDefined);
         }),
 
         betaRoomSearch: withActivatedUser(async (ctx, args, uid) => {
@@ -806,7 +816,7 @@ export default {
             return await Modules.Invites.refreshRoomInviteLink(ctx, channelId, uid);
         }),
         betaRoomInviteLinkJoin: withUser(async (ctx, args, uid) => {
-            return await Store.Conversation.findById(ctx, await Modules.Invites.joinRoomInvite(ctx, uid, args.invite, (args.isNewUser !== null && args.isNewUser !== undefined) ? args.isNewUser : false));
+            return (await Store.Conversation.findById(ctx, await Modules.Invites.joinRoomInvite(ctx, uid, args.invite, (args.isNewUser !== null && args.isNewUser !== undefined) ? args.isNewUser : false)))!;
         }),
 
         //
@@ -857,4 +867,4 @@ export default {
             return res;
         }),
     }
-} as GQLResolver;
+};

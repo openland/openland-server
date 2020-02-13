@@ -1,6 +1,7 @@
 import { AppContext } from '../../openland-modules/AppContext';
 
-export type MaybePromise<T> = Promise<T> | T;
+export type MaybePromise<T> = | T | Promise<T>;
+
 export type Nullable<T> = null | T;
 export type OptionalNullable<T> = undefined | null | T;
 

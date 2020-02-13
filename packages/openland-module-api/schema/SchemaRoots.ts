@@ -69,7 +69,7 @@ import {
     WalletSubscription,
     PremiumChatSettings,
     WalletSubscriptionCreateShape,
-    SuperAdmin
+    SuperAdmin, RoomParticipant, ChannelInvitation, ChannelLink
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -130,7 +130,6 @@ export namespace GQLRoots {
     import MessageReactionTypeValues = GQL.MessageReactionTypeValues;
     import MessageSpanTypeValues = GQL.MessageSpanTypeValues;
     import SharedRoomKindValues = GQL.SharedRoomKindValues;
-    import SharedRoomMembershipStatusValues = GQL.SharedRoomMembershipStatusValues;
     import RoomMemberRoleValues = GQL.RoomMemberRoleValues;
     export type MutationRoot = any;
     export type QueryRoot = any;
@@ -310,10 +309,16 @@ export namespace GQLRoots {
     export type SharedRoomConnectionRoot = { items: SharedRoomRoot[], cursor: string };
     export type UserBadgeRoot = UserBadge;
 
-    export type RoomMemberRoot = any;
-    export type RoomMessageRoot = any;
+    export type RoomMemberRoot = RoomParticipant | {
+        cid: number,
+        uid: number,
+        role: 'owner' | 'admin' | 'member',
+        status: SharedRoomMembershipStatusRoot,
+        invitedBy: number
+    };
+    export type RoomMessageRoot = Message;
     export type RoomUserNotificaionSettingsRoot = any;
-    export type RoomInviteRoot = any;
+    export type RoomInviteRoot = ChannelInvitation | ChannelLink;
     export type OrganizationRequestedMemberRoot = any;
 
     export type RoomConnectionRoot = any;
@@ -330,7 +335,7 @@ export namespace GQLRoots {
     export type SharedRoomMentionRoot = MessageMention;
     export type PostRespondServiceMetadataRoot = any;
 
-    export type PremiumChatSettingsRoot = PremiumChatSettings;
+    export type PremiumChatSettingsRoot = PremiumChatSettings | { id: number, price: number, interval: 'week' | 'month' };
 
     //
     // Apps
@@ -388,7 +393,7 @@ export namespace GQLRoots {
     export type MessageReactionTypeRoot = MessageReactionTypeValues;
     export type MessageSpanTypeRoot = MessageSpanTypeValues;
     export type SharedRoomKindRoot = SharedRoomKindValues;
-    export type SharedRoomMembershipStatusRoot = SharedRoomMembershipStatusValues;
+    export type SharedRoomMembershipStatusRoot = 'joined' | 'requested' | 'left' | 'kicked' | 'none';
     export type RoomMemberRoleRoot = RoomMemberRoleValues;
 
     //

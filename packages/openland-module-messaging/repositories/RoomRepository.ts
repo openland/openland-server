@@ -665,7 +665,7 @@ export class RoomRepository {
         }
     }
 
-    async resolveConversationPhoto(ctx: Context, conversationId: number, uid: number): Promise<string | null> {
+    async resolveConversationPhoto(ctx: Context, conversationId: number, uid: number): Promise<string> {
         let conv = await Store.Conversation.findById(ctx, conversationId);
 
         if (!conv) {

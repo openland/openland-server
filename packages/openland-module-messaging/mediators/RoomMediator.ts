@@ -613,7 +613,7 @@ export class RoomMediator {
         return await this.repo.resolveConversationTitle(ctx, conversationId, uid);
     }
 
-    async resolveConversationPhoto(ctx: Context, conversationId: number, uid: number): Promise<string | null> {
+    async resolveConversationPhoto(ctx: Context, conversationId: number, uid: number): Promise<string> {
         return await this.repo.resolveConversationPhoto(ctx, conversationId, uid);
     }
 
