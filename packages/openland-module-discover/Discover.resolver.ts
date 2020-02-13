@@ -2,7 +2,7 @@ import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 
-export default {
+export const Resolver: GQLResolver = {
     Tag: {
         id: src => src.id,
         title: src => src.title,
@@ -52,4 +52,4 @@ export default {
             return Modules.Discover.submitNext(ctx, uid, args.selectedTagsIds, args.excudedGroupsIds);
         })
     }
-} as GQLResolver;
+};
