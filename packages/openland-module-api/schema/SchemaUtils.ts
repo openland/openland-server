@@ -22,6 +22,10 @@ export type UnionTypeResolver<Root, ReturnType> = {
     __resolveType: (obj: Root, ctx: AppContext) => MaybePromise<ReturnType>
 };
 
+export type InterfaceTypeResolver<Root, ReturnType> = {
+    __resolveType: (obj: Root, ctx: AppContext) => MaybePromise<ReturnType>
+};
+
 export type ComplexTypedResolver<T, Root, ReturnTypesMap extends any, ArgTypesMap extends any> = {
     [P in keyof T]?:
     T[P] extends Nullable<object> ?

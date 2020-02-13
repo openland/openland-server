@@ -83,8 +83,8 @@ export function withAny<T, R>(resolver: (ctx: AppContext, args: T) => Promise<R>
 }
 
 export function resolveUser<T extends { userId: number }>() {
-    return function (src: T, args: T, ctx: AppContext) {
-        return Store.User.findById(ctx, src.userId);
+    return async function (src: T, args: T, ctx: AppContext) {
+        return (await Store.User.findById(ctx, src.userId))!;
     };
 }
 

@@ -23,11 +23,14 @@ import { AppContext } from 'openland-modules/AppContext';
 import { MessageAttachmentInput, MessageSpan } from '../MessageInput';
 import { prepareLegacyMentionsInput } from './ModernMessage.resolver';
 import { createLogger } from '@openland/log';
-import { User, Organization, UserDialogSettings, RoomParticipant, Conversation } from 'openland-module-db/store';
+import { User, Organization, UserDialogSettings, Conversation } from 'openland-module-db/store';
+import { isDefined } from '../../openland-utils/misc';
+import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
+import MessageTypeRoot = GQLRoots.MessageTypeRoot;
 
 const logger = createLogger('chat');
 
-export default {
+export const Resolver: GQLResolver = {
     Conversation: {
         __resolveType: async (src: Conversation, ctx: AppContext) => {
             if (src.kind === 'private') {
@@ -49,14 +52,14 @@ export default {
         },
     },
     SharedConversation: {
-        id: (src: Conversation) => IDs.Conversation.serialize(src.id),
-        flexibleId: async (src: Conversation, _: any, ctx: AppContext) => {
+        id: src => IDs.Conversation.serialize(src.id),
+        flexibleId: async (src, _, ctx) => {
             return IDs.Conversation.serialize((await Store.ConversationOrganization.findById(ctx, src.id))!.oid);
         },
-        title: async (src: Conversation, _: any, ctx: AppContext) => {
+        title: async (src, _, ctx) => {
             return (await Store.OrganizationProfile.findById(ctx, (await Store.ConversationOrganization.findById(ctx, src.id))!.oid))!.name;
         },
-        photos: async (src: Conversation, _: any, ctx: AppContext) => {
+        photos: async (src, _, ctx) => {
             let p = (await Store.OrganizationProfile.findById(ctx, (await Store.ConversationOrganization.findById(ctx, src.id))!.oid))!.photo;
             if (p) {
                 return [buildBaseImageUrl(p)];
@@ -64,19 +67,19 @@ export default {
                 return [];
             }
         },
-        unreadCount: async (src: Conversation, _: any, ctx: AppContext) => {
+        unreadCount: async (src, _, ctx) => {
             return Store.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx);
         },
-        topMessage: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.id!),
-        organization: async (src: Conversation, _: any, ctx: AppContext) => {
-            return Store.OrganizationProfile.findById(ctx, (await Store.ConversationOrganization.findById(ctx, src.id))!.oid);
+        topMessage: (src, _, ctx) => Modules.Messaging.findTopMessage(ctx, src.id!),
+        organization: async (src, _, ctx) => {
+            return (await Store.Organization.findById(ctx, (await Store.ConversationOrganization.findById(ctx, src.id))!.oid))!;
         },
-        settings: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!!, src.id),
+        settings: (src, _, ctx) => Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!!, src.id),
         organizations: () => []
     },
     PrivateConversation: {
-        id: (src: Conversation) => IDs.Conversation.serialize(src.id),
-        flexibleId: async (src: Conversation, _: any, ctx: AppContext) => {
+        id: src => IDs.Conversation.serialize(src.id),
+        flexibleId: async (src, _, ctx) => {
             let conv = (await Store.ConversationPrivate.findById(ctx, src.id))!;
             if (!conv) {
                 logger.warn(ctx, 'Unable to find private conversation: ' + src.id);
@@ -89,7 +92,7 @@ export default {
                 throw Error('Inconsistent Private Conversation resolver');
             }
         },
-        title: async (src: Conversation, _: any, ctx: AppContext) => {
+        title: async (src, _, ctx) => {
             let uid;
             let conv = (await Store.ConversationPrivate.findById(ctx, src.id))!;
             if (conv.uid1 === ctx.auth.uid) {
@@ -102,7 +105,7 @@ export default {
             let profile = (await Modules.Users.profileById(ctx, uid))!;
             return [profile.firstName, profile.lastName].filter((v) => !!v).join(' ');
         },
-        photos: async (src: Conversation, _: any, ctx: AppContext) => {
+        photos: async (src, _, ctx) => {
             let uid;
             let conv = (await Store.ConversationPrivate.findById(ctx, src.id))!;
             if (conv.uid1 === ctx.auth.uid) {
@@ -120,11 +123,11 @@ export default {
                 return [];
             }
         },
-        unreadCount: async (src: Conversation, _: any, ctx: AppContext) => {
+        unreadCount: async (src, _, ctx) => {
             return Store.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx);
         },
-        topMessage: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.id!),
-        user: async (src: Conversation, _: any, ctx: AppContext) => {
+        topMessage: (src, _, ctx) => Modules.Messaging.findTopMessage(ctx, src.id!),
+        user: async (src, _, ctx) => {
             let uid;
             let conv = (await Store.ConversationPrivate.findById(ctx, src.id))!;
             if (conv.uid1 === ctx.auth.uid) {
@@ -134,15 +137,15 @@ export default {
             } else {
                 throw Error('Inconsistent Private Conversation resolver');
             }
-            return Store.User.findById(ctx, uid);
+            return (await Store.User.findById(ctx, uid))!;
         },
-        blocked: async (src: Conversation, _: any, ctx: AppContext) => false,
-        settings: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!!, src.id),
+        blocked: async (src, _: any, ctx) => false,
+        settings: (src, _: any, ctx) => Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!!, src.id),
     },
     GroupConversation: {
-        id: (src: Conversation) => IDs.Conversation.serialize(src.id),
-        flexibleId: (src: Conversation) => IDs.Conversation.serialize(src.id),
-        title: async (src: Conversation, _: any, ctx: AppContext) => {
+        id: src => IDs.Conversation.serialize(src.id),
+        flexibleId: src => IDs.Conversation.serialize(src.id),
+        title: async (src, _, ctx) => {
             let conv = (await Store.RoomProfile.findById(ctx, src.id))!;
             if (!conv) {
                 logger.warn(ctx, 'Unable to find room for id: ' + src.id);
@@ -158,7 +161,7 @@ export default {
             }
             return name.join(', ');
         },
-        photos: async (src: Conversation, _: any, ctx: AppContext) => {
+        photos: async (src, _, ctx) => {
             // let res = await DB.ConversationGroupMembers.findAll({
             //     where: {
             //         conversationId: src.id,
@@ -181,34 +184,34 @@ export default {
             // return photos;
             return [];
         },
-        members: async (src: Conversation, args: {}, ctx: AppContext) => {
+        members: async (src, _, ctx) => {
             let res = await Store.RoomParticipant.active.findAll(ctx, src.id);
-            return Promise.all(res.map((v) => Store.User.findById(ctx, v.uid)));
+            return (await Promise.all(res.map((v) => Store.User.findById(ctx, v.uid)))).filter(isDefined);
         },
-        unreadCount: async (src: Conversation, _: any, ctx: AppContext) => {
+        unreadCount: async (src, _, ctx) => {
             return Store.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx);
         },
-        topMessage: async (src: Conversation, _: any, ctx: AppContext) => {
+        topMessage: async (src, _, ctx) => {
             if (!await Modules.Messaging.room.isRoomMember(ctx, ctx.auth.uid!, src.id)) {
                 return null;
             }
 
             return Modules.Messaging.findTopMessage(ctx, src.id!);
         },
-        membersCount: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.roomMembersCount(ctx, src.id),
-        settings: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, src.id),
+        membersCount: async (src, _, ctx) => Modules.Messaging.roomMembersCount(ctx, src.id),
+        settings: async (src, _, ctx) => Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, src.id),
 
-        photo: async (src: Conversation, args: {}, ctx: AppContext) => buildBaseImageUrl((await Store.RoomProfile.findById(ctx, src.id))!.image),
-        photoRef: async (src: Conversation, args: {}, ctx: AppContext) => (await Store.RoomProfile.findById(ctx, src.id))!.image,
-        description: async (src: Conversation, args: {}, ctx: AppContext) => (await Store.RoomProfile.findById(ctx, src.id))!.description as string,
-        longDescription: (src: Conversation) => '',
-        pinnedMessage: (src: Conversation) => null,
-        membersOnline: async (src, args, ctx) => {
+        photo: async (src, _, ctx) => buildBaseImageUrl((await Store.RoomProfile.findById(ctx, src.id))!.image),
+        photoRef: async (src, _, ctx) => (await Store.RoomProfile.findById(ctx, src.id))!.image,
+        description: async (src, _, ctx) => (await Store.RoomProfile.findById(ctx, src.id))!.description as string,
+        longDescription: src => '',
+        pinnedMessage: src => null,
+        membersOnline: async (src, _, ctx) => {
             let members = await Modules.Messaging.room.findConversationMembers(ctx, src.id);
             let onlines = await Promise.all(members.map(m => Modules.Presence.getLastSeen(ctx, m)));
             return onlines.filter(s => s === 'online').length;
         },
-        myRole: async (src: Conversation, _: any, ctx: AppContext) => {
+        myRole: async (src, _, ctx) => {
             let member = await Modules.Messaging.room.findMembershipStatus(ctx, ctx.auth.uid!, src.id);
 
             return member && member.role;
@@ -216,7 +219,7 @@ export default {
     },
 
     MessageReaction: {
-        user: (src: any, args: {}, ctx: AppContext) => Store.User.findById(ctx, src.userId),
+        user: async (src, args, ctx) => (await Store.User.findById(ctx, src.userId))!,
         reaction: (src: any) => src.reaction
     },
     UrlAugmentationExtra: {
@@ -248,12 +251,12 @@ export default {
         date: () => ''
     },
     ConversationMessage: {
-        id: (src: Message) => {
+        id: src => {
             return IDs.ConversationMessage.serialize(src.id);
         },
-        message: (src: Message) => src.text,
-        file: (src: Message) => src.fileId as any,
-        fileMetadata: (src: Message) => {
+        message: src => src.text,
+        file: src => src.fileId as any,
+        fileMetadata: src => {
             if (src.fileId && src.fileMetadata) {
                 return {
                     name: src.fileMetadata.name,
@@ -268,25 +271,25 @@ export default {
                 return null;
             }
         },
-        filePreview: (src: Message) => null,
-        sender: (src: Message, _: any, ctx: AppContext) => Store.User.findById(ctx, src.uid),
-        date: (src: Message) => src.metadata.createdAt,
-        repeatKey: (src: Message, args: any, ctx: AppContext) => src.uid === ctx.auth.uid ? src.repeatKey : null,
-        isService: (src: Message) => src.isService,
-        serviceMetadata: (src: Message) => {
+        filePreview: src => null,
+        sender: async (src, _, ctx) => (await Store.User.findById(ctx, src.uid))!,
+        date: src => src.metadata.createdAt,
+        repeatKey: (src, args, ctx) => src.uid === ctx.auth.uid ? src.repeatKey : null,
+        isService: src => src.isService,
+        serviceMetadata: src => {
             if (src.serviceMetadata && (src.serviceMetadata as any).type) {
                 return src.serviceMetadata;
             }
 
             return null;
         },
-        urlAugmentation: (src: Message) => src.augmentation || null,
-        edited: (src: Message) => (src.edited) || false,
-        reactions: (src: Message) => src.reactions || [],
-        replyMessages: async (src: Message, args: {}, ctx: AppContext) => {
+        urlAugmentation: src => src.augmentation || null,
+        edited: src => (src.edited) || false,
+        reactions: src => src.reactions || [],
+        replyMessages: async (src, args, ctx) => {
             if (src.replyMessages) {
                 let messages = await Promise.all((src.replyMessages as number[]).map(id => Store.Message.findById(ctx, id)));
-                let filtered = messages.filter(m => !!m);
+                let filtered = messages.filter(isDefined);
                 if (filtered.length > 0) {
                     return filtered;
                 }
@@ -295,9 +298,14 @@ export default {
             return null;
             // return src.replyMessages ? (src.replyMessages as number[]).map(id => FDB.Message.findById(id)).filter(m => !!m) : [];
         },
-        plainText: async (src: Message) => null,
-        mentions: async (src: Message, args: {}, ctx: AppContext) => src.mentions ? (src.mentions as number[]).map(id => Store.User.findById(ctx, id)) : null,
-        alphaAttachments: async (src: Message) => {
+        plainText: async src => null,
+        mentions: async (src, arg, ctx) => {
+            if (src.mentions) {
+                return (await Promise.all((src.mentions as number[]).map(id => Store.User.findById(ctx, id)))).filter(isDefined);
+            }
+            return [];
+        },
+        alphaAttachments: async src => {
             let attachments: any[] = [];
 
             if (src.fileId) {
@@ -314,26 +322,26 @@ export default {
 
             return attachments;
         },
-        alphaButtons: async (src: Message) => src.buttons ? src.buttons : [],
-        alphaType: async (src: Message) => src.type ? src.type : 'MESSAGE',
-        postType: async (src: Message) => src.postType,
-        alphaTitle: async (src: Message) => src.title,
-        alphaMentions: async (src: Message) => src.complexMentions
+        alphaButtons: async src => src.buttons ? src.buttons : [],
+        alphaType: async src => src.type ? src.type as MessageTypeRoot : 'MESSAGE',
+        postType: async src => src.postType,
+        alphaTitle: async src => src.title,
+        alphaMentions: async src => src.complexMentions
     },
     InviteServiceMetadata: {
         // users: (src: any, args: {}, ctx: AppContext) => src.userIds.map((id: number) => FDB.User.findById(ctx, id)),
-        users: (src: any, args: {}, ctx: AppContext) => [],
-        invitedBy: (src: any, args: {}, ctx: AppContext) => Store.User.findById(ctx, src.invitedById)
+        users: (src, args, ctx) => [],
+        invitedBy: async (src, args, ctx) => (await Store.User.findById(ctx, src.invitedById))!
     },
     KickServiceMetadata: {
         user: resolveUser(),
-        kickedBy: (src: any, args: {}, ctx: AppContext) => Store.User.findById(ctx, src.kickedById)
+        kickedBy: async (src, args, ctx) => (await Store.User.findById(ctx, src.kickedById))!
     },
     PostRespondServiceMetadata: {
-        post: (src: any, _, ctx) => Store.Message.findById(ctx, src.postId),
-        postRoom: (src: any) => src.postRoomId,
-        responder: (src: any) => src.responderId,
-        respondType: (src: any) => src.respondType
+        post: async (src, _, ctx) => (await Store.Message.findById(ctx, src.postId))!,
+        postRoom: (src) => src.postRoomId,
+        responder: (src) => src.responderId,
+        respondType: (src) => src.respondType
     },
     ServiceMetadata: {
         __resolveType(src: any) {
@@ -357,7 +365,7 @@ export default {
         photoRef: (src: any) => src.picture,
     },
     ChatReadResult: {
-        conversation: (src: { uid: number, conversationId: number }, args: {}, ctx: AppContext) => Store.Conversation.findById(ctx, src.conversationId),
+        conversation: async (src: { uid: number, conversationId: number }, args: {}, ctx: AppContext) => (await Store.Conversation.findById(ctx, src.conversationId))!,
         counter: (src: { uid: number, conversationId: number }) => src.uid
     },
     ComposeSearchResult: {
@@ -389,8 +397,8 @@ export default {
     },
 
     GroupConversationMember: {
-        role: (src: RoomParticipant) => src.role === 'owner' ? 'creator' : src.role,
-        user: (src: RoomParticipant, args: {}, ctx: AppContext) => Store.User.findById(ctx, src.uid)
+        role: src => src.role === 'owner' ? 'creator' : src.role,
+        user: async (src, args, ctx) => (await Store.User.findById(ctx, src.uid))!
     },
 
     ConversationSettings: {
@@ -400,7 +408,7 @@ export default {
     },
 
     Query: {
-        alphaNotificationCounter: withUser((ctx, args, uid) => uid),
+        alphaNotificationCounter: withUser(async (ctx, args, uid) => uid),
         alphaChat: withAccount(async (ctx, args, uid, oid) => {
             if (args.shortName) {
                 let shortName = await Modules.Shortnames.findShortname(ctx, args.shortName);
@@ -418,7 +426,7 @@ export default {
             } else if (args.conversationId) {
                 let id = IdsFactory.resolve(args.conversationId);
                 if (id.type === IDs.Conversation) {
-                    return Store.Conversation.findById(ctx, id.id as number);
+                    return (await Store.Conversation.findById(ctx, id.id as number))!;
                 } else if (id.type === IDs.User) {
                     return Modules.Messaging.room.resolvePrivateChat(ctx, id.id as number, uid);
                 } else if (id.type === IDs.Organization) {
@@ -426,7 +434,7 @@ export default {
                     if (!member || member.status !== 'joined') {
                         throw new IDMailformedError('Invalid id');
                     }
-                    return Modules.Messaging.room.resolveOrganizationChat(ctx, id.id as number);
+                    return await Modules.Messaging.room.resolveOrganizationChat(ctx, id.id as number);
                 } else {
                     throw new IDMailformedError('Invalid id');
                 }
@@ -737,4 +745,4 @@ export default {
             return 'ok';
         }),
     }
-} as GQLResolver;
+};
