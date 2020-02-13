@@ -434,7 +434,7 @@ export class PaymentMediator {
         //
 
         let card = await inTx(parent, async (ctx) => {
-            let cards = await Store.UserStripeCard.findAll(ctx);
+            let cards = await Store.UserStripeCard.users.findAll(ctx, uid);
             let dcard = cards.find((v) => v.default);
             return dcard;
         });
