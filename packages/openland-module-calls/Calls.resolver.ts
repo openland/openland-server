@@ -10,7 +10,7 @@ import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { resolveTurnServices } from './services/TURNService';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
 
-export default {
+export const Resolver: GQLResolver = {
     Conference: {
         id: (src: ConferenceRoom) => IDs.Conference.serialize(src.id),
         startTime: (src: ConferenceRoom) => src.startTime,
@@ -286,4 +286,4 @@ export default {
             }
         }
     }
-} as GQLResolver;
+};
