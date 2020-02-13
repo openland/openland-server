@@ -17,16 +17,16 @@ function withMessage<T>(handler: (ctx: AppContext, user: Message) => T) {
     };
 }
 
-export default {
+export const Resolver: GQLResolver = {
     Message: {
-        id: (src: MessageRoot) => IDs.Message.serialize(typeof src === 'number' ? src : src.id),
+        id: src => IDs.Message.serialize(typeof src === 'number' ? src : src.id),
         date: withMessage((ctx, src) => src.metadata.createdAt),
         sender: withMessage((ctx, src) => src.uid),
-        edited: withMessage((ctx, src) => src.edited),
+        edited: withMessage((ctx, src) => src.edited || false),
 
         text: withMessage((ctx, src) => src.text),
-        quoted: withMessage((ctx, src) => src.replyMessages),
+        quoted: withMessage((ctx, src) => src.replyMessages || []),
 
-        alphaReactions: withMessage((ctx, src) => src.reactions),
+        alphaReactions: withMessage((ctx, src) => src.reactions || []),
     }
-} as GQLResolver;
+};
