@@ -57,7 +57,7 @@ const isChatMuted = async (ctx: Context, uid: number, cid: number) => {
 
 const ServerId = randomKey();
 
-export default {
+export const Resolver: GQLResolver = {
     DebugUserPresence: {
         user: src => src.uid,
         lastSeen: src => src.lastSeen,
@@ -68,7 +68,7 @@ export default {
     },
     DebugEvent: {
         seq: src => src.seq,
-        key: src => src.key,
+        key: src => src.key || '',
     },
     Query: {
         lifecheck: () => `i'm ok`,
@@ -84,7 +84,7 @@ export default {
             throw new Error('Test crash!');
         },
         debugUrlInfo: withPermission('super-admin', async (ctx, args) => {
-            return URLInfoService.fetchURLInfo(args.url, false);
+            return await URLInfoService.fetchURLInfo(args.url, false);
         }),
         userPresence: withPermission('super-admin', async (ctx, args) => {
             let uid = IDs.User.parse(args.uid);
@@ -119,7 +119,7 @@ export default {
         }),
         debugEventsState: withPermission('super-admin', async (ctx, args) => {
             let tail = await Store.DebugEvent.user.stream(ctx.auth.uid!, {batchSize: 1}).tail(ctx);
-            return {state: tail};
+            return {state: tail || ''};
         }),
         debugCheckTasksIndex: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugTasksIndex', async (log) => {
@@ -269,7 +269,7 @@ export default {
         debugCreateTestUser: withPermission('super-admin', async (parent, args) => {
             return await inTx(parent, async (ctx) => {
                 let id = await Modules.Users.createTestUser(ctx, args.key, args.name);
-                return await Store.User.findById(ctx, id);
+                return (await Store.User.findById(ctx, id))!;
             });
         }),
         debugDeleteUrlInfoCache: withPermission('super-admin', async (ctx, args) => {
@@ -1330,7 +1330,7 @@ export default {
             resolve: async msg => {
                 return msg;
             },
-            subscribe: async function* (r: any, args: GQL.SubscriptionDebugEventsArgs, ctx: AppContext) {
+            subscribe: async function* (r: any, args: GQL.SubscriptionLifecheckArgs, ctx: AppContext) {
                 let i = 1;
                 while (true) {
                     let data = 'pong ' + Date.now() + ' ' + i++;
@@ -1375,7 +1375,7 @@ export default {
             resolve: async msg => {
                 return msg;
             },
-            subscribe: async function* (r: any, args: GQL.SubscriptionDebugEventsArgs, ctx: AppContext) {
+            subscribe: async function* (r: any, args: GQL.SubscriptionDebugServerIdArgs, ctx: AppContext) {
                 let uid = ctx.auth.uid;
 
                 if (!uid || !((await Modules.Super.superRole(ctx, uid)) === 'super-admin')) {
@@ -1389,4 +1389,4 @@ export default {
             },
         },
     },
-} as GQLResolver;
+};

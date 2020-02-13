@@ -15,7 +15,7 @@ export type SubscriptionResolverExtended<Root, Args, Context, ReturnType> = {
     subscribe: Resolver<Root, Args, Context, AsyncIterable<any>|AsyncIterator<any>>
 };
 
-export type SubscriptionResolver<Root, Args, Context, ReturnType> = SubscriptionResolverBasic<Root, Args, Context, ReturnType> | SubscriptionResolverExtended<Root, Args, Context, ReturnType>;
+export type SubscriptionResolver<Root, Args, Context, ReturnType> = SubscriptionResolverExtended<Root, Args, Context, ReturnType>;
 
 export type UnionTypeResolver<Root, ReturnType> = {
     __resolveType: (obj: Root, ctx: AppContext) => MaybePromise<ReturnType>
@@ -28,6 +28,6 @@ export type ComplexTypedResolver<T, Root, ReturnTypesMap extends any, ArgTypesMa
         T[P] extends Nullable<object[]> ? Resolver<Root, ArgTypesMap[P], AppContext, ReturnTypesMap[P]> :  Resolver<Root, ArgTypesMap[P], AppContext, T[P]>
 };
 
-export type ComplexTypedSubscriptionResolver<T, Root, ReturnTypesMap extends any, ArgTypesMap extends any> = {
+export type ComplexTypedSubscriptionResolver<T, Root, ReturnTypesMap extends any, ArgTypesMap extends { [P in keyof T]: any }> = {
     [P in keyof T]?: (T[P] extends Nullable<object | object[]> ? SubscriptionResolver<Root, ArgTypesMap[P], AppContext, ReturnTypesMap[P]> : SubscriptionResolver<Root, ArgTypesMap[P], AppContext, T[P]>)
 };

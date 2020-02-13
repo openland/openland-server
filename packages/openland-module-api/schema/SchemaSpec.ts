@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '836e7cbad23d1ee5251e1373b331ad3b';
+export const GQL_SPEC_VERSION = '5a3f12d73e6178f3bb504b9af93d2ec2';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -14,6 +14,9 @@ export namespace GQL {
         mobileNotifications: NotificationMessages;
         mute: boolean;
     }
+    export interface ConversationSettingsIdArgs { }
+    export interface ConversationSettingsMobileNotificationsArgs { }
+    export interface ConversationSettingsMuteArgs { }
     export interface Conversation {
         id: string;
         flexibleId: string;
@@ -23,6 +26,13 @@ export namespace GQL {
         topMessage: Nullable<ConversationMessage>;
         settings: ConversationSettings;
     }
+    export interface ConversationIdArgs { }
+    export interface ConversationFlexibleIdArgs { }
+    export interface ConversationTitleArgs { }
+    export interface ConversationPhotosArgs { }
+    export interface ConversationUnreadCountArgs { }
+    export interface ConversationTopMessageArgs { }
+    export interface ConversationSettingsArgs { }
     export interface ChannelConversation extends Conversation {
         id: string;
         flexibleId: string;
@@ -33,6 +43,14 @@ export namespace GQL {
         topMessage: Nullable<ConversationMessage>;
         settings: ConversationSettings;
     }
+    export interface ChannelConversationIdArgs { }
+    export interface ChannelConversationFlexibleIdArgs { }
+    export interface ChannelConversationTitleArgs { }
+    export interface ChannelConversationPhotosArgs { }
+    export interface ChannelConversationMembersArgs { }
+    export interface ChannelConversationUnreadCountArgs { }
+    export interface ChannelConversationTopMessageArgs { }
+    export interface ChannelConversationSettingsArgs { }
     export interface AnonymousConversation extends Conversation {
         id: string;
         flexibleId: string;
@@ -42,6 +60,13 @@ export namespace GQL {
         topMessage: Nullable<ConversationMessage>;
         settings: ConversationSettings;
     }
+    export interface AnonymousConversationIdArgs { }
+    export interface AnonymousConversationFlexibleIdArgs { }
+    export interface AnonymousConversationTitleArgs { }
+    export interface AnonymousConversationPhotosArgs { }
+    export interface AnonymousConversationUnreadCountArgs { }
+    export interface AnonymousConversationTopMessageArgs { }
+    export interface AnonymousConversationSettingsArgs { }
     export interface SharedConversation extends Conversation {
         id: string;
         flexibleId: string;
@@ -53,6 +78,15 @@ export namespace GQL {
         organization: Nullable<Organization>;
         settings: ConversationSettings;
     }
+    export interface SharedConversationIdArgs { }
+    export interface SharedConversationFlexibleIdArgs { }
+    export interface SharedConversationTitleArgs { }
+    export interface SharedConversationPhotosArgs { }
+    export interface SharedConversationOrganizationsArgs { }
+    export interface SharedConversationUnreadCountArgs { }
+    export interface SharedConversationTopMessageArgs { }
+    export interface SharedConversationOrganizationArgs { }
+    export interface SharedConversationSettingsArgs { }
     export interface PrivateConversation extends Conversation {
         id: string;
         flexibleId: string;
@@ -64,6 +98,15 @@ export namespace GQL {
         blocked: boolean;
         settings: ConversationSettings;
     }
+    export interface PrivateConversationIdArgs { }
+    export interface PrivateConversationFlexibleIdArgs { }
+    export interface PrivateConversationTitleArgs { }
+    export interface PrivateConversationPhotosArgs { }
+    export interface PrivateConversationUserArgs { }
+    export interface PrivateConversationUnreadCountArgs { }
+    export interface PrivateConversationTopMessageArgs { }
+    export interface PrivateConversationBlockedArgs { }
+    export interface PrivateConversationSettingsArgs { }
     export interface GroupConversation extends Conversation {
         id: string;
         flexibleId: string;
@@ -82,27 +125,54 @@ export namespace GQL {
         membersOnline: number;
         myRole: Nullable<string>;
     }
+    export interface GroupConversationIdArgs { }
+    export interface GroupConversationFlexibleIdArgs { }
+    export interface GroupConversationTitleArgs { }
+    export interface GroupConversationPhotosArgs { }
+    export interface GroupConversationMembersArgs { }
+    export interface GroupConversationUnreadCountArgs { }
+    export interface GroupConversationTopMessageArgs { }
+    export interface GroupConversationMembersCountArgs { }
+    export interface GroupConversationSettingsArgs { }
+    export interface GroupConversationPhotoArgs { }
+    export interface GroupConversationPhotoRefArgs { }
+    export interface GroupConversationDescriptionArgs { }
+    export interface GroupConversationLongDescriptionArgs { }
+    export interface GroupConversationPinnedMessageArgs { }
+    export interface GroupConversationMembersOnlineArgs { }
+    export interface GroupConversationMyRoleArgs { }
     export interface InviteServiceMetadata {
         users: Nullable<User[]>;
         invitedBy: User;
     }
+    export interface InviteServiceMetadataUsersArgs { }
+    export interface InviteServiceMetadataInvitedByArgs { }
     export interface KickServiceMetadata {
         user: User;
         kickedBy: User;
     }
+    export interface KickServiceMetadataUserArgs { }
+    export interface KickServiceMetadataKickedByArgs { }
     export interface TitleChangeServiceMetadata {
         title: string;
     }
+    export interface TitleChangeServiceMetadataTitleArgs { }
     export interface PhotoChangeServiceMetadata {
         photo: Nullable<string>;
         photoRef: Nullable<ImageRef>;
     }
+    export interface PhotoChangeServiceMetadataPhotoArgs { }
+    export interface PhotoChangeServiceMetadataPhotoRefArgs { }
     export interface PostRespondServiceMetadata {
         post: RoomMessage;
         postRoom: Room;
         responder: User;
         respondType: string;
     }
+    export interface PostRespondServiceMetadataPostArgs { }
+    export interface PostRespondServiceMetadataPostRoomArgs { }
+    export interface PostRespondServiceMetadataResponderArgs { }
+    export interface PostRespondServiceMetadataRespondTypeArgs { }
     export type UrlAugmentationExtra = User | Organization | ChannelConversation;
     export interface UrlAugmentation {
         url: string;
@@ -119,6 +189,19 @@ export namespace GQL {
         type: Nullable<string>;
         extra: Nullable<UrlAugmentationExtra>;
     }
+    export interface UrlAugmentationUrlArgs { }
+    export interface UrlAugmentationTitleArgs { }
+    export interface UrlAugmentationDateArgs { }
+    export interface UrlAugmentationSubtitleArgs { }
+    export interface UrlAugmentationDescriptionArgs { }
+    export interface UrlAugmentationPhotoArgs { }
+    export interface UrlAugmentationImageInfoArgs { }
+    export interface UrlAugmentationImageURLArgs { }
+    export interface UrlAugmentationIconRefArgs { }
+    export interface UrlAugmentationIconInfoArgs { }
+    export interface UrlAugmentationHostnameArgs { }
+    export interface UrlAugmentationTypeArgs { }
+    export interface UrlAugmentationExtraArgs { }
     export type ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata | PhotoChangeServiceMetadata | PostRespondServiceMetadata;
     export interface ConversationMessage {
         id: string;
@@ -144,6 +227,28 @@ export namespace GQL {
         postType: Nullable<string>;
         alphaMentions: Nullable<Mention[]>;
     }
+    export interface ConversationMessageIdArgs { }
+    export interface ConversationMessageMessageArgs { }
+    export interface ConversationMessageFileArgs { }
+    export interface ConversationMessageFileMetadataArgs { }
+    export interface ConversationMessageFilePreviewArgs { }
+    export interface ConversationMessageSenderArgs { }
+    export interface ConversationMessageDateArgs { }
+    export interface ConversationMessageRepeatKeyArgs { }
+    export interface ConversationMessageIsServiceArgs { }
+    export interface ConversationMessageServiceMetadataArgs { }
+    export interface ConversationMessageUrlAugmentationArgs { }
+    export interface ConversationMessageEditedArgs { }
+    export interface ConversationMessageReactionsArgs { }
+    export interface ConversationMessageReplyMessagesArgs { }
+    export interface ConversationMessagePlainTextArgs { }
+    export interface ConversationMessageMentionsArgs { }
+    export interface ConversationMessageAlphaAttachmentsArgs { }
+    export interface ConversationMessageAlphaButtonsArgs { }
+    export interface ConversationMessageAlphaTypeArgs { }
+    export interface ConversationMessageAlphaTitleArgs { }
+    export interface ConversationMessagePostTypeArgs { }
+    export interface ConversationMessageAlphaMentionsArgs { }
     export interface FileMetadata {
         name: string;
         mimeType: Nullable<string>;
@@ -153,70 +258,110 @@ export namespace GQL {
         imageHeight: Nullable<number>;
         imageFormat: Nullable<string>;
     }
+    export interface FileMetadataNameArgs { }
+    export interface FileMetadataMimeTypeArgs { }
+    export interface FileMetadataSizeArgs { }
+    export interface FileMetadataIsImageArgs { }
+    export interface FileMetadataImageWidthArgs { }
+    export interface FileMetadataImageHeightArgs { }
+    export interface FileMetadataImageFormatArgs { }
     export interface ConversationEventSimpleBatch {
         events: ConversationEvent[];
     }
+    export interface ConversationEventSimpleBatchEventsArgs { }
     export interface ConversationEvent {
         seq: number;
     }
+    export interface ConversationEventSeqArgs { }
     export interface ConversationEventMessage extends ConversationEvent {
         seq: number;
         message: ConversationMessage;
     }
+    export interface ConversationEventMessageSeqArgs { }
+    export interface ConversationEventMessageMessageArgs { }
     export interface ConversationEventEditMessage extends ConversationEvent {
         seq: number;
         message: ConversationMessage;
     }
+    export interface ConversationEventEditMessageSeqArgs { }
+    export interface ConversationEventEditMessageMessageArgs { }
     export interface ConversationEventDelete extends ConversationEvent {
         seq: number;
         messageId: string;
     }
+    export interface ConversationEventDeleteSeqArgs { }
+    export interface ConversationEventDeleteMessageIdArgs { }
     export interface ConversationEventNewMembers extends ConversationEvent {
         seq: number;
         users: Nullable<User[]>;
         invitedBy: User;
     }
+    export interface ConversationEventNewMembersSeqArgs { }
+    export interface ConversationEventNewMembersUsersArgs { }
+    export interface ConversationEventNewMembersInvitedByArgs { }
     export interface ConversationEventKick extends ConversationEvent {
         seq: number;
         user: User;
         kickedBy: User;
     }
+    export interface ConversationEventKickSeqArgs { }
+    export interface ConversationEventKickUserArgs { }
+    export interface ConversationEventKickKickedByArgs { }
     export interface ConversationEventTitle extends ConversationEvent {
         seq: number;
         title: string;
     }
+    export interface ConversationEventTitleSeqArgs { }
+    export interface ConversationEventTitleTitleArgs { }
     export interface ConversationEventUpdate extends ConversationEvent {
         seq: number;
         chat: Conversation;
     }
+    export interface ConversationEventUpdateSeqArgs { }
+    export interface ConversationEventUpdateChatArgs { }
     export interface ConversationEventUpdateRole extends ConversationEvent {
         seq: number;
         user: User;
         newRole: string;
     }
+    export interface ConversationEventUpdateRoleSeqArgs { }
+    export interface ConversationEventUpdateRoleUserArgs { }
+    export interface ConversationEventUpdateRoleNewRoleArgs { }
     export interface ConversationState {
         seq: number;
         messages: ConversationMessage[];
     }
+    export interface ConversationStateSeqArgs { }
+    export interface ConversationStateMessagesArgs { }
     export interface ConversationConnection {
         conversations: Conversation[];
         counter: NotificationCounter;
         seq: number;
         next: Nullable<string>;
     }
+    export interface ConversationConnectionConversationsArgs { }
+    export interface ConversationConnectionCounterArgs { }
+    export interface ConversationConnectionSeqArgs { }
+    export interface ConversationConnectionNextArgs { }
     export interface NotificationCounter {
         id: string;
         unreadCount: number;
     }
+    export interface NotificationCounterIdArgs { }
+    export interface NotificationCounterUnreadCountArgs { }
     export interface ChatReadResult {
         conversation: Conversation;
         counter: NotificationCounter;
     }
+    export interface ChatReadResultConversationArgs { }
+    export interface ChatReadResultCounterArgs { }
     export type ComposeSearchResult = User | Organization;
     export interface GroupConversationMember {
         user: User;
         role: string;
     }
+    export interface GroupConversationMemberUserArgs { }
+    export interface GroupConversationMemberRoleArgs { }
     export interface GroupConversationInvite {
         userId: string;
         role: string;
@@ -226,14 +371,21 @@ export namespace GQL {
         chatEventMessage: Nullable<ConversationEventMessage>;
         chatEvent: Nullable<ConversationEvent>;
     }
+    export interface GroupChatUpdateResponseChatArgs { }
+    export interface GroupChatUpdateResponseChatEventMessageArgs { }
+    export interface GroupChatUpdateResponseChatEventArgs { }
     export interface ConversationUpdateResponse {
         chat: Conversation;
         curSeq: number;
     }
+    export interface ConversationUpdateResponseChatArgs { }
+    export interface ConversationUpdateResponseCurSeqArgs { }
     export interface ConversationBlockedUser {
         user: User;
         blockedBy: User;
     }
+    export interface ConversationBlockedUserUserArgs { }
+    export interface ConversationBlockedUserBlockedByArgs { }
     export interface UpdateGroupInput {
         title: Nullable<string>;
         photoRef: Nullable<ImageRefInput>;
@@ -267,6 +419,30 @@ export namespace GQL {
         primaryBadge: Nullable<UserBadge>;
         shortname: Nullable<string>;
     }
+    export interface ProfileIdArgs { }
+    export interface ProfileFirstNameArgs { }
+    export interface ProfileLastNameArgs { }
+    export interface ProfilePhotoRefArgs { }
+    export interface ProfilePhoneArgs { }
+    export interface ProfileEmailArgs { }
+    export interface ProfileWebsiteArgs { }
+    export interface ProfileAboutArgs { }
+    export interface ProfileLocationArgs { }
+    export interface ProfileLinkedinArgs { }
+    export interface ProfileInstagramArgs { }
+    export interface ProfileTwitterArgs { }
+    export interface ProfileFacebookArgs { }
+    export interface ProfileAlphaLinkedinArgs { }
+    export interface ProfileAlphaTwitterArgs { }
+    export interface ProfileAlphaJoinedAtArgs { }
+    export interface ProfileAlphaInvitedByArgs { }
+    export interface ProfileAlphaRoleArgs { }
+    export interface ProfileAlphaLocationsArgs { }
+    export interface ProfilePrimaryOrganizationArgs { }
+    export interface ProfileAlphaPrimaryOrganizationIdArgs { }
+    export interface ProfileAlphaPrimaryOrganizationArgs { }
+    export interface ProfilePrimaryBadgeArgs { }
+    export interface ProfileShortnameArgs { }
     export interface ProfileInput {
         firstName: Nullable<string>;
         lastName: Nullable<string>;
@@ -320,6 +496,8 @@ export namespace GQL {
         user: Nullable<User>;
         organization: Nullable<Organization>;
     }
+    export interface AlphaSignupDataUserArgs { }
+    export interface AlphaSignupDataOrganizationArgs { }
     export interface CreditCard {
         id: string;
         pmid: string;
@@ -330,55 +508,89 @@ export namespace GQL {
         deleted: boolean;
         isDefault: boolean;
     }
+    export interface CreditCardIdArgs { }
+    export interface CreditCardPmidArgs { }
+    export interface CreditCardBrandArgs { }
+    export interface CreditCardLast4Args { }
+    export interface CreditCardExpMonthArgs { }
+    export interface CreditCardExpYearArgs { }
+    export interface CreditCardDeletedArgs { }
+    export interface CreditCardIsDefaultArgs { }
     export interface CardSetupIntent {
         id: string;
         clientSecret: string;
     }
+    export interface CardSetupIntentIdArgs { }
+    export interface CardSetupIntentClientSecretArgs { }
     export interface PaymentIntent {
         id: string;
         clientSecret: string;
     }
+    export interface PaymentIntentIdArgs { }
+    export interface PaymentIntentClientSecretArgs { }
     export type PaymentStatus = 'PENDING' | 'CANCELED' | 'FAILING' | 'ACTION_REQUIRED' | 'SUCCESS';
     export interface Payment {
         id: string;
         status: PaymentStatus;
         intent: Nullable<PaymentIntent>;
     }
+    export interface PaymentIdArgs { }
+    export interface PaymentStatusArgs { }
+    export interface PaymentIntentArgs { }
     export interface WalletAccount {
         id: string;
         balance: number;
         state: string;
     }
+    export interface WalletAccountIdArgs { }
+    export interface WalletAccountBalanceArgs { }
+    export interface WalletAccountStateArgs { }
     export interface WalletTransaction {
         id: string;
         date: string;
         status: WalletTransactionStatus;
         operation: WalletTransactionOperation;
     }
+    export interface WalletTransactionIdArgs { }
+    export interface WalletTransactionDateArgs { }
+    export interface WalletTransactionStatusArgs { }
+    export interface WalletTransactionOperationArgs { }
     export type WalletTransactionStatus = 'PENDING' | 'CANCELING' | 'CANCELED' | 'SUCCESS';
     export interface WalletTransactionDeposit {
         amount: number;
         payment: Nullable<Payment>;
     }
+    export interface WalletTransactionDepositAmountArgs { }
+    export interface WalletTransactionDepositPaymentArgs { }
     export interface WalletTransactionSubscription {
         amount: number;
         payment: Nullable<Payment>;
     }
+    export interface WalletTransactionSubscriptionAmountArgs { }
+    export interface WalletTransactionSubscriptionPaymentArgs { }
     export interface WalletTransactionTransferOut {
         walletAmount: number;
         chargeAmount: number;
         payment: Nullable<Payment>;
         toUser: User;
     }
+    export interface WalletTransactionTransferOutWalletAmountArgs { }
+    export interface WalletTransactionTransferOutChargeAmountArgs { }
+    export interface WalletTransactionTransferOutPaymentArgs { }
+    export interface WalletTransactionTransferOutToUserArgs { }
     export interface WalletTransactionTransferIn {
         amount: number;
         fromUser: User;
     }
+    export interface WalletTransactionTransferInAmountArgs { }
+    export interface WalletTransactionTransferInFromUserArgs { }
     export type WalletTransactionOperation = WalletTransactionDeposit | WalletTransactionSubscription | WalletTransactionTransferOut | WalletTransactionTransferIn;
     export interface WalletTransactionConnection {
         items: WalletTransaction[];
         cursor: Nullable<string>;
     }
+    export interface WalletTransactionConnectionItemsArgs { }
+    export interface WalletTransactionConnectionCursorArgs { }
     export interface WalletSubscription {
         id: string;
         state: WalletSubscriptionState;
@@ -387,45 +599,65 @@ export namespace GQL {
         product: WalletSubscriptionProduct;
         expires: Date;
     }
+    export interface WalletSubscriptionIdArgs { }
+    export interface WalletSubscriptionStateArgs { }
+    export interface WalletSubscriptionAmountArgs { }
+    export interface WalletSubscriptionIntervalArgs { }
+    export interface WalletSubscriptionProductArgs { }
+    export interface WalletSubscriptionExpiresArgs { }
     export type WalletSubscriptionState = 'STARTED' | 'GRACE_PERIOD' | 'RETRYING' | 'CANCELED' | 'EXPIRED';
     export type WalletSubscriptionInterval = 'MONTH' | 'WEEK';
     export interface WalletSubscriptionProductGroup {
         group: SharedRoom;
     }
+    export interface WalletSubscriptionProductGroupGroupArgs { }
     export interface WalletSubscriptionProductDonation {
         user: User;
     }
+    export interface WalletSubscriptionProductDonationUserArgs { }
     export type WalletSubscriptionProduct = WalletSubscriptionProductGroup | WalletSubscriptionProductDonation;
     export interface WalletUpdateSingle {
         state: string;
         update: WalletUpdate;
     }
+    export interface WalletUpdateSingleStateArgs { }
+    export interface WalletUpdateSingleUpdateArgs { }
     export interface WalletUpdateBatch {
         state: string;
         updates: WalletUpdate[];
     }
+    export interface WalletUpdateBatchStateArgs { }
+    export interface WalletUpdateBatchUpdatesArgs { }
     export type WalletUpdateContainer = WalletUpdateSingle | WalletUpdateBatch;
     export interface WalletUpdateBalance {
         amount: number;
     }
+    export interface WalletUpdateBalanceAmountArgs { }
     export interface WalletUpdateTransactionSuccess {
         transaction: WalletTransaction;
     }
+    export interface WalletUpdateTransactionSuccessTransactionArgs { }
     export interface WalletUpdateTransactionCanceled {
         transaction: WalletTransaction;
     }
+    export interface WalletUpdateTransactionCanceledTransactionArgs { }
     export interface WalletUpdateTransactionPending {
         transaction: WalletTransaction;
     }
+    export interface WalletUpdateTransactionPendingTransactionArgs { }
     export interface WalletUpdatePaymentStatus {
         payment: Payment;
     }
+    export interface WalletUpdatePaymentStatusPaymentArgs { }
     export type WalletUpdate = WalletUpdateBalance | WalletUpdateTransactionSuccess | WalletUpdateTransactionCanceled | WalletUpdateTransactionPending | WalletUpdatePaymentStatus;
     export interface Invite {
         id: string;
         key: string;
         ttl: Nullable<string>;
     }
+    export interface InviteIdArgs { }
+    export interface InviteKeyArgs { }
+    export interface InviteTtlArgs { }
     export interface InviteInfo {
         id: string;
         key: string;
@@ -441,42 +673,72 @@ export namespace GQL {
         membersCount: Nullable<number>;
         organization: Nullable<Organization>;
     }
+    export interface InviteInfoIdArgs { }
+    export interface InviteInfoKeyArgs { }
+    export interface InviteInfoOrgIdArgs { }
+    export interface InviteInfoTitleArgs { }
+    export interface InviteInfoPhotoArgs { }
+    export interface InviteInfoPhotoRefArgs { }
+    export interface InviteInfoJoinedArgs { }
+    export interface InviteInfoCreatorArgs { }
+    export interface InviteInfoForEmailArgs { }
+    export interface InviteInfoForNameArgs { }
+    export interface InviteInfoDescriptionArgs { }
+    export interface InviteInfoMembersCountArgs { }
+    export interface InviteInfoOrganizationArgs { }
     export interface AppInvite {
         inviter: User;
     }
+    export interface AppInviteInviterArgs { }
     export interface AppInviteInfo {
         inviter: User;
     }
+    export interface AppInviteInfoInviterArgs { }
     export interface InviteHistotyInfo {
         acceptedBy: Nullable<User>;
         forEmail: string;
         isGlobal: boolean;
     }
+    export interface InviteHistotyInfoAcceptedByArgs { }
+    export interface InviteHistotyInfoForEmailArgs { }
+    export interface InviteHistotyInfoIsGlobalArgs { }
     export type ResolveInviteEntry = InviteInfo | AppInvite | RoomInvite;
     export interface CommentGlobalUpdatesState {
         state: Nullable<string>;
     }
+    export interface CommentGlobalUpdatesStateStateArgs { }
     export interface CommentGlobalUpdateSingle {
         seq: number;
         state: string;
         update: CommentGlobalUpdate;
     }
+    export interface CommentGlobalUpdateSingleSeqArgs { }
+    export interface CommentGlobalUpdateSingleStateArgs { }
+    export interface CommentGlobalUpdateSingleUpdateArgs { }
     export interface CommentGlobalUpdateBatch {
         seq: number;
         state: string;
         fromSeq: number;
         updates: CommentGlobalUpdate[];
     }
+    export interface CommentGlobalUpdateBatchSeqArgs { }
+    export interface CommentGlobalUpdateBatchStateArgs { }
+    export interface CommentGlobalUpdateBatchFromSeqArgs { }
+    export interface CommentGlobalUpdateBatchUpdatesArgs { }
     export type CommentGlobalUpdate = CommentPeerUpdated;
     export interface CommentPeerUpdated {
         seq: number;
         peer: CommentsPeer;
     }
+    export interface CommentPeerUpdatedSeqArgs { }
+    export interface CommentPeerUpdatedPeerArgs { }
     export type CommentGlobalUpdateContainer = CommentGlobalUpdateSingle | CommentGlobalUpdateBatch;
     export interface Reaction {
         user: User;
         reaction: string;
     }
+    export interface ReactionUserArgs { }
+    export interface ReactionReactionArgs { }
     export interface Message {
         id: string;
         date: Date;
@@ -486,12 +748,22 @@ export namespace GQL {
         quoted: Message[];
         alphaReactions: Reaction[];
     }
+    export interface MessageIdArgs { }
+    export interface MessageDateArgs { }
+    export interface MessageSenderArgs { }
+    export interface MessageEditedArgs { }
+    export interface MessageTextArgs { }
+    export interface MessageQuotedArgs { }
+    export interface MessageAlphaReactionsArgs { }
     export type DebugEmailType = 'WELCOME' | 'ACCOUNT_ACTIVATED' | 'ACCOUNT_DEACTIVATED' | 'MEMBER_REMOVED' | 'MEMBERSHIP_LEVEL_CHANGED' | 'INVITE' | 'MEMBER_JOINED' | 'SIGNUP_CODE' | 'SIGIN_CODE' | 'UNREAD_MESSAGE' | 'UNREAD_MESSAGES' | 'PUBLIC_ROOM_INVITE' | 'PRIVATE_ROOM_INVITE' | 'ROOM_INVITE_ACCEPTED' | 'WEEKLY_DIGEST';
     export interface DebugID {
         numberID: Nullable<number>;
         stringID: Nullable<string>;
         type: string;
     }
+    export interface DebugIDNumberIDArgs { }
+    export interface DebugIDStringIDArgs { }
+    export interface DebugIDTypeArgs { }
     export interface DebugUserPresence {
         user: User;
         lastSeen: Date;
@@ -500,19 +772,32 @@ export namespace GQL {
         platform: Nullable<string>;
         active: Nullable<boolean>;
     }
+    export interface DebugUserPresenceUserArgs { }
+    export interface DebugUserPresenceLastSeenArgs { }
+    export interface DebugUserPresenceLastSeenStrArgs { }
+    export interface DebugUserPresenceLastSeenTimeoutArgs { }
+    export interface DebugUserPresencePlatformArgs { }
+    export interface DebugUserPresenceActiveArgs { }
     export interface OrganizationChatStats {
         org: Organization;
         chat: SharedRoom;
         messagesCount: number;
         lastMessageDate: string;
     }
+    export interface OrganizationChatStatsOrgArgs { }
+    export interface OrganizationChatStatsChatArgs { }
+    export interface OrganizationChatStatsMessagesCountArgs { }
+    export interface OrganizationChatStatsLastMessageDateArgs { }
     export interface DebugEventsState {
         state: Nullable<string>;
     }
+    export interface DebugEventsStateStateArgs { }
     export interface DebugEvent {
         seq: number;
         key: string;
     }
+    export interface DebugEventSeqArgs { }
+    export interface DebugEventKeyArgs { }
     export interface DebugUserMetrics {
         messagesSent: number;
         messagesReceived: number;
@@ -523,12 +808,24 @@ export namespace GQL {
         successfulInvitesCount: number;
         audienceCount: number;
     }
+    export interface DebugUserMetricsMessagesSentArgs { }
+    export interface DebugUserMetricsMessagesReceivedArgs { }
+    export interface DebugUserMetricsTotalChatsCountArgs { }
+    export interface DebugUserMetricsDirectChatsCountArgs { }
+    export interface DebugUserMetricsDirect2WayChatsCountArgs { }
+    export interface DebugUserMetricsDirectMessagesSentArgs { }
+    export interface DebugUserMetricsSuccessfulInvitesCountArgs { }
+    export interface DebugUserMetricsAudienceCountArgs { }
     export interface DebugGlobalCounters {
         allUnreadMessages: number;
         unreadMessagesWithoutMuted: number;
         allUnreadChats: number;
         unreadChatsWithoutMuted: number;
     }
+    export interface DebugGlobalCountersAllUnreadMessagesArgs { }
+    export interface DebugGlobalCountersUnreadMessagesWithoutMutedArgs { }
+    export interface DebugGlobalCountersAllUnreadChatsArgs { }
+    export interface DebugGlobalCountersUnreadChatsWithoutMutedArgs { }
     export type SuperNotificationType = 'ON_SIGN_UP' | 'ON_USER_PROFILE_CREATED' | 'ON_ORG_ACTIVATED_BY_ADMIN' | 'ON_ORG_ACTIVATED_VIA_INVITE' | 'ON_ORG_SUSPEND';
     export type DialogKind = 'PRIVATE' | 'INTERNAL' | 'PUBLIC' | 'GROUP';
     export interface Dialog {
@@ -546,10 +843,25 @@ export namespace GQL {
         isMuted: boolean;
         haveMention: boolean;
     }
+    export interface DialogIdArgs { }
+    export interface DialogCidArgs { }
+    export interface DialogFidArgs { }
+    export interface DialogKindArgs { }
+    export interface DialogIsChannelArgs { }
+    export interface DialogTitleArgs { }
+    export interface DialogPhotoArgs { }
+    export interface DialogUnreadCountArgs { }
+    export interface DialogTopMessageArgs { }
+    export interface DialogBetaTopMessageArgs { }
+    export interface DialogAlphaTopMessageArgs { }
+    export interface DialogIsMutedArgs { }
+    export interface DialogHaveMentionArgs { }
     export interface DialogsConnection {
         items: Dialog[];
         cursor: Nullable<string>;
     }
+    export interface DialogsConnectionItemsArgs { }
+    export interface DialogsConnectionCursorArgs { }
     export type EmailFrequency = 'NEVER' | 'MIN_15' | 'HOUR_1' | 'HOUR_24' | 'WEEK_1';
     export type NotificationMessages = 'ALL' | 'DIRECT' | 'NONE';
     export type NotificationComments = 'ALL' | 'DIRECT' | 'NONE';
@@ -560,6 +872,8 @@ export namespace GQL {
         showNotification: boolean;
         sound: boolean;
     }
+    export interface ChatTypeNotificationSettingsShowNotificationArgs { }
+    export interface ChatTypeNotificationSettingsSoundArgs { }
     export interface ChatTypeNotificationSettingsInput {
         showNotification: boolean;
         sound: boolean;
@@ -572,6 +886,12 @@ export namespace GQL {
         comments: ChatTypeNotificationSettings;
         notificationPreview: NotificationPreview;
     }
+    export interface PlatformNotificationSettingsDirectArgs { }
+    export interface PlatformNotificationSettingsSecretChatArgs { }
+    export interface PlatformNotificationSettingsOrganizationChatArgs { }
+    export interface PlatformNotificationSettingsCommunityChatArgs { }
+    export interface PlatformNotificationSettingsCommentsArgs { }
+    export interface PlatformNotificationSettingsNotificationPreviewArgs { }
     export interface PlatformNotificationSettingsInput {
         direct: Nullable<ChatTypeNotificationSettingsInput>;
         secretChat: Nullable<ChatTypeNotificationSettingsInput>;
@@ -612,6 +932,21 @@ export namespace GQL {
         mobileIncludeText: boolean;
         mute: Nullable<boolean>;
     }
+    export interface SettingsIdArgs { }
+    export interface SettingsPrimaryEmailArgs { }
+    export interface SettingsEmailFrequencyArgs { }
+    export interface SettingsDesktopArgs { }
+    export interface SettingsMobileArgs { }
+    export interface SettingsCountUnreadChatsArgs { }
+    export interface SettingsExcludeMutedChatsArgs { }
+    export interface SettingsNotificationsDelayArgs { }
+    export interface SettingsDesktopNotificationsArgs { }
+    export interface SettingsMobileNotificationsArgs { }
+    export interface SettingsCommentNotificationsArgs { }
+    export interface SettingsCommentNotificationsDeliveryArgs { }
+    export interface SettingsMobileAlertArgs { }
+    export interface SettingsMobileIncludeTextArgs { }
+    export interface SettingsMuteArgs { }
     export type OauthScope = 'All' | 'Zapier';
     export interface OauthApp {
         id: string;
@@ -623,12 +958,24 @@ export namespace GQL {
         image: Nullable<ImageRef>;
         redirectUrls: Nullable<string[]>;
     }
+    export interface OauthAppIdArgs { }
+    export interface OauthAppTitleArgs { }
+    export interface OauthAppClientIdArgs { }
+    export interface OauthAppClientSecretArgs { }
+    export interface OauthAppScopesArgs { }
+    export interface OauthAppOwnerArgs { }
+    export interface OauthAppImageArgs { }
+    export interface OauthAppRedirectUrlsArgs { }
     export interface OauthContext {
         app: OauthApp;
         state: string;
         redirectUrl: string;
         code: string;
     }
+    export interface OauthContextAppArgs { }
+    export interface OauthContextStateArgs { }
+    export interface OauthContextRedirectUrlArgs { }
+    export interface OauthContextCodeArgs { }
     export interface OauthAppInput {
         title: Nullable<string>;
         scopes: Nullable<OauthScope[]>;
@@ -640,6 +987,8 @@ export namespace GQL {
         email: string;
         role: OrganizationMemberRole;
     }
+    export interface OrganizationMemberEmailArgs { }
+    export interface OrganizationMemberRoleArgs { }
     export interface OrganizationIvitedMember extends OrganizationMember {
         email: string;
         role: OrganizationMemberRole;
@@ -647,6 +996,11 @@ export namespace GQL {
         lastName: Nullable<string>;
         inviteId: string;
     }
+    export interface OrganizationIvitedMemberEmailArgs { }
+    export interface OrganizationIvitedMemberRoleArgs { }
+    export interface OrganizationIvitedMemberFirstNameArgs { }
+    export interface OrganizationIvitedMemberLastNameArgs { }
+    export interface OrganizationIvitedMemberInviteIdArgs { }
     export interface OrganizationJoinedMember extends OrganizationMember {
         email: string;
         role: OrganizationMemberRole;
@@ -654,12 +1008,21 @@ export namespace GQL {
         joinedAt: Nullable<string>;
         showInContacts: boolean;
     }
+    export interface OrganizationJoinedMemberEmailArgs { }
+    export interface OrganizationJoinedMemberRoleArgs { }
+    export interface OrganizationJoinedMemberUserArgs { }
+    export interface OrganizationJoinedMemberJoinedAtArgs { }
+    export interface OrganizationJoinedMemberShowInContactsArgs { }
     export interface OrganizationRequestedMember extends OrganizationMember {
         email: string;
         role: OrganizationMemberRole;
         user: User;
         joinedAt: Nullable<string>;
     }
+    export interface OrganizationRequestedMemberEmailArgs { }
+    export interface OrganizationRequestedMemberRoleArgs { }
+    export interface OrganizationRequestedMemberUserArgs { }
+    export interface OrganizationRequestedMemberJoinedAtArgs { }
     export interface InviteRequest {
         email: string;
         emailText: Nullable<string>;
@@ -675,6 +1038,10 @@ export namespace GQL {
         description: string;
         requests: PermissionRequest[];
     }
+    export interface PermissionGroupIdArgs { }
+    export interface PermissionGroupNameArgs { }
+    export interface PermissionGroupDescriptionArgs { }
+    export interface PermissionGroupRequestsArgs { }
     export interface PermissionRequest {
         id: string;
         group: PermissionGroup;
@@ -683,6 +1050,12 @@ export namespace GQL {
         scope: PermissionScope;
         chat: Nullable<Room>;
     }
+    export interface PermissionRequestIdArgs { }
+    export interface PermissionRequestGroupArgs { }
+    export interface PermissionRequestAppTypeArgs { }
+    export interface PermissionRequestPowerupArgs { }
+    export interface PermissionRequestScopeArgs { }
+    export interface PermissionRequestChatArgs { }
     export type Platform = 'WEB' | 'IOS' | 'ANDROID';
     export interface OnlineEvent {
         userId: string;
@@ -693,13 +1066,23 @@ export namespace GQL {
         type: string;
         user: User;
     }
+    export interface OnlineEventUserIdArgs { }
+    export interface OnlineEventTimeoutArgs { }
+    export interface OnlineEventOnlineArgs { }
+    export interface OnlineEventActiveArgs { }
+    export interface OnlineEventLastSeenArgs { }
+    export interface OnlineEventTypeArgs { }
+    export interface OnlineEventUserArgs { }
     export interface ChatOnlineEvent {
         onlineMembers: number;
     }
+    export interface ChatOnlineEventOnlineMembersArgs { }
     export interface IsAppInstalledResponse {
         installed: boolean;
         installedAt: Nullable<Date>;
     }
+    export interface IsAppInstalledResponseInstalledArgs { }
+    export interface IsAppInstalledResponseInstalledAtArgs { }
     export type SuperAccountState = 'PENDING' | 'ACTIVATED' | 'SUSPENDED' | 'DELETED';
     export interface SuperAccount {
         id: string;
@@ -713,12 +1096,25 @@ export namespace GQL {
         createdAt: Nullable<string>;
         createdBy: Nullable<User>;
     }
+    export interface SuperAccountIdArgs { }
+    export interface SuperAccountOrgIdArgs { }
+    export interface SuperAccountTitleArgs { }
+    export interface SuperAccountNameArgs { }
+    export interface SuperAccountStateArgs { }
+    export interface SuperAccountMembersArgs { }
+    export interface SuperAccountFeaturesArgs { }
+    export interface SuperAccountAlphaPublishedArgs { }
+    export interface SuperAccountCreatedAtArgs { }
+    export interface SuperAccountCreatedByArgs { }
     export type SuperAdminRole = 'SUPER_ADMIN' | 'SOFTWARE_DEVELOPER' | 'EDITOR';
     export interface SuperAdmin {
         user: User;
         role: SuperAdminRole;
         email: Nullable<string>;
     }
+    export interface SuperAdminUserArgs { }
+    export interface SuperAdminRoleArgs { }
+    export interface SuperAdminEmailArgs { }
     export interface Event {
         id: string;
         event: string;
@@ -740,17 +1136,25 @@ export namespace GQL {
         description: string;
         image: Nullable<ImageRef>;
     }
+    export interface PowerupIdArgs { }
+    export interface PowerupNameArgs { }
+    export interface PowerupDescriptionArgs { }
+    export interface PowerupImageArgs { }
     export interface PowerupUserSettingsInput {
         enabled: boolean;
     }
     export interface PowerupUserSettings {
         enabled: boolean;
     }
+    export interface PowerupUserSettingsEnabledArgs { }
     export interface RoomPowerup {
         id: string;
         powerup: Powerup;
         userSettings: PowerupUserSettings;
     }
+    export interface RoomPowerupIdArgs { }
+    export interface RoomPowerupPowerupArgs { }
+    export interface RoomPowerupUserSettingsArgs { }
     export interface PageInfo {
         hasNextPage: boolean;
         hasPreviousPage: boolean;
@@ -759,12 +1163,21 @@ export namespace GQL {
         currentPage: number;
         openEnded: boolean;
     }
+    export interface PageInfoHasNextPageArgs { }
+    export interface PageInfoHasPreviousPageArgs { }
+    export interface PageInfoItemsCountArgs { }
+    export interface PageInfoPagesCountArgs { }
+    export interface PageInfoCurrentPageArgs { }
+    export interface PageInfoOpenEndedArgs { }
     export type TaskStatus = 'IN_PROGRESS' | 'FAILED' | 'COMPLETED';
     export interface Task {
         id: string;
         status: TaskStatus;
         result: Nullable<string>;
     }
+    export interface TaskIdArgs { }
+    export interface TaskStatusArgs { }
+    export interface TaskResultArgs { }
     export interface ImageCropInput {
         x: number;
         y: number;
@@ -777,10 +1190,16 @@ export namespace GQL {
         w: number;
         h: number;
     }
+    export interface ImageCropXArgs { }
+    export interface ImageCropYArgs { }
+    export interface ImageCropWArgs { }
+    export interface ImageCropHArgs { }
     export interface ImageRef {
         uuid: string;
         crop: Nullable<ImageCrop>;
     }
+    export interface ImageRefUuidArgs { }
+    export interface ImageRefCropArgs { }
     export interface ImageRefInput {
         uuid: string;
         crop: Nullable<ImageCropInput>;
@@ -789,6 +1208,8 @@ export namespace GQL {
         from: Nullable<number>;
         to: Nullable<number>;
     }
+    export interface RangeFromArgs { }
+    export interface RangeToArgs { }
     export interface RangeInput {
         from: Nullable<number>;
         to: Nullable<number>;
@@ -798,6 +1219,9 @@ export namespace GQL {
         key: string;
         value: Nullable<string>;
     }
+    export interface AppStorageValueIdArgs { }
+    export interface AppStorageValueKeyArgs { }
+    export interface AppStorageValueValueArgs { }
     export interface AppStorageValueInput {
         key: string;
         value: Nullable<string>;
@@ -810,6 +1234,12 @@ export namespace GQL {
         shortname: Nullable<string>;
         token: AppToken;
     }
+    export interface AppProfileIdArgs { }
+    export interface AppProfileNameArgs { }
+    export interface AppProfilePhotoRefArgs { }
+    export interface AppProfileAboutArgs { }
+    export interface AppProfileShortnameArgs { }
+    export interface AppProfileTokenArgs { }
     export interface AppProfileInput {
         name: Nullable<string>;
         shortname: Nullable<string>;
@@ -819,68 +1249,98 @@ export namespace GQL {
     export interface AppToken {
         salt: string;
     }
+    export interface AppTokenSaltArgs { }
     export interface AppChat {
         chat: Room;
         webhook: string;
     }
+    export interface AppChatChatArgs { }
+    export interface AppChatWebhookArgs { }
     export interface ChatUpdateSingle {
         seq: number;
         state: string;
         update: ChatUpdate;
     }
+    export interface ChatUpdateSingleSeqArgs { }
+    export interface ChatUpdateSingleStateArgs { }
+    export interface ChatUpdateSingleUpdateArgs { }
     export interface ChatUpdateBatch {
         seq: number;
         state: string;
         fromSeq: number;
         updates: ChatUpdate[];
     }
+    export interface ChatUpdateBatchSeqArgs { }
+    export interface ChatUpdateBatchStateArgs { }
+    export interface ChatUpdateBatchFromSeqArgs { }
+    export interface ChatUpdateBatchUpdatesArgs { }
     export type ChatUpdateContainer = ChatUpdateSingle | ChatUpdateBatch;
     export type ChatUpdate = ChatUpdated | ChatMessageReceived | ChatMessageUpdated | ChatMessageDeleted | ChatLostAccess;
     export interface ChatUpdated {
         chat: Room;
         by: User;
     }
+    export interface ChatUpdatedChatArgs { }
+    export interface ChatUpdatedByArgs { }
     export interface ChatMessageReceived {
         message: ModernMessage;
         repeatKey: Nullable<string>;
     }
+    export interface ChatMessageReceivedMessageArgs { }
+    export interface ChatMessageReceivedRepeatKeyArgs { }
     export interface ChatMessageUpdated {
         message: ModernMessage;
     }
+    export interface ChatMessageUpdatedMessageArgs { }
     export interface ChatMessageDeleted {
         message: ModernMessage;
     }
+    export interface ChatMessageDeletedMessageArgs { }
     export interface ChatUpdateState {
         state: Nullable<string>;
     }
+    export interface ChatUpdateStateStateArgs { }
     export interface ChatLostAccess {
         lostAccess: boolean;
     }
+    export interface ChatLostAccessLostAccessArgs { }
     export interface ConversationUpdateState {
         state: Nullable<string>;
     }
+    export interface ConversationUpdateStateStateArgs { }
     export interface CommentUpdatesState {
         state: Nullable<string>;
     }
+    export interface CommentUpdatesStateStateArgs { }
     export interface CommentUpdateSingle {
         seq: number;
         state: string;
         update: CommentUpdate;
     }
+    export interface CommentUpdateSingleSeqArgs { }
+    export interface CommentUpdateSingleStateArgs { }
+    export interface CommentUpdateSingleUpdateArgs { }
     export interface CommentUpdateBatch {
         seq: number;
         state: string;
         fromSeq: number;
         updates: CommentUpdate[];
     }
+    export interface CommentUpdateBatchSeqArgs { }
+    export interface CommentUpdateBatchStateArgs { }
+    export interface CommentUpdateBatchFromSeqArgs { }
+    export interface CommentUpdateBatchUpdatesArgs { }
     export type CommentUpdate = CommentReceived | CommentUpdated;
     export interface CommentReceived {
         comment: CommentEntry;
         repeatKey: Nullable<string>;
     }
+    export interface CommentReceivedCommentArgs { }
+    export interface CommentReceivedRepeatKeyArgs { }
     export interface CommentUpdated {
         comment: CommentEntry;
     }
+    export interface CommentUpdatedCommentArgs { }
     export type CommentUpdateContainer = CommentUpdateSingle | CommentUpdateBatch;
     export interface CommentsPeer {
         id: string;
@@ -890,6 +1350,12 @@ export namespace GQL {
         peerRoot: CommentPeerRoot;
         subscription: Nullable<CommentSubscription>;
     }
+    export interface CommentsPeerIdArgs { }
+    export interface CommentsPeerStateArgs { }
+    export interface CommentsPeerCountArgs { }
+    export interface CommentsPeerCommentsArgs { }
+    export interface CommentsPeerPeerRootArgs { }
+    export interface CommentsPeerSubscriptionArgs { }
     export interface CommentEntry {
         id: string;
         deleted: boolean;
@@ -898,39 +1364,60 @@ export namespace GQL {
         parentComment: Nullable<CommentEntry>;
         childComments: CommentEntry[];
     }
+    export interface CommentEntryIdArgs { }
+    export interface CommentEntryDeletedArgs { }
+    export interface CommentEntryCommentArgs { }
+    export interface CommentEntryBetaCommentArgs { }
+    export interface CommentEntryParentCommentArgs { }
+    export interface CommentEntryChildCommentsArgs { }
     export type CommentPeerRoot = CommentPeerRootMessage | CommentPeerRootFeedItem;
     export interface CommentPeerRootMessage {
         message: GeneralMessage;
         chat: Room;
     }
+    export interface CommentPeerRootMessageMessageArgs { }
+    export interface CommentPeerRootMessageChatArgs { }
     export interface CommentPeerRootFeedItem {
         item: FeedItem;
     }
+    export interface CommentPeerRootFeedItemItemArgs { }
     export type CommentSubscriptionType = 'ALL' | 'DIRECT';
     export interface CommentSubscription {
         type: Nullable<CommentSubscriptionType>;
     }
+    export interface CommentSubscriptionTypeArgs { }
     export interface DialogUpdateSingle {
         seq: number;
         state: string;
         update: DialogUpdate;
     }
+    export interface DialogUpdateSingleSeqArgs { }
+    export interface DialogUpdateSingleStateArgs { }
+    export interface DialogUpdateSingleUpdateArgs { }
     export interface DialogUpdateBatch {
         updates: DialogUpdate[];
         fromSeq: number;
         seq: number;
         state: string;
     }
+    export interface DialogUpdateBatchUpdatesArgs { }
+    export interface DialogUpdateBatchFromSeqArgs { }
+    export interface DialogUpdateBatchSeqArgs { }
+    export interface DialogUpdateBatchStateArgs { }
     export type DialogUpdateContainer = DialogUpdateSingle | DialogUpdateBatch;
     export type DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted | DialogPhotoUpdated | DialogMuteChanged | DialogMentionedChanged | DialogBump | DialogPeerUpdated;
     export interface SilentMessageInfo {
         mobile: boolean;
         desktop: boolean;
     }
+    export interface SilentMessageInfoMobileArgs { }
+    export interface SilentMessageInfoDesktopArgs { }
     export interface ShowNotificationMessageInfo {
         mobile: boolean;
         desktop: boolean;
     }
+    export interface ShowNotificationMessageInfoMobileArgs { }
+    export interface ShowNotificationMessageInfoDesktopArgs { }
     export interface DialogMessageReceived {
         cid: string;
         message: ConversationMessage;
@@ -942,6 +1429,15 @@ export namespace GQL {
         silent: SilentMessageInfo;
         showNotification: SilentMessageInfo;
     }
+    export interface DialogMessageReceivedCidArgs { }
+    export interface DialogMessageReceivedMessageArgs { }
+    export interface DialogMessageReceivedBetaMessageArgs { }
+    export interface DialogMessageReceivedAlphaMessageArgs { }
+    export interface DialogMessageReceivedUnreadArgs { }
+    export interface DialogMessageReceivedGlobalUnreadArgs { }
+    export interface DialogMessageReceivedHaveMentionArgs { }
+    export interface DialogMessageReceivedSilentArgs { }
+    export interface DialogMessageReceivedShowNotificationArgs { }
     export interface DialogMessageUpdated {
         cid: string;
         message: ConversationMessage;
@@ -949,6 +1445,11 @@ export namespace GQL {
         alphaMessage: ModernMessage;
         haveMention: boolean;
     }
+    export interface DialogMessageUpdatedCidArgs { }
+    export interface DialogMessageUpdatedMessageArgs { }
+    export interface DialogMessageUpdatedBetaMessageArgs { }
+    export interface DialogMessageUpdatedAlphaMessageArgs { }
+    export interface DialogMessageUpdatedHaveMentionArgs { }
     export interface DialogMessageDeleted {
         cid: string;
         message: ConversationMessage;
@@ -960,6 +1461,15 @@ export namespace GQL {
         globalUnread: number;
         haveMention: boolean;
     }
+    export interface DialogMessageDeletedCidArgs { }
+    export interface DialogMessageDeletedMessageArgs { }
+    export interface DialogMessageDeletedBetaMessageArgs { }
+    export interface DialogMessageDeletedPrevMessageArgs { }
+    export interface DialogMessageDeletedAlphaPrevMessageArgs { }
+    export interface DialogMessageDeletedAlphaMessageArgs { }
+    export interface DialogMessageDeletedUnreadArgs { }
+    export interface DialogMessageDeletedGlobalUnreadArgs { }
+    export interface DialogMessageDeletedHaveMentionArgs { }
     export interface DialogMessageRead {
         cid: string;
         mid: Nullable<string>;
@@ -967,18 +1477,29 @@ export namespace GQL {
         globalUnread: number;
         haveMention: boolean;
     }
+    export interface DialogMessageReadCidArgs { }
+    export interface DialogMessageReadMidArgs { }
+    export interface DialogMessageReadUnreadArgs { }
+    export interface DialogMessageReadGlobalUnreadArgs { }
+    export interface DialogMessageReadHaveMentionArgs { }
     export interface DialogTitleUpdated {
         cid: string;
         title: string;
     }
+    export interface DialogTitleUpdatedCidArgs { }
+    export interface DialogTitleUpdatedTitleArgs { }
     export interface DialogPhotoUpdated {
         cid: string;
         photo: Nullable<string>;
     }
+    export interface DialogPhotoUpdatedCidArgs { }
+    export interface DialogPhotoUpdatedPhotoArgs { }
     export interface DialogDeleted {
         cid: string;
         globalUnread: number;
     }
+    export interface DialogDeletedCidArgs { }
+    export interface DialogDeletedGlobalUnreadArgs { }
     export interface DialogBump {
         cid: string;
         globalUnread: number;
@@ -986,58 +1507,88 @@ export namespace GQL {
         topMessage: Nullable<ModernMessage>;
         haveMention: boolean;
     }
+    export interface DialogBumpCidArgs { }
+    export interface DialogBumpGlobalUnreadArgs { }
+    export interface DialogBumpUnreadArgs { }
+    export interface DialogBumpTopMessageArgs { }
+    export interface DialogBumpHaveMentionArgs { }
     export interface DialogMuteChanged {
         cid: string;
         mute: boolean;
         globalUnread: number;
     }
+    export interface DialogMuteChangedCidArgs { }
+    export interface DialogMuteChangedMuteArgs { }
+    export interface DialogMuteChangedGlobalUnreadArgs { }
     export interface DialogPeerUpdated {
         cid: string;
         peer: Room;
     }
+    export interface DialogPeerUpdatedCidArgs { }
+    export interface DialogPeerUpdatedPeerArgs { }
     export interface DialogMentionedChanged {
         cid: string;
         haveMention: boolean;
     }
+    export interface DialogMentionedChangedCidArgs { }
+    export interface DialogMentionedChangedHaveMentionArgs { }
     export interface DialogUpdateState {
         state: Nullable<string>;
     }
+    export interface DialogUpdateStateStateArgs { }
     export interface EnvVar {
         name: string;
         value: string;
     }
+    export interface EnvVarNameArgs { }
+    export interface EnvVarValueArgs { }
     export interface FeatureFlag {
         id: string;
         key: string;
         title: string;
     }
+    export interface FeatureFlagIdArgs { }
+    export interface FeatureFlagKeyArgs { }
+    export interface FeatureFlagTitleArgs { }
     export interface FeedUpdateContainer {
         updates: FeedUpdate[];
         state: string;
     }
+    export interface FeedUpdateContainerUpdatesArgs { }
+    export interface FeedUpdateContainerStateArgs { }
     export type FeedUpdate = FeedItemReceived | FeedItemUpdated | FeedItemDeleted | FeedRebuildNeeded;
     export interface FeedItemReceived {
         item: FeedItem;
     }
+    export interface FeedItemReceivedItemArgs { }
     export interface FeedItemUpdated {
         item: FeedItem;
     }
+    export interface FeedItemUpdatedItemArgs { }
     export interface FeedItemDeleted {
         item: FeedItem;
     }
+    export interface FeedItemDeletedItemArgs { }
     export interface FeedRebuildNeeded {
         homeFeed: FeedItemConnection;
     }
+    export interface FeedRebuildNeededHomeFeedArgs { }
     export interface GeoLocation {
         long: number;
         lat: number;
     }
+    export interface GeoLocationLongArgs { }
+    export interface GeoLocationLatArgs { }
     export interface UserLocation {
         id: string;
         isSharing: boolean;
         user: User;
         lastLocations: GeoLocation[];
     }
+    export interface UserLocationIdArgs { }
+    export interface UserLocationIsSharingArgs { }
+    export interface UserLocationUserArgs { }
+    export interface UserLocationLastLocationsArgs { }
     export interface GeoLocationInput {
         long: number;
         lat: number;
@@ -1047,22 +1598,35 @@ export namespace GQL {
         username: Nullable<string>;
         credential: Nullable<string>;
     }
+    export interface ICEServerUrlsArgs { }
+    export interface ICEServerUsernameArgs { }
+    export interface ICEServerCredentialArgs { }
     export interface Conference {
         id: string;
         startTime: Nullable<Date>;
         peers: ConferencePeer[];
         iceServers: ICEServer[];
     }
+    export interface ConferenceIdArgs { }
+    export interface ConferenceStartTimeArgs { }
+    export interface ConferencePeersArgs { }
+    export interface ConferenceIceServersArgs { }
     export interface ConferencePeer {
         id: string;
         user: User;
         connection: Nullable<ConferencePeerConnection>;
     }
+    export interface ConferencePeerIdArgs { }
+    export interface ConferencePeerUserArgs { }
+    export interface ConferencePeerConnectionArgs { }
     export interface ConferenceMedia {
         id: string;
         streams: MediaStream[];
         iceServers: ICEServer[];
     }
+    export interface ConferenceMediaIdArgs { }
+    export interface ConferenceMediaStreamsArgs { }
+    export interface ConferenceMediaIceServersArgs { }
     export type MediaStreamState = 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY';
     export interface MediaStream {
         id: string;
@@ -1071,22 +1635,36 @@ export namespace GQL {
         sdp: Nullable<string>;
         ice: string[];
     }
+    export interface MediaStreamIdArgs { }
+    export interface MediaStreamPeerIdArgs { }
+    export interface MediaStreamStateArgs { }
+    export interface MediaStreamSdpArgs { }
+    export interface MediaStreamIceArgs { }
     export type ConferencePeerConnectionState = 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY';
     export interface ConferencePeerConnection {
         state: ConferencePeerConnectionState;
         sdp: Nullable<string>;
         ice: string[];
     }
+    export interface ConferencePeerConnectionStateArgs { }
+    export interface ConferencePeerConnectionSdpArgs { }
+    export interface ConferencePeerConnectionIceArgs { }
     export interface ConferenceJoinResult {
         peerId: string;
         conference: Conference;
     }
+    export interface ConferenceJoinResultPeerIdArgs { }
+    export interface ConferenceJoinResultConferenceArgs { }
     export interface ImageSticker {
         id: string;
         image: ImageRef;
         pack: StickerPack;
         emoji: string;
     }
+    export interface ImageStickerIdArgs { }
+    export interface ImageStickerImageArgs { }
+    export interface ImageStickerPackArgs { }
+    export interface ImageStickerEmojiArgs { }
     export type Sticker = ImageSticker;
     export interface StickerPack {
         id: string;
@@ -1096,10 +1674,18 @@ export namespace GQL {
         usesCount: number;
         published: boolean;
     }
+    export interface StickerPackIdArgs { }
+    export interface StickerPackTitleArgs { }
+    export interface StickerPackStickersArgs { }
+    export interface StickerPackAuthorArgs { }
+    export interface StickerPackUsesCountArgs { }
+    export interface StickerPackPublishedArgs { }
     export interface UserStickers {
         packs: StickerPack[];
         favorites: Sticker[];
     }
+    export interface UserStickersPacksArgs { }
+    export interface UserStickersFavoritesArgs { }
     export interface StickerInput {
         image: ImageRefInput;
         emoji: string;
@@ -1112,17 +1698,25 @@ export namespace GQL {
         user: User;
         reaction: string;
     }
+    export interface MessageReactionUserArgs { }
+    export interface MessageReactionReactionArgs { }
     export interface MessageAttachment {
         fileId: string;
         fileMetadata: Nullable<FileMetadata>;
         filePreview: Nullable<string>;
     }
+    export interface MessageAttachmentFileIdArgs { }
+    export interface MessageAttachmentFileMetadataArgs { }
+    export interface MessageAttachmentFilePreviewArgs { }
     export type MessageButtonStyle = 'DEFAULT' | 'LIGHT';
     export interface MessageButton {
         title: string;
         style: MessageButtonStyle;
         id: string;
     }
+    export interface MessageButtonTitleArgs { }
+    export interface MessageButtonStyleArgs { }
+    export interface MessageButtonIdArgs { }
     export interface MessageButtonInput {
         title: string;
         style: MessageButtonStyle;
@@ -1423,6 +2017,7 @@ export namespace GQL {
         alphaSetFeedChannelShortName: Nullable<string>;
         alphaSetRoomShortName: Nullable<string>;
     }
+    export interface MutationLifecheckArgs { }
     export interface MutationAlphaSendMessageArgs {
         conversationId: string;
         message: OptionalNullable<string>;
@@ -1576,6 +2171,7 @@ export namespace GQL {
     export interface MutationSubscriptionCancelArgs {
         id: string;
     }
+    export interface MutationAlphaCreateInviteArgs { }
     export interface MutationAlphaDeleteInviteArgs {
         id: string;
     }
@@ -1601,25 +2197,41 @@ export namespace GQL {
     export interface MutationDebugDeleteUrlInfoCacheArgs {
         url: string;
     }
+    export interface MutationDebugDeleteUrlInfoCacheAllArgs { }
     export interface MutationDebugSuperNotificationsArgs {
         type: SuperNotificationType;
     }
+    export interface MutationDebugCalcUsersMessagingStatsArgs { }
+    export interface MutationDebugCalcUsersChatsStatsArgs { }
     export interface MutationDebugConvertOrgChatToNormalArgs {
         orgId: string;
     }
+    export interface MutationDebugDeleteEmptyOrgChatsArgs { }
+    export interface MutationDebugFixCommentsVisibilityArgs { }
     export interface MutationDebugSetCommentVisibilityArgs {
         commentId: string;
         visible: boolean;
     }
+    export interface MutationDebugRemoveDeletedDialogsArgs { }
     export interface MutationDebugReindexOrgsArgs {
         marActivatedOrgsListed: boolean;
     }
+    export interface MutationDebugCalcRoomsActiveMembersArgs { }
+    export interface MutationDebugCalcOrgsActiveMembersArgs { }
+    export interface MutationDebugCreateCommentSubscriptionsArgs { }
+    export interface MutationDebugDeveloperInitArgs { }
     export interface MutationDebugResetAudienceCounterArgs {
         uid: OptionalNullable<string>;
     }
+    export interface MutationDebugCalcUsersAudienceCounterArgs { }
+    export interface MutationDebugCalcUsers2WayDirectChatsCounterArgs { }
     export interface MutationDebugFixMessageArgs {
         id: number;
     }
+    export interface MutationDebugEnableNotificationCenterForAllArgs { }
+    export interface MutationDebugResetGlobalCountersArgs { }
+    export interface MutationDebugCalcGlobalCountersForAllArgs { }
+    export interface MutationDebugValidateGlobalCountersForAllArgs { }
     export interface MutationDebugCreateBigChatArgs {
         membersCount: number;
     }
@@ -1627,10 +2239,22 @@ export namespace GQL {
         chat: string;
         messagesCount: number;
     }
+    export interface MutationDebugQueueDailyEngagementReportArgs { }
+    export interface MutationDebugQueueDailyOnboardingReportArgs { }
+    export interface MutationDebugQueueWeeklyEngagementReportArgs { }
+    export interface MutationDebugQueueWeeklyOnboardingReportArgs { }
+    export interface MutationDebugQueueWeeklyUserLeaderboardArgs { }
+    export interface MutationDebugQueueWeeklyRoomLeaderboardArgs { }
+    export interface MutationDebugQueueWeeklyRoomByMessagesLeaderboardArgs { }
+    export interface MutationDebugReindexUserProfilesArgs { }
+    export interface MutationDebugReindexRoomProfilesArgs { }
     export interface MutationDebugSendPushArgs {
         id: string;
         message: string;
     }
+    export interface MutationDebugReindexPrivateDialogsArgs { }
+    export interface MutationDebugReindexUsersDialogsArgs { }
+    export interface MutationDebugReindexFeedEventsArgs { }
     export interface MutationDebugChangeUserEmailArgs {
         uid: string;
         email: string;
@@ -1639,13 +2263,24 @@ export namespace GQL {
         uid1: string;
         uid2: string;
     }
+    export interface MutationDebugFindUsefulCommunitiesArgs { }
     export interface MutationDebugFixStickerPackArgs {
         id: string;
         stickers: StickerInput[];
     }
+    export interface MutationDebugReverseStickersArgs { }
+    export interface MutationDebugReindexShortnamesArgs { }
     export interface MutationDebugFixHyperlogEventArgs {
         eventId: string;
     }
+    export interface MutationDebugReindexFeedChannelAdminsArgs { }
+    export interface MutationDebugReindexFeedChannelsArgs { }
+    export interface MutationDebugReindexFeedTopicsArgs { }
+    export interface MutationDebugCalcChannelPostsCountArgs { }
+    export interface MutationDebugCalcChannelsSubscribersCountArgs { }
+    export interface MutationDebugResetUrlInfoFreshnessArgs { }
+    export interface MutationDebugFixUsersPrimaryOrganizationArgs { }
+    export interface MutationDebugResetPushDeliveryArgs { }
     export interface MutationDebugAddStickerPackToAllArgs {
         packId: string;
     }
@@ -1653,6 +2288,7 @@ export namespace GQL {
         chatId: string;
         newCommunityId: string;
     }
+    export interface MutationDebugRecountSeqForMessagesArgs { }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
     }
@@ -1774,6 +2410,8 @@ export namespace GQL {
     export interface MutationBetaFixCounterArgs {
         uid: string;
     }
+    export interface MutationBetaFixCountersForAllArgs { }
+    export interface MutationDeliverCountersForAllArgs { }
     export interface MutationConversationDraftUpdateArgs {
         conversationId: string;
         message: OptionalNullable<string>;
@@ -2114,6 +2752,7 @@ export namespace GQL {
     export interface MutationBetaDiscoverSkipArgs {
         selectedTagsIds: string[];
     }
+    export interface MutationBetaNextDiscoverResetArgs { }
     export interface MutationBetaNextDiscoverPageOrChatsArgs {
         selectedTagsIds: string[];
         excudedGroupsIds: string[];
@@ -2137,6 +2776,7 @@ export namespace GQL {
         peerId: string;
         uid: string;
     }
+    export interface MutationCreateHistoricUserMetricsReportArgs { }
     export interface MutationTypingSendArgs {
         conversationId: string;
         type: TypingType;
@@ -2153,6 +2793,7 @@ export namespace GQL {
         type: string;
         message: OptionalNullable<string>;
     }
+    export interface MutationDeleteMyAccountArgs { }
     export interface MutationSuperBadgeCreateToRoomArgs {
         roomId: string;
         userId: string;
@@ -2183,6 +2824,7 @@ export namespace GQL {
     export interface MutationBadgeSetPrimaryArgs {
         badgeId: string;
     }
+    export interface MutationBadgeUnsetPrimaryArgs { }
     export interface MutationSuperBadgeCreateArgs {
         userId: string;
         name: string;
@@ -2442,72 +3084,109 @@ export namespace GQL {
         unread: number;
         state: NotificationCenterUpdatesState;
     }
+    export interface NotificationCenterIdArgs { }
+    export interface NotificationCenterUnreadArgs { }
+    export interface NotificationCenterStateArgs { }
     export interface Notification {
         id: string;
         text: Nullable<string>;
         content: NotificationContent[];
     }
+    export interface NotificationIdArgs { }
+    export interface NotificationTextArgs { }
+    export interface NotificationContentArgs { }
     export type NotificationContent = NewCommentNotification | NewMatchmakingProfilesNotification | MentionNotification;
     export interface NewCommentNotification {
         peer: CommentsPeer;
         comment: CommentEntry;
     }
+    export interface NewCommentNotificationPeerArgs { }
+    export interface NewCommentNotificationCommentArgs { }
     export interface NewMatchmakingProfilesNotification {
         room: MatchmakingRoom;
         profiles: MatchmakingProfile[];
     }
+    export interface NewMatchmakingProfilesNotificationRoomArgs { }
+    export interface NewMatchmakingProfilesNotificationProfilesArgs { }
     export type MessageWithMention = FeedPost | Message;
     export interface MentionNotification {
         peer: MentionPeer;
         message: MessageWithMention;
     }
+    export interface MentionNotificationPeerArgs { }
+    export interface MentionNotificationMessageArgs { }
     export interface NotificationConnection {
         items: Notification[];
         cursor: Nullable<string>;
     }
+    export interface NotificationConnectionItemsArgs { }
+    export interface NotificationConnectionCursorArgs { }
     export interface NotificationCenterUpdatesState {
         state: Nullable<string>;
     }
+    export interface NotificationCenterUpdatesStateStateArgs { }
     export interface NotificationCenterUpdateSingle {
         seq: number;
         state: string;
         update: NotificationCenterUpdate;
     }
+    export interface NotificationCenterUpdateSingleSeqArgs { }
+    export interface NotificationCenterUpdateSingleStateArgs { }
+    export interface NotificationCenterUpdateSingleUpdateArgs { }
     export interface NotificationCenterUpdateBatch {
         seq: number;
         state: string;
         fromSeq: number;
         updates: NotificationCenterUpdate[];
     }
+    export interface NotificationCenterUpdateBatchSeqArgs { }
+    export interface NotificationCenterUpdateBatchStateArgs { }
+    export interface NotificationCenterUpdateBatchFromSeqArgs { }
+    export interface NotificationCenterUpdateBatchUpdatesArgs { }
     export type NotificationCenterUpdate = NotificationReceived | NotificationRead | NotificationDeleted | NotificationUpdated | NotificationContentUpdated;
     export interface NotificationReceived {
         center: NotificationCenter;
         notification: Notification;
         unread: number;
     }
+    export interface NotificationReceivedCenterArgs { }
+    export interface NotificationReceivedNotificationArgs { }
+    export interface NotificationReceivedUnreadArgs { }
     export interface NotificationRead {
         center: NotificationCenter;
         unread: number;
     }
+    export interface NotificationReadCenterArgs { }
+    export interface NotificationReadUnreadArgs { }
     export interface NotificationDeleted {
         center: NotificationCenter;
         notification: Notification;
         unread: number;
     }
+    export interface NotificationDeletedCenterArgs { }
+    export interface NotificationDeletedNotificationArgs { }
+    export interface NotificationDeletedUnreadArgs { }
     export interface NotificationUpdated {
         center: NotificationCenter;
         notification: Notification;
         unread: number;
     }
+    export interface NotificationUpdatedCenterArgs { }
+    export interface NotificationUpdatedNotificationArgs { }
+    export interface NotificationUpdatedUnreadArgs { }
     export type UpdatedNotificationContent = UpdatedNotificationContentComment;
     export interface UpdatedNotificationContentComment {
         peer: CommentsPeer;
         comment: Nullable<CommentEntry>;
     }
+    export interface UpdatedNotificationContentCommentPeerArgs { }
+    export interface UpdatedNotificationContentCommentCommentArgs { }
     export interface NotificationContentUpdated {
         center: NotificationCenter;
         content: UpdatedNotificationContent;
     }
+    export interface NotificationContentUpdatedCenterArgs { }
+    export interface NotificationContentUpdatedContentArgs { }
     export type NotificationCenterUpdateContainer = NotificationCenterUpdateSingle | NotificationCenterUpdateBatch;
     export interface OrganizationContact {
         name: string;
@@ -2519,6 +3198,14 @@ export namespace GQL {
         link: Nullable<string>;
         twitter: Nullable<string>;
     }
+    export interface OrganizationContactNameArgs { }
+    export interface OrganizationContactPhotoArgs { }
+    export interface OrganizationContactPhotoRefArgs { }
+    export interface OrganizationContactPositionArgs { }
+    export interface OrganizationContactEmailArgs { }
+    export interface OrganizationContactPhoneArgs { }
+    export interface OrganizationContactLinkArgs { }
+    export interface OrganizationContactTwitterArgs { }
     export interface Organization {
         id: string;
         isMine: boolean;
@@ -2552,6 +3239,24 @@ export namespace GQL {
         linkedFeedChannels: FeedChannel[];
         shortname: Nullable<string>;
     }
+    export interface OrganizationIdArgs { }
+    export interface OrganizationIsMineArgs { }
+    export interface OrganizationIsDeletedArgs { }
+    export interface OrganizationNameArgs { }
+    export interface OrganizationPhotoArgs { }
+    export interface OrganizationWebsiteArgs { }
+    export interface OrganizationWebsiteTitleArgs { }
+    export interface OrganizationAboutArgs { }
+    export interface OrganizationTwitterArgs { }
+    export interface OrganizationFacebookArgs { }
+    export interface OrganizationLinkedinArgs { }
+    export interface OrganizationInstagramArgs { }
+    export interface OrganizationLocationArgs { }
+    export interface OrganizationBetaIsOwnerArgs { }
+    export interface OrganizationBetaIsAdminArgs { }
+    export interface OrganizationBetaIsPrimaryArgs { }
+    export interface OrganizationSuperAccountIdArgs { }
+    export interface OrganizationAlphaIsOwnerArgs { }
     export interface OrganizationAlphaOrganizationMembersArgs {
         first: OptionalNullable<number>;
         after: OptionalNullable<string>;
@@ -2560,6 +3265,17 @@ export namespace GQL {
         first: OptionalNullable<number>;
         after: OptionalNullable<string>;
     }
+    export interface OrganizationAlphaOrganizationMemberRequestsArgs { }
+    export interface OrganizationAlphaFeaturedArgs { }
+    export interface OrganizationAlphaIsCommunityArgs { }
+    export interface OrganizationAlphaIsPrivateArgs { }
+    export interface OrganizationBetaPublicRoomsArgs { }
+    export interface OrganizationBetaPublicRoomsCountArgs { }
+    export interface OrganizationStatusArgs { }
+    export interface OrganizationMembersCountArgs { }
+    export interface OrganizationPersonalArgs { }
+    export interface OrganizationLinkedFeedChannelsArgs { }
+    export interface OrganizationShortnameArgs { }
     export interface OrganizationProfile {
         id: string;
         name: string;
@@ -2580,6 +3296,24 @@ export namespace GQL {
         alphaIsPrivate: boolean;
         shortname: Nullable<string>;
     }
+    export interface OrganizationProfileIdArgs { }
+    export interface OrganizationProfileNameArgs { }
+    export interface OrganizationProfilePhotoRefArgs { }
+    export interface OrganizationProfileWebsiteArgs { }
+    export interface OrganizationProfileWebsiteTitleArgs { }
+    export interface OrganizationProfileAboutArgs { }
+    export interface OrganizationProfileTwitterArgs { }
+    export interface OrganizationProfileFacebookArgs { }
+    export interface OrganizationProfileLinkedinArgs { }
+    export interface OrganizationProfileInstagramArgs { }
+    export interface OrganizationProfileContactsArgs { }
+    export interface OrganizationProfileLocationArgs { }
+    export interface OrganizationProfileAlphaPublishedArgs { }
+    export interface OrganizationProfileAlphaEditorialArgs { }
+    export interface OrganizationProfileAlphaFeaturedArgs { }
+    export interface OrganizationProfileAlphaIsCommunityArgs { }
+    export interface OrganizationProfileAlphaIsPrivateArgs { }
+    export interface OrganizationProfileShortnameArgs { }
     export interface CreateOrganizationInput {
         id: Nullable<string>;
         name: string;
@@ -2620,21 +3354,30 @@ export namespace GQL {
         node: Organization;
         cursor: string;
     }
+    export interface OrganizationsEdgeNodeArgs { }
+    export interface OrganizationsEdgeCursorArgs { }
     export interface OrganizationsConnection {
         edges: OrganizationsEdge[];
         pageInfo: PageInfo;
     }
+    export interface OrganizationsConnectionEdgesArgs { }
+    export interface OrganizationsConnectionPageInfoArgs { }
     export interface Permissions {
         roles: string[];
     }
+    export interface PermissionsRolesArgs { }
     export interface ProfilePrefill {
         firstName: Nullable<string>;
         lastName: Nullable<string>;
         picture: Nullable<string>;
     }
+    export interface ProfilePrefillFirstNameArgs { }
+    export interface ProfilePrefillLastNameArgs { }
+    export interface ProfilePrefillPictureArgs { }
     export interface PushSettings {
         webPushKey: Nullable<string>;
     }
+    export interface PushSettingsWebPushKeyArgs { }
     export type PushType = 'WEB_PUSH' | 'IOS' | 'ANDROID' | 'SAFARI';
     export interface Query {
         lifecheck: Nullable<string>;
@@ -2787,6 +3530,8 @@ export namespace GQL {
         alphaUserAvailableRooms: RoomConnection;
         alphaResolveShortName: Nullable<ShortNameDestination>;
     }
+    export interface QueryLifecheckArgs { }
+    export interface QueryAlphaNotificationCounterArgs { }
     export interface QueryAlphaChatArgs {
         conversationId: OptionalNullable<string>;
         shortName: OptionalNullable<string>;
@@ -2808,28 +3553,39 @@ export namespace GQL {
     export interface QueryAlphaGroupConversationMembersArgs {
         conversationId: string;
     }
+    export interface QueryMyProfileArgs { }
+    export interface QueryMyCardsArgs { }
+    export interface QueryMyWalletArgs { }
+    export interface QueryTransactionsPendingArgs { }
     export interface QueryTransactionsHistoryArgs {
         first: number;
         after: OptionalNullable<string>;
     }
+    export interface QuerySubscriptionsArgs { }
+    export interface QueryAlphaInvitesArgs { }
     export interface QueryAlphaInviteInfoArgs {
         key: string;
     }
+    export interface QueryAppInviteArgs { }
     export interface QueryAppInviteFromUserArgs {
         shortname: string;
     }
     export interface QueryAppInviteInfoArgs {
         key: string;
     }
+    export interface QueryAlphaAppInviteArgs { }
     export interface QueryAlphaAppInviteInfoArgs {
         key: string;
     }
+    export interface QueryAlphaInvitesHistoryArgs { }
     export interface QueryAlphaResolveInviteArgs {
         key: string;
     }
+    export interface QueryCommentGlobalUpdatesStateArgs { }
     export interface QueryDebugParseIDArgs {
         id: string;
     }
+    export interface QueryDebugCrashQueryArgs { }
     export interface QueryDebugUrlInfoArgs {
         url: string;
     }
@@ -2837,13 +3593,22 @@ export namespace GQL {
         uid: string;
         lastSeenFiveMinute: OptionalNullable<boolean>;
     }
+    export interface QueryDebugValidateMessagesArgs { }
+    export interface QueryOrganizationChatsStatsArgs { }
+    export interface QueryDebugEventsStateArgs { }
+    export interface QueryDebugCheckTasksIndexArgs { }
+    export interface QueryDebug2WayDirectChatsCounterArgs { }
     export interface QueryDebugUserMetricsArgs {
         id: string;
     }
+    export interface QueryDebugGlobalCountersArgs { }
+    export interface QueryDebugServerIdArgs { }
     export interface QueryDialogsArgs {
         first: number;
         after: OptionalNullable<string>;
     }
+    export interface QuerySettingsArgs { }
+    export interface QueryMyOauthAppsArgs { }
     export interface QueryOauthContextArgs {
         code: string;
     }
@@ -2858,10 +3623,16 @@ export namespace GQL {
     export interface QueryAlphaOrganizationPublicInviteArgs {
         organizationId: OptionalNullable<string>;
     }
+    export interface QueryPermissionGroupsArgs { }
+    export interface QueryWaitingPermissionRequestsArgs { }
+    export interface QueryIsDesktopInstalledArgs { }
+    export interface QueryIsMobileInstalledArgs { }
+    export interface QuerySuperAccountsArgs { }
     export interface QuerySuperAccountArgs {
         id: string;
         viaOrgId: OptionalNullable<boolean>;
     }
+    export interface QuerySuperAdminsArgs { }
     export interface QueryChatLocationsArgs {
         id: string;
     }
@@ -2877,12 +3648,14 @@ export namespace GQL {
     export interface QueryAlphaDraftMessageArgs {
         conversationId: string;
     }
+    export interface QueryPowerupsArgs { }
     export interface QueryChatsWithPowerupArgs {
         id: string;
     }
     export interface QueryChatPowerupsArgs {
         id: string;
     }
+    export interface QueryMyAppsArgs { }
     export interface QueryUserStorageArgs {
         namespace: string;
         keys: string[];
@@ -2902,9 +3675,14 @@ export namespace GQL {
     export interface QueryCommentsArgs {
         peerId: string;
     }
+    export interface QueryDialogsStateArgs { }
+    export interface QueryEnvVarsArgs { }
     export interface QueryEnvVarArgs {
         name: string;
     }
+    export interface QueryFeatureFlagsArgs { }
+    export interface QueryMyLocationArgs { }
+    export interface QueryShouldShareLocationArgs { }
     export interface QueryConferenceArgs {
         id: string;
     }
@@ -2912,16 +3690,22 @@ export namespace GQL {
         id: string;
         peerId: string;
     }
+    export interface QueryMyStickersArgs { }
+    export interface QueryCreatedStickerPacksArgs { }
     export interface QueryStickersByEmojiArgs {
         emoji: string;
     }
     export interface QueryStickerPackArgs {
         id: string;
     }
+    export interface QueryStickerPackCatalogArgs { }
+    export interface QueryMyNotificationCenterArgs { }
     export interface QueryMyNotificationsArgs {
         first: number;
         before: OptionalNullable<string>;
     }
+    export interface QueryMyOrganizationArgs { }
+    export interface QueryMyOrganizationsArgs { }
     export interface QueryOrganizationArgs {
         id: string;
     }
@@ -2930,6 +3714,7 @@ export namespace GQL {
         first: number;
         after: OptionalNullable<string>;
     }
+    export interface QueryMyOrganizationProfileArgs { }
     export interface QueryOrganizationProfileArgs {
         id: string;
     }
@@ -2953,9 +3738,13 @@ export namespace GQL {
         page: OptionalNullable<number>;
         featuredIfEmptyQuery: OptionalNullable<boolean>;
     }
+    export interface QueryMyPermissionsArgs { }
     export interface QueryUsersArgs {
         query: string;
     }
+    export interface QueryMyProfilePrefillArgs { }
+    export interface QueryPushSettingsArgs { }
+    export interface QuerySessionStateArgs { }
     export interface QueryBetaNextDiscoverPageArgs {
         selectedTagsIds: string[];
         excudedGroupsIds: string[];
@@ -2964,6 +3753,9 @@ export namespace GQL {
         selectedTagsIds: string[];
         excudedGroupsIds: string[];
     }
+    export interface QueryBetaSuggestedRoomsArgs { }
+    export interface QueryBetaIsDiscoverDoneArgs { }
+    export interface QueryIsDiscoverSkippedArgs { }
     export interface QueryMatchmakingRoomArgs {
         peerId: string;
     }
@@ -2976,9 +3768,11 @@ export namespace GQL {
         to: Date;
         size: OptionalNullable<number>;
     }
+    export interface QueryMeArgs { }
     export interface QueryUserArgs {
         id: string;
     }
+    export interface QueryMySuccessfulInvitesCountArgs { }
     export interface QuerySuperBadgeInRoomArgs {
         roomId: string;
         userId: string;
@@ -3018,6 +3812,7 @@ export namespace GQL {
     export interface QueryAlphaFeedChannelArgs {
         id: string;
     }
+    export interface QueryAlphaFeedMyDraftsChannelArgs { }
     export interface QueryAlphaFeedChannelContentArgs {
         id: string;
         first: number;
@@ -3060,6 +3855,8 @@ export namespace GQL {
         query: string;
         kinds: OptionalNullable<GlobalSearchEntryKind[]>;
     }
+    export interface QueryFeaturedGroupsArgs { }
+    export interface QueryFeaturedCommunitiesArgs { }
     export interface QueryMessagesSearchArgs {
         query: string;
         sort: OptionalNullable<string>;
@@ -3149,6 +3946,7 @@ export namespace GQL {
     export interface QueryBetaRoomInviteLinkArgs {
         roomId: string;
     }
+    export interface QueryBetaAvailableRoomsArgs { }
     export interface QueryBetaUserRoomsArgs {
         limit: OptionalNullable<number>;
         after: OptionalNullable<string>;
@@ -3176,6 +3974,14 @@ export namespace GQL {
         isAccountPicked: boolean;
         isAccountActivated: boolean;
     }
+    export interface SessionStateIsLoggedInArgs { }
+    export interface SessionStateIsProfileCreatedArgs { }
+    export interface SessionStateIsActivatedArgs { }
+    export interface SessionStateIsAccountExistsArgs { }
+    export interface SessionStateIsCompletedArgs { }
+    export interface SessionStateIsBlockedArgs { }
+    export interface SessionStateIsAccountPickedArgs { }
+    export interface SessionStateIsAccountActivatedArgs { }
     export interface Subscription {
         lifecheck: Nullable<string>;
         walletUpdates: WalletUpdateContainer;
@@ -3204,6 +4010,7 @@ export namespace GQL {
         alphaSubscribeTypings: TypingEvent;
         alphaSubscribeChatTypings: TypingEvent;
     }
+    export interface SubscriptionLifecheckArgs { }
     export interface SubscriptionWalletUpdatesArgs {
         fromState: string;
     }
@@ -3219,6 +4026,11 @@ export namespace GQL {
     export interface SubscriptionDebugReaderStateArgs {
         reader: string;
     }
+    export interface SubscriptionDebugServerIdArgs { }
+    export interface SubscriptionSettingsWatchArgs { }
+    export interface SubscriptionWatchSettingsArgs { }
+    export interface SubscriptionPermissionsUpdatesArgs { }
+    export interface SubscriptionWaitingPermissionRequestsUpdatesArgs { }
     export interface SubscriptionAlphaSubscribeChatOnlineArgs {
         conversations: string[];
     }
@@ -3245,6 +4057,7 @@ export namespace GQL {
     export interface SubscriptionHomeFeedUpdatesArgs {
         fromState: OptionalNullable<string>;
     }
+    export interface SubscriptionShouldShareLocationUpdatesArgs { }
     export interface SubscriptionAlphaConferenceWatchArgs {
         id: string;
     }
@@ -3255,9 +4068,11 @@ export namespace GQL {
     export interface SubscriptionNotificationCenterUpdatesArgs {
         fromState: OptionalNullable<string>;
     }
+    export interface SubscriptionTypingsArgs { }
     export interface SubscriptionConversationTypingsArgs {
         conversationId: string;
     }
+    export interface SubscriptionAlphaSubscribeTypingsArgs { }
     export interface SubscriptionAlphaSubscribeChatTypingsArgs {
         conversationId: string;
     }
@@ -3265,42 +4080,64 @@ export namespace GQL {
         id: string;
         title: string;
     }
+    export interface TagIdArgs { }
+    export interface TagTitleArgs { }
     export interface TagGroup {
         id: string;
         title: Nullable<string>;
         subtitle: Nullable<string>;
         tags: Tag[];
     }
+    export interface TagGroupIdArgs { }
+    export interface TagGroupTitleArgs { }
+    export interface TagGroupSubtitleArgs { }
+    export interface TagGroupTagsArgs { }
     export interface DiscoverPage {
         chats: Nullable<Room[]>;
         tagGroup: Nullable<TagGroup>;
     }
+    export interface DiscoverPageChatsArgs { }
+    export interface DiscoverPageTagGroupArgs { }
     export interface TextMatchmakingQuestion {
         id: string;
         title: string;
         subtitle: string;
     }
+    export interface TextMatchmakingQuestionIdArgs { }
+    export interface TextMatchmakingQuestionTitleArgs { }
+    export interface TextMatchmakingQuestionSubtitleArgs { }
     export interface MultiselectMatchmakingQuestion {
         id: string;
         title: string;
         subtitle: string;
         tags: string[];
     }
+    export interface MultiselectMatchmakingQuestionIdArgs { }
+    export interface MultiselectMatchmakingQuestionTitleArgs { }
+    export interface MultiselectMatchmakingQuestionSubtitleArgs { }
+    export interface MultiselectMatchmakingQuestionTagsArgs { }
     export type MatchmakingQuestion = TextMatchmakingQuestion | MultiselectMatchmakingQuestion;
     export interface TextMatchmakingAnswer {
         question: TextMatchmakingQuestion;
         answer: string;
     }
+    export interface TextMatchmakingAnswerQuestionArgs { }
+    export interface TextMatchmakingAnswerAnswerArgs { }
     export interface MultiselectMatchmakingAnswer {
         question: MultiselectMatchmakingQuestion;
         tags: string[];
     }
+    export interface MultiselectMatchmakingAnswerQuestionArgs { }
+    export interface MultiselectMatchmakingAnswerTagsArgs { }
     export type MatchmakingAnswer = TextMatchmakingAnswer | MultiselectMatchmakingAnswer;
     export interface MatchmakingProfile {
         user: User;
         answers: MatchmakingAnswer[];
         chatCreated: boolean;
     }
+    export interface MatchmakingProfileUserArgs { }
+    export interface MatchmakingProfileAnswersArgs { }
+    export interface MatchmakingProfileChatCreatedArgs { }
     export type MatchmakingPeer = SharedRoom;
     export interface MatchmakingRoom {
         enabled: boolean;
@@ -3309,6 +4146,11 @@ export namespace GQL {
         myProfile: Nullable<MatchmakingProfile>;
         peer: MatchmakingPeer;
     }
+    export interface MatchmakingRoomEnabledArgs { }
+    export interface MatchmakingRoomQuestionsArgs { }
+    export interface MatchmakingRoomProfilesArgs { }
+    export interface MatchmakingRoomMyProfileArgs { }
+    export interface MatchmakingRoomPeerArgs { }
     export type MatchmakingQuestionType = 'Text' | 'Multiselect';
     export interface MatchmakingQuestionInput {
         id: Nullable<string>;
@@ -3333,6 +4175,8 @@ export namespace GQL {
         room: Room;
         messagesDelta: number;
     }
+    export interface TrendingRoomRoomArgs { }
+    export interface TrendingRoomMessagesDeltaArgs { }
     export interface TypingEvent {
         conversation: Conversation;
         chat: Room;
@@ -3340,6 +4184,11 @@ export namespace GQL {
         type: TypingType;
         cancel: boolean;
     }
+    export interface TypingEventConversationArgs { }
+    export interface TypingEventChatArgs { }
+    export interface TypingEventUserArgs { }
+    export interface TypingEventTypeArgs { }
+    export interface TypingEventCancelArgs { }
     export type TypingType = 'TEXT' | 'PHOTO' | 'FILE' | 'STICKER' | 'VIDEO';
     export interface User {
         id: string;
@@ -3379,32 +4228,82 @@ export namespace GQL {
         primaryBadge: Nullable<UserBadge>;
         shortname: Nullable<string>;
     }
+    export interface UserIdArgs { }
+    export interface UserIsYouArgs { }
+    export interface UserIsBotArgs { }
+    export interface UserIsDeletedArgs { }
+    export interface UserNameArgs { }
+    export interface UserFirstNameArgs { }
+    export interface UserLastNameArgs { }
+    export interface UserPhotoArgs { }
+    export interface UserPhoneArgs { }
+    export interface UserEmailArgs { }
+    export interface UserWebsiteArgs { }
+    export interface UserAboutArgs { }
+    export interface UserLocationArgs { }
+    export interface UserLinkedinArgs { }
+    export interface UserInstagramArgs { }
+    export interface UserTwitterArgs { }
+    export interface UserFacebookArgs { }
+    export interface UserAudienceSizeArgs { }
+    export interface UserChannelsJoinedArgs { }
+    export interface UserPhotoRefArgs { }
+    export interface UserPictureArgs { }
+    export interface UserPictureRefArgs { }
+    export interface UserAlphaRoleArgs { }
+    export interface UserAlphaLinkedinArgs { }
+    export interface UserAlphaTwitterArgs { }
+    export interface UserAlphaLocationsArgs { }
+    export interface UserChatsWithBadgeArgs { }
+    export interface UserOnlineArgs { }
+    export interface UserActiveArgs { }
+    export interface UserLastSeenArgs { }
+    export interface UserOrganizationsArgs { }
+    export interface UserPrimaryOrganizationArgs { }
+    export interface UserAlphaPrimaryOrganizationArgs { }
+    export interface UserBadgesArgs { }
+    export interface UserPrimaryBadgeArgs { }
+    export interface UserShortnameArgs { }
     export interface UserChatWithBadge {
         badge: UserBadge;
         chat: Room;
     }
+    export interface UserChatWithBadgeBadgeArgs { }
+    export interface UserChatWithBadgeChatArgs { }
     export interface UserBadge {
         id: string;
         name: string;
         verified: boolean;
     }
+    export interface UserBadgeIdArgs { }
+    export interface UserBadgeNameArgs { }
+    export interface UserBadgeVerifiedArgs { }
     export interface UserEdge {
         node: User;
         cursor: string;
     }
+    export interface UserEdgeNodeArgs { }
+    export interface UserEdgeCursorArgs { }
     export interface UserConnection {
         edges: UserEdge[];
         pageInfo: PageInfo;
     }
+    export interface UserConnectionEdgesArgs { }
+    export interface UserConnectionPageInfoArgs { }
     export interface ChatUserEdge {
         node: User;
         isMember: boolean;
         cursor: string;
     }
+    export interface ChatUserEdgeNodeArgs { }
+    export interface ChatUserEdgeIsMemberArgs { }
+    export interface ChatUserEdgeCursorArgs { }
     export interface ChatUserConnection {
         edges: ChatUserEdge[];
         pageInfo: PageInfo;
     }
+    export interface ChatUserConnectionEdgesArgs { }
+    export interface ChatUserConnectionPageInfoArgs { }
     export type FeedItem = FeedPost;
     export type FeedPostAuthor = User;
     export type FeedPostSource = FeedChannel;
@@ -3424,10 +4323,26 @@ export namespace GQL {
         slides: Slide[];
         fallback: string;
     }
+    export interface FeedPostIdArgs { }
+    export interface FeedPostDateArgs { }
+    export interface FeedPostAuthorArgs { }
+    export interface FeedPostSourceArgs { }
+    export interface FeedPostCanEditArgs { }
+    export interface FeedPostEditedArgs { }
+    export interface FeedPostReactionsArgs { }
+    export interface FeedPostIsMentionedArgs { }
+    export interface FeedPostMessageArgs { }
+    export interface FeedPostSpansArgs { }
+    export interface FeedPostAttachmentsArgs { }
+    export interface FeedPostCommentsCountArgs { }
+    export interface FeedPostSlidesArgs { }
+    export interface FeedPostFallbackArgs { }
     export interface FeedItemConnection {
         items: FeedItem[];
         cursor: Nullable<string>;
     }
+    export interface FeedItemConnectionItemsArgs { }
+    export interface FeedItemConnectionCursorArgs { }
     export type Slide = TextSlide;
     export type SlideAttachment = User | SharedRoom | Organization;
     export interface TextSlide {
@@ -3438,6 +4353,12 @@ export namespace GQL {
         coverAlign: Nullable<SlideCoverAlign>;
         attachments: SlideAttachment[];
     }
+    export interface TextSlideIdArgs { }
+    export interface TextSlideTextArgs { }
+    export interface TextSlideSpansArgs { }
+    export interface TextSlideCoverArgs { }
+    export interface TextSlideCoverAlignArgs { }
+    export interface TextSlideAttachmentsArgs { }
     export type SlideType = 'Text';
     export type SlideCoverAlign = 'Top' | 'Bottom' | 'Cover';
     export interface SlideInput {
@@ -3463,18 +4384,36 @@ export namespace GQL {
         myRole: FeedChannelSubscriberRole;
         shortname: Nullable<string>;
     }
+    export interface FeedChannelIdArgs { }
+    export interface FeedChannelTitleArgs { }
+    export interface FeedChannelAboutArgs { }
+    export interface FeedChannelPhotoArgs { }
+    export interface FeedChannelSocialImageArgs { }
+    export interface FeedChannelSubscribersCountArgs { }
+    export interface FeedChannelPostsCountArgs { }
+    export interface FeedChannelIsGlobalArgs { }
+    export interface FeedChannelIsHiddenArgs { }
+    export interface FeedChannelSubscribedArgs { }
+    export interface FeedChannelMyRoleArgs { }
+    export interface FeedChannelShortnameArgs { }
     export interface FeedChannelConnection {
         items: FeedChannel[];
         cursor: Nullable<string>;
     }
+    export interface FeedChannelConnectionItemsArgs { }
+    export interface FeedChannelConnectionCursorArgs { }
     export interface FeedChannelEdge {
         node: FeedChannel;
         cursor: string;
     }
+    export interface FeedChannelEdgeNodeArgs { }
+    export interface FeedChannelEdgeCursorArgs { }
     export interface FeedChannelSearchConnection {
         edges: FeedChannelEdge[];
         pageInfo: PageInfo;
     }
+    export interface FeedChannelSearchConnectionEdgesArgs { }
+    export interface FeedChannelSearchConnectionPageInfoArgs { }
     export type FeedSubscription = FeedChannel;
     export type FeedChannelSubscriberRole = 'Creator' | 'Editor' | 'Subscriber' | 'None';
     export interface FeedChannelAdmin {
@@ -3482,48 +4421,70 @@ export namespace GQL {
         role: FeedChannelSubscriberRole;
         promoter: Nullable<User>;
     }
+    export interface FeedChannelAdminUserArgs { }
+    export interface FeedChannelAdminRoleArgs { }
+    export interface FeedChannelAdminPromoterArgs { }
     export interface FeedChannelAdminConnection {
         items: FeedChannelAdmin[];
         cursor: Nullable<string>;
     }
+    export interface FeedChannelAdminConnectionItemsArgs { }
+    export interface FeedChannelAdminConnectionCursorArgs { }
     export interface FeedChannelSubscriber {
         user: User;
         role: FeedChannelSubscriberRole;
     }
+    export interface FeedChannelSubscriberUserArgs { }
+    export interface FeedChannelSubscriberRoleArgs { }
     export interface FeedChannelSubscriberEdge {
         node: FeedChannelSubscriber;
         cursor: string;
     }
+    export interface FeedChannelSubscriberEdgeNodeArgs { }
+    export interface FeedChannelSubscriberEdgeCursorArgs { }
     export interface FeedChannelSubscriberConnection {
         edges: FeedChannelSubscriberEdge[];
         pageInfo: PageInfo;
     }
+    export interface FeedChannelSubscriberConnectionEdgesArgs { }
+    export interface FeedChannelSubscriberConnectionPageInfoArgs { }
     export type GlobalSearchEntry = Organization | User | SharedRoom;
     export type GlobalSearchEntryKind = 'ORGANIZATION' | 'USER' | 'SHAREDROOM';
     export interface MessageWithChat {
         message: ModernMessage;
         chat: Room;
     }
+    export interface MessageWithChatMessageArgs { }
+    export interface MessageWithChatChatArgs { }
     export interface MessageEdge {
         node: MessageWithChat;
         cursor: string;
     }
+    export interface MessageEdgeNodeArgs { }
+    export interface MessageEdgeCursorArgs { }
     export interface MessageConnection {
         edges: MessageEdge[];
         pageInfo: PageInfo;
     }
+    export interface MessageConnectionEdgesArgs { }
+    export interface MessageConnectionPageInfoArgs { }
     export interface GlobalSearchConnection {
         globalItems: GlobalSearchEntry[];
         localItems: User[];
         cursor: Nullable<string>;
     }
+    export interface GlobalSearchConnectionGlobalItemsArgs { }
+    export interface GlobalSearchConnectionLocalItemsArgs { }
+    export interface GlobalSearchConnectionCursorArgs { }
     export type MessageSource = MessageSourceChat | MessageSourceComment;
     export interface MessageSourceChat {
         chat: Room;
     }
+    export interface MessageSourceChatChatArgs { }
     export interface MessageSourceComment {
         peer: CommentsPeer;
     }
+    export interface MessageSourceCommentPeerArgs { }
     export interface ModernMessage {
         id: string;
         seq: Nullable<number>;
@@ -3535,6 +4496,15 @@ export namespace GQL {
         spans: MessageSpan[];
         fallback: string;
     }
+    export interface ModernMessageIdArgs { }
+    export interface ModernMessageSeqArgs { }
+    export interface ModernMessageDateArgs { }
+    export interface ModernMessageSenderArgs { }
+    export interface ModernMessageSenderBadgeArgs { }
+    export interface ModernMessageSourceArgs { }
+    export interface ModernMessageMessageArgs { }
+    export interface ModernMessageSpansArgs { }
+    export interface ModernMessageFallbackArgs { }
     export interface ServiceMessage extends ModernMessage {
         id: string;
         seq: Nullable<number>;
@@ -3550,6 +4520,19 @@ export namespace GQL {
         overrideAvatar: Nullable<ImageRef>;
         overrideName: Nullable<string>;
     }
+    export interface ServiceMessageIdArgs { }
+    export interface ServiceMessageSeqArgs { }
+    export interface ServiceMessageDateArgs { }
+    export interface ServiceMessageSenderArgs { }
+    export interface ServiceMessageSenderBadgeArgs { }
+    export interface ServiceMessageIsMentionedArgs { }
+    export interface ServiceMessageSourceArgs { }
+    export interface ServiceMessageMessageArgs { }
+    export interface ServiceMessageSpansArgs { }
+    export interface ServiceMessageServiceMetadataArgs { }
+    export interface ServiceMessageFallbackArgs { }
+    export interface ServiceMessageOverrideAvatarArgs { }
+    export interface ServiceMessageOverrideNameArgs { }
     export interface GeneralMessage extends ModernMessage {
         id: string;
         seq: Nullable<number>;
@@ -3569,6 +4552,23 @@ export namespace GQL {
         overrideAvatar: Nullable<ImageRef>;
         overrideName: Nullable<string>;
     }
+    export interface GeneralMessageIdArgs { }
+    export interface GeneralMessageSeqArgs { }
+    export interface GeneralMessageDateArgs { }
+    export interface GeneralMessageSenderArgs { }
+    export interface GeneralMessageSenderBadgeArgs { }
+    export interface GeneralMessageEditedArgs { }
+    export interface GeneralMessageReactionsArgs { }
+    export interface GeneralMessageIsMentionedArgs { }
+    export interface GeneralMessageSourceArgs { }
+    export interface GeneralMessageMessageArgs { }
+    export interface GeneralMessageSpansArgs { }
+    export interface GeneralMessageAttachmentsArgs { }
+    export interface GeneralMessageQuotedMessagesArgs { }
+    export interface GeneralMessageCommentsCountArgs { }
+    export interface GeneralMessageFallbackArgs { }
+    export interface GeneralMessageOverrideAvatarArgs { }
+    export interface GeneralMessageOverrideNameArgs { }
     export interface StickerMessage extends ModernMessage {
         id: string;
         seq: Nullable<number>;
@@ -3586,11 +4586,29 @@ export namespace GQL {
         overrideAvatar: Nullable<ImageRef>;
         overrideName: Nullable<string>;
     }
+    export interface StickerMessageIdArgs { }
+    export interface StickerMessageSeqArgs { }
+    export interface StickerMessageDateArgs { }
+    export interface StickerMessageSenderArgs { }
+    export interface StickerMessageSenderBadgeArgs { }
+    export interface StickerMessageSourceArgs { }
+    export interface StickerMessageMessageArgs { }
+    export interface StickerMessageSpansArgs { }
+    export interface StickerMessageReactionsArgs { }
+    export interface StickerMessageFallbackArgs { }
+    export interface StickerMessageQuotedMessagesArgs { }
+    export interface StickerMessageCommentsCountArgs { }
+    export interface StickerMessageStickerArgs { }
+    export interface StickerMessageOverrideAvatarArgs { }
+    export interface StickerMessageOverrideNameArgs { }
     export interface GammaMessagesBatch {
         messages: ModernMessage[];
         haveMoreForward: Nullable<boolean>;
         haveMoreBackward: Nullable<boolean>;
     }
+    export interface GammaMessagesBatchMessagesArgs { }
+    export interface GammaMessagesBatchHaveMoreForwardArgs { }
+    export interface GammaMessagesBatchHaveMoreBackwardArgs { }
     export type SharedMediaType = 'LINK' | 'IMAGE' | 'DOCUMENT' | 'VIDEO';
     export interface SharedMediaCounters {
         links: number;
@@ -3598,18 +4616,28 @@ export namespace GQL {
         documents: number;
         videos: number;
     }
+    export interface SharedMediaCountersLinksArgs { }
+    export interface SharedMediaCountersImagesArgs { }
+    export interface SharedMediaCountersDocumentsArgs { }
+    export interface SharedMediaCountersVideosArgs { }
     export interface ImageFallback {
         photo: string;
         text: string;
     }
+    export interface ImageFallbackPhotoArgs { }
+    export interface ImageFallbackTextArgs { }
     export interface Image {
         url: string;
         metadata: Nullable<FileMetadata>;
     }
+    export interface ImageUrlArgs { }
+    export interface ImageMetadataArgs { }
     export interface ModernMessageAttachment {
         id: string;
         fallback: string;
     }
+    export interface ModernMessageAttachmentIdArgs { }
+    export interface ModernMessageAttachmentFallbackArgs { }
     export interface MessageRichAttachment extends ModernMessageAttachment {
         id: string;
         title: Nullable<string>;
@@ -3626,6 +4654,20 @@ export namespace GQL {
         keyboard: Nullable<MessageKeyboard>;
         fallback: string;
     }
+    export interface MessageRichAttachmentIdArgs { }
+    export interface MessageRichAttachmentTitleArgs { }
+    export interface MessageRichAttachmentSubTitleArgs { }
+    export interface MessageRichAttachmentTitleLinkArgs { }
+    export interface MessageRichAttachmentTitleLinkHostnameArgs { }
+    export interface MessageRichAttachmentTextArgs { }
+    export interface MessageRichAttachmentIconArgs { }
+    export interface MessageRichAttachmentImageArgs { }
+    export interface MessageRichAttachmentImagePreviewArgs { }
+    export interface MessageRichAttachmentImageFallbackArgs { }
+    export interface MessageRichAttachmentSocialImageArgs { }
+    export interface MessageRichAttachmentSocialImagePreviewArgs { }
+    export interface MessageRichAttachmentKeyboardArgs { }
+    export interface MessageRichAttachmentFallbackArgs { }
     export interface MessageAttachmentFile extends ModernMessageAttachment {
         id: string;
         fileId: string;
@@ -3633,23 +4675,36 @@ export namespace GQL {
         filePreview: Nullable<string>;
         fallback: string;
     }
+    export interface MessageAttachmentFileIdArgs { }
+    export interface MessageAttachmentFileFileIdArgs { }
+    export interface MessageAttachmentFileFileMetadataArgs { }
+    export interface MessageAttachmentFileFilePreviewArgs { }
+    export interface MessageAttachmentFileFallbackArgs { }
     export interface MessageAttachmentPost extends ModernMessageAttachment {
         id: string;
         post: FeedItem;
         fallback: string;
     }
+    export interface MessageAttachmentPostIdArgs { }
+    export interface MessageAttachmentPostPostArgs { }
+    export interface MessageAttachmentPostFallbackArgs { }
     export interface FileAttachmentInput {
         fileId: string;
     }
     export interface MessageKeyboard {
         buttons: Nullable<ModernMessageButton[]>[];
     }
+    export interface MessageKeyboardButtonsArgs { }
     export interface ModernMessageButton {
         id: string;
         title: string;
         style: ModernMessageButtonStyle;
         url: Nullable<string>;
     }
+    export interface ModernMessageButtonIdArgs { }
+    export interface ModernMessageButtonTitleArgs { }
+    export interface ModernMessageButtonStyleArgs { }
+    export interface ModernMessageButtonUrlArgs { }
     export type ModernMessageButtonStyle = 'DEFAULT' | 'LIGHT';
     export interface MessageKeyboardInput {
         buttons: Nullable<ModernMessageButtonInput[]>[];
@@ -3664,30 +4719,46 @@ export namespace GQL {
         user: User;
         reaction: MessageReactionType;
     }
+    export interface ModernMessageReactionUserArgs { }
+    export interface ModernMessageReactionReactionArgs { }
     export interface MessageSpan {
         offset: number;
         length: number;
     }
+    export interface MessageSpanOffsetArgs { }
+    export interface MessageSpanLengthArgs { }
     export interface MessageSpanUserMention extends MessageSpan {
         offset: number;
         length: number;
         user: User;
     }
+    export interface MessageSpanUserMentionOffsetArgs { }
+    export interface MessageSpanUserMentionLengthArgs { }
+    export interface MessageSpanUserMentionUserArgs { }
     export interface MessageSpanMultiUserMention extends MessageSpan {
         offset: number;
         length: number;
         users: User[];
     }
+    export interface MessageSpanMultiUserMentionOffsetArgs { }
+    export interface MessageSpanMultiUserMentionLengthArgs { }
+    export interface MessageSpanMultiUserMentionUsersArgs { }
     export interface MessageSpanRoomMention extends MessageSpan {
         offset: number;
         length: number;
         room: Room;
     }
+    export interface MessageSpanRoomMentionOffsetArgs { }
+    export interface MessageSpanRoomMentionLengthArgs { }
+    export interface MessageSpanRoomMentionRoomArgs { }
     export interface MessageSpanOrganizationMention extends MessageSpan {
         offset: number;
         length: number;
         organization: Organization;
     }
+    export interface MessageSpanOrganizationMentionOffsetArgs { }
+    export interface MessageSpanOrganizationMentionLengthArgs { }
+    export interface MessageSpanOrganizationMentionOrganizationArgs { }
     export type MentionPeer = SharedRoom | Organization | User;
     export interface MentionInput {
         chatId: Nullable<string>;
@@ -3703,47 +4774,71 @@ export namespace GQL {
         length: number;
         url: string;
     }
+    export interface MessageSpanLinkOffsetArgs { }
+    export interface MessageSpanLinkLengthArgs { }
+    export interface MessageSpanLinkUrlArgs { }
     export interface MessageSpanBold extends MessageSpan {
         offset: number;
         length: number;
     }
+    export interface MessageSpanBoldOffsetArgs { }
+    export interface MessageSpanBoldLengthArgs { }
     export interface MessageSpanItalic extends MessageSpan {
         offset: number;
         length: number;
     }
+    export interface MessageSpanItalicOffsetArgs { }
+    export interface MessageSpanItalicLengthArgs { }
     export interface MessageSpanIrony extends MessageSpan {
         offset: number;
         length: number;
     }
+    export interface MessageSpanIronyOffsetArgs { }
+    export interface MessageSpanIronyLengthArgs { }
     export interface MessageSpanInlineCode extends MessageSpan {
         offset: number;
         length: number;
     }
+    export interface MessageSpanInlineCodeOffsetArgs { }
+    export interface MessageSpanInlineCodeLengthArgs { }
     export interface MessageSpanCodeBlock extends MessageSpan {
         offset: number;
         length: number;
     }
+    export interface MessageSpanCodeBlockOffsetArgs { }
+    export interface MessageSpanCodeBlockLengthArgs { }
     export interface MessageSpanInsane extends MessageSpan {
         offset: number;
         length: number;
     }
+    export interface MessageSpanInsaneOffsetArgs { }
+    export interface MessageSpanInsaneLengthArgs { }
     export interface MessageSpanLoud extends MessageSpan {
         offset: number;
         length: number;
     }
+    export interface MessageSpanLoudOffsetArgs { }
+    export interface MessageSpanLoudLengthArgs { }
     export interface MessageSpanRotating extends MessageSpan {
         offset: number;
         length: number;
     }
+    export interface MessageSpanRotatingOffsetArgs { }
+    export interface MessageSpanRotatingLengthArgs { }
     export interface MessageSpanDate extends MessageSpan {
         offset: number;
         length: number;
         date: Date;
     }
+    export interface MessageSpanDateOffsetArgs { }
+    export interface MessageSpanDateLengthArgs { }
+    export interface MessageSpanDateDateArgs { }
     export interface MessageSpanAllMention extends MessageSpan {
         offset: number;
         length: number;
     }
+    export interface MessageSpanAllMentionOffsetArgs { }
+    export interface MessageSpanAllMentionLengthArgs { }
     export type MessageSpanType = 'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock' | 'Insane' | 'Loud' | 'Rotating' | 'Link';
     export interface MessageSpanInput {
         offset: number;
@@ -3759,6 +4854,11 @@ export namespace GQL {
         pinnedMessage: Nullable<ModernMessage>;
         myBadge: Nullable<UserBadge>;
     }
+    export interface PrivateRoomIdArgs { }
+    export interface PrivateRoomUserArgs { }
+    export interface PrivateRoomSettingsArgs { }
+    export interface PrivateRoomPinnedMessageArgs { }
+    export interface PrivateRoomMyBadgeArgs { }
     export type SharedRoomKind = 'INTERNAL' | 'PUBLIC' | 'GROUP';
     export type SharedRoomMembershipStatus = 'MEMBER' | 'REQUESTED' | 'LEFT' | 'KICKED' | 'NONE';
     export type RoomMemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
@@ -3767,6 +4867,9 @@ export namespace GQL {
         sender: Nullable<User>;
         message: Nullable<string>;
     }
+    export interface WelcomeMessageIsOnArgs { }
+    export interface WelcomeMessageSenderArgs { }
+    export interface WelcomeMessageMessageArgs { }
     export interface SharedRoom {
         id: string;
         kind: SharedRoomKind;
@@ -3799,20 +4902,55 @@ export namespace GQL {
         linkedFeedChannels: FeedChannel[];
         shortname: Nullable<string>;
     }
+    export interface SharedRoomIdArgs { }
+    export interface SharedRoomKindArgs { }
+    export interface SharedRoomIsChannelArgs { }
+    export interface SharedRoomTitleArgs { }
+    export interface SharedRoomPhotoArgs { }
+    export interface SharedRoomSocialImageArgs { }
+    export interface SharedRoomDescriptionArgs { }
+    export interface SharedRoomPinnedMessageArgs { }
+    export interface SharedRoomWelcomeMessageArgs { }
+    export interface SharedRoomOrganizationArgs { }
+    export interface SharedRoomMembersCountArgs { }
+    export interface SharedRoomOnlineMembersCountArgs { }
+    export interface SharedRoomFeaturedMembersCountArgs { }
+    export interface SharedRoomPreviewMembersArgs { }
     export interface SharedRoomMembersArgs {
         first: OptionalNullable<number>;
         after: OptionalNullable<string>;
     }
+    export interface SharedRoomRequestsArgs { }
+    export interface SharedRoomMembershipArgs { }
+    export interface SharedRoomRoleArgs { }
+    export interface SharedRoomSettingsArgs { }
+    export interface SharedRoomCanEditArgs { }
+    export interface SharedRoomCanSendMessageArgs { }
+    export interface SharedRoomArchivedArgs { }
+    export interface SharedRoomMyBadgeArgs { }
+    export interface SharedRoomMatchmakingArgs { }
+    export interface SharedRoomIsPremiumArgs { }
+    export interface SharedRoomPremiumPassIsActiveArgs { }
+    export interface SharedRoomPremiumSubscriptionArgs { }
+    export interface SharedRoomPremiumSettingsArgs { }
+    export interface SharedRoomLinkedFeedChannelsArgs { }
+    export interface SharedRoomShortnameArgs { }
     export interface PremiumChatSettings {
         id: string;
         price: number;
         interval: WalletSubscriptionInterval;
     }
+    export interface PremiumChatSettingsIdArgs { }
+    export interface PremiumChatSettingsPriceArgs { }
+    export interface PremiumChatSettingsIntervalArgs { }
     export interface RoomSuper {
         id: string;
         featured: boolean;
         listed: boolean;
     }
+    export interface RoomSuperIdArgs { }
+    export interface RoomSuperFeaturedArgs { }
+    export interface RoomSuperListedArgs { }
     export interface RoomUpdateInput {
         title: Nullable<string>;
         photoRef: Nullable<ImageRefInput>;
@@ -3823,9 +4961,11 @@ export namespace GQL {
     export interface UserMention {
         user: User;
     }
+    export interface UserMentionUserArgs { }
     export interface SharedRoomMention {
         sharedRoom: SharedRoom;
     }
+    export interface SharedRoomMentionSharedRoomArgs { }
     export type Mention = UserMention | SharedRoomMention;
     export interface RoomMessage {
         id: string;
@@ -3851,6 +4991,28 @@ export namespace GQL {
         alphaPostType: Nullable<PostMessageType>;
         alphaMentions: Nullable<Mention[]>;
     }
+    export interface RoomMessageIdArgs { }
+    export interface RoomMessageMessageArgs { }
+    export interface RoomMessageFileArgs { }
+    export interface RoomMessageFileMetadataArgs { }
+    export interface RoomMessageFilePreviewArgs { }
+    export interface RoomMessageSenderArgs { }
+    export interface RoomMessageDateArgs { }
+    export interface RoomMessageRepeatKeyArgs { }
+    export interface RoomMessageIsServiceArgs { }
+    export interface RoomMessageServiceMetadataArgs { }
+    export interface RoomMessageUrlAugmentationArgs { }
+    export interface RoomMessageEditedArgs { }
+    export interface RoomMessageReactionsArgs { }
+    export interface RoomMessageReplyMessagesArgs { }
+    export interface RoomMessagePlainTextArgs { }
+    export interface RoomMessageMentionsArgs { }
+    export interface RoomMessageAlphaAttachmentsArgs { }
+    export interface RoomMessageAlphaButtonsArgs { }
+    export interface RoomMessageAlphaTypeArgs { }
+    export interface RoomMessageAlphaTitleArgs { }
+    export interface RoomMessageAlphaPostTypeArgs { }
+    export interface RoomMessageAlphaMentionsArgs { }
     export interface RoomMember {
         user: User;
         role: RoomMemberRole;
@@ -3859,10 +5021,18 @@ export namespace GQL {
         invitedBy: User;
         canKick: boolean;
     }
+    export interface RoomMemberUserArgs { }
+    export interface RoomMemberRoleArgs { }
+    export interface RoomMemberBadgeArgs { }
+    export interface RoomMemberMembershipArgs { }
+    export interface RoomMemberInvitedByArgs { }
+    export interface RoomMemberCanKickArgs { }
     export interface RoomUserNotificaionSettings {
         id: string;
         mute: Nullable<boolean>;
     }
+    export interface RoomUserNotificaionSettingsIdArgs { }
+    export interface RoomUserNotificaionSettingsMuteArgs { }
     export interface RoomUserNotificaionSettingsInput {
         mute: Nullable<boolean>;
     }
@@ -3880,19 +5050,28 @@ export namespace GQL {
         node: SharedRoom;
         cursor: string;
     }
+    export interface RoomConnectionEdgeNodeArgs { }
+    export interface RoomConnectionEdgeCursorArgs { }
     export interface RoomConnection {
         edges: RoomConnectionEdge[];
         pageInfo: PageInfo;
     }
+    export interface RoomConnectionEdgesArgs { }
+    export interface RoomConnectionPageInfoArgs { }
     export interface SharedRoomConnection {
         items: SharedRoom[];
         cursor: Nullable<string>;
     }
+    export interface SharedRoomConnectionItemsArgs { }
+    export interface SharedRoomConnectionCursorArgs { }
     export interface RoomInvite {
         id: string;
         room: SharedRoom;
         invitedByUser: User;
     }
+    export interface RoomInviteIdArgs { }
+    export interface RoomInviteRoomArgs { }
+    export interface RoomInviteInvitedByUserArgs { }
     export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom;
 }
 
@@ -3903,6 +5082,9 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.ConversationSettingsIdArgs,
+            mobileNotifications: GQL.ConversationSettingsMobileNotificationsArgs,
+            mute: GQL.ConversationSettingsMuteArgs,
         }
     >;
     ChannelConversation?: ComplexTypedResolver<
@@ -3914,6 +5096,14 @@ export interface GQLResolver {
             settings: GQLRoots.ConversationSettingsRoot,
         },
         {
+            id: GQL.ChannelConversationIdArgs,
+            flexibleId: GQL.ChannelConversationFlexibleIdArgs,
+            title: GQL.ChannelConversationTitleArgs,
+            photos: GQL.ChannelConversationPhotosArgs,
+            members: GQL.ChannelConversationMembersArgs,
+            unreadCount: GQL.ChannelConversationUnreadCountArgs,
+            topMessage: GQL.ChannelConversationTopMessageArgs,
+            settings: GQL.ChannelConversationSettingsArgs,
         }
     >;
     AnonymousConversation?: ComplexTypedResolver<
@@ -3924,6 +5114,13 @@ export interface GQLResolver {
             settings: GQLRoots.ConversationSettingsRoot,
         },
         {
+            id: GQL.AnonymousConversationIdArgs,
+            flexibleId: GQL.AnonymousConversationFlexibleIdArgs,
+            title: GQL.AnonymousConversationTitleArgs,
+            photos: GQL.AnonymousConversationPhotosArgs,
+            unreadCount: GQL.AnonymousConversationUnreadCountArgs,
+            topMessage: GQL.AnonymousConversationTopMessageArgs,
+            settings: GQL.AnonymousConversationSettingsArgs,
         }
     >;
     SharedConversation?: ComplexTypedResolver<
@@ -3936,6 +5133,15 @@ export interface GQLResolver {
             settings: GQLRoots.ConversationSettingsRoot,
         },
         {
+            id: GQL.SharedConversationIdArgs,
+            flexibleId: GQL.SharedConversationFlexibleIdArgs,
+            title: GQL.SharedConversationTitleArgs,
+            photos: GQL.SharedConversationPhotosArgs,
+            organizations: GQL.SharedConversationOrganizationsArgs,
+            unreadCount: GQL.SharedConversationUnreadCountArgs,
+            topMessage: GQL.SharedConversationTopMessageArgs,
+            organization: GQL.SharedConversationOrganizationArgs,
+            settings: GQL.SharedConversationSettingsArgs,
         }
     >;
     PrivateConversation?: ComplexTypedResolver<
@@ -3947,6 +5153,15 @@ export interface GQLResolver {
             settings: GQLRoots.ConversationSettingsRoot,
         },
         {
+            id: GQL.PrivateConversationIdArgs,
+            flexibleId: GQL.PrivateConversationFlexibleIdArgs,
+            title: GQL.PrivateConversationTitleArgs,
+            photos: GQL.PrivateConversationPhotosArgs,
+            user: GQL.PrivateConversationUserArgs,
+            unreadCount: GQL.PrivateConversationUnreadCountArgs,
+            topMessage: GQL.PrivateConversationTopMessageArgs,
+            blocked: GQL.PrivateConversationBlockedArgs,
+            settings: GQL.PrivateConversationSettingsArgs,
         }
     >;
     GroupConversation?: ComplexTypedResolver<
@@ -3960,6 +5175,22 @@ export interface GQLResolver {
             pinnedMessage: Nullable<GQLRoots.ConversationMessageRoot>,
         },
         {
+            id: GQL.GroupConversationIdArgs,
+            flexibleId: GQL.GroupConversationFlexibleIdArgs,
+            title: GQL.GroupConversationTitleArgs,
+            photos: GQL.GroupConversationPhotosArgs,
+            members: GQL.GroupConversationMembersArgs,
+            unreadCount: GQL.GroupConversationUnreadCountArgs,
+            topMessage: GQL.GroupConversationTopMessageArgs,
+            membersCount: GQL.GroupConversationMembersCountArgs,
+            settings: GQL.GroupConversationSettingsArgs,
+            photo: GQL.GroupConversationPhotoArgs,
+            photoRef: GQL.GroupConversationPhotoRefArgs,
+            description: GQL.GroupConversationDescriptionArgs,
+            longDescription: GQL.GroupConversationLongDescriptionArgs,
+            pinnedMessage: GQL.GroupConversationPinnedMessageArgs,
+            membersOnline: GQL.GroupConversationMembersOnlineArgs,
+            myRole: GQL.GroupConversationMyRoleArgs,
         }
     >;
     InviteServiceMetadata?: ComplexTypedResolver<
@@ -3970,6 +5201,8 @@ export interface GQLResolver {
             invitedBy: GQLRoots.UserRoot,
         },
         {
+            users: GQL.InviteServiceMetadataUsersArgs,
+            invitedBy: GQL.InviteServiceMetadataInvitedByArgs,
         }
     >;
     KickServiceMetadata?: ComplexTypedResolver<
@@ -3980,6 +5213,8 @@ export interface GQLResolver {
             kickedBy: GQLRoots.UserRoot,
         },
         {
+            user: GQL.KickServiceMetadataUserArgs,
+            kickedBy: GQL.KickServiceMetadataKickedByArgs,
         }
     >;
     TitleChangeServiceMetadata?: ComplexTypedResolver<
@@ -3988,6 +5223,7 @@ export interface GQLResolver {
         {
         },
         {
+            title: GQL.TitleChangeServiceMetadataTitleArgs,
         }
     >;
     PhotoChangeServiceMetadata?: ComplexTypedResolver<
@@ -3997,6 +5233,8 @@ export interface GQLResolver {
             photoRef: Nullable<GQLRoots.ImageRefRoot>,
         },
         {
+            photo: GQL.PhotoChangeServiceMetadataPhotoArgs,
+            photoRef: GQL.PhotoChangeServiceMetadataPhotoRefArgs,
         }
     >;
     PostRespondServiceMetadata?: ComplexTypedResolver<
@@ -4008,6 +5246,10 @@ export interface GQLResolver {
             responder: GQLRoots.UserRoot,
         },
         {
+            post: GQL.PostRespondServiceMetadataPostArgs,
+            postRoom: GQL.PostRespondServiceMetadataPostRoomArgs,
+            responder: GQL.PostRespondServiceMetadataResponderArgs,
+            respondType: GQL.PostRespondServiceMetadataRespondTypeArgs,
         }
     >;
     UrlAugmentationExtra?: UnionTypeResolver<GQLRoots.UrlAugmentationExtraRoot, 'User' | 'Organization' | 'ChannelConversation'>;
@@ -4022,6 +5264,19 @@ export interface GQLResolver {
             extra: Nullable<GQLRoots.UrlAugmentationExtraRoot>,
         },
         {
+            url: GQL.UrlAugmentationUrlArgs,
+            title: GQL.UrlAugmentationTitleArgs,
+            date: GQL.UrlAugmentationDateArgs,
+            subtitle: GQL.UrlAugmentationSubtitleArgs,
+            description: GQL.UrlAugmentationDescriptionArgs,
+            photo: GQL.UrlAugmentationPhotoArgs,
+            imageInfo: GQL.UrlAugmentationImageInfoArgs,
+            imageURL: GQL.UrlAugmentationImageURLArgs,
+            iconRef: GQL.UrlAugmentationIconRefArgs,
+            iconInfo: GQL.UrlAugmentationIconInfoArgs,
+            hostname: GQL.UrlAugmentationHostnameArgs,
+            type: GQL.UrlAugmentationTypeArgs,
+            extra: GQL.UrlAugmentationExtraArgs,
         }
     >;
     ServiceMetadata?: UnionTypeResolver<GQLRoots.ServiceMetadataRoot, 'InviteServiceMetadata' | 'KickServiceMetadata' | 'TitleChangeServiceMetadata' | 'PhotoChangeServiceMetadata' | 'PostRespondServiceMetadata'>;
@@ -4041,6 +5296,28 @@ export interface GQLResolver {
             alphaMentions: Nullable<GQLRoots.MentionRoot[]>,
         },
         {
+            id: GQL.ConversationMessageIdArgs,
+            message: GQL.ConversationMessageMessageArgs,
+            file: GQL.ConversationMessageFileArgs,
+            fileMetadata: GQL.ConversationMessageFileMetadataArgs,
+            filePreview: GQL.ConversationMessageFilePreviewArgs,
+            sender: GQL.ConversationMessageSenderArgs,
+            date: GQL.ConversationMessageDateArgs,
+            repeatKey: GQL.ConversationMessageRepeatKeyArgs,
+            isService: GQL.ConversationMessageIsServiceArgs,
+            serviceMetadata: GQL.ConversationMessageServiceMetadataArgs,
+            urlAugmentation: GQL.ConversationMessageUrlAugmentationArgs,
+            edited: GQL.ConversationMessageEditedArgs,
+            reactions: GQL.ConversationMessageReactionsArgs,
+            replyMessages: GQL.ConversationMessageReplyMessagesArgs,
+            plainText: GQL.ConversationMessagePlainTextArgs,
+            mentions: GQL.ConversationMessageMentionsArgs,
+            alphaAttachments: GQL.ConversationMessageAlphaAttachmentsArgs,
+            alphaButtons: GQL.ConversationMessageAlphaButtonsArgs,
+            alphaType: GQL.ConversationMessageAlphaTypeArgs,
+            alphaTitle: GQL.ConversationMessageAlphaTitleArgs,
+            postType: GQL.ConversationMessagePostTypeArgs,
+            alphaMentions: GQL.ConversationMessageAlphaMentionsArgs,
         }
     >;
     FileMetadata?: ComplexTypedResolver<
@@ -4049,6 +5326,13 @@ export interface GQLResolver {
         {
         },
         {
+            name: GQL.FileMetadataNameArgs,
+            mimeType: GQL.FileMetadataMimeTypeArgs,
+            size: GQL.FileMetadataSizeArgs,
+            isImage: GQL.FileMetadataIsImageArgs,
+            imageWidth: GQL.FileMetadataImageWidthArgs,
+            imageHeight: GQL.FileMetadataImageHeightArgs,
+            imageFormat: GQL.FileMetadataImageFormatArgs,
         }
     >;
     ConversationEventSimpleBatch?: ComplexTypedResolver<
@@ -4058,6 +5342,7 @@ export interface GQLResolver {
             events: GQLRoots.ConversationEventRoot[],
         },
         {
+            events: GQL.ConversationEventSimpleBatchEventsArgs,
         }
     >;
     ConversationEventMessage?: ComplexTypedResolver<
@@ -4067,6 +5352,8 @@ export interface GQLResolver {
             message: GQLRoots.ConversationMessageRoot,
         },
         {
+            seq: GQL.ConversationEventMessageSeqArgs,
+            message: GQL.ConversationEventMessageMessageArgs,
         }
     >;
     ConversationEventEditMessage?: ComplexTypedResolver<
@@ -4076,6 +5363,8 @@ export interface GQLResolver {
             message: GQLRoots.ConversationMessageRoot,
         },
         {
+            seq: GQL.ConversationEventEditMessageSeqArgs,
+            message: GQL.ConversationEventEditMessageMessageArgs,
         }
     >;
     ConversationEventDelete?: ComplexTypedResolver<
@@ -4084,6 +5373,8 @@ export interface GQLResolver {
         {
         },
         {
+            seq: GQL.ConversationEventDeleteSeqArgs,
+            messageId: GQL.ConversationEventDeleteMessageIdArgs,
         }
     >;
     ConversationEventNewMembers?: ComplexTypedResolver<
@@ -4094,6 +5385,9 @@ export interface GQLResolver {
             invitedBy: GQLRoots.UserRoot,
         },
         {
+            seq: GQL.ConversationEventNewMembersSeqArgs,
+            users: GQL.ConversationEventNewMembersUsersArgs,
+            invitedBy: GQL.ConversationEventNewMembersInvitedByArgs,
         }
     >;
     ConversationEventKick?: ComplexTypedResolver<
@@ -4104,6 +5398,9 @@ export interface GQLResolver {
             kickedBy: GQLRoots.UserRoot,
         },
         {
+            seq: GQL.ConversationEventKickSeqArgs,
+            user: GQL.ConversationEventKickUserArgs,
+            kickedBy: GQL.ConversationEventKickKickedByArgs,
         }
     >;
     ConversationEventTitle?: ComplexTypedResolver<
@@ -4112,6 +5409,8 @@ export interface GQLResolver {
         {
         },
         {
+            seq: GQL.ConversationEventTitleSeqArgs,
+            title: GQL.ConversationEventTitleTitleArgs,
         }
     >;
     ConversationEventUpdate?: ComplexTypedResolver<
@@ -4121,6 +5420,8 @@ export interface GQLResolver {
             chat: GQLRoots.ConversationRoot,
         },
         {
+            seq: GQL.ConversationEventUpdateSeqArgs,
+            chat: GQL.ConversationEventUpdateChatArgs,
         }
     >;
     ConversationEventUpdateRole?: ComplexTypedResolver<
@@ -4130,6 +5431,9 @@ export interface GQLResolver {
             user: GQLRoots.UserRoot,
         },
         {
+            seq: GQL.ConversationEventUpdateRoleSeqArgs,
+            user: GQL.ConversationEventUpdateRoleUserArgs,
+            newRole: GQL.ConversationEventUpdateRoleNewRoleArgs,
         }
     >;
     ConversationState?: ComplexTypedResolver<
@@ -4139,6 +5443,8 @@ export interface GQLResolver {
             messages: GQLRoots.ConversationMessageRoot[],
         },
         {
+            seq: GQL.ConversationStateSeqArgs,
+            messages: GQL.ConversationStateMessagesArgs,
         }
     >;
     ConversationConnection?: ComplexTypedResolver<
@@ -4149,6 +5455,10 @@ export interface GQLResolver {
             counter: GQLRoots.NotificationCounterRoot,
         },
         {
+            conversations: GQL.ConversationConnectionConversationsArgs,
+            counter: GQL.ConversationConnectionCounterArgs,
+            seq: GQL.ConversationConnectionSeqArgs,
+            next: GQL.ConversationConnectionNextArgs,
         }
     >;
     NotificationCounter?: ComplexTypedResolver<
@@ -4157,6 +5467,8 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.NotificationCounterIdArgs,
+            unreadCount: GQL.NotificationCounterUnreadCountArgs,
         }
     >;
     ChatReadResult?: ComplexTypedResolver<
@@ -4167,6 +5479,8 @@ export interface GQLResolver {
             counter: GQLRoots.NotificationCounterRoot,
         },
         {
+            conversation: GQL.ChatReadResultConversationArgs,
+            counter: GQL.ChatReadResultCounterArgs,
         }
     >;
     ComposeSearchResult?: UnionTypeResolver<GQLRoots.ComposeSearchResultRoot, 'User' | 'Organization'>;
@@ -4177,6 +5491,8 @@ export interface GQLResolver {
             user: GQLRoots.UserRoot,
         },
         {
+            user: GQL.GroupConversationMemberUserArgs,
+            role: GQL.GroupConversationMemberRoleArgs,
         }
     >;
     GroupChatUpdateResponse?: ComplexTypedResolver<
@@ -4188,6 +5504,9 @@ export interface GQLResolver {
             chatEvent: Nullable<GQLRoots.ConversationEventRoot>,
         },
         {
+            chat: GQL.GroupChatUpdateResponseChatArgs,
+            chatEventMessage: GQL.GroupChatUpdateResponseChatEventMessageArgs,
+            chatEvent: GQL.GroupChatUpdateResponseChatEventArgs,
         }
     >;
     ConversationUpdateResponse?: ComplexTypedResolver<
@@ -4197,6 +5516,8 @@ export interface GQLResolver {
             chat: GQLRoots.ConversationRoot,
         },
         {
+            chat: GQL.ConversationUpdateResponseChatArgs,
+            curSeq: GQL.ConversationUpdateResponseCurSeqArgs,
         }
     >;
     ConversationBlockedUser?: ComplexTypedResolver<
@@ -4207,6 +5528,8 @@ export interface GQLResolver {
             blockedBy: GQLRoots.UserRoot,
         },
         {
+            user: GQL.ConversationBlockedUserUserArgs,
+            blockedBy: GQL.ConversationBlockedUserBlockedByArgs,
         }
     >;
     Profile?: ComplexTypedResolver<
@@ -4220,6 +5543,30 @@ export interface GQLResolver {
             primaryBadge: Nullable<GQLRoots.UserBadgeRoot>,
         },
         {
+            id: GQL.ProfileIdArgs,
+            firstName: GQL.ProfileFirstNameArgs,
+            lastName: GQL.ProfileLastNameArgs,
+            photoRef: GQL.ProfilePhotoRefArgs,
+            phone: GQL.ProfilePhoneArgs,
+            email: GQL.ProfileEmailArgs,
+            website: GQL.ProfileWebsiteArgs,
+            about: GQL.ProfileAboutArgs,
+            location: GQL.ProfileLocationArgs,
+            linkedin: GQL.ProfileLinkedinArgs,
+            instagram: GQL.ProfileInstagramArgs,
+            twitter: GQL.ProfileTwitterArgs,
+            facebook: GQL.ProfileFacebookArgs,
+            alphaLinkedin: GQL.ProfileAlphaLinkedinArgs,
+            alphaTwitter: GQL.ProfileAlphaTwitterArgs,
+            alphaJoinedAt: GQL.ProfileAlphaJoinedAtArgs,
+            alphaInvitedBy: GQL.ProfileAlphaInvitedByArgs,
+            alphaRole: GQL.ProfileAlphaRoleArgs,
+            alphaLocations: GQL.ProfileAlphaLocationsArgs,
+            primaryOrganization: GQL.ProfilePrimaryOrganizationArgs,
+            alphaPrimaryOrganizationId: GQL.ProfileAlphaPrimaryOrganizationIdArgs,
+            alphaPrimaryOrganization: GQL.ProfileAlphaPrimaryOrganizationArgs,
+            primaryBadge: GQL.ProfilePrimaryBadgeArgs,
+            shortname: GQL.ProfileShortnameArgs,
         }
     >;
     AlphaSignupData?: ComplexTypedResolver<
@@ -4230,6 +5577,8 @@ export interface GQLResolver {
             organization: Nullable<GQLRoots.OrganizationRoot>,
         },
         {
+            user: GQL.AlphaSignupDataUserArgs,
+            organization: GQL.AlphaSignupDataOrganizationArgs,
         }
     >;
     CreditCard?: ComplexTypedResolver<
@@ -4238,6 +5587,14 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.CreditCardIdArgs,
+            pmid: GQL.CreditCardPmidArgs,
+            brand: GQL.CreditCardBrandArgs,
+            last4: GQL.CreditCardLast4Args,
+            expMonth: GQL.CreditCardExpMonthArgs,
+            expYear: GQL.CreditCardExpYearArgs,
+            deleted: GQL.CreditCardDeletedArgs,
+            isDefault: GQL.CreditCardIsDefaultArgs,
         }
     >;
     CardSetupIntent?: ComplexTypedResolver<
@@ -4246,6 +5603,8 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.CardSetupIntentIdArgs,
+            clientSecret: GQL.CardSetupIntentClientSecretArgs,
         }
     >;
     PaymentIntent?: ComplexTypedResolver<
@@ -4254,6 +5613,8 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.PaymentIntentIdArgs,
+            clientSecret: GQL.PaymentIntentClientSecretArgs,
         }
     >;
     Payment?: ComplexTypedResolver<
@@ -4263,6 +5624,9 @@ export interface GQLResolver {
             intent: Nullable<GQLRoots.PaymentIntentRoot>,
         },
         {
+            id: GQL.PaymentIdArgs,
+            status: GQL.PaymentStatusArgs,
+            intent: GQL.PaymentIntentArgs,
         }
     >;
     WalletAccount?: ComplexTypedResolver<
@@ -4271,6 +5635,9 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.WalletAccountIdArgs,
+            balance: GQL.WalletAccountBalanceArgs,
+            state: GQL.WalletAccountStateArgs,
         }
     >;
     WalletTransaction?: ComplexTypedResolver<
@@ -4280,6 +5647,10 @@ export interface GQLResolver {
             operation: GQLRoots.WalletTransactionOperationRoot,
         },
         {
+            id: GQL.WalletTransactionIdArgs,
+            date: GQL.WalletTransactionDateArgs,
+            status: GQL.WalletTransactionStatusArgs,
+            operation: GQL.WalletTransactionOperationArgs,
         }
     >;
     WalletTransactionDeposit?: ComplexTypedResolver<
@@ -4289,6 +5660,8 @@ export interface GQLResolver {
             payment: Nullable<GQLRoots.PaymentRoot>,
         },
         {
+            amount: GQL.WalletTransactionDepositAmountArgs,
+            payment: GQL.WalletTransactionDepositPaymentArgs,
         }
     >;
     WalletTransactionSubscription?: ComplexTypedResolver<
@@ -4298,6 +5671,8 @@ export interface GQLResolver {
             payment: Nullable<GQLRoots.PaymentRoot>,
         },
         {
+            amount: GQL.WalletTransactionSubscriptionAmountArgs,
+            payment: GQL.WalletTransactionSubscriptionPaymentArgs,
         }
     >;
     WalletTransactionTransferOut?: ComplexTypedResolver<
@@ -4308,6 +5683,10 @@ export interface GQLResolver {
             toUser: GQLRoots.UserRoot,
         },
         {
+            walletAmount: GQL.WalletTransactionTransferOutWalletAmountArgs,
+            chargeAmount: GQL.WalletTransactionTransferOutChargeAmountArgs,
+            payment: GQL.WalletTransactionTransferOutPaymentArgs,
+            toUser: GQL.WalletTransactionTransferOutToUserArgs,
         }
     >;
     WalletTransactionTransferIn?: ComplexTypedResolver<
@@ -4317,6 +5696,8 @@ export interface GQLResolver {
             fromUser: GQLRoots.UserRoot,
         },
         {
+            amount: GQL.WalletTransactionTransferInAmountArgs,
+            fromUser: GQL.WalletTransactionTransferInFromUserArgs,
         }
     >;
     WalletTransactionOperation?: UnionTypeResolver<GQLRoots.WalletTransactionOperationRoot, 'WalletTransactionDeposit' | 'WalletTransactionSubscription' | 'WalletTransactionTransferOut' | 'WalletTransactionTransferIn'>;
@@ -4327,6 +5708,8 @@ export interface GQLResolver {
             items: GQLRoots.WalletTransactionRoot[],
         },
         {
+            items: GQL.WalletTransactionConnectionItemsArgs,
+            cursor: GQL.WalletTransactionConnectionCursorArgs,
         }
     >;
     WalletSubscription?: ComplexTypedResolver<
@@ -4336,6 +5719,12 @@ export interface GQLResolver {
             product: GQLRoots.WalletSubscriptionProductRoot,
         },
         {
+            id: GQL.WalletSubscriptionIdArgs,
+            state: GQL.WalletSubscriptionStateArgs,
+            amount: GQL.WalletSubscriptionAmountArgs,
+            interval: GQL.WalletSubscriptionIntervalArgs,
+            product: GQL.WalletSubscriptionProductArgs,
+            expires: GQL.WalletSubscriptionExpiresArgs,
         }
     >;
     WalletSubscriptionProductGroup?: ComplexTypedResolver<
@@ -4345,6 +5734,7 @@ export interface GQLResolver {
             group: GQLRoots.SharedRoomRoot,
         },
         {
+            group: GQL.WalletSubscriptionProductGroupGroupArgs,
         }
     >;
     WalletSubscriptionProductDonation?: ComplexTypedResolver<
@@ -4354,6 +5744,7 @@ export interface GQLResolver {
             user: GQLRoots.UserRoot,
         },
         {
+            user: GQL.WalletSubscriptionProductDonationUserArgs,
         }
     >;
     WalletSubscriptionProduct?: UnionTypeResolver<GQLRoots.WalletSubscriptionProductRoot, 'WalletSubscriptionProductGroup' | 'WalletSubscriptionProductDonation'>;
@@ -4364,6 +5755,8 @@ export interface GQLResolver {
             update: GQLRoots.WalletUpdateRoot,
         },
         {
+            state: GQL.WalletUpdateSingleStateArgs,
+            update: GQL.WalletUpdateSingleUpdateArgs,
         }
     >;
     WalletUpdateBatch?: ComplexTypedResolver<
@@ -4373,6 +5766,8 @@ export interface GQLResolver {
             updates: GQLRoots.WalletUpdateRoot[],
         },
         {
+            state: GQL.WalletUpdateBatchStateArgs,
+            updates: GQL.WalletUpdateBatchUpdatesArgs,
         }
     >;
     WalletUpdateContainer?: UnionTypeResolver<GQLRoots.WalletUpdateContainerRoot, 'WalletUpdateSingle' | 'WalletUpdateBatch'>;
@@ -4382,6 +5777,7 @@ export interface GQLResolver {
         {
         },
         {
+            amount: GQL.WalletUpdateBalanceAmountArgs,
         }
     >;
     WalletUpdateTransactionSuccess?: ComplexTypedResolver<
@@ -4391,6 +5787,7 @@ export interface GQLResolver {
             transaction: GQLRoots.WalletTransactionRoot,
         },
         {
+            transaction: GQL.WalletUpdateTransactionSuccessTransactionArgs,
         }
     >;
     WalletUpdateTransactionCanceled?: ComplexTypedResolver<
@@ -4400,6 +5797,7 @@ export interface GQLResolver {
             transaction: GQLRoots.WalletTransactionRoot,
         },
         {
+            transaction: GQL.WalletUpdateTransactionCanceledTransactionArgs,
         }
     >;
     WalletUpdateTransactionPending?: ComplexTypedResolver<
@@ -4409,6 +5807,7 @@ export interface GQLResolver {
             transaction: GQLRoots.WalletTransactionRoot,
         },
         {
+            transaction: GQL.WalletUpdateTransactionPendingTransactionArgs,
         }
     >;
     WalletUpdatePaymentStatus?: ComplexTypedResolver<
@@ -4418,6 +5817,7 @@ export interface GQLResolver {
             payment: GQLRoots.PaymentRoot,
         },
         {
+            payment: GQL.WalletUpdatePaymentStatusPaymentArgs,
         }
     >;
     WalletUpdate?: UnionTypeResolver<GQLRoots.WalletUpdateRoot, 'WalletUpdateBalance' | 'WalletUpdateTransactionSuccess' | 'WalletUpdateTransactionCanceled' | 'WalletUpdateTransactionPending' | 'WalletUpdatePaymentStatus'>;
@@ -4427,6 +5827,9 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.InviteIdArgs,
+            key: GQL.InviteKeyArgs,
+            ttl: GQL.InviteTtlArgs,
         }
     >;
     InviteInfo?: ComplexTypedResolver<
@@ -4438,6 +5841,19 @@ export interface GQLResolver {
             organization: Nullable<GQLRoots.OrganizationRoot>,
         },
         {
+            id: GQL.InviteInfoIdArgs,
+            key: GQL.InviteInfoKeyArgs,
+            orgId: GQL.InviteInfoOrgIdArgs,
+            title: GQL.InviteInfoTitleArgs,
+            photo: GQL.InviteInfoPhotoArgs,
+            photoRef: GQL.InviteInfoPhotoRefArgs,
+            joined: GQL.InviteInfoJoinedArgs,
+            creator: GQL.InviteInfoCreatorArgs,
+            forEmail: GQL.InviteInfoForEmailArgs,
+            forName: GQL.InviteInfoForNameArgs,
+            description: GQL.InviteInfoDescriptionArgs,
+            membersCount: GQL.InviteInfoMembersCountArgs,
+            organization: GQL.InviteInfoOrganizationArgs,
         }
     >;
     AppInvite?: ComplexTypedResolver<
@@ -4447,6 +5863,7 @@ export interface GQLResolver {
             inviter: GQLRoots.UserRoot,
         },
         {
+            inviter: GQL.AppInviteInviterArgs,
         }
     >;
     AppInviteInfo?: ComplexTypedResolver<
@@ -4456,6 +5873,7 @@ export interface GQLResolver {
             inviter: GQLRoots.UserRoot,
         },
         {
+            inviter: GQL.AppInviteInfoInviterArgs,
         }
     >;
     InviteHistotyInfo?: ComplexTypedResolver<
@@ -4465,6 +5883,9 @@ export interface GQLResolver {
             acceptedBy: Nullable<GQLRoots.UserRoot>,
         },
         {
+            acceptedBy: GQL.InviteHistotyInfoAcceptedByArgs,
+            forEmail: GQL.InviteHistotyInfoForEmailArgs,
+            isGlobal: GQL.InviteHistotyInfoIsGlobalArgs,
         }
     >;
     ResolveInviteEntry?: UnionTypeResolver<GQLRoots.ResolveInviteEntryRoot, 'InviteInfo' | 'AppInvite' | 'RoomInvite'>;
@@ -4474,6 +5895,7 @@ export interface GQLResolver {
         {
         },
         {
+            state: GQL.CommentGlobalUpdatesStateStateArgs,
         }
     >;
     CommentGlobalUpdateSingle?: ComplexTypedResolver<
@@ -4483,6 +5905,9 @@ export interface GQLResolver {
             update: GQLRoots.CommentGlobalUpdateRoot,
         },
         {
+            seq: GQL.CommentGlobalUpdateSingleSeqArgs,
+            state: GQL.CommentGlobalUpdateSingleStateArgs,
+            update: GQL.CommentGlobalUpdateSingleUpdateArgs,
         }
     >;
     CommentGlobalUpdateBatch?: ComplexTypedResolver<
@@ -4492,6 +5917,10 @@ export interface GQLResolver {
             updates: GQLRoots.CommentGlobalUpdateRoot[],
         },
         {
+            seq: GQL.CommentGlobalUpdateBatchSeqArgs,
+            state: GQL.CommentGlobalUpdateBatchStateArgs,
+            fromSeq: GQL.CommentGlobalUpdateBatchFromSeqArgs,
+            updates: GQL.CommentGlobalUpdateBatchUpdatesArgs,
         }
     >;
     CommentGlobalUpdate?: UnionTypeResolver<GQLRoots.CommentGlobalUpdateRoot, 'CommentPeerUpdated'>;
@@ -4502,6 +5931,8 @@ export interface GQLResolver {
             peer: GQLRoots.CommentsPeerRoot,
         },
         {
+            seq: GQL.CommentPeerUpdatedSeqArgs,
+            peer: GQL.CommentPeerUpdatedPeerArgs,
         }
     >;
     CommentGlobalUpdateContainer?: UnionTypeResolver<GQLRoots.CommentGlobalUpdateContainerRoot, 'CommentGlobalUpdateSingle' | 'CommentGlobalUpdateBatch'>;
@@ -4512,6 +5943,8 @@ export interface GQLResolver {
             user: GQLRoots.UserRoot,
         },
         {
+            user: GQL.ReactionUserArgs,
+            reaction: GQL.ReactionReactionArgs,
         }
     >;
     Message?: ComplexTypedResolver<
@@ -4523,6 +5956,13 @@ export interface GQLResolver {
             alphaReactions: GQLRoots.ReactionRoot[],
         },
         {
+            id: GQL.MessageIdArgs,
+            date: GQL.MessageDateArgs,
+            sender: GQL.MessageSenderArgs,
+            edited: GQL.MessageEditedArgs,
+            text: GQL.MessageTextArgs,
+            quoted: GQL.MessageQuotedArgs,
+            alphaReactions: GQL.MessageAlphaReactionsArgs,
         }
     >;
     DebugID?: ComplexTypedResolver<
@@ -4531,6 +5971,9 @@ export interface GQLResolver {
         {
         },
         {
+            numberID: GQL.DebugIDNumberIDArgs,
+            stringID: GQL.DebugIDStringIDArgs,
+            type: GQL.DebugIDTypeArgs,
         }
     >;
     DebugUserPresence?: ComplexTypedResolver<
@@ -4540,6 +5983,12 @@ export interface GQLResolver {
             user: GQLRoots.UserRoot,
         },
         {
+            user: GQL.DebugUserPresenceUserArgs,
+            lastSeen: GQL.DebugUserPresenceLastSeenArgs,
+            lastSeenStr: GQL.DebugUserPresenceLastSeenStrArgs,
+            lastSeenTimeout: GQL.DebugUserPresenceLastSeenTimeoutArgs,
+            platform: GQL.DebugUserPresencePlatformArgs,
+            active: GQL.DebugUserPresenceActiveArgs,
         }
     >;
     OrganizationChatStats?: ComplexTypedResolver<
@@ -4550,6 +5999,10 @@ export interface GQLResolver {
             chat: GQLRoots.SharedRoomRoot,
         },
         {
+            org: GQL.OrganizationChatStatsOrgArgs,
+            chat: GQL.OrganizationChatStatsChatArgs,
+            messagesCount: GQL.OrganizationChatStatsMessagesCountArgs,
+            lastMessageDate: GQL.OrganizationChatStatsLastMessageDateArgs,
         }
     >;
     DebugEventsState?: ComplexTypedResolver<
@@ -4558,6 +6011,7 @@ export interface GQLResolver {
         {
         },
         {
+            state: GQL.DebugEventsStateStateArgs,
         }
     >;
     DebugEvent?: ComplexTypedResolver<
@@ -4566,6 +6020,8 @@ export interface GQLResolver {
         {
         },
         {
+            seq: GQL.DebugEventSeqArgs,
+            key: GQL.DebugEventKeyArgs,
         }
     >;
     DebugUserMetrics?: ComplexTypedResolver<
@@ -4574,6 +6030,14 @@ export interface GQLResolver {
         {
         },
         {
+            messagesSent: GQL.DebugUserMetricsMessagesSentArgs,
+            messagesReceived: GQL.DebugUserMetricsMessagesReceivedArgs,
+            totalChatsCount: GQL.DebugUserMetricsTotalChatsCountArgs,
+            directChatsCount: GQL.DebugUserMetricsDirectChatsCountArgs,
+            direct2WayChatsCount: GQL.DebugUserMetricsDirect2WayChatsCountArgs,
+            directMessagesSent: GQL.DebugUserMetricsDirectMessagesSentArgs,
+            successfulInvitesCount: GQL.DebugUserMetricsSuccessfulInvitesCountArgs,
+            audienceCount: GQL.DebugUserMetricsAudienceCountArgs,
         }
     >;
     DebugGlobalCounters?: ComplexTypedResolver<
@@ -4582,6 +6046,10 @@ export interface GQLResolver {
         {
         },
         {
+            allUnreadMessages: GQL.DebugGlobalCountersAllUnreadMessagesArgs,
+            unreadMessagesWithoutMuted: GQL.DebugGlobalCountersUnreadMessagesWithoutMutedArgs,
+            allUnreadChats: GQL.DebugGlobalCountersAllUnreadChatsArgs,
+            unreadChatsWithoutMuted: GQL.DebugGlobalCountersUnreadChatsWithoutMutedArgs,
         }
     >;
     Dialog?: ComplexTypedResolver<
@@ -4593,6 +6061,19 @@ export interface GQLResolver {
             alphaTopMessage: Nullable<GQLRoots.ModernMessageRoot>,
         },
         {
+            id: GQL.DialogIdArgs,
+            cid: GQL.DialogCidArgs,
+            fid: GQL.DialogFidArgs,
+            kind: GQL.DialogKindArgs,
+            isChannel: GQL.DialogIsChannelArgs,
+            title: GQL.DialogTitleArgs,
+            photo: GQL.DialogPhotoArgs,
+            unreadCount: GQL.DialogUnreadCountArgs,
+            topMessage: GQL.DialogTopMessageArgs,
+            betaTopMessage: GQL.DialogBetaTopMessageArgs,
+            alphaTopMessage: GQL.DialogAlphaTopMessageArgs,
+            isMuted: GQL.DialogIsMutedArgs,
+            haveMention: GQL.DialogHaveMentionArgs,
         }
     >;
     DialogsConnection?: ComplexTypedResolver<
@@ -4602,6 +6083,8 @@ export interface GQLResolver {
             items: GQLRoots.DialogRoot[],
         },
         {
+            items: GQL.DialogsConnectionItemsArgs,
+            cursor: GQL.DialogsConnectionCursorArgs,
         }
     >;
     ChatTypeNotificationSettings?: ComplexTypedResolver<
@@ -4610,6 +6093,8 @@ export interface GQLResolver {
         {
         },
         {
+            showNotification: GQL.ChatTypeNotificationSettingsShowNotificationArgs,
+            sound: GQL.ChatTypeNotificationSettingsSoundArgs,
         }
     >;
     PlatformNotificationSettings?: ComplexTypedResolver<
@@ -4623,6 +6108,12 @@ export interface GQLResolver {
             comments: GQLRoots.ChatTypeNotificationSettingsRoot,
         },
         {
+            direct: GQL.PlatformNotificationSettingsDirectArgs,
+            secretChat: GQL.PlatformNotificationSettingsSecretChatArgs,
+            organizationChat: GQL.PlatformNotificationSettingsOrganizationChatArgs,
+            communityChat: GQL.PlatformNotificationSettingsCommunityChatArgs,
+            comments: GQL.PlatformNotificationSettingsCommentsArgs,
+            notificationPreview: GQL.PlatformNotificationSettingsNotificationPreviewArgs,
         }
     >;
     Settings?: ComplexTypedResolver<
@@ -4633,6 +6124,21 @@ export interface GQLResolver {
             mobile: GQLRoots.PlatformNotificationSettingsRoot,
         },
         {
+            id: GQL.SettingsIdArgs,
+            primaryEmail: GQL.SettingsPrimaryEmailArgs,
+            emailFrequency: GQL.SettingsEmailFrequencyArgs,
+            desktop: GQL.SettingsDesktopArgs,
+            mobile: GQL.SettingsMobileArgs,
+            countUnreadChats: GQL.SettingsCountUnreadChatsArgs,
+            excludeMutedChats: GQL.SettingsExcludeMutedChatsArgs,
+            notificationsDelay: GQL.SettingsNotificationsDelayArgs,
+            desktopNotifications: GQL.SettingsDesktopNotificationsArgs,
+            mobileNotifications: GQL.SettingsMobileNotificationsArgs,
+            commentNotifications: GQL.SettingsCommentNotificationsArgs,
+            commentNotificationsDelivery: GQL.SettingsCommentNotificationsDeliveryArgs,
+            mobileAlert: GQL.SettingsMobileAlertArgs,
+            mobileIncludeText: GQL.SettingsMobileIncludeTextArgs,
+            mute: GQL.SettingsMuteArgs,
         }
     >;
     OauthApp?: ComplexTypedResolver<
@@ -4643,6 +6149,14 @@ export interface GQLResolver {
             image: Nullable<GQLRoots.ImageRefRoot>,
         },
         {
+            id: GQL.OauthAppIdArgs,
+            title: GQL.OauthAppTitleArgs,
+            clientId: GQL.OauthAppClientIdArgs,
+            clientSecret: GQL.OauthAppClientSecretArgs,
+            scopes: GQL.OauthAppScopesArgs,
+            owner: GQL.OauthAppOwnerArgs,
+            image: GQL.OauthAppImageArgs,
+            redirectUrls: GQL.OauthAppRedirectUrlsArgs,
         }
     >;
     OauthContext?: ComplexTypedResolver<
@@ -4652,6 +6166,10 @@ export interface GQLResolver {
             app: GQLRoots.OauthAppRoot,
         },
         {
+            app: GQL.OauthContextAppArgs,
+            state: GQL.OauthContextStateArgs,
+            redirectUrl: GQL.OauthContextRedirectUrlArgs,
+            code: GQL.OauthContextCodeArgs,
         }
     >;
     OrganizationIvitedMember?: ComplexTypedResolver<
@@ -4660,6 +6178,11 @@ export interface GQLResolver {
         {
         },
         {
+            email: GQL.OrganizationIvitedMemberEmailArgs,
+            role: GQL.OrganizationIvitedMemberRoleArgs,
+            firstName: GQL.OrganizationIvitedMemberFirstNameArgs,
+            lastName: GQL.OrganizationIvitedMemberLastNameArgs,
+            inviteId: GQL.OrganizationIvitedMemberInviteIdArgs,
         }
     >;
     OrganizationJoinedMember?: ComplexTypedResolver<
@@ -4669,6 +6192,11 @@ export interface GQLResolver {
             user: GQLRoots.UserRoot,
         },
         {
+            email: GQL.OrganizationJoinedMemberEmailArgs,
+            role: GQL.OrganizationJoinedMemberRoleArgs,
+            user: GQL.OrganizationJoinedMemberUserArgs,
+            joinedAt: GQL.OrganizationJoinedMemberJoinedAtArgs,
+            showInContacts: GQL.OrganizationJoinedMemberShowInContactsArgs,
         }
     >;
     OrganizationRequestedMember?: ComplexTypedResolver<
@@ -4678,6 +6206,10 @@ export interface GQLResolver {
             user: GQLRoots.UserRoot,
         },
         {
+            email: GQL.OrganizationRequestedMemberEmailArgs,
+            role: GQL.OrganizationRequestedMemberRoleArgs,
+            user: GQL.OrganizationRequestedMemberUserArgs,
+            joinedAt: GQL.OrganizationRequestedMemberJoinedAtArgs,
         }
     >;
     PermissionGroup?: ComplexTypedResolver<
@@ -4687,6 +6219,10 @@ export interface GQLResolver {
             requests: GQLRoots.PermissionRequestRoot[],
         },
         {
+            id: GQL.PermissionGroupIdArgs,
+            name: GQL.PermissionGroupNameArgs,
+            description: GQL.PermissionGroupDescriptionArgs,
+            requests: GQL.PermissionGroupRequestsArgs,
         }
     >;
     PermissionRequest?: ComplexTypedResolver<
@@ -4698,6 +6234,12 @@ export interface GQLResolver {
             chat: Nullable<GQLRoots.RoomRoot>,
         },
         {
+            id: GQL.PermissionRequestIdArgs,
+            group: GQL.PermissionRequestGroupArgs,
+            appType: GQL.PermissionRequestAppTypeArgs,
+            powerup: GQL.PermissionRequestPowerupArgs,
+            scope: GQL.PermissionRequestScopeArgs,
+            chat: GQL.PermissionRequestChatArgs,
         }
     >;
     OnlineEvent?: ComplexTypedResolver<
@@ -4707,6 +6249,13 @@ export interface GQLResolver {
             user: GQLRoots.UserRoot,
         },
         {
+            userId: GQL.OnlineEventUserIdArgs,
+            timeout: GQL.OnlineEventTimeoutArgs,
+            online: GQL.OnlineEventOnlineArgs,
+            active: GQL.OnlineEventActiveArgs,
+            lastSeen: GQL.OnlineEventLastSeenArgs,
+            type: GQL.OnlineEventTypeArgs,
+            user: GQL.OnlineEventUserArgs,
         }
     >;
     ChatOnlineEvent?: ComplexTypedResolver<
@@ -4715,6 +6264,7 @@ export interface GQLResolver {
         {
         },
         {
+            onlineMembers: GQL.ChatOnlineEventOnlineMembersArgs,
         }
     >;
     IsAppInstalledResponse?: ComplexTypedResolver<
@@ -4723,6 +6273,8 @@ export interface GQLResolver {
         {
         },
         {
+            installed: GQL.IsAppInstalledResponseInstalledArgs,
+            installedAt: GQL.IsAppInstalledResponseInstalledAtArgs,
         }
     >;
     SuperAccount?: ComplexTypedResolver<
@@ -4734,6 +6286,16 @@ export interface GQLResolver {
             createdBy: Nullable<GQLRoots.UserRoot>,
         },
         {
+            id: GQL.SuperAccountIdArgs,
+            orgId: GQL.SuperAccountOrgIdArgs,
+            title: GQL.SuperAccountTitleArgs,
+            name: GQL.SuperAccountNameArgs,
+            state: GQL.SuperAccountStateArgs,
+            members: GQL.SuperAccountMembersArgs,
+            features: GQL.SuperAccountFeaturesArgs,
+            alphaPublished: GQL.SuperAccountAlphaPublishedArgs,
+            createdAt: GQL.SuperAccountCreatedAtArgs,
+            createdBy: GQL.SuperAccountCreatedByArgs,
         }
     >;
     SuperAdmin?: ComplexTypedResolver<
@@ -4743,6 +6305,9 @@ export interface GQLResolver {
             user: GQLRoots.UserRoot,
         },
         {
+            user: GQL.SuperAdminUserArgs,
+            role: GQL.SuperAdminRoleArgs,
+            email: GQL.SuperAdminEmailArgs,
         }
     >;
     Powerup?: ComplexTypedResolver<
@@ -4752,6 +6317,10 @@ export interface GQLResolver {
             image: Nullable<GQLRoots.ImageRefRoot>,
         },
         {
+            id: GQL.PowerupIdArgs,
+            name: GQL.PowerupNameArgs,
+            description: GQL.PowerupDescriptionArgs,
+            image: GQL.PowerupImageArgs,
         }
     >;
     PowerupUserSettings?: ComplexTypedResolver<
@@ -4760,6 +6329,7 @@ export interface GQLResolver {
         {
         },
         {
+            enabled: GQL.PowerupUserSettingsEnabledArgs,
         }
     >;
     RoomPowerup?: ComplexTypedResolver<
@@ -4770,6 +6340,9 @@ export interface GQLResolver {
             userSettings: GQLRoots.PowerupUserSettingsRoot,
         },
         {
+            id: GQL.RoomPowerupIdArgs,
+            powerup: GQL.RoomPowerupPowerupArgs,
+            userSettings: GQL.RoomPowerupUserSettingsArgs,
         }
     >;
     PageInfo?: ComplexTypedResolver<
@@ -4778,6 +6351,12 @@ export interface GQLResolver {
         {
         },
         {
+            hasNextPage: GQL.PageInfoHasNextPageArgs,
+            hasPreviousPage: GQL.PageInfoHasPreviousPageArgs,
+            itemsCount: GQL.PageInfoItemsCountArgs,
+            pagesCount: GQL.PageInfoPagesCountArgs,
+            currentPage: GQL.PageInfoCurrentPageArgs,
+            openEnded: GQL.PageInfoOpenEndedArgs,
         }
     >;
     Task?: ComplexTypedResolver<
@@ -4786,6 +6365,9 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.TaskIdArgs,
+            status: GQL.TaskStatusArgs,
+            result: GQL.TaskResultArgs,
         }
     >;
     ImageCrop?: ComplexTypedResolver<
@@ -4794,6 +6376,10 @@ export interface GQLResolver {
         {
         },
         {
+            x: GQL.ImageCropXArgs,
+            y: GQL.ImageCropYArgs,
+            w: GQL.ImageCropWArgs,
+            h: GQL.ImageCropHArgs,
         }
     >;
     ImageRef?: ComplexTypedResolver<
@@ -4803,6 +6389,8 @@ export interface GQLResolver {
             crop: Nullable<GQLRoots.ImageCropRoot>,
         },
         {
+            uuid: GQL.ImageRefUuidArgs,
+            crop: GQL.ImageRefCropArgs,
         }
     >;
     Range?: ComplexTypedResolver<
@@ -4811,6 +6399,8 @@ export interface GQLResolver {
         {
         },
         {
+            from: GQL.RangeFromArgs,
+            to: GQL.RangeToArgs,
         }
     >;
     AppStorageValue?: ComplexTypedResolver<
@@ -4819,6 +6409,9 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.AppStorageValueIdArgs,
+            key: GQL.AppStorageValueKeyArgs,
+            value: GQL.AppStorageValueValueArgs,
         }
     >;
     AppProfile?: ComplexTypedResolver<
@@ -4829,6 +6422,12 @@ export interface GQLResolver {
             token: GQLRoots.AppTokenRoot,
         },
         {
+            id: GQL.AppProfileIdArgs,
+            name: GQL.AppProfileNameArgs,
+            photoRef: GQL.AppProfilePhotoRefArgs,
+            about: GQL.AppProfileAboutArgs,
+            shortname: GQL.AppProfileShortnameArgs,
+            token: GQL.AppProfileTokenArgs,
         }
     >;
     AppToken?: ComplexTypedResolver<
@@ -4837,6 +6436,7 @@ export interface GQLResolver {
         {
         },
         {
+            salt: GQL.AppTokenSaltArgs,
         }
     >;
     AppChat?: ComplexTypedResolver<
@@ -4846,6 +6446,8 @@ export interface GQLResolver {
             chat: GQLRoots.RoomRoot,
         },
         {
+            chat: GQL.AppChatChatArgs,
+            webhook: GQL.AppChatWebhookArgs,
         }
     >;
     ChatUpdateSingle?: ComplexTypedResolver<
@@ -4855,6 +6457,9 @@ export interface GQLResolver {
             update: GQLRoots.ChatUpdateRoot,
         },
         {
+            seq: GQL.ChatUpdateSingleSeqArgs,
+            state: GQL.ChatUpdateSingleStateArgs,
+            update: GQL.ChatUpdateSingleUpdateArgs,
         }
     >;
     ChatUpdateBatch?: ComplexTypedResolver<
@@ -4864,6 +6469,10 @@ export interface GQLResolver {
             updates: GQLRoots.ChatUpdateRoot[],
         },
         {
+            seq: GQL.ChatUpdateBatchSeqArgs,
+            state: GQL.ChatUpdateBatchStateArgs,
+            fromSeq: GQL.ChatUpdateBatchFromSeqArgs,
+            updates: GQL.ChatUpdateBatchUpdatesArgs,
         }
     >;
     ChatUpdateContainer?: UnionTypeResolver<GQLRoots.ChatUpdateContainerRoot, 'ChatUpdateSingle' | 'ChatUpdateBatch'>;
@@ -4876,6 +6485,8 @@ export interface GQLResolver {
             by: GQLRoots.UserRoot,
         },
         {
+            chat: GQL.ChatUpdatedChatArgs,
+            by: GQL.ChatUpdatedByArgs,
         }
     >;
     ChatMessageReceived?: ComplexTypedResolver<
@@ -4885,6 +6496,8 @@ export interface GQLResolver {
             message: GQLRoots.ModernMessageRoot,
         },
         {
+            message: GQL.ChatMessageReceivedMessageArgs,
+            repeatKey: GQL.ChatMessageReceivedRepeatKeyArgs,
         }
     >;
     ChatMessageUpdated?: ComplexTypedResolver<
@@ -4894,6 +6507,7 @@ export interface GQLResolver {
             message: GQLRoots.ModernMessageRoot,
         },
         {
+            message: GQL.ChatMessageUpdatedMessageArgs,
         }
     >;
     ChatMessageDeleted?: ComplexTypedResolver<
@@ -4903,6 +6517,7 @@ export interface GQLResolver {
             message: GQLRoots.ModernMessageRoot,
         },
         {
+            message: GQL.ChatMessageDeletedMessageArgs,
         }
     >;
     ChatUpdateState?: ComplexTypedResolver<
@@ -4911,6 +6526,7 @@ export interface GQLResolver {
         {
         },
         {
+            state: GQL.ChatUpdateStateStateArgs,
         }
     >;
     ChatLostAccess?: ComplexTypedResolver<
@@ -4919,6 +6535,7 @@ export interface GQLResolver {
         {
         },
         {
+            lostAccess: GQL.ChatLostAccessLostAccessArgs,
         }
     >;
     ConversationUpdateState?: ComplexTypedResolver<
@@ -4927,6 +6544,7 @@ export interface GQLResolver {
         {
         },
         {
+            state: GQL.ConversationUpdateStateStateArgs,
         }
     >;
     CommentUpdatesState?: ComplexTypedResolver<
@@ -4935,6 +6553,7 @@ export interface GQLResolver {
         {
         },
         {
+            state: GQL.CommentUpdatesStateStateArgs,
         }
     >;
     CommentUpdateSingle?: ComplexTypedResolver<
@@ -4944,6 +6563,9 @@ export interface GQLResolver {
             update: GQLRoots.CommentUpdateRoot,
         },
         {
+            seq: GQL.CommentUpdateSingleSeqArgs,
+            state: GQL.CommentUpdateSingleStateArgs,
+            update: GQL.CommentUpdateSingleUpdateArgs,
         }
     >;
     CommentUpdateBatch?: ComplexTypedResolver<
@@ -4953,6 +6575,10 @@ export interface GQLResolver {
             updates: GQLRoots.CommentUpdateRoot[],
         },
         {
+            seq: GQL.CommentUpdateBatchSeqArgs,
+            state: GQL.CommentUpdateBatchStateArgs,
+            fromSeq: GQL.CommentUpdateBatchFromSeqArgs,
+            updates: GQL.CommentUpdateBatchUpdatesArgs,
         }
     >;
     CommentUpdate?: UnionTypeResolver<GQLRoots.CommentUpdateRoot, 'CommentReceived' | 'CommentUpdated'>;
@@ -4963,6 +6589,8 @@ export interface GQLResolver {
             comment: GQLRoots.CommentEntryRoot,
         },
         {
+            comment: GQL.CommentReceivedCommentArgs,
+            repeatKey: GQL.CommentReceivedRepeatKeyArgs,
         }
     >;
     CommentUpdated?: ComplexTypedResolver<
@@ -4972,6 +6600,7 @@ export interface GQLResolver {
             comment: GQLRoots.CommentEntryRoot,
         },
         {
+            comment: GQL.CommentUpdatedCommentArgs,
         }
     >;
     CommentUpdateContainer?: UnionTypeResolver<GQLRoots.CommentUpdateContainerRoot, 'CommentUpdateSingle' | 'CommentUpdateBatch'>;
@@ -4985,6 +6614,12 @@ export interface GQLResolver {
             subscription: Nullable<GQLRoots.CommentSubscriptionRoot>,
         },
         {
+            id: GQL.CommentsPeerIdArgs,
+            state: GQL.CommentsPeerStateArgs,
+            count: GQL.CommentsPeerCountArgs,
+            comments: GQL.CommentsPeerCommentsArgs,
+            peerRoot: GQL.CommentsPeerPeerRootArgs,
+            subscription: GQL.CommentsPeerSubscriptionArgs,
         }
     >;
     CommentEntry?: ComplexTypedResolver<
@@ -4997,6 +6632,12 @@ export interface GQLResolver {
             childComments: GQLRoots.CommentEntryRoot[],
         },
         {
+            id: GQL.CommentEntryIdArgs,
+            deleted: GQL.CommentEntryDeletedArgs,
+            comment: GQL.CommentEntryCommentArgs,
+            betaComment: GQL.CommentEntryBetaCommentArgs,
+            parentComment: GQL.CommentEntryParentCommentArgs,
+            childComments: GQL.CommentEntryChildCommentsArgs,
         }
     >;
     CommentPeerRoot?: UnionTypeResolver<GQLRoots.CommentPeerRootRoot, 'CommentPeerRootMessage' | 'CommentPeerRootFeedItem'>;
@@ -5008,6 +6649,8 @@ export interface GQLResolver {
             chat: GQLRoots.RoomRoot,
         },
         {
+            message: GQL.CommentPeerRootMessageMessageArgs,
+            chat: GQL.CommentPeerRootMessageChatArgs,
         }
     >;
     CommentPeerRootFeedItem?: ComplexTypedResolver<
@@ -5017,6 +6660,7 @@ export interface GQLResolver {
             item: GQLRoots.FeedItemRoot,
         },
         {
+            item: GQL.CommentPeerRootFeedItemItemArgs,
         }
     >;
     CommentSubscription?: ComplexTypedResolver<
@@ -5025,6 +6669,7 @@ export interface GQLResolver {
         {
         },
         {
+            type: GQL.CommentSubscriptionTypeArgs,
         }
     >;
     DialogUpdateSingle?: ComplexTypedResolver<
@@ -5034,6 +6679,9 @@ export interface GQLResolver {
             update: GQLRoots.DialogUpdateRoot,
         },
         {
+            seq: GQL.DialogUpdateSingleSeqArgs,
+            state: GQL.DialogUpdateSingleStateArgs,
+            update: GQL.DialogUpdateSingleUpdateArgs,
         }
     >;
     DialogUpdateBatch?: ComplexTypedResolver<
@@ -5043,6 +6691,10 @@ export interface GQLResolver {
             updates: GQLRoots.DialogUpdateRoot[],
         },
         {
+            updates: GQL.DialogUpdateBatchUpdatesArgs,
+            fromSeq: GQL.DialogUpdateBatchFromSeqArgs,
+            seq: GQL.DialogUpdateBatchSeqArgs,
+            state: GQL.DialogUpdateBatchStateArgs,
         }
     >;
     DialogUpdateContainer?: UnionTypeResolver<GQLRoots.DialogUpdateContainerRoot, 'DialogUpdateSingle' | 'DialogUpdateBatch'>;
@@ -5053,6 +6705,8 @@ export interface GQLResolver {
         {
         },
         {
+            mobile: GQL.SilentMessageInfoMobileArgs,
+            desktop: GQL.SilentMessageInfoDesktopArgs,
         }
     >;
     ShowNotificationMessageInfo?: ComplexTypedResolver<
@@ -5061,6 +6715,8 @@ export interface GQLResolver {
         {
         },
         {
+            mobile: GQL.ShowNotificationMessageInfoMobileArgs,
+            desktop: GQL.ShowNotificationMessageInfoDesktopArgs,
         }
     >;
     DialogMessageReceived?: ComplexTypedResolver<
@@ -5074,6 +6730,15 @@ export interface GQLResolver {
             showNotification: GQLRoots.SilentMessageInfoRoot,
         },
         {
+            cid: GQL.DialogMessageReceivedCidArgs,
+            message: GQL.DialogMessageReceivedMessageArgs,
+            betaMessage: GQL.DialogMessageReceivedBetaMessageArgs,
+            alphaMessage: GQL.DialogMessageReceivedAlphaMessageArgs,
+            unread: GQL.DialogMessageReceivedUnreadArgs,
+            globalUnread: GQL.DialogMessageReceivedGlobalUnreadArgs,
+            haveMention: GQL.DialogMessageReceivedHaveMentionArgs,
+            silent: GQL.DialogMessageReceivedSilentArgs,
+            showNotification: GQL.DialogMessageReceivedShowNotificationArgs,
         }
     >;
     DialogMessageUpdated?: ComplexTypedResolver<
@@ -5085,6 +6750,11 @@ export interface GQLResolver {
             alphaMessage: GQLRoots.ModernMessageRoot,
         },
         {
+            cid: GQL.DialogMessageUpdatedCidArgs,
+            message: GQL.DialogMessageUpdatedMessageArgs,
+            betaMessage: GQL.DialogMessageUpdatedBetaMessageArgs,
+            alphaMessage: GQL.DialogMessageUpdatedAlphaMessageArgs,
+            haveMention: GQL.DialogMessageUpdatedHaveMentionArgs,
         }
     >;
     DialogMessageDeleted?: ComplexTypedResolver<
@@ -5098,6 +6768,15 @@ export interface GQLResolver {
             alphaMessage: GQLRoots.ModernMessageRoot,
         },
         {
+            cid: GQL.DialogMessageDeletedCidArgs,
+            message: GQL.DialogMessageDeletedMessageArgs,
+            betaMessage: GQL.DialogMessageDeletedBetaMessageArgs,
+            prevMessage: GQL.DialogMessageDeletedPrevMessageArgs,
+            alphaPrevMessage: GQL.DialogMessageDeletedAlphaPrevMessageArgs,
+            alphaMessage: GQL.DialogMessageDeletedAlphaMessageArgs,
+            unread: GQL.DialogMessageDeletedUnreadArgs,
+            globalUnread: GQL.DialogMessageDeletedGlobalUnreadArgs,
+            haveMention: GQL.DialogMessageDeletedHaveMentionArgs,
         }
     >;
     DialogMessageRead?: ComplexTypedResolver<
@@ -5106,6 +6785,11 @@ export interface GQLResolver {
         {
         },
         {
+            cid: GQL.DialogMessageReadCidArgs,
+            mid: GQL.DialogMessageReadMidArgs,
+            unread: GQL.DialogMessageReadUnreadArgs,
+            globalUnread: GQL.DialogMessageReadGlobalUnreadArgs,
+            haveMention: GQL.DialogMessageReadHaveMentionArgs,
         }
     >;
     DialogTitleUpdated?: ComplexTypedResolver<
@@ -5114,6 +6798,8 @@ export interface GQLResolver {
         {
         },
         {
+            cid: GQL.DialogTitleUpdatedCidArgs,
+            title: GQL.DialogTitleUpdatedTitleArgs,
         }
     >;
     DialogPhotoUpdated?: ComplexTypedResolver<
@@ -5122,6 +6808,8 @@ export interface GQLResolver {
         {
         },
         {
+            cid: GQL.DialogPhotoUpdatedCidArgs,
+            photo: GQL.DialogPhotoUpdatedPhotoArgs,
         }
     >;
     DialogDeleted?: ComplexTypedResolver<
@@ -5130,6 +6818,8 @@ export interface GQLResolver {
         {
         },
         {
+            cid: GQL.DialogDeletedCidArgs,
+            globalUnread: GQL.DialogDeletedGlobalUnreadArgs,
         }
     >;
     DialogBump?: ComplexTypedResolver<
@@ -5139,6 +6829,11 @@ export interface GQLResolver {
             topMessage: Nullable<GQLRoots.ModernMessageRoot>,
         },
         {
+            cid: GQL.DialogBumpCidArgs,
+            globalUnread: GQL.DialogBumpGlobalUnreadArgs,
+            unread: GQL.DialogBumpUnreadArgs,
+            topMessage: GQL.DialogBumpTopMessageArgs,
+            haveMention: GQL.DialogBumpHaveMentionArgs,
         }
     >;
     DialogMuteChanged?: ComplexTypedResolver<
@@ -5147,6 +6842,9 @@ export interface GQLResolver {
         {
         },
         {
+            cid: GQL.DialogMuteChangedCidArgs,
+            mute: GQL.DialogMuteChangedMuteArgs,
+            globalUnread: GQL.DialogMuteChangedGlobalUnreadArgs,
         }
     >;
     DialogPeerUpdated?: ComplexTypedResolver<
@@ -5156,6 +6854,8 @@ export interface GQLResolver {
             peer: GQLRoots.RoomRoot,
         },
         {
+            cid: GQL.DialogPeerUpdatedCidArgs,
+            peer: GQL.DialogPeerUpdatedPeerArgs,
         }
     >;
     DialogMentionedChanged?: ComplexTypedResolver<
@@ -5164,6 +6864,8 @@ export interface GQLResolver {
         {
         },
         {
+            cid: GQL.DialogMentionedChangedCidArgs,
+            haveMention: GQL.DialogMentionedChangedHaveMentionArgs,
         }
     >;
     DialogUpdateState?: ComplexTypedResolver<
@@ -5172,6 +6874,7 @@ export interface GQLResolver {
         {
         },
         {
+            state: GQL.DialogUpdateStateStateArgs,
         }
     >;
     EnvVar?: ComplexTypedResolver<
@@ -5180,6 +6883,8 @@ export interface GQLResolver {
         {
         },
         {
+            name: GQL.EnvVarNameArgs,
+            value: GQL.EnvVarValueArgs,
         }
     >;
     FeatureFlag?: ComplexTypedResolver<
@@ -5188,6 +6893,9 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.FeatureFlagIdArgs,
+            key: GQL.FeatureFlagKeyArgs,
+            title: GQL.FeatureFlagTitleArgs,
         }
     >;
     FeedUpdateContainer?: ComplexTypedResolver<
@@ -5197,6 +6905,8 @@ export interface GQLResolver {
             updates: GQLRoots.FeedUpdateRoot[],
         },
         {
+            updates: GQL.FeedUpdateContainerUpdatesArgs,
+            state: GQL.FeedUpdateContainerStateArgs,
         }
     >;
     FeedUpdate?: UnionTypeResolver<GQLRoots.FeedUpdateRoot, 'FeedItemReceived' | 'FeedItemUpdated' | 'FeedItemDeleted' | 'FeedRebuildNeeded'>;
@@ -5207,6 +6917,7 @@ export interface GQLResolver {
             item: GQLRoots.FeedItemRoot,
         },
         {
+            item: GQL.FeedItemReceivedItemArgs,
         }
     >;
     FeedItemUpdated?: ComplexTypedResolver<
@@ -5216,6 +6927,7 @@ export interface GQLResolver {
             item: GQLRoots.FeedItemRoot,
         },
         {
+            item: GQL.FeedItemUpdatedItemArgs,
         }
     >;
     FeedItemDeleted?: ComplexTypedResolver<
@@ -5225,6 +6937,7 @@ export interface GQLResolver {
             item: GQLRoots.FeedItemRoot,
         },
         {
+            item: GQL.FeedItemDeletedItemArgs,
         }
     >;
     FeedRebuildNeeded?: ComplexTypedResolver<
@@ -5234,6 +6947,7 @@ export interface GQLResolver {
             homeFeed: GQLRoots.FeedItemConnectionRoot,
         },
         {
+            homeFeed: GQL.FeedRebuildNeededHomeFeedArgs,
         }
     >;
     GeoLocation?: ComplexTypedResolver<
@@ -5242,6 +6956,8 @@ export interface GQLResolver {
         {
         },
         {
+            long: GQL.GeoLocationLongArgs,
+            lat: GQL.GeoLocationLatArgs,
         }
     >;
     UserLocation?: ComplexTypedResolver<
@@ -5252,6 +6968,10 @@ export interface GQLResolver {
             lastLocations: GQLRoots.GeoLocationRoot[],
         },
         {
+            id: GQL.UserLocationIdArgs,
+            isSharing: GQL.UserLocationIsSharingArgs,
+            user: GQL.UserLocationUserArgs,
+            lastLocations: GQL.UserLocationLastLocationsArgs,
         }
     >;
     ICEServer?: ComplexTypedResolver<
@@ -5260,6 +6980,9 @@ export interface GQLResolver {
         {
         },
         {
+            urls: GQL.ICEServerUrlsArgs,
+            username: GQL.ICEServerUsernameArgs,
+            credential: GQL.ICEServerCredentialArgs,
         }
     >;
     Conference?: ComplexTypedResolver<
@@ -5270,6 +6993,10 @@ export interface GQLResolver {
             iceServers: GQLRoots.ICEServerRoot[],
         },
         {
+            id: GQL.ConferenceIdArgs,
+            startTime: GQL.ConferenceStartTimeArgs,
+            peers: GQL.ConferencePeersArgs,
+            iceServers: GQL.ConferenceIceServersArgs,
         }
     >;
     ConferencePeer?: ComplexTypedResolver<
@@ -5280,6 +7007,9 @@ export interface GQLResolver {
             connection: Nullable<GQLRoots.ConferencePeerConnectionRoot>,
         },
         {
+            id: GQL.ConferencePeerIdArgs,
+            user: GQL.ConferencePeerUserArgs,
+            connection: GQL.ConferencePeerConnectionArgs,
         }
     >;
     ConferenceMedia?: ComplexTypedResolver<
@@ -5290,6 +7020,9 @@ export interface GQLResolver {
             iceServers: GQLRoots.ICEServerRoot[],
         },
         {
+            id: GQL.ConferenceMediaIdArgs,
+            streams: GQL.ConferenceMediaStreamsArgs,
+            iceServers: GQL.ConferenceMediaIceServersArgs,
         }
     >;
     MediaStream?: ComplexTypedResolver<
@@ -5298,6 +7031,11 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.MediaStreamIdArgs,
+            peerId: GQL.MediaStreamPeerIdArgs,
+            state: GQL.MediaStreamStateArgs,
+            sdp: GQL.MediaStreamSdpArgs,
+            ice: GQL.MediaStreamIceArgs,
         }
     >;
     ConferencePeerConnection?: ComplexTypedResolver<
@@ -5306,6 +7044,9 @@ export interface GQLResolver {
         {
         },
         {
+            state: GQL.ConferencePeerConnectionStateArgs,
+            sdp: GQL.ConferencePeerConnectionSdpArgs,
+            ice: GQL.ConferencePeerConnectionIceArgs,
         }
     >;
     ConferenceJoinResult?: ComplexTypedResolver<
@@ -5315,6 +7056,8 @@ export interface GQLResolver {
             conference: GQLRoots.ConferenceRoot,
         },
         {
+            peerId: GQL.ConferenceJoinResultPeerIdArgs,
+            conference: GQL.ConferenceJoinResultConferenceArgs,
         }
     >;
     ImageSticker?: ComplexTypedResolver<
@@ -5325,6 +7068,10 @@ export interface GQLResolver {
             pack: GQLRoots.StickerPackRoot,
         },
         {
+            id: GQL.ImageStickerIdArgs,
+            image: GQL.ImageStickerImageArgs,
+            pack: GQL.ImageStickerPackArgs,
+            emoji: GQL.ImageStickerEmojiArgs,
         }
     >;
     Sticker?: UnionTypeResolver<GQLRoots.StickerRoot, 'ImageSticker'>;
@@ -5336,6 +7083,12 @@ export interface GQLResolver {
             author: GQLRoots.UserRoot,
         },
         {
+            id: GQL.StickerPackIdArgs,
+            title: GQL.StickerPackTitleArgs,
+            stickers: GQL.StickerPackStickersArgs,
+            author: GQL.StickerPackAuthorArgs,
+            usesCount: GQL.StickerPackUsesCountArgs,
+            published: GQL.StickerPackPublishedArgs,
         }
     >;
     UserStickers?: ComplexTypedResolver<
@@ -5346,6 +7099,8 @@ export interface GQLResolver {
             favorites: GQLRoots.StickerRoot[],
         },
         {
+            packs: GQL.UserStickersPacksArgs,
+            favorites: GQL.UserStickersFavoritesArgs,
         }
     >;
     MessageReaction?: ComplexTypedResolver<
@@ -5355,6 +7110,8 @@ export interface GQLResolver {
             user: GQLRoots.UserRoot,
         },
         {
+            user: GQL.MessageReactionUserArgs,
+            reaction: GQL.MessageReactionReactionArgs,
         }
     >;
     MessageAttachment?: ComplexTypedResolver<
@@ -5364,6 +7121,9 @@ export interface GQLResolver {
             fileMetadata: Nullable<GQLRoots.FileMetadataRoot>,
         },
         {
+            fileId: GQL.MessageAttachmentFileIdArgs,
+            fileMetadata: GQL.MessageAttachmentFileMetadataArgs,
+            filePreview: GQL.MessageAttachmentFilePreviewArgs,
         }
     >;
     MessageButton?: ComplexTypedResolver<
@@ -5372,6 +7132,9 @@ export interface GQLResolver {
         {
         },
         {
+            title: GQL.MessageButtonTitleArgs,
+            style: GQL.MessageButtonStyleArgs,
+            id: GQL.MessageButtonIdArgs,
         }
     >;
     Mutation?: ComplexTypedResolver<
@@ -5504,6 +7267,7 @@ export interface GQLResolver {
             betaRoomAlterListed: GQLRoots.RoomSuperRoot,
         },
         {
+            lifecheck: GQL.MutationLifecheckArgs,
             alphaSendMessage: GQL.MutationAlphaSendMessageArgs,
             alphaReadChat: GQL.MutationAlphaReadChatArgs,
             alphaEditMessage: GQL.MutationAlphaEditMessageArgs,
@@ -5540,6 +7304,7 @@ export interface GQLResolver {
             paymentCancel: GQL.MutationPaymentCancelArgs,
             donateToUser: GQL.MutationDonateToUserArgs,
             subscriptionCancel: GQL.MutationSubscriptionCancelArgs,
+            alphaCreateInvite: GQL.MutationAlphaCreateInviteArgs,
             alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs,
             alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs,
             joinAppInvite: GQL.MutationJoinAppInviteArgs,
@@ -5547,21 +7312,61 @@ export interface GQLResolver {
             debugSendEmail: GQL.MutationDebugSendEmailArgs,
             debugCreateTestUser: GQL.MutationDebugCreateTestUserArgs,
             debugDeleteUrlInfoCache: GQL.MutationDebugDeleteUrlInfoCacheArgs,
+            debugDeleteUrlInfoCacheAll: GQL.MutationDebugDeleteUrlInfoCacheAllArgs,
             debugSuperNotifications: GQL.MutationDebugSuperNotificationsArgs,
+            debugCalcUsersMessagingStats: GQL.MutationDebugCalcUsersMessagingStatsArgs,
+            debugCalcUsersChatsStats: GQL.MutationDebugCalcUsersChatsStatsArgs,
             debugConvertOrgChatToNormal: GQL.MutationDebugConvertOrgChatToNormalArgs,
+            debugDeleteEmptyOrgChats: GQL.MutationDebugDeleteEmptyOrgChatsArgs,
+            debugFixCommentsVisibility: GQL.MutationDebugFixCommentsVisibilityArgs,
             debugSetCommentVisibility: GQL.MutationDebugSetCommentVisibilityArgs,
+            debugRemoveDeletedDialogs: GQL.MutationDebugRemoveDeletedDialogsArgs,
             debugReindexOrgs: GQL.MutationDebugReindexOrgsArgs,
+            debugCalcRoomsActiveMembers: GQL.MutationDebugCalcRoomsActiveMembersArgs,
+            debugCalcOrgsActiveMembers: GQL.MutationDebugCalcOrgsActiveMembersArgs,
+            debugCreateCommentSubscriptions: GQL.MutationDebugCreateCommentSubscriptionsArgs,
+            debugDeveloperInit: GQL.MutationDebugDeveloperInitArgs,
             debugResetAudienceCounter: GQL.MutationDebugResetAudienceCounterArgs,
+            debugCalcUsersAudienceCounter: GQL.MutationDebugCalcUsersAudienceCounterArgs,
+            debugCalcUsers2WayDirectChatsCounter: GQL.MutationDebugCalcUsers2WayDirectChatsCounterArgs,
             debugFixMessage: GQL.MutationDebugFixMessageArgs,
+            debugEnableNotificationCenterForAll: GQL.MutationDebugEnableNotificationCenterForAllArgs,
+            debugResetGlobalCounters: GQL.MutationDebugResetGlobalCountersArgs,
+            debugCalcGlobalCountersForAll: GQL.MutationDebugCalcGlobalCountersForAllArgs,
+            debugValidateGlobalCountersForAll: GQL.MutationDebugValidateGlobalCountersForAllArgs,
             debugCreateBigChat: GQL.MutationDebugCreateBigChatArgs,
             debugFlood: GQL.MutationDebugFloodArgs,
+            debugQueueDailyEngagementReport: GQL.MutationDebugQueueDailyEngagementReportArgs,
+            debugQueueDailyOnboardingReport: GQL.MutationDebugQueueDailyOnboardingReportArgs,
+            debugQueueWeeklyEngagementReport: GQL.MutationDebugQueueWeeklyEngagementReportArgs,
+            debugQueueWeeklyOnboardingReport: GQL.MutationDebugQueueWeeklyOnboardingReportArgs,
+            debugQueueWeeklyUserLeaderboard: GQL.MutationDebugQueueWeeklyUserLeaderboardArgs,
+            debugQueueWeeklyRoomLeaderboard: GQL.MutationDebugQueueWeeklyRoomLeaderboardArgs,
+            debugQueueWeeklyRoomByMessagesLeaderboard: GQL.MutationDebugQueueWeeklyRoomByMessagesLeaderboardArgs,
+            debugReindexUserProfiles: GQL.MutationDebugReindexUserProfilesArgs,
+            debugReindexRoomProfiles: GQL.MutationDebugReindexRoomProfilesArgs,
             debugSendPush: GQL.MutationDebugSendPushArgs,
+            debugReindexPrivateDialogs: GQL.MutationDebugReindexPrivateDialogsArgs,
+            debugReindexUsersDialogs: GQL.MutationDebugReindexUsersDialogsArgs,
+            debugReindexFeedEvents: GQL.MutationDebugReindexFeedEventsArgs,
             debugChangeUserEmail: GQL.MutationDebugChangeUserEmailArgs,
             debugSwapUserEmails: GQL.MutationDebugSwapUserEmailsArgs,
+            debugFindUsefulCommunities: GQL.MutationDebugFindUsefulCommunitiesArgs,
             debugFixStickerPack: GQL.MutationDebugFixStickerPackArgs,
+            debugReverseStickers: GQL.MutationDebugReverseStickersArgs,
+            debugReindexShortnames: GQL.MutationDebugReindexShortnamesArgs,
             debugFixHyperlogEvent: GQL.MutationDebugFixHyperlogEventArgs,
+            debugReindexFeedChannelAdmins: GQL.MutationDebugReindexFeedChannelAdminsArgs,
+            debugReindexFeedChannels: GQL.MutationDebugReindexFeedChannelsArgs,
+            debugReindexFeedTopics: GQL.MutationDebugReindexFeedTopicsArgs,
+            debugCalcChannelPostsCount: GQL.MutationDebugCalcChannelPostsCountArgs,
+            debugCalcChannelsSubscribersCount: GQL.MutationDebugCalcChannelsSubscribersCountArgs,
+            debugResetUrlInfoFreshness: GQL.MutationDebugResetUrlInfoFreshnessArgs,
+            debugFixUsersPrimaryOrganization: GQL.MutationDebugFixUsersPrimaryOrganizationArgs,
+            debugResetPushDelivery: GQL.MutationDebugResetPushDeliveryArgs,
             debugAddStickerPackToAll: GQL.MutationDebugAddStickerPackToAllArgs,
             debugReplaceCommunityForChat: GQL.MutationDebugReplaceCommunityForChatArgs,
+            debugRecountSeqForMessages: GQL.MutationDebugRecountSeqForMessagesArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             updateSettings: GQL.MutationUpdateSettingsArgs,
             createOauthApp: GQL.MutationCreateOauthAppArgs,
@@ -5595,6 +7400,8 @@ export interface GQLResolver {
             alphaAlterPublished: GQL.MutationAlphaAlterPublishedArgs,
             alphaRenderVideo: GQL.MutationAlphaRenderVideoArgs,
             betaFixCounter: GQL.MutationBetaFixCounterArgs,
+            betaFixCountersForAll: GQL.MutationBetaFixCountersForAllArgs,
+            deliverCountersForAll: GQL.MutationDeliverCountersForAllArgs,
             conversationDraftUpdate: GQL.MutationConversationDraftUpdateArgs,
             alphaSaveDraftMessage: GQL.MutationAlphaSaveDraftMessageArgs,
             track: GQL.MutationTrackArgs,
@@ -5672,16 +7479,19 @@ export interface GQLResolver {
             debugSendAndroidDataPush: GQL.MutationDebugSendAndroidDataPushArgs,
             debugSendAppleDataPush: GQL.MutationDebugSendAppleDataPushArgs,
             betaDiscoverSkip: GQL.MutationBetaDiscoverSkipArgs,
+            betaNextDiscoverReset: GQL.MutationBetaNextDiscoverResetArgs,
             betaNextDiscoverPageOrChats: GQL.MutationBetaNextDiscoverPageOrChatsArgs,
             betaSaveSelectedTags: GQL.MutationBetaSaveSelectedTagsArgs,
             betaSubmitNextDiscover: GQL.MutationBetaSubmitNextDiscoverArgs,
             matchmakingRoomSave: GQL.MutationMatchmakingRoomSaveArgs,
             matchmakingProfileFill: GQL.MutationMatchmakingProfileFillArgs,
             matchmakingConnect: GQL.MutationMatchmakingConnectArgs,
+            createHistoricUserMetricsReport: GQL.MutationCreateHistoricUserMetricsReportArgs,
             typingSend: GQL.MutationTypingSendArgs,
             typingCancel: GQL.MutationTypingCancelArgs,
             alphaSetTyping: GQL.MutationAlphaSetTypingArgs,
             reportContent: GQL.MutationReportContentArgs,
+            deleteMyAccount: GQL.MutationDeleteMyAccountArgs,
             superBadgeCreateToRoom: GQL.MutationSuperBadgeCreateToRoomArgs,
             superBadgeUnsetToRoom: GQL.MutationSuperBadgeUnsetToRoomArgs,
             badgeCreate: GQL.MutationBadgeCreateArgs,
@@ -5690,6 +7500,7 @@ export interface GQLResolver {
             badgeUnsetToRoom: GQL.MutationBadgeUnsetToRoomArgs,
             badgeDelete: GQL.MutationBadgeDeleteArgs,
             badgeSetPrimary: GQL.MutationBadgeSetPrimaryArgs,
+            badgeUnsetPrimary: GQL.MutationBadgeUnsetPrimaryArgs,
             superBadgeCreate: GQL.MutationSuperBadgeCreateArgs,
             superBadgeSetToRoom: GQL.MutationSuperBadgeSetToRoomArgs,
             superBadgeDelete: GQL.MutationSuperBadgeDeleteArgs,
@@ -5756,6 +7567,9 @@ export interface GQLResolver {
             state: GQLRoots.NotificationCenterUpdatesStateRoot,
         },
         {
+            id: GQL.NotificationCenterIdArgs,
+            unread: GQL.NotificationCenterUnreadArgs,
+            state: GQL.NotificationCenterStateArgs,
         }
     >;
     Notification?: ComplexTypedResolver<
@@ -5765,6 +7579,9 @@ export interface GQLResolver {
             content: GQLRoots.NotificationContentRoot[],
         },
         {
+            id: GQL.NotificationIdArgs,
+            text: GQL.NotificationTextArgs,
+            content: GQL.NotificationContentArgs,
         }
     >;
     NotificationContent?: UnionTypeResolver<GQLRoots.NotificationContentRoot, 'NewCommentNotification' | 'NewMatchmakingProfilesNotification' | 'MentionNotification'>;
@@ -5776,6 +7593,8 @@ export interface GQLResolver {
             comment: GQLRoots.CommentEntryRoot,
         },
         {
+            peer: GQL.NewCommentNotificationPeerArgs,
+            comment: GQL.NewCommentNotificationCommentArgs,
         }
     >;
     NewMatchmakingProfilesNotification?: ComplexTypedResolver<
@@ -5786,6 +7605,8 @@ export interface GQLResolver {
             profiles: GQLRoots.MatchmakingProfileRoot[],
         },
         {
+            room: GQL.NewMatchmakingProfilesNotificationRoomArgs,
+            profiles: GQL.NewMatchmakingProfilesNotificationProfilesArgs,
         }
     >;
     MessageWithMention?: UnionTypeResolver<GQLRoots.MessageWithMentionRoot, 'FeedPost' | 'Message'>;
@@ -5797,6 +7618,8 @@ export interface GQLResolver {
             message: GQLRoots.MessageWithMentionRoot,
         },
         {
+            peer: GQL.MentionNotificationPeerArgs,
+            message: GQL.MentionNotificationMessageArgs,
         }
     >;
     NotificationConnection?: ComplexTypedResolver<
@@ -5806,6 +7629,8 @@ export interface GQLResolver {
             items: GQLRoots.NotificationRoot[],
         },
         {
+            items: GQL.NotificationConnectionItemsArgs,
+            cursor: GQL.NotificationConnectionCursorArgs,
         }
     >;
     NotificationCenterUpdatesState?: ComplexTypedResolver<
@@ -5814,6 +7639,7 @@ export interface GQLResolver {
         {
         },
         {
+            state: GQL.NotificationCenterUpdatesStateStateArgs,
         }
     >;
     NotificationCenterUpdateSingle?: ComplexTypedResolver<
@@ -5823,6 +7649,9 @@ export interface GQLResolver {
             update: GQLRoots.NotificationCenterUpdateRoot,
         },
         {
+            seq: GQL.NotificationCenterUpdateSingleSeqArgs,
+            state: GQL.NotificationCenterUpdateSingleStateArgs,
+            update: GQL.NotificationCenterUpdateSingleUpdateArgs,
         }
     >;
     NotificationCenterUpdateBatch?: ComplexTypedResolver<
@@ -5832,6 +7661,10 @@ export interface GQLResolver {
             updates: GQLRoots.NotificationCenterUpdateRoot[],
         },
         {
+            seq: GQL.NotificationCenterUpdateBatchSeqArgs,
+            state: GQL.NotificationCenterUpdateBatchStateArgs,
+            fromSeq: GQL.NotificationCenterUpdateBatchFromSeqArgs,
+            updates: GQL.NotificationCenterUpdateBatchUpdatesArgs,
         }
     >;
     NotificationCenterUpdate?: UnionTypeResolver<GQLRoots.NotificationCenterUpdateRoot, 'NotificationReceived' | 'NotificationRead' | 'NotificationDeleted' | 'NotificationUpdated' | 'NotificationContentUpdated'>;
@@ -5843,6 +7676,9 @@ export interface GQLResolver {
             notification: GQLRoots.NotificationRoot,
         },
         {
+            center: GQL.NotificationReceivedCenterArgs,
+            notification: GQL.NotificationReceivedNotificationArgs,
+            unread: GQL.NotificationReceivedUnreadArgs,
         }
     >;
     NotificationRead?: ComplexTypedResolver<
@@ -5852,6 +7688,8 @@ export interface GQLResolver {
             center: GQLRoots.NotificationCenterRoot,
         },
         {
+            center: GQL.NotificationReadCenterArgs,
+            unread: GQL.NotificationReadUnreadArgs,
         }
     >;
     NotificationDeleted?: ComplexTypedResolver<
@@ -5862,6 +7700,9 @@ export interface GQLResolver {
             notification: GQLRoots.NotificationRoot,
         },
         {
+            center: GQL.NotificationDeletedCenterArgs,
+            notification: GQL.NotificationDeletedNotificationArgs,
+            unread: GQL.NotificationDeletedUnreadArgs,
         }
     >;
     NotificationUpdated?: ComplexTypedResolver<
@@ -5872,6 +7713,9 @@ export interface GQLResolver {
             notification: GQLRoots.NotificationRoot,
         },
         {
+            center: GQL.NotificationUpdatedCenterArgs,
+            notification: GQL.NotificationUpdatedNotificationArgs,
+            unread: GQL.NotificationUpdatedUnreadArgs,
         }
     >;
     UpdatedNotificationContent?: UnionTypeResolver<GQLRoots.UpdatedNotificationContentRoot, 'UpdatedNotificationContentComment'>;
@@ -5883,6 +7727,8 @@ export interface GQLResolver {
             comment: Nullable<GQLRoots.CommentEntryRoot>,
         },
         {
+            peer: GQL.UpdatedNotificationContentCommentPeerArgs,
+            comment: GQL.UpdatedNotificationContentCommentCommentArgs,
         }
     >;
     NotificationContentUpdated?: ComplexTypedResolver<
@@ -5893,6 +7739,8 @@ export interface GQLResolver {
             content: GQLRoots.UpdatedNotificationContentRoot,
         },
         {
+            center: GQL.NotificationContentUpdatedCenterArgs,
+            content: GQL.NotificationContentUpdatedContentArgs,
         }
     >;
     NotificationCenterUpdateContainer?: UnionTypeResolver<GQLRoots.NotificationCenterUpdateContainerRoot, 'NotificationCenterUpdateSingle' | 'NotificationCenterUpdateBatch'>;
@@ -5903,6 +7751,14 @@ export interface GQLResolver {
             photoRef: Nullable<GQLRoots.ImageRefRoot>,
         },
         {
+            name: GQL.OrganizationContactNameArgs,
+            photo: GQL.OrganizationContactPhotoArgs,
+            photoRef: GQL.OrganizationContactPhotoRefArgs,
+            position: GQL.OrganizationContactPositionArgs,
+            email: GQL.OrganizationContactEmailArgs,
+            phone: GQL.OrganizationContactPhoneArgs,
+            link: GQL.OrganizationContactLinkArgs,
+            twitter: GQL.OrganizationContactTwitterArgs,
         }
     >;
     Organization?: ComplexTypedResolver<
@@ -5916,8 +7772,37 @@ export interface GQLResolver {
             linkedFeedChannels: GQLRoots.FeedChannelRoot[],
         },
         {
+            id: GQL.OrganizationIdArgs,
+            isMine: GQL.OrganizationIsMineArgs,
+            isDeleted: GQL.OrganizationIsDeletedArgs,
+            name: GQL.OrganizationNameArgs,
+            photo: GQL.OrganizationPhotoArgs,
+            website: GQL.OrganizationWebsiteArgs,
+            websiteTitle: GQL.OrganizationWebsiteTitleArgs,
+            about: GQL.OrganizationAboutArgs,
+            twitter: GQL.OrganizationTwitterArgs,
+            facebook: GQL.OrganizationFacebookArgs,
+            linkedin: GQL.OrganizationLinkedinArgs,
+            instagram: GQL.OrganizationInstagramArgs,
+            location: GQL.OrganizationLocationArgs,
+            betaIsOwner: GQL.OrganizationBetaIsOwnerArgs,
+            betaIsAdmin: GQL.OrganizationBetaIsAdminArgs,
+            betaIsPrimary: GQL.OrganizationBetaIsPrimaryArgs,
+            superAccountId: GQL.OrganizationSuperAccountIdArgs,
+            alphaIsOwner: GQL.OrganizationAlphaIsOwnerArgs,
             alphaOrganizationMembers: GQL.OrganizationAlphaOrganizationMembersArgs,
             alphaOrganizationAdminMembers: GQL.OrganizationAlphaOrganizationAdminMembersArgs,
+            alphaOrganizationMemberRequests: GQL.OrganizationAlphaOrganizationMemberRequestsArgs,
+            alphaFeatured: GQL.OrganizationAlphaFeaturedArgs,
+            alphaIsCommunity: GQL.OrganizationAlphaIsCommunityArgs,
+            alphaIsPrivate: GQL.OrganizationAlphaIsPrivateArgs,
+            betaPublicRooms: GQL.OrganizationBetaPublicRoomsArgs,
+            betaPublicRoomsCount: GQL.OrganizationBetaPublicRoomsCountArgs,
+            status: GQL.OrganizationStatusArgs,
+            membersCount: GQL.OrganizationMembersCountArgs,
+            personal: GQL.OrganizationPersonalArgs,
+            linkedFeedChannels: GQL.OrganizationLinkedFeedChannelsArgs,
+            shortname: GQL.OrganizationShortnameArgs,
         }
     >;
     OrganizationProfile?: ComplexTypedResolver<
@@ -5928,6 +7813,24 @@ export interface GQLResolver {
             contacts: GQLRoots.OrganizationContactRoot[],
         },
         {
+            id: GQL.OrganizationProfileIdArgs,
+            name: GQL.OrganizationProfileNameArgs,
+            photoRef: GQL.OrganizationProfilePhotoRefArgs,
+            website: GQL.OrganizationProfileWebsiteArgs,
+            websiteTitle: GQL.OrganizationProfileWebsiteTitleArgs,
+            about: GQL.OrganizationProfileAboutArgs,
+            twitter: GQL.OrganizationProfileTwitterArgs,
+            facebook: GQL.OrganizationProfileFacebookArgs,
+            linkedin: GQL.OrganizationProfileLinkedinArgs,
+            instagram: GQL.OrganizationProfileInstagramArgs,
+            contacts: GQL.OrganizationProfileContactsArgs,
+            location: GQL.OrganizationProfileLocationArgs,
+            alphaPublished: GQL.OrganizationProfileAlphaPublishedArgs,
+            alphaEditorial: GQL.OrganizationProfileAlphaEditorialArgs,
+            alphaFeatured: GQL.OrganizationProfileAlphaFeaturedArgs,
+            alphaIsCommunity: GQL.OrganizationProfileAlphaIsCommunityArgs,
+            alphaIsPrivate: GQL.OrganizationProfileAlphaIsPrivateArgs,
+            shortname: GQL.OrganizationProfileShortnameArgs,
         }
     >;
     OrganizationsEdge?: ComplexTypedResolver<
@@ -5937,6 +7840,8 @@ export interface GQLResolver {
             node: GQLRoots.OrganizationRoot,
         },
         {
+            node: GQL.OrganizationsEdgeNodeArgs,
+            cursor: GQL.OrganizationsEdgeCursorArgs,
         }
     >;
     OrganizationsConnection?: ComplexTypedResolver<
@@ -5947,6 +7852,8 @@ export interface GQLResolver {
             pageInfo: GQLRoots.PageInfoRoot,
         },
         {
+            edges: GQL.OrganizationsConnectionEdgesArgs,
+            pageInfo: GQL.OrganizationsConnectionPageInfoArgs,
         }
     >;
     Permissions?: ComplexTypedResolver<
@@ -5955,6 +7862,7 @@ export interface GQLResolver {
         {
         },
         {
+            roles: GQL.PermissionsRolesArgs,
         }
     >;
     ProfilePrefill?: ComplexTypedResolver<
@@ -5963,6 +7871,9 @@ export interface GQLResolver {
         {
         },
         {
+            firstName: GQL.ProfilePrefillFirstNameArgs,
+            lastName: GQL.ProfilePrefillLastNameArgs,
+            picture: GQL.ProfilePrefillPictureArgs,
         }
     >;
     PushSettings?: ComplexTypedResolver<
@@ -5971,6 +7882,7 @@ export interface GQLResolver {
         {
         },
         {
+            webPushKey: GQL.PushSettingsWebPushKeyArgs,
         }
     >;
     Query?: ComplexTypedResolver<
@@ -6111,59 +8023,110 @@ export interface GQLResolver {
             alphaResolveShortName: Nullable<GQLRoots.ShortNameDestinationRoot>,
         },
         {
+            lifecheck: GQL.QueryLifecheckArgs,
+            alphaNotificationCounter: GQL.QueryAlphaNotificationCounterArgs,
             alphaChat: GQL.QueryAlphaChatArgs,
             alphaLoadMessages: GQL.QueryAlphaLoadMessagesArgs,
             alphaChatsSearchForCompose: GQL.QueryAlphaChatsSearchForComposeArgs,
             alphaChatSearch: GQL.QueryAlphaChatSearchArgs,
             alphaGroupConversationMembers: GQL.QueryAlphaGroupConversationMembersArgs,
+            myProfile: GQL.QueryMyProfileArgs,
+            myCards: GQL.QueryMyCardsArgs,
+            myWallet: GQL.QueryMyWalletArgs,
+            transactionsPending: GQL.QueryTransactionsPendingArgs,
             transactionsHistory: GQL.QueryTransactionsHistoryArgs,
+            subscriptions: GQL.QuerySubscriptionsArgs,
+            alphaInvites: GQL.QueryAlphaInvitesArgs,
             alphaInviteInfo: GQL.QueryAlphaInviteInfoArgs,
+            appInvite: GQL.QueryAppInviteArgs,
             appInviteFromUser: GQL.QueryAppInviteFromUserArgs,
             appInviteInfo: GQL.QueryAppInviteInfoArgs,
+            alphaAppInvite: GQL.QueryAlphaAppInviteArgs,
             alphaAppInviteInfo: GQL.QueryAlphaAppInviteInfoArgs,
+            alphaInvitesHistory: GQL.QueryAlphaInvitesHistoryArgs,
             alphaResolveInvite: GQL.QueryAlphaResolveInviteArgs,
+            commentGlobalUpdatesState: GQL.QueryCommentGlobalUpdatesStateArgs,
             debugParseID: GQL.QueryDebugParseIDArgs,
+            debugCrashQuery: GQL.QueryDebugCrashQueryArgs,
             debugUrlInfo: GQL.QueryDebugUrlInfoArgs,
             userPresence: GQL.QueryUserPresenceArgs,
+            debugValidateMessages: GQL.QueryDebugValidateMessagesArgs,
+            organizationChatsStats: GQL.QueryOrganizationChatsStatsArgs,
+            debugEventsState: GQL.QueryDebugEventsStateArgs,
+            debugCheckTasksIndex: GQL.QueryDebugCheckTasksIndexArgs,
+            debug2WayDirectChatsCounter: GQL.QueryDebug2WayDirectChatsCounterArgs,
             debugUserMetrics: GQL.QueryDebugUserMetricsArgs,
+            debugGlobalCounters: GQL.QueryDebugGlobalCountersArgs,
+            debugServerId: GQL.QueryDebugServerIdArgs,
             dialogs: GQL.QueryDialogsArgs,
+            settings: GQL.QuerySettingsArgs,
+            myOauthApps: GQL.QueryMyOauthAppsArgs,
             oauthContext: GQL.QueryOauthContextArgs,
             alphaOrganizationMembers: GQL.QueryAlphaOrganizationMembersArgs,
             alphaOrganizationInviteLink: GQL.QueryAlphaOrganizationInviteLinkArgs,
             alphaOrganizationPublicInvite: GQL.QueryAlphaOrganizationPublicInviteArgs,
+            permissionGroups: GQL.QueryPermissionGroupsArgs,
+            waitingPermissionRequests: GQL.QueryWaitingPermissionRequestsArgs,
+            isDesktopInstalled: GQL.QueryIsDesktopInstalledArgs,
+            isMobileInstalled: GQL.QueryIsMobileInstalledArgs,
+            superAccounts: GQL.QuerySuperAccountsArgs,
             superAccount: GQL.QuerySuperAccountArgs,
+            superAdmins: GQL.QuerySuperAdminsArgs,
             chatLocations: GQL.QueryChatLocationsArgs,
             alphaChatTextSearch: GQL.QueryAlphaChatTextSearchArgs,
             betaDialogTextSearch: GQL.QueryBetaDialogTextSearchArgs,
             conversationDraft: GQL.QueryConversationDraftArgs,
             alphaDraftMessage: GQL.QueryAlphaDraftMessageArgs,
+            powerups: GQL.QueryPowerupsArgs,
             chatsWithPowerup: GQL.QueryChatsWithPowerupArgs,
             chatPowerups: GQL.QueryChatPowerupsArgs,
+            myApps: GQL.QueryMyAppsArgs,
             userStorage: GQL.QueryUserStorageArgs,
             chatState: GQL.QueryChatStateArgs,
             conversationState: GQL.QueryConversationStateArgs,
             messageComments: GQL.QueryMessageCommentsArgs,
             feedItemComments: GQL.QueryFeedItemCommentsArgs,
             comments: GQL.QueryCommentsArgs,
+            dialogsState: GQL.QueryDialogsStateArgs,
+            envVars: GQL.QueryEnvVarsArgs,
             envVar: GQL.QueryEnvVarArgs,
+            featureFlags: GQL.QueryFeatureFlagsArgs,
+            myLocation: GQL.QueryMyLocationArgs,
+            shouldShareLocation: GQL.QueryShouldShareLocationArgs,
             conference: GQL.QueryConferenceArgs,
             conferenceMedia: GQL.QueryConferenceMediaArgs,
+            myStickers: GQL.QueryMyStickersArgs,
+            createdStickerPacks: GQL.QueryCreatedStickerPacksArgs,
             stickersByEmoji: GQL.QueryStickersByEmojiArgs,
             stickerPack: GQL.QueryStickerPackArgs,
+            stickerPackCatalog: GQL.QueryStickerPackCatalogArgs,
+            myNotificationCenter: GQL.QueryMyNotificationCenterArgs,
             myNotifications: GQL.QueryMyNotificationsArgs,
+            myOrganization: GQL.QueryMyOrganizationArgs,
+            myOrganizations: GQL.QueryMyOrganizationsArgs,
             organization: GQL.QueryOrganizationArgs,
             organizationPublicRooms: GQL.QueryOrganizationPublicRoomsArgs,
+            myOrganizationProfile: GQL.QueryMyOrganizationProfileArgs,
             organizationProfile: GQL.QueryOrganizationProfileArgs,
             alphaOrganizations: GQL.QueryAlphaOrganizationsArgs,
             alphaOrganizationByPrefix: GQL.QueryAlphaOrganizationByPrefixArgs,
             alphaComunityPrefixSearch: GQL.QueryAlphaComunityPrefixSearchArgs,
+            myPermissions: GQL.QueryMyPermissionsArgs,
             users: GQL.QueryUsersArgs,
+            myProfilePrefill: GQL.QueryMyProfilePrefillArgs,
+            pushSettings: GQL.QueryPushSettingsArgs,
+            sessionState: GQL.QuerySessionStateArgs,
             betaNextDiscoverPage: GQL.QueryBetaNextDiscoverPageArgs,
             gammaNextDiscoverPage: GQL.QueryGammaNextDiscoverPageArgs,
+            betaSuggestedRooms: GQL.QueryBetaSuggestedRoomsArgs,
+            betaIsDiscoverDone: GQL.QueryBetaIsDiscoverDoneArgs,
+            isDiscoverSkipped: GQL.QueryIsDiscoverSkippedArgs,
             matchmakingRoom: GQL.QueryMatchmakingRoomArgs,
             matchmakingProfile: GQL.QueryMatchmakingProfileArgs,
             trendingRoomsByMessages: GQL.QueryTrendingRoomsByMessagesArgs,
+            me: GQL.QueryMeArgs,
             user: GQL.QueryUserArgs,
+            mySuccessfulInvitesCount: GQL.QueryMySuccessfulInvitesCountArgs,
             superBadgeInRoom: GQL.QuerySuperBadgeInRoomArgs,
             badgeInRoom: GQL.QueryBadgeInRoomArgs,
             userSearch: GQL.QueryUserSearchArgs,
@@ -6172,6 +8135,7 @@ export interface GQLResolver {
             alphaHomeFeed: GQL.QueryAlphaHomeFeedArgs,
             alphaFeedItem: GQL.QueryAlphaFeedItemArgs,
             alphaFeedChannel: GQL.QueryAlphaFeedChannelArgs,
+            alphaFeedMyDraftsChannel: GQL.QueryAlphaFeedMyDraftsChannelArgs,
             alphaFeedChannelContent: GQL.QueryAlphaFeedChannelContentArgs,
             alphaFeedMySubscriptions: GQL.QueryAlphaFeedMySubscriptionsArgs,
             alphaFeedMyChannels: GQL.QueryAlphaFeedMyChannelsArgs,
@@ -6181,6 +8145,8 @@ export interface GQLResolver {
             alphaFeedChannelSubscribers: GQL.QueryAlphaFeedChannelSubscribersArgs,
             alphaRecommendedChannels: GQL.QueryAlphaRecommendedChannelsArgs,
             alphaGlobalSearch: GQL.QueryAlphaGlobalSearchArgs,
+            featuredGroups: GQL.QueryFeaturedGroupsArgs,
+            featuredCommunities: GQL.QueryFeaturedCommunitiesArgs,
             messagesSearch: GQL.QueryMessagesSearchArgs,
             chatMembersSearch: GQL.QueryChatMembersSearchArgs,
             chatMentionSearch: GQL.QueryChatMentionSearchArgs,
@@ -6201,6 +8167,7 @@ export interface GQLResolver {
             betaRoomSearch: GQL.QueryBetaRoomSearchArgs,
             betaRoomInviteInfo: GQL.QueryBetaRoomInviteInfoArgs,
             betaRoomInviteLink: GQL.QueryBetaRoomInviteLinkArgs,
+            betaAvailableRooms: GQL.QueryBetaAvailableRoomsArgs,
             betaUserRooms: GQL.QueryBetaUserRoomsArgs,
             betaUserAvailableRooms: GQL.QueryBetaUserAvailableRoomsArgs,
             alphaUserAvailableRooms: GQL.QueryAlphaUserAvailableRoomsArgs,
@@ -6213,6 +8180,14 @@ export interface GQLResolver {
         {
         },
         {
+            isLoggedIn: GQL.SessionStateIsLoggedInArgs,
+            isProfileCreated: GQL.SessionStateIsProfileCreatedArgs,
+            isActivated: GQL.SessionStateIsActivatedArgs,
+            isAccountExists: GQL.SessionStateIsAccountExistsArgs,
+            isCompleted: GQL.SessionStateIsCompletedArgs,
+            isBlocked: GQL.SessionStateIsBlockedArgs,
+            isAccountPicked: GQL.SessionStateIsAccountPickedArgs,
+            isAccountActivated: GQL.SessionStateIsAccountActivatedArgs,
         }
     >;
     Subscription?: ComplexTypedSubscriptionResolver<
@@ -6243,10 +8218,16 @@ export interface GQLResolver {
             alphaSubscribeChatTypings: GQLRoots.TypingEventRoot,
         },
         {
+            lifecheck: GQL.SubscriptionLifecheckArgs,
             walletUpdates: GQL.SubscriptionWalletUpdatesArgs,
             commentUpdatesGlobal: GQL.SubscriptionCommentUpdatesGlobalArgs,
             debugEvents: GQL.SubscriptionDebugEventsArgs,
             debugReaderState: GQL.SubscriptionDebugReaderStateArgs,
+            debugServerId: GQL.SubscriptionDebugServerIdArgs,
+            settingsWatch: GQL.SubscriptionSettingsWatchArgs,
+            watchSettings: GQL.SubscriptionWatchSettingsArgs,
+            permissionsUpdates: GQL.SubscriptionPermissionsUpdatesArgs,
+            waitingPermissionRequestsUpdates: GQL.SubscriptionWaitingPermissionRequestsUpdatesArgs,
             alphaSubscribeChatOnline: GQL.SubscriptionAlphaSubscribeChatOnlineArgs,
             alphaSubscribeOnline: GQL.SubscriptionAlphaSubscribeOnlineArgs,
             chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs,
@@ -6255,10 +8236,13 @@ export interface GQLResolver {
             commentUpdates: GQL.SubscriptionCommentUpdatesArgs,
             dialogsUpdates: GQL.SubscriptionDialogsUpdatesArgs,
             homeFeedUpdates: GQL.SubscriptionHomeFeedUpdatesArgs,
+            shouldShareLocationUpdates: GQL.SubscriptionShouldShareLocationUpdatesArgs,
             alphaConferenceWatch: GQL.SubscriptionAlphaConferenceWatchArgs,
             alphaConferenceMediaWatch: GQL.SubscriptionAlphaConferenceMediaWatchArgs,
             notificationCenterUpdates: GQL.SubscriptionNotificationCenterUpdatesArgs,
+            typings: GQL.SubscriptionTypingsArgs,
             conversationTypings: GQL.SubscriptionConversationTypingsArgs,
+            alphaSubscribeTypings: GQL.SubscriptionAlphaSubscribeTypingsArgs,
             alphaSubscribeChatTypings: GQL.SubscriptionAlphaSubscribeChatTypingsArgs,
         }
     >;
@@ -6268,6 +8252,8 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.TagIdArgs,
+            title: GQL.TagTitleArgs,
         }
     >;
     TagGroup?: ComplexTypedResolver<
@@ -6277,6 +8263,10 @@ export interface GQLResolver {
             tags: GQLRoots.TagRoot[],
         },
         {
+            id: GQL.TagGroupIdArgs,
+            title: GQL.TagGroupTitleArgs,
+            subtitle: GQL.TagGroupSubtitleArgs,
+            tags: GQL.TagGroupTagsArgs,
         }
     >;
     DiscoverPage?: ComplexTypedResolver<
@@ -6287,6 +8277,8 @@ export interface GQLResolver {
             tagGroup: Nullable<GQLRoots.TagGroupRoot>,
         },
         {
+            chats: GQL.DiscoverPageChatsArgs,
+            tagGroup: GQL.DiscoverPageTagGroupArgs,
         }
     >;
     TextMatchmakingQuestion?: ComplexTypedResolver<
@@ -6295,6 +8287,9 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.TextMatchmakingQuestionIdArgs,
+            title: GQL.TextMatchmakingQuestionTitleArgs,
+            subtitle: GQL.TextMatchmakingQuestionSubtitleArgs,
         }
     >;
     MultiselectMatchmakingQuestion?: ComplexTypedResolver<
@@ -6303,6 +8298,10 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.MultiselectMatchmakingQuestionIdArgs,
+            title: GQL.MultiselectMatchmakingQuestionTitleArgs,
+            subtitle: GQL.MultiselectMatchmakingQuestionSubtitleArgs,
+            tags: GQL.MultiselectMatchmakingQuestionTagsArgs,
         }
     >;
     MatchmakingQuestion?: UnionTypeResolver<GQLRoots.MatchmakingQuestionRoot, 'TextMatchmakingQuestion' | 'MultiselectMatchmakingQuestion'>;
@@ -6313,6 +8312,8 @@ export interface GQLResolver {
             question: GQLRoots.TextMatchmakingQuestionRoot,
         },
         {
+            question: GQL.TextMatchmakingAnswerQuestionArgs,
+            answer: GQL.TextMatchmakingAnswerAnswerArgs,
         }
     >;
     MultiselectMatchmakingAnswer?: ComplexTypedResolver<
@@ -6322,6 +8323,8 @@ export interface GQLResolver {
             question: GQLRoots.MultiselectMatchmakingQuestionRoot,
         },
         {
+            question: GQL.MultiselectMatchmakingAnswerQuestionArgs,
+            tags: GQL.MultiselectMatchmakingAnswerTagsArgs,
         }
     >;
     MatchmakingAnswer?: UnionTypeResolver<GQLRoots.MatchmakingAnswerRoot, 'TextMatchmakingAnswer' | 'MultiselectMatchmakingAnswer'>;
@@ -6333,6 +8336,9 @@ export interface GQLResolver {
             answers: GQLRoots.MatchmakingAnswerRoot[],
         },
         {
+            user: GQL.MatchmakingProfileUserArgs,
+            answers: GQL.MatchmakingProfileAnswersArgs,
+            chatCreated: GQL.MatchmakingProfileChatCreatedArgs,
         }
     >;
     MatchmakingPeer?: UnionTypeResolver<GQLRoots.MatchmakingPeerRoot, 'SharedRoom'>;
@@ -6346,6 +8352,11 @@ export interface GQLResolver {
             peer: GQLRoots.MatchmakingPeerRoot,
         },
         {
+            enabled: GQL.MatchmakingRoomEnabledArgs,
+            questions: GQL.MatchmakingRoomQuestionsArgs,
+            profiles: GQL.MatchmakingRoomProfilesArgs,
+            myProfile: GQL.MatchmakingRoomMyProfileArgs,
+            peer: GQL.MatchmakingRoomPeerArgs,
         }
     >;
     TrendingRoom?: ComplexTypedResolver<
@@ -6355,6 +8366,8 @@ export interface GQLResolver {
             room: GQLRoots.RoomRoot,
         },
         {
+            room: GQL.TrendingRoomRoomArgs,
+            messagesDelta: GQL.TrendingRoomMessagesDeltaArgs,
         }
     >;
     TypingEvent?: ComplexTypedResolver<
@@ -6366,6 +8379,11 @@ export interface GQLResolver {
             user: GQLRoots.UserRoot,
         },
         {
+            conversation: GQL.TypingEventConversationArgs,
+            chat: GQL.TypingEventChatArgs,
+            user: GQL.TypingEventUserArgs,
+            type: GQL.TypingEventTypeArgs,
+            cancel: GQL.TypingEventCancelArgs,
         }
     >;
     User?: ComplexTypedResolver<
@@ -6383,6 +8401,42 @@ export interface GQLResolver {
             primaryBadge: Nullable<GQLRoots.UserBadgeRoot>,
         },
         {
+            id: GQL.UserIdArgs,
+            isYou: GQL.UserIsYouArgs,
+            isBot: GQL.UserIsBotArgs,
+            isDeleted: GQL.UserIsDeletedArgs,
+            name: GQL.UserNameArgs,
+            firstName: GQL.UserFirstNameArgs,
+            lastName: GQL.UserLastNameArgs,
+            photo: GQL.UserPhotoArgs,
+            phone: GQL.UserPhoneArgs,
+            email: GQL.UserEmailArgs,
+            website: GQL.UserWebsiteArgs,
+            about: GQL.UserAboutArgs,
+            location: GQL.UserLocationArgs,
+            linkedin: GQL.UserLinkedinArgs,
+            instagram: GQL.UserInstagramArgs,
+            twitter: GQL.UserTwitterArgs,
+            facebook: GQL.UserFacebookArgs,
+            audienceSize: GQL.UserAudienceSizeArgs,
+            channelsJoined: GQL.UserChannelsJoinedArgs,
+            photoRef: GQL.UserPhotoRefArgs,
+            picture: GQL.UserPictureArgs,
+            pictureRef: GQL.UserPictureRefArgs,
+            alphaRole: GQL.UserAlphaRoleArgs,
+            alphaLinkedin: GQL.UserAlphaLinkedinArgs,
+            alphaTwitter: GQL.UserAlphaTwitterArgs,
+            alphaLocations: GQL.UserAlphaLocationsArgs,
+            chatsWithBadge: GQL.UserChatsWithBadgeArgs,
+            online: GQL.UserOnlineArgs,
+            active: GQL.UserActiveArgs,
+            lastSeen: GQL.UserLastSeenArgs,
+            organizations: GQL.UserOrganizationsArgs,
+            primaryOrganization: GQL.UserPrimaryOrganizationArgs,
+            alphaPrimaryOrganization: GQL.UserAlphaPrimaryOrganizationArgs,
+            badges: GQL.UserBadgesArgs,
+            primaryBadge: GQL.UserPrimaryBadgeArgs,
+            shortname: GQL.UserShortnameArgs,
         }
     >;
     UserChatWithBadge?: ComplexTypedResolver<
@@ -6393,6 +8447,8 @@ export interface GQLResolver {
             chat: GQLRoots.RoomRoot,
         },
         {
+            badge: GQL.UserChatWithBadgeBadgeArgs,
+            chat: GQL.UserChatWithBadgeChatArgs,
         }
     >;
     UserBadge?: ComplexTypedResolver<
@@ -6401,6 +8457,9 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.UserBadgeIdArgs,
+            name: GQL.UserBadgeNameArgs,
+            verified: GQL.UserBadgeVerifiedArgs,
         }
     >;
     UserEdge?: ComplexTypedResolver<
@@ -6410,6 +8469,8 @@ export interface GQLResolver {
             node: GQLRoots.UserRoot,
         },
         {
+            node: GQL.UserEdgeNodeArgs,
+            cursor: GQL.UserEdgeCursorArgs,
         }
     >;
     UserConnection?: ComplexTypedResolver<
@@ -6420,6 +8481,8 @@ export interface GQLResolver {
             pageInfo: GQLRoots.PageInfoRoot,
         },
         {
+            edges: GQL.UserConnectionEdgesArgs,
+            pageInfo: GQL.UserConnectionPageInfoArgs,
         }
     >;
     ChatUserEdge?: ComplexTypedResolver<
@@ -6429,6 +8492,9 @@ export interface GQLResolver {
             node: GQLRoots.UserRoot,
         },
         {
+            node: GQL.ChatUserEdgeNodeArgs,
+            isMember: GQL.ChatUserEdgeIsMemberArgs,
+            cursor: GQL.ChatUserEdgeCursorArgs,
         }
     >;
     ChatUserConnection?: ComplexTypedResolver<
@@ -6439,6 +8505,8 @@ export interface GQLResolver {
             pageInfo: GQLRoots.PageInfoRoot,
         },
         {
+            edges: GQL.ChatUserConnectionEdgesArgs,
+            pageInfo: GQL.ChatUserConnectionPageInfoArgs,
         }
     >;
     FeedItem?: UnionTypeResolver<GQLRoots.FeedItemRoot, 'FeedPost'>;
@@ -6456,6 +8524,20 @@ export interface GQLResolver {
             slides: GQLRoots.SlideRoot[],
         },
         {
+            id: GQL.FeedPostIdArgs,
+            date: GQL.FeedPostDateArgs,
+            author: GQL.FeedPostAuthorArgs,
+            source: GQL.FeedPostSourceArgs,
+            canEdit: GQL.FeedPostCanEditArgs,
+            edited: GQL.FeedPostEditedArgs,
+            reactions: GQL.FeedPostReactionsArgs,
+            isMentioned: GQL.FeedPostIsMentionedArgs,
+            message: GQL.FeedPostMessageArgs,
+            spans: GQL.FeedPostSpansArgs,
+            attachments: GQL.FeedPostAttachmentsArgs,
+            commentsCount: GQL.FeedPostCommentsCountArgs,
+            slides: GQL.FeedPostSlidesArgs,
+            fallback: GQL.FeedPostFallbackArgs,
         }
     >;
     FeedItemConnection?: ComplexTypedResolver<
@@ -6465,6 +8547,8 @@ export interface GQLResolver {
             items: GQLRoots.FeedItemRoot[],
         },
         {
+            items: GQL.FeedItemConnectionItemsArgs,
+            cursor: GQL.FeedItemConnectionCursorArgs,
         }
     >;
     Slide?: UnionTypeResolver<GQLRoots.SlideRoot, 'TextSlide'>;
@@ -6478,6 +8562,12 @@ export interface GQLResolver {
             attachments: GQLRoots.SlideAttachmentRoot[],
         },
         {
+            id: GQL.TextSlideIdArgs,
+            text: GQL.TextSlideTextArgs,
+            spans: GQL.TextSlideSpansArgs,
+            cover: GQL.TextSlideCoverArgs,
+            coverAlign: GQL.TextSlideCoverAlignArgs,
+            attachments: GQL.TextSlideAttachmentsArgs,
         }
     >;
     FeedChannel?: ComplexTypedResolver<
@@ -6486,6 +8576,18 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.FeedChannelIdArgs,
+            title: GQL.FeedChannelTitleArgs,
+            about: GQL.FeedChannelAboutArgs,
+            photo: GQL.FeedChannelPhotoArgs,
+            socialImage: GQL.FeedChannelSocialImageArgs,
+            subscribersCount: GQL.FeedChannelSubscribersCountArgs,
+            postsCount: GQL.FeedChannelPostsCountArgs,
+            isGlobal: GQL.FeedChannelIsGlobalArgs,
+            isHidden: GQL.FeedChannelIsHiddenArgs,
+            subscribed: GQL.FeedChannelSubscribedArgs,
+            myRole: GQL.FeedChannelMyRoleArgs,
+            shortname: GQL.FeedChannelShortnameArgs,
         }
     >;
     FeedChannelConnection?: ComplexTypedResolver<
@@ -6495,6 +8597,8 @@ export interface GQLResolver {
             items: GQLRoots.FeedChannelRoot[],
         },
         {
+            items: GQL.FeedChannelConnectionItemsArgs,
+            cursor: GQL.FeedChannelConnectionCursorArgs,
         }
     >;
     FeedChannelEdge?: ComplexTypedResolver<
@@ -6504,6 +8608,8 @@ export interface GQLResolver {
             node: GQLRoots.FeedChannelRoot,
         },
         {
+            node: GQL.FeedChannelEdgeNodeArgs,
+            cursor: GQL.FeedChannelEdgeCursorArgs,
         }
     >;
     FeedChannelSearchConnection?: ComplexTypedResolver<
@@ -6514,6 +8620,8 @@ export interface GQLResolver {
             pageInfo: GQLRoots.PageInfoRoot,
         },
         {
+            edges: GQL.FeedChannelSearchConnectionEdgesArgs,
+            pageInfo: GQL.FeedChannelSearchConnectionPageInfoArgs,
         }
     >;
     FeedSubscription?: UnionTypeResolver<GQLRoots.FeedSubscriptionRoot, 'FeedChannel'>;
@@ -6525,6 +8633,9 @@ export interface GQLResolver {
             promoter: Nullable<GQLRoots.UserRoot>,
         },
         {
+            user: GQL.FeedChannelAdminUserArgs,
+            role: GQL.FeedChannelAdminRoleArgs,
+            promoter: GQL.FeedChannelAdminPromoterArgs,
         }
     >;
     FeedChannelAdminConnection?: ComplexTypedResolver<
@@ -6534,6 +8645,8 @@ export interface GQLResolver {
             items: GQLRoots.FeedChannelAdminRoot[],
         },
         {
+            items: GQL.FeedChannelAdminConnectionItemsArgs,
+            cursor: GQL.FeedChannelAdminConnectionCursorArgs,
         }
     >;
     FeedChannelSubscriber?: ComplexTypedResolver<
@@ -6543,6 +8656,8 @@ export interface GQLResolver {
             user: GQLRoots.UserRoot,
         },
         {
+            user: GQL.FeedChannelSubscriberUserArgs,
+            role: GQL.FeedChannelSubscriberRoleArgs,
         }
     >;
     FeedChannelSubscriberEdge?: ComplexTypedResolver<
@@ -6552,6 +8667,8 @@ export interface GQLResolver {
             node: GQLRoots.FeedChannelSubscriberRoot,
         },
         {
+            node: GQL.FeedChannelSubscriberEdgeNodeArgs,
+            cursor: GQL.FeedChannelSubscriberEdgeCursorArgs,
         }
     >;
     FeedChannelSubscriberConnection?: ComplexTypedResolver<
@@ -6562,6 +8679,8 @@ export interface GQLResolver {
             pageInfo: GQLRoots.PageInfoRoot,
         },
         {
+            edges: GQL.FeedChannelSubscriberConnectionEdgesArgs,
+            pageInfo: GQL.FeedChannelSubscriberConnectionPageInfoArgs,
         }
     >;
     GlobalSearchEntry?: UnionTypeResolver<GQLRoots.GlobalSearchEntryRoot, 'Organization' | 'User' | 'SharedRoom'>;
@@ -6573,6 +8692,8 @@ export interface GQLResolver {
             chat: GQLRoots.RoomRoot,
         },
         {
+            message: GQL.MessageWithChatMessageArgs,
+            chat: GQL.MessageWithChatChatArgs,
         }
     >;
     MessageEdge?: ComplexTypedResolver<
@@ -6582,6 +8703,8 @@ export interface GQLResolver {
             node: GQLRoots.MessageWithChatRoot,
         },
         {
+            node: GQL.MessageEdgeNodeArgs,
+            cursor: GQL.MessageEdgeCursorArgs,
         }
     >;
     MessageConnection?: ComplexTypedResolver<
@@ -6592,6 +8715,8 @@ export interface GQLResolver {
             pageInfo: GQLRoots.PageInfoRoot,
         },
         {
+            edges: GQL.MessageConnectionEdgesArgs,
+            pageInfo: GQL.MessageConnectionPageInfoArgs,
         }
     >;
     GlobalSearchConnection?: ComplexTypedResolver<
@@ -6602,6 +8727,9 @@ export interface GQLResolver {
             localItems: GQLRoots.UserRoot[],
         },
         {
+            globalItems: GQL.GlobalSearchConnectionGlobalItemsArgs,
+            localItems: GQL.GlobalSearchConnectionLocalItemsArgs,
+            cursor: GQL.GlobalSearchConnectionCursorArgs,
         }
     >;
     MessageSource?: UnionTypeResolver<GQLRoots.MessageSourceRoot, 'MessageSourceChat' | 'MessageSourceComment'>;
@@ -6612,6 +8740,7 @@ export interface GQLResolver {
             chat: GQLRoots.RoomRoot,
         },
         {
+            chat: GQL.MessageSourceChatChatArgs,
         }
     >;
     MessageSourceComment?: ComplexTypedResolver<
@@ -6621,6 +8750,7 @@ export interface GQLResolver {
             peer: GQLRoots.CommentsPeerRoot,
         },
         {
+            peer: GQL.MessageSourceCommentPeerArgs,
         }
     >;
     ServiceMessage?: ComplexTypedResolver<
@@ -6635,6 +8765,19 @@ export interface GQLResolver {
             overrideAvatar: Nullable<GQLRoots.ImageRefRoot>,
         },
         {
+            id: GQL.ServiceMessageIdArgs,
+            seq: GQL.ServiceMessageSeqArgs,
+            date: GQL.ServiceMessageDateArgs,
+            sender: GQL.ServiceMessageSenderArgs,
+            senderBadge: GQL.ServiceMessageSenderBadgeArgs,
+            isMentioned: GQL.ServiceMessageIsMentionedArgs,
+            source: GQL.ServiceMessageSourceArgs,
+            message: GQL.ServiceMessageMessageArgs,
+            spans: GQL.ServiceMessageSpansArgs,
+            serviceMetadata: GQL.ServiceMessageServiceMetadataArgs,
+            fallback: GQL.ServiceMessageFallbackArgs,
+            overrideAvatar: GQL.ServiceMessageOverrideAvatarArgs,
+            overrideName: GQL.ServiceMessageOverrideNameArgs,
         }
     >;
     GeneralMessage?: ComplexTypedResolver<
@@ -6651,6 +8794,23 @@ export interface GQLResolver {
             overrideAvatar: Nullable<GQLRoots.ImageRefRoot>,
         },
         {
+            id: GQL.GeneralMessageIdArgs,
+            seq: GQL.GeneralMessageSeqArgs,
+            date: GQL.GeneralMessageDateArgs,
+            sender: GQL.GeneralMessageSenderArgs,
+            senderBadge: GQL.GeneralMessageSenderBadgeArgs,
+            edited: GQL.GeneralMessageEditedArgs,
+            reactions: GQL.GeneralMessageReactionsArgs,
+            isMentioned: GQL.GeneralMessageIsMentionedArgs,
+            source: GQL.GeneralMessageSourceArgs,
+            message: GQL.GeneralMessageMessageArgs,
+            spans: GQL.GeneralMessageSpansArgs,
+            attachments: GQL.GeneralMessageAttachmentsArgs,
+            quotedMessages: GQL.GeneralMessageQuotedMessagesArgs,
+            commentsCount: GQL.GeneralMessageCommentsCountArgs,
+            fallback: GQL.GeneralMessageFallbackArgs,
+            overrideAvatar: GQL.GeneralMessageOverrideAvatarArgs,
+            overrideName: GQL.GeneralMessageOverrideNameArgs,
         }
     >;
     StickerMessage?: ComplexTypedResolver<
@@ -6667,6 +8827,21 @@ export interface GQLResolver {
             overrideAvatar: Nullable<GQLRoots.ImageRefRoot>,
         },
         {
+            id: GQL.StickerMessageIdArgs,
+            seq: GQL.StickerMessageSeqArgs,
+            date: GQL.StickerMessageDateArgs,
+            sender: GQL.StickerMessageSenderArgs,
+            senderBadge: GQL.StickerMessageSenderBadgeArgs,
+            source: GQL.StickerMessageSourceArgs,
+            message: GQL.StickerMessageMessageArgs,
+            spans: GQL.StickerMessageSpansArgs,
+            reactions: GQL.StickerMessageReactionsArgs,
+            fallback: GQL.StickerMessageFallbackArgs,
+            quotedMessages: GQL.StickerMessageQuotedMessagesArgs,
+            commentsCount: GQL.StickerMessageCommentsCountArgs,
+            sticker: GQL.StickerMessageStickerArgs,
+            overrideAvatar: GQL.StickerMessageOverrideAvatarArgs,
+            overrideName: GQL.StickerMessageOverrideNameArgs,
         }
     >;
     GammaMessagesBatch?: ComplexTypedResolver<
@@ -6676,6 +8851,9 @@ export interface GQLResolver {
             messages: GQLRoots.ModernMessageRoot[],
         },
         {
+            messages: GQL.GammaMessagesBatchMessagesArgs,
+            haveMoreForward: GQL.GammaMessagesBatchHaveMoreForwardArgs,
+            haveMoreBackward: GQL.GammaMessagesBatchHaveMoreBackwardArgs,
         }
     >;
     SharedMediaCounters?: ComplexTypedResolver<
@@ -6684,6 +8862,10 @@ export interface GQLResolver {
         {
         },
         {
+            links: GQL.SharedMediaCountersLinksArgs,
+            images: GQL.SharedMediaCountersImagesArgs,
+            documents: GQL.SharedMediaCountersDocumentsArgs,
+            videos: GQL.SharedMediaCountersVideosArgs,
         }
     >;
     ImageFallback?: ComplexTypedResolver<
@@ -6692,6 +8874,8 @@ export interface GQLResolver {
         {
         },
         {
+            photo: GQL.ImageFallbackPhotoArgs,
+            text: GQL.ImageFallbackTextArgs,
         }
     >;
     Image?: ComplexTypedResolver<
@@ -6701,6 +8885,8 @@ export interface GQLResolver {
             metadata: Nullable<GQLRoots.FileMetadataRoot>,
         },
         {
+            url: GQL.ImageUrlArgs,
+            metadata: GQL.ImageMetadataArgs,
         }
     >;
     MessageRichAttachment?: ComplexTypedResolver<
@@ -6714,6 +8900,20 @@ export interface GQLResolver {
             keyboard: Nullable<GQLRoots.MessageKeyboardRoot>,
         },
         {
+            id: GQL.MessageRichAttachmentIdArgs,
+            title: GQL.MessageRichAttachmentTitleArgs,
+            subTitle: GQL.MessageRichAttachmentSubTitleArgs,
+            titleLink: GQL.MessageRichAttachmentTitleLinkArgs,
+            titleLinkHostname: GQL.MessageRichAttachmentTitleLinkHostnameArgs,
+            text: GQL.MessageRichAttachmentTextArgs,
+            icon: GQL.MessageRichAttachmentIconArgs,
+            image: GQL.MessageRichAttachmentImageArgs,
+            imagePreview: GQL.MessageRichAttachmentImagePreviewArgs,
+            imageFallback: GQL.MessageRichAttachmentImageFallbackArgs,
+            socialImage: GQL.MessageRichAttachmentSocialImageArgs,
+            socialImagePreview: GQL.MessageRichAttachmentSocialImagePreviewArgs,
+            keyboard: GQL.MessageRichAttachmentKeyboardArgs,
+            fallback: GQL.MessageRichAttachmentFallbackArgs,
         }
     >;
     MessageAttachmentFile?: ComplexTypedResolver<
@@ -6723,6 +8923,11 @@ export interface GQLResolver {
             fileMetadata: GQLRoots.FileMetadataRoot,
         },
         {
+            id: GQL.MessageAttachmentFileIdArgs,
+            fileId: GQL.MessageAttachmentFileFileIdArgs,
+            fileMetadata: GQL.MessageAttachmentFileFileMetadataArgs,
+            filePreview: GQL.MessageAttachmentFileFilePreviewArgs,
+            fallback: GQL.MessageAttachmentFileFallbackArgs,
         }
     >;
     MessageAttachmentPost?: ComplexTypedResolver<
@@ -6732,6 +8937,9 @@ export interface GQLResolver {
             post: GQLRoots.FeedItemRoot,
         },
         {
+            id: GQL.MessageAttachmentPostIdArgs,
+            post: GQL.MessageAttachmentPostPostArgs,
+            fallback: GQL.MessageAttachmentPostFallbackArgs,
         }
     >;
     MessageKeyboard?: ComplexTypedResolver<
@@ -6741,6 +8949,7 @@ export interface GQLResolver {
             buttons: Nullable<GQLRoots.ModernMessageButtonRoot[]>[],
         },
         {
+            buttons: GQL.MessageKeyboardButtonsArgs,
         }
     >;
     ModernMessageButton?: ComplexTypedResolver<
@@ -6749,6 +8958,10 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.ModernMessageButtonIdArgs,
+            title: GQL.ModernMessageButtonTitleArgs,
+            style: GQL.ModernMessageButtonStyleArgs,
+            url: GQL.ModernMessageButtonUrlArgs,
         }
     >;
     ModernMessageReaction?: ComplexTypedResolver<
@@ -6758,6 +8971,8 @@ export interface GQLResolver {
             user: GQLRoots.UserRoot,
         },
         {
+            user: GQL.ModernMessageReactionUserArgs,
+            reaction: GQL.ModernMessageReactionReactionArgs,
         }
     >;
     MessageSpanUserMention?: ComplexTypedResolver<
@@ -6767,6 +8982,9 @@ export interface GQLResolver {
             user: GQLRoots.UserRoot,
         },
         {
+            offset: GQL.MessageSpanUserMentionOffsetArgs,
+            length: GQL.MessageSpanUserMentionLengthArgs,
+            user: GQL.MessageSpanUserMentionUserArgs,
         }
     >;
     MessageSpanMultiUserMention?: ComplexTypedResolver<
@@ -6776,6 +8994,9 @@ export interface GQLResolver {
             users: GQLRoots.UserRoot[],
         },
         {
+            offset: GQL.MessageSpanMultiUserMentionOffsetArgs,
+            length: GQL.MessageSpanMultiUserMentionLengthArgs,
+            users: GQL.MessageSpanMultiUserMentionUsersArgs,
         }
     >;
     MessageSpanRoomMention?: ComplexTypedResolver<
@@ -6785,6 +9006,9 @@ export interface GQLResolver {
             room: GQLRoots.RoomRoot,
         },
         {
+            offset: GQL.MessageSpanRoomMentionOffsetArgs,
+            length: GQL.MessageSpanRoomMentionLengthArgs,
+            room: GQL.MessageSpanRoomMentionRoomArgs,
         }
     >;
     MessageSpanOrganizationMention?: ComplexTypedResolver<
@@ -6794,6 +9018,9 @@ export interface GQLResolver {
             organization: GQLRoots.OrganizationRoot,
         },
         {
+            offset: GQL.MessageSpanOrganizationMentionOffsetArgs,
+            length: GQL.MessageSpanOrganizationMentionLengthArgs,
+            organization: GQL.MessageSpanOrganizationMentionOrganizationArgs,
         }
     >;
     MentionPeer?: UnionTypeResolver<GQLRoots.MentionPeerRoot, 'SharedRoom' | 'Organization' | 'User'>;
@@ -6803,6 +9030,9 @@ export interface GQLResolver {
         {
         },
         {
+            offset: GQL.MessageSpanLinkOffsetArgs,
+            length: GQL.MessageSpanLinkLengthArgs,
+            url: GQL.MessageSpanLinkUrlArgs,
         }
     >;
     MessageSpanBold?: ComplexTypedResolver<
@@ -6811,6 +9041,8 @@ export interface GQLResolver {
         {
         },
         {
+            offset: GQL.MessageSpanBoldOffsetArgs,
+            length: GQL.MessageSpanBoldLengthArgs,
         }
     >;
     MessageSpanItalic?: ComplexTypedResolver<
@@ -6819,6 +9051,8 @@ export interface GQLResolver {
         {
         },
         {
+            offset: GQL.MessageSpanItalicOffsetArgs,
+            length: GQL.MessageSpanItalicLengthArgs,
         }
     >;
     MessageSpanIrony?: ComplexTypedResolver<
@@ -6827,6 +9061,8 @@ export interface GQLResolver {
         {
         },
         {
+            offset: GQL.MessageSpanIronyOffsetArgs,
+            length: GQL.MessageSpanIronyLengthArgs,
         }
     >;
     MessageSpanInlineCode?: ComplexTypedResolver<
@@ -6835,6 +9071,8 @@ export interface GQLResolver {
         {
         },
         {
+            offset: GQL.MessageSpanInlineCodeOffsetArgs,
+            length: GQL.MessageSpanInlineCodeLengthArgs,
         }
     >;
     MessageSpanCodeBlock?: ComplexTypedResolver<
@@ -6843,6 +9081,8 @@ export interface GQLResolver {
         {
         },
         {
+            offset: GQL.MessageSpanCodeBlockOffsetArgs,
+            length: GQL.MessageSpanCodeBlockLengthArgs,
         }
     >;
     MessageSpanInsane?: ComplexTypedResolver<
@@ -6851,6 +9091,8 @@ export interface GQLResolver {
         {
         },
         {
+            offset: GQL.MessageSpanInsaneOffsetArgs,
+            length: GQL.MessageSpanInsaneLengthArgs,
         }
     >;
     MessageSpanLoud?: ComplexTypedResolver<
@@ -6859,6 +9101,8 @@ export interface GQLResolver {
         {
         },
         {
+            offset: GQL.MessageSpanLoudOffsetArgs,
+            length: GQL.MessageSpanLoudLengthArgs,
         }
     >;
     MessageSpanRotating?: ComplexTypedResolver<
@@ -6867,6 +9111,8 @@ export interface GQLResolver {
         {
         },
         {
+            offset: GQL.MessageSpanRotatingOffsetArgs,
+            length: GQL.MessageSpanRotatingLengthArgs,
         }
     >;
     MessageSpanDate?: ComplexTypedResolver<
@@ -6875,6 +9121,9 @@ export interface GQLResolver {
         {
         },
         {
+            offset: GQL.MessageSpanDateOffsetArgs,
+            length: GQL.MessageSpanDateLengthArgs,
+            date: GQL.MessageSpanDateDateArgs,
         }
     >;
     MessageSpanAllMention?: ComplexTypedResolver<
@@ -6883,6 +9132,8 @@ export interface GQLResolver {
         {
         },
         {
+            offset: GQL.MessageSpanAllMentionOffsetArgs,
+            length: GQL.MessageSpanAllMentionLengthArgs,
         }
     >;
     Room?: UnionTypeResolver<GQLRoots.RoomRoot, 'PrivateRoom' | 'SharedRoom'>;
@@ -6896,6 +9147,11 @@ export interface GQLResolver {
             myBadge: Nullable<GQLRoots.UserBadgeRoot>,
         },
         {
+            id: GQL.PrivateRoomIdArgs,
+            user: GQL.PrivateRoomUserArgs,
+            settings: GQL.PrivateRoomSettingsArgs,
+            pinnedMessage: GQL.PrivateRoomPinnedMessageArgs,
+            myBadge: GQL.PrivateRoomMyBadgeArgs,
         }
     >;
     WelcomeMessage?: ComplexTypedResolver<
@@ -6905,6 +9161,9 @@ export interface GQLResolver {
             sender: Nullable<GQLRoots.UserRoot>,
         },
         {
+            isOn: GQL.WelcomeMessageIsOnArgs,
+            sender: GQL.WelcomeMessageSenderArgs,
+            message: GQL.WelcomeMessageMessageArgs,
         }
     >;
     SharedRoom?: ComplexTypedResolver<
@@ -6925,7 +9184,36 @@ export interface GQLResolver {
             linkedFeedChannels: GQLRoots.FeedChannelRoot[],
         },
         {
+            id: GQL.SharedRoomIdArgs,
+            kind: GQL.SharedRoomKindArgs,
+            isChannel: GQL.SharedRoomIsChannelArgs,
+            title: GQL.SharedRoomTitleArgs,
+            photo: GQL.SharedRoomPhotoArgs,
+            socialImage: GQL.SharedRoomSocialImageArgs,
+            description: GQL.SharedRoomDescriptionArgs,
+            pinnedMessage: GQL.SharedRoomPinnedMessageArgs,
+            welcomeMessage: GQL.SharedRoomWelcomeMessageArgs,
+            organization: GQL.SharedRoomOrganizationArgs,
+            membersCount: GQL.SharedRoomMembersCountArgs,
+            onlineMembersCount: GQL.SharedRoomOnlineMembersCountArgs,
+            featuredMembersCount: GQL.SharedRoomFeaturedMembersCountArgs,
+            previewMembers: GQL.SharedRoomPreviewMembersArgs,
             members: GQL.SharedRoomMembersArgs,
+            requests: GQL.SharedRoomRequestsArgs,
+            membership: GQL.SharedRoomMembershipArgs,
+            role: GQL.SharedRoomRoleArgs,
+            settings: GQL.SharedRoomSettingsArgs,
+            canEdit: GQL.SharedRoomCanEditArgs,
+            canSendMessage: GQL.SharedRoomCanSendMessageArgs,
+            archived: GQL.SharedRoomArchivedArgs,
+            myBadge: GQL.SharedRoomMyBadgeArgs,
+            matchmaking: GQL.SharedRoomMatchmakingArgs,
+            isPremium: GQL.SharedRoomIsPremiumArgs,
+            premiumPassIsActive: GQL.SharedRoomPremiumPassIsActiveArgs,
+            premiumSubscription: GQL.SharedRoomPremiumSubscriptionArgs,
+            premiumSettings: GQL.SharedRoomPremiumSettingsArgs,
+            linkedFeedChannels: GQL.SharedRoomLinkedFeedChannelsArgs,
+            shortname: GQL.SharedRoomShortnameArgs,
         }
     >;
     PremiumChatSettings?: ComplexTypedResolver<
@@ -6934,6 +9222,9 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.PremiumChatSettingsIdArgs,
+            price: GQL.PremiumChatSettingsPriceArgs,
+            interval: GQL.PremiumChatSettingsIntervalArgs,
         }
     >;
     RoomSuper?: ComplexTypedResolver<
@@ -6942,6 +9233,9 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.RoomSuperIdArgs,
+            featured: GQL.RoomSuperFeaturedArgs,
+            listed: GQL.RoomSuperListedArgs,
         }
     >;
     UserMention?: ComplexTypedResolver<
@@ -6951,6 +9245,7 @@ export interface GQLResolver {
             user: GQLRoots.UserRoot,
         },
         {
+            user: GQL.UserMentionUserArgs,
         }
     >;
     SharedRoomMention?: ComplexTypedResolver<
@@ -6960,6 +9255,7 @@ export interface GQLResolver {
             sharedRoom: GQLRoots.SharedRoomRoot,
         },
         {
+            sharedRoom: GQL.SharedRoomMentionSharedRoomArgs,
         }
     >;
     Mention?: UnionTypeResolver<GQLRoots.MentionRoot, 'UserMention' | 'SharedRoomMention'>;
@@ -6979,6 +9275,28 @@ export interface GQLResolver {
             alphaMentions: Nullable<GQLRoots.MentionRoot[]>,
         },
         {
+            id: GQL.RoomMessageIdArgs,
+            message: GQL.RoomMessageMessageArgs,
+            file: GQL.RoomMessageFileArgs,
+            fileMetadata: GQL.RoomMessageFileMetadataArgs,
+            filePreview: GQL.RoomMessageFilePreviewArgs,
+            sender: GQL.RoomMessageSenderArgs,
+            date: GQL.RoomMessageDateArgs,
+            repeatKey: GQL.RoomMessageRepeatKeyArgs,
+            isService: GQL.RoomMessageIsServiceArgs,
+            serviceMetadata: GQL.RoomMessageServiceMetadataArgs,
+            urlAugmentation: GQL.RoomMessageUrlAugmentationArgs,
+            edited: GQL.RoomMessageEditedArgs,
+            reactions: GQL.RoomMessageReactionsArgs,
+            replyMessages: GQL.RoomMessageReplyMessagesArgs,
+            plainText: GQL.RoomMessagePlainTextArgs,
+            mentions: GQL.RoomMessageMentionsArgs,
+            alphaAttachments: GQL.RoomMessageAlphaAttachmentsArgs,
+            alphaButtons: GQL.RoomMessageAlphaButtonsArgs,
+            alphaType: GQL.RoomMessageAlphaTypeArgs,
+            alphaTitle: GQL.RoomMessageAlphaTitleArgs,
+            alphaPostType: GQL.RoomMessageAlphaPostTypeArgs,
+            alphaMentions: GQL.RoomMessageAlphaMentionsArgs,
         }
     >;
     RoomMember?: ComplexTypedResolver<
@@ -6990,6 +9308,12 @@ export interface GQLResolver {
             invitedBy: GQLRoots.UserRoot,
         },
         {
+            user: GQL.RoomMemberUserArgs,
+            role: GQL.RoomMemberRoleArgs,
+            badge: GQL.RoomMemberBadgeArgs,
+            membership: GQL.RoomMemberMembershipArgs,
+            invitedBy: GQL.RoomMemberInvitedByArgs,
+            canKick: GQL.RoomMemberCanKickArgs,
         }
     >;
     RoomUserNotificaionSettings?: ComplexTypedResolver<
@@ -6998,6 +9322,8 @@ export interface GQLResolver {
         {
         },
         {
+            id: GQL.RoomUserNotificaionSettingsIdArgs,
+            mute: GQL.RoomUserNotificaionSettingsMuteArgs,
         }
     >;
     RoomConnectionEdge?: ComplexTypedResolver<
@@ -7007,6 +9333,8 @@ export interface GQLResolver {
             node: GQLRoots.SharedRoomRoot,
         },
         {
+            node: GQL.RoomConnectionEdgeNodeArgs,
+            cursor: GQL.RoomConnectionEdgeCursorArgs,
         }
     >;
     RoomConnection?: ComplexTypedResolver<
@@ -7017,6 +9345,8 @@ export interface GQLResolver {
             pageInfo: GQLRoots.PageInfoRoot,
         },
         {
+            edges: GQL.RoomConnectionEdgesArgs,
+            pageInfo: GQL.RoomConnectionPageInfoArgs,
         }
     >;
     SharedRoomConnection?: ComplexTypedResolver<
@@ -7026,6 +9356,8 @@ export interface GQLResolver {
             items: GQLRoots.SharedRoomRoot[],
         },
         {
+            items: GQL.SharedRoomConnectionItemsArgs,
+            cursor: GQL.SharedRoomConnectionCursorArgs,
         }
     >;
     RoomInvite?: ComplexTypedResolver<
@@ -7036,6 +9368,9 @@ export interface GQLResolver {
             invitedByUser: GQLRoots.UserRoot,
         },
         {
+            id: GQL.RoomInviteIdArgs,
+            room: GQL.RoomInviteRoomArgs,
+            invitedByUser: GQL.RoomInviteInvitedByUserArgs,
         }
     >;
     ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom'>;

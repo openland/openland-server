@@ -182,9 +182,7 @@ function genResolverInterface(ast: DocumentNode, enumNames: Set<string>) {
 
             let argsMapCode = new CodeBuilder();
             for (let field of (def.fields || [])) {
-                if (field.arguments && field.arguments.length > 0) {
-                    argsMapCode.add(`${field.name.value}: GQL.${argumentsInterfaceName(def as any, field)},`);
-                }
+                argsMapCode.add(`${field.name.value}: GQL.${argumentsInterfaceName(def as any, field)},`);
             }
             let isSubscription = def.name.value === 'Subscription';
 
@@ -258,6 +256,10 @@ function genType(ast: GenericTypeNode) {
         if (field.arguments && field.arguments.length > 0) {
             extraTypes.add(genFunctionArguments(ast, field));
             // extraTypes.add();
+        } else {
+            extraTypes.add(
+                `export interface ${argumentsInterfaceName(ast, field)} { }\n`
+            );
         }
     }
     code.unTab();
