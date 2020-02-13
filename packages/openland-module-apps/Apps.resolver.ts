@@ -9,7 +9,7 @@ import { Sanitizer } from '../openland-utils/Sanitizer';
 import { withProfile } from '../openland-module-users/User.resolver';
 import { Store } from 'openland-module-db/FDB';
 
-export default {
+export const Resolver: GQLResolver = {
     AppToken: {
         salt: src => src.salt
     },
@@ -67,7 +67,7 @@ export default {
 
             await Modules.Bots.refreshAppToken(ctx, uid, botId);
 
-            return Store.User.findById(ctx, botId);
+            return (await Store.User.findById(ctx, botId))!;
         }),
         updateAppProfile: withAccount(async (parent, args, uid, orgId) => {
             return await inTx(parent, async (ctx) => {
@@ -109,7 +109,7 @@ export default {
                     }
                 }
 
-                return Store.User.findById(ctx, botId);
+                return (await Store.User.findById(ctx, botId))!;
             });
         }),
         deleteApp: withAccount(async (ctx, args, uid, orgId) => {
@@ -138,4 +138,4 @@ export default {
             });
         }),
     },
-} as GQLResolver;
+};
