@@ -4,7 +4,7 @@ import { withAny } from 'openland-module-api/Resolvers';
 import { QueryParser, buildElasticQuery } from 'openland-utils/QueryParser';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
-export default {
+export const Resolver: GQLResolver = {
     Query: {
         alphaOrganizationByPrefix: withAny(async (ctx, args) => {
             let hits = await Modules.Search.elastic.client.search({
@@ -161,4 +161,4 @@ export default {
             };
         })
     }
-} as GQLResolver;
+};
