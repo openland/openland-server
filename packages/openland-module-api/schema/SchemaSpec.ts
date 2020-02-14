@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '02107750b8825e81864a60c2088d06e1';
+export const GQL_SPEC_VERSION = 'e7fbdb5e4a366640cf97174fcee706d9';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -525,19 +525,23 @@ export namespace GQL {
     export interface PaymentIntent {
         id: string;
         clientSecret: string;
+        card: Nullable<CreditCard>;
     }
     export interface PaymentIntentIdArgs { }
     export interface PaymentIntentClientSecretArgs { }
+    export interface PaymentIntentCardArgs { }
     export type PaymentStatusValues = 'PENDING' | 'CANCELED' | 'FAILING' | 'ACTION_REQUIRED' | 'SUCCESS';
     export type PaymentStatus = GQLRoots.PaymentStatusRoot;
     export interface Payment {
         id: string;
         status: PaymentStatus;
         intent: Nullable<PaymentIntent>;
+        card: Nullable<CreditCard>;
     }
     export interface PaymentIdArgs { }
     export interface PaymentStatusArgs { }
     export interface PaymentIntentArgs { }
+    export interface PaymentCardArgs { }
     export interface WalletAccount {
         id: string;
         balance: number;
@@ -567,9 +571,11 @@ export namespace GQL {
     export interface WalletTransactionSubscription {
         amount: number;
         payment: Nullable<Payment>;
+        subscription: WalletSubscription;
     }
     export interface WalletTransactionSubscriptionAmountArgs { }
     export interface WalletTransactionSubscriptionPaymentArgs { }
+    export interface WalletTransactionSubscriptionSubscriptionArgs { }
     export interface WalletTransactionTransferOut {
         walletAmount: number;
         chargeAmount: number;
@@ -583,9 +589,11 @@ export namespace GQL {
     export interface WalletTransactionTransferIn {
         amount: number;
         fromUser: User;
+        payment: Nullable<Payment>;
     }
     export interface WalletTransactionTransferInAmountArgs { }
     export interface WalletTransactionTransferInFromUserArgs { }
+    export interface WalletTransactionTransferInPaymentArgs { }
     export type WalletTransactionOperation = WalletTransactionDeposit | WalletTransactionSubscription | WalletTransactionTransferOut | WalletTransactionTransferIn;
     export interface WalletTransactionConnection {
         items: WalletTransaction[];
@@ -5672,10 +5680,12 @@ export interface GQLResolver {
         GQL.PaymentIntent,
         GQLRoots.PaymentIntentRoot,
         {
+            card: Nullable<GQLRoots.CreditCardRoot>,
         },
         {
             id: GQL.PaymentIntentIdArgs,
             clientSecret: GQL.PaymentIntentClientSecretArgs,
+            card: GQL.PaymentIntentCardArgs,
         }
     >;
     PaymentStatus?: EnumTypeResolver<'PENDING' | 'CANCELED' | 'FAILING' | 'ACTION_REQUIRED' | 'SUCCESS', GQLRoots.PaymentStatusRoot>;
@@ -5684,11 +5694,13 @@ export interface GQLResolver {
         GQLRoots.PaymentRoot,
         {
             intent: Nullable<GQLRoots.PaymentIntentRoot>,
+            card: Nullable<GQLRoots.CreditCardRoot>,
         },
         {
             id: GQL.PaymentIdArgs,
             status: GQL.PaymentStatusArgs,
             intent: GQL.PaymentIntentArgs,
+            card: GQL.PaymentCardArgs,
         }
     >;
     WalletAccount?: ComplexTypedResolver<
@@ -5732,10 +5744,12 @@ export interface GQLResolver {
         GQLRoots.WalletTransactionSubscriptionRoot,
         {
             payment: Nullable<GQLRoots.PaymentRoot>,
+            subscription: GQLRoots.WalletSubscriptionRoot,
         },
         {
             amount: GQL.WalletTransactionSubscriptionAmountArgs,
             payment: GQL.WalletTransactionSubscriptionPaymentArgs,
+            subscription: GQL.WalletTransactionSubscriptionSubscriptionArgs,
         }
     >;
     WalletTransactionTransferOut?: ComplexTypedResolver<
@@ -5757,10 +5771,12 @@ export interface GQLResolver {
         GQLRoots.WalletTransactionTransferInRoot,
         {
             fromUser: GQLRoots.UserRoot,
+            payment: Nullable<GQLRoots.PaymentRoot>,
         },
         {
             amount: GQL.WalletTransactionTransferInAmountArgs,
             fromUser: GQL.WalletTransactionTransferInFromUserArgs,
+            payment: GQL.WalletTransactionTransferInPaymentArgs,
         }
     >;
     WalletTransactionOperation?: UnionTypeResolver<GQLRoots.WalletTransactionOperationRoot, 'WalletTransactionDeposit' | 'WalletTransactionSubscription' | 'WalletTransactionTransferOut' | 'WalletTransactionTransferIn'>;

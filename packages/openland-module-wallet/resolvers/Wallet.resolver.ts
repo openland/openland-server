@@ -28,7 +28,15 @@ export const Resolver: GQLResolver = {
     },
     PaymentIntent: {
         id: (src) => IDs.PaymentIntent.serialize(src.id),
-        clientSecret: (src) => src.client_secret!
+        clientSecret: (src) => src.client_secret!,
+        card: (src, args, ctx) => {
+            if (typeof src.payment_method === 'string') {
+                return Store.UserStripeCard.pmid.find(ctx, src.payment_method);
+            } else if (src.payment_method) {
+                return Store.UserStripeCard.pmid.find(ctx, src.payment_method.id);
+            }
+            return null;
+        }
     },
 
     WalletAccount: {
@@ -89,7 +97,8 @@ export const Resolver: GQLResolver = {
             } else {
                 return null;
             }
-        }
+        },
+        subscription: async (src, srgs, ctx) => (await Store.WalletSubscription.findById(ctx, (src as any).subscription))!
     },
     WalletTransactionTransferIn: {
         amount: (src) => (src as any).amount,
@@ -126,6 +135,18 @@ export const Resolver: GQLResolver = {
             }
 
             return null;
+        },
+        card: async (src, args, ctx) => {
+            if (!src.piid) {
+                return null;
+            }
+            let intent = await Modules.Wallet.paymentsMediator.stripe.paymentIntents.retrieve(src.piid);
+            if (typeof intent.payment_method === 'string') {
+                return Store.UserStripeCard.pmid.find(ctx, intent.payment_method);
+            } else if (intent.payment_method) {
+                return Store.UserStripeCard.pmid.find(ctx, intent.payment_method.id);
+            }
+            return null;
         }
     },
 
@@ -146,7 +167,7 @@ export const Resolver: GQLResolver = {
     //
 
     WalletSubscription: {
-        id: (src) => src.id,
+        id: (src) => IDs.PaidSubscription.serialize(src.id),
         amount: (src) => src.amount,
         state: (src) => {
             if (src.state === 'started') {
@@ -313,7 +334,7 @@ export const Resolver: GQLResolver = {
 
         subscriptionCancel: withAccount(async (parent, args, uid) => {
             return await inTx(parent, async (ctx) => {
-                let subscription = await Store.WalletSubscription.findById(ctx, args.id);
+                let subscription = await Store.WalletSubscription.findById(ctx, IDs.PaidSubscription.parse(args.id));
                 if (!subscription) {
                     throw new NotFoundError();
                 }

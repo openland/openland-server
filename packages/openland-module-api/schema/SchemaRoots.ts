@@ -336,7 +336,7 @@ export namespace GQLRoots {
     export type SharedRoomMentionRoot = MessageMention;
     export type PostRespondServiceMetadataRoot = any;
 
-    export type PremiumChatSettingsRoot = PremiumChatSettings | { id: number, price: number, interval: 'week' | 'month' };
+    export type PremiumChatSettingsRoot = PremiumChatSettings | { id: number, price: number, interval?: 'WEEK' | 'MONTH' };
 
     //
     // Apps

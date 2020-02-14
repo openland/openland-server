@@ -467,7 +467,7 @@ export class PaymentMediator {
 
                 // Notify about failing payment
                 await inTx(parent, async (ctx) => {
-                    await this.paymentIntents.paymentIntentNeedAction(ctx, piid);
+                    await this.paymentIntents.paymentIntentFailing(ctx, piid);
                 });
 
                 return false; /* Failed */
