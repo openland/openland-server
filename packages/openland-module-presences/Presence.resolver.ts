@@ -11,7 +11,7 @@ import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
 const cache = new CacheRepository<{ at: number }>('user_installed_apps');
 
-export default {
+export const Resolver: GQLResolver = {
     OnlineEvent: {
         userId: (src: OnlineEvent) => IDs.User.serialize(src.userId),
         timeout: (src: OnlineEvent) => src.timeout,
@@ -48,7 +48,7 @@ export default {
         }),
 
         // TODO: Move to Push Module
-        alphaReportActive: async (_: any, args: { timeout: number, platform?: string }, ctx: AppContext) => {
+        alphaReportActive: async (_: any, args, ctx: AppContext) => {
             if (!ctx.auth.uid) {
                 throw Error('Not authorized');
             }
@@ -82,14 +82,14 @@ export default {
             if (!val) {
                 return { installed: false };
             }
-            return { installed: true, installedAt: val.at };
+            return { installed: true, installedAt: val.at.toString() };
         }),
         isMobileInstalled: withAccount(async (parent, args, uid) => {
             let val = await cache.read(parent, `${uid}_mobile`);
             if (!val) {
                 return { installed: false };
             }
-            return { installed: true, installedAt: val.at };
+            return { installed: true, installedAt: val.at.toString() };
         }),
     },
     Subscription: {
@@ -159,4 +159,4 @@ export default {
             }
         }
     }
-} as GQLResolver;
+};
