@@ -44,7 +44,7 @@ function withSticker<T, R>(handler: (ctx: AppContext, sticker: Sticker, args: T)
     };
 }
 
-export default {
+export const Resolver: GQLResolver = {
     Sticker: {
         __resolveType() {
             return 'ImageSticker';
@@ -131,4 +131,4 @@ export default {
             return Modules.Stickers.removeStickerFromFavs(ctx, uid, id);
         }),
     },
-} as GQLResolver;
+};
