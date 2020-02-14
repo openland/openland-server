@@ -69,7 +69,7 @@ import {
     WalletSubscription,
     PremiumChatSettings,
     WalletSubscriptionCreateShape,
-    SuperAdmin, RoomParticipant, ChannelInvitation, ChannelLink
+    SuperAdmin, RoomParticipant, ChannelInvitation, ChannelLink, WalletPurchase
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -131,6 +131,7 @@ export namespace GQLRoots {
     import MessageSpanTypeValues = GQL.MessageSpanTypeValues;
     import SharedRoomKindValues = GQL.SharedRoomKindValues;
     import RoomMemberRoleValues = GQL.RoomMemberRoleValues;
+    import PurchaseStateValues = GQL.PurchaseStateValues;
     export type MutationRoot = any;
     export type QueryRoot = any;
     export type SubscriptionRoot = any;
@@ -602,6 +603,8 @@ export namespace GQLRoots {
     export type WalletTransactionStatusRoot = WalletTransactionStatusValues;
     export type WalletSubscriptionStateRoot = WalletSubscriptionStateValues;
     export type WalletSubscriptionIntervalRoot = WalletSubscriptionIntervalValues;
+    export type PurchaseRoot = WalletPurchase;
+    export type PurchaseStateRoot = PurchaseStateValues;
 
     //
     // Permissions

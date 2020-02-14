@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'df5cb33af99f49e9d440e9d1417f8240';
+export const GQL_SPEC_VERSION = '02107750b8825e81864a60c2088d06e1';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -620,6 +620,16 @@ export namespace GQL {
     }
     export interface WalletSubscriptionProductDonationUserArgs { }
     export type WalletSubscriptionProduct = WalletSubscriptionProductGroup | WalletSubscriptionProductDonation;
+    export type PurchaseStateValues = 'PENDING' | 'COMPLETED' | 'CANCELED';
+    export type PurchaseState = GQLRoots.PurchaseStateRoot;
+    export interface Purchase {
+        id: string;
+        state: PurchaseState;
+        intent: Nullable<PaymentIntent>;
+    }
+    export interface PurchaseIdArgs { }
+    export interface PurchaseStateArgs { }
+    export interface PurchaseIntentArgs { }
     export interface WalletUpdateSingle {
         state: string;
         update: WalletUpdate;
@@ -1789,6 +1799,7 @@ export namespace GQL {
         paymentIntentCommit: boolean;
         paymentCancel: boolean;
         donateToUser: boolean;
+        donateToUser2: Purchase;
         subscriptionCancel: WalletSubscription;
         alphaCreateInvite: Invite;
         alphaDeleteInvite: string;
@@ -2193,6 +2204,10 @@ export namespace GQL {
         id: string;
     }
     export interface MutationDonateToUserArgs {
+        amount: number;
+        id: string;
+    }
+    export interface MutationDonateToUser2Args {
         amount: number;
         id: string;
     }
@@ -4941,6 +4956,7 @@ export namespace GQL {
         premiumPassIsActive: boolean;
         premiumSubscription: Nullable<WalletSubscription>;
         premiumSettings: Nullable<PremiumChatSettings>;
+        owner: Nullable<User>;
         linkedFeedChannels: FeedChannel[];
         shortname: Nullable<string>;
     }
@@ -4975,12 +4991,13 @@ export namespace GQL {
     export interface SharedRoomPremiumPassIsActiveArgs { }
     export interface SharedRoomPremiumSubscriptionArgs { }
     export interface SharedRoomPremiumSettingsArgs { }
+    export interface SharedRoomOwnerArgs { }
     export interface SharedRoomLinkedFeedChannelsArgs { }
     export interface SharedRoomShortnameArgs { }
     export interface PremiumChatSettings {
         id: string;
         price: number;
-        interval: WalletSubscriptionInterval;
+        interval: Nullable<WalletSubscriptionInterval>;
     }
     export interface PremiumChatSettingsIdArgs { }
     export interface PremiumChatSettingsPriceArgs { }
@@ -5796,6 +5813,19 @@ export interface GQLResolver {
         }
     >;
     WalletSubscriptionProduct?: UnionTypeResolver<GQLRoots.WalletSubscriptionProductRoot, 'WalletSubscriptionProductGroup' | 'WalletSubscriptionProductDonation'>;
+    PurchaseState?: EnumTypeResolver<'PENDING' | 'COMPLETED' | 'CANCELED', GQLRoots.PurchaseStateRoot>;
+    Purchase?: ComplexTypedResolver<
+        GQL.Purchase,
+        GQLRoots.PurchaseRoot,
+        {
+            intent: Nullable<GQLRoots.PaymentIntentRoot>,
+        },
+        {
+            id: GQL.PurchaseIdArgs,
+            state: GQL.PurchaseStateArgs,
+            intent: GQL.PurchaseIntentArgs,
+        }
+    >;
     WalletUpdateSingle?: ComplexTypedResolver<
         GQL.WalletUpdateSingle,
         GQLRoots.WalletUpdateSingleRoot,
@@ -7240,6 +7270,7 @@ export interface GQLResolver {
             cardRemove: GQLRoots.CreditCardRoot,
             cardMakeDefault: GQLRoots.CreditCardRoot,
             cardDepositIntent: GQLRoots.PaymentIntentRoot,
+            donateToUser2: GQLRoots.PurchaseRoot,
             subscriptionCancel: GQLRoots.WalletSubscriptionRoot,
             alphaCreateInvite: GQLRoots.InviteRoot,
             debugCreateTestUser: GQLRoots.UserRoot,
@@ -7376,6 +7407,7 @@ export interface GQLResolver {
             paymentIntentCommit: GQL.MutationPaymentIntentCommitArgs,
             paymentCancel: GQL.MutationPaymentCancelArgs,
             donateToUser: GQL.MutationDonateToUserArgs,
+            donateToUser2: GQL.MutationDonateToUser2Args,
             subscriptionCancel: GQL.MutationSubscriptionCancelArgs,
             alphaCreateInvite: GQL.MutationAlphaCreateInviteArgs,
             alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs,
@@ -9271,6 +9303,7 @@ export interface GQLResolver {
             matchmaking: Nullable<GQLRoots.MatchmakingRoomRoot>,
             premiumSubscription: Nullable<GQLRoots.WalletSubscriptionRoot>,
             premiumSettings: Nullable<GQLRoots.PremiumChatSettingsRoot>,
+            owner: Nullable<GQLRoots.UserRoot>,
             linkedFeedChannels: GQLRoots.FeedChannelRoot[],
         },
         {
@@ -9302,6 +9335,7 @@ export interface GQLResolver {
             premiumPassIsActive: GQL.SharedRoomPremiumPassIsActiveArgs,
             premiumSubscription: GQL.SharedRoomPremiumSubscriptionArgs,
             premiumSettings: GQL.SharedRoomPremiumSettingsArgs,
+            owner: GQL.SharedRoomOwnerArgs,
             linkedFeedChannels: GQL.SharedRoomLinkedFeedChannelsArgs,
             shortname: GQL.SharedRoomShortnameArgs,
         }
