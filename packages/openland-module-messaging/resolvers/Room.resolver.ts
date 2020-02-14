@@ -158,11 +158,11 @@ export const Resolver: GQLResolver = {
             if (!premiumChatSettings) {
                 return null;
             }
-            let interval: 'month' | 'week';
+            let interval: 'MONTH' | 'WEEK';
             if (premiumChatSettings.interval === 'month') {
-                interval = 'month';
+                interval = 'MONTH';
             } else if (premiumChatSettings.interval === 'week') {
-                interval = 'week';
+                interval = 'WEEK';
             } else {
                 throw Error('Unknown subscription interval: ' + premiumChatSettings.interval);
             }
