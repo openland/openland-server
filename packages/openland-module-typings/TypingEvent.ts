@@ -1,7 +1,10 @@
+import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
+import TypingTypeRoot = GQLRoots.TypingTypeRoot;
+
 export interface TypingEvent {
     forUserId: number;
     userId: number;
     conversationId: number;
-    type: string;
+    type: TypingTypeRoot;
     cancel: boolean;
 }

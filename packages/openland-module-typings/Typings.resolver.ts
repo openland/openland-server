@@ -18,13 +18,19 @@ const TypingType = {
 
 const TypingTypeValues = Object.values(TypingType);
 
-export default {
-    TypingType,
+export const Resolver: GQLResolver = {
+    TypingType: {
+        TEXT: 'text',
+        PHOTO: 'photo',
+        FILE: 'file',
+        VIDEO: 'video',
+        STICKER: 'sticker'
+    },
     TypingEvent: {
         type: (src: TypingEvent) => src.cancel ? 'text' : src.type,
         cancel: (src: TypingEvent) => src.cancel,
-        conversation: (src: TypingEvent, args: {}, ctx: AppContext) => Store.Conversation.findById(ctx, src.conversationId),
-        chat: (src: TypingEvent, args: {}, ctx: AppContext) => Store.Conversation.findById(ctx, src.conversationId),
+        conversation: async (src: TypingEvent, args: {}, ctx: AppContext) => (await Store.Conversation.findById(ctx, src.conversationId))!,
+        chat: async (src: TypingEvent, args: {}, ctx: AppContext) => (await Store.Conversation.findById(ctx, src.conversationId))!,
         user: (src: TypingEvent) => src.userId,
     },
     Mutation: {
@@ -101,4 +107,4 @@ export default {
             }
         },
     }
-} as GQLResolver;
+};
