@@ -135,6 +135,18 @@ export const Resolver: GQLResolver = {
             }
 
             return null;
+        },
+        card: async (src, args, ctx) => {
+            if (!src.piid) {
+                return null;
+            }
+            let intent = await Modules.Wallet.paymentsMediator.stripe.paymentIntents.retrieve(src.piid);
+            if (typeof intent.payment_method === 'string') {
+                return Store.UserStripeCard.pmid.find(ctx, intent.payment_method);
+            } else if (intent.payment_method) {
+                return Store.UserStripeCard.pmid.find(ctx, intent.payment_method.id);
+            }
+            return null;
         }
     },
 

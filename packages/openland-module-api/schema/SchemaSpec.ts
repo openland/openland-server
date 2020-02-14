@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'c6ab9383b556a364aab8ea8de7f9a412';
+export const GQL_SPEC_VERSION = 'e7fbdb5e4a366640cf97174fcee706d9';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -536,10 +536,12 @@ export namespace GQL {
         id: string;
         status: PaymentStatus;
         intent: Nullable<PaymentIntent>;
+        card: Nullable<CreditCard>;
     }
     export interface PaymentIdArgs { }
     export interface PaymentStatusArgs { }
     export interface PaymentIntentArgs { }
+    export interface PaymentCardArgs { }
     export interface WalletAccount {
         id: string;
         balance: number;
@@ -5692,11 +5694,13 @@ export interface GQLResolver {
         GQLRoots.PaymentRoot,
         {
             intent: Nullable<GQLRoots.PaymentIntentRoot>,
+            card: Nullable<GQLRoots.CreditCardRoot>,
         },
         {
             id: GQL.PaymentIdArgs,
             status: GQL.PaymentStatusArgs,
             intent: GQL.PaymentIntentArgs,
+            card: GQL.PaymentCardArgs,
         }
     >;
     WalletAccount?: ComplexTypedResolver<
