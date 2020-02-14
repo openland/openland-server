@@ -414,7 +414,7 @@ export class UserRepository {
                     bid: bid,
                 });
             }
-            return bid ? await Store.UserBadge.findById(ctx, bid) : null;
+            return bid ? (await Store.UserBadge.findById(ctx, bid))! : null;
         });
     }
 
