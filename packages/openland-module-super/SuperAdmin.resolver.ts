@@ -4,9 +4,9 @@ import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 
-export default {
+export const Resolver: GQLResolver = {
     SuperAdmin: {
-        user: (src, args, ctx) => Store.User.findById(ctx, src.id),
+        user: async (src, args, ctx) => (await Store.User.findById(ctx, src.id))!,
         role: (src) => {
             if (src.role === 'software-developer') {
                 return 'SOFTWARE_DEVELOPER';
@@ -41,4 +41,4 @@ export default {
             return 'ok';
         })
     }
-} as GQLResolver;
+};
