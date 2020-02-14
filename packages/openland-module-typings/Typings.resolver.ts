@@ -7,6 +7,8 @@ import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
+import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
+import TypingTypeRoot = GQLRoots.TypingTypeRoot;
 
 const TypingType = {
     TEXT: 'text',
@@ -37,7 +39,7 @@ export const Resolver: GQLResolver = {
         alphaSetTyping: withUser(async (ctx, args, uid) => {
             await validate({ type: optional(enumString(TypingTypeValues)) }, args);
             let conversationId = IDs.Conversation.parse(args.conversationId);
-            await Modules.Typings.setTyping(uid, conversationId, args.type || 'text');
+            await Modules.Typings.setTyping(uid, conversationId, args.type as TypingTypeRoot || 'text');
             return 'ok';
         }),
         typingSend: withUser(async (ctx, args, uid) => {

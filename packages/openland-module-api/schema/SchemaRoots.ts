@@ -295,7 +295,7 @@ export namespace GQLRoots {
     // Typings
     //
     export type TypingEventRoot = any;
-    export type TypingTypeRoot = 'text' | 'photo' | 'file' | 'video' | 'sticker';
+    export type TypingTypeRoot = 'text' | 'photo' | 'file' | 'video' | 'sticker' | 'cancel';
 
     export type UserRoot = User | UserProfile | number | UserFullRoot;
     export type UserEdgeRoot = any;
