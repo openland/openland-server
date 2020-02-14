@@ -9,7 +9,7 @@ import { withUser } from '../openland-module-users/User.resolver';
 import { User, Organization, FeedChannel, ConversationRoom } from 'openland-module-db/store';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
-export default {
+export const Resolver: GQLResolver = {
     ShortNameDestination: {
         __resolveType(src: any) {
             if (src instanceof User) {
@@ -146,4 +146,4 @@ export default {
             return shortName ? shortName.shortname : null;
         },
     }
-} as GQLResolver;
+};

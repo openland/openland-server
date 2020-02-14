@@ -543,7 +543,7 @@ export namespace GQLRoots {
     //
     //  Shortnames
     //
-    export type ShortNameDestinationRoot = User | Organization | FeedChannel;
+    export type ShortNameDestinationRoot = User | Organization | FeedChannel | ConversationRoom;
 
     //
     // Oauth
