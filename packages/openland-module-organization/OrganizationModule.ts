@@ -133,7 +133,7 @@ export class OrganizationModule {
                 return org;
             }
 
-            return await Store.Organization.findById(ctx, oid);
+            return (await Store.Organization.findById(ctx, oid))!;
         });
     }
 

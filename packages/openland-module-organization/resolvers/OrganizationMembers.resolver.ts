@@ -10,7 +10,7 @@ import { resolveOrganizationJoinedMembers, resolveRoleInOrganization } from './u
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Store } from 'openland-module-db/FDB';
 
-export default {
+export const Resolver: GQLResolver = {
     OrganizationMember: {
         __resolveType(src: any) {
             return src._type;
@@ -61,7 +61,7 @@ export default {
         }),
         betaOrganizationMemberRemove: withAccount(async (ctx, args, uid) => {
             await Modules.Orgs.removeUserFromOrganization(ctx, IDs.User.parse(args.userId), IDs.Organization.parse(args.organizationId), uid);
-            return await Store.Organization.findById(ctx, IDs.Organization.parse(args.organizationId));
+            return (await Store.Organization.findById(ctx, IDs.Organization.parse(args.organizationId)))!;
         }),
         betaOrganizationMemberAdd: withAccount(async (ctx, args, uid) => {
             return await inTx(ctx, async (c) => {
@@ -69,7 +69,7 @@ export default {
                 for (let u of toAdd) {
                     await Modules.Orgs.addUserToOrganization(c, IDs.User.parse(u), IDs.Organization.parse(args.organizationId), uid);
                 }
-                return await Store.Organization.findById(c, IDs.Organization.parse(args.organizationId));
+                return (await Store.Organization.findById(ctx, IDs.Organization.parse(args.organizationId)))!;
             });
         }),
         alphaOrganizationMemberAdd: withAccount(async (ctx, args, uid) => {
@@ -167,4 +167,4 @@ export default {
             return 'deprecated';
         })
     }
-} as GQLResolver;
+};
