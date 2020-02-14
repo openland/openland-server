@@ -106,7 +106,7 @@ export const Resolver: GQLResolver = {
                     throw new AccessDeniedError();
                 }
                 let chatId = IDs.Conversation.parse(args.chatId);
-                const lostAccessEvent = { cursor: '', items: [{ kind: 'lost_access', seq: -1 }] };
+                const lostAccessEvent = { cursor: '', items: [{ kind: 'lost_access', seq: -1, type: 'ChatLostAccess', raw: '' }] };
 
                 // Can't trow error, current clients will retry connection in infinite loop
                 try {

@@ -7,16 +7,10 @@ export type OptionalNullable<T> = undefined | null | T;
 
 export type Resolver<Root, Args, Context, ReturnType> = (root: Root, args: Args, context: Context) => MaybePromise<ReturnType>;
 
-export type SubscriptionResolverBasic<Root, Args, Context, ReturnType> = {
+export type SubscriptionResolver<Root, Args, Context, ReturnType> = {
+    resolve: (obj: ReturnType) => MaybePromise<ReturnType>,
     subscribe: Resolver<Root, Args, Context, AsyncIterable<ReturnType>|AsyncIterator<ReturnType>>
 };
-
-export type SubscriptionResolverExtended<Root, Args, Context, ReturnType> = {
-    resolve: (obj: any) => MaybePromise<ReturnType>,
-    subscribe: Resolver<Root, Args, Context, AsyncIterable<any>|AsyncIterator<any>>
-};
-
-export type SubscriptionResolver<Root, Args, Context, ReturnType> = SubscriptionResolverExtended<Root, Args, Context, ReturnType>;
 
 export type UnionTypeResolver<Root, ReturnType> = {
     __resolveType: (obj: Root, ctx: AppContext) => MaybePromise<ReturnType>

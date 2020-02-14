@@ -85,7 +85,10 @@ export const Resolver: GQLResolver = {
 
                     let settings = Modules.Powerups.extractSettingsFromChatPowerup(chatPowerup, uid);
                     if (settings.enabled) {
-                        yield await Modules.Geo.getUserGeo(ctx, uid, getPermissionRequestInfo(ctx, pid!, cid, uid));
+                        let userGeo = await Modules.Geo.getUserGeo(ctx, uid, getPermissionRequestInfo(ctx, pid!, cid, uid));
+                        if (userGeo) {
+                            yield userGeo;
+                        }
                     }
                 }
             },

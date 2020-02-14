@@ -20,6 +20,7 @@ import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
+import { isDefined } from '../../openland-utils/misc';
 
 export const Resolver: GQLResolver = {
     /*
@@ -241,7 +242,7 @@ export const Resolver: GQLResolver = {
                                 }
                                 return null;
                             })
-                            .filter(event => !!event);
+                            .filter(isDefined);
 
                         yield { items: converted, cursor: '' };
                     }

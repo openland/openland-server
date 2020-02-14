@@ -4,6 +4,7 @@ import { injectable, inject } from 'inversify';
 import { Context } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { Store } from 'openland-module-db/FDB';
+import { BaseEvent } from '@openland/foundationdb-entity';
 
 @injectable()
 export class UserStateRepository {
@@ -135,10 +136,10 @@ export class UserStateRepository {
         return;
     }
 
-    zipUserDialogEventsModern = (events: { type: string, cid: number }[]) => {
-        let zipedEvents = [];
+    zipUserDialogEventsModern(events: (BaseEvent & { type: string, cid: number })[]): BaseEvent[] {
+        let zipedEvents: (BaseEvent & { type: string, cid: number })[] = [];
         let latestChatsUpdatesByType = new Map<string, { type: string, cid: number }>();
-        let currentEvent: { type: string, cid: number };
+        let currentEvent: (BaseEvent & { type: string, cid: number });
         let currentEventKey: string;
         for (let i = events.length - 1; i >= 0; i--) {
             currentEvent = events[i];

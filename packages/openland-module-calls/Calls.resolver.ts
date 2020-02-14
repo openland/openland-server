@@ -250,8 +250,8 @@ export const Resolver: GQLResolver = {
                                 let watch = Store.ConferenceRoom.watch(ctx, cid);
                                 return { settings, watch };
                             });
-                            yield r.settings;
-                            await r.watch.promise;
+                            yield r.settings!;
+                            await r.watch.promise!;
                         }
                     })(),
                     return: async () => {
