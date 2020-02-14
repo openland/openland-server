@@ -25,6 +25,7 @@ type CardSetupIntent {
 type PaymentIntent {
     id: ID!
     clientSecret: String!
+    card: CreditCard
 }
 
 #
@@ -74,6 +75,7 @@ type WalletTransactionDeposit {
 type WalletTransactionSubscription {
     amount: Int!
     payment: Payment
+    subscription: WalletSubscription!
 }
 
 type WalletTransactionTransferOut {
@@ -86,6 +88,7 @@ type WalletTransactionTransferOut {
 type WalletTransactionTransferIn {
     amount: Int!
     fromUser: User!
+    payment: Payment
 }
 
 union WalletTransactionOperation = WalletTransactionDeposit | WalletTransactionSubscription | WalletTransactionTransferOut | WalletTransactionTransferIn
