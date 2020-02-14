@@ -15,9 +15,19 @@ export class WalletRepository {
         return await inTx(parent, async (ctx) => {
             let res = await this.store.Wallet.findById(ctx, uid);
             if (!res) {
-                res = await this.store.Wallet.create(ctx, uid, { balance: 0 });
+                res = await this.store.Wallet.create(ctx, uid, { balance: 0, balanceLocked: 0 });
             }
             return res;
+        });
+    }
+
+    getAvailableBalance = async (parent: Context, uid: number) => {
+        return await inTx(parent, async (ctx) => {
+            let res = await this.store.Wallet.findById(ctx, uid);
+            if (!res) {
+                res = await this.store.Wallet.create(ctx, uid, { balance: 0, balanceLocked: 0 });
+            }
+            return res.balance - res.balanceLocked;
         });
     }
 
@@ -191,6 +201,69 @@ export class WalletRepository {
     }
 
     //
+    // Purchases
+    //
+
+    purchaseCreated = async (parent: Context, uid: number, amount: number, walletAmount: number) => {
+        return await inTx(parent, async (ctx) => {
+            if (walletAmount > 0) {
+                let wallet = await this.getWallet(ctx, uid);
+                if (wallet.balance - wallet.balanceLocked < walletAmount) {
+                    throw Error('Invalid walelt amount');
+                }
+                wallet.balanceLocked += walletAmount;
+                this.store.UserWalletUpdates.post(ctx, uid, WalletBalanceChanged.create({ amount: wallet.balance }));
+            }
+        });
+    }
+
+    purchaseSuccessful = async (parent: Context, uid: number, amount: number, walletAmount: number, purchaseId: string, pid: string | null) => {
+        return await inTx(parent, async (ctx) => {
+
+            let wallet = await this.getWallet(ctx, walletAmount);
+            if (walletAmount > 0) {
+                if (wallet.balanceLocked < walletAmount) {
+                    throw Error('Invalid walelt amount');
+                }
+                if (wallet.balance < walletAmount) {
+                    throw Error('Invalid walelt amount');
+                }
+                wallet.balanceLocked -= walletAmount;
+                wallet.balance -= walletAmount;
+            }
+
+            let txid = uuid();
+            await this.store.WalletTransaction.create(ctx, txid, {
+                uid: uid,
+                status: 'success',
+                operation: {
+                    type: 'purchase',
+                    chargeAmount: amount - walletAmount,
+                    walletAmount: walletAmount,
+                    purchase: purchaseId,
+                    payment: pid ? { type: 'payment', id: pid } : { type: 'balance' }
+                }
+            });
+
+            this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionSuccess.create({ id: txid }));
+            this.store.UserWalletUpdates.post(ctx, uid, WalletBalanceChanged.create({ amount: wallet.balance }));
+        });
+    }
+
+    purchaseCanceled = async (parent: Context, uid: number, amount: number, walletAmount: number) => {
+        return await inTx(parent, async (ctx) => {
+            if (walletAmount > 0) {
+                let wallet = await this.getWallet(ctx, walletAmount);
+                if (wallet.balanceLocked < walletAmount) {
+                    throw Error('Invalid walelt amount');
+                }
+                wallet.balanceLocked -= walletAmount;
+                this.store.UserWalletUpdates.post(ctx, uid, WalletBalanceChanged.create({ amount: wallet.balance }));
+            }
+        });
+    }
+
+    //
     // Subscriptions
     //
 
@@ -198,7 +271,7 @@ export class WalletRepository {
         checkMoney(amount);
         return await inTx(parent, async (ctx) => {
             let fromWallet = await this.getWallet(ctx, uid);
-            if (fromWallet.balance < amount) {
+            if ((fromWallet.balance - fromWallet.balanceLocked) < amount) {
                 throw new Error('Insufficient funds');
             }
             fromWallet.balance -= amount;
@@ -235,7 +308,7 @@ export class WalletRepository {
             // Wallet Update
             let fromWallet = await this.getWallet(ctx, uid);
             if (walletAmount > 0) {
-                if (fromWallet.balance < walletAmount) {
+                if ((fromWallet.balance - fromWallet.balanceLocked) < walletAmount) {
                     throw new Error('Insufficient funds');
                 }
                 fromWallet.balance -= walletAmount;
@@ -385,7 +458,7 @@ export class WalletRepository {
             // Update Wallet
             let fromWallet = await this.getWallet(ctx, fromUid);
             let wallet = await this.getWallet(ctx, toUid);
-            if (fromWallet.balance < amount) {
+            if ((fromWallet.balance - fromWallet.balanceLocked) < amount) {
                 throw new Error('Insufficient funds');
             }
             fromWallet.balance -= amount;
@@ -439,7 +512,7 @@ export class WalletRepository {
             // Wallet balance lock
             let fromWallet = await this.getWallet(ctx, fromUid);
             if (walletAmount > 0) {
-                if (fromWallet.balance < walletAmount) {
+                if ((fromWallet.balance - fromWallet.balanceLocked) < walletAmount) {
                     throw new Error('Insufficient funds');
                 }
                 fromWallet.balance -= walletAmount;

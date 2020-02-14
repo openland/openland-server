@@ -62,7 +62,7 @@ export class OperationsRepository {
                 return;
             }
 
-            let walletBalance = (await this.wallet.getWallet(ctx, fromUid)).balance;
+            let walletBalance = await this.wallet.getAvailableBalance(ctx, fromUid);
 
             let amounts = paymentAmounts(walletBalance, amount);
 

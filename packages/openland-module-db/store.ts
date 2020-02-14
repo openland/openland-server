@@ -3564,12 +3564,12 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
 export interface PremiumChatSettingsShape {
     id: number;
     price: number;
-    interval: 'week' | 'month';
+    interval: 'week' | 'month' | null;
 }
 
 export interface PremiumChatSettingsCreateShape {
     price: number;
-    interval: 'week' | 'month';
+    interval?: 'week' | 'month' | null | undefined;
 }
 
 export class PremiumChatSettings extends Entity<PremiumChatSettingsShape> {
@@ -3583,8 +3583,8 @@ export class PremiumChatSettings extends Entity<PremiumChatSettingsShape> {
             this.invalidate();
         }
     }
-    get interval(): 'week' | 'month' { return this._rawValue.interval; }
-    set interval(value: 'week' | 'month') {
+    get interval(): 'week' | 'month' | null { return this._rawValue.interval; }
+    set interval(value: 'week' | 'month' | null) {
         let normalized = this.descriptor.codec.fields.interval.normalize(value);
         if (this._rawValue.interval !== normalized) {
             this._rawValue.interval = normalized;
@@ -3603,11 +3603,11 @@ export class PremiumChatSettingsFactory extends EntityFactory<PremiumChatSetting
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'price', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'interval', type: { type: 'enum', values: ['week', 'month'] }, secure: false });
+        fields.push({ name: 'interval', type: { type: 'optional', inner: { type: 'enum', values: ['week', 'month'] } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             price: c.integer,
-            interval: c.enum('week', 'month'),
+            interval: c.optional(c.enum('week', 'month')),
         });
         let descriptor: EntityDescriptor<PremiumChatSettingsShape> = {
             name: 'PremiumChatSettings',
@@ -13547,10 +13547,12 @@ export class UserStripeCardFactory extends EntityFactory<UserStripeCardShape, Us
 export interface WalletShape {
     uid: number;
     balance: number;
+    balanceLocked: number;
 }
 
 export interface WalletCreateShape {
     balance: number;
+    balanceLocked: number;
 }
 
 export class Wallet extends Entity<WalletShape> {
@@ -13561,6 +13563,15 @@ export class Wallet extends Entity<WalletShape> {
         if (this._rawValue.balance !== normalized) {
             this._rawValue.balance = normalized;
             this._updatedValues.balance = normalized;
+            this.invalidate();
+        }
+    }
+    get balanceLocked(): number { return this._rawValue.balanceLocked; }
+    set balanceLocked(value: number) {
+        let normalized = this.descriptor.codec.fields.balanceLocked.normalize(value);
+        if (this._rawValue.balanceLocked !== normalized) {
+            this._rawValue.balanceLocked = normalized;
+            this._updatedValues.balanceLocked = normalized;
             this.invalidate();
         }
     }
@@ -13575,9 +13586,11 @@ export class WalletFactory extends EntityFactory<WalletShape, Wallet> {
         primaryKeys.push({ name: 'uid', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'balance', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'balanceLocked', type: { type: 'integer' }, secure: false });
         let codec = c.struct({
             uid: c.integer,
             balance: c.integer,
+            balanceLocked: c.integer,
         });
         let descriptor: EntityDescriptor<WalletShape> = {
             name: 'Wallet',
@@ -13616,13 +13629,13 @@ export interface WalletTransactionShape {
     id: string;
     uid: number;
     status: 'pending' | 'canceling' | 'canceled' | 'success';
-    operation: { type: 'deposit', amount: number, payment: string | null } | { type: 'subscription', chargeAmount: number, walletAmount: number, subscription: string, index: number } | { type: 'transfer_out', walletAmount: number, chargeAmount: number, toUser: number, payment: { type: 'payment', id: string } | { type: 'paymentIntent', id: string } | { type: 'balance',  } } | { type: 'transfer_in', amount: number, fromUser: number };
+    operation: { type: 'deposit', amount: number, payment: string | null } | { type: 'subscription', chargeAmount: number, walletAmount: number, subscription: string, index: number } | { type: 'transfer_out', walletAmount: number, chargeAmount: number, toUser: number, payment: { type: 'payment', id: string } | { type: 'paymentIntent', id: string } | { type: 'balance',  } } | { type: 'transfer_in', amount: number, fromUser: number } | { type: 'purchase', walletAmount: number, chargeAmount: number, purchase: string, payment: { type: 'payment', id: string } | { type: 'paymentIntent', id: string } | { type: 'balance',  } };
 }
 
 export interface WalletTransactionCreateShape {
     uid: number;
     status: 'pending' | 'canceling' | 'canceled' | 'success';
-    operation: { type: 'deposit', amount: number, payment: string | null | undefined } | { type: 'subscription', chargeAmount: number, walletAmount: number, subscription: string, index: number } | { type: 'transfer_out', walletAmount: number, chargeAmount: number, toUser: number, payment: { type: 'payment', id: string } | { type: 'paymentIntent', id: string } | { type: 'balance',  } } | { type: 'transfer_in', amount: number, fromUser: number };
+    operation: { type: 'deposit', amount: number, payment: string | null | undefined } | { type: 'subscription', chargeAmount: number, walletAmount: number, subscription: string, index: number } | { type: 'transfer_out', walletAmount: number, chargeAmount: number, toUser: number, payment: { type: 'payment', id: string } | { type: 'paymentIntent', id: string } | { type: 'balance',  } } | { type: 'transfer_in', amount: number, fromUser: number } | { type: 'purchase', walletAmount: number, chargeAmount: number, purchase: string, payment: { type: 'payment', id: string } | { type: 'paymentIntent', id: string } | { type: 'balance',  } };
 }
 
 export class WalletTransaction extends Entity<WalletTransactionShape> {
@@ -13645,8 +13658,8 @@ export class WalletTransaction extends Entity<WalletTransactionShape> {
             this.invalidate();
         }
     }
-    get operation(): { type: 'deposit', amount: number, payment: string | null } | { type: 'subscription', chargeAmount: number, walletAmount: number, subscription: string, index: number } | { type: 'transfer_out', walletAmount: number, chargeAmount: number, toUser: number, payment: { type: 'payment', id: string } | { type: 'paymentIntent', id: string } | { type: 'balance',  } } | { type: 'transfer_in', amount: number, fromUser: number } { return this._rawValue.operation; }
-    set operation(value: { type: 'deposit', amount: number, payment: string | null } | { type: 'subscription', chargeAmount: number, walletAmount: number, subscription: string, index: number } | { type: 'transfer_out', walletAmount: number, chargeAmount: number, toUser: number, payment: { type: 'payment', id: string } | { type: 'paymentIntent', id: string } | { type: 'balance',  } } | { type: 'transfer_in', amount: number, fromUser: number }) {
+    get operation(): { type: 'deposit', amount: number, payment: string | null } | { type: 'subscription', chargeAmount: number, walletAmount: number, subscription: string, index: number } | { type: 'transfer_out', walletAmount: number, chargeAmount: number, toUser: number, payment: { type: 'payment', id: string } | { type: 'paymentIntent', id: string } | { type: 'balance',  } } | { type: 'transfer_in', amount: number, fromUser: number } | { type: 'purchase', walletAmount: number, chargeAmount: number, purchase: string, payment: { type: 'payment', id: string } | { type: 'paymentIntent', id: string } | { type: 'balance',  } } { return this._rawValue.operation; }
+    set operation(value: { type: 'deposit', amount: number, payment: string | null } | { type: 'subscription', chargeAmount: number, walletAmount: number, subscription: string, index: number } | { type: 'transfer_out', walletAmount: number, chargeAmount: number, toUser: number, payment: { type: 'payment', id: string } | { type: 'paymentIntent', id: string } | { type: 'balance',  } } | { type: 'transfer_in', amount: number, fromUser: number } | { type: 'purchase', walletAmount: number, chargeAmount: number, purchase: string, payment: { type: 'payment', id: string } | { type: 'paymentIntent', id: string } | { type: 'balance',  } }) {
         let normalized = this.descriptor.codec.fields.operation.normalize(value);
         if (this._rawValue.operation !== normalized) {
             this._rawValue.operation = normalized;
@@ -13668,12 +13681,12 @@ export class WalletTransactionFactory extends EntityFactory<WalletTransactionSha
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'status', type: { type: 'enum', values: ['pending', 'canceling', 'canceled', 'success'] }, secure: false });
-        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { amount: { type: 'integer' }, payment: { type: 'optional', inner: { type: 'string' } } }, subscription: { chargeAmount: { type: 'integer' }, walletAmount: { type: 'integer' }, subscription: { type: 'string' }, index: { type: 'integer' } }, transfer_out: { walletAmount: { type: 'integer' }, chargeAmount: { type: 'integer' }, toUser: { type: 'integer' }, payment: { type: 'union', types: { payment: { id: { type: 'string' } }, paymentIntent: { id: { type: 'string' } }, balance: {  } } } }, transfer_in: { amount: { type: 'integer' }, fromUser: { type: 'integer' } } } }, secure: false });
+        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { amount: { type: 'integer' }, payment: { type: 'optional', inner: { type: 'string' } } }, subscription: { chargeAmount: { type: 'integer' }, walletAmount: { type: 'integer' }, subscription: { type: 'string' }, index: { type: 'integer' } }, transfer_out: { walletAmount: { type: 'integer' }, chargeAmount: { type: 'integer' }, toUser: { type: 'integer' }, payment: { type: 'union', types: { payment: { id: { type: 'string' } }, paymentIntent: { id: { type: 'string' } }, balance: {  } } } }, transfer_in: { amount: { type: 'integer' }, fromUser: { type: 'integer' } }, purchase: { walletAmount: { type: 'integer' }, chargeAmount: { type: 'integer' }, purchase: { type: 'string' }, payment: { type: 'union', types: { payment: { id: { type: 'string' } }, paymentIntent: { id: { type: 'string' } }, balance: {  } } } } } }, secure: false });
         let codec = c.struct({
             id: c.string,
             uid: c.integer,
             status: c.enum('pending', 'canceling', 'canceled', 'success'),
-            operation: c.union({ deposit: c.struct({ amount: c.integer, payment: c.optional(c.string) }), subscription: c.struct({ chargeAmount: c.integer, walletAmount: c.integer, subscription: c.string, index: c.integer }), transfer_out: c.struct({ walletAmount: c.integer, chargeAmount: c.integer, toUser: c.integer, payment: c.union({ payment: c.struct({ id: c.string }), paymentIntent: c.struct({ id: c.string }), balance: c.struct({  }) }) }), transfer_in: c.struct({ amount: c.integer, fromUser: c.integer }) }),
+            operation: c.union({ deposit: c.struct({ amount: c.integer, payment: c.optional(c.string) }), subscription: c.struct({ chargeAmount: c.integer, walletAmount: c.integer, subscription: c.string, index: c.integer }), transfer_out: c.struct({ walletAmount: c.integer, chargeAmount: c.integer, toUser: c.integer, payment: c.union({ payment: c.struct({ id: c.string }), paymentIntent: c.struct({ id: c.string }), balance: c.struct({  }) }) }), transfer_in: c.struct({ amount: c.integer, fromUser: c.integer }), purchase: c.struct({ walletAmount: c.integer, chargeAmount: c.integer, purchase: c.string, payment: c.union({ payment: c.struct({ id: c.string }), paymentIntent: c.struct({ id: c.string }), balance: c.struct({  }) }) }) }),
         });
         let descriptor: EntityDescriptor<WalletTransactionShape> = {
             name: 'WalletTransaction',
@@ -13883,6 +13896,184 @@ export class WalletTransferRequestFactory extends EntityFactory<WalletTransferRe
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<WalletTransferRequestShape>): WalletTransferRequest {
         return new WalletTransferRequest([value.fromUid, value.toUid, value.retryKey], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface WalletPurchaseShape {
+    id: string;
+    uid: number;
+    amount: number;
+    product: { type: 'group', gid: number } | { type: 'donate', uid: number };
+    state: 'pending' | 'canceled' | 'success';
+    succeededAt: number | null;
+    lockedAmount: number;
+    pid: string | null;
+}
+
+export interface WalletPurchaseCreateShape {
+    uid: number;
+    amount: number;
+    product: { type: 'group', gid: number } | { type: 'donate', uid: number };
+    state: 'pending' | 'canceled' | 'success';
+    succeededAt?: number | null | undefined;
+    lockedAmount: number;
+    pid?: string | null | undefined;
+}
+
+export class WalletPurchase extends Entity<WalletPurchaseShape> {
+    get id(): string { return this._rawValue.id; }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get amount(): number { return this._rawValue.amount; }
+    set amount(value: number) {
+        let normalized = this.descriptor.codec.fields.amount.normalize(value);
+        if (this._rawValue.amount !== normalized) {
+            this._rawValue.amount = normalized;
+            this._updatedValues.amount = normalized;
+            this.invalidate();
+        }
+    }
+    get product(): { type: 'group', gid: number } | { type: 'donate', uid: number } { return this._rawValue.product; }
+    set product(value: { type: 'group', gid: number } | { type: 'donate', uid: number }) {
+        let normalized = this.descriptor.codec.fields.product.normalize(value);
+        if (this._rawValue.product !== normalized) {
+            this._rawValue.product = normalized;
+            this._updatedValues.product = normalized;
+            this.invalidate();
+        }
+    }
+    get state(): 'pending' | 'canceled' | 'success' { return this._rawValue.state; }
+    set state(value: 'pending' | 'canceled' | 'success') {
+        let normalized = this.descriptor.codec.fields.state.normalize(value);
+        if (this._rawValue.state !== normalized) {
+            this._rawValue.state = normalized;
+            this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+    get succeededAt(): number | null { return this._rawValue.succeededAt; }
+    set succeededAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.succeededAt.normalize(value);
+        if (this._rawValue.succeededAt !== normalized) {
+            this._rawValue.succeededAt = normalized;
+            this._updatedValues.succeededAt = normalized;
+            this.invalidate();
+        }
+    }
+    get lockedAmount(): number { return this._rawValue.lockedAmount; }
+    set lockedAmount(value: number) {
+        let normalized = this.descriptor.codec.fields.lockedAmount.normalize(value);
+        if (this._rawValue.lockedAmount !== normalized) {
+            this._rawValue.lockedAmount = normalized;
+            this._updatedValues.lockedAmount = normalized;
+            this.invalidate();
+        }
+    }
+    get pid(): string | null { return this._rawValue.pid; }
+    set pid(value: string | null) {
+        let normalized = this.descriptor.codec.fields.pid.normalize(value);
+        if (this._rawValue.pid !== normalized) {
+            this._rawValue.pid = normalized;
+            this._updatedValues.pid = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class WalletPurchaseFactory extends EntityFactory<WalletPurchaseShape, WalletPurchase> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('walletPurchase');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('walletPurchase', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'userSuccess', storageKey: 'userSuccess', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('walletPurchase', 'userSuccess'), condition: (s) => s.state === 'success' });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'product', type: { type: 'union', types: { group: { gid: { type: 'integer' } }, donate: { uid: { type: 'integer' } } } }, secure: false });
+        fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'canceled', 'success'] }, secure: false });
+        fields.push({ name: 'succeededAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'lockedAmount', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'pid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            uid: c.integer,
+            amount: c.integer,
+            product: c.union({ group: c.struct({ gid: c.integer }), donate: c.struct({ uid: c.integer }) }),
+            state: c.enum('pending', 'canceled', 'success'),
+            succeededAt: c.optional(c.integer),
+            lockedAmount: c.integer,
+            pid: c.optional(c.string),
+        });
+        let descriptor: EntityDescriptor<WalletPurchaseShape> = {
+            name: 'WalletPurchase',
+            storageKey: 'walletPurchase',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new WalletPurchaseFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<WalletPurchaseShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    readonly userSuccess = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [uid], opts);
+        },
+    });
+
+    create(ctx: Context, id: string, src: WalletPurchaseCreateShape): Promise<WalletPurchase> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: WalletPurchaseCreateShape): WalletPurchase {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<WalletPurchase | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<WalletPurchaseShape>): WalletPurchase {
+        return new WalletPurchase([value.id], value, this.descriptor, this._flush, ctx);
     }
 }
 
@@ -14263,13 +14454,13 @@ export interface PaymentIntentShape {
     id: string;
     state: 'pending' | 'success' | 'canceled';
     amount: number;
-    operation: { type: 'deposit', uid: number } | { type: 'payment', id: string };
+    operation: { type: 'deposit', uid: number } | { type: 'payment', id: string } | { type: 'purchase', id: string };
 }
 
 export interface PaymentIntentCreateShape {
     state: 'pending' | 'success' | 'canceled';
     amount: number;
-    operation: { type: 'deposit', uid: number } | { type: 'payment', id: string };
+    operation: { type: 'deposit', uid: number } | { type: 'payment', id: string } | { type: 'purchase', id: string };
 }
 
 export class PaymentIntent extends Entity<PaymentIntentShape> {
@@ -14292,8 +14483,8 @@ export class PaymentIntent extends Entity<PaymentIntentShape> {
             this.invalidate();
         }
     }
-    get operation(): { type: 'deposit', uid: number } | { type: 'payment', id: string } { return this._rawValue.operation; }
-    set operation(value: { type: 'deposit', uid: number } | { type: 'payment', id: string }) {
+    get operation(): { type: 'deposit', uid: number } | { type: 'payment', id: string } | { type: 'purchase', id: string } { return this._rawValue.operation; }
+    set operation(value: { type: 'deposit', uid: number } | { type: 'payment', id: string } | { type: 'purchase', id: string }) {
         let normalized = this.descriptor.codec.fields.operation.normalize(value);
         if (this._rawValue.operation !== normalized) {
             this._rawValue.operation = normalized;
@@ -14313,12 +14504,12 @@ export class PaymentIntentFactory extends EntityFactory<PaymentIntentShape, Paym
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'success', 'canceled'] }, secure: false });
         fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' } }, payment: { id: { type: 'string' } } } }, secure: false });
+        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' } }, payment: { id: { type: 'string' } }, purchase: { id: { type: 'string' } } } }, secure: false });
         let codec = c.struct({
             id: c.string,
             state: c.enum('pending', 'success', 'canceled'),
             amount: c.integer,
-            operation: c.union({ deposit: c.struct({ uid: c.integer }), payment: c.struct({ id: c.string }) }),
+            operation: c.union({ deposit: c.struct({ uid: c.integer }), payment: c.struct({ id: c.string }), purchase: c.struct({ id: c.string }) }),
         });
         let descriptor: EntityDescriptor<PaymentIntentShape> = {
             name: 'PaymentIntent',
@@ -17688,6 +17879,7 @@ export interface Store extends BaseStore {
     readonly WalletTransaction: WalletTransactionFactory;
     readonly WalletDepositRequest: WalletDepositRequestFactory;
     readonly WalletTransferRequest: WalletTransferRequestFactory;
+    readonly WalletPurchase: WalletPurchaseFactory;
     readonly WalletSubscription: WalletSubscriptionFactory;
     readonly WalletSubscriptionScheduling: WalletSubscriptionSchedulingFactory;
     readonly WalletSubscriptionPeriod: WalletSubscriptionPeriodFactory;
@@ -17889,6 +18081,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let WalletTransactionPromise = WalletTransactionFactory.open(storage);
     let WalletDepositRequestPromise = WalletDepositRequestFactory.open(storage);
     let WalletTransferRequestPromise = WalletTransferRequestFactory.open(storage);
+    let WalletPurchasePromise = WalletPurchaseFactory.open(storage);
     let WalletSubscriptionPromise = WalletSubscriptionFactory.open(storage);
     let WalletSubscriptionSchedulingPromise = WalletSubscriptionSchedulingFactory.open(storage);
     let WalletSubscriptionPeriodPromise = WalletSubscriptionPeriodFactory.open(storage);
@@ -18062,6 +18255,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         WalletTransaction: await WalletTransactionPromise,
         WalletDepositRequest: await WalletDepositRequestPromise,
         WalletTransferRequest: await WalletTransferRequestPromise,
+        WalletPurchase: await WalletPurchasePromise,
         WalletSubscription: await WalletSubscriptionPromise,
         WalletSubscriptionScheduling: await WalletSubscriptionSchedulingPromise,
         WalletSubscriptionPeriod: await WalletSubscriptionPeriodPromise,

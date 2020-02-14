@@ -234,7 +234,7 @@ migrations.push({
                         uid: event.content.uid,
                         text: event.content.text || '',
                     });
-                    event.content = {richMessageId: richMessage.id};
+                    event.content = { richMessageId: richMessage.id };
                 }
             }
         });
@@ -368,10 +368,10 @@ migrations.push({
     key: '115-stickers-populate-related-emojis',
     migration: async (parent) => {
         await inTx(parent, async ctx => {
-           let stickers = await Store.Sticker.findAll(ctx);
-           for (let sticker of stickers) {
-               sticker.relatedEmojis = [sticker.emoji];
-           }
+            let stickers = await Store.Sticker.findAll(ctx);
+            for (let sticker of stickers) {
+                sticker.relatedEmojis = [sticker.emoji];
+            }
         });
     }
 });
@@ -387,6 +387,25 @@ migrations.push({
                     let item = await Store.UserStickersState.findById(ctx, key.uid);
                     item!.packIds = item!.packIds.filter((a) => a !== 21);
                     item!.packIds = [21, ...item!.packIds];
+                    await item!.flush(ctx);
+                }
+            });
+        }
+    }
+});
+
+migrations.push({
+    key: '117-add-locked-balance',
+    migration: async (parent) => {
+        let data = await inTx(parent, ctx => Store.Wallet.findAll(ctx));
+        for (let cursor = 0; cursor < data.length; cursor += 100) {
+            let batch = data.slice(cursor, cursor + 100);
+            await inTx(parent, async ctx => {
+                for (let key of batch) {
+                    let item = (await Store.Wallet.findById(ctx, key.uid))!;
+                    if (item.balanceLocked === null) {
+                        item.balanceLocked = 0;
+                    }
                     await item!.flush(ctx);
                 }
             });

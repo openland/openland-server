@@ -1,3 +1,4 @@
+import { WalletPurchaseCreateShape } from './../openland-module-db/store';
 import { OperationsRepository } from './repo/OperationsRepository';
 import { WalletSubscriptionCreateShape } from '../openland-module-db/store';
 import { SubscriptionsRepository } from './repo/SubscriptionsRepository';
@@ -16,6 +17,7 @@ import { startPaymentIntentCommiter } from './workers/PaymentIntentCommiter';
 import { PaymentsRepository } from './repo/PaymentsRepository';
 import { startPaymentScheduler } from './workers/startPaymentScheduler';
 import { startSubscriptionsScheduler } from './workers/startSubscriptionsScheduler';
+import { PurchaseRepository } from './repo/PurchaseRepository';
 
 @injectable()
 export class WalletModule {
@@ -28,8 +30,10 @@ export class WalletModule {
     readonly payments: PaymentsRepository = new PaymentsRepository(Store);
     // Subscriptions repository
     readonly subscriptions: SubscriptionsRepository = new SubscriptionsRepository(Store, this.payments, this.wallet);
+    // Purchases repository
+    readonly purchases: PurchaseRepository = new PurchaseRepository(Store, this.wallet);
     // Routing
-    readonly routing: RoutingRepository = new RoutingRepositoryImpl(Store, this.wallet, this.payments, this.subscriptions);
+    readonly routing: RoutingRepository = new RoutingRepositoryImpl(Store, this.wallet, this.payments, this.subscriptions, this.purchases);
     // Operations repository
     readonly operations: OperationsRepository = new OperationsRepository(Store, this.wallet, this.payments, this.subscriptions);
 
@@ -122,4 +126,16 @@ export class WalletModule {
     createTransferPayment = async (parent: Context, fromUid: number, toUid: number, amount: number, retryKey: string) => {
         return await this.operations.createTransferPayment(parent, fromUid, toUid, amount, retryKey);
     }
+
+    //
+    // Purchases
+    //
+
+    createPurchase = async (parent: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
+        return await this.purchases.createPurchase(parent, uid, amount, product);
+    }
+
+    // getPurchaseIntent = async (parent: Context, id: string) => {
+        
+    // }
 }

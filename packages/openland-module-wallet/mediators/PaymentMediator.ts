@@ -302,6 +302,59 @@ export class PaymentMediator {
     }
 
     //
+    // Create Purhchase Payment Intent
+    //
+
+    tryCreatePurchaseIntent = async (parent: Context, uid: number, pid: string, amount: number) => {
+
+        let purchase = await inTx(parent, async (ctx): Promise<false | string | null> => {
+            let res = await Store.WalletPurchase.findById(parent, pid);
+            if (!res) {
+                return false;
+            }
+            if (res.state !== 'pending') {
+                return false;
+            }
+            return res.pid;
+        });
+        if (purchase === false) {
+            return null;
+        }
+
+        await this.enablePaymentsAndAwait(parent, uid);
+
+        // Load CustomerID
+        let customerId = await this.paymentIntents.getCustomerId(parent, uid);
+
+        // Create Payment Intent
+        let intent = await this.stripe.paymentIntents.create({
+            amount: amount,
+            currency: 'usd',
+            customer: customerId,
+        }, { idempotencyKey: 'purchase-intent-' + uid + '-' + pid });
+
+        // Register Payment Intent
+
+        let purchase2 = await inTx(parent, async (ctx): Promise<false | string | null> => {
+            let res = await Store.WalletPurchase.findById(parent, pid);
+            if (!res) {
+                return false;
+            }
+            if (res.state !== 'pending') {
+                return false;
+            }
+
+            if (res.pid === null) {
+                res.pid = intent.id;
+                await this.paymentIntents.registerPaymentIntent(ctx, intent.id, amount, { type: 'purchase', id: pid });
+            }
+
+            return res.pid;
+        });
+        return purchase2;
+    }
+
+    //
     // Payment Execution
     //
 
@@ -381,7 +434,7 @@ export class PaymentMediator {
         //
 
         let card = await inTx(parent, async (ctx) => {
-            let cards = await Store.UserStripeCard.findAll(ctx);
+            let cards = await Store.UserStripeCard.users.findAll(ctx, uid);
             let dcard = cards.find((v) => v.default);
             return dcard;
         });

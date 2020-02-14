@@ -1265,7 +1265,7 @@ export const Resolver: GQLResolver = {
         debugRecountSeqForMessages: withPermission('super-admin', async (parent, args) => {
            debugTask(parent.auth.uid!, 'debugRecountSeqForMessages', async (log) => {
                let count = 0;
-               let limit = 400;
+               let limit = 100;
                let total = 0;
                try {
                    let stream = Store.Message.updated.stream({ batchSize: limit });
@@ -1279,7 +1279,9 @@ export const Resolver: GQLResolver = {
                            count = messages.length;
                            total += messages.length;
                        });
-                       await log('Proceed ' + total + ' chats');
+                       if (total % 10000 === 0) {
+                           await log('Proceed ' + total + ' messages');
+                       }
                    } while (count === limit && count > 0);
                } catch (e) {
                   return `failed ${e.message}`;

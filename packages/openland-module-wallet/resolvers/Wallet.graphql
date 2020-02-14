@@ -98,6 +98,7 @@ type WalletTransactionConnection {
 #
 # Wallet Subscriptions
 #
+
 type WalletSubscription {
     id: ID!
     state: WalletSubscriptionState!
@@ -124,6 +125,20 @@ type WalletSubscriptionProductDonation {
 }
 
 union WalletSubscriptionProduct = WalletSubscriptionProductGroup | WalletSubscriptionProductDonation
+
+#
+# Wallet Purchases
+#
+
+enum PurchaseState {
+    PENDING, COMPLETED, CANCELED
+}
+
+type Purchase {
+    id: ID!
+    state: PurchaseState!
+    intent: PaymentIntent
+}
 
 #
 # Wallet Updates
@@ -206,6 +221,7 @@ extend type Mutation {
     #
     
     donateToUser(amount: Int!, id: ID!): Boolean!
+    donateToUser2(amount: Int!, id: ID!): Purchase!
 
     #
     # Subscriptions
