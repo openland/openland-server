@@ -12,7 +12,7 @@ import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Organization } from 'openland-module-db/store';
 
-export default {
+export const Resolver: GQLResolver = {
     OrganizationProfile: {
         id: (src: Organization) => IDs.Organization.serialize(src.id),
         name: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.name,
@@ -151,4 +151,4 @@ export default {
             return Modules.Orgs.deleteOrganization(parent, uid, IDs.Organization.parse(args.id));
         })
     }
-} as GQLResolver;
+};
