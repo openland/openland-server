@@ -158,12 +158,12 @@ export const Resolver: GQLResolver = {
             if (!premiumChatSettings) {
                 return null;
             }
-            let interval: 'MONTH' | 'WEEK';
+            let interval: 'MONTH' | 'WEEK' | undefined;
             if (premiumChatSettings.interval === 'month') {
                 interval = 'MONTH';
             } else if (premiumChatSettings.interval === 'week') {
                 interval = 'WEEK';
-            } else {
+            } else if (premiumChatSettings.interval) {
                 throw Error('Unknown subscription interval: ' + premiumChatSettings.interval);
             }
             return { id, price: premiumChatSettings.price, interval };
@@ -236,7 +236,7 @@ export const Resolver: GQLResolver = {
 
             return (await Store.RoomParticipant.active.query(ctx, id, { limit: args.first || 1000 })).items;
         }), []),
-        requests: withAuthFallback(withConverationId(async (ctx, id) => ctx.auth.uid && (await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)) || []) , []),
+        requests: withAuthFallback(withConverationId(async (ctx, id) => ctx.auth.uid && (await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)) || []), []),
         settings: withAuthFallback(async (root, args, ctx) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)), {
             cid: 0,
             mute: true
