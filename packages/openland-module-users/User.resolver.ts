@@ -72,7 +72,7 @@ export function withProfile(handler: (ctx: AppContext, user: User, profile: User
     };
 }
 
-export default {
+export const Resolver: GQLResolver = {
     User: {
         id: withUser((ctx, src) => IDs.User.serialize(src.id), true),
         isBot: withUser((ctx, src) => src.isBot || false, true),
@@ -105,7 +105,7 @@ export default {
         alphaLinkedin: withProfile((ctx, src, profile) => profile && profile.linkedin),
         alphaTwitter: withProfile((ctx, src, profile) => profile && profile.twitter),
 
-        channelsJoined: async (src: User) => [],
+        channelsJoined: () => [],
         alphaLocations: withProfile((ctx, src, profile) => profile && profile.locations),
         chatsWithBadge: withProfile(async (ctx, src, profile) => {
             let res: { cid: number, badge: UserBadge }[] = [];
@@ -144,7 +144,7 @@ export default {
             if (!ctx.auth.uid) {
                 return null;
             } else {
-                return userRootFull(ctx, ctx.auth.uid);
+                return await userRootFull(ctx, ctx.auth.uid);
             }
         },
         user: withAny(async (ctx, args) => {
@@ -159,7 +159,7 @@ export default {
             if (user && user.status === 'deleted') {
                 throw new NotFoundError();
             }
-            return user;
+            return user!;
         }),
         mySuccessfulInvitesCount: withUserResolver(async (ctx, args, uid) => {
             return Store.UserSuccessfulInvitesCounter.get(ctx, uid);
@@ -198,4 +198,4 @@ export default {
             return true;
         }),
     }
-} as GQLResolver;
+};
