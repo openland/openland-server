@@ -302,7 +302,7 @@ export class OrganizationRepository {
             let org = await Store.Organization.findById(ctx, id);
             let profile = await Store.OrganizationProfile.findById(ctx, id);
             profile!.name = title;
-            return org;
+            return org!;
         });
     }
 
