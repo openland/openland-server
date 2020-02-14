@@ -11,7 +11,7 @@ import { NotFoundError } from 'openland-errors/NotFoundError';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { inTx } from '@openland/foundationdb';
 
-export default {
+export const Resolver: GQLResolver = {
     CreditCard: {
         id: (src) => IDs.CreditCard.serialize(src.pmid),
         pmid: (src) => src.pmid,
@@ -24,11 +24,11 @@ export default {
     },
     CardSetupIntent: {
         id: (src) => IDs.CreditCardSetupIntent.serialize(src.id),
-        clientSecret: (src) => src.client_secret
+        clientSecret: (src) => src.client_secret!
     },
     PaymentIntent: {
         id: (src) => IDs.PaymentIntent.serialize(src.id),
-        clientSecret: (src) => src.client_secret
+        clientSecret: (src) => src.client_secret!
     },
 
     WalletAccount: {
@@ -130,7 +130,7 @@ export default {
     },
 
     //
-    // Subscriptions 
+    // Subscriptions
     //
 
     WalletSubscription: {
@@ -174,11 +174,21 @@ export default {
     },
 
     WalletSubscriptionProductGroup: {
-        group: (src) => src.type === 'group' && src.gid
+        group: (src) => {
+            if (src.type === 'group' && src.gid) {
+                return src.gid;
+            }
+            throw new Error('Internal error');
+        }
     },
 
     WalletSubscriptionProductDonation: {
-        user: (src) => src.type === 'donate' && src.uid
+        user: (src) => {
+            if (src.type === 'donate' && src.uid) {
+                return src.uid;
+            }
+            throw new Error('Internal error');
+        }
     },
 
     Query: {
@@ -227,13 +237,13 @@ export default {
             return await Modules.Wallet.createSetupIntent(ctx, uid, args.retryKey);
         }),
         cardCommitSetupIntent: withAccount(async (ctx, args, uid) => {
-            return await Modules.Wallet.registerCard(ctx, uid, args.pmid);
+            return (await Modules.Wallet.registerCard(ctx, uid, args.pmid))!;
         }),
         cardMakeDefault: withAccount(async (ctx, args, uid) => {
-            return await Modules.Wallet.makeCardDefault(ctx, uid, IDs.CreditCard.parse(args.id));
+            return (await Modules.Wallet.makeCardDefault(ctx, uid, IDs.CreditCard.parse(args.id)))!;
         }),
         cardRemove: withAccount(async (ctx, args, uid) => {
-            return await Modules.Wallet.deleteCard(ctx, uid, IDs.CreditCard.parse(args.id));
+            return (await Modules.Wallet.deleteCard(ctx, uid, IDs.CreditCard.parse(args.id)))!;
         }),
 
         //
@@ -339,16 +349,16 @@ export default {
         amount: (src) => src.amount
     },
     WalletUpdateTransactionPending: {
-        transaction: (src, args, ctx) => Store.WalletTransaction.findById(ctx, src.id)
+        transaction: async (src, args, ctx) => (await Store.WalletTransaction.findById(ctx, src.id))!
     },
     WalletUpdateTransactionSuccess: {
-        transaction: (src, args, ctx) => Store.WalletTransaction.findById(ctx, src.id)
+        transaction: async (src, args, ctx) => (await Store.WalletTransaction.findById(ctx, src.id))!
     },
     WalletUpdateTransactionCanceled: {
-        transaction: (src, args, ctx) => Store.WalletTransaction.findById(ctx, src.id)
+        transaction: async (src, args, ctx) => (await Store.WalletTransaction.findById(ctx, src.id))!
     },
     WalletUpdatePaymentStatus: {
-        payment: (src, args, ctx) => Store.Payment.findById(ctx, src.id)
+        payment: async (src, args, ctx) => (await Store.Payment.findById(ctx, src.id))!
     },
 
     Subscription: {
@@ -364,4 +374,4 @@ export default {
             }
         }
     }
-} as GQLResolver;
+};
