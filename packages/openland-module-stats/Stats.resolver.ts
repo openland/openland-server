@@ -8,7 +8,7 @@ import { getLeaderboardsChatId, getSuperNotificationsBotId } from './workers/uti
 import { boldString, buildMessage, heading, insaneString, MessagePart } from '../openland-utils/MessageBuilder';
 import { Organization } from '../openland-module-db/store';
 
-export default {
+export const Resolver: GQLResolver = {
     Query: {
         trendingRoomsByMessages: withAny( async (ctx, args) => {
             return await Modules.Stats.getTrendingRoomsByMessages(ctx, args.from.getTime(), args.to.getTime(), args.size || undefined);
@@ -138,4 +138,4 @@ export default {
             return true;
         }),
     }
-} as GQLResolver;
+};
