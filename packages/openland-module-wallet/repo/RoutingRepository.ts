@@ -96,7 +96,9 @@ export class RoutingRepositoryImpl {
     //
 
     onPurchaseSuccessful = async (ctx: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
-        // TODO: Implement
+        if (product.type === 'group') {
+            await Modules.Messaging.premiumChat.onPurchaseSuccess(ctx, product.gid, uid, amount);
+        }
     }
 
     onPurchaseCanceled = async (ctx: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {

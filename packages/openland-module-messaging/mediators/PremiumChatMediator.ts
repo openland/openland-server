@@ -7,8 +7,9 @@ import { NotFoundError } from 'openland-errors/NotFoundError';
 import { Modules } from 'openland-modules/Modules';
 import { PremiumChatRepository } from 'openland-module-messaging/repositories/PremiumChatRepository';
 import { MessagingMediator } from './MessagingMediator';
-import { buildMessage, userMention, usersMention } from 'openland-utils/MessageBuilder';
+import { buildMessage, userMention, usersMention, roomMention } from 'openland-utils/MessageBuilder';
 import { MessageInput } from 'openland-module-messaging/MessageInput';
+import { formatMoney } from 'openland-module-wallet/repo/utils/formatMoney';
 
 @injectable()
 export class PremiumChatMediator {
@@ -91,10 +92,14 @@ export class PremiumChatMediator {
     }
 
     /**
-     * Payment Period success
+     * Payment Period success - increment balance, notify owner
      */
     onSubscriptionPaymentSuccess = async (ctx: Context, sid: string, cid: number, uid: number) => {
-        // well, ok then, you can stay for now
+        let subscription = (await Store.WalletSubscription.findById(ctx, sid))!;
+        let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
+        let wallet = await Modules.Wallet.getWallet(ctx, ownerId);
+        wallet.balance += subscription.amount;
+        await this.notifyOwner(ctx, ownerId, cid, uid, 'subscription', subscription.amount);
     }
 
     /**
@@ -131,6 +136,17 @@ export class PremiumChatMediator {
      */
     onSubscriptionCanceled = async (ctx: Context, sid: string, cid: number, uid: number) => {
         // ok then
+    }
+
+    /**
+     * Purchase success - increment balance, notify owner
+     */
+    onPurchaseSuccess = async (ctx: Context, cid: number, uid: number, amount: number) => {
+        // TODO: Implement full access
+        let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
+        let wallet = await Modules.Wallet.getWallet(ctx, ownerId);
+        wallet.balance += amount;
+        await this.notifyOwner(ctx, ownerId, cid, uid, 'purchase', amount);
     }
 
     //
@@ -175,5 +191,26 @@ export class PremiumChatMediator {
                 invitedById: uid
             }
         };
+    }
+
+    private async notifyOwner(ctx: Context, ownerId: number, gid: number, uid: number, type: 'subscription' | 'purchase', amount: number) {
+        let billyId = await Modules.Super.getEnvVar<number>(ctx, 'onboarding-bot-id');
+        if (billyId === null) {
+            return;
+        }
+        let user = await Store.UserProfile.findById(ctx, uid);
+        if (!user) {
+            return;
+        }
+        let chat = await Store.RoomProfile.findById(ctx, gid);
+        if (!chat) {
+            return;
+        }
+        let name = await Modules.Users.getUserFullName(ctx, uid);
+
+        let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, billyId, ownerId);
+        let message = buildMessage(userMention(name, uid), ` just paid ${formatMoney(amount)} for `, roomMention(chat.title, gid), ` access (${type})`);
+        await Modules.Messaging.sendMessage(ctx, privateChat.id, billyId, message);
+        Modules.Metrics.onBillyBotMessageRecieved(ctx, uid, `premium_chat_${type}_notification`);
     }
 }
