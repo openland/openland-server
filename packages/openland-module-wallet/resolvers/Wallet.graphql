@@ -182,7 +182,7 @@ type WalletUpdatePaymentStatus {
 }
 
 type WalletUpdateLocked {
-    isLocked: Boolean
+    isLocked: Boolean!
 }
 
 union WalletUpdate = WalletUpdateBalance | WalletUpdateTransactionSuccess | WalletUpdateTransactionCanceled | WalletUpdateTransactionPending | WalletUpdatePaymentStatus | WalletUpdateLocked
