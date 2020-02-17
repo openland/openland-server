@@ -342,7 +342,7 @@ export const Resolver: GQLResolver = {
                 if (subscription.uid !== uid) {
                     throw new AccessDeniedError();
                 }
-                await Modules.Wallet.subscriptions.tryCancelSubscription(ctx, args.id);
+                await Modules.Wallet.subscriptions.tryCancelSubscription(ctx, subscription.id);
                 return subscription;
             });
         }),
