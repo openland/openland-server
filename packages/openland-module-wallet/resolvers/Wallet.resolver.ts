@@ -317,16 +317,7 @@ export const Resolver: GQLResolver = {
             return true;
         }),
         donateToUser2: withAccount(async (ctx, args, uid) => {
-            // Transactional Part
-            let res = await Modules.Wallet.createPurchase(ctx, uid, args.amount, { type: 'donate', uid: IDs.User.parse(args.id) });
-
-            // Non-transactional Part
-            await Modules.Wallet.paymentsMediator.tryCreatePurchaseIntent(ctx, uid, res.id, res.amount - res.lockedAmount);
-
-            // Reload latest state
-            res = (await Store.WalletPurchase.findById(ctx, res.id))!;
-
-            return res;
+            return await Modules.Wallet.purchases.createPurchase(ctx, uid, args.amount, { type: 'donate', uid: IDs.User.parse(args.id) });
         }),
 
         //

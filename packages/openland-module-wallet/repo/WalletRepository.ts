@@ -242,60 +242,174 @@ export class WalletRepository {
     // Purchases
     //
 
-    purchaseCreated = async (parent: Context, uid: number, amount: number, walletAmount: number) => {
+    purchaseCreatedInstant = async (parent: Context, id: string, uid: number, walletAmount: number) => {
+        checkMoney(walletAmount);
         return await inTx(parent, async (ctx) => {
+            let wallet = await this.getWallet(ctx, uid);
             if (walletAmount > 0) {
-                let wallet = await this.getWallet(ctx, uid);
                 if (wallet.balance - wallet.balanceLocked < walletAmount) {
                     throw Error('Invalid walelt amount');
                 }
-                wallet.balanceLocked += walletAmount;
-                this.store.UserWalletUpdates.post(ctx, uid, WalletBalanceChanged.create({ amount: wallet.balance }));
-            }
-        });
-    }
-
-    purchaseSuccessful = async (parent: Context, uid: number, amount: number, walletAmount: number, purchaseId: string, pid: string | null) => {
-        return await inTx(parent, async (ctx) => {
-
-            let wallet = await this.getWallet(ctx, walletAmount);
-            if (walletAmount > 0) {
-                if (wallet.balanceLocked < walletAmount) {
-                    throw Error('Invalid walelt amount');
-                }
-                if (wallet.balance < walletAmount) {
-                    throw Error('Invalid walelt amount');
-                }
-                wallet.balanceLocked -= walletAmount;
                 wallet.balance -= walletAmount;
             }
 
+            // Create Transaction
             let txid = uuid();
             await this.store.WalletTransaction.create(ctx, txid, {
                 uid: uid,
                 status: 'success',
                 operation: {
                     type: 'purchase',
-                    chargeAmount: amount - walletAmount,
-                    walletAmount: walletAmount,
-                    purchase: purchaseId,
-                    payment: pid ? { type: 'payment', id: pid } : { type: 'balance' }
+                    chargeAmount: 0,
+                    walletAmount,
+                    purchase: id,
+                    payment: { type: 'balance' }
                 }
             });
 
+            // Write events           
             this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionSuccess.create({ id: txid }));
             this.store.UserWalletUpdates.post(ctx, uid, WalletBalanceChanged.create({ amount: wallet.balance }));
+            return txid;
         });
     }
 
-    purchaseCanceled = async (parent: Context, uid: number, amount: number, walletAmount: number) => {
+    purchaseCreated = async (parent: Context, id: string, pid: string, uid: number, walletAmount: number, chargeAmount: number) => {
+        if (walletAmount !== 0) {
+            checkMoney(walletAmount);
+        }
+        checkMoney(chargeAmount);
+        checkMoney(walletAmount + chargeAmount);
+
         return await inTx(parent, async (ctx) => {
+            let wallet = await this.getWallet(ctx, uid);
             if (walletAmount > 0) {
-                let wallet = await this.getWallet(ctx, walletAmount);
-                if (wallet.balanceLocked < walletAmount) {
+                if (wallet.balance - wallet.balanceLocked < walletAmount) {
                     throw Error('Invalid walelt amount');
                 }
-                wallet.balanceLocked -= walletAmount;
+                wallet.balance -= walletAmount;
+            }
+
+            // Create Transaction
+            let txid = uuid();
+            await this.store.WalletTransaction.create(ctx, txid, {
+                uid: uid,
+                status: 'pending',
+                operation: {
+                    type: 'purchase',
+                    chargeAmount,
+                    walletAmount,
+                    purchase: id,
+                    payment: {
+                        type: 'payment',
+                        id: pid
+                    }
+                }
+            });
+
+            // Write events           
+            this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionPending.create({ id: txid }));
+            this.store.UserWalletUpdates.post(ctx, uid, WalletBalanceChanged.create({ amount: wallet.balance }));
+            return txid;
+        });
+    }
+
+    purchaseSuccessful = async (parent: Context, uid: number, txid: string) => {
+        return await inTx(parent, async (ctx) => {
+
+            let tx = (await this.store.WalletTransaction.findById(ctx, txid))!;
+            if (!tx) {
+                throw Error('Unable to find transaction');
+            }
+            if (tx.status === 'success' || tx.status === 'canceled') {
+                throw Error('Transaction is in completed state');
+            }
+            if (tx.operation.type !== 'purchase') {
+                throw Error('Transaction has invalid operation type');
+            }
+            if (tx.uid !== uid) {
+                throw Error('UID mismatch');
+            }
+
+            tx.status = 'success';
+
+            this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionSuccess.create({ id: txid }));
+        });
+    }
+
+    purchaseFailing = async (parent: Context, uid: number, txid: string) => {
+        return await inTx(parent, async (ctx) => {
+
+            let tx = (await this.store.WalletTransaction.findById(ctx, txid))!;
+            if (!tx) {
+                throw Error('Unable to find transaction');
+            }
+            if (tx.status === 'success' || tx.status === 'canceled') {
+                throw Error('Transaction is in completed state');
+            }
+            if (tx.operation.type !== 'purchase') {
+                throw Error('Transaction has invalid operation type');
+            }
+            if (tx.operation.payment.type !== 'payment') {
+                throw Error('Transaction has invalid payment reference');
+            }
+            if (tx.uid !== uid) {
+                throw Error('UID mismatch');
+            }
+
+            // Write event
+            this.store.UserWalletUpdates.post(ctx, uid, PaymentStatusChanged.create({ id: tx.operation.payment.id }));
+        });
+    }
+
+    purchaseActionNeeded = async (parent: Context, uid: number, txid: string) => {
+        return await inTx(parent, async (ctx) => {
+
+            let tx = (await this.store.WalletTransaction.findById(ctx, txid))!;
+            if (!tx) {
+                throw Error('Unable to find transaction');
+            }
+            if (tx.status === 'success' || tx.status === 'canceled') {
+                throw Error('Transaction is in completed state');
+            }
+            if (tx.operation.type !== 'purchase') {
+                throw Error('Transaction has invalid operation type');
+            }
+            if (tx.operation.payment.type !== 'payment') {
+                throw Error('Transaction has invalid payment reference');
+            }
+            if (tx.uid !== uid) {
+                throw Error('UID mismatch');
+            }
+
+            // Write event
+            this.store.UserWalletUpdates.post(ctx, uid, PaymentStatusChanged.create({ id: tx.operation.payment.id }));
+        });
+    }
+
+    purchaseCanceled = async (parent: Context, uid: number, txid: string) => {
+        return await inTx(parent, async (ctx) => {
+
+            let tx = (await this.store.WalletTransaction.findById(ctx, txid))!;
+            if (!tx) {
+                throw Error('Unable to find transaction');
+            }
+            if (tx.status === 'success' || tx.status === 'canceled') {
+                throw Error('Transaction is in completed state');
+            }
+            if (tx.operation.type !== 'purchase') {
+                throw Error('Transaction has invalid operation type');
+            }
+            if (tx.uid !== uid) {
+                throw Error('UID mismatch');
+            }
+
+            tx.status = 'canceled';
+
+            // Reverce balance
+            if (tx.operation.walletAmount > 0) {
+                let wallet = await this.getWallet(ctx, uid);
+                wallet.balance += tx.operation.walletAmount;
                 this.store.UserWalletUpdates.post(ctx, uid, WalletBalanceChanged.create({ amount: wallet.balance }));
             }
         });

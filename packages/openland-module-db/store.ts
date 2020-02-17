@@ -13915,22 +13915,20 @@ export class WalletTransferRequestFactory extends EntityFactory<WalletTransferRe
 export interface WalletPurchaseShape {
     id: string;
     uid: number;
+    pid: string | null;
+    txid: string;
     amount: number;
     product: { type: 'group', gid: number } | { type: 'donate', uid: number };
     state: 'pending' | 'canceled' | 'success';
-    succeededAt: number | null;
-    lockedAmount: number;
-    pid: string | null;
 }
 
 export interface WalletPurchaseCreateShape {
     uid: number;
+    pid?: string | null | undefined;
+    txid: string;
     amount: number;
     product: { type: 'group', gid: number } | { type: 'donate', uid: number };
     state: 'pending' | 'canceled' | 'success';
-    succeededAt?: number | null | undefined;
-    lockedAmount: number;
-    pid?: string | null | undefined;
 }
 
 export class WalletPurchase extends Entity<WalletPurchaseShape> {
@@ -13941,6 +13939,24 @@ export class WalletPurchase extends Entity<WalletPurchaseShape> {
         if (this._rawValue.uid !== normalized) {
             this._rawValue.uid = normalized;
             this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get pid(): string | null { return this._rawValue.pid; }
+    set pid(value: string | null) {
+        let normalized = this.descriptor.codec.fields.pid.normalize(value);
+        if (this._rawValue.pid !== normalized) {
+            this._rawValue.pid = normalized;
+            this._updatedValues.pid = normalized;
+            this.invalidate();
+        }
+    }
+    get txid(): string { return this._rawValue.txid; }
+    set txid(value: string) {
+        let normalized = this.descriptor.codec.fields.txid.normalize(value);
+        if (this._rawValue.txid !== normalized) {
+            this._rawValue.txid = normalized;
+            this._updatedValues.txid = normalized;
             this.invalidate();
         }
     }
@@ -13971,33 +13987,6 @@ export class WalletPurchase extends Entity<WalletPurchaseShape> {
             this.invalidate();
         }
     }
-    get succeededAt(): number | null { return this._rawValue.succeededAt; }
-    set succeededAt(value: number | null) {
-        let normalized = this.descriptor.codec.fields.succeededAt.normalize(value);
-        if (this._rawValue.succeededAt !== normalized) {
-            this._rawValue.succeededAt = normalized;
-            this._updatedValues.succeededAt = normalized;
-            this.invalidate();
-        }
-    }
-    get lockedAmount(): number { return this._rawValue.lockedAmount; }
-    set lockedAmount(value: number) {
-        let normalized = this.descriptor.codec.fields.lockedAmount.normalize(value);
-        if (this._rawValue.lockedAmount !== normalized) {
-            this._rawValue.lockedAmount = normalized;
-            this._updatedValues.lockedAmount = normalized;
-            this.invalidate();
-        }
-    }
-    get pid(): string | null { return this._rawValue.pid; }
-    set pid(value: string | null) {
-        let normalized = this.descriptor.codec.fields.pid.normalize(value);
-        if (this._rawValue.pid !== normalized) {
-            this._rawValue.pid = normalized;
-            this._updatedValues.pid = normalized;
-            this.invalidate();
-        }
-    }
 }
 
 export class WalletPurchaseFactory extends EntityFactory<WalletPurchaseShape, WalletPurchase> {
@@ -14011,21 +14000,19 @@ export class WalletPurchaseFactory extends EntityFactory<WalletPurchaseShape, Wa
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'pid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'txid', type: { type: 'string' }, secure: false });
         fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'product', type: { type: 'union', types: { group: { gid: { type: 'integer' } }, donate: { uid: { type: 'integer' } } } }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'canceled', 'success'] }, secure: false });
-        fields.push({ name: 'succeededAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
-        fields.push({ name: 'lockedAmount', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'pid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
             id: c.string,
             uid: c.integer,
+            pid: c.optional(c.string),
+            txid: c.string,
             amount: c.integer,
             product: c.union({ group: c.struct({ gid: c.integer }), donate: c.struct({ uid: c.integer }) }),
             state: c.enum('pending', 'canceled', 'success'),
-            succeededAt: c.optional(c.integer),
-            lockedAmount: c.integer,
-            pid: c.optional(c.string),
         });
         let descriptor: EntityDescriptor<WalletPurchaseShape> = {
             name: 'WalletPurchase',
@@ -14562,7 +14549,7 @@ export interface PaymentShape {
     uid: number;
     amount: number;
     state: 'pending' | 'success' | 'action_required' | 'failing' | 'canceled';
-    operation: { type: 'deposit', uid: number, txid: string } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, fromTx: string, toUid: number, toTx: string };
+    operation: { type: 'deposit', uid: number, txid: string } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, fromTx: string, toUid: number, toTx: string } | { type: 'purchase', id: string };
     piid: string | null;
 }
 
@@ -14570,7 +14557,7 @@ export interface PaymentCreateShape {
     uid: number;
     amount: number;
     state: 'pending' | 'success' | 'action_required' | 'failing' | 'canceled';
-    operation: { type: 'deposit', uid: number, txid: string } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, fromTx: string, toUid: number, toTx: string };
+    operation: { type: 'deposit', uid: number, txid: string } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, fromTx: string, toUid: number, toTx: string } | { type: 'purchase', id: string };
     piid?: string | null | undefined;
 }
 
@@ -14603,8 +14590,8 @@ export class Payment extends Entity<PaymentShape> {
             this.invalidate();
         }
     }
-    get operation(): { type: 'deposit', uid: number, txid: string } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, fromTx: string, toUid: number, toTx: string } { return this._rawValue.operation; }
-    set operation(value: { type: 'deposit', uid: number, txid: string } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, fromTx: string, toUid: number, toTx: string }) {
+    get operation(): { type: 'deposit', uid: number, txid: string } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, fromTx: string, toUid: number, toTx: string } | { type: 'purchase', id: string } { return this._rawValue.operation; }
+    set operation(value: { type: 'deposit', uid: number, txid: string } | { type: 'subscription', uid: number, subscription: string, period: number, txid: string } | { type: 'transfer', fromUid: number, fromTx: string, toUid: number, toTx: string } | { type: 'purchase', id: string }) {
         let normalized = this.descriptor.codec.fields.operation.normalize(value);
         if (this._rawValue.operation !== normalized) {
             this._rawValue.operation = normalized;
@@ -14637,14 +14624,14 @@ export class PaymentFactory extends EntityFactory<PaymentShape, Payment> {
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'amount', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['pending', 'success', 'action_required', 'failing', 'canceled'] }, secure: false });
-        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' }, txid: { type: 'string' } }, subscription: { uid: { type: 'integer' }, subscription: { type: 'string' }, period: { type: 'integer' }, txid: { type: 'string' } }, transfer: { fromUid: { type: 'integer' }, fromTx: { type: 'string' }, toUid: { type: 'integer' }, toTx: { type: 'string' } } } }, secure: false });
+        fields.push({ name: 'operation', type: { type: 'union', types: { deposit: { uid: { type: 'integer' }, txid: { type: 'string' } }, subscription: { uid: { type: 'integer' }, subscription: { type: 'string' }, period: { type: 'integer' }, txid: { type: 'string' } }, transfer: { fromUid: { type: 'integer' }, fromTx: { type: 'string' }, toUid: { type: 'integer' }, toTx: { type: 'string' } }, purchase: { id: { type: 'string' } } } }, secure: false });
         fields.push({ name: 'piid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
             id: c.string,
             uid: c.integer,
             amount: c.integer,
             state: c.enum('pending', 'success', 'action_required', 'failing', 'canceled'),
-            operation: c.union({ deposit: c.struct({ uid: c.integer, txid: c.string }), subscription: c.struct({ uid: c.integer, subscription: c.string, period: c.integer, txid: c.string }), transfer: c.struct({ fromUid: c.integer, fromTx: c.string, toUid: c.integer, toTx: c.string }) }),
+            operation: c.union({ deposit: c.struct({ uid: c.integer, txid: c.string }), subscription: c.struct({ uid: c.integer, subscription: c.string, period: c.integer, txid: c.string }), transfer: c.struct({ fromUid: c.integer, fromTx: c.string, toUid: c.integer, toTx: c.string }), purchase: c.struct({ id: c.string }) }),
             piid: c.optional(c.string),
         });
         let descriptor: EntityDescriptor<PaymentShape> = {

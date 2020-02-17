@@ -27,7 +27,7 @@ export class RoutingRepositoryImpl {
     // Payment Events
     //
 
-    onPaymentSuccess = async (ctx: Context, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
+    onPaymentSuccess = async (ctx: Context, uid: number, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
             await this.wallet.depositAsyncCommit(ctx, operation.uid, operation.txid);
             await this.wallet.updateIsLocked(ctx, operation.uid);
@@ -38,12 +38,15 @@ export class RoutingRepositoryImpl {
         } else if (operation.type === 'transfer') {
             await this.wallet.transferAsyncCommit(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx);
             await this.wallet.updateIsLocked(ctx, operation.fromUid);
+        } else if (operation.type === 'purchase') {
+            await this.purchases.onPurchaseSuccessful(ctx, operation.id);
+            await this.wallet.updateIsLocked(ctx, uid);
         } else {
             throw Error('Unknown operation type');
         }
     }
 
-    onPaymentFailing = async (ctx: Context, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
+    onPaymentFailing = async (ctx: Context, uid: number, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
             await this.wallet.depositAsyncFailing(ctx, operation.uid, operation.txid);
             await this.wallet.updateIsLocked(ctx, operation.uid);
@@ -54,12 +57,15 @@ export class RoutingRepositoryImpl {
         } else if (operation.type === 'transfer') {
             await this.wallet.transferAsyncFailing(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx, pid);
             await this.wallet.updateIsLocked(ctx, operation.fromUid);
+        } else if (operation.type === 'purchase') {
+            await this.purchases.onPurchaseFailing(ctx, operation.id);
+            await this.wallet.updateIsLocked(ctx, uid);
         } else {
             throw Error('Unknown operation type');
         }
     }
 
-    onPaymentActionNeeded = async (ctx: Context, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
+    onPaymentActionNeeded = async (ctx: Context, uid: number, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
             await this.wallet.depositAsyncActionNeeded(ctx, operation.uid, operation.txid);
             await this.wallet.updateIsLocked(ctx, operation.uid);
@@ -70,12 +76,15 @@ export class RoutingRepositoryImpl {
         } else if (operation.type === 'transfer') {
             await this.wallet.transferAsyncActionNeeded(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx, pid);
             await this.wallet.updateIsLocked(ctx, operation.fromUid);
+        } else if (operation.type === 'purchase') {
+            await this.purchases.onPurchaseNeedAction(ctx, operation.id);
+            await this.wallet.updateIsLocked(ctx, uid);
         } else {
             throw Error('Unknown operation type');
         }
     }
 
-    onPaymentCanceled = async (ctx: Context, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
+    onPaymentCanceled = async (ctx: Context, uid: number, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
             await this.wallet.depositAsyncCancel(ctx, operation.uid, operation.txid);
             await this.wallet.updateIsLocked(ctx, operation.uid);
@@ -86,6 +95,9 @@ export class RoutingRepositoryImpl {
         } else if (operation.type === 'transfer') {
             await this.wallet.transferAsyncCancel(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx);
             await this.wallet.updateIsLocked(ctx, operation.fromUid);
+        } else if (operation.type === 'purchase') {
+            await this.purchases.onPurchaseCanceled(ctx, operation.id);
+            await this.wallet.updateIsLocked(ctx, uid);
         } else {
             throw Error('Unknown operation type');
         }
@@ -95,10 +107,23 @@ export class RoutingRepositoryImpl {
     // Purchase Events
     //
 
+    onPurchaseCreated = async (ctx: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
+        // TODO: Implement
+    }
+
     onPurchaseSuccessful = async (ctx: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
-        if (product.type === 'group') {
-            await Modules.Messaging.premiumChat.onPurchaseSuccess(ctx, product.gid, uid, amount);
-        }
+        // if (product.type === 'group') {
+        //     await Modules.Messaging.premiumChat.onPurchaseSuccess(ctx, product.gid, uid, amount);
+        // }
+        // TODO: Implement
+    }
+
+    onPurchaseFailing = async (ctx: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
+        // TODO: Implement
+    }
+
+    onPurchaseNeedAction = async (ctx: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
+        // TODO: Implement
     }
 
     onPurchaseCanceled = async (ctx: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
@@ -196,7 +221,8 @@ export class RoutingRepositoryImpl {
         } else if (operation.type === 'payment') {
             await this.payments.handlePaymentIntentSuccess(ctx, operation.id);
         } else if (operation.type === 'purchase') {
-            await this.purchases.onPurchaseSuccessful(ctx, operation.id);
+            // Obsolete
+            // await this.purchases.onPurchaseSuccessful(ctx, operation.id);
         } else {
             throw Error('Unknown operation type');
         }
@@ -208,7 +234,8 @@ export class RoutingRepositoryImpl {
         } else if (operation.type === 'payment') {
             await this.payments.handlePaymentIntentCanceled(ctx, operation.id);
         } else if (operation.type === 'purchase') {
-            await this.purchases.onPurchaseCanceled(ctx, operation.id);
+            // Obsolete
+            // await this.purchases.onPurchaseCanceled(ctx, operation.id);
         } else {
             throw Error('Unknown operation type');
         }
@@ -220,7 +247,7 @@ export class RoutingRepositoryImpl {
         } else if (operation.type === 'payment') {
             await this.payments.handlePaymentActionRequired(ctx, operation.id);
         } else if (operation.type === 'purchase') {
-            // Nothing To Do
+            // Obsolete
         } else {
             throw Error('Unknown operation type');
         }
@@ -232,7 +259,7 @@ export class RoutingRepositoryImpl {
         } else if (operation.type === 'payment') {
             await this.payments.handlePaymentFailing(ctx, operation.id);
         } else if (operation.type === 'purchase') {
-            // Nothing To Do
+            // Obsolete
         } else {
             throw Error('Unknown operation type');
         }

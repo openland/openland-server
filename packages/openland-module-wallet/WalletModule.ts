@@ -33,7 +33,7 @@ export class WalletModule {
     // Subscriptions repository
     readonly subscriptions: SubscriptionsRepository = new SubscriptionsRepository(Store, this.payments, this.wallet);
     // Purchases repository
-    readonly purchases: PurchaseRepository = new PurchaseRepository(Store, this.wallet);
+    readonly purchases: PurchaseRepository = new PurchaseRepository(Store, this.wallet, this.payments);
     // Routing
     readonly routing: RoutingRepository = new RoutingRepositoryImpl(Store, this.wallet, this.payments, this.subscriptions, this.purchases);
     // Operations repository
@@ -153,6 +153,6 @@ export class WalletModule {
     }
 
     // getPurchaseIntent = async (parent: Context, id: string) => {
-        
+
     // }
 }

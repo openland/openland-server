@@ -1705,7 +1705,7 @@ export default declareSchema(() => {
     entity('WalletTransaction', () => {
         primaryKey('id', string());
         field('uid', integer());
-        field('status', enumString('pending', 'canceling', 'canceled', 'success'));
+        field('status', enumString('pending', 'canceled', 'success'));
 
         field('operation', union({
             'deposit': struct({
@@ -1756,6 +1756,8 @@ export default declareSchema(() => {
     entity('WalletPurchase', () => {
         primaryKey('id', string());
         field('uid', integer());
+        field('pid', optional(string()));
+        field('txid', string());
 
         // Product
         field('amount', integer());
@@ -1768,11 +1770,6 @@ export default declareSchema(() => {
             })
         }));
         field('state', enumString('pending', 'canceled', 'success'));
-        field('succeededAt', optional(integer()));
-
-        // Payment
-        field('lockedAmount', integer());
-        field('pid', optional(string()));
 
         // Indexes
         rangeIndex('user', ['uid', 'createdAt']);
@@ -1849,6 +1846,9 @@ export default declareSchema(() => {
             toUid: integer(),
             toTx: string(),
         }),
+        'purchase': struct({
+            id: string()
+        })
     });
 
     entity('PaymentIntent', () => {
