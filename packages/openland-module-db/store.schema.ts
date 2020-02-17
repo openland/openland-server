@@ -1699,6 +1699,7 @@ export default declareSchema(() => {
         primaryKey('uid', integer());
         field('balance', integer());
         field('balanceLocked', integer());
+        field('isLocked', optional(boolean()));
     });
 
     entity('WalletTransaction', () => {
@@ -1867,6 +1868,7 @@ export default declareSchema(() => {
         field('piid', optional(string()));
         rangeIndex('user', ['uid', 'createdAt']);
         rangeIndex('pending', ['id']).withCondition((s) => s.state === 'pending' || s.state === 'failing');
+        rangeIndex('userFailing', ['uid', 'createdAt']).withCondition((s) => s.state === 'failing' || s.state === 'action_required');
     });
 
     entity('PaymentScheduling', () => {
@@ -1899,6 +1901,9 @@ export default declareSchema(() => {
     });
     event('WalletBalanceChanged', () => {
         field('amount', integer());
+    });
+    event('WalletLockedChanged', () => {
+        field('isLocked', boolean());
     });
 
     //

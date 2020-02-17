@@ -69,7 +69,7 @@ import {
     WalletSubscription,
     PremiumChatSettings,
     WalletSubscriptionCreateShape,
-    SuperAdmin, RoomParticipant, ChannelInvitation, ChannelLink, WalletPurchase
+    SuperAdmin, RoomParticipant, ChannelInvitation, ChannelLink, WalletPurchase, WalletLockedChanged
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -588,6 +588,7 @@ export namespace GQLRoots {
     export type WalletUpdateTransactionCanceledRoot = WalletTransactionCanceled;
     export type WalletUpdateTransactionPendingRoot = WalletTransactionPending;
     export type WalletUpdatePaymentStatusRoot = PaymentStatusChanged;
+    export type WalletUpdateLockedRoot = WalletLockedChanged;
     export type WalletTransactionConnectionRoot = any;
 
     export type WalletUpdateRoot = BaseEvent;

@@ -987,6 +987,7 @@ export const Resolver: GQLResolver = {
                     body: args.message,
                     title: 'test',
                     conversationId: 2,
+                    deepLink: null,
                     counter: 0,
                     desktop: true,
                     mobile: true,

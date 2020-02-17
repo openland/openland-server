@@ -13548,11 +13548,13 @@ export interface WalletShape {
     uid: number;
     balance: number;
     balanceLocked: number;
+    isLocked: boolean | null;
 }
 
 export interface WalletCreateShape {
     balance: number;
     balanceLocked: number;
+    isLocked?: boolean | null | undefined;
 }
 
 export class Wallet extends Entity<WalletShape> {
@@ -13575,6 +13577,15 @@ export class Wallet extends Entity<WalletShape> {
             this.invalidate();
         }
     }
+    get isLocked(): boolean | null { return this._rawValue.isLocked; }
+    set isLocked(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.isLocked.normalize(value);
+        if (this._rawValue.isLocked !== normalized) {
+            this._rawValue.isLocked = normalized;
+            this._updatedValues.isLocked = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class WalletFactory extends EntityFactory<WalletShape, Wallet> {
@@ -13587,10 +13598,12 @@ export class WalletFactory extends EntityFactory<WalletShape, Wallet> {
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'balance', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'balanceLocked', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'isLocked', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             uid: c.integer,
             balance: c.integer,
             balanceLocked: c.integer,
+            isLocked: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<WalletShape> = {
             name: 'Wallet',
@@ -14617,6 +14630,7 @@ export class PaymentFactory extends EntityFactory<PaymentShape, Payment> {
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('payment', 'user'), condition: undefined });
         secondaryIndexes.push({ name: 'pending', storageKey: 'pending', type: { type: 'range', fields: [{ name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('payment', 'pending'), condition: (s) => s.state === 'pending' || s.state === 'failing' });
+        secondaryIndexes.push({ name: 'userFailing', storageKey: 'userFailing', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('payment', 'userFailing'), condition: (s) => s.state === 'failing' || s.state === 'action_required' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -14672,6 +14686,21 @@ export class PaymentFactory extends EntityFactory<PaymentShape, Payment> {
         },
         liveStream: (ctx: Context, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
+        },
+    });
+
+    readonly userFailing = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[2], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [uid], opts);
         },
     });
 
@@ -17428,6 +17457,35 @@ export class WalletBalanceChanged extends BaseEvent {
     get amount(): number { return this.raw.amount; }
 }
 
+const walletLockedChangedCodec = c.struct({
+    isLocked: c.boolean,
+});
+
+interface WalletLockedChangedShape {
+    isLocked: boolean;
+}
+
+export class WalletLockedChanged extends BaseEvent {
+
+    static create(data: WalletLockedChangedShape) {
+        return new WalletLockedChanged(walletLockedChangedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new WalletLockedChanged(walletLockedChangedCodec.decode(data));
+    }
+
+    static encode(event: WalletLockedChanged) {
+        return walletLockedChangedCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('walletLockedChanged', data);
+    }
+
+    get isLocked(): boolean { return this.raw.isLocked; }
+}
+
 const stripeEventCreatedCodec = c.struct({
     id: c.string,
     eventType: c.string,
@@ -17945,6 +18003,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('walletTransactionCanceled', WalletTransactionCanceled.encode as any, WalletTransactionCanceled.decode);
     eventFactory.registerEventType('paymentStatusChanged', PaymentStatusChanged.encode as any, PaymentStatusChanged.decode);
     eventFactory.registerEventType('walletBalanceChanged', WalletBalanceChanged.encode as any, WalletBalanceChanged.decode);
+    eventFactory.registerEventType('walletLockedChanged', WalletLockedChanged.encode as any, WalletLockedChanged.decode);
     eventFactory.registerEventType('stripeEventCreated', StripeEventCreated.encode as any, StripeEventCreated.decode);
     let ConversationLastSeqPromise = ConversationLastSeqFactory.open(storage);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);

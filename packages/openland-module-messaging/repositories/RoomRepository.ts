@@ -67,6 +67,7 @@ export class RoomRepository {
                     price,
                     interval: interval,
                 });
+                await Store.PremiumChatUserPass.create(ctx, id, uid, { isActive: true });
             }
             await this.createRoomParticipant(ctx, id, uid, {
                 role: 'owner',

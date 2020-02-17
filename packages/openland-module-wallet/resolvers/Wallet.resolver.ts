@@ -5,7 +5,7 @@ import { withAccount } from 'openland-module-api/Resolvers';
 import { IDs } from 'openland-module-api/IDs';
 import { GQLResolver, GQL } from 'openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
-import { WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, WalletTransactionCanceled, PaymentStatusChanged } from 'openland-module-db/store';
+import { WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, WalletTransactionCanceled, PaymentStatusChanged, WalletLockedChanged } from 'openland-module-db/store';
 import { randomKey } from 'openland-utils/random';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
@@ -42,7 +42,8 @@ export const Resolver: GQLResolver = {
     WalletAccount: {
         id: (src) => IDs.WalletAccount.serialize(src.uid),
         balance: (src) => src.balance,
-        state: async (src, args, ctx) => IDs.WalletUpdatesCursor.serialize(await Store.UserWalletUpdates.createStream(src.uid, { batchSize: 20 }).tail(ctx) || '')
+        state: async (src, args, ctx) => IDs.WalletUpdatesCursor.serialize(await Store.UserWalletUpdates.createStream(src.uid, { batchSize: 20 }).tail(ctx) || ''),
+        isLocked: (src, args, ctx) => Modules.Wallet.isLocked(ctx, src.uid)
     },
 
     WalletTransaction: {
@@ -386,7 +387,10 @@ export const Resolver: GQLResolver = {
                 return 'WalletUpdateTransactionCanceled';
             } else if (obj instanceof PaymentStatusChanged) {
                 return 'WalletUpdatePaymentStatus';
+            } else if (obj instanceof WalletLockedChanged) {
+                return 'WalletUpdateLocked';
             }
+
             throw Error('Unknown event type: ' + obj.type);
         }
     },
@@ -404,6 +408,9 @@ export const Resolver: GQLResolver = {
     },
     WalletUpdatePaymentStatus: {
         payment: async (src, args, ctx) => (await Store.Payment.findById(ctx, src.id))!
+    },
+    WalletUpdateLocked: {
+        isLocked: (src, args, ctx) => Modules.Wallet.isLocked(ctx, ctx.auth.uid!)
     },
 
     Subscription: {

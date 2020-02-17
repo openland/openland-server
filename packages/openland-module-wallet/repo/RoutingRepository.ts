@@ -30,11 +30,14 @@ export class RoutingRepositoryImpl {
     onPaymentSuccess = async (ctx: Context, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
             await this.wallet.depositAsyncCommit(ctx, operation.uid, operation.txid);
+            await this.wallet.updateIsLocked(ctx, operation.uid);
         } else if (operation.type === 'subscription') {
             await this.wallet.subscriptionPaymentCommit(ctx, operation.uid, operation.txid);
             await this.subscriptions.handlePaymentSuccess(ctx, operation.uid, operation.subscription, operation.period, pid, Date.now());
+            await this.wallet.updateIsLocked(ctx, operation.uid);
         } else if (operation.type === 'transfer') {
             await this.wallet.transferAsyncCommit(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx);
+            await this.wallet.updateIsLocked(ctx, operation.fromUid);
         } else {
             throw Error('Unknown operation type');
         }
@@ -43,11 +46,14 @@ export class RoutingRepositoryImpl {
     onPaymentFailing = async (ctx: Context, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
             await this.wallet.depositAsyncFailing(ctx, operation.uid, operation.txid);
+            await this.wallet.updateIsLocked(ctx, operation.uid);
         } else if (operation.type === 'subscription') {
             await this.wallet.subscriptionPaymentFailing(ctx, operation.uid, operation.txid, pid);
             await this.subscriptions.handlePaymentFailing(ctx, operation.uid, operation.subscription, operation.period, pid, Date.now());
+            await this.wallet.updateIsLocked(ctx, operation.uid);
         } else if (operation.type === 'transfer') {
             await this.wallet.transferAsyncFailing(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx, pid);
+            await this.wallet.updateIsLocked(ctx, operation.fromUid);
         } else {
             throw Error('Unknown operation type');
         }
@@ -56,11 +62,14 @@ export class RoutingRepositoryImpl {
     onPaymentActionNeeded = async (ctx: Context, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
             await this.wallet.depositAsyncActionNeeded(ctx, operation.uid, operation.txid);
+            await this.wallet.updateIsLocked(ctx, operation.uid);
         } else if (operation.type === 'subscription') {
             await this.wallet.subscriptionPaymentActionNeeded(ctx, operation.uid, operation.txid, pid);
             await this.subscriptions.handlePaymentFailing(ctx, operation.uid, operation.subscription, operation.period, pid, Date.now());
+            await this.wallet.updateIsLocked(ctx, operation.uid);
         } else if (operation.type === 'transfer') {
             await this.wallet.transferAsyncActionNeeded(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx, pid);
+            await this.wallet.updateIsLocked(ctx, operation.fromUid);
         } else {
             throw Error('Unknown operation type');
         }
@@ -69,11 +78,14 @@ export class RoutingRepositoryImpl {
     onPaymentCanceled = async (ctx: Context, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
         if (operation.type === 'deposit') {
             await this.wallet.depositAsyncCancel(ctx, operation.uid, operation.txid);
+            await this.wallet.updateIsLocked(ctx, operation.uid);
         } else if (operation.type === 'subscription') {
             await this.wallet.subscriptionPaymentCancel(ctx, operation.uid, operation.txid);
             await this.subscriptions.handlePaymentCanceled(ctx, operation.uid, operation.subscription, operation.period, pid, Date.now());
+            await this.wallet.updateIsLocked(ctx, operation.uid);
         } else if (operation.type === 'transfer') {
             await this.wallet.transferAsyncCancel(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx);
+            await this.wallet.updateIsLocked(ctx, operation.fromUid);
         } else {
             throw Error('Unknown operation type');
         }

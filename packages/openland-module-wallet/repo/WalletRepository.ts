@@ -1,8 +1,9 @@
 import { uuid } from 'openland-utils/uuid';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
-import { Store, WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, PaymentStatusChanged, WalletTransactionCanceled } from '../../openland-module-db/store';
+import { Store, WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, PaymentStatusChanged, WalletTransactionCanceled, WalletLockedChanged } from '../../openland-module-db/store';
 import { checkMoney } from './utils/checkMoney';
+import { Modules } from 'openland-modules/Modules';
 
 export class WalletRepository {
     readonly store: Store;
@@ -18,6 +19,43 @@ export class WalletRepository {
                 res = await this.store.Wallet.create(ctx, uid, { balance: 0, balanceLocked: 0 });
             }
             return res;
+        });
+    }
+
+    isLocked = async (parent: Context, uid: number) => {
+        return !!(await this.getWallet(parent, uid)).isLocked;
+    }
+
+    updateIsLocked = async (parent: Context, uid: number) => {
+        return await inTx(parent, async (ctx) => {
+            let wallet = await this.getWallet(parent, uid);
+            let oldState = !!wallet.isLocked;
+            let isLocked = (await this.store.Payment.userFailing.findAll(ctx, uid)).length > 0;
+            wallet.isLocked = isLocked;
+            await wallet.flush(ctx);
+            if (oldState !== isLocked) {
+                this.store.UserWalletUpdates.post(ctx, uid, WalletLockedChanged.create({ isLocked }));
+                // TODO: send email
+                if (isLocked) {
+                    await Modules.Push.pushWork(ctx, {
+                        uid: uid,
+                        counter: null,
+                        conversationId: null,
+                        deepLink: 'wallet',
+                        mobile: true,
+                        desktop: true,
+                        picture: null,
+                        silent: false,
+                        title: 'Transaction failed',
+                        body: 'We couldn’t complete some transactions. Please go to wallet and check this.',
+                        mobileAlert: true,
+                        mobileIncludeText: true
+                    });
+                } else {
+                    await Modules.Push.sendCounterPush(ctx, uid);
+                }
+
+            }
         });
     }
 

@@ -51,6 +51,7 @@ type WalletAccount {
     id: ID!
     balance: Int!
     state: String!
+    isLocked: Boolean!
 }
 
 #
@@ -180,7 +181,11 @@ type WalletUpdatePaymentStatus {
     payment: Payment!
 }
 
-union WalletUpdate = WalletUpdateBalance | WalletUpdateTransactionSuccess | WalletUpdateTransactionCanceled | WalletUpdateTransactionPending | WalletUpdatePaymentStatus
+type WalletUpdateLocked {
+    isLocked: Boolean
+}
+
+union WalletUpdate = WalletUpdateBalance | WalletUpdateTransactionSuccess | WalletUpdateTransactionCanceled | WalletUpdateTransactionPending | WalletUpdatePaymentStatus | WalletUpdateLocked
 
 #
 # Operations

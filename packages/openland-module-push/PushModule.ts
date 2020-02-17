@@ -46,6 +46,7 @@ export class PushModule {
             uid: uid,
             counter: 0,
             conversationId: null,
+            deepLink: null,
             mobile: true,
             desktop: false,
             picture: null,
