@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'e736d6982434631583c4d93b330830c3';
+export const GQL_SPEC_VERSION = '457b6db813b9428ba9ecc1cf34e5969e';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -570,20 +570,47 @@ export namespace GQL {
     }
     export interface WalletTransactionDepositAmountArgs { }
     export interface WalletTransactionDepositPaymentArgs { }
+    export type WalletIncomeSource = WalletSubscription | Purchase;
+    export interface WalletTransactionIncome {
+        amount: number;
+        payment: Nullable<Payment>;
+        source: Nullable<WalletIncomeSource>;
+    }
+    export interface WalletTransactionIncomeAmountArgs { }
+    export interface WalletTransactionIncomePaymentArgs { }
+    export interface WalletTransactionIncomeSourceArgs { }
     export interface WalletTransactionSubscription {
         amount: number;
+        walletAmount: number;
+        chargeAmount: number;
         payment: Nullable<Payment>;
         subscription: WalletSubscription;
     }
     export interface WalletTransactionSubscriptionAmountArgs { }
+    export interface WalletTransactionSubscriptionWalletAmountArgs { }
+    export interface WalletTransactionSubscriptionChargeAmountArgs { }
     export interface WalletTransactionSubscriptionPaymentArgs { }
     export interface WalletTransactionSubscriptionSubscriptionArgs { }
+    export interface WalletTransactionPurchase {
+        amount: number;
+        walletAmount: number;
+        chargeAmount: number;
+        payment: Nullable<Payment>;
+        purchase: Purchase;
+    }
+    export interface WalletTransactionPurchaseAmountArgs { }
+    export interface WalletTransactionPurchaseWalletAmountArgs { }
+    export interface WalletTransactionPurchaseChargeAmountArgs { }
+    export interface WalletTransactionPurchasePaymentArgs { }
+    export interface WalletTransactionPurchasePurchaseArgs { }
     export interface WalletTransactionTransferOut {
+        amount: number;
         walletAmount: number;
         chargeAmount: number;
         payment: Nullable<Payment>;
         toUser: User;
     }
+    export interface WalletTransactionTransferOutAmountArgs { }
     export interface WalletTransactionTransferOutWalletAmountArgs { }
     export interface WalletTransactionTransferOutChargeAmountArgs { }
     export interface WalletTransactionTransferOutPaymentArgs { }
@@ -596,7 +623,7 @@ export namespace GQL {
     export interface WalletTransactionTransferInAmountArgs { }
     export interface WalletTransactionTransferInFromUserArgs { }
     export interface WalletTransactionTransferInPaymentArgs { }
-    export type WalletTransactionOperation = WalletTransactionDeposit | WalletTransactionSubscription | WalletTransactionTransferOut | WalletTransactionTransferIn;
+    export type WalletTransactionOperation = WalletTransactionDeposit | WalletTransactionIncome | WalletTransactionSubscription | WalletTransactionPurchase | WalletTransactionTransferOut | WalletTransactionTransferIn;
     export interface WalletTransactionConnection {
         items: WalletTransaction[];
         cursor: Nullable<string>;
@@ -608,7 +635,7 @@ export namespace GQL {
         state: WalletSubscriptionState;
         amount: number;
         interval: WalletSubscriptionInterval;
-        product: WalletSubscriptionProduct;
+        product: WalletProduct;
         expires: Date;
     }
     export interface WalletSubscriptionIdArgs { }
@@ -621,25 +648,27 @@ export namespace GQL {
     export type WalletSubscriptionState = GQLRoots.WalletSubscriptionStateRoot;
     export type WalletSubscriptionIntervalValues = 'MONTH' | 'WEEK';
     export type WalletSubscriptionInterval = GQLRoots.WalletSubscriptionIntervalRoot;
-    export interface WalletSubscriptionProductGroup {
+    export interface WalletProductGroup {
         group: SharedRoom;
     }
-    export interface WalletSubscriptionProductGroupGroupArgs { }
-    export interface WalletSubscriptionProductDonation {
+    export interface WalletProductGroupGroupArgs { }
+    export interface WalletProductDonation {
         user: User;
     }
-    export interface WalletSubscriptionProductDonationUserArgs { }
-    export type WalletSubscriptionProduct = WalletSubscriptionProductGroup | WalletSubscriptionProductDonation;
+    export interface WalletProductDonationUserArgs { }
+    export type WalletProduct = WalletProductGroup | WalletProductDonation;
     export type PurchaseStateValues = 'PENDING' | 'COMPLETED' | 'CANCELED';
     export type PurchaseState = GQLRoots.PurchaseStateRoot;
     export interface Purchase {
         id: string;
         state: PurchaseState;
         intent: Nullable<PaymentIntent>;
+        product: WalletProduct;
     }
     export interface PurchaseIdArgs { }
     export interface PurchaseStateArgs { }
     export interface PurchaseIntentArgs { }
+    export interface PurchaseProductArgs { }
     export interface WalletUpdateSingle {
         state: string;
         update: WalletUpdate;
@@ -2059,6 +2088,7 @@ export namespace GQL {
         betaRoomsJoin: Room[];
         betaRoomDeclineJoinRequest: Room;
         betaBuyPremiumChatSubscription: SharedRoom;
+        betaBuyPremiumChatPass: SharedRoom;
         betaRoomInviteLinkSendEmail: string;
         betaRoomInviteLinkJoin: Room;
         betaRoomInviteLinkRenew: string;
@@ -3088,6 +3118,9 @@ export namespace GQL {
         userId: string;
     }
     export interface MutationBetaBuyPremiumChatSubscriptionArgs {
+        chatId: string;
+    }
+    export interface MutationBetaBuyPremiumChatPassArgs {
         chatId: string;
     }
     export interface MutationBetaRoomInviteLinkSendEmailArgs {
@@ -5748,6 +5781,20 @@ export interface GQLResolver {
             payment: GQL.WalletTransactionDepositPaymentArgs,
         }
     >;
+    WalletIncomeSource?: UnionTypeResolver<GQLRoots.WalletIncomeSourceRoot, 'WalletSubscription' | 'Purchase'>;
+    WalletTransactionIncome?: ComplexTypedResolver<
+        GQL.WalletTransactionIncome,
+        GQLRoots.WalletTransactionIncomeRoot,
+        {
+            payment: Nullable<GQLRoots.PaymentRoot>,
+            source: Nullable<GQLRoots.WalletIncomeSourceRoot>,
+        },
+        {
+            amount: GQL.WalletTransactionIncomeAmountArgs,
+            payment: GQL.WalletTransactionIncomePaymentArgs,
+            source: GQL.WalletTransactionIncomeSourceArgs,
+        }
+    >;
     WalletTransactionSubscription?: ComplexTypedResolver<
         GQL.WalletTransactionSubscription,
         GQLRoots.WalletTransactionSubscriptionRoot,
@@ -5757,8 +5804,25 @@ export interface GQLResolver {
         },
         {
             amount: GQL.WalletTransactionSubscriptionAmountArgs,
+            walletAmount: GQL.WalletTransactionSubscriptionWalletAmountArgs,
+            chargeAmount: GQL.WalletTransactionSubscriptionChargeAmountArgs,
             payment: GQL.WalletTransactionSubscriptionPaymentArgs,
             subscription: GQL.WalletTransactionSubscriptionSubscriptionArgs,
+        }
+    >;
+    WalletTransactionPurchase?: ComplexTypedResolver<
+        GQL.WalletTransactionPurchase,
+        GQLRoots.WalletTransactionPurchaseRoot,
+        {
+            payment: Nullable<GQLRoots.PaymentRoot>,
+            purchase: GQLRoots.PurchaseRoot,
+        },
+        {
+            amount: GQL.WalletTransactionPurchaseAmountArgs,
+            walletAmount: GQL.WalletTransactionPurchaseWalletAmountArgs,
+            chargeAmount: GQL.WalletTransactionPurchaseChargeAmountArgs,
+            payment: GQL.WalletTransactionPurchasePaymentArgs,
+            purchase: GQL.WalletTransactionPurchasePurchaseArgs,
         }
     >;
     WalletTransactionTransferOut?: ComplexTypedResolver<
@@ -5769,6 +5833,7 @@ export interface GQLResolver {
             toUser: GQLRoots.UserRoot,
         },
         {
+            amount: GQL.WalletTransactionTransferOutAmountArgs,
             walletAmount: GQL.WalletTransactionTransferOutWalletAmountArgs,
             chargeAmount: GQL.WalletTransactionTransferOutChargeAmountArgs,
             payment: GQL.WalletTransactionTransferOutPaymentArgs,
@@ -5788,7 +5853,7 @@ export interface GQLResolver {
             payment: GQL.WalletTransactionTransferInPaymentArgs,
         }
     >;
-    WalletTransactionOperation?: UnionTypeResolver<GQLRoots.WalletTransactionOperationRoot, 'WalletTransactionDeposit' | 'WalletTransactionSubscription' | 'WalletTransactionTransferOut' | 'WalletTransactionTransferIn'>;
+    WalletTransactionOperation?: UnionTypeResolver<GQLRoots.WalletTransactionOperationRoot, 'WalletTransactionDeposit' | 'WalletTransactionIncome' | 'WalletTransactionSubscription' | 'WalletTransactionPurchase' | 'WalletTransactionTransferOut' | 'WalletTransactionTransferIn'>;
     WalletTransactionConnection?: ComplexTypedResolver<
         GQL.WalletTransactionConnection,
         GQLRoots.WalletTransactionConnectionRoot,
@@ -5804,7 +5869,7 @@ export interface GQLResolver {
         GQL.WalletSubscription,
         GQLRoots.WalletSubscriptionRoot,
         {
-            product: GQLRoots.WalletSubscriptionProductRoot,
+            product: GQLRoots.WalletProductRoot,
         },
         {
             id: GQL.WalletSubscriptionIdArgs,
@@ -5817,38 +5882,40 @@ export interface GQLResolver {
     >;
     WalletSubscriptionState?: EnumTypeResolver<'STARTED' | 'GRACE_PERIOD' | 'RETRYING' | 'CANCELED' | 'EXPIRED', GQLRoots.WalletSubscriptionStateRoot>;
     WalletSubscriptionInterval?: EnumTypeResolver<'MONTH' | 'WEEK', GQLRoots.WalletSubscriptionIntervalRoot>;
-    WalletSubscriptionProductGroup?: ComplexTypedResolver<
-        GQL.WalletSubscriptionProductGroup,
-        GQLRoots.WalletSubscriptionProductGroupRoot,
+    WalletProductGroup?: ComplexTypedResolver<
+        GQL.WalletProductGroup,
+        GQLRoots.WalletProductGroupRoot,
         {
             group: GQLRoots.SharedRoomRoot,
         },
         {
-            group: GQL.WalletSubscriptionProductGroupGroupArgs,
+            group: GQL.WalletProductGroupGroupArgs,
         }
     >;
-    WalletSubscriptionProductDonation?: ComplexTypedResolver<
-        GQL.WalletSubscriptionProductDonation,
-        GQLRoots.WalletSubscriptionProductDonationRoot,
+    WalletProductDonation?: ComplexTypedResolver<
+        GQL.WalletProductDonation,
+        GQLRoots.WalletProductDonationRoot,
         {
             user: GQLRoots.UserRoot,
         },
         {
-            user: GQL.WalletSubscriptionProductDonationUserArgs,
+            user: GQL.WalletProductDonationUserArgs,
         }
     >;
-    WalletSubscriptionProduct?: UnionTypeResolver<GQLRoots.WalletSubscriptionProductRoot, 'WalletSubscriptionProductGroup' | 'WalletSubscriptionProductDonation'>;
+    WalletProduct?: UnionTypeResolver<GQLRoots.WalletProductRoot, 'WalletProductGroup' | 'WalletProductDonation'>;
     PurchaseState?: EnumTypeResolver<'PENDING' | 'COMPLETED' | 'CANCELED', GQLRoots.PurchaseStateRoot>;
     Purchase?: ComplexTypedResolver<
         GQL.Purchase,
         GQLRoots.PurchaseRoot,
         {
             intent: Nullable<GQLRoots.PaymentIntentRoot>,
+            product: GQLRoots.WalletProductRoot,
         },
         {
             id: GQL.PurchaseIdArgs,
             state: GQL.PurchaseStateArgs,
             intent: GQL.PurchaseIntentArgs,
+            product: GQL.PurchaseProductArgs,
         }
     >;
     WalletUpdateSingle?: ComplexTypedResolver<
@@ -7399,6 +7466,7 @@ export interface GQLResolver {
             betaRoomsJoin: GQLRoots.RoomRoot[],
             betaRoomDeclineJoinRequest: GQLRoots.RoomRoot,
             betaBuyPremiumChatSubscription: GQLRoots.SharedRoomRoot,
+            betaBuyPremiumChatPass: GQLRoots.SharedRoomRoot,
             betaRoomInviteLinkJoin: GQLRoots.RoomRoot,
             betaRoomUpdateUserNotificationSettings: GQLRoots.RoomUserNotificaionSettingsRoot,
             betaRoomsInviteUser: GQLRoots.RoomRoot[],
@@ -7686,6 +7754,7 @@ export interface GQLResolver {
             betaRoomsJoin: GQL.MutationBetaRoomsJoinArgs,
             betaRoomDeclineJoinRequest: GQL.MutationBetaRoomDeclineJoinRequestArgs,
             betaBuyPremiumChatSubscription: GQL.MutationBetaBuyPremiumChatSubscriptionArgs,
+            betaBuyPremiumChatPass: GQL.MutationBetaBuyPremiumChatPassArgs,
             betaRoomInviteLinkSendEmail: GQL.MutationBetaRoomInviteLinkSendEmailArgs,
             betaRoomInviteLinkJoin: GQL.MutationBetaRoomInviteLinkJoinArgs,
             betaRoomInviteLinkRenew: GQL.MutationBetaRoomInviteLinkRenewArgs,

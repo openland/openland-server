@@ -1734,6 +1734,11 @@ export default declareSchema(() => {
                 purchase: string(),
                 payment: PaymentReference
             }),
+            'income': struct({
+                amount: integer(),
+                source: enumString('subscription', 'purchase'),
+                id: string()
+            }),
         }));
 
         rangeIndex('pending', ['uid', 'createdAt']).withCondition((s) => s.status === 'pending' || s.status === 'canceling');

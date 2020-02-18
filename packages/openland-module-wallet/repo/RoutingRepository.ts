@@ -107,27 +107,34 @@ export class RoutingRepositoryImpl {
     // Purchase Events
     //
 
-    onPurchaseCreated = async (ctx: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
-        // TODO: Implement
+    onPurchaseCreated = async (ctx: Context, pid: string, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
+        if (product.type === 'group') {
+            await Modules.Messaging.premiumChat.onPurchaseCreated(ctx, pid, product.gid, uid, amount);
+        }
     }
 
-    onPurchaseSuccessful = async (ctx: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
-        // if (product.type === 'group') {
-        //     await Modules.Messaging.premiumChat.onPurchaseSuccess(ctx, product.gid, uid, amount);
-        // }
-        // TODO: Implement
+    onPurchaseSuccessful = async (ctx: Context, pid: string, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
+        if (product.type === 'group') {
+            await Modules.Messaging.premiumChat.onPurchaseSuccess(ctx, pid, product.gid, uid, amount);
+        }
     }
 
-    onPurchaseFailing = async (ctx: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
-        // TODO: Implement
+    onPurchaseFailing = async (ctx: Context, pid: string, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
+        if (product.type === 'group') {
+            await Modules.Messaging.premiumChat.onPurchaseFailing(ctx, pid, product.gid, uid, amount);
+        }
     }
 
-    onPurchaseNeedAction = async (ctx: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
-        // TODO: Implement
+    onPurchaseNeedAction = async (ctx: Context, pid: string, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
+        if (product.type === 'group') {
+            await Modules.Messaging.premiumChat.onPurchaseNeedAction(ctx, pid, product.gid, uid, amount);
+        }
     }
 
-    onPurchaseCanceled = async (ctx: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
-        // TODO: Implement
+    onPurchaseCanceled = async (ctx: Context, pid: string, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
+        if (product.type === 'group') {
+            await Modules.Messaging.premiumChat.onPurchaseCanceled(ctx, pid, product.gid, uid, amount);
+        }
     }
 
     //

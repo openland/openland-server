@@ -793,6 +793,13 @@ export const Resolver: GQLResolver = {
                 return cid;
             });
         }),
+        betaBuyPremiumChatPass: withUser(async (parent, args, uid) => {
+            return inTx(parent, async (ctx) => {
+                let cid = IDs.Conversation.parse(args.chatId);
+                await Modules.Messaging.premiumChat.buyPremiumChatPass(ctx, cid, uid);
+                return cid;
+            });
+        }),
         // invite links
         betaRoomInviteLinkSendEmail: withUser(async (parent, args, uid) => {
             await validate({

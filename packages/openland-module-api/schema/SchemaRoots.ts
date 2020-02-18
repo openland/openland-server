@@ -580,6 +580,9 @@ export namespace GQLRoots {
     export type WalletTransactionSubscriptionRoot = WalletTransactionCreateShape['operation'];
     export type WalletTransactionTransferInRoot = WalletTransactionCreateShape['operation'];
     export type WalletTransactionTransferOutRoot = WalletTransactionCreateShape['operation'];
+    export type WalletTransactionIncomeRoot = WalletTransactionCreateShape['operation'];
+    export type WalletTransactionPurchaseRoot = WalletTransactionCreateShape['operation'];
+    
     export type WalletUpdateContainerRoot = LiveStreamItem<BaseEvent>;
     export type WalletUpdateBatchRoot = LiveStreamItem<BaseEvent>;
     export type WalletUpdateSingleRoot = LiveStreamItem<BaseEvent>;
@@ -596,9 +599,11 @@ export namespace GQLRoots {
     export type PaymentRoot = Payment;
 
     export type WalletSubscriptionRoot = WalletSubscription;
-    export type WalletSubscriptionProductRoot = WalletSubscriptionCreateShape['proudct'];
-    export type WalletSubscriptionProductGroupRoot = WalletSubscriptionCreateShape['proudct'];
-    export type WalletSubscriptionProductDonationRoot = WalletSubscriptionCreateShape['proudct'];
+    export type WalletProductRoot = WalletSubscriptionCreateShape['proudct'];
+    export type WalletProductGroupRoot = WalletSubscriptionCreateShape['proudct'];
+    export type WalletProductDonationRoot = WalletSubscriptionCreateShape['proudct'];
+
+    export type WalletIncomeSourceRoot = WalletSubscriptionRoot | PurchaseRoot;
 
     export type PaymentStatusRoot = PaymentStatusValues;
     export type WalletTransactionStatusRoot = WalletTransactionStatusValues;

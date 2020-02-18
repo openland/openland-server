@@ -56,6 +56,34 @@ export class PremiumChatMediator {
         });
     }
 
+    async buyPremiumChatPass(parent: Context, cid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let chat = await Store.ConversationRoom.findById(ctx, cid);
+            if (!chat || !chat.ownerId) {
+                throw new NotFoundError('Chat owner not found');
+            }
+            if (!chat.isPremium) {
+                throw new Error('Chat is free to join');
+            }
+            let paidChatSettings = await Store.PremiumChatSettings.findById(ctx, chat.id);
+            if (!paidChatSettings) {
+                throw new Error('Inconsistent state - chat is paid, but no payment settings found');
+            }
+            if (paidChatSettings.interval) {
+                throw new Error('You are trying to buy pass to subscription group');
+            }
+
+            let userPass = await Store.PremiumChatUserPass.findById(ctx, chat.id, uid);
+            if (userPass && userPass.isActive) {
+                // nothing to do, user already have access
+                throw new Error('User already have access to this chat');
+            }
+
+            await Modules.Wallet.createPurchase(ctx, uid, paidChatSettings.price, { type: 'group', gid: cid });
+            await this.alterProChatUserPass(ctx, cid, uid, true);
+        });
+    }
+
     async alterProChatUserPass(parent: Context, cid: number, uid: number, activeSubscription: string | boolean) {
         return inTx(parent, async (ctx) => {
             let conv = await Store.ConversationRoom.findById(ctx, cid);
@@ -88,7 +116,7 @@ export class PremiumChatMediator {
      * Payment failing, but subscription is still alive
      */
     onSubscriptionFailing = async (ctx: Context, sid: string, cid: number, uid: number) => {
-        // nothing to do, push/email about subscription failing should be sent
+        // nothing to do, push/email about payment failing should be sent
     }
 
     /**
@@ -97,8 +125,7 @@ export class PremiumChatMediator {
     onSubscriptionPaymentSuccess = async (ctx: Context, sid: string, cid: number, uid: number) => {
         let subscription = (await Store.WalletSubscription.findById(ctx, sid))!;
         let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
-        let wallet = await Modules.Wallet.getWallet(ctx, ownerId);
-        wallet.balance += subscription.amount;
+        await Modules.Wallet.wallet.income(ctx, ownerId, subscription.amount, { type: 'subscription', id: sid });
         await this.notifyOwner(ctx, ownerId, cid, uid, 'subscription', subscription.amount);
     }
 
@@ -114,7 +141,6 @@ export class PremiumChatMediator {
      */
     onSubscriptionPaused = async (ctx: Context, sid: string, cid: number, uid: number) => {
         await this.alterProChatUserPass(ctx, cid, uid, false);
-        // TODO: send message/push?
     }
 
     /**
@@ -138,15 +164,37 @@ export class PremiumChatMediator {
         // ok then
     }
 
+    //
+    // Purchase
+    //
+    // TODO: Implement full and read-only access
+    //
+    onPurchaseCreated = async (ctx: Context, pid: string, uid: number, amount: number, cid: number) => {
+        // Nothing to do, read-only access should be granted by this time
+    }
+
     /**
      * Purchase success - increment balance, notify owner
      */
-    onPurchaseSuccess = async (ctx: Context, cid: number, uid: number, amount: number) => {
-        // TODO: Implement full access
+    onPurchaseSuccess = async (ctx: Context, pid: string, cid: number, uid: number, amount: number) => {
+        // TODO: grant full access here
         let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
-        let wallet = await Modules.Wallet.getWallet(ctx, ownerId);
-        wallet.balance += amount;
+        await Modules.Wallet.wallet.income(ctx, ownerId, amount, { type: 'purchase', id: pid });
         await this.notifyOwner(ctx, ownerId, cid, uid, 'purchase', amount);
+    }
+
+    onPurchaseFailing = async (ctx: Context, pid: string, uid: number, amount: number, cid: number) => {
+        // Nothing to do, access should be read-only right after purchase
+        // push/email about payment failing should be sent, wallet locked
+    }
+
+    onPurchaseNeedAction = async (ctx: Context, pid: string, uid: number, amount: number, cid: number) => {
+        // Nothing to do, access should be read-only right after purchase
+        // push/email about payment failing should be sent, wallet locked
+    }
+
+    onPurchaseCanceled = async (ctx: Context, pid: string, uid: number, amount: number, cid: number) => {
+        // How so?
     }
 
     //

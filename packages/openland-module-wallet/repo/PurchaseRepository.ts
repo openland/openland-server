@@ -47,10 +47,10 @@ export class PurchaseRepository {
 
                 // Callbacks
                 if (this.routing.onPurchaseCreated) {
-                    await this.routing.onPurchaseCreated(ctx, uid, amount, product);
+                    await this.routing.onPurchaseCreated(ctx, res.id, uid, amount, product);
                 }
                 if (this.routing.onPurchaseSuccessful) {
-                    await this.routing.onPurchaseSuccessful(ctx, uid, amount, product);
+                    await this.routing.onPurchaseSuccessful(ctx, res.id, uid, amount, product);
                 }
                 return res;
             } else {
@@ -74,7 +74,7 @@ export class PurchaseRepository {
 
                 // Callbacks
                 if (this.routing.onPurchaseCreated) {
-                    await this.routing.onPurchaseCreated(ctx, uid, amount, product);
+                    await this.routing.onPurchaseCreated(ctx, res.id, uid, amount, product);
                 }
                 return res;
             }
@@ -98,7 +98,7 @@ export class PurchaseRepository {
 
             // Do Routing
             if (this.routing.onPurchaseSuccessful) {
-                await this.routing.onPurchaseSuccessful(ctx, purchase.uid, purchase.amount, purchase.product);
+                await this.routing.onPurchaseSuccessful(ctx, id, purchase.uid, purchase.amount, purchase.product);
             }
         });
     }
@@ -115,7 +115,7 @@ export class PurchaseRepository {
 
             // Do Routing
             if (this.routing.onPurchaseFailing) {
-                await this.routing.onPurchaseFailing(ctx, purchase.uid, purchase.amount, purchase.product);
+                await this.routing.onPurchaseFailing(ctx, purchase.id, purchase.uid, purchase.amount, purchase.product);
             }
         });
     }
@@ -132,7 +132,7 @@ export class PurchaseRepository {
 
             // Do Routing
             if (this.routing.onPurchaseNeedAction) {
-                await this.routing.onPurchaseNeedAction(ctx, purchase.uid, purchase.amount, purchase.product);
+                await this.routing.onPurchaseNeedAction(ctx, purchase.id, purchase.uid, purchase.amount, purchase.product);
             }
         });
     }
@@ -149,7 +149,7 @@ export class PurchaseRepository {
             await this.wallet.purchaseCanceled(ctx, purchase.uid, purchase.txid);
 
             if (this.routing.onPurchaseCanceled) {
-                await this.routing.onPurchaseCanceled(ctx, purchase.uid, purchase.amount, purchase.product);
+                await this.routing.onPurchaseCanceled(ctx, purchase.id, purchase.uid, purchase.amount, purchase.product);
             }
         });
     }

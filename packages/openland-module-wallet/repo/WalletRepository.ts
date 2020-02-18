@@ -239,6 +239,34 @@ export class WalletRepository {
     }
 
     //
+    // Income
+    //
+
+    income = async (parent: Context, uid: number, amount: number, source: { type: 'purchase', id: string } | { type: 'subscription', id: string }) => {
+        await inTx(parent, async (ctx) => {
+            // Update Wallet
+            let wallet = await this.getWallet(ctx, uid);
+            wallet.balance += amount;
+
+            let txid = uuid();
+            await this.store.WalletTransaction.create(ctx, txid, {
+                uid: uid,
+                status: 'success',
+                operation: {
+                    type: 'income',
+                    amount: amount,
+                    source: source.type,
+                    id: source.id
+                }
+            });
+
+            // Write events
+            this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionSuccess.create({ id: txid }));
+            this.store.UserWalletUpdates.post(ctx, uid, WalletBalanceChanged.create({ amount: wallet.balance }));
+        });
+    }
+
+    //
     // Purchases
     //
 
