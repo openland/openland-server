@@ -135,14 +135,26 @@ export const Resolver: GQLResolver = {
         amount: (src) => ((src as any).chargeAmount + (src as any).walletAmount) * -1,
         chargeAmount: (src) => (src as any).chargeAmount,
         walletAmount: (src) => (src as any).walletAmount,
-        payment: (src, args, ctx) => (src as any).payment && Store.Payment.findById(ctx, (src as any).payment!.id),
+        payment: async (src, args, ctx) => {
+            if (src.type === 'purchase' && src.payment.type === 'paymentIntent') {
+                return Store.Payment.findById(ctx, src.payment.id);
+            }
+
+            return null;
+        },
         purchase: async (src, srgs, ctx) => (await Store.WalletPurchase.findById(ctx, (src as any).purchase))!
     },
     WalletTransactionTransferOut: {
         amount: (src) => ((src as any).chargeAmount + (src as any).walletAmount) * -1,
         chargeAmount: (src) => (src as any).chargeAmount,
         walletAmount: (src) => (src as any).walletAmount,
-        payment: (src, args, ctx) => (src as any).payment && Store.Payment.findById(ctx, (src as any).payment!.id),
+        payment: async (src, args, ctx) => {
+            if (src.type === 'transfer_out' && src.payment.type === 'paymentIntent') {
+                return Store.Payment.findById(ctx, src.payment.id);
+            }
+
+            return null;
+        },
         toUser: (src) => (src as any).toUser
     },
 
