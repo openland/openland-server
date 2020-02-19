@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '1a3e55b8b4f8af6b73183e70021ec0b1';
+export const GQL_SPEC_VERSION = 'f08f4aad3b6bb8cc49188ca9b109666f';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -905,6 +905,7 @@ export namespace GQL {
         alphaTopMessage: Nullable<ModernMessage>;
         isMuted: boolean;
         haveMention: boolean;
+        membership: SharedRoomMembershipStatus;
     }
     export interface DialogIdArgs { }
     export interface DialogCidArgs { }
@@ -920,6 +921,7 @@ export namespace GQL {
     export interface DialogAlphaTopMessageArgs { }
     export interface DialogIsMutedArgs { }
     export interface DialogHaveMentionArgs { }
+    export interface DialogMembershipArgs { }
     export interface DialogsConnection {
         items: Dialog[];
         cursor: Nullable<string>;
@@ -1508,6 +1510,7 @@ export namespace GQL {
         haveMention: boolean;
         silent: SilentMessageInfo;
         showNotification: SilentMessageInfo;
+        membership: SharedRoomMembershipStatus;
     }
     export interface DialogMessageReceivedCidArgs { }
     export interface DialogMessageReceivedMessageArgs { }
@@ -1518,6 +1521,7 @@ export namespace GQL {
     export interface DialogMessageReceivedHaveMentionArgs { }
     export interface DialogMessageReceivedSilentArgs { }
     export interface DialogMessageReceivedShowNotificationArgs { }
+    export interface DialogMessageReceivedMembershipArgs { }
     export interface DialogMessageUpdated {
         cid: string;
         message: ConversationMessage;
@@ -1586,12 +1590,14 @@ export namespace GQL {
         unread: number;
         topMessage: Nullable<ModernMessage>;
         haveMention: boolean;
+        membership: SharedRoomMembershipStatus;
     }
     export interface DialogBumpCidArgs { }
     export interface DialogBumpGlobalUnreadArgs { }
     export interface DialogBumpUnreadArgs { }
     export interface DialogBumpTopMessageArgs { }
     export interface DialogBumpHaveMentionArgs { }
+    export interface DialogBumpMembershipArgs { }
     export interface DialogMuteChanged {
         cid: string;
         mute: boolean;
@@ -6260,6 +6266,7 @@ export interface GQLResolver {
             alphaTopMessage: GQL.DialogAlphaTopMessageArgs,
             isMuted: GQL.DialogIsMutedArgs,
             haveMention: GQL.DialogHaveMentionArgs,
+            membership: GQL.DialogMembershipArgs,
         }
     >;
     DialogsConnection?: ComplexTypedResolver<
@@ -6942,6 +6949,7 @@ export interface GQLResolver {
             haveMention: GQL.DialogMessageReceivedHaveMentionArgs,
             silent: GQL.DialogMessageReceivedSilentArgs,
             showNotification: GQL.DialogMessageReceivedShowNotificationArgs,
+            membership: GQL.DialogMessageReceivedMembershipArgs,
         }
     >;
     DialogMessageUpdated?: ComplexTypedResolver<
@@ -7037,6 +7045,7 @@ export interface GQLResolver {
             unread: GQL.DialogBumpUnreadArgs,
             topMessage: GQL.DialogBumpTopMessageArgs,
             haveMention: GQL.DialogBumpHaveMentionArgs,
+            membership: GQL.DialogBumpMembershipArgs,
         }
     >;
     DialogMuteChanged?: ComplexTypedResolver<

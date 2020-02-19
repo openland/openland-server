@@ -35,6 +35,7 @@ type DialogMessageReceived {
     haveMention: Boolean!
     silent: SilentMessageInfo!
     showNotification: SilentMessageInfo!
+    membership: SharedRoomMembershipStatus!
 }
 
 type DialogMessageUpdated {
@@ -86,6 +87,7 @@ type DialogBump {
     unread: Int!
     topMessage: ModernMessage
     haveMention: Boolean!
+    membership: SharedRoomMembershipStatus!
 }
 
 type DialogMuteChanged {

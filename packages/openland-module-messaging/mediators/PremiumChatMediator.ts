@@ -92,18 +92,24 @@ export class PremiumChatMediator {
             }
 
             let membershipChanged = await this.repo.alterPaidChatUserPass(ctx, cid, uid, activeSubscription);
-            if (activeSubscription && membershipChanged) {
-                let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
+            if (membershipChanged) {
+                if (activeSubscription) {
+                    let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
 
-                if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
-                    let uids: number[] = prevMessage.serviceMetadata.userIds;
-                    uids.push(uid);
+                    if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
+                        let uids: number[] = prevMessage.serviceMetadata.userIds;
+                        uids.push(uid);
 
-                    await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, uid, uids, true), false);
-                    await this.messaging.bumpDialog(ctx, uid, cid);
+                        await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, uid, uids, true), false);
+                        await this.messaging.bumpDialog(ctx, uid, cid);
+                    } else {
+                        await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, uid, [uid]));
+                    }
                 } else {
-                    await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, uid, [uid]));
+                    await this.messaging.sendMessage(ctx, uid, cid, await this.roomLeaveMessage(ctx, uid), true);
+                    await this.messaging.bumpDialog(ctx, uid, cid);
                 }
+
             }
         });
     }
@@ -133,7 +139,7 @@ export class PremiumChatMediator {
      * Recovered from failing state
      */
     onSubscriptionRecovered = async (ctx: Context, sid: string, cid: number, uid: number) => {
-        // good for you
+        await this.alterProChatUserPass(ctx, cid, uid, sid);
     }
 
     /**
@@ -238,6 +244,20 @@ export class PremiumChatMediator {
                 userIds: uids,
                 invitedById: uid
             }
+        };
+    }
+
+    private async roomLeaveMessage(parent: Context, uid: number): Promise<MessageInput> {
+        let name = await Modules.Users.getUserFullName(parent, uid);
+        return {
+            ...buildMessage(userMention(name, uid), ' left the group'),
+            isService: true,
+            isMuted: true,
+            serviceMetadata: {
+                type: 'user_kick',
+                userId: uid,
+                kickedById: uid
+            },
         };
     }
 
