@@ -60,7 +60,7 @@ export class PurchaseRepository {
                 await this.payments.createPayment(ctx, pid, uid, amount, { type: 'purchase', id: id });
 
                 // Wallet Transaction
-                let txid = await this.wallet.purchaseCreated(ctx, id, pid, uid, amount, amounts.wallet);
+                let txid = await this.wallet.purchaseCreated(ctx, id, pid, uid, amounts.wallet, amounts.charge);
 
                 // Purchase
                 let res = await this.store.WalletPurchase.create(parent, id, {
