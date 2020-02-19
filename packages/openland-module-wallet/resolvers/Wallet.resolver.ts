@@ -5,7 +5,7 @@ import { withAccount } from 'openland-module-api/Resolvers';
 import { IDs } from 'openland-module-api/IDs';
 import { GQLResolver, GQL } from 'openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
-import { WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, WalletTransactionCanceled, PaymentStatusChanged } from 'openland-module-db/store';
+import { WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, WalletTransactionCanceled, PaymentStatusChanged, WalletLockedChanged, WalletSubscription, WalletPurchase } from 'openland-module-db/store';
 import { randomKey } from 'openland-utils/random';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
@@ -42,7 +42,8 @@ export const Resolver: GQLResolver = {
     WalletAccount: {
         id: (src) => IDs.WalletAccount.serialize(src.uid),
         balance: (src) => src.balance,
-        state: async (src, args, ctx) => IDs.WalletUpdatesCursor.serialize(await Store.UserWalletUpdates.createStream(src.uid, { batchSize: 20 }).tail(ctx) || '')
+        state: async (src, args, ctx) => IDs.WalletUpdatesCursor.serialize(await Store.UserWalletUpdates.createStream(src.uid, { batchSize: 20 }).tail(ctx) || ''),
+        isLocked: (src, args, ctx) => Modules.Wallet.isLocked(ctx, src.uid)
     },
 
     WalletTransaction: {
@@ -53,8 +54,6 @@ export const Resolver: GQLResolver = {
                 return 'SUCCESS';
             } else if (src.status === 'canceled') {
                 return 'CANCELED';
-            } else if (src.status === 'canceling') {
-                return 'CANCELING';
             } else if (src.status === 'pending') {
                 return 'PENDING';
             }
@@ -71,8 +70,12 @@ export const Resolver: GQLResolver = {
         __resolveType: (src) => {
             if (src.type === 'deposit') {
                 return 'WalletTransactionDeposit';
+            } else if (src.type === 'income') {
+                return 'WalletTransactionIncome';
             } else if (src.type === 'subscription') {
                 return 'WalletTransactionSubscription';
+            } else if (src.type === 'purchase') {
+                return 'WalletTransactionPurchase';
             } else if (src.type === 'transfer_out') {
                 return 'WalletTransactionTransferOut';
             } else if (src.type === 'transfer_in') {
@@ -82,12 +85,40 @@ export const Resolver: GQLResolver = {
             throw Error('Unknown operation type: ' + (src as any /* Fuck you, ts */).type);
         }
     },
+    //
+    // IN
+    //
     WalletTransactionDeposit: {
         amount: (src) => (src as any).amount,
         payment: (src, args, ctx) => (src as any).payment && Store.Payment.findById(ctx, (src as any).payment!)
     },
+    WalletTransactionIncome: {
+        amount: (src) => (src as any).amount,
+        source: (src, args, ctx) => {
+            if (src.type === 'income') {
+                if (src.source === 'purchase') {
+                    return Store.WalletPurchase.findById(ctx, src.id);
+                } else if (src.source === 'subscription') {
+                    return Store.WalletSubscription.findById(ctx, src.id);
+                } else {
+                    throw new Error(`Unknown income source: ${src.source}`);
+                }
+            } else {
+                throw new Error('Internal error');
+            }
+        }
+    },
+    WalletTransactionTransferIn: {
+        amount: (src) => (src as any).amount,
+        fromUser: (src) => (src as any).fromUser
+    },
+    //
+    // OUT
+    //
     WalletTransactionSubscription: {
-        amount: (src) => (src as any).chargeAmount,
+        amount: (src) => ((src as any).chargeAmount + (src as any).walletAmount) * -1,
+        chargeAmount: (src) => (src as any).chargeAmount,
+        walletAmount: (src) => (src as any).walletAmount,
         payment: async (src, args, ctx) => {
             let subscription = (src as any).subscription;
             let index = (src as any).index;
@@ -100,16 +131,30 @@ export const Resolver: GQLResolver = {
         },
         subscription: async (src, srgs, ctx) => (await Store.WalletSubscription.findById(ctx, (src as any).subscription))!
     },
-    WalletTransactionTransferIn: {
-        amount: (src) => (src as any).amount,
-        fromUser: (src) => (src as any).fromUser
+    WalletTransactionPurchase: {
+        amount: (src) => ((src as any).chargeAmount + (src as any).walletAmount) * -1,
+        chargeAmount: (src) => (src as any).chargeAmount,
+        walletAmount: (src) => (src as any).walletAmount,
+        payment: async (src, args, ctx) => {
+            if (src.type === 'purchase' && src.payment.type === 'paymentIntent') {
+                return Store.Payment.findById(ctx, src.payment.id);
+            }
+
+            return null;
+        },
+        purchase: async (src, srgs, ctx) => (await Store.WalletPurchase.findById(ctx, (src as any).purchase))!
     },
     WalletTransactionTransferOut: {
+        amount: (src) => ((src as any).chargeAmount + (src as any).walletAmount) * -1,
+        chargeAmount: (src) => (src as any).chargeAmount,
         walletAmount: (src) => (src as any).walletAmount,
-        chargeAmount: (src) => {
-            return (src as any).chargeAmount;
+        payment: async (src, args, ctx) => {
+            if (src.type === 'transfer_out' && src.payment.type === 'paymentIntent') {
+                return Store.Payment.findById(ctx, src.payment.id);
+            }
+
+            return null;
         },
-        payment: (src, args, ctx) => (src as any).payment && Store.Payment.findById(ctx, (src as any).payment!.id),
         toUser: (src) => (src as any).toUser
     },
 
@@ -159,6 +204,18 @@ export const Resolver: GQLResolver = {
             }
 
             return null;
+        },
+        product: (src) => src.product
+    },
+
+    WalletIncomeSource: {
+        __resolveType: (src) => {
+            if (src instanceof WalletSubscription) {
+                return 'WalletSubscription';
+            } else if (src instanceof WalletPurchase) {
+                return 'Purchase';
+            }
+            throw Error('Unknown source type');
         }
     },
 
@@ -195,18 +252,18 @@ export const Resolver: GQLResolver = {
         expires: async (src, arg, ctx) => await Modules.Wallet.subscriptions.resolveSubscriptionExpires(ctx, src.id)
     },
 
-    WalletSubscriptionProduct: {
+    WalletProduct: {
         __resolveType: (src) => {
             if (src.type === 'group') {
-                return 'WalletSubscriptionProductGroup';
+                return 'WalletProductGroup';
             } else if (src.type === 'donate') {
-                return 'WalletSubscriptionProductDonation';
+                return 'WalletProductDonation';
             }
             throw Error('Unknown product type: ' + (src as any /* Fuck you, ts */).type);
         }
     },
 
-    WalletSubscriptionProductGroup: {
+    WalletProductGroup: {
         group: (src) => {
             if (src.type === 'group' && src.gid) {
                 return src.gid;
@@ -215,7 +272,7 @@ export const Resolver: GQLResolver = {
         }
     },
 
-    WalletSubscriptionProductDonation: {
+    WalletProductDonation: {
         user: (src) => {
             if (src.type === 'donate' && src.uid) {
                 return src.uid;
@@ -316,16 +373,7 @@ export const Resolver: GQLResolver = {
             return true;
         }),
         donateToUser2: withAccount(async (ctx, args, uid) => {
-            // Transactional Part
-            let res = await Modules.Wallet.createPurchase(ctx, uid, args.amount, { type: 'donate', uid: IDs.User.parse(args.id) });
-
-            // Non-transactional Part
-            await Modules.Wallet.paymentsMediator.tryCreatePurchaseIntent(ctx, uid, res.id, res.amount - res.lockedAmount);
-
-            // Reload latest state
-            res = (await Store.WalletPurchase.findById(ctx, res.id))!;
-
-            return res;
+            return await Modules.Wallet.purchases.createPurchase(ctx, uid, args.amount, { type: 'donate', uid: IDs.User.parse(args.id) });
         }),
 
         //
@@ -341,7 +389,7 @@ export const Resolver: GQLResolver = {
                 if (subscription.uid !== uid) {
                     throw new AccessDeniedError();
                 }
-                await Modules.Wallet.subscriptions.tryCancelSubscription(ctx, args.id);
+                await Modules.Wallet.subscriptions.tryCancelSubscription(ctx, subscription.id);
                 return subscription;
             });
         }),
@@ -386,7 +434,10 @@ export const Resolver: GQLResolver = {
                 return 'WalletUpdateTransactionCanceled';
             } else if (obj instanceof PaymentStatusChanged) {
                 return 'WalletUpdatePaymentStatus';
+            } else if (obj instanceof WalletLockedChanged) {
+                return 'WalletUpdateLocked';
             }
+
             throw Error('Unknown event type: ' + obj.type);
         }
     },
@@ -404,6 +455,9 @@ export const Resolver: GQLResolver = {
     },
     WalletUpdatePaymentStatus: {
         payment: async (src, args, ctx) => (await Store.Payment.findById(ctx, src.id))!
+    },
+    WalletUpdateLocked: {
+        isLocked: (src, args, ctx) => Modules.Wallet.isLocked(ctx, ctx.auth.uid!)
     },
 
     Subscription: {

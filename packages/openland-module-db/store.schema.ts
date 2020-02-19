@@ -1699,12 +1699,13 @@ export default declareSchema(() => {
         primaryKey('uid', integer());
         field('balance', integer());
         field('balanceLocked', integer());
+        field('isLocked', optional(boolean()));
     });
 
     entity('WalletTransaction', () => {
         primaryKey('id', string());
         field('uid', integer());
-        field('status', enumString('pending', 'canceling', 'canceled', 'success'));
+        field('status', enumString('pending', 'canceled', 'success'));
 
         field('operation', union({
             'deposit': struct({
@@ -1733,6 +1734,11 @@ export default declareSchema(() => {
                 purchase: string(),
                 payment: PaymentReference
             }),
+            'income': struct({
+                amount: integer(),
+                source: enumString('subscription', 'purchase'),
+                id: string()
+            }),
         }));
 
         rangeIndex('pending', ['uid', 'createdAt']).withCondition((s) => s.status === 'pending' || s.status === 'canceling');
@@ -1755,6 +1761,8 @@ export default declareSchema(() => {
     entity('WalletPurchase', () => {
         primaryKey('id', string());
         field('uid', integer());
+        field('pid', optional(string()));
+        field('txid', string());
 
         // Product
         field('amount', integer());
@@ -1767,11 +1775,6 @@ export default declareSchema(() => {
             })
         }));
         field('state', enumString('pending', 'canceled', 'success'));
-        field('succeededAt', optional(integer()));
-
-        // Payment
-        field('lockedAmount', integer());
-        field('pid', optional(string()));
 
         // Indexes
         rangeIndex('user', ['uid', 'createdAt']);
@@ -1848,6 +1851,9 @@ export default declareSchema(() => {
             toUid: integer(),
             toTx: string(),
         }),
+        'purchase': struct({
+            id: string()
+        })
     });
 
     entity('PaymentIntent', () => {
@@ -1867,6 +1873,7 @@ export default declareSchema(() => {
         field('piid', optional(string()));
         rangeIndex('user', ['uid', 'createdAt']);
         rangeIndex('pending', ['id']).withCondition((s) => s.state === 'pending' || s.state === 'failing');
+        rangeIndex('userFailing', ['uid', 'createdAt']).withCondition((s) => s.state === 'failing' || s.state === 'action_required');
     });
 
     entity('PaymentScheduling', () => {
@@ -1899,6 +1906,9 @@ export default declareSchema(() => {
     });
     event('WalletBalanceChanged', () => {
         field('amount', integer());
+    });
+    event('WalletLockedChanged', () => {
+        field('isLocked', boolean());
     });
 
     //

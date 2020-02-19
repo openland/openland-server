@@ -176,8 +176,8 @@ export const Resolver: GQLResolver = {
             return await Store.WalletSubscription.findById(ctx, pass.sid);
         }), null),
         canSendMessage: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? false : !!(await Modules.Messaging.room.checkCanSendMessage(ctx, id, ctx.auth.uid!))), false),
-        title: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'Deleted' : Modules.Messaging.room.resolveConversationTitle(ctx, id, ctx.auth.uid!)),
-        photo: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'ph://1' : Modules.Messaging.room.resolveConversationPhoto(ctx, id, ctx.auth.uid!)),
+        title: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationTitle(ctx, id, ctx.auth.uid!)),
+        photo: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationPhoto(ctx, id, ctx.auth.uid!)),
         socialImage: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : Modules.Messaging.room.resolveConversationSocialImage(ctx, id)),
         organization: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : Modules.Messaging.room.resolveConversationOrganization(ctx, id)),
 
@@ -790,6 +790,13 @@ export const Resolver: GQLResolver = {
             return inTx(parent, async (ctx) => {
                 let cid = IDs.Conversation.parse(args.chatId);
                 await Modules.Messaging.premiumChat.createPremiumChatSubscription(ctx, cid, uid);
+                return cid;
+            });
+        }),
+        betaBuyPremiumChatPass: withUser(async (parent, args, uid) => {
+            return inTx(parent, async (ctx) => {
+                let cid = IDs.Conversation.parse(args.chatId);
+                await Modules.Messaging.premiumChat.buyPremiumChatPass(ctx, cid, uid);
                 return cid;
             });
         }),

@@ -18,6 +18,8 @@ import { PaymentsRepository } from './repo/PaymentsRepository';
 import { startPaymentScheduler } from './workers/startPaymentScheduler';
 import { startSubscriptionsScheduler } from './workers/startSubscriptionsScheduler';
 import { PurchaseRepository } from './repo/PurchaseRepository';
+import { inTx } from '@openland/foundationdb';
+import { UserError } from 'openland-errors/UserError';
 
 @injectable()
 export class WalletModule {
@@ -31,7 +33,7 @@ export class WalletModule {
     // Subscriptions repository
     readonly subscriptions: SubscriptionsRepository = new SubscriptionsRepository(Store, this.payments, this.wallet);
     // Purchases repository
-    readonly purchases: PurchaseRepository = new PurchaseRepository(Store, this.wallet);
+    readonly purchases: PurchaseRepository = new PurchaseRepository(Store, this.wallet, this.payments);
     // Routing
     readonly routing: RoutingRepository = new RoutingRepositoryImpl(Store, this.wallet, this.payments, this.subscriptions, this.purchases);
     // Operations repository
@@ -46,6 +48,7 @@ export class WalletModule {
         this.subscriptions.setRouting(this.routing);
         this.payments.setRouting(this.routing);
         this.paymentIntents.setRouting(this.routing);
+        this.purchases.setRouting(this.routing);
     }
 
     start = async () => {
@@ -65,6 +68,10 @@ export class WalletModule {
 
     getWallet = async (parent: Context, uid: number) => {
         return await this.wallet.getWallet(parent, uid);
+    }
+
+    isLocked = async (parent: Context, uid: number) => {
+        return await this.wallet.isLocked(parent, uid);
     }
 
     //
@@ -112,7 +119,13 @@ export class WalletModule {
     //
 
     createSubscription = async (parent: Context, uid: number, amount: number, interval: 'week' | 'month', product: WalletSubscriptionCreateShape['proudct']) => {
-        return await this.operations.createSubscription(parent, uid, amount, interval, product);
+        return await inTx(parent, async (ctx) => {
+            if (await this.wallet.isLocked(ctx, uid)) {
+                throw new UserError('Wallet is locked dew to failing transactions');
+            }
+            return await this.operations.createSubscription(ctx, uid, amount, interval, product);
+
+        });
     }
 
     cancelSubscription = async (parent: Context, id: string) => {
@@ -132,10 +145,15 @@ export class WalletModule {
     //
 
     createPurchase = async (parent: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
-        return await this.purchases.createPurchase(parent, uid, amount, product);
+        return await inTx(parent, async (ctx) => {
+            if (await this.wallet.isLocked(ctx, uid)) {
+                throw new UserError('Wallet is locked dew to failing transactions');
+            }
+            return await this.purchases.createPurchase(ctx, uid, amount, product);
+        });
     }
 
     // getPurchaseIntent = async (parent: Context, id: string) => {
-        
+
     // }
 }

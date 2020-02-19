@@ -6,16 +6,19 @@ import { RoutingRepository } from './RoutingRepository';
 import { WalletRepository } from './WalletRepository';
 import { paymentAmounts } from './utils/paymentAmounts';
 import uuid from 'uuid/v4';
+import { PaymentsRepository } from './PaymentsRepository';
 
 export class PurchaseRepository {
 
     readonly store: Store;
     readonly wallet: WalletRepository;
+    readonly payments: PaymentsRepository;
     private routing!: RoutingRepository;
 
-    constructor(store: Store, wallet: WalletRepository) {
+    constructor(store: Store, wallet: WalletRepository, payments: PaymentsRepository) {
         this.store = store;
         this.wallet = wallet;
+        this.payments = payments;
     }
 
     setRouting = (routing: RoutingRepository) => {
@@ -27,31 +30,53 @@ export class PurchaseRepository {
             let id = uuid();
             let availableBalance = await this.wallet.getAvailableBalance(ctx, uid);
             let amounts = paymentAmounts(availableBalance, amount);
-            await this.wallet.purchaseCreated(ctx, uid, amount, amounts.wallet);
             if (amounts.charge === 0) {
-                await this.wallet.purchaseSuccessful(ctx, uid, amount, amounts.wallet, id, null);
-                if (this.routing.onPurchaseSuccessful) {
-                    await this.routing.onPurchaseSuccessful(ctx, uid, amount, product);
-                }
-                return await this.store.WalletPurchase.create(parent, id, {
+
+                // Wallet Transaction
+                let txid = await this.wallet.purchaseCreatedInstant(ctx, id, uid, amounts.wallet);
+
+                // Purchase
+                let res = await this.store.WalletPurchase.create(parent, id, {
                     uid: uid,
                     amount: amount,
                     product: product,
                     state: 'success',
-                    succeededAt: Date.now(),
-                    pid: null,
-                    lockedAmount: 0
+                    txid,
+                    pid: null
                 });
+
+                // Callbacks
+                if (this.routing.onPurchaseCreated) {
+                    await this.routing.onPurchaseCreated(ctx, res.id, uid, amount, product);
+                }
+                if (this.routing.onPurchaseSuccessful) {
+                    await this.routing.onPurchaseSuccessful(ctx, res.id, uid, amount, product);
+                }
+                return res;
             } else {
-                return await this.store.WalletPurchase.create(parent, id, {
+                let pid = uuid();
+
+                // Payment
+                await this.payments.createPayment(ctx, pid, uid, amount, { type: 'purchase', id: id });
+
+                // Wallet Transaction
+                let txid = await this.wallet.purchaseCreated(ctx, id, pid, uid, amounts.wallet, amounts.charge);
+
+                // Purchase
+                let res = await this.store.WalletPurchase.create(parent, id, {
                     uid: uid,
                     amount: amount,
                     product: product,
                     state: 'pending',
-                    succeededAt: null,
-                    pid: null,
-                    lockedAmount: amounts.wallet
+                    txid,
+                    pid: pid
                 });
+
+                // Callbacks
+                if (this.routing.onPurchaseCreated) {
+                    await this.routing.onPurchaseCreated(ctx, res.id, uid, amount, product);
+                }
+                return res;
             }
         });
     }
@@ -67,14 +92,47 @@ export class PurchaseRepository {
                 throw Error('Unexpected state!');
             }
             purchase.state = 'success';
-            purchase.succeededAt = Date.now();
 
             // Update Wallet
-            await this.wallet.purchaseSuccessful(ctx, purchase.uid, purchase.amount, purchase.lockedAmount, id, purchase.pid);
+            await this.wallet.purchaseSuccessful(ctx, purchase.uid, purchase.txid);
 
             // Do Routing
             if (this.routing.onPurchaseSuccessful) {
-                await this.routing.onPurchaseSuccessful(ctx, purchase.uid, purchase.amount, purchase.product);
+                await this.routing.onPurchaseSuccessful(ctx, id, purchase.uid, purchase.amount, purchase.product);
+            }
+        });
+    }
+
+    onPurchaseFailing = async (parent: Context, id: string) => {
+        await inTx(parent, async (ctx) => {
+            let purchase = (await this.store.WalletPurchase.findById(ctx, id))!;
+            if (purchase.state !== 'pending') {
+                throw Error('Unexpected state!');
+            }
+
+            // Update Wallet
+            await this.wallet.purchaseFailing(ctx, purchase.uid, purchase.txid);
+
+            // Do Routing
+            if (this.routing.onPurchaseFailing) {
+                await this.routing.onPurchaseFailing(ctx, purchase.id, purchase.uid, purchase.amount, purchase.product);
+            }
+        });
+    }
+
+    onPurchaseNeedAction = async (parent: Context, id: string) => {
+        await inTx(parent, async (ctx) => {
+            let purchase = (await this.store.WalletPurchase.findById(ctx, id))!;
+            if (purchase.state !== 'pending') {
+                throw Error('Unexpected state!');
+            }
+
+            // Update Wallet
+            await this.wallet.purchaseActionNeeded(ctx, purchase.uid, purchase.txid);
+
+            // Do Routing
+            if (this.routing.onPurchaseNeedAction) {
+                await this.routing.onPurchaseNeedAction(ctx, purchase.id, purchase.uid, purchase.amount, purchase.product);
             }
         });
     }
@@ -88,10 +146,10 @@ export class PurchaseRepository {
             purchase.state = 'canceled';
 
             // Update Wallet
-            await this.wallet.purchaseCanceled(ctx, purchase.uid, purchase.amount, purchase.lockedAmount);
+            await this.wallet.purchaseCanceled(ctx, purchase.uid, purchase.txid);
 
             if (this.routing.onPurchaseCanceled) {
-                await this.routing.onPurchaseCanceled(ctx, purchase.uid, purchase.amount, purchase.product);
+                await this.routing.onPurchaseCanceled(ctx, purchase.id, purchase.uid, purchase.amount, purchase.product);
             }
         });
     }

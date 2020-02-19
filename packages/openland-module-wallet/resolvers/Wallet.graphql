@@ -51,6 +51,7 @@ type WalletAccount {
     id: ID!
     balance: Int!
     state: String!
+    isLocked: Boolean!
 }
 
 #
@@ -73,13 +74,32 @@ type WalletTransactionDeposit {
     payment: Payment
 }
 
+union WalletIncomeSource = WalletSubscription | Purchase
+
+type WalletTransactionIncome {
+    amount: Int!
+    payment: Payment
+    source: WalletIncomeSource
+}
+
 type WalletTransactionSubscription {
     amount: Int!
+    walletAmount: Int!
+    chargeAmount: Int!
     payment: Payment
     subscription: WalletSubscription!
 }
 
+type WalletTransactionPurchase {
+    amount: Int!
+    walletAmount: Int!
+    chargeAmount: Int!
+    payment: Payment
+    purchase: Purchase!
+}
+
 type WalletTransactionTransferOut {
+    amount: Int!
     walletAmount: Int!
     chargeAmount: Int!
     payment: Payment
@@ -92,7 +112,7 @@ type WalletTransactionTransferIn {
     payment: Payment
 }
 
-union WalletTransactionOperation = WalletTransactionDeposit | WalletTransactionSubscription | WalletTransactionTransferOut | WalletTransactionTransferIn
+union WalletTransactionOperation = WalletTransactionDeposit | WalletTransactionIncome | WalletTransactionSubscription | WalletTransactionPurchase | WalletTransactionTransferOut | WalletTransactionTransferIn
 
 type WalletTransactionConnection {
     items: [WalletTransaction!]!
@@ -108,7 +128,7 @@ type WalletSubscription {
     state: WalletSubscriptionState!
     amount: Int!
     interval: WalletSubscriptionInterval!
-    product: WalletSubscriptionProduct!
+    product: WalletProduct!
     expires: Date!
 }
 
@@ -120,15 +140,15 @@ enum WalletSubscriptionInterval {
     MONTH, WEEK
 }
 
-type WalletSubscriptionProductGroup {
+type WalletProductGroup {
     group: SharedRoom!
 }
 
-type WalletSubscriptionProductDonation {
+type WalletProductDonation {
     user: User!
 }
 
-union WalletSubscriptionProduct = WalletSubscriptionProductGroup | WalletSubscriptionProductDonation
+union WalletProduct = WalletProductGroup | WalletProductDonation
 
 #
 # Wallet Purchases
@@ -142,6 +162,7 @@ type Purchase {
     id: ID!
     state: PurchaseState!
     intent: PaymentIntent
+    product: WalletProduct!
 }
 
 #
@@ -180,7 +201,11 @@ type WalletUpdatePaymentStatus {
     payment: Payment!
 }
 
-union WalletUpdate = WalletUpdateBalance | WalletUpdateTransactionSuccess | WalletUpdateTransactionCanceled | WalletUpdateTransactionPending | WalletUpdatePaymentStatus
+type WalletUpdateLocked {
+    isLocked: Boolean!
+}
+
+union WalletUpdate = WalletUpdateBalance | WalletUpdateTransactionSuccess | WalletUpdateTransactionCanceled | WalletUpdateTransactionPending | WalletUpdatePaymentStatus | WalletUpdateLocked
 
 #
 # Operations

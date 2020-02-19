@@ -7,8 +7,9 @@ import { NotFoundError } from 'openland-errors/NotFoundError';
 import { Modules } from 'openland-modules/Modules';
 import { PremiumChatRepository } from 'openland-module-messaging/repositories/PremiumChatRepository';
 import { MessagingMediator } from './MessagingMediator';
-import { buildMessage, userMention, usersMention } from 'openland-utils/MessageBuilder';
+import { buildMessage, userMention, usersMention, roomMention } from 'openland-utils/MessageBuilder';
 import { MessageInput } from 'openland-module-messaging/MessageInput';
+import { formatMoney } from 'openland-module-wallet/repo/utils/formatMoney';
 
 @injectable()
 export class PremiumChatMediator {
@@ -55,6 +56,34 @@ export class PremiumChatMediator {
         });
     }
 
+    async buyPremiumChatPass(parent: Context, cid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let chat = await Store.ConversationRoom.findById(ctx, cid);
+            if (!chat || !chat.ownerId) {
+                throw new NotFoundError('Chat owner not found');
+            }
+            if (!chat.isPremium) {
+                throw new Error('Chat is free to join');
+            }
+            let paidChatSettings = await Store.PremiumChatSettings.findById(ctx, chat.id);
+            if (!paidChatSettings) {
+                throw new Error('Inconsistent state - chat is paid, but no payment settings found');
+            }
+            if (paidChatSettings.interval) {
+                throw new Error('You are trying to buy pass to subscription group');
+            }
+
+            let userPass = await Store.PremiumChatUserPass.findById(ctx, chat.id, uid);
+            if (userPass && userPass.isActive) {
+                // nothing to do, user already have access
+                throw new Error('User already have access to this chat');
+            }
+
+            await Modules.Wallet.createPurchase(ctx, uid, paidChatSettings.price, { type: 'group', gid: cid });
+            await this.alterProChatUserPass(ctx, cid, uid, true);
+        });
+    }
+
     async alterProChatUserPass(parent: Context, cid: number, uid: number, activeSubscription: string | boolean) {
         return inTx(parent, async (ctx) => {
             let conv = await Store.ConversationRoom.findById(ctx, cid);
@@ -87,14 +116,17 @@ export class PremiumChatMediator {
      * Payment failing, but subscription is still alive
      */
     onSubscriptionFailing = async (ctx: Context, sid: string, cid: number, uid: number) => {
-        // nothing to do, push/email about subscription failing should be sent
+        // nothing to do, push/email about payment failing should be sent
     }
 
     /**
-     * Payment Period success
+     * Payment Period success - increment balance, notify owner
      */
     onSubscriptionPaymentSuccess = async (ctx: Context, sid: string, cid: number, uid: number) => {
-        // well, ok then, you can stay for now
+        let subscription = (await Store.WalletSubscription.findById(ctx, sid))!;
+        let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
+        await Modules.Wallet.wallet.income(ctx, ownerId, subscription.amount, { type: 'subscription', id: sid });
+        await this.notifyOwner(ctx, ownerId, cid, uid, 'subscription', subscription.amount);
     }
 
     /**
@@ -109,7 +141,6 @@ export class PremiumChatMediator {
      */
     onSubscriptionPaused = async (ctx: Context, sid: string, cid: number, uid: number) => {
         await this.alterProChatUserPass(ctx, cid, uid, false);
-        // TODO: send message/push?
     }
 
     /**
@@ -131,6 +162,39 @@ export class PremiumChatMediator {
      */
     onSubscriptionCanceled = async (ctx: Context, sid: string, cid: number, uid: number) => {
         // ok then
+    }
+
+    //
+    // Purchase
+    //
+    // TODO: Implement full and read-only access
+    //
+    onPurchaseCreated = async (ctx: Context, pid: string, uid: number, amount: number, cid: number) => {
+        // Nothing to do, read-only access should be granted by this time
+    }
+
+    /**
+     * Purchase success - increment balance, notify owner
+     */
+    onPurchaseSuccess = async (ctx: Context, pid: string, cid: number, uid: number, amount: number) => {
+        // TODO: grant full access here
+        let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
+        await Modules.Wallet.wallet.income(ctx, ownerId, amount, { type: 'purchase', id: pid });
+        await this.notifyOwner(ctx, ownerId, cid, uid, 'purchase', amount);
+    }
+
+    onPurchaseFailing = async (ctx: Context, pid: string, uid: number, amount: number, cid: number) => {
+        // Nothing to do, access should be read-only right after purchase
+        // push/email about payment failing should be sent, wallet locked
+    }
+
+    onPurchaseNeedAction = async (ctx: Context, pid: string, uid: number, amount: number, cid: number) => {
+        // Nothing to do, access should be read-only right after purchase
+        // push/email about payment failing should be sent, wallet locked
+    }
+
+    onPurchaseCanceled = async (ctx: Context, pid: string, uid: number, amount: number, cid: number) => {
+        // How so?
     }
 
     //
@@ -175,5 +239,26 @@ export class PremiumChatMediator {
                 invitedById: uid
             }
         };
+    }
+
+    private async notifyOwner(ctx: Context, ownerId: number, gid: number, uid: number, type: 'subscription' | 'purchase', amount: number) {
+        let billyId = await Modules.Super.getEnvVar<number>(ctx, 'onboarding-bot-id');
+        if (billyId === null) {
+            return;
+        }
+        let user = await Store.UserProfile.findById(ctx, uid);
+        if (!user) {
+            return;
+        }
+        let chat = await Store.RoomProfile.findById(ctx, gid);
+        if (!chat) {
+            return;
+        }
+        let name = await Modules.Users.getUserFullName(ctx, uid);
+
+        let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, billyId, ownerId);
+        let message = buildMessage(userMention(name, uid), ` just paid ${formatMoney(amount)} for `, roomMention(chat.title, gid), ` access (${type})`);
+        await Modules.Messaging.sendMessage(ctx, privateChat.id, billyId, message);
+        Modules.Metrics.onBillyBotMessageRecieved(ctx, uid, `premium_chat_${type}_notification`);
     }
 }

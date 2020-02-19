@@ -56,6 +56,10 @@ export const Resolver: GQLResolver = {
             let room = await Store.ConversationRoom.findById(ctx, src.cid);
             return !!(room && room.isChannel);
         },
+        isPremium: async (src: { cid: number }, args: {}, ctx: AppContext) => {
+            let room = await Store.ConversationRoom.findById(ctx, src.cid);
+            return !!(room && room.isPremium);
+        },
 
         title: async (src: { cid: number }, args: {}, ctx: AppContext) => {
             return Modules.Messaging.room.resolveConversationTitle(ctx, src.cid, ctx.auth.uid!);

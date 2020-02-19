@@ -220,6 +220,7 @@ extend type Mutation {
     betaRoomsJoin(roomsIds: [ID!]!): [Room!]!
     betaRoomDeclineJoinRequest(roomId: ID!, userId: ID!): Room!
     betaBuyPremiumChatSubscription(chatId: ID!): SharedRoom!
+    betaBuyPremiumChatPass(chatId: ID!): SharedRoom!
 
     # Invite links
     betaRoomInviteLinkSendEmail(roomId: ID!, inviteRequests: [RoomInviteEmailRequest!]!): String!

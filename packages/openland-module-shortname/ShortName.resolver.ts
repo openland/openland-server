@@ -38,6 +38,8 @@ export const Resolver: GQLResolver = {
                     ownerType = 'org';
                 } else if (idInfo.type === IDs.FeedChannel) {
                     ownerType = 'feed_channel';
+                } else if (idInfo.type === IDs.Conversation) {
+                    ownerType = 'room';
                 } else {
                     return null;
                 }
@@ -45,7 +47,7 @@ export const Resolver: GQLResolver = {
             } catch {
                 let shortname = await Modules.Shortnames.findShortname(ctx, args.shortname);
                 if (shortname) {
-                    ownerId =  shortname.ownerId;
+                    ownerId = shortname.ownerId;
                     ownerType = shortname.ownerType;
                 }
             }

@@ -144,6 +144,7 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
         picture: sender.picture ? buildBaseImageUrl(sender.picture!!) : null,
         counter: unreadCounter,
         conversationId: conversation.id,
+        deepLink: null,
         mobile: sendMobile,
         desktop: sendDesktop,
         mobileAlert: messageSettings.mobile.sound,

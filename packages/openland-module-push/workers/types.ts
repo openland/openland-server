@@ -3,8 +3,9 @@ export type Push = {
     title: string;
     body: string;
     picture: string | null;
-    counter: number;
-    conversationId: number;
+    counter: number | null;
+    conversationId: number | null;
+    deepLink: string | null;
     mobile: boolean;
     desktop: boolean;
     mobileAlert: boolean;

@@ -55,11 +55,12 @@ describe('PaymentsRepository', () => {
         expect(routeFailingPayment.mock.calls.length).toBe(1);
         expect(routeActionNeededPayment.mock.calls.length).toBe(0);
         expect(routeCanceledPayment.mock.calls.length).toBe(0);
-        expect(routeFailingPayment.mock.calls[0][1]).toBe(100);
-        expect(routeFailingPayment.mock.calls[0][2]).toBe('pid-2');
-        expect(routeFailingPayment.mock.calls[0][3].type).toBe('deposit');
-        expect(routeFailingPayment.mock.calls[0][3].uid).toBe(1);
-        expect(routeFailingPayment.mock.calls[0][3].txid).toBe('txid');
+        expect(routeFailingPayment.mock.calls[0][1]).toBe(1);
+        expect(routeFailingPayment.mock.calls[0][2]).toBe(100);
+        expect(routeFailingPayment.mock.calls[0][3]).toBe('pid-2');
+        expect(routeFailingPayment.mock.calls[0][4].type).toBe('deposit');
+        expect(routeFailingPayment.mock.calls[0][4].uid).toBe(1);
+        expect(routeFailingPayment.mock.calls[0][4].txid).toBe('txid');
 
         // Invalid 
         await expect(repo.handlePaymentFailing(ctx, 'pid-2-invalid')).rejects.toThrowError('Unable to find payment');
@@ -87,11 +88,12 @@ describe('PaymentsRepository', () => {
         expect(routeFailingPayment.mock.calls.length).toBe(0);
         expect(routeActionNeededPayment.mock.calls.length).toBe(1);
         expect(routeCanceledPayment.mock.calls.length).toBe(0);
-        expect(routeActionNeededPayment.mock.calls[0][1]).toBe(100);
-        expect(routeActionNeededPayment.mock.calls[0][2]).toBe('pid-2');
-        expect(routeActionNeededPayment.mock.calls[0][3].type).toBe('deposit');
-        expect(routeActionNeededPayment.mock.calls[0][3].uid).toBe(1);
-        expect(routeActionNeededPayment.mock.calls[0][3].txid).toBe('txid');
+        expect(routeActionNeededPayment.mock.calls[0][1]).toBe(1);
+        expect(routeActionNeededPayment.mock.calls[0][2]).toBe(100);
+        expect(routeActionNeededPayment.mock.calls[0][3]).toBe('pid-2');
+        expect(routeActionNeededPayment.mock.calls[0][4].type).toBe('deposit');
+        expect(routeActionNeededPayment.mock.calls[0][4].uid).toBe(1);
+        expect(routeActionNeededPayment.mock.calls[0][4].txid).toBe('txid');
 
         // Third failing
         jest.clearAllMocks();
@@ -113,11 +115,12 @@ describe('PaymentsRepository', () => {
         expect(routeFailingPayment.mock.calls.length).toBe(0);
         expect(routeActionNeededPayment.mock.calls.length).toBe(0);
         expect(routeCanceledPayment.mock.calls.length).toBe(0);
-        expect(routeSuccessfulPayment.mock.calls[0][1]).toBe(100);
-        expect(routeSuccessfulPayment.mock.calls[0][2]).toBe('pid-2');
-        expect(routeSuccessfulPayment.mock.calls[0][3].type).toBe('deposit');
-        expect(routeSuccessfulPayment.mock.calls[0][3].uid).toBe(1);
-        expect(routeSuccessfulPayment.mock.calls[0][3].txid).toBe('txid');
+        expect(routeSuccessfulPayment.mock.calls[0][1]).toBe(1);
+        expect(routeSuccessfulPayment.mock.calls[0][2]).toBe(100);
+        expect(routeSuccessfulPayment.mock.calls[0][3]).toBe('pid-2');
+        expect(routeSuccessfulPayment.mock.calls[0][4].type).toBe('deposit');
+        expect(routeSuccessfulPayment.mock.calls[0][4].uid).toBe(1);
+        expect(routeSuccessfulPayment.mock.calls[0][4].txid).toBe('txid');
 
         // Second Success
         jest.clearAllMocks();
@@ -191,11 +194,11 @@ describe('PaymentsRepository', () => {
         expect(routeFailingPayment.mock.calls.length).toBe(0);
         expect(routeActionNeededPayment.mock.calls.length).toBe(0);
         expect(routeCanceledPayment.mock.calls.length).toBe(1);
-        expect(routeCanceledPayment.mock.calls[0][1]).toBe(100);
-        expect(routeCanceledPayment.mock.calls[0][2]).toBe('pid-3');
-        expect(routeCanceledPayment.mock.calls[0][3].type).toBe('deposit');
-        expect(routeCanceledPayment.mock.calls[0][3].uid).toBe(1);
-        expect(routeCanceledPayment.mock.calls[0][3].txid).toBe('txid');
+        expect(routeCanceledPayment.mock.calls[0][2]).toBe(100);
+        expect(routeCanceledPayment.mock.calls[0][3]).toBe('pid-3');
+        expect(routeCanceledPayment.mock.calls[0][4].type).toBe('deposit');
+        expect(routeCanceledPayment.mock.calls[0][4].uid).toBe(1);
+        expect(routeCanceledPayment.mock.calls[0][4].txid).toBe('txid');
 
         // Double Cancel
         jest.clearAllMocks();
