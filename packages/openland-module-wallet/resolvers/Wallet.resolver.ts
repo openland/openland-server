@@ -5,7 +5,7 @@ import { withAccount } from 'openland-module-api/Resolvers';
 import { IDs } from 'openland-module-api/IDs';
 import { GQLResolver, GQL } from 'openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
-import { WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, WalletTransactionCanceled, PaymentStatusChanged, WalletLockedChanged } from 'openland-module-db/store';
+import { WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, WalletTransactionCanceled, PaymentStatusChanged, WalletLockedChanged, WalletSubscription, WalletPurchase } from 'openland-module-db/store';
 import { randomKey } from 'openland-utils/random';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
@@ -194,6 +194,17 @@ export const Resolver: GQLResolver = {
             return null;
         },
         product: (src) => src.product
+    },
+
+    WalletIncomeSource: {
+        __resolveType: (src) => {
+            if (src instanceof WalletSubscription) {
+                return 'WalletSubscription';
+            } else if (src instanceof WalletPurchase) {
+                return 'Purchase';
+            }
+            throw Error('Unknown source type');
+        }
     },
 
     //
