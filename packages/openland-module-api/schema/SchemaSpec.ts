@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'e7fbdb5e4a366640cf97174fcee706d9';
+export const GQL_SPEC_VERSION = '08df30d4fe90507098c4e0a316594372';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -407,6 +407,7 @@ export namespace GQL {
         instagram: Nullable<string>;
         twitter: Nullable<string>;
         facebook: Nullable<string>;
+        authEmail: Nullable<string>;
         alphaLinkedin: Nullable<string>;
         alphaTwitter: Nullable<string>;
         alphaJoinedAt: Nullable<string>;
@@ -432,6 +433,7 @@ export namespace GQL {
     export interface ProfileInstagramArgs { }
     export interface ProfileTwitterArgs { }
     export interface ProfileFacebookArgs { }
+    export interface ProfileAuthEmailArgs { }
     export interface ProfileAlphaLinkedinArgs { }
     export interface ProfileAlphaTwitterArgs { }
     export interface ProfileAlphaJoinedAtArgs { }
@@ -5625,6 +5627,7 @@ export interface GQLResolver {
             instagram: GQL.ProfileInstagramArgs,
             twitter: GQL.ProfileTwitterArgs,
             facebook: GQL.ProfileFacebookArgs,
+            authEmail: GQL.ProfileAuthEmailArgs,
             alphaLinkedin: GQL.ProfileAlphaLinkedinArgs,
             alphaTwitter: GQL.ProfileAlphaTwitterArgs,
             alphaJoinedAt: GQL.ProfileAlphaJoinedAtArgs,

@@ -24,6 +24,7 @@ export const Resolver: GQLResolver = {
         twitter: (src) => src.twitter,
         facebook: (src) => src.facebook,
         primaryBadge: (src, args, ctx) => src.primaryBadge ? Store.UserBadge.findById(ctx, src.primaryBadge) : null,
+        authEmail: async (src, args, ctx) => (await Store.User.findById(ctx, src.id))!.email,
 
         alphaRole: (src) => src.role,
         alphaLocations: (src) => src.locations,
