@@ -4,6 +4,7 @@ import { Context } from '@openland/context';
 import { Store, WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, PaymentStatusChanged, WalletTransactionCanceled, WalletLockedChanged } from '../../openland-module-db/store';
 import { checkMoney } from './utils/checkMoney';
 import { Modules } from 'openland-modules/Modules';
+import { Emails } from 'openland-module-email/Emails';
 
 export class WalletRepository {
     readonly store: Store;
@@ -35,7 +36,7 @@ export class WalletRepository {
             await wallet.flush(ctx);
             if (oldState !== isLocked) {
                 this.store.UserWalletUpdates.post(ctx, uid, WalletLockedChanged.create({ isLocked }));
-                // TODO: send email
+
                 if (isLocked) {
                     await Modules.Push.pushWork(ctx, {
                         uid: uid,
@@ -50,6 +51,13 @@ export class WalletRepository {
                         body: 'We couldn’t complete some transactions. Please go to wallet and check this.',
                         mobileAlert: true,
                         mobileIncludeText: true
+                    });
+
+                    await Emails.sendGenericEmail(ctx, uid, {
+                        title: 'Transaction failed',
+                        text: 'We couldn’t complete some transactions. Please go to wallet and check this.',
+                        link: 'https://openland.com/wallet',
+                        buttonText: 'Open wallet'
                     });
                 } else {
                     await Modules.Push.sendCounterPush(ctx, uid);
