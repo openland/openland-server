@@ -256,6 +256,13 @@ export const Resolver: GQLResolver = {
                 await Emails.sendRoomInviteAcceptedEmail(ctx, uid, invite as any);
             } else if (type === 'WEEKLY_DIGEST') {
                 await Emails.sendWeeklyDigestEmail(ctx, uid);
+            } else if (type === 'GENERIC') {
+                await Emails.sendGenericEmail(ctx, uid, {
+                    title: 'Generic title',
+                    text: 'Generic text',
+                    link: 'https://openland.com/',
+                    buttonText: 'Button caption'
+                });
             }
 
             return true;

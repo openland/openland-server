@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '457b6db813b9428ba9ecc1cf34e5969e';
+export const GQL_SPEC_VERSION = '3720aee79c7c79158e63c1c395b6b48b';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -812,7 +812,7 @@ export namespace GQL {
     export interface MessageTextArgs { }
     export interface MessageQuotedArgs { }
     export interface MessageAlphaReactionsArgs { }
-    export type DebugEmailTypeValues = 'WELCOME' | 'ACCOUNT_ACTIVATED' | 'ACCOUNT_DEACTIVATED' | 'MEMBER_REMOVED' | 'MEMBERSHIP_LEVEL_CHANGED' | 'INVITE' | 'MEMBER_JOINED' | 'SIGNUP_CODE' | 'SIGIN_CODE' | 'UNREAD_MESSAGE' | 'UNREAD_MESSAGES' | 'PUBLIC_ROOM_INVITE' | 'PRIVATE_ROOM_INVITE' | 'ROOM_INVITE_ACCEPTED' | 'WEEKLY_DIGEST';
+    export type DebugEmailTypeValues = 'WELCOME' | 'ACCOUNT_ACTIVATED' | 'ACCOUNT_DEACTIVATED' | 'MEMBER_REMOVED' | 'MEMBERSHIP_LEVEL_CHANGED' | 'INVITE' | 'MEMBER_JOINED' | 'SIGNUP_CODE' | 'SIGIN_CODE' | 'UNREAD_MESSAGE' | 'UNREAD_MESSAGES' | 'PUBLIC_ROOM_INVITE' | 'PRIVATE_ROOM_INVITE' | 'ROOM_INVITE_ACCEPTED' | 'WEEKLY_DIGEST' | 'GENERIC';
     export type DebugEmailType = GQLRoots.DebugEmailTypeRoot;
     export interface DebugID {
         numberID: Nullable<number>;
@@ -6144,7 +6144,7 @@ export interface GQLResolver {
             alphaReactions: GQL.MessageAlphaReactionsArgs,
         }
     >;
-    DebugEmailType?: EnumTypeResolver<'WELCOME' | 'ACCOUNT_ACTIVATED' | 'ACCOUNT_DEACTIVATED' | 'MEMBER_REMOVED' | 'MEMBERSHIP_LEVEL_CHANGED' | 'INVITE' | 'MEMBER_JOINED' | 'SIGNUP_CODE' | 'SIGIN_CODE' | 'UNREAD_MESSAGE' | 'UNREAD_MESSAGES' | 'PUBLIC_ROOM_INVITE' | 'PRIVATE_ROOM_INVITE' | 'ROOM_INVITE_ACCEPTED' | 'WEEKLY_DIGEST', GQLRoots.DebugEmailTypeRoot>;
+    DebugEmailType?: EnumTypeResolver<'WELCOME' | 'ACCOUNT_ACTIVATED' | 'ACCOUNT_DEACTIVATED' | 'MEMBER_REMOVED' | 'MEMBERSHIP_LEVEL_CHANGED' | 'INVITE' | 'MEMBER_JOINED' | 'SIGNUP_CODE' | 'SIGIN_CODE' | 'UNREAD_MESSAGE' | 'UNREAD_MESSAGES' | 'PUBLIC_ROOM_INVITE' | 'PRIVATE_ROOM_INVITE' | 'ROOM_INVITE_ACCEPTED' | 'WEEKLY_DIGEST' | 'GENERIC', GQLRoots.DebugEmailTypeRoot>;
     DebugID?: ComplexTypedResolver<
         GQL.DebugID,
         GQLRoots.DebugIDRoot,

@@ -29,6 +29,7 @@ export const TEMPLATE_ROOM_INVITE_ACCEPTED = '5de5b56b-ebec-40b8-aeaf-360af17c21
 export const TEMPLATE_UNREAD_COMMENT = 'a1f0b2e1-835f-4ffc-8ba2-c67f2a6cf6b3';
 export const TEMPLATE_UNREAD_COMMENTS = '78f799d6-cb3a-4c06-bfeb-9eb98b9749cb';
 export const TEMPLATE_WEEKLY_DIGEST = 'd-43e37b53d7ed4ef4afaf758b4a36ca24';
+export const TEMPLATE_GENERIC = ''; // TODO: insert templateID
 
 const isProd = process.env.APP_ENVIRONMENT === 'production';
 
@@ -581,7 +582,17 @@ export const Emails = {
             dynamicTemplateData: weeklyDigestTemplateData
         });
 
-    }
+    },
+
+    async sendGenericEmail(ctx: Context, uid: number, args: { title: string, text: string, link: string, buttonText: string }) {
+        let user = await loadUserState(ctx, uid);
+        await Modules.Email.enqueueEmail(ctx, {
+            subject: args.title,
+            templateId: TEMPLATE_GENERIC,
+            to: user.email,
+            args
+        });
+    },
 };
 
 const AvatarColorsArr = [
