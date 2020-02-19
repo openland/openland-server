@@ -48,6 +48,7 @@ export class WalletModule {
         this.subscriptions.setRouting(this.routing);
         this.payments.setRouting(this.routing);
         this.paymentIntents.setRouting(this.routing);
+        this.purchases.setRouting(this.routing);
     }
 
     start = async () => {
