@@ -29,7 +29,7 @@ export const TEMPLATE_ROOM_INVITE_ACCEPTED = '5de5b56b-ebec-40b8-aeaf-360af17c21
 export const TEMPLATE_UNREAD_COMMENT = 'a1f0b2e1-835f-4ffc-8ba2-c67f2a6cf6b3';
 export const TEMPLATE_UNREAD_COMMENTS = '78f799d6-cb3a-4c06-bfeb-9eb98b9749cb';
 export const TEMPLATE_WEEKLY_DIGEST = 'd-43e37b53d7ed4ef4afaf758b4a36ca24';
-export const TEMPLATE_GENERIC = ''; // TODO: insert templateID
+export const TEMPLATE_GENERIC = 'e1833d55-f948-4eef-9380-4c7a59e66ab0';
 
 const isProd = process.env.APP_ENVIRONMENT === 'production';
 
