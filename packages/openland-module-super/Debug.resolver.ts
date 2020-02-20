@@ -2,7 +2,9 @@ import {
     Organization,
     Message,
     Comment,
-    DialogNeedReindexEvent, OrganizationProfile,
+    DialogNeedReindexEvent,
+    OrganizationProfile,
+    WalletBalanceChanged, WalletLockedChanged,
 } from './../openland-module-db/store';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from '../openland-module-api/Resolvers';
@@ -23,6 +25,7 @@ import { NotFoundError } from '../openland-errors/NotFoundError';
 import { cursorToTuple } from '@openland/foundationdb-entity/lib/indexes/utils';
 import { buildMessage, heading } from '../openland-utils/MessageBuilder';
 import { AuthContext } from '../openland-module-auth/AuthContext';
+import uuid from 'uuid';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -1297,6 +1300,137 @@ export const Resolver: GQLResolver = {
                return 'ok';
            });
            return true;
+        }),
+        debugResetPaymentsState: withPermission('super-admin', async (parent, args) => {
+            if (Modules.Wallet.paymentsMediator.liveMode) {
+                return false;
+            }
+
+            await debugTask(parent.auth.uid!, 'debugResetCustomers', async (log) => {
+                let i = 0;
+                let customers = await inTx(parent, ctx => Store.UserStripeCustomer.findAll(ctx));
+                for (let c of customers) {
+                    await inTx(parent, async ctx => {
+                        // re-export customer
+                        let customer = await Store.UserStripeCustomer.findById(ctx, c.uid);
+                        customer!.stripeId = null;
+                        customer!.uniqueKey = uuid();
+                        await customer!.flush(ctx);
+                        await Modules.Wallet.paymentsMediator.createCustomerQueue.pushWork(ctx, { uid: c.uid });
+
+                        // delete cards
+                        let cards = await Store.UserStripeCard.users.findAll(ctx, c.uid);
+                        for (let card of cards) {
+                            card.deleted = true;
+                            await card.flush(ctx);
+                        }
+
+                    });
+                    i++;
+                    if (i % 500 === 0) {
+                        await log('done: ' + i);
+                    }
+                }
+                await log('done: ' + i);
+                return 'ok';
+            });
+
+            await debugTask(parent.auth.uid!, 'debugResetPurchases', async (log) => {
+                let i = 0;
+                let purchases = await inTx(parent, ctx => Store.WalletPurchase.findAll(ctx));
+                for (let p of purchases) {
+                    await inTx(parent, async ctx => {
+                        // mark purchases as deleted
+                        let purchase = await Store.WalletPurchase.findById(ctx, p.id);
+                        purchase!.deleted = true;
+                        await purchase!.flush(ctx);
+                    });
+                    i++;
+                    if (i % 100 === 0) {
+                        await log('done: ' + i);
+                    }
+                }
+                await log('done: ' + i);
+                return 'ok';
+            });
+
+            await debugTask(parent.auth.uid!, 'debugResetTransactions', async (log) => {
+                let i = 0;
+                let transactions = await inTx(parent, ctx => Store.WalletTransaction.findAll(ctx));
+                for (let t of transactions) {
+                    await inTx(parent, async ctx => {
+                        // mark transactions as deleted
+                        let tx = await Store.WalletTransaction.findById(ctx, t.id);
+                        tx!.deleted = true;
+                        await tx!.flush(ctx);
+                    });
+                    i++;
+                    if (i % 100 === 0) {
+                        await log('done: ' + i);
+                    }
+                }
+                await log('done: ' + i);
+                return 'ok';
+            });
+
+            await debugTask(parent.auth.uid!, 'debugResetSubscriptions', async (log) => {
+                let i = 0;
+                let subscriptions = await inTx(parent, ctx => Store.WalletSubscription.findAll(ctx));
+                for (let s of subscriptions) {
+                    await inTx(parent, async ctx => {
+                        // mark transactions as deleted
+                        let sub = await Store.WalletSubscription.findById(ctx, s.id);
+                        sub!.state = 'canceled';
+                        await sub!.flush(ctx);
+
+                        //
+                        if (sub!.proudct.type === 'group') {
+                            let pass = await Store.PremiumChatUserPass.findById(ctx, sub!.proudct.gid, sub!.uid);
+                            pass!.sid = null;
+                            pass!.isActive = true;
+                            await pass!.flush(ctx);
+                        }
+                    });
+                    i++;
+                    if (i % 100 === 0) {
+                        await log('done: ' + i);
+                    }
+                }
+                await log('done: ' + i);
+                return 'ok';
+            });
+
+            await debugTask(parent.auth.uid!, 'debugResetWallet', async (log) => {
+                let i = 0;
+                let wallets = await inTx(parent, ctx => Store.Wallet.findAll(ctx));
+                for (let w of wallets) {
+                    await inTx(parent, async ctx => {
+                        // reset balance and unlock wallet
+                        let wallet = await Store.Wallet.findById(ctx, w.uid);
+                        if (wallet!.balance !== 0) {
+                            wallet!.balance = 0;
+                            Store.UserWalletUpdates.post(ctx, wallet!.uid, WalletBalanceChanged.create({
+                                amount: 0
+                            }));
+                        }
+                        if (wallet!.balanceLocked !== 0 || wallet!.isLocked) {
+                            wallet!.balanceLocked = 0;
+                            wallet!.isLocked = false;
+                            Store.UserWalletUpdates.post(ctx, wallet!.uid, WalletLockedChanged.create({
+                                isLocked: false
+                            }));
+                        }
+                        await wallet!.flush(ctx);
+                    });
+                    i++;
+                    if (i % 400 === 0) {
+                        await log('done: ' + i);
+                    }
+                }
+                await log('done: ' + i);
+                return 'ok';
+            });
+            return true;
         }),
     },
     Subscription: {
