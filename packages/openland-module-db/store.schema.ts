@@ -1707,6 +1707,7 @@ export default declareSchema(() => {
         field('uid', integer());
         field('status', enumString('pending', 'canceled', 'success'));
         field('parentId', optional(string()));
+        field('deleted', optional(boolean()));
 
         field('operation', union({
             'deposit': struct({
@@ -1742,8 +1743,8 @@ export default declareSchema(() => {
             }),
         }));
 
-        rangeIndex('pending', ['uid', 'createdAt']).withCondition((s) => s.status === 'pending' || s.status === 'canceling');
-        rangeIndex('history', ['uid', 'createdAt']).withCondition((s) => !(s.status === 'pending' || s.status === 'canceling'));
+        rangeIndex('pending', ['uid', 'createdAt']).withCondition((s) => !s.deleted && (s.status === 'pending' || s.status === 'canceling'));
+        rangeIndex('history', ['uid', 'createdAt']).withCondition((s) => !s.deleted && !(s.status === 'pending' || s.status === 'canceling'));
 
         rangeIndex('pendingChild', ['parentId', 'createdAt']).withCondition((s) => s.status === 'pending');
     });
@@ -1766,6 +1767,7 @@ export default declareSchema(() => {
         field('uid', integer());
         field('pid', optional(string()));
         field('txid', string());
+        field('deleted', optional(boolean()));
 
         // Product
         field('amount', integer());
@@ -1780,8 +1782,8 @@ export default declareSchema(() => {
         field('state', enumString('pending', 'canceled', 'success'));
 
         // Indexes
-        rangeIndex('user', ['uid', 'createdAt']);
-        rangeIndex('userSuccess', ['uid', 'createdAt']).withCondition((s) => s.state === 'success');
+        rangeIndex('user', ['uid', 'createdAt']).withCondition((s) => !s.deleted);
+        rangeIndex('userSuccess', ['uid', 'createdAt']).withCondition((s) => !s.deleted && s.state === 'success');
     });
 
     entity('WalletSubscription', () => {
