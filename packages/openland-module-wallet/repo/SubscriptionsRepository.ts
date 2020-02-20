@@ -53,11 +53,11 @@ export class SubscriptionsRepository {
             });
 
             // First period
-            await this.createPeriod(ctx, subscription.id, 1, subscription.uid, subscription.amount, subscription.start);
+            let txid = await this.createPeriod(ctx, subscription.id, 1, subscription.uid, subscription.amount, subscription.start);
 
             // Notify about subscription start
             if (this.routing.onSubscriptionStarted) {
-                await this.routing.onSubscriptionStarted(ctx, subscription.id);
+                await this.routing.onSubscriptionStarted(ctx, subscription.id, txid);
             }
 
             return subscription;
@@ -211,7 +211,7 @@ export class SubscriptionsRepository {
     }
 
     private createPeriod = async (parent: Context, id: string, index: number, uid: number, amount: number, start: number) => {
-        await inTx(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             // Wallet transaction
             let walletBalance = await this.wallet.getAvailableBalance(ctx, uid);
             let amounts = paymentAmounts(walletBalance, amount);
@@ -219,7 +219,7 @@ export class SubscriptionsRepository {
             if (amounts.charge === 0) {
 
                 // Charge from balance
-                await this.wallet.subscriptionBalance(ctx, uid, amounts.wallet, id, index);
+                let txid = await this.wallet.subscriptionBalance(ctx, uid, amounts.wallet, id, index);
 
                 // Create Period
                 await this.store.WalletSubscriptionPeriod.create(ctx, id, index, {
@@ -230,12 +230,14 @@ export class SubscriptionsRepository {
 
                 // Notify about successful payment
                 if (this.routing.onSubscriptionPaymentSuccess) {
-                    await this.routing.onSubscriptionPaymentSuccess(ctx, id, index);
+                    await this.routing.onSubscriptionPaymentSuccess(ctx, id, txid, index);
                 }
+
+                return txid;
             } else {
 
                 // Register subscription payment
-                let wallet = await this.wallet.subscriptionPayment(ctx, uid, amounts.wallet, amounts.charge, id, index);
+                let txid = await this.wallet.subscriptionPayment(ctx, uid, amounts.wallet, amounts.charge, id, index);
 
                 // Create Payment
                 let pid = uuid();
@@ -244,7 +246,7 @@ export class SubscriptionsRepository {
                     uid: uid,
                     subscription: id,
                     period: index,
-                    txid: wallet
+                    txid
                 });
 
                 // Create Period
@@ -253,6 +255,8 @@ export class SubscriptionsRepository {
                     start: start,
                     state: 'pending'
                 });
+
+                return txid;
             }
         });
     }
@@ -261,7 +265,7 @@ export class SubscriptionsRepository {
     // Payment Events
     //
 
-    handlePaymentSuccess = async (parent: Context, uid: number, id: string, index: number, pid: string, now: number) => {
+    handlePaymentSuccess = async (parent: Context, uid: number, txid: string, id: string, index: number, pid: string, now: number) => {
         await inTx(parent, async (ctx) => {
             let subscription = (await this.store.WalletSubscription.findById(ctx, id))!;
             if (!subscription) {
@@ -304,7 +308,7 @@ export class SubscriptionsRepository {
                 period.start = now; // Update start date if subscription in retrying state
             }
             if (this.routing.onSubscriptionPaymentSuccess) {
-                await this.routing.onSubscriptionPaymentSuccess(ctx, subscription.id, period.index);
+                await this.routing.onSubscriptionPaymentSuccess(ctx, subscription.id, txid, period.index);
             }
 
             //

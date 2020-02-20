@@ -119,6 +119,15 @@ export class PremiumChatMediator {
     //
 
     /**
+     * Start subscription
+     */
+    onSubscriptionStarted = async (ctx: Context, sid: string, txid: string, cid: number, uid: number) => {
+        let subscription = (await Store.WalletSubscription.findById(ctx, sid))!;
+        let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
+        await Modules.Wallet.wallet.incomePending(ctx, txid, ownerId, subscription.amount, { type: 'subscription', id: sid });
+    }
+
+    /**
      * Payment failing, but subscription is still alive
      */
     onSubscriptionFailing = async (ctx: Context, sid: string, cid: number, uid: number) => {
@@ -128,10 +137,10 @@ export class PremiumChatMediator {
     /**
      * Payment Period success - increment balance, notify owner
      */
-    onSubscriptionPaymentSuccess = async (ctx: Context, sid: string, cid: number, uid: number) => {
+    onSubscriptionPaymentSuccess = async (ctx: Context, sid: string, txid: string, cid: number, uid: number) => {
         let subscription = (await Store.WalletSubscription.findById(ctx, sid))!;
         let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
-        await Modules.Wallet.wallet.income(ctx, ownerId, subscription.amount, { type: 'subscription', id: sid });
+        await Modules.Wallet.wallet.incomeSuccess(ctx, txid, ownerId, subscription.amount, { type: 'subscription', id: sid });
         await this.notifyOwner(ctx, ownerId, cid, uid, 'subscription', subscription.amount);
     }
 
@@ -175,17 +184,19 @@ export class PremiumChatMediator {
     //
     // TODO: Implement full and read-only access
     //
-    onPurchaseCreated = async (ctx: Context, pid: string, uid: number, amount: number, cid: number) => {
+    onPurchaseCreated = async (ctx: Context, pid: string, txid: string, uid: number, amount: number, cid: number) => {
         // Nothing to do, read-only access should be granted by this time
+        let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
+        await Modules.Wallet.wallet.incomePending(ctx, txid, ownerId, amount, { type: 'purchase', id: pid });
     }
 
     /**
      * Purchase success - increment balance, notify owner
      */
-    onPurchaseSuccess = async (ctx: Context, pid: string, cid: number, uid: number, amount: number) => {
+    onPurchaseSuccess = async (ctx: Context, pid: string, txid: string, cid: number, uid: number, amount: number) => {
         // TODO: grant full access here
         let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
-        await Modules.Wallet.wallet.income(ctx, ownerId, amount, { type: 'purchase', id: pid });
+        await Modules.Wallet.wallet.incomeSuccess(ctx, txid, ownerId, amount, { type: 'purchase', id: pid });
         await this.notifyOwner(ctx, ownerId, cid, uid, 'purchase', amount);
     }
 

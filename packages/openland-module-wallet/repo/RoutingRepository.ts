@@ -33,7 +33,7 @@ export class RoutingRepositoryImpl {
             await this.wallet.updateIsLocked(ctx, operation.uid);
         } else if (operation.type === 'subscription') {
             await this.wallet.subscriptionPaymentCommit(ctx, operation.uid, operation.txid);
-            await this.subscriptions.handlePaymentSuccess(ctx, operation.uid, operation.subscription, operation.period, pid, Date.now());
+            await this.subscriptions.handlePaymentSuccess(ctx, operation.uid, operation.txid, operation.subscription, operation.period, pid, Date.now());
             await this.wallet.updateIsLocked(ctx, operation.uid);
         } else if (operation.type === 'transfer') {
             await this.wallet.transferAsyncCommit(ctx, operation.fromUid, operation.fromTx, operation.toUid, operation.toTx);
@@ -107,15 +107,15 @@ export class RoutingRepositoryImpl {
     // Purchase Events
     //
 
-    onPurchaseCreated = async (ctx: Context, pid: string, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
+    onPurchaseCreated = async (ctx: Context, pid: string, txid: string, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
         if (product.type === 'group') {
-            await Modules.Messaging.premiumChat.onPurchaseCreated(ctx, pid, product.gid, uid, amount);
+            await Modules.Messaging.premiumChat.onPurchaseCreated(ctx, pid, txid, product.gid, uid, amount);
         }
     }
 
-    onPurchaseSuccessful = async (ctx: Context, pid: string, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
+    onPurchaseSuccessful = async (ctx: Context, pid: string, txid: string, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
         if (product.type === 'group') {
-            await Modules.Messaging.premiumChat.onPurchaseSuccess(ctx, pid, product.gid, uid, amount);
+            await Modules.Messaging.premiumChat.onPurchaseSuccess(ctx, pid, txid, product.gid, uid, amount);
         }
     }
 
@@ -144,8 +144,11 @@ export class RoutingRepositoryImpl {
     /**
      * Subscription is started
      */
-    onSubscriptionStarted = async (ctx: Context, id: string) => {
-        // TODO: Implement
+    onSubscriptionStarted = async (ctx: Context, id: string, txid: string) => {
+        let subscription = await this.store.WalletSubscription.findById(ctx, id);
+        if (subscription && subscription.proudct.type === 'group') {
+            await Modules.Messaging.premiumChat.onSubscriptionStarted(ctx, subscription.id, txid, subscription.proudct.gid, subscription.uid);
+        }
     }
 
     /**
@@ -161,10 +164,10 @@ export class RoutingRepositoryImpl {
     /**
      * Payment Period success
      */
-    onSubscriptionPaymentSuccess = async (ctx: Context, id: string, index: number) => {
+    onSubscriptionPaymentSuccess = async (ctx: Context, id: string, txid: string, index: number) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription && subscription.proudct.type === 'group') {
-            await Modules.Messaging.premiumChat.onSubscriptionPaymentSuccess(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
+            await Modules.Messaging.premiumChat.onSubscriptionPaymentSuccess(ctx, subscription.id, txid, subscription.proudct.gid, subscription.uid);
         }
     }
 

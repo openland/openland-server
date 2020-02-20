@@ -47,10 +47,10 @@ export class PurchaseRepository {
 
                 // Callbacks
                 if (this.routing.onPurchaseCreated) {
-                    await this.routing.onPurchaseCreated(ctx, res.id, uid, amount, product);
+                    await this.routing.onPurchaseCreated(ctx, res.id, txid, uid, amount, product);
                 }
                 if (this.routing.onPurchaseSuccessful) {
-                    await this.routing.onPurchaseSuccessful(ctx, res.id, uid, amount, product);
+                    await this.routing.onPurchaseSuccessful(ctx, res.id, txid, uid, amount, product);
                 }
                 return res;
             } else {
@@ -74,7 +74,7 @@ export class PurchaseRepository {
 
                 // Callbacks
                 if (this.routing.onPurchaseCreated) {
-                    await this.routing.onPurchaseCreated(ctx, res.id, uid, amount, product);
+                    await this.routing.onPurchaseCreated(ctx, res.id, txid, uid, amount, product);
                 }
                 return res;
             }
@@ -98,7 +98,7 @@ export class PurchaseRepository {
 
             // Do Routing
             if (this.routing.onPurchaseSuccessful) {
-                await this.routing.onPurchaseSuccessful(ctx, id, purchase.uid, purchase.amount, purchase.product);
+                await this.routing.onPurchaseSuccessful(ctx, id, purchase.txid, purchase.uid, purchase.amount, purchase.product);
             }
         });
     }
