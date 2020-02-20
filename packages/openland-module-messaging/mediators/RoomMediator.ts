@@ -135,6 +135,10 @@ export class RoomMediator {
                 throw new NotFoundError();
             }
 
+            if (conv.isPremium && conv.ownerId !== uid) {
+                throw new AccessDeniedError();
+            }
+
             if (invites.length > 0) {
                 // Invite to room
                 let res: number[] = [];

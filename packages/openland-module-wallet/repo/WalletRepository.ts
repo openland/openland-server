@@ -250,16 +250,13 @@ export class WalletRepository {
     // Income
     //
 
-    income = async (parent: Context, uid: number, amount: number, source: { type: 'purchase', id: string } | { type: 'subscription', id: string }) => {
+    incomePending = async (parent: Context, parentTxid: string, uid: number, amount: number, source: { type: 'purchase', id: string } | { type: 'subscription', id: string }) => {
         await inTx(parent, async (ctx) => {
-            // Update Wallet
-            let wallet = await this.getWallet(ctx, uid);
-            wallet.balance += amount;
-
-            let txid = uuid();
-            await this.store.WalletTransaction.create(ctx, txid, {
+            let incomeTxid = uuid();
+            await this.store.WalletTransaction.create(ctx, incomeTxid, {
                 uid: uid,
-                status: 'success',
+                status: 'pending',
+                parentId: parentTxid,
                 operation: {
                     type: 'income',
                     amount: amount,
@@ -269,8 +266,47 @@ export class WalletRepository {
             });
 
             // Write events
-            this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionSuccess.create({ id: txid }));
-            this.store.UserWalletUpdates.post(ctx, uid, WalletBalanceChanged.create({ amount: wallet.balance }));
+            this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionPending.create({ id: incomeTxid }));
+        });
+    }
+
+    incomeSuccess = async (parent: Context, parentTxid: string, uid: number, amount: number, source: { type: 'purchase', id: string } | { type: 'subscription', id: string }) => {
+        await inTx(parent, async (ctx) => {
+            let transactions = await this.store.WalletTransaction.pendingChild.findAll(ctx, parentTxid);
+
+            if (transactions.length <= 0) {
+                let wallet = await this.getWallet(ctx, uid);
+                wallet.balance += amount;
+
+                let incomeTxid = uuid();
+                await this.store.WalletTransaction.create(ctx, incomeTxid, {
+                    uid: uid,
+                    status: 'success',
+                    parentId: parentTxid,
+                    operation: {
+                        type: 'income',
+                        amount: amount,
+                        source: source.type,
+                        id: source.id
+                    }
+                });
+
+                this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionSuccess.create({ id: incomeTxid }));
+                this.store.UserWalletUpdates.post(ctx, uid, WalletBalanceChanged.create({ amount: wallet.balance }));
+            } else {
+                transactions.forEach(async (transaction) => {
+                    if (transaction.operation.type === 'income') {
+                        let wallet = await this.getWallet(ctx, transaction.uid);
+                        wallet.balance += transaction.operation.amount;
+
+                        transaction.status = 'success';
+
+                        // Write events
+                        this.store.UserWalletUpdates.post(ctx, transaction.uid, WalletTransactionSuccess.create({ id: transaction.id }));
+                        this.store.UserWalletUpdates.post(ctx, transaction.uid, WalletBalanceChanged.create({ amount: wallet.balance }));
+                    }
+                });
+            }
         });
     }
 
@@ -481,6 +517,8 @@ export class WalletRepository {
             // Write events           
             this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionSuccess.create({ id: txid }));
             this.store.UserWalletUpdates.post(ctx, uid, WalletBalanceChanged.create({ amount: fromWallet.balance }));
+
+            return txid;
         });
     }
 

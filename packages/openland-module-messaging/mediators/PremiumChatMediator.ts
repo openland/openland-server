@@ -92,18 +92,24 @@ export class PremiumChatMediator {
             }
 
             let membershipChanged = await this.repo.alterPaidChatUserPass(ctx, cid, uid, activeSubscription);
-            if (activeSubscription && membershipChanged) {
-                let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
+            if (membershipChanged) {
+                if (activeSubscription) {
+                    let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
 
-                if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
-                    let uids: number[] = prevMessage.serviceMetadata.userIds;
-                    uids.push(uid);
+                    if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
+                        let uids: number[] = prevMessage.serviceMetadata.userIds;
+                        uids.push(uid);
 
-                    await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, uid, uids, true), false);
-                    await this.messaging.bumpDialog(ctx, uid, cid);
+                        await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, uid, uids, true), false);
+                        await this.messaging.bumpDialog(ctx, uid, cid);
+                    } else {
+                        await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, uid, [uid]));
+                    }
                 } else {
-                    await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, uid, [uid]));
+                    await this.messaging.sendMessage(ctx, uid, cid, await this.roomLeaveMessage(ctx, uid), true);
+                    await this.messaging.bumpDialog(ctx, uid, cid);
                 }
+
             }
         });
     }
@@ -111,6 +117,15 @@ export class PremiumChatMediator {
     //
     // Subscriptions
     //
+
+    /**
+     * Start subscription
+     */
+    onSubscriptionStarted = async (ctx: Context, sid: string, txid: string, cid: number, uid: number) => {
+        let subscription = (await Store.WalletSubscription.findById(ctx, sid))!;
+        let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
+        await Modules.Wallet.wallet.incomePending(ctx, txid, ownerId, subscription.amount, { type: 'subscription', id: sid });
+    }
 
     /**
      * Payment failing, but subscription is still alive
@@ -122,10 +137,10 @@ export class PremiumChatMediator {
     /**
      * Payment Period success - increment balance, notify owner
      */
-    onSubscriptionPaymentSuccess = async (ctx: Context, sid: string, cid: number, uid: number) => {
+    onSubscriptionPaymentSuccess = async (ctx: Context, sid: string, txid: string, cid: number, uid: number) => {
         let subscription = (await Store.WalletSubscription.findById(ctx, sid))!;
         let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
-        await Modules.Wallet.wallet.income(ctx, ownerId, subscription.amount, { type: 'subscription', id: sid });
+        await Modules.Wallet.wallet.incomeSuccess(ctx, txid, ownerId, subscription.amount, { type: 'subscription', id: sid });
         await this.notifyOwner(ctx, ownerId, cid, uid, 'subscription', subscription.amount);
     }
 
@@ -133,7 +148,7 @@ export class PremiumChatMediator {
      * Recovered from failing state
      */
     onSubscriptionRecovered = async (ctx: Context, sid: string, cid: number, uid: number) => {
-        // good for you
+        await this.alterProChatUserPass(ctx, cid, uid, sid);
     }
 
     /**
@@ -169,17 +184,19 @@ export class PremiumChatMediator {
     //
     // TODO: Implement full and read-only access
     //
-    onPurchaseCreated = async (ctx: Context, pid: string, uid: number, amount: number, cid: number) => {
+    onPurchaseCreated = async (ctx: Context, pid: string, txid: string, uid: number, amount: number, cid: number) => {
         // Nothing to do, read-only access should be granted by this time
+        let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
+        await Modules.Wallet.wallet.incomePending(ctx, txid, ownerId, amount, { type: 'purchase', id: pid });
     }
 
     /**
      * Purchase success - increment balance, notify owner
      */
-    onPurchaseSuccess = async (ctx: Context, pid: string, cid: number, uid: number, amount: number) => {
+    onPurchaseSuccess = async (ctx: Context, pid: string, txid: string, cid: number, uid: number, amount: number) => {
         // TODO: grant full access here
         let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
-        await Modules.Wallet.wallet.income(ctx, ownerId, amount, { type: 'purchase', id: pid });
+        await Modules.Wallet.wallet.incomeSuccess(ctx, txid, ownerId, amount, { type: 'purchase', id: pid });
         await this.notifyOwner(ctx, ownerId, cid, uid, 'purchase', amount);
     }
 
@@ -238,6 +255,20 @@ export class PremiumChatMediator {
                 userIds: uids,
                 invitedById: uid
             }
+        };
+    }
+
+    private async roomLeaveMessage(parent: Context, uid: number): Promise<MessageInput> {
+        let name = await Modules.Users.getUserFullName(parent, uid);
+        return {
+            ...buildMessage(userMention(name, uid), ' left the group'),
+            isService: true,
+            isMuted: true,
+            serviceMetadata: {
+                type: 'user_kick',
+                userId: uid,
+                kickedById: uid
+            },
         };
     }
 

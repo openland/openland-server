@@ -79,6 +79,7 @@ export const Resolver: GQLResolver = {
         haveMention: async (src: { cid: number }, _, ctx) => {
             return await Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid).get(ctx);
         },
+        membership: async (src, args, ctx) => ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, src.cid) : 'none'
     },
     Query: {
         dialogs: withUser(async (ctx, args, uid) => {

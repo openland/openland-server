@@ -1706,6 +1706,7 @@ export default declareSchema(() => {
         primaryKey('id', string());
         field('uid', integer());
         field('status', enumString('pending', 'canceled', 'success'));
+        field('parentId', optional(string()));
 
         field('operation', union({
             'deposit': struct({
@@ -1743,6 +1744,8 @@ export default declareSchema(() => {
 
         rangeIndex('pending', ['uid', 'createdAt']).withCondition((s) => s.status === 'pending' || s.status === 'canceling');
         rangeIndex('history', ['uid', 'createdAt']).withCondition((s) => !(s.status === 'pending' || s.status === 'canceling'));
+
+        rangeIndex('pendingChild', ['parentId', 'createdAt']).withCondition((s) => s.status === 'pending');
     });
 
     entity('WalletDepositRequest', () => {

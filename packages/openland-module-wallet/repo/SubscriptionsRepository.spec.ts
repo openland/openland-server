@@ -83,9 +83,9 @@ describe('SubscriptionsRepository', () => {
         expect(subs.interval).toBe('week');
 
         // Payment success
-        await expect(subscriptions.handlePaymentSuccess(ctx, 24, 'invalid', 1, period.pid!, now)).rejects.toThrowError('Unable to find subscription');
-        await expect(subscriptions.handlePaymentSuccess(ctx, 25, id, 1, period.pid!, now)).rejects.toThrowError('Invalid UID');
-        await subscriptions.handlePaymentSuccess(ctx, 24, id, 1, period.pid!, now);
+        await expect(subscriptions.handlePaymentSuccess(ctx, 24, '', 'invalid', 1, period.pid!, now)).rejects.toThrowError('Unable to find subscription');
+        await expect(subscriptions.handlePaymentSuccess(ctx, 25, '', id, 1, period.pid!, now)).rejects.toThrowError('Invalid UID');
+        await subscriptions.handlePaymentSuccess(ctx, 24, '', id, 1, period.pid!, now);
         subs = (await Store.WalletSubscription.findById(ctx, id))!;
         periodIndex = (await Store.WalletSubscriptionScheduling.findById(ctx, id))!.currentPeriodIndex;
         period = (await Store.WalletSubscriptionPeriod.findById(ctx, id, periodIndex))!;
@@ -153,7 +153,7 @@ describe('SubscriptionsRepository', () => {
         expect(subs.interval).toBe('week');
 
         // Recovered
-        await subscriptions.handlePaymentSuccess(ctx, 24, id, 2, period.pid!, now);
+        await subscriptions.handlePaymentSuccess(ctx, 24, '', id, 2, period.pid!, now);
         subs = (await Store.WalletSubscription.findById(ctx, id))!;
         periodIndex = (await Store.WalletSubscriptionScheduling.findById(ctx, id))!.currentPeriodIndex;
         period = (await Store.WalletSubscriptionPeriod.findById(ctx, id, periodIndex))!;
@@ -204,7 +204,7 @@ describe('SubscriptionsRepository', () => {
         // Pay Last Period
         now += 6 * DAY;
         await subscriptions.doScheduling(ctx, id, now);
-        await subscriptions.handlePaymentSuccess(ctx, 24, id, 3, period.pid!, now);
+        await subscriptions.handlePaymentSuccess(ctx, 24, '', id, 3, period.pid!, now);
         subs = (await Store.WalletSubscription.findById(ctx, id))!;
         periodIndex = (await Store.WalletSubscriptionScheduling.findById(ctx, id))!.currentPeriodIndex;
         period = (await Store.WalletSubscriptionPeriod.findById(ctx, id, periodIndex))!;
@@ -251,7 +251,7 @@ describe('SubscriptionsRepository', () => {
         let id = subs.id;
         let periodIndex = (await Store.WalletSubscriptionScheduling.findById(ctx, id))!.currentPeriodIndex;
         let period = (await Store.WalletSubscriptionPeriod.findById(ctx, id, periodIndex))!;
-        await subscriptions.handlePaymentSuccess(ctx, 25, id, 1, period.pid!, now);
+        await subscriptions.handlePaymentSuccess(ctx, 25, '', id, 1, period.pid!, now);
 
         now += 8 * DAY;
         let periodNow = period1Now + 7 * DAY;
@@ -373,7 +373,7 @@ describe('SubscriptionsRepository', () => {
 
         // Should throw exception after expiring subscription
         await expect(subscriptions.handlePaymentCanceled(ctx, 25, id, 2, period.pid!, now)).rejects.toThrowError('Period is already in canceled state');
-        await expect(subscriptions.handlePaymentSuccess(ctx, 25, id, 2, period.pid!, now)).rejects.toThrowError('Period is already in canceled state');
+        await expect(subscriptions.handlePaymentSuccess(ctx, 25, '', id, 2, period.pid!, now)).rejects.toThrowError('Period is already in canceled state');
         await expect(subscriptions.handlePaymentFailing(ctx, 25, id, 2, period.pid!, now)).rejects.toThrowError('Period is already in canceled state');
 
         // Should cancel after expiring subscription
