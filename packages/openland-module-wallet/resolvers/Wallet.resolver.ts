@@ -136,7 +136,7 @@ export const Resolver: GQLResolver = {
         chargeAmount: (src) => (src as any).chargeAmount,
         walletAmount: (src) => (src as any).walletAmount,
         payment: async (src, args, ctx) => {
-            if (src.type === 'purchase' && src.payment.type === 'paymentIntent') {
+            if (src.type === 'purchase' && src.payment.type === 'payment') {
                 return Store.Payment.findById(ctx, src.payment.id);
             }
 
@@ -149,7 +149,7 @@ export const Resolver: GQLResolver = {
         chargeAmount: (src) => (src as any).chargeAmount,
         walletAmount: (src) => (src as any).walletAmount,
         payment: async (src, args, ctx) => {
-            if (src.type === 'transfer_out' && src.payment.type === 'paymentIntent') {
+            if (src.type === 'transfer_out' && src.payment.type === 'payment') {
                 return Store.Payment.findById(ctx, src.payment.id);
             }
 
