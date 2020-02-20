@@ -305,8 +305,8 @@ export class RoomMediator {
                 if (isChannel) {
                     shouldSendMessage = false;
                 } else {
-                    if (conv.kind === 'public') {
-                        let org = await await Store.Organization.findById(ctx, conv.oid!);
+                    if (conv.kind === 'public' && conv.oid) {
+                        let org = await Store.Organization.findById(ctx, conv.oid);
                         if (org!.kind === 'community') {
                             shouldSendMessage = false;
                         } else {
