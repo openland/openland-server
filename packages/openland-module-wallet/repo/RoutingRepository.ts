@@ -109,7 +109,7 @@ export class RoutingRepositoryImpl {
 
     onPurchaseCreated = async (ctx: Context, pid: string, txid: string, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
         if (product.type === 'group') {
-            await Modules.Messaging.premiumChat.onPurchaseCreated(ctx, pid, txid, product.gid, uid, amount);
+            await Modules.Messaging.premiumChat.onPurchaseCreated(ctx, pid, txid, uid, amount, product.gid);
         }
     }
 
