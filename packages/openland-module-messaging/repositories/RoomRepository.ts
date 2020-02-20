@@ -885,12 +885,12 @@ export class RoomRepository {
             //
             if (conversation.kind === 'group') {
                 throw new AccessDeniedError();
-            } else if (conversation.kind === 'public') {
+            } else if (conversation.kind === 'public' && conversation.oid) {
                 //
                 //   User can see organization group only if he is a member of org
                 //   User can see any community group
                 //
-                let org = (await Store.Organization.findById(ctx, conversation.oid!))!;
+                let org = (await Store.Organization.findById(ctx, conversation.oid))!;
                 if (org.kind === 'organization') {
                     if (!await Modules.Orgs.isUserMember(ctx, uid, org.id)) {
                         throw new AccessDeniedError();
