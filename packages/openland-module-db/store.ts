@@ -17475,10 +17475,12 @@ export class WalletBalanceChanged extends BaseEvent {
 
 const walletLockedChangedCodec = c.struct({
     isLocked: c.boolean,
+    failingPaymentsCount: c.integer,
 });
 
 interface WalletLockedChangedShape {
     isLocked: boolean;
+    failingPaymentsCount: number;
 }
 
 export class WalletLockedChanged extends BaseEvent {
@@ -17500,6 +17502,7 @@ export class WalletLockedChanged extends BaseEvent {
     }
 
     get isLocked(): boolean { return this.raw.isLocked; }
+    get failingPaymentsCount(): number { return this.raw.failingPaymentsCount; }
 }
 
 const stripeEventCreatedCodec = c.struct({

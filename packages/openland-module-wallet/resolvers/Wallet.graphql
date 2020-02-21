@@ -204,6 +204,7 @@ type WalletUpdatePaymentStatus {
 
 type WalletUpdateLocked {
     isLocked: Boolean!
+    failingPaymentsCount: Int!
 }
 
 union WalletUpdate = WalletUpdateBalance | WalletUpdateTransactionSuccess | WalletUpdateTransactionCanceled | WalletUpdateTransactionPending | WalletUpdatePaymentStatus | WalletUpdateLocked

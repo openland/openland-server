@@ -458,7 +458,8 @@ export const Resolver: GQLResolver = {
         payment: async (src, args, ctx) => (await Store.Payment.findById(ctx, src.id))!
     },
     WalletUpdateLocked: {
-        isLocked: (src, args, ctx) => Modules.Wallet.isLocked(ctx, ctx.auth.uid!)
+        isLocked: (src, args, ctx) => Modules.Wallet.isLocked(ctx, ctx.auth.uid!),
+        failingPaymentsCount: (src, args, ctx) => Modules.Wallet.getFailingPaymentsCount(ctx, ctx.auth.uid!),
     },
 
     Subscription: {

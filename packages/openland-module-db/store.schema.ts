@@ -1912,6 +1912,7 @@ export default declareSchema(() => {
     });
     event('WalletLockedChanged', () => {
         field('isLocked', boolean());
+        field('failingPaymentsCount', integer());
     });
 
     //
