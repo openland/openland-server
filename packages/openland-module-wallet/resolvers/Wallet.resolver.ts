@@ -43,7 +43,8 @@ export const Resolver: GQLResolver = {
         id: (src) => IDs.WalletAccount.serialize(src.uid),
         balance: (src) => src.balance,
         state: async (src, args, ctx) => IDs.WalletUpdatesCursor.serialize(await Store.UserWalletUpdates.createStream(src.uid, { batchSize: 20 }).tail(ctx) || ''),
-        isLocked: (src, args, ctx) => Modules.Wallet.isLocked(ctx, src.uid)
+        isLocked: (src, args, ctx) => Modules.Wallet.isLocked(ctx, src.uid),
+        failingPaymentsCount: (src, args, ctx) => Modules.Wallet.getFailingPaymentsCount(ctx, src.uid),
     },
 
     WalletTransaction: {

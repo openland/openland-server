@@ -52,6 +52,7 @@ type WalletAccount {
     balance: Int!
     state: String!
     isLocked: Boolean!
+    failingPaymentsCount: Int!
 }
 
 #

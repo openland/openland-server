@@ -27,11 +27,15 @@ export class WalletRepository {
         return !!(await this.getWallet(parent, uid)).isLocked;
     }
 
+    getFailingPaymentsCount = async (parent: Context, uid: number) => {
+        return (await this.store.Payment.userFailing.findAll(parent, uid)).length;
+    }
+
     updateIsLocked = async (parent: Context, uid: number) => {
         return await inTx(parent, async (ctx) => {
             let wallet = await this.getWallet(parent, uid);
             let oldState = !!wallet.isLocked;
-            let isLocked = (await this.store.Payment.userFailing.findAll(ctx, uid)).length > 0;
+            let isLocked = await this.getFailingPaymentsCount(parent, uid) > 0;
             wallet.isLocked = isLocked;
             await wallet.flush(ctx);
             if (oldState !== isLocked) {

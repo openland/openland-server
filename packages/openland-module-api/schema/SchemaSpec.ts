@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'f08f4aad3b6bb8cc49188ca9b109666f';
+export const GQL_SPEC_VERSION = 'e3de8519bd79d17fb74fb0d48fdc0772';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -549,11 +549,13 @@ export namespace GQL {
         balance: number;
         state: string;
         isLocked: boolean;
+        failingPaymentsCount: number;
     }
     export interface WalletAccountIdArgs { }
     export interface WalletAccountBalanceArgs { }
     export interface WalletAccountStateArgs { }
     export interface WalletAccountIsLockedArgs { }
+    export interface WalletAccountFailingPaymentsCountArgs { }
     export interface WalletTransaction {
         id: string;
         date: string;
@@ -5763,6 +5765,7 @@ export interface GQLResolver {
             balance: GQL.WalletAccountBalanceArgs,
             state: GQL.WalletAccountStateArgs,
             isLocked: GQL.WalletAccountIsLockedArgs,
+            failingPaymentsCount: GQL.WalletAccountFailingPaymentsCountArgs,
         }
     >;
     WalletTransaction?: ComplexTypedResolver<

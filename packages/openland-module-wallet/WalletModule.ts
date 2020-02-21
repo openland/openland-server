@@ -74,6 +74,10 @@ export class WalletModule {
         return await this.wallet.isLocked(parent, uid);
     }
 
+    getFailingPaymentsCount = async (parent: Context, uid: number) => {
+        return await this.wallet.getFailingPaymentsCount(parent, uid);
+    }
+
     //
     // Payments
     //
