@@ -432,4 +432,23 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '119-fix-deleted-default-cards',
+    migration: async (parent) => {
+        let data = await inTx(parent, ctx => Store.UserStripeCard.findAll(ctx));
+        for (let cursor = 0; cursor < data.length; cursor += 100) {
+            let batch = data.slice(cursor, cursor + 100);
+            await inTx(parent, async ctx => {
+                for (let key of batch) {
+                    let item = (await Store.UserStripeCard.findById(ctx, key.uid, key.pmid))!;
+                    if (item.deleted) {
+                        item.default = false;
+                    }
+                    await item!.flush(ctx);
+                }
+            });
+        }
+    }
+});
+
 export default migrations;
