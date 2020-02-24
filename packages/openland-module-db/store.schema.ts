@@ -1698,7 +1698,7 @@ export default declareSchema(() => {
     entity('Wallet', () => {
         primaryKey('uid', integer());
         field('balance', integer());
-        field('balanceLocked', integer());
+        field('balanceLocked', optional(integer()));
         field('isLocked', optional(boolean()));
     });
 

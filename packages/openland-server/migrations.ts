@@ -413,4 +413,23 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '118-fix-locked-balance',
+    migration: async (parent) => {
+        let data = await inTx(parent, ctx => Store.Wallet.findAll(ctx));
+        for (let cursor = 0; cursor < data.length; cursor += 100) {
+            let batch = data.slice(cursor, cursor + 100);
+            await inTx(parent, async ctx => {
+                for (let key of batch) {
+                    let item = (await Store.Wallet.findById(ctx, key.uid))!;
+                    if (!item.balanceLocked) {
+                        item.balanceLocked = 0;
+                    }
+                    await item!.flush(ctx);
+                }
+            });
+        }
+    }
+});
+
 export default migrations;
