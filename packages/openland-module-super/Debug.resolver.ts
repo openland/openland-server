@@ -7,7 +7,7 @@ import {
     WalletBalanceChanged, WalletLockedChanged,
 } from './../openland-module-db/store';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
-import { withPermission, withUser } from '../openland-module-api/Resolvers';
+import { withPermission, withUser, withAccount } from '../openland-module-api/Resolvers';
 import { Emails } from '../openland-module-email/Emails';
 import { Store } from '../openland-module-db/FDB';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
@@ -1301,11 +1301,8 @@ export const Resolver: GQLResolver = {
            });
            return true;
         }),
-        debugResetPaymentsState: withPermission('super-admin', async (parent, args) => {
-            if (Modules.Wallet.paymentsMediator.liveMode) {
-                return false;
-            }
-
+        debugResetPaymentsState: withAccount( async (parent, args) => {
+            
             await debugTask(parent.auth.uid!, 'debugResetCustomers', async (log) => {
                 let i = 0;
                 let customers = await inTx(parent, ctx => Store.UserStripeCustomer.findAll(ctx));
@@ -1417,7 +1414,8 @@ export const Resolver: GQLResolver = {
                             wallet!.balanceLocked = 0;
                             wallet!.isLocked = false;
                             Store.UserWalletUpdates.post(ctx, wallet!.uid, WalletLockedChanged.create({
-                                isLocked: false
+                                isLocked: false,
+                                failingPaymentsCount: 0,
                             }));
                         }
                         await wallet!.flush(ctx);

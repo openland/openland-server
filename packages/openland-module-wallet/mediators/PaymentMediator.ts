@@ -2,7 +2,7 @@ import { createLogger } from '@openland/log';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { PaymentIntentsRepository } from '../repo/PaymentIntentsRepository';
 import { inTx } from '@openland/foundationdb';
-import { Context } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 import Stripe from 'stripe';
 import { backoff } from 'openland-utils/timer';
@@ -28,6 +28,8 @@ export class PaymentMediator {
         this.subscription = subscription;
         this.stripe = new Stripe(token, { apiVersion: '2019-12-03', typescript: true });
         this.liveMode = !token.startsWith('sk_test');
+        let ctx = createNamedContext('PaymentMediator');
+        log.debug(ctx, this.liveMode ? 'live' : 'test');
     }
 
     exportCustomer = async (parent: Context, uid: number) => {

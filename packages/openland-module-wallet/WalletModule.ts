@@ -40,7 +40,7 @@ export class WalletModule {
     readonly operations: OperationsRepository = new OperationsRepository(Store, this.wallet, this.payments, this.subscriptions);
 
     // Payments Mediator (on/off session)
-    readonly paymentsMediator: PaymentMediator = new PaymentMediator('sk_test_bX4FCyKdIBEZZmtdizBGQJpb' /* Like Waaaat 🤯 */,
+    readonly paymentsMediator: PaymentMediator = new PaymentMediator(process.env.STRIPE_SK  || 'sk_test_bX4FCyKdIBEZZmtdizBGQJpb' /* Like Waaaat 🤯 */,
         this.paymentIntents, this.payments, this.subscriptions
     );
 
@@ -123,6 +123,7 @@ export class WalletModule {
     //
 
     createSubscription = async (parent: Context, uid: number, amount: number, interval: 'week' | 'month', product: WalletSubscriptionCreateShape['proudct']) => {
+        throw new Error('Wallet is disabled for migration');
         return await inTx(parent, async (ctx) => {
             if (await this.wallet.isLocked(ctx, uid)) {
                 throw new UserError('Wallet is locked dew to failing transactions');
@@ -141,6 +142,7 @@ export class WalletModule {
     //
 
     createTransferPayment = async (parent: Context, fromUid: number, toUid: number, amount: number, retryKey: string) => {
+        throw new Error('Wallet is disabled for migration');
         return await this.operations.createTransferPayment(parent, fromUid, toUid, amount, retryKey);
     }
 
@@ -149,6 +151,7 @@ export class WalletModule {
     //
 
     createPurchase = async (parent: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
+        throw new Error('Wallet is disabled for migration');
         return await inTx(parent, async (ctx) => {
             if (await this.wallet.isLocked(ctx, uid)) {
                 throw new UserError('Wallet is locked dew to failing transactions');
