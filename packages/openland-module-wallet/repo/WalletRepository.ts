@@ -77,7 +77,6 @@ export class WalletRepository {
             if (!res) {
                 res = await this.store.Wallet.create(ctx, uid, { balance: 0, balanceLocked: 0 });
             }
-            // @ts-ignore
             return res.balance - res.balanceLocked;
         });
     }
@@ -324,7 +323,6 @@ export class WalletRepository {
         return await inTx(parent, async (ctx) => {
             let wallet = await this.getWallet(ctx, uid);
             if (walletAmount > 0) {
-                // @ts-ignore
                 if (wallet.balance - wallet.balanceLocked < walletAmount) {
                     throw Error('Invalid walelt amount');
                 }
@@ -362,7 +360,6 @@ export class WalletRepository {
         return await inTx(parent, async (ctx) => {
             let wallet = await this.getWallet(ctx, uid);
             if (walletAmount > 0) {
-                // @ts-ignore
                 if (wallet.balance - wallet.balanceLocked < walletAmount) {
                     throw Error('Invalid walelt amount');
                 }
@@ -502,7 +499,6 @@ export class WalletRepository {
         checkMoney(amount);
         return await inTx(parent, async (ctx) => {
             let fromWallet = await this.getWallet(ctx, uid);
-            // @ts-ignore
             if ((fromWallet.balance - fromWallet.balanceLocked) < amount) {
                 throw new Error('Insufficient funds');
             }
@@ -542,7 +538,6 @@ export class WalletRepository {
             // Wallet Update
             let fromWallet = await this.getWallet(ctx, uid);
             if (walletAmount > 0) {
-                // @ts-ignore
                 if ((fromWallet.balance - fromWallet.balanceLocked) < walletAmount) {
                     throw new Error('Insufficient funds');
                 }
@@ -693,7 +688,6 @@ export class WalletRepository {
             // Update Wallet
             let fromWallet = await this.getWallet(ctx, fromUid);
             let wallet = await this.getWallet(ctx, toUid);
-            // @ts-ignore
             if ((fromWallet.balance - fromWallet.balanceLocked) < amount) {
                 throw new Error('Insufficient funds');
             }
@@ -748,7 +742,6 @@ export class WalletRepository {
             // Wallet balance lock
             let fromWallet = await this.getWallet(ctx, fromUid);
             if (walletAmount > 0) {
-                // @ts-ignore
                 if ((fromWallet.balance - fromWallet.balanceLocked) < walletAmount) {
                     throw new Error('Insufficient funds');
                 }
