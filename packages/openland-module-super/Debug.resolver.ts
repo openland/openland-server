@@ -1428,6 +1428,23 @@ export const Resolver: GQLResolver = {
                 await log('done: ' + i);
                 return 'ok';
             });
+
+            await debugTask(parent.auth.uid!, 'debugCancelPayments', async (log) => {
+                let i = 0;
+                let payments = await inTx(parent, ctx => Store.Payment.findAll(ctx));
+                for (let p of payments) {
+                    await inTx(parent, async ctx => {
+                        p.state = 'canceled';
+                        await p.flush(ctx);
+                    });
+                    i++;
+                    if (i % 400 === 0) {
+                        await log('done: ' + i);
+                    }
+                }
+                await log('done: ' + i);
+                return 'ok';
+            });
             return true;
         }),
     },
