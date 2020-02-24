@@ -123,7 +123,6 @@ export class WalletModule {
     //
 
     createSubscription = async (parent: Context, uid: number, amount: number, interval: 'week' | 'month', product: WalletSubscriptionCreateShape['proudct']) => {
-        throw new Error('Wallet is disabled for migration');
         return await inTx(parent, async (ctx) => {
             if (await this.wallet.isLocked(ctx, uid)) {
                 throw new UserError('Wallet is locked dew to failing transactions');
@@ -142,7 +141,6 @@ export class WalletModule {
     //
 
     createTransferPayment = async (parent: Context, fromUid: number, toUid: number, amount: number, retryKey: string) => {
-        throw new Error('Wallet is disabled for migration');
         return await this.operations.createTransferPayment(parent, fromUid, toUid, amount, retryKey);
     }
 
@@ -151,7 +149,6 @@ export class WalletModule {
     //
 
     createPurchase = async (parent: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
-        throw new Error('Wallet is disabled for migration');
         return await inTx(parent, async (ctx) => {
             if (await this.wallet.isLocked(ctx, uid)) {
                 throw new UserError('Wallet is locked dew to failing transactions');

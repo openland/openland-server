@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5ce8bfdd8bda91b049696853c882dee5';
+export const GQL_SPEC_VERSION = '1e61abf3a3d58631af67d1454685bc00';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1921,7 +1921,6 @@ export namespace GQL {
         debugAddStickerPackToAll: boolean;
         debugReplaceCommunityForChat: boolean;
         debugRecountSeqForMessages: boolean;
-        debugResetPaymentsState: boolean;
         settingsUpdate: Settings;
         updateSettings: Settings;
         createOauthApp: OauthApp;
@@ -2391,7 +2390,6 @@ export namespace GQL {
         newCommunityId: string;
     }
     export interface MutationDebugRecountSeqForMessagesArgs { }
-    export interface MutationDebugResetPaymentsStateArgs { }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
     }
@@ -7595,7 +7593,6 @@ export interface GQLResolver {
             debugAddStickerPackToAll: GQL.MutationDebugAddStickerPackToAllArgs,
             debugReplaceCommunityForChat: GQL.MutationDebugReplaceCommunityForChatArgs,
             debugRecountSeqForMessages: GQL.MutationDebugRecountSeqForMessagesArgs,
-            debugResetPaymentsState: GQL.MutationDebugResetPaymentsStateArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             updateSettings: GQL.MutationUpdateSettingsArgs,
             createOauthApp: GQL.MutationCreateOauthAppArgs,
