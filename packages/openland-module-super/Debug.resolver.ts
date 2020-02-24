@@ -4,10 +4,9 @@ import {
     Comment,
     DialogNeedReindexEvent,
     OrganizationProfile,
-    WalletBalanceChanged, WalletLockedChanged,
 } from './../openland-module-db/store';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
-import { withPermission, withUser, withAccount } from '../openland-module-api/Resolvers';
+import { withPermission, withUser } from '../openland-module-api/Resolvers';
 import { Emails } from '../openland-module-email/Emails';
 import { Store } from '../openland-module-db/FDB';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
@@ -25,7 +24,6 @@ import { NotFoundError } from '../openland-errors/NotFoundError';
 import { cursorToTuple } from '@openland/foundationdb-entity/lib/indexes/utils';
 import { buildMessage, heading } from '../openland-utils/MessageBuilder';
 import { AuthContext } from '../openland-module-auth/AuthContext';
-import uuid from 'uuid';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
