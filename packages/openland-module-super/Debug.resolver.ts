@@ -34,7 +34,7 @@ const logger = createLogger('debug');
 const nextDebugSeq = async (ctx: Context, uid: number) => {
     let state = await Store.DebugEventState.findById(ctx, uid!);
     if (!state) {
-        await Store.DebugEventState.create(ctx, uid!, {seq: 1});
+        await Store.DebugEventState.create(ctx, uid!, { seq: 1 });
         return 1;
     } else {
         state.seq++;
@@ -46,7 +46,7 @@ const nextDebugSeq = async (ctx: Context, uid: number) => {
 const createDebugEvent = async (parent: Context, uid: number, key: string) => {
     return inTx(parent, async (ctx) => {
         let seq = await nextDebugSeq(ctx, uid);
-        await Store.DebugEvent.create(ctx, uid!, seq, {key});
+        await Store.DebugEvent.create(ctx, uid!, seq, { key });
     });
 };
 
@@ -121,8 +121,8 @@ export const Resolver: GQLResolver = {
             return res;
         }),
         debugEventsState: withPermission('super-admin', async (ctx, args) => {
-            let tail = await Store.DebugEvent.user.stream(ctx.auth.uid!, {batchSize: 1}).tail(ctx);
-            return {state: tail || ''};
+            let tail = await Store.DebugEvent.user.stream(ctx.auth.uid!, { batchSize: 1 }).tail(ctx);
+            return { state: tail || '' };
         }),
         debugCheckTasksIndex: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugTasksIndex', async (log) => {
@@ -227,7 +227,7 @@ export const Resolver: GQLResolver = {
             } else if (type === 'UNREAD_MESSAGE') {
                 let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
                 let dialog = dialogs[0];
-                let messages = await Store.Message.chat.query(ctx, dialog.cid, {limit: 1, reverse: true});
+                let messages = await Store.Message.chat.query(ctx, dialog.cid, { limit: 1, reverse: true });
 
                 await Emails.sendUnreadMessages(ctx, uid, messages.items);
             } else if (type === 'UNREAD_MESSAGES') {
@@ -235,7 +235,7 @@ export const Resolver: GQLResolver = {
                 let messages: Message[] = [];
 
                 for (let dialog of dialogs) {
-                    let msgs = await Store.Message.chat.query(ctx, dialog.cid, {limit: 1, reverse: true});
+                    let msgs = await Store.Message.chat.query(ctx, dialog.cid, { limit: 1, reverse: true });
                     messages.push(msgs.items[0]);
                 }
 
@@ -243,11 +243,11 @@ export const Resolver: GQLResolver = {
             } else if (type === 'PUBLIC_ROOM_INVITE') {
                 let cid = IDs.Conversation.parse(isProd ? 'AL1ZPXB9Y0iq3yp4rx03cvMk9d' : 'd5z2ppJy6JSXx4OA00lxSJXmp6');
 
-                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, {id: 'xxxxx'} as any);
+                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, { id: 'xxxxx' } as any);
             } else if (type === 'PRIVATE_ROOM_INVITE') {
                 let cid = IDs.Conversation.parse(isProd ? 'qljZr9WbMKSRlBZWbDo5U9qZW4' : 'vBDpxxEQREhQyOBB6l7LUDMwPE');
 
-                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, {id: 'xxxxx'} as any);
+                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, { id: 'xxxxx' } as any);
             } else if (type === 'ROOM_INVITE_ACCEPTED') {
                 let cid = IDs.Conversation.parse(isProd ? 'AL1ZPXB9Y0iq3yp4rx03cvMk9d' : 'd5z2ppJy6JSXx4OA00lxSJXmp6');
 
@@ -298,7 +298,7 @@ export const Resolver: GQLResolver = {
             } else if (args.type === 'ON_USER_PROFILE_CREATED') {
                 await Modules.Hooks.onUserProfileCreated(ctx, uid);
             } else if (args.type === 'ON_ORG_ACTIVATED_BY_ADMIN') {
-                await Modules.Hooks.onFirstOrganizationActivated(ctx, oid, {type: 'BY_SUPER_ADMIN', uid});
+                await Modules.Hooks.onFirstOrganizationActivated(ctx, oid, { type: 'BY_SUPER_ADMIN', uid });
             } else if (args.type === 'ON_ORG_ACTIVATED_VIA_INVITE') {
                 await Modules.Hooks.onFirstOrganizationActivated(ctx, oid, {
                     type: 'BY_INVITE',
@@ -307,7 +307,7 @@ export const Resolver: GQLResolver = {
                     uid,
                 });
             } else if (args.type === 'ON_ORG_SUSPEND') {
-                await Modules.Hooks.onOrganizationSuspended(ctx, oid, {type: 'BY_SUPER_ADMIN', uid});
+                await Modules.Hooks.onOrganizationSuspended(ctx, oid, { type: 'BY_SUPER_ADMIN', uid });
             }
             return true;
         }),
@@ -345,7 +345,7 @@ export const Resolver: GQLResolver = {
                         }
                     }
 
-                    return {totalSent, totalReceived, totalSentDirect};
+                    return { totalSent, totalReceived, totalSentDirect };
                 };
 
                 let users = await Store.User.findAll(parent);
@@ -358,7 +358,7 @@ export const Resolver: GQLResolver = {
                     }
                     await inTx(rootCtx, async (ctx) => {
                         try {
-                            let {totalSent, totalReceived, totalSentDirect} = await calculateForUser(ctx, user.id);
+                            let { totalSent, totalReceived, totalSentDirect } = await calculateForUser(ctx, user.id);
 
                             let messagesSent = Store.UserMessagesSentCounter.byId(user.id);
                             messagesSent.set(ctx, totalSent);
@@ -675,7 +675,7 @@ export const Resolver: GQLResolver = {
             }
             await inTx(root, async ctx => {
                 await Modules.Users.activateUser(ctx, uid, false);
-                await Modules.Orgs.createOrganization(ctx, uid, {name: 'Openland'});
+                await Modules.Orgs.createOrganization(ctx, uid, { name: 'Openland' });
                 await Modules.Super.makeSuperAdmin(ctx, uid, 'super-admin');
             });
             return true;
@@ -920,10 +920,10 @@ export const Resolver: GQLResolver = {
                 for (let i = 0; i <= args.membersCount; i++) {
                     let key = randKey();
                     let user = await Modules.Users.createUser(ctx, key, key + '@openland.com');
-                    await Modules.Users.createUserProfile(ctx, user.id, {firstName: 'Test', lastName: '#' + key});
+                    await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Test', lastName: '#' + key });
                     users.push(user.id);
                 }
-                await Modules.Messaging.room.createRoom(ctx, 'group', 1, parent.auth.uid!, users, {title: 'Test #' + randKey()});
+                await Modules.Messaging.room.createRoom(ctx, 'group', 1, parent.auth.uid!, users, { title: 'Test #' + randKey() });
                 return true;
             });
         }),
@@ -932,7 +932,7 @@ export const Resolver: GQLResolver = {
                 const randKey = () => (Math.random() * Math.pow(2, 55)).toString(16);
                 let start = Date.now();
                 for (let i = 0; i <= args.messagesCount; i++) {
-                    await Modules.Messaging.sendMessage(ctx, IDs.Conversation.parse(args.chat), parent.auth.uid!, {message: i + ' ' + randKey()});
+                    await Modules.Messaging.sendMessage(ctx, IDs.Conversation.parse(args.chat), parent.auth.uid!, { message: i + ' ' + randKey() });
                 }
                 logger.log(ctx, 'debugFlood took', Date.now() - start);
                 return true;
@@ -1021,7 +1021,7 @@ export const Resolver: GQLResolver = {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugReindexUsersDialogs', async (ctx, uid, log) => {
                 let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
                 for (let dialog of dialogs) {
-                    Store.DialogIndexEventStore.post(ctx, DialogNeedReindexEvent.create({uid, cid: dialog.cid}));
+                    Store.DialogIndexEventStore.post(ctx, DialogNeedReindexEvent.create({ uid, cid: dialog.cid }));
                 }
             });
             return true;
@@ -1070,8 +1070,8 @@ export const Resolver: GQLResolver = {
                 user1.email = email2;
                 user2.email = email1;
 
-                let profile1Email =  profile1.email;
-                let profile2Email =  profile2.email;
+                let profile1Email = profile1.email;
+                let profile2Email = profile2.email;
 
                 profile1.email = profile2Email;
                 profile2.email = profile1Email;
@@ -1166,7 +1166,7 @@ export const Resolver: GQLResolver = {
                     return false;
                 }
                 if (event.body && event.body.args && (typeof event.body.args !== 'object' || Array.isArray(event.body.args) || Object.keys(event.body.args).length === 0)) {
-                    event.body = {...event.body, args: undefined};
+                    event.body = { ...event.body, args: undefined };
                 }
                 for (let key of Object.keys(event.body.args)) {
                     let val = event.body.args[key];
@@ -1175,7 +1175,7 @@ export const Resolver: GQLResolver = {
                     }
                 }
                 if (event.body && event.body.args && Object.keys(event.body.args).length === 0) {
-                    event.body = {...event.body, args: undefined};
+                    event.body = { ...event.body, args: undefined };
                 }
 
                 await event.flush(ctx);
@@ -1267,42 +1267,42 @@ export const Resolver: GQLResolver = {
             let oid = IDs.Organization.parse(args.newCommunityId);
 
             return inTx(parent, async ctx => {
-               let conv = await Store.ConversationRoom.findById(ctx, cid);
-               conv!.oid = oid;
-               await conv!.flush(ctx);
-               return true;
+                let conv = await Store.ConversationRoom.findById(ctx, cid);
+                conv!.oid = oid;
+                await conv!.flush(ctx);
+                return true;
             });
         }),
         debugRecountSeqForMessages: withPermission('super-admin', async (parent, args) => {
-           debugTask(parent.auth.uid!, 'debugRecountSeqForMessages', async (log) => {
-               let count = 0;
-               let limit = 100;
-               let total = 0;
-               try {
-                   let stream = Store.Message.updated.stream({ batchSize: limit });
-                   do {
-                       await inTx(parent, async ctx => {
-                           let messages = await stream.next(ctx);
-                           for (let message of messages) {
-                               message.seq = message.id;
-                               Store.ConversationLastSeq.byId(message.cid).set(ctx, message.seq);
-                           }
-                           count = messages.length;
-                           total += messages.length;
-                       });
-                       if (total % 10000 === 0) {
-                           await log('Proceed ' + total + ' messages');
-                       }
-                   } while (count === limit && count > 0);
-               } catch (e) {
-                  return `failed ${e.message}`;
-               }
-               return 'ok';
-           });
-           return true;
+            debugTask(parent.auth.uid!, 'debugRecountSeqForMessages', async (log) => {
+                let count = 0;
+                let limit = 100;
+                let total = 0;
+                try {
+                    let stream = Store.Message.updated.stream({ batchSize: limit });
+                    do {
+                        await inTx(parent, async ctx => {
+                            let messages = await stream.next(ctx);
+                            for (let message of messages) {
+                                message.seq = message.id;
+                                Store.ConversationLastSeq.byId(message.cid).set(ctx, message.seq);
+                            }
+                            count = messages.length;
+                            total += messages.length;
+                        });
+                        if (total % 10000 === 0) {
+                            await log('Proceed ' + total + ' messages');
+                        }
+                    } while (count === limit && count > 0);
+                } catch (e) {
+                    return `failed ${e.message}`;
+                }
+                return 'ok';
+            });
+            return true;
         }),
-        debugResetPaymentsState: withAccount( async (parent, args) => {
-            
+        debugResetPaymentsState: withAccount(async (parent, args) => {
+
             await debugTask(parent.auth.uid!, 'debugResetCustomers', async (log) => {
                 let i = 0;
                 let customers = await inTx(parent, ctx => Store.UserStripeCustomer.findAll(ctx));
@@ -1434,8 +1434,9 @@ export const Resolver: GQLResolver = {
                 let payments = await inTx(parent, ctx => Store.Payment.findAll(ctx));
                 for (let p of payments) {
                     await inTx(parent, async ctx => {
-                        p.state = 'canceled';
-                        await p.flush(ctx);
+                        let payment = (await Store.Payment.findById(ctx, p.id))!;
+                        payment.state = 'canceled';
+                        await payment.flush(ctx);
                     });
                     i++;
                     if (i % 400 === 0) {
