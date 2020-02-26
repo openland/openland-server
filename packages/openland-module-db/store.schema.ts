@@ -2110,5 +2110,6 @@ export default declareSchema(() => {
         field('deleted', optional(boolean()));
 
         rangeIndex('collection', ['id']).withCondition((src) => !src.deleted);
+        rangeIndex('created', ['id', 'createdAt']).withCondition((src) => !src.deleted);
     });
 });

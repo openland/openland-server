@@ -16739,6 +16739,7 @@ export class EditorsChoiceChatsCollectionFactory extends EntityFactory<EditorsCh
         let subspace = await storage.resolveEntityDirectory('editorsChoiceChatsCollection');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'collection', storageKey: 'collection', type: { type: 'range', fields: [{ name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('editorsChoiceChatsCollection', 'collection'), condition: (src) => !src.deleted });
+        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'id', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('editorsChoiceChatsCollection', 'created'), condition: (src) => !src.deleted });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -16779,6 +16780,21 @@ export class EditorsChoiceChatsCollectionFactory extends EntityFactory<EditorsCh
         },
         liveStream: (ctx: Context, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    readonly created = Object.freeze({
+        findAll: async (ctx: Context, id: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [id])).items;
+        },
+        query: (ctx: Context, id: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [id], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (id: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [id], opts);
+        },
+        liveStream: (ctx: Context, id: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [id], opts);
         },
     });
 
