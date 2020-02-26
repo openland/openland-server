@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '1e61abf3a3d58631af67d1454685bc00';
+export const GQL_SPEC_VERSION = 'd6595a2ceb1606fdbf0b1349d7a87c8a';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3539,6 +3539,10 @@ export namespace GQL {
         betaDialogTextSearch: Dialog[];
         conversationDraft: Nullable<string>;
         alphaDraftMessage: Nullable<string>;
+        discoverNewAndGrowing: SharedRoomConnection;
+        discoverPopularNow: SharedRoomConnection;
+        discoverTopPremium: SharedRoomConnection;
+        discoverTopFree: SharedRoomConnection;
         powerups: Powerup[];
         chatsWithPowerup: Room[];
         chatPowerups: RoomPowerup[];
@@ -3752,6 +3756,22 @@ export namespace GQL {
     }
     export interface QueryAlphaDraftMessageArgs {
         conversationId: string;
+    }
+    export interface QueryDiscoverNewAndGrowingArgs {
+        first: number;
+        after: OptionalNullable<string>;
+    }
+    export interface QueryDiscoverPopularNowArgs {
+        first: number;
+        after: OptionalNullable<string>;
+    }
+    export interface QueryDiscoverTopPremiumArgs {
+        first: number;
+        after: OptionalNullable<string>;
+    }
+    export interface QueryDiscoverTopFreeArgs {
+        first: number;
+        after: OptionalNullable<string>;
     }
     export interface QueryPowerupsArgs { }
     export interface QueryChatsWithPowerupArgs {
@@ -8160,6 +8180,10 @@ export interface GQLResolver {
             chatLocations: GQLRoots.UserLocationRoot[],
             alphaChatTextSearch: GQLRoots.ConversationRoot[],
             betaDialogTextSearch: GQLRoots.DialogRoot[],
+            discoverNewAndGrowing: GQLRoots.SharedRoomConnectionRoot,
+            discoverPopularNow: GQLRoots.SharedRoomConnectionRoot,
+            discoverTopPremium: GQLRoots.SharedRoomConnectionRoot,
+            discoverTopFree: GQLRoots.SharedRoomConnectionRoot,
             powerups: GQLRoots.PowerupRoot[],
             chatsWithPowerup: GQLRoots.RoomRoot[],
             chatPowerups: GQLRoots.RoomPowerupRoot[],
@@ -8305,6 +8329,10 @@ export interface GQLResolver {
             betaDialogTextSearch: GQL.QueryBetaDialogTextSearchArgs,
             conversationDraft: GQL.QueryConversationDraftArgs,
             alphaDraftMessage: GQL.QueryAlphaDraftMessageArgs,
+            discoverNewAndGrowing: GQL.QueryDiscoverNewAndGrowingArgs,
+            discoverPopularNow: GQL.QueryDiscoverPopularNowArgs,
+            discoverTopPremium: GQL.QueryDiscoverTopPremiumArgs,
+            discoverTopFree: GQL.QueryDiscoverTopFreeArgs,
             powerups: GQL.QueryPowerupsArgs,
             chatsWithPowerup: GQL.QueryChatsWithPowerupArgs,
             chatPowerups: GQL.QueryChatPowerupsArgs,
