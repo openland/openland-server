@@ -16667,6 +16667,142 @@ export class DebugEventStateFactory extends EntityFactory<DebugEventStateShape, 
     }
 }
 
+export interface EditorsChoiceChatsCollectionShape {
+    id: number;
+    createdBy: number;
+    title: string;
+    image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null };
+    chatIds: (number)[];
+    deleted: boolean | null;
+}
+
+export interface EditorsChoiceChatsCollectionCreateShape {
+    createdBy: number;
+    title: string;
+    image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined };
+    chatIds: (number)[];
+    deleted?: boolean | null | undefined;
+}
+
+export class EditorsChoiceChatsCollection extends Entity<EditorsChoiceChatsCollectionShape> {
+    get id(): number { return this._rawValue.id; }
+    get createdBy(): number { return this._rawValue.createdBy; }
+    set createdBy(value: number) {
+        let normalized = this.descriptor.codec.fields.createdBy.normalize(value);
+        if (this._rawValue.createdBy !== normalized) {
+            this._rawValue.createdBy = normalized;
+            this._updatedValues.createdBy = normalized;
+            this.invalidate();
+        }
+    }
+    get title(): string { return this._rawValue.title; }
+    set title(value: string) {
+        let normalized = this.descriptor.codec.fields.title.normalize(value);
+        if (this._rawValue.title !== normalized) {
+            this._rawValue.title = normalized;
+            this._updatedValues.title = normalized;
+            this.invalidate();
+        }
+    }
+    get image(): { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } { return this._rawValue.image; }
+    set image(value: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null }) {
+        let normalized = this.descriptor.codec.fields.image.normalize(value);
+        if (this._rawValue.image !== normalized) {
+            this._rawValue.image = normalized;
+            this._updatedValues.image = normalized;
+            this.invalidate();
+        }
+    }
+    get chatIds(): (number)[] { return this._rawValue.chatIds; }
+    set chatIds(value: (number)[]) {
+        let normalized = this.descriptor.codec.fields.chatIds.normalize(value);
+        if (this._rawValue.chatIds !== normalized) {
+            this._rawValue.chatIds = normalized;
+            this._updatedValues.chatIds = normalized;
+            this.invalidate();
+        }
+    }
+    get deleted(): boolean | null { return this._rawValue.deleted; }
+    set deleted(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.deleted.normalize(value);
+        if (this._rawValue.deleted !== normalized) {
+            this._rawValue.deleted = normalized;
+            this._updatedValues.deleted = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class EditorsChoiceChatsCollectionFactory extends EntityFactory<EditorsChoiceChatsCollectionShape, EditorsChoiceChatsCollection> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('editorsChoiceChatsCollection');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'collection', storageKey: 'collection', type: { type: 'range', fields: [{ name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('editorsChoiceChatsCollection', 'collection'), condition: (src) => !src.deleted });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'createdBy', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'title', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'image', type: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } }, secure: false });
+        fields.push({ name: 'chatIds', type: { type: 'array', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'deleted', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            createdBy: c.integer,
+            title: c.string,
+            image: c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) }),
+            chatIds: c.array(c.integer),
+            deleted: c.optional(c.boolean),
+        });
+        let descriptor: EntityDescriptor<EditorsChoiceChatsCollectionShape> = {
+            name: 'EditorsChoiceChatsCollection',
+            storageKey: 'editorsChoiceChatsCollection',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new EditorsChoiceChatsCollectionFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<EditorsChoiceChatsCollectionShape>) {
+        super(descriptor);
+    }
+
+    readonly collection = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: EditorsChoiceChatsCollectionCreateShape): Promise<EditorsChoiceChatsCollection> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: EditorsChoiceChatsCollectionCreateShape): EditorsChoiceChatsCollection {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<EditorsChoiceChatsCollection | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<EditorsChoiceChatsCollectionShape>): EditorsChoiceChatsCollection {
+        return new EditorsChoiceChatsCollection([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 const chatUpdatedEventCodec = c.struct({
     cid: c.integer,
     uid: c.integer,
@@ -18006,6 +18142,7 @@ export interface Store extends BaseStore {
     readonly DelayedTask: DelayedTaskFactory;
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
+    readonly EditorsChoiceChatsCollection: EditorsChoiceChatsCollectionFactory;
     readonly ConversationEventStore: ConversationEventStore;
     readonly DialogIndexEventStore: DialogIndexEventStore;
     readonly UserDialogEventStore: UserDialogEventStore;
@@ -18209,6 +18346,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let DelayedTaskPromise = DelayedTaskFactory.open(storage);
     let DebugEventPromise = DebugEventFactory.open(storage);
     let DebugEventStatePromise = DebugEventStateFactory.open(storage);
+    let EditorsChoiceChatsCollectionPromise = EditorsChoiceChatsCollectionFactory.open(storage);
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
     let UserCountersIndexDirectoryPromise = storage.resolveCustomDirectory('userCountersIndex');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
@@ -18383,6 +18521,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         DelayedTask: await DelayedTaskPromise,
         DebugEvent: await DebugEventPromise,
         DebugEventState: await DebugEventStatePromise,
+        EditorsChoiceChatsCollection: await EditorsChoiceChatsCollectionPromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,
         UserCountersIndexDirectory: await UserCountersIndexDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,

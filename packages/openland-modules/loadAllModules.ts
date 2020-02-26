@@ -68,6 +68,7 @@ import { GeoModule } from '../openland-module-geo/GeoModule';
 import { PowerupsModule } from '../openland-module-powerups/PowerupsModule';
 import { loadPermissionsModule } from '../openland-module-permissions/PermissionsModule.container';
 import { PermissionsModule } from '../openland-module-permissions/PermissionsModule';
+import { loadDiscoverModule } from '../openland-module-discover/DiscoverModule.container';
 
 const logger = createLogger('starting');
 
@@ -120,7 +121,6 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadInvitesModule();
     container.bind(PubsubModule).toSelf().inSingletonScope();
     container.bind(ApiModule).toSelf().inSingletonScope();
-    container.bind(DiscoverModule).toSelf().inSingletonScope();
     container.bind(UserOnboardingModule).toSelf().inSingletonScope();
     container.bind(StatsModule).toSelf().inSingletonScope();
     container.bind(ZapierModule).toSelf().inSingletonScope();
@@ -134,6 +134,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadGeoModule();
     loadPowerupsModule();
     loadPermissionsModule();
+    loadDiscoverModule();
 }
 
 export async function startAllModules() {

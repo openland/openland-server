@@ -69,7 +69,13 @@ import {
     WalletSubscription,
     PremiumChatSettings,
     WalletSubscriptionCreateShape,
-    SuperAdmin, RoomParticipant, ChannelInvitation, ChannelLink, WalletPurchase, WalletLockedChanged
+    SuperAdmin,
+    RoomParticipant,
+    ChannelInvitation,
+    ChannelLink,
+    WalletPurchase,
+    WalletLockedChanged,
+    EditorsChoiceChatsCollection
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -480,6 +486,8 @@ export namespace GQLRoots {
     export type TagRoot = any;
     export type TagGroupRoot = any;
     export type DiscoverPageRoot = any;
+    export type DiscoverChatsCollectionRoot = EditorsChoiceChatsCollection;
+    export type DiscoverChatsCollectionConnectionRoot = { items: DiscoverChatsCollectionRoot[], cursor?: string };
 
     //
     //  Presence
@@ -582,7 +590,7 @@ export namespace GQLRoots {
     export type WalletTransactionTransferOutRoot = WalletTransactionCreateShape['operation'];
     export type WalletTransactionIncomeRoot = WalletTransactionCreateShape['operation'];
     export type WalletTransactionPurchaseRoot = WalletTransactionCreateShape['operation'];
-    
+
     export type WalletUpdateContainerRoot = LiveStreamItem<BaseEvent>;
     export type WalletUpdateBatchRoot = LiveStreamItem<BaseEvent>;
     export type WalletUpdateSingleRoot = LiveStreamItem<BaseEvent>;
