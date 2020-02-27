@@ -22,6 +22,64 @@ export const Resolver: GQLResolver = {
                 items: popular.map(a => a.room.id),
                 cursor: popular.length === args.first ? IDs.DiscoverPopularNowCursor.serialize(popular[popular.length - 1].cursor) : null
             };
+        }),
+        discoverTopPremium: withActivatedUser(async (ctx, args) => {
+            let from = 0;
+            if (args.after) {
+                from = IDs.DiscoverTopPremiumCursor.parse(args.after);
+            }
+            let roomHits = await Modules.Search.elastic.client.search({
+                index: 'room', type: 'room',
+                size: args.first,
+                from: from,
+                body: {
+                    sort: [{membersCount: {'order': 'desc'}}],
+                    query: {
+                        function_score: {
+                            query: {
+                                bool: {
+                                    must: [{term: {listed: true}}, { term: { isPremium: true } }]
+                                }
+                            },
+                            boost_mode: 'multiply'
+                        }
+                    },
+                },
+            });
+
+            return {
+                items: roomHits.hits.hits.map(a => parseInt(a._id, 10)),
+                cursor: roomHits.hits.total <= (from + args.first) ? null : IDs.DiscoverTopPremiumCursor.serialize(from + args.first),
+            };
+        }),
+        discoverTopFree: withActivatedUser(async (ctx, args) => {
+            let from = 0;
+            if (args.after) {
+                from = IDs.DiscoverTopFreeCursor.parse(args.after);
+            }
+            let roomHits = await Modules.Search.elastic.client.search({
+                index: 'room', type: 'room',
+                size: args.first,
+                from: from,
+                body: {
+                    sort: [{membersCount: {'order': 'desc'}}],
+                    query: {
+                        function_score: {
+                            query: {
+                                bool: {
+                                    must: [{term: {listed: true}}, { term: { isPremium: false } }]
+                                }
+                            },
+                            boost_mode: 'multiply'
+                        }
+                    },
+                },
+            });
+
+            return {
+                items: roomHits.hits.hits.map(a => parseInt(a._id, 10)),
+                cursor: roomHits.hits.total <= (from + args.first) ? null : IDs.DiscoverTopFreeCursor.serialize(from + args.first),
+            };
         })
     }
 };

@@ -89,5 +89,7 @@ export const IDs = {
     PermissionRequest: IdsFactory.createStringId('PermissionRequest'),
 
     DiscoverChatsCollection: IdsFactory.createId('DiscoverChatsCollection'),
-    DiscoverPopularNowCursor: IdsFactory.createId('DiscoverPopularNowCursor')
+    DiscoverPopularNowCursor: IdsFactory.createId('DiscoverPopularNowCursor'),
+    DiscoverTopPremiumCursor: IdsFactory.createId('DiscoverTopPremiumCursor'),
+    DiscoverTopFreeCursor: IdsFactory.createId('DiscoverTopFreeCursor'),
 };
