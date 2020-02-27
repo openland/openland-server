@@ -86,5 +86,7 @@ export const IDs = {
     Purchase: IdsFactory.createStringId('Purchase'),
 
     PermissionGroup: IdsFactory.createId('PermissionGroup'),
-    PermissionRequest: IdsFactory.createStringId('PermissionRequest')
+    PermissionRequest: IdsFactory.createStringId('PermissionRequest'),
+
+    DiscoverPopularNowCursor: IdsFactory.createId('DiscoverPopularNowCursor')
 };
