@@ -4,10 +4,19 @@ import { injectable } from 'inversify';
 import { DiscoverData } from './DiscoverData';
 import { Context } from '@openland/context';
 import { Modules } from 'openland-modules/Modules';
+import { lazyInject } from '../openland-modules/Modules.container';
+import { ChatCollectionsMediator } from './mediators/ChatCollectionsMediator';
 
 @injectable()
 export class DiscoverModule {
+    @lazyInject('ChatCollectionsMediator')
+    public readonly collectionsMediator!: ChatCollectionsMediator;
+
     private data = new DiscoverData();
+
+    start = () => {
+        // Nothing to do
+    }
 
     // deprecated
     nextPage = async (parent: Context, uid: number, selectedTags: string[], exludedGroups: string[]) => {
@@ -92,7 +101,7 @@ export class DiscoverModule {
     isDiscoverSkipped = async (parent: Context, uid: number) => {
         return inTx(parent, async (ctx) => {
             let res = await Store.DiscoverState.findById(ctx, uid);
-            
+
             return !!(res && res.skipped);
         });
     }
@@ -139,9 +148,5 @@ export class DiscoverModule {
             }
         });
         return chats.sort((a, b) => roomMembers.get(b)! - roomMembers.get(a)!).filter(c => !deletedChats.has(c));
-    }
-
-    start = () => {
-        // Nothing to do
     }
 }

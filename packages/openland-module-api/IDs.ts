@@ -73,7 +73,7 @@ export const IDs = {
     ChatPowerup: IdsFactory.createStringId('ChatPowerup'),
     CreditCard: IdsFactory.createStringId('CreditCard'),
     CreditCardSetupIntent: IdsFactory.createStringId('CreditCardSetupIntent'),
-    
+
     WalletAccount: IdsFactory.createId('WalletAccount'),
     WalletTransaction: IdsFactory.createStringId('WalletTransaction'),
     WalletUpdatesCursor: IdsFactory.createStringId('WalletUpdatesCursor'),
@@ -88,5 +88,6 @@ export const IDs = {
     PermissionGroup: IdsFactory.createId('PermissionGroup'),
     PermissionRequest: IdsFactory.createStringId('PermissionRequest'),
 
+    DiscoverChatsCollection: IdsFactory.createId('DiscoverChatsCollection'),
     DiscoverPopularNowCursor: IdsFactory.createId('DiscoverPopularNowCursor')
 };

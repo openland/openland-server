@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'd6595a2ceb1606fdbf0b1349d7a87c8a';
+export const GQL_SPEC_VERSION = 'a7d07187497385aa70f26dd04de88c65';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1198,6 +1198,34 @@ export namespace GQL {
     export interface SuperAdminUserArgs { }
     export interface SuperAdminRoleArgs { }
     export interface SuperAdminEmailArgs { }
+    export interface DiscoverChatsCollectionInput {
+        title: string;
+        image: ImageRefInput;
+        chatIds: string[];
+    }
+    export interface DiscoverChatsCollectionUpdateInput {
+        title: Nullable<string>;
+        image: Nullable<ImageRefInput>;
+        chatIds: Nullable<string[]>;
+    }
+    export interface DiscoverChatsCollection {
+        id: string;
+        title: string;
+        image: ImageRef;
+        chatsCount: number;
+        chats: SharedRoom[];
+    }
+    export interface DiscoverChatsCollectionIdArgs { }
+    export interface DiscoverChatsCollectionTitleArgs { }
+    export interface DiscoverChatsCollectionImageArgs { }
+    export interface DiscoverChatsCollectionChatsCountArgs { }
+    export interface DiscoverChatsCollectionChatsArgs { }
+    export interface DiscoverChatsCollectionConnection {
+        items: DiscoverChatsCollection[];
+        cursor: Nullable<string>;
+    }
+    export interface DiscoverChatsCollectionConnectionItemsArgs { }
+    export interface DiscoverChatsCollectionConnectionCursorArgs { }
     export interface Event {
         id: string;
         event: string;
@@ -1958,6 +1986,9 @@ export namespace GQL {
         deliverCountersForAll: boolean;
         conversationDraftUpdate: string;
         alphaSaveDraftMessage: string;
+        discoverCollectionsCreate: DiscoverChatsCollection;
+        discoverCollectionsUpdate: DiscoverChatsCollection;
+        discoverCollectionsDelete: boolean;
         track: string;
         createPowerup: Powerup;
         updatePowerup: Powerup;
@@ -2520,6 +2551,16 @@ export namespace GQL {
     export interface MutationAlphaSaveDraftMessageArgs {
         conversationId: string;
         message: OptionalNullable<string>;
+    }
+    export interface MutationDiscoverCollectionsCreateArgs {
+        collection: DiscoverChatsCollectionInput;
+    }
+    export interface MutationDiscoverCollectionsUpdateArgs {
+        id: string;
+        input: DiscoverChatsCollectionUpdateInput;
+    }
+    export interface MutationDiscoverCollectionsDeleteArgs {
+        id: string;
     }
     export interface MutationTrackArgs {
         did: string;
@@ -3543,6 +3584,8 @@ export namespace GQL {
         discoverPopularNow: SharedRoomConnection;
         discoverTopPremium: SharedRoomConnection;
         discoverTopFree: SharedRoomConnection;
+        discoverCollections: Nullable<DiscoverChatsCollectionConnection>;
+        discoverCollection: Nullable<DiscoverChatsCollection>;
         powerups: Powerup[];
         chatsWithPowerup: Room[];
         chatPowerups: RoomPowerup[];
@@ -3772,6 +3815,13 @@ export namespace GQL {
     export interface QueryDiscoverTopFreeArgs {
         first: number;
         after: OptionalNullable<string>;
+    }
+    export interface QueryDiscoverCollectionsArgs {
+        first: number;
+        after: OptionalNullable<string>;
+    }
+    export interface QueryDiscoverCollectionArgs {
+        id: string;
     }
     export interface QueryPowerupsArgs { }
     export interface QueryChatsWithPowerupArgs {
@@ -6543,6 +6593,32 @@ export interface GQLResolver {
             email: GQL.SuperAdminEmailArgs,
         }
     >;
+    DiscoverChatsCollection?: ComplexTypedResolver<
+        GQL.DiscoverChatsCollection,
+        GQLRoots.DiscoverChatsCollectionRoot,
+        {
+            image: GQLRoots.ImageRefRoot,
+            chats: GQLRoots.SharedRoomRoot[],
+        },
+        {
+            id: GQL.DiscoverChatsCollectionIdArgs,
+            title: GQL.DiscoverChatsCollectionTitleArgs,
+            image: GQL.DiscoverChatsCollectionImageArgs,
+            chatsCount: GQL.DiscoverChatsCollectionChatsCountArgs,
+            chats: GQL.DiscoverChatsCollectionChatsArgs,
+        }
+    >;
+    DiscoverChatsCollectionConnection?: ComplexTypedResolver<
+        GQL.DiscoverChatsCollectionConnection,
+        GQLRoots.DiscoverChatsCollectionConnectionRoot,
+        {
+            items: GQLRoots.DiscoverChatsCollectionRoot[],
+        },
+        {
+            items: GQL.DiscoverChatsCollectionConnectionItemsArgs,
+            cursor: GQL.DiscoverChatsCollectionConnectionCursorArgs,
+        }
+    >;
     EventPlatform?: EnumTypeResolver<'Android' | 'iOS' | 'WEB' | 'MobileWeb', GQLRoots.EventPlatformRoot>;
     Powerup?: ComplexTypedResolver<
         GQL.Powerup,
@@ -7433,6 +7509,8 @@ export interface GQLResolver {
             superAccountMemberAdd: GQLRoots.SuperAccountRoot,
             superAccountMemberRemove: GQLRoots.SuperAccountRoot,
             alphaAlterPublished: GQLRoots.OrganizationRoot,
+            discoverCollectionsCreate: GQLRoots.DiscoverChatsCollectionRoot,
+            discoverCollectionsUpdate: GQLRoots.DiscoverChatsCollectionRoot,
             createPowerup: GQLRoots.PowerupRoot,
             updatePowerup: GQLRoots.PowerupRoot,
             updatePowerupUserSettingsInChat: GQLRoots.PowerupUserSettingsRoot,
@@ -7650,6 +7728,9 @@ export interface GQLResolver {
             deliverCountersForAll: GQL.MutationDeliverCountersForAllArgs,
             conversationDraftUpdate: GQL.MutationConversationDraftUpdateArgs,
             alphaSaveDraftMessage: GQL.MutationAlphaSaveDraftMessageArgs,
+            discoverCollectionsCreate: GQL.MutationDiscoverCollectionsCreateArgs,
+            discoverCollectionsUpdate: GQL.MutationDiscoverCollectionsUpdateArgs,
+            discoverCollectionsDelete: GQL.MutationDiscoverCollectionsDeleteArgs,
             track: GQL.MutationTrackArgs,
             createPowerup: GQL.MutationCreatePowerupArgs,
             updatePowerup: GQL.MutationUpdatePowerupArgs,
@@ -8184,6 +8265,8 @@ export interface GQLResolver {
             discoverPopularNow: GQLRoots.SharedRoomConnectionRoot,
             discoverTopPremium: GQLRoots.SharedRoomConnectionRoot,
             discoverTopFree: GQLRoots.SharedRoomConnectionRoot,
+            discoverCollections: Nullable<GQLRoots.DiscoverChatsCollectionConnectionRoot>,
+            discoverCollection: Nullable<GQLRoots.DiscoverChatsCollectionRoot>,
             powerups: GQLRoots.PowerupRoot[],
             chatsWithPowerup: GQLRoots.RoomRoot[],
             chatPowerups: GQLRoots.RoomPowerupRoot[],
@@ -8333,6 +8416,8 @@ export interface GQLResolver {
             discoverPopularNow: GQL.QueryDiscoverPopularNowArgs,
             discoverTopPremium: GQL.QueryDiscoverTopPremiumArgs,
             discoverTopFree: GQL.QueryDiscoverTopFreeArgs,
+            discoverCollections: GQL.QueryDiscoverCollectionsArgs,
+            discoverCollection: GQL.QueryDiscoverCollectionArgs,
             powerups: GQL.QueryPowerupsArgs,
             chatsWithPowerup: GQL.QueryChatsWithPowerupArgs,
             chatPowerups: GQL.QueryChatPowerupsArgs,

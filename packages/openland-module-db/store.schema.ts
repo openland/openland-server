@@ -2097,4 +2097,19 @@ export default declareSchema(() => {
         primaryKey('uid', integer());
         field('seq', integer());
     });
+
+    //
+    // Discover 2.0
+    //
+    entity('EditorsChoiceChatsCollection', () => {
+        primaryKey('id', integer());
+        field('createdBy', integer());
+        field('title', string());
+        field('image', ImageRef);
+        field('chatIds', array(integer()));
+        field('deleted', optional(boolean()));
+
+        rangeIndex('collection', ['id']).withCondition((src) => !src.deleted);
+        rangeIndex('created', ['id', 'createdAt']).withCondition((src) => !src.deleted);
+    });
 });
