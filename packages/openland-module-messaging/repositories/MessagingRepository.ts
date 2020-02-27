@@ -102,7 +102,7 @@ export class MessagingRepository {
             if (direct) {
                 await this.chatMetrics.onMessageSentDirect(ctx, uid, cid);
             } else {
-                Modules.Stats.onRoomMessageSent(ctx, cid);
+                await Modules.Stats.onRoomMessageSent(ctx, cid);
             }
 
             //

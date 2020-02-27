@@ -741,6 +741,14 @@ export class RoomMediator {
         }));
     }
 
+    async markChatForIndexing(parent: Context, cid: number) {
+        return inTx(parent, async ctx => {
+            let room = await Store.RoomProfile.findById(ctx, cid);
+            room!.invalidate();
+            await room!.flush(ctx);
+        });
+    }
+
     private async roomJoinMessage(parent: Context, room: ConversationRoom, uid: number, uids: number[], invitedBy: number | null, isUpdate: boolean = false): Promise<MessageInput> {
         return {
             ...await this.roomJoinMessageText(parent, room, uids, invitedBy, isUpdate),

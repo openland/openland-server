@@ -50,8 +50,12 @@ export class StatsModule {
         }
     }
 
-    onRoomMessageSent = (ctx: Context, rid: number) => {
+    onRoomMessageSent = async (ctx: Context, rid: number) => {
         Store.RoomMessagesCounter.byId(rid).increment(ctx);
+        let conv = await Store.ConversationRoom.findById(ctx, rid);
+        if (conv) {
+            await Modules.Messaging.room.markChatForIndexing(ctx, rid);
+        }
     }
 
     onEmailSent = (ctx: Context, uid: number) => {

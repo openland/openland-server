@@ -38,7 +38,7 @@ export const Resolver: GQLResolver = {
                         function_score: {
                             query: {
                                 bool: {
-                                    must: [{term: {listed: true}}, { term: { isPremium: true } }]
+                                    must: [{term: {listed: true}}, {term: {isPremium: true}}]
                                 }
                             },
                             boost_mode: 'multiply'
@@ -67,7 +67,7 @@ export const Resolver: GQLResolver = {
                         function_score: {
                             query: {
                                 bool: {
-                                    must: [{term: {listed: true}}, { term: { isPremium: false } }]
+                                    must: [{term: {listed: true}}, {term: {isPremium: false}}]
                                 }
                             },
                             boost_mode: 'multiply'
@@ -80,6 +80,41 @@ export const Resolver: GQLResolver = {
                 items: roomHits.hits.hits.map(a => parseInt(a._id, 10)),
                 cursor: roomHits.hits.total <= (from + args.first) ? null : IDs.DiscoverTopFreeCursor.serialize(from + args.first),
             };
-        })
+        }),
+        discoverNewAndGrowing: withActivatedUser(async (ctx, args) => {
+            let clauses: any[] = [];
+
+            // chats with messages > 10
+            clauses.push({range: {messagesCount: {gte: 10}}});
+            // chats 10 days+  old
+            clauses.push({range: {createdAt: {lt: 'now-10d/d'}}});
+
+            let query: any = {bool: {must: clauses}};
+            query = {
+                function_score: {
+                    query,
+                    random_score: {
+                        seed: args.seed,
+                        field: '_id'
+                    }
+                }
+            };
+
+            let from = args.after ? parseInt(args.after, 10) : 0;
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'room',
+                type: 'room',
+                size: args.first,
+                from,
+                body: {
+                    query,
+                },
+            });
+
+            return {
+                items: hits.hits.hits.map(a => parseInt(a._id, 10)),
+                cursor: hits.hits.total > (from + args.first) ? (from + args.first).toString() : null,
+            };
+        }),
     }
 };

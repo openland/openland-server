@@ -5,7 +5,7 @@ import { Modules } from '../../openland-modules/Modules';
 import { Organization } from 'openland-module-db/store';
 
 export function roomsSearchIndexer() {
-    declareSearchIndexer('room-index', 11, 'room', Store.RoomProfile.updated.stream({ batchSize: 50 }))
+    declareSearchIndexer('room-index', 12, 'room', Store.RoomProfile.updated.stream({ batchSize: 50 }))
         .withProperties({
             cid: {
                 type: 'integer'
@@ -36,6 +36,9 @@ export function roomsSearchIndexer() {
             },
             isChannel: {
                 type: 'boolean'
+            },
+            messagesCount: {
+                type: 'integer'
             },
             isPremium: {
                 type: 'boolean'
@@ -71,7 +74,8 @@ export function roomsSearchIndexer() {
                         oid: org ? org.id : undefined,
                         orgKind: org ? org.kind : undefined,
                         isChannel: room.isChannel || false,
-                        isPremium: room.isPremium || false
+                        isPremium: room.isPremium || false,
+                        messagesCount: await Store.RoomMessagesCounter.get(ctx, item.id)
                     }
                 };
             });
