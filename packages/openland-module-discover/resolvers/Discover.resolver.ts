@@ -88,6 +88,8 @@ export const Resolver: GQLResolver = {
             clauses.push({range: {messagesCount: {gte: 10}}});
             // chats 10 days+  old
             clauses.push({range: {createdAt: {lt: 'now-10d/d'}}});
+            // only public chats
+            clauses.push({ term: { listed: true } });
 
             let query: any = {bool: {must: clauses}};
             query = {
