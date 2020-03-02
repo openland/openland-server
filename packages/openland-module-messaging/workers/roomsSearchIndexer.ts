@@ -5,7 +5,7 @@ import { Modules } from '../../openland-modules/Modules';
 import { Organization } from 'openland-module-db/store';
 
 export function roomsSearchIndexer() {
-    declareSearchIndexer('room-index', 12, 'room', Store.RoomProfile.updated.stream({ batchSize: 50 }))
+    declareSearchIndexer('room-index', 13, 'room', Store.RoomProfile.updated.stream({ batchSize: 50 }))
         .withProperties({
             cid: {
                 type: 'integer'
@@ -59,7 +59,10 @@ export function roomsSearchIndexer() {
                     org = (await Store.Organization.findById(ctx, room.oid!))!;
                 }
 
-                let isListed = room.kind === 'public' && org && org.kind === 'community' && !org.private;
+                let isListed = room.kind === 'public';
+                if (org && (org.kind !== 'community' || org.private)) {
+                    isListed = false;
+                }
 
                 return {
                     id: item.id,
