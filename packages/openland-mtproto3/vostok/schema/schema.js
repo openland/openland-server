@@ -543,7 +543,8 @@ $root.vostok = (function() {
          * @interface IMessage
          * @property {number} id Message id
          * @property {Array.<number>|null} [ackMessages] Message ackMessages
-         * @property {google.protobuf.IAny} body Message body
+         * @property {number} bodyType Message bodyType
+         * @property {Uint8Array} body Message body
          */
 
         /**
@@ -579,12 +580,20 @@ $root.vostok = (function() {
         Message.prototype.ackMessages = $util.emptyArray;
 
         /**
-         * Message body.
-         * @member {google.protobuf.IAny} body
+         * Message bodyType.
+         * @member {number} bodyType
          * @memberof vostok.Message
          * @instance
          */
-        Message.prototype.body = null;
+        Message.prototype.bodyType = 0;
+
+        /**
+         * Message body.
+         * @member {Uint8Array} body
+         * @memberof vostok.Message
+         * @instance
+         */
+        Message.prototype.body = $util.newBuffer([]);
 
         /**
          * Creates a new Message instance using the specified properties.
@@ -617,7 +626,8 @@ $root.vostok = (function() {
                     writer.uint32(message.ackMessages[i]);
                 writer.ldelim();
             }
-            $root.google.protobuf.Any.encode(message.body, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+            writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.bodyType);
+            writer.uint32(/* id 4, wireType 2 =*/34).bytes(message.body);
             return writer;
         };
 
@@ -666,7 +676,10 @@ $root.vostok = (function() {
                         message.ackMessages.push(reader.uint32());
                     break;
                 case 3:
-                    message.body = $root.google.protobuf.Any.decode(reader, reader.uint32());
+                    message.bodyType = reader.uint32();
+                    break;
+                case 4:
+                    message.body = reader.bytes();
                     break;
                 default:
                     reader.skipType(tag & 7);
@@ -675,6 +688,8 @@ $root.vostok = (function() {
             }
             if (!message.hasOwnProperty("id"))
                 throw $util.ProtocolError("missing required 'id'", { instance: message });
+            if (!message.hasOwnProperty("bodyType"))
+                throw $util.ProtocolError("missing required 'bodyType'", { instance: message });
             if (!message.hasOwnProperty("body"))
                 throw $util.ProtocolError("missing required 'body'", { instance: message });
             return message;
@@ -716,11 +731,10 @@ $root.vostok = (function() {
                     if (!$util.isInteger(message.ackMessages[i]))
                         return "ackMessages: integer[] expected";
             }
-            {
-                var error = $root.google.protobuf.Any.verify(message.body);
-                if (error)
-                    return "body." + error;
-            }
+            if (!$util.isInteger(message.bodyType))
+                return "bodyType: integer expected";
+            if (!(message.body && typeof message.body.length === "number" || $util.isString(message.body)))
+                return "body: buffer expected";
             return null;
         };
 
@@ -745,11 +759,13 @@ $root.vostok = (function() {
                 for (var i = 0; i < object.ackMessages.length; ++i)
                     message.ackMessages[i] = object.ackMessages[i] >>> 0;
             }
-            if (object.body != null) {
-                if (typeof object.body !== "object")
-                    throw TypeError(".vostok.Message.body: object expected");
-                message.body = $root.google.protobuf.Any.fromObject(object.body);
-            }
+            if (object.bodyType != null)
+                message.bodyType = object.bodyType >>> 0;
+            if (object.body != null)
+                if (typeof object.body === "string")
+                    $util.base64.decode(object.body, message.body = $util.newBuffer($util.base64.length(object.body)), 0);
+                else if (object.body.length)
+                    message.body = object.body;
             return message;
         };
 
@@ -770,7 +786,14 @@ $root.vostok = (function() {
                 object.ackMessages = [];
             if (options.defaults) {
                 object.id = 0;
-                object.body = null;
+                object.bodyType = 0;
+                if (options.bytes === String)
+                    object.body = "";
+                else {
+                    object.body = [];
+                    if (options.bytes !== Array)
+                        object.body = $util.newBuffer(object.body);
+                }
             }
             if (message.id != null && message.hasOwnProperty("id"))
                 object.id = message.id;
@@ -779,8 +802,10 @@ $root.vostok = (function() {
                 for (var j = 0; j < message.ackMessages.length; ++j)
                     object.ackMessages[j] = message.ackMessages[j];
             }
+            if (message.bodyType != null && message.hasOwnProperty("bodyType"))
+                object.bodyType = message.bodyType;
             if (message.body != null && message.hasOwnProperty("body"))
-                object.body = $root.google.protobuf.Any.toObject(message.body, options);
+                object.body = options.bytes === String ? $util.base64.encode(message.body, 0, message.body.length) : options.bytes === Array ? Array.prototype.slice.call(message.body) : message.body;
             return object;
         };
 

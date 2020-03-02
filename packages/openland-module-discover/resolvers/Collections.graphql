@@ -1,0 +1,35 @@
+input DiscoverChatsCollectionInput {
+    title: String!
+    image: ImageRefInput!
+    chatIds: [ID!]!
+}
+
+input DiscoverChatsCollectionUpdateInput {
+    title: String
+    image: ImageRefInput
+    chatIds: [ID!]
+}
+
+type DiscoverChatsCollection {
+    id: ID!
+    title: String!
+    image: ImageRef!
+    chatsCount: Int!
+    chats: [SharedRoom!]!
+}
+
+type DiscoverChatsCollectionConnection {
+    items: [DiscoverChatsCollection!]!
+    cursor: String
+}
+
+extend type Query {
+    discoverCollections(first: Int!, after: String): DiscoverChatsCollectionConnection
+    discoverCollection(id: ID!): DiscoverChatsCollection
+}
+
+extend type Mutation {
+    discoverCollectionsCreate(collection: DiscoverChatsCollectionInput!): DiscoverChatsCollection!
+    discoverCollectionsUpdate(id: ID!, input: DiscoverChatsCollectionUpdateInput!): DiscoverChatsCollection!
+    discoverCollectionsDelete(id: ID!): Boolean!
+}

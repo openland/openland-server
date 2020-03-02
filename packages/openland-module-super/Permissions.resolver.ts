@@ -2,8 +2,9 @@ import { withPermission } from 'openland-module-api/Resolvers';
 import { Modules } from '../openland-modules/Modules';
 import { Store } from '../openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { isDefined } from '../openland-utils/misc';
 
-export default {
+export const Resolver: GQLResolver = {
     Query: {
         myPermissions: async (r, args, ctx) => {
             return {
@@ -17,7 +18,7 @@ export default {
                 return [];
             }
 
-            return (await Promise.all(uids.map((v) => Store.User.findById(ctx, v))));
+            return (await Promise.all(uids.map((v) => Store.User.findById(ctx, v)))).filter(isDefined);
         }),
     },
-} as GQLResolver;
+};

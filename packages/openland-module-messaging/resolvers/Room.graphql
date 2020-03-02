@@ -64,21 +64,20 @@ type SharedRoom {
     myBadge: UserBadge
     matchmaking: MatchmakingRoom
 
-    isPaid: Boolean!
-    paidPassIsActive: Boolean!
-    paymentSettings: PaidChatSettings
+    isPremium: Boolean!
+    premiumPassIsActive: Boolean!
+    premiumSubscription: WalletSubscription
+    premiumSettings: PremiumChatSettings
+
+    owner: User
 }
 
-enum PaidChatStrategy {
-    ONE_TIME,
-    SUBSCRIPTION
-}
-
-type PaidChatSettings {
+type PremiumChatSettings {
     id: ID!
     price: Int!
-    strategy: PaidChatStrategy!
+    interval: WalletSubscriptionInterval
 }
+
 
 type RoomSuper {
     id: ID!
@@ -183,6 +182,7 @@ extend type Query {
     roomMembers(roomId: ID!, first: Int, after: ID): [RoomMember!]!
     roomFeaturedMembers(roomId: ID!, first: Int): [RoomMember!]!
     roomMember(roomId: ID!, memberId: ID!): RoomMember
+    roomSocialImage(roomId: ID!): String
     betaRoomSearch(
         query: String,
         first: Int!,
@@ -194,8 +194,8 @@ extend type Query {
     betaRoomInviteLink(roomId: ID!): String!
     betaAvailableRooms: [SharedRoom!]!
     betaUserRooms(limit: Int, after: ID): [SharedRoom!]!
-    betaUserAvailableRooms(isChannel: Boolean, limit: Int, after: ID): [SharedRoom!]!
-
+    betaUserAvailableRooms(isChannel: Boolean, limit: Int, after: ID): [SharedRoom!]! # deprecated, use alphaUserAvailableRooms
+    alphaUserAvailableRooms(query: String, first: Int!, after: String): RoomConnection!
 }
 
 type RoomInvite {
@@ -206,7 +206,7 @@ type RoomInvite {
 
 extend type Mutation {
     # Room mgmt
-    betaRoomCreate(kind: SharedRoomKind!, title: String, description: String, photoRef: ImageRefInput, members: [ID!]!, message: String, listed: Boolean, organizationId: ID, channel: Boolean, paid: Boolean): SharedRoom!
+    betaRoomCreate(kind: SharedRoomKind!, title: String, description: String, photoRef: ImageRefInput, members: [ID!]!, message: String, listed: Boolean, organizationId: ID, channel: Boolean, price: Int, interval: WalletSubscriptionInterval): SharedRoom!
     betaRoomUpdate(roomId: ID!, input: RoomUpdateInput!): Room!
     betaRoomMove(roomId: ID!, toOrg: ID!): Room!
 
@@ -219,7 +219,8 @@ extend type Mutation {
     betaRoomJoin(roomId: ID!): Room!
     betaRoomsJoin(roomsIds: [ID!]!): [Room!]!
     betaRoomDeclineJoinRequest(roomId: ID!, userId: ID!): Room!
-    betaBuyPaidChatPass(chatId: ID!, paymentMethodId: String!, retryKey: String!): Boolean!
+    betaBuyPremiumChatSubscription(chatId: ID!): SharedRoom!
+    betaBuyPremiumChatPass(chatId: ID!): SharedRoom!
 
     # Invite links
     betaRoomInviteLinkSendEmail(roomId: ID!, inviteRequests: [RoomInviteEmailRequest!]!): String!

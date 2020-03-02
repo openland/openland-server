@@ -4,7 +4,7 @@ import { withAny } from 'openland-module-api/Resolvers';
 import { QueryParser, buildElasticQuery } from 'openland-utils/QueryParser';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
-export default {
+export const Resolver: GQLResolver = {
     Query: {
         alphaOrganizationByPrefix: withAny(async (ctx, args) => {
             let hits = await Modules.Search.elastic.client.search({
@@ -36,8 +36,8 @@ export default {
         alphaComunityPrefixSearch: withAny(async (ctx, args) => {
             let clauses: any[] = [];
             clauses.push({ term: { kind: 'community' } });
-            // clauses.push({ term: { listed: true } });
             clauses.push({ term: { status: 'activated' } });
+
             if (args.query && args.query.length > 0) {
                 clauses.push({ match_phrase_prefix: { name: args.query } });
             } else if (args.featuredIfEmptyQuery !== false) {
@@ -83,12 +83,6 @@ export default {
                     openEnded: true
                 },
             };
-            // let builder = new SelectBuilder(DB.Organization)
-            //     .after(args.after)
-            //     .page(args.page)
-            //     .limit(args.first);
-
-            // return await builder.findElastic(hits);
         }),
 
         alphaOrganizations: withAny(async (ctx, args) => {
@@ -167,4 +161,4 @@ export default {
             };
         })
     }
-} as GQLResolver;
+};

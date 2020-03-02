@@ -188,6 +188,7 @@ export function startPushNotificationWorker() {
                             picture: null,
                             counter: await Modules.Messaging.fetchUserGlobalCounter(ctx, uid),
                             conversationId: null,
+                            deepLink: null,
                             mobile: sendMobile,
                             desktop: sendDesktop,
                             mobileAlert: settings.mobile ? settings.mobile.comments.sound : deprecatedMobileAlert,

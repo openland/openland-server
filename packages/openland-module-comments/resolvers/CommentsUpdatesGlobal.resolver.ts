@@ -7,7 +7,7 @@ import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import CommentGlobalUpdateContainerRoot = GQLRoots.CommentGlobalUpdateContainerRoot;
 
-export default {
+export const Resolver: GQLResolver = {
     CommentGlobalUpdateContainer: {
         __resolveType(obj: CommentGlobalUpdateContainerRoot) {
             if (obj.items.length === 1) {
@@ -19,14 +19,14 @@ export default {
     },
     CommentGlobalUpdateSingle: {
         seq: src => src.items[0].seq,
-        state: src => src.cursor,
+        state: src => src.cursor || '',
         update: src => src.items[0],
     },
     CommentGlobalUpdateBatch: {
         updates: src => src.items,
         fromSeq: src => src.items[0].seq,
         seq: src => src.items[src.items.length - 1].seq,
-        state: src => src.cursor
+        state: src => src.cursor || ''
     },
     CommentGlobalUpdate: {
         __resolveType(obj: CommentEventGlobal) {
@@ -38,12 +38,16 @@ export default {
     },
     CommentPeerUpdated: {
         seq: src => src.seq,
-        peer: async (src, args, ctx) => ({ peerType: src.peerType, peerId: src.peerId, comments: await Store.Comment.peer.findAll(ctx, src.peerType! as any, src.peerId!) })
+        peer: async (src, args, ctx) => ({
+            peerType: src.peerType! as 'message' | 'feed_item',
+            peerId: src.peerId!,
+            comments: await Store.Comment.peer.findAll(ctx, src.peerType! as any, src.peerId!)
+        })
     },
     Query: {
         commentGlobalUpdatesState: withUser(async (ctx, args, uid) => {
             let tail = await Store.CommentEventGlobal.user.stream(uid, { batchSize: 1 }).tail(ctx);
-            return { state: tail };
+            return { state: tail || '' };
         })
     },
     Subscription: {
@@ -58,4 +62,4 @@ export default {
             }
         }
     }
-} as GQLResolver;
+};

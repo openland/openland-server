@@ -8,7 +8,7 @@ import { IDs } from '../openland-module-api/IDs';
 
 const pushLog = createLogger('push');
 
-export default {
+export const Resolver: GQLResolver = {
     Query: {
         pushSettings: () => ({
             webPushKey: PushConfig.webPush && PushConfig.webPush.public
@@ -81,4 +81,4 @@ export default {
             return true;
         })
     }
-} as GQLResolver;
+};

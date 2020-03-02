@@ -5,7 +5,7 @@ import { IDs } from 'openland-module-api/IDs';
 import { Store } from '../../openland-module-db/FDB';
 import { debugTaskForAll } from '../../openland-utils/debugTask';
 
-export default {
+export const Resolver: GQLResolver = {
     Mutation: {
         betaFixCounter: withPermission('super-admin', async (ctx, args) => {
             return await Modules.Messaging.fixer.fixForUser(ctx, IDs.User.parse(args.uid));
@@ -31,4 +31,4 @@ export default {
             return true;
         }),
     }
-} as GQLResolver;
+};

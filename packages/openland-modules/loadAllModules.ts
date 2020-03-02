@@ -1,4 +1,4 @@
-import { BillingModule } from './../openland-module-billing/BillingModule';
+import { WalletModule } from '../openland-module-wallet/WalletModule';
 import { MonitoringModule } from './../openland-module-monitoring/MonitoringModule';
 import { Store } from './../openland-module-db/store';
 import 'reflect-metadata';
@@ -68,6 +68,7 @@ import { GeoModule } from '../openland-module-geo/GeoModule';
 import { PowerupsModule } from '../openland-module-powerups/PowerupsModule';
 import { loadPermissionsModule } from '../openland-module-permissions/PermissionsModule.container';
 import { PermissionsModule } from '../openland-module-permissions/PermissionsModule';
+import { loadDiscoverModule } from '../openland-module-discover/DiscoverModule.container';
 
 const logger = createLogger('starting');
 
@@ -120,12 +121,11 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadInvitesModule();
     container.bind(PubsubModule).toSelf().inSingletonScope();
     container.bind(ApiModule).toSelf().inSingletonScope();
-    container.bind(DiscoverModule).toSelf().inSingletonScope();
     container.bind(UserOnboardingModule).toSelf().inSingletonScope();
     container.bind(StatsModule).toSelf().inSingletonScope();
     container.bind(ZapierModule).toSelf().inSingletonScope();
     container.bind(OauthModule).toSelf().inSingletonScope();
-    container.bind(BillingModule).toSelf().inSingletonScope();
+    container.bind(WalletModule).toSelf().inSingletonScope();
 
     loadCallsModule();
     loadFeedModule();
@@ -134,6 +134,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadGeoModule();
     loadPowerupsModule();
     loadPermissionsModule();
+    loadDiscoverModule();
 }
 
 export async function startAllModules() {
@@ -175,6 +176,6 @@ export async function startAllModules() {
     await container.get(OauthModule).start();
     await container.get(GeoModule).start();
     await container.get(PowerupsModule).start();
-    await container.get(BillingModule).start();
+    await container.get(WalletModule).start();
     await container.get(PermissionsModule).start();
 }

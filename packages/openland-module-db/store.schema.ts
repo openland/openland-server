@@ -193,7 +193,9 @@ export default declareSchema(() => {
         field('deleted', optional(boolean()));
         field('archived', optional(boolean()));
     });
-
+    atomicInt('ConversationLastSeq', () => {
+        primaryKey('cid', integer());
+    });
     entity('ConversationPrivate', () => {
         primaryKey('id', integer());
         field('uid1', integer());
@@ -217,25 +219,24 @@ export default declareSchema(() => {
         field('featured', optional(boolean()));
         field('listed', optional(boolean()));
         field('isChannel', optional(boolean()));
-        field('isPaid', optional(boolean()));
+        field('isPremium', optional(boolean()));
         rangeIndex('organization', ['oid'])
             .withCondition((v) => v.kind === 'public' || v.kind === 'internal');
         uniqueIndex('organizationPublicRooms', ['oid', 'id'])
             .withCondition((v) => v.kind === 'public');
     });
 
-    entity('PaidChatSettings', () => {
+    entity('PremiumChatSettings', () => {
         primaryKey('id', integer());
         field('price', integer());
-        field('strategy', enumString('one-time', 'subscription'));
+        field('interval', optional(enumString('week', 'month')));
     });
 
-    entity('PaidChatUserPass', () => {
+    entity('PremiumChatUserPass', () => {
         primaryKey('cid', integer());
         primaryKey('uid', integer());
-        field('subscriptionId', optional(integer()));
+        field('sid', optional(string()));
         field('isActive', boolean());
-        rangeIndex('userActivePassAll', ['uid']).withCondition((v) => v.state === 'active');
     });
 
     entity('RoomProfile', () => {
@@ -322,6 +323,7 @@ export default declareSchema(() => {
         primaryKey('id', integer());
         field('cid', integer());
         field('uid', integer());
+        field('seq', optional(integer()));
         field('repeatKey', optional(string()));
 
         field('text', optional(string())).secure();
@@ -421,6 +423,7 @@ export default declareSchema(() => {
         // deprecated end
 
         rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
+        rangeIndex('chatSeq', ['cid', 'seq']).withCondition((src) => !src.deleted);
         rangeIndex('updated', ['updatedAt']);
         uniqueIndex('repeat', ['uid', 'cid', 'repeatKey']).withCondition((src) => !!src.repeatKey);
     });
@@ -1704,12 +1707,16 @@ export default declareSchema(() => {
     entity('Wallet', () => {
         primaryKey('uid', integer());
         field('balance', integer());
+        field('balanceLocked', integer());
+        field('isLocked', optional(boolean()));
     });
 
     entity('WalletTransaction', () => {
         primaryKey('id', string());
         field('uid', integer());
-        field('status', enumString('pending', 'canceling', 'canceled', 'success'));
+        field('status', enumString('pending', 'canceled', 'success'));
+        field('parentId', optional(string()));
+        field('deleted', optional(boolean()));
 
         field('operation', union({
             'deposit': struct({
@@ -1731,11 +1738,24 @@ export default declareSchema(() => {
             'transfer_in': struct({
                 amount: integer(),
                 fromUser: integer()
-            })
+            }),
+            'purchase': struct({
+                walletAmount: integer(),
+                chargeAmount: integer(),
+                purchase: string(),
+                payment: PaymentReference
+            }),
+            'income': struct({
+                amount: integer(),
+                source: enumString('subscription', 'purchase'),
+                id: string()
+            }),
         }));
 
-        rangeIndex('pending', ['uid', 'createdAt']).withCondition((s) => s.status === 'pending' || s.status === 'canceling');
-        rangeIndex('history', ['uid', 'createdAt']).withCondition((s) => !(s.status === 'pending' || s.status === 'canceling'));
+        rangeIndex('pending', ['uid', 'createdAt']).withCondition((s) => !s.deleted && (s.status === 'pending' || s.status === 'canceling'));
+        rangeIndex('history', ['uid', 'createdAt']).withCondition((s) => !s.deleted && !(s.status === 'pending' || s.status === 'canceling'));
+
+        rangeIndex('pendingChild', ['parentId', 'createdAt']).withCondition((s) => s.status === 'pending');
     });
 
     entity('WalletDepositRequest', () => {
@@ -1749,6 +1769,30 @@ export default declareSchema(() => {
         primaryKey('toUid', integer());
         primaryKey('retryKey', string());
         field('pid', optional(string()));
+    });
+
+    entity('WalletPurchase', () => {
+        primaryKey('id', string());
+        field('uid', integer());
+        field('pid', optional(string()));
+        field('txid', string());
+        field('deleted', optional(boolean()));
+
+        // Product
+        field('amount', integer());
+        field('product', union({
+            'group': struct({
+                gid: integer()
+            }),
+            'donate': struct({
+                uid: integer()
+            })
+        }));
+        field('state', enumString('pending', 'canceled', 'success'));
+
+        // Indexes
+        rangeIndex('user', ['uid', 'createdAt']).withCondition((s) => !s.deleted);
+        rangeIndex('userSuccess', ['uid', 'createdAt']).withCondition((s) => !s.deleted && s.state === 'success');
     });
 
     entity('WalletSubscription', () => {
@@ -1769,6 +1813,7 @@ export default declareSchema(() => {
         field('state', enumString('started', 'grace_period', 'retrying', 'canceled', 'expired'));
 
         rangeIndex('active', ['id']).withCondition((s) => s.state !== 'expired');
+        rangeIndex('user', ['uid', 'createdAt']);
     });
 
     entity('WalletSubscriptionScheduling', () => {
@@ -1781,17 +1826,32 @@ export default declareSchema(() => {
         primaryKey('index', integer());
         field('pid', optional(string()));
         field('start', integer());
-        field('state', enumString('pending', 'failing', 'success', 'canceling'));
+        field('state', enumString('pending', 'failing', 'success', 'canceled'));
+        field('needCancel', optional(boolean()));
+        field('scheduledCancel', optional(boolean()));
+        rangeIndex('pendingCancel', ['id']).withCondition((s) => s.needCancel && !s.scheduledCancel);
     });
 
     //
     // Payments: Payments
     //
 
+    const PaymentIntentOperation = union({
+        'deposit': struct({
+            uid: integer()
+        }),
+        'payment': struct({
+            id: string()
+        }),
+        'purchase': struct({
+            id: string()
+        })
+    });
+
     const PaymentOperation = union({
         'deposit': struct({
             uid: integer(),
-            txid: optional(string())
+            txid: string()
         }),
         'subscription': struct({
             uid: integer(),
@@ -1805,14 +1865,16 @@ export default declareSchema(() => {
             toUid: integer(),
             toTx: string(),
         }),
+        'purchase': struct({
+            id: string()
+        })
     });
 
     entity('PaymentIntent', () => {
         primaryKey('id', string());
         field('state', enumString('pending', 'success', 'canceled'));
-        field('pid', optional(string()));
         field('amount', integer());
-        field('operation', PaymentOperation);
+        field('operation', PaymentIntentOperation);
     });
 
     entity('Payment', () => {
@@ -1825,6 +1887,7 @@ export default declareSchema(() => {
         field('piid', optional(string()));
         rangeIndex('user', ['uid', 'createdAt']);
         rangeIndex('pending', ['id']).withCondition((s) => s.state === 'pending' || s.state === 'failing');
+        rangeIndex('userFailing', ['uid', 'createdAt']).withCondition((s) => s.state === 'failing' || s.state === 'action_required');
     });
 
     entity('PaymentScheduling', () => {
@@ -1857,6 +1920,10 @@ export default declareSchema(() => {
     });
     event('WalletBalanceChanged', () => {
         field('amount', integer());
+    });
+    event('WalletLockedChanged', () => {
+        field('isLocked', boolean());
+        field('failingPaymentsCount', integer());
     });
 
     //
@@ -2038,5 +2105,29 @@ export default declareSchema(() => {
     entity('DebugEventState', () => {
         primaryKey('uid', integer());
         field('seq', integer());
+    });
+
+    //
+    // Discover 2.0
+    //
+    entity('EditorsChoiceChatsCollection', () => {
+        primaryKey('id', integer());
+        field('createdBy', integer());
+        field('title', string());
+        field('image', ImageRef);
+        field('chatIds', array(integer()));
+        field('deleted', optional(boolean()));
+
+        rangeIndex('collection', ['id']).withCondition((src) => !src.deleted);
+        rangeIndex('created', ['id', 'createdAt']).withCondition((src) => !src.deleted);
+    });
+    entity('EditorsChoiceChat', () => {
+        primaryKey('id', integer());
+        field('createdBy', integer());
+        field('image', ImageRef);
+        field('cid', integer());
+        field('deleted', optional(boolean()));
+
+        uniqueIndex('all', ['id']).withCondition((src) => !src.deleted);
     });
 });

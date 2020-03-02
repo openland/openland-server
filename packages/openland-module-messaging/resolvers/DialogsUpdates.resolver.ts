@@ -20,9 +20,10 @@ import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
+import { isDefined } from '../../openland-utils/misc';
 
-export default {
-    /* 
+export const Resolver: GQLResolver = {
+    /*
      * Dialog Update Containers
      */
     DialogUpdateContainer: {
@@ -76,27 +77,28 @@ export default {
     },
     DialogMessageReceived: {
         cid: src => IDs.Conversation.serialize(src.cid!),
-        message: (src, args, ctx) => Store.Message.findById(ctx, src.mid),
-        betaMessage: (src, args, ctx) => Store.Message.findById(ctx, src.mid),
-        alphaMessage: (src, args, ctx) => Store.Message.findById(ctx, src.mid),
+        message: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
+        betaMessage: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
+        alphaMessage: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
         unread: async (src, args, ctx) => Store.UserDialogCounter.byId(ctx.auth.uid!, src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid).get(ctx),
         globalUnread: async (src, args, ctx) => await Modules.Messaging.fetchUserGlobalCounter(ctx, ctx.auth.uid!),
         haveMention: async (src, args, ctx) => Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid).get(ctx),
         silent: async (src, args, ctx) => Modules.Messaging.isSilent(ctx, ctx.auth.uid!, src.mid!),
-        showNotification: async (src, args, ctx) => Modules.Messaging.isShown(ctx, ctx.auth.uid!, src.mid!)
+        showNotification: async (src, args, ctx) => Modules.Messaging.isShown(ctx, ctx.auth.uid!, src.mid!),
+        membership: async (src, args, ctx) => ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, src.cid) : 'none'
     },
     DialogMessageUpdated: {
         cid: async (src, args, ctx) => IDs.Conversation.serialize(src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid),
-        message: (src, args, ctx) => Store.Message.findById(ctx, src.mid!),
-        betaMessage: (src, args, ctx) => Store.Message.findById(ctx, src.mid!),
-        alphaMessage: (src, args, ctx) => Store.Message.findById(ctx, src.mid!),
+        message: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
+        betaMessage: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
+        alphaMessage: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
         haveMention: async (src, args, ctx) => Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid).get(ctx)
     },
     DialogMessageDeleted: {
         cid: async (src, args, ctx) => IDs.Conversation.serialize(src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid),
-        message: (src, args, ctx) => Store.Message.findById(ctx, src.mid!),
-        betaMessage: (src, args, ctx) => Store.Message.findById(ctx, src.mid!),
-        alphaMessage: (src, args, ctx) => Store.Message.findById(ctx, src.mid!),
+        message: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
+        betaMessage: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
+        alphaMessage: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
         alphaPrevMessage: async (src, args, ctx) => {
             return (await Store.Message.chat.query(ctx, src.cid!, { limit: 1, reverse: true })).items[0];
         },
@@ -109,7 +111,7 @@ export default {
     },
     DialogMessageRead: {
         cid: (src) => IDs.Conversation.serialize(src.cid!),
-        mid: (src) => src.mid && IDs.Message.serialize(src.mid),
+        mid: (src) => src.mid ? IDs.Message.serialize(src.mid) : null,
         unread: async (src, args, ctx) => Store.UserDialogCounter.byId(ctx.auth.uid!, src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid).get(ctx),
         globalUnread: async (src, args, ctx) => await Modules.Messaging.fetchUserGlobalCounter(ctx, ctx.auth.uid!),
         haveMention: async (src, args, ctx) => Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid).get(ctx)
@@ -133,11 +135,12 @@ export default {
         topMessage: async (src, args, ctx) => {
             return (await Store.Message.chat.query(ctx, src.cid!, { limit: 1, reverse: true })).items[0];
         },
-        haveMention: async (src, args, ctx) => Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid).get(ctx)
+        haveMention: async (src, args, ctx) => Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid).get(ctx),
+        membership: async (src, args, ctx) => ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, src.cid) : 'none'
     },
     DialogMuteChanged: {
         cid: src => IDs.Conversation.serialize(src.cid!),
-        mute: src => src.mute,
+        mute: src => src.mute || false,
         globalUnread: async (src, args, ctx) => await Modules.Messaging.fetchUserGlobalCounter(ctx, ctx.auth.uid!)
     },
     DialogPeerUpdated: {
@@ -241,7 +244,7 @@ export default {
                                 }
                                 return null;
                             })
-                            .filter(event => !!event);
+                            .filter(isDefined);
 
                         yield { items: converted, cursor: '' };
                     }
@@ -263,4 +266,4 @@ export default {
             }
         },
     }
-} as GQLResolver;
+};

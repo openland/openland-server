@@ -90,7 +90,7 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
 
     log.debug(ctx, 'readMessageId', readMessageId);
     // Ignore read messages
-    if (readMessageId >= message.id) {
+    if (readMessageId && (readMessageId >= message.id)) {
         log.debug(ctx, 'Ignore read messages');
         return false;
     }
@@ -144,6 +144,7 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
         picture: sender.picture ? buildBaseImageUrl(sender.picture!!) : null,
         counter: unreadCounter,
         conversationId: conversation.id,
+        deepLink: null,
         mobile: sendMobile,
         desktop: sendDesktop,
         mobileAlert: messageSettings.mobile.sound,

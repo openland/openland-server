@@ -6,6 +6,8 @@ import { Modules } from 'openland-modules/Modules';
 import { injectable } from 'inversify';
 import { Context, createNamedContext } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
+import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
+import TypingTypeRoot = GQLRoots.TypingTypeRoot;
 
 @injectable()
 export class TypingsModule {
@@ -20,7 +22,7 @@ export class TypingsModule {
         setInterval(() => this.cache.clear(), 1000 * 30);
     }
 
-    public async setTyping(uid: number, conversationId: number, type: string) {
+    public async setTyping(uid: number, conversationId: number, type: TypingTypeRoot) {
         this.debounce(conversationId, async () => {
             let members = await inTx(this.rootCtx, async (ctx) => await this.getChatMembers(ctx, conversationId));
 

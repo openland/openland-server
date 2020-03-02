@@ -9,10 +9,11 @@ import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { User, Organization, Conversation } from 'openland-module-db/store';
 import { IDs } from '../openland-module-api/IDs';
+import { isDefined } from '../openland-utils/misc';
 
 const log = createLogger('search-resolver');
 
-export default {
+export const Resolver: GQLResolver = {
     GlobalSearchEntry: {
         __resolveType(obj: any) {
             if (obj instanceof Organization) {
@@ -21,7 +22,7 @@ export default {
                 return 'User';
             } else if (obj instanceof Conversation) {
                 if (obj.kind === 'private') {
-                    return 'PrivateRoom';
+                    throw new Error('Unknown search entry' + obj);
                 } else {
                     return 'SharedRoom';
                 }
@@ -53,7 +54,7 @@ export default {
                         }
                     }
                     return null;
-                }))).filter(a => !!a);
+                }))).filter(isDefined);
             }
 
             //
@@ -77,7 +78,7 @@ export default {
             //
             // Users
             //
-            let usersHitsPromise = Modules.Users.searchForUsers(ctx, query, {byName: true, limit: 10, uid});
+            let usersHitsPromise = Modules.Users.searchForUsers(ctx, query, {byName: false, limit: 10, uid});
 
             //
             // User dialog rooms
@@ -204,7 +205,7 @@ export default {
                 }
             });
 
-            let data = await Promise.all(dataPromises as Promise<User | Organization | Conversation>[]);
+            let data = (await Promise.all(dataPromises as Promise<User | Organization | Conversation>[])).filter(isDefined);
 
             let rooms = new Set<number>();
             let users = new Set<number>();
@@ -250,8 +251,7 @@ export default {
                 }
                 return true;
             });
-
-            return data;
+            return data.filter(isDefined);
         }),
         featuredGroups: withAccount(async (ctx, args, uid, oid) => {
             let globalRoomHits = await Modules.Search.elastic.client.search({
@@ -269,7 +269,7 @@ export default {
             });
             let oids = hits.hits.hits.map(hit => parseInt(hit._id, 10));
             let orgs = oids.map(o => Store.Organization.findById(ctx, o)!);
-            return await Promise.all(orgs);
+            return (await Promise.all(orgs)).filter(isDefined);
         }),
 
         messagesSearch: withAccount(async (ctx, args, uid, oid) => {
@@ -313,7 +313,7 @@ export default {
                 let total = hits.hits.total;
 
                 return {
-                    edges: messages.filter(m => !!m).map((p, i) => {
+                    edges: messages.filter(isDefined).map((p, i) => {
                         return {
                             node: {
                                 message: p, chat: p!.cid,
@@ -613,8 +613,8 @@ export default {
             return {
                 globalItems,
                 localItems,
-                cursor: (from + args.first >= hits.hits.total) ? null : IDs.MentionSearchCursor.serialize(from + hits.hits.hits.length),
+                cursor: (from + args.first >= hits.hits.total) ? undefined : IDs.MentionSearchCursor.serialize(from + hits.hits.hits.length),
             };
         })
     },
-} as GQLResolver;
+};

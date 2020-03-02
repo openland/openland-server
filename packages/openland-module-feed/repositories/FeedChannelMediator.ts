@@ -160,7 +160,7 @@ export default class FeedChannelMediator {
         return inTx(parent, async ctx => {
             let state = await this.repo.getUserFeedState(ctx, uid);
             if (state.draftsChannelId) {
-                return state.draftsChannelId;
+                return (await Store.FeedChannel.findById(ctx, state.draftsChannelId))!;
             }
             let id = await fetchNextDBSeq(ctx, 'feed-channel');
             let channel = await Store.FeedChannel.create(ctx, id, {
@@ -171,7 +171,7 @@ export default class FeedChannelMediator {
             });
             state.draftsChannelId = channel.id;
             await channel.flush(ctx);
-            return channel.id;
+            return channel;
         });
     }
 

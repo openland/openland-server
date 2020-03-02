@@ -3,10 +3,11 @@ import { withAccount } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { createTracer } from 'openland-log/createTracer';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
+import { isDefined } from '../../openland-utils/misc';
 
 const tracer = createTracer('chat-text-search');
 
-export default {
+export const Resolver: GQLResolver = {
     Query: {
         alphaChatTextSearch: withAccount(async (parent, args, uid, oid) => {
             return await tracer.trace(parent, 'chat-text-search', async (ctx) => {
@@ -31,7 +32,7 @@ export default {
                 // let orgConv = (await Promise.all(matchingUserOrgProfiles.map(oc => FDB.ConversationOrganization.findFromOrganization(oc.id)))).filter(oc => !!oc).map(oc => oc!);
                 // let oganizationsConversations = (await Promise.all(orgConv.map(oc => FDB.Conversation.findById(oc.id)))).filter(oc => !!oc).map(oc => oc!);
 
-                let res = [...await Promise.all(await conversations), ...await Promise.all((await personal))];
+                let res = [...await Promise.all(await conversations), ...await Promise.all((await personal))].filter(isDefined);
                 res = res.filter((v) => !!v).reduce(
                     (p, x) => {
                         if (!p.find(c => c.id === x!.id)) {
@@ -81,8 +82,8 @@ export default {
                     [] as any[]
                 );
 
-                return res.filter(d => !!d).map(d => d!).map(r => ({ cid: r.id }));
+                return res.filter(isDefined).map(d => d!).map(r => ({ cid: r.id }));
             });
         }),
     }
-} as GQLResolver;
+};

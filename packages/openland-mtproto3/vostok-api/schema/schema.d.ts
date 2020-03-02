@@ -12,10 +12,13 @@ export namespace vostok_api {
         operationName?: (string|null);
 
         /** GQLRequest query */
-        query: string;
+        query?: (string|null);
 
         /** GQLRequest variables */
         variables?: (string|null);
+
+        /** GQLRequest queryId */
+        queryId?: (string|null);
     }
 
     /** Represents a GQLRequest. */
@@ -38,6 +41,9 @@ export namespace vostok_api {
 
         /** GQLRequest variables. */
         public variables: string;
+
+        /** GQLRequest queryId. */
+        public queryId: string;
 
         /**
          * Creates a new GQLRequest instance using the specified properties.
@@ -216,10 +222,13 @@ export namespace vostok_api {
         operationName?: (string|null);
 
         /** GQLSubscription query */
-        query: string;
+        query?: (string|null);
 
         /** GQLSubscription variables */
         variables?: (string|null);
+
+        /** GQLSubscription queryId */
+        queryId?: (string|null);
     }
 
     /** Represents a GQLSubscription. */
@@ -242,6 +251,9 @@ export namespace vostok_api {
 
         /** GQLSubscription variables. */
         public variables: string;
+
+        /** GQLSubscription queryId. */
+        public queryId: string;
 
         /**
          * Creates a new GQLSubscription instance using the specified properties.
@@ -585,6 +597,96 @@ export namespace vostok_api {
 
         /**
          * Converts this GQLSubscriptionComplete to JSON.
+         * @returns JSON object
+         */
+        public toJSON(): { [k: string]: any };
+    }
+
+    /** Properties of a GQLCachedQueryNotFound. */
+    interface IGQLCachedQueryNotFound {
+
+        /** GQLCachedQueryNotFound id */
+        id: string;
+    }
+
+    /** Represents a GQLCachedQueryNotFound. */
+    class GQLCachedQueryNotFound implements IGQLCachedQueryNotFound {
+
+        /**
+         * Constructs a new GQLCachedQueryNotFound.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: vostok_api.IGQLCachedQueryNotFound);
+
+        /** GQLCachedQueryNotFound id. */
+        public id: string;
+
+        /**
+         * Creates a new GQLCachedQueryNotFound instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns GQLCachedQueryNotFound instance
+         */
+        public static create(properties?: vostok_api.IGQLCachedQueryNotFound): vostok_api.GQLCachedQueryNotFound;
+
+        /**
+         * Encodes the specified GQLCachedQueryNotFound message. Does not implicitly {@link vostok_api.GQLCachedQueryNotFound.verify|verify} messages.
+         * @param message GQLCachedQueryNotFound message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: vostok_api.IGQLCachedQueryNotFound, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Encodes the specified GQLCachedQueryNotFound message, length delimited. Does not implicitly {@link vostok_api.GQLCachedQueryNotFound.verify|verify} messages.
+         * @param message GQLCachedQueryNotFound message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encodeDelimited(message: vostok_api.IGQLCachedQueryNotFound, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a GQLCachedQueryNotFound message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns GQLCachedQueryNotFound
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): vostok_api.GQLCachedQueryNotFound;
+
+        /**
+         * Decodes a GQLCachedQueryNotFound message from the specified reader or buffer, length delimited.
+         * @param reader Reader or buffer to decode from
+         * @returns GQLCachedQueryNotFound
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): vostok_api.GQLCachedQueryNotFound;
+
+        /**
+         * Verifies a GQLCachedQueryNotFound message.
+         * @param message Plain object to verify
+         * @returns `null` if valid, otherwise the reason why it is not
+         */
+        public static verify(message: { [k: string]: any }): (string|null);
+
+        /**
+         * Creates a GQLCachedQueryNotFound message from a plain object. Also converts values to their respective internal types.
+         * @param object Plain object
+         * @returns GQLCachedQueryNotFound
+         */
+        public static fromObject(object: { [k: string]: any }): vostok_api.GQLCachedQueryNotFound;
+
+        /**
+         * Creates a plain object from a GQLCachedQueryNotFound message. Also converts values to other types if specified.
+         * @param message GQLCachedQueryNotFound
+         * @param [options] Conversion options
+         * @returns Plain object
+         */
+        public static toObject(message: vostok_api.GQLCachedQueryNotFound, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+        /**
+         * Converts this GQLCachedQueryNotFound to JSON.
          * @returns JSON object
          */
         public toJSON(): { [k: string]: any };

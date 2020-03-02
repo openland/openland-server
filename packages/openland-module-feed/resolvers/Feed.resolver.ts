@@ -27,6 +27,7 @@ import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { buildElasticQuery, QueryParser } from '../../openland-utils/QueryParser';
 import { inTx } from '@openland/foundationdb';
 import { UserError } from '../../openland-errors/UserError';
+import { isDefined } from '../../openland-utils/misc';
 
 export function withRichMessage<T>(handler: (ctx: AppContext, message: RichMessage, src: FeedEvent) => Promise<T> | T) {
     return async (src: FeedEvent, _params: {}, ctx: AppContext) => {
@@ -35,7 +36,7 @@ export function withRichMessage<T>(handler: (ctx: AppContext, message: RichMessa
     };
 }
 
-export default {
+export const Resolver: GQLResolver = {
     FeedItem: {
         __resolveType(src: FeedItemRoot) {
             if (src.type === 'post') {
@@ -55,7 +56,7 @@ export default {
     FeedPost: {
         id: (src) => IDs.FeedItem.serialize(src.id),
         date: src => src.metadata.createdAt,
-        author: withRichMessage(async (ctx, message) => await Store.User.findById(ctx, message.uid)),
+        author: withRichMessage(async (ctx, message) => (await Store.User.findById(ctx, message.uid))!),
         source: withRichMessage(async (ctx, message, src) => {
             let topic = (await Store.FeedTopic.findById(ctx, src.tid))!;
             if (!topic.key.startsWith('channel-')) {
@@ -91,7 +92,7 @@ export default {
     },
     FeedItemConnection: {
         items: src => src.items,
-        cursor: src => src.cursor
+        cursor: src => src.cursor || ''
     },
     Slide: {
         __resolveType(src: SlideRoot) {
@@ -109,7 +110,7 @@ export default {
             uuid: src.cover.image.uuid,
             metadata: src.cover.info,
             crop: src.cover.image.crop
-        } : undefined,
+        } : null,
         coverAlign: src => {
             if (!src.cover) {
                 return null;
@@ -154,7 +155,7 @@ export default {
 
     FeedChannelConnection: {
         items: src => src.items,
-        cursor: src => src.cursor
+        cursor: src => src.cursor || ''
     },
     FeedChannel: {
         id: src => IDs.FeedChannel.serialize(src.id),
@@ -236,13 +237,13 @@ export default {
     Organization: {
         linkedFeedChannels: async (src, args, ctx) => {
             let autoSubscriptions = await Store.FeedChannelAutoSubscription.fromPeer.findAll(ctx, 'organization', src.id);
-            return await Promise.all(autoSubscriptions.map(s => Store.FeedChannel.findById(ctx, s.channelId)));
+            return (await Promise.all(autoSubscriptions.map(s => Store.FeedChannel.findById(ctx, s.channelId)))).filter(isDefined);
         }
     },
     SharedRoom: {
         linkedFeedChannels: async (src, args, ctx) => {
             let autoSubscriptions = await Store.FeedChannelAutoSubscription.fromPeer.findAll(ctx, 'room', typeof src === 'number' ? src : src.id);
-            return await Promise.all(autoSubscriptions.map(s => Store.FeedChannel.findById(ctx, s.channelId)));
+            return (await Promise.all(autoSubscriptions.map(s => Store.FeedChannel.findById(ctx, s.channelId)))).filter(isDefined);
         }
     },
 
@@ -326,7 +327,7 @@ export default {
             }
             let res = topics.splice(0, args.first);
             return {
-                items: await Promise.all(res.map(t => Store.FeedChannel.findById(ctx, parseInt(t.key.replace('channel-', ''), 10)))),
+                items: (await Promise.all(res.map(t => Store.FeedChannel.findById(ctx, parseInt(t.key.replace('channel-', ''), 10))))).filter(isDefined),
                 cursor: topics.length > args.first ? IDs.FeedChannel.serialize(parseInt(res[res.length - 1].key.replace('channel-', ''), 10)) : undefined
             };
         }),
@@ -341,16 +342,16 @@ export default {
                 after: afterExists ? afterId : undefined
             });
             return {
-                items: await Promise.all(items.map(a => Store.FeedChannel.findById(ctx, a.channelId))),
+                items: (await Promise.all(items.map(a => Store.FeedChannel.findById(ctx, a.channelId)))).filter(isDefined),
                 cursor: haveMore ? IDs.FeedChannel.serialize(items[items.length - 1].channelId) : undefined
             };
         }),
 
         alphaFeedChannel: withUser(async (ctx, args, uid) => {
-            return await Store.FeedChannel.findById(ctx, IDs.FeedChannel.parse(args.id));
+            return (await Store.FeedChannel.findById(ctx, IDs.FeedChannel.parse(args.id)))!;
         }),
         alphaFeedMyDraftsChannel: withUser(async (ctx, args, uid) => {
-            return await Store.FeedChannel.findById(ctx, await Modules.Feed.getUserDraftsChannel(ctx, uid));
+            return await Modules.Feed.getUserDraftsChannel(ctx, uid);
         }),
         alphaFeedChannelContent: withUser(async (ctx, args, uid) => {
             let topic = await Modules.Feed.resolveTopic(ctx, 'channel-' + IDs.FeedChannel.parse(args.id));
@@ -391,7 +392,6 @@ export default {
             if (args.query) {
                 let parsed = parser.parseQuery(args.query);
                 let elasticQuery = buildElasticQuery(parsed);
-                console.dir(elasticQuery, {depth: null});
                 clauses.push(elasticQuery);
             }
 
@@ -420,7 +420,7 @@ export default {
             let total = hits.hits.total;
 
             return {
-                edges: channels.filter(c => !!c).map((p, i) => {
+                edges: channels.filter(isDefined).map((p, i) => {
                     return {
                         node: p, cursor: (i + 1 + offset).toString(),
                     };
@@ -465,7 +465,7 @@ export default {
             let total = hits.hits.total;
 
             return {
-                edges: channels.filter(c => !!c).map((p, i) => {
+                edges: channels.filter(isDefined).map((p, i) => {
                     return {
                         node: p, cursor: (i + 1 + offset).toString(),
                     };
@@ -510,7 +510,7 @@ export default {
             }
 
             // Fetch profiles
-            let _users = (await Promise.all(uids.map((v) => Store.User.findById(ctx, v)))).filter(u => u);
+            let _users = (await Promise.all(uids.map((v) => Store.User.findById(ctx, v)))).filter(isDefined);
             let offset = 0;
             if (args.after) {
                 offset = parseInt(args.after, 10);
@@ -639,4 +639,4 @@ export default {
             return true;
         }),
     }
-} as GQLResolver;
+};

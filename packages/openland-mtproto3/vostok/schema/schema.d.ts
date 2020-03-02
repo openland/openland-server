@@ -158,8 +158,11 @@ export namespace vostok {
         /** Message ackMessages */
         ackMessages?: (number[]|null);
 
+        /** Message bodyType */
+        bodyType: number;
+
         /** Message body */
-        body: google.protobuf.IAny;
+        body: Uint8Array;
     }
 
     /** Represents a Message. */
@@ -177,8 +180,11 @@ export namespace vostok {
         /** Message ackMessages. */
         public ackMessages: number[];
 
+        /** Message bodyType. */
+        public bodyType: number;
+
         /** Message body. */
-        public body: google.protobuf.IAny;
+        public body: Uint8Array;
 
         /**
          * Creates a new Message instance using the specified properties.

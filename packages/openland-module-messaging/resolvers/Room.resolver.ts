@@ -1,4 +1,9 @@
-import { ChannelInvitation, ChannelLink, UserDialogSettings, Conversation, RoomProfile, RoomParticipant } from './../../openland-module-db/store';
+import {
+    UserDialogSettings,
+    Conversation,
+    RoomProfile,
+    RoomParticipant
+} from './../../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import {
     withAccount,
@@ -18,15 +23,31 @@ import {
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Sanitizer } from 'openland-utils/Sanitizer';
-import { validate, defined, stringNotEmpty, enumString, optional, mustBeArray, emailValidator } from 'openland-utils/NewInputValidator';
+import {
+    validate,
+    defined,
+    stringNotEmpty,
+    enumString,
+    optional,
+    mustBeArray,
+    emailValidator
+} from 'openland-utils/NewInputValidator';
 import { AppContext } from 'openland-modules/AppContext';
 import { MessageMention } from '../MessageInput';
 import { MaybePromise } from '../../openland-module-api/schema/SchemaUtils';
+import { buildElasticQuery, QueryParser } from '../../openland-utils/QueryParser';
+import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
+import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
+import SharedRoomRoot = GQLRoots.SharedRoomRoot;
+import RoomMemberRoleRoot = GQLRoots.RoomMemberRoleRoot;
+import { isDefined } from '../../openland-utils/misc';
+import MessageTypeRoot = GQLRoots.MessageTypeRoot;
+import PostMessageTypeRoot = GQLRoots.PostMessageTypeRoot;
 
 type RoomRoot = Conversation | number;
 
 function withConverationId<T, R>(handler: (ctx: AppContext, src: number, args: T, showPlaceholder: boolean) => MaybePromise<R>) {
-    return async (src: RoomRoot, args: T, ctx: AppContext) => {
+    return async (src: SharedRoomRoot, args: T, ctx: AppContext) => {
         if (typeof src === 'number') {
             let showPlaceholder = ctx.auth!.uid ? await Modules.Messaging.room.userWasKickedFromRoom(ctx, ctx.auth!.uid!, src) : false;
             return handler(ctx, src, args, showPlaceholder);
@@ -38,7 +59,7 @@ function withConverationId<T, R>(handler: (ctx: AppContext, src: number, args: T
 }
 
 function withRoomProfile(handler: (ctx: AppContext, src: RoomProfile | null, showPlaceholder: boolean) => any) {
-    return async (src: RoomRoot, args: {}, ctx: AppContext) => {
+    return async (src: SharedRoomRoot, args: {}, ctx: AppContext) => {
         if (typeof src === 'number') {
             let showPlaceholder = ctx.auth!.uid ? await Modules.Messaging.room.userWasKickedFromRoom(ctx, ctx.auth!.uid!, src) : false;
             return handler(ctx, (await Store.RoomProfile.findById(ctx, src)), showPlaceholder);
@@ -49,7 +70,7 @@ function withRoomProfile(handler: (ctx: AppContext, src: RoomProfile | null, sho
     };
 }
 
-export default {
+export const Resolver: GQLResolver = {
     Room: {
         __resolveType: async (src: Conversation | number, ctx: AppContext) => {
             let conv: Conversation;
@@ -99,7 +120,7 @@ export default {
         NONE: 'none',
     },
     SharedRoom: {
-        id: (root: RoomRoot) => IDs.Conversation.serialize(typeof root === 'number' ? root : root.id),
+        id: (src) => IDs.Conversation.serialize(typeof src === 'number' ? src : src.id),
         kind: withConverationId(async (ctx, id) => {
             let room = (await Store.ConversationRoom.findById(ctx, id))!;
             // temp fix resolve openland internal chat
@@ -124,21 +145,39 @@ export default {
             let room = await Store.ConversationRoom.findById(ctx, id);
             return !!(room && room.isChannel);
         }),
-        isPaid: withConverationId(async (ctx, id) => {
+        isPremium: withConverationId(async (ctx, id) => {
             let room = await Store.ConversationRoom.findById(ctx, id);
-            return !!(room && room.isPaid);
+            return !!(room && room.isPremium);
         }),
-        paidPassIsActive: withAuthFallback(withConverationId(async (ctx, id) => {
-            let pass = ctx.auth.uid && await Store.PaidChatUserPass.findById(ctx, id, ctx.auth.uid);
+        premiumPassIsActive: withAuthFallback(withConverationId(async (ctx, id) => {
+            let pass = ctx.auth.uid && await Store.PremiumChatUserPass.findById(ctx, id, ctx.auth.uid);
             return !!(pass && pass.isActive);
         }), false),
-        paymentSettings: withAuthFallback(withConverationId(async (ctx, id) => {
-            let paidChatSettings = await Store.PaidChatSettings.findById(ctx, id);
-            return paidChatSettings && { id, price: paidChatSettings.price, strategy: paidChatSettings.strategy === 'one-time' ? 'ONE_TIME' : 'SUBSCRIPTION' };
+        premiumSettings: withConverationId(async (ctx, id) => {
+            let premiumChatSettings = await Store.PremiumChatSettings.findById(ctx, id);
+            if (!premiumChatSettings) {
+                return null;
+            }
+            let interval: 'MONTH' | 'WEEK' | undefined;
+            if (premiumChatSettings.interval === 'month') {
+                interval = 'MONTH';
+            } else if (premiumChatSettings.interval === 'week') {
+                interval = 'WEEK';
+            } else if (premiumChatSettings.interval) {
+                throw Error('Unknown subscription interval: ' + premiumChatSettings.interval);
+            }
+            return { id, price: premiumChatSettings.price, interval };
+        }),
+        premiumSubscription: withAuthFallback(withConverationId(async (ctx, id) => {
+            let pass = ctx.auth.uid && await Store.PremiumChatUserPass.findById(ctx, id, ctx.auth.uid);
+            if (!pass || !pass.sid) {
+                return null;
+            }
+            return await Store.WalletSubscription.findById(ctx, pass.sid);
         }), null),
         canSendMessage: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? false : !!(await Modules.Messaging.room.checkCanSendMessage(ctx, id, ctx.auth.uid!))), false),
-        title: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'Deleted' : Modules.Messaging.room.resolveConversationTitle(ctx, id, ctx.auth.uid!)),
-        photo: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'ph://1' : Modules.Messaging.room.resolveConversationPhoto(ctx, id, ctx.auth.uid!)),
+        title: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationTitle(ctx, id, ctx.auth.uid!)),
+        photo: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationPhoto(ctx, id, ctx.auth.uid!)),
         socialImage: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : Modules.Messaging.room.resolveConversationSocialImage(ctx, id)),
         organization: withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : Modules.Messaging.room.resolveConversationOrganization(ctx, id)),
 
@@ -148,7 +187,7 @@ export default {
         pinnedMessage: withAuthFallback(withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? null : (profile && profile.pinnedMessage && Store.Message.findById(ctx, profile.pinnedMessage))), null),
 
         membership: withConverationId(async (ctx, id, args, showPlaceholder) => (showPlaceholder ? 'none' : (ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none')) as any),
-        role: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'MEMBER' : (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase()), 'MEMBER'),
+        role: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'MEMBER' : (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase() as RoomMemberRoleRoot), 'MEMBER'),
         membersCount: withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? 0 : (profile && profile.activeMembersCount) || 0),
         onlineMembersCount: withConverationId(async (ctx, id, args, showPlaceholder) => {
             if (showPlaceholder) {
@@ -168,8 +207,17 @@ export default {
             if (showPlaceholder) {
                 return [];
             }
-            let members = (await Store.RoomParticipant.active.query(ctx, id, { limit: 5 })).items;
-            return members.map(m => m.uid);
+
+            let members = (await Store.RoomParticipant.active.query(ctx, id, { limit: 50 })).items;
+            let profiles = await Promise.all(members.map(m => Store.UserProfile.findById(ctx, m.uid)));
+
+            let membersWithPhoto = profiles.filter(p => p!.picture);
+            let res = [...membersWithPhoto.map(m => m!.id)];
+            if (res.length < 5 && members.length > 5) {
+                let membersWithoutPhoto = profiles.filter(p => !p!.picture);
+                res.push(...membersWithoutPhoto.map(m => m!.id));
+            }
+            return res.slice(0, 5);
         }),
         members: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => {
             if (showPlaceholder) {
@@ -180,13 +228,19 @@ export default {
                 afterMember = await Store.RoomParticipant.findById(ctx, id, IDs.User.parse(args.after));
             }
             if (afterMember) {
-                return (await Store.RoomParticipant.active.query(ctx, id, { after: afterMember.uid, limit: args.first || 1000 })).items;
+                return (await Store.RoomParticipant.active.query(ctx, id, {
+                    after: afterMember.uid,
+                    limit: args.first || 1000
+                })).items;
             }
 
             return (await Store.RoomParticipant.active.query(ctx, id, { limit: args.first || 1000 })).items;
         }), []),
-        requests: withAuthFallback(withConverationId(async (ctx, id) => ctx.auth.uid && await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)), []),
-        settings: withAuthFallback(async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)), { cid: 0, mute: true }),
+        requests: withAuthFallback(withConverationId(async (ctx, id) => ctx.auth.uid && (await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)) || []), []),
+        settings: withAuthFallback(async (root, args, ctx) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)), {
+            cid: 0,
+            mute: true
+        } as any),
         canEdit: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? false : await Modules.Messaging.room.canEditRoom(ctx, id, ctx.auth.uid!)), false),
         archived: withAuthFallback(withConverationId(async (ctx, id, args) => {
             let conv = await Store.Conversation.findById(ctx, id);
@@ -199,14 +253,18 @@ export default {
         myBadge: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : await Modules.Users.getUserBadge(ctx, ctx.auth.uid!, id)), null),
         featuredMembersCount: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => (await Store.UserRoomBadge.chat.findAll(ctx, id)).length), 0),
         matchmaking: withAuthFallback(withConverationId(async (ctx, id) => await Modules.Matchmaking.getRoom(ctx, id, 'room')), null),
+        owner: withAuthFallback(withConverationId(async (ctx, id) => {
+            let room = await Store.ConversationRoom.findById(ctx, id);
+            return room && room.ownerId;
+        }), null),
     },
     RoomMessage: {
-        id: (src: Message) => {
+        id: (src) => {
             return IDs.ConversationMessage.serialize(src.id);
         },
-        message: (src: Message) => src.text,
-        file: (src: Message) => src.fileId as any,
-        fileMetadata: (src: Message) => {
+        message: (src) => src.text,
+        file: (src) => src.fileId as any,
+        fileMetadata: (src) => {
             if (src.fileId && src.fileMetadata) {
                 return {
                     name: src.fileMetadata.name,
@@ -221,24 +279,24 @@ export default {
                 return null;
             }
         },
-        filePreview: (src: Message) => null,
-        sender: (src: Message, _: any, ctx: AppContext) => Store.User.findById(ctx, src.uid),
-        date: (src: Message) => src.metadata.createdAt,
-        repeatKey: (src: Message, args: any, ctx: AppContext) => src.uid === ctx.auth.uid ? src.repeatKey : null,
-        isService: (src: Message) => src.isService,
-        serviceMetadata: (src: Message) => {
+        filePreview: (src) => null,
+        sender: async (src, _, ctx) => (await Store.User.findById(ctx, src.uid))!,
+        date: (src) => src.metadata.createdAt,
+        repeatKey: (src, args, ctx) => src.uid === ctx.auth.uid ? src.repeatKey : null,
+        isService: (src) => src.isService,
+        serviceMetadata: (src) => {
             if (src.serviceMetadata && (src.serviceMetadata as any).type) {
                 return src.serviceMetadata;
             }
 
             return null;
         },
-        urlAugmentation: (src: Message) => src.augmentation || null,
-        edited: (src: Message) => (src.edited) || false,
-        reactions: (src: Message) => src.reactions || [],
-        replyMessages: async (src: Message, args: {}, ctx: AppContext) => {
+        urlAugmentation: (src) => src.augmentation || null,
+        edited: (src) => (src.edited) || false,
+        reactions: (src) => src.reactions || [],
+        replyMessages: async (src, args, ctx) => {
             if (src.replyMessages) {
-                let messages = await Promise.all((src.replyMessages as number[]).map(id => Store.Message.findById(ctx, id)));
+                let messages = (await Promise.all((src.replyMessages).map(id => Store.Message.findById(ctx, id)))).filter(isDefined);
                 let filtered = messages.filter(m => !!m);
                 if (filtered.length > 0) {
                     return filtered;
@@ -246,13 +304,17 @@ export default {
                 return null;
             }
             return null;
-            // return src.replyMessages ? (src.replyMessages as number[]).map(id => FDB.Message.findById(id)).filter(m => !!m) : [];
         },
-        plainText: async (src: Message) => null,
-        mentions: async (src: Message, args: {}, ctx: AppContext) => src.mentions ? (src.mentions as number[]).map(id => Store.User.findById(ctx, id)) : null,
+        plainText: async (src) => null,
+        mentions: async (src, args, ctx) => {
+            if (src.mentions) {
+                return (await Promise.all((src.mentions as number[]).map(uid => Store.User.findById(ctx, uid)))).filter(isDefined);
+            }
+            return [];
+        },
 
-        alphaAttachments: async (src: Message) => {
-            let attachments: { fileId: string, fileMetadata: any, filePreview?: string | null }[] = [];
+        alphaAttachments: async (src) => {
+            let attachments: { fileId: string, fileMetadata: any, filePreview: string | null }[] = [];
 
             if (src.fileId) {
                 attachments.push({
@@ -268,25 +330,25 @@ export default {
 
             return attachments;
         },
-        alphaButtons: async (src: Message) => src.buttons ? src.buttons : [],
-        alphaType: async (src: Message) => src.type ? src.type : 'MESSAGE',
-        alphaPostType: async (src: Message) => src.postType,
-        alphaTitle: async (src: Message) => src.title,
-        alphaMentions: async (src: Message) => src.complexMentions
+        alphaButtons: async (src) => src.buttons ? src.buttons : [],
+        alphaType: async (src) => (src.type ? src.type : 'MESSAGE') as MessageTypeRoot,
+        alphaPostType: async (src) => src.postType as PostMessageTypeRoot,
+        alphaTitle: async (src) => src.title,
+        alphaMentions: async (src) => src.complexMentions
     },
     RoomMember: {
-        user: async (src: RoomParticipant, args: {}, ctx: AppContext) => await Store.User.findById(ctx, src.uid),
-        role: async (src: RoomParticipant) => src.role.toUpperCase(),
-        membership: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.status as any,
-        invitedBy: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.invitedBy,
+        user: async (src, args, ctx) => (await Store.User.findById(ctx, src.uid))!,
+        role: async (src) => src.role.toUpperCase() as RoomMemberRoleRoot,
+        membership: async (src, args, ctx) => src.status,
+        invitedBy: async (src, args, ctx) => src.invitedBy,
         canKick: async (src, args, ctx) => await Modules.Messaging.room.canKickFromRoom(ctx, src.cid, ctx.auth.uid!, src.uid),
-        badge: (src: RoomParticipant, args: {}, ctx: AppContext) => Modules.Users.getUserBadge(ctx, src.uid, src.cid),
+        badge: (src, args, ctx) => Modules.Users.getUserBadge(ctx, src.uid, src.cid),
     },
 
     RoomInvite: {
-        id: (src: ChannelInvitation | ChannelLink) => src.id,
-        room: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => Store.Conversation.findById(ctx, src.channelId),
-        invitedByUser: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => Store.User.findById(ctx, src.creatorId)
+        id: src => src.id,
+        room: async (src, args, ctx) => (await Store.Conversation.findById(ctx, src.channelId))!,
+        invitedByUser: async (src, args, ctx) => (await Store.User.findById(ctx, src.creatorId))!
     },
 
     RoomUserNotificaionSettings: {
@@ -339,11 +401,11 @@ export default {
     },
 
     UserMention: {
-        user: (src, _, ctx) => Modules.Users.profileById(ctx, src.id)
+        user: async (src, _, ctx) => (await Modules.Users.profileById(ctx, src.id))!
     },
 
     SharedRoomMention: {
-        sharedRoom: (src, _, ctx) => Store.ConversationRoom.findById(ctx, src.id)
+        sharedRoom: async (src, _, ctx) => (await Store.ConversationRoom.findById(ctx, src.id))!
     },
 
     SharedRoomConnection: {
@@ -356,11 +418,11 @@ export default {
             let id = IdsFactory.resolve(args.id);
             if (id.type === IDs.Conversation) {
                 if (await Modules.Messaging.room.userWasKickedFromRoom(ctx, uid, id.id as number)) {
-                    return id.id;
+                    return id.id as number;
                 } else {
                     await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, id.id as number);
                 }
-                return id.id;
+                return id.id as number;
             } else if (id.type === IDs.User) {
                 return await Modules.Messaging.room.resolvePrivateChat(ctx, id.id as number, uid);
             } else if (id.type === IDs.Organization) {
@@ -368,22 +430,22 @@ export default {
                 if (!member || member.status !== 'joined') {
                     throw new IDMailformedError('Invalid id');
                 }
-                return Modules.Messaging.room.resolveOrganizationChat(ctx, id.id as number);
+                return await Modules.Messaging.room.resolveOrganizationChat(ctx, id.id as number);
             } else {
                 throw new IDMailformedError('Invalid id');
             }
         }),
         rooms: withAccount(async (ctx, args, uid, oid) => {
-            let res = [];
+            let res: RoomRoot[] = [];
             for (let idRaw of args.ids) {
                 let id = IdsFactory.resolve(idRaw);
                 if (id.type === IDs.Conversation) {
                     if (await Modules.Messaging.room.userWasKickedFromRoom(ctx, uid, id.id as number)) {
-                        res.push(id.id);
+                        res.push(id.id as number);
                     } else {
                         await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, id.id as number);
                     }
-                    res.push(id.id);
+                    res.push(id.id as number);
                 } else if (id.type === IDs.User) {
                     res.push(await Modules.Messaging.room.resolvePrivateChat(ctx, id.id as number, uid));
                 } else if (id.type === IDs.Organization) {
@@ -391,13 +453,23 @@ export default {
                     if (!member || member.status !== 'joined') {
                         throw new IDMailformedError('Invalid id');
                     }
-                    res.push(Modules.Messaging.room.resolveOrganizationChat(ctx, id.id as number));
+                    res.push(await Modules.Messaging.room.resolveOrganizationChat(ctx, id.id as number));
                 } else {
                     throw new IDMailformedError('Invalid id');
                 }
             }
             return res;
         }),
+        /* method only for external augmentation (metatags) */
+        roomSocialImage: async (src, args, ctx) => {
+            let cid = IDs.Conversation.parse(args.roomId);
+            let room = await Store.ConversationRoom.findById(ctx, cid);
+            if (!room || room.kind !== 'public') {
+                return null;
+            }
+            let image = await Modules.Messaging.getSocialImage(ctx, cid);
+            return image ? buildBaseImageUrl(image) : null;
+        },
         roomSuper: withPermission('super-admin', async (ctx, args) => {
             return IdsFactory.resolve(args.id);
         }),
@@ -413,7 +485,11 @@ export default {
             }
 
             if (beforeMessage) {
-                return (await Store.Message.chat.query(ctx, roomId, { after: beforeMessage.id, limit: args.first!, reverse: true })).items;
+                return (await Store.Message.chat.query(ctx, roomId, {
+                    after: beforeMessage.id,
+                    limit: args.first!,
+                    reverse: true
+                })).items;
             }
 
             return (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true })).items;
@@ -437,12 +513,14 @@ export default {
             }
             if (conversation.kind === 'organization') {
                 let convOrg = await Store.ConversationOrganization.findById(ctx, roomId);
+                let org = (await Store.Organization.findById(ctx, convOrg!.oid))!;
                 let members = await Store.OrganizationMember.organization.findAll(ctx, 'joined', convOrg!.oid);
                 return members.map(m => ({
                     cid: roomId,
                     uid: m.uid,
                     role: 'member',
                     status: 'joined',
+                    invitedBy: m.invitedBy || org.ownerId
                 }));
             } else {
                 let afterMember: RoomParticipant | null = null;
@@ -450,7 +528,10 @@ export default {
                     afterMember = await Store.RoomParticipant.findById(ctx, roomId, IDs.User.parse(args.after));
                 }
                 if (afterMember) {
-                    return (await Store.RoomParticipant.active.query(ctx, roomId, { after: afterMember.uid, limit: args.first || 1000 })).items;
+                    return (await Store.RoomParticipant.active.query(ctx, roomId, {
+                        after: afterMember.uid,
+                        limit: args.first || 1000
+                    })).items;
                 }
 
                 return (await Store.RoomParticipant.active.query(ctx, roomId, { limit: args.first || 1000 })).items;
@@ -464,11 +545,16 @@ export default {
                 throw new Error('Room not found');
             }
             let badges = (await Store.UserRoomBadge.chat.query(ctx, roomId, { limit: args.first || 1000 })).items;
-            return await Promise.all(badges.map(b => Store.RoomParticipant.findById(ctx, b.cid, b.uid)));
+            return (await Promise.all(badges.map(b => Store.RoomParticipant.findById(ctx, b.cid, b.uid)))).filter(isDefined);
         }),
 
         betaRoomSearch: withActivatedUser(async (ctx, args, uid) => {
-            return Modules.Messaging.search.globalSearchForRooms(ctx, args.query || '', { first: args.first, after: args.after || undefined, page: args.page || undefined, sort: args.sort || undefined });
+            return Modules.Messaging.search.globalSearchForRooms(ctx, args.query || '', {
+                first: args.first,
+                after: args.after || undefined,
+                page: args.page || undefined,
+                sort: args.sort || undefined
+            });
         }),
         betaRoomInviteInfo: withAny(async (ctx, args) => {
             return await Modules.Invites.resolveInvite(ctx, args.invite);
@@ -485,14 +571,82 @@ export default {
         betaUserAvailableRooms: withActivatedUser(async (ctx, args, uid) => {
             return await Modules.Messaging.room.userAvailableRooms(ctx, uid, args.isChannel === null ? undefined : args.isChannel, args.limit || undefined, args.after ? IDs.Conversation.parse(args.after) : undefined);
         }),
+        alphaUserAvailableRooms: withActivatedUser(async (ctx, args, uid) => {
+            let clauses: any[] = [];
+
+            if (args.query) {
+                let parser = new QueryParser();
+                parser.registerText('title', 'title');
+                parser.registerBoolean('featured', 'featured');
+                parser.registerText('createdAt', 'createdAt');
+                parser.registerText('updatedAt', 'updatedAt');
+                parser.registerText('membersCount', 'membersCount');
+                parser.registerBoolean('isChannel', 'isChannel');
+
+                let parsed = parser.parseQuery(args.query);
+                let elasticQuery = buildElasticQuery(parsed);
+                clauses.push(elasticQuery);
+            }
+
+            let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
+            let userDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
+
+            // listed OR from user orgs
+            clauses.push({
+                bool: {
+                    should: [
+                        { term: { listed: true } },
+                        { terms: { oid: userOrgs } }
+                    ],
+                    must_not: { terms: { cid: userDialogs.map(d => d.cid) } }
+                }
+            });
+
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'room',
+                type: 'room',
+                size: args.first,
+                from: args.after ? parseInt(args.after, 10) : 0,
+                body: {
+                    sort: [{ membersCount: 'desc' }],
+                    query: { bool: { must: clauses } }
+                }
+            });
+
+            let ids = hits.hits.hits.map((v) => parseInt(v._id, 10));
+            let rooms = await Promise.all(ids.map((v) => Store.Conversation.findById(ctx, v)));
+            let offset = 0;
+            if (args.after) {
+                offset = parseInt(args.after, 10);
+            }
+            let total = hits.hits.total;
+
+            return {
+                edges: rooms.map((p, i) => {
+                    return {
+                        node: p,
+                        cursor: (i + 1 + offset).toString()
+                    };
+                }),
+                pageInfo: {
+                    hasNextPage: (total - (offset + 1)) >= args.first,
+                    hasPreviousPage: false,
+
+                    itemsCount: total,
+                    pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
+                    currentPage: Math.floor(offset / args.first) + 1,
+                    openEnded: true
+                },
+            };
+        }),
     },
     Mutation: {
         //
         // Room mgmt
         //
-        betaRoomCreate: withAccount(async (parent, args, uid, oid) => {
+        betaRoomCreate: withAccount(async (parent, args, uid) => {
+            let oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : undefined;
             return inTx(parent, async (ctx) => {
-                oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
                 await validate({
                     title: optional(stringNotEmpty('Title can\'t be empty')),
                     kind: defined(enumString(['PUBLIC', 'GROUP'], 'kind expected to be PUBLIC or GROUP'))
@@ -505,7 +659,7 @@ export default {
                     title: args.title!,
                     description: args.description,
                     image: imageRef,
-                }, args.message || '', args.listed || undefined, args.channel || undefined, args.paid || undefined);
+                }, args.message || '', args.listed || undefined, args.channel || undefined, args.price || undefined, args.interval === 'MONTH' ? 'month' : args.interval === 'WEEK' ? 'week' : undefined);
 
                 return room;
             });
@@ -632,10 +786,18 @@ export default {
                 return res;
             });
         }),
-        betaBuyPaidChatPass: withUser(async (parent, args, uid) => {
+        betaBuyPremiumChatSubscription: withUser(async (parent, args, uid) => {
             return inTx(parent, async (ctx) => {
-                await Modules.Messaging.room.buyPaidChatPass(ctx, IDs.Conversation.parse(args.chatId), uid, args.paymentMethodId, args.retryKey);
-                return true;
+                let cid = IDs.Conversation.parse(args.chatId);
+                await Modules.Messaging.premiumChat.createPremiumChatSubscription(ctx, cid, uid);
+                return cid;
+            });
+        }),
+        betaBuyPremiumChatPass: withUser(async (parent, args, uid) => {
+            return inTx(parent, async (ctx) => {
+                let cid = IDs.Conversation.parse(args.chatId);
+                await Modules.Messaging.premiumChat.buyPremiumChatPass(ctx, cid, uid);
+                return cid;
             });
         }),
         // invite links
@@ -665,7 +827,7 @@ export default {
             return await Modules.Invites.refreshRoomInviteLink(ctx, channelId, uid);
         }),
         betaRoomInviteLinkJoin: withUser(async (ctx, args, uid) => {
-            return await Store.Conversation.findById(ctx, await Modules.Invites.joinRoomInvite(ctx, uid, args.invite, (args.isNewUser !== null && args.isNewUser !== undefined) ? args.isNewUser : false));
+            return (await Store.Conversation.findById(ctx, await Modules.Invites.joinRoomInvite(ctx, uid, args.invite, (args.isNewUser !== null && args.isNewUser !== undefined) ? args.isNewUser : false)))!;
         }),
 
         //
@@ -716,4 +878,4 @@ export default {
             return res;
         }),
     }
-} as GQLResolver;
+};

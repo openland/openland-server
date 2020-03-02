@@ -22,8 +22,9 @@ type Push = {
     title: string;
     body: string;
     picture: string | null;
-    counter: number;
+    counter: number | null;
     conversationId: number | null;
+    deepLink: string | null;
     mobile: boolean;
     desktop: boolean;
     mobileAlert: boolean;
@@ -40,6 +41,7 @@ export function createPushWorker(repo: PushRepository) {
             queue.addWorker(async (args, parent) => {
                 return tracer.trace(withReadOnlyTransaction(parent), 'sorting', async (ctx) => {
                     let conversationId = args.conversationId ? IDs.Conversation.serialize(args.conversationId) : undefined;
+                    let deepLink = args.deepLink;
                     if (args.desktop) {
                         //
                         // Web Push
@@ -67,6 +69,7 @@ export function createPushWorker(repo: PushRepository) {
                                 },
                                 payload: {
                                     conversationId,
+                                    deepLink,
                                     ['id']: args.conversationId ? doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString() : undefined,
                                     ...(args.picture ? { ['picture']: args.picture! } : {}),
                                 },
@@ -75,6 +78,9 @@ export function createPushWorker(repo: PushRepository) {
                     }
                     if (args.mobile) {
                         let unread = await Modules.Messaging.fetchUserGlobalCounter(ctx, args.uid);
+                        if (await Modules.Wallet.isLocked(ctx, args.uid)) {
+                            unread++;
+                        }
 
                         let mobileBody = args.mobileIncludeText ? args.body : Texts.Notifications.NEW_MESSAGE_ANONYMOUS;
                         //
@@ -90,6 +96,7 @@ export function createPushWorker(repo: PushRepository) {
                                     badge: unread,
                                     payload: {
                                         conversationId,
+                                        deepLink,
                                         ['id']: args.conversationId ? doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString() : undefined,
                                     },
                                 });
@@ -106,6 +113,7 @@ export function createPushWorker(repo: PushRepository) {
                                     },
                                     payload: {
                                         conversationId,
+                                        deepLink,
                                         ['title']: args.title,
                                         ['message']: mobileBody,
                                         ['id']: args.conversationId ? doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString() : undefined,
@@ -150,6 +158,7 @@ export function createPushWorker(repo: PushRepository) {
                                     ['soundName']: args.mobileAlert ? 'default' : 'silence.mp3',
                                     // ['color']: '#4747EC',
                                     ...(args.picture ? { ['picture']: args.picture! } : {}),
+                                    ...(args.deepLink ? { deepLink } as any : {}),
                                     ...(args.conversationId ? { conversationId } as any : {}),
                                     ...(args.conversationId ? { ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString() } : {}),
                                 },

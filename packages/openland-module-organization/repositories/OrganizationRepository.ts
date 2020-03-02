@@ -31,25 +31,8 @@ export class OrganizationRepository {
             let orgId = ++seq.value;
             await seq.flush(ctx);
 
-            let organization;
-
-            // if (input.id) {
-            //     // find organization
-            //     organization = await this.entities.Organization.findById(ctx, IDs.Organization.parse(input.id));
-            //
-            //     if (!organization) {
-            //         throw Error(`Did not found organization with id ${input.id}`);
-            //     }
-            //
-            //     await this.addUserToOrganization(ctx, uid, organization.id, null);
-            //     let profile = await FDB.UserProfile.findById(ctx, uid);
-            //     if (!profile) {
-            //         throw Error(`User ${uid} does not have profile`);
-            //     }
-            //     profile.primaryOrganization = organization.id;
-            // } else {
             // Create organization
-            organization = await Store.Organization.create(ctx, orgId, {
+            let organization = await Store.Organization.create(ctx, orgId, {
                 kind: input.isCommunity ? 'community' : 'organization',
                 ownerId: uid,
                 status: opts.status,
@@ -319,7 +302,7 @@ export class OrganizationRepository {
             let org = await Store.Organization.findById(ctx, id);
             let profile = await Store.OrganizationProfile.findById(ctx, id);
             profile!.name = title;
-            return org;
+            return org!;
         });
     }
 

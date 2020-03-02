@@ -3,7 +3,7 @@ import { IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 
-export default {
+export const Resolver: GQLResolver = {
     Mutation: {
         conversationDraftUpdate: withUser(async (ctx, args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
@@ -38,4 +38,4 @@ export default {
             return await Modules.Drafts.findDraft(ctx, uid, conversationId);
         }),
     }
-} as GQLResolver;
+};

@@ -4,7 +4,7 @@ import { Context } from '@openland/context';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 
-export default {
+export const Resolver: GQLResolver = {
     Query: {
         sessionState: async function (_: any, args: {}, ctx: Context) {
 
@@ -76,4 +76,4 @@ export default {
             return queryResult;
         },
     },
-} as GQLResolver;
+};

@@ -43,7 +43,7 @@ export class RoomRepository {
     // @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
     @lazyInject('ChatMetricsRepository') private readonly metrics!: ChatMetricsRepository;
 
-    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean, channel?: boolean, paid?: boolean) {
+    async createRoom(parent: Context, kind: 'public' | 'group', oid: number | undefined, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean, channel?: boolean, price?: number, interval?: 'week' | 'month') {
         return await inTx(parent, async (ctx) => {
             let id = await this.fetchNextConversationId(ctx);
             let conv = await Store.Conversation.create(ctx, id, { kind: 'room' });
@@ -54,7 +54,7 @@ export class RoomRepository {
                 featured: false,
                 listed: kind === 'public' && listed !== false,
                 isChannel: channel,
-                isPaid: paid
+                isPremium: !!price
             });
             await Store.RoomProfile.create(ctx, id, {
                 title: profile.title,
@@ -62,11 +62,12 @@ export class RoomRepository {
                 description: profile.description,
                 socialImage: profile.socialImage
             });
-            if (paid) {
-                await Store.PaidChatSettings.create(ctx, id, {
-                    price: 5,
-                    strategy: 'one-time'
+            if (price) {
+                await Store.PremiumChatSettings.create(ctx, id, {
+                    price,
+                    interval: interval,
                 });
+                await Store.PremiumChatUserPass.create(ctx, id, uid, { isActive: true });
             }
             await this.createRoomParticipant(ctx, id, uid, {
                 role: 'owner',
@@ -196,23 +197,6 @@ export class RoomRepository {
                 });
                 await this.onRoomJoin(ctx, cid, uid, uid);
                 return true;
-            }
-        });
-    }
-
-    async alterPaidChatUserPass(parent: Context, cid: number, uid: number, activate: boolean) {
-        return await inTx(parent, async (ctx) => {
-            let pass = await Store.PaidChatUserPass.findById(ctx, cid, uid);
-            if (!pass) {
-                pass = await Store.PaidChatUserPass.create(ctx, cid, uid, { isActive: activate });
-            }
-            pass.isActive = activate;
-            await pass.flush(ctx);
-
-            if (activate) {
-                return await this.joinRoom(ctx, cid, uid, false);
-            } else {
-                return await this.kickFromRoom(ctx, cid, uid);
             }
         });
     }
@@ -682,7 +666,7 @@ export class RoomRepository {
         }
     }
 
-    async resolveConversationPhoto(ctx: Context, conversationId: number, uid: number): Promise<string | null> {
+    async resolveConversationPhoto(ctx: Context, conversationId: number, uid: number): Promise<string> {
         let conv = await Store.Conversation.findById(ctx, conversationId);
 
         if (!conv) {
@@ -901,12 +885,12 @@ export class RoomRepository {
             //
             if (conversation.kind === 'group') {
                 throw new AccessDeniedError();
-            } else if (conversation.kind === 'public') {
+            } else if (conversation.kind === 'public' && conversation.oid) {
                 //
                 //   User can see organization group only if he is a member of org
                 //   User can see any community group
                 //
-                let org = (await Store.Organization.findById(ctx, conversation.oid!))!;
+                let org = (await Store.Organization.findById(ctx, conversation.oid))!;
                 if (org.kind === 'organization') {
                     if (!await Modules.Orgs.isUserMember(ctx, uid, org.id)) {
                         throw new AccessDeniedError();

@@ -73,7 +73,7 @@ export const IDs = {
     ChatPowerup: IdsFactory.createStringId('ChatPowerup'),
     CreditCard: IdsFactory.createStringId('CreditCard'),
     CreditCardSetupIntent: IdsFactory.createStringId('CreditCardSetupIntent'),
-    
+
     WalletAccount: IdsFactory.createId('WalletAccount'),
     WalletTransaction: IdsFactory.createStringId('WalletTransaction'),
     WalletUpdatesCursor: IdsFactory.createStringId('WalletUpdatesCursor'),
@@ -83,7 +83,14 @@ export const IDs = {
     PaidSubscription: IdsFactory.createStringId('PaidSubscription'),
 
     Payment: IdsFactory.createStringId('Payment'),
+    Purchase: IdsFactory.createStringId('Purchase'),
 
     PermissionGroup: IdsFactory.createId('PermissionGroup'),
-    PermissionRequest: IdsFactory.createStringId('PermissionRequest')
+    PermissionRequest: IdsFactory.createStringId('PermissionRequest'),
+
+    DiscoverChatsCollection: IdsFactory.createId('DiscoverChatsCollection'),
+    DiscoverEditorsChoiceChat: IdsFactory.createId('DiscoverEditorsChoice'),
+    DiscoverPopularNowCursor: IdsFactory.createId('DiscoverPopularNowCursor'),
+    DiscoverTopPremiumCursor: IdsFactory.createId('DiscoverTopPremiumCursor'),
+    DiscoverTopFreeCursor: IdsFactory.createId('DiscoverTopFreeCursor'),
 };

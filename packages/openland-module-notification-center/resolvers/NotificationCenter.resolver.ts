@@ -5,21 +5,23 @@ import { IDs } from '../../openland-module-api/IDs';
 import { Store } from '../../openland-module-db/FDB';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import { Notification } from 'openland-module-db/store';
+import { NotificationContent } from '../repositories/NotificationCenterRepository';
+import { isDefined } from '../../openland-utils/misc';
 
-export default {
+export const Resolver: GQLResolver = {
     NotificationCenter: {
         id: src => IDs.NotificationCenter.serialize(src.id),
         unread: (src, args, ctx) => Store.NotificationCenterCounter.byId(src.id).get(ctx),
         state: async (src, args, ctx) => {
             let tail = await Store.NotificationCenterEvent.notificationCenter.stream(src.id, { batchSize: 1 }).tail(ctx);
-            return { state: tail };
+            return { state: tail || '' };
         },
     },
 
     Notification: {
         id: src => IDs.Notification.serialize(src.id),
         text: src => src.text,
-        content: src => src.content || [] ,
+        content: src => src.content as NotificationContent[] || [] ,
     },
 
     NotificationContent: {
@@ -47,7 +49,7 @@ export default {
             };
         },
         comment: async (src, args, ctx) => {
-            return await Store.Comment.findById(ctx, src.commentId);
+            return (await Store.Comment.findById(ctx, src.commentId))!;
         },
     },
     NewMatchmakingProfilesNotification: {
@@ -56,25 +58,25 @@ export default {
         },
         profiles: async (src, args, ctx) => {
             let res = await Promise.all(src.uids.map(a => Modules.Matchmaking.getRoomProfile(ctx, src.peerId, src.peerType, a)));
-            return res.filter(r => !!r);
+            return res.filter(isDefined);
         }
     },
     MentionNotification: {
         peer: async (src, args, ctx) => {
             if (src.peerType === 'room') {
-                return await Store.ConversationRoom.findById(ctx, src.peerId);
+                return (await Store.ConversationRoom.findById(ctx, src.peerId))!;
             } else if (src.peerType === 'user') {
-                return await Store.UserProfile.findById(ctx, src.peerId);
+                return (await Store.UserProfile.findById(ctx, src.peerId))!;
             } else if (src.peerType === 'organization') {
-                return await Store.Organization.findById(ctx, src.peerId);
+                return (await Store.Organization.findById(ctx, src.peerId))!;
             }
             throw new Error(`invalid mention notification peer type: ${src.peerType}`);
         },
         message: async (src, args, ctx) => {
             if (src.messageType === 'message') {
-                return await Store.Message.findById(ctx, src.messageId);
+                return (await Store.Message.findById(ctx, src.messageId))!;
             } else if (src.messageType === 'feed') {
-                return await Store.FeedEvent.findById(ctx, src.messageId);
+                return (await Store.FeedEvent.findById(ctx, src.messageId))!;
             }
             throw new Error(`invalid mention notification message type: ${src.messageType}`);
         }
@@ -82,7 +84,7 @@ export default {
 
     NotificationConnection: {
         items: src => src.items,
-        cursor: src => src.cursor
+        cursor: src => src.cursor || ''
     },
 
     Query: {
@@ -127,4 +129,4 @@ export default {
             return true;
         }),
     }
-} as GQLResolver;
+};

@@ -14,6 +14,7 @@ enum DebugEmailType {
     PRIVATE_ROOM_INVITE
     ROOM_INVITE_ACCEPTED
     WEEKLY_DIGEST
+    GENERIC
 }
 
 type DebugID {
@@ -147,6 +148,7 @@ extend type Mutation {
     debugResetPushDelivery: Boolean!
     debugAddStickerPackToAll(packId: ID!): Boolean!
     debugReplaceCommunityForChat(chatId: ID!, newCommunityId: ID!): Boolean!
+    debugRecountSeqForMessages: Boolean!
 }
 
 extend type Subscription {

@@ -1,0 +1,204 @@
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #container {
+            background-color: #446571;
+            height: 300px;
+            width: 600px;
+            position: relative;
+        }
+
+        .openland {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .block {
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 300px;
+            width: 128px;
+            background-color: #000;
+            opacity: 0.08;
+        }
+
+        .content {
+            position: absolute;
+            top: 64px;
+            right: 64px;
+            left: 64px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            max-height: 128px;
+            overflow: hidden;
+        }
+
+        #image {
+            height: 128px;
+            width: 128px;
+            border-radius: 64px;
+            box-shadow: 0px 8px 48px rgba(0, 0, 0, 0.08);
+        }
+
+        #text {
+            display: flex;
+            flex-direction: column;
+            color: #FFFFFF;
+
+            font-family: Noto Sans;
+            font-style: normal;
+        }
+
+        #title {
+            font-weight: bold;
+            width: 320px;
+            font-size: 32px;
+            line-height: 40px;
+            word-break: break-word;
+            word-wrap: break-word;
+        }
+
+        .subtitle {
+            padding-top: 8px;
+            font-size: 20px;
+            line-height: 28px;
+            opacity: 0.72;
+        }
+    </style>
+    <script>
+      function getAverageRGB(imgEl) {
+        var blockSize = 5, // only visit every 5 pixels
+          defaultRGB = {
+            r: 0,
+            g: 0,
+            b: 0
+          }, // for non-supporting envs
+          canvas = document.createElement('canvas'),
+          context = canvas.getContext && canvas.getContext('2d'),
+          data, width, height,
+          i = -4,
+          length,
+          rgb = {
+            r: 0,
+            g: 0,
+            b: 0
+          },
+          count = 0
+
+        if (!context) {
+          return defaultRGB
+        }
+
+        height = canvas.height = imgEl.naturalHeight || imgEl.offsetHeight || imgEl.height
+        width = canvas.width = imgEl.naturalWidth || imgEl.offsetWidth || imgEl.width
+
+        context.drawImage(imgEl, 0, 0)
+
+        try {
+          data = context.getImageData(0, 0, width, height)
+        } catch (e) {
+          /* security error, img on diff domain */
+          return defaultRGB
+        }
+
+        length = data.data.length
+
+        while ((i += blockSize * 4) < length) {
+          ++count
+          rgb.r += data.data[i]
+          rgb.g += data.data[i + 1]
+          rgb.b += data.data[i + 2]
+        }
+
+        // ~~ used to floor values
+        rgb.r = ~~(rgb.r / count)
+        rgb.g = ~~(rgb.g / count)
+        rgb.b = ~~(rgb.b / count)
+
+        return rgb
+      }
+
+      function fill(args) {
+        if (!args.title || !args.image) {
+          return Promise.reject('Title or image is not specified ' + JSON.stringify(args))
+        }
+        let imgSrc = args.image;
+        let titleText = args.title;
+        let image = document.getElementById('image')
+        let title = document.getElementById('title')
+        let textBlock = document.getElementById('text')
+        let container = document.getElementById('container')
+
+        image.src = imgSrc
+        title.innerText = titleText
+
+        return new Promise((resolve, reject) => {
+          image.onload = () => {
+            let averageRgb = getAverageRGB(image)
+            container.style.backgroundColor =
+              `rgb(${averageRgb.r}, ${averageRgb.g}, ${averageRgb.b})`
+
+            // http://www.w3.org/TR/AERT#color-contrast
+            var o = Math.round(((parseInt(averageRgb.r) * 299) +
+              (parseInt(averageRgb.g) * 587) +
+              (parseInt(averageRgb.b) * 114)) / 1000)
+            if (o > 125) {
+              textBlock.style.color = '#000'
+            } else {
+              textBlock.style.color = '#fff'
+            }
+            resolve()
+          }
+          image.onerror = () => {
+            reject('Image not found')
+          }
+        })
+      }
+    </script>
+</head>
+
+<body>
+<div id="container">
+    <div class="openland">
+        <svg width="320" height="300" viewBox="0 0 320 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g opacity="0.08">
+                <g clip-path="url(#clip0)">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                          d="M107.508 353.937C111.911 358.794 116.462 363.233 120.972 367.252C34.4693 338.513 -32.9575 220.294 42.0302 108.75C18.1721 155.335 18.4189 196.142 71.6598 220.241C75.7314 222.084 79.2461 223.397 81.8285 224.272C82.5119 224.504 83.1332 224.706 83.6859 224.88C72.3842 251.603 71.2199 276.555 76.8167 298.841C82.4798 321.392 94.6906 339.797 107.508 353.937Z"
+                          fill="black"/>
+                    <path
+                            d="M101.094 32.8125C8.41347 32.8125 -66.7188 107.945 -66.7188 200.625C-66.7188 293.305 8.41347 368.438 101.094 368.438C108.176 368.438 114.173 368.114 121.016 367.266C34.4924 338.552 -32.9688 220.312 42.0312 108.75C17.6562 184.688 92.2068 203.938 92.2068 203.938L187.982 233.765C200.89 237.813 209.301 236.85 214.685 234.906C220.214 232.911 224.761 229.074 228.442 223.816L228.504 223.728L228.566 223.641C231.927 218.936 233.951 213.2 233.842 207.124C233.737 201.287 231.645 193.705 224.415 185.007C198.145 153.4 172.251 121.478 146.29 89.6172L237.176 -16.168L114.688 55.3125L121.25 34.0083C114.648 33.2192 107.922 32.8125 101.094 32.8125Z"
+                            fill="black"/>
+                </g>
+            </g>
+            <defs>
+                <clipPath id="clip0">
+                    <path d="M-160 -60H320V420H-160V-60Z" fill="white"/>
+                </clipPath>
+            </defs>
+        </svg>
+    </div>
+    <div class="block"></div>
+    <div class="content">
+        <div id="text">
+            <span id="title">Profunctor optics</span>
+            <span class="subtitle">Join on Openland</span>
+        </div>
+        <img id="image"
+             src="https://ucarecdn.com/17a64e7c-1470-43fa-8250-905854ab07af/-/crop/640x640/0,0/-/scale_crop/1024x1024/center/-/quality/lighter/-/format/jpeg/-/progressive/yes/"
+             crossorigin="anonymous"/>
+    </div>
+</div>
+</body>
+
+</html>

@@ -1,0 +1,6 @@
+extend type Query {
+    discoverNewAndGrowing(first: Int!, seed: Int!, after: String): SharedRoomConnection!
+    discoverPopularNow(first: Int!, after: String): SharedRoomConnection!
+    discoverTopPremium(first: Int!, after: String): SharedRoomConnection!
+    discoverTopFree(first: Int!, after: String): SharedRoomConnection!
+}

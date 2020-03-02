@@ -1,0 +1,266 @@
+#
+# Credit Cards
+#
+
+type CreditCard {
+    id: ID!
+    pmid: ID!
+    brand: String!
+    last4: String!
+    expMonth: Int!
+    expYear: Int!
+    deleted: Boolean!
+    isDefault: Boolean!
+}
+
+type CardSetupIntent {
+    id: ID!
+    clientSecret: String!
+}
+
+#
+# Payment Intent (Stripe)
+#
+
+type PaymentIntent {
+    id: ID!
+    clientSecret: String!
+    card: CreditCard
+}
+
+#
+# Payment Object
+#
+
+enum PaymentStatus {
+    PENDING, CANCELED, FAILING, ACTION_REQUIRED, SUCCESS
+}
+
+type Payment {
+    id: ID!
+    status: PaymentStatus!
+    intent: PaymentIntent
+    card: CreditCard
+}
+
+#
+# Wallet
+#
+
+type WalletAccount {
+    id: ID!
+    balance: Int!
+    state: String!
+    isLocked: Boolean!
+    failingPaymentsCount: Int!
+}
+
+#
+# Wallet Transactions
+#
+
+type WalletTransaction {
+    id: ID!
+    date: String!
+    status: WalletTransactionStatus!
+    operation: WalletTransactionOperation!
+}
+
+enum WalletTransactionStatus {
+    PENDING, CANCELING, CANCELED, SUCCESS
+}
+
+type WalletTransactionDeposit {
+    amount: Int!
+    payment: Payment
+}
+
+union WalletIncomeSource = WalletSubscription | Purchase
+
+type WalletTransactionIncome {
+    amount: Int!
+    payment: Payment
+    source: WalletIncomeSource
+}
+
+type WalletTransactionSubscription {
+    amount: Int!
+    walletAmount: Int!
+    chargeAmount: Int!
+    payment: Payment
+    subscription: WalletSubscription!
+}
+
+type WalletTransactionPurchase {
+    amount: Int!
+    walletAmount: Int!
+    chargeAmount: Int!
+    payment: Payment
+    purchase: Purchase!
+}
+
+type WalletTransactionTransferOut {
+    amount: Int!
+    walletAmount: Int!
+    chargeAmount: Int!
+    payment: Payment
+    toUser: User!
+}
+
+type WalletTransactionTransferIn {
+    amount: Int!
+    fromUser: User!
+    payment: Payment
+}
+
+union WalletTransactionOperation = WalletTransactionDeposit | WalletTransactionIncome | WalletTransactionSubscription | WalletTransactionPurchase | WalletTransactionTransferOut | WalletTransactionTransferIn
+
+type WalletTransactionConnection {
+    items: [WalletTransaction!]!
+    cursor: String
+}
+
+#
+# Wallet Subscriptions
+#
+
+type WalletSubscription {
+    id: ID!
+    state: WalletSubscriptionState!
+    amount: Int!
+    interval: WalletSubscriptionInterval!
+    product: WalletProduct!
+    expires: Date!
+}
+
+enum WalletSubscriptionState {
+    STARTED, GRACE_PERIOD, RETRYING, CANCELED, EXPIRED
+}
+
+enum WalletSubscriptionInterval {
+    MONTH, WEEK
+}
+
+type WalletProductGroup {
+    group: SharedRoom!
+}
+
+type WalletProductDonation {
+    user: User!
+}
+
+union WalletProduct = WalletProductGroup | WalletProductDonation
+
+#
+# Wallet Purchases
+#
+
+enum PurchaseState {
+    PENDING, COMPLETED, CANCELED
+}
+
+type Purchase {
+    id: ID!
+    state: PurchaseState!
+    intent: PaymentIntent
+    product: WalletProduct!
+}
+
+#
+# Wallet Updates
+#
+
+type WalletUpdateSingle {
+    state: String!
+    update: WalletUpdate!
+}
+
+type WalletUpdateBatch {
+    state: String!
+    updates: [WalletUpdate!]!
+}
+
+union WalletUpdateContainer = WalletUpdateSingle | WalletUpdateBatch
+
+type WalletUpdateBalance {
+    amount: Int!
+}
+
+type WalletUpdateTransactionSuccess {
+    transaction: WalletTransaction!
+}
+
+type WalletUpdateTransactionCanceled {
+    transaction: WalletTransaction!
+}
+
+type WalletUpdateTransactionPending {
+    transaction: WalletTransaction!
+}
+
+type WalletUpdatePaymentStatus {
+    payment: Payment!
+}
+
+type WalletUpdateLocked {
+    isLocked: Boolean!
+    failingPaymentsCount: Int!
+}
+
+union WalletUpdate = WalletUpdateBalance | WalletUpdateTransactionSuccess | WalletUpdateTransactionCanceled | WalletUpdateTransactionPending | WalletUpdatePaymentStatus | WalletUpdateLocked
+
+#
+# Operations
+#
+
+extend type Query {
+    myCards: [CreditCard!]!
+    myWallet: WalletAccount!
+    
+    transactionsPending: [WalletTransaction!]!
+    transactionsHistory(first: Int!, after: String): WalletTransactionConnection!
+
+    subscriptions: [WalletSubscription!]!
+}
+
+extend type Mutation {
+    
+    #
+    # Payment Method management
+    #
+    cardCreateSetupIntent(retryKey: String!): CardSetupIntent!
+    cardCommitSetupIntent(id: ID!, pmid: ID!): CreditCard!
+    cardRemove(id: ID!): CreditCard!
+    cardMakeDefault(id: ID!): CreditCard!
+
+    #
+    # Deposits
+    #
+
+    cardDepositEnqueue(amount: Int!, retryKey: String!): Boolean!
+    cardDepositIntent(id: ID!, amount: Int!, retryKey: String!): PaymentIntent!
+
+    #
+    # Payment Intent Commit
+    #
+
+    paymentIntentCommit(id: ID!): Boolean!
+    paymentCancel(id: ID!): Boolean!
+
+    #
+    # Donate
+    #
+    
+    donateToUser(amount: Int!, id: ID!): Boolean!
+    donateToUser2(amount: Int!, id: ID!): Purchase!
+
+    #
+    # Subscriptions
+    #
+
+    subscriptionCancel(id: ID!): WalletSubscription!
+}
+
+extend type Subscription {
+    walletUpdates(fromState: String!): WalletUpdateContainer!
+}

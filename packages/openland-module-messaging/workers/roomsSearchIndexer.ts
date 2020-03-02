@@ -5,7 +5,7 @@ import { Modules } from '../../openland-modules/Modules';
 import { Organization } from 'openland-module-db/store';
 
 export function roomsSearchIndexer() {
-    declareSearchIndexer('room-index', 9, 'room', Store.RoomProfile.updated.stream({ batchSize: 50 }))
+    declareSearchIndexer('room-index', 13, 'room', Store.RoomProfile.updated.stream({ batchSize: 50 }))
         .withProperties({
             cid: {
                 type: 'integer'
@@ -33,6 +33,15 @@ export function roomsSearchIndexer() {
             },
             orgKind: {
                 type: 'text'
+            },
+            isChannel: {
+                type: 'boolean'
+            },
+            messagesCount: {
+                type: 'integer'
+            },
+            isPremium: {
+                type: 'boolean'
             }
         })
         .start(async (item, parent) => {
@@ -50,7 +59,10 @@ export function roomsSearchIndexer() {
                     org = (await Store.Organization.findById(ctx, room.oid!))!;
                 }
 
-                let isListed = room.kind === 'public' && org && org.kind === 'community' && !org.private;
+                let isListed = room.kind === 'public';
+                if (org && (org.kind !== 'community' || org.private)) {
+                    isListed = false;
+                }
 
                 return {
                     id: item.id,
@@ -63,7 +75,10 @@ export function roomsSearchIndexer() {
                         listed: isListed || false,
                         membersCount: membersCount,
                         oid: org ? org.id : undefined,
-                        orgKind: org ? org.kind : undefined
+                        orgKind: org ? org.kind : undefined,
+                        isChannel: room.isChannel || false,
+                        isPremium: room.isPremium || false,
+                        messagesCount: await Store.RoomMessagesCounter.get(ctx, item.id)
                     }
                 };
             });

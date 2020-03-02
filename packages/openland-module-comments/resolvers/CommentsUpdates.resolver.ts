@@ -8,7 +8,7 @@ import { UserError } from '../../openland-errors/UserError';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import CommentUpdateContainerRoot = GQLRoots.CommentUpdateContainerRoot;
 
-export default {
+export const Resolver: GQLResolver = {
     CommentUpdateContainer: {
         __resolveType(obj: CommentUpdateContainerRoot) {
             if (obj.items.length === 1) {
@@ -20,14 +20,14 @@ export default {
     },
     CommentUpdateSingle: {
         seq: src => src.items[0].seq,
-        state: src => src.cursor,
+        state: src => src.cursor || '',
         update: src => src.items[0],
     },
     CommentUpdateBatch: {
         updates: src => src.items,
         fromSeq: src => src.items[0].seq,
         seq: src => src.items[src.items.length - 1].seq,
-        state: src => src.cursor
+        state: src => src.cursor || ''
     },
     CommentUpdate: {
         __resolveType(obj: CommentEvent) {
@@ -40,11 +40,11 @@ export default {
         }
     },
     CommentReceived: {
-        comment: (src, args, ctx) => Store.Comment.findById(ctx, src.commentId!),
+        comment: async (src, args, ctx) => (await Store.Comment.findById(ctx, src.commentId!))!,
         repeatKey: async (src, args, ctx) => (await Store.Comment.findById(ctx, src.commentId!))!.repeatKey,
     },
     CommentUpdated: {
-        comment: (src, args, ctx) => Store.Comment.findById(ctx, src.commentId!)
+        comment: async (src, args, ctx) => (await Store.Comment.findById(ctx, src.commentId!))!
     },
 
     Subscription: {
@@ -79,4 +79,4 @@ export default {
             }
         }
     }
-} as GQLResolver;
+};

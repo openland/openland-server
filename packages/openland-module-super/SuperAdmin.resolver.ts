@@ -2,14 +2,12 @@ import { Store } from 'openland-module-db/FDB';
 import { withPermission } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
-import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
-import { SuperAdmin } from 'openland-module-db/store';
 
-export default {
+export const Resolver: GQLResolver = {
     SuperAdmin: {
-        user: (src: SuperAdmin, args: {}, ctx: AppContext) => Store.User.findById(ctx, src.id),
-        role: (src: SuperAdmin) => {
+        user: async (src, args, ctx) => (await Store.User.findById(ctx, src.id))!,
+        role: (src) => {
             if (src.role === 'software-developer') {
                 return 'SOFTWARE_DEVELOPER';
             } else if (src.role === 'editor') {
@@ -18,7 +16,7 @@ export default {
                 return 'SUPER_ADMIN';
             }
         },
-        email: async (src: SuperAdmin, args: {}, ctx: AppContext) => (await Store.User.findById(ctx, src.id))!.email,
+        email: async (src, args, ctx) => (await Store.User.findById(ctx, src.id))!.email,
     },
     Query: {
         superAdmins: withPermission('super-admin', (ctx) => {
@@ -43,4 +41,4 @@ export default {
             return 'ok';
         })
     }
-} as GQLResolver;
+};

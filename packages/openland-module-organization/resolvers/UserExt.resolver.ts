@@ -7,7 +7,7 @@ import { IDs } from 'openland-module-api/IDs';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
-export default {
+export const Resolver: GQLResolver = {
     User: {
         primaryOrganization: withProfile((ctx, src, profile, authorized) => authorized ? (profile && profile.primaryOrganization ? Store.Organization.findById(ctx, profile.primaryOrganization) : null) : null, true),
         organizations: withUser(async (ctx, src) => (await Modules.Orgs.findUserOrganizations(ctx, src.id!)).map(async oid => await Store.Organization.findById(ctx, oid))),
@@ -22,4 +22,4 @@ export default {
         alphaPrimaryOrganizationId: (src: UserProfile) => src.primaryOrganization ? IDs.Organization.serialize(src.primaryOrganization) : null,
         alphaPrimaryOrganization: async (src: UserProfile, args: {}, ctx: AppContext) => src.primaryOrganization ? Store.Organization.findById(ctx, src.primaryOrganization) : null,
     }
-} as GQLResolver;
+};

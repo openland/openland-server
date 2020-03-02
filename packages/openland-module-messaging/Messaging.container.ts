@@ -15,6 +15,9 @@ import { ChatMetricsRepository } from './repositories/ChatMetricsRepository';
 import { NeedNotificationDeliveryRepository } from './repositories/NeedNotificationDeliveryRepository';
 import { UserDialogsRepository } from './repositories/UserDialogsRepository';
 import { MentionNotificationsMediator } from './mediators/MentionNotificationsMediator';
+import { PremiumChatMediator } from './mediators/PremiumChatMediator';
+import { PremiumChatRepository } from './repositories/PremiumChatRepository';
+import { SocialImageRepository } from './repositories/SocialImageRepository';
 
 export function loadMessagingModule() {
     container.bind(MessagingModule).toSelf().inSingletonScope();
@@ -24,6 +27,8 @@ export function loadMessagingModule() {
     container.bind('MessagingRepository').to(MessagingRepository).inSingletonScope();
     container.bind('RoomRepository').to(RoomRepository).inSingletonScope();
     container.bind('MessagingMediator').to(MessagingMediator).inSingletonScope();
+    container.bind('PremiumChatRepository').to(PremiumChatRepository).inSingletonScope();
+    container.bind('PremiumChatMediator').to(PremiumChatMediator).inSingletonScope();
     container.bind('AugmentationMediator').to(AugmentationMediator).inSingletonScope();
     container.bind('DeliveryMediator').to(DeliveryMediator).inSingletonScope();
     container.bind('CountersMediator').to(CountersMediator).inSingletonScope();
@@ -33,4 +38,5 @@ export function loadMessagingModule() {
     container.bind('NeedNotificationDeliveryRepository').to(NeedNotificationDeliveryRepository).inSingletonScope();
     container.bind('UserDialogsRepository').to(UserDialogsRepository).inSingletonScope();
     container.bind('MentionNotificationsMediator').to(MentionNotificationsMediator).inSingletonScope();
+    container.bind('SocialImageRepository').to(SocialImageRepository).inSingletonScope();
 }

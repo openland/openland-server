@@ -25,7 +25,6 @@ export class MessagingRepository {
 
     async createMessage(parent: Context, cid: number, uid: number, message: MessageInput): Promise<{ message: Message }> {
         return await inTx(parent, async (ctx) => {
-
             //
             // Check for duplicates
             //
@@ -61,10 +60,13 @@ export class MessagingRepository {
             //
             // Persist Messages
             //
+            Store.ConversationLastSeq.byId(cid).increment(ctx);
+            let seq = await Store.ConversationLastSeq.byId(cid).get(ctx);
             let mid = await this.fetchNextMessageId(ctx);
             let msg = await Store.Message.create(ctx, mid, {
                 cid: cid,
                 uid: uid,
+                seq: seq,
                 isMuted: message.isMuted || false,
                 isService: message.isService || false,
                 text: message.message,
@@ -100,7 +102,7 @@ export class MessagingRepository {
             if (direct) {
                 await this.chatMetrics.onMessageSentDirect(ctx, uid, cid);
             } else {
-                Modules.Stats.onRoomMessageSent(ctx, cid);
+                await Modules.Stats.onRoomMessageSent(ctx, cid);
             }
 
             //

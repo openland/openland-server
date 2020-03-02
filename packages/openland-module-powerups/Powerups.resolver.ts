@@ -3,11 +3,12 @@ import { IDs } from '../openland-module-api/IDs';
 import { Store } from 'openland-module-db/FDB';
 import { withActivatedUser } from '../openland-module-api/Resolvers';
 import { Modules } from '../openland-modules/Modules';
+import { isDefined } from '../openland-utils/misc';
 
-export default {
+export const Resolver: GQLResolver = {
     Powerup: {
         id: root => IDs.Powerup.serialize(root.id),
-        description: root => root.description,
+        description: root => root.description || '',
         image: root => root.image,
         name: root => root.name,
     },
@@ -16,8 +17,8 @@ export default {
     },
     RoomPowerup: {
         id: (root) => IDs.ChatPowerup.serialize(`${root.pid}_${root.cid}`),
-        powerup: (root, args, ctx) => Store.Powerup.findById(ctx, root.pid),
-        userSettings: withActivatedUser((ctx, args, uid, root) => {
+        powerup: async (root, args, ctx) => (await Store.Powerup.findById(ctx, root.pid))!,
+        userSettings: withActivatedUser(async (ctx, args, uid, root) => {
             return Modules.Powerups.extractSettingsFromChatPowerup(root, uid);
         })
     },
@@ -62,7 +63,7 @@ export default {
         chatPowerups: withActivatedUser(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.id);
             let powerups = await Modules.Powerups.findPowerupsInChat(ctx, cid);
-            return await Promise.all(powerups.map(a => Store.ChatPowerup.findById(ctx, a, cid)));
+            return (await Promise.all(powerups.map(a => Store.ChatPowerup.findById(ctx, a, cid)))).filter(isDefined);
         })
     }
-} as GQLResolver;
+};

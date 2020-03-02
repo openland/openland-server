@@ -3,7 +3,7 @@ import { withUser, withPermission } from 'openland-module-api/Resolvers';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { Modules } from 'openland-modules/Modules';
 
-export default {
+export const Resolver: GQLResolver = {
     UserBadge: {
         id: (src) => IDs.UserBadge.serialize(src.id),
         name: (src) => src.name,
@@ -36,7 +36,7 @@ export default {
         badgeSetToRoom: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.roomId);
             let bid = IDs.UserBadge.parse(args.badgeId);
-            return await Modules.Users.updateRoomBage(ctx, uid, cid, bid);
+            return (await Modules.Users.updateRoomBage(ctx, uid, cid, bid))!;
         }),
         badgeUnsetToRoom: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.roomId);
@@ -72,7 +72,7 @@ export default {
             let cid = IDs.Conversation.parse(args.roomId);
             let bid = IDs.UserBadge.parse(args.badgeId);
 
-            return await Modules.Users.updateRoomBage(ctx, uid, cid, bid);
+            return (await Modules.Users.updateRoomBage(ctx, uid, cid, bid))!;
         }),
         superBadgeUnsetToRoom: withPermission('super-admin', async (ctx, args) => {
             let uid = IDs.User.parse(args.userId);
@@ -98,4 +98,4 @@ export default {
             return await Modules.Users.verifyBadge(ctx, bid, null);
         }),
     }
-} as GQLResolver;
+};

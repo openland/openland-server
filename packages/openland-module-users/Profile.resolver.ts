@@ -7,32 +7,31 @@ import { Sanitizer } from 'openland-utils/Sanitizer';
 import { withUser } from 'openland-module-api/Resolvers';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
-import { AppContext } from 'openland-modules/AppContext';
-import { UserProfile } from 'openland-module-db/store';
 
-export default {
+export const Resolver: GQLResolver = {
     Profile: {
-        id: (src: UserProfile) => IDs.Profile.serialize(src.id!!),
-        firstName: (src: UserProfile) => src.firstName,
-        lastName: (src: UserProfile) => src.lastName,
-        photoRef: (src: UserProfile) => src.picture,
-        email: (src: UserProfile) => src.email,
-        phone: (src: UserProfile) => src.phone,
-        website: (src: UserProfile) => src.website,
-        about: (src: UserProfile) => src.about,
-        location: (src: UserProfile) => src.location,
-        linkedin: (src: UserProfile) => src.linkedin,
-        instagram: (src: UserProfile) => src.instagram,
-        twitter: (src: UserProfile) => src.twitter,
-        facebook: (src: UserProfile) => src.facebook,
-        primaryBadge: (src: UserProfile, args: {}, ctx: AppContext) => src.primaryBadge ? Store.UserBadge.findById(ctx, src.primaryBadge) : null,
+        id: (src) => IDs.Profile.serialize(src.id!!),
+        firstName: (src) => src.firstName,
+        lastName: (src) => src.lastName,
+        photoRef: (src) => src.picture,
+        email: (src) => src.email,
+        phone: (src) => src.phone,
+        website: (src) => src.website,
+        about: (src) => src.about,
+        location: (src) => src.location,
+        linkedin: (src) => src.linkedin,
+        instagram: (src) => src.instagram,
+        twitter: (src) => src.twitter,
+        facebook: (src) => src.facebook,
+        primaryBadge: (src, args, ctx) => src.primaryBadge ? Store.UserBadge.findById(ctx, src.primaryBadge) : null,
+        authEmail: async (src, args, ctx) => (await Store.User.findById(ctx, src.id))!.email,
 
-        alphaRole: (src: UserProfile) => src.role,
-        alphaLocations: (src: UserProfile) => src.locations,
-        alphaLinkedin: (src: UserProfile) => src.linkedin,
-        alphaTwitter: (src: UserProfile) => src.twitter,
-        alphaJoinedAt: (src: UserProfile) => src.metadata.createdAt + '',
-        alphaInvitedBy: async (src: UserProfile, args: {}, ctx: AppContext) => {
+        alphaRole: (src) => src.role,
+        alphaLocations: (src) => src.locations,
+        alphaLinkedin: (src) => src.linkedin,
+        alphaTwitter: (src) => src.twitter,
+        alphaJoinedAt: (src) => src.metadata.createdAt + '',
+        alphaInvitedBy: async (src, args, ctx) => {
             let user = await Store.User.findById(ctx, src.id);
             if (user && user.invitedBy) {
                 return await Store.User.findById(ctx, user.invitedBy);
@@ -41,7 +40,7 @@ export default {
         },
     },
     Query: {
-        myProfile: async function (_obj: any, args: {}, ctx: AppContext) {
+        myProfile: async (src, args, ctx) => {
             if (ctx.auth.uid == null) {
                 return null;
             }
@@ -242,8 +241,8 @@ export default {
                 await Modules.Hooks.onUserProfileUpdated(ctx, profile.id);
                 await Modules.Users.markForUndexing(ctx, uid);
 
-                return Modules.Users.profileById(ctx, uid);
+                return (await Modules.Users.profileById(ctx, uid))!;
             });
         }),
     }
-} as GQLResolver;
+};

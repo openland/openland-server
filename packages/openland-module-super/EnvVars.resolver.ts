@@ -3,7 +3,7 @@ import { withPermission } from '../openland-module-api/Resolvers';
 import { Modules } from '../openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 
-export default {
+export const Resolver: GQLResolver = {
     EnvVar: {
        name: root => root.name,
        value: root => root.value,
@@ -36,4 +36,4 @@ export default {
             return true;
         }),
     },
-} as GQLResolver;
+};

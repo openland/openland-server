@@ -7,7 +7,7 @@ import { AuthContext } from 'openland-module-auth/AuthContext';
 import { AppContext } from 'openland-modules/AppContext';
 import { encoders } from '@openland/foundationdb';
 
-export default {
+export const Resolver: GQLResolver = {
     Dialog: {
         id: (src: { cid: number }) => IDs.Dialog.serialize(src.cid),
         cid: (src: { cid: number }) => IDs.Conversation.serialize(src.cid),
@@ -56,6 +56,10 @@ export default {
             let room = await Store.ConversationRoom.findById(ctx, src.cid);
             return !!(room && room.isChannel);
         },
+        isPremium: async (src: { cid: number }, args: {}, ctx: AppContext) => {
+            let room = await Store.ConversationRoom.findById(ctx, src.cid);
+            return !!(room && room.isPremium);
+        },
 
         title: async (src: { cid: number }, args: {}, ctx: AppContext) => {
             return Modules.Messaging.room.resolveConversationTitle(ctx, src.cid, ctx.auth.uid!);
@@ -75,6 +79,7 @@ export default {
         haveMention: async (src: { cid: number }, _, ctx) => {
             return await Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid).get(ctx);
         },
+        membership: async (src, args, ctx) => ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, src.cid) : 'none'
     },
     Query: {
         dialogs: withUser(async (ctx, args, uid) => {
@@ -108,4 +113,4 @@ export default {
             }
         })
     }
-} as GQLResolver;
+};

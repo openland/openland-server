@@ -50,8 +50,12 @@ export class StatsModule {
         }
     }
 
-    onRoomMessageSent = (ctx: Context, rid: number) => {
+    onRoomMessageSent = async (ctx: Context, rid: number) => {
         Store.RoomMessagesCounter.byId(rid).increment(ctx);
+        let conv = await Store.ConversationRoom.findById(ctx, rid);
+        if (conv) {
+            await Modules.Messaging.room.markChatForIndexing(ctx, rid);
+        }
     }
 
     onEmailSent = (ctx: Context, uid: number) => {
@@ -248,7 +252,7 @@ export class StatsModule {
         };
     }
 
-    getTrendingRoomsByMessages = async (ctx: Context, from: number, to: number, size?: number) => {
+    getTrendingRoomsByMessages = async (ctx: Context, from: number, to: number, size?: number, after?: number) => {
         let searchReq = await Modules.Search.elastic.client.search({
             index: 'message',
             type: 'message', // scroll: '1m',
@@ -282,8 +286,10 @@ export class StatsModule {
             size: 0,
         });
 
-        let roomsWithDelta: { room: RoomProfile; messagesDelta: number }[] = [];
-        for (let bucket of searchReq.aggregations.byCid.buckets) {
+        let roomsWithDelta: { room: RoomProfile; messagesDelta: number, cursor: number }[] = [];
+        let cursor = after || 0;
+        for (let bucket of searchReq.aggregations.byCid.buckets.slice(cursor)) {
+            cursor++;
             let rid = bucket.key;
             let room = await Store.RoomProfile.findById(ctx, rid);
 
@@ -303,6 +309,7 @@ export class StatsModule {
             roomsWithDelta.push({
                 room: room,
                 messagesDelta: bucket.doc_count,
+                cursor: cursor,
             });
             if (roomsWithDelta.length === size) {
                 break;

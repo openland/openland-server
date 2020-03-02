@@ -9,6 +9,7 @@ import { fetchNextDBSeq } from '../../openland-utils/dbSeq';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { ImageRef } from '../../openland-module-media/ImageRef';
 import { RandomLayer } from '@openland/foundationdb-random';
+import { isDefined } from '../../openland-utils/misc';
 
 export interface StickerPackInput {
     title: string | null;
@@ -177,7 +178,7 @@ export class StickersRepository {
             let packs = await Promise.all(state.packIds.map(a => Store.StickerPack.findById(ctx, a)));
 
             return {
-                packs: packs.filter(a => a!.published),
+                packs: packs.filter(isDefined).filter(a => a.published),
                 favoriteIds: state.favoriteIds
             };
         });
@@ -235,6 +236,13 @@ export class StickersRepository {
             await userStickers.flush(ctx);
             return true;
         });
+    }
+
+    getCatalog = async (parent: Context) => {
+        if (isProd) {
+            return DEFAULT_PACK_IDS;
+        }
+        return [];
     }
 
     private getUserStickersState = async (parent: Context, uid: number) => {

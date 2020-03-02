@@ -12,6 +12,8 @@ import { Store } from '../openland-module-db/FDB';
 import MatchmakingPeerRoot = GQLRoots.MatchmakingPeerRoot;
 import { ConversationRoom } from '../openland-module-db/store';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
+import MultiselectMatchmakingQuestionRoot = GQLRoots.MultiselectMatchmakingQuestionRoot;
+import TextMatchmakingQuestionRoot = GQLRoots.TextMatchmakingQuestionRoot;
 
 let resolvePeer = (id: string): { id: number, type: MatchmakingPeerType } | null => {
     let idMeta = IdsFactory.resolve(id);
@@ -21,8 +23,7 @@ let resolvePeer = (id: string): { id: number, type: MatchmakingPeerType } | null
     return null;
 };
 
-// @ts-ignore
-export default {
+export const Resolver: GQLResolver = {
     MatchmakingPeer: {
         __resolveType(obj: MatchmakingPeerRoot) {
             if (obj instanceof ConversationRoom) {
@@ -48,14 +49,15 @@ export default {
                 if (!auth.uid) {
                     throw new AccessDeniedError();
                 }
-                await Modules.Messaging.room.checkCanUserSeeChat(ctx, auth.uid, src.peerId);
-                return await Store.ConversationRoom.findById(ctx, src.peerId);
+                // should be covered by Room.resolver
+                // await Modules.Messaging.room.checkCanUserSeeChat(ctx, auth.uid, src.peerId);
+                return (await Store.ConversationRoom.findById(ctx, src.peerId))!;
             }
             throw new Error(`Invalid peer type: ${src.peerType}`);
         },
     },
     MatchmakingProfile: {
-        answers: root => root.answers,
+        answers: root => root.answers || [],
         user: root => root.uid,
         chatCreated: async (root, _, ctx) => {
             let auth = AuthContext.get(ctx);
@@ -78,11 +80,11 @@ export default {
         },
     },
     MultiselectMatchmakingAnswer: {
-        question: root => root.question,
+        question: root => root.question as MultiselectMatchmakingQuestionRoot,
         tags: root => root.tags,
     },
     TextMatchmakingAnswer: {
-        question: root => root.question,
+        question: root => root.question as TextMatchmakingQuestionRoot,
         answer: root => root.text,
     },
     MatchmakingQuestion: {
@@ -100,13 +102,13 @@ export default {
     MultiselectMatchmakingQuestion: {
         id: src => IDs.MatchmakingQuestion.serialize(src.id),
         title: src => src.title,
-        subtitle: src => src.subtitle,
+        subtitle: src => src.subtitle || '',
         tags: src => src.tags,
     },
     TextMatchmakingQuestion: {
         id: src => IDs.MatchmakingQuestion.serialize(src.id),
         title: src => src.title,
-        subtitle: src => src.subtitle,
+        subtitle: src => src.subtitle || '',
     },
     Query: {
         matchmakingRoom: withUser(async (ctx, args) => {
@@ -128,7 +130,7 @@ export default {
         matchmakingRoomSave: withUser(async (ctx, args, uid) => {
             let peer = resolvePeer(args.peerId);
             if (!peer) {
-                return null;
+                throw new NotFoundError();
             }
             args.input = {
                 ...args.input,
@@ -158,5 +160,4 @@ export default {
             return await Modules.Matchmaking.connect(ctx, peer.id, peer.type, uid, uid2);
         }),
     }
-
-} as GQLResolver;
+};

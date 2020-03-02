@@ -66,4 +66,8 @@ export class StickersModule {
     getUserStickers = (parent: Context, uid: number) => {
         return this.repo.getUserStickers(parent, uid);
     }
+
+    getCatalog = (parent: Context) => {
+        return this.repo.getCatalog(parent);
+    }
 }

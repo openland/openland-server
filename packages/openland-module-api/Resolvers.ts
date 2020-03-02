@@ -22,17 +22,17 @@ async function fetchOrganizationId(ctx: AppContext) {
     return ctx.auth.oid;
 }
 
-export function withPermission<T, R, F>(permission: string | string[], resolver: (ctx: AppContext, args: T, root: F) => R): (root: F, args: T, ctx: AppContext) => MaybePromise<R> {
+export function withPermission<T, R, F>(permission: string | string[], resolver: (ctx: AppContext, args: T, root: F) => Promise<R>): (root: F, args: T, ctx: AppContext) => MaybePromise<R> {
     return async function (root: F, args: T, ctx: AppContext) {
         let permissions = await fetchPermissions(ctx);
         if (Array.isArray(permission)) {
             for (let p of permission) {
                 if (permissions.has(p)) {
-                    return resolver(ctx, args, root);
+                    return await resolver(ctx, args, root);
                 }
             }
         } else if (permissions.has(permission)) {
-            return resolver(ctx, args, root);
+            return await resolver(ctx, args, root);
         } else {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
@@ -40,7 +40,7 @@ export function withPermission<T, R, F>(permission: string | string[], resolver:
     };
 }
 
-export function withAccount<T, R>(resolver: (ctx: AppContext, args: T, uid: number, org: number) => R): (_: any, args: T, ctx: AppContext) => MaybePromise<R> {
+export function withAccount<T, R>(resolver: (ctx: AppContext, args: T, uid: number, org: number) => Promise<R>): (_: any, args: T, ctx: AppContext) => MaybePromise<R> {
     return async function (_: any, args: T, ctx: AppContext) {
         if (!ctx.auth.uid) {
             throw new AccessDeniedError(ErrorText.permissionDenied);
@@ -54,7 +54,7 @@ export function withAccount<T, R>(resolver: (ctx: AppContext, args: T, uid: numb
     };
 }
 
-export function withActivatedUser<T, R, P>(resolver: (ctx: AppContext, args: T, uid: number, parent: P) => R): (parent: P, args: T, ctx: AppContext) => MaybePromise<R> {
+export function withActivatedUser<T, R, P>(resolver: (ctx: AppContext, args: T, uid: number, parent: P) => Promise<R>): (parent: P, args: T, ctx: AppContext) => MaybePromise<R> {
     return async function (parent: P, args: T, ctx: AppContext) {
         if (!ctx.auth.uid) {
             throw new AccessDeniedError(ErrorText.permissionDenied);
@@ -63,28 +63,28 @@ export function withActivatedUser<T, R, P>(resolver: (ctx: AppContext, args: T, 
         if (!user || user.status !== 'activated') {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
-        return resolver(ctx, args, ctx.auth.uid, parent);
+        return await resolver(ctx, args, ctx.auth.uid, parent);
     };
 }
 
-export function withUser<T, R>(resolver: (ctx: AppContext, args: T, uid: number) => R): (_: any, args: T, ctx: AppContext) => MaybePromise<R> {
+export function withUser<T, R>(resolver: (ctx: AppContext, args: T, uid: number) => Promise<R>): (_: any, args: T, ctx: AppContext) => MaybePromise<R> {
     return async function (_: any, args: T, ctx: AppContext) {
         if (!ctx.auth.uid) {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
-        return resolver(ctx, args, ctx.auth.uid);
+        return await resolver(ctx, args, ctx.auth.uid);
     };
 }
 
-export function withAny<T, R>(resolver: (ctx: AppContext, args: T) => R): (_: any, args: T, ctx: AppContext) => MaybePromise<R> {
+export function withAny<T, R>(resolver: (ctx: AppContext, args: T) => Promise<R>): (_: any, args: T, ctx: AppContext) => MaybePromise<R> {
     return async (_: any, args: T, ctx: AppContext) => {
-        return resolver(ctx, args);
+        return await resolver(ctx, args);
     };
 }
 
 export function resolveUser<T extends { userId: number }>() {
-    return function (src: T, args: T, ctx: AppContext) {
-        return Store.User.findById(ctx, src.userId);
+    return async function (src: T, args: T, ctx: AppContext) {
+        return (await Store.User.findById(ctx, src.userId))!;
     };
 }
 

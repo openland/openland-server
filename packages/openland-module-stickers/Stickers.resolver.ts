@@ -44,7 +44,7 @@ function withSticker<T, R>(handler: (ctx: AppContext, sticker: Sticker, args: T)
     };
 }
 
-export default {
+export const Resolver: GQLResolver = {
     Sticker: {
         __resolveType() {
             return 'ImageSticker';
@@ -84,6 +84,9 @@ export default {
         }),
         createdStickerPacks: withActivatedUser(async (ctx, args, id) => {
             return await Modules.Stickers.getPacksBy(ctx, id);
+        }),
+        stickerPackCatalog: withActivatedUser(async (ctx, args, id) => {
+            return await Modules.Stickers.getCatalog(ctx);
         })
     },
     Mutation: {
@@ -128,4 +131,4 @@ export default {
             return Modules.Stickers.removeStickerFromFavs(ctx, uid, id);
         }),
     },
-} as GQLResolver;
+};

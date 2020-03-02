@@ -13,6 +13,7 @@ type Profile {
     instagram: String
     twitter: String
     facebook: String
+    authEmail: String
 
     # Deprecated
     alphaLinkedin: String

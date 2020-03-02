@@ -7,6 +7,8 @@ import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
+import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
+import TypingTypeRoot = GQLRoots.TypingTypeRoot;
 
 const TypingType = {
     TEXT: 'text',
@@ -18,20 +20,26 @@ const TypingType = {
 
 const TypingTypeValues = Object.values(TypingType);
 
-export default {
-    TypingType,
+export const Resolver: GQLResolver = {
+    TypingType: {
+        TEXT: 'text',
+        PHOTO: 'photo',
+        FILE: 'file',
+        VIDEO: 'video',
+        STICKER: 'sticker'
+    },
     TypingEvent: {
-        type: (src: TypingEvent) => src.type,
+        type: (src: TypingEvent) => src.cancel ? 'text' : src.type,
         cancel: (src: TypingEvent) => src.cancel,
-        conversation: (src: TypingEvent, args: {}, ctx: AppContext) => Store.Conversation.findById(ctx, src.conversationId),
-        chat: (src: TypingEvent, args: {}, ctx: AppContext) => Store.Conversation.findById(ctx, src.conversationId),
+        conversation: async (src: TypingEvent, args: {}, ctx: AppContext) => (await Store.Conversation.findById(ctx, src.conversationId))!,
+        chat: async (src: TypingEvent, args: {}, ctx: AppContext) => (await Store.Conversation.findById(ctx, src.conversationId))!,
         user: (src: TypingEvent) => src.userId,
     },
     Mutation: {
         alphaSetTyping: withUser(async (ctx, args, uid) => {
             await validate({ type: optional(enumString(TypingTypeValues)) }, args);
             let conversationId = IDs.Conversation.parse(args.conversationId);
-            await Modules.Typings.setTyping(uid, conversationId, args.type || 'text');
+            await Modules.Typings.setTyping(uid, conversationId, args.type as TypingTypeRoot || 'text');
             return 'ok';
         }),
         typingSend: withUser(async (ctx, args, uid) => {
@@ -101,4 +109,4 @@ export default {
             }
         },
     }
-} as GQLResolver;
+};

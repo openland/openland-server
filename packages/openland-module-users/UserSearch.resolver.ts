@@ -4,7 +4,7 @@ import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { IDs } from '../openland-module-api/IDs';
 
-export default {
+export const Resolver: GQLResolver = {
     Query: {
         userSearch: withAny(async (ctx, args) => {
 
@@ -151,4 +151,4 @@ export default {
             };
         })
     }
-} as GQLResolver;
+};

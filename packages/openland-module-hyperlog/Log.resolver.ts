@@ -37,7 +37,7 @@ export function trackServerEvent(ctx: Context, event: { name: string, uid?: numb
     });
 }
 
-export default {
+export const Resolver: GQLResolver = {
     Mutation: {
         track: withAny(async (ctx, args) => {
             await inTx(ctx, async (ctx2) => {
@@ -80,4 +80,4 @@ export default {
             return 'ok';
         })
     }
-} as GQLResolver;
+};

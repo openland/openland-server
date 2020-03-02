@@ -11,6 +11,7 @@ import { AuthContext } from '../openland-module-auth/AuthContext';
 import { EventBus } from '../openland-module-pubsub/EventBus';
 import { PowerupChatUserSettings } from '../openland-module-powerups/PowerupsRepository';
 import { combineAsyncIterators } from '../openland-utils/combineAsyncIterators';
+import { isDefined } from '../openland-utils/misc';
 
 const getGeoPowerupId = (ctx: Context) => Modules.Super.getEnvVar<number>(ctx, 'geo-powerup-id');
 const getPermissionRequestInfo = (ctx: Context, appId: number, cid: number, uid: number): PermissionRequestInfo => {
@@ -24,7 +25,7 @@ const getPermissionRequestInfo = (ctx: Context, appId: number, cid: number, uid:
     };
 };
 
-export default {
+export const Resolver: GQLResolver = {
     Query: {
         chatLocations: withActivatedUser(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.id);
@@ -49,7 +50,7 @@ export default {
             members = members.filter(a => membersSettings[a].enabled);
             let memberLocations = await Promise.all(members.map(a => Modules.Geo.getUserGeo(ctx, a, getPermissionRequestInfo(ctx, pid!, cid, a))));
 
-            return memberLocations.filter(a => !!a);
+            return memberLocations.filter(isDefined);
         })
     },
     Subscription: {
@@ -84,10 +85,13 @@ export default {
 
                     let settings = Modules.Powerups.extractSettingsFromChatPowerup(chatPowerup, uid);
                     if (settings.enabled) {
-                        yield await Modules.Geo.getUserGeo(ctx, uid, getPermissionRequestInfo(ctx, pid!, cid, uid));
+                        let userGeo = await Modules.Geo.getUserGeo(ctx, uid, getPermissionRequestInfo(ctx, pid!, cid, uid));
+                        if (userGeo) {
+                            yield userGeo;
+                        }
                     }
                 }
             },
         },
     },
-} as GQLResolver;
+};

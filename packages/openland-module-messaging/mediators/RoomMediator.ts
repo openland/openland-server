@@ -14,6 +14,7 @@ import { Context } from '@openland/context';
 import { MessageInput } from '../MessageInput';
 import { boldString, buildMessage, userMention, usersMention } from '../../openland-utils/MessageBuilder';
 import { Store } from 'openland-module-db/FDB';
+import { SocialImageRepository } from '../repositories/SocialImageRepository';
 
 @injectable()
 export class RoomMediator {
@@ -24,6 +25,8 @@ export class RoomMediator {
     private readonly messaging!: MessagingMediator;
     @lazyInject('DeliveryMediator')
     private readonly delivery!: DeliveryMediator;
+    @lazyInject('SocialImageRepository')
+    private readonly socialImage!: SocialImageRepository;
 
     async isRoomMember(ctx: Context, uid: number, cid: number) {
         return await this.repo.isActiveMember(ctx, uid, cid);
@@ -38,7 +41,7 @@ export class RoomMediator {
         return conv.kind === 'public' && (conv.oid && (await Store.Organization.findById(ctx, conv.oid))!.kind === 'community');
     }
 
-    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, message?: string, listed?: boolean, channel?: boolean, paid?: boolean) {
+    async createRoom(parent: Context, kind: 'public' | 'group', oid: number | undefined, uid: number, members: number[], profile: RoomProfileInput, message?: string, listed?: boolean, channel?: boolean, price?: number, interval?: 'week' | 'month') {
         return await inTx(parent, async (ctx) => {
             if (oid) {
                 let isMember = await Modules.Orgs.isUserMember(ctx, uid, oid);
@@ -49,7 +52,7 @@ export class RoomMediator {
                 }
             }
             // Create room
-            let res = await this.repo.createRoom(ctx, kind, oid, uid, members, profile, listed, channel, paid);
+            let res = await this.repo.createRoom(ctx, kind, oid, uid, members, profile, listed, channel, price, interval);
             // Send initial messages
             let userName = await Modules.Users.getUserFullName(parent, uid);
             let chatTypeString = channel ? 'channel' : 'group';
@@ -79,10 +82,10 @@ export class RoomMediator {
                 throw new UserError('You can\'t join non-public room');
             }
 
-            if (conv.isPaid) {
-                let pass = await Store.PaidChatUserPass.findById(ctx, cid, uid);
+            if (conv.isPremium) {
+                let pass = await Store.PremiumChatUserPass.findById(ctx, cid, uid);
                 if (!pass || !pass.isActive) {
-                    throw new UserError(`Can't join paid group without pass`);
+                    throw new UserError(`Can't join pro chat without pass`);
                 }
             }
 
@@ -125,61 +128,15 @@ export class RoomMediator {
         });
     }
 
-    async buyPaidChatPass(parent: Context, cid: number, uid: number, pmid: string, retryKey: string) {
-        return await inTx(parent, async (ctx) => {
-            let chat = await Store.ConversationRoom.findById(ctx, cid);
-            if (!chat || !chat.ownerId) {
-                throw new NotFoundError('Chat owner not found');
-            }
-            if (!chat.isPaid) {
-                throw new Error('Chat is free to join');
-            }
-            let paidChatSettings = await Store.PaidChatSettings.findById(ctx, chat.id);
-            if (!paidChatSettings) {
-                throw new Error('Inconsistent state - chat is paid, but no payment settings found');
-            }
-            if (paidChatSettings.strategy !== 'one-time') {
-                throw new Error('Unexpected payment strategy');
-            }
-            let userPass = await Store.PaidChatUserPass.findById(ctx, chat.id, uid);
-            if (userPass && userPass.isActive) {
-                // nothing to do, user already have access
-                return;
-            }
-            await Modules.Billing.paymentsMediator.createTransferPayment(ctx, uid, chat.ownerId, paidChatSettings.price, retryKey);
-            await this.alterPaidChatUserPass(ctx, cid, uid, true);
-        });
-    }
-
-    async alterPaidChatUserPass(parent: Context, cid: number, uid: number, activate: boolean) {
-        return inTx(parent, async (ctx) => {
-            let conv = await Store.ConversationRoom.findById(ctx, cid);
-            if (!conv) {
-                throw new NotFoundError();
-            }
-
-            let membershipChanged = await this.repo.alterPaidChatUserPass(ctx, cid, uid, activate);
-            if (activate && membershipChanged) {
-                let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
-
-                if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
-                    let uids: number[] = prevMessage.serviceMetadata.userIds;
-                    uids.push(uid);
-
-                    await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids, null, true), false);
-                    await this.messaging.bumpDialog(ctx, uid, cid);
-                } else {
-                    await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid], null));
-                }
-            }
-        });
-    }
-
     async inviteToRoom(parent: Context, cid: number, uid: number, invites: number[]) {
         return await inTx(parent, async (ctx) => {
             let conv = await Store.ConversationRoom.findById(ctx, cid);
             if (!conv) {
                 throw new NotFoundError();
+            }
+
+            if (conv.isPremium && conv.ownerId !== uid) {
+                throw new AccessDeniedError();
             }
 
             if (invites.length > 0) {
@@ -348,8 +305,8 @@ export class RoomMediator {
                 if (isChannel) {
                     shouldSendMessage = false;
                 } else {
-                    if (conv.kind === 'public') {
-                        let org = await await Store.Organization.findById(ctx, conv.oid!);
+                    if (conv.kind === 'public' && conv.oid) {
+                        let org = await Store.Organization.findById(ctx, conv.oid);
                         if (org!.kind === 'community') {
                             shouldSendMessage = false;
                         } else {
@@ -491,7 +448,9 @@ export class RoomMediator {
                 });
                 await this.delivery.onDialogTitleUpdate(parent, cid, profile.title!);
             }
-
+            if (res.updatedPhoto || res.updatedTitle) {
+                await this.socialImage.onRoomUpdated(ctx, cid);
+            }
             return (await Store.Conversation.findById(ctx, cid))!;
         });
     }
@@ -658,7 +617,7 @@ export class RoomMediator {
         return await this.repo.resolveConversationTitle(ctx, conversationId, uid);
     }
 
-    async resolveConversationPhoto(ctx: Context, conversationId: number, uid: number): Promise<string | null> {
+    async resolveConversationPhoto(ctx: Context, conversationId: number, uid: number): Promise<string> {
         return await this.repo.resolveConversationPhoto(ctx, conversationId, uid);
     }
 
@@ -780,6 +739,14 @@ export class RoomMediator {
             cid,
             uid
         }));
+    }
+
+    async markChatForIndexing(parent: Context, cid: number) {
+        return inTx(parent, async ctx => {
+            let room = await Store.RoomProfile.findById(ctx, cid);
+            room!.invalidate();
+            await room!.flush(ctx);
+        });
     }
 
     private async roomJoinMessage(parent: Context, room: ConversationRoom, uid: number, uids: number[], invitedBy: number | null, isUpdate: boolean = false): Promise<MessageInput> {

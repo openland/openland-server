@@ -7,6 +7,8 @@ import { inTx } from '@openland/foundationdb';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
+import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
+import NotificationPreviewRoot = GQLRoots.NotificationPreviewRoot;
 
 const updateSettingsResolver = withUser(async (parent, args: GQL.MutationSettingsUpdateArgs, uid: number) => {
     return await inTx(parent, async (ctx) => {
@@ -194,7 +196,7 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationSetting
     });
 });
 
-export default {
+export const Resolver: GQLResolver = {
     EmailFrequency: {
         NEVER: 'never',
         MIN_15: '15min',
@@ -224,21 +226,21 @@ export default {
     Settings: {
         id: src => IDs.Settings.serialize(src.id),
         primaryEmail: async (src: UserSettings, args: {}, ctx: AppContext) => (await Store.User.findById(ctx, src.id))!!.email,
-        emailFrequency: src => src.emailFrequency as any,
-        desktopNotifications: src => src.desktopNotifications as any,
-        mobileNotifications: src => src.mobileNotifications as any,
-        commentNotifications: src => src.commentNotifications ? src.commentNotifications : 'none' as any,
-        commentNotificationsDelivery: src => src.commentNotificationsDelivery ? src.commentNotificationsDelivery : 'none' as any,
+        emailFrequency: src => src.emailFrequency,
+        desktopNotifications: src => src.desktopNotifications,
+        mobileNotifications: src => src.mobileNotifications,
+        commentNotifications: src => src.commentNotifications ? src.commentNotifications : 'none',
+        commentNotificationsDelivery: src => src.commentNotificationsDelivery ? src.commentNotificationsDelivery : 'none',
         mobileAlert: src => src.mobileAlert !== null && src.mobileAlert !== undefined ? src.mobileAlert : true,
         mobileIncludeText: src => src.mobileIncludeText !== null && src.mobileAlert !== undefined ? src.mobileIncludeText : true,
-        notificationsDelay: src => src.notificationsDelay as any,
+        notificationsDelay: src => src.notificationsDelay || 'none',
         countUnreadChats: src => !src.globalCounterType ? false : (src.globalCounterType === 'unread_chats' || src.globalCounterType === 'unread_chats_no_muted'),
         excludeMutedChats: src => !src.globalCounterType ? false : (src.globalCounterType === 'unread_messages_no_muted' || src.globalCounterType === 'unread_chats_no_muted'),
         desktop: src => src.desktop,
         mobile: src => src.mobile
     },
     PlatformNotificationSettings: {
-        notificationPreview: src => src.notificationPreview.toUpperCase()
+        notificationPreview: src => src.notificationPreview.toUpperCase() as NotificationPreviewRoot
     },
     Query: {
         settings: withUser(async (ctx, args, uid) => {
@@ -299,4 +301,4 @@ export default {
             }
         }
     }
-} as GQLResolver;
+};

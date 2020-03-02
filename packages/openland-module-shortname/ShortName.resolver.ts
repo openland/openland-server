@@ -9,7 +9,7 @@ import { withUser } from '../openland-module-users/User.resolver';
 import { User, Organization, FeedChannel, ConversationRoom } from 'openland-module-db/store';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
-export default {
+export const Resolver: GQLResolver = {
     ShortNameDestination: {
         __resolveType(src: any) {
             if (src instanceof User) {
@@ -27,7 +27,7 @@ export default {
     },
 
     Query: {
-        alphaResolveShortName: withAccount(async (ctx, args, uid, orgId) => {
+        alphaResolveShortName: async (src, args, ctx) => {
             let ownerId;
             let ownerType;
             try {
@@ -38,6 +38,8 @@ export default {
                     ownerType = 'org';
                 } else if (idInfo.type === IDs.FeedChannel) {
                     ownerType = 'feed_channel';
+                } else if (idInfo.type === IDs.Conversation) {
+                    ownerType = 'room';
                 } else {
                     return null;
                 }
@@ -45,7 +47,7 @@ export default {
             } catch {
                 let shortname = await Modules.Shortnames.findShortname(ctx, args.shortname);
                 if (shortname) {
-                    ownerId =  shortname.ownerId;
+                    ownerId = shortname.ownerId;
                     ownerType = shortname.ownerType;
                 }
             }
@@ -54,18 +56,20 @@ export default {
                 return null;
             }
 
+            let authorized = !!ctx.auth.uid;
+
             if (ownerType === 'user') {
                 return await Store.User.findById(ctx, ownerId);
-            } else if (ownerType === 'org') {
+            } else if (ownerType === 'org' && authorized) {
                 return await Store.Organization.findById(ctx, ownerId);
-            } else if (ownerType === 'feed_channel') {
+            } else if (ownerType === 'feed_channel' && authorized) {
                 return await Store.FeedChannel.findById(ctx, ownerId);
-            } else if (ownerType === 'room') {
+            } else if (ownerType === 'room' && authorized) {
                 return await Store.ConversationRoom.findById(ctx, ownerId);
             }
 
             return null;
-        }),
+        },
     },
     Mutation: {
         alphaSetUserShortName: withAccount(async (ctx, args, uid, orgId) => {
@@ -144,4 +148,4 @@ export default {
             return shortName ? shortName.shortname : null;
         },
     }
-} as GQLResolver;
+};

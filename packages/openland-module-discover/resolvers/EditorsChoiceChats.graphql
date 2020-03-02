@@ -1,0 +1,26 @@
+input EditorsChoiceChatInput {
+    image: ImageRefInput!
+    cid: ID!
+}
+
+input EditorsChoiceChatUpdateInput {
+    image: ImageRefInput
+    cid: ID
+}
+
+type EditorsChoiceChat {
+    id: ID!
+    image: ImageRef!
+    chat: SharedRoom!
+}
+
+extend type Query {
+    discoverEditorsChoice: [EditorsChoiceChat!]!
+    discoverEditorsChoiceChat(id: ID!): EditorsChoiceChat!
+}
+
+extend type Mutation {
+    discoverEditorsChoiceCreate(input: EditorsChoiceChatInput!): EditorsChoiceChat!
+    discoverEditorsChoiceUpdate(id: ID!, input: EditorsChoiceChatUpdateInput!): EditorsChoiceChat!
+    discoverEditorsChoiceDelete(id: ID!): Boolean!
+}

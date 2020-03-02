@@ -12,7 +12,14 @@ import MessageSpanRoot = GQLRoots.MessageSpanRoot;
 import { UserError } from '../../openland-errors/UserError';
 import ModernMessageAttachmentRoot = GQLRoots.ModernMessageAttachmentRoot;
 import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
-import { LinkSpan, MessageAttachment, MessageAttachmentInput, MessageSpan } from '../MessageInput';
+import {
+    ItalicTextSpan,
+    LinkSpan,
+    MessageAttachment,
+    MessageAttachmentInput, MessageButton,
+    MessageSpan,
+    UserMentionSpan
+} from '../MessageInput';
 import { createUrlInfoService, URLAugmentation } from '../workers/UrlInfoService';
 import { Texts } from '../texts';
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
@@ -22,6 +29,10 @@ import { Store } from 'openland-module-db/FDB';
 import MessageSourceRoot = GQLRoots.MessageSourceRoot;
 import MentionPeerRoot = GQLRoots.MentionPeerRoot;
 import MessageWithMentionRoot = GQLRoots.MessageWithMentionRoot;
+import ModernMessageRoot = GQLRoots.ModernMessageRoot;
+import { NotFoundError } from '../../openland-errors/NotFoundError';
+import { isDefined } from '../../openland-utils/misc';
+import MessageReactionTypeRoot = GQLRoots.MessageReactionTypeRoot;
 
 export function hasMention(message: Message | RichMessage, uid: number) {
     if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
@@ -325,10 +336,12 @@ async function getMessageSenderBadge(ctx: AppContext, src: Message | Comment): P
     return await Modules.Users.getUserBadge(ctx, src.uid, cid);
 }
 
-export default {
+export const Resolver: GQLResolver = {
     ModernMessage: {
-        __resolveType(src: Message | Comment) {
-            if (src.stickerId) {
+        __resolveType(src: ModernMessageRoot) {
+            if (src instanceof RichMessage) {
+                return 'GeneralMessage';
+            } else if (src.stickerId) {
                 return 'StickerMessage';
             } else if (src instanceof Comment) {
                 return 'GeneralMessage';
@@ -350,6 +363,12 @@ export default {
                 return IDs.ConversationMessage.serialize(src.id);
             }
             throw new Error('unknown message ' + src);
+        },
+        seq: src => {
+            if (src instanceof Message) {
+                return src.seq;
+            }
+            return null;
         },
         date: src => src.metadata.createdAt,
         sender: src => src.uid,
@@ -379,7 +398,7 @@ export default {
                                 offset: span.offset,
                                 length: span.length,
                                 user: ctx.auth.uid!,
-                            };
+                            } as UserMentionSpan;
                         } else {
                             return span;
                         }
@@ -428,8 +447,14 @@ export default {
             throw new Error('unknown message ' + src);
         },
         date: src => src.metadata.createdAt,
+        seq: src => {
+            if (src instanceof Message) {
+                return src.seq;
+            }
+            return null;
+        },
         sender: async (src, args, ctx) => {
-            // message can be deleted, while sender can be alive or deleted 
+            // message can be deleted, while sender can be alive or deleted
 
             if (src.deleted) {
                 const deletedUserId = await Modules.Users.getDeletedUserId(ctx);
@@ -448,7 +473,12 @@ export default {
             }
             return false;
         },
-        source: (src, args, ctx) => src,
+        source: (src, args, ctx) => {
+            if (src instanceof RichMessage) {
+                throw new NotFoundError();
+            }
+            return src;
+        },
 
         //
         //  Content
@@ -464,11 +494,13 @@ export default {
         },
         spans: async (src, args, ctx) => {
             if (src.deleted) {
-                return [{
-                    type: 'italic_text',
-                    offset: 0,
-                    length: getDeletedText(src).length,
-                }];
+                return [
+                    {
+                        type: 'italic_text',
+                        offset: 0,
+                        length: getDeletedText(src).length,
+                    } as ItalicTextSpan
+                ];
             }
             //
             //  Modern spans
@@ -482,7 +514,7 @@ export default {
                                 offset: span.offset,
                                 length: span.length,
                                 user: ctx.auth.uid!,
-                            };
+                            } as UserMentionSpan;
                         } else {
                             return span;
                         }
@@ -625,7 +657,7 @@ export default {
             }
             if (src.replyMessages) {
                 let messages = await Promise.all((src.replyMessages as number[]).map(id => Store.Message.findById(ctx, id)));
-                let filtered = messages.filter(m => !!m);
+                let filtered = messages.filter(isDefined);
                 if (filtered.length > 0) {
                     return filtered;
                 }
@@ -658,6 +690,12 @@ export default {
             throw new Error('unknown message ' + src);
         },
         date: src => src.metadata.createdAt,
+        seq: src => {
+            if (src instanceof Message) {
+                return src.seq;
+            }
+            return null;
+        },
         sender: async (src, args, ctx) => {
             // message can be deleted, while sender can be alive or deleted
 
@@ -672,7 +710,7 @@ export default {
         senderBadge: (src, args, ctx) => src.deleted ? null : getMessageSenderBadge(ctx, src),
         reactions: src => src.reactions || [],
         source: (src, args, ctx) => src,
-        sticker: (src) => src.stickerId,
+        sticker: (src) => src.stickerId!,
 
         //
         //  Content
@@ -688,7 +726,7 @@ export default {
             }
             if (src.replyMessages) {
                 let messages = await Promise.all((src.replyMessages as number[]).map(id => Store.Message.findById(ctx, id)));
-                let filtered = messages.filter(m => !!m);
+                let filtered = messages.filter(isDefined);
                 if (filtered.length > 0) {
                     return filtered;
                 }
@@ -740,11 +778,11 @@ export default {
         reaction: src => {
             // modern
             if (REACTIONS.indexOf(src.reaction) > -1) {
-                return src.reaction;
+                return src.reaction as MessageReactionTypeRoot;
             }
             // old
             if (REACTIONS_LEGACY.has(src.reaction)) {
-                return REACTIONS_LEGACY.get(src.reaction);
+                return REACTIONS_LEGACY.get(src.reaction) as MessageReactionTypeRoot;
             }
             return 'LIKE';
         },
@@ -808,7 +846,7 @@ export default {
     MessageSpanOrganizationMention: {
         offset: src => src.offset,
         length: src => src.length,
-        organization: (src, _, ctx) => Store.Organization.findById(ctx, src.organization),
+        organization: async (src, _, ctx) => (await Store.Organization.findById(ctx, src.organization))!,
     },
     MessageSpanLink: {
         offset: src => src.offset,
@@ -828,7 +866,7 @@ export default {
         text: src => src.text,
     },
     Image: {
-        url: src => buildBaseImageUrl({uuid: src.uuid, crop: src.crop || null}),
+        url: src => buildBaseImageUrl({uuid: src.uuid, crop: src.crop || null})!,
         metadata: src => {
             if (src.metadata) {
                 return {
@@ -886,12 +924,12 @@ export default {
         text: src => src.attachment.text,
         icon: src => src.attachment.icon && {
             uuid: src.attachment.icon.uuid,
-            metadata: src.attachment.iconInfo,
+            metadata: src.attachment.iconInfo || undefined,
             crop: src.attachment.icon.crop,
         },
         image: src => src.attachment.image && {
             uuid: src.attachment.image.uuid,
-            metadata: src.attachment.imageInfo,
+            metadata: src.attachment.imageInfo || undefined,
             crop: src.attachment.image.crop,
             fallback: src.attachment.imageFallback,
         },
@@ -899,7 +937,7 @@ export default {
         imagePreview: src => src.attachment.imagePreview,
         socialImage: src => src.attachment.socialImage && {
             uuid: src.attachment.socialImage.uuid,
-            metadata: src.attachment.socialImageInfo,
+            metadata: src.attachment.socialImageInfo || undefined,
             crop: src.attachment.socialImage.crop,
         },
         socialImagePreview: src => src.attachment.socialImagePreview,
@@ -917,7 +955,7 @@ export default {
                 }
             }
 
-            return src.attachment.keyboard;
+            return { buttons: src.attachment.keyboard.buttons as (MessageButton & { id: string })[][] };
         },
     },
     MentionPeer: {
@@ -965,7 +1003,11 @@ export default {
             let roomId = IDs.Conversation.parse(args.chatId);
             await Modules.Messaging.room.checkAccess(ctx, uid, roomId);
             if (!args.first || args.first <= 0) {
-                return [];
+                return {
+                    haveMoreForward: false,
+                    haveMoreBackward: false,
+                    messages: [],
+                };
             }
 
             let aroundId = args.around ? IDs.ConversationMessage.parse(args.around) : null;
@@ -1093,7 +1135,7 @@ export default {
             let total = hits.hits.total;
 
             return {
-                edges: messages.filter(m => !!m).map((p, i) => {
+                edges: messages.filter(isDefined).map((p, i) => {
                     return {
                         node: {
                             message: p, chat: p!.cid,
@@ -1454,4 +1496,4 @@ export default {
             return true;
         }),
     },
-} as GQLResolver;
+};

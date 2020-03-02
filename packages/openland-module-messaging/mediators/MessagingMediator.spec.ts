@@ -45,7 +45,7 @@ describe('MessagingMediator', () => {
         let text = 'boom';
         let message = (await Store.Message.findById(ctx, (await mediator.sendMessage(ctx, USER_ID, room.id, { message: text })).id))!;
 
-        let textResolved = await ChatResolver.default.ConversationMessage!.message!(message, {}, {} as any);
+        let textResolved = await ChatResolver.Resolver.ConversationMessage!.message!(message, {}, {} as any);
 
         expect(textResolved).toEqual(text);
 
@@ -65,13 +65,13 @@ describe('MessagingMediator', () => {
         await mediator.setReaction(ctx, MSG_ID, USER_ID, 'LIKE');
         let message = (await Store.Message.findById(ctx, MSG_ID))!;
 
-        let reactionsResolved = await ChatResolver.default.ConversationMessage!.reactions!(message, {}, {} as any);
+        let reactionsResolved = await ChatResolver.Resolver.ConversationMessage!.reactions!(message, {}, {} as any);
         expect(reactionsResolved[0].reaction).toEqual('LIKE');
 
         await mediator.setReaction(ctx, MSG_ID, USER_ID, 'LIKE', true);
         message = (await Store.Message.findById(ctx, MSG_ID))!;
 
-        reactionsResolved = await ChatResolver.default.ConversationMessage!.reactions!(message, {}, {} as any);
+        reactionsResolved = await ChatResolver.Resolver.ConversationMessage!.reactions!(message, {}, {} as any);
         expect(reactionsResolved.length).toEqual(0);
     });
 
@@ -86,13 +86,13 @@ describe('MessagingMediator', () => {
         let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: 'boom' })).id;
 
         let message = (await Store.Message.findById(ctx, MSG_ID))!;
-        let textResolved = await ChatResolver.default.ConversationMessage!.message!(message, {}, {} as any);
+        let textResolved = await ChatResolver.Resolver.ConversationMessage!.message!(message, {}, {} as any);
         expect(textResolved).toEqual('boom');
 
         await mediator.editMessage(ctx, MSG_ID, USER_ID, { message: 'boom shakalaka' }, false);
 
         message = (await Store.Message.findById(ctx, MSG_ID))!;
-        textResolved = await ChatResolver.default.ConversationMessage!.message!(message, {}, {} as any);
+        textResolved = await ChatResolver.Resolver.ConversationMessage!.message!(message, {}, {} as any);
         expect(textResolved).toEqual('boom shakalaka');
 
     });
@@ -129,7 +129,7 @@ describe('MessagingMediator', () => {
         let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: 'boom', attachments: [richAttachment] })).id;
 
         let message = (await Store.Message.findById(ctx, MSG_ID))!;
-        let augmentationResolved = await ChatResolver.default.ConversationMessage!.urlAugmentation!(message, {}, {} as any);
+        let augmentationResolved = await ChatResolver.Resolver.ConversationMessage!.urlAugmentation!(message, {}, {} as any);
         // expect(augmentationResolved).toEqual(augmentation);
 
         let newAttachments: MessageAttachmentInput[] = [];
@@ -144,7 +144,7 @@ describe('MessagingMediator', () => {
         await mediator.editMessage(ctx, MSG_ID, USER_ID, { attachments: newAttachments }, false);
 
         message = (await Store.Message.findById(ctx, MSG_ID))!;
-        augmentationResolved = await ChatResolver.default.ConversationMessage!.urlAugmentation!(message, {}, {} as any);
+        augmentationResolved = await ChatResolver.Resolver.ConversationMessage!.urlAugmentation!(message, {}, {} as any);
         expect(augmentationResolved).toBeNull();
 
     });

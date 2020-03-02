@@ -8,6 +8,7 @@ import { resolveOrganizationJoinedMembers, resolveOrganizationJoinedAdminMembers
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Organization } from 'openland-module-db/store';
+import { isDefined } from '../../openland-utils/misc';
 
 const resolveOrganizationRooms = async (src: Organization, args: {}, ctx: AppContext) => {
     let haveAccess = src.kind === 'community' ? true : (ctx.auth.uid && ctx.auth.oid && await Modules.Orgs.isUserMember(ctx, ctx.auth.uid, src.id));
@@ -30,7 +31,7 @@ const resolveOrganizationRooms = async (src: Organization, args: {}, ctx: AppCon
         .map(r => r!.room);
 };
 
-export default {
+export const Resolver: GQLResolver = {
     Organization: {
         id: (src: Organization) => IDs.Organization.serialize(src.id),
         isMine: (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? Modules.Orgs.isUserMember(ctx, ctx.auth.uid!, src.id) : false,
@@ -81,6 +82,7 @@ export default {
             if (ctx.auth.uid) {
                 return (await Promise.all((await Store.OrganizationMember.user.findAll(ctx, 'joined', ctx.auth.uid))
                     .map((v) => Store.Organization.findById(ctx, v.oid))))
+                    .filter(isDefined)
                     .filter((v) => v!.status !== 'suspended' && v!.status !== 'deleted');
             }
             return [];
@@ -110,7 +112,10 @@ export default {
 
             let haveAccess = org.kind === 'community' ? true : await Modules.Orgs.isUserMember(ctx, uid, org.id);
             if (!haveAccess) {
-                return [];
+                return {
+                    items: [],
+                    cursor: null
+                };
             }
 
             let rooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, org.id);
@@ -138,9 +143,9 @@ export default {
             roomsFull = roomsFull.splice(0, args.first);
 
             return {
-                items: roomsFull.map(r => r!.room),
-                cursor: haveMore ? IDs.Conversation.serialize(roomsFull[roomsFull.length - 1]!.room.id) : undefined
+                items: roomsFull.filter(isDefined).map(r => r!.room),
+                cursor: haveMore ? IDs.Conversation.serialize(roomsFull[roomsFull.length - 1]!.room.id) : null
             };
         })
     }
-} as GQLResolver;
+};
