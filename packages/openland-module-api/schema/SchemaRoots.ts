@@ -75,7 +75,8 @@ import {
     ChannelLink,
     WalletPurchase,
     WalletLockedChanged,
-    EditorsChoiceChatsCollection
+    EditorsChoiceChatsCollection,
+    EditorsChoiceChat
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -488,6 +489,7 @@ export namespace GQLRoots {
     export type DiscoverPageRoot = any;
     export type DiscoverChatsCollectionRoot = EditorsChoiceChatsCollection;
     export type DiscoverChatsCollectionConnectionRoot = { items: DiscoverChatsCollectionRoot[], cursor?: string };
+    export type EditorsChoiceChatRoot = EditorsChoiceChat;
 
     //
     //  Presence

@@ -6,11 +6,15 @@ import { Context } from '@openland/context';
 import { Modules } from 'openland-modules/Modules';
 import { lazyInject } from '../openland-modules/Modules.container';
 import { ChatCollectionsMediator } from './mediators/ChatCollectionsMediator';
+import { EditorsChoiceChatsMediator } from './mediators/EditorsChoiceChatsMediator';
 
 @injectable()
 export class DiscoverModule {
     @lazyInject('ChatCollectionsMediator')
     public readonly collectionsMediator!: ChatCollectionsMediator;
+
+    @lazyInject('EditorsChoiceChatsMediator')
+    public readonly editorsChoiceChatsMediator!: EditorsChoiceChatsMediator;
 
     private data = new DiscoverData();
 

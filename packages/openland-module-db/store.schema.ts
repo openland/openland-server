@@ -2112,4 +2112,13 @@ export default declareSchema(() => {
         rangeIndex('collection', ['id']).withCondition((src) => !src.deleted);
         rangeIndex('created', ['id', 'createdAt']).withCondition((src) => !src.deleted);
     });
+    entity('EditorsChoiceChat', () => {
+        primaryKey('id', integer());
+        field('createdBy', integer());
+        field('image', ImageRef);
+        field('cid', integer());
+        field('deleted', optional(boolean()));
+
+        uniqueIndex('all', ['id']).withCondition((src) => !src.deleted);
+    });
 });

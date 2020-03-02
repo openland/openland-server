@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '6ea5e9a6347c7e545adf228d0a0d60f2';
+export const GQL_SPEC_VERSION = '0279c102f40d7ae34c8e7891a839aca3';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1226,6 +1226,22 @@ export namespace GQL {
     }
     export interface DiscoverChatsCollectionConnectionItemsArgs { }
     export interface DiscoverChatsCollectionConnectionCursorArgs { }
+    export interface EditorsChoiceChatInput {
+        image: ImageRefInput;
+        cid: string;
+    }
+    export interface EditorsChoiceChatUpdateInput {
+        image: Nullable<ImageRefInput>;
+        cid: Nullable<string>;
+    }
+    export interface EditorsChoiceChat {
+        id: string;
+        image: ImageRef;
+        chat: SharedRoom;
+    }
+    export interface EditorsChoiceChatIdArgs { }
+    export interface EditorsChoiceChatImageArgs { }
+    export interface EditorsChoiceChatChatArgs { }
     export interface Event {
         id: string;
         event: string;
@@ -1989,6 +2005,9 @@ export namespace GQL {
         discoverCollectionsCreate: DiscoverChatsCollection;
         discoverCollectionsUpdate: DiscoverChatsCollection;
         discoverCollectionsDelete: boolean;
+        discoverEditorsChoiceCreate: EditorsChoiceChat;
+        discoverEditorsChoiceUpdate: EditorsChoiceChat;
+        discoverEditorsChoiceDelete: boolean;
         track: string;
         createPowerup: Powerup;
         updatePowerup: Powerup;
@@ -2560,6 +2579,16 @@ export namespace GQL {
         input: DiscoverChatsCollectionUpdateInput;
     }
     export interface MutationDiscoverCollectionsDeleteArgs {
+        id: string;
+    }
+    export interface MutationDiscoverEditorsChoiceCreateArgs {
+        input: EditorsChoiceChatInput;
+    }
+    export interface MutationDiscoverEditorsChoiceUpdateArgs {
+        id: string;
+        input: EditorsChoiceChatUpdateInput;
+    }
+    export interface MutationDiscoverEditorsChoiceDeleteArgs {
         id: string;
     }
     export interface MutationTrackArgs {
@@ -3586,6 +3615,8 @@ export namespace GQL {
         discoverTopFree: SharedRoomConnection;
         discoverCollections: Nullable<DiscoverChatsCollectionConnection>;
         discoverCollection: Nullable<DiscoverChatsCollection>;
+        discoverEditorsChoice: EditorsChoiceChat[];
+        discoverEditorsChoiceChat: EditorsChoiceChat;
         powerups: Powerup[];
         chatsWithPowerup: Room[];
         chatPowerups: RoomPowerup[];
@@ -3822,6 +3853,10 @@ export namespace GQL {
         after: OptionalNullable<string>;
     }
     export interface QueryDiscoverCollectionArgs {
+        id: string;
+    }
+    export interface QueryDiscoverEditorsChoiceArgs { }
+    export interface QueryDiscoverEditorsChoiceChatArgs {
         id: string;
     }
     export interface QueryPowerupsArgs { }
@@ -6620,6 +6655,19 @@ export interface GQLResolver {
             cursor: GQL.DiscoverChatsCollectionConnectionCursorArgs,
         }
     >;
+    EditorsChoiceChat?: ComplexTypedResolver<
+        GQL.EditorsChoiceChat,
+        GQLRoots.EditorsChoiceChatRoot,
+        {
+            image: GQLRoots.ImageRefRoot,
+            chat: GQLRoots.SharedRoomRoot,
+        },
+        {
+            id: GQL.EditorsChoiceChatIdArgs,
+            image: GQL.EditorsChoiceChatImageArgs,
+            chat: GQL.EditorsChoiceChatChatArgs,
+        }
+    >;
     EventPlatform?: EnumTypeResolver<'Android' | 'iOS' | 'WEB' | 'MobileWeb', GQLRoots.EventPlatformRoot>;
     Powerup?: ComplexTypedResolver<
         GQL.Powerup,
@@ -7512,6 +7560,8 @@ export interface GQLResolver {
             alphaAlterPublished: GQLRoots.OrganizationRoot,
             discoverCollectionsCreate: GQLRoots.DiscoverChatsCollectionRoot,
             discoverCollectionsUpdate: GQLRoots.DiscoverChatsCollectionRoot,
+            discoverEditorsChoiceCreate: GQLRoots.EditorsChoiceChatRoot,
+            discoverEditorsChoiceUpdate: GQLRoots.EditorsChoiceChatRoot,
             createPowerup: GQLRoots.PowerupRoot,
             updatePowerup: GQLRoots.PowerupRoot,
             updatePowerupUserSettingsInChat: GQLRoots.PowerupUserSettingsRoot,
@@ -7732,6 +7782,9 @@ export interface GQLResolver {
             discoverCollectionsCreate: GQL.MutationDiscoverCollectionsCreateArgs,
             discoverCollectionsUpdate: GQL.MutationDiscoverCollectionsUpdateArgs,
             discoverCollectionsDelete: GQL.MutationDiscoverCollectionsDeleteArgs,
+            discoverEditorsChoiceCreate: GQL.MutationDiscoverEditorsChoiceCreateArgs,
+            discoverEditorsChoiceUpdate: GQL.MutationDiscoverEditorsChoiceUpdateArgs,
+            discoverEditorsChoiceDelete: GQL.MutationDiscoverEditorsChoiceDeleteArgs,
             track: GQL.MutationTrackArgs,
             createPowerup: GQL.MutationCreatePowerupArgs,
             updatePowerup: GQL.MutationUpdatePowerupArgs,
@@ -8268,6 +8321,8 @@ export interface GQLResolver {
             discoverTopFree: GQLRoots.SharedRoomConnectionRoot,
             discoverCollections: Nullable<GQLRoots.DiscoverChatsCollectionConnectionRoot>,
             discoverCollection: Nullable<GQLRoots.DiscoverChatsCollectionRoot>,
+            discoverEditorsChoice: GQLRoots.EditorsChoiceChatRoot[],
+            discoverEditorsChoiceChat: GQLRoots.EditorsChoiceChatRoot,
             powerups: GQLRoots.PowerupRoot[],
             chatsWithPowerup: GQLRoots.RoomRoot[],
             chatPowerups: GQLRoots.RoomPowerupRoot[],
@@ -8419,6 +8474,8 @@ export interface GQLResolver {
             discoverTopFree: GQL.QueryDiscoverTopFreeArgs,
             discoverCollections: GQL.QueryDiscoverCollectionsArgs,
             discoverCollection: GQL.QueryDiscoverCollectionArgs,
+            discoverEditorsChoice: GQL.QueryDiscoverEditorsChoiceArgs,
+            discoverEditorsChoiceChat: GQL.QueryDiscoverEditorsChoiceChatArgs,
             powerups: GQL.QueryPowerupsArgs,
             chatsWithPowerup: GQL.QueryChatsWithPowerupArgs,
             chatPowerups: GQL.QueryChatPowerupsArgs,
