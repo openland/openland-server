@@ -6,7 +6,7 @@ import { IDs } from '../../openland-module-api/IDs';
 export const Resolver: GQLResolver = {
     PopularNowRoom: {
         room: root => root.room.id,
-        newMessages: root => root.membersDelta,
+        newMessages: root => root.messagesDelta,
     },
     Query: {
         discoverPopularNow: withActivatedUser(async (ctx, args) => {
