@@ -121,6 +121,10 @@ export class PermissionsRepository {
     }
 
     public getPermissionGroup(parent: Context, id: number) {
-        return permissionGroups.find(a => a.id === id);
+        let group = permissionGroups.find(a => a.id === id);
+        if (!group) {
+            throw new Error('Consistency error: permission should have valid permission group');
+        }
+        return group;
     }
 }

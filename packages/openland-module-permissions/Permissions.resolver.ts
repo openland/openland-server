@@ -6,8 +6,9 @@ import { AuthContext } from '../openland-module-auth/AuthContext';
 import { AppContext } from '../openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { Store } from '../openland-module-db/FDB';
+import { PermissionUpdatedEvent } from '../openland-module-db/store';
 
-export default {
+export const Resolver: GQLResolver = {
     PermissionScope: {
         GLOBAL: 'global',
         CHAT: 'chat'
@@ -26,12 +27,12 @@ export default {
     },
     Permission: {
         id: root => IDs.PermissionRequest.serialize(root.id),
-        appType: root => root.appType as any,
+        appType: root => root.appType,
         chat: root => root.scopeId,
-        scope: root => root.scopeType as any,
+        scope: root => root.scopeType,
         powerup: (root, _, ctx) => Store.Powerup.findById(ctx, root.appId),
         group: (root, _, ctx) => Modules.Permissions.getPermissionGroup(ctx, root.gid),
-        status: (root) => root.status as any,
+        status: (root) => root.status,
     },
     PermissionGroup: {
         id: root => IDs.PermissionGroup.serialize(root.id),
@@ -42,7 +43,7 @@ export default {
         })
     },
     Query: {
-        permissionGroups: withPermission('super-admin', (ctx) => {
+        permissionGroups: withPermission('super-admin', async (ctx) => {
             return Modules.Permissions.getPermissionGroups(ctx);
         }),
         waitingPermissions: withPermission('super-admin', (ctx) => {
@@ -70,8 +71,15 @@ export default {
                 for (let a of permissions) {
                     yield a;
                 }
-                Store.PermissionEventStore.createLiveStream(ctx, ctx.auth.uid, { batchSize: 1 });
+                let ls = Store.PermissionEventStore.createLiveStream(ctx, ctx.auth.uid, { batchSize: 1 });
+                for await (let e of ls) {
+                    for (let item of e.items) {
+                        if (item instanceof PermissionUpdatedEvent) {
+                            yield await Store.Permission.findById(ctx, item.id);
+                        }
+                    }
+                }
             }
         },
     }
-} as GQLResolver;
+};

@@ -7,7 +7,7 @@ import { Store } from 'openland-module-db/FDB';
 import { AuthContext } from '../openland-module-auth/AuthContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
-export default {
+export const Resolver: GQLResolver = {
     UserLocation: {
         id: root => IDs.User.serialize(root.uid),
         user: root => root.uid,
@@ -44,4 +44,4 @@ export default {
             }
         }
     }
-} as GQLResolver;
+};

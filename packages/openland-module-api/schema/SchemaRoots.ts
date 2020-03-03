@@ -56,7 +56,6 @@ import {
     ChatPowerup,
     Powerup,
     UserStripeCard,
-    PermissionRequest,
     Payment,
     Wallet,
     WalletTransaction,
@@ -76,7 +75,8 @@ import {
     WalletPurchase,
     WalletLockedChanged,
     EditorsChoiceChatsCollection,
-    EditorsChoiceChat
+    EditorsChoiceChat,
+    Permission
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -625,9 +625,11 @@ export namespace GQLRoots {
     //
     // Permissions
     //
-    export type PermissionRequestRoot = PermissionRequest;
+    export type PermissionRoot = Permission;
     export type PermissionGroupRoot = PermissionGroup;
-    export type PermissionScopeRoot = 'group' | 'chat';
+    export type PermissionStatusRoot = 'rejected' | 'waiting' | 'granted';
+    export type PermissionScopeRoot = 'global' | 'chat';
+    export type UpdatedPermissionStatusRoot = 'rejected' | 'granted';
     export type PermissionAppTypeRoot = 'powerup';
 
     //

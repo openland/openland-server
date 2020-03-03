@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0279c102f40d7ae34c8e7891a839aca3';
+export const GQL_SPEC_VERSION = '962fb6302692044bebc547dd968b4cf6';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1112,30 +1112,36 @@ export namespace GQL {
     export type PermissionScope = GQLRoots.PermissionScopeRoot;
     export type PermissionAppTypeValues = 'POWERUP';
     export type PermissionAppType = GQLRoots.PermissionAppTypeRoot;
+    export type PermissionStatusValues = 'REJECTED' | 'WAITING' | 'GRANTED';
+    export type PermissionStatus = GQLRoots.PermissionStatusRoot;
+    export type UpdatedPermissionStatusValues = 'REJECTED' | 'GRANTED';
+    export type UpdatedPermissionStatus = GQLRoots.UpdatedPermissionStatusRoot;
     export interface PermissionGroup {
         id: string;
         name: string;
         description: string;
-        requests: PermissionRequest[];
+        permissions: Permission[];
     }
     export interface PermissionGroupIdArgs { }
     export interface PermissionGroupNameArgs { }
     export interface PermissionGroupDescriptionArgs { }
-    export interface PermissionGroupRequestsArgs { }
-    export interface PermissionRequest {
+    export interface PermissionGroupPermissionsArgs { }
+    export interface Permission {
         id: string;
         group: PermissionGroup;
         appType: PermissionAppType;
         powerup: Nullable<Powerup>;
         scope: PermissionScope;
         chat: Nullable<Room>;
+        status: PermissionStatus;
     }
-    export interface PermissionRequestIdArgs { }
-    export interface PermissionRequestGroupArgs { }
-    export interface PermissionRequestAppTypeArgs { }
-    export interface PermissionRequestPowerupArgs { }
-    export interface PermissionRequestScopeArgs { }
-    export interface PermissionRequestChatArgs { }
+    export interface PermissionIdArgs { }
+    export interface PermissionGroupArgs { }
+    export interface PermissionAppTypeArgs { }
+    export interface PermissionPowerupArgs { }
+    export interface PermissionScopeArgs { }
+    export interface PermissionChatArgs { }
+    export interface PermissionStatusArgs { }
     export type PlatformValues = 'WEB' | 'IOS' | 'ANDROID';
     export type Platform = GQLRoots.PlatformRoot;
     export interface OnlineEvent {
@@ -1979,6 +1985,7 @@ export namespace GQL {
         alphaOrganizationCreatePublicInvite: Invite;
         alphaOrganizationRemoveMember: string;
         alphaOrganizationDeletePublicInvite: string;
+        permissionUpdate: Permission;
         presenceReportOnline: string;
         presenceReportOffline: string;
         alphaReportActive: string;
@@ -2495,6 +2502,10 @@ export namespace GQL {
     export interface MutationAlphaOrganizationDeletePublicInviteArgs {
         organizationId: OptionalNullable<string>;
     }
+    export interface MutationPermissionUpdateArgs {
+        id: string;
+        status: UpdatedPermissionStatus;
+    }
     export interface MutationPresenceReportOnlineArgs {
         timeout: number;
         platform: OptionalNullable<string>;
@@ -2753,6 +2764,7 @@ export namespace GQL {
     }
     export interface MutationShareLocationArgs {
         location: GeoLocationInput;
+        date: OptionalNullable<Date>;
     }
     export interface MutationConferenceJoinArgs {
         id: string;
@@ -3598,7 +3610,7 @@ export namespace GQL {
         alphaOrganizationInviteLink: Nullable<Invite>;
         alphaOrganizationPublicInvite: Nullable<Invite>;
         permissionGroups: PermissionGroup[];
-        waitingPermissionRequests: PermissionRequest[];
+        waitingPermissions: Permission[];
         isDesktopInstalled: IsAppInstalledResponse;
         isMobileInstalled: IsAppInstalledResponse;
         superAccounts: SuperAccount[];
@@ -3633,6 +3645,7 @@ export namespace GQL {
         featureFlags: FeatureFlag[];
         myLocation: UserLocation;
         shouldShareLocation: boolean;
+        serverDate: Date;
         conference: Conference;
         conferenceMedia: ConferenceMedia;
         myStickers: UserStickers;
@@ -3807,7 +3820,7 @@ export namespace GQL {
         organizationId: OptionalNullable<string>;
     }
     export interface QueryPermissionGroupsArgs { }
-    export interface QueryWaitingPermissionRequestsArgs { }
+    export interface QueryWaitingPermissionsArgs { }
     export interface QueryIsDesktopInstalledArgs { }
     export interface QueryIsMobileInstalledArgs { }
     export interface QuerySuperAccountsArgs { }
@@ -3894,6 +3907,7 @@ export namespace GQL {
     export interface QueryFeatureFlagsArgs { }
     export interface QueryMyLocationArgs { }
     export interface QueryShouldShareLocationArgs { }
+    export interface QueryServerDateArgs { }
     export interface QueryConferenceArgs {
         id: string;
     }
@@ -4202,8 +4216,7 @@ export namespace GQL {
         debugServerId: string;
         settingsWatch: Settings;
         watchSettings: Settings;
-        permissionsUpdates: PermissionRequest;
-        waitingPermissionRequestsUpdates: PermissionRequest;
+        permissionsUpdates: Permission;
         alphaSubscribeChatOnline: OnlineEvent;
         alphaSubscribeOnline: OnlineEvent;
         chatOnlinesCount: ChatOnlineEvent;
@@ -4241,7 +4254,6 @@ export namespace GQL {
     export interface SubscriptionSettingsWatchArgs { }
     export interface SubscriptionWatchSettingsArgs { }
     export interface SubscriptionPermissionsUpdatesArgs { }
-    export interface SubscriptionWaitingPermissionRequestsUpdatesArgs { }
     export interface SubscriptionAlphaSubscribeChatOnlineArgs {
         conversations: string[];
     }
@@ -6528,34 +6540,37 @@ export interface GQLResolver {
     >;
     PermissionScope?: EnumTypeResolver<'GLOBAL' | 'CHAT', GQLRoots.PermissionScopeRoot>;
     PermissionAppType?: EnumTypeResolver<'POWERUP', GQLRoots.PermissionAppTypeRoot>;
+    PermissionStatus?: EnumTypeResolver<'REJECTED' | 'WAITING' | 'GRANTED', GQLRoots.PermissionStatusRoot>;
+    UpdatedPermissionStatus?: EnumTypeResolver<'REJECTED' | 'GRANTED', GQLRoots.UpdatedPermissionStatusRoot>;
     PermissionGroup?: ComplexTypedResolver<
         GQL.PermissionGroup,
         GQLRoots.PermissionGroupRoot,
         {
-            requests: GQLRoots.PermissionRequestRoot[],
+            permissions: GQLRoots.PermissionRoot[],
         },
         {
             id: GQL.PermissionGroupIdArgs,
             name: GQL.PermissionGroupNameArgs,
             description: GQL.PermissionGroupDescriptionArgs,
-            requests: GQL.PermissionGroupRequestsArgs,
+            permissions: GQL.PermissionGroupPermissionsArgs,
         }
     >;
-    PermissionRequest?: ComplexTypedResolver<
-        GQL.PermissionRequest,
-        GQLRoots.PermissionRequestRoot,
+    Permission?: ComplexTypedResolver<
+        GQL.Permission,
+        GQLRoots.PermissionRoot,
         {
             group: GQLRoots.PermissionGroupRoot,
             powerup: Nullable<GQLRoots.PowerupRoot>,
             chat: Nullable<GQLRoots.RoomRoot>,
         },
         {
-            id: GQL.PermissionRequestIdArgs,
-            group: GQL.PermissionRequestGroupArgs,
-            appType: GQL.PermissionRequestAppTypeArgs,
-            powerup: GQL.PermissionRequestPowerupArgs,
-            scope: GQL.PermissionRequestScopeArgs,
-            chat: GQL.PermissionRequestChatArgs,
+            id: GQL.PermissionIdArgs,
+            group: GQL.PermissionGroupArgs,
+            appType: GQL.PermissionAppTypeArgs,
+            powerup: GQL.PermissionPowerupArgs,
+            scope: GQL.PermissionScopeArgs,
+            chat: GQL.PermissionChatArgs,
+            status: GQL.PermissionStatusArgs,
         }
     >;
     Platform?: EnumTypeResolver<'WEB' | 'IOS' | 'ANDROID', GQLRoots.PlatformRoot>;
@@ -7550,6 +7565,7 @@ export interface GQLResolver {
             alphaOrganizationMemberAdd: GQLRoots.OrganizationJoinedMemberRoot[],
             alphaOrganizationRefreshInviteLink: GQLRoots.InviteRoot,
             alphaOrganizationCreatePublicInvite: GQLRoots.InviteRoot,
+            permissionUpdate: GQLRoots.PermissionRoot,
             superAccountAdd: GQLRoots.SuperAccountRoot,
             superAccountRename: GQLRoots.SuperAccountRoot,
             superAccountActivate: GQLRoots.SuperAccountRoot,
@@ -7756,6 +7772,7 @@ export interface GQLResolver {
             alphaOrganizationCreatePublicInvite: GQL.MutationAlphaOrganizationCreatePublicInviteArgs,
             alphaOrganizationRemoveMember: GQL.MutationAlphaOrganizationRemoveMemberArgs,
             alphaOrganizationDeletePublicInvite: GQL.MutationAlphaOrganizationDeletePublicInviteArgs,
+            permissionUpdate: GQL.MutationPermissionUpdateArgs,
             presenceReportOnline: GQL.MutationPresenceReportOnlineArgs,
             presenceReportOffline: GQL.MutationPresenceReportOfflineArgs,
             alphaReportActive: GQL.MutationAlphaReportActiveArgs,
@@ -8306,7 +8323,7 @@ export interface GQLResolver {
             alphaOrganizationInviteLink: Nullable<GQLRoots.InviteRoot>,
             alphaOrganizationPublicInvite: Nullable<GQLRoots.InviteRoot>,
             permissionGroups: GQLRoots.PermissionGroupRoot[],
-            waitingPermissionRequests: GQLRoots.PermissionRequestRoot[],
+            waitingPermissions: GQLRoots.PermissionRoot[],
             isDesktopInstalled: GQLRoots.IsAppInstalledResponseRoot,
             isMobileInstalled: GQLRoots.IsAppInstalledResponseRoot,
             superAccounts: GQLRoots.SuperAccountRoot[],
@@ -8457,7 +8474,7 @@ export interface GQLResolver {
             alphaOrganizationInviteLink: GQL.QueryAlphaOrganizationInviteLinkArgs,
             alphaOrganizationPublicInvite: GQL.QueryAlphaOrganizationPublicInviteArgs,
             permissionGroups: GQL.QueryPermissionGroupsArgs,
-            waitingPermissionRequests: GQL.QueryWaitingPermissionRequestsArgs,
+            waitingPermissions: GQL.QueryWaitingPermissionsArgs,
             isDesktopInstalled: GQL.QueryIsDesktopInstalledArgs,
             isMobileInstalled: GQL.QueryIsMobileInstalledArgs,
             superAccounts: GQL.QuerySuperAccountsArgs,
@@ -8492,6 +8509,7 @@ export interface GQLResolver {
             featureFlags: GQL.QueryFeatureFlagsArgs,
             myLocation: GQL.QueryMyLocationArgs,
             shouldShareLocation: GQL.QueryShouldShareLocationArgs,
+            serverDate: GQL.QueryServerDateArgs,
             conference: GQL.QueryConferenceArgs,
             conferenceMedia: GQL.QueryConferenceMediaArgs,
             myStickers: GQL.QueryMyStickersArgs,
@@ -8598,8 +8616,7 @@ export interface GQLResolver {
             debugEvents: GQLRoots.DebugEventRoot,
             settingsWatch: GQLRoots.SettingsRoot,
             watchSettings: GQLRoots.SettingsRoot,
-            permissionsUpdates: GQLRoots.PermissionRequestRoot,
-            waitingPermissionRequestsUpdates: GQLRoots.PermissionRequestRoot,
+            permissionsUpdates: GQLRoots.PermissionRoot,
             alphaSubscribeChatOnline: GQLRoots.OnlineEventRoot,
             alphaSubscribeOnline: GQLRoots.OnlineEventRoot,
             chatOnlinesCount: GQLRoots.ChatOnlineEventRoot,
@@ -8626,7 +8643,6 @@ export interface GQLResolver {
             settingsWatch: GQL.SubscriptionSettingsWatchArgs,
             watchSettings: GQL.SubscriptionWatchSettingsArgs,
             permissionsUpdates: GQL.SubscriptionPermissionsUpdatesArgs,
-            waitingPermissionRequestsUpdates: GQL.SubscriptionWaitingPermissionRequestsUpdatesArgs,
             alphaSubscribeChatOnline: GQL.SubscriptionAlphaSubscribeChatOnlineArgs,
             alphaSubscribeOnline: GQL.SubscriptionAlphaSubscribeOnlineArgs,
             chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs,
