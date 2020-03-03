@@ -4,6 +4,10 @@ import { Modules } from '../../openland-modules/Modules';
 import { IDs } from '../../openland-module-api/IDs';
 
 export const Resolver: GQLResolver = {
+    PopularNowRoom: {
+        room: root => root.room.id,
+        newMessages: root => root.membersDelta,
+    },
     Query: {
         discoverPopularNow: withActivatedUser(async (ctx, args) => {
             let after = 0;
@@ -19,7 +23,7 @@ export const Resolver: GQLResolver = {
             );
 
             return {
-                items: popular.map(a => a.room.id),
+                items: popular,
                 cursor: popular.length === args.first ? IDs.DiscoverPopularNowCursor.serialize(popular[popular.length - 1].cursor) : null
             };
         }),

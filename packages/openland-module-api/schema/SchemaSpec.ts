@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0279c102f40d7ae34c8e7891a839aca3';
+export const GQL_SPEC_VERSION = '9cf3cec7909ea59932b4eba602fc2d98';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3540,6 +3540,18 @@ export namespace GQL {
         roles: string[];
     }
     export interface PermissionsRolesArgs { }
+    export interface PopularNowRoom {
+        room: SharedRoom;
+        newMessages: number;
+    }
+    export interface PopularNowRoomRoomArgs { }
+    export interface PopularNowRoomNewMessagesArgs { }
+    export interface PopularNowRoomConnection {
+        items: PopularNowRoom[];
+        cursor: Nullable<string>;
+    }
+    export interface PopularNowRoomConnectionItemsArgs { }
+    export interface PopularNowRoomConnectionCursorArgs { }
     export interface ProfilePrefill {
         firstName: Nullable<string>;
         lastName: Nullable<string>;
@@ -3609,10 +3621,6 @@ export namespace GQL {
         betaDialogTextSearch: Dialog[];
         conversationDraft: Nullable<string>;
         alphaDraftMessage: Nullable<string>;
-        discoverNewAndGrowing: SharedRoomConnection;
-        discoverPopularNow: SharedRoomConnection;
-        discoverTopPremium: SharedRoomConnection;
-        discoverTopFree: SharedRoomConnection;
         discoverCollections: Nullable<DiscoverChatsCollectionConnection>;
         discoverCollection: Nullable<DiscoverChatsCollection>;
         discoverEditorsChoice: EditorsChoiceChat[];
@@ -3653,6 +3661,10 @@ export namespace GQL {
         alphaComunityPrefixSearch: OrganizationsConnection;
         myPermissions: Permissions;
         users: User[];
+        discoverNewAndGrowing: SharedRoomConnection;
+        discoverPopularNow: PopularNowRoomConnection;
+        discoverTopPremium: SharedRoomConnection;
+        discoverTopFree: SharedRoomConnection;
         myProfilePrefill: Nullable<ProfilePrefill>;
         pushSettings: PushSettings;
         sessionState: SessionState;
@@ -3831,23 +3843,6 @@ export namespace GQL {
     export interface QueryAlphaDraftMessageArgs {
         conversationId: string;
     }
-    export interface QueryDiscoverNewAndGrowingArgs {
-        first: number;
-        seed: number;
-        after: OptionalNullable<string>;
-    }
-    export interface QueryDiscoverPopularNowArgs {
-        first: number;
-        after: OptionalNullable<string>;
-    }
-    export interface QueryDiscoverTopPremiumArgs {
-        first: number;
-        after: OptionalNullable<string>;
-    }
-    export interface QueryDiscoverTopFreeArgs {
-        first: number;
-        after: OptionalNullable<string>;
-    }
     export interface QueryDiscoverCollectionsArgs {
         first: number;
         after: OptionalNullable<string>;
@@ -3952,6 +3947,23 @@ export namespace GQL {
     export interface QueryMyPermissionsArgs { }
     export interface QueryUsersArgs {
         query: string;
+    }
+    export interface QueryDiscoverNewAndGrowingArgs {
+        first: number;
+        seed: number;
+        after: OptionalNullable<string>;
+    }
+    export interface QueryDiscoverPopularNowArgs {
+        first: number;
+        after: OptionalNullable<string>;
+    }
+    export interface QueryDiscoverTopPremiumArgs {
+        first: number;
+        after: OptionalNullable<string>;
+    }
+    export interface QueryDiscoverTopFreeArgs {
+        first: number;
+        after: OptionalNullable<string>;
     }
     export interface QueryMyProfilePrefillArgs { }
     export interface QueryPushSettingsArgs { }
@@ -8247,6 +8259,28 @@ export interface GQLResolver {
             roles: GQL.PermissionsRolesArgs,
         }
     >;
+    PopularNowRoom?: ComplexTypedResolver<
+        GQL.PopularNowRoom,
+        GQLRoots.PopularNowRoomRoot,
+        {
+            room: GQLRoots.SharedRoomRoot,
+        },
+        {
+            room: GQL.PopularNowRoomRoomArgs,
+            newMessages: GQL.PopularNowRoomNewMessagesArgs,
+        }
+    >;
+    PopularNowRoomConnection?: ComplexTypedResolver<
+        GQL.PopularNowRoomConnection,
+        GQLRoots.PopularNowRoomConnectionRoot,
+        {
+            items: GQLRoots.PopularNowRoomRoot[],
+        },
+        {
+            items: GQL.PopularNowRoomConnectionItemsArgs,
+            cursor: GQL.PopularNowRoomConnectionCursorArgs,
+        }
+    >;
     ProfilePrefill?: ComplexTypedResolver<
         GQL.ProfilePrefill,
         GQLRoots.ProfilePrefillRoot,
@@ -8315,10 +8349,6 @@ export interface GQLResolver {
             chatLocations: GQLRoots.UserLocationRoot[],
             alphaChatTextSearch: GQLRoots.ConversationRoot[],
             betaDialogTextSearch: GQLRoots.DialogRoot[],
-            discoverNewAndGrowing: GQLRoots.SharedRoomConnectionRoot,
-            discoverPopularNow: GQLRoots.SharedRoomConnectionRoot,
-            discoverTopPremium: GQLRoots.SharedRoomConnectionRoot,
-            discoverTopFree: GQLRoots.SharedRoomConnectionRoot,
             discoverCollections: Nullable<GQLRoots.DiscoverChatsCollectionConnectionRoot>,
             discoverCollection: Nullable<GQLRoots.DiscoverChatsCollectionRoot>,
             discoverEditorsChoice: GQLRoots.EditorsChoiceChatRoot[],
@@ -8358,6 +8388,10 @@ export interface GQLResolver {
             alphaComunityPrefixSearch: GQLRoots.OrganizationsConnectionRoot,
             myPermissions: GQLRoots.PermissionsRoot,
             users: GQLRoots.UserRoot[],
+            discoverNewAndGrowing: GQLRoots.SharedRoomConnectionRoot,
+            discoverPopularNow: GQLRoots.PopularNowRoomConnectionRoot,
+            discoverTopPremium: GQLRoots.SharedRoomConnectionRoot,
+            discoverTopFree: GQLRoots.SharedRoomConnectionRoot,
             myProfilePrefill: Nullable<GQLRoots.ProfilePrefillRoot>,
             pushSettings: GQLRoots.PushSettingsRoot,
             sessionState: GQLRoots.SessionStateRoot,
@@ -8468,10 +8502,6 @@ export interface GQLResolver {
             betaDialogTextSearch: GQL.QueryBetaDialogTextSearchArgs,
             conversationDraft: GQL.QueryConversationDraftArgs,
             alphaDraftMessage: GQL.QueryAlphaDraftMessageArgs,
-            discoverNewAndGrowing: GQL.QueryDiscoverNewAndGrowingArgs,
-            discoverPopularNow: GQL.QueryDiscoverPopularNowArgs,
-            discoverTopPremium: GQL.QueryDiscoverTopPremiumArgs,
-            discoverTopFree: GQL.QueryDiscoverTopFreeArgs,
             discoverCollections: GQL.QueryDiscoverCollectionsArgs,
             discoverCollection: GQL.QueryDiscoverCollectionArgs,
             discoverEditorsChoice: GQL.QueryDiscoverEditorsChoiceArgs,
@@ -8512,6 +8542,10 @@ export interface GQLResolver {
             alphaComunityPrefixSearch: GQL.QueryAlphaComunityPrefixSearchArgs,
             myPermissions: GQL.QueryMyPermissionsArgs,
             users: GQL.QueryUsersArgs,
+            discoverNewAndGrowing: GQL.QueryDiscoverNewAndGrowingArgs,
+            discoverPopularNow: GQL.QueryDiscoverPopularNowArgs,
+            discoverTopPremium: GQL.QueryDiscoverTopPremiumArgs,
+            discoverTopFree: GQL.QueryDiscoverTopFreeArgs,
             myProfilePrefill: GQL.QueryMyProfilePrefillArgs,
             pushSettings: GQL.QueryPushSettingsArgs,
             sessionState: GQL.QuerySessionStateArgs,

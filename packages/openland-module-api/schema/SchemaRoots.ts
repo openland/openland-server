@@ -489,6 +489,8 @@ export namespace GQLRoots {
     export type DiscoverPageRoot = any;
     export type DiscoverChatsCollectionRoot = EditorsChoiceChatsCollection;
     export type DiscoverChatsCollectionConnectionRoot = { items: DiscoverChatsCollectionRoot[], cursor?: string };
+    export type PopularNowRoomRoot = {  room: RoomProfile, membersDelta: number };
+    export type PopularNowRoomConnectionRoot = { items: PopularNowRoomRoot[], cursor: string | null };
     export type EditorsChoiceChatRoot = EditorsChoiceChat;
 
     //

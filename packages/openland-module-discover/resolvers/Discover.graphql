@@ -1,6 +1,16 @@
+type PopularNowRoom {
+    room: SharedRoom!
+    newMessages: Int!
+}
+
+type PopularNowRoomConnection {
+    items: [PopularNowRoom!]!
+    cursor: String
+}
+
 extend type Query {
     discoverNewAndGrowing(first: Int!, seed: Int!, after: String): SharedRoomConnection!
-    discoverPopularNow(first: Int!, after: String): SharedRoomConnection!
+    discoverPopularNow(first: Int!, after: String): PopularNowRoomConnection!
     discoverTopPremium(first: Int!, after: String): SharedRoomConnection!
     discoverTopFree(first: Int!, after: String): SharedRoomConnection!
 }
