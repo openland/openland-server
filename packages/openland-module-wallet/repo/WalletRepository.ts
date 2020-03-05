@@ -52,16 +52,16 @@ export class WalletRepository {
                         picture: null,
                         silent: false,
                         title: 'Transaction failed',
-                        body: 'We couldn’t complete some transactions. Please go to wallet and check this.',
+                        body: 'A payment for some of your recent purchases or subscriptions has recently failed. Please update your payment method to keep your paid group memberships.',
                         mobileAlert: true,
                         mobileIncludeText: true
                     });
 
                     await Emails.sendGenericEmail(ctx, uid, {
                         title: 'Transaction failed',
-                        text: 'We couldn’t complete some transactions. Please go to wallet and check this.',
+                        text: 'A payment for some of your recent purchases or subscriptions has recently failed. Please update your payment method to keep your paid group memberships.',
                         link: 'https://openland.com/wallet',
-                        buttonText: 'Open wallet'
+                        buttonText: 'Update payment method'
                     });
                 } else {
                     await Modules.Push.sendCounterPush(ctx, uid);
