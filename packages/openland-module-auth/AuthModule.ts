@@ -2,13 +2,13 @@ import { AuthCodeRepository } from './repositories/AuthCodeRepository';
 import { injectable, inject } from 'inversify';
 import { TokenRepository } from './repositories/TokenRepository';
 import { Context } from '@openland/context';
-import { inTx } from '@openland/foundationdb';
-import { Store } from '../openland-module-db/FDB';
+import { createPersistenceThrottle } from '../openland-utils/PersistenceThrottle';
 
 @injectable()
 export class AuthModule {
     private readonly codeRepo = new AuthCodeRepository();
     private readonly tokenRepo!: TokenRepository;
+    private readonly emailThrottle = createPersistenceThrottle('auth');
 
     constructor(
         @inject('TokenRepository') tokenRepo: TokenRepository
@@ -45,34 +45,14 @@ export class AuthModule {
     }
 
     async nextAuthEmailTime(parent: Context, email: string) {
-        return inTx(parent, async ctx => {
-            let lastEmail = await Store.LastAuthEmailSentTime.get(ctx, email);
-            let emailsSent = await Store.AuthEmailsSentCount.get(ctx, email);
-            if (emailsSent === 0 || lastEmail === 0) {
-                return null;
-            }
-            let timeout = emailsSent * 5;
-            let now = Math.floor(Date.now() / 1000);
-            let nextTime = lastEmail + timeout;
-            if (now > nextTime) {
-                return null;
-            } else {
-                return nextTime;
-            }
-        });
+        return this.emailThrottle.nextFireTimeout(parent, email);
     }
 
-    async onAuthEmailSent(parent: Context, email: string) {
-        return inTx(parent, async ctx => {
-            Store.AuthEmailsSentCount.increment(ctx, email);
-            Store.LastAuthEmailSentTime.set(ctx, email, Math.floor(Date.now() / 1000));
-        });
+    async onAuthEmailSent(parent: Context, email: string)  {
+        return this.emailThrottle.onFire(parent, email);
     }
 
     async onAuthCodeUsed(parent: Context, email: string) {
-        return inTx(parent, async ctx => {
-            Store.LastAuthEmailSentTime.set(ctx, email, 0);
-            Store.AuthEmailsSentCount.set(ctx, email, 0);
-        });
+        return this.emailThrottle.release(parent, email);
     }
 }

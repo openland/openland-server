@@ -2007,10 +2007,12 @@ export default declareSchema(() => {
         field('enabled', boolean());
     });
 
+    // Deprecated
     atomicInt('LastAuthEmailSentTime', () => {
         primaryKey('email', string());
     });
 
+    // Deprecated
     atomicInt('AuthEmailsSentCount', () => {
         primaryKey('email', string());
     });
@@ -2080,6 +2082,14 @@ export default declareSchema(() => {
             .withCondition((src) => src.taskStatus === 'pending');
         rangeIndex('failing', ['taskFailureTime'])
             .withCondition((src) => src.taskStatus === 'failing');
+    });
+
+    entity('ServiceThrottle', () => {
+        primaryKey('service', string());
+        primaryKey('key', string());
+
+        field('lastFireTime', integer());
+        field('firedCount', integer());
     });
 
     //

@@ -16511,6 +16511,91 @@ export class DelayedTaskFactory extends EntityFactory<DelayedTaskShape, DelayedT
     }
 }
 
+export interface ServiceThrottleShape {
+    service: string;
+    key: string;
+    lastFireTime: number;
+    firedCount: number;
+}
+
+export interface ServiceThrottleCreateShape {
+    lastFireTime: number;
+    firedCount: number;
+}
+
+export class ServiceThrottle extends Entity<ServiceThrottleShape> {
+    get service(): string { return this._rawValue.service; }
+    get key(): string { return this._rawValue.key; }
+    get lastFireTime(): number { return this._rawValue.lastFireTime; }
+    set lastFireTime(value: number) {
+        let normalized = this.descriptor.codec.fields.lastFireTime.normalize(value);
+        if (this._rawValue.lastFireTime !== normalized) {
+            this._rawValue.lastFireTime = normalized;
+            this._updatedValues.lastFireTime = normalized;
+            this.invalidate();
+        }
+    }
+    get firedCount(): number { return this._rawValue.firedCount; }
+    set firedCount(value: number) {
+        let normalized = this.descriptor.codec.fields.firedCount.normalize(value);
+        if (this._rawValue.firedCount !== normalized) {
+            this._rawValue.firedCount = normalized;
+            this._updatedValues.firedCount = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class ServiceThrottleFactory extends EntityFactory<ServiceThrottleShape, ServiceThrottle> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('serviceThrottle');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'service', type: 'string' });
+        primaryKeys.push({ name: 'key', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'lastFireTime', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'firedCount', type: { type: 'integer' }, secure: false });
+        let codec = c.struct({
+            service: c.string,
+            key: c.string,
+            lastFireTime: c.integer,
+            firedCount: c.integer,
+        });
+        let descriptor: EntityDescriptor<ServiceThrottleShape> = {
+            name: 'ServiceThrottle',
+            storageKey: 'serviceThrottle',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new ServiceThrottleFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<ServiceThrottleShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, service: string, key: string, src: ServiceThrottleCreateShape): Promise<ServiceThrottle> {
+        return this._create(ctx, [service, key], this.descriptor.codec.normalize({ service, key, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, service: string, key: string, src: ServiceThrottleCreateShape): ServiceThrottle {
+        return this._create_UNSAFE(ctx, [service, key], this.descriptor.codec.normalize({ service, key, ...src }));
+    }
+
+    findById(ctx: Context, service: string, key: string): Promise<ServiceThrottle | null> {
+        return this._findById(ctx, [service, key]);
+    }
+
+    watch(ctx: Context, service: string, key: string): Watch {
+        return this._watch(ctx, [service, key]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ServiceThrottleShape>): ServiceThrottle {
+        return new ServiceThrottle([value.service, value.key], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface DebugEventShape {
     uid: number;
     seq: number;
@@ -18276,6 +18361,7 @@ export interface Store extends BaseStore {
     readonly HyperLog: HyperLogFactory;
     readonly Task: TaskFactory;
     readonly DelayedTask: DelayedTaskFactory;
+    readonly ServiceThrottle: ServiceThrottleFactory;
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
     readonly EditorsChoiceChatsCollection: EditorsChoiceChatsCollectionFactory;
@@ -18481,6 +18567,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let HyperLogPromise = HyperLogFactory.open(storage);
     let TaskPromise = TaskFactory.open(storage);
     let DelayedTaskPromise = DelayedTaskFactory.open(storage);
+    let ServiceThrottlePromise = ServiceThrottleFactory.open(storage);
     let DebugEventPromise = DebugEventFactory.open(storage);
     let DebugEventStatePromise = DebugEventStateFactory.open(storage);
     let EditorsChoiceChatsCollectionPromise = EditorsChoiceChatsCollectionFactory.open(storage);
@@ -18657,6 +18744,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         HyperLog: await HyperLogPromise,
         Task: await TaskPromise,
         DelayedTask: await DelayedTaskPromise,
+        ServiceThrottle: await ServiceThrottlePromise,
         DebugEvent: await DebugEventPromise,
         DebugEventState: await DebugEventStatePromise,
         EditorsChoiceChatsCollection: await EditorsChoiceChatsCollectionPromise,
