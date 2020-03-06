@@ -8,7 +8,7 @@ import { createPersistenceThrottle } from '../openland-utils/PersistenceThrottle
 export class AuthModule {
     private readonly codeRepo = new AuthCodeRepository();
     private readonly tokenRepo!: TokenRepository;
-    private readonly emailThrottle = createPersistenceThrottle('auth');
+    private readonly emailThrottle = createPersistenceThrottle('auth_email');
 
     constructor(
         @inject('TokenRepository') tokenRepo: TokenRepository
