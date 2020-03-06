@@ -714,13 +714,10 @@ export class RoomMediator {
             if (invitedBy && invitedBy !== uids[0]) {
                 let name = await Modules.Users.getUserFullName(parent, uids[0]);
                 let inviterName = await Modules.Users.getUserFullName(parent, invitedBy);
-                return buildMessage(userMention(inviterName, invitedBy!), ' invited ', userMention(name, uids[0]));
-            } else if (invitedBy && invitedBy === uids[0]) {
-                let name = await Modules.Users.getUserFullName(parent, uids[0]);
-                return buildMessage(userMention(name, uids[0]), ' joined the group');
+                return buildMessage(userMention(name, uids[0]), ' joined the group with invite from ', userMention(inviterName, invitedBy!));
             } else {
                 let name = await Modules.Users.getUserFullName(parent, uids[0]);
-                return buildMessage(userMention(name, uids[0]), ' joined the group via invite link');
+                return buildMessage(userMention(name, uids[0]), ' joined the group');
             }
         } else if (uids.length === 2) {
             let inviterName = await Modules.Users.getUserFullName(parent, invitedBy!);
