@@ -210,13 +210,11 @@ export function createUrlInfoService() {
 
             let profile = await Store.RoomProfile.findById(ctx, chatInvite.channelId);
             let conv = await Store.ConversationRoom.findById(ctx, chatInvite.channelId);
-            let premiumChatSettings = await Store.PremiumChatSettings.findById(ctx, chatInvite.channelId);
 
             if (!profile) {
                 return null;
             }
             let membersCount = profile.activeMembersCount || 0;
-            let price = premiumChatSettings && premiumChatSettings.price;
 
             return {
                 url,
@@ -231,7 +229,7 @@ export function createUrlInfoService() {
                 iconInfo: null,
                 keyboard: {
                     buttons: [[
-                        { title: 'Join chat', style: price ? 'PAY' : 'DEFAULT', url, price }
+                        { title: 'Join chat', style: 'DEFAULT', url }
                     ]]
                 },
                 photoFallback: makePhotoFallback(IDs.Conversation.serialize(profile.id), profile.title || 'deleted'),

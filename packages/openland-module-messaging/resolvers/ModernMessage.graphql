@@ -231,13 +231,11 @@ type ModernMessageButton {
     title: String!
     style: ModernMessageButtonStyle!
     url: String
-    price: Int
 }
 
 enum ModernMessageButtonStyle {
     DEFAULT,
-    LIGHT,
-    PAY
+    LIGHT
 }
 
 input MessageKeyboardInput {
