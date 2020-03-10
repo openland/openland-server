@@ -90,8 +90,10 @@ export const Resolver: GQLResolver = {
 
             // chats with messages > 10
             clauses.push({range: {messagesCount: {gte: 10}}});
-            // chats 10 days+  old
-            clauses.push({range: {createdAt: {lt: 'now-10d/d'}}});
+            // chats with members count > 10
+            clauses.push({range: {membersCount: {gte: 10}}});
+            // chats 30- days old
+            clauses.push({range: {createdAt: {gte: 'now-30d/d'}}});
             // only public chats
             clauses.push({ term: { listed: true } });
 
