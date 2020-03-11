@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0b5178b9a309592d00d25e1f0876a580';
+export const GQL_SPEC_VERSION = '85bd39b13e22a8b79e9f7f94dafe5f00';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1965,6 +1965,7 @@ export namespace GQL {
         debugAddStickerPackToAll: boolean;
         debugReplaceCommunityForChat: boolean;
         debugRecountSeqForMessages: boolean;
+        debugReindexRoomMessagesCounter: boolean;
         settingsUpdate: Settings;
         updateSettings: Settings;
         createOauthApp: OauthApp;
@@ -2440,6 +2441,7 @@ export namespace GQL {
         newCommunityId: string;
     }
     export interface MutationDebugRecountSeqForMessagesArgs { }
+    export interface MutationDebugReindexRoomMessagesCounterArgs { }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
     }
@@ -7754,6 +7756,7 @@ export interface GQLResolver {
             debugAddStickerPackToAll: GQL.MutationDebugAddStickerPackToAllArgs,
             debugReplaceCommunityForChat: GQL.MutationDebugReplaceCommunityForChatArgs,
             debugRecountSeqForMessages: GQL.MutationDebugRecountSeqForMessagesArgs,
+            debugReindexRoomMessagesCounter: GQL.MutationDebugReindexRoomMessagesCounterArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             updateSettings: GQL.MutationUpdateSettingsArgs,
             createOauthApp: GQL.MutationCreateOauthAppArgs,

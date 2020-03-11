@@ -1299,6 +1299,21 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
+        debugReindexRoomMessagesCounter: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAll(Store.ConversationRoom, parent.auth.uid!, 'debugReindexRoomMessagesCounter', async (ctx, cid, log) => {
+                let hits = await Modules.Search.elastic.client.search({
+                    index: 'message',
+                    type: 'message',
+                    size: 100,
+                    body: {
+                        sort: [{createdAt: 'desc'}], query: {bool: {must: [{term: {cid}}]}},
+                    },
+                });
+                await Store.RoomMessagesCounter.set(ctx, cid, hits.hits.total);
+            });
+
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {
