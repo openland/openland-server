@@ -9,7 +9,7 @@ export type ServiceMessageMetadataType =
 
 export type MessageButton = {
     title: string;
-    style: 'DEFAULT' | 'LIGHT';
+    style: 'DEFAULT' | 'LIGHT' | 'PAY';
     url: string | null;
 };
 

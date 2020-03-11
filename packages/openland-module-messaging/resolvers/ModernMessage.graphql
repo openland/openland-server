@@ -235,7 +235,8 @@ type ModernMessageButton {
 
 enum ModernMessageButtonStyle {
     DEFAULT,
-    LIGHT
+    LIGHT,
+    PAY
 }
 
 input MessageKeyboardInput {

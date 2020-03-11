@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9cf3cec7909ea59932b4eba602fc2d98';
+export const GQL_SPEC_VERSION = '0b5178b9a309592d00d25e1f0876a580';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4935,7 +4935,7 @@ export namespace GQL {
     export interface ModernMessageButtonTitleArgs { }
     export interface ModernMessageButtonStyleArgs { }
     export interface ModernMessageButtonUrlArgs { }
-    export type ModernMessageButtonStyleValues = 'DEFAULT' | 'LIGHT';
+    export type ModernMessageButtonStyleValues = 'DEFAULT' | 'LIGHT' | 'PAY';
     export type ModernMessageButtonStyle = GQLRoots.ModernMessageButtonStyleRoot;
     export interface MessageKeyboardInput {
         buttons: Nullable<ModernMessageButtonInput[]>[];
@@ -9406,7 +9406,7 @@ export interface GQLResolver {
             url: GQL.ModernMessageButtonUrlArgs,
         }
     >;
-    ModernMessageButtonStyle?: EnumTypeResolver<'DEFAULT' | 'LIGHT', GQLRoots.ModernMessageButtonStyleRoot>;
+    ModernMessageButtonStyle?: EnumTypeResolver<'DEFAULT' | 'LIGHT' | 'PAY', GQLRoots.ModernMessageButtonStyleRoot>;
     MessageReactionType?: EnumTypeResolver<'LIKE' | 'THUMB_UP' | 'JOY' | 'SCREAM' | 'CRYING' | 'ANGRY', GQLRoots.MessageReactionTypeRoot>;
     ModernMessageReaction?: ComplexTypedResolver<
         GQL.ModernMessageReaction,

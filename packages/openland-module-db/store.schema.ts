@@ -385,7 +385,7 @@ export default declareSchema(() => {
                 titleLinkHostname: optional(string()),
                 keyboard: optional(struct({
                     buttons: array(array(struct({
-                        title: string(), style: enumString('DEFAULT', 'LIGHT'), url: optional(string()),
+                        title: string(), style: enumString('DEFAULT', 'LIGHT', 'PAY'), url: optional(string()),
                     }))),
                 })),
                 socialImage: optional(ImageRef),
@@ -491,7 +491,7 @@ export default declareSchema(() => {
                 titleLinkHostname: optional(string()),
                 keyboard: optional(struct({
                     buttons: array(array(struct({
-                        title: string(), style: enumString('DEFAULT', 'LIGHT'), url: optional(string()),
+                        title: string(), style: enumString('DEFAULT', 'LIGHT', 'PAY'), url: optional(string()),
                     }))),
                 })),
                 socialImage: optional(ImageRef),
@@ -575,7 +575,7 @@ export default declareSchema(() => {
                 titleLinkHostname: optional(string()),
                 keyboard: optional(struct({
                     buttons: array(array(struct({
-                        title: string(), style: enumString('DEFAULT', 'LIGHT'), url: optional(string()),
+                        title: string(), style: enumString('DEFAULT', 'LIGHT', 'PAY'), url: optional(string()),
                     }))),
                 })),
                 socialImage: optional(ImageRef),
