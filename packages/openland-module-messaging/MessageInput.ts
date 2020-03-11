@@ -9,9 +9,16 @@ export type ServiceMessageMetadataType =
 
 export type MessageButton = {
     title: string;
-    style: 'DEFAULT' | 'LIGHT';
+    style: 'DEFAULT' | 'LIGHT' | 'PAY';
     url: string | null;
+    price?: number;
 };
+
+// export type MessageButton = {
+//     title: string;
+//     style: 'DEFAULT' | 'LIGHT';
+//     url: string | null;
+// };
 
 export type MessageKeyboard = {
     buttons: MessageButton[][]

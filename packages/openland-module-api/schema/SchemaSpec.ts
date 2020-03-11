@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9cf3cec7909ea59932b4eba602fc2d98';
+export const GQL_SPEC_VERSION = '1ad75bfd44dda7370fb0e462a3cef770';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4930,12 +4930,14 @@ export namespace GQL {
         title: string;
         style: ModernMessageButtonStyle;
         url: Nullable<string>;
+        price: Nullable<number>;
     }
     export interface ModernMessageButtonIdArgs { }
     export interface ModernMessageButtonTitleArgs { }
     export interface ModernMessageButtonStyleArgs { }
     export interface ModernMessageButtonUrlArgs { }
-    export type ModernMessageButtonStyleValues = 'DEFAULT' | 'LIGHT';
+    export interface ModernMessageButtonPriceArgs { }
+    export type ModernMessageButtonStyleValues = 'DEFAULT' | 'LIGHT' | 'PAY';
     export type ModernMessageButtonStyle = GQLRoots.ModernMessageButtonStyleRoot;
     export interface MessageKeyboardInput {
         buttons: Nullable<ModernMessageButtonInput[]>[];
@@ -9404,9 +9406,10 @@ export interface GQLResolver {
             title: GQL.ModernMessageButtonTitleArgs,
             style: GQL.ModernMessageButtonStyleArgs,
             url: GQL.ModernMessageButtonUrlArgs,
+            price: GQL.ModernMessageButtonPriceArgs,
         }
     >;
-    ModernMessageButtonStyle?: EnumTypeResolver<'DEFAULT' | 'LIGHT', GQLRoots.ModernMessageButtonStyleRoot>;
+    ModernMessageButtonStyle?: EnumTypeResolver<'DEFAULT' | 'LIGHT' | 'PAY', GQLRoots.ModernMessageButtonStyleRoot>;
     MessageReactionType?: EnumTypeResolver<'LIKE' | 'THUMB_UP' | 'JOY' | 'SCREAM' | 'CRYING' | 'ANGRY', GQLRoots.MessageReactionTypeRoot>;
     ModernMessageReaction?: ComplexTypedResolver<
         GQL.ModernMessageReaction,
