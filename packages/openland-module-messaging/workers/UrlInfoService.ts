@@ -229,7 +229,7 @@ export function createUrlInfoService() {
                 iconInfo: null,
                 keyboard: {
                     buttons: [[
-                        { title: 'Join chat', style: 'DEFAULT', url }
+                        { title: 'Join chat', style: 'DEFAULT', url, price: null }
                     ]]
                 },
                 photoFallback: makePhotoFallback(IDs.Conversation.serialize(profile.id), profile.title || 'deleted'),
