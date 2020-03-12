@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '8c0d41f6377739f2bf9e4bee38ce35f2';
+export const GQL_SPEC_VERSION = '105c8e75c6a8ee744c31127f6f9e3a5d';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4948,15 +4948,11 @@ export namespace GQL {
         title: string;
         style: ModernMessageButtonStyle;
         url: Nullable<string>;
-        price: Nullable<number>;
-        interval: Nullable<WalletSubscriptionInterval>;
     }
     export interface ModernMessageButtonIdArgs { }
     export interface ModernMessageButtonTitleArgs { }
     export interface ModernMessageButtonStyleArgs { }
     export interface ModernMessageButtonUrlArgs { }
-    export interface ModernMessageButtonPriceArgs { }
-    export interface ModernMessageButtonIntervalArgs { }
     export type ModernMessageButtonStyleValues = 'DEFAULT' | 'LIGHT' | 'PAY';
     export type ModernMessageButtonStyle = GQLRoots.ModernMessageButtonStyleRoot;
     export interface MessageKeyboardInput {
@@ -9451,8 +9447,6 @@ export interface GQLResolver {
             title: GQL.ModernMessageButtonTitleArgs,
             style: GQL.ModernMessageButtonStyleArgs,
             url: GQL.ModernMessageButtonUrlArgs,
-            price: GQL.ModernMessageButtonPriceArgs,
-            interval: GQL.ModernMessageButtonIntervalArgs,
         }
     >;
     ModernMessageButtonStyle?: EnumTypeResolver<'DEFAULT' | 'LIGHT' | 'PAY', GQLRoots.ModernMessageButtonStyleRoot>;
