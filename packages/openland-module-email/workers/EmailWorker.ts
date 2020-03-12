@@ -35,12 +35,16 @@ export function createEmailWorker() {
             if (!isTesting) {
                 // Filter for non-production envrionments
                 if (process.env.APP_ENVIRONMENT !== 'production') {
-                    if (devTeamEmails.indexOf(args.to.toLowerCase()) < 0) {
+                    if (
+                        devTeamEmails.indexOf(args.to.toLowerCase()) < 0 &&
+                        !args.to.endsWith('@maildu.de')
+                    ) {
                         return {
                             result: 'ok'
                         };
                     }
                 }
+
                 try {
                     let res = await SendGrid.send({
                         to: args.to,
