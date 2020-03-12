@@ -17,10 +17,10 @@ let rootCtx = createNamedContext('prepare');
 faker.seed(123);
 
 export async function createUser(ctx: Context, email: string) {
-    if (await Modules.Users.findUserByAuthId(ctx, 'email|' + email)) {
+    if (await Store.User.email.find(ctx, email)) {
         throw Error('User with email ' + email + ' already exists');
     }
-    let user = await Modules.Users.createUser(ctx, 'email|' + email, email);
+    let user = await Modules.Users.createUser(ctx, {email});
     await Modules.Users.createUserProfile(ctx, user.id, {
         firstName: faker.name.firstName(),
         lastName: faker.name.lastName(),

@@ -225,7 +225,7 @@ export const Resolver: GQLResolver = {
     },
     Settings: {
         id: src => IDs.Settings.serialize(src.id),
-        primaryEmail: async (src: UserSettings, args: {}, ctx: AppContext) => (await Store.User.findById(ctx, src.id))!!.email,
+        primaryEmail: async (src: UserSettings, args: {}, ctx: AppContext) => (await Store.User.findById(ctx, src.id))!.email || '',
         emailFrequency: src => src.emailFrequency,
         desktopNotifications: src => src.desktopNotifications,
         mobileNotifications: src => src.mobileNotifications,

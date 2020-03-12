@@ -2,6 +2,7 @@ import { MigrationDefinition } from '@openland/foundationdb-migrations/lib/Migra
 import { Store } from 'openland-module-db/FDB';
 import { inTx, encoders } from '@openland/foundationdb';
 import { fetchNextDBSeq } from '../openland-utils/dbSeq';
+import uuid from 'uuid';
 
 let migrations: MigrationDefinition[] = [];
 
@@ -445,6 +446,25 @@ migrations.push({
                         item.default = false;
                     }
                     await item!.flush(ctx);
+                }
+            });
+        }
+    }
+});
+
+migrations.push({
+    key: '120-set-authIds-to-uuid',
+    migration: async (parent) => {
+        let data = await inTx(parent, ctx => Store.User.findAll(ctx));
+        for (let cursor = 0; cursor < data.length; cursor += 100) {
+            let batch = data.slice(cursor, cursor + 100);
+            await inTx(parent, async ctx => {
+                for (let key of batch) {
+                    let item = (await Store.User.findById(ctx, key.id))!;
+                    if (item) {
+                        item.authId = uuid();
+                        await item.flush(ctx);
+                    }
                 }
             });
         }

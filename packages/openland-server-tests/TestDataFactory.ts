@@ -9,7 +9,7 @@ import { User } from '../openland-module-db/store';
 export default class TestDataFactory {
     async createSuperAdmin(parent: Context, email: string, firstName: string, lastName: string): Promise<User> {
         return await inTx(parent, async ctx => {
-            let user = await Modules.Users.createUser(ctx, `user-${uuid()}`, email);
+            let user = await Modules.Users.createUser(ctx, {email});
             await Modules.Users.createUserProfile(ctx, user.id, {
                 firstName: firstName, lastName: lastName
             });
@@ -24,7 +24,7 @@ export default class TestDataFactory {
         return await inTx(parent, async ctx => {
             let testUsers = [];
             for (let i = 1; i <= count; i++) {
-                let testUser = await Modules.Users.createUser(ctx, `user-${uuid()}`, `test${uuid()}@maildu.de`);
+                let testUser = await Modules.Users.createUser(ctx, {email: `test${uuid()}@maildu.de`});
                 await Modules.Users.createUserProfile(ctx, testUser.id, {
                     firstName: 'Test', lastName: `${i}`
                 });

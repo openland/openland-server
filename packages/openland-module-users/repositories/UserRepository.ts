@@ -12,40 +12,52 @@ import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { Store } from 'openland-module-db/FDB';
 import { UserBadge } from 'openland-module-db/store';
 import { Modules } from 'openland-modules/Modules';
+import { uuid } from '../../openland-utils/uuid';
 
 const userCreated = createHyperlogger<{ uid: number }>('user_created');
 const userActivated = createHyperlogger<{ uid: number, isTest: boolean }>('user_activated');
 const userProfileCreated = createHyperlogger<{ uid: number }>('user_profile_created');
 
+export type AuthInfo = {
+    email?: string,
+    googleId?: string
+};
+
 @injectable()
 export class UserRepository {
     private readonly userAuthIdCache = new Map<string, number | undefined>();
+
     /*
      * User
      */
 
-    async createUser(parent: Context, authId: string, email: string) {
+    async createUser(parent: Context, authInfo: AuthInfo) {
         return await inTx(parent, async (ctx) => {
+            if (!authInfo.email && !authInfo.googleId) {
+                throw new Error(`Can\'t create user without auth info`);
+            }
 
             // Build next user id sequence number
             let seq = (await Store.Sequence.findById(ctx, 'user-id'));
             if (!seq) {
-                seq = await Store.Sequence.create(ctx, 'user-id', { value: 0 });
+                seq = await Store.Sequence.create(ctx, 'user-id', {value: 0});
             }
             let id = ++seq.value;
             await seq.flush(ctx);
 
             let res = (await Store.User.create(ctx, id, {
-                authId: authId,
-                email: email.toLowerCase(),
+                authId: uuid(),
                 isBot: false,
                 status: 'pending',
                 invitedBy: null,
                 isSuperBot: null,
                 botOwner: null,
+                ...(authInfo.email ? {email: authInfo.email.toLocaleLowerCase()} : {}),
+                ...(authInfo.googleId ? {googleId: authInfo.googleId} : {})
             }));
+
             await res.flush(ctx);
-            userCreated.event(ctx, { uid: id });
+            userCreated.event(ctx, {uid: id});
             return res;
         });
     }
@@ -61,7 +73,7 @@ export class UserRepository {
                 user.invitedBy = user.invitedBy || invitedBy;
                 await user.flush(ctx);
                 await this.markForUndexing(ctx, uid);
-                userActivated.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, user.id) });
+                userActivated.event(ctx, {uid, isTest: await Modules.Users.isTest(ctx, user.id)});
                 return true;
             } else {
                 return false;
@@ -156,7 +168,7 @@ export class UserRepository {
             });
             await profile.flush(ctx);
             await this.markForUndexing(ctx, uid);
-            userProfileCreated.event(ctx, { uid: uid });
+            userProfileCreated.event(ctx, {uid: uid});
             return profile;
         });
     }
@@ -179,7 +191,7 @@ export class UserRepository {
      */
 
     async createSystemBot(ctx: Context, key: string, name: string, photoRef: ImageRef) {
-        let user = await this.createUser(ctx, 'system-bot|' + key, 'hello@openland.com');
+        let user = await this.createUser(ctx, {email: 'hello@openland.com'});
         await this.createUserProfile(ctx, user.id, {
             firstName: name,
             photoRef: photoRef,
@@ -192,8 +204,8 @@ export class UserRepository {
     async createTestUser(parent: Context, key: string, name: string) {
         return await inTx(parent, async (ctx) => {
             let email = `test-user-${key}@openland.com`;
-            let user = await this.createUser(ctx, 'test-user|' + key, email);
-            await this.createUserProfile(ctx, user.id, { firstName: name, email });
+            let user = await this.createUser(ctx, {email});
+            await this.createUserProfile(ctx, user.id, {firstName: name, email});
             await this.activateUser(ctx, user.id);
             return user.id;
         });
@@ -299,7 +311,12 @@ export class UserRepository {
                 throw new Error('Max length: 40 characters');
             }
 
-            let userBadge = await Store.UserBadge.create(ctx, await fetchNextDBSeq(parent, 'badge-id'), { uid, name: badgeName, verifiedBy: null, deleted: null });
+            let userBadge = await Store.UserBadge.create(ctx, await fetchNextDBSeq(parent, 'badge-id'), {
+                uid,
+                name: badgeName,
+                verifiedBy: null,
+                deleted: null
+            });
             await userBadge.flush(ctx);
 
             if (cid) {
@@ -307,7 +324,7 @@ export class UserRepository {
             } else {
                 if (!isSuper) {
                     // set primary if needed
-                    let userBadges = (await Store.UserBadge.user.query(ctx, uid, { limit: 2 })).items;
+                    let userBadges = (await Store.UserBadge.user.query(ctx, uid, {limit: 2})).items;
 
                     if (userBadges.length === 1) {
                         let profile = await Store.UserProfile.findById(ctx, uid);

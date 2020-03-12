@@ -65,11 +65,12 @@ export async function getAccessToken(req: express.Request, response: express.Res
             const email = payload.email.toLowerCase();
             let existing = await Store.User.email.find(ctx, email);
             if (existing) {
+                existing.googleId = payload.sub;
                 let token = await Modules.Auth.createToken(ctx, existing.id!);
                 response.json({ ok: true, accessToken: token.salt });
                 return;
             } else {
-                let user = await Modules.Users.createUser(ctx, payload.sub, email as string);
+                let user = await Modules.Users.createUser(ctx, { email, googleId: payload.sub});
 
                 await Modules.Users.saveProfilePrefill(ctx, user.id, {
                     firstName: payload.given_name,

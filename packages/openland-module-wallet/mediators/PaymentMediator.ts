@@ -72,16 +72,16 @@ export class PaymentMediator {
         //
         // Create Customer
         //
-        // I wanted to make double check if customer is actually exists in dashboard via search 
+        // I wanted to make double check if customer is actually exists in dashboard via search
         // for a user with metadata's uid field value. Unfortunatelly Stripe API does not allow such
-        // search. Since this is a very first call before any other billing operations the 
-        // worst case is having double accounts for users, but only one will be used and 
+        // search. Since this is a very first call before any other billing operations the
+        // worst case is having double accounts for users, but only one will be used and
         // nothing bad is possible except multiple accounts.
         //
-        // Also idempotency (retry) key is valid for at least 24 hours and will work just fine for 
+        // Also idempotency (retry) key is valid for at least 24 hours and will work just fine for
         // restarting transaction or worker task. So chance of double accounts is very very small.
         //
-        // NOTE: Since between retries user name could be changed we need to create empty customer and then update 
+        // NOTE: Since between retries user name could be changed we need to create empty customer and then update
         // it's profile values instead. Otherwise stripe will throw error
         //
 
@@ -89,7 +89,7 @@ export class PaymentMediator {
             metadata: { uid: uid }
         }, { idempotencyKey: 'create-' + src.customer.uniqueKey, timeout: 5000 });
         await this.stripe.customers.update(stripeCustomer.id, {
-            email: src.user.email,
+            email: src.user.email || undefined,
             name: (src.profile.firstName + ' ' + (src.profile.lastName || '')).trim(),
         });
 
@@ -202,7 +202,7 @@ export class PaymentMediator {
         await this.enablePaymentsAndAwait(parent, uid);
 
         //
-        // Do not change order! Detach operation expects card to 
+        // Do not change order! Detach operation expects card to
         // be attached first!
         //
         await this.attachCardIfNeeded(parent, uid, pmid);
@@ -455,7 +455,7 @@ export class PaymentMediator {
         //
         // There are high chances of race conditions here since this method is synching
         // state with stripe servers, but they are actually impossible.
-        // We are looking only for two statuses - succeeded and canceled, they are both are 
+        // We are looking only for two statuses - succeeded and canceled, they are both are
         // terminal states and therefore only one single branch could be executed.
         //
         // It is possible to have double invoke, but FDB transactions helps here.

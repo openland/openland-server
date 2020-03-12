@@ -3,7 +3,9 @@ import * as base64 from '../../openland-utils/base64';
 import { randomBytes } from 'crypto';
 import { Context } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
+import { injectable } from 'inversify';
 
+@injectable()
 export class AuthCodeRepository {
 
     async findSession(ctx: Context, sessionKey: string) {

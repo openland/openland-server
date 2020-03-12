@@ -1401,7 +1401,8 @@ export class AuthEmailsSentCountFactory extends AtomicIntegerFactory {
 export interface UserShape {
     id: number;
     authId: string;
-    email: string;
+    email: string | null;
+    googleId: string | null;
     isBot: boolean;
     invitedBy: number | null;
     botOwner: number | null;
@@ -1411,7 +1412,8 @@ export interface UserShape {
 
 export interface UserCreateShape {
     authId: string;
-    email: string;
+    email?: string | null | undefined;
+    googleId?: string | null | undefined;
     isBot: boolean;
     invitedBy?: number | null | undefined;
     botOwner?: number | null | undefined;
@@ -1430,12 +1432,21 @@ export class User extends Entity<UserShape> {
             this.invalidate();
         }
     }
-    get email(): string { return this._rawValue.email; }
-    set email(value: string) {
+    get email(): string | null { return this._rawValue.email; }
+    set email(value: string | null) {
         let normalized = this.descriptor.codec.fields.email.normalize(value);
         if (this._rawValue.email !== normalized) {
             this._rawValue.email = normalized;
             this._updatedValues.email = normalized;
+            this.invalidate();
+        }
+    }
+    get googleId(): string | null { return this._rawValue.googleId; }
+    set googleId(value: string | null) {
+        let normalized = this.descriptor.codec.fields.googleId.normalize(value);
+        if (this._rawValue.googleId !== normalized) {
+            this._rawValue.googleId = normalized;
+            this._updatedValues.googleId = normalized;
             this.invalidate();
         }
     }
@@ -1492,14 +1503,16 @@ export class UserFactory extends EntityFactory<UserShape, User> {
         let subspace = await storage.resolveEntityDirectory('user');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'authId', storageKey: 'authId', type: { type: 'unique', fields: [{ name: 'authId', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'authId'), condition: src => src.status !== 'deleted' });
-        secondaryIndexes.push({ name: 'email', storageKey: 'email', type: { type: 'unique', fields: [{ name: 'email', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'email'), condition: src => src.status !== 'deleted' });
+        secondaryIndexes.push({ name: 'email', storageKey: 'email', type: { type: 'unique', fields: [{ name: 'email', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'email'), condition: src => (!!src.email) && src.status !== 'deleted' });
+        secondaryIndexes.push({ name: 'googleId', storageKey: 'googleId', type: { type: 'unique', fields: [{ name: 'googleId', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'googleId'), condition: src => (!!src.googleId) && src.status !== 'deleted' });
         secondaryIndexes.push({ name: 'owner', storageKey: 'owner', type: { type: 'range', fields: [{ name: 'botOwner', type: 'opt_integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'owner'), condition: src => src.botOwner });
         secondaryIndexes.push({ name: 'superBots', storageKey: 'superBots', type: { type: 'range', fields: [] }, subspace: await storage.resolveEntityIndexDirectory('user', 'superBots'), condition: src => src.isBot === true && src.isSuperBot });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'authId', type: { type: 'string' }, secure: false });
-        fields.push({ name: 'email', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'email', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'googleId', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'isBot', type: { type: 'boolean' }, secure: false });
         fields.push({ name: 'invitedBy', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'botOwner', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
@@ -1508,7 +1521,8 @@ export class UserFactory extends EntityFactory<UserShape, User> {
         let codec = c.struct({
             id: c.integer,
             authId: c.string,
-            email: c.string,
+            email: c.optional(c.string),
+            googleId: c.optional(c.string),
             isBot: c.boolean,
             invitedBy: c.optional(c.integer),
             botOwner: c.optional(c.integer),
@@ -1540,41 +1554,53 @@ export class UserFactory extends EntityFactory<UserShape, User> {
     });
 
     readonly email = Object.freeze({
-        find: async (ctx: Context, email: string) => {
+        find: async (ctx: Context, email: string | null) => {
             return this._findFromUniqueIndex(ctx, [email], this.descriptor.secondaryIndexes[1]);
         },
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
         },
-        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+        query: (ctx: Context, opts?: RangeQueryOptions<string | null>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    readonly googleId = Object.freeze({
+        find: async (ctx: Context, googleId: string | null) => {
+            return this._findFromUniqueIndex(ctx, [googleId], this.descriptor.secondaryIndexes[2]);
+        },
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<string | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
     readonly owner = Object.freeze({
         findAll: async (ctx: Context, botOwner: number | null) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [botOwner])).items;
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[3], [botOwner])).items;
         },
         query: (ctx: Context, botOwner: number | null, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[2], [botOwner], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+            return this._query(ctx, this.descriptor.secondaryIndexes[3], [botOwner], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (botOwner: number | null, opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[2], [botOwner], opts);
+            return this._createStream(this.descriptor.secondaryIndexes[3], [botOwner], opts);
         },
         liveStream: (ctx: Context, botOwner: number | null, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [botOwner], opts);
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[3], [botOwner], opts);
         },
     });
 
     readonly superBots = Object.freeze({
         findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[3], [])).items;
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[4], [])).items;
         },
         stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[3], [], opts);
+            return this._createStream(this.descriptor.secondaryIndexes[4], [], opts);
         },
         liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[3], [], opts);
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[4], [], opts);
         },
     });
 

@@ -29,7 +29,7 @@ describe('RoomMediator', () => {
 
     async function randomUser(ctx: Context) {
         let users = container.get<UsersModule>(UsersModule);
-        let uid = (await users.createUser(ctx, 'user' + Math.random(), 'email' + Math.random())).id;
+        let uid = (await users.createUser(ctx, {email: 'email' + Math.random()})).id;
         await users.createUserProfile(ctx, uid, { firstName: 'User Name' + Math.random() });
         return uid;
     }

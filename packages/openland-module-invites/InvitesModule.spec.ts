@@ -21,18 +21,18 @@ describe('RoomMediator', () => {
         container.bind(SuperModule).toSelf().inSingletonScope();
         container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
     });
-    afterAll( async () => {
-      await  testEnvironmentEnd();
+    afterAll(async () => {
+        await testEnvironmentEnd();
     });
 
     it('should create room', async () => {
         let ctx = createNamedContext('test');
         let mediator = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
-        let USER_ID = (await users.createUser(ctx, 'user' + Math.random(), 'email' + Math.random())).id;
-        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' + Math.random() });
-        let oid = (await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' })).id;
-        let room = await mediator.createRoom(ctx, 'public', oid, USER_ID, [], { title: 'Room' });
+        let USER_ID = (await users.createUser(ctx, {email: 'email' + Math.random()})).id;
+        await users.createUserProfile(ctx, USER_ID, {firstName: 'User Name' + Math.random()});
+        let oid = (await Modules.Orgs.createOrganization(ctx, USER_ID, {name: '1'})).id;
+        let room = await mediator.createRoom(ctx, 'public', oid, USER_ID, [], {title: 'Room'});
         expect(room.kind).toEqual('room');
         let profile = (await Store.ConversationRoom.findById(ctx, room.id))!;
         expect(profile).not.toBeNull();
@@ -51,10 +51,10 @@ describe('RoomMediator', () => {
         let mediator = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
         let USER_ID = (await randomTestUser(ctx)).uid;
-        let USER2_ID = (await users.createUser(ctx, 'user112', 'email112')).id;
-        await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
-        let oid = (await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' })).id;
-        let room = await mediator.createRoom(ctx, 'group', oid, USER_ID, [], { title: 'Room' });
+        let USER2_ID = (await users.createUser(ctx, {email: 'email112'})).id;
+        await users.createUserProfile(ctx, USER2_ID, {firstName: 'User Name'});
+        let oid = (await Modules.Orgs.createOrganization(ctx, USER_ID, {name: '1'})).id;
+        let room = await mediator.createRoom(ctx, 'group', oid, USER_ID, [], {title: 'Room'});
         await expect(mediator.joinRoom(ctx, room.id, USER2_ID, true)).rejects.toThrowError('You can\'t join non-public room');
         let members = await Store.RoomParticipant.active.findAll(ctx, room.id);
         expect(members.length).toBe(1);

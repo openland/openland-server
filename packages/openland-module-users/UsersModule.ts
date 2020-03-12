@@ -1,5 +1,5 @@
 
-import { UserRepository } from './repositories/UserRepository';
+import { AuthInfo, UserRepository } from './repositories/UserRepository';
 import { userProfileIndexer } from './workers/userProfileIndexer';
 import { UserSearch } from './search/UserSearch';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
@@ -35,8 +35,8 @@ export class UsersModule {
         }
     }
 
-    async createUser(ctx: Context, authId: string, email: string) {
-        return this.repo.createUser(ctx, authId, email);
+    async createUser(ctx: Context, authInfo: AuthInfo) {
+        return this.repo.createUser(ctx, authInfo);
     }
 
     async activateUser(parent: Context, uid: number, sendEmail: boolean, invitedBy: number | null = null) {
@@ -142,7 +142,10 @@ export class UsersModule {
 
     async isTest(ctx: Context, uid: number) {
         let user = await this.repo.findUser(ctx, uid);
-        return user ? user.email.endsWith('maildu.de') : false;
+        if (user && user.email?.endsWith('maildu.de')) {
+            return true;
+        }
+        return false;
     }
 
     async markForUndexing(ctx: Context, uid: number) {

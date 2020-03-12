@@ -19,38 +19,37 @@ describe('UserRepository', () => {
 
     it('should create users', async () => {
         let repo = container.get<UserRepository>('UserRepository');
-        let res = await repo.createUser(createNamedContext('test'), 'usertestauth1', 'someemail4411@open.com');
-        expect(res.authId).toEqual('usertestauth1');
+        let res = await repo.createUser(createNamedContext('test'), {email: 'someemail4411@open.com'});
         expect(res.email).toEqual('someemail4411@open.com');
         expect(res.status).toEqual('pending');
     });
 
-    it('should crash on duplicate authId', async () => {
-        let repo = container.get<UserRepository>('UserRepository');
-        await repo.createUser(createNamedContext('test'), 'usertestauth2', 'someemail44@open.com');
-        await expect(repo.createUser(createNamedContext('test'), 'usertestauth2', 'someemail3@open.com'))
-            .rejects.toThrowError();
-    });
+    // it('should crash on duplicate authId', async () => {
+    //     let repo = container.get<UserRepository>('UserRepository');
+    //     await repo.createUser(createNamedContext('test'), {email: 'someemail44@open.com'});
+    //     await expect(repo.createUser(createNamedContext('test'), 'usertestauth2', 'someemail3@open.com'))
+    //         .rejects.toThrowError();
+    // });
 
     it('should crash on duplicate email', async () => {
         let repo = container.get<UserRepository>('UserRepository');
-        await repo.createUser(createNamedContext('test'), 'usertestauth244', 'someemail22@open.com');
-        await expect(repo.createUser(createNamedContext('test'), 'usertestauth2445', 'someemail22@open.com'))
+        await repo.createUser(createNamedContext('test'), {email: 'someemail22@open.com'});
+        await expect(repo.createUser(createNamedContext('test'), {email: 'someemail22@open.com'}))
             .rejects.toThrowError();
     });
 
-    it('should allow on duplicate authId for deleted accounts', async () => {
+    it('should allow on duplicate email for deleted accounts', async () => {
         let repo = container.get<UserRepository>('UserRepository');
-        let r = await repo.createUser(createNamedContext('test'), 'usertestauth3', 'someemail@open.com');
+        let r = await repo.createUser(createNamedContext('test'), {email:  'someemail@open.com'});
         r = await repo.deleteUser(createNamedContext('test'), r.id);
         expect(r.status).toEqual('deleted');
 
         // Should be deleted from index
-        let tr = await Store.User.authId.find(createNamedContext('test'), 'usertestauth3');
+        let tr = await Store.User.email.find(createNamedContext('test'), 'someemail@open.com');
         expect(tr).toBeNull();
 
         // Should create new user
-        let r2 = await repo.createUser(createNamedContext('test'), 'usertestauth3', 'someemail3@open.com');
+        let r2 = await repo.createUser(createNamedContext('test'), {email:  'someemail@open.com'});
         expect(r2).not.toBe(r.id);
     });
 });

@@ -55,7 +55,7 @@ const randStr = () => (Math.random() * Math.pow(2, 55)).toString(16);
 export async function randomTestUser(ctx: Context) {
     let users = container.get<UsersModule>(UsersModule);
     let email = 'test' + randStr() + '@openland.com';
-    let uid = (await users.createUser(ctx, 'user' + randStr(), email)).id;
+    let uid = (await users.createUser(ctx, {email})).id;
     await users.createUserProfile(ctx, uid, { firstName: 'User Name' + Math.random() });
     return { uid, email };
 }

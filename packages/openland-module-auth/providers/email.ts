@@ -94,18 +94,7 @@ export function withAudit(handler: (req: express.Request, response: express.Resp
 }
 
 async function findUserByEmail(ctx: Context, email: string) {
-    let existing = await Promise.all([
-        Store.User.authId.find(ctx, 'email|' + email),
-        Store.User.email.find(ctx, email)
-    ]);
-
-    if (existing[0]) {
-        return existing[0];
-    } else if (existing[1]) {
-        return existing[1];
-    } else {
-        return null;
-    }
+    return await Store.User.email.find(ctx, email);
 }
 
 export async function sendCode(req: express.Request, response: express.Response) {
@@ -310,7 +299,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
                 authSession.enabled = false;
                 return;
             } else {
-                let user = await Modules.Users.createUser(ctx, 'email|' + authSession.email, authSession.email as string);
+                let user = await Modules.Users.createUser(ctx, {email: authSession.email.toLowerCase()});
                 await Modules.Hooks.onSignUp(ctx, user.id);
                 let token = await Modules.Auth.createToken(ctx, user.id!);
                 response.json({ ok: true, accessToken: token.salt });

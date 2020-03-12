@@ -12,7 +12,7 @@ import { Store } from 'openland-module-db/FDB';
 
 describe('OrganizationRepository', () => {
     async function createUser(ctx: Context, index: number) {
-        let user = await Modules.Users.createUser(ctx, 'testtoken' + index, index + 'some@email.comn');
+        let user = await Modules.Users.createUser(ctx, {email: index + 'some@email.comn'});
         await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
         return user;
     }
