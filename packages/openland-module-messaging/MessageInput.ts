@@ -11,6 +11,8 @@ export type MessageButton = {
     title: string;
     style: 'DEFAULT' | 'LIGHT' | 'PAY';
     url: string | null;
+    price: number | null;
+    interval: 'week' | 'month' | null;
 };
 
 export type MessageKeyboard = {

@@ -30,8 +30,14 @@ export default declareSchema(() => {
 
     entity('User', () => {
         primaryKey('id', integer());
+
+        // supposed to be unique auth id ( 'email|some@email.com', 'google|$user_id$' )
+        // but over time many junk records was made ( like bare google $user_id$, etc. )
+        // so authId is considered to be deprecated and now contains random unique uuid
         field('authId', string());
-        field('email', string());
+        field('email', optional(string()));
+        field('googleId', optional(string()));
+
         field('isBot', boolean());
         field('invitedBy', optional(integer()));
         field('botOwner', optional(integer()));
@@ -39,7 +45,8 @@ export default declareSchema(() => {
         field('status', enumString('pending', 'activated', 'suspended', 'deleted'));
 
         uniqueIndex('authId', ['authId']).withCondition(src => src.status !== 'deleted');
-        uniqueIndex('email', ['email']).withCondition(src => src.status !== 'deleted');
+        uniqueIndex('email', ['email']).withCondition(src => (!!src.email) && src.status !== 'deleted');
+        uniqueIndex('googleId', ['googleId']).withCondition(src => (!!src.googleId) && src.status !== 'deleted');
         rangeIndex('owner', ['botOwner', 'id']).withCondition(src => src.botOwner);
         rangeIndex('superBots', []).withCondition(src => src.isBot === true && src.isSuperBot);
     });
@@ -385,7 +392,11 @@ export default declareSchema(() => {
                 titleLinkHostname: optional(string()),
                 keyboard: optional(struct({
                     buttons: array(array(struct({
-                        title: string(), style: enumString('DEFAULT', 'LIGHT', 'PAY'), url: optional(string()),
+                        title: string(), 
+                        style: enumString('DEFAULT', 'LIGHT', 'PAY'), 
+                        url: optional(string()), 
+                        price: optional(integer()), 
+                        interval: optional(enumString('week', 'month'))
                     }))),
                 })),
                 socialImage: optional(ImageRef),
@@ -491,7 +502,11 @@ export default declareSchema(() => {
                 titleLinkHostname: optional(string()),
                 keyboard: optional(struct({
                     buttons: array(array(struct({
-                        title: string(), style: enumString('DEFAULT', 'LIGHT', 'PAY'), url: optional(string()),
+                        title: string(), 
+                        style: enumString('DEFAULT', 'LIGHT', 'PAY'), 
+                        url: optional(string()), 
+                        price: optional(integer()), 
+                        interval: optional(enumString('week', 'month'))
                     }))),
                 })),
                 socialImage: optional(ImageRef),
@@ -575,7 +590,11 @@ export default declareSchema(() => {
                 titleLinkHostname: optional(string()),
                 keyboard: optional(struct({
                     buttons: array(array(struct({
-                        title: string(), style: enumString('DEFAULT', 'LIGHT', 'PAY'), url: optional(string()),
+                        title: string(), 
+                        style: enumString('DEFAULT', 'LIGHT', 'PAY'), 
+                        url: optional(string()), 
+                        price: optional(integer()), 
+                        interval: optional(enumString('week', 'month'))
                     }))),
                 })),
                 socialImage: optional(ImageRef),

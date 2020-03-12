@@ -10,6 +10,7 @@ import { AuthCodeSession, UserProfile } from 'openland-module-db/store';
 import { calculateBase64len } from '../../openland-utils/base64';
 import { emailValidator } from '../../openland-utils/NewInputValidator';
 import { Context, createNamedContext } from '@openland/context';
+import { createPersistenceThrottle } from '../../openland-utils/PersistenceThrottle';
 
 const rootCtx = createNamedContext('auth-email');
 
@@ -67,6 +68,8 @@ const checkSession = (session: any) => typeof session === 'string' && session.le
 
 const checkAuthToken = (session: any) => typeof session === 'string' && session.length === calculateBase64len(64);
 
+const emailThrottle = createPersistenceThrottle('auth_email');
+
 export function withAudit(handler: (req: express.Request, response: express.Response) => void) {
     return async (req: express.Request, response: express.Response) => {
         let oldEnd = response.end;
@@ -91,18 +94,7 @@ export function withAudit(handler: (req: express.Request, response: express.Resp
 }
 
 async function findUserByEmail(ctx: Context, email: string) {
-    let existing = await Promise.all([
-        Store.User.authId.find(ctx, 'email|' + email),
-        Store.User.email.find(ctx, email)
-    ]);
-
-    if (existing[0]) {
-        return existing[0];
-    } else if (existing[1]) {
-        return existing[1];
-    } else {
-        return null;
-    }
+    return await Store.User.email.find(ctx, email);
 }
 
 export async function sendCode(req: express.Request, response: express.Response) {
@@ -119,7 +111,7 @@ export async function sendCode(req: express.Request, response: express.Response)
                 return;
             }
 
-            let existing = await Modules.Auth.findAuthSession(ctx, session);
+            let existing = await Modules.Auth.findEmailAuthSession(ctx, session);
             if (!existing) {
                 sendError(response, 'session_not_found');
                 return;
@@ -142,7 +134,7 @@ export async function sendCode(req: express.Request, response: express.Response)
 
             email = (email as string).toLowerCase().trim();
 
-            let nextEmailTime = await Modules.Auth.nextAuthEmailTime(ctx, email);
+            let nextEmailTime = await emailThrottle.nextFireTimeout(ctx, email);
             if (nextEmailTime > 0) {
                 sendError(response, 'too_many_attempts', { can_send_next_email_at: nextEmailTime });
                 return;
@@ -153,7 +145,7 @@ export async function sendCode(req: express.Request, response: express.Response)
 
             if (!isTest) {
                 await Emails.sendActivationCodeEmail(ctx, email, code, !!existing);
-                await Modules.Auth.onAuthEmailSent(ctx, email);
+                await emailThrottle.onFire(ctx, email);
             } else {
                 code = testEmailCode(email);
             }
@@ -217,7 +209,7 @@ export async function checkCode(req: express.Request, response: express.Response
     }
 
     let res = await inTx(rootCtx, async (ctx) => {
-        let authSession = await Modules.Auth.findAuthSession(ctx, session);
+        let authSession = await Modules.Auth.findEmailAuthSession(ctx, session);
 
         // No session found
         if (!authSession) {
@@ -279,7 +271,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
     }
 
     await inTx(rootCtx, async (ctx) => {
-        let authSession = await Modules.Auth.findAuthSession(ctx, session);
+        let authSession = await Modules.Auth.findEmailAuthSession(ctx, session);
 
         // No session found
         if (!authSession) {
@@ -299,7 +291,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
 
         if (authSession.email) {
             let email = authSession.email.toLowerCase();
-            await Modules.Auth.onAuthCodeUsed(ctx, email);
+            await emailThrottle.release(ctx, email);
             let existing = await findUserByEmail(ctx, email);
             if (existing) {
                 let token = await Modules.Auth.createToken(ctx, existing.id!);
@@ -307,7 +299,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
                 authSession.enabled = false;
                 return;
             } else {
-                let user = await Modules.Users.createUser(ctx, 'email|' + authSession.email, authSession.email as string);
+                let user = await Modules.Users.createUser(ctx, {email: authSession.email.toLowerCase()});
                 await Modules.Hooks.onSignUp(ctx, user.id);
                 let token = await Modules.Auth.createToken(ctx, user.id!);
                 response.json({ ok: true, accessToken: token.salt });

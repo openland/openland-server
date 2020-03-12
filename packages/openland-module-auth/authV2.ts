@@ -19,7 +19,7 @@ const logger = createLogger('auth-v2');
 
 export const JWTChecker = jwt({
     // Dynamically provide a signing key
-    // based on the kid in the header and 
+    // based on the kid in the header and
     // the singing keys provided by the JWKS endpoint.
     secret: (<any>jwksRsa).expressJwtSecret({
         cache: true,
@@ -95,7 +95,7 @@ export const Authenticator = async function (req: express.Request, response: exp
             // Account
             let user = await Store.User.email.find(ctx, profile.email.toLowerCase());
             if (!user) {
-                user = await Modules.Users.createUser(ctx, userKey, profile.email);
+                user = await Modules.Users.createUser(ctx, {email: profile.email.toLowerCase(), googleId: userKey});
                 await Modules.Hooks.onSignUp(ctx, user!.id);
             }
 

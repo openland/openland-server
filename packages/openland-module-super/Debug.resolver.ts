@@ -917,7 +917,7 @@ export const Resolver: GQLResolver = {
                 let users: number[] = [];
                 for (let i = 0; i <= args.membersCount; i++) {
                     let key = randKey();
-                    let user = await Modules.Users.createUser(ctx, key, key + '@openland.com');
+                    let user = await Modules.Users.createUser(ctx, {email: key + '@openland.com'});
                     await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Test', lastName: '#' + key });
                     users.push(user.id);
                 }

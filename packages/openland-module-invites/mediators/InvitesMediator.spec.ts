@@ -43,7 +43,7 @@ describe('InvitesMediator', () => {
     it('should add to channel via invite', async () => {
         let ctx = createNamedContext('test');
         let USER_ID = (await randomTestUser(ctx)).uid;
-        let USER2_ID = (await users.createUser(ctx, 'user112', 'email112')).id;
+        let USER2_ID = (await users.createUser(ctx, {email: 'email112'})).id;
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
         let oid = (await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' })).id;
 
@@ -72,7 +72,7 @@ describe('InvitesMediator', () => {
 
     it('should activate via invite', async () => {
         let ctx = createNamedContext('test');
-        let USER_ID = (await users.createUser(ctx, 'user_app_1', 'email_app_1')).id;
+        let USER_ID = (await users.createUser(ctx, {email: 'email_app_1'})).id;
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
 
         let USER_ORG_ID = (await orgs.createOrganization(ctx, USER_ID, { name: 'ACME' })).id;
@@ -95,8 +95,8 @@ describe('InvitesMediator', () => {
 
     it('should add to organization via email invite', async () => {
         let ctx = createNamedContext('test');
-        let USER_ID = (await users.createUser(ctx, 'user_org_1', 'email_org_1')).id;
-        let USER2_ID = (await users.createUser(ctx, 'user_org_2', 'email_org_2')).id;
+        let USER_ID = (await users.createUser(ctx, {email: 'email_org_1'})).id;
+        let USER2_ID = (await users.createUser(ctx, {email: 'email_org_2'})).id;
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
 
@@ -125,8 +125,8 @@ describe('InvitesMediator', () => {
 
     it('should add to organization via public invite', async () => {
         let ctx = createNamedContext('test');
-        let USER_ID = (await users.createUser(ctx, 'user_org_p_1', 'email_org_p_1')).id;
-        let USER2_ID = (await users.createUser(ctx, 'user_org_p_2', 'email_org_p_2')).id;
+        let USER_ID = (await users.createUser(ctx, {email: 'email_org_p_1'})).id;
+        let USER2_ID = (await users.createUser(ctx, {email: 'email_org_p_2'})).id;
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
 
