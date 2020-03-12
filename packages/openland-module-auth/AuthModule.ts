@@ -1,26 +1,24 @@
 import { AuthCodeRepository } from './repositories/AuthCodeRepository';
-import { injectable, inject } from 'inversify';
+import { injectable } from 'inversify';
 import { TokenRepository } from './repositories/TokenRepository';
 import { Context } from '@openland/context';
-import { createPersistenceThrottle } from '../openland-utils/PersistenceThrottle';
+import { lazyInject } from '../openland-modules/Modules.container';
 
 @injectable()
 export class AuthModule {
-    private readonly codeRepo = new AuthCodeRepository();
+    @lazyInject('AuthCodeRepository')
+    private readonly codeRepo!: AuthCodeRepository;
+    @lazyInject('TokenRepository')
     private readonly tokenRepo!: TokenRepository;
-    private readonly emailThrottle = createPersistenceThrottle('auth_email');
-
-    constructor(
-        @inject('TokenRepository') tokenRepo: TokenRepository
-    ) {
-        this.tokenRepo = tokenRepo;
-    }
 
     start = () => {
         //
     }
 
-    async findAuthSession(ctx: Context, sessionKey: string) {
+    //
+    // Email auth
+    //
+    async findEmailAuthSession(ctx: Context, sessionKey: string) {
         return await this.codeRepo.findSession(ctx, sessionKey);
     }
 
@@ -28,6 +26,9 @@ export class AuthModule {
         return await this.codeRepo.createSession(ctx, email, code);
     }
 
+    //
+    // Auth Tokens management
+    //
     async createToken(ctx: Context, uid: number) {
         return await this.tokenRepo.createToken(ctx, uid);
     }
@@ -42,17 +43,5 @@ export class AuthModule {
 
     async revokeUserTokens(ctx: Context, uid: number) {
         return await this.tokenRepo.revokeUserTokens(ctx, uid);
-    }
-
-    async nextAuthEmailTime(parent: Context, email: string) {
-        return this.emailThrottle.nextFireTimeout(parent, email);
-    }
-
-    async onAuthEmailSent(parent: Context, email: string)  {
-        return this.emailThrottle.onFire(parent, email);
-    }
-
-    async onAuthCodeUsed(parent: Context, email: string) {
-        return this.emailThrottle.release(parent, email);
     }
 }
