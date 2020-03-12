@@ -11,7 +11,7 @@ import { MessageKeyboard } from '../MessageInput';
 import { Context, createNamedContext } from '@openland/context';
 import { UserProfile } from 'openland-module-db/store';
 import { doSimpleHash } from '../../openland-module-push/workers/PushWorker';
-import { formatMoney } from 'openland-module-wallet/repo/utils/formatMoney';
+import { formatMoneyWithInterval } from 'openland-module-wallet/repo/utils/formatMoney';
 
 export const makePhotoFallback = (id: string, text: string) => ({ photo: 'ph://' + doSimpleHash(id) % 6, text });
 
@@ -217,7 +217,7 @@ export function createUrlInfoService() {
                 return null;
             }
             let membersCount = profile.activeMembersCount || 0;
-            let price = premiumChatSettings && formatMoney(premiumChatSettings.price);
+            let price = premiumChatSettings && formatMoneyWithInterval(premiumChatSettings.price, premiumChatSettings.interval);
 
             return {
                 url,
