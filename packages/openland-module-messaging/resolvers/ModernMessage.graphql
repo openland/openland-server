@@ -231,6 +231,8 @@ type ModernMessageButton {
     title: String!
     style: ModernMessageButtonStyle!
     url: String
+    price: Int
+    interval: WalletSubscriptionInterval
 }
 
 enum ModernMessageButtonStyle {
