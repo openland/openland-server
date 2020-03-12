@@ -1169,7 +1169,7 @@ export const Resolver: GQLResolver = {
                             message: p, chat: p!.cid,
                         },
                         cursor: IDs.Message.serialize(p.id),
-                        index: i + offset + 1
+                        index: total - i + offset
                     };
                 }), pageInfo: {
                     hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
