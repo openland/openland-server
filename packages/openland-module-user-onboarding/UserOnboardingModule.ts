@@ -38,7 +38,7 @@ const templates: { [T in Template]: (user: UserProfile) => { type: string, messa
                 }
             }
         ],
-        keyboard: { buttons: [[{ title: 'Discover chats', url: '/onboarding_discover', style: 'DEFAULT', price: null, interval: null }]] }
+        keyboard: { buttons: [[{ title: 'Discover chats', url: '/onboarding_discover', style: 'DEFAULT' }]] }
     }),
     writeFirstMessage: (user: UserProfile) => ({
         type: 'sendFirstMessage',
@@ -61,7 +61,7 @@ const templates: { [T in Template]: (user: UserProfile) => { type: string, messa
                 }
             }
         ],
-        keyboard: { buttons: [[{ title: 'Share your challenges', url: '/onboarding_send_first_message', style: 'DEFAULT', price: null, interval: null }]] }
+        keyboard: { buttons: [[{ title: 'Share your challenges', url: '/onboarding_send_first_message', style: 'DEFAULT' }]] }
     }),
     inviteFriends: (user: UserProfile) => ({
         type: 'invite',
@@ -84,7 +84,7 @@ const templates: { [T in Template]: (user: UserProfile) => { type: string, messa
                 }
             }
         ],
-        keyboard: { buttons: [[{ title: 'Invite friends', url: '/onboarding_invite', style: 'DEFAULT', price: null, interval: null }]] }
+        keyboard: { buttons: [[{ title: 'Invite friends', url: '/onboarding_invite', style: 'DEFAULT' }]] }
     }),
     installApps: (user: UserProfile) => ({
         type: 'installApps',
@@ -107,7 +107,7 @@ const templates: { [T in Template]: (user: UserProfile) => { type: string, messa
                 }
             },
         ],
-        keyboard: { buttons: [[{ title: 'Install apps', url: '/onboarding_apps', style: 'DEFAULT', price: null, interval: null }]] }
+        keyboard: { buttons: [[{ title: 'Install apps', url: '/onboarding_apps', style: 'DEFAULT' }]] }
     }),
 };
 const q = new WorkQueue<{ uid: number, type: DelayedEvents }, { result: string }>('onboarding-delayed');

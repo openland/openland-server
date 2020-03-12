@@ -169,7 +169,7 @@ export class MatchmakingMediator {
             imagePreview: user!.picture ? await Modules.Media.fetchLowResPreview(ctx, user!.picture.uuid) : null,
             keyboard: {
                 buttons: [[
-                    { title: 'View details', style: 'DEFAULT', url: `https://openland.com/group/${id}/user/${IDs.User.serialize(uid)}`, price: null, interval: null },
+                    { title: 'View details', style: 'DEFAULT', url: `https://openland.com/group/${id}/user/${IDs.User.serialize(uid)}` },
                 ]],
             },
             socialImage: null,

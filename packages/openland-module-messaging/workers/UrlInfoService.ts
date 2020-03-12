@@ -122,7 +122,7 @@ const getURLAugmentationForUser = async ({ hostname, url, userId, user }: { host
         iconInfo: null,
         keyboard: {
             buttons: [[
-                { title: 'Message', style: 'DEFAULT', url: `https://openland.com/mail/${IDs.User.serialize(userId)}`, price: null, interval: null },
+                { title: 'Message', style: 'DEFAULT', url: `https://openland.com/mail/${IDs.User.serialize(userId)}` },
                 // { title: 'View profile', style: 'DEFAULT', url },
             ]]
         },
@@ -217,9 +217,7 @@ export function createUrlInfoService() {
                 return null;
             }
             let membersCount = profile.activeMembersCount || 0;
-            let formattedPrice = premiumChatSettings && formatMoneyWithInterval(premiumChatSettings.price, premiumChatSettings.interval);
-            let price = premiumChatSettings && premiumChatSettings.price;
-            let interval = premiumChatSettings && premiumChatSettings.interval;
+            let price = premiumChatSettings && formatMoneyWithInterval(premiumChatSettings.price, premiumChatSettings.interval);
 
             return {
                 url,
@@ -234,7 +232,7 @@ export function createUrlInfoService() {
                 iconInfo: null,
                 keyboard: {
                     buttons: [[
-                        { title: formattedPrice || 'Join chat', style: premiumChatSettings ? 'PAY' : 'DEFAULT', url, price, interval }
+                        { title: price || 'Join chat', style: price ? 'PAY' : 'DEFAULT', url }
                     ]]
                 },
                 photoFallback: makePhotoFallback(IDs.Conversation.serialize(profile.id), profile.title || 'deleted'),
