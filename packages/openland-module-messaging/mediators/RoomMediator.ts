@@ -77,6 +77,12 @@ export class RoomMediator {
             }
 
             let isPublic = conv.kind === 'public' && (conv.oid && (await Store.Organization.findById(ctx, conv.oid))!.kind === 'community');
+            if (conv.oid) {
+                let org = (await Store.Organization.findById(ctx, conv.oid))!;
+                if (org.kind !== 'community' || org.private) {
+                    isPublic = false;
+                }
+            }
             let isMemberOfOrg = (conv.oid && await Modules.Orgs.isUserMember(ctx, uid, conv.oid)) || false;
             if (!isPublic && !invited && !isMemberOfOrg) {
                 throw new UserError('You can\'t join non-public room');
