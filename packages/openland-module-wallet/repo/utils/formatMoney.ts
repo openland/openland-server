@@ -9,7 +9,7 @@ export const formatMoney = (amount: number) => {
     if (c < 10) {
         cs = '0' + cs;
     }
-    return '$' + (amount < 0 ? '-' : '') + (d.toString() + '.' + cs);
+    return '$' + (amount < 0 ? '-' : '') + (d.toString() + ((cs === '00') ? '' : ('.' + cs)));
 };
 
 type PremiumInterval = 'month' | 'week';
