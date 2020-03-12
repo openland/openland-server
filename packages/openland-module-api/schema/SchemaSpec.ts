@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'de5070ecc8f767f19d31744ab7410187';
+export const GQL_SPEC_VERSION = '8c0d41f6377739f2bf9e4bee38ce35f2';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3708,7 +3708,7 @@ export namespace GQL {
         gammaMessages: Nullable<GammaMessagesBatch>;
         message: Nullable<ModernMessage>;
         lastReadedMessage: Nullable<ModernMessage>;
-        chatSharedMedia: MessageConnection;
+        chatSharedMedia: SharedMediaConnection;
         chatSharedMediaCounters: SharedMediaCounters;
         room: Nullable<Room>;
         rooms: Room[];
@@ -4124,6 +4124,8 @@ export namespace GQL {
         mediaTypes: SharedMediaType[];
         first: number;
         after: OptionalNullable<string>;
+        before: OptionalNullable<string>;
+        around: OptionalNullable<string>;
     }
     export interface QueryChatSharedMediaCountersArgs {
         chatId: string;
@@ -4852,6 +4854,20 @@ export namespace GQL {
     export interface SharedMediaCountersImagesArgs { }
     export interface SharedMediaCountersDocumentsArgs { }
     export interface SharedMediaCountersVideosArgs { }
+    export interface SharedMediaMessageEdge {
+        node: MessageWithChat;
+        cursor: string;
+        index: number;
+    }
+    export interface SharedMediaMessageEdgeNodeArgs { }
+    export interface SharedMediaMessageEdgeCursorArgs { }
+    export interface SharedMediaMessageEdgeIndexArgs { }
+    export interface SharedMediaConnection {
+        edges: SharedMediaMessageEdge[];
+        pageInfo: PageInfo;
+    }
+    export interface SharedMediaConnectionEdgesArgs { }
+    export interface SharedMediaConnectionPageInfoArgs { }
     export interface ImageFallback {
         photo: string;
         text: string;
@@ -8437,7 +8453,7 @@ export interface GQLResolver {
             gammaMessages: Nullable<GQLRoots.GammaMessagesBatchRoot>,
             message: Nullable<GQLRoots.ModernMessageRoot>,
             lastReadedMessage: Nullable<GQLRoots.ModernMessageRoot>,
-            chatSharedMedia: GQLRoots.MessageConnectionRoot,
+            chatSharedMedia: GQLRoots.SharedMediaConnectionRoot,
             chatSharedMediaCounters: GQLRoots.SharedMediaCountersRoot,
             room: Nullable<GQLRoots.RoomRoot>,
             rooms: GQLRoots.RoomRoot[],
@@ -9314,6 +9330,30 @@ export interface GQLResolver {
             images: GQL.SharedMediaCountersImagesArgs,
             documents: GQL.SharedMediaCountersDocumentsArgs,
             videos: GQL.SharedMediaCountersVideosArgs,
+        }
+    >;
+    SharedMediaMessageEdge?: ComplexTypedResolver<
+        GQL.SharedMediaMessageEdge,
+        GQLRoots.SharedMediaMessageEdgeRoot,
+        {
+            node: GQLRoots.MessageWithChatRoot,
+        },
+        {
+            node: GQL.SharedMediaMessageEdgeNodeArgs,
+            cursor: GQL.SharedMediaMessageEdgeCursorArgs,
+            index: GQL.SharedMediaMessageEdgeIndexArgs,
+        }
+    >;
+    SharedMediaConnection?: ComplexTypedResolver<
+        GQL.SharedMediaConnection,
+        GQLRoots.SharedMediaConnectionRoot,
+        {
+            edges: GQLRoots.SharedMediaMessageEdgeRoot[],
+            pageInfo: GQLRoots.PageInfoRoot,
+        },
+        {
+            edges: GQL.SharedMediaConnectionEdgesArgs,
+            pageInfo: GQL.SharedMediaConnectionPageInfoArgs,
         }
     >;
     ImageFallback?: ComplexTypedResolver<
