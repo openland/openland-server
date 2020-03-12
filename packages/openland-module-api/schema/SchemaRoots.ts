@@ -441,7 +441,9 @@ export namespace GQLRoots {
     //
     export type GlobalSearchEntryRoot = User | Organization | Conversation;
     export type MessageEdgeRoot = { node: MessageWithChatRoot, cursor: string };
+    export type SharedMediaMessageEdgeRoot = MessageEdgeRoot & { index: number };
     export type MessageConnectionRoot = { edges: MessageEdgeRoot[], pageInfo: PageInfoRoot };
+    export type SharedMediaConnectionRoot = { edges: SharedMediaMessageEdgeRoot[], pageInfo: PageInfoRoot };
     export type MessageWithChatRoot = { message: Message, chat: RoomRoot };
     export type GlobalSearchConnectionRoot = { globalItems: GlobalSearchEntryRoot[], localItems: User[], cursor?: string };
     export type GlobalSearchEntryKindRoot = GlobalSearchEntryKindValues;

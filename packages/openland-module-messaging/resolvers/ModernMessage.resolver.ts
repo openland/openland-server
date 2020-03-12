@@ -33,6 +33,7 @@ import ModernMessageRoot = GQLRoots.ModernMessageRoot;
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { isDefined } from '../../openland-utils/misc';
 import MessageReactionTypeRoot = GQLRoots.MessageReactionTypeRoot;
+import { InvalidInputError } from '../../openland-errors/InvalidInputError';
 
 export function hasMention(message: Message | RichMessage, uid: number) {
     if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
@@ -1109,41 +1110,70 @@ export const Resolver: GQLResolver = {
             };
 
             const mediaTypesTerms = args.mediaTypes.map(type => ({term: termByType[type]}));
-
-            const clauses = [
+            const clauses: any[] = [
                 {term: {cid: chatId}},
                 {bool: {should: mediaTypesTerms}},
-                {term: {deleted: false}}
+                {term: {deleted: false}},
             ];
 
-            let hits = await Modules.Search.elastic.client.search({
-                index: 'message',
-                type: 'message',
-                size: args.first,
-                from: args.after ? parseInt(args.after, 10) : 0,
-                body: {
-                    sort: [{createdAt: 'desc'}],
-                    query: {bool: {must: clauses}},
-                },
+            if ([args.before, args.around, args.after].filter(a => !!a).length > 1) {
+                throw new InvalidInputError([{ key: 'after', message: 'Only one field of after/before/around should be specified' }]);
+            }
+            let cursor = 1000000000;
+            if (args.before || args.after || args.around) {
+                cursor = IDs.Message.parse((args.before || args.around || args.after)!);
+            }
+
+            let queries: any[];
+            const buildQuery = (size: number, query: any) => {
+                return [
+                    { index: 'message', type: 'message' },
+                    { size: size, sort: [{createdAt: 'desc'}], query: query }
+                ];
+            };
+
+            if (args.before) {
+                queries = [
+                    ...buildQuery(args.first, { bool: { must: [...clauses, { range: { id: { gt: cursor } }}] } }),
+                    ...buildQuery(0, { bool: { must: [...clauses, { range: { id: { lte: cursor } }}] } })
+                ];
+            } else if (args.around) {
+                queries = [
+                    ...buildQuery(args.first, { bool: { must: [...clauses, { range: { id: { gt: cursor } }}] } }),
+                    ...buildQuery(args.first + 1, { bool: { must: [...clauses, { range: { id: { lte: cursor } }}] } })
+                ];
+            } else {
+                queries = [
+                    ...buildQuery(0, { bool: { must: [...clauses, { range: { id: { gte: cursor } }}] } }),
+                    ...buildQuery(args.first, { bool: { must: [...clauses, { range: { id: { lt: cursor } }}] } }),
+                ];
+            }
+
+            let hits = await Modules.Search.elastic.client.msearch({
+                body: queries
             });
 
-            let messages: (Message | null)[] = await Promise.all(hits.hits.hits.map((v) => Store.Message.findById(ctx, parseInt(v._id, 10))));
-            let offset = 0;
-            if (args.after) {
-                offset = parseInt(args.after, 10);
-            }
-            let total = hits.hits.total;
+            let summaryHits = hits.responses!.reduce<{ hits: any[], total: number }>(
+                (acc, val) => ({ hits: acc.hits.concat(val.hits.hits), total: acc.total + val.hits.total }), { hits: [], total: 0 });
 
+            let messages: (Message | null)[] = await Promise.all(summaryHits.hits.map((v) => Store.Message.findById(ctx, parseInt(v._id, 10))));
+            let offset = hits.responses![0].hits.total;
+            if (args.around || args.before) {
+                offset = Math.max(0, offset - args.first);
+            }
+            let total = summaryHits.total;
             return {
                 edges: messages.filter(isDefined).map((p, i) => {
                     return {
                         node: {
                             message: p, chat: p!.cid,
-                        }, cursor: (i + 1 + offset).toString(),
+                        },
+                        cursor: IDs.Message.serialize(p.id),
+                        index: i + offset + 1
                     };
                 }), pageInfo: {
                     hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
-                    hasPreviousPage: false,
+                    hasPreviousPage: offset >= args.first,
 
                     itemsCount: total,
                     pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
