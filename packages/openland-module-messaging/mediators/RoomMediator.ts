@@ -78,7 +78,7 @@ export class RoomMediator {
                 throw new NotFoundError();
             }
 
-            let isPublic = conv.kind === 'public' && (conv.oid && (await Store.Organization.findById(ctx, conv.oid))!.kind === 'community');
+            let isPublic = conv.kind === 'public';
             if (conv.oid) {
                 let org = (await Store.Organization.findById(ctx, conv.oid))!;
                 if (org.kind !== 'community' || org.private) {
