@@ -1121,7 +1121,7 @@ export const Resolver: GQLResolver = {
             }
             let cursor = 1000000000;
             if (args.before || args.after || args.around) {
-                cursor = IDs.Message.parse((args.before || args.around || args.after)!);
+                cursor = IDs.ConversationMessage.parse((args.before || args.around || args.after)!);
             }
 
             let queries: any[];
@@ -1168,7 +1168,7 @@ export const Resolver: GQLResolver = {
                         node: {
                             message: p, chat: p!.cid,
                         },
-                        cursor: IDs.Message.serialize(p.id),
+                        cursor: IDs.ConversationMessage.serialize(p.id),
                         index: total - i + offset
                     };
                 }), pageInfo: {
