@@ -574,6 +574,8 @@ export class RoomMediator {
                     isService: true,
                 }, true);
             }
+
+            await this.markChatForIndexing(ctx, cid);
         });
     }
 
