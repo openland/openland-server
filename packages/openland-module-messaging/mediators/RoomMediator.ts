@@ -63,6 +63,8 @@ export class RoomMediator {
             if (message) {
                 await this.messaging.sendMessage(ctx, uid, res.id, { message: message });
             }
+
+            await Modules.Hooks.onRoomCreate(ctx, uid, res.id, price, kind);
             return res;
         });
     }
@@ -76,7 +78,7 @@ export class RoomMediator {
                 throw new NotFoundError();
             }
 
-            let isPublic = conv.kind === 'public' && (conv.oid && (await Store.Organization.findById(ctx, conv.oid))!.kind === 'community');
+            let isPublic = conv.kind === 'public';
             if (conv.oid) {
                 let org = (await Store.Organization.findById(ctx, conv.oid))!;
                 if (org.kind !== 'community' || org.private) {

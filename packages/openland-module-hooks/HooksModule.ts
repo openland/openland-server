@@ -5,7 +5,7 @@ import { Context } from '@openland/context';
 import { IDs } from '../openland-module-api/IDs';
 import { Store } from '../openland-module-db/FDB';
 import { AppHook } from 'openland-module-db/store';
-import { boldString, buildMessage, orgMention, userMention } from '../openland-utils/MessageBuilder';
+import { boldString, buildMessage, orgMention, roomMention, userMention } from '../openland-utils/MessageBuilder';
 
 const profileUpdated = createHyperlogger<{ uid: number }>('profile-updated');
 const organizationProfileUpdated = createHyperlogger<{ oid: number }>('organization-profile-updated');
@@ -14,6 +14,7 @@ const successfulInvite = createHyperlogger<{ uid: number, invitedBy: number }>('
 
 const getSuperNotificationsBotId = async (ctx: Context) => await Modules.Super.getEnvVar<number>(ctx, 'super-notifications-app-id');
 const getSuperNotificationsChatId = async (ctx: Context) => await Modules.Super.getEnvVar<number>(ctx, 'super-notifications-chat-id');
+const getPaymentsNotificationsChatId = async (ctx: Context) => await Modules.Super.getEnvVar<number>(ctx, 'payments-notifications-chat-id');
 
 @injectable()
 export class HooksModule {
@@ -227,5 +228,44 @@ export class HooksModule {
 
     onOrgJoin = async (ctx: Context, oid: number, uid: number) => {
         await Modules.Feed.onAutoSubscriptionPeerNewMember(ctx, uid, 'organization', oid);
+    }
+
+    onPaymentSuccess = async (ctx: Context, uid: number, amount: number) => {
+        let botId = await getSuperNotificationsBotId(ctx);
+        let chatId = await getPaymentsNotificationsChatId(ctx);
+
+        if (!botId || !chatId) {
+            return;
+        }
+        let userName = await Modules.Users.getUserFullName(ctx, uid);
+
+        await Modules.Messaging.sendMessage(ctx, chatId, botId, {
+            ...buildMessage(`New payment: `, boldString(amount.toString()), ' from ', userMention(userName, uid)),
+            ignoreAugmentation: true,
+        });
+    }
+
+    onRoomCreate = async (ctx: Context, uid: number, cid: number, price: number | undefined, kind: 'group' | 'public') => {
+        if (!price) {
+            return;
+        }
+
+        let botId = await getSuperNotificationsBotId(ctx);
+        let chatId = await getPaymentsNotificationsChatId(ctx);
+
+        if (!botId || !chatId) {
+            return;
+        }
+        let userName = await Modules.Users.getUserFullName(ctx, uid);
+
+        let room = await Store.RoomProfile.findById(ctx, cid);
+        if (!room) {
+            return;
+        }
+
+        await Modules.Messaging.sendMessage(ctx, chatId, botId, {
+            ...buildMessage(`New ${kind === 'public' ? 'public' : 'private'} pro group: `, roomMention(room.title, cid), ' from ', userMention(userName, uid)),
+            ignoreAugmentation: true,
+        });
     }
 }

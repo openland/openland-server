@@ -83,4 +83,12 @@ export class HooksModuleMock {
     onOrgJoin = async (ctx: Context, oid: number, uid: number) => {
         // Nothing to do
     }
+
+    onPaymentSuccess = async (ctx: Context, uid: number, amount: number) => {
+        // Nothing to do
+    }
+
+    onRoomCreate = async (ctx: Context, uid: number, cid: number, price: number, kind: 'group' | 'public') => {
+        // Nothing to do
+    }
 }
