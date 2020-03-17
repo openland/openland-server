@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '105c8e75c6a8ee744c31127f6f9e3a5d';
+export const GQL_SPEC_VERSION = '4dd7f383463b9cb2825157db285577c0';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1906,6 +1906,7 @@ export namespace GQL {
         alphaDeleteInvite: string;
         alphaJoinInvite: string;
         joinAppInvite: string;
+        debugSendSMS: boolean;
         debugSerializeId: string;
         debugSendEmail: Nullable<boolean>;
         debugCreateTestUser: User;
@@ -2334,6 +2335,10 @@ export namespace GQL {
     export interface MutationJoinAppInviteArgs {
         key: string;
         isNewUser: OptionalNullable<boolean>;
+    }
+    export interface MutationDebugSendSMSArgs {
+        to: string;
+        message: string;
     }
     export interface MutationDebugSerializeIdArgs {
         id: number;
@@ -7713,6 +7718,7 @@ export interface GQLResolver {
             alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs,
             alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs,
             joinAppInvite: GQL.MutationJoinAppInviteArgs,
+            debugSendSMS: GQL.MutationDebugSendSMSArgs,
             debugSerializeId: GQL.MutationDebugSerializeIdArgs,
             debugSendEmail: GQL.MutationDebugSendEmailArgs,
             debugCreateTestUser: GQL.MutationDebugCreateTestUserArgs,
