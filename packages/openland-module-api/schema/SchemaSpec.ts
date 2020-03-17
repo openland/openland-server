@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '105c8e75c6a8ee744c31127f6f9e3a5d';
+export const GQL_SPEC_VERSION = '001a2f0216cddf01c3b400772e595e19';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1906,6 +1906,7 @@ export namespace GQL {
         alphaDeleteInvite: string;
         alphaJoinInvite: string;
         joinAppInvite: string;
+        debugSendSMS: boolean;
         debugSerializeId: string;
         debugSendEmail: Nullable<boolean>;
         debugCreateTestUser: User;
@@ -1967,6 +1968,8 @@ export namespace GQL {
         debugRecountSeqForMessages: boolean;
         debugReindexRoomMessagesCounter: boolean;
         settingsUpdate: Settings;
+        sendEmailChangeCode: string;
+        changeEmail: boolean;
         updateSettings: Settings;
         createOauthApp: OauthApp;
         updateOauthApp: OauthApp;
@@ -2335,6 +2338,10 @@ export namespace GQL {
         key: string;
         isNewUser: OptionalNullable<boolean>;
     }
+    export interface MutationDebugSendSMSArgs {
+        to: string;
+        message: string;
+    }
     export interface MutationDebugSerializeIdArgs {
         id: number;
         type: string;
@@ -2444,6 +2451,13 @@ export namespace GQL {
     export interface MutationDebugReindexRoomMessagesCounterArgs { }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
+    }
+    export interface MutationSendEmailChangeCodeArgs {
+        newEmail: string;
+    }
+    export interface MutationChangeEmailArgs {
+        sessionId: string;
+        confirmationCode: string;
     }
     export interface MutationUpdateSettingsArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
@@ -7713,6 +7727,7 @@ export interface GQLResolver {
             alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs,
             alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs,
             joinAppInvite: GQL.MutationJoinAppInviteArgs,
+            debugSendSMS: GQL.MutationDebugSendSMSArgs,
             debugSerializeId: GQL.MutationDebugSerializeIdArgs,
             debugSendEmail: GQL.MutationDebugSendEmailArgs,
             debugCreateTestUser: GQL.MutationDebugCreateTestUserArgs,
@@ -7774,6 +7789,8 @@ export interface GQLResolver {
             debugRecountSeqForMessages: GQL.MutationDebugRecountSeqForMessagesArgs,
             debugReindexRoomMessagesCounter: GQL.MutationDebugReindexRoomMessagesCounterArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
+            sendEmailChangeCode: GQL.MutationSendEmailChangeCodeArgs,
+            changeEmail: GQL.MutationChangeEmailArgs,
             updateSettings: GQL.MutationUpdateSettingsArgs,
             createOauthApp: GQL.MutationCreateOauthAppArgs,
             updateOauthApp: GQL.MutationUpdateOauthAppArgs,

@@ -249,7 +249,18 @@ export const Resolver: GQLResolver = {
     },
     Mutation: {
         settingsUpdate: updateSettingsResolver,
-        updateSettings: updateSettingsResolver
+        updateSettings: updateSettingsResolver,
+
+        sendEmailChangeCode: withUser(async (parent, args, uid) => {
+            return inTx(parent, async ctx => {
+                return await Modules.Auth.authManagement.sendEmailChangeCode(ctx, uid, args.newEmail);
+            });
+        }),
+        changeEmail: withUser(async (parent, args, uid) => {
+            return inTx(parent, async ctx => {
+                return await Modules.Auth.authManagement.changeEmail(ctx, uid, args.sessionId, args.confirmationCode);
+            });
+        })
     },
     Subscription: {
         watchSettings: {

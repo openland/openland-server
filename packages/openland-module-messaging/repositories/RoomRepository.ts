@@ -787,11 +787,11 @@ export class RoomRepository {
         }
 
         //
-        //  Super-admin can do everything (but not now)
+        //  Super-admin can do everything (again)
         //
-        // if ((await Modules.Super.superRole(ctx, uid)) === 'super-admin') {
-        //     return true;
-        // }
+        if ((await Modules.Super.superRole(ctx, uid)) === 'super-admin') {
+            return true;
+        }
 
         //
         //  Org/community admin can manage any chat in that org/community

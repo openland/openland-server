@@ -47,6 +47,7 @@ export function roomsSearchIndexer() {
         .start(async (item, parent) => {
             return await inTx(parent, async (ctx) => {
                 let room = await Store.ConversationRoom.findById(ctx, item.id);
+                let conv = await Store.Conversation.findById(ctx, item.id);
 
                 if (!room) {
                     throw new Error('Room not found');
@@ -61,6 +62,9 @@ export function roomsSearchIndexer() {
 
                 let isListed = room.kind === 'public';
                 if (org && (org.kind !== 'community' || org.private)) {
+                    isListed = false;
+                }
+                if (conv && conv.deleted) {
                     isListed = false;
                 }
 

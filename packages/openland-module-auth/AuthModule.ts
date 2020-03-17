@@ -3,6 +3,7 @@ import { injectable } from 'inversify';
 import { TokenRepository } from './repositories/TokenRepository';
 import { Context } from '@openland/context';
 import { lazyInject } from '../openland-modules/Modules.container';
+import { AuthManagementMediator } from './mediators/AuthManagementMediator';
 
 @injectable()
 export class AuthModule {
@@ -10,6 +11,8 @@ export class AuthModule {
     private readonly codeRepo!: AuthCodeRepository;
     @lazyInject('TokenRepository')
     private readonly tokenRepo!: TokenRepository;
+    @lazyInject('AuthManagementMediator')
+    public readonly authManagement!: AuthManagementMediator;
 
     start = () => {
         //

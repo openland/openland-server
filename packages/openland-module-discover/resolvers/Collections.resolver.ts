@@ -1,6 +1,6 @@
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { IDs } from '../../openland-module-api/IDs';
-import { withUser } from '../../openland-module-api/Resolvers';
+import { withUser, withAny } from '../../openland-module-api/Resolvers';
 import { Modules } from '../../openland-modules/Modules';
 import { Store } from '../../openland-module-db/FDB';
 
@@ -33,7 +33,7 @@ export const Resolver: GQLResolver = {
                 cursor: haveMore ? IDs.DiscoverChatsCollection.serialize(items[items.length - 1].id) : undefined
             };
         }),
-        discoverCollection: withUser(async (ctx, args, uid) => {
+        discoverCollection: withAny(async (ctx, args) => {
             return await Store.EditorsChoiceChatsCollection.findById(ctx, IDs.DiscoverChatsCollection.parse(args.id));
         })
     },
