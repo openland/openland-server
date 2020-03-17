@@ -78,6 +78,9 @@ export class AuthManagementMediator {
                 buttonText: 'contact support'
             });
 
+            // Mark code user
+            await emailChangeCode.onUse(ctx, confirmationCode);
+
             return true;
         });
     }
