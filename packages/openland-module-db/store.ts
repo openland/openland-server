@@ -16622,6 +16622,143 @@ export class ServiceThrottleFactory extends EntityFactory<ServiceThrottleShape, 
     }
 }
 
+export interface OneTimeCodeShape {
+    service: string;
+    id: string;
+    code: string;
+    expires: number;
+    attemptsCount: number;
+    data: any;
+    enabled: boolean;
+}
+
+export interface OneTimeCodeCreateShape {
+    code: string;
+    expires: number;
+    attemptsCount: number;
+    data: any;
+    enabled: boolean;
+}
+
+export class OneTimeCode extends Entity<OneTimeCodeShape> {
+    get service(): string { return this._rawValue.service; }
+    get id(): string { return this._rawValue.id; }
+    get code(): string { return this._rawValue.code; }
+    set code(value: string) {
+        let normalized = this.descriptor.codec.fields.code.normalize(value);
+        if (this._rawValue.code !== normalized) {
+            this._rawValue.code = normalized;
+            this._updatedValues.code = normalized;
+            this.invalidate();
+        }
+    }
+    get expires(): number { return this._rawValue.expires; }
+    set expires(value: number) {
+        let normalized = this.descriptor.codec.fields.expires.normalize(value);
+        if (this._rawValue.expires !== normalized) {
+            this._rawValue.expires = normalized;
+            this._updatedValues.expires = normalized;
+            this.invalidate();
+        }
+    }
+    get attemptsCount(): number { return this._rawValue.attemptsCount; }
+    set attemptsCount(value: number) {
+        let normalized = this.descriptor.codec.fields.attemptsCount.normalize(value);
+        if (this._rawValue.attemptsCount !== normalized) {
+            this._rawValue.attemptsCount = normalized;
+            this._updatedValues.attemptsCount = normalized;
+            this.invalidate();
+        }
+    }
+    get data(): any { return this._rawValue.data; }
+    set data(value: any) {
+        let normalized = this.descriptor.codec.fields.data.normalize(value);
+        if (this._rawValue.data !== normalized) {
+            this._rawValue.data = normalized;
+            this._updatedValues.data = normalized;
+            this.invalidate();
+        }
+    }
+    get enabled(): boolean { return this._rawValue.enabled; }
+    set enabled(value: boolean) {
+        let normalized = this.descriptor.codec.fields.enabled.normalize(value);
+        if (this._rawValue.enabled !== normalized) {
+            this._rawValue.enabled = normalized;
+            this._updatedValues.enabled = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class OneTimeCodeFactory extends EntityFactory<OneTimeCodeShape, OneTimeCode> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('oneTimeCode');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'code', storageKey: 'code', type: { type: 'unique', fields: [{ name: 'service', type: 'string' }, { name: 'code', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('oneTimeCode', 'code'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'service', type: 'string' });
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'code', type: { type: 'string' }, secure: true });
+        fields.push({ name: 'expires', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'attemptsCount', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'data', type: { type: 'json' }, secure: false });
+        fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            service: c.string,
+            id: c.string,
+            code: c.string,
+            expires: c.integer,
+            attemptsCount: c.integer,
+            data: c.any,
+            enabled: c.boolean,
+        });
+        let descriptor: EntityDescriptor<OneTimeCodeShape> = {
+            name: 'OneTimeCode',
+            storageKey: 'oneTimeCode',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new OneTimeCodeFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<OneTimeCodeShape>) {
+        super(descriptor);
+    }
+
+    readonly code = Object.freeze({
+        find: async (ctx: Context, service: string, code: string) => {
+            return this._findFromUniqueIndex(ctx, [service, code], this.descriptor.secondaryIndexes[0]);
+        },
+        findAll: async (ctx: Context, service: string) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [service])).items;
+        },
+        query: (ctx: Context, service: string, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [service], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    create(ctx: Context, service: string, id: string, src: OneTimeCodeCreateShape): Promise<OneTimeCode> {
+        return this._create(ctx, [service, id], this.descriptor.codec.normalize({ service, id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, service: string, id: string, src: OneTimeCodeCreateShape): OneTimeCode {
+        return this._create_UNSAFE(ctx, [service, id], this.descriptor.codec.normalize({ service, id, ...src }));
+    }
+
+    findById(ctx: Context, service: string, id: string): Promise<OneTimeCode | null> {
+        return this._findById(ctx, [service, id]);
+    }
+
+    watch(ctx: Context, service: string, id: string): Watch {
+        return this._watch(ctx, [service, id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OneTimeCodeShape>): OneTimeCode {
+        return new OneTimeCode([value.service, value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface DebugEventShape {
     uid: number;
     seq: number;
@@ -18388,6 +18525,7 @@ export interface Store extends BaseStore {
     readonly Task: TaskFactory;
     readonly DelayedTask: DelayedTaskFactory;
     readonly ServiceThrottle: ServiceThrottleFactory;
+    readonly OneTimeCode: OneTimeCodeFactory;
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
     readonly EditorsChoiceChatsCollection: EditorsChoiceChatsCollectionFactory;
@@ -18594,6 +18732,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let TaskPromise = TaskFactory.open(storage);
     let DelayedTaskPromise = DelayedTaskFactory.open(storage);
     let ServiceThrottlePromise = ServiceThrottleFactory.open(storage);
+    let OneTimeCodePromise = OneTimeCodeFactory.open(storage);
     let DebugEventPromise = DebugEventFactory.open(storage);
     let DebugEventStatePromise = DebugEventStateFactory.open(storage);
     let EditorsChoiceChatsCollectionPromise = EditorsChoiceChatsCollectionFactory.open(storage);
@@ -18771,6 +18910,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         Task: await TaskPromise,
         DelayedTask: await DelayedTaskPromise,
         ServiceThrottle: await ServiceThrottlePromise,
+        OneTimeCode: await OneTimeCodePromise,
         DebugEvent: await DebugEventPromise,
         DebugEventState: await DebugEventStatePromise,
         EditorsChoiceChatsCollection: await EditorsChoiceChatsCollectionPromise,

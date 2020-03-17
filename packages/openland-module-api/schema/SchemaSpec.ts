@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '4dd7f383463b9cb2825157db285577c0';
+export const GQL_SPEC_VERSION = 'f807dbb41932d4b7ca96f92350ed5a7f';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1968,6 +1968,8 @@ export namespace GQL {
         debugRecountSeqForMessages: boolean;
         debugReindexRoomMessagesCounter: boolean;
         settingsUpdate: Settings;
+        sendEmailChangeCode: boolean;
+        changeEmail: boolean;
         updateSettings: Settings;
         createOauthApp: OauthApp;
         updateOauthApp: OauthApp;
@@ -2449,6 +2451,12 @@ export namespace GQL {
     export interface MutationDebugReindexRoomMessagesCounterArgs { }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
+    }
+    export interface MutationSendEmailChangeCodeArgs {
+        newEmail: string;
+    }
+    export interface MutationChangeEmailArgs {
+        confirmationCode: string;
     }
     export interface MutationUpdateSettingsArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
@@ -7780,6 +7788,8 @@ export interface GQLResolver {
             debugRecountSeqForMessages: GQL.MutationDebugRecountSeqForMessagesArgs,
             debugReindexRoomMessagesCounter: GQL.MutationDebugReindexRoomMessagesCounterArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
+            sendEmailChangeCode: GQL.MutationSendEmailChangeCodeArgs,
+            changeEmail: GQL.MutationChangeEmailArgs,
             updateSettings: GQL.MutationUpdateSettingsArgs,
             createOauthApp: GQL.MutationCreateOauthAppArgs,
             updateOauthApp: GQL.MutationUpdateOauthAppArgs,

@@ -2099,6 +2099,18 @@ export default declareSchema(() => {
         field('firedCount', integer());
     });
 
+    entity('OneTimeCode', () => {
+        primaryKey('service', string());
+        primaryKey('id', string());
+        field('code', string()).secure();
+        field('expires', integer());
+        field('attemptsCount', integer());
+        field('data', json());
+        field('enabled', boolean());
+
+        uniqueIndex('code', ['service', 'code']);
+    });
+
     //
     //  Debug
     //

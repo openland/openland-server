@@ -109,6 +109,9 @@ extend type Query {
 extend type Mutation {
     settingsUpdate(settings: UpdateSettingsInput): Settings!
 
+    sendEmailChangeCode(newEmail: String!): Boolean!
+    changeEmail(confirmationCode: String!): Boolean!
+
     # Deprecated
     updateSettings(settings: UpdateSettingsInput): Settings!
 }

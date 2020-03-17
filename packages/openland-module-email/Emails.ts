@@ -593,6 +593,15 @@ export const Emails = {
             args
         });
     },
+
+    async sendGenericEmailTo(ctx: Context, to: string, args: { title: string, text: string, link: string, buttonText: string }) {
+        await Modules.Email.enqueueEmail(ctx, {
+            subject: args.title,
+            templateId: TEMPLATE_GENERIC,
+            to,
+            args
+        });
+    },
 };
 
 const AvatarColorsArr = [
