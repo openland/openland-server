@@ -1158,7 +1158,7 @@ export const Resolver: GQLResolver = {
 
             let messages: (Message | null)[] = await Promise.all(summaryHits.hits.map((v) => Store.Message.findById(ctx, parseInt(v._id, 10))));
             let offset = hits.responses![0].hits.total;
-            if (args.around) {
+            if (args.before) {
                 offset = Math.max(0, offset - args.first);
             } else if (args.around) {
                 offset = Math.max(0, offset - args.first * 2 + 1);
