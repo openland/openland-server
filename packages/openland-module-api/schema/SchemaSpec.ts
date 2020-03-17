@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'f807dbb41932d4b7ca96f92350ed5a7f';
+export const GQL_SPEC_VERSION = '001a2f0216cddf01c3b400772e595e19';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1968,7 +1968,7 @@ export namespace GQL {
         debugRecountSeqForMessages: boolean;
         debugReindexRoomMessagesCounter: boolean;
         settingsUpdate: Settings;
-        sendEmailChangeCode: boolean;
+        sendEmailChangeCode: string;
         changeEmail: boolean;
         updateSettings: Settings;
         createOauthApp: OauthApp;
@@ -2456,6 +2456,7 @@ export namespace GQL {
         newEmail: string;
     }
     export interface MutationChangeEmailArgs {
+        sessionId: string;
         confirmationCode: string;
     }
     export interface MutationUpdateSettingsArgs {

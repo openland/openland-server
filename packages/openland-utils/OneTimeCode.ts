@@ -1,9 +1,11 @@
-import { Context } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
 import { Store } from '../openland-module-db/FDB';
 import * as base64 from './base64';
 import { randomBytes } from 'crypto';
 import { randomNumbersString } from './random';
+
+const rootCtx = createNamedContext('one_time_code');
 
 class OneTimeCodeRepo<Data> {
     private service: string;
@@ -54,15 +56,11 @@ class OneTimeCodeRepo<Data> {
         });
     }
 
-    async onUseAttempt(parent: Context, code: string) {
-        return await inTx(parent, async ctx => {
-            let now = Math.floor(Date.now() / 1000);
-            let res = await Store.OneTimeCode.code.find(ctx, this.service, code);
-            if (res && res.enabled && res.expires > now) {
+    async onUseAttempt(id: string) {
+        return await inTx(rootCtx, async ctx => {
+            let res = await Store.OneTimeCode.findById(ctx, this.service, id);
+            if (res) {
                 res.attemptsCount++;
-                if (res.attemptsCount > this.maxAttempts) {
-                    res.enabled = false;
-                }
                 await res.flush(ctx);
             }
         });

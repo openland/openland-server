@@ -51,19 +51,26 @@ export class AuthManagementMediator {
             await Emails.sendActivationCodeEmail(ctx, email, code.code, true);
             await emailChangeThrottle.onFire(ctx, email);
 
-            return true;
+            return code.id;
         });
     }
 
-    async changeEmail(parent: Context, uid: number, confirmationCode: string) {
+    async changeEmail(parent: Context, uid: number, sessionId: string, confirmationCode: string) {
         return await inTx(parent, async ctx => {
-            let code = await emailChangeCode.findByCode(ctx, confirmationCode);
+            // Store use attempt
+            await emailChangeCode.onUseAttempt(sessionId);
+
+            let code = await emailChangeCode.findById(ctx, sessionId);
             if (!code) {
                 throw new UserError(`Wrong code`);
             }
 
             // Check uid
             if (code.data.uid !== uid) {
+                throw new UserError(`Wrong code`);
+            }
+            // Check code
+            if (code.code !== confirmationCode) {
                 throw new UserError(`Wrong code`);
             }
 

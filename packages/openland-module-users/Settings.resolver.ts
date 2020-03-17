@@ -258,7 +258,7 @@ export const Resolver: GQLResolver = {
         }),
         changeEmail: withUser(async (parent, args, uid) => {
             return inTx(parent, async ctx => {
-                return await Modules.Auth.authManagement.changeEmail(ctx, uid, args.confirmationCode);
+                return await Modules.Auth.authManagement.changeEmail(ctx, uid, args.sessionId, args.confirmationCode);
             });
         })
     },
