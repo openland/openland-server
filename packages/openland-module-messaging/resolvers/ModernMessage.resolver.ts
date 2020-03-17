@@ -1139,8 +1139,8 @@ export const Resolver: GQLResolver = {
                 ];
             } else if (args.around) {
                 queries = [
-                    ...buildQuery(args.first + 1, { bool: { must: [...clauses, { range: { id: { lte: cursor } }}] } }),
-                    ...buildQuery(args.first, { bool: { must: [...clauses, { range: { id: { gt: cursor } }}] } })
+                    ...buildQuery(args.first, { bool: { must: [...clauses, { range: { id: { gte: cursor } }}] } }),
+                    ...buildQuery(args.first + 1, { bool: { must: [...clauses, { range: { id: { lt: cursor } }}] } })
                 ];
             } else {
                 queries = [
