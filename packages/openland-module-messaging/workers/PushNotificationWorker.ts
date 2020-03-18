@@ -229,7 +229,7 @@ export function startPushNotificationWorker() {
     }, async (parent) => {
         let unreadUsers = await inTx(parent, async (ctx) => await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push'));
         if (unreadUsers.length > 0) {
-            log.debug(parent, 'unread users: ' + unreadUsers.length);
+            log.debug(parent, 'unread users: ' + unreadUsers.length, JSON.stringify(unreadUsers));
         } else {
             return;
         }
