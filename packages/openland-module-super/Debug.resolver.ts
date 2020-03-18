@@ -24,7 +24,7 @@ import { NotFoundError } from '../openland-errors/NotFoundError';
 import { cursorToTuple } from '@openland/foundationdb-entity/lib/indexes/utils';
 import { buildMessage, heading } from '../openland-utils/MessageBuilder';
 import { AuthContext } from '../openland-module-auth/AuthContext';
-import Twilio from 'twilio';
+import { SmsService } from '../openland-utils/SmsService';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -182,8 +182,7 @@ export const Resolver: GQLResolver = {
     },
     Mutation: {
         debugSendSMS: withPermission('super-admin', async (ctx, args) => {
-            let twillioApi = Twilio('ACda0e12713c484afa48c2d11231ce079d', 'fab22e6e4f2569763435147238036da4');
-            await twillioApi.messages.create({ body: args.message, to: args.to, from: '+14152134985'});
+            await SmsService.sendSms(args.to, args.message);
             return true;
         }),
         lifecheck: () => `i'm still ok`,

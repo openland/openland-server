@@ -103,6 +103,7 @@ export async function sendCode(req: express.Request, response: express.Response)
         phone,
         session
     } = req.body;
+
     await inTx(rootCtx, async (ctx) => {
         let authSession: AuthCodeSession | undefined;
         if (session) {

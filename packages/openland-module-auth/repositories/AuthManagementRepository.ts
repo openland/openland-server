@@ -26,6 +26,9 @@ export class AuthManagementRepository {
         });
     }
 
+    //
+    // Email
+    //
     async pairEmail(parent: Context, uid: number, email: string) {
         return await inTx(parent, async ctx => {
             email = email.trim().toLowerCase();
@@ -60,6 +63,31 @@ export class AuthManagementRepository {
                 throw new UserError('This email already used');
             }
             user.email = newEmail;
+            await user.flush(ctx);
+        });
+    }
+
+    //
+    // Phone
+    //
+    async pairPhone(parent: Context, uid: number, phone: string) {
+        return await inTx(parent, async ctx => {
+            phone = phone.trim();
+            if (!/^\+(\d{11})$/.test(phone)) {
+                throw new UserError('Invalid phone');
+            }
+            let user = await Store.User.findById(ctx, uid);
+            if (!user) {
+                throw new NotFoundError();
+            }
+            if (user.phone) {
+                throw new UserError(`You already have phone`);
+            }
+            let existing = await Store.User.phone.find(ctx, phone);
+            if (existing) {
+                throw new UserError('This email already used');
+            }
+            user.phone = phone;
             await user.flush(ctx);
         });
     }

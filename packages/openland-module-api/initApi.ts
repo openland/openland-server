@@ -42,6 +42,7 @@ import { EventBus } from '../openland-module-pubsub/EventBus';
 import { initOauth2 } from '../openland-module-oauth/http.handlers';
 import { AuthContext } from '../openland-module-auth/AuthContext';
 import { createHyperlogger } from '../openland-module-hyperlog/createHyperlogEvent';
+import { initPhoneAuthProvider } from '../openland-module-auth/providers/phone';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
@@ -99,6 +100,8 @@ export async function initApi(isTest: boolean) {
     app.post('/auth/checkCode', bodyParser.json(), withAudit(Auth.checkCode));
     app.post('/auth/getAccessToken', bodyParser.json(), withAudit(Auth.getAccessToken));
     app.post('/auth/google/getAccessToken', bodyParser.json(), withAudit(AuthGoogle.getAccessToken));
+
+    initPhoneAuthProvider(app);
 
     //
     //  Safari push

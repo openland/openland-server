@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '001a2f0216cddf01c3b400772e595e19';
+export const GQL_SPEC_VERSION = '802892d1484801b051fb2f4c72e7edd4';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1023,6 +1023,12 @@ export namespace GQL {
     export interface SettingsMobileAlertArgs { }
     export interface SettingsMobileIncludeTextArgs { }
     export interface SettingsMuteArgs { }
+    export interface AuthPoint {
+        email: Nullable<string>;
+        phone: Nullable<string>;
+    }
+    export interface AuthPointEmailArgs { }
+    export interface AuthPointPhoneArgs { }
     export type OauthScopeValues = 'All' | 'Zapier';
     export type OauthScope = GQLRoots.OauthScopeRoot;
     export interface OauthApp {
@@ -1970,6 +1976,8 @@ export namespace GQL {
         settingsUpdate: Settings;
         sendEmailChangeCode: string;
         changeEmail: boolean;
+        sendPhonePairCode: string;
+        pairPhone: boolean;
         updateSettings: Settings;
         createOauthApp: OauthApp;
         updateOauthApp: OauthApp;
@@ -2456,6 +2464,13 @@ export namespace GQL {
         newEmail: string;
     }
     export interface MutationChangeEmailArgs {
+        sessionId: string;
+        confirmationCode: string;
+    }
+    export interface MutationSendPhonePairCodeArgs {
+        phone: string;
+    }
+    export interface MutationPairPhoneArgs {
         sessionId: string;
         confirmationCode: string;
     }
@@ -3620,6 +3635,7 @@ export namespace GQL {
         debugServerId: string;
         dialogs: DialogsConnection;
         settings: Settings;
+        authPoints: AuthPoint;
         myOauthApps: OauthApp[];
         oauthContext: Nullable<OauthContext>;
         alphaOrganizationMembers: OrganizationMember[];
@@ -3819,6 +3835,7 @@ export namespace GQL {
         after: OptionalNullable<string>;
     }
     export interface QuerySettingsArgs { }
+    export interface QueryAuthPointsArgs { }
     export interface QueryMyOauthAppsArgs { }
     export interface QueryOauthContextArgs {
         code: string;
@@ -6496,6 +6513,16 @@ export interface GQLResolver {
             mute: GQL.SettingsMuteArgs,
         }
     >;
+    AuthPoint?: ComplexTypedResolver<
+        GQL.AuthPoint,
+        GQLRoots.AuthPointRoot,
+        {
+        },
+        {
+            email: GQL.AuthPointEmailArgs,
+            phone: GQL.AuthPointPhoneArgs,
+        }
+    >;
     OauthScope?: EnumTypeResolver<'All' | 'Zapier', GQLRoots.OauthScopeRoot>;
     OauthApp?: ComplexTypedResolver<
         GQL.OauthApp,
@@ -7791,6 +7818,8 @@ export interface GQLResolver {
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailChangeCode: GQL.MutationSendEmailChangeCodeArgs,
             changeEmail: GQL.MutationChangeEmailArgs,
+            sendPhonePairCode: GQL.MutationSendPhonePairCodeArgs,
+            pairPhone: GQL.MutationPairPhoneArgs,
             updateSettings: GQL.MutationUpdateSettingsArgs,
             createOauthApp: GQL.MutationCreateOauthAppArgs,
             updateOauthApp: GQL.MutationUpdateOauthAppArgs,
@@ -8370,6 +8399,7 @@ export interface GQLResolver {
             debugGlobalCounters: GQLRoots.DebugGlobalCountersRoot,
             dialogs: GQLRoots.DialogsConnectionRoot,
             settings: GQLRoots.SettingsRoot,
+            authPoints: GQLRoots.AuthPointRoot,
             myOauthApps: GQLRoots.OauthAppRoot[],
             oauthContext: Nullable<GQLRoots.OauthContextRoot>,
             alphaOrganizationMembers: GQLRoots.OrganizationMemberRoot[],
@@ -8521,6 +8551,7 @@ export interface GQLResolver {
             debugServerId: GQL.QueryDebugServerIdArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
+            authPoints: GQL.QueryAuthPointsArgs,
             myOauthApps: GQL.QueryMyOauthAppsArgs,
             oauthContext: GQL.QueryOauthContextArgs,
             alphaOrganizationMembers: GQL.QueryAlphaOrganizationMembersArgs,

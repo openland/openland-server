@@ -37,6 +37,7 @@ export default declareSchema(() => {
         field('authId', string());
         field('email', optional(string()));
         field('googleId', optional(string()));
+        field('phone', optional(string()));
 
         field('isBot', boolean());
         field('invitedBy', optional(integer()));
@@ -47,6 +48,7 @@ export default declareSchema(() => {
         uniqueIndex('authId', ['authId']).withCondition(src => src.status !== 'deleted');
         uniqueIndex('email', ['email']).withCondition(src => (!!src.email) && src.status !== 'deleted');
         uniqueIndex('googleId', ['googleId']).withCondition(src => (!!src.googleId) && src.status !== 'deleted');
+        uniqueIndex('phone', ['phone']).withCondition(src => (!!src.googleId) && src.status !== 'deleted');
         rangeIndex('owner', ['botOwner', 'id']).withCondition(src => src.botOwner);
         rangeIndex('superBots', []).withCondition(src => src.isBot === true && src.isSuperBot);
     });
