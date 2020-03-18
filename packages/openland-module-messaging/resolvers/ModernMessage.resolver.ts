@@ -1165,6 +1165,9 @@ export const Resolver: GQLResolver = {
             if (args.around || args.before) {
                 offset = Math.max(0, offset - args.first);
             }
+            if (args.around) {
+                args.first = args.first * 2 + 1;
+            }
             let total = summaryHits.total;
             return {
                 edges: messages.filter(isDefined).map((p, i) => {
@@ -1176,7 +1179,7 @@ export const Resolver: GQLResolver = {
                         index: total - i - offset
                     };
                 }), pageInfo: {
-                    hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
+                    hasNextPage: (total - (offset + 1)) > 0,
                     hasPreviousPage: offset > 0,
 
                     itemsCount: total,
