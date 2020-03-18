@@ -21,6 +21,7 @@ const userProfileCreated = createHyperlogger<{ uid: number }>('user_profile_crea
 export type AuthInfo = {
     email?: string,
     googleId?: string
+    phone?: string
 };
 
 @injectable()
@@ -33,7 +34,7 @@ export class UserRepository {
 
     async createUser(parent: Context, authInfo: AuthInfo) {
         return await inTx(parent, async (ctx) => {
-            if (!authInfo.email && !authInfo.googleId) {
+            if (!authInfo.email && !authInfo.googleId && !authInfo.phone) {
                 throw new Error(`Can\'t create user without auth info`);
             }
 
@@ -53,7 +54,8 @@ export class UserRepository {
                 isSuperBot: null,
                 botOwner: null,
                 ...(authInfo.email ? {email: authInfo.email.toLocaleLowerCase()} : {}),
-                ...(authInfo.googleId ? {googleId: authInfo.googleId} : {})
+                ...(authInfo.googleId ? {googleId: authInfo.googleId} : {}),
+                ...(authInfo.phone ? {phone: authInfo.phone} : {})
             }));
 
             await res.flush(ctx);

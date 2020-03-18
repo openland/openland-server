@@ -246,21 +246,31 @@ export const Resolver: GQLResolver = {
         settings: withUser(async (ctx, args, uid) => {
             return Modules.Users.getUserSettings(ctx, uid);
         }),
+        authPoints: withUser(async (ctx, args, uid) => {
+            let user = await Store.User.findById(ctx, uid);
+            return {
+                email: user?.email || null,
+                phone: user?.phone || null
+            };
+        }),
     },
     Mutation: {
         settingsUpdate: updateSettingsResolver,
         updateSettings: updateSettingsResolver,
 
         sendEmailChangeCode: withUser(async (parent, args, uid) => {
-            return inTx(parent, async ctx => {
-                return await Modules.Auth.authManagement.sendEmailChangeCode(ctx, uid, args.newEmail);
-            });
+            return await Modules.Auth.authManagement.sendEmailChangeCode(parent, uid, args.newEmail);
         }),
         changeEmail: withUser(async (parent, args, uid) => {
-            return inTx(parent, async ctx => {
-                return await Modules.Auth.authManagement.changeEmail(ctx, uid, args.sessionId, args.confirmationCode);
-            });
-        })
+            return await Modules.Auth.authManagement.changeEmail(parent, uid, args.sessionId, args.confirmationCode);
+        }),
+
+        sendPhonePairCode: withUser(async (parent, args, uid) => {
+            return await Modules.Auth.authManagement.sendPhonePairCode(parent, uid, args.phone);
+        }),
+        pairPhone: withUser(async (parent, args, uid) => {
+            return await Modules.Auth.authManagement.pairPhone(parent, uid, args.sessionId, args.confirmationCode);
+        }),
     },
     Subscription: {
         watchSettings: {

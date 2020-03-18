@@ -268,6 +268,7 @@ export namespace GQLRoots {
     export type NotificationsDelayRoot = 'none' | '1min' | '15min';
     export type CommentsNotificationDeliveryRoot = 'all' | 'none';
     export type NotificationPreviewRoot = NotificationPreviewValues;
+    export type AuthPointRoot = GQL.AuthPoint;
 
     export type OrganizationMemberRoleRoot = OrganizationMemberRoleValues;
     export type OrganizationMemberRoot = any;
