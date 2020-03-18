@@ -1119,7 +1119,7 @@ export const Resolver: GQLResolver = {
             if ([args.before, args.around, args.after].filter(a => !!a).length > 1) {
                 throw new InvalidInputError([{ key: 'after', message: 'Only one field of after/before/around should be specified' }]);
             }
-            let cursor = 1000000000;
+            let cursor = Math.pow(10, 9);
             if (args.before || args.after || args.around) {
                 cursor = IDs.ConversationMessage.parse((args.before || args.around || args.after)!);
             }
@@ -1139,8 +1139,8 @@ export const Resolver: GQLResolver = {
                 ];
             } else if (args.around) {
                 queries = [
-                    ...buildQuery(args.first + 1, { bool: { must: [...clauses, { range: { id: { gte: cursor } }}] } }),
-                    ...buildQuery(args.first, { bool: { must: [...clauses, { range: { id: { lt: cursor } }}] } })
+                    ...buildQuery(args.first, { bool: { must: [...clauses, { range: { id: { gt: cursor } }}] } }),
+                    ...buildQuery(args.first + 1, { bool: { must: [...clauses, { range: { id: { lte: cursor } }}] } })
                 ];
             } else {
                 queries = [
@@ -1158,10 +1158,8 @@ export const Resolver: GQLResolver = {
 
             let messages: (Message | null)[] = await Promise.all(summaryHits.hits.map((v) => Store.Message.findById(ctx, parseInt(v._id, 10))));
             let offset = hits.responses![0].hits.total;
-            if (args.before) {
+            if (args.around || args.before) {
                 offset = Math.max(0, offset - args.first);
-            } else if (args.around) {
-                offset = Math.max(0, offset - args.first * 2 + 1);
             }
             let total = summaryHits.total;
             return {
@@ -1171,7 +1169,7 @@ export const Resolver: GQLResolver = {
                             message: p, chat: p!.cid,
                         },
                         cursor: IDs.ConversationMessage.serialize(p.id),
-                        index: total - i + offset
+                        index: total - i - offset
                     };
                 }), pageInfo: {
                     hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
