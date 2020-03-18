@@ -238,9 +238,13 @@ export function startPushNotificationWorker() {
         let batches = batch(unreadUsers, 10);
 
         for (let b of batches) {
-            await inTx(rootCtx, async ctx => {
-                await Promise.all(b.map(uid => handleUser(ctx, uid)));
-            });
+            try {
+                await inTx(rootCtx, async ctx => {
+                    await Promise.all(b.map(uid => handleUser(ctx, uid)));
+                });
+            } catch (e) {
+                log.log(rootCtx, 'push_error', e);
+            }
         }
     });
 }
