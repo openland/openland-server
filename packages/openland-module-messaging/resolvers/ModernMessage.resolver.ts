@@ -1125,10 +1125,10 @@ export const Resolver: GQLResolver = {
             }
 
             let queries: any[];
-            const buildQuery = (size: number, query: any) => {
+            const buildQuery = (size: number, query: any, sort: 'asc' | 'desc' = 'desc') => {
                 return [
                     { index: 'message', type: 'message' },
-                    { size: size, sort: [{createdAt: 'desc'}], query: query }
+                    { size: size, sort: [{createdAt: sort }], query: query }
                 ];
             };
 
@@ -1139,7 +1139,7 @@ export const Resolver: GQLResolver = {
                 ];
             } else if (args.around) {
                 queries = [
-                    ...buildQuery(args.first, { bool: { must: [...clauses, { range: { id: { gt: cursor } }}] } }),
+                    ...buildQuery(args.first, { bool: { must: [...clauses, { range: { id: { gt: cursor } }}] } }, 'asc'),
                     ...buildQuery(args.first + 1, { bool: { must: [...clauses, { range: { id: { lte: cursor } }}] } })
                 ];
             } else {
@@ -1152,6 +1152,10 @@ export const Resolver: GQLResolver = {
             let hits = await Modules.Search.elastic.client.msearch({
                 body: queries
             });
+
+            if (args.around) {
+                hits.responses![0].hits.hits = hits.responses![0].hits.hits.reverse();
+            }
 
             let summaryHits = hits.responses!.reduce<{ hits: any[], total: number }>(
                 (acc, val) => ({ hits: acc.hits.concat(val.hits.hits), total: acc.total + val.hits.total }), { hits: [], total: 0 });
