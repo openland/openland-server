@@ -1177,7 +1177,7 @@ export const Resolver: GQLResolver = {
                     };
                 }), pageInfo: {
                     hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
-                    hasPreviousPage: offset >= args.first,
+                    hasPreviousPage: offset > 0,
 
                     itemsCount: total,
                     pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
