@@ -20,9 +20,9 @@ type ErrorsEnum = keyof typeof Errors;
 
 const sendError = (response: express.Response, error: ErrorsEnum) => {
     if (!Errors[error]) {
-        response.json({ ok: false, errorCode: 'server_error', errorText: Errors.server_error });
+        response.json({ok: false, errorCode: 'server_error', errorText: Errors.server_error});
     }
-    response.json({ ok: false, errorCode: error, errorText: Errors[error] });
+    response.json({ok: false, errorCode: error, errorText: Errors[error]});
 };
 
 export async function getAccessToken(req: express.Request, response: express.Response) {
@@ -67,13 +67,18 @@ export async function getAccessToken(req: express.Request, response: express.Res
                 }
                 const email = payload.email.toLowerCase();
                 let existing = await Store.User.email.find(ctx, email);
+                let existingGoogle = await Store.User.googleId.find(ctx, payload.sub);
+
+                await Store.User.googleId.find(ctx, payload.sub);
                 if (existing) {
-                    existing.googleId = payload.sub;
+                    if (!existingGoogle || existingGoogle.id === existing.id) {
+                        existing.googleId = payload.sub;
+                    }
                     let token = await Modules.Auth.createToken(ctx, existing.id!);
-                    response.json({ ok: true, accessToken: token.salt });
+                    response.json({ok: true, accessToken: token.salt});
                     return;
                 } else {
-                    let user = await Modules.Users.createUser(ctx, { email, googleId: payload.sub});
+                    let user = await Modules.Users.createUser(ctx, {email, googleId: payload.sub});
 
                     await Modules.Users.saveProfilePrefill(ctx, user.id, {
                         firstName: payload.given_name,
@@ -83,14 +88,14 @@ export async function getAccessToken(req: express.Request, response: express.Res
 
                     await Modules.Hooks.onSignUp(ctx, user.id);
                     let token = await Modules.Auth.createToken(ctx, user.id!);
-                    response.json({ ok: true, accessToken: token.salt });
+                    response.json({ok: true, accessToken: token.salt});
                     return;
                 }
             } else {
                 sendError(response, 'server_error');
             }
         });
-    }  catch (e) {
+    } catch (e) {
         log.log(rootCtx, 'google_auth_error', e);
     }
 }
