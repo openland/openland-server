@@ -1319,6 +1319,13 @@ export const Resolver: GQLResolver = {
 
             return true;
         }),
+        debugQueueDailyPaidLeaderboard: withPermission('super-admin', async (parent) => {
+            await inTx(parent, async (ctx) => {
+                await Modules.Stats.dailyPaidLeaderboardQueue.pushImmediateWork(ctx);
+            });
+
+            return true;
+        })
     },
     Subscription: {
         debugEvents: {

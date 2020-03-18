@@ -17,6 +17,7 @@ import { User } from '../openland-module-db/store';
 import { groupBy } from 'openland-utils/groupBy';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { EmailSpan } from 'openland-module-email/EmailSpans';
+import { createDailyPaidLeaderboardWorker } from './workers/DailyPaidLeaderboardWorker';
 
 const newMobileUserLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-mobile-user');
 const newSenderLog = createHyperlogger<{ uid: number, isTest: boolean }>('new-sender');
@@ -35,6 +36,7 @@ export class StatsModule {
     public readonly weeklyUserLeaderboardQueue = createWeeklyUserLeaderboardWorker();
     public readonly weeklyRoomLeaderboardQueue = createWeeklyRoomLeaderboardWorker();
     public readonly weeklyRoomByMessagesLeaderboardQueue = createWeeklyRoomByMessagesLeaderboardWorker();
+    public readonly dailyPaidLeaderboardQueue = createDailyPaidLeaderboardWorker();
 
     start = () => {
         // no op

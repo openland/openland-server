@@ -151,6 +151,7 @@ extend type Mutation {
     debugReplaceCommunityForChat(chatId: ID!, newCommunityId: ID!): Boolean!
     debugRecountSeqForMessages: Boolean!
     debugReindexRoomMessagesCounter: Boolean!
+    debugQueueDailyPaidLeaderboard: Boolean!
 }
 
 extend type Subscription {

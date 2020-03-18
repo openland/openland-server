@@ -1125,10 +1125,10 @@ export const Resolver: GQLResolver = {
             }
 
             let queries: any[];
-            const buildQuery = (size: number, query: any) => {
+            const buildQuery = (size: number, query: any, sort: 'asc' | 'desc' = 'desc') => {
                 return [
                     { index: 'message', type: 'message' },
-                    { size: size, sort: [{createdAt: 'desc'}], query: query }
+                    { size: size, sort: [{createdAt: sort }], query: query }
                 ];
             };
 
@@ -1139,7 +1139,7 @@ export const Resolver: GQLResolver = {
                 ];
             } else if (args.around) {
                 queries = [
-                    ...buildQuery(args.first, { bool: { must: [...clauses, { range: { id: { gt: cursor } }}] } }),
+                    ...buildQuery(args.first, { bool: { must: [...clauses, { range: { id: { gt: cursor } }}] } }, 'asc'),
                     ...buildQuery(args.first + 1, { bool: { must: [...clauses, { range: { id: { lte: cursor } }}] } })
                 ];
             } else {
@@ -1153,6 +1153,10 @@ export const Resolver: GQLResolver = {
                 body: queries
             });
 
+            if (args.around) {
+                hits.responses![0].hits.hits = hits.responses![0].hits.hits.reverse();
+            }
+
             let summaryHits = hits.responses!.reduce<{ hits: any[], total: number }>(
                 (acc, val) => ({ hits: acc.hits.concat(val.hits.hits), total: acc.total + val.hits.total }), { hits: [], total: 0 });
 
@@ -1160,6 +1164,9 @@ export const Resolver: GQLResolver = {
             let offset = hits.responses![0].hits.total;
             if (args.around || args.before) {
                 offset = Math.max(0, offset - args.first);
+            }
+            if (args.around) {
+                args.first = args.first * 2 + 1;
             }
             let total = summaryHits.total;
             return {
@@ -1172,8 +1179,8 @@ export const Resolver: GQLResolver = {
                         index: total - i - offset
                     };
                 }), pageInfo: {
-                    hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
-                    hasPreviousPage: offset >= args.first,
+                    hasNextPage: (total - (offset + 1)) > 0,
+                    hasPreviousPage: offset > 0,
 
                     itemsCount: total,
                     pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
