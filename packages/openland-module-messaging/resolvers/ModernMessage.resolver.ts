@@ -1119,7 +1119,7 @@ export const Resolver: GQLResolver = {
             if ([args.before, args.around, args.after].filter(a => !!a).length > 1) {
                 throw new InvalidInputError([{ key: 'after', message: 'Only one field of after/before/around should be specified' }]);
             }
-            let cursor = 1000000000;
+            let cursor = Math.pow(10, 9);
             if (args.before || args.after || args.around) {
                 cursor = IDs.ConversationMessage.parse((args.before || args.around || args.after)!);
             }
@@ -1169,7 +1169,7 @@ export const Resolver: GQLResolver = {
                             message: p, chat: p!.cid,
                         },
                         cursor: IDs.ConversationMessage.serialize(p.id),
-                        index: total - i + offset
+                        index: total - i - offset
                     };
                 }), pageInfo: {
                     hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
