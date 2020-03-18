@@ -17,7 +17,6 @@ import { roomsSearchIndexer } from './workers/roomsSearchIndexer';
 import { NeedNotificationDeliveryRepository } from './repositories/NeedNotificationDeliveryRepository';
 import { UserDialogsRepository } from './repositories/UserDialogsRepository';
 import { Store } from '../openland-module-db/FDB';
-import { Modules } from '../openland-modules/Modules';
 import { hasMention } from './resolvers/ModernMessage.resolver';
 import { PremiumChatMediator } from './mediators/PremiumChatMediator';
 import { SocialImageRepository } from './repositories/SocialImageRepository';
@@ -61,7 +60,7 @@ export class MessagingModule {
     }
 
     //
-    // Start 
+    // Start
     //
 
     start = () => {
@@ -273,8 +272,8 @@ export class MessagingModule {
             desktopSettings = desktop.secretChat;
         }
 
-        let conversationSettings = await Modules.Messaging.getRoomSettings(ctx, uid, conversation.id);
-        if (conversationSettings.mute && !userMentioned) {
+        let conversationSettings = await Store.UserDialogSettings.findById(ctx, uid, conversation.id);
+        if (conversationSettings && conversationSettings.mute && !userMentioned) {
             mobileSettings = { showNotification: false, sound: false };
             desktopSettings = { showNotification: false, sound: false };
         }
