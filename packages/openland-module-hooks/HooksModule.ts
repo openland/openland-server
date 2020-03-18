@@ -240,7 +240,7 @@ export class HooksModule {
         let userName = await Modules.Users.getUserFullName(ctx, uid);
 
         await Modules.Messaging.sendMessage(ctx, chatId, botId, {
-            ...buildMessage(`New payment: `, boldString(amount.toString()), ' from ', userMention(userName, uid)),
+            ...buildMessage(`New payment: `, boldString((amount / 100).toString()), ' from ', userMention(userName, uid)),
             ignoreAugmentation: true,
         });
     }
