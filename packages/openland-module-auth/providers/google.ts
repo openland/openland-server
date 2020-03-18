@@ -78,7 +78,10 @@ export async function getAccessToken(req: express.Request, response: express.Res
                     response.json({ok: true, accessToken: token.salt});
                     return;
                 } else {
-                    let user = await Modules.Users.createUser(ctx, {email, googleId: payload.sub});
+                    let user = await Modules.Users.createUser(ctx, {email});
+                    if (!existingGoogle) {
+                        user.googleId = payload.sub;
+                    }
 
                     await Modules.Users.saveProfilePrefill(ctx, user.id, {
                         firstName: payload.given_name,
