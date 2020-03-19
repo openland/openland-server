@@ -67,21 +67,20 @@ export async function getAccessToken(req: express.Request, response: express.Res
                 }
                 const email = payload.email.toLowerCase();
                 let existing = await Store.User.email.find(ctx, email);
-                let existingGoogle = await Store.User.googleId.find(ctx, payload.sub);
+                // let existingGoogle = await Store.User.googleId.find(ctx, payload.sub);
 
-                await Store.User.googleId.find(ctx, payload.sub);
                 if (existing) {
-                    if (!existingGoogle || existingGoogle.id === existing.id) {
-                        existing.googleId = payload.sub;
-                    }
+                    // if (!existingGoogle || existingGoogle.id === existing.id) {
+                    //     existing.googleId = payload.sub;
+                    // }
                     let token = await Modules.Auth.createToken(ctx, existing.id!);
                     response.json({ok: true, accessToken: token.salt});
                     return;
                 } else {
                     let user = await Modules.Users.createUser(ctx, {email});
-                    if (!existingGoogle) {
-                        user.googleId = payload.sub;
-                    }
+                    // if (!existingGoogle) {
+                    //     user.googleId = payload.sub;
+                    // }
 
                     await Modules.Users.saveProfilePrefill(ctx, user.id, {
                         firstName: payload.given_name,
