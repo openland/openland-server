@@ -39,6 +39,7 @@ import { OauthModule } from '../openland-module-oauth/OauthModule';
 import { GeoModule } from '../openland-module-geo/GeoModule';
 import { PowerupsModule } from '../openland-module-powerups/PowerupsModule';
 import { PermissionsModule } from '../openland-module-permissions/PermissionsModule';
+import { PhonebookModule } from '../openland-module-phonebook/PhonebookModule';
 
 class ModulesImpl {
 
@@ -161,6 +162,9 @@ class ModulesImpl {
     }
     get Permissions() {
         return container.get(PermissionsModule);
+    }
+    get Phonebook() {
+        return container.get(PhonebookModule);
     }
 }
 
