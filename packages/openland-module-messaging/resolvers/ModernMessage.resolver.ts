@@ -1179,7 +1179,7 @@ export const Resolver: GQLResolver = {
                         index: total - i - offset
                     };
                 }), pageInfo: {
-                    hasNextPage: (total - (offset + 1)) > 0,
+                    hasNextPage: (total - (offset + 1)) > args.first,
                     hasPreviousPage: offset > 0,
 
                     itemsCount: total,
