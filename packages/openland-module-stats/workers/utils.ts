@@ -265,6 +265,36 @@ export const alertIfRecord = async (
     });
 };
 
+export const alertIfRecordDelta = async (
+    parent: Context,
+    cid: number,
+    metricName: string,
+    value: number,
+    build: (prevRecord: number, currentRecord: number) => MessageInput,
+) => {
+    return await inTx(parent, async ctx => {
+        let botId = await getSuperNotificationsBotId(ctx);
+        if (!botId) {
+            return;
+        }
+
+        let metric = await Store.StatsRecords.byId(metricName);
+        let metricDelta = await Store.StatsRecords.byId(metricName + '-delta');
+
+        let prevValue = await metric.get(ctx);
+        let maxDelta = await metricDelta.get(ctx);
+
+        metric.set(ctx, value);
+        if ((value - prevValue) > maxDelta) {
+            metricDelta.set(ctx, value - prevValue);
+
+            await Modules.Messaging.sendMessage(ctx, cid, botId, {
+                ...build(maxDelta, value - prevValue),
+            });
+        }
+    });
+};
+
 export const buildDailyRecordAlert = (metricTitle: string) => {
     return (prevRecord: number, currentRecord: number) => buildMessage(heading(`${metricTitle} count have reached `,
         insaneString(currentRecord.toString()), ' today!',

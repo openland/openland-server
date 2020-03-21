@@ -1,7 +1,7 @@
 import { ScheduledQueue, WeekDay } from '../../openland-module-workers/ScheduledQueue';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import {
-    alertIfRecord,
+    alertIfRecord, alertIfRecordDelta,
     buildWeeklyRecordAlert,
     getEngagementCounters,
     getEngagementReportsChatId,
@@ -73,14 +73,21 @@ export function createWeeklyEngagementReportWorker() {
                 chatId,
                 'engagement-weekly-like-givers',
                 counters.todayLikeGivers,
-                buildWeeklyRecordAlert('Today like givers')
+                buildWeeklyRecordAlert('Weekly like givers')
             );
             await alertIfRecord(
                 parent,
                 chatId,
                 'engagement-weekly-like-getters',
                 counters.todayLikeGetters,
-                buildWeeklyRecordAlert('Today like getters')
+                buildWeeklyRecordAlert('Weekly like getters')
+            );
+            await alertIfRecordDelta(
+                parent,
+                chatId,
+                'engagement-weekly-total-users',
+                totalPeople!.value,
+                buildWeeklyRecordAlert('Weekly total users delta')
             );
 
             return { result: 'completed' };
