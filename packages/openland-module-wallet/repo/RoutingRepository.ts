@@ -60,7 +60,7 @@ export class RoutingRepositoryImpl {
             throw Error('Unknown operation type');
         }
 
-        await Modules.Hooks.onPaymentSuccess(ctx, uid, amount);
+        await Modules.Hooks.onPaymentSuccess(ctx, uid, amount, operation);
     }
 
     onPaymentFailing = async (ctx: Context, uid: number, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
