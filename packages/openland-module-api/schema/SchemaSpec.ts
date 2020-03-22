@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '8f7bd6dcdebbbf27b49261023d5ab422';
+export const GQL_SPEC_VERSION = 'be9270af300a0d26609a0df7330bdba1';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1220,12 +1220,14 @@ export namespace GQL {
         image: ImageRef;
         chatsCount: number;
         chats: SharedRoom[];
+        shortname: Nullable<string>;
     }
     export interface DiscoverChatsCollectionIdArgs { }
     export interface DiscoverChatsCollectionTitleArgs { }
     export interface DiscoverChatsCollectionImageArgs { }
     export interface DiscoverChatsCollectionChatsCountArgs { }
     export interface DiscoverChatsCollectionChatsArgs { }
+    export interface DiscoverChatsCollectionShortnameArgs { }
     export interface DiscoverChatsCollectionConnection {
         items: DiscoverChatsCollection[];
         cursor: Nullable<string>;
@@ -2177,6 +2179,7 @@ export namespace GQL {
         alphaSetOrgShortName: Nullable<string>;
         alphaSetFeedChannelShortName: Nullable<string>;
         alphaSetRoomShortName: Nullable<string>;
+        alphaSetCollectionShortName: Nullable<string>;
     }
     export interface MutationLifecheckArgs { }
     export interface MutationAlphaSendMessageArgs {
@@ -3285,6 +3288,10 @@ export namespace GQL {
         shortname: string;
     }
     export interface MutationAlphaSetRoomShortNameArgs {
+        id: string;
+        shortname: string;
+    }
+    export interface MutationAlphaSetCollectionShortNameArgs {
         id: string;
         shortname: string;
     }
@@ -5363,7 +5370,7 @@ export namespace GQL {
     export interface RoomInviteIdArgs { }
     export interface RoomInviteRoomArgs { }
     export interface RoomInviteInvitedByUserArgs { }
-    export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom;
+    export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection;
 }
 
 export interface GQLResolver {
@@ -6717,6 +6724,7 @@ export interface GQLResolver {
             image: GQL.DiscoverChatsCollectionImageArgs,
             chatsCount: GQL.DiscoverChatsCollectionChatsCountArgs,
             chats: GQL.DiscoverChatsCollectionChatsArgs,
+            shortname: GQL.DiscoverChatsCollectionShortnameArgs,
         }
     >;
     DiscoverChatsCollectionConnection?: ComplexTypedResolver<
@@ -8023,6 +8031,7 @@ export interface GQLResolver {
             alphaSetOrgShortName: GQL.MutationAlphaSetOrgShortNameArgs,
             alphaSetFeedChannelShortName: GQL.MutationAlphaSetFeedChannelShortNameArgs,
             alphaSetRoomShortName: GQL.MutationAlphaSetRoomShortNameArgs,
+            alphaSetCollectionShortName: GQL.MutationAlphaSetCollectionShortNameArgs,
         }
     >;
     NotificationCenter?: ComplexTypedResolver<
@@ -9921,5 +9930,5 @@ export interface GQLResolver {
             invitedByUser: GQL.RoomInviteInvitedByUserArgs,
         }
     >;
-    ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom'>;
+    ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom' | 'DiscoverChatsCollection'>;
 }

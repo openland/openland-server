@@ -5,6 +5,8 @@ import { Context } from '@openland/context';
 import { Modules } from '../../openland-modules/Modules';
 import { injectable } from 'inversify';
 
+export type OwnerType = 'user' | 'org' | 'feed_channel' | 'room' | 'collection';
+
 @injectable()
 export class ShortnameRepository {
 
@@ -65,7 +67,7 @@ export class ShortnameRepository {
         });
     }
 
-    async findShortnameByOwner(parent: Context, ownerType: 'user' | 'org' | 'feed_channel' | 'room', ownerId: number) {
+    async findShortnameByOwner(parent: Context, ownerType: OwnerType, ownerId: number) {
         return await inTx(parent, async ctx => {
             let record = await Store.ShortnameReservation.fromOwner.find(ctx, ownerType, ownerId);
             if (record && record.enabled) {
@@ -75,7 +77,7 @@ export class ShortnameRepository {
         });
     }
 
-    async setShortName(parent: Context, shortname: string, ownerType: 'user' | 'org' | 'feed_channel' | 'room', ownerId: number, uid: number) {
+    async setShortName(parent: Context, shortname: string, ownerType: OwnerType, ownerId: number, uid: number) {
         return await inTx(parent, async ctx => {
             let normalized = await this.normalizeShortname(ctx, shortname, ownerType, uid);
 
@@ -109,7 +111,7 @@ export class ShortnameRepository {
         });
     }
 
-    private async normalizeShortname(parent: Context, shortname: string, ownerType: 'user' | 'org' | 'feed_channel' | 'room', uid: number) {
+    private async normalizeShortname(parent: Context, shortname: string, ownerType: OwnerType, uid: number) {
         return await inTx(parent, async (ctx) => {
             let role = await Modules.Super.superRole(ctx, uid);
             let isAdmin = role === 'super-admin';

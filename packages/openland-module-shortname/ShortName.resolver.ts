@@ -1,4 +1,4 @@
-import { withAccount } from '../openland-module-api/Resolvers';
+import { withAccount, withPermission } from '../openland-module-api/Resolvers';
 import { UserError } from '../openland-errors/UserError';
 import { ErrorText } from '../openland-errors/ErrorText';
 import { Modules } from 'openland-modules/Modules';
@@ -6,7 +6,12 @@ import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { withUser } from '../openland-module-users/User.resolver';
-import { User, Organization, FeedChannel, ConversationRoom } from 'openland-module-db/store';
+import {
+    User,
+    Organization,
+    FeedChannel,
+    ConversationRoom, EditorsChoiceChatsCollection,
+} from 'openland-module-db/store';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
 export const Resolver: GQLResolver = {
@@ -20,6 +25,8 @@ export const Resolver: GQLResolver = {
                 return 'FeedChannel';
             } else if (src instanceof ConversationRoom) {
                 return 'SharedRoom';
+            } else if (src instanceof EditorsChoiceChatsCollection) {
+                return 'DiscoverChatsCollection';
             }
 
             throw new Error('Unknown shortname type');
@@ -40,8 +47,8 @@ export const Resolver: GQLResolver = {
                     ownerType = 'feed_channel';
                 } else if (idInfo.type === IDs.Conversation) {
                     ownerType = 'room';
-                } else {
-                    return null;
+                } else if (idInfo.type === IDs.DiscoverChatsCollection) {
+                    ownerType = 'collection';
                 }
                 ownerId = idInfo.id as number;
             } catch {
@@ -66,6 +73,8 @@ export const Resolver: GQLResolver = {
                 return await Store.FeedChannel.findById(ctx, ownerId);
             } else if (ownerType === 'room') {
                 return await Store.ConversationRoom.findById(ctx, ownerId);
+            } else if (ownerType === 'collection') {
+                return await Store.EditorsChoiceChatsCollection.findById(ctx, ownerId);
             }
 
             return null;
@@ -109,6 +118,11 @@ export const Resolver: GQLResolver = {
             await Modules.Shortnames.setShortName(ctx, args.shortname, 'room', cid, uid);
             return 'ok';
         }),
+        alphaSetCollectionShortName: withPermission('super-admin', async (ctx, args) => {
+            let cid = IDs.DiscoverChatsCollection.parse(args.id);
+            await Modules.Shortnames.setShortName(ctx, args.shortname, 'collection', cid, ctx.auth.uid!);
+            return 'ok';
+        })
     },
 
     User: {
@@ -143,8 +157,13 @@ export const Resolver: GQLResolver = {
     },
     SharedRoom: {
         shortname: async (src, args, ctx) => {
-
             let shortName = await Modules.Shortnames.findShortnameByOwner(ctx, 'room', typeof src === 'number' ? src : src.id);
+            return shortName ? shortName.shortname : null;
+        },
+    },
+    DiscoverChatsCollection: {
+        shortname: async (src, args, ctx) => {
+            let shortName = await Modules.Shortnames.findShortnameByOwner(ctx, 'collection', src.id);
             return shortName ? shortName.shortname : null;
         },
     }
