@@ -1325,6 +1325,13 @@ export const Resolver: GQLResolver = {
             });
 
             return true;
+        }),
+        debugQueueWeeklyPaidLeaderboard: withPermission('super-admin', async (parent) => {
+            await inTx(parent, async (ctx) => {
+                await Modules.Stats.weeklyPaidLeaderboardQueue.pushImmediateWork(ctx);
+            });
+
+            return true;
         })
     },
     Subscription: {

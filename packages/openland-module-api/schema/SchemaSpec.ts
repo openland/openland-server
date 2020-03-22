@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'eb0d2aec874d856100066e2005d15927';
+export const GQL_SPEC_VERSION = '8f7bd6dcdebbbf27b49261023d5ab422';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1974,6 +1974,7 @@ export namespace GQL {
         debugRecountSeqForMessages: boolean;
         debugReindexRoomMessagesCounter: boolean;
         debugQueueDailyPaidLeaderboard: boolean;
+        debugQueueWeeklyPaidLeaderboard: boolean;
         settingsUpdate: Settings;
         sendEmailChangeCode: string;
         changeEmail: boolean;
@@ -2459,6 +2460,7 @@ export namespace GQL {
     export interface MutationDebugRecountSeqForMessagesArgs { }
     export interface MutationDebugReindexRoomMessagesCounterArgs { }
     export interface MutationDebugQueueDailyPaidLeaderboardArgs { }
+    export interface MutationDebugQueueWeeklyPaidLeaderboardArgs { }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
     }
@@ -7818,6 +7820,7 @@ export interface GQLResolver {
             debugRecountSeqForMessages: GQL.MutationDebugRecountSeqForMessagesArgs,
             debugReindexRoomMessagesCounter: GQL.MutationDebugReindexRoomMessagesCounterArgs,
             debugQueueDailyPaidLeaderboard: GQL.MutationDebugQueueDailyPaidLeaderboardArgs,
+            debugQueueWeeklyPaidLeaderboard: GQL.MutationDebugQueueWeeklyPaidLeaderboardArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailChangeCode: GQL.MutationSendEmailChangeCodeArgs,
             changeEmail: GQL.MutationChangeEmailArgs,
