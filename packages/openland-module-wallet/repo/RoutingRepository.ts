@@ -16,7 +16,7 @@ const subscriptionToEvent = (s: WalletSubscription) => ({
     amount: s.amount,
     interval: s.interval,
     start: s.start,
-    proudct: s.proudct,
+    product: s.proudct,
     state: s.state
 });
 
