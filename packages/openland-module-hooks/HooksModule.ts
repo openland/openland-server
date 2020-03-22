@@ -12,6 +12,7 @@ import {
     roomMention,
     userMention,
 } from '../openland-utils/MessageBuilder';
+import { formatMoney, formatMoneyWithInterval } from '../openland-module-wallet/repo/utils/formatMoney';
 
 const profileUpdated = createHyperlogger<{ uid: number }>('profile-updated');
 const organizationProfileUpdated = createHyperlogger<{ oid: number }>('organization-profile-updated');
@@ -247,7 +248,7 @@ export class HooksModule {
         let userName = await Modules.Users.getUserFullName(ctx, uid);
 
         let parts = [
-            boldString('$' + (amount / 100).toString()),
+            boldString(formatMoney(amount)),
             ' paid by ',
             userMention(userName, uid),
         ];
@@ -295,7 +296,7 @@ export class HooksModule {
         });
     }
 
-    onRoomCreate = async (ctx: Context, uid: number, cid: number, price: number | undefined, kind: 'group' | 'public') => {
+    onRoomCreate = async (ctx: Context, uid: number, cid: number, kind: 'group' | 'public', price?: number, interval?: 'week' | 'month') => {
         if (!price) {
             return;
         }
@@ -314,7 +315,9 @@ export class HooksModule {
         }
 
         await Modules.Messaging.sendMessage(ctx, chatId, botId, {
-            ...buildMessage(`New ${kind === 'public' ? 'public' : 'private'} pro group: `, roomMention(room.title, cid), ' from ', userMention(userName, uid)),
+            ...buildMessage(
+                roomMention(room.title, cid), ' created by ', userMention(userName, uid),
+                ' · ', boldString(formatMoneyWithInterval(price, interval || null)), interval ? ' subscription' : ' one-time'),
             ignoreAugmentation: true,
         });
     }
