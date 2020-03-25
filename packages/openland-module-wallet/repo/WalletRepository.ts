@@ -257,7 +257,7 @@ export class WalletRepository {
     incomePending = async (parent: Context, parentTxid: string, uid: number, amount: number, source: { type: 'purchase', id: string } | { type: 'subscription', id: string }) => {
         await inTx(parent, async (ctx) => {
             let incomeTxid = uuid();
-            await this.store.WalletTransaction.create(ctx, incomeTxid, {
+            let tx = await this.store.WalletTransaction.create(ctx, incomeTxid, {
                 uid: uid,
                 status: 'pending',
                 parentId: parentTxid,
@@ -268,6 +268,7 @@ export class WalletRepository {
                     id: source.id
                 }
             });
+            await tx.flush(ctx);
 
             // Write events
             this.store.UserWalletUpdates.post(ctx, uid, WalletTransactionPending.create({ id: incomeTxid }));

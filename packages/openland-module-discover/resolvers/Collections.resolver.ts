@@ -10,7 +10,10 @@ export const Resolver: GQLResolver = {
         title: src => src.title,
         image: src => src.image,
         chatsCount: src => src.chatIds.length,
-        chats: src => src.chatIds
+        chats: async (src, args, ctx) => {
+            let chats = await Promise.all(src.chatIds.map(a => Store.RoomProfile.findById(ctx, a)));
+            return chats.sort((a, b) => b!.activeMembersCount! - a!.activeMembersCount!).map(a => a!.id);
+        }
     },
     DiscoverChatsCollectionConnection: {
         items: src => src.items,

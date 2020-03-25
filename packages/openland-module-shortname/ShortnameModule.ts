@@ -1,4 +1,4 @@
-import { ShortnameRepository } from './repositories/ShortnameRepository';
+import { OwnerType, ShortnameRepository } from './repositories/ShortnameRepository';
 import { inject, injectable } from 'inversify';
 import { Context } from '@openland/context';
 
@@ -14,11 +14,11 @@ export class ShortnameModule {
         return this.repo.findShortname(ctx, shortname);
     }
 
-    async findShortnameByOwner(parent: Context, ownerType: 'user' | 'org' | 'feed_channel' | 'room', ownerId: number) {
+    async findShortnameByOwner(parent: Context, ownerType: OwnerType, ownerId: number) {
         return this.repo.findShortnameByOwner(parent, ownerType, ownerId);
     }
 
-    async setShortName(parent: Context, shortname: string, ownerType: 'user' | 'org' | 'feed_channel' | 'room', ownerId: number, uid: number) {
+    async setShortName(parent: Context, shortname: string, ownerType: OwnerType, ownerId: number, uid: number) {
         return this.repo.setShortName(parent, shortname, ownerType, ownerId, uid);
     }
 

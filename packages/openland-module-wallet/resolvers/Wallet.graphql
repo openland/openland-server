@@ -221,6 +221,7 @@ extend type Query {
     transactionsHistory(first: Int!, after: String): WalletTransactionConnection!
 
     subscriptions: [WalletSubscription!]!
+    stripeToken: String!
 }
 
 extend type Mutation {

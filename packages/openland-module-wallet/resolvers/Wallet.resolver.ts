@@ -316,7 +316,12 @@ export const Resolver: GQLResolver = {
 
         subscriptions: withAccount(async (ctx, args, uid) => {
             return await Store.WalletSubscription.user.findAll(ctx, uid);
-        })
+        }),
+
+        //
+        // Config
+        //
+        stripeToken: withAccount( async () => Modules.Wallet.getStripePK()),
     },
     Mutation: {
 

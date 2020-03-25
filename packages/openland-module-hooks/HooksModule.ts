@@ -4,8 +4,15 @@ import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent'
 import { Context } from '@openland/context';
 import { IDs } from '../openland-module-api/IDs';
 import { Store } from '../openland-module-db/FDB';
-import { AppHook } from 'openland-module-db/store';
-import { boldString, buildMessage, orgMention, roomMention, userMention } from '../openland-utils/MessageBuilder';
+import { AppHook, PaymentCreateShape } from 'openland-module-db/store';
+import {
+    boldString,
+    buildMessage, MessagePart,
+    orgMention,
+    roomMention,
+    userMention,
+} from '../openland-utils/MessageBuilder';
+import { formatMoney, formatMoneyWithInterval } from '../openland-module-wallet/repo/utils/formatMoney';
 
 const profileUpdated = createHyperlogger<{ uid: number }>('profile-updated');
 const organizationProfileUpdated = createHyperlogger<{ oid: number }>('organization-profile-updated');
@@ -231,22 +238,66 @@ export class HooksModule {
         await Modules.Feed.onAutoSubscriptionPeerNewMember(ctx, uid, 'organization', oid);
     }
 
-    onPaymentSuccess = async (ctx: Context, uid: number, amount: number) => {
+    onPaymentSuccess = async (ctx: Context, uid: number, amount: number, operation: PaymentCreateShape['operation']) => {
         let botId = await getSuperNotificationsBotId(ctx);
         let chatId = await getPaymentsNotificationsChatId(ctx);
 
         if (!botId || !chatId) {
             return;
         }
+
         let userName = await Modules.Users.getUserFullName(ctx, uid);
 
+        let parts = [
+            boldString(formatMoney(amount)),
+            ' paid by ',
+            userMention(userName, uid),
+        ];
+
+        if (operation.type === 'purchase') {
+            let op = await Store.WalletPurchase.findById(ctx, operation.id);
+            if (!op) {
+                return;
+            }
+            if (op.product.type === 'group') {
+                let room = await Store.RoomProfile.findById(ctx, op?.product.gid);
+                parts.push(' for ', roomMention(room!.title, op.product.gid), ' · one-time');
+            } else {
+                let donee = await Modules.Users.getUserFullName(ctx, op.product.uid);
+                parts.push(' for ', userMention(donee, op.product.uid), ' · donation');
+            }
+        } else if (operation.type === 'subscription') {
+            let subscription = await Store.WalletSubscription.findById(ctx, operation.subscription);
+            if (!subscription) {
+                return;
+            }
+
+            let mention: MessagePart;
+            if (subscription.proudct.type === 'group') {
+                let room = await Store.RoomProfile.findById(ctx, subscription.proudct.gid);
+                if (!room) {
+                    return;
+                }
+                mention = roomMention(room.title, room.id);
+            } else {
+                let donee = await Modules.Users.getUserFullName(ctx, subscription.proudct.uid);
+                mention = userMention(donee, subscription.proudct.uid);
+            }
+
+            parts.push(' for ', mention, ' · subscription');
+        } else if (operation.type === 'deposit') {
+            parts.push(' · deposit');
+        } else {
+            return;
+        }
+
         await Modules.Messaging.sendMessage(ctx, chatId, botId, {
-            ...buildMessage(`New payment: $`, boldString((amount / 100).toString()), ' from ', userMention(userName, uid)),
+            ...buildMessage(...parts),
             ignoreAugmentation: true,
         });
     }
 
-    onRoomCreate = async (ctx: Context, uid: number, cid: number, price: number | undefined, kind: 'group' | 'public') => {
+    onRoomCreate = async (ctx: Context, uid: number, cid: number, kind: 'group' | 'public', price?: number, interval?: 'week' | 'month') => {
         if (!price) {
             return;
         }
@@ -265,7 +316,9 @@ export class HooksModule {
         }
 
         await Modules.Messaging.sendMessage(ctx, chatId, botId, {
-            ...buildMessage(`New ${kind === 'public' ? 'public' : 'private'} pro group: `, roomMention(room.title, cid), ' from ', userMention(userName, uid)),
+            ...buildMessage(
+                roomMention(room.title, cid), ' created by ', userMention(userName, uid),
+                ' · ', boldString(formatMoneyWithInterval(price, interval || null)), interval ? ' subscription' : ' one-time'),
             ignoreAugmentation: true,
         });
     }

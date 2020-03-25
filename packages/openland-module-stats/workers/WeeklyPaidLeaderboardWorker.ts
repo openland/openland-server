@@ -1,5 +1,5 @@
 import { Modules } from '../../openland-modules/Modules';
-import { ScheduledQueue } from '../../openland-module-workers/ScheduledQueue';
+import { ScheduledQueue, WeekDay } from '../../openland-module-workers/ScheduledQueue';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { getLeaderboardsChatId, getSuperNotificationsBotId } from './utils';
 import { Store } from '../../openland-module-db/FDB';
@@ -9,12 +9,12 @@ import { RoomProfile } from '../../openland-module-db/store';
 import { formatMoney, formatMoneyWithInterval } from '../../openland-module-wallet/repo/utils/formatMoney';
 import { plural } from '../../openland-utils/string';
 
-const log = createLogger('daily-paid-leaderboards');
+const log = createLogger('weekly-paid-leaderboards');
 
-export function createDailyPaidLeaderboardWorker() {
-    let queue = new ScheduledQueue('daily-paid-leaderboards',  {
-        interval: 'every-day',
-        time: { hours: 10, minutes: 0 },
+export function createWeeklyPaidLeaderboardWorker() {
+    let queue = new ScheduledQueue('weekly-paid-leaderboard',  {
+        interval: 'every-week',
+        time: { weekDay: WeekDay.Monday, hours: 10, minutes: 0 },
     });
     if (serverRoleEnabled('workers')) {
         queue.addWorker(async (parent) => {
@@ -33,7 +33,7 @@ export function createDailyPaidLeaderboardWorker() {
                                 must: [{ term: { type: 'wallet_event' } }, { term: { ['body.type']: 'payment_intent_success' } }, {
                                     range: {
                                         date: {
-                                            gte: Date.now() - 24 * 60 * 60 * 1000,
+                                            gte: Date.now() - 7 * 24 * 60 * 60 * 1000,
                                         },
                                     },
                                 }],
@@ -62,7 +62,7 @@ export function createDailyPaidLeaderboardWorker() {
                                     {
                                         range: {
                                             date: {
-                                                gte: Date.now() - 24 * 60 * 60 * 1000,
+                                                gte: Date.now() - 7 * 24 * 60 * 60 * 1000,
                                             },
                                         },
                                     }],
@@ -90,7 +90,7 @@ export function createDailyPaidLeaderboardWorker() {
                                     {
                                         range: {
                                             date: {
-                                                gte: Date.now() - 24 * 60 * 60 * 1000,
+                                                gte: Date.now() - 7 * 24 * 60 * 60 * 1000,
                                             },
                                         },
                                     }
@@ -144,8 +144,8 @@ export function createDailyPaidLeaderboardWorker() {
             oneTimeGroups = oneTimeGroups.slice(0, 20);
             subscriptionGroups = subscriptionGroups.slice(0, 20);
 
-            let message = [heading('💎  Daily revenue'), '\n',
-                boldString(formatMoney(totalSales)), ' · Total daily sales', '\n\n',
+            let message = [heading('💎  Weekly revenue'), '\n',
+                boldString(formatMoney(totalSales)), ' · Total weekly sales', '\n\n',
                 boldString('One-time payments'), '\n'
             ];
             for (let { purchases, room, price } of oneTimeGroups) {

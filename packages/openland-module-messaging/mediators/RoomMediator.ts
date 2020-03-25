@@ -64,7 +64,7 @@ export class RoomMediator {
                 await this.messaging.sendMessage(ctx, uid, res.id, { message: message });
             }
 
-            await Modules.Hooks.onRoomCreate(ctx, uid, res.id, price, kind);
+            await Modules.Hooks.onRoomCreate(ctx, uid, res.id, kind, price, interval);
             return res;
         });
     }

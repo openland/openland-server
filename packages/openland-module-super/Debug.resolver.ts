@@ -1326,6 +1326,13 @@ export const Resolver: GQLResolver = {
 
             return true;
         }),
+        debugQueueWeeklyPaidLeaderboard: withPermission('super-admin', async (parent) => {
+            await inTx(parent, async (ctx) => {
+                await Modules.Stats.weeklyPaidLeaderboardQueue.pushImmediateWork(ctx);
+            });
+
+            return true;
+        }),
         debugSendHiddenMessage: withPermission('super-admin', async (parent, args) => {
             return await inTx(parent, async (ctx) => {
                 let dialog = await Modules.Messaging.room.resolvePrivateChat(ctx, parent.auth.uid!, IDs.User.parse(args.uid));
