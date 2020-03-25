@@ -6,7 +6,6 @@ import { IDs } from 'openland-module-api/IDs';
 import { GQLResolver, GQL } from 'openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, WalletTransactionCanceled, PaymentStatusChanged, WalletLockedChanged, WalletSubscription, WalletPurchase } from 'openland-module-db/store';
-import { randomKey } from 'openland-utils/random';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { inTx } from '@openland/foundationdb';
@@ -206,7 +205,8 @@ export const Resolver: GQLResolver = {
 
             return null;
         },
-        product: (src) => src.product
+        product: (src) => src.product,
+        amount: (src) => src.amount,
     },
 
     WalletIncomeSource: {
@@ -257,8 +257,10 @@ export const Resolver: GQLResolver = {
         __resolveType: (src) => {
             if (src.type === 'group') {
                 return 'WalletProductGroup';
-            } else if (src.type === 'donate') {
-                return 'WalletProductDonation';
+            } else if (src.type === 'donate_message') {
+                return 'WalletProductDonationMessage';
+            } else if (src.type === 'donate_reaction') {
+                return 'WalletProductDonationReaction';
             }
             throw Error('Unknown product type: ' + (src as any /* Fuck you, ts */).type);
         }
@@ -272,11 +274,38 @@ export const Resolver: GQLResolver = {
             throw new Error('Internal error');
         }
     },
-
     WalletProductDonation: {
         user: (src) => {
             if (src.type === 'donate' && src.uid) {
                 return src.uid;
+            }
+            throw new Error('Internal error');
+        },
+    },
+    WalletProductDonationMessage: {
+        user: (src) => {
+            if (src.type === 'donate_message' && src.uid) {
+                return src.uid;
+            }
+            throw new Error('Internal error');
+        },
+        chat: (src) => {
+            if (src.type === 'donate_message' && src.cid) {
+                return src.cid;
+            }
+            throw new Error('Internal error');
+        }
+    },
+    WalletProductDonationReaction: {
+        user: (src) => {
+            if (src.type === 'donate_reaction' && src.uid) {
+                return src.uid;
+            }
+            throw new Error('Internal error');
+        },
+        message: async (src, _, ctx) => {
+            if (src.type === 'donate_reaction' && src.mid) {
+                return (await Store.Message.findById(ctx, src.mid))!;
             }
             throw new Error('Internal error');
         }
@@ -364,22 +393,6 @@ export const Resolver: GQLResolver = {
         }),
         paymentCancel: withAccount(async (ctx, args, uid) => {
             throw Error('Unsupported');
-        }),
-
-        //
-        // Donate
-        //
-
-        donateToUser: withAccount(async (ctx, args, uid) => {
-            // await Modules.Billing.createSubscription(ctx, uid, args.amount, 'week', {
-            //     type: 'donate',
-            //     uid: IDs.User.parse(args.id)
-            // });
-            await Modules.Wallet.createTransferPayment(ctx, uid, IDs.User.parse(args.id), args.amount, 'donate-' + randomKey());
-            return true;
-        }),
-        donateToUser2: withAccount(async (ctx, args, uid) => {
-            return await Modules.Wallet.purchases.createPurchase(ctx, uid, args.amount, { type: 'donate', uid: IDs.User.parse(args.id) });
         }),
 
         //

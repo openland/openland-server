@@ -161,6 +161,7 @@ extend type Query {
 extend type Mutation {
     sendMessage(chatId: ID!, message: String, replyMessages: [ID!], mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], repeatKey: String): Boolean!
     sendSticker(chatId: ID!, stickerId: ID!, replyMessages: [ID!], repeatKey: String): Boolean!
+    sendDonation(chatId: ID!, amount: Int!, message: String, repeatKey: String): Boolean!
     editMessage(messageId: ID!, message: String, replyMessages: [ID!], mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): Boolean!
 
     pinMessage(chatId: ID!, messageId: ID!): Boolean!
@@ -173,6 +174,7 @@ extend type Mutation {
     gammaUnpinMessage(chatId: ID!): Room!
 
     messageReactionAdd(messageId: ID!, reaction: MessageReactionType!): Boolean!
+    messageDonationReactionAdd(messageId: ID!): Boolean!
     messageReactionRemove(messageId: ID!, reaction: MessageReactionType!): Boolean!
 
     deleteChat(chatId: ID!): Boolean!
@@ -229,6 +231,12 @@ type MessageAttachmentPost implements ModernMessageAttachment {
     fallback: String!
 }
 
+type MessageAttachmentPurchase implements ModernMessageAttachment {
+    id: ID!
+    fallback: String!
+    purchase: Purchase!
+}
+
 input FileAttachmentInput {
     fileId: String!
 }
@@ -274,7 +282,8 @@ enum MessageReactionType {
     JOY,
     SCREAM,
     CRYING,
-    ANGRY
+    ANGRY,
+    DONATE
 }
 
 type ModernMessageReaction {

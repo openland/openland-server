@@ -134,6 +134,8 @@ export class RoutingRepositoryImpl {
         await walletEvent.event(ctx, { type: 'purchase_created', body: { pid, uid, amount, product } });
         if (product.type === 'group') {
             await Modules.Messaging.premiumChat.onPurchaseCreated(ctx, pid, txid, uid, amount, product.gid);
+        } else if (product.type === 'donate_reaction' || product.type === 'donate_message') {
+            await Modules.Messaging.donations.onPurchaseCreated(ctx, pid, txid, uid, amount, product.uid);
         }
     }
 
@@ -141,6 +143,8 @@ export class RoutingRepositoryImpl {
         await walletEvent.event(ctx, { type: 'purchase_successful', body: { pid, uid, amount, product } });
         if (product.type === 'group') {
             await Modules.Messaging.premiumChat.onPurchaseSuccess(ctx, pid, txid, product.gid, uid, amount);
+        } else if (product.type === 'donate_reaction' || product.type === 'donate_message') {
+            await Modules.Messaging.donations.onPurchaseSuccess(ctx, pid, txid, uid, amount, product);
         }
     }
 
@@ -148,6 +152,8 @@ export class RoutingRepositoryImpl {
         await walletEvent.event(ctx, { type: 'purchase_failing', body: { pid, uid, amount, product } });
         if (product.type === 'group') {
             await Modules.Messaging.premiumChat.onPurchaseFailing(ctx, pid, product.gid, uid, amount);
+        } else if (product.type === 'donate_reaction' || product.type === 'donate_message') {
+            await Modules.Messaging.donations.onPurchaseFailing(ctx, pid, uid, amount, product.uid);
         }
     }
 
@@ -155,6 +161,8 @@ export class RoutingRepositoryImpl {
         await walletEvent.event(ctx, { type: 'purchase_need_action', body: { pid, uid, amount, product } });
         if (product.type === 'group') {
             await Modules.Messaging.premiumChat.onPurchaseNeedAction(ctx, pid, product.gid, uid, amount);
+        } else if (product.type === 'donate_reaction' || product.type === 'donate_message') {
+            await Modules.Messaging.donations.onPurchaseNeedAction(ctx, pid, uid, amount, product.uid);
         }
     }
 
@@ -162,6 +170,8 @@ export class RoutingRepositoryImpl {
         await walletEvent.event(ctx, { type: 'purchase_canceled', body: { pid, uid, amount, product } });
         if (product.type === 'group') {
             await Modules.Messaging.premiumChat.onPurchaseCanceled(ctx, pid, product.gid, uid, amount);
+        } else if (product.type === 'donate_reaction' || product.type === 'donate_message') {
+            await Modules.Messaging.donations.onPurchaseCanceled(ctx, pid, uid, amount, product);
         }
     }
 

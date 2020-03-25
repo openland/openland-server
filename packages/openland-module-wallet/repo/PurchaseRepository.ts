@@ -46,9 +46,15 @@ export class PurchaseRepository {
                 });
 
                 // Callbacks
-                if (this.routing.onPurchaseCreated) {
-                    await this.routing.onPurchaseCreated(ctx, res.id, txid, uid, amount, product);
-                }
+
+                /*
+                * I commented it because it causing bug that transaction is always pending
+                * idk why this callback is called, it is useless
+                * */
+                // if (this.routing.onPurchaseCreated) {
+                //     await this.routing.onPurchaseCreated(ctx, res.id, txid, uid, amount, product);
+                // }
+
                 if (this.routing.onPurchaseSuccessful) {
                     await this.routing.onPurchaseSuccessful(ctx, res.id, txid, uid, amount, product);
                 }

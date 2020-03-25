@@ -222,12 +222,11 @@ export class MessagingMediator {
 
     setReaction = async (parent: Context, mid: number, uid: number, reaction: string, reset: boolean = false) => {
         return await inTx(parent, async (ctx) => {
-
             // Update
             let res = await this.repo.setReaction(ctx, mid, uid, reaction, reset);
 
             if (!res) {
-                return;
+                return false;
             }
 
             // Delivery

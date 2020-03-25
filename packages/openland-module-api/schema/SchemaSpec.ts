@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '943dc9310649d6cf4746dcfc24d03f5d';
+export const GQL_SPEC_VERSION = '26b54252a82e68dd9f5512d4a1f55a06';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -660,7 +660,19 @@ export namespace GQL {
         user: User;
     }
     export interface WalletProductDonationUserArgs { }
-    export type WalletProduct = WalletProductGroup | WalletProductDonation;
+    export interface WalletProductDonationMessage {
+        user: User;
+        chat: Room;
+    }
+    export interface WalletProductDonationMessageUserArgs { }
+    export interface WalletProductDonationMessageChatArgs { }
+    export interface WalletProductDonationReaction {
+        user: User;
+        message: ModernMessage;
+    }
+    export interface WalletProductDonationReactionUserArgs { }
+    export interface WalletProductDonationReactionMessageArgs { }
+    export type WalletProduct = WalletProductGroup | WalletProductDonation | WalletProductDonationMessage | WalletProductDonationReaction;
     export type PurchaseStateValues = 'PENDING' | 'COMPLETED' | 'CANCELED';
     export type PurchaseState = GQLRoots.PurchaseStateRoot;
     export interface Purchase {
@@ -668,11 +680,13 @@ export namespace GQL {
         state: PurchaseState;
         intent: Nullable<PaymentIntent>;
         product: WalletProduct;
+        amount: number;
     }
     export interface PurchaseIdArgs { }
     export interface PurchaseStateArgs { }
     export interface PurchaseIntentArgs { }
     export interface PurchaseProductArgs { }
+    export interface PurchaseAmountArgs { }
     export interface WalletUpdateSingle {
         state: string;
         update: WalletUpdate;
@@ -1912,8 +1926,6 @@ export namespace GQL {
         cardDepositIntent: PaymentIntent;
         paymentIntentCommit: boolean;
         paymentCancel: boolean;
-        donateToUser: boolean;
-        donateToUser2: Purchase;
         subscriptionCancel: WalletSubscription;
         alphaCreateInvite: Invite;
         alphaDeleteInvite: string;
@@ -2150,6 +2162,7 @@ export namespace GQL {
         alphaFeedChannelDisableCommunityAutoSubscription: boolean;
         sendMessage: boolean;
         sendSticker: boolean;
+        sendDonation: boolean;
         editMessage: boolean;
         pinMessage: boolean;
         unpinMessage: boolean;
@@ -2158,6 +2171,7 @@ export namespace GQL {
         gammaPinMessage: Room;
         gammaUnpinMessage: Room;
         messageReactionAdd: boolean;
+        messageDonationReactionAdd: boolean;
         messageReactionRemove: boolean;
         deleteChat: boolean;
         archiveChat: boolean;
@@ -2333,14 +2347,6 @@ export namespace GQL {
         id: string;
     }
     export interface MutationPaymentCancelArgs {
-        id: string;
-    }
-    export interface MutationDonateToUserArgs {
-        amount: number;
-        id: string;
-    }
-    export interface MutationDonateToUser2Args {
-        amount: number;
         id: string;
     }
     export interface MutationSubscriptionCancelArgs {
@@ -3091,11 +3097,11 @@ export namespace GQL {
     }
     export interface MutationFeedReactionAddArgs {
         feedItemId: string;
-        reaction: MessageReactionType;
+        reaction: FeedReactionType;
     }
     export interface MutationFeedReactionRemoveArgs {
         feedItemId: string;
-        reaction: MessageReactionType;
+        reaction: FeedReactionType;
     }
     export interface MutationAlphaFeedCreateChannelArgs {
         title: string;
@@ -3157,6 +3163,12 @@ export namespace GQL {
         replyMessages: OptionalNullable<string[]>;
         repeatKey: OptionalNullable<string>;
     }
+    export interface MutationSendDonationArgs {
+        chatId: string;
+        amount: number;
+        message: OptionalNullable<string>;
+        repeatKey: OptionalNullable<string>;
+    }
     export interface MutationEditMessageArgs {
         messageId: string;
         message: OptionalNullable<string>;
@@ -3189,6 +3201,9 @@ export namespace GQL {
     export interface MutationMessageReactionAddArgs {
         messageId: string;
         reaction: MessageReactionType;
+    }
+    export interface MutationMessageDonationReactionAddArgs {
+        messageId: string;
     }
     export interface MutationMessageReactionRemoveArgs {
         messageId: string;
@@ -4738,6 +4753,8 @@ export namespace GQL {
     }
     export interface FeedChannelSubscriberConnectionEdgesArgs { }
     export interface FeedChannelSubscriberConnectionPageInfoArgs { }
+    export type FeedReactionTypeValues = 'LIKE' | 'THUMB_UP' | 'JOY' | 'SCREAM' | 'CRYING' | 'ANGRY';
+    export type FeedReactionType = GQLRoots.FeedReactionTypeRoot;
     export type GlobalSearchEntry = Organization | User | SharedRoom;
     export type GlobalSearchEntryKindValues = 'ORGANIZATION' | 'USER' | 'SHAREDROOM';
     export type GlobalSearchEntryKind = GQLRoots.GlobalSearchEntryKindRoot;
@@ -5002,6 +5019,14 @@ export namespace GQL {
     export interface MessageAttachmentPostIdArgs { }
     export interface MessageAttachmentPostPostArgs { }
     export interface MessageAttachmentPostFallbackArgs { }
+    export interface MessageAttachmentPurchase extends ModernMessageAttachment {
+        id: string;
+        fallback: string;
+        purchase: Purchase;
+    }
+    export interface MessageAttachmentPurchaseIdArgs { }
+    export interface MessageAttachmentPurchaseFallbackArgs { }
+    export interface MessageAttachmentPurchasePurchaseArgs { }
     export interface FileAttachmentInput {
         fileId: string;
     }
@@ -5029,7 +5054,7 @@ export namespace GQL {
         title: string;
         style: ModernMessageButtonStyle;
     }
-    export type MessageReactionTypeValues = 'LIKE' | 'THUMB_UP' | 'JOY' | 'SCREAM' | 'CRYING' | 'ANGRY';
+    export type MessageReactionTypeValues = 'LIKE' | 'THUMB_UP' | 'JOY' | 'SCREAM' | 'CRYING' | 'ANGRY' | 'DONATE';
     export type MessageReactionType = GQLRoots.MessageReactionTypeRoot;
     export interface ModernMessageReaction {
         user: User;
@@ -6118,7 +6143,31 @@ export interface GQLResolver {
             user: GQL.WalletProductDonationUserArgs,
         }
     >;
-    WalletProduct?: UnionTypeResolver<GQLRoots.WalletProductRoot, 'WalletProductGroup' | 'WalletProductDonation'>;
+    WalletProductDonationMessage?: ComplexTypedResolver<
+        GQL.WalletProductDonationMessage,
+        GQLRoots.WalletProductDonationMessageRoot,
+        {
+            user: GQLRoots.UserRoot,
+            chat: GQLRoots.RoomRoot,
+        },
+        {
+            user: GQL.WalletProductDonationMessageUserArgs,
+            chat: GQL.WalletProductDonationMessageChatArgs,
+        }
+    >;
+    WalletProductDonationReaction?: ComplexTypedResolver<
+        GQL.WalletProductDonationReaction,
+        GQLRoots.WalletProductDonationReactionRoot,
+        {
+            user: GQLRoots.UserRoot,
+            message: GQLRoots.ModernMessageRoot,
+        },
+        {
+            user: GQL.WalletProductDonationReactionUserArgs,
+            message: GQL.WalletProductDonationReactionMessageArgs,
+        }
+    >;
+    WalletProduct?: UnionTypeResolver<GQLRoots.WalletProductRoot, 'WalletProductGroup' | 'WalletProductDonation' | 'WalletProductDonationMessage' | 'WalletProductDonationReaction'>;
     PurchaseState?: EnumTypeResolver<'PENDING' | 'COMPLETED' | 'CANCELED', GQLRoots.PurchaseStateRoot>;
     Purchase?: ComplexTypedResolver<
         GQL.Purchase,
@@ -6132,6 +6181,7 @@ export interface GQLResolver {
             state: GQL.PurchaseStateArgs,
             intent: GQL.PurchaseIntentArgs,
             product: GQL.PurchaseProductArgs,
+            amount: GQL.PurchaseAmountArgs,
         }
     >;
     WalletUpdateSingle?: ComplexTypedResolver<
@@ -7642,7 +7692,6 @@ export interface GQLResolver {
             cardRemove: GQLRoots.CreditCardRoot,
             cardMakeDefault: GQLRoots.CreditCardRoot,
             cardDepositIntent: GQLRoots.PaymentIntentRoot,
-            donateToUser2: GQLRoots.PurchaseRoot,
             subscriptionCancel: GQLRoots.WalletSubscriptionRoot,
             alphaCreateInvite: GQLRoots.InviteRoot,
             debugCreateTestUser: GQLRoots.UserRoot,
@@ -7783,8 +7832,6 @@ export interface GQLResolver {
             cardDepositIntent: GQL.MutationCardDepositIntentArgs,
             paymentIntentCommit: GQL.MutationPaymentIntentCommitArgs,
             paymentCancel: GQL.MutationPaymentCancelArgs,
-            donateToUser: GQL.MutationDonateToUserArgs,
-            donateToUser2: GQL.MutationDonateToUser2Args,
             subscriptionCancel: GQL.MutationSubscriptionCancelArgs,
             alphaCreateInvite: GQL.MutationAlphaCreateInviteArgs,
             alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs,
@@ -8021,6 +8068,7 @@ export interface GQLResolver {
             alphaFeedChannelDisableCommunityAutoSubscription: GQL.MutationAlphaFeedChannelDisableCommunityAutoSubscriptionArgs,
             sendMessage: GQL.MutationSendMessageArgs,
             sendSticker: GQL.MutationSendStickerArgs,
+            sendDonation: GQL.MutationSendDonationArgs,
             editMessage: GQL.MutationEditMessageArgs,
             pinMessage: GQL.MutationPinMessageArgs,
             unpinMessage: GQL.MutationUnpinMessageArgs,
@@ -8029,6 +8077,7 @@ export interface GQLResolver {
             gammaPinMessage: GQL.MutationGammaPinMessageArgs,
             gammaUnpinMessage: GQL.MutationGammaUnpinMessageArgs,
             messageReactionAdd: GQL.MutationMessageReactionAddArgs,
+            messageDonationReactionAdd: GQL.MutationMessageDonationReactionAddArgs,
             messageReactionRemove: GQL.MutationMessageReactionRemoveArgs,
             deleteChat: GQL.MutationDeleteChatArgs,
             archiveChat: GQL.MutationArchiveChatArgs,
@@ -9230,6 +9279,7 @@ export interface GQLResolver {
             pageInfo: GQL.FeedChannelSubscriberConnectionPageInfoArgs,
         }
     >;
+    FeedReactionType?: EnumTypeResolver<'LIKE' | 'THUMB_UP' | 'JOY' | 'SCREAM' | 'CRYING' | 'ANGRY', GQLRoots.FeedReactionTypeRoot>;
     GlobalSearchEntry?: UnionTypeResolver<GQLRoots.GlobalSearchEntryRoot, 'Organization' | 'User' | 'SharedRoom'>;
     GlobalSearchEntryKind?: EnumTypeResolver<'ORGANIZATION' | 'USER' | 'SHAREDROOM', GQLRoots.GlobalSearchEntryKindRoot>;
     MessageWithChat?: ComplexTypedResolver<
@@ -9466,7 +9516,7 @@ export interface GQLResolver {
             metadata: GQL.ImageMetadataArgs,
         }
     >;
-    ModernMessageAttachment?: InterfaceTypeResolver<GQLRoots.ModernMessageAttachmentRoot, 'MessageRichAttachment' | 'MessageAttachmentFile' | 'MessageAttachmentPost'>;
+    ModernMessageAttachment?: InterfaceTypeResolver<GQLRoots.ModernMessageAttachmentRoot, 'MessageRichAttachment' | 'MessageAttachmentFile' | 'MessageAttachmentPost' | 'MessageAttachmentPurchase'>;
     MessageRichAttachment?: ComplexTypedResolver<
         GQL.MessageRichAttachment,
         GQLRoots.MessageRichAttachmentRoot,
@@ -9520,6 +9570,18 @@ export interface GQLResolver {
             fallback: GQL.MessageAttachmentPostFallbackArgs,
         }
     >;
+    MessageAttachmentPurchase?: ComplexTypedResolver<
+        GQL.MessageAttachmentPurchase,
+        GQLRoots.MessageAttachmentPurchaseRoot,
+        {
+            purchase: GQLRoots.PurchaseRoot,
+        },
+        {
+            id: GQL.MessageAttachmentPurchaseIdArgs,
+            fallback: GQL.MessageAttachmentPurchaseFallbackArgs,
+            purchase: GQL.MessageAttachmentPurchasePurchaseArgs,
+        }
+    >;
     MessageKeyboard?: ComplexTypedResolver<
         GQL.MessageKeyboard,
         GQLRoots.MessageKeyboardRoot,
@@ -9543,7 +9605,7 @@ export interface GQLResolver {
         }
     >;
     ModernMessageButtonStyle?: EnumTypeResolver<'DEFAULT' | 'LIGHT' | 'PAY', GQLRoots.ModernMessageButtonStyleRoot>;
-    MessageReactionType?: EnumTypeResolver<'LIKE' | 'THUMB_UP' | 'JOY' | 'SCREAM' | 'CRYING' | 'ANGRY', GQLRoots.MessageReactionTypeRoot>;
+    MessageReactionType?: EnumTypeResolver<'LIKE' | 'THUMB_UP' | 'JOY' | 'SCREAM' | 'CRYING' | 'ANGRY' | 'DONATE', GQLRoots.MessageReactionTypeRoot>;
     ModernMessageReaction?: ComplexTypedResolver<
         GQL.ModernMessageReaction,
         GQLRoots.ModernMessageReactionRoot,

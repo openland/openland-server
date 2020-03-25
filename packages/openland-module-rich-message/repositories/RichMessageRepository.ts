@@ -3,11 +3,20 @@ import { Context } from '@openland/context';
 import { fetchNextDBSeq } from '../../openland-utils/dbSeq';
 import {
     AllMentionSpan,
-    BoldTextSpan, CodeBlockTextSpan,
-    DateTextSpan, InlineCodeTextSpan, InsaneTextSpan, IronyTextSpan, ItalicTextSpan,
-    LinkSpan, LoudTextSpan, MessageAttachment, MessageAttachmentInput,
-    MultiUserMentionSpan, RoomMentionSpan, RotatingTextSpan,
-    UserMentionSpan
+    BoldTextSpan,
+    CodeBlockTextSpan,
+    DateTextSpan,
+    InlineCodeTextSpan,
+    InsaneTextSpan,
+    IronyTextSpan,
+    ItalicTextSpan,
+    LinkSpan,
+    LoudTextSpan,
+    MultiUserMentionSpan, RichMessageAttachment,
+    RichMessageAttachmentInput,
+    RoomMentionSpan,
+    RotatingTextSpan,
+    UserMentionSpan,
 } from '../../openland-module-messaging/MessageInput';
 import * as Chrono from 'chrono-node';
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
@@ -63,7 +72,7 @@ export interface RichMessageInput {
     message?: string | null;
     replyToComment?: number | null;
     spans?: RichMessageSpan[] | null;
-    attachments?: MessageAttachmentInput[] | null;
+    attachments?: RichMessageAttachmentInput[] | null;
     ignoreAugmentation?: boolean | null;
     slides?: SlideInput[] | null;
     oid?: number | null;
@@ -96,7 +105,7 @@ export class RichMessageRepository {
             //
             // Prepare attachments
             //
-            let attachments: MessageAttachment[] = await this.prepareAttachments(ctx, messageInput.attachments || []);
+            let attachments: RichMessageAttachment[] = await this.prepareAttachments(ctx, messageInput.attachments || []);
 
             //
             //  Create comment
@@ -226,9 +235,9 @@ export class RichMessageRepository {
         });
     }
 
-    private async prepareAttachments(parent: Context, attachments: MessageAttachmentInput[]) {
+    private async prepareAttachments(parent: Context, attachments: RichMessageAttachmentInput[]) {
         return await inTx(parent, async (ctx) => {
-            let res: MessageAttachment[] = [];
+            let res: RichMessageAttachment[] = [];
 
             for (let attachInput of attachments) {
                 res.push({

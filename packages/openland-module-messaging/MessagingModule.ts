@@ -20,11 +20,13 @@ import { Store } from '../openland-module-db/FDB';
 import { hasMention } from './resolvers/ModernMessage.resolver';
 import { PremiumChatMediator } from './mediators/PremiumChatMediator';
 import { SocialImageRepository } from './repositories/SocialImageRepository';
+import { DonationsMediator } from './mediators/DonationsMediator';
 
 @injectable()
 export class MessagingModule {
     readonly room: RoomMediator;
     readonly premiumChat: PremiumChatMediator;
+    readonly donations: DonationsMediator;
     readonly search: RoomSearch = new RoomSearch();
     readonly fixer: FixerRepository;
     readonly needNotificationDelivery: NeedNotificationDeliveryRepository;
@@ -46,6 +48,7 @@ export class MessagingModule {
         @inject('UserDialogsRepository') userDialogs: UserDialogsRepository,
         @inject('PremiumChatMediator') proChat: PremiumChatMediator,
         @inject('SocialImageRepository') socialImageRepository: SocialImageRepository,
+        @inject('DonationsMediator') donationsMediator: DonationsMediator,
     ) {
         this.delivery = delivery;
         this.userState = userState;
@@ -57,6 +60,7 @@ export class MessagingModule {
         this.userDialogs = userDialogs;
         this.premiumChat = proChat;
         this.socialImageRepository = socialImageRepository;
+        this.donations = donationsMediator;
     }
 
     //

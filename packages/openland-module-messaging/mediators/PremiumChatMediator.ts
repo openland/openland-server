@@ -12,7 +12,7 @@ import { MessageInput } from 'openland-module-messaging/MessageInput';
 import { formatMoney } from 'openland-module-wallet/repo/utils/formatMoney';
 import { countCommission } from 'openland-module-wallet/repo/utils/countCommission';
 
-const COMMISSION_PERCENTS = 30;
+export const COMMISSION_PERCENTS = 30;
 @injectable()
 export class PremiumChatMediator {
 

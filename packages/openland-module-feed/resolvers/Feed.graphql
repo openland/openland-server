@@ -133,6 +133,15 @@ type FeedChannelSubscriberConnection {
     pageInfo: PageInfo!
 }
 
+enum FeedReactionType {
+    LIKE,
+    THUMB_UP,
+    JOY,
+    SCREAM,
+    CRYING,
+    ANGRY
+}
+
 extend type Organization {
     linkedFeedChannels: [FeedChannel!]!
 }
@@ -163,8 +172,8 @@ extend type Mutation {
     alphaEditFeedPost(feedItemId: ID!, message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], slides: [SlideInput!]): FeedItem!
     alphaDeleteFeedPost(feedItemId: ID!): Boolean!
 
-    feedReactionAdd(feedItemId: ID!, reaction: MessageReactionType!): Boolean!
-    feedReactionRemove(feedItemId: ID!, reaction: MessageReactionType!): Boolean!
+    feedReactionAdd(feedItemId: ID!, reaction: FeedReactionType!): Boolean!
+    feedReactionRemove(feedItemId: ID!, reaction: FeedReactionType!): Boolean!
 
     alphaFeedCreateChannel(title: String!, about: String, photoRef: ImageRefInput, socialImageRef: ImageRefInput, global: Boolean): FeedChannel!
     alphaFeedUpdateChannel(id: ID!, title: String, about: String, photoRef: ImageRefInput, socialImageRef: ImageRefInput, global: Boolean): FeedChannel!

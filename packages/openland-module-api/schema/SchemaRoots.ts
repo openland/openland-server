@@ -76,16 +76,30 @@ import {
     WalletPurchase,
     WalletLockedChanged,
     EditorsChoiceChatsCollection,
-    EditorsChoiceChat
+    EditorsChoiceChat, WalletPurchaseCreateShape,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
-    BoldTextSpan, CodeBlockTextSpan, DateTextSpan, InlineCodeTextSpan, InsaneTextSpan, IronyTextSpan, ItalicTextSpan,
-    LinkSpan, LoudTextSpan, MessageAttachment, MessageAttachmentFile, MessageButton,
-    MessageMention, MessageRichAttachment,
+    BoldTextSpan,
+    CodeBlockTextSpan,
+    DateTextSpan,
+    InlineCodeTextSpan,
+    InsaneTextSpan,
+    IronyTextSpan,
+    ItalicTextSpan,
+    LinkSpan,
+    LoudTextSpan,
+    MessageAttachment,
+    MessageAttachmentFile,
+    MessageButton,
+    MessageMention,
+    MessageRichAttachment,
     MessageSpan,
-    MultiUserMentionSpan, RoomMentionSpan, RotatingTextSpan,
-    UserMentionSpan, OrganizationMentionSpan,
+    MultiUserMentionSpan,
+    RoomMentionSpan,
+    RotatingTextSpan,
+    UserMentionSpan,
+    OrganizationMentionSpan, MessageAttachmentPurchase,
 } from '../../openland-module-messaging/MessageInput';
 import { WelcomeMessageT } from '../../openland-module-messaging/repositories/RoomRepository';
 import { FileInfo } from '../../openland-module-media/FileInfo';
@@ -95,7 +109,7 @@ import {
 import { UserFullRoot } from '../../openland-module-users/User.resolver';
 import { LiveStreamItem, BaseEvent } from '@openland/foundationdb-entity';
 import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfoService';
-import { Slide } from '../../openland-module-rich-message/repositories/RichMessageRepository';
+import { RichMessageReaction, Slide } from '../../openland-module-rich-message/repositories/RichMessageRepository';
 import { PowerupChatUserSettings } from 'openland-module-powerups/PowerupsRepository';
 import Stripe from 'stripe';
 import { PermissionGroup } from 'openland-module-permissions/PermissionsRepository';
@@ -173,6 +187,7 @@ export namespace GQLRoots {
     export type SlideTypeRoot = SlideTypeValues;
     export type SlideCoverAlignRoot = SlideCoverAlignValues;
     export type FeedChannelSubscriberRoleRoot = FeedChannelSubscriberRoleValues;
+    export type FeedReactionTypeRoot = RichMessageReaction;
 
     //
     // Calls
@@ -362,6 +377,7 @@ export namespace GQLRoots {
     export type ModernMessageRoot = Message | Comment | RichMessage;
     export type GeneralMessageRoot = Message | Comment | RichMessage;
     export type StickerMessageRoot = Message | Comment;
+    export type DonationMessageRoot = Message;
     export type ServiceMessageRoot = Message;
     export type MessageSpanRoot = MessageSpan;
     export type MessageKeyboardRoot = { buttons: (MessageButton & { id: string })[][] };
@@ -385,6 +401,7 @@ export namespace GQLRoots {
     export type ModernMessageAttachmentRoot = { attachment: MessageAttachment, message: Message | RichMessage | Comment };
     export type MessageAttachmentFileRoot = { attachment: MessageAttachmentFile, message: Message };
     export type MessageAttachmentPostRoot = any;
+    export type MessageAttachmentPurchaseRoot = { attachment: MessageAttachmentPurchase, message: Message };
     export type MessageRichAttachmentRoot = { attachment: MessageRichAttachment, message: Message };
     export type ImageRoot = { uuid: string, metadata?: FileInfo, crop: { x: number, y: number, w: number, h: number } | null };
     export type ImageFallbackRoot = { photo: string, text: string };
@@ -614,9 +631,11 @@ export namespace GQLRoots {
     export type PaymentRoot = Payment;
 
     export type WalletSubscriptionRoot = WalletSubscription;
-    export type WalletProductRoot = WalletSubscriptionCreateShape['proudct'];
-    export type WalletProductGroupRoot = WalletSubscriptionCreateShape['proudct'];
-    export type WalletProductDonationRoot = WalletSubscriptionCreateShape['proudct'];
+    export type WalletProductRoot = WalletSubscriptionCreateShape['proudct'] | WalletPurchaseCreateShape['product'];
+    export type WalletProductGroupRoot = WalletSubscriptionCreateShape['proudct'] | WalletPurchaseCreateShape['product'];
+    export type WalletProductDonationRoot = WalletSubscriptionCreateShape['proudct'] | WalletPurchaseCreateShape['product'];
+    export type WalletProductDonationMessageRoot = WalletPurchaseCreateShape['product'];
+    export type WalletProductDonationReactionRoot = WalletPurchaseCreateShape['product'];
 
     export type WalletIncomeSourceRoot = WalletSubscriptionRoot | PurchaseRoot;
 
@@ -626,7 +645,6 @@ export namespace GQLRoots {
     export type WalletSubscriptionIntervalRoot = WalletSubscriptionIntervalValues;
     export type PurchaseRoot = WalletPurchase;
     export type PurchaseStateRoot = PurchaseStateValues;
-
     //
     // Permissions
     //

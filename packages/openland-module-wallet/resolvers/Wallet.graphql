@@ -149,7 +149,17 @@ type WalletProductDonation {
     user: User!
 }
 
-union WalletProduct = WalletProductGroup | WalletProductDonation
+type WalletProductDonationMessage {
+    user: User!
+    chat: Room!
+}
+
+type WalletProductDonationReaction {
+    user: User!
+    message: ModernMessage!
+}
+
+union WalletProduct = WalletProductGroup | WalletProductDonation |  WalletProductDonationMessage | WalletProductDonationReaction
 
 #
 # Wallet Purchases
@@ -164,6 +174,7 @@ type Purchase {
     state: PurchaseState!
     intent: PaymentIntent
     product: WalletProduct!
+    amount: Int!
 }
 
 #
@@ -247,13 +258,6 @@ extend type Mutation {
 
     paymentIntentCommit(id: ID!): Boolean!
     paymentCancel(id: ID!): Boolean!
-
-    #
-    # Donate
-    #
-    
-    donateToUser(amount: Int!, id: ID!): Boolean!
-    donateToUser2(amount: Int!, id: ID!): Purchase!
 
     #
     # Subscriptions

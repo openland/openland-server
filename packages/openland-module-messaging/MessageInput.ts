@@ -91,7 +91,15 @@ export type MessageRichAttachment = {
     keyboard: MessageKeyboard | null
 };
 
-export type MessageAttachment = MessageAttachmentFile | MessageRichAttachment;
+export type MessageAttachmentPurchase = {
+    type: 'purchase_attachment',
+    pid: string,
+    id: string
+};
+
+export type MessageAttachment = MessageAttachmentFile | MessageRichAttachment | MessageAttachmentPurchase;
+export type RichMessageAttachment = MessageAttachmentFile | MessageRichAttachment;
+export type CommentAttachment = RichMessageAttachment;
 
 export type MessageAttachmentFileInput = {
     type: 'file_attachment',
@@ -119,7 +127,14 @@ export type MessageRichAttachmentInput = {
     socialImageInfo: FileInfo | null,
 };
 
-export type MessageAttachmentInput = MessageAttachmentFileInput | MessageRichAttachmentInput;
+export type MessageAttachmentPurchaseInput = {
+  type: 'purchase_attachment',
+  pid: string
+};
+
+export type MessageAttachmentInput = MessageAttachmentFileInput | MessageRichAttachmentInput | MessageAttachmentPurchaseInput;
+export type RichMessageAttachmentInput = MessageAttachmentFileInput | MessageRichAttachmentInput;
+export type CommentAttachmentInput = RichMessageAttachmentInput;
 
 // Deprecated
 export type MessageMention = {
@@ -137,6 +152,7 @@ export interface MessageInput {
     serviceMetadata?: any & { type: ServiceMessageMetadataType };
     replyMessages?: number[] | null;
     stickerId?: string | null;
+    purchaseId?: string | null;
 
     spans?: MessageSpan[] | null;
     attachments?: MessageAttachmentInput[] | null;

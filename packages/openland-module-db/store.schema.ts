@@ -402,6 +402,10 @@ export default declareSchema(() => {
                 socialImagePreview: optional(string()),
                 socialImageInfo: optional(FileInfo),
             }),
+            purchase_attachment: struct({
+                id: string(),
+                pid: string()
+            })
         }))));
         field('stickerId', optional(string()));
 
@@ -1785,8 +1789,14 @@ export default declareSchema(() => {
             'group': struct({
                 gid: integer()
             }),
-            'donate': struct({
-                uid: integer()
+            'donate_message': struct({
+                uid: integer(),
+                cid: integer(),
+                mid: optional(integer())
+            }),
+            'donate_reaction': struct({
+                uid: integer(),
+                mid: integer()
             })
         }));
         field('state', enumString('pending', 'canceled', 'success'));

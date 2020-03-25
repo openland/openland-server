@@ -57,7 +57,7 @@ export const REACTIONS_LEGACY = new Map([
     ['🤬', 'ANGRY'],
 ]);
 
-export const REACTIONS = ['LIKE', 'THUMB_UP', 'JOY', 'SCREAM', 'CRYING', 'ANGRY'];
+export const REACTIONS = ['LIKE', 'THUMB_UP', 'JOY', 'SCREAM', 'CRYING', 'ANGRY', 'DONATE'];
 const DELETED_TEXT = {
     MESSAGE: 'This message has been deleted',
     COMMENT: 'This comment has been deleted',
@@ -917,6 +917,8 @@ export const Resolver: GQLResolver = {
                 return 'MessageAttachmentFile';
             } else if (src.attachment.type === 'rich_attachment') {
                 return 'MessageRichAttachment';
+            } else if (src.attachment.type === 'purchase_attachment') {
+                return 'MessageAttachmentPurchase';
             } else {
                 throw new UserError('Unknown message attachment type: ' + (src as any).type);
             }
@@ -986,6 +988,11 @@ export const Resolver: GQLResolver = {
 
             return { buttons: src.attachment.keyboard.buttons as (MessageButton & { id: string })[][] };
         },
+    },
+    MessageAttachmentPurchase: {
+      id: src => IDs.MessageAttachment.serialize('kek'),
+      fallback: src => 'Donation attachment',
+      purchase: async (src, _, ctx) => (await Store.WalletPurchase.findById(ctx, src.attachment.pid))!,
     },
     MentionPeer: {
         __resolveType(obj: MentionPeerRoot) {
@@ -1390,6 +1397,14 @@ export const Resolver: GQLResolver = {
 
             return true;
         }),
+        sendDonation: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conversation.parse(args.chatId);
+            await Modules.Messaging.donations.sendDonationMessage(ctx, uid, cid, args.amount, {
+                message: args.message,
+                repeatKey: args.repeatKey,
+            });
+            return true;
+        }),
         editMessage: withUser(async (ctx, args, uid) => {
             let mid = IDs.ConversationMessage.parse(args.messageId);
 
@@ -1542,11 +1557,21 @@ export const Resolver: GQLResolver = {
         }),
 
         messageReactionAdd: withUser(async (ctx, args, uid) => {
+            if (args.reaction === 'DONATE') {
+                return false;
+            }
             await Modules.Messaging.setReaction(ctx, IDs.ConversationMessage.parse(args.messageId), uid, args.reaction);
             return true;
         }),
         messageReactionRemove: withUser(async (ctx, args, uid) => {
+            if (args.reaction === 'DONATE') {
+                return false;
+            }
             await Modules.Messaging.setReaction(ctx, IDs.ConversationMessage.parse(args.messageId), uid, args.reaction, true);
+            return true;
+        }),
+        messageDonationReactionAdd: withUser(async (ctx, args, uid) => {
+            await Modules.Messaging.donations.setReaction(ctx, IDs.ConversationMessage.parse(args.messageId), uid);
             return true;
         }),
 
