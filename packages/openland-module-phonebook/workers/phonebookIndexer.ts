@@ -29,7 +29,6 @@ export function phonebookIndexer() {
         })
         .start(async (item, parent) => {
             return await inTx(parent, async (ctx) => {
-                console.log(77777, item);
                 return {
                     id: item.id,
                     doc: {
