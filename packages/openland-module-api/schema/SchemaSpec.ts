@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'd4427716b9611916e48b2f84a4a4df28';
+export const GQL_SPEC_VERSION = '943dc9310649d6cf4746dcfc24d03f5d';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1225,12 +1225,14 @@ export namespace GQL {
         image: ImageRef;
         chatsCount: number;
         chats: SharedRoom[];
+        shortname: Nullable<string>;
     }
     export interface DiscoverChatsCollectionIdArgs { }
     export interface DiscoverChatsCollectionTitleArgs { }
     export interface DiscoverChatsCollectionImageArgs { }
     export interface DiscoverChatsCollectionChatsCountArgs { }
     export interface DiscoverChatsCollectionChatsArgs { }
+    export interface DiscoverChatsCollectionShortnameArgs { }
     export interface DiscoverChatsCollectionConnection {
         items: DiscoverChatsCollection[];
         cursor: Nullable<string>;
@@ -1980,6 +1982,7 @@ export namespace GQL {
         debugRecountSeqForMessages: boolean;
         debugReindexRoomMessagesCounter: boolean;
         debugQueueDailyPaidLeaderboard: boolean;
+        debugQueueWeeklyPaidLeaderboard: boolean;
         debugSendHiddenMessage: boolean;
         settingsUpdate: Settings;
         sendEmailChangeCode: string;
@@ -2183,6 +2186,7 @@ export namespace GQL {
         alphaSetOrgShortName: Nullable<string>;
         alphaSetFeedChannelShortName: Nullable<string>;
         alphaSetRoomShortName: Nullable<string>;
+        alphaSetCollectionShortName: Nullable<string>;
     }
     export interface MutationLifecheckArgs { }
     export interface MutationAlphaSendMessageArgs {
@@ -2469,6 +2473,7 @@ export namespace GQL {
     export interface MutationDebugRecountSeqForMessagesArgs { }
     export interface MutationDebugReindexRoomMessagesCounterArgs { }
     export interface MutationDebugQueueDailyPaidLeaderboardArgs { }
+    export interface MutationDebugQueueWeeklyPaidLeaderboardArgs { }
     export interface MutationDebugSendHiddenMessageArgs {
         uid: string;
         message: string;
@@ -3300,6 +3305,10 @@ export namespace GQL {
         id: string;
         shortname: string;
     }
+    export interface MutationAlphaSetCollectionShortNameArgs {
+        id: string;
+        shortname: string;
+    }
     export interface NotificationCenter {
         id: string;
         unread: number;
@@ -3627,6 +3636,7 @@ export namespace GQL {
         transactionsPending: WalletTransaction[];
         transactionsHistory: WalletTransactionConnection;
         subscriptions: WalletSubscription[];
+        stripeToken: string;
         alphaInvites: Nullable<Invite[]>;
         alphaInviteInfo: Nullable<InviteInfo>;
         appInvite: string;
@@ -3805,6 +3815,7 @@ export namespace GQL {
         after: OptionalNullable<string>;
     }
     export interface QuerySubscriptionsArgs { }
+    export interface QueryStripeTokenArgs { }
     export interface QueryAlphaInvitesArgs { }
     export interface QueryAlphaInviteInfoArgs {
         key: string;
@@ -5383,7 +5394,7 @@ export namespace GQL {
     export interface RoomInviteIdArgs { }
     export interface RoomInviteRoomArgs { }
     export interface RoomInviteInvitedByUserArgs { }
-    export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom;
+    export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection;
 }
 
 export interface GQLResolver {
@@ -6737,6 +6748,7 @@ export interface GQLResolver {
             image: GQL.DiscoverChatsCollectionImageArgs,
             chatsCount: GQL.DiscoverChatsCollectionChatsCountArgs,
             chats: GQL.DiscoverChatsCollectionChatsArgs,
+            shortname: GQL.DiscoverChatsCollectionShortnameArgs,
         }
     >;
     DiscoverChatsCollectionConnection?: ComplexTypedResolver<
@@ -7841,6 +7853,7 @@ export interface GQLResolver {
             debugRecountSeqForMessages: GQL.MutationDebugRecountSeqForMessagesArgs,
             debugReindexRoomMessagesCounter: GQL.MutationDebugReindexRoomMessagesCounterArgs,
             debugQueueDailyPaidLeaderboard: GQL.MutationDebugQueueDailyPaidLeaderboardArgs,
+            debugQueueWeeklyPaidLeaderboard: GQL.MutationDebugQueueWeeklyPaidLeaderboardArgs,
             debugSendHiddenMessage: GQL.MutationDebugSendHiddenMessageArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailChangeCode: GQL.MutationSendEmailChangeCodeArgs,
@@ -8044,6 +8057,7 @@ export interface GQLResolver {
             alphaSetOrgShortName: GQL.MutationAlphaSetOrgShortNameArgs,
             alphaSetFeedChannelShortName: GQL.MutationAlphaSetFeedChannelShortNameArgs,
             alphaSetRoomShortName: GQL.MutationAlphaSetRoomShortNameArgs,
+            alphaSetCollectionShortName: GQL.MutationAlphaSetCollectionShortNameArgs,
         }
     >;
     NotificationCenter?: ComplexTypedResolver<
@@ -8554,6 +8568,7 @@ export interface GQLResolver {
             transactionsPending: GQL.QueryTransactionsPendingArgs,
             transactionsHistory: GQL.QueryTransactionsHistoryArgs,
             subscriptions: GQL.QuerySubscriptionsArgs,
+            stripeToken: GQL.QueryStripeTokenArgs,
             alphaInvites: GQL.QueryAlphaInvitesArgs,
             alphaInviteInfo: GQL.QueryAlphaInviteInfoArgs,
             appInvite: GQL.QueryAppInviteArgs,
@@ -9945,5 +9960,5 @@ export interface GQLResolver {
             invitedByUser: GQL.RoomInviteInvitedByUserArgs,
         }
     >;
-    ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom'>;
+    ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom' | 'DiscoverChatsCollection'>;
 }
