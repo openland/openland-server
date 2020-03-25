@@ -69,6 +69,8 @@ import { PowerupsModule } from '../openland-module-powerups/PowerupsModule';
 import { loadPermissionsModule } from '../openland-module-permissions/PermissionsModule.container';
 import { PermissionsModule } from '../openland-module-permissions/PermissionsModule';
 import { loadDiscoverModule } from '../openland-module-discover/DiscoverModule.container';
+import { PhonebookModule } from '../openland-module-phonebook/PhonebookModule';
+import { loadPhonebookModule } from '../openland-module-phonebook/PhonebookModule.container';
 
 const logger = createLogger('starting');
 
@@ -135,6 +137,8 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadPowerupsModule();
     loadPermissionsModule();
     loadDiscoverModule();
+    loadPhonebookModule();
+    container.bind(PhonebookModule).toSelf().inSingletonScope();
 }
 
 export async function startAllModules() {
@@ -178,4 +182,5 @@ export async function startAllModules() {
     await container.get(PowerupsModule).start();
     await container.get(WalletModule).start();
     await container.get(PermissionsModule).start();
+    await container.get(PhonebookModule).start();
 }

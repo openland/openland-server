@@ -111,8 +111,8 @@ export class MessagingModule {
     // Messaging
     //
 
-    async findTopMessage(ctx: Context, cid: number) {
-        return await this.messaging.findTopMessage(ctx, cid);
+    async findTopMessage(ctx: Context, cid: number, forUid: number) {
+        return await this.messaging.findTopMessage(ctx, cid, forUid);
     }
 
     async sendMessage(ctx: Context, cid: number, uid: number, message: MessageInput, skipAccessCheck?: boolean) {

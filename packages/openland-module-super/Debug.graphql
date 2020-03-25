@@ -153,6 +153,7 @@ extend type Mutation {
     debugReindexRoomMessagesCounter: Boolean!
     debugQueueDailyPaidLeaderboard: Boolean!
     debugQueueWeeklyPaidLeaderboard: Boolean!
+    debugSendHiddenMessage(uid: ID!, message: String!): Boolean!
 }
 
 extend type Subscription {

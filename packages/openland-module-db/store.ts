@@ -1398,6 +1398,34 @@ export class AuthEmailsSentCountFactory extends AtomicIntegerFactory {
     }
 }
 
+export class PhonebookJoinMessageSentForPhoneFactory extends AtomicBooleanFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('phonebookJoinMessageSentForPhone');
+        return new PhonebookJoinMessageSentForPhoneFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(phone: string) {
+        return this._findById([phone]);
+    }
+
+    get(ctx: Context, phone: string) {
+        return this._get(ctx, [phone]);
+    }
+
+    set(ctx: Context, phone: string, value: boolean) {
+        return this._set(ctx, [phone], value);
+    }
+
+    invert(ctx: Context, phone: string) {
+        return this._invert(ctx, [phone]);
+    }
+}
+
 export interface UserShape {
     id: number;
     authId: string;
@@ -4133,6 +4161,7 @@ export interface MessageShape {
     edited: boolean | null;
     isMuted: boolean;
     isService: boolean;
+    hiddenForUids: (number)[] | null;
     deleted: boolean | null;
     spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'organization_mention', offset: number, length: number, organization: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] | null;
     attachmentsModern: ({ type: 'file_attachment', id: string, fileId: string, filePreview: string | null, fileMetadata: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null } | { type: 'rich_attachment', id: string, title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, iconInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, imageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, imagePreview: string | null, imageFallback: { photo: string, text: string } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT' | 'PAY', url: string | null })[])[] } | null, socialImage: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, socialImagePreview: string | null, socialImageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null } | { type: 'purchase_attachment', id: string, pid: string })[] | null;
@@ -4165,6 +4194,7 @@ export interface MessageCreateShape {
     edited?: boolean | null | undefined;
     isMuted: boolean;
     isService: boolean;
+    hiddenForUids?: (number)[] | null | undefined;
     deleted?: boolean | null | undefined;
     spans?: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'organization_mention', offset: number, length: number, organization: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] | null | undefined;
     attachmentsModern?: ({ type: 'file_attachment', id: string, fileId: string, filePreview: string | null | undefined, fileMetadata: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined } | { type: 'rich_attachment', id: string, title: string | null | undefined, subTitle: string | null | undefined, titleLink: string | null | undefined, text: string | null | undefined, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined, image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined, iconInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined, imageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined, imagePreview: string | null | undefined, imageFallback: { photo: string, text: string } | null | undefined, titleLinkHostname: string | null | undefined, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT' | 'PAY', url: string | null | undefined })[])[] } | null | undefined, socialImage: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined, socialImagePreview: string | null | undefined, socialImageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined } | { type: 'purchase_attachment', id: string, pid: string })[] | null | undefined;
@@ -4283,6 +4313,15 @@ export class Message extends Entity<MessageShape> {
         if (this._rawValue.isService !== normalized) {
             this._rawValue.isService = normalized;
             this._updatedValues.isService = normalized;
+            this.invalidate();
+        }
+    }
+    get hiddenForUids(): (number)[] | null { return this._rawValue.hiddenForUids; }
+    set hiddenForUids(value: (number)[] | null) {
+        let normalized = this.descriptor.codec.fields.hiddenForUids.normalize(value);
+        if (this._rawValue.hiddenForUids !== normalized) {
+            this._rawValue.hiddenForUids = normalized;
+            this._updatedValues.hiddenForUids = normalized;
             this.invalidate();
         }
     }
@@ -4473,6 +4512,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         fields.push({ name: 'edited', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'isMuted', type: { type: 'boolean' }, secure: false });
         fields.push({ name: 'isService', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'hiddenForUids', type: { type: 'optional', inner: { type: 'array', inner: { type: 'integer' } } }, secure: false });
         fields.push({ name: 'deleted', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'spans', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, user: { type: 'integer' } }, multi_user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, users: { type: 'array', inner: { type: 'integer' } } }, room_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, room: { type: 'integer' } }, organization_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, organization: { type: 'integer' } }, link: { offset: { type: 'integer' }, length: { type: 'integer' }, url: { type: 'string' } }, date_text: { offset: { type: 'integer' }, length: { type: 'integer' }, date: { type: 'integer' } }, bold_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, italic_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, irony_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, inline_code_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, code_block_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, insane_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, loud_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, rotating_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, all_mention: { offset: { type: 'integer' }, length: { type: 'integer' } } } } } }, secure: false });
         fields.push({ name: 'attachmentsModern', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { file_attachment: { id: { type: 'string' }, fileId: { type: 'string' }, filePreview: { type: 'optional', inner: { type: 'string' } }, fileMetadata: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } } }, rich_attachment: { id: { type: 'string' }, title: { type: 'optional', inner: { type: 'string' } }, subTitle: { type: 'optional', inner: { type: 'string' } }, titleLink: { type: 'optional', inner: { type: 'string' } }, text: { type: 'optional', inner: { type: 'string' } }, icon: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, image: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, iconInfo: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } }, imageInfo: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } }, imagePreview: { type: 'optional', inner: { type: 'string' } }, imageFallback: { type: 'optional', inner: { type: 'struct', fields: { photo: { type: 'string' }, text: { type: 'string' } } } }, titleLinkHostname: { type: 'optional', inner: { type: 'string' } }, keyboard: { type: 'optional', inner: { type: 'struct', fields: { buttons: { type: 'array', inner: { type: 'array', inner: { type: 'struct', fields: { title: { type: 'string' }, style: { type: 'enum', values: ['DEFAULT', 'LIGHT', 'PAY'] }, url: { type: 'optional', inner: { type: 'string' } } } } } } } } }, socialImage: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, socialImagePreview: { type: 'optional', inner: { type: 'string' } }, socialImageInfo: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } } }, purchase_attachment: { id: { type: 'string' }, pid: { type: 'string' } } } } } }, secure: false });
@@ -4504,6 +4544,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
             edited: c.optional(c.boolean),
             isMuted: c.boolean,
             isService: c.boolean,
+            hiddenForUids: c.optional(c.array(c.integer)),
             deleted: c.optional(c.boolean),
             spans: c.optional(c.array(c.union({ user_mention: c.struct({ offset: c.integer, length: c.integer, user: c.integer }), multi_user_mention: c.struct({ offset: c.integer, length: c.integer, users: c.array(c.integer) }), room_mention: c.struct({ offset: c.integer, length: c.integer, room: c.integer }), organization_mention: c.struct({ offset: c.integer, length: c.integer, organization: c.integer }), link: c.struct({ offset: c.integer, length: c.integer, url: c.string }), date_text: c.struct({ offset: c.integer, length: c.integer, date: c.integer }), bold_text: c.struct({ offset: c.integer, length: c.integer }), italic_text: c.struct({ offset: c.integer, length: c.integer }), irony_text: c.struct({ offset: c.integer, length: c.integer }), inline_code_text: c.struct({ offset: c.integer, length: c.integer }), code_block_text: c.struct({ offset: c.integer, length: c.integer }), insane_text: c.struct({ offset: c.integer, length: c.integer }), loud_text: c.struct({ offset: c.integer, length: c.integer }), rotating_text: c.struct({ offset: c.integer, length: c.integer }), all_mention: c.struct({ offset: c.integer, length: c.integer }) }))),
             attachmentsModern: c.optional(c.array(c.union({ file_attachment: c.struct({ id: c.string, fileId: c.string, filePreview: c.optional(c.string), fileMetadata: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })) }), rich_attachment: c.struct({ id: c.string, title: c.optional(c.string), subTitle: c.optional(c.string), titleLink: c.optional(c.string), text: c.optional(c.string), icon: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })), image: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })), iconInfo: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })), imageInfo: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })), imagePreview: c.optional(c.string), imageFallback: c.optional(c.struct({ photo: c.string, text: c.string })), titleLinkHostname: c.optional(c.string), keyboard: c.optional(c.struct({ buttons: c.array(c.array(c.struct({ title: c.string, style: c.enum('DEFAULT', 'LIGHT', 'PAY'), url: c.optional(c.string) }))) })), socialImage: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })), socialImagePreview: c.optional(c.string), socialImageInfo: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })) }), purchase_attachment: c.struct({ id: c.string, pid: c.string }) }))),
@@ -16954,6 +16995,145 @@ export class DebugEventStateFactory extends EntityFactory<DebugEventStateShape, 
     }
 }
 
+export interface PhonebookItemShape {
+    id: number;
+    uid: number;
+    name: string;
+    info: string | null;
+    phone: string;
+}
+
+export interface PhonebookItemCreateShape {
+    uid: number;
+    name: string;
+    info?: string | null | undefined;
+    phone: string;
+}
+
+export class PhonebookItem extends Entity<PhonebookItemShape> {
+    get id(): number { return this._rawValue.id; }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get name(): string { return this._rawValue.name; }
+    set name(value: string) {
+        let normalized = this.descriptor.codec.fields.name.normalize(value);
+        if (this._rawValue.name !== normalized) {
+            this._rawValue.name = normalized;
+            this._updatedValues.name = normalized;
+            this.invalidate();
+        }
+    }
+    get info(): string | null { return this._rawValue.info; }
+    set info(value: string | null) {
+        let normalized = this.descriptor.codec.fields.info.normalize(value);
+        if (this._rawValue.info !== normalized) {
+            this._rawValue.info = normalized;
+            this._updatedValues.info = normalized;
+            this.invalidate();
+        }
+    }
+    get phone(): string { return this._rawValue.phone; }
+    set phone(value: string) {
+        let normalized = this.descriptor.codec.fields.phone.normalize(value);
+        if (this._rawValue.phone !== normalized) {
+            this._rawValue.phone = normalized;
+            this._updatedValues.phone = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class PhonebookItemFactory extends EntityFactory<PhonebookItemShape, PhonebookItem> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('phonebookItem');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('phonebookItem', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('phonebookItem', 'updated'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'name', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'info', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'phone', type: { type: 'string' }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            uid: c.integer,
+            name: c.string,
+            info: c.optional(c.string),
+            phone: c.string,
+        });
+        let descriptor: EntityDescriptor<PhonebookItemShape> = {
+            name: 'PhonebookItem',
+            storageKey: 'phonebookItem',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new PhonebookItemFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<PhonebookItemShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    readonly updated = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: PhonebookItemCreateShape): Promise<PhonebookItem> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: PhonebookItemCreateShape): PhonebookItem {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<PhonebookItem | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PhonebookItemShape>): PhonebookItem {
+        return new PhonebookItem([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface EditorsChoiceChatsCollectionShape {
     id: number;
     createdBy: number;
@@ -18445,6 +18625,7 @@ export interface Store extends BaseStore {
     readonly RoomActiveMembersPrevWeekCounter: RoomActiveMembersPrevWeekCounterFactory;
     readonly LastAuthEmailSentTime: LastAuthEmailSentTimeFactory;
     readonly AuthEmailsSentCount: AuthEmailsSentCountFactory;
+    readonly PhonebookJoinMessageSentForPhone: PhonebookJoinMessageSentForPhoneFactory;
     readonly User: UserFactory;
     readonly UserProfile: UserProfileFactory;
     readonly UserProfilePrefil: UserProfilePrefilFactory;
@@ -18567,6 +18748,7 @@ export interface Store extends BaseStore {
     readonly OneTimeCode: OneTimeCodeFactory;
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
+    readonly PhonebookItem: PhonebookItemFactory;
     readonly EditorsChoiceChatsCollection: EditorsChoiceChatsCollectionFactory;
     readonly EditorsChoiceChat: EditorsChoiceChatFactory;
     readonly ConversationEventStore: ConversationEventStore;
@@ -18652,6 +18834,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let RoomActiveMembersPrevWeekCounterPromise = RoomActiveMembersPrevWeekCounterFactory.open(storage);
     let LastAuthEmailSentTimePromise = LastAuthEmailSentTimeFactory.open(storage);
     let AuthEmailsSentCountPromise = AuthEmailsSentCountFactory.open(storage);
+    let PhonebookJoinMessageSentForPhonePromise = PhonebookJoinMessageSentForPhoneFactory.open(storage);
     let UserPromise = UserFactory.open(storage);
     let UserProfilePromise = UserProfileFactory.open(storage);
     let UserProfilePrefilPromise = UserProfilePrefilFactory.open(storage);
@@ -18774,6 +18957,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let OneTimeCodePromise = OneTimeCodeFactory.open(storage);
     let DebugEventPromise = DebugEventFactory.open(storage);
     let DebugEventStatePromise = DebugEventStateFactory.open(storage);
+    let PhonebookItemPromise = PhonebookItemFactory.open(storage);
     let EditorsChoiceChatsCollectionPromise = EditorsChoiceChatsCollectionFactory.open(storage);
     let EditorsChoiceChatPromise = EditorsChoiceChatFactory.open(storage);
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
@@ -18830,6 +19014,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         RoomActiveMembersPrevWeekCounter: await RoomActiveMembersPrevWeekCounterPromise,
         LastAuthEmailSentTime: await LastAuthEmailSentTimePromise,
         AuthEmailsSentCount: await AuthEmailsSentCountPromise,
+        PhonebookJoinMessageSentForPhone: await PhonebookJoinMessageSentForPhonePromise,
         User: await UserPromise,
         UserProfile: await UserProfilePromise,
         UserProfilePrefil: await UserProfilePrefilPromise,
@@ -18952,6 +19137,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         OneTimeCode: await OneTimeCodePromise,
         DebugEvent: await DebugEventPromise,
         DebugEventState: await DebugEventStatePromise,
+        PhonebookItem: await PhonebookItemPromise,
         EditorsChoiceChatsCollection: await EditorsChoiceChatsCollectionPromise,
         EditorsChoiceChat: await EditorsChoiceChatPromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,

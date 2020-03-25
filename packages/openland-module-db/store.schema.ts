@@ -344,6 +344,7 @@ export default declareSchema(() => {
         field('edited', optional(boolean()));
         field('isMuted', boolean());
         field('isService', boolean());
+        field('hiddenForUids', optional(array(integer())));
         field('deleted', optional(boolean()));
         field('spans', optional(array(union({
             user_mention: struct({
@@ -2137,6 +2138,23 @@ export default declareSchema(() => {
     entity('DebugEventState', () => {
         primaryKey('uid', integer());
         field('seq', integer());
+    });
+
+    //
+    //  Phonebook
+    //
+    entity('PhonebookItem', () => {
+        primaryKey('id', integer());
+        field('uid', integer());
+        field('name', string());
+        field('info', optional(string()));
+        field('phone', string());
+        rangeIndex('user', ['uid', 'id']);
+        rangeIndex('updated', ['updatedAt']);
+    });
+
+    atomicBool('PhonebookJoinMessageSentForPhone', () => {
+        primaryKey('phone', string());
     });
 
     //

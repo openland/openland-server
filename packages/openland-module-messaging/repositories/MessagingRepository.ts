@@ -77,6 +77,7 @@ export class MessagingRepository {
                 seq: seq,
                 isMuted: message.isMuted || false,
                 isService: message.isService || false,
+                hiddenForUids: message.hiddenForUids || [],
                 text: message.message,
                 serviceMetadata: message.serviceMetadata || null,
                 replyMessages: message.replyMessages,
@@ -256,12 +257,22 @@ export class MessagingRepository {
      * @deprecated top message should be persisted in dialog list
      * @param cid conversation id
      */
-    async findTopMessage(ctx: Context, cid: number) {
+    async findTopMessage(ctx: Context, cid: number, forUid: number) {
         let res = (await Store.Message.chat.query(ctx, cid, { limit: 1, reverse: true })).items;
         if (res.length === 0) {
             return null;
         } else {
-            return res[0];
+            let msg = res[0];
+            // this can be slow if we allow hidden messages for users, but ok for service purposes
+            // in general we should store top message in user dialogs list & update it via delivery workers
+            while (msg.hiddenForUids && msg.hiddenForUids.includes(forUid)) {
+                let res2 = (await Store.Message.chat.query(ctx, cid, { limit: 1, reverse: true, after: msg.id })).items;
+                if (res2.length === 0) {
+                    return null;
+                }
+                msg = res2[0];
+            }
+            return msg;
         }
     }
 

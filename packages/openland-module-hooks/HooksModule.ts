@@ -166,6 +166,7 @@ export class HooksModule {
 
     onUserActivated = async (ctx: Context, uid: number) => {
         await Modules.Metrics.onUserActivated(ctx, uid);
+        await Modules.Phonebook.onNewUser(ctx, uid);
 
         const user = await Store.User.findById(ctx, uid);
         if (user!.invitedBy) {

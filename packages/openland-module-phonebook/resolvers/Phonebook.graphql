@@ -1,0 +1,25 @@
+#type PhonebookRecord {
+#    id: ID!
+#    name: String!
+#    info: String
+#    phone: String!
+#}
+#
+input PhonebookRecordInput {
+    name: String!
+    info: String
+    phone: String!
+}
+#
+#type PhonebookRecordConnection {
+#    items: [PhonebookRecord!]!
+#    cursor: ID
+#}
+#
+#extend type Query {
+#    phonebookRecords(first: Int!, after: ID!): PhonebookRecordConnection!
+#}
+
+extend type Mutation {
+    phonebookAdd(records: [PhonebookRecordInput!]!): Boolean!
+}
