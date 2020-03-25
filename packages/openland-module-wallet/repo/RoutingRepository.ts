@@ -171,7 +171,7 @@ export class RoutingRepositoryImpl {
         if (product.type === 'group') {
             await Modules.Messaging.premiumChat.onPurchaseCanceled(ctx, pid, product.gid, uid, amount);
         } else if (product.type === 'donate_reaction' || product.type === 'donate_message') {
-            await Modules.Messaging.donations.onPurchaseCanceled(ctx, pid, uid, amount, product.uid);
+            await Modules.Messaging.donations.onPurchaseCanceled(ctx, pid, uid, amount, product);
         }
     }
 

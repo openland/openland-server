@@ -93,7 +93,9 @@ export class DonationsMediator {
         let parts = countCommission(amount, COMMISSION_PERCENTS);
         await Modules.Wallet.wallet.incomeSuccess(ctx, txid, product.uid, parts.rest, { type: 'purchase', id: pid });
 
-        this.notifyDonee(ctx, product.uid, product.mid!, uid, product.type === 'donate_message' ? 'message' : 'reaction', parts);
+        if (product.type === 'donate_reaction') {
+            this.notifyDonee(ctx, product.uid, product.mid!, uid, 'reaction', parts);
+        }
     }
 
     onPurchaseFailing = async (ctx: Context, pid: string, uid: number, amount: number, toUid: number) => {
@@ -104,8 +106,12 @@ export class DonationsMediator {
         // no op
     }
 
-    onPurchaseCanceled = async (ctx: Context, pid: string, uid: number, amount: number, toUid: number) => {
-        // no op
+    onPurchaseCanceled = async (ctx: Context, pid: string, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
+        if (product.type === 'donate_reaction') {
+            await Modules.Messaging.setReaction(ctx, product.mid, uid, 'DONATE', true);
+        } else if (product.type === 'donate_message') {
+            await Modules.Messaging.deleteMessage(ctx, product.mid!, uid);
+        }
     }
 
     private async notifyDonee(ctx: Context, doneeId: number, mid: number, uid: number, type: 'message' | 'reaction', parts: { commission: number, rest: number, amount: number }) {

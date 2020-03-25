@@ -1529,10 +1529,16 @@ export const Resolver: GQLResolver = {
         }),
 
         messageReactionAdd: withUser(async (ctx, args, uid) => {
+            if (args.reaction === 'DONATE') {
+                return false;
+            }
             await Modules.Messaging.setReaction(ctx, IDs.ConversationMessage.parse(args.messageId), uid, args.reaction);
             return true;
         }),
         messageReactionRemove: withUser(async (ctx, args, uid) => {
+            if (args.reaction === 'DONATE') {
+                return false;
+            }
             await Modules.Messaging.setReaction(ctx, IDs.ConversationMessage.parse(args.messageId), uid, args.reaction, true);
             return true;
         }),

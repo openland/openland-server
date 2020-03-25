@@ -222,10 +222,6 @@ export class MessagingMediator {
 
     setReaction = async (parent: Context, mid: number, uid: number, reaction: string, reset: boolean = false) => {
         return await inTx(parent, async (ctx) => {
-            if (reset && reaction === 'DONATE') {
-                return false;
-            }
-
             // Update
             let res = await this.repo.setReaction(ctx, mid, uid, reaction, reset);
 
