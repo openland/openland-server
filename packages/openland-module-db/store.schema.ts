@@ -403,6 +403,7 @@ export default declareSchema(() => {
             }),
         }))));
         field('stickerId', optional(string()));
+        field('purchaseId', optional(string()));
 
         // overrides
         field('overrideAvatar', optional(ImageRef));
@@ -1784,8 +1785,13 @@ export default declareSchema(() => {
             'group': struct({
                 gid: integer()
             }),
-            'donate': struct({
-                uid: integer()
+            'donate_message': struct({
+                uid: integer(),
+                cid: integer()
+            }),
+            'donate_reaction': struct({
+                uid: integer(),
+                mid: integer()
             })
         }));
         field('state', enumString('pending', 'canceled', 'success'));

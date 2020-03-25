@@ -78,7 +78,8 @@ export class MessagingRepository {
                 stickerId: message.stickerId,
                 attachmentsModern: attachments.length > 0 ? attachments : null,
                 overrideAvatar: message.overrideAvatar,
-                overrideName: message.overrideName
+                overrideName: message.overrideName,
+                purchaseId: message.purchaseId,
             });
 
             //

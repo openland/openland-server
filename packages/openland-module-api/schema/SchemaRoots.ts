@@ -76,7 +76,7 @@ import {
     WalletPurchase,
     WalletLockedChanged,
     EditorsChoiceChatsCollection,
-    EditorsChoiceChat
+    EditorsChoiceChat, WalletPurchaseCreateShape,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -362,6 +362,7 @@ export namespace GQLRoots {
     export type ModernMessageRoot = Message | Comment | RichMessage;
     export type GeneralMessageRoot = Message | Comment | RichMessage;
     export type StickerMessageRoot = Message | Comment;
+    export type DonationMessageRoot = Message;
     export type ServiceMessageRoot = Message;
     export type MessageSpanRoot = MessageSpan;
     export type MessageKeyboardRoot = { buttons: (MessageButton & { id: string })[][] };
@@ -614,9 +615,11 @@ export namespace GQLRoots {
     export type PaymentRoot = Payment;
 
     export type WalletSubscriptionRoot = WalletSubscription;
-    export type WalletProductRoot = WalletSubscriptionCreateShape['proudct'];
-    export type WalletProductGroupRoot = WalletSubscriptionCreateShape['proudct'];
-    export type WalletProductDonationRoot = WalletSubscriptionCreateShape['proudct'];
+    export type WalletProductRoot = WalletSubscriptionCreateShape['proudct'] | WalletPurchaseCreateShape['product'];
+    export type WalletProductGroupRoot = WalletSubscriptionCreateShape['proudct'] | WalletPurchaseCreateShape['product'];
+    export type WalletProductDonationRoot = WalletSubscriptionCreateShape['proudct'] | WalletPurchaseCreateShape['product'];
+    export type WalletProductDonationMessageRoot = WalletPurchaseCreateShape['product'];
+    export type WalletProductDonationReactionRoot = WalletPurchaseCreateShape['product'];
 
     export type WalletIncomeSourceRoot = WalletSubscriptionRoot | PurchaseRoot;
 
@@ -626,7 +629,6 @@ export namespace GQLRoots {
     export type WalletSubscriptionIntervalRoot = WalletSubscriptionIntervalValues;
     export type PurchaseRoot = WalletPurchase;
     export type PurchaseStateRoot = PurchaseStateValues;
-
     //
     // Permissions
     //

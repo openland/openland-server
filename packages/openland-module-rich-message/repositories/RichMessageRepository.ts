@@ -71,7 +71,7 @@ export interface RichMessageInput {
     appendAttachments?: boolean | null;
 }
 
-export type RichMessageReaction = 'LIKE' | 'THUMB_UP' | 'JOY' | 'SCREAM' | 'CRYING' | 'ANGRY';
+export type RichMessageReaction = 'LIKE' | 'THUMB_UP' | 'JOY' | 'SCREAM' | 'CRYING' | 'ANGRY' | 'DONATE';
 
 @injectable()
 export class RichMessageRepository {
@@ -173,6 +173,9 @@ export class RichMessageRepository {
                     return false;
                 }
             } else {
+                if (reaction === 'DONATE') {
+                    return false;
+                }
                 reactions.push({userId: uid, reaction});
             }
             message.reactions = reactions;

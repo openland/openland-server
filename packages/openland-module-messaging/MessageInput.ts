@@ -136,6 +136,7 @@ export interface MessageInput {
     serviceMetadata?: any & { type: ServiceMessageMetadataType };
     replyMessages?: number[] | null;
     stickerId?: string | null;
+    purchaseId?: string | null;
 
     spans?: MessageSpan[] | null;
     attachments?: MessageAttachmentInput[] | null;

@@ -348,6 +348,8 @@ export const Resolver: GQLResolver = {
                 return 'GeneralMessage';
             } else if (src.isService) {
                 return 'ServiceMessage';
+            } else if (src.purchaseId) {
+                return 'DonationMessage';
             } else {
                 return 'GeneralMessage';
             }
@@ -746,6 +748,56 @@ export const Resolver: GQLResolver = {
         fallback: src => fetchMessageFallback(src),
         overrideAvatar: src => src.overrideAvatar,
         overrideName: src => src.overrideName,
+    },
+    DonationMessage: {
+        //
+        //  State
+        //
+        id: src => {
+            if (src instanceof Comment) {
+                return IDs.Comment.serialize(src.id);
+            } else if (src instanceof Message) {
+                return IDs.ConversationMessage.serialize(src.id);
+            }
+            throw new Error('unknown message ' + src);
+        },
+        date: src => src.metadata.createdAt,
+        seq: src => {
+            if (src instanceof Message) {
+                return src.seq;
+            }
+            return null;
+        },
+        sender: async (src, args, ctx) => {
+            // message can be deleted, while sender can be alive or deleted
+
+            if (src.deleted) {
+                const deletedUserId = await Modules.Users.getDeletedUserId(ctx);
+                if (deletedUserId) {
+                    return deletedUserId;
+                }
+            }
+            return src.uid;
+        },
+        senderBadge: (src, args, ctx) => src.deleted ? null : getMessageSenderBadge(ctx, src),
+        reactions: src => src.reactions || [],
+        source: (src, args, ctx) => src,
+        purchase: async (src, _, ctx) => (await Store.WalletPurchase.findById(ctx, src.purchaseId!))!,
+
+        //
+        //  Content
+        //
+        message: src => src.text,
+        spans: src => [],
+        commentsCount: async (src, argx, ctx) => {
+            if (src instanceof Comment) {
+                return 0;
+            }
+
+            let state = await Store.CommentState.findById(ctx, 'message', src.id);
+            return (state && state.commentsCount) || 0;
+        },
+        fallback: src => fetchMessageFallback(src),
     },
 
     //
@@ -1360,6 +1412,14 @@ export const Resolver: GQLResolver = {
                 stickerId: sid,
             });
 
+            return true;
+        }),
+        sendDonation: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conversation.parse(args.chatId);
+            await Modules.Messaging.donations.sendDonationMessage(ctx, uid, cid, args.amount, {
+                message: args.message,
+                repeatKey: args.repeatKey,
+            });
             return true;
         }),
         editMessage: withUser(async (ctx, args, uid) => {
