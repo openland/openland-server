@@ -160,4 +160,12 @@ export class WalletModule {
     // getPurchaseIntent = async (parent: Context, id: string) => {
 
     // }
+
+    getStripePK = () => {
+        if (this.paymentsMediator.liveMode) {
+            return 'pk_live_eLENsh8Ten2AoOcJhfxUkTfD'; // ¯\_(ツ)_/¯
+        } else {
+            return 'pk_test_y80EsXGYQdMKMcJ5lifEM4jx';
+        }
+    }
 }
