@@ -4,7 +4,7 @@ import { withUser } from '../../openland-module-api/Resolvers';
 import { Modules } from '../../openland-modules/Modules';
 import { IDs, IdsFactory } from '../../openland-module-api/IDs';
 import {
-    MessageAttachmentFileInput, MessageAttachmentInput,
+    CommentAttachmentInput, MessageAttachmentFileInput,
 } from '../../openland-module-messaging/MessageInput';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { CommentSpan } from '../repositories/CommentsRepository';
@@ -256,7 +256,7 @@ export const Resolver: GQLResolver = {
                 throw new NotFoundError();
             }
 
-            let newAttachments: MessageAttachmentInput[] = [];
+            let newAttachments: CommentAttachmentInput[] = [];
 
             if (comment.attachments) {
                 newAttachments = comment.attachments.filter(a => a.type !== 'rich_attachment').map(a => {

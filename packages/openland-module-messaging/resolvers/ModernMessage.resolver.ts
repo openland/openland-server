@@ -57,7 +57,7 @@ export const REACTIONS_LEGACY = new Map([
     ['🤬', 'ANGRY'],
 ]);
 
-export const REACTIONS = ['LIKE', 'THUMB_UP', 'JOY', 'SCREAM', 'CRYING', 'ANGRY'];
+export const REACTIONS = ['LIKE', 'THUMB_UP', 'JOY', 'SCREAM', 'CRYING', 'ANGRY', 'DONATE'];
 const DELETED_TEXT = {
     MESSAGE: 'This message has been deleted',
     COMMENT: 'This comment has been deleted',
@@ -348,8 +348,6 @@ export const Resolver: GQLResolver = {
                 return 'GeneralMessage';
             } else if (src.isService) {
                 return 'ServiceMessage';
-            } else if (src.purchaseId) {
-                return 'DonationMessage';
             } else {
                 return 'GeneralMessage';
             }
@@ -749,56 +747,6 @@ export const Resolver: GQLResolver = {
         overrideAvatar: src => src.overrideAvatar,
         overrideName: src => src.overrideName,
     },
-    DonationMessage: {
-        //
-        //  State
-        //
-        id: src => {
-            if (src instanceof Comment) {
-                return IDs.Comment.serialize(src.id);
-            } else if (src instanceof Message) {
-                return IDs.ConversationMessage.serialize(src.id);
-            }
-            throw new Error('unknown message ' + src);
-        },
-        date: src => src.metadata.createdAt,
-        seq: src => {
-            if (src instanceof Message) {
-                return src.seq;
-            }
-            return null;
-        },
-        sender: async (src, args, ctx) => {
-            // message can be deleted, while sender can be alive or deleted
-
-            if (src.deleted) {
-                const deletedUserId = await Modules.Users.getDeletedUserId(ctx);
-                if (deletedUserId) {
-                    return deletedUserId;
-                }
-            }
-            return src.uid;
-        },
-        senderBadge: (src, args, ctx) => src.deleted ? null : getMessageSenderBadge(ctx, src),
-        reactions: src => src.reactions || [],
-        source: (src, args, ctx) => src,
-        purchase: async (src, _, ctx) => (await Store.WalletPurchase.findById(ctx, src.purchaseId!))!,
-
-        //
-        //  Content
-        //
-        message: src => src.text,
-        spans: src => [],
-        commentsCount: async (src, argx, ctx) => {
-            if (src instanceof Comment) {
-                return 0;
-            }
-
-            let state = await Store.CommentState.findById(ctx, 'message', src.id);
-            return (state && state.commentsCount) || 0;
-        },
-        fallback: src => fetchMessageFallback(src),
-    },
 
     //
     // Message source
@@ -941,6 +889,8 @@ export const Resolver: GQLResolver = {
                 return 'MessageAttachmentFile';
             } else if (src.attachment.type === 'rich_attachment') {
                 return 'MessageRichAttachment';
+            } else if (src.attachment.type === 'purchase_attachment') {
+                return 'MessageAttachmentPurchase';
             } else {
                 throw new UserError('Unknown message attachment type: ' + (src as any).type);
             }
@@ -1010,6 +960,11 @@ export const Resolver: GQLResolver = {
 
             return { buttons: src.attachment.keyboard.buttons as (MessageButton & { id: string })[][] };
         },
+    },
+    MessageAttachmentPurchase: {
+      id: src => IDs.MessageAttachment.serialize('kek'),
+      fallback: src => 'Donation attachment',
+      purchase: async (src, _, ctx) => (await Store.WalletPurchase.findById(ctx, src.attachment.pid))!,
     },
     MentionPeer: {
         __resolveType(obj: MentionPeerRoot) {
@@ -1579,6 +1534,10 @@ export const Resolver: GQLResolver = {
         }),
         messageReactionRemove: withUser(async (ctx, args, uid) => {
             await Modules.Messaging.setReaction(ctx, IDs.ConversationMessage.parse(args.messageId), uid, args.reaction, true);
+            return true;
+        }),
+        messageDonationReactionAdd: withUser(async (ctx, args, uid) => {
+            await Modules.Messaging.donations.setReaction(ctx, IDs.ConversationMessage.parse(args.messageId), uid);
             return true;
         }),
 

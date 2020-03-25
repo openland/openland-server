@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '1f3cbdeaa88936abce3053a81eef07f4';
+export const GQL_SPEC_VERSION = '191be7fcf0c866331c38679725aeb42d';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2162,6 +2162,7 @@ export namespace GQL {
         gammaPinMessage: Room;
         gammaUnpinMessage: Room;
         messageReactionAdd: boolean;
+        messageDonationReactionAdd: boolean;
         messageReactionRemove: boolean;
         deleteChat: boolean;
         archiveChat: boolean;
@@ -3080,11 +3081,11 @@ export namespace GQL {
     }
     export interface MutationFeedReactionAddArgs {
         feedItemId: string;
-        reaction: MessageReactionType;
+        reaction: FeedReactionType;
     }
     export interface MutationFeedReactionRemoveArgs {
         feedItemId: string;
-        reaction: MessageReactionType;
+        reaction: FeedReactionType;
     }
     export interface MutationAlphaFeedCreateChannelArgs {
         title: string;
@@ -3184,6 +3185,9 @@ export namespace GQL {
     export interface MutationMessageReactionAddArgs {
         messageId: string;
         reaction: MessageReactionType;
+    }
+    export interface MutationMessageDonationReactionAddArgs {
+        messageId: string;
     }
     export interface MutationMessageReactionRemoveArgs {
         messageId: string;
@@ -4733,6 +4737,8 @@ export namespace GQL {
     }
     export interface FeedChannelSubscriberConnectionEdgesArgs { }
     export interface FeedChannelSubscriberConnectionPageInfoArgs { }
+    export type FeedReactionTypeValues = 'LIKE' | 'THUMB_UP' | 'JOY' | 'SCREAM' | 'CRYING' | 'ANGRY';
+    export type FeedReactionType = GQLRoots.FeedReactionTypeRoot;
     export type GlobalSearchEntry = Organization | User | SharedRoom;
     export type GlobalSearchEntryKindValues = 'ORGANIZATION' | 'USER' | 'SHAREDROOM';
     export type GlobalSearchEntryKind = GQLRoots.GlobalSearchEntryKindRoot;
@@ -4887,32 +4893,6 @@ export namespace GQL {
     export interface StickerMessageStickerArgs { }
     export interface StickerMessageOverrideAvatarArgs { }
     export interface StickerMessageOverrideNameArgs { }
-    export interface DonationMessage extends ModernMessage {
-        id: string;
-        seq: Nullable<number>;
-        date: Date;
-        sender: User;
-        senderBadge: Nullable<UserBadge>;
-        source: Nullable<MessageSource>;
-        message: Nullable<string>;
-        spans: MessageSpan[];
-        fallback: string;
-        reactions: ModernMessageReaction[];
-        commentsCount: number;
-        purchase: Purchase;
-    }
-    export interface DonationMessageIdArgs { }
-    export interface DonationMessageSeqArgs { }
-    export interface DonationMessageDateArgs { }
-    export interface DonationMessageSenderArgs { }
-    export interface DonationMessageSenderBadgeArgs { }
-    export interface DonationMessageSourceArgs { }
-    export interface DonationMessageMessageArgs { }
-    export interface DonationMessageSpansArgs { }
-    export interface DonationMessageFallbackArgs { }
-    export interface DonationMessageReactionsArgs { }
-    export interface DonationMessageCommentsCountArgs { }
-    export interface DonationMessagePurchaseArgs { }
     export interface GammaMessagesBatch {
         messages: ModernMessage[];
         haveMoreForward: Nullable<boolean>;
@@ -5015,6 +4995,14 @@ export namespace GQL {
     export interface MessageAttachmentPostIdArgs { }
     export interface MessageAttachmentPostPostArgs { }
     export interface MessageAttachmentPostFallbackArgs { }
+    export interface MessageAttachmentPurchase extends ModernMessageAttachment {
+        id: string;
+        fallback: string;
+        purchase: Purchase;
+    }
+    export interface MessageAttachmentPurchaseIdArgs { }
+    export interface MessageAttachmentPurchaseFallbackArgs { }
+    export interface MessageAttachmentPurchasePurchaseArgs { }
     export interface FileAttachmentInput {
         fileId: string;
     }
@@ -8062,6 +8050,7 @@ export interface GQLResolver {
             gammaPinMessage: GQL.MutationGammaPinMessageArgs,
             gammaUnpinMessage: GQL.MutationGammaUnpinMessageArgs,
             messageReactionAdd: GQL.MutationMessageReactionAddArgs,
+            messageDonationReactionAdd: GQL.MutationMessageDonationReactionAddArgs,
             messageReactionRemove: GQL.MutationMessageReactionRemoveArgs,
             deleteChat: GQL.MutationDeleteChatArgs,
             archiveChat: GQL.MutationArchiveChatArgs,
@@ -9263,6 +9252,7 @@ export interface GQLResolver {
             pageInfo: GQL.FeedChannelSubscriberConnectionPageInfoArgs,
         }
     >;
+    FeedReactionType?: EnumTypeResolver<'LIKE' | 'THUMB_UP' | 'JOY' | 'SCREAM' | 'CRYING' | 'ANGRY', GQLRoots.FeedReactionTypeRoot>;
     GlobalSearchEntry?: UnionTypeResolver<GQLRoots.GlobalSearchEntryRoot, 'Organization' | 'User' | 'SharedRoom'>;
     GlobalSearchEntryKind?: EnumTypeResolver<'ORGANIZATION' | 'USER' | 'SHAREDROOM', GQLRoots.GlobalSearchEntryKindRoot>;
     MessageWithChat?: ComplexTypedResolver<
@@ -9334,7 +9324,7 @@ export interface GQLResolver {
             peer: GQL.MessageSourceCommentPeerArgs,
         }
     >;
-    ModernMessage?: InterfaceTypeResolver<GQLRoots.ModernMessageRoot, 'ServiceMessage' | 'GeneralMessage' | 'StickerMessage' | 'DonationMessage'>;
+    ModernMessage?: InterfaceTypeResolver<GQLRoots.ModernMessageRoot, 'ServiceMessage' | 'GeneralMessage' | 'StickerMessage'>;
     ServiceMessage?: ComplexTypedResolver<
         GQL.ServiceMessage,
         GQLRoots.ServiceMessageRoot,
@@ -9426,32 +9416,6 @@ export interface GQLResolver {
             overrideName: GQL.StickerMessageOverrideNameArgs,
         }
     >;
-    DonationMessage?: ComplexTypedResolver<
-        GQL.DonationMessage,
-        GQLRoots.DonationMessageRoot,
-        {
-            sender: GQLRoots.UserRoot,
-            senderBadge: Nullable<GQLRoots.UserBadgeRoot>,
-            source: Nullable<GQLRoots.MessageSourceRoot>,
-            spans: GQLRoots.MessageSpanRoot[],
-            reactions: GQLRoots.ModernMessageReactionRoot[],
-            purchase: GQLRoots.PurchaseRoot,
-        },
-        {
-            id: GQL.DonationMessageIdArgs,
-            seq: GQL.DonationMessageSeqArgs,
-            date: GQL.DonationMessageDateArgs,
-            sender: GQL.DonationMessageSenderArgs,
-            senderBadge: GQL.DonationMessageSenderBadgeArgs,
-            source: GQL.DonationMessageSourceArgs,
-            message: GQL.DonationMessageMessageArgs,
-            spans: GQL.DonationMessageSpansArgs,
-            fallback: GQL.DonationMessageFallbackArgs,
-            reactions: GQL.DonationMessageReactionsArgs,
-            commentsCount: GQL.DonationMessageCommentsCountArgs,
-            purchase: GQL.DonationMessagePurchaseArgs,
-        }
-    >;
     GammaMessagesBatch?: ComplexTypedResolver<
         GQL.GammaMessagesBatch,
         GQLRoots.GammaMessagesBatchRoot,
@@ -9522,7 +9486,7 @@ export interface GQLResolver {
             metadata: GQL.ImageMetadataArgs,
         }
     >;
-    ModernMessageAttachment?: InterfaceTypeResolver<GQLRoots.ModernMessageAttachmentRoot, 'MessageRichAttachment' | 'MessageAttachmentFile' | 'MessageAttachmentPost'>;
+    ModernMessageAttachment?: InterfaceTypeResolver<GQLRoots.ModernMessageAttachmentRoot, 'MessageRichAttachment' | 'MessageAttachmentFile' | 'MessageAttachmentPost' | 'MessageAttachmentPurchase'>;
     MessageRichAttachment?: ComplexTypedResolver<
         GQL.MessageRichAttachment,
         GQLRoots.MessageRichAttachmentRoot,
@@ -9574,6 +9538,18 @@ export interface GQLResolver {
             id: GQL.MessageAttachmentPostIdArgs,
             post: GQL.MessageAttachmentPostPostArgs,
             fallback: GQL.MessageAttachmentPostFallbackArgs,
+        }
+    >;
+    MessageAttachmentPurchase?: ComplexTypedResolver<
+        GQL.MessageAttachmentPurchase,
+        GQLRoots.MessageAttachmentPurchaseRoot,
+        {
+            purchase: GQLRoots.PurchaseRoot,
+        },
+        {
+            id: GQL.MessageAttachmentPurchaseIdArgs,
+            fallback: GQL.MessageAttachmentPurchaseFallbackArgs,
+            purchase: GQL.MessageAttachmentPurchasePurchaseArgs,
         }
     >;
     MessageKeyboard?: ComplexTypedResolver<

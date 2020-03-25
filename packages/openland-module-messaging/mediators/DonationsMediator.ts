@@ -6,7 +6,6 @@ import { COMMISSION_PERCENTS } from './PremiumChatMediator';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { MessageInput } from '../MessageInput';
 import { injectable } from 'inversify';
-import { Message } from '../../openland-module-db/store';
 
 @injectable()
 export class DonationsMediator {
@@ -39,25 +38,38 @@ export class DonationsMediator {
         let purchase = await Modules.Wallet.createPurchase(ctx, uid, amount, {
             type: 'donate_message',
             uid: toUid,
-            cid
+            cid,
+            mid: null,
         });
 
-        return await Modules.Messaging.sendMessage(ctx, cid, uid!, {
+        let m = await Modules.Messaging.sendMessage(ctx, cid, uid!, {
             ...message,
-            purchaseId: purchase.id
+            purchaseId: purchase.id,
         });
+
+        // always true
+        if (purchase.product.type === 'donate_message') {
+            purchase.product.mid = m.id;
+            await purchase.flush(ctx);
+        }
     }
 
-    onReactionAdded = async (ctx: Context, uid: number, message: Message, reaction: string) => {
-        if (reaction !== 'DONATE' || uid === message.uid) {
+    setReaction = async (ctx: Context, mid: number, uid: number) => {
+        let message = await Store.Message.findById(ctx, mid);
+        if (!message) {
+            return;
+        }
+        if (uid === message?.uid) {
             return;
         }
 
-        await Modules.Wallet.createPurchase(ctx, uid, 100, {
-            type: 'donate_reaction',
-            uid: message.uid,
-            mid: message.id,
-        });
+        if (await Modules.Messaging.setReaction(ctx, mid, uid, 'DONATE')) {
+            await Modules.Wallet.createPurchase(ctx, uid, 100, {
+                type: 'donate_reaction',
+                uid: message.uid,
+                mid: message.id,
+            });
+        }
     }
 
     //

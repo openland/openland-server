@@ -5,13 +5,20 @@ import { Context } from '@openland/context';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import {
     AllMentionSpan,
-    BoldTextSpan, CodeBlockTextSpan, DateTextSpan, InlineCodeTextSpan, InsaneTextSpan, IronyTextSpan, ItalicTextSpan,
-    LinkSpan, LoudTextSpan,
-    MessageAttachment,
-    MessageAttachmentInput,
+    BoldTextSpan,
+    CodeBlockTextSpan,
+    CommentAttachment, CommentAttachmentInput,
+    DateTextSpan,
+    InlineCodeTextSpan,
+    InsaneTextSpan,
+    IronyTextSpan,
+    ItalicTextSpan,
+    LinkSpan,
+    LoudTextSpan,
     MultiUserMentionSpan,
-    RoomMentionSpan, RotatingTextSpan,
-    UserMentionSpan
+    RoomMentionSpan,
+    RotatingTextSpan,
+    UserMentionSpan,
 } from '../../openland-module-messaging/MessageInput';
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
 import * as Chrono from 'chrono-node';
@@ -44,7 +51,7 @@ export interface CommentInput {
     message?: string | null;
     replyToComment?: number | null;
     spans?: CommentSpan[] | null;
-    attachments?: MessageAttachmentInput[] | null;
+    attachments?: CommentAttachmentInput[] | null;
     ignoreAugmentation?: boolean | null;
     stickerId?: string | null;
 
@@ -110,7 +117,7 @@ export class CommentsRepository {
             //
             // Prepare attachments
             //
-            let attachments: MessageAttachment[] = await this.prepateAttachments(ctx, commentInput.attachments || []);
+            let attachments: CommentAttachment[] = await this.prepateAttachments(ctx, commentInput.attachments || []);
 
             //
             //  Create comment
@@ -388,9 +395,9 @@ export class CommentsRepository {
         });
     }
 
-    private async prepateAttachments(parent: Context, attachments: MessageAttachmentInput[]) {
+    private async prepateAttachments(parent: Context, attachments: CommentAttachmentInput[]) {
         return await inTx(parent, async (ctx) => {
-            let res: MessageAttachment[] = [];
+            let res: CommentAttachment[] = [];
 
             for (let attachInput of attachments) {
                 res.push({

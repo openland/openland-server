@@ -80,12 +80,26 @@ import {
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
-    BoldTextSpan, CodeBlockTextSpan, DateTextSpan, InlineCodeTextSpan, InsaneTextSpan, IronyTextSpan, ItalicTextSpan,
-    LinkSpan, LoudTextSpan, MessageAttachment, MessageAttachmentFile, MessageButton,
-    MessageMention, MessageRichAttachment,
+    BoldTextSpan,
+    CodeBlockTextSpan,
+    DateTextSpan,
+    InlineCodeTextSpan,
+    InsaneTextSpan,
+    IronyTextSpan,
+    ItalicTextSpan,
+    LinkSpan,
+    LoudTextSpan,
+    MessageAttachment,
+    MessageAttachmentFile,
+    MessageButton,
+    MessageMention,
+    MessageRichAttachment,
     MessageSpan,
-    MultiUserMentionSpan, RoomMentionSpan, RotatingTextSpan,
-    UserMentionSpan, OrganizationMentionSpan,
+    MultiUserMentionSpan,
+    RoomMentionSpan,
+    RotatingTextSpan,
+    UserMentionSpan,
+    OrganizationMentionSpan, MessageAttachmentPurchase,
 } from '../../openland-module-messaging/MessageInput';
 import { WelcomeMessageT } from '../../openland-module-messaging/repositories/RoomRepository';
 import { FileInfo } from '../../openland-module-media/FileInfo';
@@ -95,7 +109,7 @@ import {
 import { UserFullRoot } from '../../openland-module-users/User.resolver';
 import { LiveStreamItem, BaseEvent } from '@openland/foundationdb-entity';
 import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfoService';
-import { Slide } from '../../openland-module-rich-message/repositories/RichMessageRepository';
+import { RichMessageReaction, Slide } from '../../openland-module-rich-message/repositories/RichMessageRepository';
 import { PowerupChatUserSettings } from 'openland-module-powerups/PowerupsRepository';
 import Stripe from 'stripe';
 import { PermissionGroup } from 'openland-module-permissions/PermissionsRepository';
@@ -173,6 +187,7 @@ export namespace GQLRoots {
     export type SlideTypeRoot = SlideTypeValues;
     export type SlideCoverAlignRoot = SlideCoverAlignValues;
     export type FeedChannelSubscriberRoleRoot = FeedChannelSubscriberRoleValues;
+    export type FeedReactionTypeRoot = RichMessageReaction;
 
     //
     // Calls
@@ -386,6 +401,7 @@ export namespace GQLRoots {
     export type ModernMessageAttachmentRoot = { attachment: MessageAttachment, message: Message | RichMessage | Comment };
     export type MessageAttachmentFileRoot = { attachment: MessageAttachmentFile, message: Message };
     export type MessageAttachmentPostRoot = any;
+    export type MessageAttachmentPurchaseRoot = { attachment: MessageAttachmentPurchase, message: Message };
     export type MessageRichAttachmentRoot = { attachment: MessageRichAttachment, message: Message };
     export type ImageRoot = { uuid: string, metadata?: FileInfo, crop: { x: number, y: number, w: number, h: number } | null };
     export type ImageFallbackRoot = { photo: string, text: string };

@@ -401,9 +401,12 @@ export default declareSchema(() => {
                 socialImagePreview: optional(string()),
                 socialImageInfo: optional(FileInfo),
             }),
+            purchase_attachment: struct({
+                id: string(),
+                pid: string()
+            })
         }))));
         field('stickerId', optional(string()));
-        field('purchaseId', optional(string()));
 
         // overrides
         field('overrideAvatar', optional(ImageRef));
@@ -1787,7 +1790,8 @@ export default declareSchema(() => {
             }),
             'donate_message': struct({
                 uid: integer(),
-                cid: integer()
+                cid: integer(),
+                mid: optional(integer())
             }),
             'donate_reaction': struct({
                 uid: integer(),
