@@ -100,10 +100,10 @@ export const Resolver: GQLResolver = {
         betaMessage: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
         alphaMessage: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
         alphaPrevMessage: async (src, args, ctx) => {
-            return (await Store.Message.chat.query(ctx, src.cid!, { limit: 1, reverse: true })).items[0];
+            return await Modules.Messaging.findTopMessage(ctx, src.cid!, ctx.auth.uid!);
         },
         prevMessage: async (src, args, ctx) => {
-            return (await Store.Message.chat.query(ctx, src.cid!, { limit: 1, reverse: true })).items[0];
+            return await Modules.Messaging.findTopMessage(ctx, src.cid!, ctx.auth.uid!);
         },
         unread: async (src, args, ctx) => Store.UserDialogCounter.byId(ctx.auth.uid!, src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid).get(ctx),
         globalUnread: async (src, args, ctx) => await Modules.Messaging.fetchUserGlobalCounter(ctx, ctx.auth.uid!),
