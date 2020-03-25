@@ -70,7 +70,7 @@ export const Resolver: GQLResolver = {
         unreadCount: async (src, _, ctx) => {
             return Store.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx);
         },
-        topMessage: (src, _, ctx) => Modules.Messaging.findTopMessage(ctx, src.id!),
+        topMessage: (src, _, ctx) => Modules.Messaging.findTopMessage(ctx, src.id!, ctx.auth.uid!),
         organization: async (src, _, ctx) => {
             return (await Store.Organization.findById(ctx, (await Store.ConversationOrganization.findById(ctx, src.id))!.oid))!;
         },
@@ -126,7 +126,7 @@ export const Resolver: GQLResolver = {
         unreadCount: async (src, _, ctx) => {
             return Store.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx);
         },
-        topMessage: (src, _, ctx) => Modules.Messaging.findTopMessage(ctx, src.id!),
+        topMessage: (src, _, ctx) => Modules.Messaging.findTopMessage(ctx, src.id!, ctx.auth.uid!),
         user: async (src, _, ctx) => {
             let uid;
             let conv = (await Store.ConversationPrivate.findById(ctx, src.id))!;
@@ -196,7 +196,7 @@ export const Resolver: GQLResolver = {
                 return null;
             }
 
-            return Modules.Messaging.findTopMessage(ctx, src.id!);
+            return Modules.Messaging.findTopMessage(ctx, src.id!, ctx.auth.uid!);
         },
         membersCount: async (src, _, ctx) => Modules.Messaging.roomMembersCount(ctx, src.id),
         settings: async (src, _, ctx) => Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, src.id),

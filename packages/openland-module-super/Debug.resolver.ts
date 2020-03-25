@@ -73,10 +73,7 @@ export const Resolver: GQLResolver = {
         key: src => src.key || '',
     },
     Query: {
-        lifecheck: async  (a, b, c) => {
-            await Modules.Phonebook.onNewUser(c, 1013);
-            return 'ok';
-        },
+        lifecheck: () => `i'm ok`,
         debugParseID: withPermission('super-admin', async (ctx, args) => {
             let id = IdsFactory.resolve(args.id);
             return {
@@ -1328,6 +1325,13 @@ export const Resolver: GQLResolver = {
             });
 
             return true;
+        }),
+        debugSendHiddenMessage: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async (ctx) => {
+                let dialog = await Modules.Messaging.room.resolvePrivateChat(ctx, parent.auth.uid!, IDs.User.parse(args.uid));
+                await Modules.Messaging.sendMessage(ctx, dialog.id, parent.auth.uid!, { message: args.message, hiddenForUids: [IDs.User.parse(args.uid)]});
+                return true;
+            });
         })
     },
     Subscription: {

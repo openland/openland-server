@@ -344,6 +344,7 @@ export default declareSchema(() => {
         field('edited', optional(boolean()));
         field('isMuted', boolean());
         field('isService', boolean());
+        field('hiddenForUids', optional(array(integer())));
         field('deleted', optional(boolean()));
         field('spans', optional(array(union({
             user_mention: struct({

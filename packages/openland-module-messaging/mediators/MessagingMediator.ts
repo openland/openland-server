@@ -290,8 +290,8 @@ export class MessagingMediator {
     // Queries
     //
 
-    findTopMessage = async (ctx: Context, cid: number) => {
-        return await this.repo.findTopMessage(ctx, cid);
+    findTopMessage = async (ctx: Context, cid: number, forUid: number) => {
+        return await this.repo.findTopMessage(ctx, cid, forUid);
     }
 
     private parseLinks(message: string): MessageSpan[] {

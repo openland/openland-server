@@ -96,7 +96,7 @@ export class PremiumChatMediator {
             let membershipChanged = await this.repo.alterPaidChatUserPass(ctx, cid, uid, activeSubscription);
             if (membershipChanged) {
                 if (activeSubscription) {
-                    let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
+                    let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid, uid);
 
                     if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
                         let uids: number[] = prevMessage.serviceMetadata.userIds;

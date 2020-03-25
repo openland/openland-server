@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'df528f0be0d280cdde059a0901255973';
+export const GQL_SPEC_VERSION = 'd4427716b9611916e48b2f84a4a4df28';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1980,6 +1980,7 @@ export namespace GQL {
         debugRecountSeqForMessages: boolean;
         debugReindexRoomMessagesCounter: boolean;
         debugQueueDailyPaidLeaderboard: boolean;
+        debugSendHiddenMessage: boolean;
         settingsUpdate: Settings;
         sendEmailChangeCode: string;
         changeEmail: boolean;
@@ -2468,6 +2469,10 @@ export namespace GQL {
     export interface MutationDebugRecountSeqForMessagesArgs { }
     export interface MutationDebugReindexRoomMessagesCounterArgs { }
     export interface MutationDebugQueueDailyPaidLeaderboardArgs { }
+    export interface MutationDebugSendHiddenMessageArgs {
+        uid: string;
+        message: string;
+    }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
     }
@@ -4767,6 +4772,7 @@ export namespace GQL {
         sender: User;
         senderBadge: Nullable<UserBadge>;
         source: Nullable<MessageSource>;
+        hidden: boolean;
         message: Nullable<string>;
         spans: MessageSpan[];
         fallback: string;
@@ -4777,6 +4783,7 @@ export namespace GQL {
     export interface ModernMessageSenderArgs { }
     export interface ModernMessageSenderBadgeArgs { }
     export interface ModernMessageSourceArgs { }
+    export interface ModernMessageHiddenArgs { }
     export interface ModernMessageMessageArgs { }
     export interface ModernMessageSpansArgs { }
     export interface ModernMessageFallbackArgs { }
@@ -4788,6 +4795,7 @@ export namespace GQL {
         senderBadge: Nullable<UserBadge>;
         isMentioned: boolean;
         source: Nullable<MessageSource>;
+        hidden: boolean;
         message: Nullable<string>;
         spans: MessageSpan[];
         serviceMetadata: Nullable<ServiceMetadata>;
@@ -4802,6 +4810,7 @@ export namespace GQL {
     export interface ServiceMessageSenderBadgeArgs { }
     export interface ServiceMessageIsMentionedArgs { }
     export interface ServiceMessageSourceArgs { }
+    export interface ServiceMessageHiddenArgs { }
     export interface ServiceMessageMessageArgs { }
     export interface ServiceMessageSpansArgs { }
     export interface ServiceMessageServiceMetadataArgs { }
@@ -4818,6 +4827,7 @@ export namespace GQL {
         reactions: ModernMessageReaction[];
         isMentioned: boolean;
         source: Nullable<MessageSource>;
+        hidden: boolean;
         message: Nullable<string>;
         spans: MessageSpan[];
         attachments: ModernMessageAttachment[];
@@ -4836,6 +4846,7 @@ export namespace GQL {
     export interface GeneralMessageReactionsArgs { }
     export interface GeneralMessageIsMentionedArgs { }
     export interface GeneralMessageSourceArgs { }
+    export interface GeneralMessageHiddenArgs { }
     export interface GeneralMessageMessageArgs { }
     export interface GeneralMessageSpansArgs { }
     export interface GeneralMessageAttachmentsArgs { }
@@ -4851,6 +4862,7 @@ export namespace GQL {
         sender: User;
         senderBadge: Nullable<UserBadge>;
         source: Nullable<MessageSource>;
+        hidden: boolean;
         message: Nullable<string>;
         spans: MessageSpan[];
         reactions: ModernMessageReaction[];
@@ -4867,6 +4879,7 @@ export namespace GQL {
     export interface StickerMessageSenderArgs { }
     export interface StickerMessageSenderBadgeArgs { }
     export interface StickerMessageSourceArgs { }
+    export interface StickerMessageHiddenArgs { }
     export interface StickerMessageMessageArgs { }
     export interface StickerMessageSpansArgs { }
     export interface StickerMessageReactionsArgs { }
@@ -7828,6 +7841,7 @@ export interface GQLResolver {
             debugRecountSeqForMessages: GQL.MutationDebugRecountSeqForMessagesArgs,
             debugReindexRoomMessagesCounter: GQL.MutationDebugReindexRoomMessagesCounterArgs,
             debugQueueDailyPaidLeaderboard: GQL.MutationDebugQueueDailyPaidLeaderboardArgs,
+            debugSendHiddenMessage: GQL.MutationDebugSendHiddenMessageArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailChangeCode: GQL.MutationSendEmailChangeCodeArgs,
             changeEmail: GQL.MutationChangeEmailArgs,
@@ -9292,6 +9306,7 @@ export interface GQLResolver {
             senderBadge: GQL.ServiceMessageSenderBadgeArgs,
             isMentioned: GQL.ServiceMessageIsMentionedArgs,
             source: GQL.ServiceMessageSourceArgs,
+            hidden: GQL.ServiceMessageHiddenArgs,
             message: GQL.ServiceMessageMessageArgs,
             spans: GQL.ServiceMessageSpansArgs,
             serviceMetadata: GQL.ServiceMessageServiceMetadataArgs,
@@ -9323,6 +9338,7 @@ export interface GQLResolver {
             reactions: GQL.GeneralMessageReactionsArgs,
             isMentioned: GQL.GeneralMessageIsMentionedArgs,
             source: GQL.GeneralMessageSourceArgs,
+            hidden: GQL.GeneralMessageHiddenArgs,
             message: GQL.GeneralMessageMessageArgs,
             spans: GQL.GeneralMessageSpansArgs,
             attachments: GQL.GeneralMessageAttachmentsArgs,
@@ -9353,6 +9369,7 @@ export interface GQLResolver {
             sender: GQL.StickerMessageSenderArgs,
             senderBadge: GQL.StickerMessageSenderBadgeArgs,
             source: GQL.StickerMessageSourceArgs,
+            hidden: GQL.StickerMessageHiddenArgs,
             message: GQL.StickerMessageMessageArgs,
             spans: GQL.StickerMessageSpansArgs,
             reactions: GQL.StickerMessageReactionsArgs,

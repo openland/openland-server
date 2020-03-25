@@ -132,6 +132,7 @@ export interface MessageInput {
 
     isMuted?: boolean | null;
     isService?: boolean | null;
+    hiddenForUids?: number[] | null;
     repeatKey?: string | null;
     serviceMetadata?: any & { type: ServiceMessageMetadataType };
     replyMessages?: number[] | null;

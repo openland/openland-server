@@ -337,6 +337,15 @@ async function getMessageSenderBadge(ctx: AppContext, src: Message | Comment): P
     return await Modules.Users.getUserBadge(ctx, src.uid, cid);
 }
 
+function isMessageHiddenForUser(message: Message | Comment | RichMessage, forUid: number) {
+    if (!(message instanceof Message)) {
+        return false;
+    }
+    if (message.hiddenForUids && message.hiddenForUids.includes(forUid)) {
+        return true;
+    }
+    return false;
+}
 export const Resolver: GQLResolver = {
     ModernMessage: {
         __resolveType(src: ModernMessageRoot) {
@@ -372,7 +381,15 @@ export const Resolver: GQLResolver = {
             return null;
         },
         date: src => src.metadata.createdAt,
-        sender: src => src.uid,
+        sender: async (src, args, ctx) => {
+            if (src.deleted || isMessageHiddenForUser(src, ctx.auth.uid!)) {
+                const deletedUserId = await Modules.Users.getDeletedUserId(ctx);
+                if (deletedUserId) {
+                    return deletedUserId;
+                }
+            }
+            return src.uid;
+        },
         senderBadge: (src, args, ctx) => getMessageSenderBadge(ctx, src),
         isMentioned: (src, args, ctx) => {
             if (src instanceof Message) {
@@ -381,12 +398,21 @@ export const Resolver: GQLResolver = {
             return false;
         },
         source: (src, args, ctx) => src,
+        hidden: (src, args, ctx) => isMessageHiddenForUser(src, ctx.auth.uid!),
 
         //
         //  Content
         //
-        message: src => src.text,
+        message: (src, args, ctx) => {
+            if (src.deleted || isMessageHiddenForUser(src, ctx.auth.uid!)) {
+                return getDeletedText(src);
+            }
+            return src.text;
+        },
         spans: async (src, args, ctx) => {
+            if (src.deleted || isMessageHiddenForUser(src, ctx.auth.uid!)) {
+                return [];
+            }
             //
             //  Modern spans
             //
@@ -457,7 +483,7 @@ export const Resolver: GQLResolver = {
         sender: async (src, args, ctx) => {
             // message can be deleted, while sender can be alive or deleted
 
-            if (src.deleted) {
+            if (src.deleted || isMessageHiddenForUser(src, ctx.auth.uid!)) {
                 const deletedUserId = await Modules.Users.getDeletedUserId(ctx);
                 if (deletedUserId) {
                     return deletedUserId;
@@ -480,12 +506,13 @@ export const Resolver: GQLResolver = {
             }
             return src;
         },
+        hidden: (src, args, ctx) => isMessageHiddenForUser(src, ctx.auth.uid!),
 
         //
         //  Content
         //
-        message: src => {
-            if (src.deleted) {
+        message: (src, args, ctx) => {
+            if (src.deleted || isMessageHiddenForUser(src, ctx.auth.uid!)) {
                 return getDeletedText(src);
             }
             if (src instanceof Message && src.type && src.type === 'POST') {
@@ -494,7 +521,7 @@ export const Resolver: GQLResolver = {
             return src.text;
         },
         spans: async (src, args, ctx) => {
-            if (src.deleted) {
+            if (src.deleted || isMessageHiddenForUser(src, ctx.auth.uid!)) {
                 return [
                     {
                         type: 'italic_text',
@@ -700,7 +727,7 @@ export const Resolver: GQLResolver = {
         sender: async (src, args, ctx) => {
             // message can be deleted, while sender can be alive or deleted
 
-            if (src.deleted) {
+            if (src.deleted || isMessageHiddenForUser(src, ctx.auth.uid!)) {
                 const deletedUserId = await Modules.Users.getDeletedUserId(ctx);
                 if (deletedUserId) {
                     return deletedUserId;
@@ -712,6 +739,7 @@ export const Resolver: GQLResolver = {
         reactions: src => src.reactions || [],
         source: (src, args, ctx) => src,
         sticker: (src) => src.stickerId!,
+        hidden: (src, args, ctx) => isMessageHiddenForUser(src, ctx.auth.uid!),
 
         //
         //  Content

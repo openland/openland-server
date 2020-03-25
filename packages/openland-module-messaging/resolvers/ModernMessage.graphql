@@ -18,6 +18,7 @@ interface ModernMessage {
     sender: User!
     senderBadge: UserBadge
     source: MessageSource
+    hidden: Boolean!
 
     #
     #   Content
@@ -38,6 +39,7 @@ type ServiceMessage implements ModernMessage  {
     senderBadge: UserBadge
     isMentioned: Boolean!
     source: MessageSource
+    hidden: Boolean!
 
     #
     #   Content
@@ -67,6 +69,7 @@ type GeneralMessage implements ModernMessage {
     reactions: [ModernMessageReaction!]!
     isMentioned: Boolean!
     source: MessageSource
+    hidden: Boolean!
 
     #
     #   Content
@@ -95,6 +98,7 @@ type StickerMessage implements ModernMessage {
     sender: User!
     senderBadge: UserBadge
     source: MessageSource
+    hidden: Boolean!
 
     #
     #   Content

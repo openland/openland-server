@@ -113,7 +113,7 @@ export class RoomMediator {
             if (await this.repo.joinRoom(ctx, cid, uid, request) && !request) {
                 let shouldSendJoinMessage = !conv.isChannel;
                 if (shouldSendJoinMessage) {
-                    let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
+                    let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid, uid);
 
                     if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
                         let uids: number[] = prevMessage.serviceMetadata.userIds;
@@ -160,7 +160,7 @@ export class RoomMediator {
                 if (res.length > 0) {
                     let shouldSendJoinMessage = !conv.isChannel;
                     if (shouldSendJoinMessage) {
-                        let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
+                        let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid, uid);
 
                         if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
                             let uids: number[] = [...prevMessage.serviceMetadata.userIds, ...res];
