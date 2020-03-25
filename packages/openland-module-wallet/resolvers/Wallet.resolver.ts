@@ -205,7 +205,8 @@ export const Resolver: GQLResolver = {
 
             return null;
         },
-        product: (src) => src.product
+        product: (src) => src.product,
+        amount: (src) => src.amount,
     },
 
     WalletIncomeSource: {
