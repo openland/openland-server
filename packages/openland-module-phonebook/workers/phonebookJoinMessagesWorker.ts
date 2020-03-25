@@ -50,7 +50,7 @@ export function addPhonebookJoinMessagesWorker(worker: WorkQueue<{ uid: number }
 
                 let chat = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, user.id);
                 let name = await Modules.Users.getUserFullName(ctx, item.uid);
-                await Modules.Messaging.sendMessage(ctx, chat.id, uid, { isService: true, message: `${name} joined Openland` });
+                await Modules.Messaging.sendMessage(ctx, chat.id, uid, { isService: true, message: `${name} joined Openland`, hiddenForUids: [user.id] });
                 sentUsers.add(uid);
             }
 
