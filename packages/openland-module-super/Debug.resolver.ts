@@ -73,7 +73,10 @@ export const Resolver: GQLResolver = {
         key: src => src.key || '',
     },
     Query: {
-        lifecheck: () => `i'm ok`,
+        lifecheck: async  (a, b, c) => {
+            await Modules.Phonebook.onNewUser(c, 1013);
+            return 'ok';
+        },
         debugParseID: withPermission('super-admin', async (ctx, args) => {
             let id = IdsFactory.resolve(args.id);
             return {

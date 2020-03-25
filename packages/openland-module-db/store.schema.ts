@@ -2130,6 +2130,23 @@ export default declareSchema(() => {
     });
 
     //
+    //  Phonebook
+    //
+    entity('PhonebookItem', () => {
+        primaryKey('id', integer());
+        field('uid', integer());
+        field('name', string());
+        field('info', optional(string()));
+        field('phone', string());
+        rangeIndex('user', ['uid', 'id']);
+        rangeIndex('updated', ['updatedAt']);
+    });
+
+    atomicBool('PhonebookJoinMessageSentForPhone', () => {
+        primaryKey('phone', string());
+    });
+
+    //
     // Discover 2.0
     //
     entity('EditorsChoiceChatsCollection', () => {

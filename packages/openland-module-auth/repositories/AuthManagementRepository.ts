@@ -73,7 +73,7 @@ export class AuthManagementRepository {
     async pairPhone(parent: Context, uid: number, phone: string) {
         return await inTx(parent, async ctx => {
             phone = phone.trim();
-            if (!/^\+(\d{11})$/.test(phone)) {
+            if (!/^\+[1-9]{1}[0-9]{3,14}$/.test(phone)) {
                 throw new UserError('Invalid phone');
             }
             let user = await Store.User.findById(ctx, uid);

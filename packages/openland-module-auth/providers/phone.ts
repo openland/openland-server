@@ -73,7 +73,7 @@ const CodeLength = 6;
 const phoneThrottle = createPersistenceThrottle('auth_phone');
 const phoneCode = createOneTimeCodeGenerator<{ phone: string, authToken: string }>('email_change', 60 * 5, 5, CodeLength);
 const rootCtx = createNamedContext('auth-phone');
-const phoneRegexp = /^\+(\d{11})$/;
+const phoneRegexp = /^\+[1-9]{1}[0-9]{3,14}$/;
 
 export function initPhoneAuthProvider(app: Express) {
     app.post('/auth/phone/sendCode', bodyParser.json(), httpHandler(async req => {
@@ -183,7 +183,7 @@ export function initPhoneAuthProvider(app: Express) {
             } else {
                 let user = await Modules.Users.createUser(ctx, {phone});
                 await Modules.Hooks.onSignUp(ctx, user.id);
-                let token = await Modules.Auth.createToken(ctx, user.id!);
+                let token = await Modules.Auth.createToken(ctx, user.id);
                 return { ok: true, accessToken: token.salt };
             }
         });

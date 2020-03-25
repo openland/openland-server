@@ -10,6 +10,7 @@ import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { createOneTimeCodeGenerator } from '../../openland-utils/OneTimeCode';
 import { Emails } from '../../openland-module-email/Emails';
 import { SmsService } from '../../openland-utils/SmsService';
+import { Modules } from '../../openland-modules/Modules';
 
 const emailChangeThrottle = createPersistenceThrottle('email_change');
 const emailChangeCode = createOneTimeCodeGenerator<{ oldEmail: string, newEmail: string, uid: number }>('email_change', 60 * 5, 5, 6);
@@ -186,6 +187,9 @@ export class AuthManagementMediator {
 
             // Release throttle
             await emailChangeThrottle.release(ctx, code.data.phone);
+
+            // Send notifications
+            await Modules.Phonebook.onPhonePair(ctx, user.id);
 
             return true;
         });

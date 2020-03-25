@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'eb0d2aec874d856100066e2005d15927';
+export const GQL_SPEC_VERSION = 'df528f0be0d280cdde059a0901255973';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -818,6 +818,11 @@ export namespace GQL {
     export interface MessageTextArgs { }
     export interface MessageQuotedArgs { }
     export interface MessageAlphaReactionsArgs { }
+    export interface PhonebookRecordInput {
+        name: string;
+        info: Nullable<string>;
+        phone: string;
+    }
     export type DebugEmailTypeValues = 'WELCOME' | 'ACCOUNT_ACTIVATED' | 'ACCOUNT_DEACTIVATED' | 'MEMBER_REMOVED' | 'MEMBERSHIP_LEVEL_CHANGED' | 'INVITE' | 'MEMBER_JOINED' | 'SIGNUP_CODE' | 'SIGIN_CODE' | 'UNREAD_MESSAGE' | 'UNREAD_MESSAGES' | 'PUBLIC_ROOM_INVITE' | 'PRIVATE_ROOM_INVITE' | 'ROOM_INVITE_ACCEPTED' | 'WEEKLY_DIGEST' | 'GENERIC';
     export type DebugEmailType = GQLRoots.DebugEmailTypeRoot;
     export interface DebugID {
@@ -1912,6 +1917,7 @@ export namespace GQL {
         alphaDeleteInvite: string;
         alphaJoinInvite: string;
         joinAppInvite: string;
+        phonebookAdd: boolean;
         debugSendSMS: boolean;
         debugSerializeId: string;
         debugSendEmail: Nullable<boolean>;
@@ -2346,6 +2352,9 @@ export namespace GQL {
     export interface MutationJoinAppInviteArgs {
         key: string;
         isNewUser: OptionalNullable<boolean>;
+    }
+    export interface MutationPhonebookAddArgs {
+        records: PhonebookRecordInput[];
     }
     export interface MutationDebugSendSMSArgs {
         to: string;
@@ -7756,6 +7765,7 @@ export interface GQLResolver {
             alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs,
             alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs,
             joinAppInvite: GQL.MutationJoinAppInviteArgs,
+            phonebookAdd: GQL.MutationPhonebookAddArgs,
             debugSendSMS: GQL.MutationDebugSendSMSArgs,
             debugSerializeId: GQL.MutationDebugSerializeIdArgs,
             debugSendEmail: GQL.MutationDebugSendEmailArgs,

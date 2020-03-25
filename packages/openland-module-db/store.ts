@@ -1398,6 +1398,34 @@ export class AuthEmailsSentCountFactory extends AtomicIntegerFactory {
     }
 }
 
+export class PhonebookJoinMessageSentForPhoneFactory extends AtomicBooleanFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('phonebookJoinMessageSentForPhone');
+        return new PhonebookJoinMessageSentForPhoneFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(phone: string) {
+        return this._findById([phone]);
+    }
+
+    get(ctx: Context, phone: string) {
+        return this._get(ctx, [phone]);
+    }
+
+    set(ctx: Context, phone: string, value: boolean) {
+        return this._set(ctx, [phone], value);
+    }
+
+    invert(ctx: Context, phone: string) {
+        return this._invert(ctx, [phone]);
+    }
+}
+
 export interface UserShape {
     id: number;
     authId: string;
@@ -16941,6 +16969,145 @@ export class DebugEventStateFactory extends EntityFactory<DebugEventStateShape, 
     }
 }
 
+export interface PhonebookItemShape {
+    id: number;
+    uid: number;
+    name: string;
+    info: string | null;
+    phone: string;
+}
+
+export interface PhonebookItemCreateShape {
+    uid: number;
+    name: string;
+    info?: string | null | undefined;
+    phone: string;
+}
+
+export class PhonebookItem extends Entity<PhonebookItemShape> {
+    get id(): number { return this._rawValue.id; }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get name(): string { return this._rawValue.name; }
+    set name(value: string) {
+        let normalized = this.descriptor.codec.fields.name.normalize(value);
+        if (this._rawValue.name !== normalized) {
+            this._rawValue.name = normalized;
+            this._updatedValues.name = normalized;
+            this.invalidate();
+        }
+    }
+    get info(): string | null { return this._rawValue.info; }
+    set info(value: string | null) {
+        let normalized = this.descriptor.codec.fields.info.normalize(value);
+        if (this._rawValue.info !== normalized) {
+            this._rawValue.info = normalized;
+            this._updatedValues.info = normalized;
+            this.invalidate();
+        }
+    }
+    get phone(): string { return this._rawValue.phone; }
+    set phone(value: string) {
+        let normalized = this.descriptor.codec.fields.phone.normalize(value);
+        if (this._rawValue.phone !== normalized) {
+            this._rawValue.phone = normalized;
+            this._updatedValues.phone = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class PhonebookItemFactory extends EntityFactory<PhonebookItemShape, PhonebookItem> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('phonebookItem');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('phonebookItem', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('phonebookItem', 'updated'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'name', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'info', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'phone', type: { type: 'string' }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            uid: c.integer,
+            name: c.string,
+            info: c.optional(c.string),
+            phone: c.string,
+        });
+        let descriptor: EntityDescriptor<PhonebookItemShape> = {
+            name: 'PhonebookItem',
+            storageKey: 'phonebookItem',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new PhonebookItemFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<PhonebookItemShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    readonly updated = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: PhonebookItemCreateShape): Promise<PhonebookItem> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: PhonebookItemCreateShape): PhonebookItem {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<PhonebookItem | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PhonebookItemShape>): PhonebookItem {
+        return new PhonebookItem([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface EditorsChoiceChatsCollectionShape {
     id: number;
     createdBy: number;
@@ -18432,6 +18599,7 @@ export interface Store extends BaseStore {
     readonly RoomActiveMembersPrevWeekCounter: RoomActiveMembersPrevWeekCounterFactory;
     readonly LastAuthEmailSentTime: LastAuthEmailSentTimeFactory;
     readonly AuthEmailsSentCount: AuthEmailsSentCountFactory;
+    readonly PhonebookJoinMessageSentForPhone: PhonebookJoinMessageSentForPhoneFactory;
     readonly User: UserFactory;
     readonly UserProfile: UserProfileFactory;
     readonly UserProfilePrefil: UserProfilePrefilFactory;
@@ -18554,6 +18722,7 @@ export interface Store extends BaseStore {
     readonly OneTimeCode: OneTimeCodeFactory;
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
+    readonly PhonebookItem: PhonebookItemFactory;
     readonly EditorsChoiceChatsCollection: EditorsChoiceChatsCollectionFactory;
     readonly EditorsChoiceChat: EditorsChoiceChatFactory;
     readonly ConversationEventStore: ConversationEventStore;
@@ -18639,6 +18808,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let RoomActiveMembersPrevWeekCounterPromise = RoomActiveMembersPrevWeekCounterFactory.open(storage);
     let LastAuthEmailSentTimePromise = LastAuthEmailSentTimeFactory.open(storage);
     let AuthEmailsSentCountPromise = AuthEmailsSentCountFactory.open(storage);
+    let PhonebookJoinMessageSentForPhonePromise = PhonebookJoinMessageSentForPhoneFactory.open(storage);
     let UserPromise = UserFactory.open(storage);
     let UserProfilePromise = UserProfileFactory.open(storage);
     let UserProfilePrefilPromise = UserProfilePrefilFactory.open(storage);
@@ -18761,6 +18931,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let OneTimeCodePromise = OneTimeCodeFactory.open(storage);
     let DebugEventPromise = DebugEventFactory.open(storage);
     let DebugEventStatePromise = DebugEventStateFactory.open(storage);
+    let PhonebookItemPromise = PhonebookItemFactory.open(storage);
     let EditorsChoiceChatsCollectionPromise = EditorsChoiceChatsCollectionFactory.open(storage);
     let EditorsChoiceChatPromise = EditorsChoiceChatFactory.open(storage);
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
@@ -18817,6 +18988,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         RoomActiveMembersPrevWeekCounter: await RoomActiveMembersPrevWeekCounterPromise,
         LastAuthEmailSentTime: await LastAuthEmailSentTimePromise,
         AuthEmailsSentCount: await AuthEmailsSentCountPromise,
+        PhonebookJoinMessageSentForPhone: await PhonebookJoinMessageSentForPhonePromise,
         User: await UserPromise,
         UserProfile: await UserProfilePromise,
         UserProfilePrefil: await UserProfilePrefilPromise,
@@ -18939,6 +19111,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         OneTimeCode: await OneTimeCodePromise,
         DebugEvent: await DebugEventPromise,
         DebugEventState: await DebugEventStatePromise,
+        PhonebookItem: await PhonebookItemPromise,
         EditorsChoiceChatsCollection: await EditorsChoiceChatsCollectionPromise,
         EditorsChoiceChat: await EditorsChoiceChatPromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,
