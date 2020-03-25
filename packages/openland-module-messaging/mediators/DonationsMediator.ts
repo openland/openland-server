@@ -6,6 +6,9 @@ import { COMMISSION_PERCENTS } from './PremiumChatMediator';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { MessageInput } from '../MessageInput';
 import { injectable } from 'inversify';
+import { buildMessage, userMention } from '../../openland-utils/MessageBuilder';
+import { formatMoney } from '../../openland-module-wallet/repo/utils/formatMoney';
+import { WalletPurchaseCreateShape } from '../../openland-module-db/store';
 
 @injectable()
 export class DonationsMediator {
@@ -83,9 +86,14 @@ export class DonationsMediator {
     /**
      * Purchase success - increment balance
      */
-    onPurchaseSuccess = async (ctx: Context, pid: string, txid: string, uid: number, amount: number, toUid: number) => {
+    onPurchaseSuccess = async (ctx: Context, pid: string, txid: string, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
+        if (product.type !== 'donate_message' && product.type !== 'donate_reaction') {
+            return;
+        }
         let parts = countCommission(amount, COMMISSION_PERCENTS);
-        await Modules.Wallet.wallet.incomeSuccess(ctx, txid, toUid, parts.rest, { type: 'purchase', id: pid });
+        await Modules.Wallet.wallet.incomeSuccess(ctx, txid, product.uid, parts.rest, { type: 'purchase', id: pid });
+
+        this.notifyDonee(ctx, product.uid, product.mid!, uid, product.type === 'donate_message' ? 'message' : 'reaction', parts);
     }
 
     onPurchaseFailing = async (ctx: Context, pid: string, uid: number, amount: number, toUid: number) => {
@@ -98,5 +106,21 @@ export class DonationsMediator {
 
     onPurchaseCanceled = async (ctx: Context, pid: string, uid: number, amount: number, toUid: number) => {
         // no op
+    }
+
+    private async notifyDonee(ctx: Context, doneeId: number, mid: number, uid: number, type: 'message' | 'reaction', parts: { commission: number, rest: number, amount: number }) {
+        let billyId = await Modules.Super.getEnvVar<number>(ctx, 'onboarding-bot-id');
+        if (billyId === null) {
+            return;
+        }
+        let name = await Modules.Users.getUserFullName(ctx, uid);
+
+        let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, billyId, doneeId);
+        let message = buildMessage(userMention(name, uid), ` just sent you ${formatMoney(parts.amount)} as ${type} donation (income: ${formatMoney(parts.rest)}, commission: ${formatMoney(parts.commission)})`);
+        await Modules.Messaging.sendMessage(ctx, privateChat.id, billyId, {
+            ...message,
+            replyMessages: [mid]
+        });
+        Modules.Metrics.onBillyBotMessageRecieved(ctx, uid, `donation_${type}_notification`);
     }
 }
