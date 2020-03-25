@@ -94,7 +94,7 @@ export class DonationsMediator {
         await Modules.Wallet.wallet.incomeSuccess(ctx, txid, product.uid, parts.rest, { type: 'purchase', id: pid });
 
         if (product.type === 'donate_reaction') {
-            this.notifyDonee(ctx, product.uid, product.mid!, uid, 'reaction', parts);
+            await this.notifyDonee(ctx, product.uid, product.mid!, uid, 'reaction', parts);
         }
     }
 
