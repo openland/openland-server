@@ -255,7 +255,6 @@ export class MessagingRepository {
             return null;
         } else {
             let msg = res[0];
-            console.log(msg.hiddenForUids, forUid);
             // this can be slow if we allow hidden messages for users, but ok for service purposes
             // in general we should store top message in user dialogs list & update it via delivery workers
             while (msg.hiddenForUids && msg.hiddenForUids.includes(forUid)) {
