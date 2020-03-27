@@ -1,6 +1,6 @@
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { IDs } from '../../openland-module-api/IDs';
-import { withUser } from '../../openland-module-api/Resolvers';
+import { withAny, withUser } from '../../openland-module-api/Resolvers';
 import { Modules } from '../../openland-modules/Modules';
 import { Store } from '../../openland-module-db/FDB';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
@@ -12,10 +12,10 @@ export const Resolver: GQLResolver = {
         chat: src => src.cid
     },
     Query: {
-        discoverEditorsChoice: withUser(async (ctx, args, uid) => {
+        discoverEditorsChoice: withAny(async (ctx, args) => {
             return await Store.EditorsChoiceChat.all.findAll(ctx);
         }),
-        discoverEditorsChoiceChat: withUser(async (ctx, args, uid) => {
+        discoverEditorsChoiceChat: withAny(async (ctx, args) => {
             let chat = await Store.EditorsChoiceChat.findById(ctx, IDs.DiscoverEditorsChoiceChat.parse(args.id));
             if (!chat) {
                 throw new NotFoundError();

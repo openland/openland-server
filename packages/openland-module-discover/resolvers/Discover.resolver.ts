@@ -1,5 +1,5 @@
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
-import { withActivatedUser } from '../../openland-module-api/Resolvers';
+import { withAny } from '../../openland-module-api/Resolvers';
 import { Modules } from '../../openland-modules/Modules';
 import { IDs } from '../../openland-module-api/IDs';
 
@@ -9,7 +9,7 @@ export const Resolver: GQLResolver = {
         newMessages: root => root.messagesDelta,
     },
     Query: {
-        discoverPopularNow: withActivatedUser(async (ctx, args) => {
+        discoverPopularNow: withAny(async (ctx, args) => {
             let after = 0;
             if (args.after) {
                 after = IDs.DiscoverPopularNowCursor.parse(args.after);
@@ -27,7 +27,7 @@ export const Resolver: GQLResolver = {
                 cursor: popular.length === args.first ? IDs.DiscoverPopularNowCursor.serialize(popular[popular.length - 1].cursor) : null
             };
         }),
-        discoverTopPremium: withActivatedUser(async (ctx, args) => {
+        discoverTopPremium: withAny(async (ctx, args) => {
             let from = 0;
             if (args.after) {
                 from = IDs.DiscoverTopPremiumCursor.parse(args.after);
@@ -56,7 +56,7 @@ export const Resolver: GQLResolver = {
                 cursor: roomHits.hits.total <= (from + args.first) ? null : IDs.DiscoverTopPremiumCursor.serialize(from + args.first),
             };
         }),
-        discoverTopFree: withActivatedUser(async (ctx, args) => {
+        discoverTopFree: withAny(async (ctx, args) => {
             let from = 0;
             if (args.after) {
                 from = IDs.DiscoverTopFreeCursor.parse(args.after);
@@ -85,7 +85,7 @@ export const Resolver: GQLResolver = {
                 cursor: roomHits.hits.total <= (from + args.first) ? null : IDs.DiscoverTopFreeCursor.serialize(from + args.first),
             };
         }),
-        discoverNewAndGrowing: withActivatedUser(async (ctx, args) => {
+        discoverNewAndGrowing: withAny(async (ctx, args) => {
             let clauses: any[] = [];
 
             // chats with messages > 10

@@ -21,7 +21,7 @@ export const Resolver: GQLResolver = {
     },
 
     Query: {
-        discoverCollections: withUser(async (ctx, args, uid) => {
+        discoverCollections: withAny(async (ctx, args) => {
             let afterId = args.after ? IDs.DiscoverChatsCollection.parse(args.after) : null;
             if (!args.first || args.first <= 0) {
                 return { items: [], cursor: undefined };
