@@ -59,8 +59,6 @@ export class RoutingRepositoryImpl {
         } else {
             throw Error('Unknown operation type');
         }
-
-        await Modules.Hooks.onPaymentSuccess(ctx, uid, amount, operation);
     }
 
     onPaymentFailing = async (ctx: Context, uid: number, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
@@ -146,6 +144,7 @@ export class RoutingRepositoryImpl {
         } else if (product.type === 'donate_reaction' || product.type === 'donate_message') {
             await Modules.Messaging.donations.onPurchaseSuccess(ctx, pid, txid, uid, amount, product);
         }
+        await Modules.Hooks.onPurchaseSuccess(ctx, uid, amount, product);
     }
 
     onPurchaseFailing = async (ctx: Context, pid: string, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
@@ -210,15 +209,17 @@ export class RoutingRepositoryImpl {
      */
     onSubscriptionPaymentSuccess = async (ctx: Context, id: string, txid: string, index: number) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
-        if (subscription) {
-            await walletEvent.event(ctx, {
-                type: 'subscription_payment_success',
-                body: subscriptionToEvent(subscription)
-            });
+        if (!subscription) {
+            return;
         }
-        if (subscription && subscription.proudct.type === 'group') {
+        await walletEvent.event(ctx, {
+            type: 'subscription_payment_success',
+            body: subscriptionToEvent(subscription)
+        });
+        if (subscription.proudct.type === 'group') {
             await Modules.Messaging.premiumChat.onSubscriptionPaymentSuccess(ctx, subscription.id, txid, subscription.proudct.gid, subscription.uid);
         }
+        await Modules.Hooks.onSubscriptionPaymentSuccess(ctx, subscription.uid, subscription.amount, subscription.proudct);
     }
 
     /**

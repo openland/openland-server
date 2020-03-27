@@ -1,6 +1,9 @@
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
-import { PaymentCreateShape } from '../openland-module-db/store';
+import {
+    WalletPurchaseCreateShape,
+    WalletSubscriptionCreateShape,
+} from '../openland-module-db/store';
 
 @injectable()
 export class HooksModuleMock {
@@ -85,7 +88,11 @@ export class HooksModuleMock {
         // Nothing to do
     }
 
-    onPaymentSuccess = async (ctx: Context, uid: number, amount: number, operation: PaymentCreateShape['operation']) => {
+    onSubscriptionPaymentSuccess = async (ctx: Context, uid: number, amount: number, product: WalletSubscriptionCreateShape['proudct']) => {
+        // Nothing to do
+    }
+
+    onPurchaseSuccess = async (ctx: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
         // Nothing to do
     }
 
