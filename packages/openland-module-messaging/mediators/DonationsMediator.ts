@@ -9,6 +9,7 @@ import { injectable } from 'inversify';
 import { buildMessage, userMention } from '../../openland-utils/MessageBuilder';
 import { formatMoney } from '../../openland-module-wallet/repo/utils/formatMoney';
 import { WalletPurchaseCreateShape } from '../../openland-module-db/store';
+import { InvalidInputError } from '../../openland-errors/InvalidInputError';
 
 @injectable()
 export class DonationsMediator {
@@ -39,7 +40,7 @@ export class DonationsMediator {
         }
 
         if (toUid === uid) {
-            throw new Error('You can\'t donate to yourself');
+            throw new InvalidInputError([{ message: 'You can\'t donate to yourself', key: 'chatId' }]);
         }
 
         let purchase = await Modules.Wallet.createPurchase(ctx, uid, amount, {
