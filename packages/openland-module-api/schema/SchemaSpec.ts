@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '26b54252a82e68dd9f5512d4a1f55a06';
+export const GQL_SPEC_VERSION = '8c7906fb338c6ba4f8ed022a49c0379b';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1225,17 +1225,20 @@ export namespace GQL {
     export interface SuperAdminEmailArgs { }
     export interface DiscoverChatsCollectionInput {
         title: string;
+        description: Nullable<string>;
         image: ImageRefInput;
         chatIds: string[];
     }
     export interface DiscoverChatsCollectionUpdateInput {
         title: Nullable<string>;
+        description: Nullable<string>;
         image: Nullable<ImageRefInput>;
         chatIds: Nullable<string[]>;
     }
     export interface DiscoverChatsCollection {
         id: string;
         title: string;
+        description: Nullable<string>;
         image: ImageRef;
         chatsCount: number;
         chats: SharedRoom[];
@@ -1243,6 +1246,7 @@ export namespace GQL {
     }
     export interface DiscoverChatsCollectionIdArgs { }
     export interface DiscoverChatsCollectionTitleArgs { }
+    export interface DiscoverChatsCollectionDescriptionArgs { }
     export interface DiscoverChatsCollectionImageArgs { }
     export interface DiscoverChatsCollectionChatsCountArgs { }
     export interface DiscoverChatsCollectionChatsArgs { }
@@ -6795,6 +6799,7 @@ export interface GQLResolver {
         {
             id: GQL.DiscoverChatsCollectionIdArgs,
             title: GQL.DiscoverChatsCollectionTitleArgs,
+            description: GQL.DiscoverChatsCollectionDescriptionArgs,
             image: GQL.DiscoverChatsCollectionImageArgs,
             chatsCount: GQL.DiscoverChatsCollectionChatsCountArgs,
             chats: GQL.DiscoverChatsCollectionChatsArgs,

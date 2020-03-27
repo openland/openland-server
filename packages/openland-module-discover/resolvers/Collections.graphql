@@ -1,11 +1,13 @@
 input DiscoverChatsCollectionInput {
     title: String!
+    description: String
     image: ImageRefInput!
     chatIds: [ID!]!
 }
 
 input DiscoverChatsCollectionUpdateInput {
     title: String
+    description: String
     image: ImageRefInput
     chatIds: [ID!]
 }
@@ -13,6 +15,7 @@ input DiscoverChatsCollectionUpdateInput {
 type DiscoverChatsCollection {
     id: ID!
     title: String!
+    description: String
     image: ImageRef!
     chatsCount: Int!
     chats: [SharedRoom!]!

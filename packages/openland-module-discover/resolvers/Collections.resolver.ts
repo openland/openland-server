@@ -8,6 +8,7 @@ export const Resolver: GQLResolver = {
     DiscoverChatsCollection: {
         id: src => IDs.DiscoverChatsCollection.serialize(src.id),
         title: src => src.title,
+        description: src => src.description,
         image: src => src.image,
         chatsCount: src => src.chatIds.length,
         chats: async (src, args, ctx) => {
@@ -46,7 +47,8 @@ export const Resolver: GQLResolver = {
             return await Modules.Discover.collectionsMediator.createCollection(ctx, uid, {
                 title: args.collection.title,
                 image: args.collection.image,
-                chatIds: args.collection.chatIds.map(id => IDs.Conversation.parse(id))
+                chatIds: args.collection.chatIds.map(id => IDs.Conversation.parse(id)),
+                description: args.collection.description,
             });
         }),
         discoverCollectionsUpdate: withUser(async (ctx, args, uid) => {
@@ -61,7 +63,8 @@ export const Resolver: GQLResolver = {
                 {
                     title: input.title || undefined,
                     image: input.image || undefined,
-                    chatIds: input.chatIds ? input.chatIds.map(id => IDs.Conversation.parse(id)) : undefined
+                    chatIds: input.chatIds ? input.chatIds.map(id => IDs.Conversation.parse(id)) : undefined,
+                    description: input.description || undefined,
                 }
             );
         }),

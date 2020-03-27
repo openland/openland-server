@@ -2164,6 +2164,7 @@ export default declareSchema(() => {
         primaryKey('id', integer());
         field('createdBy', integer());
         field('title', string());
+        field('description', optional(string()));
         field('image', ImageRef);
         field('chatIds', array(integer()));
         field('deleted', optional(boolean()));

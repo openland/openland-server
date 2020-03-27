@@ -9,6 +9,7 @@ import { UserError } from '../../openland-errors/UserError';
 
 export interface ChatCollectionInput {
     title: string;
+    description?: string | null;
     image: ImageRef;
     chatIds: number[];
 }
@@ -26,6 +27,7 @@ export class ChatCollectionsRepository {
                 image: input.image,
                 chatIds: input.chatIds,
                 createdBy: creatorId,
+                description: input.description,
                 deleted: false
             });
             await collection.flush(ctx);
@@ -49,6 +51,10 @@ export class ChatCollectionsRepository {
             if (input.chatIds) {
                 collection.chatIds = input.chatIds;
             }
+            if (input.description) {
+                collection.description = input.description;
+            }
+
             await collection.flush(ctx);
             return collection;
         });
