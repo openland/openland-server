@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '8c7906fb338c6ba4f8ed022a49c0379b';
+export const GQL_SPEC_VERSION = 'a733933e2aaa03f05b87145f916b30aa';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3168,7 +3168,8 @@ export namespace GQL {
         repeatKey: OptionalNullable<string>;
     }
     export interface MutationSendDonationArgs {
-        chatId: string;
+        chatId: OptionalNullable<string>;
+        userId: OptionalNullable<string>;
         amount: number;
         message: OptionalNullable<string>;
         repeatKey: OptionalNullable<string>;

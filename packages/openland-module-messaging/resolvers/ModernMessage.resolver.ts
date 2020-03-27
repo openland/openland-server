@@ -1398,7 +1398,18 @@ export const Resolver: GQLResolver = {
             return true;
         }),
         sendDonation: withUser(async (ctx, args, uid) => {
-            let cid = IDs.Conversation.parse(args.chatId);
+            if ((args.chatId && args.userId) || !(args.chatId || args.userId)) {
+                throw new Error('chat id/user id should be specified');
+            }
+            let cid: number;
+            if (args.chatId) {
+                cid = IDs.Conversation.parse(args.chatId);
+            } else {
+                let uid2 = IDs.User.parse(args.userId!);
+                let conv = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, uid2);
+                cid = conv.id;
+            }
+
             await Modules.Messaging.donations.sendDonationMessage(ctx, uid, cid, args.amount, {
                 message: args.message,
                 repeatKey: args.repeatKey,
