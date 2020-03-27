@@ -38,6 +38,10 @@ export class DonationsMediator {
             throw new NotFoundError();
         }
 
+        if (toUid === uid) {
+            throw new Error('You can\'t donate to yourself');
+        }
+
         let purchase = await Modules.Wallet.createPurchase(ctx, uid, amount, {
             type: 'donate_message',
             uid: toUid,
