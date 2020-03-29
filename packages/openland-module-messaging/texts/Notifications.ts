@@ -8,5 +8,6 @@ export const Notifications = {
     DOCUMENT_ATTACH: 'Document',
     REPLY_ATTACH: 'Forward',
     STICKER: 'Sticker',
+    DONATION_ATTACH: 'Donation',
     GROUP_PUSH_TITLE: templated<{ senderName: string, chatTitle: string }>('{{senderName}}@{{chatTitle}}')
 };

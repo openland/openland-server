@@ -313,6 +313,8 @@ export async function fetchMessageFallback(message: Message | Comment | RichMess
                 if (attach.imageInfo) {
                     fallback.push(attachFallback(attach.imageInfo.mimeType, attach.imageInfo.isImage));
                 }
+            } else if (attach.type === 'purchase_attachment') {
+                fallback.push(Texts.Notifications.DONATION_ATTACH);
             }
         }
     }
