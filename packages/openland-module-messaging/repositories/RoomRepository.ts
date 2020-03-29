@@ -325,12 +325,15 @@ export class RoomRepository {
                     }
                 } else if (msg.attachmentsModern) {
                     let file = msg.attachmentsModern.find(a => a.type === 'file_attachment') as MessageAttachmentFile;
+                    let purchase = msg.attachmentsModern.find(a => a.type === 'purchase_attachment');
                     if (file && file.fileMetadata && file.fileMetadata.isImage && file.fileMetadata.mimeType === 'image/gif') {
                         messageContent = 'GIF';
                     } else if (file && file.fileMetadata && file.fileMetadata.isImage) {
                         messageContent = 'Photo';
                     } else if (file && file.fileMetadata) {
                         messageContent = 'Document';
+                    } else if (purchase) {
+                        messageContent = 'Donation';
                     }
                 } else if (msg.replyMessages && msg.replyMessages.length > 0) {
                     let replyMsg = await Store.Message.findById(ctx, msg.replyMessages[0]);
