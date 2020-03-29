@@ -16,6 +16,7 @@ import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstanc
 import * as Chrono from 'chrono-node';
 import { Store } from 'openland-module-db/FDB';
 import { MentionNotificationsMediator } from './MentionNotificationsMediator';
+import { DonationsMediator } from './DonationsMediator';
 
 const trace = createTracer('messaging');
 const linkifyInstance = createLinkifyInstance();
@@ -33,6 +34,8 @@ export class MessagingMediator {
     private readonly mentionNotifications!: MentionNotificationsMediator;
     @lazyInject('RoomMediator')
     private readonly room!: RoomMediator;
+    @lazyInject('DonationsMediator')
+    private readonly donations!: DonationsMediator;
 
     sendMessage = async (parent: Context, uid: number, cid: number, message: MessageInput, skipAccessCheck?: boolean) => {
         return trace.trace(parent, 'sendMessage', async (ctx2) => await inTx(ctx2, async (ctx) => {
@@ -256,6 +259,9 @@ export class MessagingMediator {
             // Delivery
             message = (await Store.Message.findById(ctx, mid))!;
             await this.delivery.onDeleteMessage(ctx, message);
+
+            // cancel payment if it is not success/canceled
+            await this.donations.onDeleteMessage(ctx, message);
 
             let chatProfile = await Store.RoomProfile.findById(ctx, message.cid);
             if (chatProfile && chatProfile.pinnedMessage && chatProfile.pinnedMessage === message.id) {

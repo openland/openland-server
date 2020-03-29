@@ -8,7 +8,7 @@ import { MessageInput } from '../MessageInput';
 import { injectable } from 'inversify';
 import { buildMessage, userMention } from '../../openland-utils/MessageBuilder';
 import { formatMoney } from '../../openland-module-wallet/repo/utils/formatMoney';
-import { WalletPurchaseCreateShape } from '../../openland-module-db/store';
+import { WalletPurchaseCreateShape, Message } from '../../openland-module-db/store';
 import { InvalidInputError } from '../../openland-errors/InvalidInputError';
 
 @injectable()
@@ -77,6 +77,18 @@ export class DonationsMediator {
                 uid: message.uid,
                 mid: message.id,
             });
+        }
+    }
+
+    onDeleteMessage = async (ctx: Context, message: Message) => {
+        let attachment = message.attachmentsModern?.find(a => a.type === 'purchase_attachment');
+        if (!attachment || attachment.type !== 'purchase_attachment') {
+            return;
+        }
+        let purchase = await Store.WalletPurchase.findById(ctx, attachment.pid);
+        if (purchase && purchase.state === 'pending' && purchase.pid) {
+            let payment = await Store.Payment.findById(ctx, purchase.pid);
+            await Modules.Wallet.paymentsMediator.tryCancelPayment(ctx, payment!.id);
         }
     }
 
