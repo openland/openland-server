@@ -152,6 +152,7 @@ type WalletProductDonation {
 type WalletProductDonationMessage {
     user: User!
     chat: Room!
+    message: ModernMessage!
 }
 
 type WalletProductDonationReaction {

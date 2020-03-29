@@ -294,6 +294,12 @@ export const Resolver: GQLResolver = {
                 return src.cid;
             }
             throw new Error('Internal error');
+        },
+        message: async (src, _, ctx) => {
+            if (src.type === 'donate_message' && src.mid) {
+                return (await Store.Message.findById(ctx, src.mid))!;
+            }
+            throw new Error('Internal error');
         }
     },
     WalletProductDonationReaction: {
