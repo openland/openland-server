@@ -15,6 +15,7 @@ import * as Case from 'change-case';
 import { FieldType, IndexFieldType } from '@openland/foundationdb-entity/lib/EntityDescriptor';
 import { openDatabase } from '../../openland-server/foundationdb';
 import { openStore } from '../store';
+import { Resolvers } from '../../openland-module-api/schema/Date';
 
 function gqlType(type: FieldType, nonNull: boolean = true): GraphQLType {
     if (type.type === 'integer') {
@@ -85,6 +86,22 @@ export async function createGraphQLAdminSchema() {
     let entitiesMap: any = {};
     let queries: any = {};
 
+    let dateType = Resolvers.Date;
+    let entityMetadataType = new GraphQLObjectType({
+        name: 'EntityMetadata',
+        fields: {
+            createdAt: {
+                type: dateType,
+            },
+            updatedAt: {
+                type: dateType
+            }
+        }
+    });
+
+    entitiesMap[dateType.name] = dateType;
+    entitiesMap[entityMetadataType.name] = entityMetadataType;
+
     for (let f in store) {
         let val = (store as any)[f];
 
@@ -114,6 +131,10 @@ export async function createGraphQLAdminSchema() {
                 name: val.descriptor.name,
                 fields: {
                     ...fields,
+                    metadata: {
+                        type: entityMetadataType,
+                        resolve: entity => entity.metadata
+                    }
                     // rawValue: {
                     //     type: GraphQLString,
                     //     resolve: entity => JSON.stringify(entity._rawValue)
