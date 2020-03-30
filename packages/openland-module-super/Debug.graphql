@@ -154,6 +154,7 @@ extend type Mutation {
     debugQueueDailyPaidLeaderboard: Boolean!
     debugQueueWeeklyPaidLeaderboard: Boolean!
     debugSendHiddenMessage(uid: ID!, message: String!): Boolean!
+    debugFixBrokenDonations: Boolean!
 }
 
 extend type Subscription {

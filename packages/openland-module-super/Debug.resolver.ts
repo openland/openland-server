@@ -1339,6 +1339,52 @@ export const Resolver: GQLResolver = {
                 await Modules.Messaging.sendMessage(ctx, dialog.id, parent.auth.uid!, { message: args.message, hiddenForUids: [IDs.User.parse(args.uid)]});
                 return true;
             });
+        }),
+        debugFixBrokenDonations: withPermission('super-admin', async (parent) => {
+            await debugTask(parent.auth.uid!, 'fix-broken-donations',  async (log) => {
+                let purchasesWithMessage: { pid: string, mid: number }[] = [];
+                await inTx(parent, async ctx => {
+                    let messages = await Store.Message.updated.query(ctx, { reverse: true, limit: 1000 });
+                    let afterCursor = messages.cursor;
+                    let isAfterRelease = true;
+                    let total = 0;
+                    while (isAfterRelease) {
+                        for (let message of messages.items) {
+                            if (message.metadata.createdAt < 1584911100000) {
+                                isAfterRelease = false;
+                                break;
+                            }
+                            if (!message.attachmentsModern) {
+                                continue;
+                            }
+
+                            let purchaseAttachment = message.attachmentsModern!.find(a => a.type === 'purchase_attachment');
+                            if (purchaseAttachment && purchaseAttachment.type === 'purchase_attachment') {
+                                purchasesWithMessage.push({ pid: purchaseAttachment.pid, mid: message.id });
+                                total += 1;
+                            }
+                        }
+                        messages = await Store.Message.updated.query(ctx, { reverse: true, limit: 1000, afterCursor });
+                        afterCursor = messages.cursor;
+                    }
+                    await log('found ' + total);
+                });
+                await inTx(parent, async ctx => {
+                    for (let { pid, mid } of purchasesWithMessage) {
+                        let purchase = await Store.WalletPurchase.findById(ctx, pid);
+                        if (purchase && purchase.product.type === 'donate_message') {
+                            await log('mid: ' + mid);
+                            purchase.product = {
+                                ...purchase.product,
+                                mid,
+                            };
+                            await purchase.flush(ctx);
+                        }
+                    }
+                });
+                return 'success';
+            });
+            return true;
         })
     },
     Subscription: {
