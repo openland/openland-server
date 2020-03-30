@@ -176,6 +176,7 @@ type Purchase {
     intent: PaymentIntent
     product: WalletProduct!
     amount: Int!
+    user: User!
 }
 
 #

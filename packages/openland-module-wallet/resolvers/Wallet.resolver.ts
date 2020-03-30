@@ -207,6 +207,7 @@ export const Resolver: GQLResolver = {
         },
         product: (src) => src.product,
         amount: (src) => src.amount,
+        user: (src) => src.uid,
     },
 
     WalletIncomeSource: {
