@@ -1344,28 +1344,18 @@ export const Resolver: GQLResolver = {
             await debugTask(parent.auth.uid!, 'fix-broken-donations',  async (log) => {
                 let purchasesWithMessage: { pid: string, mid: number }[] = [];
                 await inTx(parent, async ctx => {
-                    let messages = await Store.Message.updated.query(ctx, { reverse: true, limit: 1000 });
-                    let afterCursor = messages.cursor;
-                    let isAfterRelease = true;
+                    let messages = await Store.Message.updated.query(ctx, { reverse: true, limit: 100000 });
                     let total = 0;
-                    while (isAfterRelease) {
-                        for (let message of messages.items) {
-                            if (message.metadata.createdAt < 1584911100000) {
-                                isAfterRelease = false;
-                                break;
-                            }
-                            if (!message.attachmentsModern) {
-                                continue;
-                            }
-
-                            let purchaseAttachment = message.attachmentsModern!.find(a => a.type === 'purchase_attachment');
-                            if (purchaseAttachment && purchaseAttachment.type === 'purchase_attachment') {
-                                purchasesWithMessage.push({ pid: purchaseAttachment.pid, mid: message.id });
-                                total += 1;
-                            }
+                    for (let message of messages.items) {
+                        if (!message.attachmentsModern) {
+                            continue;
                         }
-                        messages = await Store.Message.updated.query(ctx, { reverse: true, limit: 1000, afterCursor });
-                        afterCursor = messages.cursor;
+
+                        let purchaseAttachment = message.attachmentsModern!.find(a => a.type === 'purchase_attachment');
+                        if (purchaseAttachment && purchaseAttachment.type === 'purchase_attachment') {
+                            purchasesWithMessage.push({ pid: purchaseAttachment.pid, mid: message.id });
+                            total += 1;
+                        }
                     }
                     await log('found ' + total);
                 });
