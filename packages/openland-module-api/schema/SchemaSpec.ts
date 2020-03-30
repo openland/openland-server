@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'bedbb8b2e93add13aa9c38fb3d49aac1';
+export const GQL_SPEC_VERSION = '22061a3cfa5988769fd3c580484efcb4';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -663,7 +663,7 @@ export namespace GQL {
     export interface WalletProductDonationMessage {
         user: User;
         chat: Room;
-        message: ModernMessage;
+        message: Nullable<ModernMessage>;
     }
     export interface WalletProductDonationMessageUserArgs { }
     export interface WalletProductDonationMessageChatArgs { }
@@ -6158,7 +6158,7 @@ export interface GQLResolver {
         {
             user: GQLRoots.UserRoot,
             chat: GQLRoots.RoomRoot,
-            message: GQLRoots.ModernMessageRoot,
+            message: Nullable<GQLRoots.ModernMessageRoot>,
         },
         {
             user: GQL.WalletProductDonationMessageUserArgs,

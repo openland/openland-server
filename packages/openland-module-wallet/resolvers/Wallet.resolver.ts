@@ -299,7 +299,7 @@ export const Resolver: GQLResolver = {
             if (src.type === 'donate_message' && src.mid) {
                 return (await Store.Message.findById(ctx, src.mid))!;
             }
-            throw new Error('Internal error');
+            return null;
         }
     },
     WalletProductDonationReaction: {
