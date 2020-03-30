@@ -66,7 +66,7 @@ export class DonationsMediator {
         }
     })
 
-    setReaction = async (ctx: Context, mid: number, uid: number) => {
+    setReaction = async (parent: Context, mid: number, uid: number) => inTx(parent, async (ctx) => {
         let message = await Store.Message.findById(ctx, mid);
         if (!message) {
             return;
@@ -82,9 +82,9 @@ export class DonationsMediator {
                 mid: message.id,
             });
         }
-    }
+    })
 
-    onDeleteMessage = async (ctx: Context, message: Message) => {
+    onDeleteMessage = async (parent: Context, message: Message) => inTx(parent, async (ctx) => {
         let attachment = message.attachmentsModern?.find(a => a.type === 'purchase_attachment');
         if (!attachment || attachment.type !== 'purchase_attachment') {
             return;
@@ -94,7 +94,7 @@ export class DonationsMediator {
             let payment = await Store.Payment.findById(ctx, purchase.pid);
             await Modules.Wallet.paymentsMediator.tryCancelPayment(ctx, payment!.id);
         }
-    }
+    })
 
     //
     // Purchase
