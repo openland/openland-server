@@ -1344,7 +1344,7 @@ export const Resolver: GQLResolver = {
             await debugTask(parent.auth.uid!, 'fix-broken-donations',  async (log) => {
                 let purchasesWithMessage: { pid: string, mid: number }[] = [];
                 await inTx(parent, async ctx => {
-                    let messages = await Store.Message.updated.query(ctx, { reverse: true, limit: 100000 });
+                    let messages = await Store.Message.updated.query(ctx, { reverse: true, limit: 50000 });
                     let total = 0;
                     for (let message of messages.items) {
                         if (!message.attachmentsModern) {
