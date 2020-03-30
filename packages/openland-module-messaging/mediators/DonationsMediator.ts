@@ -10,10 +10,11 @@ import { buildMessage, userMention } from '../../openland-utils/MessageBuilder';
 import { formatMoney } from '../../openland-module-wallet/repo/utils/formatMoney';
 import { WalletPurchaseCreateShape, Message } from '../../openland-module-db/store';
 import { InvalidInputError } from '../../openland-errors/InvalidInputError';
+import { inTx } from '@openland/foundationdb';
 
 @injectable()
 export class DonationsMediator {
-    sendDonationMessage = async (ctx: Context, uid: number, cid: number, amount: number, message: MessageInput) => {
+    sendDonationMessage = async (parent: Context, uid: number, cid: number, amount: number, message: MessageInput) => inTx(parent, async (ctx) => {
         let conv = await Store.Conversation.findById(ctx, cid);
         if (!conv) {
             throw new NotFoundError();
@@ -57,10 +58,13 @@ export class DonationsMediator {
 
         // always true
         if (purchase.product.type === 'donate_message') {
-            purchase.product.mid = m.id;
+            purchase.product = {
+                ...purchase.product,
+                mid: m.id
+            };
             await purchase.flush(ctx);
         }
-    }
+    })
 
     setReaction = async (ctx: Context, mid: number, uid: number) => {
         let message = await Store.Message.findById(ctx, mid);
