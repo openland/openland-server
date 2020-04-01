@@ -315,6 +315,12 @@ export const Resolver: GQLResolver = {
                 return (await Store.Message.findById(ctx, src.mid))!;
             }
             throw new Error('Internal error');
+        },
+        chat: async (src, _, ctx) => {
+            if (src.type === 'donate_reaction' && src.mid) {
+                return (await Store.Message.findById(ctx, src.mid))!.cid;
+            }
+            throw new Error('Internal error');
         }
     },
 
