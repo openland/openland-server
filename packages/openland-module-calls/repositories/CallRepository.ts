@@ -107,6 +107,16 @@ export class CallRepository {
                     continue;
                 }
 
+                let settings1: any;
+                let settings2: any;
+                if (cp.id < id) {
+                    settings1 = resolveMediaStreamSettings(cp.uid, uid, conf.kind!, conf.streamerId);
+                    settings2 = resolveMediaStreamSettings(uid, cp.uid, conf.kind!, conf.streamerId);
+                } else {
+                    settings1 = resolveMediaStreamSettings(uid, cp.uid, conf.kind!, conf.streamerId);
+                    settings2 = resolveMediaStreamSettings(cp.uid, uid, conf.kind!, conf.streamerId);
+                }
+
                 // if (room.strategy === 'direct') {
                 await Store.ConferenceMediaStream.create(ctx, await this.nextStreamId(ctx), {
                     kind: 'direct',
@@ -118,8 +128,8 @@ export class CallRepository {
                     ice2: [],
                     offer: null,
                     answer: null,
-                    settings1: resolveMediaStreamSettings(Math.min(cp.id, id), Math.max(cp.id, id), conf.kind!, conf.streamerId),
-                    settings2: resolveMediaStreamSettings(Math.max(cp.id, id), Math.min(cp.id, id), conf.kind!, conf.streamerId)
+                    settings1,
+                    settings2
                 });
                 // }
             }
