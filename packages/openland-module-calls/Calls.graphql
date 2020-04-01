@@ -4,11 +4,17 @@ type ICEServer {
     credential: String
 }
 
+enum ConferenceStrategy {
+    MASH,
+    STREAM
+}
+
 type Conference {
     id: ID!
     startTime: Date
     peers: [ConferencePeer!]!
     iceServers: [ICEServer!]!
+    strategy: ConferenceStrategy!
 }
 
 type ConferencePeer {
@@ -20,7 +26,7 @@ type ConferencePeer {
 type ConferenceMedia {
     id: ID!
     streams: [MediaStream!]!
-    iceServers: [ICEServer!]!    
+    iceServers: [ICEServer!]!
 }
 
 enum MediaStreamState {
@@ -31,12 +37,20 @@ enum MediaStreamState {
     READY
 }
 
+type MediaStreamSettings {
+    videoIn: Boolean!
+    videoOut: Boolean!
+    audioIn: Boolean!
+    audioOut: Boolean!
+}
+
 type MediaStream {
     id: ID!
     peerId: ID
     state: MediaStreamState!
     sdp: String
     ice: [String!]!
+    settings: MediaStreamSettings!
 }
 
 # Deprecated
@@ -66,7 +80,7 @@ extend type Query {
 }
 
 extend type Mutation {
-    conferenceJoin(id: ID!): ConferenceJoinResult!
+    conferenceJoin(id: ID!, strategy: ConferenceStrategy): ConferenceJoinResult!
     conferenceKeepAlive(id: ID!, peerId: ID!): Conference!
     conferenceLeave(id: ID!, peerId: ID!): Conference!
 
@@ -75,7 +89,8 @@ extend type Mutation {
     mediaStreamAnswer(id: ID!, peerId: ID!, answer: String!): ConferenceMedia!
     mediaStreamCandidate(id: ID!, peerId: ID!, candidate: String!): ConferenceMedia!
     mediaStreamFailed(id: ID!, peerId: ID!): ConferenceMedia!
-    
+
+    # deprecated
     peerConnectionOffer(id: ID!, ownPeerId: ID!, peerId: ID!, offer: String!): Conference!
     peerConnectionAnswer(id: ID!, ownPeerId: ID!, peerId: ID!, answer: String!): Conference!
     peerConnectionCandidate(id: ID!, ownPeerId: ID!, peerId: ID!, candidate: String!): Conference!

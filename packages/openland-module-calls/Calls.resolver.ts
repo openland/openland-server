@@ -11,6 +11,10 @@ import { resolveTurnServices } from './services/TURNService';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
 
 export const Resolver: GQLResolver = {
+    ConferenceStrategy: {
+      MASH: 'mash',
+      STREAM: 'stream'
+    },
     Conference: {
         id: (src: ConferenceRoom) => IDs.Conference.serialize(src.id),
         startTime: (src: ConferenceRoom) => src.startTime,
@@ -21,7 +25,8 @@ export const Resolver: GQLResolver = {
         },
         iceServers: () => {
             return resolveTurnServices();
-        }
+        },
+        strategy: (src) => src.kind!,
     },
     ConferencePeer: {
         id: (src: ConferencePeer) => IDs.ConferencePeer.serialize(src.id),
@@ -115,7 +120,8 @@ export const Resolver: GQLResolver = {
                         peerId: src.peerId === c.peer1 ? (c.peer2 !== null ? IDs.ConferencePeer.serialize(c.peer2) : null) : IDs.ConferencePeer.serialize(c.peer1),
                         state,
                         sdp,
-                        ice
+                        ice,
+                        settings: src.peerId === c.peer1 ? c.settings1! : c.settings2!,
                     });
                 }
             }
@@ -137,7 +143,7 @@ export const Resolver: GQLResolver = {
     Mutation: {
         conferenceJoin: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conference.parse(args.id);
-            let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 15000);
+            let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 15000, args.strategy);
             let activeMembers = await Modules.Calls.repo.findActiveMembers(ctx, cid);
             if (activeMembers.length === 1) {
                 let fullName = await Modules.Users.getUserFullName(ctx, uid);

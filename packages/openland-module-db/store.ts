@@ -6383,17 +6383,30 @@ export class CommentEventGlobalFactory extends EntityFactory<CommentEventGlobalS
 
 export interface ConferenceRoomShape {
     id: number;
-    startTime: number | null;
     strategy: 'direct' | 'bridged' | null;
+    startTime: number | null;
+    kind: 'mash' | 'stream' | null;
+    streamerId: number | null;
 }
 
 export interface ConferenceRoomCreateShape {
-    startTime?: number | null | undefined;
     strategy?: 'direct' | 'bridged' | null | undefined;
+    startTime?: number | null | undefined;
+    kind?: 'mash' | 'stream' | null | undefined;
+    streamerId?: number | null | undefined;
 }
 
 export class ConferenceRoom extends Entity<ConferenceRoomShape> {
     get id(): number { return this._rawValue.id; }
+    get strategy(): 'direct' | 'bridged' | null { return this._rawValue.strategy; }
+    set strategy(value: 'direct' | 'bridged' | null) {
+        let normalized = this.descriptor.codec.fields.strategy.normalize(value);
+        if (this._rawValue.strategy !== normalized) {
+            this._rawValue.strategy = normalized;
+            this._updatedValues.strategy = normalized;
+            this.invalidate();
+        }
+    }
     get startTime(): number | null { return this._rawValue.startTime; }
     set startTime(value: number | null) {
         let normalized = this.descriptor.codec.fields.startTime.normalize(value);
@@ -6403,12 +6416,21 @@ export class ConferenceRoom extends Entity<ConferenceRoomShape> {
             this.invalidate();
         }
     }
-    get strategy(): 'direct' | 'bridged' | null { return this._rawValue.strategy; }
-    set strategy(value: 'direct' | 'bridged' | null) {
-        let normalized = this.descriptor.codec.fields.strategy.normalize(value);
-        if (this._rawValue.strategy !== normalized) {
-            this._rawValue.strategy = normalized;
-            this._updatedValues.strategy = normalized;
+    get kind(): 'mash' | 'stream' | null { return this._rawValue.kind; }
+    set kind(value: 'mash' | 'stream' | null) {
+        let normalized = this.descriptor.codec.fields.kind.normalize(value);
+        if (this._rawValue.kind !== normalized) {
+            this._rawValue.kind = normalized;
+            this._updatedValues.kind = normalized;
+            this.invalidate();
+        }
+    }
+    get streamerId(): number | null { return this._rawValue.streamerId; }
+    set streamerId(value: number | null) {
+        let normalized = this.descriptor.codec.fields.streamerId.normalize(value);
+        if (this._rawValue.streamerId !== normalized) {
+            this._rawValue.streamerId = normalized;
+            this._updatedValues.streamerId = normalized;
             this.invalidate();
         }
     }
@@ -6422,12 +6444,16 @@ export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, Co
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'startTime', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'strategy', type: { type: 'optional', inner: { type: 'enum', values: ['direct', 'bridged'] } }, secure: false });
+        fields.push({ name: 'startTime', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'kind', type: { type: 'optional', inner: { type: 'enum', values: ['mash', 'stream'] } }, secure: false });
+        fields.push({ name: 'streamerId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
-            startTime: c.optional(c.integer),
             strategy: c.optional(c.enum('direct', 'bridged')),
+            startTime: c.optional(c.integer),
+            kind: c.optional(c.enum('mash', 'stream')),
+            streamerId: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<ConferenceRoomShape> = {
             name: 'ConferenceRoom',
@@ -6638,6 +6664,8 @@ export interface ConferenceMediaStreamShape {
     answer: string | null;
     ice1: any;
     ice2: any;
+    settings1: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean } | null;
+    settings2: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean } | null;
 }
 
 export interface ConferenceMediaStreamCreateShape {
@@ -6650,6 +6678,8 @@ export interface ConferenceMediaStreamCreateShape {
     answer?: string | null | undefined;
     ice1: any;
     ice2: any;
+    settings1?: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean } | null | undefined;
+    settings2?: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean } | null | undefined;
 }
 
 export class ConferenceMediaStream extends Entity<ConferenceMediaStreamShape> {
@@ -6735,6 +6765,24 @@ export class ConferenceMediaStream extends Entity<ConferenceMediaStreamShape> {
             this.invalidate();
         }
     }
+    get settings1(): { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean } | null { return this._rawValue.settings1; }
+    set settings1(value: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean } | null) {
+        let normalized = this.descriptor.codec.fields.settings1.normalize(value);
+        if (this._rawValue.settings1 !== normalized) {
+            this._rawValue.settings1 = normalized;
+            this._updatedValues.settings1 = normalized;
+            this.invalidate();
+        }
+    }
+    get settings2(): { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean } | null { return this._rawValue.settings2; }
+    set settings2(value: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean } | null) {
+        let normalized = this.descriptor.codec.fields.settings2.normalize(value);
+        if (this._rawValue.settings2 !== normalized) {
+            this._rawValue.settings2 = normalized;
+            this._updatedValues.settings2 = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class ConferenceMediaStreamFactory extends EntityFactory<ConferenceMediaStreamShape, ConferenceMediaStream> {
@@ -6755,6 +6803,8 @@ export class ConferenceMediaStreamFactory extends EntityFactory<ConferenceMediaS
         fields.push({ name: 'answer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'ice1', type: { type: 'json' }, secure: false });
         fields.push({ name: 'ice2', type: { type: 'json' }, secure: false });
+        fields.push({ name: 'settings1', type: { type: 'optional', inner: { type: 'struct', fields: { videoIn: { type: 'boolean' }, videoOut: { type: 'boolean' }, audioIn: { type: 'boolean' }, audioOut: { type: 'boolean' } } } }, secure: false });
+        fields.push({ name: 'settings2', type: { type: 'optional', inner: { type: 'struct', fields: { videoIn: { type: 'boolean' }, videoOut: { type: 'boolean' }, audioIn: { type: 'boolean' }, audioOut: { type: 'boolean' } } } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             cid: c.integer,
@@ -6766,6 +6816,8 @@ export class ConferenceMediaStreamFactory extends EntityFactory<ConferenceMediaS
             answer: c.optional(c.string),
             ice1: c.any,
             ice2: c.any,
+            settings1: c.optional(c.struct({ videoIn: c.boolean, videoOut: c.boolean, audioIn: c.boolean, audioOut: c.boolean })),
+            settings2: c.optional(c.struct({ videoIn: c.boolean, videoOut: c.boolean, audioIn: c.boolean, audioOut: c.boolean })),
         });
         let descriptor: EntityDescriptor<ConferenceMediaStreamShape> = {
             name: 'ConferenceMediaStream',

@@ -202,6 +202,8 @@ export namespace GQLRoots {
     export type ConferenceMediaRoot = { id: number, peerId: number };
     export type MediaStreamStateRoot = MediaStreamStateValues;
     export type ConferencePeerConnectionStateRoot = ConferencePeerConnectionStateValues;
+    export type ConferenceStrategyRoot = 'mash' | 'stream';
+    export type MediaStreamSettingsRoot = { audioIn: boolean, audioOut: boolean, videoIn: boolean, videoOut: boolean };
 
     //
     // Dialogs Updates

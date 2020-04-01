@@ -3,8 +3,36 @@ import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { Store } from 'openland-module-db/FDB';
+import { ConferenceMediaStreamCreateShape } from '../../openland-module-db/store';
 
 let log = createLogger('call-repo');
+
+function resolveMediaStreamSettings(uid1: number, uid2: number, confKind: 'mash' | 'stream', streamerId: number | null): ConferenceMediaStreamCreateShape['settings1'] {
+    if (confKind === 'mash') {
+        return {
+            audioIn: true,
+            audioOut: true,
+            videoIn: true,
+            videoOut: true
+        };
+    }
+
+    let settings = {
+        audioIn: false,
+        audioOut: false,
+        videoIn: false,
+        videoOut: false
+    };
+    if (uid1 === streamerId) {
+        settings.audioOut = true;
+        settings.videoOut = true;
+    } else if (uid2 === streamerId) {
+        settings.videoIn = true;
+        settings.audioIn = true;
+    }
+
+    return settings;
+}
 
 @injectable()
 export class CallRepository {
@@ -21,7 +49,7 @@ export class CallRepository {
         });
     }
 
-    addPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number) => {
+    addPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number, strategy?: 'mash' | 'stream' | null) => {
         return await inTx(parent, async (ctx) => {
 
             // let room = await this.entities.ConferenceRoom.findById(ctx, cid);
@@ -31,9 +59,11 @@ export class CallRepository {
 
             // bump startTime if its initiator of call
             let confPeers = await Store.ConferencePeer.conference.findAll(ctx, cid);
+            let conf = await this.getOrCreateConference(ctx, cid);
             if (confPeers.length === 0) {
-                let conf = await this.getOrCreateConference(ctx, cid);
                 conf.startTime = Date.now();
+                conf.kind = strategy || 'mash';
+                conf.streamerId = conf.kind === 'stream' ? uid : null;
                 await conf.flush(ctx);
             }
 
@@ -87,7 +117,9 @@ export class CallRepository {
                     ice1: [],
                     ice2: [],
                     offer: null,
-                    answer: null
+                    answer: null,
+                    settings1: resolveMediaStreamSettings(Math.min(cp.id, id), Math.max(cp.id, id), conf.kind!, conf.streamerId),
+                    settings2: resolveMediaStreamSettings(Math.max(cp.id, id), Math.min(cp.id, id), conf.kind!, conf.streamerId)
                 });
                 // }
             }
@@ -281,7 +313,9 @@ export class CallRepository {
                     ice1: [],
                     ice2: [],
                     offer: null,
-                    answer: null
+                    answer: null,
+                    settings1: stream.settings1,
+                    settings2: stream.settings2
                 });
             }
 

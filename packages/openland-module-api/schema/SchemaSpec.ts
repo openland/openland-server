@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '13a684aeeac6625bd44f4e53887f3b4d';
+export const GQL_SPEC_VERSION = '6320f3bf85ed6668e9f838af40a02228';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1770,16 +1770,20 @@ export namespace GQL {
     export interface ICEServerUrlsArgs { }
     export interface ICEServerUsernameArgs { }
     export interface ICEServerCredentialArgs { }
+    export type ConferenceStrategyValues = 'MASH' | 'STREAM';
+    export type ConferenceStrategy = GQLRoots.ConferenceStrategyRoot;
     export interface Conference {
         id: string;
         startTime: Nullable<Date>;
         peers: ConferencePeer[];
         iceServers: ICEServer[];
+        strategy: ConferenceStrategy;
     }
     export interface ConferenceIdArgs { }
     export interface ConferenceStartTimeArgs { }
     export interface ConferencePeersArgs { }
     export interface ConferenceIceServersArgs { }
+    export interface ConferenceStrategyArgs { }
     export interface ConferencePeer {
         id: string;
         user: User;
@@ -1798,18 +1802,30 @@ export namespace GQL {
     export interface ConferenceMediaIceServersArgs { }
     export type MediaStreamStateValues = 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY';
     export type MediaStreamState = GQLRoots.MediaStreamStateRoot;
+    export interface MediaStreamSettings {
+        videoIn: boolean;
+        videoOut: boolean;
+        audioIn: boolean;
+        audioOut: boolean;
+    }
+    export interface MediaStreamSettingsVideoInArgs { }
+    export interface MediaStreamSettingsVideoOutArgs { }
+    export interface MediaStreamSettingsAudioInArgs { }
+    export interface MediaStreamSettingsAudioOutArgs { }
     export interface MediaStream {
         id: string;
         peerId: Nullable<string>;
         state: MediaStreamState;
         sdp: Nullable<string>;
         ice: string[];
+        settings: MediaStreamSettings;
     }
     export interface MediaStreamIdArgs { }
     export interface MediaStreamPeerIdArgs { }
     export interface MediaStreamStateArgs { }
     export interface MediaStreamSdpArgs { }
     export interface MediaStreamIceArgs { }
+    export interface MediaStreamSettingsArgs { }
     export type ConferencePeerConnectionStateValues = 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY';
     export type ConferencePeerConnectionState = GQLRoots.ConferencePeerConnectionStateRoot;
     export interface ConferencePeerConnection {
@@ -2824,6 +2840,7 @@ export namespace GQL {
     }
     export interface MutationConferenceJoinArgs {
         id: string;
+        strategy: OptionalNullable<ConferenceStrategy>;
     }
     export interface MutationConferenceKeepAliveArgs {
         id: string;
@@ -7521,6 +7538,7 @@ export interface GQLResolver {
             credential: GQL.ICEServerCredentialArgs,
         }
     >;
+    ConferenceStrategy?: EnumTypeResolver<'MASH' | 'STREAM', GQLRoots.ConferenceStrategyRoot>;
     Conference?: ComplexTypedResolver<
         GQL.Conference,
         GQLRoots.ConferenceRoot,
@@ -7533,6 +7551,7 @@ export interface GQLResolver {
             startTime: GQL.ConferenceStartTimeArgs,
             peers: GQL.ConferencePeersArgs,
             iceServers: GQL.ConferenceIceServersArgs,
+            strategy: GQL.ConferenceStrategyArgs,
         }
     >;
     ConferencePeer?: ComplexTypedResolver<
@@ -7562,10 +7581,23 @@ export interface GQLResolver {
         }
     >;
     MediaStreamState?: EnumTypeResolver<'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY', GQLRoots.MediaStreamStateRoot>;
+    MediaStreamSettings?: ComplexTypedResolver<
+        GQL.MediaStreamSettings,
+        GQLRoots.MediaStreamSettingsRoot,
+        {
+        },
+        {
+            videoIn: GQL.MediaStreamSettingsVideoInArgs,
+            videoOut: GQL.MediaStreamSettingsVideoOutArgs,
+            audioIn: GQL.MediaStreamSettingsAudioInArgs,
+            audioOut: GQL.MediaStreamSettingsAudioOutArgs,
+        }
+    >;
     MediaStream?: ComplexTypedResolver<
         GQL.MediaStream,
         GQLRoots.MediaStreamRoot,
         {
+            settings: GQLRoots.MediaStreamSettingsRoot,
         },
         {
             id: GQL.MediaStreamIdArgs,
@@ -7573,6 +7605,7 @@ export interface GQLResolver {
             state: GQL.MediaStreamStateArgs,
             sdp: GQL.MediaStreamSdpArgs,
             ice: GQL.MediaStreamIceArgs,
+            settings: GQL.MediaStreamSettingsArgs,
         }
     >;
     ConferencePeerConnectionState?: EnumTypeResolver<'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY', GQLRoots.ConferencePeerConnectionStateRoot>;

@@ -842,8 +842,12 @@ export default declareSchema(() => {
 
     entity('ConferenceRoom', () => {
         primaryKey('id', integer());
-        field('startTime', optional(integer()));
         field('strategy', optional(enumString('direct', 'bridged')));
+
+        // state
+        field('startTime', optional(integer()));
+        field('kind', optional(enumString('mash', 'stream')));
+        field('streamerId', optional(integer()));
     });
 
     entity('ConferencePeer', () => {
@@ -858,6 +862,13 @@ export default declareSchema(() => {
         rangeIndex('active', ['keepAliveTimeout']).withCondition((src) => src.enabled);
     });
 
+    const ConferenceMediaStreamSettings = struct({
+        videoIn: boolean(),
+        videoOut: boolean(),
+        audioIn: boolean(),
+        audioOut: boolean()
+    });
+
     entity('ConferenceMediaStream', () => {
         primaryKey('id', integer());
         field('cid', integer());
@@ -869,6 +880,8 @@ export default declareSchema(() => {
         field('answer', optional(string()));
         field('ice1', json());
         field('ice2', json());
+        field('settings1', optional(ConferenceMediaStreamSettings));
+        field('settings2', optional(ConferenceMediaStreamSettings));
         rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.state !== 'completed');
     });
 
