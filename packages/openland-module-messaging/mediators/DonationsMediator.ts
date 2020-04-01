@@ -72,7 +72,7 @@ export class DonationsMediator {
             return;
         }
         if (uid === message?.uid) {
-            return;
+            throw new InvalidInputError([{ message: 'You can\'t donate to yourself', key: 'messageId' }]);
         }
 
         if (await Modules.Messaging.setReaction(ctx, mid, uid, 'DONATE')) {

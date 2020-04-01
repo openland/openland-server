@@ -125,7 +125,7 @@ export class WalletModule {
     createSubscription = async (parent: Context, uid: number, amount: number, interval: 'week' | 'month', product: WalletSubscriptionCreateShape['proudct']) => {
         return await inTx(parent, async (ctx) => {
             if (await this.wallet.isLocked(ctx, uid)) {
-                throw new UserError('Wallet is locked dew to failing transactions');
+                throw new UserError('Wallet is locked due to failing transactions');
             }
             return await this.operations.createSubscription(ctx, uid, amount, interval, product);
 
@@ -151,7 +151,7 @@ export class WalletModule {
     createPurchase = async (parent: Context, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
         return await inTx(parent, async (ctx) => {
             if (await this.wallet.isLocked(ctx, uid)) {
-                throw new UserError('Wallet is locked dew to failing transactions');
+                throw new UserError('Wallet is locked due to failing transactions');
             }
             return await this.purchases.createPurchase(ctx, uid, amount, product);
         });
