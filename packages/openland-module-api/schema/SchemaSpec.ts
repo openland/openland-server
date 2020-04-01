@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'ccef4548c8b6dc2bf0a6ce68b2dfeac2';
+export const GQL_SPEC_VERSION = 'ba69d4bae466cbfc2a3a0c98bfda4815';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -5254,6 +5254,7 @@ export namespace GQL {
         socialImage: Nullable<string>;
         description: Nullable<string>;
         pinnedMessage: Nullable<ModernMessage>;
+        canUnpinMessage: boolean;
         welcomeMessage: Nullable<WelcomeMessage>;
         organization: Nullable<Organization>;
         membersCount: number;
@@ -5286,6 +5287,7 @@ export namespace GQL {
     export interface SharedRoomSocialImageArgs { }
     export interface SharedRoomDescriptionArgs { }
     export interface SharedRoomPinnedMessageArgs { }
+    export interface SharedRoomCanUnpinMessageArgs { }
     export interface SharedRoomWelcomeMessageArgs { }
     export interface SharedRoomOrganizationArgs { }
     export interface SharedRoomMembersCountArgs { }
@@ -9894,6 +9896,7 @@ export interface GQLResolver {
             socialImage: GQL.SharedRoomSocialImageArgs,
             description: GQL.SharedRoomDescriptionArgs,
             pinnedMessage: GQL.SharedRoomPinnedMessageArgs,
+            canUnpinMessage: GQL.SharedRoomCanUnpinMessageArgs,
             welcomeMessage: GQL.SharedRoomWelcomeMessageArgs,
             organization: GQL.SharedRoomOrganizationArgs,
             membersCount: GQL.SharedRoomMembersCountArgs,

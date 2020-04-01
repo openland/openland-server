@@ -256,6 +256,7 @@ export default declareSchema(() => {
         field('description', optional(string()));
         field('socialImage', optional(json()));
         field('pinnedMessage', optional(integer()));
+        field('pinnedMessageOwner', optional(integer()));
         field('welcomeMessageIsOn', optional(boolean()));
         field('welcomeMessageSender', optional(integer()));
         field('welcomeMessageText', optional(string()));

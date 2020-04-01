@@ -298,6 +298,7 @@ export class RoomRepository {
                     throw new NotFoundError();
                 }
                 profile.pinnedMessage = mid;
+                profile.pinnedMessageOwner = uid;
                 await profile.flush(ctx);
             }
 
@@ -370,6 +371,7 @@ export class RoomRepository {
                 }
 
                 profile.pinnedMessage = null;
+                profile.pinnedMessageOwner = null;
                 await profile.flush(ctx);
             } else if (conv.kind === 'private') {
                 let privateConv = await Store.ConversationPrivate.findById(ctx, cid);
