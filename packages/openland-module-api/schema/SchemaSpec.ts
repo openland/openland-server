@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'c604c88efc0f4f20f238159b2f7eb618';
+export const GQL_SPEC_VERSION = '9cf3ef604e9d3551854195d60f22b623';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1818,6 +1818,7 @@ export namespace GQL {
         id: string;
         peerId: Nullable<string>;
         state: MediaStreamState;
+        seq: number;
         sdp: Nullable<string>;
         ice: string[];
         settings: MediaStreamSettings;
@@ -1825,6 +1826,7 @@ export namespace GQL {
     export interface MediaStreamIdArgs { }
     export interface MediaStreamPeerIdArgs { }
     export interface MediaStreamStateArgs { }
+    export interface MediaStreamSeqArgs { }
     export interface MediaStreamSdpArgs { }
     export interface MediaStreamIceArgs { }
     export interface MediaStreamSettingsArgs { }
@@ -2860,6 +2862,7 @@ export namespace GQL {
     export interface MutationMediaStreamNegotiationNeededArgs {
         id: string;
         peerId: string;
+        seq: OptionalNullable<number>;
     }
     export interface MutationMediaStreamAnswerArgs {
         id: string;
@@ -7610,6 +7613,7 @@ export interface GQLResolver {
             id: GQL.MediaStreamIdArgs,
             peerId: GQL.MediaStreamPeerIdArgs,
             state: GQL.MediaStreamStateArgs,
+            seq: GQL.MediaStreamSeqArgs,
             sdp: GQL.MediaStreamSdpArgs,
             ice: GQL.MediaStreamIceArgs,
             settings: GQL.MediaStreamSettingsArgs,
