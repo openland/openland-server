@@ -245,6 +245,7 @@ export class CallRepository {
             stream.offer = offer;
             stream.state = 'wait-answer';
             stream.seq++;
+            await stream.flush(ctx);
             await this.bumpVersion(ctx, stream!.cid);
         });
     }
@@ -284,6 +285,7 @@ export class CallRepository {
                 stream.state = 'online';
             }
             stream.seq++;
+            await stream.flush(ctx);
             await this.bumpVersion(ctx, stream!.cid);
         });
     }
@@ -308,7 +310,7 @@ export class CallRepository {
             stream.answer = null;
             stream.state = 'wait-offer';
             stream.seq++;
-
+            await stream.flush(ctx);
             await this.bumpVersion(ctx, stream!.cid);
         });
     }
