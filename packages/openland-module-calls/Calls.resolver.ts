@@ -183,7 +183,7 @@ export const Resolver: GQLResolver = {
         mediaStreamOffer: withUser(async (ctx, args, uid) => {
             let mid = IDs.MediaStream.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.streamOffer(ctx, mid, pid, args.offer);
+            await Modules.Calls.repo.streamOffer(ctx, mid, pid, args.offer, args.seq || undefined);
             let cid = (await Store.ConferenceMediaStream.findById(ctx, mid))!.cid;
             return { id: cid, peerId: pid };
         }),
@@ -207,7 +207,7 @@ export const Resolver: GQLResolver = {
         mediaStreamAnswer: withUser(async (ctx, args, uid) => {
             let mid = IDs.MediaStream.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.streamAnswer(ctx, mid, pid, args.answer);
+            await Modules.Calls.repo.streamAnswer(ctx, mid, pid, args.answer, args.seq || undefined);
             let cid = (await Store.ConferenceMediaStream.findById(ctx, mid))!.cid;
             return { id: cid, peerId: pid };
         }),

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9cf3ef604e9d3551854195d60f22b623';
+export const GQL_SPEC_VERSION = 'eaa05cf47023dadbfe388cb7d6bcefef';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2858,6 +2858,7 @@ export namespace GQL {
         id: string;
         peerId: string;
         offer: string;
+        seq: OptionalNullable<number>;
     }
     export interface MutationMediaStreamNegotiationNeededArgs {
         id: string;
@@ -2868,6 +2869,7 @@ export namespace GQL {
         id: string;
         peerId: string;
         answer: string;
+        seq: OptionalNullable<number>;
     }
     export interface MutationMediaStreamCandidateArgs {
         id: string;

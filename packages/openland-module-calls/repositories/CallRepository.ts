@@ -215,7 +215,7 @@ export class CallRepository {
 
     // Streams
 
-    streamOffer = async (parent: Context, id: number, peerId: number, offer: string) => {
+    streamOffer = async (parent: Context, id: number, peerId: number, offer: string, seq?: number) => {
         await inTx(parent, async (ctx) => {
             let peer = await Store.ConferencePeer.findById(ctx, peerId);
             if (!peer || !peer.enabled) {
@@ -225,6 +225,10 @@ export class CallRepository {
             let stream = await Store.ConferenceMediaStream.findById(ctx, id);
             if (!stream) {
                 throw Error('Unable to find stream');
+            }
+
+            if (seq !== undefined && seq !== stream.seq) {
+                return;
             }
 
             if (stream.kind === 'direct') {
@@ -245,7 +249,7 @@ export class CallRepository {
         });
     }
 
-    streamAnswer = async (parent: Context, id: number, peerId: number, answer: string) => {
+    streamAnswer = async (parent: Context, id: number, peerId: number, answer: string, seq?: number) => {
         await inTx(parent, async (ctx) => {
             let peer = await Store.ConferencePeer.findById(ctx, peerId);
             if (!peer || !peer.enabled) {
@@ -254,6 +258,10 @@ export class CallRepository {
             let stream = await Store.ConferenceMediaStream.findById(ctx, id);
             if (!stream) {
                 throw Error('Unable to find stream');
+            }
+
+            if (seq !== undefined && seq !== stream.seq) {
+                return;
             }
 
             if (stream.kind === 'direct') {
