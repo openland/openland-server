@@ -6673,6 +6673,7 @@ export interface ConferenceMediaStreamShape {
     peer2: number | null;
     kind: 'direct' | 'bridged';
     state: 'wait-offer' | 'wait-answer' | 'online' | 'completed';
+    seq: number;
     offer: string | null;
     answer: string | null;
     ice1: any;
@@ -6687,6 +6688,7 @@ export interface ConferenceMediaStreamCreateShape {
     peer2?: number | null | undefined;
     kind: 'direct' | 'bridged';
     state: 'wait-offer' | 'wait-answer' | 'online' | 'completed';
+    seq: number;
     offer?: string | null | undefined;
     answer?: string | null | undefined;
     ice1: any;
@@ -6739,6 +6741,15 @@ export class ConferenceMediaStream extends Entity<ConferenceMediaStreamShape> {
         if (this._rawValue.state !== normalized) {
             this._rawValue.state = normalized;
             this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+    get seq(): number { return this._rawValue.seq; }
+    set seq(value: number) {
+        let normalized = this.descriptor.codec.fields.seq.normalize(value);
+        if (this._rawValue.seq !== normalized) {
+            this._rawValue.seq = normalized;
+            this._updatedValues.seq = normalized;
             this.invalidate();
         }
     }
@@ -6812,6 +6823,7 @@ export class ConferenceMediaStreamFactory extends EntityFactory<ConferenceMediaS
         fields.push({ name: 'peer2', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'kind', type: { type: 'enum', values: ['direct', 'bridged'] }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['wait-offer', 'wait-answer', 'online', 'completed'] }, secure: false });
+        fields.push({ name: 'seq', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'offer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'answer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'ice1', type: { type: 'json' }, secure: false });
@@ -6825,6 +6837,7 @@ export class ConferenceMediaStreamFactory extends EntityFactory<ConferenceMediaS
             peer2: c.optional(c.integer),
             kind: c.enum('direct', 'bridged'),
             state: c.enum('wait-offer', 'wait-answer', 'online', 'completed'),
+            seq: c.integer,
             offer: c.optional(c.string),
             answer: c.optional(c.string),
             ice1: c.any,

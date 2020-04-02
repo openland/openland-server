@@ -129,7 +129,8 @@ export class CallRepository {
                     offer: null,
                     answer: null,
                     settings1,
-                    settings2
+                    settings2,
+                    seq: 0,
                 });
                 // }
             }
@@ -239,7 +240,7 @@ export class CallRepository {
 
             stream.offer = offer;
             stream.state = 'wait-answer';
-
+            stream.seq++;
             await this.bumpVersion(ctx, stream!.cid);
         });
     }
@@ -274,12 +275,12 @@ export class CallRepository {
                 stream.answer = answer;
                 stream.state = 'online';
             }
-
+            stream.seq++;
             await this.bumpVersion(ctx, stream!.cid);
         });
     }
 
-    streamNegotiationNeeded = async (parent: Context, id: number, peerId: number) => {
+    streamNegotiationNeeded = async (parent: Context, id: number, peerId: number, seq?: number) => {
         await inTx(parent, async (ctx) => {
             let peer = await Store.ConferencePeer.findById(ctx, peerId);
             if (!peer || !peer.enabled) {
@@ -290,11 +291,15 @@ export class CallRepository {
                 throw Error('Unable to find stream');
             }
 
-            if (stream.state === 'online') {
-                stream.offer = null;
-                stream.answer = null;
-                stream.state = 'wait-offer';
+            if (seq === undefined && stream.state !== 'online') {
+                // old clients without seq
+                return;
             }
+
+            stream.offer = null;
+            stream.answer = null;
+            stream.state = 'wait-offer';
+            stream.seq++;
 
             await this.bumpVersion(ctx, stream!.cid);
         });
@@ -325,7 +330,8 @@ export class CallRepository {
                     offer: null,
                     answer: null,
                     settings1: stream.settings1,
-                    settings2: stream.settings2
+                    settings2: stream.settings2,
+                    seq: 0,
                 });
             }
 

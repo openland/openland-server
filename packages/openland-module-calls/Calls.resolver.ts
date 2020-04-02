@@ -90,6 +90,7 @@ export const Resolver: GQLResolver = {
                 if (c.peer1 === src.peerId || c.peer2 === src.peerId) {
                     let id = c.id;
                     let state: 'READY' | 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' = 'READY';
+                    let seq = c.seq;
                     let sdp: string | null = null;
                     let isPrimary = src.peerId === c.peer1;
                     let ice: string[] = isPrimary ? c.ice2 : c.ice1;
@@ -119,6 +120,7 @@ export const Resolver: GQLResolver = {
                         id: IDs.MediaStream.serialize(id),
                         peerId: src.peerId === c.peer1 ? (c.peer2 !== null ? IDs.ConferencePeer.serialize(c.peer2) : null) : IDs.ConferencePeer.serialize(c.peer1),
                         state,
+                        seq,
                         sdp,
                         ice,
                         settings: src.peerId === c.peer1 ? c.settings1! : c.settings2!,
@@ -189,7 +191,7 @@ export const Resolver: GQLResolver = {
         mediaStreamNegotiationNeeded: withUser(async (ctx, args, uid) => {
             let mid = IDs.MediaStream.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.streamNegotiationNeeded(ctx, mid, pid);
+            await Modules.Calls.repo.streamNegotiationNeeded(ctx, mid, pid, args.seq || undefined);
             let cid = (await Store.ConferenceMediaStream.findById(ctx, mid))!.cid;
             return { id: cid, peerId: pid };
         }),
