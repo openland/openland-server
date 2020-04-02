@@ -291,10 +291,7 @@ export class CallRepository {
                 throw Error('Unable to find stream');
             }
 
-            if (seq !== undefined && stream.seq !== seq) {
-                // new clients
-                return;
-            } else if (stream.state !== 'online') {
+            if (seq === undefined && stream.state !== 'online') {
                 // old clients without seq
                 return;
             }
