@@ -180,6 +180,9 @@ export const Resolver: GQLResolver = {
         debugServerId: withUser(async (ctx, args, uid) => {
             return ServerId;
         }),
+        debugClientIp: (_, __, ctx) => {
+            return ctx.req.ip || null;
+        }
     },
     Mutation: {
         debugSendSMS: withPermission('super-admin', async (ctx, args) => {

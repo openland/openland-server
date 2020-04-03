@@ -79,6 +79,7 @@ extend type Query {
     debugUserMetrics(id: ID!): DebugUserMetrics!
     debugGlobalCounters: DebugGlobalCounters!
     debugServerId: String!
+    debugClientIp: String
 }
 
 enum SuperNotificationType {
