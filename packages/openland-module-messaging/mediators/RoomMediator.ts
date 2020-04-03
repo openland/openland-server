@@ -482,12 +482,7 @@ export class RoomMediator {
             if (!conv) {
                 throw new AccessDeniedError();
             }
-
-            if (conv.kind === 'private') {
-                await this.checkAccess(ctx, uid, cid);
-            } else if (conv.kind === 'room') {
-                await this.checkCanEditChat(ctx, cid, uid);
-            }
+            await this.checkAccess(ctx, uid, cid);
             return await this.repo.pinMessage(ctx, cid, uid, mid);
         });
     }
@@ -498,11 +493,14 @@ export class RoomMediator {
             if (!conv) {
                 throw new AccessDeniedError();
             }
+            await this.checkAccess(ctx, uid, cid);
 
-            if (conv.kind === 'private') {
-                await this.checkAccess(ctx, uid, cid);
-            } else if (conv.kind === 'room') {
-                await this.checkCanEditChat(ctx, cid, uid);
+            if (conv.kind === 'room') {
+                let isAdmin = await this.userHaveAdminPermissionsInRoom(ctx, uid, cid);
+                let profile = (await Store.RoomProfile.findById(ctx, cid))!;
+                if (!isAdmin && profile.pinnedMessageOwner !== uid) {
+                    throw new AccessDeniedError();
+                }
             }
             return await this.repo.unpinMessage(ctx, cid, uid);
         });

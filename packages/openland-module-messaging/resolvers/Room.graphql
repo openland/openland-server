@@ -43,6 +43,7 @@ type SharedRoom {
     socialImage: String
     description: String
     pinnedMessage: ModernMessage
+    canUnpinMessage: Boolean!
     welcomeMessage: WelcomeMessage
 
     organization: Organization

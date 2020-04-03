@@ -256,6 +256,7 @@ export default declareSchema(() => {
         field('description', optional(string()));
         field('socialImage', optional(json()));
         field('pinnedMessage', optional(integer()));
+        field('pinnedMessageOwner', optional(integer()));
         field('welcomeMessageIsOn', optional(boolean()));
         field('welcomeMessageSender', optional(integer()));
         field('welcomeMessageText', optional(string()));
@@ -876,6 +877,7 @@ export default declareSchema(() => {
         field('peer2', optional(integer()));
         field('kind', enumString('direct', 'bridged'));
         field('state', enumString('wait-offer', 'wait-answer', 'online', 'completed'));
+        field('seq', integer());
         field('offer', optional(string()));
         field('answer', optional(string()));
         field('ice1', json());

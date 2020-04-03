@@ -5,7 +5,7 @@ extend type Query {
 }
 
 extend type Mutation {
-    alphaSetUserShortName(shortname: String!): String
+    alphaSetUserShortName(id: ID, shortname: String!): String
     alphaSetOrgShortName(id: ID!, shortname: String!): String
     alphaSetFeedChannelShortName(id: ID!, shortname: String!): String
     alphaSetRoomShortName(id: ID!, shortname: String!): String

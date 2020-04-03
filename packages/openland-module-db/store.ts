@@ -3814,6 +3814,7 @@ export interface RoomProfileShape {
     description: string | null;
     socialImage: any | null;
     pinnedMessage: number | null;
+    pinnedMessageOwner: number | null;
     welcomeMessageIsOn: boolean | null;
     welcomeMessageSender: number | null;
     welcomeMessageText: string | null;
@@ -3826,6 +3827,7 @@ export interface RoomProfileCreateShape {
     description?: string | null | undefined;
     socialImage?: any | null | undefined;
     pinnedMessage?: number | null | undefined;
+    pinnedMessageOwner?: number | null | undefined;
     welcomeMessageIsOn?: boolean | null | undefined;
     welcomeMessageSender?: number | null | undefined;
     welcomeMessageText?: string | null | undefined;
@@ -3876,6 +3878,15 @@ export class RoomProfile extends Entity<RoomProfileShape> {
         if (this._rawValue.pinnedMessage !== normalized) {
             this._rawValue.pinnedMessage = normalized;
             this._updatedValues.pinnedMessage = normalized;
+            this.invalidate();
+        }
+    }
+    get pinnedMessageOwner(): number | null { return this._rawValue.pinnedMessageOwner; }
+    set pinnedMessageOwner(value: number | null) {
+        let normalized = this.descriptor.codec.fields.pinnedMessageOwner.normalize(value);
+        if (this._rawValue.pinnedMessageOwner !== normalized) {
+            this._rawValue.pinnedMessageOwner = normalized;
+            this._updatedValues.pinnedMessageOwner = normalized;
             this.invalidate();
         }
     }
@@ -3932,6 +3943,7 @@ export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProf
         fields.push({ name: 'description', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'socialImage', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
         fields.push({ name: 'pinnedMessage', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'pinnedMessageOwner', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'welcomeMessageIsOn', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'welcomeMessageSender', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'welcomeMessageText', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
@@ -3943,6 +3955,7 @@ export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProf
             description: c.optional(c.string),
             socialImage: c.optional(c.any),
             pinnedMessage: c.optional(c.integer),
+            pinnedMessageOwner: c.optional(c.integer),
             welcomeMessageIsOn: c.optional(c.boolean),
             welcomeMessageSender: c.optional(c.integer),
             welcomeMessageText: c.optional(c.string),
@@ -6660,6 +6673,7 @@ export interface ConferenceMediaStreamShape {
     peer2: number | null;
     kind: 'direct' | 'bridged';
     state: 'wait-offer' | 'wait-answer' | 'online' | 'completed';
+    seq: number;
     offer: string | null;
     answer: string | null;
     ice1: any;
@@ -6674,6 +6688,7 @@ export interface ConferenceMediaStreamCreateShape {
     peer2?: number | null | undefined;
     kind: 'direct' | 'bridged';
     state: 'wait-offer' | 'wait-answer' | 'online' | 'completed';
+    seq: number;
     offer?: string | null | undefined;
     answer?: string | null | undefined;
     ice1: any;
@@ -6726,6 +6741,15 @@ export class ConferenceMediaStream extends Entity<ConferenceMediaStreamShape> {
         if (this._rawValue.state !== normalized) {
             this._rawValue.state = normalized;
             this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+    get seq(): number { return this._rawValue.seq; }
+    set seq(value: number) {
+        let normalized = this.descriptor.codec.fields.seq.normalize(value);
+        if (this._rawValue.seq !== normalized) {
+            this._rawValue.seq = normalized;
+            this._updatedValues.seq = normalized;
             this.invalidate();
         }
     }
@@ -6799,6 +6823,7 @@ export class ConferenceMediaStreamFactory extends EntityFactory<ConferenceMediaS
         fields.push({ name: 'peer2', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'kind', type: { type: 'enum', values: ['direct', 'bridged'] }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['wait-offer', 'wait-answer', 'online', 'completed'] }, secure: false });
+        fields.push({ name: 'seq', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'offer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'answer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'ice1', type: { type: 'json' }, secure: false });
@@ -6812,6 +6837,7 @@ export class ConferenceMediaStreamFactory extends EntityFactory<ConferenceMediaS
             peer2: c.optional(c.integer),
             kind: c.enum('direct', 'bridged'),
             state: c.enum('wait-offer', 'wait-answer', 'online', 'completed'),
+            seq: c.integer,
             offer: c.optional(c.string),
             answer: c.optional(c.string),
             ice1: c.any,

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'e1464f89ef6c7216dbd61376ee5dc826';
+export const GQL_SPEC_VERSION = 'c571d273eab428686e3e8c5eddf7de13';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1818,6 +1818,7 @@ export namespace GQL {
         id: string;
         peerId: Nullable<string>;
         state: MediaStreamState;
+        seq: number;
         sdp: Nullable<string>;
         ice: string[];
         settings: MediaStreamSettings;
@@ -1825,6 +1826,7 @@ export namespace GQL {
     export interface MediaStreamIdArgs { }
     export interface MediaStreamPeerIdArgs { }
     export interface MediaStreamStateArgs { }
+    export interface MediaStreamSeqArgs { }
     export interface MediaStreamSdpArgs { }
     export interface MediaStreamIceArgs { }
     export interface MediaStreamSettingsArgs { }
@@ -2862,15 +2864,18 @@ export namespace GQL {
         id: string;
         peerId: string;
         offer: string;
+        seq: OptionalNullable<number>;
     }
     export interface MutationMediaStreamNegotiationNeededArgs {
         id: string;
         peerId: string;
+        seq: OptionalNullable<number>;
     }
     export interface MutationMediaStreamAnswerArgs {
         id: string;
         peerId: string;
         answer: string;
+        seq: OptionalNullable<number>;
     }
     export interface MutationMediaStreamCandidateArgs {
         id: string;
@@ -3342,6 +3347,7 @@ export namespace GQL {
         welcomeMessageText: OptionalNullable<string>;
     }
     export interface MutationAlphaSetUserShortNameArgs {
+        id: OptionalNullable<string>;
         shortname: string;
     }
     export interface MutationAlphaSetOrgShortNameArgs {
@@ -5260,6 +5266,7 @@ export namespace GQL {
         socialImage: Nullable<string>;
         description: Nullable<string>;
         pinnedMessage: Nullable<ModernMessage>;
+        canUnpinMessage: boolean;
         welcomeMessage: Nullable<WelcomeMessage>;
         organization: Nullable<Organization>;
         membersCount: number;
@@ -5292,6 +5299,7 @@ export namespace GQL {
     export interface SharedRoomSocialImageArgs { }
     export interface SharedRoomDescriptionArgs { }
     export interface SharedRoomPinnedMessageArgs { }
+    export interface SharedRoomCanUnpinMessageArgs { }
     export interface SharedRoomWelcomeMessageArgs { }
     export interface SharedRoomOrganizationArgs { }
     export interface SharedRoomMembersCountArgs { }
@@ -7613,6 +7621,7 @@ export interface GQLResolver {
             id: GQL.MediaStreamIdArgs,
             peerId: GQL.MediaStreamPeerIdArgs,
             state: GQL.MediaStreamStateArgs,
+            seq: GQL.MediaStreamSeqArgs,
             sdp: GQL.MediaStreamSdpArgs,
             ice: GQL.MediaStreamIceArgs,
             settings: GQL.MediaStreamSettingsArgs,
@@ -9901,6 +9910,7 @@ export interface GQLResolver {
             socialImage: GQL.SharedRoomSocialImageArgs,
             description: GQL.SharedRoomDescriptionArgs,
             pinnedMessage: GQL.SharedRoomPinnedMessageArgs,
+            canUnpinMessage: GQL.SharedRoomCanUnpinMessageArgs,
             welcomeMessage: GQL.SharedRoomWelcomeMessageArgs,
             organization: GQL.SharedRoomOrganizationArgs,
             membersCount: GQL.SharedRoomMembersCountArgs,

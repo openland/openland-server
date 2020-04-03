@@ -185,6 +185,13 @@ export const Resolver: GQLResolver = {
         welcomeMessage: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : await Modules.Messaging.room.resolveConversationWelcomeMessage(ctx, id)), null),
 
         pinnedMessage: withAuthFallback(withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? null : (profile && profile.pinnedMessage && Store.Message.findById(ctx, profile.pinnedMessage))), null),
+        canUnpinMessage: withAuthFallback(withRoomProfile(async (ctx, profile, showPlaceholder) => {
+            if (showPlaceholder) {
+                return false;
+            }
+            let isAdmin = await Modules.Messaging.room.userHaveAdminPermissionsInRoom(ctx, ctx.auth.uid!, profile!.id);
+            return isAdmin || profile!.pinnedMessageOwner === ctx.auth.uid!;
+        }), false),
 
         membership: withConverationId(async (ctx, id, args, showPlaceholder) => (showPlaceholder ? 'none' : (ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none')) as any),
         role: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'MEMBER' : (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase() as RoomMemberRoleRoot), 'MEMBER'),
