@@ -25,6 +25,7 @@ import { cursorToTuple } from '@openland/foundationdb-entity/lib/indexes/utils';
 import { buildMessage, heading } from '../openland-utils/MessageBuilder';
 import { AuthContext } from '../openland-module-auth/AuthContext';
 import { SmsService } from '../openland-utils/SmsService';
+import uuid from 'uuid';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -1375,6 +1376,14 @@ export const Resolver: GQLResolver = {
                 return 'success';
             });
             return true;
+        }),
+        debugCreateTransfer: withPermission('super-admin', async (parent, args) => {
+            let fromUid = IDs.User.parse(args.fromUid);
+            let toUid = IDs.User.parse(args.toUid);
+
+            let retryKey = uuid();
+            await Modules.Wallet.createTransferPayment(parent, fromUid, toUid, args.amount, retryKey);
+            return retryKey;
         })
     },
     Subscription: {

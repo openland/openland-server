@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'ccef4548c8b6dc2bf0a6ce68b2dfeac2';
+export const GQL_SPEC_VERSION = 'e1464f89ef6c7216dbd61376ee5dc826';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2023,6 +2023,7 @@ export namespace GQL {
         debugQueueWeeklyPaidLeaderboard: boolean;
         debugSendHiddenMessage: boolean;
         debugFixBrokenDonations: boolean;
+        debugCreateTransfer: string;
         settingsUpdate: Settings;
         sendEmailChangeCode: string;
         changeEmail: boolean;
@@ -2512,6 +2513,11 @@ export namespace GQL {
         message: string;
     }
     export interface MutationDebugFixBrokenDonationsArgs { }
+    export interface MutationDebugCreateTransferArgs {
+        fromUid: string;
+        toUid: string;
+        amount: number;
+    }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
     }
@@ -7956,6 +7962,7 @@ export interface GQLResolver {
             debugQueueWeeklyPaidLeaderboard: GQL.MutationDebugQueueWeeklyPaidLeaderboardArgs,
             debugSendHiddenMessage: GQL.MutationDebugSendHiddenMessageArgs,
             debugFixBrokenDonations: GQL.MutationDebugFixBrokenDonationsArgs,
+            debugCreateTransfer: GQL.MutationDebugCreateTransferArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailChangeCode: GQL.MutationSendEmailChangeCodeArgs,
             changeEmail: GQL.MutationChangeEmailArgs,
