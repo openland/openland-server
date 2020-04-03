@@ -51,7 +51,7 @@ export class ChatCollectionsRepository {
             if (input.chatIds) {
                 collection.chatIds = input.chatIds;
             }
-            if (input.description) {
+            if (input.description !== null && input.description !== undefined) {
                 collection.description = input.description;
             }
 
