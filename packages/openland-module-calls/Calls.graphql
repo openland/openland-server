@@ -85,9 +85,9 @@ extend type Mutation {
     conferenceKeepAlive(id: ID!, peerId: ID!): Conference!
     conferenceLeave(id: ID!, peerId: ID!): Conference!
 
-    mediaStreamOffer(id: ID!, peerId: ID!, offer: String!): ConferenceMedia!
+    mediaStreamOffer(id: ID!, peerId: ID!, offer: String!, seq: Int): ConferenceMedia!
     mediaStreamNegotiationNeeded(id: ID!, peerId: ID!, seq: Int): ConferenceMedia!
-    mediaStreamAnswer(id: ID!, peerId: ID!, answer: String!): ConferenceMedia!
+    mediaStreamAnswer(id: ID!, peerId: ID!, answer: String!, seq: Int): ConferenceMedia!
     mediaStreamCandidate(id: ID!, peerId: ID!, candidate: String!): ConferenceMedia!
     mediaStreamFailed(id: ID!, peerId: ID!): ConferenceMedia!
 

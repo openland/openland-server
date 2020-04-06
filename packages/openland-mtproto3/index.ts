@@ -40,9 +40,9 @@ interface FuckApolloServerParams {
 
     onAuth(payload: any, req: http.IncomingMessage): Promise<any>;
 
-    context(params: any, operation: GQlServerOperation): Promise<Context>;
+    context(params: any, operation: GQlServerOperation, req: http.IncomingMessage): Promise<Context>;
 
-    subscriptionContext(params: any, operation: GQlServerOperation, firstCtx?: Context): Promise<Context>;
+    subscriptionContext(params: any, operation: GQlServerOperation, firstCtx: Context | undefined, req: http.IncomingMessage): Promise<Context>;
 
     formatResponse(response: any, operation: GQlServerOperation, context: Context): Promise<any>;
 
@@ -211,7 +211,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
 
             if (isSubscription) {
                 let working = true;
-                let ctx = await params.subscriptionContext(session.authParams, message.payload);
+                let ctx = await params.subscriptionContext(session.authParams, message.payload, undefined, req);
                 asyncRun(async () => {
                     await params.onOperation(ctx, operation);
 
@@ -220,7 +220,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                         document: query,
                         operationName: operation.operationName,
                         variableValues: operation.variables,
-                        fetchContext: async () => await params.subscriptionContext(session.authParams, operation, ctx),
+                        fetchContext: async () => await params.subscriptionContext(session.authParams, operation, ctx, req),
                         ctx,
                         onEventResolveFinish: duration => params.onEventResolveFinish(ctx, operation, duration)
                     });
@@ -246,7 +246,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                     cancelContext(ctx);
                 });
             } else {
-                let ctx = await params.context(session.authParams, operation);
+                let ctx = await params.context(session.authParams, operation, req);
                 await params.onOperation(ctx, operation);
                 let opStartTime = Date.now();
                 let result = await execute({

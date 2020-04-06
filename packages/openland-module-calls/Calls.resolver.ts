@@ -12,8 +12,8 @@ import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
 
 export const Resolver: GQLResolver = {
     ConferenceStrategy: {
-      MASH: 'mash',
-      STREAM: 'stream'
+        MASH: 'mash',
+        STREAM: 'stream'
     },
     Conference: {
         id: (src: ConferenceRoom) => IDs.Conference.serialize(src.id),
@@ -183,7 +183,7 @@ export const Resolver: GQLResolver = {
         mediaStreamOffer: withUser(async (ctx, args, uid) => {
             let mid = IDs.MediaStream.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.streamOffer(ctx, mid, pid, args.offer);
+            await Modules.Calls.repo.streamOffer(ctx, mid, pid, args.offer, args.seq === null ? undefined : args.seq);
             let cid = (await Store.ConferenceMediaStream.findById(ctx, mid))!.cid;
             return { id: cid, peerId: pid };
         }),
@@ -191,7 +191,7 @@ export const Resolver: GQLResolver = {
         mediaStreamNegotiationNeeded: withUser(async (ctx, args, uid) => {
             let mid = IDs.MediaStream.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.streamNegotiationNeeded(ctx, mid, pid, args.seq || undefined);
+            await Modules.Calls.repo.streamNegotiationNeeded(ctx, mid, pid, args.seq === null ? undefined : args.seq);
             let cid = (await Store.ConferenceMediaStream.findById(ctx, mid))!.cid;
             return { id: cid, peerId: pid };
         }),
@@ -207,7 +207,7 @@ export const Resolver: GQLResolver = {
         mediaStreamAnswer: withUser(async (ctx, args, uid) => {
             let mid = IDs.MediaStream.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.streamAnswer(ctx, mid, pid, args.answer);
+            await Modules.Calls.repo.streamAnswer(ctx, mid, pid, args.answer, args.seq === null ? undefined : args.seq);
             let cid = (await Store.ConferenceMediaStream.findById(ctx, mid))!.cid;
             return { id: cid, peerId: pid };
         }),

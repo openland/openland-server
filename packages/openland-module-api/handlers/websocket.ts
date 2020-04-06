@@ -7,6 +7,7 @@ import { AppContext } from 'openland-modules/AppContext';
 import { createNamedContext } from '@openland/context';
 import { randomGlobalInviteKey } from 'openland-utils/random';
 import { withLogMeta, createLogger } from '@openland/log';
+import { RequestContext } from '../RequestContext';
 
 let rootContext = createNamedContext('ws');
 let rootContextResolve = createNamedContext('resolve');
@@ -56,8 +57,9 @@ export async function fetchWebSocketParameters(args: any, websocket: any) {
     });
 }
 
-export function buildWebSocketContext(args: any) {
+export function buildWebSocketContext(args: any, ip?: string) {
     let res = rootContextResolve;
+    res = RequestContext.set(res, { ip });
     if (args.uid && args.tid) {
         res = AuthContext.set(res, { uid: args.uid, tid: args.tid });
         res = withLogMeta(res, { uid: args.uid, tid: args.tid });

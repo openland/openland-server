@@ -174,7 +174,7 @@ export async function initApi(isTest: boolean) {
             // WS
             if (ctx.connection) {
                 let wsctx = ctx.connection.context;
-                let ctx2 = buildWebSocketContext(wsctx || {});
+                let ctx2 = buildWebSocketContext(wsctx || {}, context.req.header('X-Forwarded-For') || context.req.connection.remoteAddress);
                 return withConcurrentcyPool(ctx2, buildConcurrencyPool(ctx2));
             }
             await TokenChecker(context.req, context.res);
@@ -235,9 +235,9 @@ export async function initApi(isTest: boolean) {
                     authMetric.add(authMetricCtx, delta);
                 }
             },
-            context: async (params, operation) => {
+            context: async (params, operation, req) => {
                 let opId = uuid();
-                let ctx = buildWebSocketContext(params || {}).ctx;
+                let ctx = buildWebSocketContext(params || {}, req.headers.forwarded || req.connection.remoteAddress).ctx;
                 ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `query ${opId} ${operation.operationName || ''}`);
                 ctx = withGqlQueryId(ctx, opId);
@@ -245,9 +245,9 @@ export async function initApi(isTest: boolean) {
                 let ctx2 = new AppContext(ctx);
                 return new AppContext(withConcurrentcyPool(ctx2, buildConcurrencyPool(ctx2)));
             },
-            subscriptionContext: async (params, operation, firstCtx) => {
+            subscriptionContext: async (params, operation, firstCtx, req) => {
                 let opId = firstCtx ? GqlQueryIdNamespace.get(firstCtx)! : uuid();
-                let ctx = buildWebSocketContext(params || {}).ctx;
+                let ctx = buildWebSocketContext(params || {}, req!.headers.forwarded || req!.connection.remoteAddress).ctx;
                 ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `subscription ${opId} ${operation.operationName || ''}`);
                 ctx = withGqlQueryId(ctx, opId);

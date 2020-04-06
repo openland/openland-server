@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9cf3ef604e9d3551854195d60f22b623';
+export const GQL_SPEC_VERSION = '67aab18355821770d3cd284f2b25332e';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2025,6 +2025,7 @@ export namespace GQL {
         debugQueueWeeklyPaidLeaderboard: boolean;
         debugSendHiddenMessage: boolean;
         debugFixBrokenDonations: boolean;
+        debugCreateTransfer: string;
         settingsUpdate: Settings;
         sendEmailChangeCode: string;
         changeEmail: boolean;
@@ -2514,6 +2515,11 @@ export namespace GQL {
         message: string;
     }
     export interface MutationDebugFixBrokenDonationsArgs { }
+    export interface MutationDebugCreateTransferArgs {
+        fromUid: string;
+        toUid: string;
+        amount: number;
+    }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
     }
@@ -2858,6 +2864,7 @@ export namespace GQL {
         id: string;
         peerId: string;
         offer: string;
+        seq: OptionalNullable<number>;
     }
     export interface MutationMediaStreamNegotiationNeededArgs {
         id: string;
@@ -2868,6 +2875,7 @@ export namespace GQL {
         id: string;
         peerId: string;
         answer: string;
+        seq: OptionalNullable<number>;
     }
     export interface MutationMediaStreamCandidateArgs {
         id: string;
@@ -3708,6 +3716,7 @@ export namespace GQL {
         debugUserMetrics: DebugUserMetrics;
         debugGlobalCounters: DebugGlobalCounters;
         debugServerId: string;
+        debugClientIp: Nullable<string>;
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
@@ -3906,6 +3915,7 @@ export namespace GQL {
     }
     export interface QueryDebugGlobalCountersArgs { }
     export interface QueryDebugServerIdArgs { }
+    export interface QueryDebugClientIpArgs { }
     export interface QueryDialogsArgs {
         first: number;
         after: OptionalNullable<string>;
@@ -7963,6 +7973,7 @@ export interface GQLResolver {
             debugQueueWeeklyPaidLeaderboard: GQL.MutationDebugQueueWeeklyPaidLeaderboardArgs,
             debugSendHiddenMessage: GQL.MutationDebugSendHiddenMessageArgs,
             debugFixBrokenDonations: GQL.MutationDebugFixBrokenDonationsArgs,
+            debugCreateTransfer: GQL.MutationDebugCreateTransferArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailChangeCode: GQL.MutationSendEmailChangeCodeArgs,
             changeEmail: GQL.MutationChangeEmailArgs,
@@ -8701,6 +8712,7 @@ export interface GQLResolver {
             debugUserMetrics: GQL.QueryDebugUserMetricsArgs,
             debugGlobalCounters: GQL.QueryDebugGlobalCountersArgs,
             debugServerId: GQL.QueryDebugServerIdArgs,
+            debugClientIp: GQL.QueryDebugClientIpArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
             authPoints: GQL.QueryAuthPointsArgs,
