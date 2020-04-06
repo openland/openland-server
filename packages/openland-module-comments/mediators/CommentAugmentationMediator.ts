@@ -9,6 +9,7 @@ import { CommentsRepository } from '../repositories/CommentsRepository';
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
 import { Context } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
+import * as URL from 'url';
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -117,6 +118,8 @@ export class CommentAugmentationMediator {
             return [];
         }
 
-        return urls.filter(u => u.url.startsWith('http:') || u.url.startsWith('https:'));
+        return urls
+            .filter(u => u.url.startsWith('http:') || u.url.startsWith('https:'))
+            .map(u => ({...u, url: URL.parse(u.url).href!}));
     }
 }

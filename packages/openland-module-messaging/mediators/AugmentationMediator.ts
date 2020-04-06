@@ -10,6 +10,7 @@ import { Context } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 import { Message } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
+import * as URL from 'url';
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -128,6 +129,8 @@ export class AugmentationMediator {
             return [];
         }
 
-        return urls.filter(u => u.url.startsWith('http:') || u.url.startsWith('https:'));
+        return urls
+            .filter(u => u.url.startsWith('http:') || u.url.startsWith('https:'))
+            .map(u => ({...u, url: URL.parse(u.url).href!}));
     }
 }
