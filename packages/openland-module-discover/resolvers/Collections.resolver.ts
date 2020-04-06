@@ -64,7 +64,7 @@ export const Resolver: GQLResolver = {
                     title: input.title || undefined,
                     image: input.image || undefined,
                     chatIds: input.chatIds ? input.chatIds.map(id => IDs.Conversation.parse(id)) : undefined,
-                    description: input.description || undefined,
+                    description: input.description,
                 }
             );
         }),
