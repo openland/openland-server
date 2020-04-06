@@ -877,7 +877,7 @@ export default declareSchema(() => {
         field('peer2', optional(integer()));
         field('kind', enumString('direct', 'bridged'));
         field('state', enumString('wait-offer', 'wait-answer', 'online', 'completed'));
-        field('seq', integer());
+        field('seq', optional(integer()));
         field('offer', optional(string()));
         field('answer', optional(string()));
         field('ice1', json());
