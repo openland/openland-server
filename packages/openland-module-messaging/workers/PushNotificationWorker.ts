@@ -10,6 +10,7 @@ import { Context, createNamedContext } from '@openland/context';
 import { eventsFind } from '../../openland-module-db/eventsFind';
 import { UserDialogMessageReceivedEvent, UserSettings } from '../../openland-module-db/store';
 import { batch } from '../../openland-utils/batch';
+import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 
 // const Delays = {
 //     'none': 10 * 1000,
@@ -220,6 +221,8 @@ const handleUser = async (root: Context, uid: number) => {
     });
 };
 
+const onMessageNotificationsHandled = createHyperlogger<{ usersCount: number, duration: number }>('message_notifications_handled');
+
 export function startPushNotificationWorker() {
     singletonWorker({
         name: 'push_notifications',
@@ -227,6 +230,7 @@ export function startPushNotificationWorker() {
         startDelay: 3000,
         db: Store.storage.db
     }, async (parent) => {
+        let startTime = Date.now();
         let unreadUsers = await inTx(parent, async (ctx) => await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push'));
         if (unreadUsers.length > 0) {
             log.debug(parent, 'unread users: ' + unreadUsers.length, JSON.stringify(unreadUsers));
@@ -246,5 +250,8 @@ export function startPushNotificationWorker() {
                 log.log(rootCtx, 'push_error', e);
             }
         }
+        await inTx(parent, async ctx => {
+            await onMessageNotificationsHandled.event(ctx, { usersCount: unreadUsers.length, duration: Date.now() - startTime });
+        });
     });
 }
