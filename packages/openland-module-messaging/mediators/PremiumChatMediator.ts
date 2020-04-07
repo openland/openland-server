@@ -125,8 +125,9 @@ export class PremiumChatMediator {
      */
     onSubscriptionStarted = async (ctx: Context, sid: string, txid: string, cid: number, uid: number) => {
         let subscription = (await Store.WalletSubscription.findById(ctx, sid))!;
+
         let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
-        let parts = countCommission(subscription.amount, COMMISSION_PERCENTS);
+        let parts = await this.countCommission(ctx, subscription.amount, cid);
         await Modules.Wallet.wallet.incomePending(ctx, txid, ownerId, parts.rest, { type: 'subscription', id: sid });
     }
 
@@ -143,7 +144,7 @@ export class PremiumChatMediator {
     onSubscriptionPaymentSuccess = async (ctx: Context, sid: string, txid: string, cid: number, uid: number) => {
         let subscription = (await Store.WalletSubscription.findById(ctx, sid))!;
         let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
-        let parts = countCommission(subscription.amount, COMMISSION_PERCENTS);
+        let parts = await this.countCommission(ctx, subscription.amount, cid);
         await Modules.Wallet.wallet.incomeSuccess(ctx, txid, ownerId, parts.rest, { type: 'subscription', id: sid });
         await this.notifyOwner(ctx, ownerId, cid, uid, 'subscription', parts);
     }
@@ -191,7 +192,7 @@ export class PremiumChatMediator {
     onPurchaseCreated = async (ctx: Context, pid: string, txid: string, uid: number, amount: number, cid: number) => {
         // Nothing to do, read-only access should be granted by this time
         let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
-        let parts = countCommission(amount, COMMISSION_PERCENTS);
+        let parts = await this.countCommission(ctx, amount, cid);
         await Modules.Wallet.wallet.incomePending(ctx, txid, ownerId, parts.rest, { type: 'purchase', id: pid });
     }
 
@@ -201,7 +202,7 @@ export class PremiumChatMediator {
     onPurchaseSuccess = async (ctx: Context, pid: string, txid: string, cid: number, uid: number, amount: number) => {
         // TODO: grant full access here
         let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
-        let parts = countCommission(amount, COMMISSION_PERCENTS);
+        let parts = await this.countCommission(ctx, amount, cid);
         await Modules.Wallet.wallet.incomeSuccess(ctx, txid, ownerId, parts.rest, { type: 'purchase', id: pid });
         await this.notifyOwner(ctx, ownerId, cid, uid, 'purchase', parts);
     }
@@ -224,8 +225,12 @@ export class PremiumChatMediator {
     // Utils
     //
 
-    private async roomJoinMessageText(parent: Context, uids: number[], isUpdate: boolean = false) {
+    private async countCommission(ctx: Context, amount: number, cid: number) {
+        let chatSettings = await Store.PremiumChatSettings.findById(ctx, cid);
+        return countCommission(amount, chatSettings?.commissionPercents || COMMISSION_PERCENTS);
+    }
 
+    private async roomJoinMessageText(parent: Context, uids: number[], isUpdate: boolean = false) {
         if (isUpdate) {
             if (uids.length === 2) {
                 let name1 = await Modules.Users.getUserFullName(parent, uids[0]);

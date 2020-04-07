@@ -1387,6 +1387,21 @@ export const Resolver: GQLResolver = {
             let retryKey = uuid();
             await Modules.Wallet.createTransferPayment(parent, fromUid, toUid, args.amount, retryKey);
             return retryKey;
+        }),
+        debugSetCommission: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async ctx => {
+                let cid = IDs.Conversation.parse(args.cid);
+                let settings = await Store.PremiumChatSettings.findById(ctx, cid);
+                if (!settings) {
+                    return false;
+                }
+                if (args.percents > 100 || args.percents < 0) {
+                    return false;
+                }
+                settings.commissionPercents = args.percents;
+                await settings.flush(ctx);
+                return true;
+            });
         })
     },
     Subscription: {

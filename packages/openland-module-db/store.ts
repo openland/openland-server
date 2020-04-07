@@ -3645,11 +3645,13 @@ export interface PremiumChatSettingsShape {
     id: number;
     price: number;
     interval: 'week' | 'month' | null;
+    commissionPercents: number | null;
 }
 
 export interface PremiumChatSettingsCreateShape {
     price: number;
     interval?: 'week' | 'month' | null | undefined;
+    commissionPercents?: number | null | undefined;
 }
 
 export class PremiumChatSettings extends Entity<PremiumChatSettingsShape> {
@@ -3672,6 +3674,15 @@ export class PremiumChatSettings extends Entity<PremiumChatSettingsShape> {
             this.invalidate();
         }
     }
+    get commissionPercents(): number | null { return this._rawValue.commissionPercents; }
+    set commissionPercents(value: number | null) {
+        let normalized = this.descriptor.codec.fields.commissionPercents.normalize(value);
+        if (this._rawValue.commissionPercents !== normalized) {
+            this._rawValue.commissionPercents = normalized;
+            this._updatedValues.commissionPercents = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class PremiumChatSettingsFactory extends EntityFactory<PremiumChatSettingsShape, PremiumChatSettings> {
@@ -3684,10 +3695,12 @@ export class PremiumChatSettingsFactory extends EntityFactory<PremiumChatSetting
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'price', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'interval', type: { type: 'optional', inner: { type: 'enum', values: ['week', 'month'] } }, secure: false });
+        fields.push({ name: 'commissionPercents', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             price: c.integer,
             interval: c.optional(c.enum('week', 'month')),
+            commissionPercents: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<PremiumChatSettingsShape> = {
             name: 'PremiumChatSettings',

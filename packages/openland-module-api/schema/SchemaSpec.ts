@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '67aab18355821770d3cd284f2b25332e';
+export const GQL_SPEC_VERSION = '8040792fafb1393abcff77198dcd8f1c';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2026,6 +2026,7 @@ export namespace GQL {
         debugSendHiddenMessage: boolean;
         debugFixBrokenDonations: boolean;
         debugCreateTransfer: string;
+        debugSetCommission: boolean;
         settingsUpdate: Settings;
         sendEmailChangeCode: string;
         changeEmail: boolean;
@@ -2519,6 +2520,10 @@ export namespace GQL {
         fromUid: string;
         toUid: string;
         amount: number;
+    }
+    export interface MutationDebugSetCommissionArgs {
+        cid: string;
+        percents: number;
     }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
@@ -7974,6 +7979,7 @@ export interface GQLResolver {
             debugSendHiddenMessage: GQL.MutationDebugSendHiddenMessageArgs,
             debugFixBrokenDonations: GQL.MutationDebugFixBrokenDonationsArgs,
             debugCreateTransfer: GQL.MutationDebugCreateTransferArgs,
+            debugSetCommission: GQL.MutationDebugSetCommissionArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailChangeCode: GQL.MutationSendEmailChangeCodeArgs,
             changeEmail: GQL.MutationChangeEmailArgs,

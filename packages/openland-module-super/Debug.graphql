@@ -157,6 +157,7 @@ extend type Mutation {
     debugSendHiddenMessage(uid: ID!, message: String!): Boolean!
     debugFixBrokenDonations: Boolean!
     debugCreateTransfer(fromUid: ID!, toUid: ID!, amount: Int!): String!
+    debugSetCommission(cid: ID!, percents: Int!): Boolean!
 }
 
 extend type Subscription {
