@@ -868,7 +868,8 @@ export default declareSchema(() => {
         videoIn: boolean(),
         videoOut: boolean(),
         audioIn: boolean(),
-        audioOut: boolean()
+        audioOut: boolean(),
+        iceTransportPolicy: optional(enumString('all', 'relay'))
     });
 
     entity('ConferenceMediaStream', () => {
