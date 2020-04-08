@@ -3,7 +3,7 @@ import {
     DocumentNode,
     FieldDefinitionNode,
     ObjectTypeDefinitionNode,
-    ObjectTypeExtensionNode,
+    ObjectTypeExtensionNode, OperationDefinitionNode,
     parse
 } from 'graphql';
 
@@ -17,19 +17,21 @@ const ctx = createNamedContext('analyze');
 
 async function main() {
     if (!process.argv[2]) {
-        logger.log(ctx, 'Usage: yarn vostok-schema:analyze /path/to/queries.json');
+        logger.log(ctx, 'Usage: yarn vostok-schema:analyze /path/to/defenitions/');
         return;
     }
 
-    let usedQueries = require(process.argv[2]);
+    let definitionsPath = process.argv[2];
+    let definitions = parse(buildSchema(definitionsPath));
+    let operations = definitions.definitions.filter(d => d.kind === 'OperationDefinition') as OperationDefinitionNode[];
 
     let schema  = applyExtensions(parse(buildSchema(__dirname + '/../../')));
 
     let Query = schema.definitions.find(d => d.kind === 'ObjectTypeDefinition' && d.name.value === 'Query')! as ObjectTypeDefinitionNode;
     let Mutation = schema.definitions.find(d => d.kind === 'ObjectTypeDefinition' && d.name.value === 'Mutation')! as ObjectTypeDefinitionNode;
 
-    let queries = Query.fields!.map(f => f.name.value);
-    let mutations = Mutation.fields!.map(f => f.name.value);
+    let queries = Query.fields!.map(f => f.name.value).filter(q => !q.startsWith('debug'));
+    let mutations = Mutation.fields!.map(f => f.name.value).filter(q => !q.startsWith('debug'));
 
     let queryUsage = new Map<string, number>();
     let mutationUsage = new Map<string, number>();
@@ -37,15 +39,17 @@ async function main() {
     queries.forEach(q => queryUsage.set(q, 0));
     mutations.forEach(m => mutationUsage.set(m, 0));
 
-    for (let operation of usedQueries.operations) {
-        if (operation.operationType === 'query') {
-            for (let field of operation.fields) {
-                queryUsage.set(field.fieldName, queryUsage.get(field.fieldName)! + 1);
+    for (let operation of operations) {
+        if (operation.operation === 'query') {
+            let fields = operation.selectionSet.selections.map(s => (s as any).name.value);
+            for (let field of fields) {
+                queryUsage.set(field, queryUsage.get(field)! + 1);
             }
         }
-        if (operation.operationType === 'mutation') {
-            for (let field of operation.fields) {
-                mutationUsage.set(field.fieldName, mutationUsage.get(field.fieldName)! + 1);
+        if (operation.operation === 'mutation') {
+            let fields = operation.selectionSet.selections.map(s => (s as any).name.value);
+            for (let field of fields) {
+                mutationUsage.set(field, mutationUsage.get(field)! + 1);
             }
         }
     }
