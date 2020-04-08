@@ -13,7 +13,8 @@ function resolveMediaStreamSettings(uid1: number, uid2: number, confKind: 'mash'
             audioIn: true,
             audioOut: true,
             videoIn: true,
-            videoOut: true
+            videoOut: true,
+            iceTransportPolicy: 'relay'
         };
     }
 
@@ -21,7 +22,8 @@ function resolveMediaStreamSettings(uid1: number, uid2: number, confKind: 'mash'
         audioIn: false,
         audioOut: false,
         videoIn: false,
-        videoOut: false
+        videoOut: false,
+        iceTransportPolicy: undefined
     };
     if (uid1 === streamerId) {
         settings.audioOut = true;
@@ -379,7 +381,7 @@ export class CallRepository {
             } else {
                 throw Error('Unable to find stream');
             }
-
+            await stream.flush(ctx);
             await this.bumpVersion(ctx, stream!.cid);
         });
     }

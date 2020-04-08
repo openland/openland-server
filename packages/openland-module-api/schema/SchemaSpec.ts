@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '8040792fafb1393abcff77198dcd8f1c';
+export const GQL_SPEC_VERSION = 'd2fb4f2e68b06cc5c1169b3b6495b179';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1804,16 +1804,20 @@ export namespace GQL {
     export interface ConferenceMediaIceServersArgs { }
     export type MediaStreamStateValues = 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY';
     export type MediaStreamState = GQLRoots.MediaStreamStateRoot;
+    export type MediaStreamIceTransportPolicyValues = 'all' | 'relay';
+    export type MediaStreamIceTransportPolicy = GQLRoots.MediaStreamIceTransportPolicyRoot;
     export interface MediaStreamSettings {
         videoIn: boolean;
         videoOut: boolean;
         audioIn: boolean;
         audioOut: boolean;
+        iceTransportPolicy: Nullable<MediaStreamIceTransportPolicy>;
     }
     export interface MediaStreamSettingsVideoInArgs { }
     export interface MediaStreamSettingsVideoOutArgs { }
     export interface MediaStreamSettingsAudioInArgs { }
     export interface MediaStreamSettingsAudioOutArgs { }
+    export interface MediaStreamSettingsIceTransportPolicyArgs { }
     export interface MediaStream {
         id: string;
         peerId: Nullable<string>;
@@ -7606,6 +7610,7 @@ export interface GQLResolver {
         }
     >;
     MediaStreamState?: EnumTypeResolver<'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY', GQLRoots.MediaStreamStateRoot>;
+    MediaStreamIceTransportPolicy?: EnumTypeResolver<'all' | 'relay', GQLRoots.MediaStreamIceTransportPolicyRoot>;
     MediaStreamSettings?: ComplexTypedResolver<
         GQL.MediaStreamSettings,
         GQLRoots.MediaStreamSettingsRoot,
@@ -7616,6 +7621,7 @@ export interface GQLResolver {
             videoOut: GQL.MediaStreamSettingsVideoOutArgs,
             audioIn: GQL.MediaStreamSettingsAudioInArgs,
             audioOut: GQL.MediaStreamSettingsAudioOutArgs,
+            iceTransportPolicy: GQL.MediaStreamSettingsIceTransportPolicyArgs,
         }
     >;
     MediaStream?: ComplexTypedResolver<

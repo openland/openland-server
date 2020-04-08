@@ -37,11 +37,17 @@ enum MediaStreamState {
     READY
 }
 
+enum MediaStreamIceTransportPolicy {
+    all
+    relay
+}
+
 type MediaStreamSettings {
     videoIn: Boolean!
     videoOut: Boolean!
     audioIn: Boolean!
     audioOut: Boolean!
+    iceTransportPolicy: MediaStreamIceTransportPolicy
 }
 
 type MediaStream {
