@@ -4,7 +4,7 @@ import {
     OrganizationInviteLink,
     OrganizationPublicInviteLink
 } from 'openland-module-db/store';
-import { withUser, withAny, withAccount, withActivatedUser } from 'openland-module-api/Resolvers';
+import { withUser, withAny, withActivatedUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 import { IDs, IdsFactory } from 'openland-module-api/IDs';
@@ -85,9 +85,6 @@ export const Resolver: GQLResolver = {
         }
     },
     Query: {
-        alphaInvites: withUser(async (ctx, args, uid) => {
-            return [];
-        }),
         alphaInviteInfo: withAny(async (ctx, args) => {
             return await resolveOrgInvite(ctx, args.key);
         }),
@@ -123,18 +120,6 @@ export const Resolver: GQLResolver = {
                 throw new NotFoundError();
             }
             return await Modules.Invites.orgInvitesRepo.getAppInviteLinkKey(ctx, uid);
-        }),
-        // deperecated
-        alphaInvitesHistory: withUser(async (ctx, args, uid) => {
-            // let invites = await DB.OrganizationInvite.findAll({ where: { creatorId: uid, isOneTime: true }, order: [['createdAt', 'DESC']] });
-            // return invites.map(async (invite) => {
-            //     return ({
-            //         acceptedBy: invite.acceptedById ? await DB.User.findOne({ where: { id: invite.acceptedById } }) : null,
-            //         forEmail: invite.forEmail,
-            //         isGlobal: invite.type === 'for_organization',
-            //     });
-            // });
-            return [];
         }),
         alphaResolveInvite: withAny(async (ctx, args) => {
             let orgInvite = await resolveOrgInvite(ctx, args.key);
@@ -176,26 +161,5 @@ export const Resolver: GQLResolver = {
             }
             return await Modules.Invites.joinAppInvite(ctx, uid, args.key, (args.isNewUser !== null && args.isNewUser !== undefined) ? args.isNewUser : false);
         }),
-
-        // deperecated
-        alphaCreateInvite: withAccount(async (ctx, args, uid, oid) => {
-            // return await DB.OrganizationInvite.create({
-            //     uuid: randomKey(),
-            //     orgId: oid,
-            //     creatorId: uid
-            // });
-        }),
-
-        // deperecated
-        alphaDeleteInvite: withAccount(async (ctx, args, uid, oid) => {
-            // await DB.OrganizationInvite.destroy({
-            //     where: {
-            //         orgId: oid,
-            //         id: IDs.Invite.parse(args.id)
-            //     }
-            // });
-            // return 'ok';
-            return 'deprecated';
-        })
     }
 };

@@ -41,20 +41,14 @@ type InviteHistotyInfo {
 union ResolveInviteEntry = InviteInfo | AppInvite | RoomInvite
 
 extend type Query {
-    alphaInvites: [Invite!]
     alphaInviteInfo(key: String!): InviteInfo
     appInvite: String!
     appInviteFromUser(shortname: String!): String!
     appInviteInfo(key: String!): AppInvite
-    alphaAppInvite: String! @deprecated(reason: "renamed to 'appInvite'")
-    alphaAppInviteInfo(key: String!): AppInviteInfo @deprecated(reason: "renamed to 'appInviteInfo'")
-    alphaInvitesHistory: [InviteHistotyInfo!]
     alphaResolveInvite(key: String!): ResolveInviteEntry
 }
 
 extend type Mutation {
-    alphaCreateInvite: Invite!
-    alphaDeleteInvite(id: ID!): String!
     alphaJoinInvite(key: String!, isNewUser: Boolean): ID!
     joinAppInvite(key: String!, isNewUser: Boolean): ID!
 }
