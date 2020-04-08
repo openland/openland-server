@@ -137,6 +137,7 @@ export namespace GQLRoots {
     import TaskStatusValues = GQL.TaskStatusValues;
     import MediaStreamStateValues = GQL.MediaStreamStateValues;
     import ConferencePeerConnectionStateValues = GQL.ConferencePeerConnectionStateValues;
+    import MediaStreamIceTransportPolicyValues = GQL.MediaStreamIceTransportPolicyValues;
     import MessageButtonStyleValues = GQL.MessageButtonStyleValues;
     import MessageTypeValues = GQL.MessageTypeValues;
     import PostMessageTypeValues = GQL.PostMessageTypeValues;
@@ -203,7 +204,8 @@ export namespace GQLRoots {
     export type MediaStreamStateRoot = MediaStreamStateValues;
     export type ConferencePeerConnectionStateRoot = ConferencePeerConnectionStateValues;
     export type ConferenceStrategyRoot = 'mash' | 'stream';
-    export type MediaStreamSettingsRoot = { audioIn: boolean, audioOut: boolean, videoIn: boolean, videoOut: boolean };
+    export type MediaStreamIceTransportPolicyRoot = MediaStreamIceTransportPolicyValues;
+    export type MediaStreamSettingsRoot = { audioIn: boolean, audioOut: boolean, videoIn: boolean, videoOut: boolean, iceTransportPolicy?: MediaStreamIceTransportPolicyValues };
 
     //
     // Dialogs Updates
