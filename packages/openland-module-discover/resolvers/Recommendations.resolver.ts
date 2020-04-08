@@ -1,4 +1,4 @@
-import { withUser } from 'openland-module-api/Resolvers';
+import { withAny, withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
@@ -24,8 +24,11 @@ export const Resolver: GQLResolver = {
             // Sorry universe
             return Modules.Discover.nextPage(ctx, uid, args.selectedTagsIds, args.excudedGroupsIds);
         }),
-        betaSuggestedRooms: withUser((ctx, args, uid) => {
-            return Modules.Discover.suggestedChats(ctx, uid);
+        betaSuggestedRooms: withAny(async (ctx) => {
+            if (ctx.auth.uid) {
+                return Modules.Discover.suggestedChats(ctx, ctx.auth.uid);
+            }
+            return [];
         }),
         betaIsDiscoverDone: withUser((ctx, args, uid) => {
             return Modules.Discover.isDiscoverDone(ctx, uid);
