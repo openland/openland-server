@@ -239,6 +239,7 @@ export default declareSchema(() => {
         primaryKey('id', integer());
         field('price', integer());
         field('interval', optional(enumString('week', 'month')));
+        field('commissionPercents', optional(integer()));
     });
 
     entity('PremiumChatUserPass', () => {
@@ -867,7 +868,8 @@ export default declareSchema(() => {
         videoIn: boolean(),
         videoOut: boolean(),
         audioIn: boolean(),
-        audioOut: boolean()
+        audioOut: boolean(),
+        iceTransportPolicy: optional(enumString('all', 'relay'))
     });
 
     entity('ConferenceMediaStream', () => {
@@ -877,7 +879,7 @@ export default declareSchema(() => {
         field('peer2', optional(integer()));
         field('kind', enumString('direct', 'bridged'));
         field('state', enumString('wait-offer', 'wait-answer', 'online', 'completed'));
-        field('seq', integer());
+        field('seq', optional(integer()));
         field('offer', optional(string()));
         field('answer', optional(string()));
         field('ice1', json());

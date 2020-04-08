@@ -3645,11 +3645,13 @@ export interface PremiumChatSettingsShape {
     id: number;
     price: number;
     interval: 'week' | 'month' | null;
+    commissionPercents: number | null;
 }
 
 export interface PremiumChatSettingsCreateShape {
     price: number;
     interval?: 'week' | 'month' | null | undefined;
+    commissionPercents?: number | null | undefined;
 }
 
 export class PremiumChatSettings extends Entity<PremiumChatSettingsShape> {
@@ -3672,6 +3674,15 @@ export class PremiumChatSettings extends Entity<PremiumChatSettingsShape> {
             this.invalidate();
         }
     }
+    get commissionPercents(): number | null { return this._rawValue.commissionPercents; }
+    set commissionPercents(value: number | null) {
+        let normalized = this.descriptor.codec.fields.commissionPercents.normalize(value);
+        if (this._rawValue.commissionPercents !== normalized) {
+            this._rawValue.commissionPercents = normalized;
+            this._updatedValues.commissionPercents = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class PremiumChatSettingsFactory extends EntityFactory<PremiumChatSettingsShape, PremiumChatSettings> {
@@ -3684,10 +3695,12 @@ export class PremiumChatSettingsFactory extends EntityFactory<PremiumChatSetting
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'price', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'interval', type: { type: 'optional', inner: { type: 'enum', values: ['week', 'month'] } }, secure: false });
+        fields.push({ name: 'commissionPercents', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             price: c.integer,
             interval: c.optional(c.enum('week', 'month')),
+            commissionPercents: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<PremiumChatSettingsShape> = {
             name: 'PremiumChatSettings',
@@ -6673,13 +6686,13 @@ export interface ConferenceMediaStreamShape {
     peer2: number | null;
     kind: 'direct' | 'bridged';
     state: 'wait-offer' | 'wait-answer' | 'online' | 'completed';
-    seq: number;
+    seq: number | null;
     offer: string | null;
     answer: string | null;
     ice1: any;
     ice2: any;
-    settings1: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean } | null;
-    settings2: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean } | null;
+    settings1: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null;
+    settings2: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null;
 }
 
 export interface ConferenceMediaStreamCreateShape {
@@ -6688,13 +6701,13 @@ export interface ConferenceMediaStreamCreateShape {
     peer2?: number | null | undefined;
     kind: 'direct' | 'bridged';
     state: 'wait-offer' | 'wait-answer' | 'online' | 'completed';
-    seq: number;
+    seq?: number | null | undefined;
     offer?: string | null | undefined;
     answer?: string | null | undefined;
     ice1: any;
     ice2: any;
-    settings1?: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean } | null | undefined;
-    settings2?: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean } | null | undefined;
+    settings1?: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null | undefined } | null | undefined;
+    settings2?: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null | undefined } | null | undefined;
 }
 
 export class ConferenceMediaStream extends Entity<ConferenceMediaStreamShape> {
@@ -6744,8 +6757,8 @@ export class ConferenceMediaStream extends Entity<ConferenceMediaStreamShape> {
             this.invalidate();
         }
     }
-    get seq(): number { return this._rawValue.seq; }
-    set seq(value: number) {
+    get seq(): number | null { return this._rawValue.seq; }
+    set seq(value: number | null) {
         let normalized = this.descriptor.codec.fields.seq.normalize(value);
         if (this._rawValue.seq !== normalized) {
             this._rawValue.seq = normalized;
@@ -6789,8 +6802,8 @@ export class ConferenceMediaStream extends Entity<ConferenceMediaStreamShape> {
             this.invalidate();
         }
     }
-    get settings1(): { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean } | null { return this._rawValue.settings1; }
-    set settings1(value: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean } | null) {
+    get settings1(): { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null { return this._rawValue.settings1; }
+    set settings1(value: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null) {
         let normalized = this.descriptor.codec.fields.settings1.normalize(value);
         if (this._rawValue.settings1 !== normalized) {
             this._rawValue.settings1 = normalized;
@@ -6798,8 +6811,8 @@ export class ConferenceMediaStream extends Entity<ConferenceMediaStreamShape> {
             this.invalidate();
         }
     }
-    get settings2(): { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean } | null { return this._rawValue.settings2; }
-    set settings2(value: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean } | null) {
+    get settings2(): { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null { return this._rawValue.settings2; }
+    set settings2(value: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null) {
         let normalized = this.descriptor.codec.fields.settings2.normalize(value);
         if (this._rawValue.settings2 !== normalized) {
             this._rawValue.settings2 = normalized;
@@ -6823,13 +6836,13 @@ export class ConferenceMediaStreamFactory extends EntityFactory<ConferenceMediaS
         fields.push({ name: 'peer2', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'kind', type: { type: 'enum', values: ['direct', 'bridged'] }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['wait-offer', 'wait-answer', 'online', 'completed'] }, secure: false });
-        fields.push({ name: 'seq', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'seq', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'offer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'answer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'ice1', type: { type: 'json' }, secure: false });
         fields.push({ name: 'ice2', type: { type: 'json' }, secure: false });
-        fields.push({ name: 'settings1', type: { type: 'optional', inner: { type: 'struct', fields: { videoIn: { type: 'boolean' }, videoOut: { type: 'boolean' }, audioIn: { type: 'boolean' }, audioOut: { type: 'boolean' } } } }, secure: false });
-        fields.push({ name: 'settings2', type: { type: 'optional', inner: { type: 'struct', fields: { videoIn: { type: 'boolean' }, videoOut: { type: 'boolean' }, audioIn: { type: 'boolean' }, audioOut: { type: 'boolean' } } } }, secure: false });
+        fields.push({ name: 'settings1', type: { type: 'optional', inner: { type: 'struct', fields: { videoIn: { type: 'boolean' }, videoOut: { type: 'boolean' }, audioIn: { type: 'boolean' }, audioOut: { type: 'boolean' }, iceTransportPolicy: { type: 'optional', inner: { type: 'enum', values: ['all', 'relay'] } } } } }, secure: false });
+        fields.push({ name: 'settings2', type: { type: 'optional', inner: { type: 'struct', fields: { videoIn: { type: 'boolean' }, videoOut: { type: 'boolean' }, audioIn: { type: 'boolean' }, audioOut: { type: 'boolean' }, iceTransportPolicy: { type: 'optional', inner: { type: 'enum', values: ['all', 'relay'] } } } } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             cid: c.integer,
@@ -6837,13 +6850,13 @@ export class ConferenceMediaStreamFactory extends EntityFactory<ConferenceMediaS
             peer2: c.optional(c.integer),
             kind: c.enum('direct', 'bridged'),
             state: c.enum('wait-offer', 'wait-answer', 'online', 'completed'),
-            seq: c.integer,
+            seq: c.optional(c.integer),
             offer: c.optional(c.string),
             answer: c.optional(c.string),
             ice1: c.any,
             ice2: c.any,
-            settings1: c.optional(c.struct({ videoIn: c.boolean, videoOut: c.boolean, audioIn: c.boolean, audioOut: c.boolean })),
-            settings2: c.optional(c.struct({ videoIn: c.boolean, videoOut: c.boolean, audioIn: c.boolean, audioOut: c.boolean })),
+            settings1: c.optional(c.struct({ videoIn: c.boolean, videoOut: c.boolean, audioIn: c.boolean, audioOut: c.boolean, iceTransportPolicy: c.optional(c.enum('all', 'relay')) })),
+            settings2: c.optional(c.struct({ videoIn: c.boolean, videoOut: c.boolean, audioIn: c.boolean, audioOut: c.boolean, iceTransportPolicy: c.optional(c.enum('all', 'relay')) })),
         });
         let descriptor: EntityDescriptor<ConferenceMediaStreamShape> = {
             name: 'ConferenceMediaStream',

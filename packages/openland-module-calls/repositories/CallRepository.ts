@@ -13,7 +13,8 @@ function resolveMediaStreamSettings(uid1: number, uid2: number, confKind: 'mash'
             audioIn: true,
             audioOut: true,
             videoIn: true,
-            videoOut: true
+            videoOut: true,
+            iceTransportPolicy: 'relay'
         };
     }
 
@@ -21,7 +22,8 @@ function resolveMediaStreamSettings(uid1: number, uid2: number, confKind: 'mash'
         audioIn: false,
         audioOut: false,
         videoIn: false,
-        videoOut: false
+        videoOut: false,
+        iceTransportPolicy: undefined
     };
     if (uid1 === streamerId) {
         settings.audioOut = true;
@@ -244,7 +246,11 @@ export class CallRepository {
 
             stream.offer = offer;
             stream.state = 'wait-answer';
-            stream.seq++;
+            if (stream.seq !== null) {
+                stream.seq++;
+            } else {
+                stream.seq = 1;
+            }
             await stream.flush(ctx);
             await this.bumpVersion(ctx, stream!.cid);
         });
@@ -284,7 +290,11 @@ export class CallRepository {
                 stream.answer = answer;
                 stream.state = 'online';
             }
-            stream.seq++;
+            if (stream.seq !== null) {
+                stream.seq++;
+            } else {
+                stream.seq = 1;
+            }
             await stream.flush(ctx);
             await this.bumpVersion(ctx, stream!.cid);
         });
@@ -309,7 +319,11 @@ export class CallRepository {
             stream.offer = null;
             stream.answer = null;
             stream.state = 'wait-offer';
-            stream.seq++;
+            if (stream.seq !== null) {
+                stream.seq++;
+            } else {
+                stream.seq = 1;
+            }
             await stream.flush(ctx);
             await this.bumpVersion(ctx, stream!.cid);
         });
@@ -367,7 +381,7 @@ export class CallRepository {
             } else {
                 throw Error('Unable to find stream');
             }
-
+            await stream.flush(ctx);
             await this.bumpVersion(ctx, stream!.cid);
         });
     }

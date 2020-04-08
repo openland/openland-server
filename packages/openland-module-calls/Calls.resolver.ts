@@ -90,7 +90,7 @@ export const Resolver: GQLResolver = {
                 if (c.peer1 === src.peerId || c.peer2 === src.peerId) {
                     let id = c.id;
                     let state: 'READY' | 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' = 'READY';
-                    let seq = c.seq;
+                    let seq = c.seq || 0;
                     let sdp: string | null = null;
                     let isPrimary = src.peerId === c.peer1;
                     let ice: string[] = isPrimary ? c.ice2 : c.ice1;

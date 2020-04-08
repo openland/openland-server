@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9e45f4cf8216e9c978c424287aa5c9ec';
+export const GQL_SPEC_VERSION = 'd2fb4f2e68b06cc5c1169b3b6495b179';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -786,6 +786,36 @@ export namespace GQL {
     export interface InviteHistotyInfoForEmailArgs { }
     export interface InviteHistotyInfoIsGlobalArgs { }
     export type ResolveInviteEntry = InviteInfo | AppInvite | RoomInvite;
+    export interface CommentGlobalUpdatesState {
+        state: Nullable<string>;
+    }
+    export interface CommentGlobalUpdatesStateStateArgs { }
+    export interface CommentGlobalUpdateSingle {
+        seq: number;
+        state: string;
+        update: CommentGlobalUpdate;
+    }
+    export interface CommentGlobalUpdateSingleSeqArgs { }
+    export interface CommentGlobalUpdateSingleStateArgs { }
+    export interface CommentGlobalUpdateSingleUpdateArgs { }
+    export interface CommentGlobalUpdateBatch {
+        seq: number;
+        state: string;
+        fromSeq: number;
+        updates: CommentGlobalUpdate[];
+    }
+    export interface CommentGlobalUpdateBatchSeqArgs { }
+    export interface CommentGlobalUpdateBatchStateArgs { }
+    export interface CommentGlobalUpdateBatchFromSeqArgs { }
+    export interface CommentGlobalUpdateBatchUpdatesArgs { }
+    export type CommentGlobalUpdate = CommentPeerUpdated;
+    export interface CommentPeerUpdated {
+        seq: number;
+        peer: CommentsPeer;
+    }
+    export interface CommentPeerUpdatedSeqArgs { }
+    export interface CommentPeerUpdatedPeerArgs { }
+    export type CommentGlobalUpdateContainer = CommentGlobalUpdateSingle | CommentGlobalUpdateBatch;
     export interface Reaction {
         user: User;
         reaction: string;
@@ -1774,16 +1804,20 @@ export namespace GQL {
     export interface ConferenceMediaIceServersArgs { }
     export type MediaStreamStateValues = 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY';
     export type MediaStreamState = GQLRoots.MediaStreamStateRoot;
+    export type MediaStreamIceTransportPolicyValues = 'all' | 'relay';
+    export type MediaStreamIceTransportPolicy = GQLRoots.MediaStreamIceTransportPolicyRoot;
     export interface MediaStreamSettings {
         videoIn: boolean;
         videoOut: boolean;
         audioIn: boolean;
         audioOut: boolean;
+        iceTransportPolicy: Nullable<MediaStreamIceTransportPolicy>;
     }
     export interface MediaStreamSettingsVideoInArgs { }
     export interface MediaStreamSettingsVideoOutArgs { }
     export interface MediaStreamSettingsAudioInArgs { }
     export interface MediaStreamSettingsAudioOutArgs { }
+    export interface MediaStreamSettingsIceTransportPolicyArgs { }
     export interface MediaStream {
         id: string;
         peerId: Nullable<string>;
@@ -1925,6 +1959,8 @@ export namespace GQL {
         paymentIntentCommit: boolean;
         paymentCancel: boolean;
         subscriptionCancel: WalletSubscription;
+        alphaCreateInvite: Invite;
+        alphaDeleteInvite: string;
         alphaJoinInvite: string;
         joinAppInvite: string;
         phonebookAdd: boolean;
@@ -1994,6 +2030,7 @@ export namespace GQL {
         debugSendHiddenMessage: boolean;
         debugFixBrokenDonations: boolean;
         debugCreateTransfer: string;
+        debugSetCommission: boolean;
         settingsUpdate: Settings;
         sendEmailChangeCode: string;
         changeEmail: boolean;
@@ -2063,6 +2100,11 @@ export namespace GQL {
         commentReactionRemove: boolean;
         subscribeToComments: boolean;
         unsubscribeFromComments: boolean;
+        addMessageComment: boolean;
+        betaAddMessageComment: CommentEntry;
+        betaAddFeedComment: CommentEntry;
+        subscribeMessageComments: boolean;
+        unSubscribeMessageComments: boolean;
         setEnvVar: boolean;
         setEnvVarString: boolean;
         setEnvVarNumber: boolean;
@@ -2345,6 +2387,10 @@ export namespace GQL {
     export interface MutationSubscriptionCancelArgs {
         id: string;
     }
+    export interface MutationAlphaCreateInviteArgs { }
+    export interface MutationAlphaDeleteInviteArgs {
+        id: string;
+    }
     export interface MutationAlphaJoinInviteArgs {
         key: string;
         isNewUser: OptionalNullable<boolean>;
@@ -2478,6 +2524,10 @@ export namespace GQL {
         fromUid: string;
         toUid: string;
         amount: number;
+    }
+    export interface MutationDebugSetCommissionArgs {
+        cid: string;
+        percents: number;
     }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
@@ -2742,6 +2792,39 @@ export namespace GQL {
     }
     export interface MutationUnsubscribeFromCommentsArgs {
         peerId: string;
+    }
+    export interface MutationAddMessageCommentArgs {
+        messageId: string;
+        message: OptionalNullable<string>;
+        replyComment: OptionalNullable<string>;
+        mentions: OptionalNullable<MentionInput[]>;
+        fileAttachments: OptionalNullable<FileAttachmentInput[]>;
+        spans: OptionalNullable<MessageSpanInput[]>;
+    }
+    export interface MutationBetaAddMessageCommentArgs {
+        messageId: string;
+        message: OptionalNullable<string>;
+        replyComment: OptionalNullable<string>;
+        mentions: OptionalNullable<MentionInput[]>;
+        fileAttachments: OptionalNullable<FileAttachmentInput[]>;
+        spans: OptionalNullable<MessageSpanInput[]>;
+        repeatKey: OptionalNullable<string>;
+    }
+    export interface MutationBetaAddFeedCommentArgs {
+        feedItemId: string;
+        message: OptionalNullable<string>;
+        replyComment: OptionalNullable<string>;
+        mentions: OptionalNullable<MentionInput[]>;
+        fileAttachments: OptionalNullable<FileAttachmentInput[]>;
+        spans: OptionalNullable<MessageSpanInput[]>;
+        repeatKey: OptionalNullable<string>;
+    }
+    export interface MutationSubscribeMessageCommentsArgs {
+        messageId: string;
+        type: CommentSubscriptionType;
+    }
+    export interface MutationUnSubscribeMessageCommentsArgs {
+        messageId: string;
     }
     export interface MutationSetEnvVarArgs {
         name: string;
@@ -3620,11 +3703,16 @@ export namespace GQL {
         transactionsHistory: WalletTransactionConnection;
         subscriptions: WalletSubscription[];
         stripeToken: string;
+        alphaInvites: Nullable<Invite[]>;
         alphaInviteInfo: Nullable<InviteInfo>;
         appInvite: string;
         appInviteFromUser: string;
         appInviteInfo: Nullable<AppInvite>;
+        alphaAppInvite: string;
+        alphaAppInviteInfo: Nullable<AppInviteInfo>;
+        alphaInvitesHistory: Nullable<InviteHistotyInfo[]>;
         alphaResolveInvite: Nullable<ResolveInviteEntry>;
+        commentGlobalUpdatesState: CommentGlobalUpdatesState;
         debugParseID: DebugID;
         debugCrashQuery: string;
         debugUrlInfo: Nullable<UrlAugmentation>;
@@ -3795,6 +3883,7 @@ export namespace GQL {
     }
     export interface QuerySubscriptionsArgs { }
     export interface QueryStripeTokenArgs { }
+    export interface QueryAlphaInvitesArgs { }
     export interface QueryAlphaInviteInfoArgs {
         key: string;
     }
@@ -3805,9 +3894,15 @@ export namespace GQL {
     export interface QueryAppInviteInfoArgs {
         key: string;
     }
+    export interface QueryAlphaAppInviteArgs { }
+    export interface QueryAlphaAppInviteInfoArgs {
+        key: string;
+    }
+    export interface QueryAlphaInvitesHistoryArgs { }
     export interface QueryAlphaResolveInviteArgs {
         key: string;
     }
+    export interface QueryCommentGlobalUpdatesStateArgs { }
     export interface QueryDebugParseIDArgs {
         id: string;
     }
@@ -4243,6 +4338,7 @@ export namespace GQL {
     export interface Subscription {
         lifecheck: Nullable<string>;
         walletUpdates: WalletUpdateContainer;
+        commentUpdatesGlobal: Nullable<CommentGlobalUpdateContainer>;
         debugEvents: DebugEvent;
         debugReaderState: Nullable<string>;
         debugServerId: string;
@@ -4270,6 +4366,9 @@ export namespace GQL {
     export interface SubscriptionLifecheckArgs { }
     export interface SubscriptionWalletUpdatesArgs {
         fromState: string;
+    }
+    export interface SubscriptionCommentUpdatesGlobalArgs {
+        fromState: OptionalNullable<string>;
     }
     export interface SubscriptionDebugEventsArgs {
         fromState: OptionalNullable<string>;
@@ -6297,6 +6396,53 @@ export interface GQLResolver {
         }
     >;
     ResolveInviteEntry?: UnionTypeResolver<GQLRoots.ResolveInviteEntryRoot, 'InviteInfo' | 'AppInvite' | 'RoomInvite'>;
+    CommentGlobalUpdatesState?: ComplexTypedResolver<
+        GQL.CommentGlobalUpdatesState,
+        GQLRoots.CommentGlobalUpdatesStateRoot,
+        {
+        },
+        {
+            state: GQL.CommentGlobalUpdatesStateStateArgs,
+        }
+    >;
+    CommentGlobalUpdateSingle?: ComplexTypedResolver<
+        GQL.CommentGlobalUpdateSingle,
+        GQLRoots.CommentGlobalUpdateSingleRoot,
+        {
+            update: GQLRoots.CommentGlobalUpdateRoot,
+        },
+        {
+            seq: GQL.CommentGlobalUpdateSingleSeqArgs,
+            state: GQL.CommentGlobalUpdateSingleStateArgs,
+            update: GQL.CommentGlobalUpdateSingleUpdateArgs,
+        }
+    >;
+    CommentGlobalUpdateBatch?: ComplexTypedResolver<
+        GQL.CommentGlobalUpdateBatch,
+        GQLRoots.CommentGlobalUpdateBatchRoot,
+        {
+            updates: GQLRoots.CommentGlobalUpdateRoot[],
+        },
+        {
+            seq: GQL.CommentGlobalUpdateBatchSeqArgs,
+            state: GQL.CommentGlobalUpdateBatchStateArgs,
+            fromSeq: GQL.CommentGlobalUpdateBatchFromSeqArgs,
+            updates: GQL.CommentGlobalUpdateBatchUpdatesArgs,
+        }
+    >;
+    CommentGlobalUpdate?: UnionTypeResolver<GQLRoots.CommentGlobalUpdateRoot, 'CommentPeerUpdated'>;
+    CommentPeerUpdated?: ComplexTypedResolver<
+        GQL.CommentPeerUpdated,
+        GQLRoots.CommentPeerUpdatedRoot,
+        {
+            peer: GQLRoots.CommentsPeerRoot,
+        },
+        {
+            seq: GQL.CommentPeerUpdatedSeqArgs,
+            peer: GQL.CommentPeerUpdatedPeerArgs,
+        }
+    >;
+    CommentGlobalUpdateContainer?: UnionTypeResolver<GQLRoots.CommentGlobalUpdateContainerRoot, 'CommentGlobalUpdateSingle' | 'CommentGlobalUpdateBatch'>;
     Reaction?: ComplexTypedResolver<
         GQL.Reaction,
         GQLRoots.ReactionRoot,
@@ -7464,6 +7610,7 @@ export interface GQLResolver {
         }
     >;
     MediaStreamState?: EnumTypeResolver<'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY', GQLRoots.MediaStreamStateRoot>;
+    MediaStreamIceTransportPolicy?: EnumTypeResolver<'all' | 'relay', GQLRoots.MediaStreamIceTransportPolicyRoot>;
     MediaStreamSettings?: ComplexTypedResolver<
         GQL.MediaStreamSettings,
         GQLRoots.MediaStreamSettingsRoot,
@@ -7474,6 +7621,7 @@ export interface GQLResolver {
             videoOut: GQL.MediaStreamSettingsVideoOutArgs,
             audioIn: GQL.MediaStreamSettingsAudioInArgs,
             audioOut: GQL.MediaStreamSettingsAudioOutArgs,
+            iceTransportPolicy: GQL.MediaStreamSettingsIceTransportPolicyArgs,
         }
     >;
     MediaStream?: ComplexTypedResolver<
@@ -7626,6 +7774,7 @@ export interface GQLResolver {
             cardMakeDefault: GQLRoots.CreditCardRoot,
             cardDepositIntent: GQLRoots.PaymentIntentRoot,
             subscriptionCancel: GQLRoots.WalletSubscriptionRoot,
+            alphaCreateInvite: GQLRoots.InviteRoot,
             debugCreateTestUser: GQLRoots.UserRoot,
             debugFixStickerPack: Nullable<GQLRoots.StickerPackRoot>,
             settingsUpdate: GQLRoots.SettingsRoot,
@@ -7661,6 +7810,8 @@ export interface GQLResolver {
             userStorageSet: GQLRoots.AppStorageValueRoot[],
             betaAddComment: GQLRoots.CommentEntryRoot,
             betaAddStickerComment: GQLRoots.CommentEntryRoot,
+            betaAddMessageComment: GQLRoots.CommentEntryRoot,
+            betaAddFeedComment: GQLRoots.CommentEntryRoot,
             featureFlagAdd: GQLRoots.FeatureFlagRoot,
             superAccountFeatureAdd: GQLRoots.SuperAccountRoot,
             superAccountFeatureRemove: GQLRoots.SuperAccountRoot,
@@ -7763,6 +7914,8 @@ export interface GQLResolver {
             paymentIntentCommit: GQL.MutationPaymentIntentCommitArgs,
             paymentCancel: GQL.MutationPaymentCancelArgs,
             subscriptionCancel: GQL.MutationSubscriptionCancelArgs,
+            alphaCreateInvite: GQL.MutationAlphaCreateInviteArgs,
+            alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs,
             alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs,
             joinAppInvite: GQL.MutationJoinAppInviteArgs,
             phonebookAdd: GQL.MutationPhonebookAddArgs,
@@ -7832,6 +7985,7 @@ export interface GQLResolver {
             debugSendHiddenMessage: GQL.MutationDebugSendHiddenMessageArgs,
             debugFixBrokenDonations: GQL.MutationDebugFixBrokenDonationsArgs,
             debugCreateTransfer: GQL.MutationDebugCreateTransferArgs,
+            debugSetCommission: GQL.MutationDebugSetCommissionArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailChangeCode: GQL.MutationSendEmailChangeCodeArgs,
             changeEmail: GQL.MutationChangeEmailArgs,
@@ -7901,6 +8055,11 @@ export interface GQLResolver {
             commentReactionRemove: GQL.MutationCommentReactionRemoveArgs,
             subscribeToComments: GQL.MutationSubscribeToCommentsArgs,
             unsubscribeFromComments: GQL.MutationUnsubscribeFromCommentsArgs,
+            addMessageComment: GQL.MutationAddMessageCommentArgs,
+            betaAddMessageComment: GQL.MutationBetaAddMessageCommentArgs,
+            betaAddFeedComment: GQL.MutationBetaAddFeedCommentArgs,
+            subscribeMessageComments: GQL.MutationSubscribeMessageCommentsArgs,
+            unSubscribeMessageComments: GQL.MutationUnSubscribeMessageCommentsArgs,
             setEnvVar: GQL.MutationSetEnvVarArgs,
             setEnvVarString: GQL.MutationSetEnvVarStringArgs,
             setEnvVarNumber: GQL.MutationSetEnvVarNumberArgs,
@@ -8398,9 +8557,13 @@ export interface GQLResolver {
             transactionsPending: GQLRoots.WalletTransactionRoot[],
             transactionsHistory: GQLRoots.WalletTransactionConnectionRoot,
             subscriptions: GQLRoots.WalletSubscriptionRoot[],
+            alphaInvites: Nullable<GQLRoots.InviteRoot[]>,
             alphaInviteInfo: Nullable<GQLRoots.InviteInfoRoot>,
             appInviteInfo: Nullable<GQLRoots.AppInviteRoot>,
+            alphaAppInviteInfo: Nullable<GQLRoots.AppInviteInfoRoot>,
+            alphaInvitesHistory: Nullable<GQLRoots.InviteHistotyInfoRoot[]>,
             alphaResolveInvite: Nullable<GQLRoots.ResolveInviteEntryRoot>,
+            commentGlobalUpdatesState: GQLRoots.CommentGlobalUpdatesStateRoot,
             debugParseID: GQLRoots.DebugIDRoot,
             debugUrlInfo: Nullable<GQLRoots.UrlAugmentationRoot>,
             userPresence: GQLRoots.DebugUserPresenceRoot[],
@@ -8539,11 +8702,16 @@ export interface GQLResolver {
             transactionsHistory: GQL.QueryTransactionsHistoryArgs,
             subscriptions: GQL.QuerySubscriptionsArgs,
             stripeToken: GQL.QueryStripeTokenArgs,
+            alphaInvites: GQL.QueryAlphaInvitesArgs,
             alphaInviteInfo: GQL.QueryAlphaInviteInfoArgs,
             appInvite: GQL.QueryAppInviteArgs,
             appInviteFromUser: GQL.QueryAppInviteFromUserArgs,
             appInviteInfo: GQL.QueryAppInviteInfoArgs,
+            alphaAppInvite: GQL.QueryAlphaAppInviteArgs,
+            alphaAppInviteInfo: GQL.QueryAlphaAppInviteInfoArgs,
+            alphaInvitesHistory: GQL.QueryAlphaInvitesHistoryArgs,
             alphaResolveInvite: GQL.QueryAlphaResolveInviteArgs,
+            commentGlobalUpdatesState: GQL.QueryCommentGlobalUpdatesStateArgs,
             debugParseID: GQL.QueryDebugParseIDArgs,
             debugCrashQuery: GQL.QueryDebugCrashQueryArgs,
             debugUrlInfo: GQL.QueryDebugUrlInfoArgs,
@@ -8703,6 +8871,7 @@ export interface GQLResolver {
         GQLRoots.SubscriptionRoot,
         {
             walletUpdates: GQLRoots.WalletUpdateContainerRoot,
+            commentUpdatesGlobal: Nullable<GQLRoots.CommentGlobalUpdateContainerRoot>,
             debugEvents: GQLRoots.DebugEventRoot,
             settingsWatch: GQLRoots.SettingsRoot,
             watchSettings: GQLRoots.SettingsRoot,
@@ -8727,6 +8896,7 @@ export interface GQLResolver {
         {
             lifecheck: GQL.SubscriptionLifecheckArgs,
             walletUpdates: GQL.SubscriptionWalletUpdatesArgs,
+            commentUpdatesGlobal: GQL.SubscriptionCommentUpdatesGlobalArgs,
             debugEvents: GQL.SubscriptionDebugEventsArgs,
             debugReaderState: GQL.SubscriptionDebugReaderStateArgs,
             debugServerId: GQL.SubscriptionDebugServerIdArgs,
