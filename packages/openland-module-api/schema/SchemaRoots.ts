@@ -207,7 +207,7 @@ export namespace GQLRoots {
     export type ConferenceKindRoot = 'conference' | 'stream';
     export type MediaStreamIceTransportPolicyRoot = MediaStreamIceTransportPolicyValues;
     export type MediaStreamSettingsRoot = { audioIn: boolean, audioOut: boolean, videoIn: boolean, videoOut: boolean, iceTransportPolicy?: MediaStreamIceTransportPolicyValues };
-    export type ConferenceSettingsInputRoot = {strategy?: ConferenceStrategyRoot, iceTransportPolicy?: MediaStreamIceTransportPolicyValues}
+    export type ConferenceSettingsInputRoot = {strategy?: ConferenceStrategyRoot, iceTransportPolicy?: MediaStreamIceTransportPolicyValues};
 
     //
     // Dialogs Updates
