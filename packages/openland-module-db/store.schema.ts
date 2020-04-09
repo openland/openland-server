@@ -845,13 +845,12 @@ export default declareSchema(() => {
     entity('ConferenceRoom', () => {
         primaryKey('id', integer());
         // TODO: remove direct/bridged after migration, make it non - optional
-        field('strategy', optional(enumString('mash', 'sfu', 'direct', 'bridged')));
+        field('strategy', enumString('mash', 'sfu'));
         field('iceTransportPolicy', optional(enumString('all', 'relay')));
 
         // state
         field('startTime', optional(integer()));
-        // TODO: remove mash after migration, make it non - optional
-        field('kind', optional(enumString('conference', 'stream', 'mash')));
+        field('kind', enumString('conference', 'stream'));
         field('streamerId', optional(integer()));
     });
 

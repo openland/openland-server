@@ -30,10 +30,8 @@ export const Resolver: GQLResolver = {
         iceServers: () => {
             return resolveTurnServices();
         },
-        // TODO: remove bridged/direct checks after migration
-        strategy: (src) => (src.strategy === 'bridged' || src.strategy === 'direct' ? 'mash' : src.strategy) || 'mash',
-        // TODO: remove mash check after migration
-        kind: (src) => (src.kind === 'mash' ? 'conference' : src.kind) || 'conference',
+        strategy: (src) => src.strategy,
+        kind: (src) => src.kind,
     },
     ConferencePeer: {
         id: (src: ConferencePeer) => IDs.ConferencePeer.serialize(src.id),
@@ -152,7 +150,7 @@ export const Resolver: GQLResolver = {
     Mutation: {
         conferenceJoin: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conference.parse(args.id);
-            let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 15000, args.kind);
+            let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 15000, args.kind || 'conference');
             let activeMembers = await Modules.Calls.repo.findActiveMembers(ctx, cid);
             if (activeMembers.length === 1) {
                 let fullName = await Modules.Users.getUserFullName(ctx, uid);

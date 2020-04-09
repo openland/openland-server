@@ -6409,25 +6409,25 @@ export class CommentEventGlobalFactory extends EntityFactory<CommentEventGlobalS
 
 export interface ConferenceRoomShape {
     id: number;
-    strategy: 'mash' | 'sfu' | 'direct' | 'bridged' | null;
+    strategy: 'mash' | 'sfu';
     iceTransportPolicy: 'all' | 'relay' | null;
     startTime: number | null;
-    kind: 'conference' | 'stream' | 'mash' | null;
+    kind: 'conference' | 'stream';
     streamerId: number | null;
 }
 
 export interface ConferenceRoomCreateShape {
-    strategy?: 'mash' | 'sfu' | 'direct' | 'bridged' | null | undefined;
+    strategy: 'mash' | 'sfu';
     iceTransportPolicy?: 'all' | 'relay' | null | undefined;
     startTime?: number | null | undefined;
-    kind?: 'conference' | 'stream' | 'mash' | null | undefined;
+    kind: 'conference' | 'stream';
     streamerId?: number | null | undefined;
 }
 
 export class ConferenceRoom extends Entity<ConferenceRoomShape> {
     get id(): number { return this._rawValue.id; }
-    get strategy(): 'mash' | 'sfu' | 'direct' | 'bridged' | null { return this._rawValue.strategy; }
-    set strategy(value: 'mash' | 'sfu' | 'direct' | 'bridged' | null) {
+    get strategy(): 'mash' | 'sfu' { return this._rawValue.strategy; }
+    set strategy(value: 'mash' | 'sfu') {
         let normalized = this.descriptor.codec.fields.strategy.normalize(value);
         if (this._rawValue.strategy !== normalized) {
             this._rawValue.strategy = normalized;
@@ -6453,8 +6453,8 @@ export class ConferenceRoom extends Entity<ConferenceRoomShape> {
             this.invalidate();
         }
     }
-    get kind(): 'conference' | 'stream' | 'mash' | null { return this._rawValue.kind; }
-    set kind(value: 'conference' | 'stream' | 'mash' | null) {
+    get kind(): 'conference' | 'stream' { return this._rawValue.kind; }
+    set kind(value: 'conference' | 'stream') {
         let normalized = this.descriptor.codec.fields.kind.normalize(value);
         if (this._rawValue.kind !== normalized) {
             this._rawValue.kind = normalized;
@@ -6481,17 +6481,17 @@ export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, Co
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'strategy', type: { type: 'optional', inner: { type: 'enum', values: ['mash', 'sfu', 'direct', 'bridged'] } }, secure: false });
+        fields.push({ name: 'strategy', type: { type: 'enum', values: ['mash', 'sfu'] }, secure: false });
         fields.push({ name: 'iceTransportPolicy', type: { type: 'optional', inner: { type: 'enum', values: ['all', 'relay'] } }, secure: false });
         fields.push({ name: 'startTime', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
-        fields.push({ name: 'kind', type: { type: 'optional', inner: { type: 'enum', values: ['conference', 'stream', 'mash'] } }, secure: false });
+        fields.push({ name: 'kind', type: { type: 'enum', values: ['conference', 'stream'] }, secure: false });
         fields.push({ name: 'streamerId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
-            strategy: c.optional(c.enum('mash', 'sfu', 'direct', 'bridged')),
+            strategy: c.enum('mash', 'sfu'),
             iceTransportPolicy: c.optional(c.enum('all', 'relay')),
             startTime: c.optional(c.integer),
-            kind: c.optional(c.enum('conference', 'stream', 'mash')),
+            kind: c.enum('conference', 'stream'),
             streamerId: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<ConferenceRoomShape> = {

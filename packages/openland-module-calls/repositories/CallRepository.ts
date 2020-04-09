@@ -10,8 +10,7 @@ let log = createLogger('call-repo');
 function resolveMediaStreamSettings(
     uid1: number,
     uid2: number,
-    // TODO: remove mash after migration
-    confKind: 'conference' | 'stream' | 'mash',
+    confKind: 'conference' | 'stream',
     streamerId: number | null,
     iceTransportPolicy?: 'all' | 'relay' | null
 ): ConferenceMediaStreamCreateShape['settings1'] {
@@ -50,13 +49,13 @@ export class CallRepository {
         return await inTx(parent, async (ctx) => {
             let res = await Store.ConferenceRoom.findById(ctx, cid);
             if (!res) {
-                res = await Store.ConferenceRoom.create(ctx, cid, { strategy: 'mash', startTime: null });
+                res = await Store.ConferenceRoom.create(ctx, cid, { strategy: 'mash', kind: 'conference', startTime: null });
             }
             return res;
         });
     }
 
-    addPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number, kind?: 'conference' | 'stream' | null) => {
+    addPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number, kind: 'conference' | 'stream' = 'conference') => {
         return await inTx(parent, async (ctx) => {
 
             // let room = await this.entities.ConferenceRoom.findById(ctx, cid);
@@ -69,7 +68,7 @@ export class CallRepository {
             let conf = await this.getOrCreateConference(ctx, cid);
             if (confPeers.length === 0) {
                 conf.startTime = Date.now();
-                conf.kind = kind || 'conference';
+                conf.kind = kind;
                 conf.streamerId = conf.kind === 'stream' ? uid : null;
                 await conf.flush(ctx);
             }
