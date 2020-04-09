@@ -30,8 +30,8 @@ export const Resolver: GQLResolver = {
         iceServers: () => {
             return resolveTurnServices();
         },
-        strategy: (src) => src.strategy || 'mash',
-        kind: (src) => src.kind || 'conference',
+        strategy: (src) => src.strategy,
+        kind: (src) => src.kind,
     },
     ConferencePeer: {
         id: (src: ConferencePeer) => IDs.ConferencePeer.serialize(src.id),
