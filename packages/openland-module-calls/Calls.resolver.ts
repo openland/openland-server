@@ -247,7 +247,7 @@ export const Resolver: GQLResolver = {
             return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         }),
         conferenceAlterSettings: withPermission('super-admin', async (ctx, args) => {
-            let coid = IDs.Conference.parse(args.id);
+            let coid = IDs.Conversation.parse(args.id);
             let conf = await Modules.Calls.repo.getOrCreateConference(ctx, coid);
             if (args.settings.iceTransportPolicy) {
                 conf.iceTransportPolicy = args.settings.iceTransportPolicy;
