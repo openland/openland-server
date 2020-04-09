@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'cd88c3430ae86b1eaf7def9216fc4041';
+export const GQL_SPEC_VERSION = '9e0df0f2c5e5c3dd31c8063904662b3d';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1742,20 +1742,24 @@ export namespace GQL {
     export interface ICEServerUrlsArgs { }
     export interface ICEServerUsernameArgs { }
     export interface ICEServerCredentialArgs { }
-    export type ConferenceStrategyValues = 'MASH' | 'STREAM';
+    export type ConferenceStrategyValues = 'MASH' | 'SFU';
     export type ConferenceStrategy = GQLRoots.ConferenceStrategyRoot;
+    export type ConferenceKindValues = 'CONFERENCE' | 'STREAM';
+    export type ConferenceKind = GQLRoots.ConferenceKindRoot;
     export interface Conference {
         id: string;
         startTime: Nullable<Date>;
         peers: ConferencePeer[];
         iceServers: ICEServer[];
         strategy: ConferenceStrategy;
+        kind: ConferenceKind;
     }
     export interface ConferenceIdArgs { }
     export interface ConferenceStartTimeArgs { }
     export interface ConferencePeersArgs { }
     export interface ConferenceIceServersArgs { }
     export interface ConferenceStrategyArgs { }
+    export interface ConferenceKindArgs { }
     export interface ConferencePeer {
         id: string;
         user: User;
@@ -1804,6 +1808,10 @@ export namespace GQL {
     export interface MediaStreamSdpArgs { }
     export interface MediaStreamIceArgs { }
     export interface MediaStreamSettingsArgs { }
+    export interface ConferenceSettingsInput {
+        strategy: Nullable<ConferenceStrategy>;
+        iceTransportPolicy: Nullable<MediaStreamIceTransportPolicy>;
+    }
     export type ConferencePeerConnectionStateValues = 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY';
     export type ConferencePeerConnectionState = GQLRoots.ConferencePeerConnectionStateRoot;
     export interface ConferencePeerConnection {
@@ -2079,6 +2087,7 @@ export namespace GQL {
         conferenceJoin: ConferenceJoinResult;
         conferenceKeepAlive: Conference;
         conferenceLeave: Conference;
+        conferenceAlterSettings: Conference;
         mediaStreamOffer: ConferenceMedia;
         mediaStreamNegotiationNeeded: ConferenceMedia;
         mediaStreamAnswer: ConferenceMedia;
@@ -2785,7 +2794,7 @@ export namespace GQL {
     }
     export interface MutationConferenceJoinArgs {
         id: string;
-        strategy: OptionalNullable<ConferenceStrategy>;
+        kind: OptionalNullable<ConferenceKind>;
     }
     export interface MutationConferenceKeepAliveArgs {
         id: string;
@@ -2794,6 +2803,10 @@ export namespace GQL {
     export interface MutationConferenceLeaveArgs {
         id: string;
         peerId: string;
+    }
+    export interface MutationConferenceAlterSettingsArgs {
+        id: string;
+        settings: ConferenceSettingsInput;
     }
     export interface MutationMediaStreamOfferArgs {
         id: string;
@@ -7430,7 +7443,8 @@ export interface GQLResolver {
             credential: GQL.ICEServerCredentialArgs,
         }
     >;
-    ConferenceStrategy?: EnumTypeResolver<'MASH' | 'STREAM', GQLRoots.ConferenceStrategyRoot>;
+    ConferenceStrategy?: EnumTypeResolver<'MASH' | 'SFU', GQLRoots.ConferenceStrategyRoot>;
+    ConferenceKind?: EnumTypeResolver<'CONFERENCE' | 'STREAM', GQLRoots.ConferenceKindRoot>;
     Conference?: ComplexTypedResolver<
         GQL.Conference,
         GQLRoots.ConferenceRoot,
@@ -7444,6 +7458,7 @@ export interface GQLResolver {
             peers: GQL.ConferencePeersArgs,
             iceServers: GQL.ConferenceIceServersArgs,
             strategy: GQL.ConferenceStrategyArgs,
+            kind: GQL.ConferenceKindArgs,
         }
     >;
     ConferencePeer?: ComplexTypedResolver<
@@ -7678,6 +7693,7 @@ export interface GQLResolver {
             conferenceJoin: GQLRoots.ConferenceJoinResultRoot,
             conferenceKeepAlive: GQLRoots.ConferenceRoot,
             conferenceLeave: GQLRoots.ConferenceRoot,
+            conferenceAlterSettings: GQLRoots.ConferenceRoot,
             mediaStreamOffer: GQLRoots.ConferenceMediaRoot,
             mediaStreamNegotiationNeeded: GQLRoots.ConferenceMediaRoot,
             mediaStreamAnswer: GQLRoots.ConferenceMediaRoot,
@@ -7924,6 +7940,7 @@ export interface GQLResolver {
             conferenceJoin: GQL.MutationConferenceJoinArgs,
             conferenceKeepAlive: GQL.MutationConferenceKeepAliveArgs,
             conferenceLeave: GQL.MutationConferenceLeaveArgs,
+            conferenceAlterSettings: GQL.MutationConferenceAlterSettingsArgs,
             mediaStreamOffer: GQL.MutationMediaStreamOfferArgs,
             mediaStreamNegotiationNeeded: GQL.MutationMediaStreamNegotiationNeededArgs,
             mediaStreamAnswer: GQL.MutationMediaStreamAnswerArgs,
