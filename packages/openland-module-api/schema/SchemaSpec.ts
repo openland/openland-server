@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'd2fb4f2e68b06cc5c1169b3b6495b179';
+export const GQL_SPEC_VERSION = 'fc37e8c8e4b37d7b8fc895f755b3ab22';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -915,6 +915,16 @@ export namespace GQL {
     export interface DebugGlobalCountersUnreadMessagesWithoutMutedArgs { }
     export interface DebugGlobalCountersAllUnreadChatsArgs { }
     export interface DebugGlobalCountersUnreadChatsWithoutMutedArgs { }
+    export interface DebugIpInfo {
+        ip: string;
+        locationCode: string;
+        locationName: string;
+        location: Nullable<GeoLocation>;
+    }
+    export interface DebugIpInfoIpArgs { }
+    export interface DebugIpInfoLocationCodeArgs { }
+    export interface DebugIpInfoLocationNameArgs { }
+    export interface DebugIpInfoLocationArgs { }
     export type SuperNotificationTypeValues = 'ON_SIGN_UP' | 'ON_USER_PROFILE_CREATED' | 'ON_ORG_ACTIVATED_BY_ADMIN' | 'ON_ORG_ACTIVATED_VIA_INVITE' | 'ON_ORG_SUSPEND';
     export type SuperNotificationType = GQLRoots.SuperNotificationTypeRoot;
     export type DialogKindValues = 'PRIVATE' | 'INTERNAL' | 'PUBLIC' | 'GROUP';
@@ -3725,7 +3735,7 @@ export namespace GQL {
         debugUserMetrics: DebugUserMetrics;
         debugGlobalCounters: DebugGlobalCounters;
         debugServerId: string;
-        debugClientIp: Nullable<string>;
+        debugClientIp: Nullable<DebugIpInfo>;
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
@@ -6560,6 +6570,19 @@ export interface GQLResolver {
             unreadChatsWithoutMuted: GQL.DebugGlobalCountersUnreadChatsWithoutMutedArgs,
         }
     >;
+    DebugIpInfo?: ComplexTypedResolver<
+        GQL.DebugIpInfo,
+        GQLRoots.DebugIpInfoRoot,
+        {
+            location: Nullable<GQLRoots.GeoLocationRoot>,
+        },
+        {
+            ip: GQL.DebugIpInfoIpArgs,
+            locationCode: GQL.DebugIpInfoLocationCodeArgs,
+            locationName: GQL.DebugIpInfoLocationNameArgs,
+            location: GQL.DebugIpInfoLocationArgs,
+        }
+    >;
     SuperNotificationType?: EnumTypeResolver<'ON_SIGN_UP' | 'ON_USER_PROFILE_CREATED' | 'ON_ORG_ACTIVATED_BY_ADMIN' | 'ON_ORG_ACTIVATED_VIA_INVITE' | 'ON_ORG_SUSPEND', GQLRoots.SuperNotificationTypeRoot>;
     DialogKind?: EnumTypeResolver<'PRIVATE' | 'INTERNAL' | 'PUBLIC' | 'GROUP', GQLRoots.DialogKindRoot>;
     Dialog?: ComplexTypedResolver<
@@ -8571,6 +8594,7 @@ export interface GQLResolver {
             debugEventsState: GQLRoots.DebugEventsStateRoot,
             debugUserMetrics: GQLRoots.DebugUserMetricsRoot,
             debugGlobalCounters: GQLRoots.DebugGlobalCountersRoot,
+            debugClientIp: Nullable<GQLRoots.DebugIpInfoRoot>,
             dialogs: GQLRoots.DialogsConnectionRoot,
             settings: GQLRoots.SettingsRoot,
             authPoints: GQLRoots.AuthPointRoot,

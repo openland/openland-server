@@ -26,19 +26,13 @@ export async function resolveTurnServices() {
     //     return iceServers;
     // }
     return [{
+        ip: '35.228.24.228',
         urls: ['turn:35.228.24.228:3478'],
         username: 'user',
         credential: 'emFsdXBhCg',
     }, {
-        urls: ['stun:35.228.24.228:3478'],
-        username: 'user',
-        credential: 'emFsdXBhCg',
-    }, {
+        ip: '35.245.151.83',
         urls: ['turn:35.245.151.83:3478'],
-        username: 'user',
-        credential: 'cGl6ZGFyaWsK',
-    }, {
-        urls: ['stun:35.245.151.83:3478'],
         username: 'user',
         credential: 'cGl6ZGFyaWsK',
     }];

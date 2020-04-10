@@ -478,6 +478,7 @@ export namespace GQLRoots {
     export type EnvVarRoot = EnvironmentVariable;
     export type OrganizationChatStatsRoot = any;
     export type DebugEmailTypeRoot = DebugEmailTypeValues;
+    export type DebugIpInfoRoot = string;
     export type SuperNotificationTypeRoot = SuperNotificationTypeValues;
 
     //
