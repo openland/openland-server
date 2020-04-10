@@ -207,7 +207,9 @@ export namespace GQLRoots {
     export type ConferenceKindRoot = 'conference' | 'stream';
     export type MediaStreamIceTransportPolicyRoot = MediaStreamIceTransportPolicyValues;
     export type MediaStreamSettingsRoot = { audioIn: boolean, audioOut: boolean, videoIn: boolean, videoOut: boolean, iceTransportPolicy?: MediaStreamIceTransportPolicyValues };
-    export type ConferenceSettingsInputRoot = {strategy?: ConferenceStrategyRoot, iceTransportPolicy?: MediaStreamIceTransportPolicyValues};
+    export type ConferenceSettingsInputRoot = { strategy?: ConferenceStrategyRoot, iceTransportPolicy?: MediaStreamIceTransportPolicyValues };
+    export type MediaStreamVideoSourceRoot = 'camera' | 'screen_share';
+    export type MediaStreamMediaStateRoot = { videoOut: boolean, videoSource: MediaStreamVideoSourceRoot, audioOut: boolean };
 
     //
     // Dialogs Updates
@@ -336,7 +338,7 @@ export namespace GQLRoots {
     export type PrivateRoomRoot = any;
     export type WelcomeMessageRoot = WelcomeMessageT;
     export type SharedRoomRoot = ConversationRoom | Conversation | number;
-    export type SharedRoomConnectionRoot = { items: SharedRoomRoot[], cursor: string|null };
+    export type SharedRoomConnectionRoot = { items: SharedRoomRoot[], cursor: string | null };
     export type UserBadgeRoot = UserBadge;
 
     export type RoomMemberRoot = RoomParticipant | {
@@ -515,7 +517,7 @@ export namespace GQLRoots {
     export type DiscoverPageRoot = any;
     export type DiscoverChatsCollectionRoot = EditorsChoiceChatsCollection;
     export type DiscoverChatsCollectionConnectionRoot = { items: DiscoverChatsCollectionRoot[], cursor?: string };
-    export type PopularNowRoomRoot = {  room: RoomProfile, messagesDelta: number };
+    export type PopularNowRoomRoot = { room: RoomProfile, messagesDelta: number };
     export type PopularNowRoomConnectionRoot = { items: PopularNowRoomRoot[], cursor: string | null };
     export type EditorsChoiceChatRoot = EditorsChoiceChat;
 

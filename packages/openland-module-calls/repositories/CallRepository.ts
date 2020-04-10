@@ -57,7 +57,6 @@ export class CallRepository {
 
     addPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number, kind: 'conference' | 'stream' = 'conference') => {
         return await inTx(parent, async (ctx) => {
-
             // let room = await this.entities.ConferenceRoom.findById(ctx, cid);
             // if (!room) {
             //     throw Error('Unable to find room');
@@ -137,12 +136,34 @@ export class CallRepository {
                     settings1,
                     settings2,
                     seq: 0,
+                    mediaState1: { audioOut: true, videoOut: false, videoSource: 'camera' },
+                    mediaState2: { audioOut: true, videoOut: false, videoSource: 'camera' }
                 });
                 // }
             }
 
             await this.bumpVersion(ctx, cid);
             return res;
+        });
+    }
+
+    alterConferencePeerMediaState = async (parent: Context, cid: number, uid: number, tid: string, audioOut: boolean | null, videoOut: boolean | null) => {
+        return await inTx(parent, async (ctx) => {
+            let peer = await Store.ConferencePeer.auth.find(ctx, cid, uid, tid);
+            if (!peer) {
+                throw Error('Unable to find peer');
+            }
+            let streams = await Store.ConferenceMediaStream.conference.findAll(ctx, cid);
+            for (let stream of streams.filter(s => (s.peer1 === peer!.id) || (s.peer2 === peer!.id))) {
+                let change = { ...(typeof audioOut === 'boolean') ? { audioOut } : {}, ...(typeof videoOut === 'boolean') ? { videoOut } : {} };
+                if (stream.peer1 === peer!.id) {
+                    stream.mediaState1 = { ...stream.mediaState1!, ...change };
+                } else {
+                    stream.mediaState2 = { ...stream.mediaState2!, ...change };
+                }
+            }
+            await this.bumpVersion(ctx, cid);
+            return await this.getOrCreateConference(ctx, cid);
         });
     }
 
@@ -360,6 +381,8 @@ export class CallRepository {
                     settings1: stream.settings1,
                     settings2: stream.settings2,
                     seq: 0,
+                    mediaState1: { audioOut: true, videoOut: false, videoSource: 'camera' },
+                    mediaState2: { audioOut: true, videoOut: false, videoSource: 'camera' }
                 });
             }
 

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9e0df0f2c5e5c3dd31c8063904662b3d';
+export const GQL_SPEC_VERSION = '4a4940fb722361dbdb5d7864a1c6458e';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1792,6 +1792,20 @@ export namespace GQL {
     export interface MediaStreamSettingsAudioInArgs { }
     export interface MediaStreamSettingsAudioOutArgs { }
     export interface MediaStreamSettingsIceTransportPolicyArgs { }
+    export type MediaStreamVideoSourceValues = 'CAMERA' | 'SCREEN_SHARE';
+    export type MediaStreamVideoSource = GQLRoots.MediaStreamVideoSourceRoot;
+    export interface MediaStreamMediaState {
+        videoOut: boolean;
+        videoSource: Nullable<MediaStreamVideoSource>;
+        audioOut: boolean;
+    }
+    export interface MediaStreamMediaStateVideoOutArgs { }
+    export interface MediaStreamMediaStateVideoSourceArgs { }
+    export interface MediaStreamMediaStateAudioOutArgs { }
+    export interface MediaStreamMediaStateInput {
+        videoOut: Nullable<boolean>;
+        audioOut: Nullable<boolean>;
+    }
     export interface MediaStream {
         id: string;
         peerId: Nullable<string>;
@@ -1800,6 +1814,7 @@ export namespace GQL {
         sdp: Nullable<string>;
         ice: string[];
         settings: MediaStreamSettings;
+        mediaState: MediaStreamMediaState;
     }
     export interface MediaStreamIdArgs { }
     export interface MediaStreamPeerIdArgs { }
@@ -1808,6 +1823,7 @@ export namespace GQL {
     export interface MediaStreamSdpArgs { }
     export interface MediaStreamIceArgs { }
     export interface MediaStreamSettingsArgs { }
+    export interface MediaStreamMediaStateArgs { }
     export interface ConferenceSettingsInput {
         strategy: Nullable<ConferenceStrategy>;
         iceTransportPolicy: Nullable<MediaStreamIceTransportPolicy>;
@@ -2085,6 +2101,8 @@ export namespace GQL {
         superAccountFeatureRemove: SuperAccount;
         shareLocation: boolean;
         conferenceJoin: ConferenceJoinResult;
+        conferenceAddVideo: Conference;
+        conferenceAlterMediaState: Conference;
         conferenceKeepAlive: Conference;
         conferenceLeave: Conference;
         conferenceAlterSettings: Conference;
@@ -2795,6 +2813,14 @@ export namespace GQL {
     export interface MutationConferenceJoinArgs {
         id: string;
         kind: OptionalNullable<ConferenceKind>;
+    }
+    export interface MutationConferenceAddVideoArgs {
+        id: string;
+        source: OptionalNullable<MediaStreamVideoSource>;
+    }
+    export interface MutationConferenceAlterMediaStateArgs {
+        id: string;
+        state: MediaStreamMediaStateInput;
     }
     export interface MutationConferenceKeepAliveArgs {
         id: string;
@@ -7502,11 +7528,24 @@ export interface GQLResolver {
             iceTransportPolicy: GQL.MediaStreamSettingsIceTransportPolicyArgs,
         }
     >;
+    MediaStreamVideoSource?: EnumTypeResolver<'CAMERA' | 'SCREEN_SHARE', GQLRoots.MediaStreamVideoSourceRoot>;
+    MediaStreamMediaState?: ComplexTypedResolver<
+        GQL.MediaStreamMediaState,
+        GQLRoots.MediaStreamMediaStateRoot,
+        {
+        },
+        {
+            videoOut: GQL.MediaStreamMediaStateVideoOutArgs,
+            videoSource: GQL.MediaStreamMediaStateVideoSourceArgs,
+            audioOut: GQL.MediaStreamMediaStateAudioOutArgs,
+        }
+    >;
     MediaStream?: ComplexTypedResolver<
         GQL.MediaStream,
         GQLRoots.MediaStreamRoot,
         {
             settings: GQLRoots.MediaStreamSettingsRoot,
+            mediaState: GQLRoots.MediaStreamMediaStateRoot,
         },
         {
             id: GQL.MediaStreamIdArgs,
@@ -7516,6 +7555,7 @@ export interface GQLResolver {
             sdp: GQL.MediaStreamSdpArgs,
             ice: GQL.MediaStreamIceArgs,
             settings: GQL.MediaStreamSettingsArgs,
+            mediaState: GQL.MediaStreamMediaStateArgs,
         }
     >;
     ConferencePeerConnectionState?: EnumTypeResolver<'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY', GQLRoots.ConferencePeerConnectionStateRoot>;
@@ -7691,6 +7731,8 @@ export interface GQLResolver {
             superAccountFeatureAdd: GQLRoots.SuperAccountRoot,
             superAccountFeatureRemove: GQLRoots.SuperAccountRoot,
             conferenceJoin: GQLRoots.ConferenceJoinResultRoot,
+            conferenceAddVideo: GQLRoots.ConferenceRoot,
+            conferenceAlterMediaState: GQLRoots.ConferenceRoot,
             conferenceKeepAlive: GQLRoots.ConferenceRoot,
             conferenceLeave: GQLRoots.ConferenceRoot,
             conferenceAlterSettings: GQLRoots.ConferenceRoot,
@@ -7938,6 +7980,8 @@ export interface GQLResolver {
             superAccountFeatureRemove: GQL.MutationSuperAccountFeatureRemoveArgs,
             shareLocation: GQL.MutationShareLocationArgs,
             conferenceJoin: GQL.MutationConferenceJoinArgs,
+            conferenceAddVideo: GQL.MutationConferenceAddVideoArgs,
+            conferenceAlterMediaState: GQL.MutationConferenceAlterMediaStateArgs,
             conferenceKeepAlive: GQL.MutationConferenceKeepAliveArgs,
             conferenceLeave: GQL.MutationConferenceLeaveArgs,
             conferenceAlterSettings: GQL.MutationConferenceAlterSettingsArgs,

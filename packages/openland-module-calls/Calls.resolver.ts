@@ -33,6 +33,15 @@ export const Resolver: GQLResolver = {
         strategy: (src) => src.strategy,
         kind: (src) => src.kind,
     },
+    MediaStreamVideoSource: {
+        CAMERA: 'camera',
+        SCREEN_SHARE: 'screen_share',
+    },
+    MediaStreamMediaState: {
+        videoOut: (src) => src.videoOut,
+        videoSource: (src) => src.videoSource,
+        audioOut: (src) => src.audioOut,
+    },
     ConferencePeer: {
         id: (src: ConferencePeer) => IDs.ConferencePeer.serialize(src.id),
         user: (src: ConferencePeer) => src.uid,
@@ -129,6 +138,7 @@ export const Resolver: GQLResolver = {
                         sdp,
                         ice,
                         settings: src.peerId === c.peer1 ? c.settings1! : c.settings2!,
+                        mediaState: src.peerId === c.peer1 ? c.mediaState2! : c.mediaState1!
                     });
                 }
             }
@@ -164,6 +174,11 @@ export const Resolver: GQLResolver = {
                 conference: await Modules.Calls.repo.getOrCreateConference(ctx, cid)
             };
         }),
+        conferenceAlterMediaState: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conference.parse(args.id);
+            return await Modules.Calls.repo.alterConferencePeerMediaState(ctx, cid, uid, ctx.auth.tid!, args.state.audioOut, args.state.videoOut);
+        }),
+
         conferenceLeave: withUser(async (ctx, args, uid) => {
             let coid = IDs.Conference.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);

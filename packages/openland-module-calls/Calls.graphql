@@ -56,6 +56,21 @@ type MediaStreamSettings {
     iceTransportPolicy: MediaStreamIceTransportPolicy
 }
 
+enum MediaStreamVideoSource {
+    CAMERA,
+    SCREEN_SHARE
+}
+
+type MediaStreamMediaState {
+    videoOut: Boolean!
+    videoSource: MediaStreamVideoSource
+    audioOut: Boolean!
+}
+input MediaStreamMediaStateInput {
+    videoOut: Boolean
+    audioOut: Boolean
+}
+
 type MediaStream {
     id: ID!
     peerId: ID
@@ -64,6 +79,7 @@ type MediaStream {
     sdp: String
     ice: [String!]!
     settings: MediaStreamSettings!
+    mediaState: MediaStreamMediaState!
 }
 
 input ConferenceSettingsInput {
@@ -99,6 +115,8 @@ extend type Query {
 
 extend type Mutation {
     conferenceJoin(id: ID!, kind: ConferenceKind): ConferenceJoinResult!
+    conferenceAddVideo(id: ID!, source: MediaStreamVideoSource): Conference!
+    conferenceAlterMediaState(id: ID!, state: MediaStreamMediaStateInput!): Conference!
     conferenceKeepAlive(id: ID!, peerId: ID!): Conference!
     conferenceLeave(id: ID!, peerId: ID!): Conference!
     conferenceAlterSettings(id: ID!, settings: ConferenceSettingsInput!): Conference!
