@@ -2,7 +2,7 @@ import { Modules } from '../../openland-modules/Modules';
 import { ScheduledQueue, WeekDay } from '../../openland-module-workers/ScheduledQueue';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { getLeaderboardsChatId, getSuperNotificationsBotId } from './utils';
-import { boldString, buildMessage, heading } from '../../openland-utils/MessageBuilder';
+import { boldString, buildMessage, heading, roomMention } from '../../openland-utils/MessageBuilder';
 import { createLogger } from '@openland/log';
 import { formatNumberWithSign } from '../../openland-utils/string';
 
@@ -66,7 +66,7 @@ export function createWeeklyRoomByMessagesLeaderboardWorker() {
 
             let message = [heading('👥  Weekly groups by messages'), '\n'];
             for (let { room, messagesDelta } of roomsWithDelta) {
-                message.push(boldString(`${formatNumberWithSign(messagesDelta)} · ${formatNumberWithSign(members.get(room.id) || 0)} · ${room.activeMembersCount}`), `  ${room.title}\n`);
+                message.push(boldString(`${formatNumberWithSign(messagesDelta)} · ${formatNumberWithSign(members.get(room.id) || 0)} · ${room.activeMembersCount}  `), roomMention(room.title, room.id), `\n`);
             }
 
             await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
