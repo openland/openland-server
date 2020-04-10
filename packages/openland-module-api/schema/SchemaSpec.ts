@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '4a4940fb722361dbdb5d7864a1c6458e';
+export const GQL_SPEC_VERSION = '74ae1d1b52e27c64eaa640d616142f2f';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1783,16 +1783,18 @@ export namespace GQL {
     export interface MediaStreamSettings {
         videoIn: boolean;
         videoOut: boolean;
+        videoOutSource: Nullable<MediaStreamVideoSource>;
         audioIn: boolean;
         audioOut: boolean;
         iceTransportPolicy: Nullable<MediaStreamIceTransportPolicy>;
     }
     export interface MediaStreamSettingsVideoInArgs { }
     export interface MediaStreamSettingsVideoOutArgs { }
+    export interface MediaStreamSettingsVideoOutSourceArgs { }
     export interface MediaStreamSettingsAudioInArgs { }
     export interface MediaStreamSettingsAudioOutArgs { }
     export interface MediaStreamSettingsIceTransportPolicyArgs { }
-    export type MediaStreamVideoSourceValues = 'CAMERA' | 'SCREEN_SHARE';
+    export type MediaStreamVideoSourceValues = 'camera' | 'screen_share';
     export type MediaStreamVideoSource = GQLRoots.MediaStreamVideoSourceRoot;
     export interface MediaStreamMediaState {
         videoOut: boolean;
@@ -2101,7 +2103,8 @@ export namespace GQL {
         superAccountFeatureRemove: SuperAccount;
         shareLocation: boolean;
         conferenceJoin: ConferenceJoinResult;
-        conferenceAddVideo: Conference;
+        conferenceAddScreenShare: Conference;
+        conferenceRemoveScreenShare: Conference;
         conferenceAlterMediaState: Conference;
         conferenceKeepAlive: Conference;
         conferenceLeave: Conference;
@@ -2814,9 +2817,11 @@ export namespace GQL {
         id: string;
         kind: OptionalNullable<ConferenceKind>;
     }
-    export interface MutationConferenceAddVideoArgs {
+    export interface MutationConferenceAddScreenShareArgs {
         id: string;
-        source: OptionalNullable<MediaStreamVideoSource>;
+    }
+    export interface MutationConferenceRemoveScreenShareArgs {
+        id: string;
     }
     export interface MutationConferenceAlterMediaStateArgs {
         id: string;
@@ -7523,12 +7528,13 @@ export interface GQLResolver {
         {
             videoIn: GQL.MediaStreamSettingsVideoInArgs,
             videoOut: GQL.MediaStreamSettingsVideoOutArgs,
+            videoOutSource: GQL.MediaStreamSettingsVideoOutSourceArgs,
             audioIn: GQL.MediaStreamSettingsAudioInArgs,
             audioOut: GQL.MediaStreamSettingsAudioOutArgs,
             iceTransportPolicy: GQL.MediaStreamSettingsIceTransportPolicyArgs,
         }
     >;
-    MediaStreamVideoSource?: EnumTypeResolver<'CAMERA' | 'SCREEN_SHARE', GQLRoots.MediaStreamVideoSourceRoot>;
+    MediaStreamVideoSource?: EnumTypeResolver<'camera' | 'screen_share', GQLRoots.MediaStreamVideoSourceRoot>;
     MediaStreamMediaState?: ComplexTypedResolver<
         GQL.MediaStreamMediaState,
         GQLRoots.MediaStreamMediaStateRoot,
@@ -7731,7 +7737,8 @@ export interface GQLResolver {
             superAccountFeatureAdd: GQLRoots.SuperAccountRoot,
             superAccountFeatureRemove: GQLRoots.SuperAccountRoot,
             conferenceJoin: GQLRoots.ConferenceJoinResultRoot,
-            conferenceAddVideo: GQLRoots.ConferenceRoot,
+            conferenceAddScreenShare: GQLRoots.ConferenceRoot,
+            conferenceRemoveScreenShare: GQLRoots.ConferenceRoot,
             conferenceAlterMediaState: GQLRoots.ConferenceRoot,
             conferenceKeepAlive: GQLRoots.ConferenceRoot,
             conferenceLeave: GQLRoots.ConferenceRoot,
@@ -7980,7 +7987,8 @@ export interface GQLResolver {
             superAccountFeatureRemove: GQL.MutationSuperAccountFeatureRemoveArgs,
             shareLocation: GQL.MutationShareLocationArgs,
             conferenceJoin: GQL.MutationConferenceJoinArgs,
-            conferenceAddVideo: GQL.MutationConferenceAddVideoArgs,
+            conferenceAddScreenShare: GQL.MutationConferenceAddScreenShareArgs,
+            conferenceRemoveScreenShare: GQL.MutationConferenceRemoveScreenShareArgs,
             conferenceAlterMediaState: GQL.MutationConferenceAlterMediaStateArgs,
             conferenceKeepAlive: GQL.MutationConferenceKeepAliveArgs,
             conferenceLeave: GQL.MutationConferenceLeaveArgs,

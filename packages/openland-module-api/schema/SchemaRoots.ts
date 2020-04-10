@@ -203,12 +203,12 @@ export namespace GQLRoots {
     export type ConferenceMediaRoot = { id: number, peerId: number };
     export type MediaStreamStateRoot = MediaStreamStateValues;
     export type ConferencePeerConnectionStateRoot = ConferencePeerConnectionStateValues;
-    export type ConferenceStrategyRoot = 'mash' | 'sfu';
-    export type ConferenceKindRoot = 'conference' | 'stream';
+    export type ConferenceStrategyRoot = GQL.ConferenceStrategyValues;
+    export type ConferenceKindRoot = GQL.ConferenceKindValues;
     export type MediaStreamIceTransportPolicyRoot = MediaStreamIceTransportPolicyValues;
-    export type MediaStreamSettingsRoot = { audioIn: boolean, audioOut: boolean, videoIn: boolean, videoOut: boolean, iceTransportPolicy?: MediaStreamIceTransportPolicyValues };
+    export type MediaStreamVideoSourceRoot = GQL.MediaStreamVideoSourceValues;
+    export type MediaStreamSettingsRoot = { audioIn: boolean, audioOut: boolean, videoIn: boolean, videoOut: boolean, videoOutSource: MediaStreamVideoSourceRoot, iceTransportPolicy?: MediaStreamIceTransportPolicyValues };
     export type ConferenceSettingsInputRoot = { strategy?: ConferenceStrategyRoot, iceTransportPolicy?: MediaStreamIceTransportPolicyValues };
-    export type MediaStreamVideoSourceRoot = 'camera' | 'screen_share';
     export type MediaStreamMediaStateRoot = { videoOut: boolean, videoSource: MediaStreamVideoSourceRoot, audioOut: boolean };
 
     //

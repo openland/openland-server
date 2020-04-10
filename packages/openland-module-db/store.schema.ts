@@ -869,6 +869,7 @@ export default declareSchema(() => {
     const ConferenceMediaStreamSettings = struct({
         videoIn: boolean(),
         videoOut: boolean(),
+        videoOutSource: optional(enumString('camera', 'screen_share')),
         audioIn: boolean(),
         audioOut: boolean(),
         iceTransportPolicy: optional(enumString('all', 'relay'))

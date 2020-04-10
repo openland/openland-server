@@ -1,6 +1,6 @@
 import { ConferenceRoom, ConferencePeer } from './../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
-import { withUser, withPermission } from 'openland-module-api/Resolvers';
+import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
 import { Context } from '@openland/context';
@@ -11,14 +11,6 @@ import { resolveTurnServices } from './services/TURNService';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
 
 export const Resolver: GQLResolver = {
-    ConferenceStrategy: {
-        MASH: 'mash',
-        SFU: 'sfu'
-    },
-    ConferenceKind: {
-        CONFERENCE: 'conference',
-        STREAM: 'stream'
-    },
     Conference: {
         id: (src: ConferenceRoom) => IDs.Conference.serialize(src.id),
         startTime: (src: ConferenceRoom) => src.startTime,
@@ -30,12 +22,8 @@ export const Resolver: GQLResolver = {
         iceServers: () => {
             return resolveTurnServices();
         },
-        strategy: (src) => src.strategy,
-        kind: (src) => src.kind,
-    },
-    MediaStreamVideoSource: {
-        CAMERA: 'camera',
-        SCREEN_SHARE: 'screen_share',
+        strategy: (src) => src.strategy === 'mash' ? 'MASH' : 'SFU',
+        kind: (src) => src.kind === 'conference' ? 'CONFERENCE' : 'STREAM',
     },
     MediaStreamMediaState: {
         videoOut: (src) => src.videoOut,
@@ -160,7 +148,7 @@ export const Resolver: GQLResolver = {
     Mutation: {
         conferenceJoin: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conference.parse(args.id);
-            let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 15000, args.kind || 'conference');
+            let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 15000, args.kind === 'STREAM' ? 'stream' : 'conference');
             let activeMembers = await Modules.Calls.repo.findActiveMembers(ctx, cid);
             if (activeMembers.length === 1) {
                 let fullName = await Modules.Users.getUserFullName(ctx, uid);
@@ -173,6 +161,14 @@ export const Resolver: GQLResolver = {
                 peerId: IDs.ConferencePeer.serialize(res.id),
                 conference: await Modules.Calls.repo.getOrCreateConference(ctx, cid)
             };
+        }),
+        conferenceAddScreenShare: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conference.parse(args.id);
+            return await Modules.Calls.repo.addScreenShare(ctx, cid, uid, ctx.auth.tid!);
+        }),
+        conferenceRemoveScreenShare: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conference.parse(args.id);
+            return await Modules.Calls.repo.removeScreenShare(ctx, cid, uid, ctx.auth.tid!);
         }),
         conferenceAlterMediaState: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conference.parse(args.id);
@@ -261,16 +257,18 @@ export const Resolver: GQLResolver = {
             await Modules.Calls.repo.connectionCandidate(ctx, coid, srcPid, dstPid, args.candidate);
             return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         }),
-        conferenceAlterSettings: withPermission('super-admin', async (ctx, args) => {
-            let coid = IDs.Conversation.parse(args.id);
-            let conf = await Modules.Calls.repo.getOrCreateConference(ctx, coid);
-            if (args.settings.iceTransportPolicy) {
-                conf.iceTransportPolicy = args.settings.iceTransportPolicy;
-            }
-            if (args.settings.strategy) {
-                conf.strategy = args.settings.strategy;
-            }
-            return conf;
+        conferenceAlterSettings: withUser(async (parent, args) => {
+            return await inTx(parent, async (ctx) => {
+                let coid = IDs.Conversation.parse(args.id);
+                let conf = await Modules.Calls.repo.getOrCreateConference(ctx, coid);
+                if (args.settings.iceTransportPolicy) {
+                    conf.iceTransportPolicy = args.settings.iceTransportPolicy;
+                }
+                if (args.settings.strategy) {
+                    conf.strategy = args.settings.strategy === 'MASH' ? 'mash' : 'sfu';
+                }
+                return conf;
+            });
         }),
     },
     Subscription: {

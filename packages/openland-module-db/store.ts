@@ -6704,8 +6704,8 @@ export interface ConferenceMediaStreamShape {
     answer: string | null;
     ice1: any;
     ice2: any;
-    settings1: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null;
-    settings2: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null;
+    settings1: { videoIn: boolean, videoOut: boolean, videoOutSource: 'camera' | 'screen_share' | null, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null;
+    settings2: { videoIn: boolean, videoOut: boolean, videoOutSource: 'camera' | 'screen_share' | null, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null;
     mediaState1: { videoOut: boolean, audioOut: boolean, videoSource: 'camera' | 'screen_share' | null } | null;
     mediaState2: { videoOut: boolean, audioOut: boolean, videoSource: 'camera' | 'screen_share' | null } | null;
 }
@@ -6721,8 +6721,8 @@ export interface ConferenceMediaStreamCreateShape {
     answer?: string | null | undefined;
     ice1: any;
     ice2: any;
-    settings1?: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null | undefined } | null | undefined;
-    settings2?: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null | undefined } | null | undefined;
+    settings1?: { videoIn: boolean, videoOut: boolean, videoOutSource: 'camera' | 'screen_share' | null | undefined, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null | undefined } | null | undefined;
+    settings2?: { videoIn: boolean, videoOut: boolean, videoOutSource: 'camera' | 'screen_share' | null | undefined, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null | undefined } | null | undefined;
     mediaState1?: { videoOut: boolean, audioOut: boolean, videoSource: 'camera' | 'screen_share' | null | undefined } | null | undefined;
     mediaState2?: { videoOut: boolean, audioOut: boolean, videoSource: 'camera' | 'screen_share' | null | undefined } | null | undefined;
 }
@@ -6819,8 +6819,8 @@ export class ConferenceMediaStream extends Entity<ConferenceMediaStreamShape> {
             this.invalidate();
         }
     }
-    get settings1(): { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null { return this._rawValue.settings1; }
-    set settings1(value: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null) {
+    get settings1(): { videoIn: boolean, videoOut: boolean, videoOutSource: 'camera' | 'screen_share' | null, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null { return this._rawValue.settings1; }
+    set settings1(value: { videoIn: boolean, videoOut: boolean, videoOutSource: 'camera' | 'screen_share' | null, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null) {
         let normalized = this.descriptor.codec.fields.settings1.normalize(value);
         if (this._rawValue.settings1 !== normalized) {
             this._rawValue.settings1 = normalized;
@@ -6828,8 +6828,8 @@ export class ConferenceMediaStream extends Entity<ConferenceMediaStreamShape> {
             this.invalidate();
         }
     }
-    get settings2(): { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null { return this._rawValue.settings2; }
-    set settings2(value: { videoIn: boolean, videoOut: boolean, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null) {
+    get settings2(): { videoIn: boolean, videoOut: boolean, videoOutSource: 'camera' | 'screen_share' | null, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null { return this._rawValue.settings2; }
+    set settings2(value: { videoIn: boolean, videoOut: boolean, videoOutSource: 'camera' | 'screen_share' | null, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null) {
         let normalized = this.descriptor.codec.fields.settings2.normalize(value);
         if (this._rawValue.settings2 !== normalized) {
             this._rawValue.settings2 = normalized;
@@ -6876,8 +6876,8 @@ export class ConferenceMediaStreamFactory extends EntityFactory<ConferenceMediaS
         fields.push({ name: 'answer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'ice1', type: { type: 'json' }, secure: false });
         fields.push({ name: 'ice2', type: { type: 'json' }, secure: false });
-        fields.push({ name: 'settings1', type: { type: 'optional', inner: { type: 'struct', fields: { videoIn: { type: 'boolean' }, videoOut: { type: 'boolean' }, audioIn: { type: 'boolean' }, audioOut: { type: 'boolean' }, iceTransportPolicy: { type: 'optional', inner: { type: 'enum', values: ['all', 'relay'] } } } } }, secure: false });
-        fields.push({ name: 'settings2', type: { type: 'optional', inner: { type: 'struct', fields: { videoIn: { type: 'boolean' }, videoOut: { type: 'boolean' }, audioIn: { type: 'boolean' }, audioOut: { type: 'boolean' }, iceTransportPolicy: { type: 'optional', inner: { type: 'enum', values: ['all', 'relay'] } } } } }, secure: false });
+        fields.push({ name: 'settings1', type: { type: 'optional', inner: { type: 'struct', fields: { videoIn: { type: 'boolean' }, videoOut: { type: 'boolean' }, videoOutSource: { type: 'optional', inner: { type: 'enum', values: ['camera', 'screen_share'] } }, audioIn: { type: 'boolean' }, audioOut: { type: 'boolean' }, iceTransportPolicy: { type: 'optional', inner: { type: 'enum', values: ['all', 'relay'] } } } } }, secure: false });
+        fields.push({ name: 'settings2', type: { type: 'optional', inner: { type: 'struct', fields: { videoIn: { type: 'boolean' }, videoOut: { type: 'boolean' }, videoOutSource: { type: 'optional', inner: { type: 'enum', values: ['camera', 'screen_share'] } }, audioIn: { type: 'boolean' }, audioOut: { type: 'boolean' }, iceTransportPolicy: { type: 'optional', inner: { type: 'enum', values: ['all', 'relay'] } } } } }, secure: false });
         fields.push({ name: 'mediaState1', type: { type: 'optional', inner: { type: 'struct', fields: { videoOut: { type: 'boolean' }, audioOut: { type: 'boolean' }, videoSource: { type: 'optional', inner: { type: 'enum', values: ['camera', 'screen_share'] } } } } }, secure: false });
         fields.push({ name: 'mediaState2', type: { type: 'optional', inner: { type: 'struct', fields: { videoOut: { type: 'boolean' }, audioOut: { type: 'boolean' }, videoSource: { type: 'optional', inner: { type: 'enum', values: ['camera', 'screen_share'] } } } } }, secure: false });
         let codec = c.struct({
@@ -6892,8 +6892,8 @@ export class ConferenceMediaStreamFactory extends EntityFactory<ConferenceMediaS
             answer: c.optional(c.string),
             ice1: c.any,
             ice2: c.any,
-            settings1: c.optional(c.struct({ videoIn: c.boolean, videoOut: c.boolean, audioIn: c.boolean, audioOut: c.boolean, iceTransportPolicy: c.optional(c.enum('all', 'relay')) })),
-            settings2: c.optional(c.struct({ videoIn: c.boolean, videoOut: c.boolean, audioIn: c.boolean, audioOut: c.boolean, iceTransportPolicy: c.optional(c.enum('all', 'relay')) })),
+            settings1: c.optional(c.struct({ videoIn: c.boolean, videoOut: c.boolean, videoOutSource: c.optional(c.enum('camera', 'screen_share')), audioIn: c.boolean, audioOut: c.boolean, iceTransportPolicy: c.optional(c.enum('all', 'relay')) })),
+            settings2: c.optional(c.struct({ videoIn: c.boolean, videoOut: c.boolean, videoOutSource: c.optional(c.enum('camera', 'screen_share')), audioIn: c.boolean, audioOut: c.boolean, iceTransportPolicy: c.optional(c.enum('all', 'relay')) })),
             mediaState1: c.optional(c.struct({ videoOut: c.boolean, audioOut: c.boolean, videoSource: c.optional(c.enum('camera', 'screen_share')) })),
             mediaState2: c.optional(c.struct({ videoOut: c.boolean, audioOut: c.boolean, videoSource: c.optional(c.enum('camera', 'screen_share')) })),
         });
