@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9e0df0f2c5e5c3dd31c8063904662b3d';
+export const GQL_SPEC_VERSION = 'e01ea97c87a0faeba9efd8c91be4140e';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3772,6 +3772,7 @@ export namespace GQL {
         roomSuper: Nullable<RoomSuper>;
         roomMessages: RoomMessage[];
         roomMembers: RoomMember[];
+        roomAdmins: RoomMember[];
         roomFeaturedMembers: RoomMember[];
         roomMember: Nullable<RoomMember>;
         roomSocialImage: Nullable<string>;
@@ -4201,6 +4202,9 @@ export namespace GQL {
         roomId: string;
         first: OptionalNullable<number>;
         after: OptionalNullable<string>;
+    }
+    export interface QueryRoomAdminsArgs {
+        roomId: string;
     }
     export interface QueryRoomFeaturedMembersArgs {
         roomId: string;
@@ -8543,6 +8547,7 @@ export interface GQLResolver {
             roomSuper: Nullable<GQLRoots.RoomSuperRoot>,
             roomMessages: GQLRoots.RoomMessageRoot[],
             roomMembers: GQLRoots.RoomMemberRoot[],
+            roomAdmins: GQLRoots.RoomMemberRoot[],
             roomFeaturedMembers: GQLRoots.RoomMemberRoot[],
             roomMember: Nullable<GQLRoots.RoomMemberRoot>,
             betaRoomSearch: GQLRoots.RoomConnectionRoot,
@@ -8698,6 +8703,7 @@ export interface GQLResolver {
             roomSuper: GQL.QueryRoomSuperArgs,
             roomMessages: GQL.QueryRoomMessagesArgs,
             roomMembers: GQL.QueryRoomMembersArgs,
+            roomAdmins: GQL.QueryRoomAdminsArgs,
             roomFeaturedMembers: GQL.QueryRoomFeaturedMembersArgs,
             roomMember: GQL.QueryRoomMemberArgs,
             roomSocialImage: GQL.QueryRoomSocialImageArgs,
