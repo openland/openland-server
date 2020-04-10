@@ -6,6 +6,11 @@ type ICEServer {
 
 enum ConferenceStrategy {
     MASH,
+    SFU
+}
+
+enum ConferenceKind {
+    CONFERENCE,
     STREAM
 }
 
@@ -15,6 +20,7 @@ type Conference {
     peers: [ConferencePeer!]!
     iceServers: [ICEServer!]!
     strategy: ConferenceStrategy!
+    kind: ConferenceKind!
 }
 
 type ConferencePeer {
@@ -60,6 +66,11 @@ type MediaStream {
     settings: MediaStreamSettings!
 }
 
+input ConferenceSettingsInput {
+    strategy: ConferenceStrategy
+    iceTransportPolicy: MediaStreamIceTransportPolicy
+}
+
 # Deprecated
 enum ConferencePeerConnectionState {
     WAIT_OFFER
@@ -87,9 +98,10 @@ extend type Query {
 }
 
 extend type Mutation {
-    conferenceJoin(id: ID!, strategy: ConferenceStrategy): ConferenceJoinResult!
+    conferenceJoin(id: ID!, kind: ConferenceKind): ConferenceJoinResult!
     conferenceKeepAlive(id: ID!, peerId: ID!): Conference!
     conferenceLeave(id: ID!, peerId: ID!): Conference!
+    conferenceAlterSettings(id: ID!, settings: ConferenceSettingsInput!): Conference!
 
     mediaStreamOffer(id: ID!, peerId: ID!, offer: String!, seq: Int): ConferenceMedia!
     mediaStreamNegotiationNeeded(id: ID!, peerId: ID!, seq: Int): ConferenceMedia!

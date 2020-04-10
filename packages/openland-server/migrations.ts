@@ -490,4 +490,44 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '122-conference-update-strategy-field',
+    migration: async (parent) => {
+        let data = await inTx(parent, ctx => Store.ConferenceRoom.findAll(ctx));
+        for (let cursor = 0; cursor < data.length; cursor += 100) {
+            let batch = data.slice(cursor, cursor + 100);
+            await inTx(parent, async ctx => {
+                for (let key of batch) {
+                    let item = (await Store.ConferenceRoom.findById(ctx, key.id))!;
+                    if (item) {
+                        item.strategy = 'mash';
+                        item.kind = 'conference';
+                        await item.flush(ctx);
+                    }
+                }
+            });
+        }
+    }
+});
+
+migrations.push({
+    key: '122-fix-conference',
+    migration: async (parent) => {
+        let data = await inTx(parent, ctx => Store.ConferenceRoom.findAll(ctx));
+        for (let cursor = 0; cursor < data.length; cursor += 100) {
+            let batch = data.slice(cursor, cursor + 100);
+            await inTx(parent, async ctx => {
+                for (let key of batch) {
+                    let item = (await Store.ConferenceRoom.findById(ctx, key.id))!;
+                    if (item) {
+                        item.strategy = 'mash';
+                        item.kind = 'conference';
+                        await item.flush(ctx);
+                    }
+                }
+            });
+        }
+    }
+});
+
 export default migrations;

@@ -1,6 +1,6 @@
 import { ConferenceRoom, ConferencePeer } from './../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
-import { withUser } from 'openland-module-api/Resolvers';
+import { withUser, withPermission } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
 import { Context } from '@openland/context';
@@ -13,6 +13,10 @@ import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
 export const Resolver: GQLResolver = {
     ConferenceStrategy: {
         MASH: 'mash',
+        SFU: 'sfu'
+    },
+    ConferenceKind: {
+        CONFERENCE: 'conference',
         STREAM: 'stream'
     },
     Conference: {
@@ -26,7 +30,8 @@ export const Resolver: GQLResolver = {
         iceServers: () => {
             return resolveTurnServices();
         },
-        strategy: (src) => src.kind!,
+        strategy: (src) => src.strategy,
+        kind: (src) => src.kind,
     },
     ConferencePeer: {
         id: (src: ConferencePeer) => IDs.ConferencePeer.serialize(src.id),
@@ -145,7 +150,7 @@ export const Resolver: GQLResolver = {
     Mutation: {
         conferenceJoin: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conference.parse(args.id);
-            let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 15000, args.strategy);
+            let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 15000, args.kind || 'conference');
             let activeMembers = await Modules.Calls.repo.findActiveMembers(ctx, cid);
             if (activeMembers.length === 1) {
                 let fullName = await Modules.Users.getUserFullName(ctx, uid);
@@ -240,7 +245,18 @@ export const Resolver: GQLResolver = {
             let dstPid = IDs.ConferencePeer.parse(args.peerId);
             await Modules.Calls.repo.connectionCandidate(ctx, coid, srcPid, dstPid, args.candidate);
             return Modules.Calls.repo.getOrCreateConference(ctx, coid);
-        })
+        }),
+        conferenceAlterSettings: withPermission('super-admin', async (ctx, args) => {
+            let coid = IDs.Conversation.parse(args.id);
+            let conf = await Modules.Calls.repo.getOrCreateConference(ctx, coid);
+            if (args.settings.iceTransportPolicy) {
+                conf.iceTransportPolicy = args.settings.iceTransportPolicy;
+            }
+            if (args.settings.strategy) {
+                conf.strategy = args.settings.strategy;
+            }
+            return conf;
+        }),
     },
     Subscription: {
         alphaConferenceWatch: {
