@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'fc37e8c8e4b37d7b8fc895f755b3ab22';
+export const GQL_SPEC_VERSION = '65dada66f0a3df71fccb51e9801666f5';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -786,36 +786,6 @@ export namespace GQL {
     export interface InviteHistotyInfoForEmailArgs { }
     export interface InviteHistotyInfoIsGlobalArgs { }
     export type ResolveInviteEntry = InviteInfo | AppInvite | RoomInvite;
-    export interface CommentGlobalUpdatesState {
-        state: Nullable<string>;
-    }
-    export interface CommentGlobalUpdatesStateStateArgs { }
-    export interface CommentGlobalUpdateSingle {
-        seq: number;
-        state: string;
-        update: CommentGlobalUpdate;
-    }
-    export interface CommentGlobalUpdateSingleSeqArgs { }
-    export interface CommentGlobalUpdateSingleStateArgs { }
-    export interface CommentGlobalUpdateSingleUpdateArgs { }
-    export interface CommentGlobalUpdateBatch {
-        seq: number;
-        state: string;
-        fromSeq: number;
-        updates: CommentGlobalUpdate[];
-    }
-    export interface CommentGlobalUpdateBatchSeqArgs { }
-    export interface CommentGlobalUpdateBatchStateArgs { }
-    export interface CommentGlobalUpdateBatchFromSeqArgs { }
-    export interface CommentGlobalUpdateBatchUpdatesArgs { }
-    export type CommentGlobalUpdate = CommentPeerUpdated;
-    export interface CommentPeerUpdated {
-        seq: number;
-        peer: CommentsPeer;
-    }
-    export interface CommentPeerUpdatedSeqArgs { }
-    export interface CommentPeerUpdatedPeerArgs { }
-    export type CommentGlobalUpdateContainer = CommentGlobalUpdateSingle | CommentGlobalUpdateBatch;
     export interface Reaction {
         user: User;
         reaction: string;
@@ -1782,20 +1752,24 @@ export namespace GQL {
     export interface ICEServerUrlsArgs { }
     export interface ICEServerUsernameArgs { }
     export interface ICEServerCredentialArgs { }
-    export type ConferenceStrategyValues = 'MASH' | 'STREAM';
+    export type ConferenceStrategyValues = 'MASH' | 'SFU';
     export type ConferenceStrategy = GQLRoots.ConferenceStrategyRoot;
+    export type ConferenceKindValues = 'CONFERENCE' | 'STREAM';
+    export type ConferenceKind = GQLRoots.ConferenceKindRoot;
     export interface Conference {
         id: string;
         startTime: Nullable<Date>;
         peers: ConferencePeer[];
         iceServers: ICEServer[];
         strategy: ConferenceStrategy;
+        kind: ConferenceKind;
     }
     export interface ConferenceIdArgs { }
     export interface ConferenceStartTimeArgs { }
     export interface ConferencePeersArgs { }
     export interface ConferenceIceServersArgs { }
     export interface ConferenceStrategyArgs { }
+    export interface ConferenceKindArgs { }
     export interface ConferencePeer {
         id: string;
         user: User;
@@ -1844,6 +1818,10 @@ export namespace GQL {
     export interface MediaStreamSdpArgs { }
     export interface MediaStreamIceArgs { }
     export interface MediaStreamSettingsArgs { }
+    export interface ConferenceSettingsInput {
+        strategy: Nullable<ConferenceStrategy>;
+        iceTransportPolicy: Nullable<MediaStreamIceTransportPolicy>;
+    }
     export type ConferencePeerConnectionStateValues = 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY';
     export type ConferencePeerConnectionState = GQLRoots.ConferencePeerConnectionStateRoot;
     export interface ConferencePeerConnection {
@@ -1969,8 +1947,6 @@ export namespace GQL {
         paymentIntentCommit: boolean;
         paymentCancel: boolean;
         subscriptionCancel: WalletSubscription;
-        alphaCreateInvite: Invite;
-        alphaDeleteInvite: string;
         alphaJoinInvite: string;
         joinAppInvite: string;
         phonebookAdd: boolean;
@@ -2110,11 +2086,6 @@ export namespace GQL {
         commentReactionRemove: boolean;
         subscribeToComments: boolean;
         unsubscribeFromComments: boolean;
-        addMessageComment: boolean;
-        betaAddMessageComment: CommentEntry;
-        betaAddFeedComment: CommentEntry;
-        subscribeMessageComments: boolean;
-        unSubscribeMessageComments: boolean;
         setEnvVar: boolean;
         setEnvVarString: boolean;
         setEnvVarNumber: boolean;
@@ -2126,6 +2097,7 @@ export namespace GQL {
         conferenceJoin: ConferenceJoinResult;
         conferenceKeepAlive: Conference;
         conferenceLeave: Conference;
+        conferenceAlterSettings: Conference;
         mediaStreamOffer: ConferenceMedia;
         mediaStreamNegotiationNeeded: ConferenceMedia;
         mediaStreamAnswer: ConferenceMedia;
@@ -2395,10 +2367,6 @@ export namespace GQL {
         id: string;
     }
     export interface MutationSubscriptionCancelArgs {
-        id: string;
-    }
-    export interface MutationAlphaCreateInviteArgs { }
-    export interface MutationAlphaDeleteInviteArgs {
         id: string;
     }
     export interface MutationAlphaJoinInviteArgs {
@@ -2803,39 +2771,6 @@ export namespace GQL {
     export interface MutationUnsubscribeFromCommentsArgs {
         peerId: string;
     }
-    export interface MutationAddMessageCommentArgs {
-        messageId: string;
-        message: OptionalNullable<string>;
-        replyComment: OptionalNullable<string>;
-        mentions: OptionalNullable<MentionInput[]>;
-        fileAttachments: OptionalNullable<FileAttachmentInput[]>;
-        spans: OptionalNullable<MessageSpanInput[]>;
-    }
-    export interface MutationBetaAddMessageCommentArgs {
-        messageId: string;
-        message: OptionalNullable<string>;
-        replyComment: OptionalNullable<string>;
-        mentions: OptionalNullable<MentionInput[]>;
-        fileAttachments: OptionalNullable<FileAttachmentInput[]>;
-        spans: OptionalNullable<MessageSpanInput[]>;
-        repeatKey: OptionalNullable<string>;
-    }
-    export interface MutationBetaAddFeedCommentArgs {
-        feedItemId: string;
-        message: OptionalNullable<string>;
-        replyComment: OptionalNullable<string>;
-        mentions: OptionalNullable<MentionInput[]>;
-        fileAttachments: OptionalNullable<FileAttachmentInput[]>;
-        spans: OptionalNullable<MessageSpanInput[]>;
-        repeatKey: OptionalNullable<string>;
-    }
-    export interface MutationSubscribeMessageCommentsArgs {
-        messageId: string;
-        type: CommentSubscriptionType;
-    }
-    export interface MutationUnSubscribeMessageCommentsArgs {
-        messageId: string;
-    }
     export interface MutationSetEnvVarArgs {
         name: string;
         value: string;
@@ -2869,7 +2804,7 @@ export namespace GQL {
     }
     export interface MutationConferenceJoinArgs {
         id: string;
-        strategy: OptionalNullable<ConferenceStrategy>;
+        kind: OptionalNullable<ConferenceKind>;
     }
     export interface MutationConferenceKeepAliveArgs {
         id: string;
@@ -2878,6 +2813,10 @@ export namespace GQL {
     export interface MutationConferenceLeaveArgs {
         id: string;
         peerId: string;
+    }
+    export interface MutationConferenceAlterSettingsArgs {
+        id: string;
+        settings: ConferenceSettingsInput;
     }
     export interface MutationMediaStreamOfferArgs {
         id: string;
@@ -3713,16 +3652,11 @@ export namespace GQL {
         transactionsHistory: WalletTransactionConnection;
         subscriptions: WalletSubscription[];
         stripeToken: string;
-        alphaInvites: Nullable<Invite[]>;
         alphaInviteInfo: Nullable<InviteInfo>;
         appInvite: string;
         appInviteFromUser: string;
         appInviteInfo: Nullable<AppInvite>;
-        alphaAppInvite: string;
-        alphaAppInviteInfo: Nullable<AppInviteInfo>;
-        alphaInvitesHistory: Nullable<InviteHistotyInfo[]>;
         alphaResolveInvite: Nullable<ResolveInviteEntry>;
-        commentGlobalUpdatesState: CommentGlobalUpdatesState;
         debugParseID: DebugID;
         debugCrashQuery: string;
         debugUrlInfo: Nullable<UrlAugmentation>;
@@ -3848,6 +3782,7 @@ export namespace GQL {
         roomSuper: Nullable<RoomSuper>;
         roomMessages: RoomMessage[];
         roomMembers: RoomMember[];
+        roomAdmins: RoomMember[];
         roomFeaturedMembers: RoomMember[];
         roomMember: Nullable<RoomMember>;
         roomSocialImage: Nullable<string>;
@@ -3893,7 +3828,6 @@ export namespace GQL {
     }
     export interface QuerySubscriptionsArgs { }
     export interface QueryStripeTokenArgs { }
-    export interface QueryAlphaInvitesArgs { }
     export interface QueryAlphaInviteInfoArgs {
         key: string;
     }
@@ -3904,15 +3838,9 @@ export namespace GQL {
     export interface QueryAppInviteInfoArgs {
         key: string;
     }
-    export interface QueryAlphaAppInviteArgs { }
-    export interface QueryAlphaAppInviteInfoArgs {
-        key: string;
-    }
-    export interface QueryAlphaInvitesHistoryArgs { }
     export interface QueryAlphaResolveInviteArgs {
         key: string;
     }
-    export interface QueryCommentGlobalUpdatesStateArgs { }
     export interface QueryDebugParseIDArgs {
         id: string;
     }
@@ -4285,6 +4213,9 @@ export namespace GQL {
         first: OptionalNullable<number>;
         after: OptionalNullable<string>;
     }
+    export interface QueryRoomAdminsArgs {
+        roomId: string;
+    }
     export interface QueryRoomFeaturedMembersArgs {
         roomId: string;
         first: OptionalNullable<number>;
@@ -4348,7 +4279,6 @@ export namespace GQL {
     export interface Subscription {
         lifecheck: Nullable<string>;
         walletUpdates: WalletUpdateContainer;
-        commentUpdatesGlobal: Nullable<CommentGlobalUpdateContainer>;
         debugEvents: DebugEvent;
         debugReaderState: Nullable<string>;
         debugServerId: string;
@@ -4376,9 +4306,6 @@ export namespace GQL {
     export interface SubscriptionLifecheckArgs { }
     export interface SubscriptionWalletUpdatesArgs {
         fromState: string;
-    }
-    export interface SubscriptionCommentUpdatesGlobalArgs {
-        fromState: OptionalNullable<string>;
     }
     export interface SubscriptionDebugEventsArgs {
         fromState: OptionalNullable<string>;
@@ -6406,53 +6333,6 @@ export interface GQLResolver {
         }
     >;
     ResolveInviteEntry?: UnionTypeResolver<GQLRoots.ResolveInviteEntryRoot, 'InviteInfo' | 'AppInvite' | 'RoomInvite'>;
-    CommentGlobalUpdatesState?: ComplexTypedResolver<
-        GQL.CommentGlobalUpdatesState,
-        GQLRoots.CommentGlobalUpdatesStateRoot,
-        {
-        },
-        {
-            state: GQL.CommentGlobalUpdatesStateStateArgs,
-        }
-    >;
-    CommentGlobalUpdateSingle?: ComplexTypedResolver<
-        GQL.CommentGlobalUpdateSingle,
-        GQLRoots.CommentGlobalUpdateSingleRoot,
-        {
-            update: GQLRoots.CommentGlobalUpdateRoot,
-        },
-        {
-            seq: GQL.CommentGlobalUpdateSingleSeqArgs,
-            state: GQL.CommentGlobalUpdateSingleStateArgs,
-            update: GQL.CommentGlobalUpdateSingleUpdateArgs,
-        }
-    >;
-    CommentGlobalUpdateBatch?: ComplexTypedResolver<
-        GQL.CommentGlobalUpdateBatch,
-        GQLRoots.CommentGlobalUpdateBatchRoot,
-        {
-            updates: GQLRoots.CommentGlobalUpdateRoot[],
-        },
-        {
-            seq: GQL.CommentGlobalUpdateBatchSeqArgs,
-            state: GQL.CommentGlobalUpdateBatchStateArgs,
-            fromSeq: GQL.CommentGlobalUpdateBatchFromSeqArgs,
-            updates: GQL.CommentGlobalUpdateBatchUpdatesArgs,
-        }
-    >;
-    CommentGlobalUpdate?: UnionTypeResolver<GQLRoots.CommentGlobalUpdateRoot, 'CommentPeerUpdated'>;
-    CommentPeerUpdated?: ComplexTypedResolver<
-        GQL.CommentPeerUpdated,
-        GQLRoots.CommentPeerUpdatedRoot,
-        {
-            peer: GQLRoots.CommentsPeerRoot,
-        },
-        {
-            seq: GQL.CommentPeerUpdatedSeqArgs,
-            peer: GQL.CommentPeerUpdatedPeerArgs,
-        }
-    >;
-    CommentGlobalUpdateContainer?: UnionTypeResolver<GQLRoots.CommentGlobalUpdateContainerRoot, 'CommentGlobalUpdateSingle' | 'CommentGlobalUpdateBatch'>;
     Reaction?: ComplexTypedResolver<
         GQL.Reaction,
         GQLRoots.ReactionRoot,
@@ -7590,7 +7470,8 @@ export interface GQLResolver {
             credential: GQL.ICEServerCredentialArgs,
         }
     >;
-    ConferenceStrategy?: EnumTypeResolver<'MASH' | 'STREAM', GQLRoots.ConferenceStrategyRoot>;
+    ConferenceStrategy?: EnumTypeResolver<'MASH' | 'SFU', GQLRoots.ConferenceStrategyRoot>;
+    ConferenceKind?: EnumTypeResolver<'CONFERENCE' | 'STREAM', GQLRoots.ConferenceKindRoot>;
     Conference?: ComplexTypedResolver<
         GQL.Conference,
         GQLRoots.ConferenceRoot,
@@ -7604,6 +7485,7 @@ export interface GQLResolver {
             peers: GQL.ConferencePeersArgs,
             iceServers: GQL.ConferenceIceServersArgs,
             strategy: GQL.ConferenceStrategyArgs,
+            kind: GQL.ConferenceKindArgs,
         }
     >;
     ConferencePeer?: ComplexTypedResolver<
@@ -7797,7 +7679,6 @@ export interface GQLResolver {
             cardMakeDefault: GQLRoots.CreditCardRoot,
             cardDepositIntent: GQLRoots.PaymentIntentRoot,
             subscriptionCancel: GQLRoots.WalletSubscriptionRoot,
-            alphaCreateInvite: GQLRoots.InviteRoot,
             debugCreateTestUser: GQLRoots.UserRoot,
             debugFixStickerPack: Nullable<GQLRoots.StickerPackRoot>,
             settingsUpdate: GQLRoots.SettingsRoot,
@@ -7833,14 +7714,13 @@ export interface GQLResolver {
             userStorageSet: GQLRoots.AppStorageValueRoot[],
             betaAddComment: GQLRoots.CommentEntryRoot,
             betaAddStickerComment: GQLRoots.CommentEntryRoot,
-            betaAddMessageComment: GQLRoots.CommentEntryRoot,
-            betaAddFeedComment: GQLRoots.CommentEntryRoot,
             featureFlagAdd: GQLRoots.FeatureFlagRoot,
             superAccountFeatureAdd: GQLRoots.SuperAccountRoot,
             superAccountFeatureRemove: GQLRoots.SuperAccountRoot,
             conferenceJoin: GQLRoots.ConferenceJoinResultRoot,
             conferenceKeepAlive: GQLRoots.ConferenceRoot,
             conferenceLeave: GQLRoots.ConferenceRoot,
+            conferenceAlterSettings: GQLRoots.ConferenceRoot,
             mediaStreamOffer: GQLRoots.ConferenceMediaRoot,
             mediaStreamNegotiationNeeded: GQLRoots.ConferenceMediaRoot,
             mediaStreamAnswer: GQLRoots.ConferenceMediaRoot,
@@ -7937,8 +7817,6 @@ export interface GQLResolver {
             paymentIntentCommit: GQL.MutationPaymentIntentCommitArgs,
             paymentCancel: GQL.MutationPaymentCancelArgs,
             subscriptionCancel: GQL.MutationSubscriptionCancelArgs,
-            alphaCreateInvite: GQL.MutationAlphaCreateInviteArgs,
-            alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs,
             alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs,
             joinAppInvite: GQL.MutationJoinAppInviteArgs,
             phonebookAdd: GQL.MutationPhonebookAddArgs,
@@ -8078,11 +7956,6 @@ export interface GQLResolver {
             commentReactionRemove: GQL.MutationCommentReactionRemoveArgs,
             subscribeToComments: GQL.MutationSubscribeToCommentsArgs,
             unsubscribeFromComments: GQL.MutationUnsubscribeFromCommentsArgs,
-            addMessageComment: GQL.MutationAddMessageCommentArgs,
-            betaAddMessageComment: GQL.MutationBetaAddMessageCommentArgs,
-            betaAddFeedComment: GQL.MutationBetaAddFeedCommentArgs,
-            subscribeMessageComments: GQL.MutationSubscribeMessageCommentsArgs,
-            unSubscribeMessageComments: GQL.MutationUnSubscribeMessageCommentsArgs,
             setEnvVar: GQL.MutationSetEnvVarArgs,
             setEnvVarString: GQL.MutationSetEnvVarStringArgs,
             setEnvVarNumber: GQL.MutationSetEnvVarNumberArgs,
@@ -8094,6 +7967,7 @@ export interface GQLResolver {
             conferenceJoin: GQL.MutationConferenceJoinArgs,
             conferenceKeepAlive: GQL.MutationConferenceKeepAliveArgs,
             conferenceLeave: GQL.MutationConferenceLeaveArgs,
+            conferenceAlterSettings: GQL.MutationConferenceAlterSettingsArgs,
             mediaStreamOffer: GQL.MutationMediaStreamOfferArgs,
             mediaStreamNegotiationNeeded: GQL.MutationMediaStreamNegotiationNeededArgs,
             mediaStreamAnswer: GQL.MutationMediaStreamAnswerArgs,
@@ -8580,13 +8454,9 @@ export interface GQLResolver {
             transactionsPending: GQLRoots.WalletTransactionRoot[],
             transactionsHistory: GQLRoots.WalletTransactionConnectionRoot,
             subscriptions: GQLRoots.WalletSubscriptionRoot[],
-            alphaInvites: Nullable<GQLRoots.InviteRoot[]>,
             alphaInviteInfo: Nullable<GQLRoots.InviteInfoRoot>,
             appInviteInfo: Nullable<GQLRoots.AppInviteRoot>,
-            alphaAppInviteInfo: Nullable<GQLRoots.AppInviteInfoRoot>,
-            alphaInvitesHistory: Nullable<GQLRoots.InviteHistotyInfoRoot[]>,
             alphaResolveInvite: Nullable<GQLRoots.ResolveInviteEntryRoot>,
-            commentGlobalUpdatesState: GQLRoots.CommentGlobalUpdatesStateRoot,
             debugParseID: GQLRoots.DebugIDRoot,
             debugUrlInfo: Nullable<GQLRoots.UrlAugmentationRoot>,
             userPresence: GQLRoots.DebugUserPresenceRoot[],
@@ -8701,6 +8571,7 @@ export interface GQLResolver {
             roomSuper: Nullable<GQLRoots.RoomSuperRoot>,
             roomMessages: GQLRoots.RoomMessageRoot[],
             roomMembers: GQLRoots.RoomMemberRoot[],
+            roomAdmins: GQLRoots.RoomMemberRoot[],
             roomFeaturedMembers: GQLRoots.RoomMemberRoot[],
             roomMember: Nullable<GQLRoots.RoomMemberRoot>,
             betaRoomSearch: GQLRoots.RoomConnectionRoot,
@@ -8726,16 +8597,11 @@ export interface GQLResolver {
             transactionsHistory: GQL.QueryTransactionsHistoryArgs,
             subscriptions: GQL.QuerySubscriptionsArgs,
             stripeToken: GQL.QueryStripeTokenArgs,
-            alphaInvites: GQL.QueryAlphaInvitesArgs,
             alphaInviteInfo: GQL.QueryAlphaInviteInfoArgs,
             appInvite: GQL.QueryAppInviteArgs,
             appInviteFromUser: GQL.QueryAppInviteFromUserArgs,
             appInviteInfo: GQL.QueryAppInviteInfoArgs,
-            alphaAppInvite: GQL.QueryAlphaAppInviteArgs,
-            alphaAppInviteInfo: GQL.QueryAlphaAppInviteInfoArgs,
-            alphaInvitesHistory: GQL.QueryAlphaInvitesHistoryArgs,
             alphaResolveInvite: GQL.QueryAlphaResolveInviteArgs,
-            commentGlobalUpdatesState: GQL.QueryCommentGlobalUpdatesStateArgs,
             debugParseID: GQL.QueryDebugParseIDArgs,
             debugCrashQuery: GQL.QueryDebugCrashQueryArgs,
             debugUrlInfo: GQL.QueryDebugUrlInfoArgs,
@@ -8861,6 +8727,7 @@ export interface GQLResolver {
             roomSuper: GQL.QueryRoomSuperArgs,
             roomMessages: GQL.QueryRoomMessagesArgs,
             roomMembers: GQL.QueryRoomMembersArgs,
+            roomAdmins: GQL.QueryRoomAdminsArgs,
             roomFeaturedMembers: GQL.QueryRoomFeaturedMembersArgs,
             roomMember: GQL.QueryRoomMemberArgs,
             roomSocialImage: GQL.QueryRoomSocialImageArgs,
@@ -8895,7 +8762,6 @@ export interface GQLResolver {
         GQLRoots.SubscriptionRoot,
         {
             walletUpdates: GQLRoots.WalletUpdateContainerRoot,
-            commentUpdatesGlobal: Nullable<GQLRoots.CommentGlobalUpdateContainerRoot>,
             debugEvents: GQLRoots.DebugEventRoot,
             settingsWatch: GQLRoots.SettingsRoot,
             watchSettings: GQLRoots.SettingsRoot,
@@ -8920,7 +8786,6 @@ export interface GQLResolver {
         {
             lifecheck: GQL.SubscriptionLifecheckArgs,
             walletUpdates: GQL.SubscriptionWalletUpdatesArgs,
-            commentUpdatesGlobal: GQL.SubscriptionCommentUpdatesGlobalArgs,
             debugEvents: GQL.SubscriptionDebugEventsArgs,
             debugReaderState: GQL.SubscriptionDebugReaderStateArgs,
             debugServerId: GQL.SubscriptionDebugServerIdArgs,
