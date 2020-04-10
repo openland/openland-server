@@ -544,6 +544,20 @@ export const Resolver: GQLResolver = {
                 return (await Store.RoomParticipant.active.query(ctx, roomId, { limit: args.first || 1000 })).items;
             }
         }),
+        roomAdmins: withActivatedUser(async (ctx, args, uid) => {
+            let roomId = IDs.Conversation.parse(args.roomId);
+            await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, roomId);
+            let isAdmin = await Modules.Messaging.room.userHaveAdminPermissionsInRoom(ctx, uid, roomId);
+            if (!isAdmin) {
+                throw new AccessDeniedError();
+            }
+            let conversation = await Store.Conversation.findById(ctx, roomId);
+            if (!conversation) {
+                throw new Error('Room not found');
+            }
+            let members = await Store.RoomParticipant.active.findAll(ctx, roomId);
+            return members.filter(m => m.role === 'admin' || m.role === 'owner');
+        }),
         roomFeaturedMembers: withActivatedUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.roomId);
             await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, roomId);

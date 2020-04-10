@@ -181,6 +181,7 @@ extend type Query {
     roomSuper(id: ID!): RoomSuper
     roomMessages(roomId: ID!, first: Int, before: ID): [RoomMessage!]!
     roomMembers(roomId: ID!, first: Int, after: ID): [RoomMember!]!
+    roomAdmins(roomId: ID!): [RoomMember!]!
     roomFeaturedMembers(roomId: ID!, first: Int): [RoomMember!]!
     roomMember(roomId: ID!, memberId: ID!): RoomMember
     roomSocialImage(roomId: ID!): String
