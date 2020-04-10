@@ -7,14 +7,20 @@ import { ConferenceMediaStreamCreateShape } from '../../openland-module-db/store
 
 let log = createLogger('call-repo');
 
-function resolveMediaStreamSettings(uid1: number, uid2: number, confKind: 'mash' | 'stream', streamerId: number | null): ConferenceMediaStreamCreateShape['settings1'] {
-    if (confKind === 'mash') {
+function resolveMediaStreamSettings(
+    uid1: number,
+    uid2: number,
+    confKind: 'conference' | 'stream',
+    streamerId: number | null,
+    iceTransportPolicy?: 'all' | 'relay' | null
+): ConferenceMediaStreamCreateShape['settings1'] {
+    if (confKind === 'conference') {
         return {
             audioIn: true,
             audioOut: true,
             videoIn: true,
             videoOut: true,
-            iceTransportPolicy: 'relay'
+            iceTransportPolicy: iceTransportPolicy || 'relay'
         };
     }
 
@@ -23,7 +29,7 @@ function resolveMediaStreamSettings(uid1: number, uid2: number, confKind: 'mash'
         audioOut: false,
         videoIn: false,
         videoOut: false,
-        iceTransportPolicy: undefined
+        iceTransportPolicy: iceTransportPolicy || 'relay'
     };
     if (uid1 === streamerId) {
         settings.audioOut = true;
@@ -41,17 +47,15 @@ export class CallRepository {
 
     getOrCreateConference = async (parent: Context, cid: number) => {
         return await inTx(parent, async (ctx) => {
-            let conv = (await Store.Conversation.findById(ctx, cid))!;
-            let strategy: 'direct' | 'bridged' = (!conv || conv.kind === 'private') ? 'direct' : 'bridged';
             let res = await Store.ConferenceRoom.findById(ctx, cid);
             if (!res) {
-                res = await Store.ConferenceRoom.create(ctx, cid, { strategy, startTime: null });
+                res = await Store.ConferenceRoom.create(ctx, cid, { strategy: 'mash', kind: 'conference', startTime: null });
             }
             return res;
         });
     }
 
-    addPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number, strategy?: 'mash' | 'stream' | null) => {
+    addPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number, kind: 'conference' | 'stream' = 'conference') => {
         return await inTx(parent, async (ctx) => {
 
             // let room = await this.entities.ConferenceRoom.findById(ctx, cid);
@@ -64,7 +68,7 @@ export class CallRepository {
             let conf = await this.getOrCreateConference(ctx, cid);
             if (confPeers.length === 0) {
                 conf.startTime = Date.now();
-                conf.kind = strategy || 'mash';
+                conf.kind = kind;
                 conf.streamerId = conf.kind === 'stream' ? uid : null;
                 await conf.flush(ctx);
             }
@@ -112,11 +116,11 @@ export class CallRepository {
                 let settings1: any;
                 let settings2: any;
                 if (cp.id < id) {
-                    settings1 = resolveMediaStreamSettings(cp.uid, uid, conf.kind!, conf.streamerId);
-                    settings2 = resolveMediaStreamSettings(uid, cp.uid, conf.kind!, conf.streamerId);
+                    settings1 = resolveMediaStreamSettings(cp.uid, uid, conf.kind!, conf.streamerId, conf.iceTransportPolicy);
+                    settings2 = resolveMediaStreamSettings(uid, cp.uid, conf.kind!, conf.streamerId, conf.iceTransportPolicy);
                 } else {
-                    settings1 = resolveMediaStreamSettings(uid, cp.uid, conf.kind!, conf.streamerId);
-                    settings2 = resolveMediaStreamSettings(cp.uid, uid, conf.kind!, conf.streamerId);
+                    settings1 = resolveMediaStreamSettings(uid, cp.uid, conf.kind!, conf.streamerId, conf.iceTransportPolicy);
+                    settings2 = resolveMediaStreamSettings(cp.uid, uid, conf.kind!, conf.streamerId, conf.iceTransportPolicy);
                 }
 
                 // if (room.strategy === 'direct') {

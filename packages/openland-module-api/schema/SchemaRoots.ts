@@ -203,9 +203,11 @@ export namespace GQLRoots {
     export type ConferenceMediaRoot = { id: number, peerId: number };
     export type MediaStreamStateRoot = MediaStreamStateValues;
     export type ConferencePeerConnectionStateRoot = ConferencePeerConnectionStateValues;
-    export type ConferenceStrategyRoot = 'mash' | 'stream';
+    export type ConferenceStrategyRoot = 'mash' | 'sfu';
+    export type ConferenceKindRoot = 'conference' | 'stream';
     export type MediaStreamIceTransportPolicyRoot = MediaStreamIceTransportPolicyValues;
     export type MediaStreamSettingsRoot = { audioIn: boolean, audioOut: boolean, videoIn: boolean, videoOut: boolean, iceTransportPolicy?: MediaStreamIceTransportPolicyValues };
+    export type ConferenceSettingsInputRoot = {strategy?: ConferenceStrategyRoot, iceTransportPolicy?: MediaStreamIceTransportPolicyValues};
 
     //
     // Dialogs Updates

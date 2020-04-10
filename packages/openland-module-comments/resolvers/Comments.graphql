@@ -54,13 +54,4 @@ extend type Mutation {
 
     subscribeToComments(peerId: ID!, type: CommentSubscriptionType!): Boolean!
     unsubscribeFromComments(peerId: ID!): Boolean!
-
-    #
-    # Deprecated
-    #
-    addMessageComment(messageId: ID!, message: String, replyComment: ID, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): Boolean!
-    betaAddMessageComment(messageId: ID!, message: String, replyComment: ID, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], repeatKey: String): CommentEntry!
-    betaAddFeedComment(feedItemId: ID!, message: String, replyComment: ID, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], repeatKey: String): CommentEntry!
-    subscribeMessageComments(messageId: ID!, type: CommentSubscriptionType!): Boolean!
-    unSubscribeMessageComments(messageId: ID!): Boolean!
 }
