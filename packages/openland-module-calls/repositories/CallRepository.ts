@@ -167,7 +167,7 @@ export class CallRepository {
             }
             let currentSharingPeer = conf.screenSharingPeerId ? await Store.ConferencePeer.findById(ctx, conf.screenSharingPeerId) : undefined;
             if (currentSharingPeer) {
-                await this.removeScreenShare(ctx, currentSharingPeer);
+                conf = await this.removeScreenShare(ctx, currentSharingPeer);
             }
             conf.screenSharingPeerId = peer.id;
 
