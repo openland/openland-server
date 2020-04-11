@@ -1,8 +1,6 @@
 import geoIpv4 from './geo_ip_v4.json';
-import request from 'request';
 import countries from './countries.json';
-import { CacheRepository } from 'openland-module-cache/CacheRepository';
-import { createNamedContext } from '@openland/context';
+import * as geoip from 'geoip-lite';
 
 // [fromIp, toIp, location_code, location_name]
 export type GeoIPRecord = [number, number, string, string];
@@ -13,57 +11,43 @@ export type GeoIPResponse = {
     coordinates: { long: number, lat: number } | null
 };
 
-export async function geoIP(ip: string): Promise<GeoIPResponse> {
-    return externalGeoIP(ip);
-}
+const deg2rad = (deg: number) => {
+    return deg * Math.PI / 180;
+};
 
-//
-// ipstack
-//
+export async function distanceBetweenIP(ip1: string, ip2: string) {
+    let lookup1 = await geoIP(ip1);
+    let lookup2 = await geoIP(ip2);
 
-const IPStackCache = new CacheRepository<any>('ipstack');
-
-const rootCtx = createNamedContext('ipstack');
-
-async function fetchIPStack(ip: string): Promise<any> {
-    let cached = await IPStackCache.read(rootCtx, ip);
-
-    if (cached) {
-        return cached;
+    if (!lookup1.coordinates || !lookup2.coordinates) {
+        return -1;
     }
 
-    let data = await ipStackCall(ip);
+    var R = 6371; // earth radius
 
-    await IPStackCache.write(rootCtx, ip, data);
+    let lat1 = deg2rad(lookup1.coordinates.lat);
+    let lat2 = deg2rad(lookup2.coordinates.lat);
+    let latDelta = deg2rad(lookup2.coordinates.lat - lookup1.coordinates.lat);
+    let longDelta = deg2rad(lookup2.coordinates.long - lookup1.coordinates.long);
 
-    return data;
+    let a = Math.sin(latDelta / 2) * Math.sin(latDelta / 2)
+        + Math.sin(longDelta / 2) * Math.sin(longDelta / 2) * Math.cos(lat1) * Math.cos(lat2);
+    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
 }
 
-async function ipStackCall(ip: string) {
-    return new Promise<any>((resolve, reject) => {
-        request({
-            method: 'GET',
-            url: 'https://ipstack.com/ipstack_api.php?ip=' + ip,
-        }, (error, response, body) => {
-            if (!error && response.statusCode === 200) {
-                resolve(JSON.parse(body));
-            } else {
-                reject(new Error('ipstack error'));
-            }
-        });
-    });
-}
-
-async function externalGeoIP(ip: string): Promise<GeoIPResponse> {
-    let data = await fetchIPStack(ip);
-
+export async function geoIP(ip: string): Promise<GeoIPResponse> {
+    let lookup = geoip.lookup(ip);
+    if (!lookup) {
+        return internalGeoIP(ip);
+    }
     return {
-        location_code: data.country_code || 'Unknown',
-        location_name: data.country_name || 'Unknown',
-        coordinates: data.latitude ? {
-            lat: data.latitude,
-            long: data.longitude
-        } : null
+        location_name: lookup.city,
+        location_code: lookup.country,
+        coordinates: {
+            lat: lookup.ll[0],
+            long: lookup.ll[1]
+        }
     };
 }
 

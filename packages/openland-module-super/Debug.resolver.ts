@@ -26,6 +26,7 @@ import { buildMessage, heading } from '../openland-utils/MessageBuilder';
 import { AuthContext } from '../openland-module-auth/AuthContext';
 import { SmsService } from '../openland-utils/SmsService';
 import uuid from 'uuid';
+import { geoIP } from '../openland-utils/geoIp/geoIP';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -68,6 +69,12 @@ export const Resolver: GQLResolver = {
         lastSeenTimeout: src => src.lastSeenTimeout,
         platform: src => src.platform,
         active: src => src.active,
+    },
+    DebugIpInfo: {
+        ip: (root) => root,
+        location: async root => (await geoIP(root)).coordinates,
+        locationCode:  async root => (await geoIP(root)).location_code,
+        locationName:  async root => (await geoIP(root)).location_name
     },
     DebugEvent: {
         seq: src => src.seq,

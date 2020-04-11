@@ -9,6 +9,28 @@ import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { resolveTurnServices } from './services/TURNService';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
+import { distanceBetweenIP } from '../openland-utils/geoIp/geoIP';
+
+const resolveNearestTurn = async (ip: string) => {
+    let turns = await resolveTurnServices();
+    let nearestDist = Number.MAX_SAFE_INTEGER;
+    let nearest: any;
+    for (let turn of turns) {
+        let dist = await distanceBetweenIP(turn.ip, ip);
+        if (dist < nearestDist) {
+            nearestDist = dist;
+            nearest = turn;
+        }
+    }
+    return nearest;
+};
+
+const resolveIce = async (root: any, args: any, context: AppContext) => {
+    if (context.req.ip) {
+        return [await resolveNearestTurn(context.req.ip)];
+    }
+    return await resolveTurnServices();
+};
 
 export const Resolver: GQLResolver = {
     Conference: {
@@ -19,16 +41,9 @@ export const Resolver: GQLResolver = {
             res.sort((a, b) => a.metadata.createdAt - b.metadata.createdAt);
             return res;
         },
-        iceServers: () => {
-            return resolveTurnServices();
-        },
+        iceServers: resolveIce,
         strategy: (src) => src.strategy === 'mash' ? 'MASH' : 'SFU',
         kind: (src) => src.kind === 'conference' ? 'CONFERENCE' : 'STREAM',
-    },
-    MediaStreamMediaState: {
-        videoOut: (src) => src.videoOut,
-        videoSource: (src) => src.videoSource,
-        audioOut: (src) => src.audioOut,
     },
     ConferencePeer: {
         id: (src: ConferencePeer) => IDs.ConferencePeer.serialize(src.id),
@@ -82,7 +97,7 @@ export const Resolver: GQLResolver = {
     },
     ConferenceMedia: {
         id: (src) => IDs.ConferenceMedia.serialize(src.id),
-        iceServers: resolveTurnServices,
+        iceServers: resolveIce,
         streams: async (src, args: {}, ctx: AppContext) => {
             // let outgoing = await FDB.ConferencePeer.findFromAuth(ctx, src.id, ctx.auth.uid!, ctx.auth.tid!);
 

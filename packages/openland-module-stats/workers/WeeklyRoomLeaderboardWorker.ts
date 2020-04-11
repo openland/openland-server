@@ -3,7 +3,7 @@ import { ScheduledQueue, WeekDay } from '../../openland-module-workers/Scheduled
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { getLeaderboardsChatId, getSuperNotificationsBotId } from './utils';
 import { Store } from '../../openland-module-db/FDB';
-import { boldString, buildMessage, heading } from '../../openland-utils/MessageBuilder';
+import { boldString, buildMessage, heading, roomMention } from '../../openland-utils/MessageBuilder';
 import { createLogger } from '@openland/log';
 import { RoomProfile } from '../../openland-module-db/store';
 import { formatNumberWithSign } from '../../openland-utils/string';
@@ -93,7 +93,7 @@ export function createWeeklyRoomLeaderboardWorker() {
 
             let message = [heading('👥  Weekly trending groups'), '\n'];
             for (let { room, delta } of roomsWithDelta) {
-                message.push(boldString(`${formatNumberWithSign(delta)} · ${room.activeMembersCount}`), `  ${room.title}\n`);
+                message.push(boldString(`${formatNumberWithSign(delta)} · ${room.activeMembersCount}  `), roomMention(room.title, room.id), `\n`);
             }
 
             await Modules.Messaging.sendMessage(parent, chatId!, botId!, {

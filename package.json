@@ -81,6 +81,7 @@
     "faker": "^4.1.0",
     "firebase-admin": "^6.0.0",
     "form-data": "^2.3.2",
+    "geoip-lite": "^1.4.1",
     "globby": "^9.2.0",
     "google-auth-library": "^5.5.1",
     "graphql": "^0.13.2",
@@ -128,7 +129,7 @@
     "yargs": "^13.2.4"
   },
   "scripts": {
-    "geoIP": "yarn cpx \"./packages/openland-server/utils/geoIp/*.json\" ./build/openland-server/utils/geoIp/",
+    "geoIP": "yarn cpx \"./packages/openland-utils/geoIp/*.json\" ./build/openland-utils/geoIp/",
     "assets": "yarn cpx \"./packages/openland-server/assets/**/*\" ./build/openland-server/assets/",
     "assets:watch": "yarn cpx \"./packages/openland-server/assets/**/*\" ./build/openland-server/assets/ --watch",
     "schema": "yarn cpx \"./packages/**/*.graphql\" ./build/",
@@ -168,7 +169,9 @@
     "benchmark:parallel": "./node_modules/.bin/concurrently \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\"",
     "cli": "./node_modules/.bin/ts-node ./packages/openland-cli/index.ts"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/geoip-lite": "^1.1.31"
+  },
   "_moduleAliases": {
     "foundation-orm": "build/foundation-orm",
     "openland-server": "build/openland-server",

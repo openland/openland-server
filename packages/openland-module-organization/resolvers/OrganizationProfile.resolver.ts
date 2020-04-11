@@ -1,6 +1,6 @@
 import { IDs } from 'openland-module-api/IDs';
 import { Store } from 'openland-module-db/FDB';
-import { withAny, withUser, withAccount } from 'openland-module-api/Resolvers';
+import { withUser, withAccount } from 'openland-module-api/Resolvers';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { Modules } from 'openland-modules/Modules';
 import { UserError } from 'openland-errors/UserError';
@@ -11,6 +11,7 @@ import { Sanitizer } from 'openland-utils/Sanitizer';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Organization } from 'openland-module-db/store';
+import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 
 export const Resolver: GQLResolver = {
     OrganizationProfile: {
@@ -39,9 +40,12 @@ export const Resolver: GQLResolver = {
             }
             return null;
         },
-        organizationProfile: withAny(async (ctx, args) => {
-            // TODO: Fix permissions!11
-            let res = await Store.Organization.findById(ctx, IDs.Organization.parse(args.id));
+        organizationProfile: withUser(async (ctx, args, uid) => {
+            let oid = IDs.Organization.parse(args.id);
+            if (!(await Modules.Orgs.isUserAdmin(ctx, uid, oid))) {
+                throw new AccessDeniedError();
+            }
+            let res = await Store.Organization.findById(ctx, oid);
             if (!res) {
                 throw new NotFoundError('Unable to find organization');
             }

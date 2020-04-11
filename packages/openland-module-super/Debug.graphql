@@ -66,6 +66,13 @@ type DebugGlobalCounters {
     unreadChatsWithoutMuted: Int!
 }
 
+type DebugIpInfo {
+    ip: String!
+    locationCode: String!
+    locationName: String!
+    location: GeoLocation
+}
+
 extend type Query {
     debugParseID(id: ID!): DebugID!
     debugCrashQuery: String!
@@ -79,7 +86,7 @@ extend type Query {
     debugUserMetrics(id: ID!): DebugUserMetrics!
     debugGlobalCounters: DebugGlobalCounters!
     debugServerId: String!
-    debugClientIp: String
+    debugClientIp: DebugIpInfo
 }
 
 enum SuperNotificationType {
