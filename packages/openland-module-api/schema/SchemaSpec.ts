@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'ea4243f5c50abc0a0f5e366ada5900ab';
+export const GQL_SPEC_VERSION = '919362da33ec222251e38310c1b071f8';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -895,24 +895,6 @@ export namespace GQL {
     export interface DebugIpInfoLocationCodeArgs { }
     export interface DebugIpInfoLocationNameArgs { }
     export interface DebugIpInfoLocationArgs { }
-    export interface GqlTrace {
-        id: string;
-        name: string;
-        duration: number;
-        traceData: string;
-        date: Date;
-    }
-    export interface GqlTraceIdArgs { }
-    export interface GqlTraceNameArgs { }
-    export interface GqlTraceDurationArgs { }
-    export interface GqlTraceTraceDataArgs { }
-    export interface GqlTraceDateArgs { }
-    export interface GqlTraceConnection {
-        items: GqlTrace[];
-        cursor: Nullable<string>;
-    }
-    export interface GqlTraceConnectionItemsArgs { }
-    export interface GqlTraceConnectionCursorArgs { }
     export type SuperNotificationTypeValues = 'ON_SIGN_UP' | 'ON_USER_PROFILE_CREATED' | 'ON_ORG_ACTIVATED_BY_ADMIN' | 'ON_ORG_ACTIVATED_VIA_INVITE' | 'ON_ORG_SUSPEND';
     export type SuperNotificationType = GQLRoots.SuperNotificationTypeRoot;
     export type DialogKindValues = 'PRIVATE' | 'INTERNAL' | 'PUBLIC' | 'GROUP';
@@ -1811,15 +1793,31 @@ export namespace GQL {
     export interface MediaStreamSettings {
         videoIn: boolean;
         videoOut: boolean;
+        videoOutSource: Nullable<MediaStreamVideoSource>;
         audioIn: boolean;
         audioOut: boolean;
         iceTransportPolicy: Nullable<MediaStreamIceTransportPolicy>;
     }
     export interface MediaStreamSettingsVideoInArgs { }
     export interface MediaStreamSettingsVideoOutArgs { }
+    export interface MediaStreamSettingsVideoOutSourceArgs { }
     export interface MediaStreamSettingsAudioInArgs { }
     export interface MediaStreamSettingsAudioOutArgs { }
     export interface MediaStreamSettingsIceTransportPolicyArgs { }
+    export type MediaStreamVideoSourceValues = 'camera' | 'screen_share';
+    export type MediaStreamVideoSource = GQLRoots.MediaStreamVideoSourceRoot;
+    export interface MediaStreamMediaState {
+        videoOut: boolean;
+        videoSource: Nullable<MediaStreamVideoSource>;
+        audioOut: boolean;
+    }
+    export interface MediaStreamMediaStateVideoOutArgs { }
+    export interface MediaStreamMediaStateVideoSourceArgs { }
+    export interface MediaStreamMediaStateAudioOutArgs { }
+    export interface MediaStreamMediaStateInput {
+        videoOut: Nullable<boolean>;
+        audioOut: Nullable<boolean>;
+    }
     export interface MediaStream {
         id: string;
         peerId: Nullable<string>;
@@ -1828,6 +1826,7 @@ export namespace GQL {
         sdp: Nullable<string>;
         ice: string[];
         settings: MediaStreamSettings;
+        mediaState: MediaStreamMediaState;
     }
     export interface MediaStreamIdArgs { }
     export interface MediaStreamPeerIdArgs { }
@@ -1836,6 +1835,7 @@ export namespace GQL {
     export interface MediaStreamSdpArgs { }
     export interface MediaStreamIceArgs { }
     export interface MediaStreamSettingsArgs { }
+    export interface MediaStreamMediaStateArgs { }
     export interface ConferenceSettingsInput {
         strategy: Nullable<ConferenceStrategy>;
         iceTransportPolicy: Nullable<MediaStreamIceTransportPolicy>;
@@ -2113,6 +2113,9 @@ export namespace GQL {
         superAccountFeatureRemove: SuperAccount;
         shareLocation: boolean;
         conferenceJoin: ConferenceJoinResult;
+        conferenceAddScreenShare: Conference;
+        conferenceRemoveScreenShare: Conference;
+        conferenceAlterMediaState: Conference;
         conferenceKeepAlive: Conference;
         conferenceLeave: Conference;
         conferenceAlterSettings: Conference;
@@ -2823,6 +2826,16 @@ export namespace GQL {
     export interface MutationConferenceJoinArgs {
         id: string;
         kind: OptionalNullable<ConferenceKind>;
+    }
+    export interface MutationConferenceAddScreenShareArgs {
+        id: string;
+    }
+    export interface MutationConferenceRemoveScreenShareArgs {
+        id: string;
+    }
+    export interface MutationConferenceAlterMediaStateArgs {
+        id: string;
+        state: MediaStreamMediaStateInput;
     }
     export interface MutationConferenceKeepAliveArgs {
         id: string;
@@ -3688,7 +3701,6 @@ export namespace GQL {
         debugGlobalCounters: DebugGlobalCounters;
         debugServerId: string;
         debugClientIp: Nullable<DebugIpInfo>;
-        debugGqlTraces: GqlTraceConnection;
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
@@ -3882,10 +3894,6 @@ export namespace GQL {
     export interface QueryDebugGlobalCountersArgs { }
     export interface QueryDebugServerIdArgs { }
     export interface QueryDebugClientIpArgs { }
-    export interface QueryDebugGqlTracesArgs {
-        first: number;
-        after: OptionalNullable<string>;
-    }
     export interface QueryDialogsArgs {
         first: number;
         after: OptionalNullable<string>;
@@ -6486,30 +6494,6 @@ export interface GQLResolver {
             location: GQL.DebugIpInfoLocationArgs,
         }
     >;
-    GqlTrace?: ComplexTypedResolver<
-        GQL.GqlTrace,
-        GQLRoots.GqlTraceRoot,
-        {
-        },
-        {
-            id: GQL.GqlTraceIdArgs,
-            name: GQL.GqlTraceNameArgs,
-            duration: GQL.GqlTraceDurationArgs,
-            traceData: GQL.GqlTraceTraceDataArgs,
-            date: GQL.GqlTraceDateArgs,
-        }
-    >;
-    GqlTraceConnection?: ComplexTypedResolver<
-        GQL.GqlTraceConnection,
-        GQLRoots.GqlTraceConnectionRoot,
-        {
-            items: GQLRoots.GqlTraceRoot[],
-        },
-        {
-            items: GQL.GqlTraceConnectionItemsArgs,
-            cursor: GQL.GqlTraceConnectionCursorArgs,
-        }
-    >;
     SuperNotificationType?: EnumTypeResolver<'ON_SIGN_UP' | 'ON_USER_PROFILE_CREATED' | 'ON_ORG_ACTIVATED_BY_ADMIN' | 'ON_ORG_ACTIVATED_VIA_INVITE' | 'ON_ORG_SUSPEND', GQLRoots.SuperNotificationTypeRoot>;
     DialogKind?: EnumTypeResolver<'PRIVATE' | 'INTERNAL' | 'PUBLIC' | 'GROUP', GQLRoots.DialogKindRoot>;
     Dialog?: ComplexTypedResolver<
@@ -7571,9 +7555,22 @@ export interface GQLResolver {
         {
             videoIn: GQL.MediaStreamSettingsVideoInArgs,
             videoOut: GQL.MediaStreamSettingsVideoOutArgs,
+            videoOutSource: GQL.MediaStreamSettingsVideoOutSourceArgs,
             audioIn: GQL.MediaStreamSettingsAudioInArgs,
             audioOut: GQL.MediaStreamSettingsAudioOutArgs,
             iceTransportPolicy: GQL.MediaStreamSettingsIceTransportPolicyArgs,
+        }
+    >;
+    MediaStreamVideoSource?: EnumTypeResolver<'camera' | 'screen_share', GQLRoots.MediaStreamVideoSourceRoot>;
+    MediaStreamMediaState?: ComplexTypedResolver<
+        GQL.MediaStreamMediaState,
+        GQLRoots.MediaStreamMediaStateRoot,
+        {
+        },
+        {
+            videoOut: GQL.MediaStreamMediaStateVideoOutArgs,
+            videoSource: GQL.MediaStreamMediaStateVideoSourceArgs,
+            audioOut: GQL.MediaStreamMediaStateAudioOutArgs,
         }
     >;
     MediaStream?: ComplexTypedResolver<
@@ -7581,6 +7578,7 @@ export interface GQLResolver {
         GQLRoots.MediaStreamRoot,
         {
             settings: GQLRoots.MediaStreamSettingsRoot,
+            mediaState: GQLRoots.MediaStreamMediaStateRoot,
         },
         {
             id: GQL.MediaStreamIdArgs,
@@ -7590,6 +7588,7 @@ export interface GQLResolver {
             sdp: GQL.MediaStreamSdpArgs,
             ice: GQL.MediaStreamIceArgs,
             settings: GQL.MediaStreamSettingsArgs,
+            mediaState: GQL.MediaStreamMediaStateArgs,
         }
     >;
     ConferencePeerConnectionState?: EnumTypeResolver<'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY', GQLRoots.ConferencePeerConnectionStateRoot>;
@@ -7765,6 +7764,9 @@ export interface GQLResolver {
             superAccountFeatureAdd: GQLRoots.SuperAccountRoot,
             superAccountFeatureRemove: GQLRoots.SuperAccountRoot,
             conferenceJoin: GQLRoots.ConferenceJoinResultRoot,
+            conferenceAddScreenShare: GQLRoots.ConferenceRoot,
+            conferenceRemoveScreenShare: GQLRoots.ConferenceRoot,
+            conferenceAlterMediaState: GQLRoots.ConferenceRoot,
             conferenceKeepAlive: GQLRoots.ConferenceRoot,
             conferenceLeave: GQLRoots.ConferenceRoot,
             conferenceAlterSettings: GQLRoots.ConferenceRoot,
@@ -8012,6 +8014,9 @@ export interface GQLResolver {
             superAccountFeatureRemove: GQL.MutationSuperAccountFeatureRemoveArgs,
             shareLocation: GQL.MutationShareLocationArgs,
             conferenceJoin: GQL.MutationConferenceJoinArgs,
+            conferenceAddScreenShare: GQL.MutationConferenceAddScreenShareArgs,
+            conferenceRemoveScreenShare: GQL.MutationConferenceRemoveScreenShareArgs,
+            conferenceAlterMediaState: GQL.MutationConferenceAlterMediaStateArgs,
             conferenceKeepAlive: GQL.MutationConferenceKeepAliveArgs,
             conferenceLeave: GQL.MutationConferenceLeaveArgs,
             conferenceAlterSettings: GQL.MutationConferenceAlterSettingsArgs,
@@ -8512,7 +8517,6 @@ export interface GQLResolver {
             debugUserMetrics: GQLRoots.DebugUserMetricsRoot,
             debugGlobalCounters: GQLRoots.DebugGlobalCountersRoot,
             debugClientIp: Nullable<GQLRoots.DebugIpInfoRoot>,
-            debugGqlTraces: GQLRoots.GqlTraceConnectionRoot,
             dialogs: GQLRoots.DialogsConnectionRoot,
             settings: GQLRoots.SettingsRoot,
             authPoints: GQLRoots.AuthPointRoot,
@@ -8663,7 +8667,6 @@ export interface GQLResolver {
             debugGlobalCounters: GQL.QueryDebugGlobalCountersArgs,
             debugServerId: GQL.QueryDebugServerIdArgs,
             debugClientIp: GQL.QueryDebugClientIpArgs,
-            debugGqlTraces: GQL.QueryDebugGqlTracesArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
             authPoints: GQL.QueryAuthPointsArgs,

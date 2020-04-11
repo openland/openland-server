@@ -844,10 +844,9 @@ export default declareSchema(() => {
 
     entity('ConferenceRoom', () => {
         primaryKey('id', integer());
-        // TODO: remove direct/bridged after migration, make it non - optional
         field('strategy', enumString('mash', 'sfu'));
         field('iceTransportPolicy', optional(enumString('all', 'relay')));
-
+        field('screenSharingPeerId', optional(integer()));
         // state
         field('startTime', optional(integer()));
         field('kind', enumString('conference', 'stream'));
@@ -869,9 +868,16 @@ export default declareSchema(() => {
     const ConferenceMediaStreamSettings = struct({
         videoIn: boolean(),
         videoOut: boolean(),
+        videoOutSource: optional(enumString('camera', 'screen_share')),
         audioIn: boolean(),
         audioOut: boolean(),
         iceTransportPolicy: optional(enumString('all', 'relay'))
+    });
+
+    const ConferenceMediaStreamMediaState = struct({
+        videoOut: boolean(),
+        audioOut: boolean(),
+        videoSource: optional(enumString('camera', 'screen_share'))
     });
 
     entity('ConferenceMediaStream', () => {
@@ -888,6 +894,8 @@ export default declareSchema(() => {
         field('ice2', json());
         field('settings1', optional(ConferenceMediaStreamSettings));
         field('settings2', optional(ConferenceMediaStreamSettings));
+        field('mediaState1', optional(ConferenceMediaStreamMediaState));
+        field('mediaState2', optional(ConferenceMediaStreamMediaState));
         rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.state !== 'completed');
     });
 

@@ -1,6 +1,6 @@
 import { ConferenceRoom, ConferencePeer } from './../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
-import { withUser, withPermission } from 'openland-module-api/Resolvers';
+import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
 import { Context } from '@openland/context';
@@ -33,14 +33,6 @@ const resolveIce = async (root: any, args: any, context: AppContext) => {
 };
 
 export const Resolver: GQLResolver = {
-    ConferenceStrategy: {
-        MASH: 'mash',
-        SFU: 'sfu'
-    },
-    ConferenceKind: {
-        CONFERENCE: 'conference',
-        STREAM: 'stream'
-    },
     Conference: {
         id: (src: ConferenceRoom) => IDs.Conference.serialize(src.id),
         startTime: (src: ConferenceRoom) => src.startTime,
@@ -50,8 +42,8 @@ export const Resolver: GQLResolver = {
             return res;
         },
         iceServers: resolveIce,
-        strategy: (src) => src.strategy,
-        kind: (src) => src.kind,
+        strategy: (src) => src.strategy === 'mash' ? 'MASH' : 'SFU',
+        kind: (src) => src.kind === 'conference' ? 'CONFERENCE' : 'STREAM',
     },
     ConferencePeer: {
         id: (src: ConferencePeer) => IDs.ConferencePeer.serialize(src.id),
@@ -138,6 +130,8 @@ export const Resolver: GQLResolver = {
                         } else {
                             sdp = c.offer;
                         }
+                    } else if (c.state === 'completed') {
+                        continue;
                     } else {
                         throw Error('Unkown state: ' + c.state);
                     }
@@ -149,6 +143,7 @@ export const Resolver: GQLResolver = {
                         sdp,
                         ice,
                         settings: src.peerId === c.peer1 ? c.settings1! : c.settings2!,
+                        mediaState: src.peerId === c.peer1 ? c.mediaState2! : c.mediaState1!
                     });
                 }
             }
@@ -170,7 +165,7 @@ export const Resolver: GQLResolver = {
     Mutation: {
         conferenceJoin: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conference.parse(args.id);
-            let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 15000, args.kind || 'conference');
+            let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 15000, args.kind === 'STREAM' ? 'stream' : 'conference');
             let activeMembers = await Modules.Calls.repo.findActiveMembers(ctx, cid);
             if (activeMembers.length === 1) {
                 let fullName = await Modules.Users.getUserFullName(ctx, uid);
@@ -184,6 +179,23 @@ export const Resolver: GQLResolver = {
                 conference: await Modules.Calls.repo.getOrCreateConference(ctx, cid)
             };
         }),
+        conferenceAddScreenShare: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conference.parse(args.id);
+            return await Modules.Calls.repo.addScreenShare(ctx, cid, uid, ctx.auth.tid!);
+        }),
+        conferenceRemoveScreenShare: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conference.parse(args.id);
+            let peer = await Store.ConferencePeer.auth.find(ctx, cid, uid, ctx.auth.tid!);
+            if (!peer) {
+                throw Error('Unable to find peer');
+            }
+            return await Modules.Calls.repo.removeScreenShare(ctx, peer);
+        }),
+        conferenceAlterMediaState: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conference.parse(args.id);
+            return await Modules.Calls.repo.alterConferencePeerMediaState(ctx, cid, uid, ctx.auth.tid!, args.state.audioOut, args.state.videoOut);
+        }),
+
         conferenceLeave: withUser(async (ctx, args, uid) => {
             let coid = IDs.Conference.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
@@ -266,16 +278,18 @@ export const Resolver: GQLResolver = {
             await Modules.Calls.repo.connectionCandidate(ctx, coid, srcPid, dstPid, args.candidate);
             return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         }),
-        conferenceAlterSettings: withPermission('super-admin', async (ctx, args) => {
-            let coid = IDs.Conversation.parse(args.id);
-            let conf = await Modules.Calls.repo.getOrCreateConference(ctx, coid);
-            if (args.settings.iceTransportPolicy) {
-                conf.iceTransportPolicy = args.settings.iceTransportPolicy;
-            }
-            if (args.settings.strategy) {
-                conf.strategy = args.settings.strategy;
-            }
-            return conf;
+        conferenceAlterSettings: withUser(async (parent, args) => {
+            return await inTx(parent, async (ctx) => {
+                let coid = IDs.Conversation.parse(args.id);
+                let conf = await Modules.Calls.repo.getOrCreateConference(ctx, coid);
+                if (args.settings.iceTransportPolicy) {
+                    conf.iceTransportPolicy = args.settings.iceTransportPolicy;
+                }
+                if (args.settings.strategy) {
+                    conf.strategy = args.settings.strategy === 'MASH' ? 'mash' : 'sfu';
+                }
+                return conf;
+            });
         }),
     },
     Subscription: {
