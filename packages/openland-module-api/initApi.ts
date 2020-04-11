@@ -225,13 +225,12 @@ export async function initApi(isTest: boolean) {
         Server.applyMiddleware({app, path: '/api'});
 
         async function saveTrace(trace: GqlTrace) {
-            logger.log(rootCtx, 'gql_trace', trace.duration);
-            // if (trace.duration >= 1500) {
+            if (trace.duration >= 1500) {
                 await inTx(rootCtx, async _ctx => {
                     let id = await fetchNextDBSeq(_ctx, 'gql-trace');
                     await Store.GqlTrace.create(_ctx, id, { traceData: trace });
                 });
-            // }
+            }
         }
         // const wsCtx = createNamedContext('ws-gql');
         let fuckApolloWS = await createFuckApolloWSServer({
