@@ -210,6 +210,9 @@ export class CallRepository {
     removeScreenShare = async (parent: Context, peer: ConferencePeer) => {
         return await inTx(parent, async (ctx) => {
             let conf = await this.getOrCreateConference(ctx, peer.cid);
+            if (conf.screenSharingPeerId !== peer.id) {
+                return conf;
+            }
             conf.screenSharingPeerId = null;
             // Kill screen_share streams
             let streams = await Store.ConferenceMediaStream.conference.findAll(ctx, peer.cid);
