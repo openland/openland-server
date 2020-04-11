@@ -38,7 +38,6 @@ export async function* gqlSubscribe(
         subscribeFieldResolver,
     );
 
-
     const mapSourceToResponse = async (eventCtx: Context, payload: any) => execute(
         schema,
         document,
