@@ -225,7 +225,7 @@ export async function initApi(isTest: boolean) {
         Server.applyMiddleware({app, path: '/api'});
 
         async function saveTrace(trace: GqlTrace) {
-            if (trace.duration >= 4000) {
+            if (trace.duration >= 1500) {
                 await inTx(rootCtx, async _ctx => {
                     let id = await fetchNextDBSeq(_ctx, 'gql-trace');
                     await Store.GqlTrace.create(_ctx, id, { traceData: trace });
