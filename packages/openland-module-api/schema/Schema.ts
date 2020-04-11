@@ -9,12 +9,7 @@ import { buildResolvers } from 'openland-graphql/buildResolvers';
 import { AppContext, GQLAppContext } from 'openland-modules/AppContext';
 import { merge } from '../../openland-utils/merge';
 import { withLogPath } from '@openland/log';
-// import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
-import { createTracer } from '../../openland-log/createTracer';
-
-// const onGqlQuery = createHyperlogger<{ type: string, field: string }>('gql_query');
-
-const gqlTracer = createTracer('gql');
+import { gqlTraceNamespace } from '../../openland-graphql/gqlTracer';
 
 export function fetchResolvePath(info: GraphQLResolveInfo) {
     let path: (string|number)[] = [];
@@ -57,44 +52,27 @@ export const Schema = (forTest: boolean = false) => {
             context: any,
             info: GraphQLResolveInfo
         ) => {
-            // if (type.name === 'Query') {
-            //     onGqlQuery.event(context, { type: 'Query', field: field.name });
-            // } else if (type.name === 'Mutation') {
-            //     onGqlQuery.event(context, { type: 'Mutation', field: field.name });
-            // } else if (type.name === 'Subscription') {
-            //     onGqlQuery.event(context, { type: 'Subscription', field: field.name });
-            // }
-
-            // let ctx = (context as AppContext).ctx;
-            // let trace = gqlTraceNamespace.get(ctx);
-            // let path = fetchResolvePath(info);
-            //
-            // let ctx3 = withLogPath(ctx, path.join('->'));
-            // if (trace) {
-            //     trace.onResolveStart(path);
-            //     try {
-            //         return await originalResolver(root, args, new GQLAppContext(ctx3, info), info);
-            //     } finally {
-            //         trace.onResolveEnd(path);
-            //     }
-            // }
-            //
-            // return await originalResolver(root, args, new GQLAppContext(ctx3, info), info);
-
             let path = fetchResolvePath(info);
             let ctx = (context as AppContext).ctx;
             let ctx2 = withLogPath(ctx, path.join('->'));
-            let name = 'Field:' + field.name;
-            if (type.name === 'Query') {
-                name = 'Query:' + field.name;
-            } else if (type.name === 'Mutation') {
-                name = 'Mutation:' + field.name;
-            } else if (type.name === 'Subscription') {
-                name = 'Subscription:' + field.name;
+            // let name = 'Field:' + field.name;
+            // if (type.name === 'Query') {
+            //     name = 'Query:' + field.name;
+            // } else if (type.name === 'Mutation') {
+            //     name = 'Mutation:' + field.name;
+            // } else if (type.name === 'Subscription') {
+            //     name = 'Subscription:' + field.name;
+            // }
+            let trace = gqlTraceNamespace.get(ctx);
+            if (trace) {
+                let t = trace.onResolve(info);
+                try {
+                    return await originalResolver(root, args, new GQLAppContext(ctx2, info), info);
+                } finally {
+                    t();
+                }
             }
-            return await gqlTracer.trace(ctx2, name, async (ctx3) => {
-                return await originalResolver(root, args, new GQLAppContext(ctx3, info), info);
-            });
+            return await originalResolver(root, args, new GQLAppContext(ctx2, info), info);
         }
     );
 };

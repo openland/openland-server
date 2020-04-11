@@ -211,7 +211,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
 
             if (isSubscription) {
                 let working = true;
-                let ctx = await params.subscriptionContext(session.authParams, message.payload, undefined, req);
+                let ctx = await params.subscriptionContext(session.authParams, operation, undefined, req);
                 asyncRun(async () => {
                     await params.onOperation(ctx, operation);
 
@@ -222,7 +222,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                         variableValues: operation.variables,
                         fetchContext: async () => await params.subscriptionContext(session.authParams, operation, ctx, req),
                         ctx,
-                        onEventResolveFinish: duration => params.onEventResolveFinish(ctx, operation, duration)
+                        onEventResolveFinish: (_ctx, duration) => params.onEventResolveFinish(_ctx, operation, duration)
                     });
 
                     if (!isAsyncIterator(iterator)) {

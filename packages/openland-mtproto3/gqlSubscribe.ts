@@ -1,6 +1,7 @@
 import { createSourceEventStream, DocumentNode, execute, GraphQLFieldResolver, GraphQLSchema } from 'graphql';
 import Maybe from 'graphql/tsutils/Maybe';
 import { isAsyncIterator } from './utils';
+import { Context } from '@openland/context';
 
 export async function* gqlSubscribe(
     {
@@ -24,7 +25,7 @@ export async function* gqlSubscribe(
         operationName?: Maybe<string>;
         fieldResolver?: Maybe<GraphQLFieldResolver<any, any>>;
         subscribeFieldResolver?: Maybe<GraphQLFieldResolver<any, any>>;
-        onEventResolveFinish: (duration: number) => void
+        onEventResolveFinish: (ctx: Context, duration: number) => void
     }) {
 
     const sourcePromise = createSourceEventStream(
@@ -37,11 +38,12 @@ export async function* gqlSubscribe(
         subscribeFieldResolver,
     );
 
-    const mapSourceToResponse = async (payload: any) => execute(
+
+    const mapSourceToResponse = async (eventCtx: Context, payload: any) => execute(
         schema,
         document,
         payload,
-        fetchContext ? await fetchContext() : undefined,
+        eventCtx,
         variableValues,
         operationName,
         fieldResolver,
@@ -53,8 +55,9 @@ export async function* gqlSubscribe(
         try {
             for await (let data of res) {
                 let resolveStart = Date.now();
-                let event = await mapSourceToResponse(data);
-                onEventResolveFinish(Date.now() - resolveStart);
+                let eventCtx = fetchContext ? await fetchContext() : undefined;
+                let event = await mapSourceToResponse(eventCtx, data);
+                onEventResolveFinish(eventCtx, Date.now() - resolveStart);
                 yield event;
             }
         } catch (e) {

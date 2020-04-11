@@ -1,93 +1,80 @@
-import { createTracer } from 'openland-log/createTracer';
 import { Context, createContextNamespace } from '@openland/context';
-import { SSpan } from '../openland-log/SSpan';
+import { GraphQLResolveInfo } from 'graphql';
 
-class ResolveTracePart {
-    public finished = false;
+// const hrTime = () => process.hrtime.bigint();
 
-    constructor(
-        public span: SSpan
-    ) {
-
+function fetchResolvePath(info: GraphQLResolveInfo) {
+    let path: (string | number)[] = [];
+    try {
+        let current = info.path;
+        path.unshift(current.key);
+        while (current.prev) {
+            current = current.prev;
+            path.unshift(current.key);
+        }
+    } catch {
+        //
     }
-
-    finish() {
-        this.span.finish();
-        this.finished = true;
-    }
+    return path;
 }
 
-const GQLTrace = createTracer('gql');
+type ResolveTrace = {
+    path: (string | number)[];
+    startOffset: number
+    duration: number
+};
+
+export type GqlTrace = {
+    name: string,
+    traces: ResolveTrace[],
+    duration: number
+};
 
 export class GQLTracer {
-    private rootPart: ResolveTracePart;
-    private parts = new Map<string, ResolveTracePart>();
-    private children = new Map<string, ResolveTracePart[]>();
+    private startTime!: number;
+    private name: string;
+    private started = false;
+    private traces: ResolveTrace[] = [];
+    private endTime!: number;
 
     constructor(name: string) {
-        this.rootPart = new ResolveTracePart(GQLTrace.startSpan(name));
+        this.name = name;
     }
 
-    onResolveStart(path: (string|number)[]) {
-        let parentPath = path.slice(0, -1).join('.');
+    onResolve(info: GraphQLResolveInfo) {
+        let path = fetchResolvePath(info);
 
-        if (typeof path[path.length - 2] === 'number' && !this.parts.has(parentPath)) {
-            this.onResolveStart(path.slice(0, -1));
+        // Save start time
+        if (!this.started) {
+            this.startTime = Date.now();
+            this.started = true;
         }
 
-        let parent = this.parts.has(parentPath) ? this.parts.get(parentPath)! : this.rootPart;
-        let part = new ResolveTracePart(GQLTrace.startSpan(path[path.length - 1].toString(), parent.span));
+        let resolveStart = Date.now();
 
-        this.parts.set(path.join('.'), part);
-        this.children.set(parentPath, [...(this.children.get(parentPath) || []), part]);
+        let trace = {
+            path,
+            startOffset: resolveStart - this.startTime,
+            duration: 0
+        };
+
+        this.traces.push(trace);
+
+        return () => {
+            trace.duration = Date.now() - resolveStart;
+        };
     }
 
-    onResolveEnd(path: (string|number)[]) {
-        this.parts.get(path.join('.'))!.finish();
-        if (typeof path[path.length - 2] === 'number') {
-            let parentPath = path.slice(0, -1).join('.');
-            let parentPart = this.parts.get(parentPath)!;
-            let parentChild = this.children.get(parentPath) || [];
-            if (this.isPartsFinished(parentChild)) {
-                setImmediate(() => {
-                    if (this.isPartsFinished(parentChild) && !parentPart.finished) {
-                        parentPart.finish();
-                        this.tryFinishRoot();
-                    }
-                });
-            }
-        }
-        if (!this.isAllFinished()) {
-            return;
-        }
-        setImmediate(() => this.tryFinishRoot());
+    onRequestFinish() {
+        this.endTime = Date.now();
     }
 
-    private isAllFinished() {
-        for (let partName of this.parts.keys()) {
-            let part = this.parts.get(partName)!;
-            if (!part.finished) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private isPartsFinished(parts: ResolveTracePart[]) {
-        for (let child of parts) {
-            if (!child.finished) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private tryFinishRoot() {
-        if (this.isAllFinished() && !this.rootPart.finished) {
-            this.rootPart.finish();
-            this.parts.clear();
-            this.children.clear();
-        }
+    getTrace(): GqlTrace {
+        return {
+            name: this.name,
+            traces: this.traces,
+            duration: this.endTime - this.startTime
+        };
     }
 }
 

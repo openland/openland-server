@@ -73,6 +73,19 @@ type DebugIpInfo {
     location: GeoLocation
 }
 
+type GqlTrace {
+    id: ID!
+    name: String!
+    duration: Int!
+    traceData: String!
+    date: Date!
+}
+
+type GqlTraceConnection {
+    items: [GqlTrace!]!
+    cursor: ID
+}
+
 extend type Query {
     debugParseID(id: ID!): DebugID!
     debugCrashQuery: String!
@@ -87,6 +100,7 @@ extend type Query {
     debugGlobalCounters: DebugGlobalCounters!
     debugServerId: String!
     debugClientIp: DebugIpInfo
+    debugGqlTraces(first: Int!, after: ID): GqlTraceConnection!
 }
 
 enum SuperNotificationType {

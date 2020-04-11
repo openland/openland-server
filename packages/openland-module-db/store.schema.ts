@@ -2159,6 +2159,12 @@ export default declareSchema(() => {
         field('seq', integer());
     });
 
+    entity('GqlTrace', () => {
+        primaryKey('id', integer());
+        field('traceData', json());
+        rangeIndex('trace', ['id']);
+    });
+
     //
     //  Phonebook
     //

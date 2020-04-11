@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '65dada66f0a3df71fccb51e9801666f5';
+export const GQL_SPEC_VERSION = 'ea4243f5c50abc0a0f5e366ada5900ab';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -895,6 +895,24 @@ export namespace GQL {
     export interface DebugIpInfoLocationCodeArgs { }
     export interface DebugIpInfoLocationNameArgs { }
     export interface DebugIpInfoLocationArgs { }
+    export interface GqlTrace {
+        id: string;
+        name: string;
+        duration: number;
+        traceData: string;
+        date: Date;
+    }
+    export interface GqlTraceIdArgs { }
+    export interface GqlTraceNameArgs { }
+    export interface GqlTraceDurationArgs { }
+    export interface GqlTraceTraceDataArgs { }
+    export interface GqlTraceDateArgs { }
+    export interface GqlTraceConnection {
+        items: GqlTrace[];
+        cursor: Nullable<string>;
+    }
+    export interface GqlTraceConnectionItemsArgs { }
+    export interface GqlTraceConnectionCursorArgs { }
     export type SuperNotificationTypeValues = 'ON_SIGN_UP' | 'ON_USER_PROFILE_CREATED' | 'ON_ORG_ACTIVATED_BY_ADMIN' | 'ON_ORG_ACTIVATED_VIA_INVITE' | 'ON_ORG_SUSPEND';
     export type SuperNotificationType = GQLRoots.SuperNotificationTypeRoot;
     export type DialogKindValues = 'PRIVATE' | 'INTERNAL' | 'PUBLIC' | 'GROUP';
@@ -3670,6 +3688,7 @@ export namespace GQL {
         debugGlobalCounters: DebugGlobalCounters;
         debugServerId: string;
         debugClientIp: Nullable<DebugIpInfo>;
+        debugGqlTraces: GqlTraceConnection;
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
@@ -3863,6 +3882,10 @@ export namespace GQL {
     export interface QueryDebugGlobalCountersArgs { }
     export interface QueryDebugServerIdArgs { }
     export interface QueryDebugClientIpArgs { }
+    export interface QueryDebugGqlTracesArgs {
+        first: number;
+        after: OptionalNullable<string>;
+    }
     export interface QueryDialogsArgs {
         first: number;
         after: OptionalNullable<string>;
@@ -6463,6 +6486,30 @@ export interface GQLResolver {
             location: GQL.DebugIpInfoLocationArgs,
         }
     >;
+    GqlTrace?: ComplexTypedResolver<
+        GQL.GqlTrace,
+        GQLRoots.GqlTraceRoot,
+        {
+        },
+        {
+            id: GQL.GqlTraceIdArgs,
+            name: GQL.GqlTraceNameArgs,
+            duration: GQL.GqlTraceDurationArgs,
+            traceData: GQL.GqlTraceTraceDataArgs,
+            date: GQL.GqlTraceDateArgs,
+        }
+    >;
+    GqlTraceConnection?: ComplexTypedResolver<
+        GQL.GqlTraceConnection,
+        GQLRoots.GqlTraceConnectionRoot,
+        {
+            items: GQLRoots.GqlTraceRoot[],
+        },
+        {
+            items: GQL.GqlTraceConnectionItemsArgs,
+            cursor: GQL.GqlTraceConnectionCursorArgs,
+        }
+    >;
     SuperNotificationType?: EnumTypeResolver<'ON_SIGN_UP' | 'ON_USER_PROFILE_CREATED' | 'ON_ORG_ACTIVATED_BY_ADMIN' | 'ON_ORG_ACTIVATED_VIA_INVITE' | 'ON_ORG_SUSPEND', GQLRoots.SuperNotificationTypeRoot>;
     DialogKind?: EnumTypeResolver<'PRIVATE' | 'INTERNAL' | 'PUBLIC' | 'GROUP', GQLRoots.DialogKindRoot>;
     Dialog?: ComplexTypedResolver<
@@ -8465,6 +8512,7 @@ export interface GQLResolver {
             debugUserMetrics: GQLRoots.DebugUserMetricsRoot,
             debugGlobalCounters: GQLRoots.DebugGlobalCountersRoot,
             debugClientIp: Nullable<GQLRoots.DebugIpInfoRoot>,
+            debugGqlTraces: GQLRoots.GqlTraceConnectionRoot,
             dialogs: GQLRoots.DialogsConnectionRoot,
             settings: GQLRoots.SettingsRoot,
             authPoints: GQLRoots.AuthPointRoot,
@@ -8615,6 +8663,7 @@ export interface GQLResolver {
             debugGlobalCounters: GQL.QueryDebugGlobalCountersArgs,
             debugServerId: GQL.QueryDebugServerIdArgs,
             debugClientIp: GQL.QueryDebugClientIpArgs,
+            debugGqlTraces: GQL.QueryDebugGqlTracesArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
             authPoints: GQL.QueryAuthPointsArgs,

@@ -80,6 +80,17 @@ export const Resolver: GQLResolver = {
         seq: src => src.seq,
         key: src => src.key || '',
     },
+    GqlTrace: {
+        id: src => IDs.GqlTrace.serialize(src.id),
+        name: src => src.traceData.name,
+        duration: src => src.traceData.duration,
+        traceData: src => JSON.stringify(src.traceData),
+        date: src => src.metadata.createdAt
+    },
+    GqlTraceConnection: {
+        items: src => src.items,
+        cursor: src => src.cursor || null
+    },
     Query: {
         lifecheck: () => `i'm ok`,
         debugParseID: withPermission('super-admin', async (ctx, args) => {
@@ -189,7 +200,23 @@ export const Resolver: GQLResolver = {
         }),
         debugClientIp: (_, __, ctx) => {
             return ctx.req.ip || null;
-        }
+        },
+        debugGqlTraces: withPermission('super-admin', async (ctx, args) => {
+            let afterId = args.after ? IDs.GqlTrace.parse(args.after) : null;
+            if (!args.first || args.first <= 0) {
+                return { items: [], cursor: undefined };
+            }
+            let afterExists = afterId && await Store.GqlTrace.findById(ctx, afterId);
+            let {items, haveMore} = await Store.GqlTrace.trace.query(ctx, {
+                limit: args.first,
+                after: afterExists ? afterId : undefined,
+                reverse: true
+            });
+            return {
+                items,
+                cursor: haveMore ? IDs.GqlTrace.serialize(items[items.length - 1].id) : undefined
+            };
+        }),
     },
     Mutation: {
         debugSendSMS: withPermission('super-admin', async (ctx, args) => {

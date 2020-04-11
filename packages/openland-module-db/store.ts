@@ -17086,6 +17086,90 @@ export class DebugEventStateFactory extends EntityFactory<DebugEventStateShape, 
     }
 }
 
+export interface GqlTraceShape {
+    id: number;
+    traceData: any;
+}
+
+export interface GqlTraceCreateShape {
+    traceData: any;
+}
+
+export class GqlTrace extends Entity<GqlTraceShape> {
+    get id(): number { return this._rawValue.id; }
+    get traceData(): any { return this._rawValue.traceData; }
+    set traceData(value: any) {
+        let normalized = this.descriptor.codec.fields.traceData.normalize(value);
+        if (this._rawValue.traceData !== normalized) {
+            this._rawValue.traceData = normalized;
+            this._updatedValues.traceData = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class GqlTraceFactory extends EntityFactory<GqlTraceShape, GqlTrace> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('gqlTrace');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'trace', storageKey: 'trace', type: { type: 'range', fields: [{ name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('gqlTrace', 'trace'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'traceData', type: { type: 'json' }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            traceData: c.any,
+        });
+        let descriptor: EntityDescriptor<GqlTraceShape> = {
+            name: 'GqlTrace',
+            storageKey: 'gqlTrace',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new GqlTraceFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<GqlTraceShape>) {
+        super(descriptor);
+    }
+
+    readonly trace = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: GqlTraceCreateShape): Promise<GqlTrace> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: GqlTraceCreateShape): GqlTrace {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<GqlTrace | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<GqlTraceShape>): GqlTrace {
+        return new GqlTrace([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface PhonebookItemShape {
     id: number;
     uid: number;
@@ -18852,6 +18936,7 @@ export interface Store extends BaseStore {
     readonly OneTimeCode: OneTimeCodeFactory;
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
+    readonly GqlTrace: GqlTraceFactory;
     readonly PhonebookItem: PhonebookItemFactory;
     readonly EditorsChoiceChatsCollection: EditorsChoiceChatsCollectionFactory;
     readonly EditorsChoiceChat: EditorsChoiceChatFactory;
@@ -19061,6 +19146,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let OneTimeCodePromise = OneTimeCodeFactory.open(storage);
     let DebugEventPromise = DebugEventFactory.open(storage);
     let DebugEventStatePromise = DebugEventStateFactory.open(storage);
+    let GqlTracePromise = GqlTraceFactory.open(storage);
     let PhonebookItemPromise = PhonebookItemFactory.open(storage);
     let EditorsChoiceChatsCollectionPromise = EditorsChoiceChatsCollectionFactory.open(storage);
     let EditorsChoiceChatPromise = EditorsChoiceChatFactory.open(storage);
@@ -19241,6 +19327,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         OneTimeCode: await OneTimeCodePromise,
         DebugEvent: await DebugEventPromise,
         DebugEventState: await DebugEventStatePromise,
+        GqlTrace: await GqlTracePromise,
         PhonebookItem: await PhonebookItemPromise,
         EditorsChoiceChatsCollection: await EditorsChoiceChatsCollectionPromise,
         EditorsChoiceChat: await EditorsChoiceChatPromise,

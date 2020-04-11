@@ -76,7 +76,7 @@ import {
     WalletPurchase,
     WalletLockedChanged,
     EditorsChoiceChatsCollection,
-    EditorsChoiceChat, WalletPurchaseCreateShape,
+    EditorsChoiceChat, WalletPurchaseCreateShape, GqlTrace,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -482,6 +482,8 @@ export namespace GQLRoots {
     export type DebugEmailTypeRoot = DebugEmailTypeValues;
     export type DebugIpInfoRoot = string;
     export type SuperNotificationTypeRoot = SuperNotificationTypeValues;
+    export type GqlTraceRoot = GqlTrace;
+    export type GqlTraceConnectionRoot = { items: GqlTraceRoot[], cursor?: string };
 
     //
     //  Comments

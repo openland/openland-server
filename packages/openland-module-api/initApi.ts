@@ -28,7 +28,13 @@ import { withConcurrentcyPool } from 'openland-utils/ConcurrencyPool';
 import { createNamedContext } from '@openland/context';
 import { createLogger, withLogPath } from '@openland/log';
 import { withReadOnlyTransaction, inTx } from '@openland/foundationdb';
-import { GqlQueryIdNamespace, withGqlQueryId, withGqlTrace } from '../openland-graphql/gqlTracer';
+import {
+    GqlQueryIdNamespace,
+    GqlTrace,
+    gqlTraceNamespace,
+    withGqlQueryId,
+    withGqlTrace
+} from '../openland-graphql/gqlTracer';
 // import { AuthContext } from '../openland-module-auth/AuthContext';
 import { uuid } from '../openland-utils/uuid';
 import { createMetric } from '../openland-module-monitoring/Metric';
@@ -43,6 +49,8 @@ import { initOauth2 } from '../openland-module-oauth/http.handlers';
 import { AuthContext } from '../openland-module-auth/AuthContext';
 import { createHyperlogger } from '../openland-module-hyperlog/createHyperlogEvent';
 import { initPhoneAuthProvider } from '../openland-module-auth/providers/phone';
+import { Store } from '../openland-module-db/FDB';
+import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
@@ -216,6 +224,14 @@ export async function initApi(isTest: boolean) {
         Server.applyMiddleware({app, path: '/graphql'});
         Server.applyMiddleware({app, path: '/api'});
 
+        async function saveTrace(trace: GqlTrace) {
+            if (trace.duration >= 4000) {
+                await inTx(rootCtx, async _ctx => {
+                    let id = await fetchNextDBSeq(_ctx, 'gql-trace');
+                    await Store.GqlTrace.create(_ctx, id, { traceData: trace });
+                });
+            }
+        }
         // const wsCtx = createNamedContext('ws-gql');
         let fuckApolloWS = await createFuckApolloWSServer({
             server: undefined, // httpServer ,
@@ -267,6 +283,12 @@ export async function initApi(isTest: boolean) {
                 // }
             },
             onOperationFinish: async (ctx, operation, duration) => {
+                let trace = gqlTraceNamespace.get(ctx);
+                if (trace) {
+                    trace.onRequestFinish();
+                    await saveTrace(trace.getTrace());
+                }
+
                 if (operation.operationName) {
                     await inTx(rootCtx, async _ctx => {
                         await onGqlQuery.event(_ctx, {
@@ -277,6 +299,11 @@ export async function initApi(isTest: boolean) {
                 }
             },
             onEventResolveFinish: async (ctx, operation, duration) => {
+                let trace = gqlTraceNamespace.get(ctx);
+                if (trace) {
+                    trace.onRequestFinish();
+                    await saveTrace(trace.getTrace());
+                }
                 if (operation.operationName) {
                     await inTx(rootCtx, async _ctx => {
                         await onGqlQuery.event(_ctx, {
