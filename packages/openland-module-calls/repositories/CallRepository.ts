@@ -3,7 +3,7 @@ import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { Store } from 'openland-module-db/FDB';
-import { ConferenceMediaStreamCreateShape } from '../../openland-module-db/store';
+import { ConferenceMediaStreamCreateShape, ConferencePeer, ConferenceRoom } from '../../openland-module-db/store';
 
 let log = createLogger('call-repo');
 
@@ -142,6 +142,10 @@ export class CallRepository {
                     mediaState1: { audioOut: true, videoOut: false, videoSource: 'camera' },
                     mediaState2: { audioOut: true, videoOut: false, videoSource: 'camera' }
                 });
+
+                if (cp.id === conf.screenSharingPeerId) {
+                    await this.createScreenShareStream(ctx, conf, cp, res);
+                }
                 // }
             }
 
@@ -158,57 +162,64 @@ export class CallRepository {
             if (!peer) {
                 throw Error('Unable to find peer');
             }
+            if (conf.screenSharingPeerId === peer.id) {
+                return conf;
+            }
+            let currentSharingPeer = conf.screenSharingPeerId ? await Store.ConferencePeer.findById(ctx, conf.screenSharingPeerId) : undefined;
+            if (currentSharingPeer) {
+                await this.removeScreenShare(ctx, currentSharingPeer);
+            }
+            conf.screenSharingPeerId = peer.id;
 
             // Create streams
             for (let cp of confPeers) {
                 if (cp.id === peer.id) {
                     continue;
                 }
-
-                let peer1 = Math.min(cp.id, peer.id);
-                let peer2 = Math.max(cp.id, peer.id);
-                let settings1 = resolveMediaStreamSettings(peer1, peer2, 'stream', peer.id, conf.iceTransportPolicy, 'screen_share');
-                let settings2 = resolveMediaStreamSettings(peer2, peer1, 'stream', peer.id, conf.iceTransportPolicy, 'screen_share');
-
-                await Store.ConferenceMediaStream.create(ctx, await this.nextStreamId(ctx), {
-                    kind: 'direct',
-                    peer1,
-                    peer2,
-                    cid: cid,
-                    state: 'wait-offer',
-                    ice1: [],
-                    ice2: [],
-                    offer: null,
-                    answer: null,
-                    settings1,
-                    settings2,
-                    seq: 0,
-                    mediaState1: { audioOut: false, videoOut: peer1 === peer.id, videoSource: peer1 === peer.id ? 'screen_share' : undefined },
-                    mediaState2: { audioOut: false, videoOut: peer2 === peer.id, videoSource: peer2 === peer.id ? 'screen_share' : undefined }
-                });
+                await this.createScreenShareStream(ctx, conf, peer, cp);
             }
             await this.bumpVersion(ctx, cid);
             return conf;
         });
     }
 
-    removeScreenShare = async (parent: Context, cid: number, uid: number, tid: string) => {
-        return await inTx(parent, async (ctx) => {
-            let conf = await this.getOrCreateConference(ctx, cid);
-            let peer = await Store.ConferencePeer.auth.find(ctx, cid, uid, tid);
-            if (!peer) {
-                throw Error('Unable to find peer');
-            }
+    createScreenShareStream = async (ctx: Context, conf: ConferenceRoom, producer: ConferencePeer, consumer: ConferencePeer) => {
+        let peer1 = Math.min(consumer.id, producer.id);
+        let peer2 = Math.max(consumer.id, producer.id);
+        let settings1 = resolveMediaStreamSettings(peer1, peer2, 'stream', producer.id, conf.iceTransportPolicy, 'screen_share');
+        let settings2 = resolveMediaStreamSettings(peer2, peer1, 'stream', producer.id, conf.iceTransportPolicy, 'screen_share');
 
+        await Store.ConferenceMediaStream.create(ctx, await this.nextStreamId(ctx), {
+            kind: 'direct',
+            peer1,
+            peer2,
+            cid: conf.id,
+            state: 'wait-offer',
+            ice1: [],
+            ice2: [],
+            offer: null,
+            answer: null,
+            settings1,
+            settings2,
+            seq: 0,
+            mediaState1: { audioOut: false, videoOut: peer1 === producer.id, videoSource: peer1 === producer.id ? 'screen_share' : undefined },
+            mediaState2: { audioOut: false, videoOut: peer2 === producer.id, videoSource: peer2 === producer.id ? 'screen_share' : undefined }
+        });
+    }
+
+    removeScreenShare = async (parent: Context, peer: ConferencePeer) => {
+        return await inTx(parent, async (ctx) => {
+            let conf = await this.getOrCreateConference(ctx, peer.cid);
+            conf.screenSharingPeerId = null;
             // Kill screen_share streams
-            let streams = await Store.ConferenceMediaStream.conference.findAll(ctx, cid);
+            let streams = await Store.ConferenceMediaStream.conference.findAll(ctx, peer.cid);
             for (let c of streams) {
                 if ((c.peer1 === peer.id && c.mediaState1!.videoSource === 'screen_share') || (c.peer2 === peer.id && c.mediaState2!.videoSource === 'screen_share')) {
                     c.state = 'completed';
                 }
             }
 
-            await this.bumpVersion(ctx, cid);
+            await this.bumpVersion(ctx, peer.cid);
             return conf;
         });
     }

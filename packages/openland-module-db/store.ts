@@ -6411,6 +6411,7 @@ export interface ConferenceRoomShape {
     id: number;
     strategy: 'mash' | 'sfu';
     iceTransportPolicy: 'all' | 'relay' | null;
+    screenSharingPeerId: number | null;
     startTime: number | null;
     kind: 'conference' | 'stream';
     streamerId: number | null;
@@ -6419,6 +6420,7 @@ export interface ConferenceRoomShape {
 export interface ConferenceRoomCreateShape {
     strategy: 'mash' | 'sfu';
     iceTransportPolicy?: 'all' | 'relay' | null | undefined;
+    screenSharingPeerId?: number | null | undefined;
     startTime?: number | null | undefined;
     kind: 'conference' | 'stream';
     streamerId?: number | null | undefined;
@@ -6441,6 +6443,15 @@ export class ConferenceRoom extends Entity<ConferenceRoomShape> {
         if (this._rawValue.iceTransportPolicy !== normalized) {
             this._rawValue.iceTransportPolicy = normalized;
             this._updatedValues.iceTransportPolicy = normalized;
+            this.invalidate();
+        }
+    }
+    get screenSharingPeerId(): number | null { return this._rawValue.screenSharingPeerId; }
+    set screenSharingPeerId(value: number | null) {
+        let normalized = this.descriptor.codec.fields.screenSharingPeerId.normalize(value);
+        if (this._rawValue.screenSharingPeerId !== normalized) {
+            this._rawValue.screenSharingPeerId = normalized;
+            this._updatedValues.screenSharingPeerId = normalized;
             this.invalidate();
         }
     }
@@ -6483,6 +6494,7 @@ export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, Co
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'strategy', type: { type: 'enum', values: ['mash', 'sfu'] }, secure: false });
         fields.push({ name: 'iceTransportPolicy', type: { type: 'optional', inner: { type: 'enum', values: ['all', 'relay'] } }, secure: false });
+        fields.push({ name: 'screenSharingPeerId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'startTime', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'kind', type: { type: 'enum', values: ['conference', 'stream'] }, secure: false });
         fields.push({ name: 'streamerId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
@@ -6490,6 +6502,7 @@ export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, Co
             id: c.integer,
             strategy: c.enum('mash', 'sfu'),
             iceTransportPolicy: c.optional(c.enum('all', 'relay')),
+            screenSharingPeerId: c.optional(c.integer),
             startTime: c.optional(c.integer),
             kind: c.enum('conference', 'stream'),
             streamerId: c.optional(c.integer),

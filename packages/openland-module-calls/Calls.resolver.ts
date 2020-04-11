@@ -130,6 +130,8 @@ export const Resolver: GQLResolver = {
                         } else {
                             sdp = c.offer;
                         }
+                    } else if (c.state === 'completed') {
+                        continue;
                     } else {
                         throw Error('Unkown state: ' + c.state);
                     }
@@ -183,7 +185,11 @@ export const Resolver: GQLResolver = {
         }),
         conferenceRemoveScreenShare: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conference.parse(args.id);
-            return await Modules.Calls.repo.removeScreenShare(ctx, cid, uid, ctx.auth.tid!);
+            let peer = await Store.ConferencePeer.auth.find(ctx, cid, uid, ctx.auth.tid!);
+            if (!peer) {
+                throw Error('Unable to find peer');
+            }
+            return await Modules.Calls.repo.removeScreenShare(ctx, peer);
         }),
         conferenceAlterMediaState: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conference.parse(args.id);
