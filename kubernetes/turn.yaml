@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: coturn
+  labels:
+    app: coturn
+spec:
+  selector:
+    matchLabels:
+      name: coturn
+  template:
+    metadata:
+      labels:
+        name: coturn
+    spec:
+      hostNetwork: true
+      containers:
+        - name: coturn
+          image: instrumentisto/coturn:4.5.1.1

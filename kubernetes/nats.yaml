@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nats
+  namespace: kube-system
+  labels:
+    app: nats
+spec:
+  selector:
+    matchLabels:
+      name: nats
+  template:
+    metadata:
+      labels:
+        name: nats
+    spec:
+      hostNetwork: true
+      containers:
+        - name: nats-server
+          image: openland/nats:v1
+          args: ['--routes=nats://opnats:ggzUaT6xr9nixhQR@nats-0:6222,nats://opnats:ggzUaT6xr9nixhQR@nats-1:6222,nats://opnats:ggzUaT6xr9nixhQR@nats-2:6222']
+          resources:
+            limits:
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 200Mi
+          env:
+            - name: NATS_USER
+              value: opnats
+            - name: NATS_PASSWORD
+              value: ggzUaT6xr9nixhQR
