@@ -26,6 +26,9 @@ spec:
             - "--fingerprint"
             - "--realm=openland.com"
             - "--user=user:emFsdXBhCg"
+            - "--listening-ip=0.0.0.0"
+            - "--external-ip=$(detect-external-ip)"
+            - "--relay-ip=$(detect-external-ip)"
           resources:
             requests:
               cpu: 50m
