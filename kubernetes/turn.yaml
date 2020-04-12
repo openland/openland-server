@@ -17,3 +17,15 @@ spec:
       containers:
         - name: coturn
           image: instrumentisto/coturn:4.5.1.1
+          args:
+            - "-n"
+            - "--log-file=stdout"
+            - "--lt-cred-mech"
+            - "--no-tlsv1"
+            - "--no-tlsv1_1"
+            - "--fingerprint"
+            - "--realm=openland.com"
+            - "--user=user:emFsdXBhCg"
+          resources:
+            requests:
+              cpu: 50m
