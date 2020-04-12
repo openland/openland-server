@@ -1,0 +1,1 @@
+FROM openland/chrome-screenshot:v7.1
