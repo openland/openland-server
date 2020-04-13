@@ -135,7 +135,7 @@ function createURLInfoFetcher() {
 async function fetchRawURLInfo(url: string): Promise<{ info: RawURLInfo, doc?: CheerioStatic } | null> {
     let { hostname } = URL.parse(url);
 
-    let res = await fetch('https://screenshot.openland.io/html', {
+    let res = await fetch('https://links.openlandservers.com/html', {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -242,7 +242,7 @@ async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
     } else {
         let imageBuffer: Buffer;
         if (!params.image) {
-            let loadedImage = await fetch('https://screenshot.openland.io', {
+            let loadedImage = await fetch('https://links.openlandservers.com', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',

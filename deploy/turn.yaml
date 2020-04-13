@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: coturn
+  labels:
+    app: coturn
+spec:
+  selector:
+    matchLabels:
+      name: coturn
+  template:
+    metadata:
+      labels:
+        name: coturn
+    spec:
+      hostNetwork: true
+      containers:
+        - name: coturn
+          image: instrumentisto/coturn:4.5.1.1
+          args:
+            - "-n"
+            - "--log-file=stdout"
+            - "--lt-cred-mech"
+            - "--no-tlsv1"
+            - "--no-tlsv1_1"
+            - "--fingerprint"
+            - "--realm=openland.com"
+            - "--user=user:emFsdXBhCg"
+            - "--listening-ip=0.0.0.0"
+            - "--external-ip=$(detect-external-ip)"
+          resources:
+            requests:
+              cpu: 50m

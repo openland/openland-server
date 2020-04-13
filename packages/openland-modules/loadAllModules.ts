@@ -71,6 +71,7 @@ import { PermissionsModule } from '../openland-module-permissions/PermissionsMod
 import { loadDiscoverModule } from '../openland-module-discover/DiscoverModule.container';
 import { PhonebookModule } from '../openland-module-phonebook/PhonebookModule';
 import { loadPhonebookModule } from '../openland-module-phonebook/PhonebookModule.container';
+import { connect } from 'ts-nats';
 
 const logger = createLogger('starting');
 
@@ -86,6 +87,10 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
         let store = await openStore(storage);
         container.bind<Store>('Store')
             .toConstantValue(store);
+
+        // Load NATS
+        let client = await connect(process.env.NATS_ENDPOINT ? { servers: [process.env.NATS_ENDPOINT] } : {});
+        container.bind('NATS').toConstantValue(client);
     }
 
     loadMonitoringModule();
@@ -99,6 +104,8 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadNotificationCenterModule();
     loadOrganizationModule();
 
+    container.bind(PubsubModule).toSelf().inSingletonScope();
+    container.bind(ApiModule).toSelf().inSingletonScope();
     container.bind(DBModule).toSelf().inSingletonScope();
     container.bind('HooksModule').to(HooksModule).inSingletonScope();
     container.bind(MediaModule).toSelf().inSingletonScope();
@@ -121,8 +128,6 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind(OrganizationModule).toSelf().inSingletonScope();
     container.bind(OrganizationRepository).toSelf();
     loadInvitesModule();
-    container.bind(PubsubModule).toSelf().inSingletonScope();
-    container.bind(ApiModule).toSelf().inSingletonScope();
     container.bind(UserOnboardingModule).toSelf().inSingletonScope();
     container.bind(StatsModule).toSelf().inSingletonScope();
     container.bind(ZapierModule).toSelf().inSingletonScope();
@@ -162,7 +167,6 @@ export async function startAllModules() {
     await container.get(OrganizationModule).start();
     await container.get(InvitesModule).start();
     await container.get(PubsubModule).start();
-    await container.get(ApiModule).start();
     await container.get(CallsModule).start();
     await container.get(FeedModule).start();
     await container.get(AppsModule).start();
@@ -183,4 +187,7 @@ export async function startAllModules() {
     await container.get(WalletModule).start();
     await container.get(PermissionsModule).start();
     await container.get(PhonebookModule).start();
+
+    // Enable API after all modules started
+    await container.get(ApiModule).start();
 }
