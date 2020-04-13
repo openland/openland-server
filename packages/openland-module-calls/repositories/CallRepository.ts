@@ -3,46 +3,54 @@ import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { Store } from 'openland-module-db/FDB';
-import { ConferenceMediaStreamCreateShape, ConferencePeer, ConferenceRoom } from '../../openland-module-db/store';
+import { ConferencePeer, ConferenceRoom } from '../../openland-module-db/store';
 
 let log = createLogger('call-repo');
 
-function resolveMediaStreamSettings(
-    uid1: number,
-    uid2: number,
-    confKind: 'conference' | 'stream',
-    streamerId: number | null,
-    iceTransportPolicy?: 'all' | 'relay' | null,
-    videoOutSource?: 'camera' | 'screen_share'
-): ConferenceMediaStreamCreateShape['settings1'] {
-    if (confKind === 'conference') {
-        return {
-            audioIn: true,
-            audioOut: true,
-            videoIn: true,
-            videoOut: true,
-            iceTransportPolicy: iceTransportPolicy || 'relay',
-            videoOutSource: videoOutSource || 'camera'
+interface AbsConferenceArgs {
+    peer1: number;
+    peer2: number;
+    audioEnabled?: boolean;
+    videoEnabled?: boolean;
+    iceTransportPolicy?: 'all' | 'relay' | null;
+    videoOutSource?: 'camera' | 'screen_share';
+}
+
+interface ConfArgs extends AbsConferenceArgs {
+    confType: 'conference';
+}
+interface StreamArgs extends AbsConferenceArgs {
+    confType: 'stream';
+    streamerId: number;
+}
+function resolveMediaStreamSettings(args: ConfArgs | StreamArgs) {
+    let audioEnabled = args.audioEnabled !== false;
+    let videoEnabled = args.videoEnabled !== false;
+    let iceTransportPolicy = args.iceTransportPolicy || 'relay';
+    let videoOutSource = args.videoOutSource || 'camera';
+    if (args.confType === 'conference') {
+        let settings = {
+            audioIn: audioEnabled,
+            audioOut: audioEnabled,
+            videoIn: videoEnabled,
+            videoOut: videoEnabled,
+            iceTransportPolicy,
+            videoOutSource
         };
+        return [settings, settings];
+    } else {
+        let settings = {
+            audioIn: false,
+            audioOut: false,
+            videoIn: false,
+            videoOut: false,
+            iceTransportPolicy: iceTransportPolicy,
+            videoOutSource: undefined
+        };
+        let settingsStreamer = { ...settings, ...{ audioOut: audioEnabled, videoOut: videoEnabled, videoOutSource } };
+        let settingsConsumer = { ...settings, ...{ audioIn: audioEnabled, videoIn: videoEnabled } };
+        return args.peer1 === args.streamerId ? [settingsStreamer, settingsConsumer] : [settingsStreamer, settingsConsumer];
     }
-
-    let settings = {
-        audioIn: false,
-        audioOut: false,
-        videoIn: false,
-        videoOut: false,
-        iceTransportPolicy: iceTransportPolicy || 'relay',
-        videoOutSource: videoOutSource || 'camera'
-    };
-    if (uid1 === streamerId) {
-        settings.audioOut = true;
-        settings.videoOut = true;
-    } else if (uid2 === streamerId) {
-        settings.videoIn = true;
-        settings.audioIn = true;
-    }
-
-    return settings;
 }
 
 @injectable()
@@ -114,22 +122,21 @@ export class CallRepository {
                 if (cp.id === id) {
                     continue;
                 }
+                let peer1 = Math.min(cp.id, id);
+                let peer2 = Math.max(cp.id, id);
 
-                let settings1: any;
-                let settings2: any;
-                if (cp.id < id) {
-                    settings1 = resolveMediaStreamSettings(cp.uid, uid, conf.kind!, conf.streamerId, conf.iceTransportPolicy);
-                    settings2 = resolveMediaStreamSettings(uid, cp.uid, conf.kind!, conf.streamerId, conf.iceTransportPolicy);
-                } else {
-                    settings1 = resolveMediaStreamSettings(uid, cp.uid, conf.kind!, conf.streamerId, conf.iceTransportPolicy);
-                    settings2 = resolveMediaStreamSettings(cp.uid, uid, conf.kind!, conf.streamerId, conf.iceTransportPolicy);
-                }
+                let [settings1, settings2] = resolveMediaStreamSettings({
+                    peer1, peer2, iceTransportPolicy: conf.iceTransportPolicy,
+                    ...conf.kind === 'conference' ?
+                        { confType: 'conference' } :
+                        { confType: 'stream', streamerId: conf.streamerId! }
+                });
 
                 // if (room.strategy === 'direct') {
                 await Store.ConferenceMediaStream.create(ctx, await this.nextStreamId(ctx), {
                     kind: 'direct',
-                    peer1: Math.min(cp.id, id),
-                    peer2: Math.max(cp.id, id),
+                    peer1,
+                    peer2,
                     cid: cid,
                     state: 'wait-offer',
                     ice1: [],
@@ -186,8 +193,15 @@ export class CallRepository {
     createScreenShareStream = async (ctx: Context, conf: ConferenceRoom, producer: ConferencePeer, consumer: ConferencePeer) => {
         let peer1 = Math.min(consumer.id, producer.id);
         let peer2 = Math.max(consumer.id, producer.id);
-        let settings1 = resolveMediaStreamSettings(peer1, peer2, 'stream', producer.id, conf.iceTransportPolicy, 'screen_share');
-        let settings2 = resolveMediaStreamSettings(peer2, peer1, 'stream', producer.id, conf.iceTransportPolicy, 'screen_share');
+
+        let [settings1, settings2] = resolveMediaStreamSettings({
+            confType: 'stream',
+            peer1, peer2,
+            streamerId: producer.id,
+            iceTransportPolicy: conf.iceTransportPolicy,
+            videoOutSource: 'screen_share',
+            audioEnabled: false
+        });
 
         await Store.ConferenceMediaStream.create(ctx, await this.nextStreamId(ctx), {
             kind: 'direct',
