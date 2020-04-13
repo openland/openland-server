@@ -99,7 +99,9 @@ export class CallRepository {
             let res = await Store.ConferencePeer.create(ctx, id, {
                 cid, uid, tid,
                 keepAliveTimeout: Date.now() + timeout,
-                enabled: true
+                enabled: true,
+                audioEnabled: true,
+                videoEnabled: false
             });
 
             // Create connections
@@ -124,6 +126,8 @@ export class CallRepository {
                 }
                 let peer1 = Math.min(cp.id, id);
                 let peer2 = Math.max(cp.id, id);
+                let peer1Obj = cp.id === peer1 ? cp : res;
+                let peer2Obj = cp.id === peer2 ? cp : res;
 
                 let [settings1, settings2] = resolveMediaStreamSettings({
                     peer1, peer2, iceTransportPolicy: conf.iceTransportPolicy,
@@ -146,8 +150,8 @@ export class CallRepository {
                     settings1,
                     settings2,
                     seq: 0,
-                    mediaState1: { audioOut: true, videoOut: false, videoSource: 'camera' },
-                    mediaState2: { audioOut: true, videoOut: false, videoSource: 'camera' }
+                    mediaState1: { audioOut: !!peer1Obj.audioEnabled, videoOut: !!peer1Obj.videoEnabled, videoSource: 'camera' },
+                    mediaState2: { audioOut: !!peer2Obj.audioEnabled, videoOut: !!peer2Obj.videoEnabled, videoSource: 'camera' }
                 });
 
                 if (cp.id === conf.screenSharingPeerId) {
@@ -247,6 +251,8 @@ export class CallRepository {
             if (!peer) {
                 throw Error('Unable to find peer');
             }
+            peer.audioEnabled = typeof audioOut === 'boolean' ? audioOut : peer.audioEnabled;
+            peer.videoEnabled = typeof videoOut === 'boolean' ? videoOut : peer.videoEnabled;
             let streams = await Store.ConferenceMediaStream.conference.findAll(ctx, cid);
             for (let stream of streams.filter(s => (s.peer1 === peer!.id) || (s.peer2 === peer!.id))) {
                 let change = { ...(typeof audioOut === 'boolean') ? { audioOut } : {}, ...(typeof videoOut === 'boolean') ? { videoOut } : {} };
@@ -475,8 +481,8 @@ export class CallRepository {
                     settings1: stream.settings1,
                     settings2: stream.settings2,
                     seq: 0,
-                    mediaState1: { audioOut: true, videoOut: false, videoSource: 'camera' },
-                    mediaState2: { audioOut: true, videoOut: false, videoSource: 'camera' }
+                    mediaState1: stream.mediaState1,
+                    mediaState2: stream.mediaState2
                 });
             }
 

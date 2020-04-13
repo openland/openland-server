@@ -860,6 +860,8 @@ export default declareSchema(() => {
         field('tid', string());
         field('keepAliveTimeout', integer());
         field('enabled', boolean());
+        field('audioEnabled', optional(boolean()));
+        field('videoEnabled', optional(boolean()));
         uniqueIndex('auth', ['cid', 'uid', 'tid']).withCondition((src) => src.enabled);
         rangeIndex('conference', ['cid', 'keepAliveTimeout']).withCondition((src) => src.enabled);
         rangeIndex('active', ['keepAliveTimeout']).withCondition((src) => src.enabled);

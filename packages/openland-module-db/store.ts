@@ -6547,6 +6547,8 @@ export interface ConferencePeerShape {
     tid: string;
     keepAliveTimeout: number;
     enabled: boolean;
+    audioEnabled: boolean | null;
+    videoEnabled: boolean | null;
 }
 
 export interface ConferencePeerCreateShape {
@@ -6555,6 +6557,8 @@ export interface ConferencePeerCreateShape {
     tid: string;
     keepAliveTimeout: number;
     enabled: boolean;
+    audioEnabled?: boolean | null | undefined;
+    videoEnabled?: boolean | null | undefined;
 }
 
 export class ConferencePeer extends Entity<ConferencePeerShape> {
@@ -6604,6 +6608,24 @@ export class ConferencePeer extends Entity<ConferencePeerShape> {
             this.invalidate();
         }
     }
+    get audioEnabled(): boolean | null { return this._rawValue.audioEnabled; }
+    set audioEnabled(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.audioEnabled.normalize(value);
+        if (this._rawValue.audioEnabled !== normalized) {
+            this._rawValue.audioEnabled = normalized;
+            this._updatedValues.audioEnabled = normalized;
+            this.invalidate();
+        }
+    }
+    get videoEnabled(): boolean | null { return this._rawValue.videoEnabled; }
+    set videoEnabled(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.videoEnabled.normalize(value);
+        if (this._rawValue.videoEnabled !== normalized) {
+            this._rawValue.videoEnabled = normalized;
+            this._updatedValues.videoEnabled = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class ConferencePeerFactory extends EntityFactory<ConferencePeerShape, ConferencePeer> {
@@ -6622,6 +6644,8 @@ export class ConferencePeerFactory extends EntityFactory<ConferencePeerShape, Co
         fields.push({ name: 'tid', type: { type: 'string' }, secure: false });
         fields.push({ name: 'keepAliveTimeout', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'audioEnabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'videoEnabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             cid: c.integer,
@@ -6629,6 +6653,8 @@ export class ConferencePeerFactory extends EntityFactory<ConferencePeerShape, Co
             tid: c.string,
             keepAliveTimeout: c.integer,
             enabled: c.boolean,
+            audioEnabled: c.optional(c.boolean),
+            videoEnabled: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<ConferencePeerShape> = {
             name: 'ConferencePeer',
