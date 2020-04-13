@@ -13,6 +13,7 @@ export const IdsFactory = new SecIDFactory(salt, 'hashids');
 
 export const IDs = {
     Organization: IdsFactory.createId('Organization'),
+    OrganizationProfile: IdsFactory.createId('OrganizationProfile'),
     OrganizationAccount: IdsFactory.createId('OrganizationAccount'),
     OrganizationListing: IdsFactory.createId('OrganizationListing'),
     Invite: IdsFactory.createId('Invite'),

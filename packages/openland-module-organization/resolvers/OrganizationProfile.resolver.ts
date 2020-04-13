@@ -15,7 +15,7 @@ import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 
 export const Resolver: GQLResolver = {
     OrganizationProfile: {
-        id: (src: Organization) => IDs.Organization.serialize(src.id),
+        id: (src: Organization) => IDs.OrganizationProfile.serialize(src.id),
         name: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.name,
         photoRef: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.photo,
 
