@@ -59,7 +59,7 @@ export class SocialImageRepository {
     }
 
     renderSocialImage = async (title: string, image: string | null): Promise<ImageRef | null> => {
-        let res = await fetch('https://screenshot.openland.io/render', {
+        let res = await fetch('https://links.openlandservers.com/render', {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
