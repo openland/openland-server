@@ -101,7 +101,7 @@ export class CallRepository {
                 keepAliveTimeout: Date.now() + timeout,
                 enabled: true,
                 audioEnabled: true,
-                videoEnabled: false
+                videoEnabled: true
             });
 
             // Create connections
