@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0a1bd83cd20662cfbb9764d80d0e4572';
+export const GQL_SPEC_VERSION = 'e6ab7e4a6f460cc0589b5507c1b0c837';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3720,6 +3720,7 @@ export namespace GQL {
         debugServerId: string;
         debugClientIp: Nullable<DebugIpInfo>;
         debugGqlTraces: GqlTraceConnection;
+        debugGqlTrace: GqlTrace;
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
@@ -3916,6 +3917,9 @@ export namespace GQL {
     export interface QueryDebugGqlTracesArgs {
         first: number;
         after: OptionalNullable<string>;
+    }
+    export interface QueryDebugGqlTraceArgs {
+        id: string;
     }
     export interface QueryDialogsArgs {
         first: number;
@@ -8565,6 +8569,7 @@ export interface GQLResolver {
             debugGlobalCounters: GQLRoots.DebugGlobalCountersRoot,
             debugClientIp: Nullable<GQLRoots.DebugIpInfoRoot>,
             debugGqlTraces: GQLRoots.GqlTraceConnectionRoot,
+            debugGqlTrace: GQLRoots.GqlTraceRoot,
             dialogs: GQLRoots.DialogsConnectionRoot,
             settings: GQLRoots.SettingsRoot,
             authPoints: GQLRoots.AuthPointRoot,
@@ -8716,6 +8721,7 @@ export interface GQLResolver {
             debugServerId: GQL.QueryDebugServerIdArgs,
             debugClientIp: GQL.QueryDebugClientIpArgs,
             debugGqlTraces: GQL.QueryDebugGqlTracesArgs,
+            debugGqlTrace: GQL.QueryDebugGqlTraceArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
             authPoints: GQL.QueryAuthPointsArgs,

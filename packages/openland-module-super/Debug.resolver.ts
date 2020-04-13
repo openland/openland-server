@@ -217,6 +217,10 @@ export const Resolver: GQLResolver = {
                 cursor: haveMore ? IDs.GqlTrace.serialize(items[items.length - 1].id) : undefined
             };
         }),
+        debugGqlTrace: withPermission('super-admin', async (ctx, args) => {
+            let id = IDs.GqlTrace.parse(args.id);
+            return (await Store.GqlTrace.findById(ctx, id))!;
+        }),
     },
     Mutation: {
         debugSendSMS: withPermission('super-admin', async (ctx, args) => {
