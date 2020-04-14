@@ -51,7 +51,7 @@ function resolveMediaStreamSettings(args: ConfArgs | StreamArgs) {
         };
         let settingsStreamer = { ...settings, ...{ audioOut: audioEnabled, videoOut: videoEnabled, videoOutSource } };
         let settingsConsumer = { ...settings, ...{ audioIn: audioEnabled, videoIn: videoEnabled } };
-        return args.peer1 === args.streamerId ? [settingsStreamer, settingsConsumer] : [settingsStreamer, settingsConsumer];
+        return args.peer1 === args.streamerId ? [settingsStreamer, settingsConsumer] : [settingsConsumer, settingsStreamer];
     }
 }
 
