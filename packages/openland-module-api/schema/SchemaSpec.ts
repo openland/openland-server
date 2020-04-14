@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'e6ab7e4a6f460cc0589b5507c1b0c837';
+export const GQL_SPEC_VERSION = '3504d6a4e9433951e3058710bc136953';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1791,11 +1791,9 @@ export namespace GQL {
     export interface ConferencePeer {
         id: string;
         user: User;
-        connection: Nullable<ConferencePeerConnection>;
     }
     export interface ConferencePeerIdArgs { }
     export interface ConferencePeerUserArgs { }
-    export interface ConferencePeerConnectionArgs { }
     export interface ConferenceMedia {
         id: string;
         streams: MediaStream[];
@@ -1858,16 +1856,6 @@ export namespace GQL {
         strategy: Nullable<ConferenceStrategy>;
         iceTransportPolicy: Nullable<MediaStreamIceTransportPolicy>;
     }
-    export type ConferencePeerConnectionStateValues = 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY';
-    export type ConferencePeerConnectionState = GQLRoots.ConferencePeerConnectionStateRoot;
-    export interface ConferencePeerConnection {
-        state: ConferencePeerConnectionState;
-        sdp: Nullable<string>;
-        ice: string[];
-    }
-    export interface ConferencePeerConnectionStateArgs { }
-    export interface ConferencePeerConnectionSdpArgs { }
-    export interface ConferencePeerConnectionIceArgs { }
     export interface ConferenceJoinResult {
         peerId: string;
         conference: Conference;
@@ -2142,9 +2130,6 @@ export namespace GQL {
         mediaStreamAnswer: ConferenceMedia;
         mediaStreamCandidate: ConferenceMedia;
         mediaStreamFailed: ConferenceMedia;
-        peerConnectionOffer: Conference;
-        peerConnectionAnswer: Conference;
-        peerConnectionCandidate: Conference;
         stickerPackCreate: StickerPack;
         stickerPackUpdate: StickerPack;
         stickerPackAddSticker: Sticker;
@@ -2892,24 +2877,6 @@ export namespace GQL {
     export interface MutationMediaStreamFailedArgs {
         id: string;
         peerId: string;
-    }
-    export interface MutationPeerConnectionOfferArgs {
-        id: string;
-        ownPeerId: string;
-        peerId: string;
-        offer: string;
-    }
-    export interface MutationPeerConnectionAnswerArgs {
-        id: string;
-        ownPeerId: string;
-        peerId: string;
-        answer: string;
-    }
-    export interface MutationPeerConnectionCandidateArgs {
-        id: string;
-        ownPeerId: string;
-        peerId: string;
-        candidate: string;
     }
     export interface MutationStickerPackCreateArgs {
         title: string;
@@ -7575,12 +7542,10 @@ export interface GQLResolver {
         GQLRoots.ConferencePeerRoot,
         {
             user: GQLRoots.UserRoot,
-            connection: Nullable<GQLRoots.ConferencePeerConnectionRoot>,
         },
         {
             id: GQL.ConferencePeerIdArgs,
             user: GQL.ConferencePeerUserArgs,
-            connection: GQL.ConferencePeerConnectionArgs,
         }
     >;
     ConferenceMedia?: ComplexTypedResolver<
@@ -7640,18 +7605,6 @@ export interface GQLResolver {
             ice: GQL.MediaStreamIceArgs,
             settings: GQL.MediaStreamSettingsArgs,
             mediaState: GQL.MediaStreamMediaStateArgs,
-        }
-    >;
-    ConferencePeerConnectionState?: EnumTypeResolver<'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY', GQLRoots.ConferencePeerConnectionStateRoot>;
-    ConferencePeerConnection?: ComplexTypedResolver<
-        GQL.ConferencePeerConnection,
-        GQLRoots.ConferencePeerConnectionRoot,
-        {
-        },
-        {
-            state: GQL.ConferencePeerConnectionStateArgs,
-            sdp: GQL.ConferencePeerConnectionSdpArgs,
-            ice: GQL.ConferencePeerConnectionIceArgs,
         }
     >;
     ConferenceJoinResult?: ComplexTypedResolver<
@@ -7826,9 +7779,6 @@ export interface GQLResolver {
             mediaStreamAnswer: GQLRoots.ConferenceMediaRoot,
             mediaStreamCandidate: GQLRoots.ConferenceMediaRoot,
             mediaStreamFailed: GQLRoots.ConferenceMediaRoot,
-            peerConnectionOffer: GQLRoots.ConferenceRoot,
-            peerConnectionAnswer: GQLRoots.ConferenceRoot,
-            peerConnectionCandidate: GQLRoots.ConferenceRoot,
             stickerPackCreate: GQLRoots.StickerPackRoot,
             stickerPackUpdate: GQLRoots.StickerPackRoot,
             stickerPackAddSticker: GQLRoots.StickerRoot,
@@ -8076,9 +8026,6 @@ export interface GQLResolver {
             mediaStreamAnswer: GQL.MutationMediaStreamAnswerArgs,
             mediaStreamCandidate: GQL.MutationMediaStreamCandidateArgs,
             mediaStreamFailed: GQL.MutationMediaStreamFailedArgs,
-            peerConnectionOffer: GQL.MutationPeerConnectionOfferArgs,
-            peerConnectionAnswer: GQL.MutationPeerConnectionAnswerArgs,
-            peerConnectionCandidate: GQL.MutationPeerConnectionCandidateArgs,
             stickerPackCreate: GQL.MutationStickerPackCreateArgs,
             stickerPackUpdate: GQL.MutationStickerPackUpdateArgs,
             stickerPackAddSticker: GQL.MutationStickerPackAddStickerArgs,

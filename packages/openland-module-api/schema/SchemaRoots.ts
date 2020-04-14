@@ -136,7 +136,6 @@ export namespace GQLRoots {
     import EventPlatformValues = GQL.EventPlatformValues;
     import TaskStatusValues = GQL.TaskStatusValues;
     import MediaStreamStateValues = GQL.MediaStreamStateValues;
-    import ConferencePeerConnectionStateValues = GQL.ConferencePeerConnectionStateValues;
     import MediaStreamIceTransportPolicyValues = GQL.MediaStreamIceTransportPolicyValues;
     import MessageButtonStyleValues = GQL.MessageButtonStyleValues;
     import MessageTypeValues = GQL.MessageTypeValues;
@@ -196,13 +195,11 @@ export namespace GQLRoots {
     export type ICEServerRoot = GQL.ICEServer;
     export type MediaStreamRoot = GQL.MediaStream;
     export type ConversationUpdateStateRoot = any;
-    export type ConferencePeerConnectionRoot = GQL.ConferencePeerConnection;
     export type ConferencePeerRoot = ConferencePeer;
     export type ConferenceJoinResultRoot = { peerId: string, conference: ConferenceRoot };
     export type ConferenceRoot = ConferenceRoom;
     export type ConferenceMediaRoot = { id: number, peerId: number };
     export type MediaStreamStateRoot = MediaStreamStateValues;
-    export type ConferencePeerConnectionStateRoot = ConferencePeerConnectionStateValues;
     export type ConferenceStrategyRoot = GQL.ConferenceStrategyValues;
     export type ConferenceKindRoot = GQL.ConferenceKindValues;
     export type MediaStreamIceTransportPolicyRoot = MediaStreamIceTransportPolicyValues;

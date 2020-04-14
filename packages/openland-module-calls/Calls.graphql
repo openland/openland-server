@@ -26,7 +26,6 @@ type Conference {
 type ConferencePeer {
     id: ID!
     user: User!
-    connection: ConferencePeerConnection # Deprecated
 }
 
 type ConferenceMedia {
@@ -88,22 +87,6 @@ input ConferenceSettingsInput {
     iceTransportPolicy: MediaStreamIceTransportPolicy
 }
 
-# Deprecated
-enum ConferencePeerConnectionState {
-    WAIT_OFFER
-    NEED_OFFER
-    WAIT_ANSWER
-    NEED_ANSWER
-    READY
-}
-
-# Deprecated
-type ConferencePeerConnection {
-    state: ConferencePeerConnectionState!
-    sdp: String
-    ice: [String!]!
-}
-
 type ConferenceJoinResult {
     peerId: ID!
     conference: Conference!
@@ -128,11 +111,6 @@ extend type Mutation {
     mediaStreamAnswer(id: ID!, peerId: ID!, answer: String!, seq: Int): ConferenceMedia!
     mediaStreamCandidate(id: ID!, peerId: ID!, candidate: String!): ConferenceMedia!
     mediaStreamFailed(id: ID!, peerId: ID!): ConferenceMedia!
-
-    # deprecated
-    peerConnectionOffer(id: ID!, ownPeerId: ID!, peerId: ID!, offer: String!): Conference!
-    peerConnectionAnswer(id: ID!, ownPeerId: ID!, peerId: ID!, answer: String!): Conference!
-    peerConnectionCandidate(id: ID!, ownPeerId: ID!, peerId: ID!, candidate: String!): Conference!
 }
 
 extend type Subscription {

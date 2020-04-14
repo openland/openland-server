@@ -47,53 +47,7 @@ export const Resolver: GQLResolver = {
     },
     ConferencePeer: {
         id: (src: ConferencePeer) => IDs.ConferencePeer.serialize(src.id),
-        user: (src: ConferencePeer) => src.uid,
-        connection: async (src: ConferencePeer, args: {}, ctx: AppContext) => {
-            let outgoing = await Store.ConferencePeer.auth.find(ctx, src.cid, ctx.auth.uid!, ctx.auth.tid!);
-            if (outgoing) {
-                let connection = await Store.ConferenceConnection.findById(ctx, Math.min(src.id, outgoing!.id), Math.max(src.id, outgoing!.id));
-                if (!connection) {
-                    return null;
-                }
-                if (connection.state === 'completed') {
-                    return null;
-                }
-
-                let state: 'READY' | 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' = 'READY';
-                let sdp: string | null = null;
-                let isPrimary = src.id > outgoing.id;
-                let ice: string[] = isPrimary ? connection.ice2 : connection.ice1;
-                if (connection.state === 'wait-offer') {
-                    if (isPrimary) {
-                        state = 'NEED_OFFER';
-                    } else {
-                        state = 'WAIT_OFFER';
-                    }
-                } else if (connection.state === 'wait-answer') {
-                    if (isPrimary) {
-                        state = 'WAIT_ANSWER';
-                    } else {
-                        state = 'NEED_ANSWER';
-                        sdp = connection.offer;
-                    }
-                } else if (connection.state === 'online') {
-                    if (isPrimary) {
-                        sdp = connection.answer;
-                    } else {
-                        sdp = connection.offer;
-                    }
-                } else {
-                    throw Error('Unkown state: ' + connection.state);
-                }
-                return {
-                    state,
-                    sdp,
-                    ice
-                };
-            } else {
-                return null;
-            }
-        }
+        user: (src: ConferencePeer) => src.uid
     },
     ConferenceMedia: {
         id: (src) => IDs.ConferenceMedia.serialize(src.id),
@@ -254,28 +208,6 @@ export const Resolver: GQLResolver = {
             await Modules.Calls.repo.streamCandidate(ctx, mid, pid, args.candidate);
             let cid = (await Store.ConferenceMediaStream.findById(ctx, mid))!.cid;
             return { id: cid, peerId: pid };
-        }),
-
-        peerConnectionOffer: withUser(async (ctx, args, uid) => {
-            let coid = IDs.Conference.parse(args.id);
-            let srcPid = IDs.ConferencePeer.parse(args.ownPeerId);
-            let dstPid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.connectionOffer(ctx, coid, srcPid, dstPid, args.offer);
-            return Modules.Calls.repo.getOrCreateConference(ctx, coid);
-        }),
-        peerConnectionAnswer: withUser(async (ctx, args, uid) => {
-            let coid = IDs.Conference.parse(args.id);
-            let srcPid = IDs.ConferencePeer.parse(args.ownPeerId);
-            let dstPid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.connectionAnswer(ctx, coid, srcPid, dstPid, args.answer);
-            return Modules.Calls.repo.getOrCreateConference(ctx, coid);
-        }),
-        peerConnectionCandidate: withUser(async (ctx, args, uid) => {
-            let coid = IDs.Conference.parse(args.id);
-            let srcPid = IDs.ConferencePeer.parse(args.ownPeerId);
-            let dstPid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.connectionCandidate(ctx, coid, srcPid, dstPid, args.candidate);
-            return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         }),
         conferenceAlterSettings: withUser(async (parent, args) => {
             return await inTx(parent, async (ctx) => {

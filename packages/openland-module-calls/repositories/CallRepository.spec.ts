@@ -69,67 +69,67 @@ describe('CallRepository', () => {
         expect(connections.length).toBe(0);
     });
 
-    it('should accept offers', async () => {
-        let ctx = createNamedContext('test');
-        let CID = 5;
-        let repo = container.get(CallRepository);
-        let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
-        let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000);
-        await repo.connectionOffer(ctx, CID, peer1.id, peer2.id, 'offer-value');
-        let connection = (await Store.ConferenceConnection.findById(ctx, peer1.id, peer2.id))!;
-        expect(connection).not.toBeNull();
-        expect(connection).not.toBeUndefined();
-        expect(connection.state).toEqual('wait-answer');
-        expect(connection.offer).toEqual('offer-value');
-        expect(connection.answer).toBeNull();
-    });
+    // it('should accept offers', async () => {
+    //     let ctx = createNamedContext('test');
+    //     let CID = 5;
+    //     let repo = container.get(CallRepository);
+    //     let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
+    //     let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000);
+    //     await repo.connectionOffer(ctx, CID, peer1.id, peer2.id, 'offer-value');
+    //     let connection = (await Store.ConferenceConnection.findById(ctx, peer1.id, peer2.id))!;
+    //     expect(connection).not.toBeNull();
+    //     expect(connection).not.toBeUndefined();
+    //     expect(connection.state).toEqual('wait-answer');
+    //     expect(connection.offer).toEqual('offer-value');
+    //     expect(connection.answer).toBeNull();
+    // });
 
-    it('should crash if offer came from the wrong side', async () => {
-        let ctx = createNamedContext('test');
-        let CID = 6;
-        let repo = container.get(CallRepository);
-        let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
-        let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000);
-        await expect(repo.connectionOffer(ctx, CID, peer2.id, peer1.id, 'offer-value')).rejects.toThrowError();
-        let connection = (await Store.ConferenceConnection.findById(ctx, peer1.id, peer2.id))!;
-        expect(connection).not.toBeNull();
-        expect(connection).not.toBeUndefined();
-        expect(connection.state).toEqual('wait-offer');
-        expect(connection.offer).toBeNull();
-        expect(connection.answer).toBeNull();
-    });
+    // it('should crash if offer came from the wrong side', async () => {
+    //     let ctx = createNamedContext('test');
+    //     let CID = 6;
+    //     let repo = container.get(CallRepository);
+    //     let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
+    //     let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000);
+    //     await expect(repo.connectionOffer(ctx, CID, peer2.id, peer1.id, 'offer-value')).rejects.toThrowError();
+    //     let connection = (await Store.ConferenceConnection.findById(ctx, peer1.id, peer2.id))!;
+    //     expect(connection).not.toBeNull();
+    //     expect(connection).not.toBeUndefined();
+    //     expect(connection.state).toEqual('wait-offer');
+    //     expect(connection.offer).toBeNull();
+    //     expect(connection.answer).toBeNull();
+    // });
 
-    it('should accept answer', async () => {
-        let ctx = createNamedContext('test');
-        let CID = 7;
-        let repo = container.get(CallRepository);
-        let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
-        let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000);
-        await repo.connectionOffer(ctx, CID, peer1.id, peer2.id, 'offer-value');
-        await repo.connectionAnswer(ctx, CID, peer2.id, peer1.id, 'answer-value');
-        let connection = (await Store.ConferenceConnection.findById(ctx, peer1.id, peer2.id))!;
-        expect(connection).not.toBeNull();
-        expect(connection).not.toBeUndefined();
-        expect(connection.state).toEqual('online');
-        expect(connection.offer).toEqual('offer-value');
-        expect(connection.answer).toEqual('answer-value');
-    });
+    // it('should accept answer', async () => {
+    //     let ctx = createNamedContext('test');
+    //     let CID = 7;
+    //     let repo = container.get(CallRepository);
+    //     let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
+    //     let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000);
+    //     await repo.connectionOffer(ctx, CID, peer1.id, peer2.id, 'offer-value');
+    //     await repo.connectionAnswer(ctx, CID, peer2.id, peer1.id, 'answer-value');
+    //     let connection = (await Store.ConferenceConnection.findById(ctx, peer1.id, peer2.id))!;
+    //     expect(connection).not.toBeNull();
+    //     expect(connection).not.toBeUndefined();
+    //     expect(connection.state).toEqual('online');
+    //     expect(connection.offer).toEqual('offer-value');
+    //     expect(connection.answer).toEqual('answer-value');
+    // });
 
-    it('should accept ICE', async () => {
-        let ctx = createNamedContext('test');
-        let CID = 7;
-        let repo = container.get(CallRepository);
-        let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
-        let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000);
-        await repo.connectionCandidate(ctx, CID, peer1.id, peer2.id, 'candidate-1');
-        await repo.connectionCandidate(ctx, CID, peer1.id, peer2.id, 'candidate-2');
-        await repo.connectionCandidate(ctx, CID, peer1.id, peer2.id, 'candidate-3');
-        let connection = (await Store.ConferenceConnection.findById(ctx, peer1.id, peer2.id))!;
-        expect(connection).not.toBeNull();
-        expect(connection).not.toBeUndefined();
-        expect(connection.ice1.length).toBe(3);
-        expect(connection.ice1[0]).toEqual('candidate-1');
-        expect(connection.ice1[1]).toEqual('candidate-2');
-        expect(connection.ice1[2]).toEqual('candidate-3');
-    });
+    // it('should accept ICE', async () => {
+    //     let ctx = createNamedContext('test');
+    //     let CID = 7;
+    //     let repo = container.get(CallRepository);
+    //     let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
+    //     let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000);
+    //     await repo.connectionCandidate(ctx, CID, peer1.id, peer2.id, 'candidate-1');
+    //     await repo.connectionCandidate(ctx, CID, peer1.id, peer2.id, 'candidate-2');
+    //     await repo.connectionCandidate(ctx, CID, peer1.id, peer2.id, 'candidate-3');
+    //     let connection = (await Store.ConferenceConnection.findById(ctx, peer1.id, peer2.id))!;
+    //     expect(connection).not.toBeNull();
+    //     expect(connection).not.toBeUndefined();
+    //     expect(connection.ice1.length).toBe(3);
+    //     expect(connection.ice1[0]).toEqual('candidate-1');
+    //     expect(connection.ice1[1]).toEqual('candidate-2');
+    //     expect(connection.ice1[2]).toEqual('candidate-3');
+    // });
 });
