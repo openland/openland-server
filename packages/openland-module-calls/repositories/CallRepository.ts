@@ -1,9 +1,11 @@
+import { CallSchedulerMesh } from './CallSchedulerMesh';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { Store } from 'openland-module-db/FDB';
 import { ConferencePeer, ConferenceRoom } from '../../openland-module-db/store';
+import { CallScheduler } from './CallScheduler';
 
 let log = createLogger('call-repo');
 
@@ -56,14 +58,27 @@ function resolveMediaStreamSettings(args: ConfArgs | StreamArgs) {
 @injectable()
 export class CallRepository {
 
+    private readonly schedulerMesh = new CallSchedulerMesh('relay');
+    private readonly schedulerMeshNoRelay = new CallSchedulerMesh('all');
+
     getOrCreateConference = async (parent: Context, cid: number) => {
         return await inTx(parent, async (ctx) => {
             let res = await Store.ConferenceRoom.findById(ctx, cid);
             if (!res) {
-                res = await Store.ConferenceRoom.create(ctx, cid, { strategy: 'mash', kind: 'conference', startTime: null });
+                res = await Store.ConferenceRoom.create(ctx, cid, { scheduler: 'mesh', currentScheduler: 'mesh', kind: 'conference', startTime: null });
             }
             return res;
         });
+    }
+
+    getScheduler(kind: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null): CallScheduler {
+        if (kind === 'mesh' || kind === null) {
+            return this.schedulerMesh;
+        } else if (kind === 'mesh-no-relay') {
+            return this.schedulerMeshNoRelay;
+        } else {
+            throw Error('Unsupported scheduler: ' + kind);
+        }
     }
 
     addPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number, kind: 'conference' | 'stream' = 'conference') => {
@@ -73,20 +88,41 @@ export class CallRepository {
             //     throw Error('Unable to find room');
             // }
 
-            // bump startTime if its initiator of call
+            // Handle Call Restart
             let confPeers = await Store.ConferencePeer.conference.findAll(ctx, cid);
             let conf = await this.getOrCreateConference(ctx, cid);
+            let justStarted = false;
             if (confPeers.length === 0) {
+
+                // Reset Start Time
                 conf.startTime = Date.now();
+
+                // Update conference type: broadcasting, simple conference
                 conf.kind = kind;
                 conf.streamerId = conf.kind === 'stream' ? uid : null;
+
+                // Assign scheduler for this calls
+                conf.currentScheduler = conf.scheduler;
+
+                // Flush for better correctness
                 await conf.flush(ctx);
+
+                justStarted = true;
             }
 
-            // Disable existing for this auth
+            // Resolve Scheduler
+            let scheduler = this.getScheduler(conf.currentScheduler);
+            let iceTransportPolicy = await scheduler.getIceTransportPolicy();
+
+            // Handle call starting
+            if (justStarted) {
+                await scheduler.onConferenceStarted(ctx, cid);
+            }
+
+            // Remove peer for same auth token
             let existing = await Store.ConferencePeer.auth.find(ctx, cid, uid, tid);
             if (existing) {
-                await this.removePeer(ctx, existing.id);
+                await this.#doRemovePeer(ctx, existing.id, false);
             }
 
             // Create new peer
@@ -130,7 +166,7 @@ export class CallRepository {
                 let peer2Obj = cp.id === peer2 ? cp : res;
 
                 let [settings1, settings2] = resolveMediaStreamSettings({
-                    peer1, peer2, iceTransportPolicy: conf.iceTransportPolicy,
+                    peer1, peer2, iceTransportPolicy: iceTransportPolicy,
                     ...conf.kind === 'conference' ?
                         { confType: 'conference' } :
                         { confType: 'stream', streamerId: conf.streamerId! }
@@ -155,7 +191,7 @@ export class CallRepository {
                 });
 
                 if (cp.id === conf.screenSharingPeerId) {
-                    await this.createScreenShareStream(ctx, conf, cp, res);
+                    await this.createScreenShareStream(ctx, conf, scheduler, cp, res);
                 }
                 // }
             }
@@ -182,27 +218,31 @@ export class CallRepository {
             }
             conf.screenSharingPeerId = peer.id;
 
+            // Resolve scheduler
+            let scheduler = this.getScheduler(conf.currentScheduler);
+
             // Create streams
             for (let cp of confPeers) {
                 if (cp.id === peer.id) {
                     continue;
                 }
-                await this.createScreenShareStream(ctx, conf, peer, cp);
+                await this.createScreenShareStream(ctx, conf, scheduler, peer, cp);
             }
             await this.bumpVersion(ctx, cid);
             return conf;
         });
     }
 
-    createScreenShareStream = async (ctx: Context, conf: ConferenceRoom, producer: ConferencePeer, consumer: ConferencePeer) => {
+    createScreenShareStream = async (ctx: Context, conf: ConferenceRoom, scheduler: CallScheduler, producer: ConferencePeer, consumer: ConferencePeer) => {
         let peer1 = Math.min(consumer.id, producer.id);
         let peer2 = Math.max(consumer.id, producer.id);
+        let policy = await scheduler.getIceTransportPolicy();
 
         let [settings1, settings2] = resolveMediaStreamSettings({
             confType: 'stream',
             peer1, peer2,
             streamerId: producer.id,
-            iceTransportPolicy: conf.iceTransportPolicy,
+            iceTransportPolicy: policy,
             videoOutSource: 'screen_share',
             audioEnabled: false
         });
@@ -269,23 +309,47 @@ export class CallRepository {
 
     endConference = async (parent: Context, cid: number) => {
         await inTx(parent, async (ctx) => {
+            let conf = await this.getOrCreateConference(ctx, cid);
+            let scheduler = this.getScheduler(conf.currentScheduler);
+
             let members = await this.findActiveMembers(ctx, cid);
             for (let m of members) {
-                await this.removePeer(ctx, m.id);
+                await this.#doRemovePeer(ctx, m.id, false);
+            }
+            if (members.length > 0) {
+                await scheduler.onConferenceStopped(ctx, cid);
             }
         });
     }
 
     removePeer = async (parent: Context, pid: number) => {
-        await inTx(parent, async (ctx) => {
+        //
+        // WARNING: Making multiple peer removal at the same transcation can yield different results!
+        //
+        return await this.#doRemovePeer(parent, pid, true);
+    }
 
-            // Disable peer itself
+    #doRemovePeer = async (parent: Context, pid: number, detectEnd: boolean) => {
+        await inTx(parent, async (ctx) => {
+            // Resolve Peer
             let existing = await Store.ConferencePeer.findById(ctx, pid);
             if (!existing) {
                 throw Error('Unable to find peer: ' + pid);
             }
+            if (!existing.enabled) {
+                return;
+            }
             existing.enabled = false;
             await existing.flush(ctx);
+
+            // Detect End
+            let conf = await this.getOrCreateConference(ctx, existing.cid);
+            let scheduler = this.getScheduler(conf.currentScheduler);
+            if (detectEnd) {
+                if ((await Store.ConferencePeer.active.findAll(ctx)).length === 0) {
+                    await scheduler.onConferenceStopped(ctx, existing.cid);
+                }
+            }
 
             // Kill all connections
             let connections = await Store.ConferenceConnection.conference.findAll(ctx, existing.cid);

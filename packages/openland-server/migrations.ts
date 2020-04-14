@@ -500,7 +500,7 @@ migrations.push({
                 for (let key of batch) {
                     let item = (await Store.ConferenceRoom.findById(ctx, key.id))!;
                     if (item) {
-                        item.strategy = 'mash';
+                        // item.strategy = 'mash';
                         item.kind = 'conference';
                         await item.flush(ctx);
                     }
@@ -520,7 +520,7 @@ migrations.push({
                 for (let key of batch) {
                     let item = (await Store.ConferenceRoom.findById(ctx, key.id))!;
                     if (item) {
-                        item.strategy = 'mash';
+                        // item.strategy = 'mash';
                         item.kind = 'conference';
                         await item.flush(ctx);
                     }

@@ -42,7 +42,7 @@ export const Resolver: GQLResolver = {
             return res;
         },
         iceServers: resolveIce,
-        strategy: (src) => src.strategy === 'mash' ? 'MASH' : 'SFU',
+        strategy: (src) => 'MASH' /* TODO: Fix Me */,
         kind: (src) => src.kind === 'conference' ? 'CONFERENCE' : 'STREAM',
     },
     ConferencePeer: {
@@ -201,7 +201,6 @@ export const Resolver: GQLResolver = {
             let pid = IDs.ConferencePeer.parse(args.peerId);
 
             let chat = await Store.Conversation.findById(ctx, coid);
-            await Modules.Calls.repo.removePeer(ctx, pid);
             if (chat && chat.kind === 'private') {
                 await Modules.Calls.repo.endConference(ctx, coid);
             } else {
@@ -282,11 +281,16 @@ export const Resolver: GQLResolver = {
             return await inTx(parent, async (ctx) => {
                 let coid = IDs.Conversation.parse(args.id);
                 let conf = await Modules.Calls.repo.getOrCreateConference(ctx, coid);
-                if (args.settings.iceTransportPolicy) {
-                    conf.iceTransportPolicy = args.settings.iceTransportPolicy;
-                }
                 if (args.settings.strategy) {
-                    conf.strategy = args.settings.strategy === 'MASH' ? 'mash' : 'sfu';
+                    if (args.settings.strategy === 'MASH' && args.settings.iceTransportPolicy) {
+                        if (args.settings.iceTransportPolicy === 'all') {
+                            conf.scheduler = 'mesh-no-relay';
+                        } else {
+                            conf.scheduler = 'mesh';
+                        }
+                    } else if (args.settings.strategy === 'SFU') {
+                        conf.scheduler = 'basic-sfu';
+                    }
                 }
                 return conf;
             });

@@ -6409,49 +6409,40 @@ export class CommentEventGlobalFactory extends EntityFactory<CommentEventGlobalS
 
 export interface ConferenceRoomShape {
     id: number;
-    strategy: 'mash' | 'sfu';
-    iceTransportPolicy: 'all' | 'relay' | null;
-    screenSharingPeerId: number | null;
+    scheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null;
+    currentScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null;
     startTime: number | null;
     kind: 'conference' | 'stream';
+    screenSharingPeerId: number | null;
     streamerId: number | null;
 }
 
 export interface ConferenceRoomCreateShape {
-    strategy: 'mash' | 'sfu';
-    iceTransportPolicy?: 'all' | 'relay' | null | undefined;
-    screenSharingPeerId?: number | null | undefined;
+    scheduler?: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null | undefined;
+    currentScheduler?: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null | undefined;
     startTime?: number | null | undefined;
     kind: 'conference' | 'stream';
+    screenSharingPeerId?: number | null | undefined;
     streamerId?: number | null | undefined;
 }
 
 export class ConferenceRoom extends Entity<ConferenceRoomShape> {
     get id(): number { return this._rawValue.id; }
-    get strategy(): 'mash' | 'sfu' { return this._rawValue.strategy; }
-    set strategy(value: 'mash' | 'sfu') {
-        let normalized = this.descriptor.codec.fields.strategy.normalize(value);
-        if (this._rawValue.strategy !== normalized) {
-            this._rawValue.strategy = normalized;
-            this._updatedValues.strategy = normalized;
+    get scheduler(): 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null { return this._rawValue.scheduler; }
+    set scheduler(value: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null) {
+        let normalized = this.descriptor.codec.fields.scheduler.normalize(value);
+        if (this._rawValue.scheduler !== normalized) {
+            this._rawValue.scheduler = normalized;
+            this._updatedValues.scheduler = normalized;
             this.invalidate();
         }
     }
-    get iceTransportPolicy(): 'all' | 'relay' | null { return this._rawValue.iceTransportPolicy; }
-    set iceTransportPolicy(value: 'all' | 'relay' | null) {
-        let normalized = this.descriptor.codec.fields.iceTransportPolicy.normalize(value);
-        if (this._rawValue.iceTransportPolicy !== normalized) {
-            this._rawValue.iceTransportPolicy = normalized;
-            this._updatedValues.iceTransportPolicy = normalized;
-            this.invalidate();
-        }
-    }
-    get screenSharingPeerId(): number | null { return this._rawValue.screenSharingPeerId; }
-    set screenSharingPeerId(value: number | null) {
-        let normalized = this.descriptor.codec.fields.screenSharingPeerId.normalize(value);
-        if (this._rawValue.screenSharingPeerId !== normalized) {
-            this._rawValue.screenSharingPeerId = normalized;
-            this._updatedValues.screenSharingPeerId = normalized;
+    get currentScheduler(): 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null { return this._rawValue.currentScheduler; }
+    set currentScheduler(value: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null) {
+        let normalized = this.descriptor.codec.fields.currentScheduler.normalize(value);
+        if (this._rawValue.currentScheduler !== normalized) {
+            this._rawValue.currentScheduler = normalized;
+            this._updatedValues.currentScheduler = normalized;
             this.invalidate();
         }
     }
@@ -6470,6 +6461,15 @@ export class ConferenceRoom extends Entity<ConferenceRoomShape> {
         if (this._rawValue.kind !== normalized) {
             this._rawValue.kind = normalized;
             this._updatedValues.kind = normalized;
+            this.invalidate();
+        }
+    }
+    get screenSharingPeerId(): number | null { return this._rawValue.screenSharingPeerId; }
+    set screenSharingPeerId(value: number | null) {
+        let normalized = this.descriptor.codec.fields.screenSharingPeerId.normalize(value);
+        if (this._rawValue.screenSharingPeerId !== normalized) {
+            this._rawValue.screenSharingPeerId = normalized;
+            this._updatedValues.screenSharingPeerId = normalized;
             this.invalidate();
         }
     }
@@ -6492,19 +6492,19 @@ export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, Co
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'strategy', type: { type: 'enum', values: ['mash', 'sfu'] }, secure: false });
-        fields.push({ name: 'iceTransportPolicy', type: { type: 'optional', inner: { type: 'enum', values: ['all', 'relay'] } }, secure: false });
-        fields.push({ name: 'screenSharingPeerId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'scheduler', type: { type: 'optional', inner: { type: 'enum', values: ['mesh', 'mesh-no-relay', 'basic-sfu'] } }, secure: false });
+        fields.push({ name: 'currentScheduler', type: { type: 'optional', inner: { type: 'enum', values: ['mesh', 'mesh-no-relay', 'basic-sfu'] } }, secure: false });
         fields.push({ name: 'startTime', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'kind', type: { type: 'enum', values: ['conference', 'stream'] }, secure: false });
+        fields.push({ name: 'screenSharingPeerId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'streamerId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
-            strategy: c.enum('mash', 'sfu'),
-            iceTransportPolicy: c.optional(c.enum('all', 'relay')),
-            screenSharingPeerId: c.optional(c.integer),
+            scheduler: c.optional(c.enum('mesh', 'mesh-no-relay', 'basic-sfu')),
+            currentScheduler: c.optional(c.enum('mesh', 'mesh-no-relay', 'basic-sfu')),
             startTime: c.optional(c.integer),
             kind: c.enum('conference', 'stream'),
+            screenSharingPeerId: c.optional(c.integer),
             streamerId: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<ConferenceRoomShape> = {

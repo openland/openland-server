@@ -844,12 +844,14 @@ export default declareSchema(() => {
 
     entity('ConferenceRoom', () => {
         primaryKey('id', integer());
-        field('strategy', enumString('mash', 'sfu'));
-        field('iceTransportPolicy', optional(enumString('all', 'relay')));
-        field('screenSharingPeerId', optional(integer()));
+
+        field('scheduler', optional(enumString('mesh', 'mesh-no-relay', 'basic-sfu')));
+        field('currentScheduler', optional(enumString('mesh', 'mesh-no-relay', 'basic-sfu')));
+
         // state
         field('startTime', optional(integer()));
         field('kind', enumString('conference', 'stream'));
+        field('screenSharingPeerId', optional(integer()));
         field('streamerId', optional(integer()));
     });
 
