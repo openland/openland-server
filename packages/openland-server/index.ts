@@ -43,7 +43,7 @@ async function initServer() {
         logger.log(ctx, 'Loading modules');
         await loadAllModules(ctx);
         logger.log(ctx, 'Starting modules');
-        await startAllModules();
+        await startAllModules(ctx);
         logger.log(ctx, 'Starting tracing');
         setupFdbTracing();
         setupNodeJSTracing();

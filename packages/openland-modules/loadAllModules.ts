@@ -71,7 +71,7 @@ import { PermissionsModule } from '../openland-module-permissions/PermissionsMod
 import { loadDiscoverModule } from '../openland-module-discover/DiscoverModule.container';
 import { PhonebookModule } from '../openland-module-phonebook/PhonebookModule';
 import { loadPhonebookModule } from '../openland-module-phonebook/PhonebookModule.container';
-import { connect } from 'ts-nats';
+import { connect, Payload } from 'ts-nats';
 
 const logger = createLogger('starting');
 
@@ -89,10 +89,12 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
             .toConstantValue(store);
 
         // Load NATS
-        let client = await connect(process.env.NATS_ENDPOINT ? { servers: [process.env.NATS_ENDPOINT] } : {});
+        let client = await connect(process.env.NATS_ENDPOINT ? { payload: Payload.JSON, servers: [process.env.NATS_ENDPOINT] } : { payload: Payload.JSON });
         container.bind('NATS').toConstantValue(client);
+        logger.log(ctx, 'NATS connected');
     }
 
+    logger.log(ctx, 'Loading modules...');
     loadMonitoringModule();
     loadMessagingModule();
     loadAuthModule();
@@ -144,50 +146,92 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadDiscoverModule();
     loadPhonebookModule();
     container.bind(PhonebookModule).toSelf().inSingletonScope();
+
+    logger.log(ctx, 'Modules loaded');
 }
 
-export async function startAllModules() {
+export async function startAllModules(ctx: Context) {
+    logger.log(ctx, 'Starting module: Hooks');
     await container.get<HooksModule>('HooksModule').start();
+    logger.log(ctx, 'Starting module: DB');
     await container.get(DBModule).start();
+    logger.log(ctx, 'Starting module: Media');
     await container.get(MediaModule).start();
+    logger.log(ctx, 'Starting module: Worker');
     await container.get(WorkerModule).start();
+    logger.log(ctx, 'Starting module: Push');
     await container.get(PushModule).start();
+    logger.log(ctx, 'Starting module: Presence');
     await container.get(PresenceModule).start();
+    logger.log(ctx, 'Starting module: Email');
     await container.get<EmailModule>('EmailModule').start();
+    logger.log(ctx, 'Starting module: Users');
     await container.get(UsersModule).start();
+    logger.log(ctx, 'Starting module: Messaging');
     await container.get(MessagingModule).start();
+    logger.log(ctx, 'Starting module: Features');
     await container.get(FeaturesModule).start();
+    logger.log(ctx, 'Starting module: Search');
     await container.get(SearchModule).start();
+    logger.log(ctx, 'Starting module: Super');
     await container.get(SuperModule).start();
+    logger.log(ctx, 'Starting module: Social');
     await container.get(SocialModule).start();
+    logger.log(ctx, 'Starting module: Shortnames');
     await container.get(ShortnameModule).start();
+    logger.log(ctx, 'Starting module: Hyperlog');
     await container.get(HyperlogModule).start();
+    logger.log(ctx, 'Starting module: Drafts');
     await container.get(DraftsModule).start();
+    logger.log(ctx, 'Starting module: Typings');
     await container.get(TypingsModule).start();
+    logger.log(ctx, 'Starting module: Organization');
     await container.get(OrganizationModule).start();
+    logger.log(ctx, 'Starting module: Invites');
     await container.get(InvitesModule).start();
+    logger.log(ctx, 'Starting module: PubSub');
     await container.get(PubsubModule).start();
+    logger.log(ctx, 'Starting module: Calls');
     await container.get(CallsModule).start();
+    logger.log(ctx, 'Starting module: Feed');
     await container.get(FeedModule).start();
+    logger.log(ctx, 'Starting module: Apps');
     await container.get(AppsModule).start();
+    logger.log(ctx, 'Starting module: Comments');
     await container.get(CommentsModule).start();
+    logger.log(ctx, 'Starting module: Discover');
     await container.get(DiscoverModule).start();
+    logger.log(ctx, 'Starting module: Notification Center');
     await container.get(NotificationCenterModule).start();
+    logger.log(ctx, 'Starting module: Metrics');
     await container.get(MetricsModule).start();
+    logger.log(ctx, 'Starting module: OnBoarding');
     await container.get(UserOnboardingModule).start();
+    logger.log(ctx, 'Starting module: Stats');
     await container.get(StatsModule).start();
+    logger.log(ctx, 'Starting module: Monitoring');
     await container.get<MonitoringModule>('MonitoringModule').start();
+    logger.log(ctx, 'Starting module: Matchmaking');
     await container.get(MatchmakingModule).start();
+    logger.log(ctx, 'Starting module: Zapier');
     await container.get(ZapierModule).start();
+    logger.log(ctx, 'Starting module: Mediators???');
     await container.get<MentionNotificationsMediator>('MentionNotificationsMediator').start();
     await container.get<FeedMentionNotificationsMediator>('FeedMentionNotificationsMediator').start();
+    logger.log(ctx, 'Starting module: OAuth');
     await container.get(OauthModule).start();
+    logger.log(ctx, 'Starting module: Geo');
     await container.get(GeoModule).start();
+    logger.log(ctx, 'Starting module: Powerups');
     await container.get(PowerupsModule).start();
+    logger.log(ctx, 'Starting module: Wallet');
     await container.get(WalletModule).start();
+    logger.log(ctx, 'Starting module: Permissions');
     await container.get(PermissionsModule).start();
+    logger.log(ctx, 'Starting module: Phonebook');
     await container.get(PhonebookModule).start();
 
     // Enable API after all modules started
+    logger.log(ctx, 'Starting module: API');
     await container.get(ApiModule).start();
 }
