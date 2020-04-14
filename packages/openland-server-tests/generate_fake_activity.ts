@@ -20,7 +20,7 @@ export async function createUser(ctx: Context, email: string) {
     if (await Store.User.email.find(ctx, email)) {
         throw Error('User with email ' + email + ' already exists');
     }
-    let user = await Modules.Users.createUser(ctx, {email});
+    let user = await Modules.Users.createUser(ctx, { email });
     await Modules.Users.createUserProfile(ctx, user.id, {
         firstName: faker.name.firstName(),
         lastName: faker.name.lastName(),
@@ -83,11 +83,6 @@ export async function prepare() {
         if (await Store.Environment.findById(ctx, 1)) {
             throw Error('Unable to prepare production database');
         }
-
-        // Clear DB
-        await inTx(ctx, async (ctx2) => {
-            db.allKeys.clearRange(ctx2, Buffer.from([0x00]), Buffer.from([0xff]));
-        });
 
         // Load other modules
         await loadAllModules(rootCtx, false);

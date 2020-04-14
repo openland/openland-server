@@ -1,13 +1,30 @@
 version: '3'
 services:
-  redis:
-    image: redis:4.0.10
+  nats:
+    image: openland/nats:v1
+    restart: always
+    environment:
+      NATS_USER: natsuser
+      NATS_PASSWORD: natspassword
     ports:
-     - "127.0.0.1:13001:6379"
+      - "127.0.0.1:4222:4222"
+  mediakitchen:
+    image: openland/mediakitchen:v3
+    restart: always
+    environment:
+      MEDIAKITCHEN_NATS: "nats://nats:4222"
+      MEDIAKITCHEN_MIN_PORT: "11000"
+      MEDIAKITCHEN_MAX_PORT: "11100"
+    ports:
+      - "127.0.0.1:3478:3478"
+      - "127.0.0.1:11000-11100:11000-11100"
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.3.0
+    restart: always
     environment:
       - cluster.name=testing-cluster
+      - "cluster.routing.allocation.disk.watermark.high=99%"
+      - "cluster.routing.allocation.disk.watermark.flood_stage=99%"
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
@@ -17,12 +34,4 @@ services:
     volumes:
       - ./.data/elastic:/usr/share/elasticsearch/data
     ports:
-      - "127.0.0.1:13000:9200"
-  postgres:
-    image: postgres:10.4-alpine
-    environment: 
-      - "POSTGRES_USER=testing"
-    volumes:
-      - ./.data/postgres:/var/lib/postgresql/data
-    ports:
-     - "127.0.0.1:13002:5432"
+      - "127.0.0.1:9200:9200"
