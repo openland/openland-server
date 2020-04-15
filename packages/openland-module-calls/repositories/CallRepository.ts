@@ -102,7 +102,11 @@ export class CallRepository {
                 conf.streamerId = conf.kind === 'stream' ? uid : null;
 
                 // Assign scheduler for this calls
-                conf.currentScheduler = conf.scheduler;
+                if (conf.scheduler) {
+                    conf.currentScheduler = conf.scheduler;
+                } else {
+                    conf.currentScheduler = 'mesh-no-relay'; // Default Scheduler
+                }
 
                 // Flush for better correctness
                 await conf.flush(ctx);
