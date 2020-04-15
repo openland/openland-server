@@ -862,8 +862,8 @@ export default declareSchema(() => {
         field('tid', string());
         field('keepAliveTimeout', integer());
         field('enabled', boolean());
-        field('audioEnabled', optional(boolean()));
-        field('videoEnabled', optional(boolean()));
+        field('videoPaused', optional(boolean()));
+        field('audioPaused', optional(boolean()));
         uniqueIndex('auth', ['cid', 'uid', 'tid']).withCondition((src) => src.enabled);
         rangeIndex('conference', ['cid', 'keepAliveTimeout']).withCondition((src) => src.enabled);
         rangeIndex('active', ['keepAliveTimeout']).withCondition((src) => src.enabled);
@@ -879,8 +879,8 @@ export default declareSchema(() => {
     });
 
     const ConferenceMediaStreamMediaState = struct({
-        videoOut: boolean(),
-        audioOut: boolean(),
+        videoPaused: optional(boolean()),
+        audioPaused: optional(boolean()),
         videoSource: optional(enumString('camera', 'screen_share'))
     });
 

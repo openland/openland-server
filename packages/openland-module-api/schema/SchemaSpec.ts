@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '3504d6a4e9433951e3058710bc136953';
+export const GQL_SPEC_VERSION = 'd2af651aa184aff9167cbdc504c0fa2f';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1823,14 +1823,20 @@ export namespace GQL {
     export type MediaStreamVideoSourceValues = 'camera' | 'screen_share';
     export type MediaStreamVideoSource = GQLRoots.MediaStreamVideoSourceRoot;
     export interface MediaStreamMediaState {
-        videoOut: boolean;
+        videoPaused: Nullable<boolean>;
+        audioPaused: Nullable<boolean>;
         videoSource: Nullable<MediaStreamVideoSource>;
+        videoOut: boolean;
         audioOut: boolean;
     }
-    export interface MediaStreamMediaStateVideoOutArgs { }
+    export interface MediaStreamMediaStateVideoPausedArgs { }
+    export interface MediaStreamMediaStateAudioPausedArgs { }
     export interface MediaStreamMediaStateVideoSourceArgs { }
+    export interface MediaStreamMediaStateVideoOutArgs { }
     export interface MediaStreamMediaStateAudioOutArgs { }
     export interface MediaStreamMediaStateInput {
+        videoPaused: Nullable<boolean>;
+        audioPaused: Nullable<boolean>;
         videoOut: Nullable<boolean>;
         audioOut: Nullable<boolean>;
     }
@@ -7584,8 +7590,10 @@ export interface GQLResolver {
         {
         },
         {
-            videoOut: GQL.MediaStreamMediaStateVideoOutArgs,
+            videoPaused: GQL.MediaStreamMediaStateVideoPausedArgs,
+            audioPaused: GQL.MediaStreamMediaStateAudioPausedArgs,
             videoSource: GQL.MediaStreamMediaStateVideoSourceArgs,
+            videoOut: GQL.MediaStreamMediaStateVideoOutArgs,
             audioOut: GQL.MediaStreamMediaStateAudioOutArgs,
         }
     >;

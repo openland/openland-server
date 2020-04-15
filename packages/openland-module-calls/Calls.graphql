@@ -62,13 +62,22 @@ enum MediaStreamVideoSource {
 }
 
 type MediaStreamMediaState {
-    videoOut: Boolean!
+    videoPaused: Boolean
+    audioPaused: Boolean
     videoSource: MediaStreamVideoSource
+
+    # deprecated
+    videoOut: Boolean!
     audioOut: Boolean!
 }
 input MediaStreamMediaStateInput {
+    videoPaused: Boolean
+    audioPaused: Boolean
+
+    # deprecated
     videoOut: Boolean
     audioOut: Boolean
+    
 }
 
 type MediaStream {

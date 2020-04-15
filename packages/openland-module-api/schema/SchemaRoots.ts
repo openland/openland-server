@@ -206,7 +206,7 @@ export namespace GQLRoots {
     export type MediaStreamVideoSourceRoot = GQL.MediaStreamVideoSourceValues;
     export type MediaStreamSettingsRoot = { audioIn: boolean, audioOut: boolean, videoIn: boolean, videoOut: boolean, videoOutSource: MediaStreamVideoSourceRoot, iceTransportPolicy?: MediaStreamIceTransportPolicyValues };
     export type ConferenceSettingsInputRoot = { strategy?: ConferenceStrategyRoot, iceTransportPolicy?: MediaStreamIceTransportPolicyValues };
-    export type MediaStreamMediaStateRoot = { videoOut: boolean, videoSource: MediaStreamVideoSourceRoot, audioOut: boolean };
+    export type MediaStreamMediaStateRoot = { videoOut: boolean, videoSource: MediaStreamVideoSourceRoot, audioOut: boolean, videoPaused?: boolean, audioPaused?: boolean };
 
     //
     // Dialogs Updates

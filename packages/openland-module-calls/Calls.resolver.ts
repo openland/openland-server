@@ -89,6 +89,9 @@ export const Resolver: GQLResolver = {
                     } else {
                         throw Error('Unkown state: ' + c.state);
                     }
+                    let peerMediaState = src.peerId === c.peer1 ? c.mediaState2! : c.mediaState1!;
+                    // remove later, when deperecated fields removed from api
+                    let mediaState = { ...peerMediaState, audioOut: peerMediaState.audioPaused === null || !peerMediaState.audioPaused, videoOut: !peerMediaState.videoPaused };
                     res.push({
                         id: IDs.MediaStream.serialize(id),
                         peerId: src.peerId === c.peer1 ? (c.peer2 !== null ? IDs.ConferencePeer.serialize(c.peer2) : null) : IDs.ConferencePeer.serialize(c.peer1),
@@ -97,7 +100,7 @@ export const Resolver: GQLResolver = {
                         sdp,
                         ice,
                         settings: src.peerId === c.peer1 ? c.settings1! : c.settings2!,
-                        mediaState: src.peerId === c.peer1 ? c.mediaState2! : c.mediaState1!
+                        mediaState
                     });
                 }
             }
@@ -147,7 +150,7 @@ export const Resolver: GQLResolver = {
         }),
         conferenceAlterMediaState: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conference.parse(args.id);
-            return await Modules.Calls.repo.alterConferencePeerMediaState(ctx, cid, uid, ctx.auth.tid!, args.state.audioOut, args.state.videoOut);
+            return await Modules.Calls.repo.alterConferencePeerMediaState(ctx, cid, uid, ctx.auth.tid!, args.state.audioPaused, args.state.videoPaused);
         }),
 
         conferenceLeave: withUser(async (ctx, args, uid) => {

@@ -140,8 +140,6 @@ export class CallRepository {
                 cid, uid, tid,
                 keepAliveTimeout: Date.now() + timeout,
                 enabled: true,
-                audioEnabled: true,
-                videoEnabled: true
             });
 
             // Handle scheduling
@@ -178,8 +176,8 @@ export class CallRepository {
                     settings1,
                     settings2,
                     seq: 0,
-                    mediaState1: { audioOut: !!peer1Obj.audioEnabled, videoOut: !!peer1Obj.videoEnabled, videoSource: 'camera' },
-                    mediaState2: { audioOut: !!peer2Obj.audioEnabled, videoOut: !!peer2Obj.videoEnabled, videoSource: 'camera' }
+                    mediaState1: { videoPaused: peer1Obj.videoPaused, audioPaused: peer1Obj.audioPaused, videoSource: 'camera' },
+                    mediaState2: { videoPaused: peer2Obj.videoPaused, audioPaused: peer2Obj.audioPaused, videoSource: 'camera' }
                 });
 
                 if (cp.id === conf.screenSharingPeerId) {
@@ -193,17 +191,17 @@ export class CallRepository {
         });
     }
 
-    alterConferencePeerMediaState = async (parent: Context, cid: number, uid: number, tid: string, audioOut: boolean | null, videoOut: boolean | null) => {
+    alterConferencePeerMediaState = async (parent: Context, cid: number, uid: number, tid: string, audioPaused: boolean | null, videoPaused: boolean | null) => {
         return await inTx(parent, async (ctx) => {
             let peer = await Store.ConferencePeer.auth.find(ctx, cid, uid, tid);
             if (!peer) {
                 throw Error('Unable to find peer');
             }
-            peer.audioEnabled = typeof audioOut === 'boolean' ? audioOut : peer.audioEnabled;
-            peer.videoEnabled = typeof videoOut === 'boolean' ? videoOut : peer.videoEnabled;
+            peer.audioPaused = typeof audioPaused === 'boolean' ? audioPaused : peer.audioPaused;
+            peer.videoPaused = typeof videoPaused === 'boolean' ? videoPaused : peer.videoPaused;
             let streams = await Store.ConferenceMediaStream.conference.findAll(ctx, cid);
             for (let stream of streams.filter(s => (s.peer1 === peer!.id) || (s.peer2 === peer!.id))) {
-                let change = { ...(typeof audioOut === 'boolean') ? { audioOut } : {}, ...(typeof videoOut === 'boolean') ? { videoOut } : {} };
+                let change = { ...(typeof audioPaused === 'boolean') ? { audioPaused } : {}, ...(typeof videoPaused === 'boolean') ? { videoPaused } : {} };
                 if (stream.peer1 === peer!.id) {
                     stream.mediaState1 = { ...stream.mediaState1!, ...change };
                 } else {
@@ -280,8 +278,8 @@ export class CallRepository {
             settings1,
             settings2,
             seq: 0,
-            mediaState1: { audioOut: false, videoOut: peer1 === producer.id, videoSource: peer1 === producer.id ? 'screen_share' : undefined },
-            mediaState2: { audioOut: false, videoOut: peer2 === producer.id, videoSource: peer2 === producer.id ? 'screen_share' : undefined }
+            mediaState1: { audioPaused: true, videoPaused: peer1 !== producer.id, videoSource: peer1 === producer.id ? 'screen_share' : undefined },
+            mediaState2: { audioPaused: true, videoPaused: peer2 !== producer.id, videoSource: peer2 === producer.id ? 'screen_share' : undefined }
         });
     }
 
@@ -625,10 +623,12 @@ export class CallRepository {
 
     #getStreams = (peer: ConferencePeer, conference: ConferenceRoom): StreamDefinition[] => {
         let res: StreamDefinition[] = [];
-        if (peer.videoEnabled) {
+        if (peer.videoPaused === null || !peer.videoPaused) {
             res.push({ kind: 'video', source: 'default' });
         }
-        if (peer.audioEnabled) {
+
+        // mb add audio stream anyway? (CallScheduler may ignore it if not needed)
+        if (peer.audioPaused === null || !peer.audioPaused) {
             res.push({ kind: 'audio' });
         }
         if (conference.screenSharingPeerId === peer.id) {
