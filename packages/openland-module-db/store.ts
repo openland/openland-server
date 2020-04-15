@@ -6984,159 +6984,6 @@ export class ConferenceMediaStreamFactory extends EntityFactory<ConferenceMediaS
     }
 }
 
-export interface ConferenceConnectionShape {
-    peer1: number;
-    peer2: number;
-    cid: number;
-    state: 'wait-offer' | 'wait-answer' | 'online' | 'completed';
-    offer: string | null;
-    answer: string | null;
-    ice1: any;
-    ice2: any;
-}
-
-export interface ConferenceConnectionCreateShape {
-    cid: number;
-    state: 'wait-offer' | 'wait-answer' | 'online' | 'completed';
-    offer?: string | null | undefined;
-    answer?: string | null | undefined;
-    ice1: any;
-    ice2: any;
-}
-
-export class ConferenceConnection extends Entity<ConferenceConnectionShape> {
-    get peer1(): number { return this._rawValue.peer1; }
-    get peer2(): number { return this._rawValue.peer2; }
-    get cid(): number { return this._rawValue.cid; }
-    set cid(value: number) {
-        let normalized = this.descriptor.codec.fields.cid.normalize(value);
-        if (this._rawValue.cid !== normalized) {
-            this._rawValue.cid = normalized;
-            this._updatedValues.cid = normalized;
-            this.invalidate();
-        }
-    }
-    get state(): 'wait-offer' | 'wait-answer' | 'online' | 'completed' { return this._rawValue.state; }
-    set state(value: 'wait-offer' | 'wait-answer' | 'online' | 'completed') {
-        let normalized = this.descriptor.codec.fields.state.normalize(value);
-        if (this._rawValue.state !== normalized) {
-            this._rawValue.state = normalized;
-            this._updatedValues.state = normalized;
-            this.invalidate();
-        }
-    }
-    get offer(): string | null { return this._rawValue.offer; }
-    set offer(value: string | null) {
-        let normalized = this.descriptor.codec.fields.offer.normalize(value);
-        if (this._rawValue.offer !== normalized) {
-            this._rawValue.offer = normalized;
-            this._updatedValues.offer = normalized;
-            this.invalidate();
-        }
-    }
-    get answer(): string | null { return this._rawValue.answer; }
-    set answer(value: string | null) {
-        let normalized = this.descriptor.codec.fields.answer.normalize(value);
-        if (this._rawValue.answer !== normalized) {
-            this._rawValue.answer = normalized;
-            this._updatedValues.answer = normalized;
-            this.invalidate();
-        }
-    }
-    get ice1(): any { return this._rawValue.ice1; }
-    set ice1(value: any) {
-        let normalized = this.descriptor.codec.fields.ice1.normalize(value);
-        if (this._rawValue.ice1 !== normalized) {
-            this._rawValue.ice1 = normalized;
-            this._updatedValues.ice1 = normalized;
-            this.invalidate();
-        }
-    }
-    get ice2(): any { return this._rawValue.ice2; }
-    set ice2(value: any) {
-        let normalized = this.descriptor.codec.fields.ice2.normalize(value);
-        if (this._rawValue.ice2 !== normalized) {
-            this._rawValue.ice2 = normalized;
-            this._updatedValues.ice2 = normalized;
-            this.invalidate();
-        }
-    }
-}
-
-export class ConferenceConnectionFactory extends EntityFactory<ConferenceConnectionShape, ConferenceConnection> {
-
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conferenceConnection');
-        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceConnection', 'conference'), condition: (src) => src.state !== 'completed' });
-        let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'peer1', type: 'integer' });
-        primaryKeys.push({ name: 'peer2', type: 'integer' });
-        let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'cid', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'state', type: { type: 'enum', values: ['wait-offer', 'wait-answer', 'online', 'completed'] }, secure: false });
-        fields.push({ name: 'offer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'answer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'ice1', type: { type: 'json' }, secure: false });
-        fields.push({ name: 'ice2', type: { type: 'json' }, secure: false });
-        let codec = c.struct({
-            peer1: c.integer,
-            peer2: c.integer,
-            cid: c.integer,
-            state: c.enum('wait-offer', 'wait-answer', 'online', 'completed'),
-            offer: c.optional(c.string),
-            answer: c.optional(c.string),
-            ice1: c.any,
-            ice2: c.any,
-        });
-        let descriptor: EntityDescriptor<ConferenceConnectionShape> = {
-            name: 'ConferenceConnection',
-            storageKey: 'conferenceConnection',
-            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
-        };
-        return new ConferenceConnectionFactory(descriptor);
-    }
-
-    private constructor(descriptor: EntityDescriptor<ConferenceConnectionShape>) {
-        super(descriptor);
-    }
-
-    readonly conference = Object.freeze({
-        findAll: async (ctx: Context, cid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [cid])).items;
-        },
-        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (cid: number, opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[0], [cid], opts);
-        },
-        liveStream: (ctx: Context, cid: number, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [cid], opts);
-        },
-    });
-
-    create(ctx: Context, peer1: number, peer2: number, src: ConferenceConnectionCreateShape): Promise<ConferenceConnection> {
-        return this._create(ctx, [peer1, peer2], this.descriptor.codec.normalize({ peer1, peer2, ...src }));
-    }
-
-    create_UNSAFE(ctx: Context, peer1: number, peer2: number, src: ConferenceConnectionCreateShape): ConferenceConnection {
-        return this._create_UNSAFE(ctx, [peer1, peer2], this.descriptor.codec.normalize({ peer1, peer2, ...src }));
-    }
-
-    findById(ctx: Context, peer1: number, peer2: number): Promise<ConferenceConnection | null> {
-        return this._findById(ctx, [peer1, peer2]);
-    }
-
-    watch(ctx: Context, peer1: number, peer2: number): Watch {
-        return this._watch(ctx, [peer1, peer2]);
-    }
-
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferenceConnectionShape>): ConferenceConnection {
-        return new ConferenceConnection([value.peer1, value.peer2], value, this.descriptor, this._flush, ctx);
-    }
-}
-
 export interface UserEdgeShape {
     uid1: number;
     uid2: number;
@@ -18917,7 +18764,6 @@ export interface Store extends BaseStore {
     readonly ConferenceRoom: ConferenceRoomFactory;
     readonly ConferencePeer: ConferencePeerFactory;
     readonly ConferenceMediaStream: ConferenceMediaStreamFactory;
-    readonly ConferenceConnection: ConferenceConnectionFactory;
     readonly UserEdge: UserEdgeFactory;
     readonly UserGroupEdge: UserGroupEdgeFactory;
     readonly UserInfluencerUserIndex: UserInfluencerUserIndexFactory;
@@ -19127,7 +18973,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ConferenceRoomPromise = ConferenceRoomFactory.open(storage);
     let ConferencePeerPromise = ConferencePeerFactory.open(storage);
     let ConferenceMediaStreamPromise = ConferenceMediaStreamFactory.open(storage);
-    let ConferenceConnectionPromise = ConferenceConnectionFactory.open(storage);
     let UserEdgePromise = UserEdgeFactory.open(storage);
     let UserGroupEdgePromise = UserGroupEdgeFactory.open(storage);
     let UserInfluencerUserIndexPromise = UserInfluencerUserIndexFactory.open(storage);
@@ -19308,7 +19153,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ConferenceRoom: await ConferenceRoomPromise,
         ConferencePeer: await ConferencePeerPromise,
         ConferenceMediaStream: await ConferenceMediaStreamPromise,
-        ConferenceConnection: await ConferenceConnectionPromise,
         UserEdge: await UserEdgePromise,
         UserGroupEdge: await UserGroupEdgePromise,
         UserInfluencerUserIndex: await UserInfluencerUserIndexPromise,

@@ -140,21 +140,6 @@ export class CallRepository {
                 videoEnabled: true
             });
 
-            // Create connections
-            for (let cp of confPeers) {
-                if (cp.id === id) {
-                    continue;
-                }
-                await Store.ConferenceConnection.create(ctx, Math.min(cp.id, id), Math.max(cp.id, id), {
-                    cid: cid,
-                    state: 'wait-offer',
-                    ice1: [],
-                    ice2: [],
-                    offer: null,
-                    answer: null
-                });
-            }
-
             // Create streams
             for (let cp of confPeers) {
                 if (cp.id === id) {
@@ -348,14 +333,6 @@ export class CallRepository {
             if (detectEnd) {
                 if ((await Store.ConferencePeer.active.findAll(ctx)).length === 0) {
                     await scheduler.onConferenceStopped(ctx, existing.cid);
-                }
-            }
-
-            // Kill all connections
-            let connections = await Store.ConferenceConnection.conference.findAll(ctx, existing.cid);
-            for (let c of connections) {
-                if (c.peer1 === pid || c.peer2 === pid) {
-                    c.state = 'completed';
                 }
             }
 

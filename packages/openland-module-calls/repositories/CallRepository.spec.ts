@@ -34,8 +34,8 @@ describe('CallRepository', () => {
         expect(peers[0].uid).toBe(peer.uid);
         expect(peers[0].cid).toBe(peer.cid);
         expect(peers[0].tid).toBe(peer.tid);
-        let connections = await Store.ConferenceConnection.conference.findAll(ctx, CID);
-        expect(connections.length).toBe(0);
+        // let connections = await Store.ConferenceConnection.conference.findAll(ctx, CID);
+        // expect(connections.length).toBe(0);
     });
 
     it('should automatically connect peers', async () => {
@@ -49,10 +49,10 @@ describe('CallRepository', () => {
         expect(peer1.uid).toBe(3);
         expect(peer2.uid).toBe(4);
         expect(peers.length).toBe(2);
-        let connections = await Store.ConferenceConnection.conference.findAll(ctx, CID);
-        expect(connections.length).toBe(1);
-        expect(connections[0].cid).toBe(CID);
-        expect(connections[0].state).toBe('wait-offer');
+        // let connections = await Store.ConferenceConnection.conference.findAll(ctx, CID);
+        // expect(connections.length).toBe(1);
+        // expect(connections[0].cid).toBe(CID);
+        // expect(connections[0].state).toBe('wait-offer');
     });
 
     it('should remove peers and related connections', async () => {
@@ -65,8 +65,8 @@ describe('CallRepository', () => {
         let peers = await Store.ConferencePeer.conference.findAll(ctx, CID);
         expect(peers.length).toBe(1);
         expect(peers[0].id).toBe(peer2.id);
-        let connections = await Store.ConferenceConnection.conference.findAll(ctx, CID);
-        expect(connections.length).toBe(0);
+        // let connections = await Store.ConferenceConnection.conference.findAll(ctx, CID);
+        // expect(connections.length).toBe(0);
     });
 
     // it('should accept offers', async () => {

@@ -903,17 +903,17 @@ export default declareSchema(() => {
         rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.state !== 'completed');
     });
 
-    entity('ConferenceConnection', () => {
-        primaryKey('peer1', integer());
-        primaryKey('peer2', integer());
-        field('cid', integer());
-        field('state', enumString('wait-offer', 'wait-answer', 'online', 'completed'));
-        field('offer', optional(string()));
-        field('answer', optional(string()));
-        field('ice1', json());
-        field('ice2', json());
-        rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.state !== 'completed');
-    });
+    // entity('ConferenceConnection', () => {
+    //     primaryKey('peer1', integer());
+    //     primaryKey('peer2', integer());
+    //     field('cid', integer());
+    //     field('state', enumString('wait-offer', 'wait-answer', 'online', 'completed'));
+    //     field('offer', optional(string()));
+    //     field('answer', optional(string()));
+    //     field('ice1', json());
+    //     field('ice2', json());
+    //     rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.state !== 'completed');
+    // });
 
     //
     // Experience
