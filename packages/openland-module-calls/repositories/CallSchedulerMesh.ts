@@ -18,8 +18,19 @@ export class CallSchedulerMesh implements CallScheduler {
     onConferenceStarted = async (ctx: Context, cid: number) => {
         logger.log(ctx, 'Conference started: ' + cid);
     }
-
     onConferenceStopped = async (ctx: Context, cid: number) => {
         logger.log(ctx, 'Conference stopped: ' + cid);
+    }
+
+    onPeerAdded = async (ctx: Context, pid: number) => {
+        logger.log(ctx, 'Peer added: ' + pid);
+    }
+
+    onPeerStreamsChanged = async (ctx: Context, pid: number, streams: { kind: 'video' | 'audio', source: 'default' | 'screen' }[]) => {
+        logger.log(ctx, 'Peer streems changed: ' + pid);
+    }
+
+    onPeerRemoved = async (ctx: Context, pid: number) => {
+        logger.log(ctx, 'Peer removed: ' + pid);
     }
 }
