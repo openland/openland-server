@@ -628,6 +628,9 @@ export class CallRepository {
         }
 
         // mb add audio stream anyway? (CallScheduler may ignore it if not needed)
+        //
+        // RE: mb
+        // Sure, thats why we need two fields - paused and enabled. Business logic should define what peers can stream audio. 
         if (peer.audioPaused === null || !peer.audioPaused) {
             res.push({ kind: 'audio' });
         }
