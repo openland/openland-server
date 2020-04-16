@@ -102,6 +102,7 @@ extend type Query {
     debugClientIp: DebugIpInfo
     debugGqlTraces(first: Int!, after: ID): GqlTraceConnection!
     debugGqlTrace(id: ID!): GqlTrace!
+    debugUserWallet(id: ID!): WalletAccount!
 }
 
 enum SuperNotificationType {

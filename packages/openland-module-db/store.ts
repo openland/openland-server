@@ -6412,7 +6412,7 @@ export interface ConferenceRoomShape {
     scheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null;
     currentScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null;
     startTime: number | null;
-    kind: 'conference' | 'stream';
+    kind: 'conference' | 'stream' | null;
     screenSharingPeerId: number | null;
     streamerId: number | null;
 }
@@ -6421,7 +6421,7 @@ export interface ConferenceRoomCreateShape {
     scheduler?: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null | undefined;
     currentScheduler?: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null | undefined;
     startTime?: number | null | undefined;
-    kind: 'conference' | 'stream';
+    kind?: 'conference' | 'stream' | null | undefined;
     screenSharingPeerId?: number | null | undefined;
     streamerId?: number | null | undefined;
 }
@@ -6455,8 +6455,8 @@ export class ConferenceRoom extends Entity<ConferenceRoomShape> {
             this.invalidate();
         }
     }
-    get kind(): 'conference' | 'stream' { return this._rawValue.kind; }
-    set kind(value: 'conference' | 'stream') {
+    get kind(): 'conference' | 'stream' | null { return this._rawValue.kind; }
+    set kind(value: 'conference' | 'stream' | null) {
         let normalized = this.descriptor.codec.fields.kind.normalize(value);
         if (this._rawValue.kind !== normalized) {
             this._rawValue.kind = normalized;
@@ -6495,7 +6495,7 @@ export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, Co
         fields.push({ name: 'scheduler', type: { type: 'optional', inner: { type: 'enum', values: ['mesh', 'mesh-no-relay', 'basic-sfu'] } }, secure: false });
         fields.push({ name: 'currentScheduler', type: { type: 'optional', inner: { type: 'enum', values: ['mesh', 'mesh-no-relay', 'basic-sfu'] } }, secure: false });
         fields.push({ name: 'startTime', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
-        fields.push({ name: 'kind', type: { type: 'enum', values: ['conference', 'stream'] }, secure: false });
+        fields.push({ name: 'kind', type: { type: 'optional', inner: { type: 'enum', values: ['conference', 'stream'] } }, secure: false });
         fields.push({ name: 'screenSharingPeerId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'streamerId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
@@ -6503,7 +6503,7 @@ export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, Co
             scheduler: c.optional(c.enum('mesh', 'mesh-no-relay', 'basic-sfu')),
             currentScheduler: c.optional(c.enum('mesh', 'mesh-no-relay', 'basic-sfu')),
             startTime: c.optional(c.integer),
-            kind: c.enum('conference', 'stream'),
+            kind: c.optional(c.enum('conference', 'stream')),
             screenSharingPeerId: c.optional(c.integer),
             streamerId: c.optional(c.integer),
         });

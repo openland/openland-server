@@ -850,7 +850,7 @@ export default declareSchema(() => {
 
         // state
         field('startTime', optional(integer()));
-        field('kind', enumString('conference', 'stream'));
+        field('kind', optional(enumString('conference', 'stream')));
         field('screenSharingPeerId', optional(integer()));
         field('streamerId', optional(integer()));
     });

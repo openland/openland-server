@@ -221,6 +221,10 @@ export const Resolver: GQLResolver = {
             let id = IDs.GqlTrace.parse(args.id);
             return (await Store.GqlTrace.findById(ctx, id))!;
         }),
+        debugUserWallet: withPermission('super-admin', async (ctx, args) => {
+           let uid = IDs.User.parse(args.id);
+           return await Modules.Wallet.getWallet(ctx, uid);
+        }),
     },
     Mutation: {
         debugSendSMS: withPermission('super-admin', async (ctx, args) => {
