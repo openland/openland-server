@@ -32,6 +32,19 @@ const resolveIce = async (root: any, args: any, context: AppContext) => {
     return await resolveTurnServices();
 };
 
+const resolveMeshStreamLink = async (src: { id: string, pid: number }, ctx: AppContext) => {
+    let peer = await Store.ConferencePeer.findById(ctx, src.pid);
+    if (!peer) {
+        return null;
+    }
+    let meshPeer = await Store.ConferenceMeshPeer.findById(ctx, peer.cid, peer.id);
+    if (!meshPeer) {
+        return null;
+    }
+    return (await Store.ConferenceMeshLink.conference.findAll(ctx, peer.cid))
+        .find((v) => v.esid1 === src.id || v.esid2 === src.id);
+};
+
 export const Resolver: GQLResolver = {
     Conference: {
         id: (src: ConferenceRoom) => IDs.Conference.serialize(src.id),
@@ -76,24 +89,45 @@ export const Resolver: GQLResolver = {
         seq: (src) => src.seq,
         sdp: (src) => src.remoteSdp,
         ice: (src) => src.remoteCandidates,
-        peerId: (src) => null,
-        settings: (src) => {
+        
+        // settings/state for old mesh clents
+        peerId: async (src, args, ctx) => {
+            // peer state is bound to stream in old clients
+            let link = await resolveMeshStreamLink(src, ctx);
+            if (!link) {
+                return null;
+            }
+            return IDs.ConferencePeer.serialize(src.pid === link.pid1 ? link.pid2 : link.pid1);
+        },
+        settings: (src, arg, ctx) => {
             return {
                 audioOut: true,
                 audioIn: true,
-                videoIn: false,
-                videoOut: false,
+                videoIn: true,
+                videoOut: true,
                 videoOutSource: 'camera'
             };
         },
-        mediaState: (src) => {
-            return {
+        mediaState: async (src, args, ctx) => {
+            let res = {
                 videoPaused: false,
                 audioPaused: false,
-                videoSource: 'camera',
+                videoSource: 'camera' as 'camera',
                 audioOut: true,
                 videoOut: false
             };
+            let link = await resolveMeshStreamLink(src, ctx);
+            if (!link) {
+                return res;
+            }
+            let otherPeerId = src.pid === link.pid1 ? link.pid2 : link.pid1;
+            let otherPeer = await Store.ConferencePeer.findById(ctx, otherPeerId);
+            if (!otherPeer) {
+                return res;
+            }
+            res.audioPaused = !!otherPeer.audioPaused;
+            res.videoPaused = !!otherPeer.videoPaused;
+            return res;
         }
     },
     Query: {

@@ -220,6 +220,7 @@ export class CallSchedulerMesh implements CallScheduler {
         if (!link || link.state === 'completed') {
             return;
         }
+        link.state = 'wait-offer';
 
         let stream1 = (await Store.ConferenceEndStream.findById(ctx, link.esid1))!;
         let stream2 = (await Store.ConferenceEndStream.findById(ctx, link.esid2))!;
@@ -339,27 +340,39 @@ export class CallSchedulerMesh implements CallScheduler {
         }
 
         link.state = 'wait-answer';
+        // still need to increment for back compatibility
+        otherStream.seq++;
         otherStream.remoteSdp = offer;
         otherStream.state = 'need-answer';
     }
 
     onStreamAnswer = async (ctx: Context, cid: number, pid: number, sid: string, answer: string) => {
         logger.log(ctx, 'Answer: ' + pid + ', ' + answer);
-        
+
         let link = (await Store.ConferenceMeshLink.conference.findAll(ctx, cid))
             .find((v) => v.esid1 === sid || v.esid2 === sid);
         if (!link || link.state !== 'wait-answer') {
             logger.log(ctx, 'exit1');
             return;
         }
+
+        // move current stream to READY state
+        let stream = await Store.ConferenceEndStream.findById(ctx, sid);
+        if (stream) {
+            stream.seq++;
+            stream.state = 'online';
+        }
+
         let otherStreamId = link.esid1 === sid ? link.esid2 : link.esid1;
         let otherStream = await Store.ConferenceEndStream.findById(ctx, otherStreamId);
         if (!otherStream || otherStream.state === 'completed') {
             logger.log(ctx, 'exit2');
             return;
         }
-        
+
         link.state = 'online';
+        // still need to increment for back compatibility
+        otherStream.seq++;
         otherStream.remoteSdp = answer;
         otherStream.state = 'online';
     }

@@ -390,7 +390,7 @@ export class CallRepository {
 
     #getStreams = (peer: ConferencePeer, conference: ConferenceRoom): MediaSources => {
         let res: MediaSources = {
-            videoStream: peer.videoPaused === null || !peer.videoPaused,
+            videoStream: peer.videoPaused === false,
             screenCastStream: conference.screenSharingPeerId === peer.id,
             audioStream: true
         };
