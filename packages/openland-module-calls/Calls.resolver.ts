@@ -89,7 +89,7 @@ export const Resolver: GQLResolver = {
         seq: (src) => src.seq,
         sdp: (src) => src.remoteSdp,
         ice: (src) => src.remoteCandidates,
-        
+
         // settings/state for old mesh clents
         peerId: async (src, args, ctx) => {
             // peer state is bound to stream in old clients
@@ -100,19 +100,20 @@ export const Resolver: GQLResolver = {
             return IDs.ConferencePeer.serialize(src.pid === link.pid1 ? link.pid2 : link.pid1);
         },
         settings: (src, arg, ctx) => {
+            let localVideo = src.localStreams.find(s => s.type === 'video');
             return {
-                audioOut: true,
+                audioOut: !!src.localStreams.find(s => s.type === 'audio'),
                 audioIn: true,
                 videoIn: true,
                 videoOut: true,
-                videoOutSource: 'camera'
+                videoOutSource: (localVideo && localVideo.type === 'video' && localVideo.source === 'screen') ? 'screen_share' : 'camera'
             };
         },
         mediaState: async (src, args, ctx) => {
             let res = {
                 videoPaused: false,
                 audioPaused: false,
-                videoSource: 'camera' as 'camera',
+                videoSource: 'camera' as 'camera' | 'screen_share',
                 audioOut: true,
                 videoOut: false
             };
@@ -127,6 +128,8 @@ export const Resolver: GQLResolver = {
             }
             res.audioPaused = !!otherPeer.audioPaused;
             res.videoPaused = !!otherPeer.videoPaused;
+            let remoteVideo = src.remoteStreams?.find(s => s.type === 'video');
+            res.videoSource = remoteVideo?.type === 'video' && remoteVideo.source === 'screen' ? 'screen_share' : 'camera';
             return res;
         }
     },

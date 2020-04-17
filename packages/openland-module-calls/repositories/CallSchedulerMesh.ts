@@ -3,10 +3,12 @@ import { createLogger } from '@openland/log';
 import { Context } from '@openland/context';
 import { CallScheduler, StreamConfig, MediaSources } from './CallScheduler';
 import uuid from 'uuid/v4';
+import { ConferenceMeshLink } from 'openland-module-db/store';
 
 const logger = createLogger('calls-mesh');
-const KIND_GENERIC = 'generic';
-// const KIND_SCREENCAST = 'screencast';
+type LinkKind = 'generic' | 'screencast';
+const KIND_GENERIC: LinkKind = 'generic';
+const KIND_SCREENCAST: LinkKind = 'screencast';
 
 function hasGenericSources(source: MediaSources) {
     return source.audioStream || source.videoStream;
@@ -47,14 +49,20 @@ export class CallSchedulerMesh implements CallScheduler {
             active: true
         });
 
-        // Create Generic Links
         for (let ex of existingPeers) {
+            // Create Generic Links
             if (hasGenericSources(sources) || hasGenericSources(ex.sources)) {
                 await this.#createGenericLink(ctx, cid, ex.pid, pid, ex.sources, sources);
             }
-        }
+            // Create Screencast Links
+            if (sources.screenCastStream) {
+                await this.#createScreencastLink(ctx, cid, pid, ex.pid, sources);
+            }
+            if (ex.sources.screenCastStream) {
+                await this.#createScreencastLink(ctx, cid, ex.pid, pid, ex.sources);
+            }
 
-        // TODO: create screencast Links
+        }
     }
 
     onPeerStreamsChanged = async (ctx: Context, cid: number, pid: number, sources: MediaSources) => {
@@ -99,7 +107,21 @@ export class CallSchedulerMesh implements CallScheduler {
             }
         }
 
-        // TODO: udpate screencast Links
+        if (
+            prevSources.screenCastStream !== sources.screenCastStream
+        ) {
+            let existingPeers = await Store.ConferenceMeshPeer.conference.findAll(ctx, cid);
+            for (let e of existingPeers) {
+                if (e.pid === pid) {
+                    continue;
+                }
+                if (sources.screenCastStream) {
+                    await this.#createScreencastLink(ctx, cid, pid, e.pid, sources);
+                } else {
+                    await this.#removeScreenCastLink(ctx, cid, pid, e.pid);
+                }
+            }
+        }
     }
 
     onPeerRemoved = async (ctx: Context, cid: number, pid: number) => {
@@ -115,17 +137,23 @@ export class CallSchedulerMesh implements CallScheduler {
         // Find existing peers
         let existingPeers = await Store.ConferenceMeshPeer.conference.findAll(ctx, cid);
 
-        // Remove generic links
         for (let e of existingPeers) {
+            // Remove generic links
             if (e.pid === pid) {
                 continue;
             }
             if (hasGenericSources(e.sources) || hasGenericSources(peer.sources)) {
                 await this.#removeGenericLink(ctx, cid, e.pid, pid);
             }
+            // Remove screencast links
+            if (e.sources.screenCastStream) {
+                await this.#removeScreenCastLink(ctx, cid, e.pid, pid);
+            }
+            if (peer.sources.screenCastStream) {
+                await this.#removeScreenCastLink(ctx, cid, pid, e.pid);
+            }
         }
 
-        // TODO: Remove screencast links
     }
 
     //
@@ -269,6 +297,95 @@ export class CallSchedulerMesh implements CallScheduler {
         if (!link || link.state === 'completed') {
             return;
         }
+        await this.#cleanUpLink(ctx, link);
+    }
+
+    #getStreamGenericConfig = (streams: MediaSources): StreamConfig[] => {
+        let res: StreamConfig[] = [];
+        if (streams.videoStream) {
+            res.push({ type: 'video', codec: 'h264', source: 'default' });
+        }
+        if (streams.audioStream) {
+            res.push({ type: 'audio', codec: 'opus' });
+        }
+        return res;
+    }
+
+    //
+    // Screencast link
+    //
+
+    #createScreencastLink = async (ctx: Context,
+        cid: number, producerPid: number, consumerPid: number,
+        sources: MediaSources
+    ) => {
+        let streamProducerId = uuid();
+        let streamProducerConfig = this.#getStreamScreenCastConfig(sources);
+        let streamConsumerId = uuid();
+        let streamConsumerConfig: StreamConfig[] = [];
+
+        // Create First Stream
+        await Store.ConferenceEndStream.create(ctx, streamProducerId, {
+            pid: producerPid,
+            seq: 1,
+            state: 'need-offer',
+
+            localSdp: null,
+            localStreams: streamProducerConfig,
+            localCandidates: [],
+
+            remoteSdp: null,
+            remoteStreams: streamConsumerConfig,
+            remoteCandidates: [],
+
+            iceTransportPolicy: this.iceTransportPolicy
+        });
+
+        // Create Second Stream
+        await Store.ConferenceEndStream.create(ctx, streamConsumerId, {
+            pid: consumerPid,
+            seq: 1,
+            state: 'wait-offer',
+
+            localSdp: null,
+            localStreams: streamConsumerConfig,
+            localCandidates: [],
+
+            remoteSdp: null,
+            remoteStreams: streamProducerConfig,
+            remoteCandidates: [],
+
+            iceTransportPolicy: this.iceTransportPolicy
+        });
+
+        // Create Link
+        let existingLink = await Store.ConferenceMeshLink.active.find(ctx, cid, producerPid, consumerPid, KIND_SCREENCAST);
+        if (existingLink) {
+            throw Error('Scheduler error');
+        }
+        let id = uuid();
+        await Store.ConferenceMeshLink.create(ctx, id, {
+            cid,
+            pid1: producerPid,
+            pid2: consumerPid,
+            leader: producerPid,
+            esid1: streamProducerId,
+            esid2: streamConsumerId,
+            state: 'wait-offer',
+            kind: KIND_SCREENCAST
+        });
+        logger.log(ctx, 'Link ' + id + ' created');
+    }
+
+    #removeScreenCastLink = async (ctx: Context, cid: number, producerPid: number, consumerPid: number) => {
+        let link = await Store.ConferenceMeshLink.active.find(ctx, cid, producerPid, consumerPid, KIND_SCREENCAST);
+        if (!link || link.state === 'completed') {
+            return;
+        }
+        await this.#cleanUpLink(ctx, link);
+    }
+
+    #cleanUpLink = async (ctx: Context, link: ConferenceMeshLink) => {
         link.state = 'completed';
 
         // Stop streams
@@ -290,15 +407,8 @@ export class CallSchedulerMesh implements CallScheduler {
         stream2.remoteStreams = [];
     }
 
-    #getStreamGenericConfig = (streams: MediaSources): StreamConfig[] => {
-        let res: StreamConfig[] = [];
-        if (streams.videoStream) {
-            res.push({ type: 'video', codec: 'h264', source: 'default' });
-        }
-        if (streams.audioStream) {
-            res.push({ type: 'audio', codec: 'opus' });
-        }
-        return res;
+    #getStreamScreenCastConfig = (streams: MediaSources): StreamConfig[] => {
+        return [{ type: 'video', codec: 'h264', source: 'screen' }];
     }
 
     //
