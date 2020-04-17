@@ -206,8 +206,6 @@ export const Resolver: GQLResolver = {
 
         mediaStreamAnswer: withUser(async (ctx, args, uid) => {
 
-            console.warn('stream answer');
-
             // Resolve
             let id = IDs.MediaStream.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
