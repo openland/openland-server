@@ -76,7 +76,7 @@ import {
     WalletPurchase,
     WalletLockedChanged,
     EditorsChoiceChatsCollection,
-    EditorsChoiceChat, WalletPurchaseCreateShape, GqlTrace,
+    EditorsChoiceChat, WalletPurchaseCreateShape, GqlTrace, ConferenceEndStream,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -193,7 +193,7 @@ export namespace GQLRoots {
     // Calls
     //
     export type ICEServerRoot = GQL.ICEServer;
-    export type MediaStreamRoot = GQL.MediaStream;
+    export type MediaStreamRoot = ConferenceEndStream;
     export type ConversationUpdateStateRoot = any;
     export type ConferencePeerRoot = ConferencePeer;
     export type ConferenceJoinResultRoot = { peerId: string, conference: ConferenceRoot };

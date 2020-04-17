@@ -6731,90 +6731,46 @@ export class ConferencePeerFactory extends EntityFactory<ConferencePeerShape, Co
     }
 }
 
-export interface ConferenceMediaStreamShape {
-    id: number;
-    cid: number;
-    peer1: number;
-    peer2: number | null;
-    kind: 'direct' | 'bridged';
-    state: 'wait-offer' | 'wait-answer' | 'online' | 'completed';
-    seq: number | null;
-    offer: string | null;
-    answer: string | null;
-    ice1: any;
-    ice2: any;
-    settings1: { videoIn: boolean, videoOut: boolean, videoOutSource: 'camera' | 'screen_share' | null, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null;
-    settings2: { videoIn: boolean, videoOut: boolean, videoOutSource: 'camera' | 'screen_share' | null, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null;
-    mediaState1: { videoPaused: boolean | null, audioPaused: boolean | null, videoSource: 'camera' | 'screen_share' | null } | null;
-    mediaState2: { videoPaused: boolean | null, audioPaused: boolean | null, videoSource: 'camera' | 'screen_share' | null } | null;
+export interface ConferenceEndStreamShape {
+    id: string;
+    pid: number;
+    seq: number;
+    state: 'need-offer' | 'wait-offer' | 'need-answer' | 'wait-answer' | 'online' | 'completed';
+    localStreams: ({ type: 'audio', codec: 'default' | 'opus' } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' })[];
+    remoteStreams: ({ type: 'audio',  } | { type: 'video', source: 'default' | 'screen' })[] | null;
+    iceTransportPolicy: 'all' | 'relay';
+    localSdp: string | null;
+    remoteSdp: string | null;
+    localCandidates: (string)[];
+    remoteCandidates: (string)[];
 }
 
-export interface ConferenceMediaStreamCreateShape {
-    cid: number;
-    peer1: number;
-    peer2?: number | null | undefined;
-    kind: 'direct' | 'bridged';
-    state: 'wait-offer' | 'wait-answer' | 'online' | 'completed';
-    seq?: number | null | undefined;
-    offer?: string | null | undefined;
-    answer?: string | null | undefined;
-    ice1: any;
-    ice2: any;
-    settings1?: { videoIn: boolean, videoOut: boolean, videoOutSource: 'camera' | 'screen_share' | null | undefined, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null | undefined } | null | undefined;
-    settings2?: { videoIn: boolean, videoOut: boolean, videoOutSource: 'camera' | 'screen_share' | null | undefined, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null | undefined } | null | undefined;
-    mediaState1?: { videoPaused: boolean | null | undefined, audioPaused: boolean | null | undefined, videoSource: 'camera' | 'screen_share' | null | undefined } | null | undefined;
-    mediaState2?: { videoPaused: boolean | null | undefined, audioPaused: boolean | null | undefined, videoSource: 'camera' | 'screen_share' | null | undefined } | null | undefined;
+export interface ConferenceEndStreamCreateShape {
+    pid: number;
+    seq: number;
+    state: 'need-offer' | 'wait-offer' | 'need-answer' | 'wait-answer' | 'online' | 'completed';
+    localStreams: ({ type: 'audio', codec: 'default' | 'opus' } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' })[];
+    remoteStreams?: ({ type: 'audio',  } | { type: 'video', source: 'default' | 'screen' })[] | null | undefined;
+    iceTransportPolicy: 'all' | 'relay';
+    localSdp?: string | null | undefined;
+    remoteSdp?: string | null | undefined;
+    localCandidates: (string)[];
+    remoteCandidates: (string)[];
 }
 
-export class ConferenceMediaStream extends Entity<ConferenceMediaStreamShape> {
-    get id(): number { return this._rawValue.id; }
-    get cid(): number { return this._rawValue.cid; }
-    set cid(value: number) {
-        let normalized = this.descriptor.codec.fields.cid.normalize(value);
-        if (this._rawValue.cid !== normalized) {
-            this._rawValue.cid = normalized;
-            this._updatedValues.cid = normalized;
+export class ConferenceEndStream extends Entity<ConferenceEndStreamShape> {
+    get id(): string { return this._rawValue.id; }
+    get pid(): number { return this._rawValue.pid; }
+    set pid(value: number) {
+        let normalized = this.descriptor.codec.fields.pid.normalize(value);
+        if (this._rawValue.pid !== normalized) {
+            this._rawValue.pid = normalized;
+            this._updatedValues.pid = normalized;
             this.invalidate();
         }
     }
-    get peer1(): number { return this._rawValue.peer1; }
-    set peer1(value: number) {
-        let normalized = this.descriptor.codec.fields.peer1.normalize(value);
-        if (this._rawValue.peer1 !== normalized) {
-            this._rawValue.peer1 = normalized;
-            this._updatedValues.peer1 = normalized;
-            this.invalidate();
-        }
-    }
-    get peer2(): number | null { return this._rawValue.peer2; }
-    set peer2(value: number | null) {
-        let normalized = this.descriptor.codec.fields.peer2.normalize(value);
-        if (this._rawValue.peer2 !== normalized) {
-            this._rawValue.peer2 = normalized;
-            this._updatedValues.peer2 = normalized;
-            this.invalidate();
-        }
-    }
-    get kind(): 'direct' | 'bridged' { return this._rawValue.kind; }
-    set kind(value: 'direct' | 'bridged') {
-        let normalized = this.descriptor.codec.fields.kind.normalize(value);
-        if (this._rawValue.kind !== normalized) {
-            this._rawValue.kind = normalized;
-            this._updatedValues.kind = normalized;
-            this.invalidate();
-        }
-    }
-    get state(): 'wait-offer' | 'wait-answer' | 'online' | 'completed' { return this._rawValue.state; }
-    set state(value: 'wait-offer' | 'wait-answer' | 'online' | 'completed') {
-        let normalized = this.descriptor.codec.fields.state.normalize(value);
-        if (this._rawValue.state !== normalized) {
-            this._rawValue.state = normalized;
-            this._updatedValues.state = normalized;
-            this.invalidate();
-        }
-    }
-    get seq(): number | null { return this._rawValue.seq; }
-    set seq(value: number | null) {
+    get seq(): number { return this._rawValue.seq; }
+    set seq(value: number) {
         let normalized = this.descriptor.codec.fields.seq.normalize(value);
         if (this._rawValue.seq !== normalized) {
             this._rawValue.seq = normalized;
@@ -6822,129 +6778,222 @@ export class ConferenceMediaStream extends Entity<ConferenceMediaStreamShape> {
             this.invalidate();
         }
     }
-    get offer(): string | null { return this._rawValue.offer; }
-    set offer(value: string | null) {
-        let normalized = this.descriptor.codec.fields.offer.normalize(value);
-        if (this._rawValue.offer !== normalized) {
-            this._rawValue.offer = normalized;
-            this._updatedValues.offer = normalized;
+    get state(): 'need-offer' | 'wait-offer' | 'need-answer' | 'wait-answer' | 'online' | 'completed' { return this._rawValue.state; }
+    set state(value: 'need-offer' | 'wait-offer' | 'need-answer' | 'wait-answer' | 'online' | 'completed') {
+        let normalized = this.descriptor.codec.fields.state.normalize(value);
+        if (this._rawValue.state !== normalized) {
+            this._rawValue.state = normalized;
+            this._updatedValues.state = normalized;
             this.invalidate();
         }
     }
-    get answer(): string | null { return this._rawValue.answer; }
-    set answer(value: string | null) {
-        let normalized = this.descriptor.codec.fields.answer.normalize(value);
-        if (this._rawValue.answer !== normalized) {
-            this._rawValue.answer = normalized;
-            this._updatedValues.answer = normalized;
+    get localStreams(): ({ type: 'audio', codec: 'default' | 'opus' } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' })[] { return this._rawValue.localStreams; }
+    set localStreams(value: ({ type: 'audio', codec: 'default' | 'opus' } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' })[]) {
+        let normalized = this.descriptor.codec.fields.localStreams.normalize(value);
+        if (this._rawValue.localStreams !== normalized) {
+            this._rawValue.localStreams = normalized;
+            this._updatedValues.localStreams = normalized;
             this.invalidate();
         }
     }
-    get ice1(): any { return this._rawValue.ice1; }
-    set ice1(value: any) {
-        let normalized = this.descriptor.codec.fields.ice1.normalize(value);
-        if (this._rawValue.ice1 !== normalized) {
-            this._rawValue.ice1 = normalized;
-            this._updatedValues.ice1 = normalized;
+    get remoteStreams(): ({ type: 'audio',  } | { type: 'video', source: 'default' | 'screen' })[] | null { return this._rawValue.remoteStreams; }
+    set remoteStreams(value: ({ type: 'audio',  } | { type: 'video', source: 'default' | 'screen' })[] | null) {
+        let normalized = this.descriptor.codec.fields.remoteStreams.normalize(value);
+        if (this._rawValue.remoteStreams !== normalized) {
+            this._rawValue.remoteStreams = normalized;
+            this._updatedValues.remoteStreams = normalized;
             this.invalidate();
         }
     }
-    get ice2(): any { return this._rawValue.ice2; }
-    set ice2(value: any) {
-        let normalized = this.descriptor.codec.fields.ice2.normalize(value);
-        if (this._rawValue.ice2 !== normalized) {
-            this._rawValue.ice2 = normalized;
-            this._updatedValues.ice2 = normalized;
+    get iceTransportPolicy(): 'all' | 'relay' { return this._rawValue.iceTransportPolicy; }
+    set iceTransportPolicy(value: 'all' | 'relay') {
+        let normalized = this.descriptor.codec.fields.iceTransportPolicy.normalize(value);
+        if (this._rawValue.iceTransportPolicy !== normalized) {
+            this._rawValue.iceTransportPolicy = normalized;
+            this._updatedValues.iceTransportPolicy = normalized;
             this.invalidate();
         }
     }
-    get settings1(): { videoIn: boolean, videoOut: boolean, videoOutSource: 'camera' | 'screen_share' | null, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null { return this._rawValue.settings1; }
-    set settings1(value: { videoIn: boolean, videoOut: boolean, videoOutSource: 'camera' | 'screen_share' | null, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null) {
-        let normalized = this.descriptor.codec.fields.settings1.normalize(value);
-        if (this._rawValue.settings1 !== normalized) {
-            this._rawValue.settings1 = normalized;
-            this._updatedValues.settings1 = normalized;
+    get localSdp(): string | null { return this._rawValue.localSdp; }
+    set localSdp(value: string | null) {
+        let normalized = this.descriptor.codec.fields.localSdp.normalize(value);
+        if (this._rawValue.localSdp !== normalized) {
+            this._rawValue.localSdp = normalized;
+            this._updatedValues.localSdp = normalized;
             this.invalidate();
         }
     }
-    get settings2(): { videoIn: boolean, videoOut: boolean, videoOutSource: 'camera' | 'screen_share' | null, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null { return this._rawValue.settings2; }
-    set settings2(value: { videoIn: boolean, videoOut: boolean, videoOutSource: 'camera' | 'screen_share' | null, audioIn: boolean, audioOut: boolean, iceTransportPolicy: 'all' | 'relay' | null } | null) {
-        let normalized = this.descriptor.codec.fields.settings2.normalize(value);
-        if (this._rawValue.settings2 !== normalized) {
-            this._rawValue.settings2 = normalized;
-            this._updatedValues.settings2 = normalized;
+    get remoteSdp(): string | null { return this._rawValue.remoteSdp; }
+    set remoteSdp(value: string | null) {
+        let normalized = this.descriptor.codec.fields.remoteSdp.normalize(value);
+        if (this._rawValue.remoteSdp !== normalized) {
+            this._rawValue.remoteSdp = normalized;
+            this._updatedValues.remoteSdp = normalized;
             this.invalidate();
         }
     }
-    get mediaState1(): { videoPaused: boolean | null, audioPaused: boolean | null, videoSource: 'camera' | 'screen_share' | null } | null { return this._rawValue.mediaState1; }
-    set mediaState1(value: { videoPaused: boolean | null, audioPaused: boolean | null, videoSource: 'camera' | 'screen_share' | null } | null) {
-        let normalized = this.descriptor.codec.fields.mediaState1.normalize(value);
-        if (this._rawValue.mediaState1 !== normalized) {
-            this._rawValue.mediaState1 = normalized;
-            this._updatedValues.mediaState1 = normalized;
+    get localCandidates(): (string)[] { return this._rawValue.localCandidates; }
+    set localCandidates(value: (string)[]) {
+        let normalized = this.descriptor.codec.fields.localCandidates.normalize(value);
+        if (this._rawValue.localCandidates !== normalized) {
+            this._rawValue.localCandidates = normalized;
+            this._updatedValues.localCandidates = normalized;
             this.invalidate();
         }
     }
-    get mediaState2(): { videoPaused: boolean | null, audioPaused: boolean | null, videoSource: 'camera' | 'screen_share' | null } | null { return this._rawValue.mediaState2; }
-    set mediaState2(value: { videoPaused: boolean | null, audioPaused: boolean | null, videoSource: 'camera' | 'screen_share' | null } | null) {
-        let normalized = this.descriptor.codec.fields.mediaState2.normalize(value);
-        if (this._rawValue.mediaState2 !== normalized) {
-            this._rawValue.mediaState2 = normalized;
-            this._updatedValues.mediaState2 = normalized;
+    get remoteCandidates(): (string)[] { return this._rawValue.remoteCandidates; }
+    set remoteCandidates(value: (string)[]) {
+        let normalized = this.descriptor.codec.fields.remoteCandidates.normalize(value);
+        if (this._rawValue.remoteCandidates !== normalized) {
+            this._rawValue.remoteCandidates = normalized;
+            this._updatedValues.remoteCandidates = normalized;
             this.invalidate();
         }
     }
 }
 
-export class ConferenceMediaStreamFactory extends EntityFactory<ConferenceMediaStreamShape, ConferenceMediaStream> {
+export class ConferenceEndStreamFactory extends EntityFactory<ConferenceEndStreamShape, ConferenceEndStream> {
 
     static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conferenceMediaStream');
+        let subspace = await storage.resolveEntityDirectory('conferenceEndStream');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceMediaStream', 'conference'), condition: (src) => src.state !== 'completed' });
+        secondaryIndexes.push({ name: 'peer', storageKey: 'peer', type: { type: 'range', fields: [{ name: 'pid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceEndStream', 'peer'), condition: (s) => s.state !== 'completed' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'id', type: 'integer' });
+        primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'cid', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'peer1', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'peer2', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
-        fields.push({ name: 'kind', type: { type: 'enum', values: ['direct', 'bridged'] }, secure: false });
-        fields.push({ name: 'state', type: { type: 'enum', values: ['wait-offer', 'wait-answer', 'online', 'completed'] }, secure: false });
-        fields.push({ name: 'seq', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
-        fields.push({ name: 'offer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'answer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'ice1', type: { type: 'json' }, secure: false });
-        fields.push({ name: 'ice2', type: { type: 'json' }, secure: false });
-        fields.push({ name: 'settings1', type: { type: 'optional', inner: { type: 'struct', fields: { videoIn: { type: 'boolean' }, videoOut: { type: 'boolean' }, videoOutSource: { type: 'optional', inner: { type: 'enum', values: ['camera', 'screen_share'] } }, audioIn: { type: 'boolean' }, audioOut: { type: 'boolean' }, iceTransportPolicy: { type: 'optional', inner: { type: 'enum', values: ['all', 'relay'] } } } } }, secure: false });
-        fields.push({ name: 'settings2', type: { type: 'optional', inner: { type: 'struct', fields: { videoIn: { type: 'boolean' }, videoOut: { type: 'boolean' }, videoOutSource: { type: 'optional', inner: { type: 'enum', values: ['camera', 'screen_share'] } }, audioIn: { type: 'boolean' }, audioOut: { type: 'boolean' }, iceTransportPolicy: { type: 'optional', inner: { type: 'enum', values: ['all', 'relay'] } } } } }, secure: false });
-        fields.push({ name: 'mediaState1', type: { type: 'optional', inner: { type: 'struct', fields: { videoPaused: { type: 'optional', inner: { type: 'boolean' } }, audioPaused: { type: 'optional', inner: { type: 'boolean' } }, videoSource: { type: 'optional', inner: { type: 'enum', values: ['camera', 'screen_share'] } } } } }, secure: false });
-        fields.push({ name: 'mediaState2', type: { type: 'optional', inner: { type: 'struct', fields: { videoPaused: { type: 'optional', inner: { type: 'boolean' } }, audioPaused: { type: 'optional', inner: { type: 'boolean' } }, videoSource: { type: 'optional', inner: { type: 'enum', values: ['camera', 'screen_share'] } } } } }, secure: false });
+        fields.push({ name: 'pid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'seq', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'state', type: { type: 'enum', values: ['need-offer', 'wait-offer', 'need-answer', 'wait-answer', 'online', 'completed'] }, secure: false });
+        fields.push({ name: 'localStreams', type: { type: 'array', inner: { type: 'union', types: { audio: { codec: { type: 'enum', values: ['default', 'opus'] } }, video: { codec: { type: 'enum', values: ['default', 'h264'] }, source: { type: 'enum', values: ['default', 'screen'] } } } } }, secure: false });
+        fields.push({ name: 'remoteStreams', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { audio: {  }, video: { source: { type: 'enum', values: ['default', 'screen'] } } } } } }, secure: false });
+        fields.push({ name: 'iceTransportPolicy', type: { type: 'enum', values: ['all', 'relay'] }, secure: false });
+        fields.push({ name: 'localSdp', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'remoteSdp', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'localCandidates', type: { type: 'array', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'remoteCandidates', type: { type: 'array', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
-            id: c.integer,
-            cid: c.integer,
-            peer1: c.integer,
-            peer2: c.optional(c.integer),
-            kind: c.enum('direct', 'bridged'),
-            state: c.enum('wait-offer', 'wait-answer', 'online', 'completed'),
-            seq: c.optional(c.integer),
-            offer: c.optional(c.string),
-            answer: c.optional(c.string),
-            ice1: c.any,
-            ice2: c.any,
-            settings1: c.optional(c.struct({ videoIn: c.boolean, videoOut: c.boolean, videoOutSource: c.optional(c.enum('camera', 'screen_share')), audioIn: c.boolean, audioOut: c.boolean, iceTransportPolicy: c.optional(c.enum('all', 'relay')) })),
-            settings2: c.optional(c.struct({ videoIn: c.boolean, videoOut: c.boolean, videoOutSource: c.optional(c.enum('camera', 'screen_share')), audioIn: c.boolean, audioOut: c.boolean, iceTransportPolicy: c.optional(c.enum('all', 'relay')) })),
-            mediaState1: c.optional(c.struct({ videoPaused: c.optional(c.boolean), audioPaused: c.optional(c.boolean), videoSource: c.optional(c.enum('camera', 'screen_share')) })),
-            mediaState2: c.optional(c.struct({ videoPaused: c.optional(c.boolean), audioPaused: c.optional(c.boolean), videoSource: c.optional(c.enum('camera', 'screen_share')) })),
+            id: c.string,
+            pid: c.integer,
+            seq: c.integer,
+            state: c.enum('need-offer', 'wait-offer', 'need-answer', 'wait-answer', 'online', 'completed'),
+            localStreams: c.array(c.union({ audio: c.struct({ codec: c.enum('default', 'opus') }), video: c.struct({ codec: c.enum('default', 'h264'), source: c.enum('default', 'screen') }) })),
+            remoteStreams: c.optional(c.array(c.union({ audio: c.struct({  }), video: c.struct({ source: c.enum('default', 'screen') }) }))),
+            iceTransportPolicy: c.enum('all', 'relay'),
+            localSdp: c.optional(c.string),
+            remoteSdp: c.optional(c.string),
+            localCandidates: c.array(c.string),
+            remoteCandidates: c.array(c.string),
         });
-        let descriptor: EntityDescriptor<ConferenceMediaStreamShape> = {
-            name: 'ConferenceMediaStream',
-            storageKey: 'conferenceMediaStream',
+        let descriptor: EntityDescriptor<ConferenceEndStreamShape> = {
+            name: 'ConferenceEndStream',
+            storageKey: 'conferenceEndStream',
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
-        return new ConferenceMediaStreamFactory(descriptor);
+        return new ConferenceEndStreamFactory(descriptor);
     }
 
-    private constructor(descriptor: EntityDescriptor<ConferenceMediaStreamShape>) {
+    private constructor(descriptor: EntityDescriptor<ConferenceEndStreamShape>) {
+        super(descriptor);
+    }
+
+    readonly peer = Object.freeze({
+        findAll: async (ctx: Context, pid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [pid])).items;
+        },
+        query: (ctx: Context, pid: number, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [pid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (pid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [pid], opts);
+        },
+        liveStream: (ctx: Context, pid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [pid], opts);
+        },
+    });
+
+    create(ctx: Context, id: string, src: ConferenceEndStreamCreateShape): Promise<ConferenceEndStream> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: ConferenceEndStreamCreateShape): ConferenceEndStream {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<ConferenceEndStream | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferenceEndStreamShape>): ConferenceEndStream {
+        return new ConferenceEndStream([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface ConferenceMeshPeerShape {
+    cid: number;
+    pid: number;
+    sources: { audioStream: boolean, videoStream: boolean, screenCastStream: boolean };
+    active: boolean;
+}
+
+export interface ConferenceMeshPeerCreateShape {
+    sources: { audioStream: boolean, videoStream: boolean, screenCastStream: boolean };
+    active: boolean;
+}
+
+export class ConferenceMeshPeer extends Entity<ConferenceMeshPeerShape> {
+    get cid(): number { return this._rawValue.cid; }
+    get pid(): number { return this._rawValue.pid; }
+    get sources(): { audioStream: boolean, videoStream: boolean, screenCastStream: boolean } { return this._rawValue.sources; }
+    set sources(value: { audioStream: boolean, videoStream: boolean, screenCastStream: boolean }) {
+        let normalized = this.descriptor.codec.fields.sources.normalize(value);
+        if (this._rawValue.sources !== normalized) {
+            this._rawValue.sources = normalized;
+            this._updatedValues.sources = normalized;
+            this.invalidate();
+        }
+    }
+    get active(): boolean { return this._rawValue.active; }
+    set active(value: boolean) {
+        let normalized = this.descriptor.codec.fields.active.normalize(value);
+        if (this._rawValue.active !== normalized) {
+            this._rawValue.active = normalized;
+            this._updatedValues.active = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class ConferenceMeshPeerFactory extends EntityFactory<ConferenceMeshPeerShape, ConferenceMeshPeer> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('conferenceMeshPeer');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceMeshPeer', 'conference'), condition: (src) => src.active });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'cid', type: 'integer' });
+        primaryKeys.push({ name: 'pid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'sources', type: { type: 'struct', fields: { audioStream: { type: 'boolean' }, videoStream: { type: 'boolean' }, screenCastStream: { type: 'boolean' } } }, secure: false });
+        fields.push({ name: 'active', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            cid: c.integer,
+            pid: c.integer,
+            sources: c.struct({ audioStream: c.boolean, videoStream: c.boolean, screenCastStream: c.boolean }),
+            active: c.boolean,
+        });
+        let descriptor: EntityDescriptor<ConferenceMeshPeerShape> = {
+            name: 'ConferenceMeshPeer',
+            storageKey: 'conferenceMeshPeer',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new ConferenceMeshPeerFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<ConferenceMeshPeerShape>) {
         super(descriptor);
     }
 
@@ -6963,24 +7012,212 @@ export class ConferenceMediaStreamFactory extends EntityFactory<ConferenceMediaS
         },
     });
 
-    create(ctx: Context, id: number, src: ConferenceMediaStreamCreateShape): Promise<ConferenceMediaStream> {
+    create(ctx: Context, cid: number, pid: number, src: ConferenceMeshPeerCreateShape): Promise<ConferenceMeshPeer> {
+        return this._create(ctx, [cid, pid], this.descriptor.codec.normalize({ cid, pid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, cid: number, pid: number, src: ConferenceMeshPeerCreateShape): ConferenceMeshPeer {
+        return this._create_UNSAFE(ctx, [cid, pid], this.descriptor.codec.normalize({ cid, pid, ...src }));
+    }
+
+    findById(ctx: Context, cid: number, pid: number): Promise<ConferenceMeshPeer | null> {
+        return this._findById(ctx, [cid, pid]);
+    }
+
+    watch(ctx: Context, cid: number, pid: number): Watch {
+        return this._watch(ctx, [cid, pid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferenceMeshPeerShape>): ConferenceMeshPeer {
+        return new ConferenceMeshPeer([value.cid, value.pid], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface ConferenceMeshLinkShape {
+    id: string;
+    cid: number;
+    kind: string;
+    leader: number;
+    pid1: number;
+    pid2: number;
+    esid1: string;
+    esid2: string;
+    state: 'wait-offer' | 'wait-answer' | 'online' | 'completed';
+}
+
+export interface ConferenceMeshLinkCreateShape {
+    cid: number;
+    kind: string;
+    leader: number;
+    pid1: number;
+    pid2: number;
+    esid1: string;
+    esid2: string;
+    state: 'wait-offer' | 'wait-answer' | 'online' | 'completed';
+}
+
+export class ConferenceMeshLink extends Entity<ConferenceMeshLinkShape> {
+    get id(): string { return this._rawValue.id; }
+    get cid(): number { return this._rawValue.cid; }
+    set cid(value: number) {
+        let normalized = this.descriptor.codec.fields.cid.normalize(value);
+        if (this._rawValue.cid !== normalized) {
+            this._rawValue.cid = normalized;
+            this._updatedValues.cid = normalized;
+            this.invalidate();
+        }
+    }
+    get kind(): string { return this._rawValue.kind; }
+    set kind(value: string) {
+        let normalized = this.descriptor.codec.fields.kind.normalize(value);
+        if (this._rawValue.kind !== normalized) {
+            this._rawValue.kind = normalized;
+            this._updatedValues.kind = normalized;
+            this.invalidate();
+        }
+    }
+    get leader(): number { return this._rawValue.leader; }
+    set leader(value: number) {
+        let normalized = this.descriptor.codec.fields.leader.normalize(value);
+        if (this._rawValue.leader !== normalized) {
+            this._rawValue.leader = normalized;
+            this._updatedValues.leader = normalized;
+            this.invalidate();
+        }
+    }
+    get pid1(): number { return this._rawValue.pid1; }
+    set pid1(value: number) {
+        let normalized = this.descriptor.codec.fields.pid1.normalize(value);
+        if (this._rawValue.pid1 !== normalized) {
+            this._rawValue.pid1 = normalized;
+            this._updatedValues.pid1 = normalized;
+            this.invalidate();
+        }
+    }
+    get pid2(): number { return this._rawValue.pid2; }
+    set pid2(value: number) {
+        let normalized = this.descriptor.codec.fields.pid2.normalize(value);
+        if (this._rawValue.pid2 !== normalized) {
+            this._rawValue.pid2 = normalized;
+            this._updatedValues.pid2 = normalized;
+            this.invalidate();
+        }
+    }
+    get esid1(): string { return this._rawValue.esid1; }
+    set esid1(value: string) {
+        let normalized = this.descriptor.codec.fields.esid1.normalize(value);
+        if (this._rawValue.esid1 !== normalized) {
+            this._rawValue.esid1 = normalized;
+            this._updatedValues.esid1 = normalized;
+            this.invalidate();
+        }
+    }
+    get esid2(): string { return this._rawValue.esid2; }
+    set esid2(value: string) {
+        let normalized = this.descriptor.codec.fields.esid2.normalize(value);
+        if (this._rawValue.esid2 !== normalized) {
+            this._rawValue.esid2 = normalized;
+            this._updatedValues.esid2 = normalized;
+            this.invalidate();
+        }
+    }
+    get state(): 'wait-offer' | 'wait-answer' | 'online' | 'completed' { return this._rawValue.state; }
+    set state(value: 'wait-offer' | 'wait-answer' | 'online' | 'completed') {
+        let normalized = this.descriptor.codec.fields.state.normalize(value);
+        if (this._rawValue.state !== normalized) {
+            this._rawValue.state = normalized;
+            this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class ConferenceMeshLinkFactory extends EntityFactory<ConferenceMeshLinkShape, ConferenceMeshLink> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('conferenceMeshLink');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceMeshLink', 'conference'), condition: (src) => src.state !== 'completed' });
+        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'unique', fields: [{ name: 'cid', type: 'integer' }, { name: 'pid1', type: 'integer' }, { name: 'pid2', type: 'integer' }, { name: 'kind', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceMeshLink', 'active'), condition: (src) => src.state !== 'completed' });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'cid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'kind', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'leader', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'pid1', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'pid2', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'esid1', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'esid2', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'state', type: { type: 'enum', values: ['wait-offer', 'wait-answer', 'online', 'completed'] }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            cid: c.integer,
+            kind: c.string,
+            leader: c.integer,
+            pid1: c.integer,
+            pid2: c.integer,
+            esid1: c.string,
+            esid2: c.string,
+            state: c.enum('wait-offer', 'wait-answer', 'online', 'completed'),
+        });
+        let descriptor: EntityDescriptor<ConferenceMeshLinkShape> = {
+            name: 'ConferenceMeshLink',
+            storageKey: 'conferenceMeshLink',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new ConferenceMeshLinkFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<ConferenceMeshLinkShape>) {
+        super(descriptor);
+    }
+
+    readonly conference = Object.freeze({
+        findAll: async (ctx: Context, cid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [cid])).items;
+        },
+        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (cid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [cid], opts);
+        },
+        liveStream: (ctx: Context, cid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [cid], opts);
+        },
+    });
+
+    readonly active = Object.freeze({
+        find: async (ctx: Context, cid: number, pid1: number, pid2: number, kind: string) => {
+            return this._findFromUniqueIndex(ctx, [cid, pid1, pid2, kind], this.descriptor.secondaryIndexes[1]);
+        },
+        findAll: async (ctx: Context, cid: number, pid1: number, pid2: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [cid, pid1, pid2])).items;
+        },
+        query: (ctx: Context, cid: number, pid1: number, pid2: number, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [cid, pid1, pid2], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    create(ctx: Context, id: string, src: ConferenceMeshLinkCreateShape): Promise<ConferenceMeshLink> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    create_UNSAFE(ctx: Context, id: number, src: ConferenceMediaStreamCreateShape): ConferenceMediaStream {
+    create_UNSAFE(ctx: Context, id: string, src: ConferenceMeshLinkCreateShape): ConferenceMeshLink {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<ConferenceMediaStream | null> {
+    findById(ctx: Context, id: string): Promise<ConferenceMeshLink | null> {
         return this._findById(ctx, [id]);
     }
 
-    watch(ctx: Context, id: number): Watch {
+    watch(ctx: Context, id: string): Watch {
         return this._watch(ctx, [id]);
     }
 
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferenceMediaStreamShape>): ConferenceMediaStream {
-        return new ConferenceMediaStream([value.id], value, this.descriptor, this._flush, ctx);
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferenceMeshLinkShape>): ConferenceMeshLink {
+        return new ConferenceMeshLink([value.id], value, this.descriptor, this._flush, ctx);
     }
 }
 
@@ -18763,7 +19000,9 @@ export interface Store extends BaseStore {
     readonly CommentEventGlobal: CommentEventGlobalFactory;
     readonly ConferenceRoom: ConferenceRoomFactory;
     readonly ConferencePeer: ConferencePeerFactory;
-    readonly ConferenceMediaStream: ConferenceMediaStreamFactory;
+    readonly ConferenceEndStream: ConferenceEndStreamFactory;
+    readonly ConferenceMeshPeer: ConferenceMeshPeerFactory;
+    readonly ConferenceMeshLink: ConferenceMeshLinkFactory;
     readonly UserEdge: UserEdgeFactory;
     readonly UserGroupEdge: UserGroupEdgeFactory;
     readonly UserInfluencerUserIndex: UserInfluencerUserIndexFactory;
@@ -18972,7 +19211,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let CommentEventGlobalPromise = CommentEventGlobalFactory.open(storage);
     let ConferenceRoomPromise = ConferenceRoomFactory.open(storage);
     let ConferencePeerPromise = ConferencePeerFactory.open(storage);
-    let ConferenceMediaStreamPromise = ConferenceMediaStreamFactory.open(storage);
+    let ConferenceEndStreamPromise = ConferenceEndStreamFactory.open(storage);
+    let ConferenceMeshPeerPromise = ConferenceMeshPeerFactory.open(storage);
+    let ConferenceMeshLinkPromise = ConferenceMeshLinkFactory.open(storage);
     let UserEdgePromise = UserEdgeFactory.open(storage);
     let UserGroupEdgePromise = UserGroupEdgeFactory.open(storage);
     let UserInfluencerUserIndexPromise = UserInfluencerUserIndexFactory.open(storage);
@@ -19152,7 +19393,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         CommentEventGlobal: await CommentEventGlobalPromise,
         ConferenceRoom: await ConferenceRoomPromise,
         ConferencePeer: await ConferencePeerPromise,
-        ConferenceMediaStream: await ConferenceMediaStreamPromise,
+        ConferenceEndStream: await ConferenceEndStreamPromise,
+        ConferenceMeshPeer: await ConferenceMeshPeerPromise,
+        ConferenceMeshLink: await ConferenceMeshLinkPromise,
         UserEdge: await UserEdgePromise,
         UserGroupEdge: await UserGroupEdgePromise,
         UserInfluencerUserIndex: await UserInfluencerUserIndexPromise,

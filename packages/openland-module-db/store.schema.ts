@@ -869,51 +869,81 @@ export default declareSchema(() => {
         rangeIndex('active', ['keepAliveTimeout']).withCondition((src) => src.enabled);
     });
 
-    const ConferenceMediaStreamSettings = struct({
-        videoIn: boolean(),
-        videoOut: boolean(),
-        videoOutSource: optional(enumString('camera', 'screen_share')),
-        audioIn: boolean(),
-        audioOut: boolean(),
-        iceTransportPolicy: optional(enumString('all', 'relay'))
+    //
+    // Media End Stream
+    //
+
+    const localSources = struct({
+        audioStream: boolean(),
+        videoStream: boolean(),
+        screenCastStream: boolean()
     });
 
-    const ConferenceMediaStreamMediaState = struct({
-        videoPaused: optional(boolean()),
-        audioPaused: optional(boolean()),
-        videoSource: optional(enumString('camera', 'screen_share'))
+    const localStream = union({
+        audio: struct({
+            codec: enumString('default', 'opus')
+        }),
+        video: struct({
+            codec: enumString('default', 'h264'),
+            source: enumString('default', 'screen')
+        })
     });
 
-    entity('ConferenceMediaStream', () => {
-        primaryKey('id', integer());
+    const remoteStream = union({
+        audio: struct({}),
+        video: struct({
+            source: enumString('default', 'screen')
+        })
+    });
+
+    entity('ConferenceEndStream', () => {
+        primaryKey('id', string());
+        field('pid', integer());
+
+        field('seq', integer());
+        field('state', enumString('need-offer', 'wait-offer', 'need-answer', 'wait-answer', 'online', 'completed'));
+
+        // Streams
+        field('localStreams', array(localStream));
+        field('remoteStreams', optional(array(remoteStream)));
+
+        // Offer/Answer
+        field('iceTransportPolicy', enumString('all', 'relay'));
+        field('localSdp', optional(string()));
+        field('remoteSdp', optional(string()));
+
+        // Candidates
+        field('localCandidates', array(string()));
+        field('remoteCandidates', array(string()));
+
+        rangeIndex('peer', ['pid', 'id']).withCondition((s) => s.state !== 'completed');
+    });
+
+    //
+    // Mesh Scheduler
+    //
+
+    entity('ConferenceMeshPeer', () => {
+        primaryKey('cid', integer());
+        primaryKey('pid', integer());
+        field('sources', localSources);
+        field('active', boolean());
+        rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.active);
+    });
+
+    entity('ConferenceMeshLink', () => {
+        primaryKey('id', string());
         field('cid', integer());
-        field('peer1', integer());
-        field('peer2', optional(integer()));
-        field('kind', enumString('direct', 'bridged'));
+        field('kind', string());
+        field('leader', integer());
+        field('pid1', integer());
+        field('pid2', integer());
+        field('esid1', string());
+        field('esid2', string());
         field('state', enumString('wait-offer', 'wait-answer', 'online', 'completed'));
-        field('seq', optional(integer()));
-        field('offer', optional(string()));
-        field('answer', optional(string()));
-        field('ice1', json());
-        field('ice2', json());
-        field('settings1', optional(ConferenceMediaStreamSettings));
-        field('settings2', optional(ConferenceMediaStreamSettings));
-        field('mediaState1', optional(ConferenceMediaStreamMediaState));
-        field('mediaState2', optional(ConferenceMediaStreamMediaState));
         rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.state !== 'completed');
+        uniqueIndex('active', ['cid', 'pid1', 'pid2', 'kind']).withCondition((src) => src.state !== 'completed');
     });
-
-    // entity('ConferenceConnection', () => {
-    //     primaryKey('peer1', integer());
-    //     primaryKey('peer2', integer());
-    //     field('cid', integer());
-    //     field('state', enumString('wait-offer', 'wait-answer', 'online', 'completed'));
-    //     field('offer', optional(string()));
-    //     field('answer', optional(string()));
-    //     field('ice1', json());
-    //     field('ice2', json());
-    //     rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.state !== 'completed');
-    // });
 
     //
     // Experience

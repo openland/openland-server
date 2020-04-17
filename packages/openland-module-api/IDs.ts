@@ -50,7 +50,7 @@ export const IDs = {
     ConferenceParticipant: IdsFactory.createId('ConferenceParticipant'),
     ConferencePeer: IdsFactory.createId('ConferencePeer'),
     FeedItem: IdsFactory.createId('FeedItem'),
-    MediaStream: IdsFactory.createId('MediaStream'),
+    MediaStream: IdsFactory.createStringId('MediaStream'),
     MessageAttachment: IdsFactory.createStringId('MessageAttachment'),
     Comment: IdsFactory.createId('Comment'),
     RichMessage: IdsFactory.createId('RichMessage'),

@@ -53,60 +53,48 @@ export const Resolver: GQLResolver = {
         id: (src) => IDs.ConferenceMedia.serialize(src.id),
         iceServers: resolveIce,
         streams: async (src, args: {}, ctx: AppContext) => {
-            // let outgoing = await FDB.ConferencePeer.findFromAuth(ctx, src.id, ctx.auth.uid!, ctx.auth.tid!);
-
-            let connections = await Store.ConferenceMediaStream.conference.findAll(ctx, src.id);
-            let res = [];
-            for (let c of connections) {
-                if (c.peer1 === src.peerId || c.peer2 === src.peerId) {
-                    let id = c.id;
-                    let state: 'READY' | 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' = 'READY';
-                    let seq = c.seq || 0;
-                    let sdp: string | null = null;
-                    let isPrimary = src.peerId === c.peer1;
-                    let ice: string[] = isPrimary ? c.ice2 : c.ice1;
-                    if (c.state === 'wait-offer') {
-                        if (isPrimary) {
-                            state = 'NEED_OFFER';
-                        } else {
-                            state = 'WAIT_OFFER';
-                        }
-                    } else if (c.state === 'wait-answer') {
-                        if (isPrimary) {
-                            state = 'WAIT_ANSWER';
-                        } else {
-                            state = 'NEED_ANSWER';
-                            sdp = c.offer;
-                        }
-                    } else if (c.state === 'online') {
-                        if (isPrimary) {
-                            sdp = c.answer;
-                        } else {
-                            sdp = c.offer;
-                        }
-                    } else if (c.state === 'completed') {
-                        continue;
-                    } else {
-                        throw Error('Unkown state: ' + c.state);
-                    }
-                    let peerMediaState = src.peerId === c.peer1 ? c.mediaState2! : c.mediaState1!;
-                    // remove later, when deperecated fields removed from api
-                    let mediaState = { ...peerMediaState, audioOut: peerMediaState.audioPaused === null || !peerMediaState.audioPaused, videoOut: !peerMediaState.videoPaused };
-                    res.push({
-                        id: IDs.MediaStream.serialize(id),
-                        peerId: src.peerId === c.peer1 ? (c.peer2 !== null ? IDs.ConferencePeer.serialize(c.peer2) : null) : IDs.ConferencePeer.serialize(c.peer1),
-                        state,
-                        seq,
-                        sdp,
-                        ice,
-                        settings: src.peerId === c.peer1 ? c.settings1! : c.settings2!,
-                        mediaState
-                    });
-                }
-            }
-            return res;
+            return await Store.ConferenceEndStream.peer.findAll(ctx, src.peerId);
         },
-
+    },
+    MediaStream: {
+        id: (src) => IDs.MediaStream.serialize(src.id),
+        state: (src) => {
+            if (src.state === 'wait-offer') {
+                return 'WAIT_OFFER';
+            } else if (src.state === 'need-offer') {
+                return 'NEED_OFFER';
+            } else if (src.state === 'wait-answer') {
+                return 'WAIT_ANSWER';
+            } else if (src.state === 'need-answer') {
+                return 'NEED_ANSWER';
+            } else if (src.state === 'online') {
+                return 'READY';
+            } else {
+                throw Error('Unknown state');
+            }
+        },
+        seq: (src) => src.seq,
+        sdp: (src) => src.remoteSdp,
+        ice: (src) => src.remoteCandidates,
+        peerId: (src) => null,
+        settings: (src) => {
+            return {
+                audioOut: true,
+                audioIn: true,
+                videoIn: false,
+                videoOut: false,
+                videoOutSource: 'camera'
+            };
+        },
+        mediaState: (src) => {
+            return {
+                videoPaused: false,
+                audioPaused: false,
+                videoSource: 'camera',
+                audioOut: true,
+                videoOut: false
+            };
+        }
     },
     Query: {
         conference: withUser(async (ctx, args, uid) => {
@@ -156,6 +144,10 @@ export const Resolver: GQLResolver = {
         conferenceLeave: withUser(async (ctx, args, uid) => {
             let coid = IDs.Conference.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
+            let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
+            if (peer.uid !== uid) {
+                throw Error('Invalid user id');
+            }
 
             let chat = await Store.Conversation.findById(ctx, coid);
             if (chat && chat.kind === 'private') {
@@ -169,48 +161,12 @@ export const Resolver: GQLResolver = {
         conferenceKeepAlive: withUser(async (ctx, args, uid) => {
             let coid = IDs.Conference.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
+            let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
+            if (peer.uid !== uid) {
+                throw Error('Invalid user id');
+            }
             await Modules.Calls.repo.peerKeepAlive(ctx, coid, pid, 15000);
             return Modules.Calls.repo.getOrCreateConference(ctx, coid);
-        }),
-
-        mediaStreamOffer: withUser(async (ctx, args, uid) => {
-            let mid = IDs.MediaStream.parse(args.id);
-            let pid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.streamOffer(ctx, mid, pid, args.offer, args.seq === null ? undefined : args.seq);
-            let cid = (await Store.ConferenceMediaStream.findById(ctx, mid))!.cid;
-            return { id: cid, peerId: pid };
-        }),
-
-        mediaStreamNegotiationNeeded: withUser(async (ctx, args, uid) => {
-            let mid = IDs.MediaStream.parse(args.id);
-            let pid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.streamNegotiationNeeded(ctx, mid, pid, args.seq === null ? undefined : args.seq);
-            let cid = (await Store.ConferenceMediaStream.findById(ctx, mid))!.cid;
-            return { id: cid, peerId: pid };
-        }),
-
-        mediaStreamFailed: withUser(async (ctx, args, uid) => {
-            let mid = IDs.MediaStream.parse(args.id);
-            let pid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.streamFailed(ctx, mid, pid);
-            let cid = (await Store.ConferenceMediaStream.findById(ctx, mid))!.cid;
-            return { id: cid, peerId: pid };
-        }),
-
-        mediaStreamAnswer: withUser(async (ctx, args, uid) => {
-            let mid = IDs.MediaStream.parse(args.id);
-            let pid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.streamAnswer(ctx, mid, pid, args.answer, args.seq === null ? undefined : args.seq);
-            let cid = (await Store.ConferenceMediaStream.findById(ctx, mid))!.cid;
-            return { id: cid, peerId: pid };
-        }),
-
-        mediaStreamCandidate: withUser(async (ctx, args, uid) => {
-            let mid = IDs.MediaStream.parse(args.id);
-            let pid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.streamCandidate(ctx, mid, pid, args.candidate);
-            let cid = (await Store.ConferenceMediaStream.findById(ctx, mid))!.cid;
-            return { id: cid, peerId: pid };
         }),
         conferenceAlterSettings: withUser(async (parent, args) => {
             return await inTx(parent, async (ctx) => {
@@ -229,6 +185,71 @@ export const Resolver: GQLResolver = {
                 }
                 return conf;
             });
+        }),
+
+        mediaStreamOffer: withUser(async (ctx, args, uid) => {
+
+            // Resolve
+            let id = IDs.MediaStream.parse(args.id);
+            let pid = IDs.ConferencePeer.parse(args.peerId);
+            let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
+            if (peer.uid !== uid) {
+                throw Error('Invalid user id');
+            }
+
+            // Update
+            await Modules.Calls.repo.streamOffer(ctx, id, pid, args.offer, args.seq === null ? undefined : args.seq);
+
+            // Result
+            return { id: peer.cid, peerId: peer.id };
+        }),
+
+        mediaStreamAnswer: withUser(async (ctx, args, uid) => {
+
+            console.warn('stream answer');
+
+            // Resolve
+            let id = IDs.MediaStream.parse(args.id);
+            let pid = IDs.ConferencePeer.parse(args.peerId);
+            let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
+            if (peer.uid !== uid) {
+                throw Error('Invalid user id');
+            }
+
+            // Update
+            await Modules.Calls.repo.streamAnswer(ctx, id, pid, args.answer, args.seq === null ? undefined : args.seq);
+
+            // Result
+            return { id: peer.cid, peerId: peer.id };
+        }),
+
+        mediaStreamCandidate: withUser(async (ctx, args, uid) => {
+
+            // Resolve
+            let id = IDs.MediaStream.parse(args.id);
+            let pid = IDs.ConferencePeer.parse(args.peerId);
+            let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
+            if (peer.uid !== uid) {
+                throw Error('Invalid user id');
+            }
+
+            // Update
+            await Modules.Calls.repo.streamCandidate(ctx, id, pid, args.candidate);
+
+            // Result
+            return { id: peer.cid, peerId: peer.id };
+        }),
+
+        mediaStreamNegotiationNeeded: withUser(async (ctx, args, uid) => {
+            let pid = IDs.ConferencePeer.parse(args.peerId);
+            let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
+            return { id: peer.cid, peerId: peer.id };
+        }),
+
+        mediaStreamFailed: withUser(async (ctx, args, uid) => {
+            let pid = IDs.ConferencePeer.parse(args.peerId);
+            let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
+            return { id: peer.cid, peerId: peer.id };
         }),
     },
     Subscription: {
