@@ -1469,7 +1469,6 @@ export const Resolver: GQLResolver = {
 
         debugCalcEntitiesCount: withPermission('super-admin', async (ctx, args) => {
             let uid = ctx.auth.uid!;
-
             let entity = (Store as any)[args.entity];
             if (!(entity instanceof EntityFactory)) {
                 throw new AccessDeniedError();

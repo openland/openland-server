@@ -1,23 +1,53 @@
 import { EntityFactory } from '@openland/foundationdb-entity';
 import { createNamedContext } from '@openland/context';
-import { inTx } from '@openland/foundationdb';
+import { encoders, getTransaction, inTx } from '@openland/foundationdb';
 
-const ctx = createNamedContext('entities-count');
-const BATCH_SIZE = 20000;
+const rootCtx = createNamedContext('entities-count');
 
 export async function findEntitiesCount(entity: EntityFactory<any, any>) {
-    let after: undefined|any[] = undefined;
-    let res = 0;
-
-    while (true) {
-        let data: { key: any, value: any; }[] = await inTx(ctx, async () =>
-            await entity.descriptor.subspace.snapshotRange(ctx, [], { limit: BATCH_SIZE, after })
-        );
-        if (data.length === 0) {
-           return res;
-        }
-
-        res += data.length;
-        after = data[data.length - 1].key;
+    let records = await inTx(rootCtx, async ctx => await entity.descriptor.subspace.snapshotRange(ctx, [], { limit: 1 }));
+    if (records.length === 0) {
+        return 0;
     }
+    let firstKey = records[0].key;
+    let min = 0;
+    let max = 10 ** 9;
+    let lastGood = 0;
+
+    while (min <= max) {
+        let avg = Math.floor((min + max) / 2);
+        let exists = !!(await getKey(entity, firstKey, avg));
+        if (exists) {
+            lastGood = avg;
+            min = avg + 1;
+        } else {
+            max = avg - 1;
+        }
+    }
+
+    return lastGood;
+}
+
+async function getKey(entity: EntityFactory<any, any>, key: any[], offset: number = 0) {
+    let db = entity.descriptor.subspace.db;
+    let prefix = entity.descriptor.subspace.prefix;
+    let id = encoders.tuple.pack(key);
+
+    return await inTx(rootCtx, async (ctx) => {
+        let tx = getTransaction(ctx)!.rawTransaction(db);
+        let _key = Buffer.concat([prefix, id]);
+        let res = await tx.getKey({ key: _key, offset, _isKeySelector: true, orEqual: true});
+        if (res) {
+            // System key
+            if (res.length === 1 && res[0] === 0xff) {
+                return null;
+            }
+            // Wrong prefix
+            if (res.indexOf(prefix) !== 0) {
+                return null;
+            }
+            return encoders.tuple.unpack(res);
+        }
+        return null;
+    });
 }
