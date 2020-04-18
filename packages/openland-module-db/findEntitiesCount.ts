@@ -3,7 +3,7 @@ import { createNamedContext } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
 
 const ctx = createNamedContext('entities-count');
-const BATCH_SIZE = 1024;
+const BATCH_SIZE = 20000;
 
 export async function findEntitiesCount(entity: EntityFactory<any, any>) {
     let after: undefined|any[] = undefined;
