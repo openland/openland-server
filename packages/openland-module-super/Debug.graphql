@@ -181,6 +181,9 @@ extend type Mutation {
     debugFixBrokenDonations: Boolean!
     debugCreateTransfer(fromUid: ID!, toUid: ID!, amount: Int!): String!
     debugSetCommission(cid: ID!, percents: Int!): Boolean!
+
+    debugCalcEntitiesCount(entity: String!): Boolean!
+    debugCalcEntitiesCountAll: Boolean!
 }
 
 extend type Subscription {

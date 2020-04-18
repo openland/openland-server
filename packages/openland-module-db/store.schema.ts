@@ -380,7 +380,8 @@ export default declareSchema(() => {
         field('attachmentsModern', optional(array(union({
             file_attachment: struct({
                 id: string(), fileId: string(), filePreview: optional(string()), fileMetadata: optional(FileInfo),
-            }), rich_attachment: struct({
+            }),
+            rich_attachment: struct({
                 id: string(),
                 title: optional(string()),
                 subTitle: optional(string()),
