@@ -275,10 +275,16 @@ export const Resolver: GQLResolver = {
             return { id: peer.cid, peerId: peer.id };
         }),
 
-        mediaStreamNegotiationNeeded: withUser(async (ctx, args, uid) => {
-            let pid = IDs.ConferencePeer.parse(args.peerId);
-            let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
-            return { id: peer.cid, peerId: peer.id };
+        mediaStreamNegotiationNeeded: withUser(async (parent, args, uid) => {
+            return await inTx(parent, async (ctx) => {
+                let pid = IDs.ConferencePeer.parse(args.peerId);
+                let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
+                // elder client mb turned video on
+                if (peer.videoPaused === null) {
+                    await Modules.Calls.repo.alterConferencePeerMediaState(ctx, peer.cid, uid, parent.auth.tid!, null, false);
+                }
+                return { id: peer.cid, peerId: peer.id };
+            });
         }),
 
         mediaStreamFailed: withUser(async (ctx, args, uid) => {
