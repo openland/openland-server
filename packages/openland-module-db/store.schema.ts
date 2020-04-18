@@ -946,6 +946,91 @@ export default declareSchema(() => {
     });
 
     //
+    // Kitchen Scheduler
+    //
+
+    entity('ConferenceKitchenRouter', () => {
+        primaryKey('id', string());
+        field('cid', integer());
+        field('deleted', boolean());
+        uniqueIndex('conference', ['cid']).withCondition((s) => !s.deleted);
+    });
+
+    entity('ConferenceKitchenPeer', () => {
+        primaryKey('cid', integer());
+        primaryKey('pid', integer());
+        field('sources', localSources);
+        field('active', boolean());
+        field('producersTransport', string());
+        field('consumersTransport', string());
+        rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.active);
+    });
+
+    entity('ConferenceKitchenTransportState', () => {
+        primaryKey('id', string());
+        field('pid', integer());
+        field('state', enumString('perpare', 'ready', 'closed'));
+        field('producers', array(string()));
+        field('consumers', array(string()));
+    });
+
+    //
+    // Media Kitchen graph
+    //
+
+    entity('KitchenWorker', () => {
+        primaryKey('id', string());
+        field('deleted', boolean());
+        rangeIndex('active', ['id']).withCondition((s) => !s.deleted);
+    });
+
+    entity('KitchenRouter', () => {
+        primaryKey('id', string());
+        field('state', enumString('creating', 'created', 'deleting', 'deleted'));
+        field('workerId', optional(string()));
+
+        rangeIndex('workerActive', ['workerId', 'id'])
+            .withCondition((s) => !!s.workerId && s.state !== 'deleted');
+    });
+
+    entity('KitchenTransport', () => {
+        primaryKey('id', string());
+        field('routerId', string());
+        field('state', enumString('creating', 'created', 'connecting', 'connected', 'deleting', 'deleted'));
+
+        // Server Parameters
+        field('serverParameters', optional(struct({
+            fingerprints: array(struct({
+                algorithm: string(),
+                value: string()
+            })),
+            iceParameters: struct({
+                usernameFragment: string(),
+                password: string()
+            }),
+            iceCandidates: array(struct({
+                type: string(),
+                foundation: string(),
+                priority: integer(),
+                ip: string(),
+                protocol: enumString('tcp', 'udp'),
+                port: integer(),
+            }))
+        })));
+
+        // Client Parameters
+        field('clientParameters', optional(struct({
+            fingerprints: array(struct({
+                algorithm: string(),
+                value: string()
+            }))
+        })));
+
+        rangeIndex('routerActive', ['routerId', 'id'])
+            .withCondition((s) => s.state !== 'deleted');
+    });
+
+    //
     // Experience
     //
 

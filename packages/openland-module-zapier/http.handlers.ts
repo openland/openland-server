@@ -29,7 +29,7 @@ export function initZapier(app: Express) {
 async function initZapierInternal(app: Express) {
     let config = await Modules.Zapier.getConfig(rootCtx);
     while (!config) {
-        log.log(rootCtx, 'config is not set');
+        // log.log(rootCtx, 'config is not set');
         await delay(5000);
         config = await Modules.Zapier.getConfig(rootCtx);
     }

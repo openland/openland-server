@@ -49,7 +49,7 @@ export function startPaymentScheduler(mediator: PaymentMediator) {
     singletonWorker({ db: Store.storage.db, name: 'payment-scheduler', delay: 1000 }, async (parent) => {
         let pending = await Store.Payment.pending.findAll(parent); // TODO: Optimize
 
-        log.debug(parent, 'Payments: ' + pending.length);
+        // log.debug(parent, 'Payments: ' + pending.length);
 
         for (let p of pending) {
             await inTx(parent, async (ctx) => {
