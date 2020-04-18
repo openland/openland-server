@@ -1474,8 +1474,12 @@ export const Resolver: GQLResolver = {
                 throw new AccessDeniedError();
             }
             asyncRun(async () => {
-                let res = await findEntitiesCount(entity);
-                await sendSuperNotification(rootCtx, uid, `${args.entity} count: ${res}`);
+                try {
+                    let res = await findEntitiesCount(entity);
+                    await sendSuperNotification(rootCtx, uid, `${args.entity} count: ${res}`);
+                } catch (e) {
+                    await sendSuperNotification(rootCtx, uid, `Error: ${e}`);
+                }
             });
 
             return true;
