@@ -1,6 +1,6 @@
 import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
-import { MediaKitchenService } from './../services/MediaKitchenService';
+import { MediaKitchenService } from '../kitchen/MediaKitchenService';
 import { MediaKitchenRepository } from './../repositories/MediaKitchenRepository';
 
 export function declareTransportCreateWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
@@ -14,6 +14,9 @@ export function declareTransportCreateWorker(service: MediaKitchenService, repo:
             let router = await Store.KitchenRouter.findById(ctx, ts.routerId);
             if (!router) {
                 throw Error('Unable to find router');
+            }
+            if (ts.state !== 'creating') {
+                return { router, ts };
             }
             if (!router.workerId) {
                 throw Error('Unable to find worker');

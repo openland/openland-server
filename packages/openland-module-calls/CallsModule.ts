@@ -1,5 +1,5 @@
 import { MediaKitchenRepository } from './repositories/MediaKitchenRepository';
-import { MediaKitchenService } from './services/MediaKitchenService';
+import { MediaKitchenService } from './kitchen/MediaKitchenService';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { CallRepository } from './repositories/CallRepository';
@@ -13,6 +13,8 @@ import { declareRouterDeleteWorker } from './worker/declareRouterDeleteWorker';
 import { declareTransportCreateWorker } from './worker/declareTransportCreateWorker';
 import { declareTransportConnectWorker } from './worker/declareTransportConnectWorker';
 import { declareTransportDeleteWorker } from './worker/declareTransportDeleteWorker';
+import { declareProducerCreateWorker } from './worker/declareProducerCreateWorker';
+import { declareProducerDeleteWorker } from './worker/declareProducerDeleteWorker';
 
 @injectable()
 export class CallsModule {
@@ -39,6 +41,8 @@ export class CallsModule {
             declareTransportCreateWorker(this.mediaKitchen, this.mediaKitchenRepo);
             declareTransportConnectWorker(this.mediaKitchen, this.mediaKitchenRepo);
             declareTransportDeleteWorker(this.mediaKitchen, this.mediaKitchenRepo);
+            declareProducerCreateWorker(this.mediaKitchen, this.mediaKitchenRepo);
+            declareProducerDeleteWorker(this.mediaKitchen, this.mediaKitchenRepo);
         }
     }
 }

@@ -118,9 +118,27 @@ export class CallSchedulerKitchen implements CallScheduler {
         // Create Peer
         await Store.ConferenceKitchenPeer.create(ctx, cid, pid, {
             sources: sources,
-            producersTransport,
-            consumersTransport,
+            producersGenericTransport: producersTransport,
+            producersScreencastTransport: null,
+            consumersTransport: consumersTransport,
             active: true
+        });
+
+        // Create Producer
+        await this.repo.createProducer(ctx, producersTransport, {
+            kind: 'audio',
+            rtpParameters: {
+                mid: '101',
+                codecs: [{
+                    mimeType: 'audio/opus',
+                    payloadType: 101,
+                    clockRate: 48000,
+                    channels: 2,
+                    rtcpFeedback: [{
+                        type: 'transport-cc'
+                    }]
+                }]
+            }
         });
     }
 
@@ -137,8 +155,15 @@ export class CallSchedulerKitchen implements CallScheduler {
         await peer.flush(ctx);
 
         // Remove transports
-        await this.repo.deleteTransport(ctx, peer.consumersTransport);
-        await this.repo.deleteTransport(ctx, peer.producersTransport);
+        if (peer.consumersTransport) {
+            await this.repo.deleteTransport(ctx, peer.consumersTransport);
+        }
+        if (peer.producersGenericTransport) {
+            await this.repo.deleteTransport(ctx, peer.producersGenericTransport);
+        }
+        if (peer.producersScreencastTransport) {
+            await this.repo.deleteTransport(ctx, peer.producersScreencastTransport);
+        }
     }
 
     //

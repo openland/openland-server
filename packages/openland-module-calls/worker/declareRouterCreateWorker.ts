@@ -1,4 +1,4 @@
-import { MediaKitchenService } from './../services/MediaKitchenService';
+import { MediaKitchenService } from '../kitchen/MediaKitchenService';
 import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { MediaKitchenRepository } from '../repositories/MediaKitchenRepository';

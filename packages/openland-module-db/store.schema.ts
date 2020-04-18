@@ -961,8 +961,9 @@ export default declareSchema(() => {
         primaryKey('pid', integer());
         field('sources', localSources);
         field('active', boolean());
-        field('producersTransport', string());
-        field('consumersTransport', string());
+        field('producersGenericTransport', optional(string()));
+        field('producersScreencastTransport', optional(string()));
+        field('consumersTransport', optional(string()));
         rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.active);
     });
 
@@ -1027,6 +1028,78 @@ export default declareSchema(() => {
         })));
 
         rangeIndex('routerActive', ['routerId', 'id'])
+            .withCondition((s) => s.state !== 'deleted');
+    });
+
+    const rtpParameters = struct({
+        codecs: array(struct({
+            mimeType: string(),
+            payloadType: integer(),
+            clockRate: integer(),
+            channels: optional(integer()),
+            parameters: optional(json()),
+            rtcpFeedback: optional(array(struct({
+                type: string(),
+                parameter: optional(string())
+            })))
+        })),
+        headerExtensions: optional(array(struct({
+            uri: string(),
+            id: integer(),
+            encrypt: optional(boolean()),
+            parameters: json()
+        }))),
+        encodings: optional(array(struct({
+            ssrc: optional(integer()),
+            rid: optional(string()),
+            codecPayloadType: optional(integer()),
+            rtx: optional(struct({ ssrc: integer() })),
+            dtx: optional(boolean()),
+            scalabilityMode: optional(string())
+        }))),
+        rtcp: optional(struct({
+            cname: optional(string()),
+            reducedSize: optional(boolean()),
+            mux: optional(boolean())
+        })),
+    });
+
+    entity('KitchenProducer', () => {
+        primaryKey('id', string());
+        field('routerId', string());
+        field('transportId', string());
+        field('rawId', optional(string()));
+        field('state', enumString('creating', 'created', 'deleting', 'deleted'));
+
+        field('parameters', struct({
+            kind: enumString('audio', 'video'),
+            mid: optional(string()),
+            rtpParameters: rtpParameters,
+            keyFrameRequestDelay: optional(integer()),
+            paused: optional(boolean())
+        }));
+        field('rtpParameters', optional(rtpParameters));
+        field('paused', boolean());
+
+        rangeIndex('routerActive', ['routerId', 'id'])
+            .withCondition((s) => s.state !== 'deleted');
+        rangeIndex('transportActive', ['transportId', 'id'])
+            .withCondition((s) => s.state !== 'deleted');
+    });
+
+    entity('KitchenConsumer', () => {
+        primaryKey('id', string());
+        field('routerId', string());
+        field('transportId', string());
+        field('producerId', string());
+        field('state', enumString('creating', 'created', 'deleting', 'deleted'));
+        field('profile', enumString('audio', 'video', 'video-screencast'));
+
+        rangeIndex('routerActive', ['routerId', 'id'])
+            .withCondition((s) => s.state !== 'deleted');
+        rangeIndex('transportActive', ['transportId', 'id'])
+            .withCondition((s) => s.state !== 'deleted');
+        rangeIndex('producerActive', ['producerId', 'id'])
             .withCondition((s) => s.state !== 'deleted');
     });
 

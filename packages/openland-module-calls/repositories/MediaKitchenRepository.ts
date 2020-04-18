@@ -6,7 +6,7 @@ import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { injectable } from 'inversify';
-import { Worker } from 'mediakitchen';
+import { Worker, SimpleMap } from 'mediakitchen';
 import { randomInt } from 'openland-utils/random';
 import uuid from 'uuid/v4';
 
@@ -20,6 +20,47 @@ export interface KitchenIceCandidate {
     port: number;
 }
 
+export interface KitchenRtpParameters {
+    mid?: string | null | undefined;
+    codecs: {
+        mimeType: string;
+        payloadType: number;
+        clockRate: number;
+        channels?: number | null | undefined;
+        parameters?: SimpleMap | null | undefined;
+        rtcpFeedback?: {
+            type: string;
+            parameter?: string | null | undefined;
+        }[] | null | undefined;
+    }[];
+    headerExtensions?: {
+        uri: string;
+        id: number;
+        encrypt?: boolean | null | undefined;
+        parameters?: SimpleMap | null | undefined;
+    }[] | null | undefined;
+    encodings?: {
+        ssrc?: number | null | undefined;
+        rid?: string | null | undefined;
+        codecPayloadType?: number | null | undefined;
+        rtx?: { ssrc: number } | null | undefined;
+        dtx?: boolean | null | undefined;
+        scalabilityMode?: string | null | undefined;
+    }[] | null | undefined;
+    rtcp?: {
+        cname?: string | null | undefined;
+        reducedSize?: boolean | null | undefined;
+        mux?: boolean | null | undefined;
+    } | null | undefined;
+}
+
+export interface KitchenProducerParams {
+    kind: 'audio' | 'video';
+    rtpParameters: KitchenRtpParameters;
+    keyFrameRequestDelay?: number | undefined | null;
+    paused?: boolean | null | undefined;
+}
+
 @injectable()
 export class MediaKitchenRepository {
 
@@ -31,6 +72,10 @@ export class MediaKitchenRepository {
     readonly transportCreateQueue = new WorkQueue<{ id: string }, { result: boolean }>('kitchen-transport-create', -1);
     readonly transportConnectQueue = new WorkQueue<{ id: string }, { result: boolean }>('kitchen-transport-connect', -1);
     readonly transportDeleteQueue = new WorkQueue<{ id: string }, { result: boolean }>('kitchen-transport-create', -1);
+
+    // Producer tasks
+    readonly producerCreateQueue = new WorkQueue<{ id: string }, { result: boolean }>('kitchen-producer-create', -1);
+    readonly producerDeleteQueue = new WorkQueue<{ id: string }, { result: boolean }>('kitchen-producer-delete', -1);
 
     @lazyInject('CallSchedulerKitchen')
     readonly scheduler!: CallSchedulerKitchen;
@@ -211,7 +256,56 @@ export class MediaKitchenRepository {
                 return;
             }
             transport.state = 'deleting';
+            await transport.flush(ctx);
+            await this.onTransportRemoving(ctx, transportId);
             await this.transportDeleteQueue.pushWork(ctx, { id: transportId });
+        });
+    }
+
+    //
+    // Producer
+    //
+
+    async createProducer(parent: Context,
+        transportId: string,
+        parameters: KitchenProducerParams
+    ) {
+        return await inTx(parent, async (ctx) => {
+            let transport = await Store.KitchenTransport.findById(ctx, transportId);
+            if (!transport) {
+                throw Error('Unable to find transport');
+            }
+            if (transport.state === 'deleted' || transport.state === 'deleting') {
+                throw Error('Transport is being deleted');
+            }
+            let id = uuid();
+            await Store.KitchenProducer.create(ctx, id, {
+                routerId: transport.routerId,
+                transportId: transport.id,
+                state: 'creating',
+                paused: false,
+                parameters: parameters as any
+            });
+            await this.onProducerCreating(ctx, id);
+            if (transport.state === 'created') {
+                await this.producerCreateQueue.pushWork(ctx, { id });
+            }
+            return id;
+        });
+    }
+
+    async deleteProducer(parent: Context, producerId: string) {
+        return await inTx(parent, async (ctx) => {
+            let producer = await Store.KitchenProducer.findById(ctx, producerId);
+            if (!producer) {
+                throw Error('Unable to find producer');
+            }
+            if (producer.state === 'deleted' || producer.state === 'deleting') {
+                return;
+            }
+            producer.state = 'deleting';
+            await this.onProducerRemoving(ctx, producerId);
+            await this.producerDeleteQueue.pushWork(ctx, { id: producerId });
         });
     }
 
@@ -290,18 +384,69 @@ export class MediaKitchenRepository {
                 transport.state = 'connecting';
                 await this.transportConnectQueue.pushWork(ctx, { id });
             }
+
+            // Create producers
+            let producers = await Store.KitchenProducer.transportActive.findAll(ctx, id);
+            for (let p of producers) {
+                if (p.state === 'creating') {
+                    await this.producerCreateQueue.pushWork(ctx, { id: p.id });
+                }
+            }
         });
     }
 
     async onTransportRemoving(parent: Context, id: string) {
         await inTx(parent, async (ctx) => {
             logger.log(ctx, 'Removing transport: ' + id);
+
+            // Remove producers
+            let producers = await Store.KitchenProducer.transportActive.findAll(ctx, id);
+            for (let p of producers) {
+                if (p.state === 'deleting') {
+                    p.state = 'deleted';
+                    await p.flush(ctx);
+                    await this.onProducerRemoved(ctx, id);
+                } else {
+                    p.state = 'deleted';
+                    await p.flush(ctx);
+                    await this.onProducerRemoving(ctx, id);
+                    await this.onProducerRemoved(ctx, id);
+                }
+            }
         });
     }
 
     async onTransportRemoved(parent: Context, id: string) {
         await inTx(parent, async (ctx) => {
             logger.log(ctx, 'Removed transport: ' + id);
+        });
+    }
+
+    //
+    // Producer Events
+    //
+
+    async onProducerCreating(parent: Context, id: string) {
+        await inTx(parent, async (ctx) => {
+            logger.log(ctx, 'Creating producer: ' + id);
+        });
+    }
+
+    async onProducerCreated(parent: Context, id: string) {
+        await inTx(parent, async (ctx) => {
+            logger.log(ctx, 'Created producer: ' + id);
+        });
+    }
+
+    async onProducerRemoving(parent: Context, id: string) {
+        await inTx(parent, async (ctx) => {
+            logger.log(ctx, 'Removing producer: ' + id);
+        });
+    }
+
+    async onProducerRemoved(parent: Context, id: string) {
+        await inTx(parent, async (ctx) => {
+            logger.log(ctx, 'Removed producer: ' + id);
         });
     }
 }

@@ -1,6 +1,6 @@
 import { inTx } from '@openland/foundationdb';
 import { Store } from 'openland-module-db/FDB';
-import { MediaKitchenService } from './../services/MediaKitchenService';
+import { MediaKitchenService } from '../kitchen/MediaKitchenService';
 import { MediaKitchenRepository } from './../repositories/MediaKitchenRepository';
 
 export function declareTransportDeleteWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {

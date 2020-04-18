@@ -1,4 +1,4 @@
-import { MediaKitchenService } from './../services/MediaKitchenService';
+import { MediaKitchenService } from '../kitchen/MediaKitchenService';
 import { createNamedContext } from '@openland/context';
 import { MediaKitchenRepository } from './../repositories/MediaKitchenRepository';
 import { InvalidateSync } from '@openland/patterns';
