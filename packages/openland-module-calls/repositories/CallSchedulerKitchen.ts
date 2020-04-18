@@ -1,5 +1,5 @@
 import { Store } from 'openland-module-db/FDB';
-import { MediaKitchenRepository } from './MediaKitchenRepository';
+import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 import { Context } from '@openland/context';
 import { CallScheduler, MediaSources } from './CallScheduler';
 import { injectable } from 'inversify';
@@ -167,7 +167,23 @@ export class CallSchedulerKitchen implements CallScheduler {
     }
 
     //
-    // Stream Events
+    // WebRTC Events
+    //
+
+    onStreamAnswer = async (ctx: Context, cid: number, pid: number, sid: string, answer: string) => {
+        // TODO: Start Transport
+    }
+
+    onStreamOffer = async (ctx: Context, cid: number, pid: number, sid: string, offer: string) => {
+        // TODO: Start Transport
+    }
+
+    onStreamCandidate = async (ctx: Context, cid: number, pid: number, sid: string, candidate: string) => {
+        // Ignore
+    }
+
+    //
+    // Kitchen Events
     //
 
     onTransportCreated = async (ctx: Context, transportId: string) => {
@@ -222,18 +238,11 @@ export class CallSchedulerKitchen implements CallScheduler {
         }
     }
 
-    onStreamAnswer = async (ctx: Context, cid: number, pid: number, sid: string, answer: string) => {
-        // TODO: Start Transport
+    onProducerCreated = async (ctx: Context, transportId: string) => {
+        // TODO: Implement
     }
 
-    //
-    // Ignored
-    //
-
-    onStreamCandidate = async (ctx: Context, cid: number, pid: number, sid: string, candidate: string) => {
-        // Ignore
-    }
-    onStreamOffer = async (ctx: Context, cid: number, pid: number, sid: string, offer: string) => {
-        // Ignore
+    onConsumerCreated = async (ctx: Context, transportId: string) => {
+        // TODO: Implement
     }
 }

@@ -1,7 +1,7 @@
 import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { MediaKitchenService } from '../kitchen/MediaKitchenService';
-import { MediaKitchenRepository } from './../repositories/MediaKitchenRepository';
+import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 
 export function declareTransportCreateWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
     repo.transportCreateQueue.addWorker(async (args, parent) => {

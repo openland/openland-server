@@ -1,7 +1,7 @@
-import { KitchenProducerParams } from '../repositories/MediaKitchenRepository';
+import { KitchenProducerParams, KitchenConsumerParams } from './types';
 import { ROUTER_CODECS, TRANSPORT_PARAMETERS } from './MediaKitchenProfiles';
 import { Cluster } from 'mediakitchen';
-import { convertRtpParamsToKitchen } from './convert';
+import { convertRtpParamsToKitchen, convertRtpCapabilitiesToKitchen } from './convert';
 
 function unwrap<T>(src: T | null | undefined): T | undefined {
     if (src !== undefined && src !== null) {
@@ -47,5 +47,17 @@ export class MediaKitchenService {
             keyFrameRequestDelay: unwrap(parameters.keyFrameRequestDelay),
             paused: unwrap(parameters.paused)
         }, producerId);
+    }
+
+    async getOrCreateConsumer(workerId: string, routerId: string, transportId: string, producerId: string, consumerId: string, parameters: KitchenConsumerParams) {
+        let transport = await this.getOrCreateTransport(workerId, routerId, transportId);
+        return await transport.consume(producerId, {
+            rtpCapabilities: parameters.rtpCapabilities ? convertRtpCapabilitiesToKitchen(parameters.rtpCapabilities) : undefined,
+            preferredLayers: parameters.preferredLayers ? {
+                spatialLayer: parameters.preferredLayers.spatialLayer,
+                temporalLayer: unwrap(parameters.preferredLayers.temporalLayer)
+            } : undefined,
+            paused: unwrap(parameters.paused),
+        }, consumerId);
     }
 }

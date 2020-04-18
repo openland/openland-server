@@ -1,4 +1,4 @@
-import { KitchenRtpParameters } from './../repositories/MediaKitchenRepository';
+import { KitchenRtpParameters, KitchenRtpCapabilities } from './types';
 
 function unwrap<T>(src: T | null | undefined): T | undefined {
     if (src !== undefined && src !== null) {
@@ -113,5 +113,55 @@ export function convertRtpParamsToStore(params: KitchenRtpParameters) {
             mux: wrap(params.rtcp.mux),
             reducedSize: wrap(params.rtcp.reducedSize),
         } : null
+    };
+}
+
+export function convertRtpCapabilitiesToKitchen(params: KitchenRtpCapabilities) {
+    return {
+        codecs: params.codecs ? params.codecs.map((c) => ({
+            kind: c.kind,
+            mimeType: c.mimeType,
+            preferredPayloadType: unwrap(c.preferredPayloadType),
+            clockRate: c.clockRate,
+            channels: unwrap(c.channels),
+            parameters: unwrapMap(c.parameters),
+            rtcpFeedback: c.rtcpFeedback ? c.rtcpFeedback.map((f) => ({
+                type: f.type,
+                parameter: unwrap(f.parameter)
+            })) : undefined
+        })) : undefined,
+        headerExtensions: params.headerExtensions ? params.headerExtensions.map((h) => ({
+            uri: h.uri,
+            preferredId: h.preferredId,
+            preferredEncrypt: unwrap(h.preferredEncrypt),
+            direction: unwrap(h.direction),
+            kind: unwrap(h.kind)
+        })) : undefined,
+        fecMechanisms: unwrap(params.fecMechanisms)
+    };
+}
+
+export function convertRtpCapabilitiesToStore(params: KitchenRtpCapabilities) {
+    return {
+        codecs: params.codecs ? params.codecs.map((c) => ({
+            kind: c.kind,
+            mimeType: c.mimeType,
+            preferredPayloadType: wrap(c.preferredPayloadType),
+            clockRate: c.clockRate,
+            channels: wrap(c.channels),
+            parameters: wrapMap(c.parameters),
+            rtcpFeedback: c.rtcpFeedback ? c.rtcpFeedback.map((f) => ({
+                type: f.type,
+                parameter: wrap(f.parameter)
+            })) : null
+        })) : null,
+        headerExtensions: params.headerExtensions ? params.headerExtensions.map((h) => ({
+            uri: h.uri,
+            preferredId: h.preferredId,
+            preferredEncrypt: wrap(h.preferredEncrypt),
+            direction: wrap(h.direction),
+            kind: wrap(h.kind)
+        })) : null,
+        fecMechanisms: wrap(params.fecMechanisms)
     };
 }

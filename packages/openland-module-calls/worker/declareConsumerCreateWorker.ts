@@ -4,10 +4,14 @@ import { inTx } from '@openland/foundationdb';
 import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 import { convertRtpParamsToStore } from 'openland-module-calls/kitchen/convert';
 
-export function declareProducerCreateWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
-    repo.producerCreateQueue.addWorker(async (args, parent) => {
+export function declareConsumerCreateWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
+    repo.consumerCreateQueue.addWorker(async (args, parent) => {
         let r = await inTx(parent, async (ctx) => {
-            let pr = await Store.KitchenProducer.findById(ctx, args.id);
+            let cr = await Store.KitchenConsumer.findById(ctx, args.id);
+            if (!cr) {
+                throw Error('Unable to find consumer');
+            }
+            let pr = await Store.KitchenProducer.findById(ctx, cr.producerId);
             if (!pr) {
                 throw Error('Unable to find producer');
             }
@@ -22,33 +26,33 @@ export function declareProducerCreateWorker(service: MediaKitchenService, repo: 
             if (!router.workerId) {
                 throw Error('Unable to find worker');
             }
-            return { router, ts, pr };
+            return { router, ts, pr, cr };
         });
-        if (r.pr.state !== 'creating') {
+        if (r.cr.state !== 'creating') {
             return { result: true };
         }
 
         // Create Raw Producer
-        let rawProducer = await service.getOrCreateProducer(
+        let rawConsumer = await service.getOrCreateConsumer(
             r.router.workerId!,
             r.router.id,
             r.ts.id,
             r.pr.id,
-            r.pr.parameters
+            r.cr.id,
+            r.cr.parameters
         );
 
         // Commit state
         await inTx(parent, async (ctx) => {
-            let pr = await Store.KitchenProducer.findById(ctx, args.id);
-            if (!pr) {
-                throw Error('Unable to find producer');
+            let cr = await Store.KitchenConsumer.findById(ctx, args.id);
+            if (!cr) {
+                throw Error('Unable to find consumer');
             }
-            if (pr.state === 'creating') {
-                pr.state = 'created';
-                pr.rawId = rawProducer.id;
-                pr.rtpParameters = convertRtpParamsToStore(rawProducer.rtpParameters);
-                await pr.flush(ctx);
-                await repo.onProducerCreated(ctx, pr.id);
+            if (cr.state === 'creating') {
+                cr.state = 'created';
+                cr.rtpParameters = convertRtpParamsToStore(rawConsumer.rtpParameters);
+                await cr.flush(ctx);
+                await repo.onConsumerCreated(ctx, cr.id);
             }
         });
 

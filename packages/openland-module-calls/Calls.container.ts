@@ -1,5 +1,5 @@
 import { CallSchedulerKitchen } from './repositories/CallSchedulerKitchen';
-import { MediaKitchenRepository } from './repositories/MediaKitchenRepository';
+import { MediaKitchenRepository } from './kitchen/MediaKitchenRepository';
 import { container } from 'openland-modules/Modules.container';
 import { CallsModule } from './CallsModule';
 import { CallRepository } from './repositories/CallRepository';

@@ -1,7 +1,7 @@
 import { inTx } from '@openland/foundationdb';
 import { Store } from 'openland-module-db/FDB';
 import { MediaKitchenService } from '../kitchen/MediaKitchenService';
-import { MediaKitchenRepository } from './../repositories/MediaKitchenRepository';
+import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 
 export function declareTransportDeleteWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
     repo.transportDeleteQueue.addWorker(async (args, parent) => {

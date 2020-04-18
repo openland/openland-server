@@ -1064,6 +1064,28 @@ export default declareSchema(() => {
         })),
     });
 
+    const rtpCapabilities = struct({
+        codecs: optional(array(struct({
+            kind: enumString('audio', 'video'),
+            mimeType: string(),
+            clockRate: integer(),
+            channels: optional(integer()),
+            parameters: json(),
+            rtcpFeedback: optional(array(struct({
+                type: string(),
+                parameter: optional(string())
+            })))
+        }))),
+        headerExtensions: optional(array(struct({
+            uri: string(),
+            preferredId: integer(),
+            kind: optional(enumString('', 'audio', 'video')),
+            preferredEncrypt: optional(boolean()),
+            direction: optional(enumString('sendrecv', 'sendonly', 'recvonly', 'inactive'))
+        }))),
+        fecMechanisms: optional(array(string()))
+    });
+
     entity('KitchenProducer', () => {
         primaryKey('id', string());
         field('routerId', string());
@@ -1073,7 +1095,6 @@ export default declareSchema(() => {
 
         field('parameters', struct({
             kind: enumString('audio', 'video'),
-            mid: optional(string()),
             rtpParameters: rtpParameters,
             keyFrameRequestDelay: optional(integer()),
             paused: optional(boolean())
@@ -1093,7 +1114,16 @@ export default declareSchema(() => {
         field('transportId', string());
         field('producerId', string());
         field('state', enumString('creating', 'created', 'deleting', 'deleted'));
-        field('profile', enumString('audio', 'video', 'video-screencast'));
+        field('parameters', struct({
+            rtpCapabilities: optional(rtpCapabilities),
+            preferredLayers: optional(struct({
+                spatialLayer: integer(),
+                temporalLayer: optional(integer())
+            })),
+            paused: optional(boolean())
+        }));
+        field('rtpParameters', optional(rtpParameters));
+        field('paused', boolean());
 
         rangeIndex('routerActive', ['routerId', 'id'])
             .withCondition((s) => s.state !== 'deleted');

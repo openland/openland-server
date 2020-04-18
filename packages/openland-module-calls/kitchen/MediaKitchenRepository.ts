@@ -1,65 +1,18 @@
+import { KitchenProducerParams, KitchenConsumerParams } from './types';
 import { lazyInject } from 'openland-modules/Modules.container';
-import { CallSchedulerKitchen } from './CallSchedulerKitchen';
+import { CallSchedulerKitchen } from '../repositories/CallSchedulerKitchen';
 import { createLogger } from '@openland/log';
 import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { injectable } from 'inversify';
-import { Worker, SimpleMap } from 'mediakitchen';
+import { Worker } from 'mediakitchen';
 import { randomInt } from 'openland-utils/random';
 import uuid from 'uuid/v4';
+import { convertRtpCapabilitiesToStore, convertRtpParamsToStore } from 'openland-module-calls/kitchen/convert';
 
 const logger = createLogger('mediakitchen');
-
-export interface KitchenIceCandidate {
-    foundation: string;
-    priority: number;
-    ip: string;
-    protocol: 'tcp' | 'udp';
-    port: number;
-}
-
-export interface KitchenRtpParameters {
-    mid?: string | null | undefined;
-    codecs: {
-        mimeType: string;
-        payloadType: number;
-        clockRate: number;
-        channels?: number | null | undefined;
-        parameters?: SimpleMap | null | undefined;
-        rtcpFeedback?: {
-            type: string;
-            parameter?: string | null | undefined;
-        }[] | null | undefined;
-    }[];
-    headerExtensions?: {
-        uri: string;
-        id: number;
-        encrypt?: boolean | null | undefined;
-        parameters?: SimpleMap | null | undefined;
-    }[] | null | undefined;
-    encodings?: {
-        ssrc?: number | null | undefined;
-        rid?: string | null | undefined;
-        codecPayloadType?: number | null | undefined;
-        rtx?: { ssrc: number } | null | undefined;
-        dtx?: boolean | null | undefined;
-        scalabilityMode?: string | null | undefined;
-    }[] | null | undefined;
-    rtcp?: {
-        cname?: string | null | undefined;
-        reducedSize?: boolean | null | undefined;
-        mux?: boolean | null | undefined;
-    } | null | undefined;
-}
-
-export interface KitchenProducerParams {
-    kind: 'audio' | 'video';
-    rtpParameters: KitchenRtpParameters;
-    keyFrameRequestDelay?: number | undefined | null;
-    paused?: boolean | null | undefined;
-}
 
 @injectable()
 export class MediaKitchenRepository {
@@ -76,6 +29,10 @@ export class MediaKitchenRepository {
     // Producer tasks
     readonly producerCreateQueue = new WorkQueue<{ id: string }, { result: boolean }>('kitchen-producer-create', -1);
     readonly producerDeleteQueue = new WorkQueue<{ id: string }, { result: boolean }>('kitchen-producer-delete', -1);
+
+    // Consumer tasks
+    readonly consumerCreateQueue = new WorkQueue<{ id: string }, { result: boolean }>('kitchen-consumer-create', -1);
+    readonly consumerDeleteQueue = new WorkQueue<{ id: string }, { result: boolean }>('kitchen-consumer-delete', -1);
 
     @lazyInject('CallSchedulerKitchen')
     readonly scheduler!: CallSchedulerKitchen;
@@ -284,7 +241,12 @@ export class MediaKitchenRepository {
                 transportId: transport.id,
                 state: 'creating',
                 paused: false,
-                parameters: parameters as any
+                parameters: {
+                    kind: parameters.kind,
+                    rtpParameters: convertRtpParamsToStore(parameters.rtpParameters),
+                    paused: parameters.paused,
+                    keyFrameRequestDelay: parameters.keyFrameRequestDelay
+                }
             });
             await this.onProducerCreating(ctx, id);
             if (transport.state === 'created') {
@@ -306,6 +268,64 @@ export class MediaKitchenRepository {
             producer.state = 'deleting';
             await this.onProducerRemoving(ctx, producerId);
             await this.producerDeleteQueue.pushWork(ctx, { id: producerId });
+        });
+    }
+
+    //
+    // Consumers
+    //
+
+    async createConsumer(parent: Context, transportId: string, producerId: string, params: KitchenConsumerParams) {
+        return await inTx(parent, async (ctx) => {
+            let transport = await Store.KitchenTransport.findById(ctx, transportId);
+            if (!transport) {
+                throw Error('Unable to find transport');
+            }
+            if (transport.state === 'deleted' || transport.state === 'deleting') {
+                throw Error('Transport is being deleted');
+            }
+            let producer = await Store.KitchenProducer.findById(ctx, producerId);
+            if (!producer) {
+                throw Error('Unable to find producer');
+            }
+            if (producer.state === 'deleting' || producer.state === 'deleted') {
+                throw Error('Producer already deleted');
+            }
+            let id = uuid();
+            await Store.KitchenConsumer.create(ctx, id, {
+                routerId: transport.routerId,
+                producerId,
+                transportId,
+                state: 'creating',
+                paused: false,
+                parameters: {
+                    rtpCapabilities: params.rtpCapabilities ? convertRtpCapabilitiesToStore(params.rtpCapabilities) : null,
+                    preferredLayers: params.preferredLayers ? {
+                        spatialLayer: params.preferredLayers.spatialLayer,
+                        temporalLayer: params.preferredLayers.temporalLayer
+                    } : null,
+                    paused: params.paused
+                }
+            });
+            await this.onConsumerCreating(ctx, id);
+            if (producer.state === 'created') {
+                await this.consumerCreateQueue.pushWork(ctx, { id });
+            }
+            return id;
+        });
+    }
+
+    async deleteConsumer(parent: Context, consumerId: string) {
+        return await inTx(parent, async (ctx) => {
+            let consumer = await Store.KitchenConsumer.findById(ctx, consumerId);
+            if (!consumer) {
+                throw Error('Unable to find consumer');
+            }
+            if (consumer.state === 'deleted' || consumer.state === 'deleting') {
+                return;
+            }
+            await this.onConsumerRemoving(ctx, consumerId);
+            await this.consumerDeleteQueue.pushWork(ctx, { id: consumerId });
         });
     }
 
@@ -341,12 +361,12 @@ export class MediaKitchenRepository {
                 if (t.state === 'deleting') {
                     t.state = 'deleted';
                     await t.flush(ctx);
-                    await this.onTransportRemoved(ctx, id);
+                    await this.onTransportRemoved(ctx, t.id);
                 } else {
                     t.state = 'deleted';
                     await t.flush(ctx);
-                    await this.onTransportRemoving(ctx, id);
-                    await this.onTransportRemoved(ctx, id);
+                    await this.onTransportRemoving(ctx, t.id);
+                    await this.onTransportRemoved(ctx, t.id);
                 }
             }
         });
@@ -405,12 +425,12 @@ export class MediaKitchenRepository {
                 if (p.state === 'deleting') {
                     p.state = 'deleted';
                     await p.flush(ctx);
-                    await this.onProducerRemoved(ctx, id);
+                    await this.onProducerRemoved(ctx, p.id);
                 } else {
                     p.state = 'deleted';
                     await p.flush(ctx);
-                    await this.onProducerRemoving(ctx, id);
-                    await this.onProducerRemoved(ctx, id);
+                    await this.onProducerRemoving(ctx, p.id);
+                    await this.onProducerRemoved(ctx, p.id);
                 }
             }
         });
@@ -435,12 +455,30 @@ export class MediaKitchenRepository {
     async onProducerCreated(parent: Context, id: string) {
         await inTx(parent, async (ctx) => {
             logger.log(ctx, 'Created producer: ' + id);
+
+            // Notify scheduler
+            await this.scheduler.onProducerCreated(ctx, id);
         });
     }
 
     async onProducerRemoving(parent: Context, id: string) {
         await inTx(parent, async (ctx) => {
             logger.log(ctx, 'Removing producer: ' + id);
+
+            // Remove consumers
+            let consumers = await Store.KitchenConsumer.producerActive.findAll(ctx, id);
+            for (let c of consumers) {
+                if (c.state === 'deleting') {
+                    c.state = 'deleted';
+                    await c.flush(ctx);
+                    await this.onConsumerRemoved(ctx, c.id);
+                } else {
+                    c.state = 'deleted';
+                    await c.flush(ctx);
+                    await this.onConsumerRemoving(ctx, c.id);
+                    await this.onConsumerRemoved(ctx, c.id);
+                }
+            }
         });
     }
 
@@ -449,4 +487,36 @@ export class MediaKitchenRepository {
             logger.log(ctx, 'Removed producer: ' + id);
         });
     }
+
+    //
+    // Consumer Events
+    //
+
+    async onConsumerCreating(parent: Context, id: string) {
+        await inTx(parent, async (ctx) => {
+            logger.log(ctx, 'Creating consumer: ' + id);
+        });
+    }
+
+    async onConsumerCreated(parent: Context, id: string) {
+        await inTx(parent, async (ctx) => {
+            logger.log(ctx, 'Created consumer: ' + id);
+
+            // Notify scheduler
+            await this.scheduler.onConsumerCreated(ctx, id);
+        });
+    }
+
+    async onConsumerRemoving(parent: Context, id: string) {
+        await inTx(parent, async (ctx) => {
+            logger.log(ctx, 'Removing consumer: ' + id);
+        });
+    }
+
+    async onConsumerRemoved(parent: Context, id: string) {
+        await inTx(parent, async (ctx) => {
+            logger.log(ctx, 'Removed consumer: ' + id);
+        });
+    }
+
 }
