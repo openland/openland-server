@@ -4,7 +4,7 @@ import { encoders, getTransaction, inTx } from '@openland/foundationdb';
 
 const rootCtx = createNamedContext('entities-count');
 
-export async function findEntitiesCount(entity: EntityFactory<any, any>) {
+export async function findEntitiesCount(entity: EntityFactory<any, any>, progressCb: (avg: number) => void) {
     let records = await inTx(rootCtx, async ctx => await entity.descriptor.subspace.snapshotRange(ctx, [], { limit: 1 }));
     if (records.length === 0) {
         return 0;
@@ -16,6 +16,7 @@ export async function findEntitiesCount(entity: EntityFactory<any, any>) {
 
     while (min <= max) {
         let avg = Math.floor((min + max) / 2);
+        progressCb(avg);
         let exists = !!(await getKey(entity, firstKey, avg));
         if (exists) {
             lastGood = avg;
