@@ -11,8 +11,10 @@ export async function findEntitiesCount(entity: EntityFactory<any, any>, progres
     }
     let firstKey = records[0].key;
     let min = 0;
-    let max = 10 ** 8;
+    // let max = 10 ** 8;
+    let max = 2;
     let lastGood = 0;
+    let forward = true;
 
     while (min <= max) {
         let avg = Math.floor((min + max) / 2);
@@ -21,8 +23,12 @@ export async function findEntitiesCount(entity: EntityFactory<any, any>, progres
         if (exists) {
             lastGood = avg;
             min = avg + 1;
+            if (forward) {
+                max *= 2;
+            }
         } else {
             max = avg - 1;
+            forward = false;
         }
     }
 
