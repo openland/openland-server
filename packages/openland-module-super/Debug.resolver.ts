@@ -28,7 +28,7 @@ import { SmsService } from '../openland-utils/SmsService';
 import uuid from 'uuid';
 import { geoIP } from '../openland-utils/geoIp/geoIP';
 import { EntityFactory } from '@openland/foundationdb-entity';
-import { findEntitiesCount } from '../openland-module-db/findEntitiesCount';
+import { createEntitiesCounter, findEntitiesCount } from '../openland-module-db/findEntitiesCount';
 import { asyncRun } from '../openland-mtproto3/utils';
 import { container } from '../openland-modules/Modules.container';
 
@@ -78,6 +78,8 @@ async function sendSuperNotification(root: Context, uid: number, message: string
         );
     });
 }
+
+createEntitiesCounter('HyperLog', 2, Store.HyperLog.created.stream({ batchSize: 5000 }));
 
 export const Resolver: GQLResolver = {
     DebugUserPresence: {
@@ -242,6 +244,13 @@ export const Resolver: GQLResolver = {
         debugUserWallet: withPermission('super-admin', async (ctx, args) => {
             let uid = IDs.User.parse(args.id);
             return await Modules.Wallet.getWallet(ctx, uid);
+        }),
+        debugEntitiesCounter: withPermission('super-admin', async (ctx, args) => {
+            let state = await Store.EntityCounterState.findById(ctx, args.name);
+            if (state) {
+                return state.count;
+            }
+            return 0;
         }),
     },
     Mutation: {

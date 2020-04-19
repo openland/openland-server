@@ -103,6 +103,7 @@ extend type Query {
     debugGqlTraces(first: Int!, after: ID): GqlTraceConnection!
     debugGqlTrace(id: ID!): GqlTrace!
     debugUserWallet(id: ID!): WalletAccount!
+    debugEntitiesCounter(name: String!): Int!
 }
 
 enum SuperNotificationType {
