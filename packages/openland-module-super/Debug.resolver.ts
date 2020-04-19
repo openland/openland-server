@@ -28,7 +28,7 @@ import { SmsService } from '../openland-utils/SmsService';
 import uuid from 'uuid';
 import { geoIP } from '../openland-utils/geoIp/geoIP';
 import { EntityFactory } from '@openland/foundationdb-entity';
-import { createEntitiesCounter, findEntitiesCount } from '../openland-module-db/findEntitiesCount';
+import { findEntitiesCount } from '../openland-module-db/findEntitiesCount';
 import { asyncRun } from '../openland-mtproto3/utils';
 import { container } from '../openland-modules/Modules.container';
 
@@ -78,8 +78,6 @@ async function sendSuperNotification(root: Context, uid: number, message: string
         );
     });
 }
-
-createEntitiesCounter('HyperLog', 2, Store.HyperLog.created.stream({ batchSize: 5000 }));
 
 export const Resolver: GQLResolver = {
     DebugUserPresence: {

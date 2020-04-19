@@ -6,6 +6,7 @@ import { PermissionsRepository } from './repositories/PermissionsRepository';
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { EnvironmentVariablesRepository, EnvVarValueType } from './repositories/EnvironmentVariablesRepository';
+import { createEntitiesCounter } from '../openland-module-db/findEntitiesCount';
 
 @injectable()
 export class SuperModule {
@@ -59,5 +60,6 @@ export class SuperModule {
         if (serverRoleEnabled('admin')) {
             await startAdminInterface();
         }
+        createEntitiesCounter('HyperLog', 2, Store.HyperLog.created.stream({ batchSize: 5000 }));
     }
 }
