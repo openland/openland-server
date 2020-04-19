@@ -57,7 +57,7 @@ async function getKey(entity: EntityFactory<any, any>, key: any[], offset: numbe
             if (res.indexOf(prefix) !== 0) {
                 return null;
             }
-            return encoders.tuple.unpack(res);
+            return res;
         }
         return null;
     });
