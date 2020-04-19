@@ -11,7 +11,7 @@ export async function findEntitiesCount(entity: EntityFactory<any, any>, progres
     }
     let firstKey = records[0].key;
     let min = 0;
-    let max = 10 ** 9;
+    let max = 10 ** 8;
     let lastGood = 0;
 
     while (min <= max) {
