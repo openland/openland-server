@@ -17235,6 +17235,100 @@ export class DebugEventStateFactory extends EntityFactory<DebugEventStateShape, 
     }
 }
 
+export interface EntityCounterStateShape {
+    id: string;
+    cursor: string;
+    count: number;
+    version: number | null;
+}
+
+export interface EntityCounterStateCreateShape {
+    cursor: string;
+    count: number;
+    version?: number | null | undefined;
+}
+
+export class EntityCounterState extends Entity<EntityCounterStateShape> {
+    get id(): string { return this._rawValue.id; }
+    get cursor(): string { return this._rawValue.cursor; }
+    set cursor(value: string) {
+        let normalized = this.descriptor.codec.fields.cursor.normalize(value);
+        if (this._rawValue.cursor !== normalized) {
+            this._rawValue.cursor = normalized;
+            this._updatedValues.cursor = normalized;
+            this.invalidate();
+        }
+    }
+    get count(): number { return this._rawValue.count; }
+    set count(value: number) {
+        let normalized = this.descriptor.codec.fields.count.normalize(value);
+        if (this._rawValue.count !== normalized) {
+            this._rawValue.count = normalized;
+            this._updatedValues.count = normalized;
+            this.invalidate();
+        }
+    }
+    get version(): number | null { return this._rawValue.version; }
+    set version(value: number | null) {
+        let normalized = this.descriptor.codec.fields.version.normalize(value);
+        if (this._rawValue.version !== normalized) {
+            this._rawValue.version = normalized;
+            this._updatedValues.version = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class EntityCounterStateFactory extends EntityFactory<EntityCounterStateShape, EntityCounterState> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('entityCounterState');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'cursor', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'count', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'version', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            cursor: c.string,
+            count: c.integer,
+            version: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<EntityCounterStateShape> = {
+            name: 'EntityCounterState',
+            storageKey: 'entityCounterState',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new EntityCounterStateFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<EntityCounterStateShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: string, src: EntityCounterStateCreateShape): Promise<EntityCounterState> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: EntityCounterStateCreateShape): EntityCounterState {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<EntityCounterState | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<EntityCounterStateShape>): EntityCounterState {
+        return new EntityCounterState([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 export interface GqlTraceShape {
     id: number;
     traceData: any;
@@ -19086,6 +19180,7 @@ export interface Store extends BaseStore {
     readonly OneTimeCode: OneTimeCodeFactory;
     readonly DebugEvent: DebugEventFactory;
     readonly DebugEventState: DebugEventStateFactory;
+    readonly EntityCounterState: EntityCounterStateFactory;
     readonly GqlTrace: GqlTraceFactory;
     readonly PhonebookItem: PhonebookItemFactory;
     readonly EditorsChoiceChatsCollection: EditorsChoiceChatsCollectionFactory;
@@ -19297,6 +19392,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let OneTimeCodePromise = OneTimeCodeFactory.open(storage);
     let DebugEventPromise = DebugEventFactory.open(storage);
     let DebugEventStatePromise = DebugEventStateFactory.open(storage);
+    let EntityCounterStatePromise = EntityCounterStateFactory.open(storage);
     let GqlTracePromise = GqlTraceFactory.open(storage);
     let PhonebookItemPromise = PhonebookItemFactory.open(storage);
     let EditorsChoiceChatsCollectionPromise = EditorsChoiceChatsCollectionFactory.open(storage);
@@ -19479,6 +19575,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         OneTimeCode: await OneTimeCodePromise,
         DebugEvent: await DebugEventPromise,
         DebugEventState: await DebugEventStatePromise,
+        EntityCounterState: await EntityCounterStatePromise,
         GqlTrace: await GqlTracePromise,
         PhonebookItem: await PhonebookItemPromise,
         EditorsChoiceChatsCollection: await EditorsChoiceChatsCollectionPromise,

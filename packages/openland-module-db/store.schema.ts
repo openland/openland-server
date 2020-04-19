@@ -2202,6 +2202,13 @@ export default declareSchema(() => {
         field('seq', integer());
     });
 
+    entity('EntityCounterState', () => {
+        primaryKey('id', string());
+        field('cursor', string());
+        field('count', integer());
+        field('version', optional(integer()));
+    });
+
     entity('GqlTrace', () => {
         primaryKey('id', integer());
         field('traceData', json());
