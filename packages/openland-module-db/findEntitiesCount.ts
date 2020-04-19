@@ -35,6 +35,10 @@ async function getKey(entity: EntityFactory<any, any>, key: any[], offset: numbe
     let id = encoders.tuple.pack(key);
 
     return await inTx(rootCtx, async (ctx) => {
+        getTransaction(ctx).setOptions({
+            read_your_writes_disable: true
+        });
+
         let tx = getTransaction(ctx)!.rawTransaction(db);
         let _key = Buffer.concat([prefix, id]);
         let res = await tx.getKey({ key: _key, offset, _isKeySelector: true, orEqual: true});
