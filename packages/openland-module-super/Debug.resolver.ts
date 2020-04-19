@@ -1475,8 +1475,8 @@ export const Resolver: GQLResolver = {
             }
             asyncRun(async () => {
                 try {
-                    let res = await findEntitiesCount(entity, avg => {
-                        sendSuperNotification(rootCtx, uid, `avg: ${avg}`);
+                    let res = await findEntitiesCount(entity, async avg => {
+                        await sendSuperNotification(rootCtx, uid, `avg: ${avg}`);
                     });
                     await sendSuperNotification(rootCtx, uid, `${args.entity} count: ${res}`);
                 } catch (e) {
@@ -1493,7 +1493,9 @@ export const Resolver: GQLResolver = {
                 for (let f in container.get('Store') as any) {
                     let entity = (Store as any)[f];
                     if (entity instanceof EntityFactory) {
-                        let res = await findEntitiesCount(entity, () => {});
+                        let res = await findEntitiesCount(entity, () => {
+                            // noop
+                        });
                         await sendSuperNotification(rootCtx, uid, `${entity.descriptor.name} count: ${res}`);
                     }
                 }
