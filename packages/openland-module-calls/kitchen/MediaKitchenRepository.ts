@@ -175,7 +175,7 @@ export class MediaKitchenRepository {
                 state: 'creating'
             });
             await this.onTransportCreating(ctx, id);
-            if (router.state === 'created') {
+            if (router.state !== 'creating') {
                 await this.transportCreateQueue.pushWork(ctx, { id });
             }
             return id;
@@ -249,7 +249,7 @@ export class MediaKitchenRepository {
                 }
             });
             await this.onProducerCreating(ctx, id);
-            if (transport.state === 'created') {
+            if (transport.state !== 'creating') {
                 await this.producerCreateQueue.pushWork(ctx, { id });
             }
             return id;
@@ -308,7 +308,7 @@ export class MediaKitchenRepository {
                 }
             });
             await this.onConsumerCreating(ctx, id);
-            if (producer.state === 'created') {
+            if (producer.state !== 'creating') {
                 await this.consumerCreateQueue.pushWork(ctx, { id });
             }
             return id;

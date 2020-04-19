@@ -6,7 +6,7 @@ import { CallRepository } from './repositories/CallRepository';
 
 export function loadCallsModule() {
     container.bind(CallsModule).toSelf().inSingletonScope();
-    container.bind(CallRepository).toSelf().inSingletonScope();
+    container.bind('CallRepository').to(CallRepository).inSingletonScope();
     container.bind('MediaKitchenRepository').to(MediaKitchenRepository).inSingletonScope();
     container.bind('CallSchedulerKitchen').to(CallSchedulerKitchen).inSingletonScope();
 }

@@ -21,7 +21,7 @@ import { declareConsumerDeleteWorker } from './worker/declareConsumerDeleteWorke
 @injectable()
 export class CallsModule {
 
-    @lazyInject(CallRepository)
+    @lazyInject('CallRepository')
     repo!: CallRepository;
 
     @lazyInject('NATS')

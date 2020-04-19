@@ -165,3 +165,36 @@ export function convertRtpCapabilitiesToStore(params: KitchenRtpCapabilities) {
         fecMechanisms: wrap(params.fecMechanisms)
     };
 }
+
+export function convertIceCandidate(src: {
+    foundation: string;
+    protocol: string;
+    priority: number | string;
+    ip: string;
+    port: number;
+}) {
+    let res: {
+        foundation: string;
+        component: number;
+        transport: string;
+        priority: number | string;
+        ip: string;
+        port: number;
+        type: string;
+        tcpType?: string;
+    } = {
+        component: 1, // Always 1
+        foundation: src.foundation,
+        ip: src.ip,
+        port: src.port,
+        priority: src.priority,
+        transport: src.protocol,
+        type: 'host'
+    };
+
+    if (src.protocol === 'tcp') {
+        res.tcpType = 'passive';
+    }
+
+    return res;
+}
