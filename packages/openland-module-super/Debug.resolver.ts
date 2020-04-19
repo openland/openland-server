@@ -1474,14 +1474,12 @@ export const Resolver: GQLResolver = {
                 throw new AccessDeniedError();
             }
             asyncRun(async () => {
-                try {
-                    let res = await findEntitiesCount(entity, async avg => {
-                        await sendSuperNotification(rootCtx, uid, `avg: ${avg}`);
-                    });
+                // try {
+                    let res = await findEntitiesCount(entity);
                     await sendSuperNotification(rootCtx, uid, `${args.entity} count: ${res}`);
-                } catch (e) {
-                    await sendSuperNotification(rootCtx, uid, `Error: ${e}`);
-                }
+                // } catch (e) {
+                //     await sendSuperNotification(rootCtx, uid, `Error: ${e}`);
+                // }
             });
 
             return true;
@@ -1493,9 +1491,7 @@ export const Resolver: GQLResolver = {
                 for (let f in container.get('Store') as any) {
                     let entity = (Store as any)[f];
                     if (entity instanceof EntityFactory) {
-                        let res = await findEntitiesCount(entity, () => {
-                            // noop
-                        });
+                        let res = await findEntitiesCount(entity);
                         await sendSuperNotification(rootCtx, uid, `${entity.descriptor.name} count: ${res}`);
                     }
                 }
