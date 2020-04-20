@@ -380,7 +380,8 @@ export default declareSchema(() => {
         field('attachmentsModern', optional(array(union({
             file_attachment: struct({
                 id: string(), fileId: string(), filePreview: optional(string()), fileMetadata: optional(FileInfo),
-            }), rich_attachment: struct({
+            }),
+            rich_attachment: struct({
                 id: string(),
                 title: optional(string()),
                 subTitle: optional(string()),
@@ -2395,6 +2396,13 @@ export default declareSchema(() => {
     entity('DebugEventState', () => {
         primaryKey('uid', integer());
         field('seq', integer());
+    });
+
+    entity('EntityCounterState', () => {
+        primaryKey('id', string());
+        field('cursor', string());
+        field('count', integer());
+        field('version', optional(integer()));
     });
 
     entity('GqlTrace', () => {

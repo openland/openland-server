@@ -103,6 +103,7 @@ extend type Query {
     debugGqlTraces(first: Int!, after: ID): GqlTraceConnection!
     debugGqlTrace(id: ID!): GqlTrace!
     debugUserWallet(id: ID!): WalletAccount!
+    debugEntitiesCounter(name: String!): Int!
 }
 
 enum SuperNotificationType {
@@ -181,6 +182,9 @@ extend type Mutation {
     debugFixBrokenDonations: Boolean!
     debugCreateTransfer(fromUid: ID!, toUid: ID!, amount: Int!): String!
     debugSetCommission(cid: ID!, percents: Int!): Boolean!
+
+    debugCalcEntitiesCount(entity: String!): Boolean!
+    debugCalcEntitiesCountAll: Boolean!
 }
 
 extend type Subscription {

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '4dd56c4442444a40ee2122030cab1731';
+export const GQL_SPEC_VERSION = 'fd077600aea622ee53544fef21978b1d';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2047,6 +2047,8 @@ export namespace GQL {
         debugFixBrokenDonations: boolean;
         debugCreateTransfer: string;
         debugSetCommission: boolean;
+        debugCalcEntitiesCount: boolean;
+        debugCalcEntitiesCountAll: boolean;
         settingsUpdate: Settings;
         sendEmailChangeCode: string;
         changeEmail: boolean;
@@ -2537,6 +2539,10 @@ export namespace GQL {
         cid: string;
         percents: number;
     }
+    export interface MutationDebugCalcEntitiesCountArgs {
+        entity: string;
+    }
+    export interface MutationDebugCalcEntitiesCountAllArgs { }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
     }
@@ -3695,6 +3701,7 @@ export namespace GQL {
         debugGqlTraces: GqlTraceConnection;
         debugGqlTrace: GqlTrace;
         debugUserWallet: WalletAccount;
+        debugEntitiesCounter: number;
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
@@ -3897,6 +3904,9 @@ export namespace GQL {
     }
     export interface QueryDebugUserWalletArgs {
         id: string;
+    }
+    export interface QueryDebugEntitiesCounterArgs {
+        name: string;
     }
     export interface QueryDialogsArgs {
         first: number;
@@ -7949,6 +7959,8 @@ export interface GQLResolver {
             debugFixBrokenDonations: GQL.MutationDebugFixBrokenDonationsArgs,
             debugCreateTransfer: GQL.MutationDebugCreateTransferArgs,
             debugSetCommission: GQL.MutationDebugSetCommissionArgs,
+            debugCalcEntitiesCount: GQL.MutationDebugCalcEntitiesCountArgs,
+            debugCalcEntitiesCountAll: GQL.MutationDebugCalcEntitiesCountAllArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailChangeCode: GQL.MutationSendEmailChangeCodeArgs,
             changeEmail: GQL.MutationChangeEmailArgs,
@@ -8683,6 +8695,7 @@ export interface GQLResolver {
             debugGqlTraces: GQL.QueryDebugGqlTracesArgs,
             debugGqlTrace: GQL.QueryDebugGqlTraceArgs,
             debugUserWallet: GQL.QueryDebugUserWalletArgs,
+            debugEntitiesCounter: GQL.QueryDebugEntitiesCounterArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
             authPoints: GQL.QueryAuthPointsArgs,
