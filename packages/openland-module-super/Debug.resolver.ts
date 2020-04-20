@@ -1501,7 +1501,12 @@ export const Resolver: GQLResolver = {
                     if (entity instanceof EntityFactory) {
                         let name = entity.descriptor.name;
 
-                        if (name === 'HyperLog' || name === 'Message') {
+                        if (
+                            name === 'HyperLog' ||
+                            name === 'Message' ||
+                            name === 'Task' ||
+                            name === 'DelayedTask'
+                        ) {
                             continue;
                         }
 

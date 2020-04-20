@@ -60,6 +60,8 @@ export class SuperModule {
         if (serverRoleEnabled('admin')) {
             await startAdminInterface();
         }
-        createEntitiesCounter('HyperLog', 2, Store.HyperLog.created.stream({ batchSize: 5000 }));
+        createEntitiesCounter('HyperLog', 3, Store.HyperLog, 5000);
+        createEntitiesCounter('Task', 1, Store.Task, 5000);
+        createEntitiesCounter('Message', 1, Store.Message, 5000);
     }
 }

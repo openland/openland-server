@@ -17237,25 +17237,36 @@ export class DebugEventStateFactory extends EntityFactory<DebugEventStateShape, 
 
 export interface EntityCounterStateShape {
     id: string;
-    cursor: string;
+    cursor: string | null;
+    lastId: any | null;
     count: number;
     version: number | null;
 }
 
 export interface EntityCounterStateCreateShape {
-    cursor: string;
+    cursor?: string | null | undefined;
+    lastId?: any | null | undefined;
     count: number;
     version?: number | null | undefined;
 }
 
 export class EntityCounterState extends Entity<EntityCounterStateShape> {
     get id(): string { return this._rawValue.id; }
-    get cursor(): string { return this._rawValue.cursor; }
-    set cursor(value: string) {
+    get cursor(): string | null { return this._rawValue.cursor; }
+    set cursor(value: string | null) {
         let normalized = this.descriptor.codec.fields.cursor.normalize(value);
         if (this._rawValue.cursor !== normalized) {
             this._rawValue.cursor = normalized;
             this._updatedValues.cursor = normalized;
+            this.invalidate();
+        }
+    }
+    get lastId(): any | null { return this._rawValue.lastId; }
+    set lastId(value: any | null) {
+        let normalized = this.descriptor.codec.fields.lastId.normalize(value);
+        if (this._rawValue.lastId !== normalized) {
+            this._rawValue.lastId = normalized;
+            this._updatedValues.lastId = normalized;
             this.invalidate();
         }
     }
@@ -17287,12 +17298,14 @@ export class EntityCounterStateFactory extends EntityFactory<EntityCounterStateS
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'cursor', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'cursor', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'lastId', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
         fields.push({ name: 'count', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'version', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.string,
-            cursor: c.string,
+            cursor: c.optional(c.string),
+            lastId: c.optional(c.any),
             count: c.integer,
             version: c.optional(c.integer),
         });

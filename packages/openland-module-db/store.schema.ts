@@ -2204,7 +2204,8 @@ export default declareSchema(() => {
 
     entity('EntityCounterState', () => {
         primaryKey('id', string());
-        field('cursor', string());
+        field('cursor', optional(string())); // deprecated
+        field('lastId', optional(json()));
         field('count', integer());
         field('version', optional(integer()));
     });
