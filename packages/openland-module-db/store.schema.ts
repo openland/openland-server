@@ -963,14 +963,9 @@ export default declareSchema(() => {
         field('sources', localSources);
         field('active', boolean());
 
-        // Generic Producer
+        // Producers
         field('genericTransport', optional(string()));
-        field('genericAudioProducer', optional(string()));
-        field('genericVideoProducer', optional(string()));
-
-        // Screencast Producer
         field('screencastTransport', optional(string()));
-        field('screencastVideoProducer', optional(string()));
 
         // Consumer
         field('consumersTransport', optional(string()));
@@ -982,6 +977,31 @@ export default declareSchema(() => {
 
         rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.active);
         rangeIndex('conferenceStreamers', ['cid', 'createdAt']).withCondition((src) => src.active && src.sources.length > 0);
+    });
+
+    entity('ConferenceKitchenConnection', () => {
+        primaryKey('id', string());
+        field('kind', enumString('producer', 'consumer'));
+        field('pid', integer());
+        field('cid', integer());
+
+        field('localSources', localSources);
+        field('localAudioProducer', optional(string()));
+        field('localVideoProducer', optional(string()));
+
+        field('transportId', optional(string()));
+        field('deleted', boolean());
+    });
+
+    entity('ConferenceKitchenTransportRef', () => {
+        primaryKey('id', string());
+        field('connection', string());
+    });
+
+    entity('ConferenceKitchenProducerRef', () => {
+        primaryKey('id', string());
+        field('connection', string());
+        field('kind', enumString('audio', 'video'));
     });
 
     //
