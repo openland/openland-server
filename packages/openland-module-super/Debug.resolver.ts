@@ -1493,15 +1493,29 @@ export const Resolver: GQLResolver = {
         }),
         debugCalcEntitiesCountAll: withPermission('super-admin', async (ctx, args) => {
             let uid = ctx.auth.uid!;
+            let res: {name: string, count: number}[] = [];
 
             asyncRun(async () => {
                 for (let f in container.get('Store') as any) {
                     let entity = (Store as any)[f];
                     if (entity instanceof EntityFactory) {
-                        let res = await findEntitiesCount(entity);
-                        await sendSuperNotification(rootCtx, uid, `${entity.descriptor.name} count: ${res}`);
+                        let name = entity.descriptor.name;
+
+                        if (
+                            name === 'HyperLog' ||
+                            name === 'Message' ||
+                            name === 'Task' ||
+                            name === 'DelayedTask'
+                        ) {
+                            continue;
+                        }
+
+                        let count = await findEntitiesCount(entity);
+                        res.push({ name, count });
+                        await sendSuperNotification(rootCtx, uid, `${entity.descriptor.name} count: ${count}`);
                     }
                 }
+                await sendSuperNotification(rootCtx, uid, JSON.stringify(res));
             });
 
             return true;

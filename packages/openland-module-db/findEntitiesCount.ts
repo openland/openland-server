@@ -1,4 +1,4 @@
-import { EntityFactory, Stream } from '@openland/foundationdb-entity';
+import { EntityFactory } from '@openland/foundationdb-entity';
 import { createNamedContext } from '@openland/context';
 import { getTransaction, inTx } from '@openland/foundationdb';
 import { Store } from './FDB';
@@ -28,28 +28,35 @@ export async function findEntitiesCount(entity: EntityFactory<any, any>) {
     }
 }
 
-export function createEntitiesCounter<T>(name: string, version: number, stream: Stream<T>) {
+export function createEntitiesCounter<T>(name: string, version: number, entity: EntityFactory<any, any>, batchSize: number) {
     singletonWorker({ name: 'entities_counter' + name, version, delay: 100, db: Store.storage.db }, async (root) => {
         let existing = await inTx(root, async (ctx) => await Store.EntityCounterState.findById(ctx, name));
         let first = false;
+        let after: undefined|any[] = undefined;
+
         if (existing) {
             if (existing.version === null || existing.version < version) {
-                stream.reset();
+                after = undefined;
                 first = true;
             } else {
-                stream.seek(existing.cursor);
+                after = existing.lastId;
             }
         } else {
-            stream.reset();
+            after = undefined;
             first = true;
         }
 
         await inTx(root, async ctx => {
-            let res = await stream.next(ctx);
+            let res = await entity.descriptor.subspace.snapshotRange(ctx, [], {limit: batchSize, after});
+            if (res.length === 0) {
+                return;
+            }
+            after = res[res.length - 1].key;
+
             let latest = await Store.EntityCounterState.findById(ctx, name);
             if (existing && latest) {
                 if (existing.metadata.versionCode === latest.metadata.versionCode) {
-                    latest.cursor = stream.cursor!;
+                    latest.lastId = after;
                     latest.version = version;
                     if (first) {
                         latest.count = res.length;
@@ -58,7 +65,7 @@ export function createEntitiesCounter<T>(name: string, version: number, stream: 
                     }
                 }
             } else if (!latest) {
-                await Store.EntityCounterState.create(ctx, name, { cursor: stream.cursor!, version: version, count: res.length });
+                await Store.EntityCounterState.create(ctx, name, { lastId: after, version: version, count: res.length });
             }
         });
     });

@@ -49,8 +49,8 @@ import { initOauth2 } from '../openland-module-oauth/http.handlers';
 import { AuthContext } from '../openland-module-auth/AuthContext';
 import { createHyperlogger } from '../openland-module-hyperlog/createHyperlogEvent';
 import { initPhoneAuthProvider } from '../openland-module-auth/providers/phone';
-import { Store } from '../openland-module-db/FDB';
-import { fetchNextDBSeq } from '../openland-utils/dbSeq';
+// import { Store } from '../openland-module-db/FDB';
+// import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
 // import { randomKey } from '../openland-utils/random';
 
@@ -226,10 +226,10 @@ export async function initApi(isTest: boolean) {
 
         async function saveTrace(trace: GqlTrace) {
             if (trace.duration >= 1500) {
-                await inTx(rootCtx, async _ctx => {
-                    let id = await fetchNextDBSeq(_ctx, 'gql-trace');
-                    await Store.GqlTrace.create(_ctx, id, { traceData: trace });
-                });
+                // await inTx(rootCtx, async _ctx => {
+                //     let id = await fetchNextDBSeq(_ctx, 'gql-trace');
+                //     await Store.GqlTrace.create(_ctx, id, { traceData: trace });
+                // });
             }
         }
         // const wsCtx = createNamedContext('ws-gql');
@@ -283,11 +283,11 @@ export async function initApi(isTest: boolean) {
                 // }
             },
             onOperationFinish: async (ctx, operation, duration) => {
-                let trace = gqlTraceNamespace.get(ctx);
-                if (trace) {
-                    trace.onRequestFinish();
-                    await saveTrace(trace.getTrace());
-                }
+                // let trace = gqlTraceNamespace.get(ctx);
+                // if (trace) {
+                //     trace.onRequestFinish();
+                //     await saveTrace(trace.getTrace());
+                // }
 
                 if (operation.operationName) {
                     await inTx(rootCtx, async _ctx => {

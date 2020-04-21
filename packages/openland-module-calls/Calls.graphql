@@ -80,6 +80,20 @@ input MediaStreamMediaStateInput {
     
 }
 
+type LocalStreamAudioConfig {
+    codec: String!
+}
+type LocalStreamVideoConfig {
+    codec: String!
+}
+type LocalStreamDataChannelConfig {
+    id: Int!
+    label: String!
+    ordered: Boolean!
+}
+
+union LocalStreamConfig = LocalStreamAudioConfig | LocalStreamVideoConfig | LocalStreamDataChannelConfig
+
 type MediaStream {
     id: ID!
     peerId: ID
@@ -89,6 +103,7 @@ type MediaStream {
     ice: [String!]!
     settings: MediaStreamSettings!
     mediaState: MediaStreamMediaState!
+    localStreams: [LocalStreamConfig!]!
 }
 
 input ConferenceSettingsInput {
