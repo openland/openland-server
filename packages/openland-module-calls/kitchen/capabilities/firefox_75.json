@@ -1,0 +1,198 @@
+{
+    "codecs": [
+        {
+            "kind": "audio",
+            "mimeType": "audio/opus",
+            "preferredPayloadType": 109,
+            "clockRate": 48000,
+            "channels": 2,
+            "parameters": {
+                "maxplaybackrate": 48000,
+                "stereo": 1,
+                "useinbandfec": 1
+            },
+            "rtcpFeedback": []
+        },
+        {
+            "kind": "audio",
+            "mimeType": "audio/G722",
+            "preferredPayloadType": 9,
+            "clockRate": 8000,
+            "channels": 1,
+            "parameters": {},
+            "rtcpFeedback": []
+        },
+        {
+            "kind": "audio",
+            "mimeType": "audio/PCMU",
+            "preferredPayloadType": 0,
+            "clockRate": 8000,
+            "parameters": {},
+            "rtcpFeedback": []
+        },
+        {
+            "kind": "audio",
+            "mimeType": "audio/PCMA",
+            "preferredPayloadType": 8,
+            "clockRate": 8000,
+            "parameters": {},
+            "rtcpFeedback": []
+        },
+        {
+            "kind": "audio",
+            "mimeType": "audio/telephone-event",
+            "preferredPayloadType": 101,
+            "clockRate": 8000,
+            "channels": 1,
+            "parameters": {},
+            "rtcpFeedback": []
+        },
+        {
+            "kind": "video",
+            "mimeType": "video/VP8",
+            "preferredPayloadType": 120,
+            "clockRate": 90000,
+            "parameters": {
+                "max-fs": 12288,
+                "max-fr": 60
+            },
+            "rtcpFeedback": [
+                {
+                    "type": "nack"
+                },
+                {
+                    "type": "nack",
+                    "parameter": "pli"
+                },
+                {
+                    "type": "ccm",
+                    "parameter": "fir"
+                },
+                {
+                    "type": "goog-remb"
+                }
+            ]
+        },
+        {
+            "kind": "video",
+            "mimeType": "video/VP9",
+            "preferredPayloadType": 121,
+            "clockRate": 90000,
+            "parameters": {
+                "max-fs": 12288,
+                "max-fr": 60
+            },
+            "rtcpFeedback": [
+                {
+                    "type": "nack"
+                },
+                {
+                    "type": "nack",
+                    "parameter": "pli"
+                },
+                {
+                    "type": "ccm",
+                    "parameter": "fir"
+                },
+                {
+                    "type": "goog-remb"
+                }
+            ]
+        },
+        {
+            "kind": "video",
+            "mimeType": "video/H264",
+            "preferredPayloadType": 126,
+            "clockRate": 90000,
+            "parameters": {
+                "profile-level-id": "42e01f",
+                "level-asymmetry-allowed": 1,
+                "packetization-mode": 1
+            },
+            "rtcpFeedback": [
+                {
+                    "type": "nack"
+                },
+                {
+                    "type": "nack",
+                    "parameter": "pli"
+                },
+                {
+                    "type": "ccm",
+                    "parameter": "fir"
+                },
+                {
+                    "type": "goog-remb"
+                }
+            ]
+        },
+        {
+            "kind": "video",
+            "mimeType": "video/H264",
+            "preferredPayloadType": 97,
+            "clockRate": 90000,
+            "parameters": {
+                "profile-level-id": "42e01f",
+                "level-asymmetry-allowed": 1
+            },
+            "rtcpFeedback": [
+                {
+                    "type": "nack"
+                },
+                {
+                    "type": "nack",
+                    "parameter": "pli"
+                },
+                {
+                    "type": "ccm",
+                    "parameter": "fir"
+                },
+                {
+                    "type": "goog-remb"
+                }
+            ]
+        }
+    ],
+    "headerExtensions": [
+        {
+            "kind": "audio",
+            "uri": "urn:ietf:params:rtp-hdrext:ssrc-audio-level",
+            "preferredId": 1
+        },
+        {
+            "kind": "audio",
+            "uri": "urn:ietf:params:rtp-hdrext:csrc-audio-level",
+            "preferredId": 2
+        },
+        {
+            "kind": "audio",
+            "uri": "urn:ietf:params:rtp-hdrext:sdes:mid",
+            "preferredId": 3
+        },
+        {
+            "kind": "video",
+            "uri": "urn:ietf:params:rtp-hdrext:sdes:mid",
+            "preferredId": 3
+        },
+        {
+            "kind": "video",
+            "uri": "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time",
+            "preferredId": 4
+        },
+        {
+            "kind": "video",
+            "uri": "urn:ietf:params:rtp-hdrext:toffset",
+            "preferredId": 5
+        },
+        {
+            "kind": "video",
+            "uri": "http://www.webrtc.org/experiments/rtp-hdrext/playout-delay",
+            "preferredId": 6
+        },
+        {
+            "kind": "video",
+            "uri": "urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id",
+            "preferredId": 7
+        }
+    ]
+}

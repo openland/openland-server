@@ -1,3 +1,4 @@
+import { createLogger } from '@openland/log';
 import { SDP } from './../sdp/SDP';
 import uuid from 'uuid/v4';
 import { Store } from 'openland-module-db/FDB';
@@ -14,9 +15,10 @@ import { writeSDP } from 'openland-module-calls/sdp/writeSDP';
 import { convertIceCandidate } from 'openland-module-calls/kitchen/convert';
 import { MediaDescription } from 'sdp-transform';
 
+const logger = createLogger('calls-kitchen');
+
 function isEmptySource(source: MediaSources) {
-    // return !source.audioStream && !source.videoStream && !source.screenCastStream;
-    return !source.audioStream;
+    return !source.audioStream && !source.videoStream && !source.screenCastStream;
 }
 
 function checkSources(source: MediaSources) {
@@ -27,6 +29,16 @@ function checkSources(source: MediaSources) {
 
 function convertParameters(src: any) {
     return Object.keys(src).map((key) => `${key}=${src[key]}`).join(';');
+}
+
+function decodeParameters(src: string) {
+    let params: any = {};
+    let parts = src.split(';');
+    for (let p of parts) {
+        let kv = p.split('=');
+        params[kv[0]] = kv[1];
+    }
+    return params;
 }
 
 @injectable()
@@ -138,7 +150,7 @@ export class CallSchedulerKitchenConnections {
             remoteCandidates: [],
             localSdp: null,
             remoteSdp: null,
-            localStreams: this.#getStreamGenericConfig(sources),
+            localStreams: this.#getStreamConfigs(sources),
             remoteStreams: [],
             iceTransportPolicy: 'all'
         });
@@ -146,6 +158,7 @@ export class CallSchedulerKitchenConnections {
             connection: connection
         });
         await this.callRepo.bumpVersion(ctx, cid);
+        logger.log(ctx, 'Transport ' + kitchenTransport + ' started');
         return kitchenTransport;
     }
 
@@ -161,21 +174,60 @@ export class CallSchedulerKitchenConnections {
         if (endStream.state === 'completed') {
             return;
         }
+        let ref = await Store.ConferenceKitchenTransportRef.findById(ctx, id);
+        if (!ref) {
+            return;
+        }
+        let connection = await Store.ConferenceKitchenConnection.findById(ctx, ref.connection);
+        if (!connection) {
+            return;
+        }
+
         endStream.seq++;
         endStream.state = 'need-offer';
         endStream.localSdp = null;
         endStream.remoteSdp = null;
-        endStream.localStreams = this.#getStreamGenericConfig(sources);
+        endStream.localStreams = this.#getStreamConfigs(sources);
+
+        // Delete audio producer if stream was removed
+        if (connection.localAudioProducer && !sources.audioStream) {
+            await this.repo.deleteProducer(ctx, connection.localAudioProducer);
+            connection.localAudioProducer = null;
+        }
+
+        // Delete video producer if stream was removed
+        if (connection.localVideoProducer && !sources.videoStream && !sources.screenCastStream) {
+            await this.repo.deleteProducer(ctx, connection.localVideoProducer);
+            connection.localVideoProducer = null;
+        }
+
         await this.callRepo.bumpVersion(ctx, peer.cid);
+
+        logger.log(ctx, 'Transport ' + id + ' restarted');
     }
 
     #deleteProducerTransport = async (ctx: Context, id: string) => {
+
+        let ref = await Store.ConferenceKitchenTransportRef.findById(ctx, id);
+        if (!ref) {
+            return;
+        }
+        let connection = await Store.ConferenceKitchenConnection.findById(ctx, ref.id);
+        if (!connection) {
+            return;
+        }
+        let stream = (await Store.ConferenceEndStream.findById(ctx, id));
+        if (!stream) {
+            return;
+        }
+        if (stream.state === 'completed') {
+            return;
+        }
 
         // Delete transport
         await this.repo.deleteTransport(ctx, id);
 
         // Delete End Stream
-        let stream = (await Store.ConferenceEndStream.findById(ctx, id))!;
         stream.seq++;
         stream.state = 'completed';
         stream.remoteCandidates = [];
@@ -185,10 +237,20 @@ export class CallSchedulerKitchenConnections {
         stream.localStreams = [];
         stream.remoteStreams = [];
 
-        // TODO: Delete producers and consumers?
+        // Delete producers
+        if (connection.localAudioProducer) {
+            await this.repo.deleteProducer(ctx, connection.localAudioProducer);
+            connection.localAudioProducer = null;
+        }
+        if (connection.localVideoProducer) {
+            await this.repo.deleteProducer(ctx, connection.localVideoProducer);
+            connection.localVideoProducer = null;
+        }
+
+        logger.log(ctx, 'Transport ' + id + ' stopped');
     }
 
-    #getStreamGenericConfig = (streams: MediaSources): StreamConfig[] => {
+    #getStreamConfigs = (streams: MediaSources): StreamConfig[] => {
         let res: StreamConfig[] = [];
         if (streams.videoStream) {
             res.push({ type: 'video', codec: 'h264', source: 'default' });
@@ -271,19 +333,10 @@ export class CallSchedulerKitchenConnections {
             if (!connection.localAudioProducer) {
 
                 // Resolve Parameters
-                // minptime and useinbandfec supported only (why?)
                 let params: any = {};
                 let fmt = audioMedia.fmtp.find((v) => v.payload === codec.payload);
                 if (fmt) {
-                    let parts = fmt.config.split(';');
-                    for (let p of parts) {
-                        let kv = p.split('=');
-                        if (kv[0] === 'minptime') {
-                            params[kv[0]] = parseInt(kv[1], 10);
-                        } else if (kv[0] === 'useinbandfec') {
-                            params[kv[0]] = parseInt(kv[1], 10);
-                        }
-                    }
+                    params = decodeParameters(fmt.config);
                 }
 
                 // Create Producer
@@ -309,13 +362,74 @@ export class CallSchedulerKitchenConnections {
                 await Store.ConferenceKitchenProducerRef.create(ctx, producerId, { connection: connection.id, kind: 'audio' });
                 connection.localAudioProducer = producerId;
             }
-        } else if (connection.localAudioProducer) {
-            // Remove Producer
-            await this.repo.deleteProducer(ctx, connection.localAudioProducer);
-            connection.localAudioProducer = null;
         }
 
-        // TODO: Handle Video
+        // Handle Video
+        if (videoStreams.length === 1) {
+            let videoMedia = videoStreams[0];
+            let ssrc = videoMedia.ssrcs![0].id as number;
+
+            // Resolving a codec
+            let codecPayload: number | null = null;
+            for (let c of videoMedia.rtp) {
+                if (c.codec !== 'H264') {
+                    continue;
+                }
+                let fmt = videoMedia.fmtp.find((f) => f.payload === c.payload);
+                if (!fmt) {
+                    continue;
+                }
+                let cfg = decodeParameters(fmt.config);
+                if (cfg['packetization-mode'] !== '1') {
+                    continue;
+                }
+                if (cfg['profile-level-id'] !== '42e034' && cfg['profile-level-id'] !== '42e01f') {
+                    continue;
+                }
+                codecPayload = c.payload;
+                break;
+            }
+            if (codecPayload === null) {
+                throw Error('Unable to find vide codec');
+            }
+            let codec = videoMedia.rtp.find((v) => v.payload === codecPayload)!;
+
+            // Create Video Producer if possible
+            if (!connection.localVideoProducer) {
+
+                // Resolve Param
+                let params: any = {};
+                let fmt = videoMedia.fmtp.find((v) => v.payload === codec.payload);
+                if (fmt) {
+                    params = decodeParameters(fmt.config);
+                }
+                params['profile-level-id'] = '42e01f';
+                params['packetization-mode'] = 1;
+                params['level-asymmetry-allowed'] = 1;
+
+                // Create Producer
+                let codecParameters = {
+                    mimeType: 'video/H264',
+                    payloadType: codec.payload,
+                    clockRate: 90000,
+                    parameters: params,
+                    rtcpFeedback: [{
+                        type: 'transport-cc'
+                    }]
+                };
+                let producerId = await this.repo.createProducer(ctx, transportId, {
+                    kind: 'video',
+                    rtpParameters: {
+                        codecs: [codecParameters],
+                        encodings: [{ ssrc: ssrc }]
+                    }
+                });
+
+                // Save producer
+                await Store.ConferenceKitchenProducerRef.create(ctx, producerId, { connection: connection.id, kind: 'video' });
+                connection.localVideoProducer = producerId;
+            }
+        }
 
         // Generate answer if ready
         await connection.flush(ctx);
@@ -364,6 +478,24 @@ export class CallSchedulerKitchenConnections {
             }
         }
 
+        // Check Video Producer
+        let videoProducer: KitchenProducer | null = null;
+        if (connection.localSources.videoStream || connection.localSources.screenCastStream) {
+            if (connection.localVideoProducer) {
+                let producer = await Store.KitchenProducer.findById(ctx, connection.localVideoProducer);
+                if (!producer) {
+                    return;
+                }
+                if (producer.state === 'created') {
+                    videoProducer = producer;
+                } else {
+                    return;
+                }
+            } else {
+                return;
+            }
+        }
+
         // 
         // Resolve Answer
         //
@@ -384,7 +516,7 @@ export class CallSchedulerKitchenConnections {
                 mid: '0',
                 type: 'audio',
                 protocol: 'UDP/TLS/RTP/SAVPF',
-                payloads: audioProducer!.rtpParameters!.codecs[0].payloadType.toString(),
+                payloads: audioProducer.rtpParameters!.codecs[0].payloadType.toString(),
                 port: 7,
                 rtcpMux: 'rtcp-mux',
                 rtcpRsize: 'rtcp-rsize',
@@ -392,17 +524,53 @@ export class CallSchedulerKitchenConnections {
 
                 // Codec
                 rtp: [{
-                    payload: audioProducer!.rtpParameters!.codecs[0].payloadType,
-                    rate: audioProducer!.rtpParameters!.codecs[0].clockRate,
+                    payload: audioProducer.rtpParameters!.codecs[0].payloadType,
+                    rate: audioProducer.rtpParameters!.codecs[0].clockRate,
                     encoding: 2,
                     codec: 'opus',
                 }],
                 fmtp: [{
-                    payload: audioProducer!.rtpParameters!.codecs[0].payloadType,
-                    config: convertParameters(audioProducer!.rtpParameters!.codecs[0].parameters || {})
+                    payload: audioProducer.rtpParameters!.codecs[0].payloadType,
+                    config: convertParameters(audioProducer.rtpParameters!.codecs[0].parameters || {})
                 }],
-                rtcpFb: audioProducer!.rtpParameters!.codecs[0].rtcpFeedback!.map((v) => ({
-                    payload: audioProducer!!.rtpParameters!.codecs[0].payloadType,
+                rtcpFb: audioProducer.rtpParameters!.codecs[0].rtcpFeedback!.map((v) => ({
+                    payload: audioProducer!.rtpParameters!.codecs[0].payloadType,
+                    type: v.type,
+                    subtype: v.parameter ? v.parameter : undefined
+                })),
+
+                // ICE + DTLS
+                setup: 'active',
+                connection: { ip: '0.0.0.0', version: 4 },
+                candidates: iceCandidates.map((v) => convertIceCandidate(v)),
+                endOfCandidates: 'end-of-candidates',
+                ...{ iceOptions: 'renomination' },
+            });
+        }
+
+        if (videoProducer) {
+            media.push({
+                mid: '1',
+                type: 'video',
+                protocol: 'UDP/TLS/RTP/SAVPF',
+                payloads: videoProducer.rtpParameters!.codecs[0].payloadType.toString(),
+                port: 8,
+                rtcpMux: 'rtcp-mux',
+                rtcpRsize: 'rtcp-rsize',
+                direction: 'recvonly',
+
+                // Codec
+                rtp: [{
+                    payload: videoProducer.rtpParameters!.codecs[0].payloadType,
+                    rate: videoProducer.rtpParameters!.codecs[0].clockRate,
+                    codec: 'H264',
+                }],
+                fmtp: [{
+                    payload: videoProducer.rtpParameters!.codecs[0].payloadType,
+                    config: convertParameters({ ...videoProducer.rtpParameters!.codecs[0].parameters })
+                }],
+                rtcpFb: videoProducer.rtpParameters!.codecs[0].rtcpFeedback!.map((v) => ({
+                    payload: videoProducer!.rtpParameters!.codecs[0].payloadType,
                     type: v.type,
                     subtype: v.parameter ? v.parameter : undefined
                 })),
