@@ -4,6 +4,7 @@ import { createLogger } from '@openland/log';
 interface StoppableWork {
     name: string;
     shutdown(ctx: Context): Promise<void>;
+    last?: boolean;
 }
 
 const logger = createLogger('shutdown');
@@ -12,12 +13,20 @@ const isTesting = process.env.TESTING === 'true';
 
 class ShutdownImpl {
     private works: StoppableWork[] = [];
+    private lastToStop: StoppableWork | undefined;
 
     registerWork(work: StoppableWork) {
-        this.works.push(work);
+        if (work.last) {
+            this.lastToStop = work;
+        } else {
+            this.works.push(work);
+        }
     }
 
     async shutdown() {
+        if (this.lastToStop) {
+            this.works.push(this.lastToStop);
+        }
         for (let work of this.works) {
             logger.log(ctx, 'stopping', work.name);
             await work.shutdown(ctx);

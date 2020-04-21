@@ -50,7 +50,8 @@ export async function openDatabase() {
                 db.close(ctx);
                 setTimeout(() => resolve(), 1000);
             });
-        }
+        },
+        last: true
     });
     cachedDB = db;
     return db;
@@ -72,7 +73,8 @@ export async function openTestDatabase() {
                 db.close(ctx);
                 setTimeout(() => resolve(), 1000);
             });
-        }
+        },
+        last: true
     });
     return db;
 }
