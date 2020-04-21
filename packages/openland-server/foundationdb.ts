@@ -45,7 +45,11 @@ export async function openDatabase() {
     Shutdown.registerWork({
         name: 'database',
         shutdown: async (ctx) => {
-            await db.close(ctx);
+            return new Promise(resolve => {
+                // @ts-ignore
+                db.close(ctx);
+                setTimeout(() => resolve(), 1000);
+            });
         }
     });
     cachedDB = db;
@@ -63,7 +67,11 @@ export async function openTestDatabase() {
     Shutdown.registerWork({
         name: 'database',
         shutdown: async (ctx) => {
-            await db.close(ctx);
+            return new Promise(resolve => {
+                // @ts-ignore
+                db.close(ctx);
+                setTimeout(() => resolve(), 1000);
+            });
         }
     });
     return db;
