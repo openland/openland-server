@@ -308,6 +308,7 @@ export class CallSchedulerMesh implements CallScheduler {
         if (streams.audioStream) {
             res.push({ type: 'audio', codec: 'opus' });
         }
+        res.push({ type: 'dataChannel', ordered: true, id: 0, label: 'bus' });
         return res;
     }
 

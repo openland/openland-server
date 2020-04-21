@@ -207,6 +207,10 @@ export namespace GQLRoots {
     export type MediaStreamSettingsRoot = { audioIn: boolean, audioOut: boolean, videoIn: boolean, videoOut: boolean, videoOutSource: MediaStreamVideoSourceRoot, iceTransportPolicy?: MediaStreamIceTransportPolicyValues };
     export type ConferenceSettingsInputRoot = { strategy?: ConferenceStrategyRoot, iceTransportPolicy?: MediaStreamIceTransportPolicyValues };
     export type MediaStreamMediaStateRoot = { videoOut: boolean, videoSource: MediaStreamVideoSourceRoot, audioOut: boolean, videoPaused?: boolean, audioPaused?: boolean };
+    export type LocalStreamAudioConfigRoot = { type: 'audio', codec: 'default' | 'opus' };
+    export type LocalStreamVideoConfigRoot = { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' };
+    export type LocalStreamDataChannelConfigRoot = { type: 'dataChannel', ordered: boolean, label: string, id: number };
+    export type LocalStreamConfigRoot = LocalStreamAudioConfigRoot | LocalStreamVideoConfigRoot | LocalStreamDataChannelConfigRoot;
 
     //
     // Dialogs Updates

@@ -300,10 +300,10 @@ export class CallRepository {
             }
             stream.localSdp = offer;
             stream.state = 'wait-answer';
-            await stream.flush(ctx);
 
             // Schedule
             await scheduler.onStreamOffer(ctx, peer.cid, peer.id, streamId, offer);
+            await stream.flush(ctx);
 
             // Notify state change
             await this.bumpVersion(ctx, peer.cid);
@@ -332,10 +332,10 @@ export class CallRepository {
             }
             stream.localSdp = answer;
             stream.state = 'online';
-            await stream.flush(ctx);
 
             // Schedule
             await scheduler.onStreamAnswer(ctx, peer.cid, peer.id, streamId, answer);
+            await stream.flush(ctx);
 
             // Bump version
             await this.bumpVersion(ctx, peer.cid);
@@ -363,10 +363,10 @@ export class CallRepository {
                 return;
             }
             stream.localCandidates = [...stream.localCandidates, candidate];
-            await stream.flush(ctx);
 
             // Scheduling
             await scheduler.onStreamCandidate(ctx, peer.cid, peer.id, streamId, candidate);
+            await stream.flush(ctx);
 
             // Bump version
             await this.bumpVersion(ctx, peer.cid);
