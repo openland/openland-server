@@ -7,7 +7,8 @@ interface StoppableWork {
 }
 
 const logger = createLogger('shutdown');
-let ctx = createNamedContext('shutdown');
+const ctx = createNamedContext('shutdown');
+const isTesting = process.env.TESTING === 'true';
 
 class ShutdownImpl {
     private works: StoppableWork[] = [];
@@ -30,6 +31,9 @@ class ShutdownImpl {
 export const Shutdown = new ShutdownImpl();
 
 async function onExit() {
+    if (isTesting) {
+        process.exit();
+    }
     await Shutdown.shutdown();
 }
 
