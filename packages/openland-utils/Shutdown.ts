@@ -24,6 +24,9 @@ class ShutdownImpl {
     }
 
     async shutdown() {
+        if (isTesting) {
+            process.exit();
+        }
         if (this.lastToStop) {
             this.works.push(this.lastToStop);
         }
@@ -40,9 +43,6 @@ class ShutdownImpl {
 export const Shutdown = new ShutdownImpl();
 
 async function onExit() {
-    if (isTesting) {
-        process.exit();
-    }
     await Shutdown.shutdown();
 }
 
