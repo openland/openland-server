@@ -309,14 +309,24 @@ export class CallSchedulerKitchenConnections {
         if (videoStreams.length > 1) {
             throw Error('Found more than one audio stream in SDP');
         }
-        if (endStream.remoteStreams!.find((v) => v.type === 'audio')) {
+        if (endStream.localStreams!.find((v) => v.type === 'audio')) {
             if (audioStreams.length === 0) {
                 throw Error('Audio stream not found in SDP');
             }
         }
-        if (endStream.remoteStreams!.find((v) => v.type === 'video')) {
+        if (!endStream.localStreams!.find((v) => v.type === 'audio')) {
+            if (audioStreams.length !== 0) {
+                throw Error('Audio stream present in SDP');
+            }
+        }
+        if (endStream.localStreams!.find((v) => v.type === 'video')) {
             if (videoStreams.length === 0) {
                 throw Error('Video stream not found in SDP');
+            }
+        }
+        if (!endStream.localStreams!.find((v) => v.type === 'video')) {
+            if (videoStreams.length !== 0) {
+                throw Error('Video stream present in SDP');
             }
         }
 
