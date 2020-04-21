@@ -1,5 +1,6 @@
 import { createMetric } from 'openland-module-monitoring/Metric';
 import { createNamedContext } from '@openland/context';
+import { Shutdown } from '../openland-utils/Shutdown';
 
 function hrTime() {
     let t = process.hrtime();
@@ -18,8 +19,13 @@ function measureEventLoopLag(): Promise<number> {
 const metric = createMetric('event-loop-lag', 'average');
 const ctx = createNamedContext('event-loop-tracing');
 export function setupNodeJSTracing() {
-    setInterval(async () => {
+    let timer = setInterval(async () => {
         let lag = await measureEventLoopLag();
         metric.add(ctx, lag / 1000000);
     }, 1000);
+
+    Shutdown.registerWork({
+        name: 'node-js-tracing',
+        shutdown: async () => clearInterval(timer)
+    });
 }

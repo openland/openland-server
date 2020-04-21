@@ -16,6 +16,7 @@ import { cancelContext } from '@openland/lifetime';
 import { QueryCache } from './queryCache';
 import { randomKey } from '../openland-utils/random';
 import { createMetric } from '../openland-module-monitoring/Metric';
+import { BoundedConcurrencyPoool } from '../openland-utils/ConcurrencyPool';
 
 const logger = createLogger('apollo');
 
@@ -64,6 +65,7 @@ class FuckApolloSession {
     public lastPingAck: number = Date.now();
     public pingCounter = 0;
     public pingAckCounter = 0;
+    public executionPool = new BoundedConcurrencyPoool(16);
 
     constructor(socket: WebSocket) {
         this.socket = socket;
@@ -249,13 +251,13 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                 let ctx = await params.context(session.authParams, operation, req);
                 await params.onOperation(ctx, operation);
                 let opStartTime = Date.now();
-                let result = await execute({
+                let result = await session.executionPool.run(async () => execute({
                     schema: params.executableSchema,
                     document: query,
                     operationName: operation.operationName,
                     variableValues: operation.variables,
                     contextValue: ctx
-                });
+                }));
                 session.sendData(message.id, await params.formatResponse(result, operation, ctx));
                 session.sendComplete(message.id);
                 await params.onOperationFinish(ctx, operation, Date.now() - opStartTime);
