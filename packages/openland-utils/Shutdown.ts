@@ -11,40 +11,27 @@ let ctx = createNamedContext('shutdown');
 
 class ShutdownImpl {
     private works: StoppableWork[] = [];
-    private subs: (() => void)[] = [];
 
     registerWork(work: StoppableWork) {
         this.works.push(work);
     }
 
-    onShutdownDone(listener: () => void) {
-        this.subs.push(listener);
-    }
-
     async shutdown() {
-        await Promise.all(this.works.map(w => {
-            return (async () => {
-                logger.log(ctx, 'stopping', w.name);
-                await w.shutdown(ctx);
-            })();
-        }));
-        this.subs.forEach(s => s());
+        for (let work of this.works) {
+            logger.log(ctx, 'stopping', work.name);
+            await work.shutdown(ctx);
+            logger.log(ctx, 'stopped', work.name);
+        }
         logger.log(ctx, 'done');
+        process.exit();
     }
 }
 
 export const Shutdown = new ShutdownImpl();
 
-let exitCalled = false;
 async function onExit() {
-    if (exitCalled) {
-        process.exit();
-    }
-    exitCalled = true;
     await Shutdown.shutdown();
-    process.exit();
 }
 
-process.on('exit', onExit);
 process.on('SIGTERM', onExit);
-process.on('SIGINT', onExit);
+process.on('SIGINT', () => process.exit());

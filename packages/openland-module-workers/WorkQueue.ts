@@ -208,7 +208,6 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
 
             working = false;
             await workLoop.stop();
-            log.log(ctx, this.taskType, 'stopped');
         };
 
         Shutdown.registerWork({ name: this.taskType, shutdown });
