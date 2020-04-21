@@ -6,7 +6,6 @@ import { PermissionsRepository } from './repositories/PermissionsRepository';
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { EnvironmentVariablesRepository, EnvVarValueType } from './repositories/EnvironmentVariablesRepository';
-import { createEntitiesCounter } from '../openland-module-db/findEntitiesCount';
 
 @injectable()
 export class SuperModule {
@@ -60,8 +59,8 @@ export class SuperModule {
         if (serverRoleEnabled('admin')) {
             await startAdminInterface();
         }
-        createEntitiesCounter('HyperLog', 3, Store.HyperLog, 5000);
-        createEntitiesCounter('Task', 1, Store.Task, 5000);
-        createEntitiesCounter('Message', 1, Store.Message, 5000);
+        // createEntitiesCounter('HyperLog', 3, Store.HyperLog, 5000);
+        // createEntitiesCounter('Task', 1, Store.Task, 5000);
+        // createEntitiesCounter('Message', 1, Store.Message, 5000);
     }
 }
