@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'fd077600aea622ee53544fef21978b1d';
+export const GQL_SPEC_VERSION = 'ee3593887b5f3a3e36cee7435a2a0262';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1840,6 +1840,23 @@ export namespace GQL {
         videoOut: Nullable<boolean>;
         audioOut: Nullable<boolean>;
     }
+    export interface LocalStreamAudioConfig {
+        codec: string;
+    }
+    export interface LocalStreamAudioConfigCodecArgs { }
+    export interface LocalStreamVideoConfig {
+        codec: string;
+    }
+    export interface LocalStreamVideoConfigCodecArgs { }
+    export interface LocalStreamDataChannelConfig {
+        id: number;
+        label: string;
+        ordered: boolean;
+    }
+    export interface LocalStreamDataChannelConfigIdArgs { }
+    export interface LocalStreamDataChannelConfigLabelArgs { }
+    export interface LocalStreamDataChannelConfigOrderedArgs { }
+    export type LocalStreamConfig = LocalStreamAudioConfig | LocalStreamVideoConfig | LocalStreamDataChannelConfig;
     export interface MediaStream {
         id: string;
         peerId: Nullable<string>;
@@ -1849,6 +1866,7 @@ export namespace GQL {
         ice: string[];
         settings: MediaStreamSettings;
         mediaState: MediaStreamMediaState;
+        localStreams: LocalStreamConfig[];
     }
     export interface MediaStreamIdArgs { }
     export interface MediaStreamPeerIdArgs { }
@@ -1858,6 +1876,7 @@ export namespace GQL {
     export interface MediaStreamIceArgs { }
     export interface MediaStreamSettingsArgs { }
     export interface MediaStreamMediaStateArgs { }
+    export interface MediaStreamLocalStreamsArgs { }
     export interface ConferenceSettingsInput {
         strategy: Nullable<ConferenceStrategy>;
         iceTransportPolicy: Nullable<MediaStreamIceTransportPolicy>;
@@ -7611,12 +7630,43 @@ export interface GQLResolver {
             audioOut: GQL.MediaStreamMediaStateAudioOutArgs,
         }
     >;
+    LocalStreamAudioConfig?: ComplexTypedResolver<
+        GQL.LocalStreamAudioConfig,
+        GQLRoots.LocalStreamAudioConfigRoot,
+        {
+        },
+        {
+            codec: GQL.LocalStreamAudioConfigCodecArgs,
+        }
+    >;
+    LocalStreamVideoConfig?: ComplexTypedResolver<
+        GQL.LocalStreamVideoConfig,
+        GQLRoots.LocalStreamVideoConfigRoot,
+        {
+        },
+        {
+            codec: GQL.LocalStreamVideoConfigCodecArgs,
+        }
+    >;
+    LocalStreamDataChannelConfig?: ComplexTypedResolver<
+        GQL.LocalStreamDataChannelConfig,
+        GQLRoots.LocalStreamDataChannelConfigRoot,
+        {
+        },
+        {
+            id: GQL.LocalStreamDataChannelConfigIdArgs,
+            label: GQL.LocalStreamDataChannelConfigLabelArgs,
+            ordered: GQL.LocalStreamDataChannelConfigOrderedArgs,
+        }
+    >;
+    LocalStreamConfig?: UnionTypeResolver<GQLRoots.LocalStreamConfigRoot, 'LocalStreamAudioConfig' | 'LocalStreamVideoConfig' | 'LocalStreamDataChannelConfig'>;
     MediaStream?: ComplexTypedResolver<
         GQL.MediaStream,
         GQLRoots.MediaStreamRoot,
         {
             settings: GQLRoots.MediaStreamSettingsRoot,
             mediaState: GQLRoots.MediaStreamMediaStateRoot,
+            localStreams: GQLRoots.LocalStreamConfigRoot[],
         },
         {
             id: GQL.MediaStreamIdArgs,
@@ -7627,6 +7677,7 @@ export interface GQLResolver {
             ice: GQL.MediaStreamIceArgs,
             settings: GQL.MediaStreamSettingsArgs,
             mediaState: GQL.MediaStreamMediaStateArgs,
+            localStreams: GQL.MediaStreamLocalStreamsArgs,
         }
     >;
     ConferenceJoinResult?: ComplexTypedResolver<

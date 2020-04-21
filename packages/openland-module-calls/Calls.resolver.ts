@@ -10,6 +10,7 @@ import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { resolveTurnServices } from './services/TURNService';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
 import { distanceBetweenIP } from '../openland-utils/geoIp/geoIP';
+import { GQLRoots } from 'openland-module-api/schema/SchemaRoots';
 
 const resolveNearestTurn = async (ip: string) => {
     let turns = await resolveTurnServices();
@@ -131,7 +132,36 @@ export const Resolver: GQLResolver = {
             let remoteVideo = src.remoteStreams?.find(s => s.type === 'video');
             res.videoSource = remoteVideo?.type === 'video' && remoteVideo.source === 'screen' ? 'screen_share' : 'camera';
             return res;
+        },
+
+        localStreams: (src) => {
+            return src.localStreams;
         }
+
+    },
+    LocalStreamConfig: {
+        __resolveType(obj: GQLRoots.LocalStreamConfigRoot) {
+            if (obj.type === 'audio') {
+                return 'LocalStreamAudioConfig';
+            } else if (obj.type === 'video') {
+                return 'LocalStreamVideoConfig';
+            } else if (obj.type === 'dataChannel') {
+                return 'LocalStreamDataChannelConfig';
+            } else {
+                throw new Error('Unknow stream config' + obj);
+            }
+        }
+    },
+    LocalStreamAudioConfig: {
+        codec: src => src.codec
+    },
+    LocalStreamVideoConfig: {
+        codec: src => src.codec
+    },
+    LocalStreamDataChannelConfig: {
+        id: src => src.id,
+        label: src => src.label,
+        ordered: src => src.ordered
     },
     Query: {
         conference: withUser(async (ctx, args, uid) => {
@@ -280,6 +310,7 @@ export const Resolver: GQLResolver = {
                 let pid = IDs.ConferencePeer.parse(args.peerId);
                 let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
                 // elder client mb turned video on
+                // remove after 1.1.3048 ios / 1.1.2512 android will gain adoption
                 if (peer.videoPaused === null) {
                     await Modules.Calls.repo.alterConferencePeerMediaState(ctx, peer.cid, uid, parent.auth.tid!, null, false);
                 }

@@ -887,6 +887,11 @@ export default declareSchema(() => {
         video: struct({
             codec: enumString('default', 'h264'),
             source: enumString('default', 'screen')
+        }),
+        dataChannel: struct({
+            label: string(),
+            id: integer(),
+            ordered: boolean()
         })
     });
 
@@ -894,6 +899,11 @@ export default declareSchema(() => {
         audio: struct({}),
         video: struct({
             source: enumString('default', 'screen')
+        }),
+        dataChannel: struct({
+            label: string(),
+            id: integer(),
+            ordered: boolean()
         })
     });
 
