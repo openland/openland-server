@@ -1,4 +1,4 @@
-FROM node:10.16.0
+FROM node:12.16.2s
 
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
@@ -16,7 +16,7 @@ RUN yarn install
 
 ADD tsconfig.json /app/
 COPY packages/ /app/packages/
-RUN yarn build 
+RUN yarn build
 
 EXPOSE 9000
 WORKDIR /app/build
