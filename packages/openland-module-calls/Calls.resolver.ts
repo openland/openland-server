@@ -128,8 +128,8 @@ export const Resolver: GQLResolver = {
             }
             res.audioPaused = !!otherPeer.audioPaused;
             res.videoPaused = !!otherPeer.videoPaused;
-            let remoteVideo = src.remoteStreams?.find(s => s.type === 'video');
-            res.videoSource = remoteVideo?.type === 'video' && remoteVideo.source === 'screen' ? 'screen_share' : 'camera';
+            let remoteVideo = src.remoteStreams?.find(s => s.media.type === 'video');
+            res.videoSource = remoteVideo?.media.type === 'video' && remoteVideo.media.source === 'screen' ? 'screen_share' : 'camera';
             return res;
         }
     },

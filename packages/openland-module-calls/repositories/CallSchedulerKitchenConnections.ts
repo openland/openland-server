@@ -70,11 +70,11 @@ export class CallSchedulerKitchenConnections {
 
         // Create Connection
         await Store.ConferenceKitchenConnection.create(ctx, id, {
-            kind: 'producer',
-            localSources: sources,
             pid, cid,
+            kind: 'producer',
+            producerSources: sources,
             transportId,
-            deleted: false
+            deleted: false,
         });
 
         return id;
@@ -93,32 +93,61 @@ export class CallSchedulerKitchenConnections {
 
         // Ignore if nothing changed
         if (
-            sources.audioStream === connection.localSources.audioStream
-            && sources.videoStream === connection.localSources.videoStream
-            && sources.screenCastStream === connection.localSources.screenCastStream
+            sources.audioStream === connection.producerSources!.audioStream
+            && sources.videoStream === connection.producerSources!.videoStream
+            && sources.screenCastStream === connection.producerSources!.screenCastStream
         ) {
             return;
         }
 
-        if (isEmptySource(sources) && !isEmptySource(connection.localSources)) {
+        if (isEmptySource(sources) && !isEmptySource(connection.producerSources!)) {
             // Delete producer transport
             await this.#deleteProducerTransport(ctx, connection.transportId!);
-            connection.localSources = sources;
+            connection.producerSources = sources;
             connection.transportId = null;
             await connection.flush(ctx);
-        } else if (!isEmptySource(sources) && isEmptySource(connection.localSources)) {
+        } else if (!isEmptySource(sources) && isEmptySource(connection.producerSources!)) {
             // Create producer transport
             let transportId = await this.#createProducerTransport(ctx, connection.cid, connection.pid, sources, connection.id);
-            connection.localSources = sources;
+            connection.producerSources = sources;
             connection.transportId = transportId;
             await connection.flush(ctx);
         } else {
             // Update Connection
             await this.#restartProducerTransport(ctx, connection.transportId!, sources);
-            connection.localSources = sources;
+            connection.producerSources = sources;
             await connection.flush(ctx);
         }
     }
+
+    // createConsumerConnection = async (ctx: Context, cid: number, pid: number, sources: string[]) => {
+    //     // Connection Id
+    //     let id = uuid();
+
+    //     // Resolve sources
+    //     let remoteStreams = await this.#getRemoteStreams(ctx, sources);
+    //     let remoteMidIndex = 0;
+    //     let streamsEnumerated = this.#enumerateStreams(ctx, remoteStreams.streams);
+    //     for (let s of streamsEnumerated) {
+    //         remoteMidIndex = Math.max(s.mid, remoteMidIndex);
+    //     }
+
+    //     // Create transport if sources are not empty
+    //     let transportId: string | null = null;
+    //     if (remoteStreams.producers.length > 0) {
+
+    //         transportId = await this.#createConsumerTransport(ctx, cid, pid, sources, id);
+    //     }
+
+    //     // Create Connection
+    //     await Store.ConferenceKitchenConnection.create(ctx, id, {
+    //         pid, cid,
+    //         kind: 'consumer',
+    //         consumerConnections: sources,
+    //         transportId,
+    //         deleted: false
+    //     });
+    // }
 
     removeConnection = async (ctx: Context, id: string) => {
         let connection = await Store.ConferenceKitchenConnection.findById(ctx, id);
@@ -127,7 +156,7 @@ export class CallSchedulerKitchenConnections {
         }
         connection.deleted = true;
         if (connection.kind === 'producer') {
-            if (!isEmptySource(connection.localSources)) {
+            if (!isEmptySource(connection.producerSources!)) {
                 await this.#deleteProducerTransport(ctx, connection.transportId!);
                 connection.transportId = null;
             }
@@ -158,9 +187,80 @@ export class CallSchedulerKitchenConnections {
             connection: connection
         });
         await this.callRepo.bumpVersion(ctx, cid);
+
+        // NOTE: Transport doesnt have any producers until we have offer from the app
+        await Store.ConferenceKitchenProducerTransport.create(ctx, kitchenTransport, {
+            connection: connection,
+            deleted: false
+        });
+        
         logger.log(ctx, 'Transport ' + kitchenTransport + ' started');
         return kitchenTransport;
     }
+
+    // #createConsumerTransport = async (ctx: Context, cid: number, pid: number, sources: { connection: string, kind: 'audio' | 'video', mid: number }[], connection: string) => {
+    //     let router = (await Store.ConferenceKitchenRouter.conference.find(ctx, cid))!;
+    //     let kitchenTransport = await this.repo.createTransport(ctx, router!.id);
+    //     await Store.ConferenceEndStream.create(ctx, kitchenTransport, {
+    //         pid,
+    //         seq: 1,
+    //         state: 'need-answer',
+    //         localCandidates: [],
+    //         remoteCandidates: [],
+    //         localSdp: null,
+    //         remoteSdp: null,
+    //         localStreams: [],
+    //         remoteStreams: [],
+    //         iceTransportPolicy: 'all'
+    //     });
+    //     await Store.ConferenceKitchenTransportRef.create(ctx, kitchenTransport, {
+    //         connection: connection
+    //     });
+    //     await this.callRepo.bumpVersion(ctx, cid);
+    //     logger.log(ctx, 'Transport ' + kitchenTransport + ' started');
+    //     return kitchenTransport;
+    // }
+
+    // #getRemoteStreams = async (ctx: Context, sources: string[]) => {
+    //     let res: ({ connection: string, kind: 'audio' | 'video' })[] = [];
+    //     let producers: string[] = [];
+    //     let connections = await Promise.all(sources.map((id) => Store.ConferenceKitchenConnection.findById(ctx, id)));
+    //     for (let c of connections) {
+    //         if (c === null) {
+    //             throw Error('Invalid connection');
+    //         }
+    //         if (c.localSources.audioStream) {
+    //             if (c.localAudioProducer) {
+    //                 res.push({ connection: c.id, kind: 'audio' });
+    //                 producers.push(c.localAudioProducer);
+    //             }
+    //         }
+    //         if (c.localSources.videoStream) {
+    //             if (c.localVideoProducer) {
+    //                 res.push({ connection: c.id, kind: 'video' });
+    //                 producers.push(c.localVideoProducer);
+    //             }
+    //         }
+    //         if (c.localSources.screenCastStream) {
+    //             if (c.localVideoProducer) {
+    //                 res.push({ connection: c.id, kind: 'video' });
+    //                 producers.push(c.localVideoProducer);
+    //             }
+    //         }
+    //     }
+    //     return {
+    //         streams: res,
+    //         producers: producers
+    //     };
+    // }
+
+    // #enumerateStreams = (ctx: Context, streams: ({ connection: string, kind: 'audio' | 'video' })[]) => {
+    //     return streams.map((v, i) => ({
+    //         mid: i,
+    //         connection: v.connection,
+    //         kind: v.kind
+    //     }));
+    // }
 
     #restartProducerTransport = async (ctx: Context, id: string, sources: MediaSources) => {
         let endStream = await Store.ConferenceEndStream.findById(ctx, id);
@@ -182,6 +282,10 @@ export class CallSchedulerKitchenConnections {
         if (!connection) {
             return;
         }
+        let producerTransport = await Store.ConferenceKitchenProducerTransport.findById(ctx, id);
+        if (!producerTransport || producerTransport.deleted) {
+            return;
+        }
 
         endStream.seq++;
         endStream.state = 'need-offer';
@@ -190,15 +294,15 @@ export class CallSchedulerKitchenConnections {
         endStream.localStreams = this.#getStreamConfigs(sources);
 
         // Delete audio producer if stream was removed
-        if (connection.localAudioProducer && !sources.audioStream) {
-            await this.repo.deleteProducer(ctx, connection.localAudioProducer);
-            connection.localAudioProducer = null;
+        if (producerTransport.localAudioProducer && !sources.audioStream) {
+            await this.repo.deleteProducer(ctx, producerTransport.localAudioProducer);
+            producerTransport.localAudioProducer = null;
         }
 
         // Delete video producer if stream was removed
-        if (connection.localVideoProducer && !sources.videoStream && !sources.screenCastStream) {
-            await this.repo.deleteProducer(ctx, connection.localVideoProducer);
-            connection.localVideoProducer = null;
+        if (producerTransport.localVideoProducer && !sources.videoStream && !sources.screenCastStream) {
+            await this.repo.deleteProducer(ctx, producerTransport.localVideoProducer);
+            producerTransport.localVideoProducer = null;
         }
 
         await this.callRepo.bumpVersion(ctx, peer.cid);
@@ -223,6 +327,10 @@ export class CallSchedulerKitchenConnections {
         if (stream.state === 'completed') {
             return;
         }
+        let producerTransport = await Store.ConferenceKitchenProducerTransport.findById(ctx, id);
+        if (!producerTransport || producerTransport.deleted) {
+            return;
+        }
 
         // Delete transport
         await this.repo.deleteTransport(ctx, id);
@@ -238,14 +346,17 @@ export class CallSchedulerKitchenConnections {
         stream.remoteStreams = [];
 
         // Delete producers
-        if (connection.localAudioProducer) {
-            await this.repo.deleteProducer(ctx, connection.localAudioProducer);
-            connection.localAudioProducer = null;
+        if (producerTransport.localAudioProducer) {
+            await this.repo.deleteProducer(ctx, producerTransport.localAudioProducer);
+            producerTransport.localAudioProducer = null;
         }
-        if (connection.localVideoProducer) {
-            await this.repo.deleteProducer(ctx, connection.localVideoProducer);
-            connection.localVideoProducer = null;
+        if (producerTransport.localVideoProducer) {
+            await this.repo.deleteProducer(ctx, producerTransport.localVideoProducer);
+            producerTransport.localVideoProducer = null;
         }
+
+        // Delete tranport
+        producerTransport.deleted = true;
 
         logger.log(ctx, 'Transport ' + id + ' stopped');
     }
@@ -282,6 +393,10 @@ export class CallSchedulerKitchenConnections {
         }
         let endStream = await Store.ConferenceEndStream.findById(ctx, transportId);
         if (!endStream) {
+            return;
+        }
+        let producerTransport = await Store.ConferenceKitchenProducerTransport.findById(ctx, transportId);
+        if (!producerTransport || producerTransport.deleted) {
             return;
         }
 
@@ -340,7 +455,7 @@ export class CallSchedulerKitchenConnections {
             }
 
             // Create Audio Producer if not exists
-            if (!connection.localAudioProducer) {
+            if (!producerTransport.localAudioProducer) {
 
                 // Resolve Parameters
                 let params: any = {};
@@ -370,7 +485,7 @@ export class CallSchedulerKitchenConnections {
 
                 // Save producer
                 await Store.ConferenceKitchenProducerRef.create(ctx, producerId, { connection: connection.id, kind: 'audio' });
-                connection.localAudioProducer = producerId;
+                producerTransport.localAudioProducer = producerId;
             }
         }
 
@@ -405,7 +520,7 @@ export class CallSchedulerKitchenConnections {
             let codec = videoMedia.rtp.find((v) => v.payload === codecPayload)!;
 
             // Create Video Producer if possible
-            if (!connection.localVideoProducer) {
+            if (!producerTransport.localVideoProducer) {
 
                 // Resolve Param
                 let params: any = {};
@@ -437,7 +552,7 @@ export class CallSchedulerKitchenConnections {
 
                 // Save producer
                 await Store.ConferenceKitchenProducerRef.create(ctx, producerId, { connection: connection.id, kind: 'video' });
-                connection.localVideoProducer = producerId;
+                producerTransport.localVideoProducer = producerId;
             }
         }
 
@@ -469,12 +584,16 @@ export class CallSchedulerKitchenConnections {
         if (!transport || transport.state !== 'connected') {
             return;
         }
+        let producerTransport = await Store.ConferenceKitchenProducerTransport.findById(ctx, transportId);
+        if (!producerTransport || producerTransport.deleted) {
+            return;
+        }
 
         // Check Audio Producer
         let audioProducer: KitchenProducer | null = null;
-        if (connection.localSources.audioStream) {
-            if (connection.localAudioProducer) {
-                let producer = await Store.KitchenProducer.findById(ctx, connection.localAudioProducer);
+        if (connection.producerSources!.audioStream) {
+            if (producerTransport.localAudioProducer) {
+                let producer = await Store.KitchenProducer.findById(ctx, producerTransport.localAudioProducer);
                 if (!producer) {
                     return;
                 }
@@ -490,9 +609,9 @@ export class CallSchedulerKitchenConnections {
 
         // Check Video Producer
         let videoProducer: KitchenProducer | null = null;
-        if (connection.localSources.videoStream || connection.localSources.screenCastStream) {
-            if (connection.localVideoProducer) {
-                let producer = await Store.KitchenProducer.findById(ctx, connection.localVideoProducer);
+        if (connection.producerSources!.videoStream || connection.producerSources!.screenCastStream) {
+            if (producerTransport.localVideoProducer) {
+                let producer = await Store.KitchenProducer.findById(ctx, producerTransport.localVideoProducer);
                 if (!producer) {
                     return;
                 }

@@ -906,7 +906,10 @@ export default declareSchema(() => {
 
         // Streams
         field('localStreams', array(localStream));
-        field('remoteStreams', optional(array(remoteStream)));
+        field('remoteStreams', array(struct({
+            pid: integer(),
+            media: remoteStream
+        })));
 
         // Offer/Answer
         field('iceTransportPolicy', enumString('all', 'relay'));
@@ -963,17 +966,10 @@ export default declareSchema(() => {
         field('sources', localSources);
         field('active', boolean());
 
-        // Producers
+        // Transports
         field('genericTransport', optional(string()));
         field('screencastTransport', optional(string()));
-
-        // Consumer
         field('consumersTransport', optional(string()));
-        field('consumers', optional(array(struct({
-            id: string(),
-            pid: integer(),
-            source: enumString('generic-audio', 'generic-video', 'screencast-video')
-        }))));
 
         rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.active);
         rangeIndex('conferenceStreamers', ['cid', 'createdAt']).withCondition((src) => src.active && src.sources.length > 0);
@@ -984,12 +980,32 @@ export default declareSchema(() => {
         field('kind', enumString('producer', 'consumer'));
         field('pid', integer());
         field('cid', integer());
-
-        field('localSources', localSources);
-        field('localAudioProducer', optional(string()));
-        field('localVideoProducer', optional(string()));
+        field('producerSources', optional(localSources));
+        field('consumerConnections', optional(array(string())));
 
         field('transportId', optional(string()));
+
+        field('deleted', boolean());
+    });
+
+    entity('ConferenceKitchenProducerTransport', () => {
+        primaryKey('id', string());
+        field('connection', string());
+        field('localAudioProducer', optional(string()));
+        field('localVideoProducer', optional(string()));
+        field('deleted', boolean());
+    });
+
+    entity('ConferenceKitchenConsumerTransport', () => {
+        primaryKey('id', string());
+        field('connection', string());
+        field('midCounter', integer());
+        field('sources', array(struct({
+            mid: integer(),
+            kind: enumString('audio', 'video'),
+            connection: string(),
+            consumer: string()
+        })));
         field('deleted', boolean());
     });
 

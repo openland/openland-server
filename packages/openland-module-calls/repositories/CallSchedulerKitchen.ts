@@ -69,7 +69,6 @@ export class CallSchedulerKitchen implements CallScheduler {
             genericTransport: genericTransport,
             screencastTransport: screencastTransport,
             consumersTransport: null,
-            consumers: null,
 
             active: true
         });
