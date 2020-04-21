@@ -46,7 +46,7 @@ export async function openDatabase() {
         name: 'database',
         shutdown: async (ctx) => {
             return new Promise(resolve => {
-                // @ts-ignore
+                // tslint:disable-next-line:no-floating-promises
                 db.close(ctx);
                 setTimeout(() => resolve(), 1000);
             });
@@ -68,7 +68,7 @@ export async function openTestDatabase() {
         name: 'database',
         shutdown: async (ctx) => {
             return new Promise(resolve => {
-                // @ts-ignore
+                // tslint:disable-next-line:no-floating-promises
                 db.close(ctx);
                 setTimeout(() => resolve(), 1000);
             });
