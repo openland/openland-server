@@ -15,9 +15,9 @@ function hasGenericSources(source: MediaSources) {
 }
 
 export class CallSchedulerMesh implements CallScheduler {
-    private iceTransportPolicy: 'all' | 'relay';
+    private iceTransportPolicy: 'all' | 'relay' | 'none';
 
-    constructor(iceTransportPolicy: 'all' | 'relay') {
+    constructor(iceTransportPolicy: 'all' | 'relay' | 'none') {
         this.iceTransportPolicy = iceTransportPolicy;
     }
 
@@ -311,7 +311,6 @@ export class CallSchedulerMesh implements CallScheduler {
         if (streams.audioStream) {
             res.push({ type: 'audio', codec: 'opus' });
         }
-        res.push({ type: 'dataChannel', ordered: true, id: 0, label: 'bus' });
         return res;
     }
     #assignConfigPeer = (media: StreamConfig[], pid: number) => {

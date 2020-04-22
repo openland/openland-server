@@ -181,7 +181,7 @@ export class CallSchedulerKitchenConnections {
             remoteSdp: null,
             localStreams: this.#getStreamConfigs(sources),
             remoteStreams: [],
-            iceTransportPolicy: 'all'
+            iceTransportPolicy: 'none'
         });
         await Store.ConferenceKitchenTransportRef.create(ctx, kitchenTransport, {
             connection: connection
