@@ -4,6 +4,7 @@ import { Store } from '../../openland-module-db/FDB';
 import { MessageInput } from '../../openland-module-messaging/MessageInput';
 import { boldString, buildMessage, heading, insaneString } from '../../openland-utils/MessageBuilder';
 import { inTx } from '@openland/foundationdb';
+import moment from 'moment';
 
 export const getSuperNotificationsBotId = (ctx: Context) => Modules.Super.getEnvVar<number>(ctx, 'super-notifications-app-id');
 export const getOnboardingReportsChatId = (ctx: Context) => Modules.Super.getEnvVar<number>(ctx, 'onboarding-reports-chat-id');
@@ -231,12 +232,37 @@ export const getEngagementCounters =  async (startDate: number) => {
     let todayLikeGivers = todayLikersData.aggregations.givers.value;
     let todayLikeGetters = todayLikersData.aggregations.getters.value;
 
+    let callsData = await Modules.Search.elastic.client.search({
+        index: 'hyperlog', type: 'hyperlog',
+        body: {
+            query: {
+                bool: {
+                    must: [{ term: { type: 'call_ended' } }, {
+                        range: {
+                            date: {
+                                gte: startDate,
+                            },
+                        },
+                    }],
+                },
+            }, aggs: {
+                totalDuration: {
+                    sum: {
+                        field: 'body.duration',
+                    },
+                },
+            },
+        }, size: 0,
+    });
+    let totalCallsDuration = callsData.aggregations.totalDuration.value;
+
     return {
         actives,
         senders,
         todayLikeGivers,
         todayLikeGetters,
         messagesSent,
+        totalCallsDuration: Math.round(moment.duration(totalCallsDuration).asMinutes() * 10) / 10
     };
 };
 
