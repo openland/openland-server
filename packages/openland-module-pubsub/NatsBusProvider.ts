@@ -9,6 +9,7 @@ export class NatsBusProvider implements BusProvider {
     constructor(client: Client) {
         this.nc = client;
 
+        // tslint:disable:no-floating-promises
         this.nc.subscribe(this.rootTopic + '.*', (err, msg) => {
             if (err) {
                 return;
