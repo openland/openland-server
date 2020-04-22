@@ -14,11 +14,20 @@ import { container } from '../openland-modules/Modules.container';
 let cachedDB: Database|null = null;
 
 function createLayers(test: boolean) {
+    // For some reason container.isBound returns true even if nats is not binded
+    let natsBounded: boolean;
+    try {
+        container.get('NATS');
+        natsBounded = true;
+    } catch (e) {
+        natsBounded = false;
+    }
+
     let layers: Layer[] = [
         new RandomLayer(),
         new LockLayer(),
         new SingletonWorkerLayer(),
-        new BusLayer(container.isBound('NATS') ? new NatsBusProvider(container.get('NATS')) : new NoOpBus())
+        new BusLayer(natsBounded ? new NatsBusProvider(container.get('NATS')) : new NoOpBus())
     ];
     if (serverRoleEnabled('admin') && !test) {
         layers.push(new MigrationsLayer(migrations));
