@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '7559cdda2660868d2774dc171b40901b';
+export const GQL_SPEC_VERSION = '07d30d659f566c52441943880b04d571';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1481,6 +1481,10 @@ export namespace GQL {
     }
     export interface AppChatChatArgs { }
     export interface AppChatWebhookArgs { }
+    export interface UserEventBusMessage {
+        message: string;
+    }
+    export interface UserEventBusMessageMessageArgs { }
     export interface ChatUpdateSingle {
         seq: number;
         state: string;
@@ -2182,6 +2186,7 @@ export namespace GQL {
         deleteApp: boolean;
         addAppToChat: AppChat;
         userStorageSet: AppStorageValue[];
+        userEventBusPublish: boolean;
         betaAddComment: CommentEntry;
         betaAddStickerComment: CommentEntry;
         editComment: boolean;
@@ -2854,6 +2859,10 @@ export namespace GQL {
     export interface MutationUserStorageSetArgs {
         namespace: string;
         data: AppStorageValueInput[];
+    }
+    export interface MutationUserEventBusPublishArgs {
+        topic: string;
+        message: string;
     }
     export interface MutationBetaAddCommentArgs {
         peerId: string;
@@ -4410,6 +4419,7 @@ export namespace GQL {
         alphaSubscribeOnline: OnlineEvent;
         chatOnlinesCount: ChatOnlineEvent;
         chatLocationUpdates: UserLocation;
+        userEventBus: UserEventBusMessage;
         chatUpdates: ChatUpdateContainer;
         commentUpdates: Nullable<CommentUpdateContainer>;
         conferenceWatch: Conference;
@@ -4459,6 +4469,9 @@ export namespace GQL {
     }
     export interface SubscriptionChatLocationUpdatesArgs {
         id: string;
+    }
+    export interface SubscriptionUserEventBusArgs {
+        topic: string;
     }
     export interface SubscriptionChatUpdatesArgs {
         chatId: string;
@@ -7144,6 +7157,15 @@ export interface GQLResolver {
             webhook: GQL.AppChatWebhookArgs,
         }
     >;
+    UserEventBusMessage?: ComplexTypedResolver<
+        GQL.UserEventBusMessage,
+        GQLRoots.UserEventBusMessageRoot,
+        {
+        },
+        {
+            message: GQL.UserEventBusMessageMessageArgs,
+        }
+    >;
     ChatUpdateSingle?: ComplexTypedResolver<
         GQL.ChatUpdateSingle,
         GQLRoots.ChatUpdateSingleRoot,
@@ -8185,6 +8207,7 @@ export interface GQLResolver {
             deleteApp: GQL.MutationDeleteAppArgs,
             addAppToChat: GQL.MutationAddAppToChatArgs,
             userStorageSet: GQL.MutationUserStorageSetArgs,
+            userEventBusPublish: GQL.MutationUserEventBusPublishArgs,
             betaAddComment: GQL.MutationBetaAddCommentArgs,
             betaAddStickerComment: GQL.MutationBetaAddStickerCommentArgs,
             editComment: GQL.MutationEditCommentArgs,
@@ -9013,6 +9036,7 @@ export interface GQLResolver {
             alphaSubscribeOnline: GQLRoots.OnlineEventRoot,
             chatOnlinesCount: GQLRoots.ChatOnlineEventRoot,
             chatLocationUpdates: GQLRoots.UserLocationRoot,
+            userEventBus: GQLRoots.UserEventBusMessageRoot,
             chatUpdates: GQLRoots.ChatUpdateContainerRoot,
             commentUpdates: Nullable<GQLRoots.CommentUpdateContainerRoot>,
             conferenceWatch: GQLRoots.ConferenceRoot,
@@ -9041,6 +9065,7 @@ export interface GQLResolver {
             alphaSubscribeOnline: GQL.SubscriptionAlphaSubscribeOnlineArgs,
             chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs,
             chatLocationUpdates: GQL.SubscriptionChatLocationUpdatesArgs,
+            userEventBus: GQL.SubscriptionUserEventBusArgs,
             chatUpdates: GQL.SubscriptionChatUpdatesArgs,
             commentUpdates: GQL.SubscriptionCommentUpdatesArgs,
             conferenceWatch: GQL.SubscriptionConferenceWatchArgs,
