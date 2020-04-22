@@ -81,7 +81,7 @@
     "express-jwt": "^5.3.0",
     "express-jwt-authz": "^1.0.0",
     "faker": "^4.1.0",
-    "firebase-admin": "^6.0.0",
+    "firebase-admin": "^8.10.0",
     "form-data": "^2.3.2",
     "geoip-lite": "^1.4.1",
     "globby": "^9.2.0",
@@ -133,12 +133,11 @@
     "yargs": "^13.2.4"
   },
   "scripts": {
-    "geoIP": "yarn cpx \"./packages/openland-utils/geoIp/*.json\" ./build/openland-utils/geoIp/",
     "assets": "yarn cpx \"./packages/openland-server/assets/**/*\" ./build/openland-server/assets/",
     "assets:watch": "yarn cpx \"./packages/openland-server/assets/**/*\" ./build/openland-server/assets/ --watch",
     "schema": "yarn cpx \"./packages/**/*.graphql\" ./build/",
     "schema:watch": "yarn cpx \"./packages/**/*.graphql\" ./build/ --watch",
-    "build": "yarn schema && yarn assets && yarn geoIP && npx tsc -p tsconfig.json && yarn vostok-schema:copy",
+    "build": "yarn schema && yarn assets && npx tsc -p tsconfig.json && yarn vostok-schema:copy",
     "build:watch": "./node_modules/.bin/tsc -w -p tsconfig.json",
     "start:watch": "nodemon build/openland-server/index.js",
     "start:inspect": "nodemon --inspect build/openland-server/index.js",

@@ -17,6 +17,7 @@ import { QueryCache } from './queryCache';
 import { randomKey } from '../openland-utils/random';
 import { createMetric } from '../openland-module-monitoring/Metric';
 import { BoundedConcurrencyPoool } from '../openland-utils/ConcurrencyPool';
+import { Shutdown } from '../openland-utils/Shutdown';
 
 const logger = createLogger('apollo');
 
@@ -305,6 +306,12 @@ export async function createFuckApolloWSServer(params: FuckApolloServerParams) {
     const ws = new WebSocket.Server(params.server ? { server: params.server, path: params.path } : { noServer: true });
     ws.on('connection', async (socket, req) => {
         await handleConnection(params, sessions, socket, req);
+    });
+    Shutdown.registerWork({
+        name: 'fuck-apollo-ws',
+        shutdown: async () => {
+            ws.close();
+        }
     });
     return { ws, sessions };
 }

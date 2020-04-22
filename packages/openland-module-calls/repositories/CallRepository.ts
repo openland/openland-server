@@ -8,8 +8,11 @@ import { createLogger } from '@openland/log';
 import { Store } from 'openland-module-db/FDB';
 import { ConferencePeer, ConferenceRoom } from '../../openland-module-db/store';
 import { CallScheduler, MediaSources } from './CallScheduler';
+import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 
 let log = createLogger('call-repo');
+
+let callEndedEvent = createHyperlogger<{ duration: number }>('call_ended');
 
 @injectable()
 export class CallRepository {
@@ -199,6 +202,9 @@ export class CallRepository {
             }
             if (members.length > 0) {
                 await scheduler.onConferenceStopped(ctx, cid);
+                if (conf.startTime) {
+                    await callEndedEvent.event(ctx, { duration: Date.now() - conf.startTime });
+                }
             }
         });
     }

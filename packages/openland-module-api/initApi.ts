@@ -43,12 +43,13 @@ import { withLifetime } from '@openland/lifetime';
 // import { initIFTTT } from '../openland-module-ifttt/http.handlers';
 import { InMemoryQueryCache } from '../openland-mtproto3/queryCache';
 import { initZapier } from '../openland-module-zapier/http.handlers';
-import { initVostokApiServer, initVostokTCPApiServer } from '../openland-mtproto3/vostok-api/vostokApiServer';
+import { initVostokApiServer } from '../openland-mtproto3/vostok-api/vostokApiServer';
 import { EventBus } from '../openland-module-pubsub/EventBus';
 import { initOauth2 } from '../openland-module-oauth/http.handlers';
 import { AuthContext } from '../openland-module-auth/AuthContext';
 import { createHyperlogger } from '../openland-module-hyperlog/createHyperlogEvent';
 import { initPhoneAuthProvider } from '../openland-module-auth/providers/phone';
+import { Shutdown } from '../openland-utils/Shutdown';
 // import { Store } from '../openland-module-db/FDB';
 // import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
@@ -390,50 +391,6 @@ export async function initApi(isTest: boolean) {
             }
         });
 
-        initVostokTCPApiServer({
-            hostname: '127.0.0.1', // httpServer ,
-            port: 7777,
-            executableSchema: Schema(),
-            queryCache: new InMemoryQueryCache(),
-            onAuth: async (token) => {
-                return await fetchWebSocketParameters({'x-openland-token': token}, null);
-            },
-            context: async (params, operation) => {
-                let opId = uuid();
-                let ctx = buildWebSocketContext(params || {}).ctx;
-                ctx = withReadOnlyTransaction(ctx);
-                ctx = withLogPath(ctx, `query ${opId} ${operation.operationName || ''}`);
-                ctx = withGqlQueryId(ctx, opId);
-                ctx = withGqlTrace(ctx, `query ${opId} ${operation.operationName || ''}`);
-
-                return new AppContext(ctx);
-            },
-            subscriptionContext: async (params, operation, firstCtx) => {
-                let opId = firstCtx ? GqlQueryIdNamespace.get(firstCtx)! : uuid();
-                let ctx = buildWebSocketContext(params || {}).ctx;
-                ctx = withReadOnlyTransaction(ctx);
-                ctx = withLogPath(ctx, `subscription ${opId} ${operation.operationName || ''}`);
-                ctx = withGqlQueryId(ctx, opId);
-                ctx = withGqlTrace(ctx, `subscription ${opId} ${operation.operationName || ''}`);
-                ctx = withLifetime(ctx);
-
-                return new AppContext(ctx);
-            },
-            onOperation: async (ctx, operation) => {
-                // noop
-            },
-            formatResponse: async value => {
-                let errors: any[] | undefined;
-                if (value.errors) {
-                    errors = value.errors && value.errors.map((e: any) => formatError(e));
-                }
-                return ({
-                    ...value,
-                    errors: errors,
-                });
-            }
-        });
-
         EventBus.subscribe('auth_token_revoke', (data: { tokens: { uuid: string, salt: string }[] }) => {
             for (let token of data.tokens) {
                 for (let entry of fuckApolloWS.sessions.entries()) {
@@ -473,7 +430,12 @@ export async function initApi(isTest: boolean) {
             }
         });
         httpServer.listen(dport);
-
+        Shutdown.registerWork({
+            name: 'http-server',
+            shutdown: async () => {
+                httpServer.close();
+            }
+        });
         server = httpServer;
     } else {
         server = await new Promise((resolver) => app.listen(0, () => resolver()));

@@ -4,47 +4,48 @@ import { createLogger } from '@openland/log';
 interface StoppableWork {
     name: string;
     shutdown(ctx: Context): Promise<void>;
+    last?: boolean;
 }
 
 const logger = createLogger('shutdown');
-let ctx = createNamedContext('shutdown');
+const ctx = createNamedContext('shutdown');
+const isTesting = process.env.TESTING === 'true';
+const isProd = process.env.APP_ENVIRONMENT === 'production';
 
 class ShutdownImpl {
     private works: StoppableWork[] = [];
-    private subs: (() => void)[] = [];
+    private lastToStop: StoppableWork | undefined;
 
     registerWork(work: StoppableWork) {
-        this.works.push(work);
-    }
-
-    onShutdownDone(listener: () => void) {
-        this.subs.push(listener);
+        if (work.last) {
+            this.lastToStop = work;
+        } else {
+            this.works.push(work);
+        }
     }
 
     async shutdown() {
-        await Promise.all(this.works.map(w => {
-            return (async () => {
-                logger.log(ctx, 'stopping', w.name);
-                await w.shutdown(ctx);
-            })();
-        }));
-        this.subs.forEach(s => s());
+        if (isTesting || !isProd) {
+            process.exit();
+        }
+        if (this.lastToStop) {
+            this.works.push(this.lastToStop);
+        }
+        for (let work of this.works) {
+            logger.log(ctx, 'stopping', work.name);
+            await work.shutdown(ctx);
+            logger.log(ctx, 'stopped', work.name);
+        }
         logger.log(ctx, 'done');
+        process.exit();
     }
 }
 
 export const Shutdown = new ShutdownImpl();
 
-let exitCalled = false;
 async function onExit() {
-    if (exitCalled) {
-        process.exit();
-    }
-    exitCalled = true;
     await Shutdown.shutdown();
-    process.exit();
 }
 
-process.on('exit', onExit);
 process.on('SIGTERM', onExit);
-process.on('SIGINT', onExit);
+process.on('SIGINT', () => process.exit());

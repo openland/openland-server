@@ -1,7 +1,8 @@
 import { ScheduledQueue, WeekDay } from '../../openland-module-workers/ScheduledQueue';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import {
-    alertIfRecord, alertIfRecordDelta,
+    alertIfRecord,
+    alertIfRecordDelta,
     buildWeeklyRecordAlert,
     getEngagementCounters,
     getEngagementReportsChatId,
@@ -39,7 +40,8 @@ export function createWeeklyEngagementReportWorker() {
                 `➡️ ${counters.senders}`,
                 `✉️ ${counters.messagesSent}`,
                 `❤️ ${counters.todayLikeGivers}`,
-                `🙃 ${counters.todayLikeGetters}`
+                `🙃 ${counters.todayLikeGetters}`,
+                `📞 ${counters.totalCallsDuration} minutes`
             ].join('   '))];
 
             await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
@@ -81,6 +83,13 @@ export function createWeeklyEngagementReportWorker() {
                 'engagement-weekly-like-getters',
                 counters.todayLikeGetters,
                 buildWeeklyRecordAlert('Weekly like getters')
+            );
+            await alertIfRecord(
+                parent,
+                chatId,
+                'engagement-weekly-calls-duration',
+                counters.totalCallsDuration,
+                buildWeeklyRecordAlert('Total call minutes')
             );
             await alertIfRecordDelta(
                 parent,

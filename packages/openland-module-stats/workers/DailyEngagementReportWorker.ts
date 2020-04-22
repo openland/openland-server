@@ -3,7 +3,8 @@ import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { Modules } from '../../openland-modules/Modules';
 import { buildMessage, heading } from '../../openland-utils/MessageBuilder';
 import {
-    alertIfRecord, buildDailyRecordAlert,
+    alertIfRecord,
+    buildDailyRecordAlert,
     getEngagementCounters,
     getEngagementReportsChatId,
     getSuperNotificationsBotId,
@@ -31,7 +32,8 @@ export function createDailyEngagementReportWorker() {
                 `➡️ ${counters.senders}`,
                 `✉️ ${counters.messagesSent}`,
                 `❤️ ${counters.todayLikeGivers}`,
-                `🙃 ${counters.todayLikeGetters}`
+                `🙃 ${counters.todayLikeGetters}`,
+                `📞 ${counters.totalCallsDuration} minutes`
             ].join('   '))];
 
             await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
@@ -73,6 +75,13 @@ export function createDailyEngagementReportWorker() {
                 'engagement-daily-like-getters',
                 counters.todayLikeGetters,
                 buildDailyRecordAlert('Today like getters')
+            );
+            await alertIfRecord(
+                parent,
+                chatId,
+                'engagement-daily-calls-duration',
+                counters.totalCallsDuration,
+                buildDailyRecordAlert(' Total call minutes')
             );
 
             return { result: 'completed' };

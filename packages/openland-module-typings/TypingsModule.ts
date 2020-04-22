@@ -8,6 +8,7 @@ import { Context, createNamedContext } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
 import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
 import TypingTypeRoot = GQLRoots.TypingTypeRoot;
+import { Shutdown } from '../openland-utils/Shutdown';
 
 @injectable()
 export class TypingsModule {
@@ -19,7 +20,13 @@ export class TypingsModule {
     private rootCtx = createNamedContext('typings');
 
     start = () => {
-        setInterval(() => this.cache.clear(), 1000 * 30);
+        let timer = setInterval(() => this.cache.clear(), 1000 * 30);
+        Shutdown.registerWork({
+            name: 'typings',
+            shutdown: async () => {
+                clearInterval(timer);
+            }
+        });
     }
 
     public async setTyping(uid: number, conversationId: number, type: TypingTypeRoot) {
