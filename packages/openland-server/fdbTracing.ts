@@ -59,7 +59,7 @@ export function setupFdbTracing() {
         },
         set: (ctx, key, value, handler) => {
             opWrite.increment(ctx);
-            if (key.byteLength > 1024) {
+            if (value.byteLength > 1024) {
                 valueLengthLimitLogger.log(ctx, 'Value length exceeds limit: ' + encoders.json.unpack(value));
             }
             // return tracer.traceSync(ctx, 'setKey', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
