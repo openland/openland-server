@@ -56,8 +56,10 @@ extend type Mutation {
 
     userStorageSet(namespace: String!, data: [AppStorageValueInput!]!): [AppStorageValue!]!
     userEventBusPublish(topic: String!, message: String!): Boolean!
+    globalEventBusPublish(topic: String!, message: String!): Boolean!
 }
 
 extend type Subscription {
     userEventBus(topic: String!): UserEventBusMessage!
+    globalEventBus(topic: String!): UserEventBusMessage!
 }

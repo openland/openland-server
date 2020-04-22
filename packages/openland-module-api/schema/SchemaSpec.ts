@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '07d30d659f566c52441943880b04d571';
+export const GQL_SPEC_VERSION = '387a7e003a14e06e8650933728042a98';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2187,6 +2187,7 @@ export namespace GQL {
         addAppToChat: AppChat;
         userStorageSet: AppStorageValue[];
         userEventBusPublish: boolean;
+        globalEventBusPublish: boolean;
         betaAddComment: CommentEntry;
         betaAddStickerComment: CommentEntry;
         editComment: boolean;
@@ -2861,6 +2862,10 @@ export namespace GQL {
         data: AppStorageValueInput[];
     }
     export interface MutationUserEventBusPublishArgs {
+        topic: string;
+        message: string;
+    }
+    export interface MutationGlobalEventBusPublishArgs {
         topic: string;
         message: string;
     }
@@ -4420,6 +4425,7 @@ export namespace GQL {
         chatOnlinesCount: ChatOnlineEvent;
         chatLocationUpdates: UserLocation;
         userEventBus: UserEventBusMessage;
+        globalEventBus: UserEventBusMessage;
         chatUpdates: ChatUpdateContainer;
         commentUpdates: Nullable<CommentUpdateContainer>;
         conferenceWatch: Conference;
@@ -4471,6 +4477,9 @@ export namespace GQL {
         id: string;
     }
     export interface SubscriptionUserEventBusArgs {
+        topic: string;
+    }
+    export interface SubscriptionGlobalEventBusArgs {
         topic: string;
     }
     export interface SubscriptionChatUpdatesArgs {
@@ -8208,6 +8217,7 @@ export interface GQLResolver {
             addAppToChat: GQL.MutationAddAppToChatArgs,
             userStorageSet: GQL.MutationUserStorageSetArgs,
             userEventBusPublish: GQL.MutationUserEventBusPublishArgs,
+            globalEventBusPublish: GQL.MutationGlobalEventBusPublishArgs,
             betaAddComment: GQL.MutationBetaAddCommentArgs,
             betaAddStickerComment: GQL.MutationBetaAddStickerCommentArgs,
             editComment: GQL.MutationEditCommentArgs,
@@ -9037,6 +9047,7 @@ export interface GQLResolver {
             chatOnlinesCount: GQLRoots.ChatOnlineEventRoot,
             chatLocationUpdates: GQLRoots.UserLocationRoot,
             userEventBus: GQLRoots.UserEventBusMessageRoot,
+            globalEventBus: GQLRoots.UserEventBusMessageRoot,
             chatUpdates: GQLRoots.ChatUpdateContainerRoot,
             commentUpdates: Nullable<GQLRoots.CommentUpdateContainerRoot>,
             conferenceWatch: GQLRoots.ConferenceRoot,
@@ -9066,6 +9077,7 @@ export interface GQLResolver {
             chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs,
             chatLocationUpdates: GQL.SubscriptionChatLocationUpdatesArgs,
             userEventBus: GQL.SubscriptionUserEventBusArgs,
+            globalEventBus: GQL.SubscriptionGlobalEventBusArgs,
             chatUpdates: GQL.SubscriptionChatUpdatesArgs,
             commentUpdates: GQL.SubscriptionCommentUpdatesArgs,
             conferenceWatch: GQL.SubscriptionConferenceWatchArgs,

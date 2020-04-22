@@ -149,6 +149,10 @@ export const Resolver: GQLResolver = {
             EventBus.publish(`user_bus.${uid}.${args.topic}`, { message: args.message });
             return true;
         }),
+        globalEventBusPublish: withAccount(async (parent, args, uid) => {
+            EventBus.publish(`public_bus.${args.topic}`, { message: args.message });
+            return true;
+        }),
     },
 
     Subscription: {
@@ -164,6 +168,23 @@ export const Resolver: GQLResolver = {
 
                 let iterator = createIterator<any>(() => 0);
                 let sub = EventBus.subscribe(`user_bus.${uid}.${args.topic}`, data => iterator.push(data));
+                onContextCancel(ctx, () => sub.cancel());
+
+                return iterator;
+            }
+        },
+        globalEventBus: {
+            resolve: async msg => {
+                return msg;
+            },
+            subscribe: async function (r: any, args: GQL.SubscriptionUserEventBusArgs, ctx: AppContext) {
+                let uid = ctx.auth.uid;
+                if (!uid) {
+                    throw new AccessDeniedError();
+                }
+
+                let iterator = createIterator<any>(() => 0);
+                let sub = EventBus.subscribe(`public_bus.${args.topic}`, data => iterator.push(data));
                 onContextCancel(ctx, () => sub.cancel());
 
                 return iterator;
