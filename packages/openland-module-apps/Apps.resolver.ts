@@ -1,5 +1,5 @@
 import { inTx } from '@openland/foundationdb';
-import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { Modules } from '../openland-modules/Modules';
 import { withAccount, withPermission } from '../openland-module-api/Resolvers';
 import { IDs } from '../openland-module-api/IDs';
@@ -8,6 +8,10 @@ import { stringNotEmpty, validate } from '../openland-utils/NewInputValidator';
 import { Sanitizer } from '../openland-utils/Sanitizer';
 import { withProfile } from '../openland-module-users/User.resolver';
 import { Store } from 'openland-module-db/FDB';
+import { EventBus } from '../openland-module-pubsub/EventBus';
+import { AppContext } from '../openland-modules/AppContext';
+import { createIterator } from '../openland-utils/asyncIterator';
+import { onContextCancel } from '@openland/lifetime';
 
 export const Resolver: GQLResolver = {
     AppToken: {
@@ -44,6 +48,10 @@ export const Resolver: GQLResolver = {
         id: (src) => IDs.UserStorageRecord.serialize(src.id),
         key: (src) => src.key,
         value: (src) => src.value
+    },
+
+    UserEventBusMessage: {
+        message: src => src.message
     },
 
     Query: {
@@ -137,5 +145,29 @@ export const Resolver: GQLResolver = {
                 return await Modules.Bots.writeKeys(ctx, uid, args.namespace, args.data);
             });
         }),
+        userEventBusPublish: withAccount(async (parent, args, uid) => {
+            EventBus.publish(`user_bus.${uid}.${args.topic}`, { message: args.message });
+            return true;
+        }),
     },
+
+    Subscription: {
+        userEventBus: {
+            resolve: async msg => {
+                return msg;
+            },
+            subscribe: async function (r: any, args: GQL.SubscriptionUserEventBusArgs, ctx: AppContext) {
+                let uid = ctx.auth.uid;
+                if (!uid) {
+                    throw new AccessDeniedError();
+                }
+
+                let iterator = createIterator<any>(() => 0);
+                let sub = EventBus.subscribe(`user_bus.${uid}.${args.topic}`, data => iterator.push(data));
+                onContextCancel(ctx, () => sub.cancel());
+
+                return iterator;
+            }
+        }
+    }
 };

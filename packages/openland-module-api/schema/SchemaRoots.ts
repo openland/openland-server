@@ -377,6 +377,7 @@ export namespace GQLRoots {
     export type AppTokenRoot = AuthToken;
     export type AppChatRoot = AppHook;
     export type AppStorageValueRoot = UserStorageRecord;
+    export type UserEventBusMessageRoot = { message: string };
 
     //
     // Modern Messaging
