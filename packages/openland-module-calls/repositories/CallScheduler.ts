@@ -13,12 +13,6 @@ export type StreamConfig = {
     type: 'video',
     source: 'default' | 'screen',
     codec: 'default' | 'h264',
-} | {
-    type: 'dataChannel',
-    // 16-bit actually i.e. 0-65534
-    id: number,
-    label: string,
-    ordered: boolean,
 };
 
 export interface CallScheduler {

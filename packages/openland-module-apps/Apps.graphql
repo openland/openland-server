@@ -36,9 +36,13 @@ type AppChat {
     webhook: String!
 }
 
+type UserEventBusMessage {
+    message: String!
+}
+
 extend type Query {
     myApps: [AppProfile!]!
-    
+
     userStorage(namespace: String!, keys: [String!]!): [AppStorageValue!]!
 }
 
@@ -51,4 +55,11 @@ extend type Mutation {
     addAppToChat(appId: ID!, chatId: ID!): AppChat!
 
     userStorageSet(namespace: String!, data: [AppStorageValueInput!]!): [AppStorageValue!]!
+    userEventBusPublish(topic: String!, message: String!): Boolean!
+    globalEventBusPublish(topic: String!, message: String!): Boolean!
+}
+
+extend type Subscription {
+    userEventBus(topic: String!): UserEventBusMessage!
+    globalEventBus(topic: String!): UserEventBusMessage!
 }

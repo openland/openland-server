@@ -1,143 +1,129 @@
-type ICEServer {
-    urls: [String!]!
-    username: String
-    credential: String
-}
-
-enum ConferenceStrategy {
-    MASH,
-    SFU
-}
-
-enum ConferenceKind {
-    CONFERENCE,
-    STREAM
-}
-
 type Conference {
-    id: ID!
-    startTime: Date
-    peers: [ConferencePeer!]!
-    iceServers: [ICEServer!]!
-    strategy: ConferenceStrategy!
-    kind: ConferenceKind!
+  id: ID!
+  startTime: Date
+  peers: [ConferencePeer!]!
 }
 
 type ConferencePeer {
-    id: ID!
-    user: User!
+  id: ID!
+  user: User!
+}
+
+#
+# Media Streams
+#
+
+type ICEServer {
+  urls: [String!]!
+  username: String
+  credential: String
 }
 
 type ConferenceMedia {
-    id: ID!
-    streams: [MediaStream!]!
-    iceServers: [ICEServer!]!
+  id: ID!
+  streams: [MediaStream!]!
+  iceServers: [ICEServer!]!
+  localMedia: LocalMediaState!
 }
 
 enum MediaStreamState {
-    WAIT_OFFER
-    NEED_OFFER
-    WAIT_ANSWER
-    NEED_ANSWER
-    READY
+  WAIT_OFFER
+  NEED_OFFER
+  WAIT_ANSWER
+  NEED_ANSWER
+  READY
 }
 
-enum MediaStreamIceTransportPolicy {
-    all
-    relay
+enum IceTransportPolicy {
+    ALL, RELAY, NONE
+}
+enum VideoSource {
+    CAMERA, SCREEN
+}
+enum MediaKind {
+    AUDIO, VIDEO
 }
 
-type MediaStreamSettings {
-    videoIn: Boolean!
-    videoOut: Boolean!
-    videoOutSource: MediaStreamVideoSource
-    audioIn: Boolean!
-    audioOut: Boolean!
-    iceTransportPolicy: MediaStreamIceTransportPolicy
+type MediaSender {
+    kind: MediaKind!
+    videoSource: VideoSource
+    codecParams: String
 }
 
-enum MediaStreamVideoSource {
-    camera,
-    screen_share
+type MediaReceiver {
+    peerId: ID
+    kind: MediaKind!
+    videoSource: VideoSource
 }
-
-type MediaStreamMediaState {
-    videoPaused: Boolean
-    audioPaused: Boolean
-    videoSource: MediaStreamVideoSource
-
-    # deprecated
-    videoOut: Boolean!
-    audioOut: Boolean!
-}
-input MediaStreamMediaStateInput {
-    videoPaused: Boolean
-    audioPaused: Boolean
-
-    # deprecated
-    videoOut: Boolean
-    audioOut: Boolean
-    
-}
-
-type LocalStreamAudioConfig {
-    codec: String!
-}
-type LocalStreamVideoConfig {
-    codec: String!
-}
-type LocalStreamDataChannelConfig {
-    id: Int!
-    label: String!
-    ordered: Boolean!
-}
-
-union LocalStreamConfig = LocalStreamAudioConfig | LocalStreamVideoConfig | LocalStreamDataChannelConfig
 
 type MediaStream {
-    id: ID!
-    peerId: ID
-    state: MediaStreamState!
-    seq: Int!
-    sdp: String
-    ice: [String!]!
-    settings: MediaStreamSettings!
-    mediaState: MediaStreamMediaState!
-    localStreams: [LocalStreamConfig!]!
+  id: ID!
+
+  # Negotiation state
+  seq: Int!
+  state: MediaStreamState!
+  sdp: String
+  
+  # ICE Candidates
+  ice: [String!]!
+  iceTransportPolicy: IceTransportPolicy!
+
+  # Tracks
+  receivers: [MediaReceiver!]!
+  senders: [MediaSender!]!
 }
 
-input ConferenceSettingsInput {
-    strategy: ConferenceStrategy
-    iceTransportPolicy: MediaStreamIceTransportPolicy
-}
+#
+# Conference Membership
+#
 
 type ConferenceJoinResult {
-    peerId: ID!
-    conference: Conference!
+  peerId: ID!
+  conference: Conference!
 }
 
-extend type Query {
-    conference(id: ID!): Conference!
-    conferenceMedia(id: ID!, peerId: ID!): ConferenceMedia!
+input ConferenceJoinInput {
+    media: LocalMediaInput!
 }
 
 extend type Mutation {
-    conferenceJoin(id: ID!, kind: ConferenceKind): ConferenceJoinResult!
-    conferenceAddScreenShare(id: ID!): Conference!
-    conferenceRemoveScreenShare(id: ID!): Conference!
-    conferenceAlterMediaState(id: ID!, state: MediaStreamMediaStateInput!): Conference!
-    conferenceKeepAlive(id: ID!, peerId: ID!): Conference!
-    conferenceLeave(id: ID!, peerId: ID!): Conference!
-    conferenceAlterSettings(id: ID!, settings: ConferenceSettingsInput!): Conference!
+  conferenceJoin(id: ID!, input: ConferenceJoinInput, kind: ConferenceKind): ConferenceJoinResult!
+  conferenceKeepAlive(id: ID!, peerId: ID!): Conference!
+  conferenceLeave(id: ID!, peerId: ID!): Conference!
+}
 
-    mediaStreamOffer(id: ID!, peerId: ID!, offer: String!, seq: Int): ConferenceMedia!
-    mediaStreamNegotiationNeeded(id: ID!, peerId: ID!, seq: Int): ConferenceMedia!
-    mediaStreamAnswer(id: ID!, peerId: ID!, answer: String!, seq: Int): ConferenceMedia!
-    mediaStreamCandidate(id: ID!, peerId: ID!, candidate: String!): ConferenceMedia!
-    mediaStreamFailed(id: ID!, peerId: ID!): ConferenceMedia!
+#
+# Local Media
+#
+
+input LocalMediaInput {
+    supportsVideo: Boolean!
+    supportsAudio: Boolean!
+    wantSendVideo: Boolean!
+    wantSendAudio: Boolean!
+    wantSendScreencast: Boolean!
+}
+
+type LocalMediaState {
+    sendVideo: Boolean!
+    sendAudio: Boolean!
+    sendScreencast: Boolean!
+}
+
+extend type Query {
+  conference(id: ID!): Conference!
+  conferenceMedia(id: ID!, peerId: ID!): ConferenceMedia!
+}
+
+extend type Mutation {
+  conferenceRequestLocalMediaChange(id: ID!, media: LocalMediaInput!): Conference!
+
+  mediaStreamOffer(id: ID!, peerId: ID!, offer: String!, seq: Int): ConferenceMedia!
+  mediaStreamAnswer(id: ID!, peerId: ID!, answer: String!, seq: Int): ConferenceMedia!
+  mediaStreamCandidate(id: ID!, peerId: ID!, candidate: String!): ConferenceMedia!
 }
 
 extend type Subscription {
-    alphaConferenceWatch(id: ID!): Conference!
-    alphaConferenceMediaWatch(id: ID!, peerId: ID!): ConferenceMedia!
+  conferenceWatch(id: ID!): Conference!
+  conferenceMediaWatch(id: ID!, peerId: ID!): ConferenceMedia!
 }

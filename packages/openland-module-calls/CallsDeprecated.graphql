@@ -1,0 +1,107 @@
+enum MediaStreamIceTransportPolicy {
+  all
+  relay
+}
+
+type MediaStreamSettings {
+  videoIn: Boolean!
+  videoOut: Boolean!
+  videoOutSource: MediaStreamVideoSource
+  audioIn: Boolean!
+  audioOut: Boolean!
+  iceTransportPolicy: MediaStreamIceTransportPolicy
+}
+
+enum MediaStreamVideoSource {
+  camera
+  screen_share
+}
+
+type MediaStreamMediaState {
+  videoPaused: Boolean
+  audioPaused: Boolean
+  videoSource: MediaStreamVideoSource
+  videoOut: Boolean!
+  audioOut: Boolean!
+}
+
+input MediaStreamMediaStateInput {
+  videoPaused: Boolean
+  audioPaused: Boolean
+
+  videoOut: Boolean
+  audioOut: Boolean
+}
+
+type LocalStreamAudioConfig {
+  codec: String!
+}
+
+type LocalStreamVideoConfig {
+  codec: String!
+}
+
+type LocalStreamDataChannelConfig {
+  id: Int!
+  label: String!
+  ordered: Boolean!
+}
+
+union LocalStreamConfig =
+    LocalStreamAudioConfig
+  | LocalStreamVideoConfig
+  | LocalStreamDataChannelConfig
+
+extend type MediaStream {
+  settings: MediaStreamSettings!
+  mediaState: MediaStreamMediaState!
+  localStreams: [LocalStreamConfig!]!
+}
+
+enum ConferenceKind {
+  CONFERENCE
+  STREAM
+}
+
+extend type Conference {
+  kind: ConferenceKind!
+}
+
+enum ConferenceStrategy {
+  MASH
+  SFU
+}
+
+extend type Conference {
+  iceServers: [ICEServer!]!
+  strategy: ConferenceStrategy!
+}
+
+extend type Mutation {
+  conferenceAlterMediaState(
+    id: ID!
+    state: MediaStreamMediaStateInput!
+  ): Conference!
+  conferenceAddScreenShare(id: ID!): Conference!
+  conferenceRemoveScreenShare(id: ID!): Conference!
+  conferenceAlterSettings(
+    id: ID!
+    settings: ConferenceSettingsInput!
+  ): Conference!
+  mediaStreamNegotiationNeeded(id: ID!, peerId: ID!, seq: Int): ConferenceMedia!
+  mediaStreamFailed(id: ID!, peerId: ID!): ConferenceMedia!
+}
+
+input ConferenceSettingsInput {
+  strategy: ConferenceStrategy
+  iceTransportPolicy: MediaStreamIceTransportPolicy
+}
+
+extend type Subscription {
+  alphaConferenceWatch(id: ID!): Conference!
+  alphaConferenceMediaWatch(id: ID!, peerId: ID!): ConferenceMedia!
+}
+
+extend type MediaStream {
+  peerId: ID
+}

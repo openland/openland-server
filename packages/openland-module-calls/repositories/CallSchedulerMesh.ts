@@ -15,9 +15,9 @@ function hasGenericSources(source: MediaSources) {
 }
 
 export class CallSchedulerMesh implements CallScheduler {
-    private iceTransportPolicy: 'all' | 'relay';
+    private iceTransportPolicy: 'all' | 'relay' | 'none';
 
-    constructor(iceTransportPolicy: 'all' | 'relay') {
+    constructor(iceTransportPolicy: 'all' | 'relay' | 'none') {
         this.iceTransportPolicy = iceTransportPolicy;
     }
 
@@ -180,7 +180,7 @@ export class CallSchedulerMesh implements CallScheduler {
             localCandidates: [],
 
             remoteSdp: null,
-            remoteStreams: stream2Config,
+            remoteStreams: this.#assignConfigPeer(stream2Config, pid2),
             remoteCandidates: [],
 
             iceTransportPolicy: this.iceTransportPolicy
@@ -197,7 +197,10 @@ export class CallSchedulerMesh implements CallScheduler {
             localCandidates: [],
 
             remoteSdp: null,
-            remoteStreams: stream1Config,
+            remoteStreams: stream1Config.map((v) => ({
+                pid: pid1,
+                media: v
+            })),
             remoteCandidates: [],
 
             iceTransportPolicy: this.iceTransportPolicy
@@ -281,14 +284,14 @@ export class CallSchedulerMesh implements CallScheduler {
         // Update streams
         if (link.pid1 === pid1) {
             stream1.localStreams = this.#getStreamGenericConfig(sources1);
-            stream1.remoteStreams = this.#getStreamGenericConfig(sources2);
+            stream1.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources2), pid2);
             stream2.localStreams = this.#getStreamGenericConfig(sources2);
-            stream2.remoteStreams = this.#getStreamGenericConfig(sources1);
+            stream2.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources1), pid1);
         } else {
             stream2.localStreams = this.#getStreamGenericConfig(sources1);
-            stream2.remoteStreams = this.#getStreamGenericConfig(sources2);
+            stream2.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources2), pid1);
             stream1.localStreams = this.#getStreamGenericConfig(sources2);
-            stream1.remoteStreams = this.#getStreamGenericConfig(sources1);
+            stream1.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources1), pid2);
         }
     }
 
@@ -308,8 +311,13 @@ export class CallSchedulerMesh implements CallScheduler {
         if (streams.audioStream) {
             res.push({ type: 'audio', codec: 'opus' });
         }
-        res.push({ type: 'dataChannel', ordered: true, id: 0, label: 'bus' });
         return res;
+    }
+    #assignConfigPeer = (media: StreamConfig[], pid: number) => {
+        return media.map((v) => ({
+            pid,
+            media: v
+        }));
     }
 
     //
@@ -323,7 +331,6 @@ export class CallSchedulerMesh implements CallScheduler {
         let streamProducerId = uuid();
         let streamProducerConfig = this.#getStreamScreenCastConfig(sources);
         let streamConsumerId = uuid();
-        let streamConsumerConfig: StreamConfig[] = [];
 
         // Create First Stream
         await Store.ConferenceEndStream.create(ctx, streamProducerId, {
@@ -336,7 +343,7 @@ export class CallSchedulerMesh implements CallScheduler {
             localCandidates: [],
 
             remoteSdp: null,
-            remoteStreams: streamConsumerConfig,
+            remoteStreams: [],
             remoteCandidates: [],
 
             iceTransportPolicy: this.iceTransportPolicy
@@ -349,11 +356,11 @@ export class CallSchedulerMesh implements CallScheduler {
             state: 'wait-offer',
 
             localSdp: null,
-            localStreams: streamConsumerConfig,
+            localStreams: [],
             localCandidates: [],
 
             remoteSdp: null,
-            remoteStreams: streamProducerConfig,
+            remoteStreams: this.#assignConfigPeer(streamProducerConfig, producerPid),
             remoteCandidates: [],
 
             iceTransportPolicy: this.iceTransportPolicy

@@ -7,23 +7,27 @@ import { MigrationsLayer } from '@openland/foundationdb-migrations';
 import { LockLayer } from '@openland/foundationdb-locks';
 import { SingletonWorkerLayer } from '@openland/foundationdb-singleton';
 import { BusLayer, NoOpBus } from '@openland/foundationdb-bus';
-import { RedisBusProvider } from '@openland/foundationdb-bus-redis';
 import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
+import { NatsBusProvider } from '../openland-module-pubsub/NatsBusProvider';
+import { container } from '../openland-modules/Modules.container';
 
 let cachedDB: Database|null = null;
 
 function createLayers(test: boolean) {
+    // For some reason container.isBound returns true even if nats is not binded
+    let natsBounded: boolean;
+    try {
+        container.get('NATS');
+        natsBounded = true;
+    } catch (e) {
+        natsBounded = false;
+    }
+
     let layers: Layer[] = [
         new RandomLayer(),
         new LockLayer(),
         new SingletonWorkerLayer(),
-        new BusLayer(
-            !process.env.REDIS_HOST
-                ? new NoOpBus()
-                : new RedisBusProvider(
-                    process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT as string, 10) : 6379,
-                    process.env.REDIS_HOST
-                ))
+        new BusLayer(natsBounded ? new NatsBusProvider(container.get('NATS')) : new NoOpBus())
     ];
     if (serverRoleEnabled('admin') && !test) {
         layers.push(new MigrationsLayer(migrations));

@@ -55,43 +55,80 @@ export const Resolver: GQLResolver = {
             res.sort((a, b) => a.metadata.createdAt - b.metadata.createdAt);
             return res;
         },
+
+        // Deprecated
         iceServers: resolveIce,
+        // Deprecated
         strategy: (src) => 'MASH' /* TODO: Fix Me */,
+        // Deprecated
         kind: (src) => src.kind === 'conference' ? 'CONFERENCE' : 'STREAM',
     },
     ConferencePeer: {
         id: (src: ConferencePeer) => IDs.ConferencePeer.serialize(src.id),
         user: (src: ConferencePeer) => src.uid
     },
+
+    //
+    // Media
+    //
+
     ConferenceMedia: {
         id: (src) => IDs.ConferenceMedia.serialize(src.id),
         iceServers: resolveIce,
         streams: async (src, args: {}, ctx: AppContext) => {
             return await Store.ConferenceEndStream.peer.findAll(ctx, src.peerId);
         },
+        localMedia: async (src, args: {}, ctx: AppContext) => {
+            let conf = await Store.ConferenceRoom.findById(ctx, src.id);
+            let peer = await Store.ConferencePeer.findById(ctx, src.peerId);
+            return ({
+                sendVideo: !!peer!.videoPaused,
+                sendAudio: !!peer!.audioPaused,
+                sendScreencast: conf!.screenSharingPeerId === src.peerId
+            });
+        },
+    },
+    IceTransportPolicy: {
+        ALL: 'all',
+        RELAY: 'relay',
+        NONE: 'none'
+    },
+    MediaStreamState: {
+        NEED_OFFER: 'need-offer',
+        WAIT_OFFER: 'wait-offer',
+        WAIT_ANSWER: 'wait-answer',
+        NEED_ANSWER: 'need-answer',
+        READY: 'online'
+    },
+    MediaSender: {
+        kind: (src) => src.kind,
+        codecParams: (src) => src.codecParams ? src.codecParams : null,
+        videoSource: (src) => src.videoSource ? src.videoSource : null,
+    },
+    MediaReceiver: {
+        peerId: (src) => IDs.ConferencePeer.serialize(src.pid),
+        kind: (src) => src.kind,
+        videoSource: (src) => src.videoSource ? src.videoSource : null
     },
     MediaStream: {
         id: (src) => IDs.MediaStream.serialize(src.id),
-        state: (src) => {
-            if (src.state === 'wait-offer') {
-                return 'WAIT_OFFER';
-            } else if (src.state === 'need-offer') {
-                return 'NEED_OFFER';
-            } else if (src.state === 'wait-answer') {
-                return 'WAIT_ANSWER';
-            } else if (src.state === 'need-answer') {
-                return 'NEED_ANSWER';
-            } else if (src.state === 'online') {
-                return 'READY';
-            } else {
-                throw Error('Unknown state');
-            }
-        },
+        state: (src) => src.state,
         seq: (src) => src.seq,
         sdp: (src) => src.remoteSdp,
         ice: (src) => src.remoteCandidates,
+        iceTransportPolicy: (src) => src.iceTransportPolicy,
+        senders: (src) => src.localStreams.map((v) => ({
+            kind: v.type ? 'audio' : 'video',
+            codecParams: (v.type === 'video' || v.type === 'audio') ? v.codec : undefined,
+            videoSource: v.type === 'video' ? v.source : undefined
+        })),
+        receivers: (src) => src.remoteStreams.map((v) => ({
+            pid: v.pid,
+            kind: v.media.type ? 'audio' : 'video',
+            videoSource: v.media.type === 'video' ? v.media.source : undefined
+        })),
 
-        // settings/state for old mesh clents
+        // Deprecated
         peerId: async (src, args, ctx) => {
             // peer state is bound to stream in old clients
             let link = await resolveMeshStreamLink(src, ctx);
@@ -100,16 +137,18 @@ export const Resolver: GQLResolver = {
             }
             return IDs.ConferencePeer.serialize(src.pid === link.pid1 ? link.pid2 : link.pid1);
         },
+        // Deprecated
         settings: (src, arg, ctx) => {
             let localVideo = src.localStreams.find(s => s.type === 'video');
             return {
                 audioOut: !!src.localStreams.find(s => s.type === 'audio'),
                 audioIn: true,
                 videoIn: true,
-                videoOut: true,
+                videoOut: !!localVideo,
                 videoOutSource: (localVideo && localVideo.type === 'video' && localVideo.source === 'screen') ? 'screen_share' : 'camera'
             };
         },
+        // Deprecated
         mediaState: async (src, args, ctx) => {
             let res = {
                 videoPaused: false,
@@ -129,16 +168,16 @@ export const Resolver: GQLResolver = {
             }
             res.audioPaused = !!otherPeer.audioPaused;
             res.videoPaused = !!otherPeer.videoPaused;
-            let remoteVideo = src.remoteStreams?.find(s => s.type === 'video');
-            res.videoSource = remoteVideo?.type === 'video' && remoteVideo.source === 'screen' ? 'screen_share' : 'camera';
+            let remoteVideo = src.remoteStreams?.find(s => s.media.type === 'video');
+            res.videoSource = remoteVideo?.media.type === 'video' && remoteVideo.media.source === 'screen' ? 'screen_share' : 'camera';
             return res;
         },
-
+        // Deprecated
         localStreams: (src) => {
             return src.localStreams;
         }
-
     },
+    // Deprecated
     LocalStreamConfig: {
         __resolveType(obj: GQLRoots.LocalStreamConfigRoot) {
             if (obj.type === 'audio') {
@@ -152,17 +191,21 @@ export const Resolver: GQLResolver = {
             }
         }
     },
+    // Deprecated
     LocalStreamAudioConfig: {
         codec: src => src.codec
     },
+    // Deprecated
     LocalStreamVideoConfig: {
         codec: src => src.codec
     },
+    // Deprecated
     LocalStreamDataChannelConfig: {
         id: src => src.id,
         label: src => src.label,
         ordered: src => src.ordered
     },
+
     Query: {
         conference: withUser(async (ctx, args, uid) => {
             return Modules.Calls.repo.getOrCreateConference(ctx, IDs.Conversation.parse(args.id));
@@ -191,23 +234,16 @@ export const Resolver: GQLResolver = {
                 conference: await Modules.Calls.repo.getOrCreateConference(ctx, cid)
             };
         }),
-        conferenceAddScreenShare: withUser(async (ctx, args, uid) => {
-            let cid = IDs.Conference.parse(args.id);
-            return await Modules.Calls.repo.addScreenShare(ctx, cid, uid, ctx.auth.tid!);
-        }),
-        conferenceRemoveScreenShare: withUser(async (ctx, args, uid) => {
-            let cid = IDs.Conference.parse(args.id);
-            let peer = await Store.ConferencePeer.auth.find(ctx, cid, uid, ctx.auth.tid!);
-            if (!peer) {
-                throw Error('Unable to find peer');
+        conferenceKeepAlive: withUser(async (ctx, args, uid) => {
+            let coid = IDs.Conference.parse(args.id);
+            let pid = IDs.ConferencePeer.parse(args.peerId);
+            let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
+            if (peer.uid !== uid) {
+                throw Error('Invalid user id');
             }
-            return await Modules.Calls.repo.removeScreenShare(ctx, peer);
+            await Modules.Calls.repo.peerKeepAlive(ctx, coid, pid, 15000);
+            return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         }),
-        conferenceAlterMediaState: withUser(async (ctx, args, uid) => {
-            let cid = IDs.Conference.parse(args.id);
-            return await Modules.Calls.repo.alterConferencePeerMediaState(ctx, cid, uid, ctx.auth.tid!, args.state.audioPaused, args.state.videoPaused);
-        }),
-
         conferenceLeave: withUser(async (ctx, args, uid) => {
             let coid = IDs.Conference.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
@@ -224,34 +260,6 @@ export const Resolver: GQLResolver = {
             }
 
             return Modules.Calls.repo.getOrCreateConference(ctx, coid);
-        }),
-        conferenceKeepAlive: withUser(async (ctx, args, uid) => {
-            let coid = IDs.Conference.parse(args.id);
-            let pid = IDs.ConferencePeer.parse(args.peerId);
-            let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
-            if (peer.uid !== uid) {
-                throw Error('Invalid user id');
-            }
-            await Modules.Calls.repo.peerKeepAlive(ctx, coid, pid, 15000);
-            return Modules.Calls.repo.getOrCreateConference(ctx, coid);
-        }),
-        conferenceAlterSettings: withUser(async (parent, args) => {
-            return await inTx(parent, async (ctx) => {
-                let coid = IDs.Conversation.parse(args.id);
-                let conf = await Modules.Calls.repo.getOrCreateConference(ctx, coid);
-                if (args.settings.strategy) {
-                    if (args.settings.strategy === 'MASH' && args.settings.iceTransportPolicy) {
-                        if (args.settings.iceTransportPolicy === 'all') {
-                            conf.scheduler = 'mesh-no-relay';
-                        } else {
-                            conf.scheduler = 'mesh';
-                        }
-                    } else if (args.settings.strategy === 'SFU') {
-                        conf.scheduler = 'basic-sfu';
-                    }
-                }
-                return conf;
-            });
         }),
 
         mediaStreamOffer: withUser(async (ctx, args, uid) => {
@@ -305,6 +313,7 @@ export const Resolver: GQLResolver = {
             return { id: peer.cid, peerId: peer.id };
         }),
 
+        // Deprecated
         mediaStreamNegotiationNeeded: withUser(async (parent, args, uid) => {
             return await inTx(parent, async (ctx) => {
                 let pid = IDs.ConferencePeer.parse(args.peerId);
@@ -317,11 +326,49 @@ export const Resolver: GQLResolver = {
                 return { id: peer.cid, peerId: peer.id };
             });
         }),
-
+        // Deprecated
         mediaStreamFailed: withUser(async (ctx, args, uid) => {
             let pid = IDs.ConferencePeer.parse(args.peerId);
             let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
             return { id: peer.cid, peerId: peer.id };
+        }),
+        // Deprecated
+        conferenceAddScreenShare: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conference.parse(args.id);
+            return await Modules.Calls.repo.addScreenShare(ctx, cid, uid, ctx.auth.tid!);
+        }),
+        // Deprecated
+        conferenceRemoveScreenShare: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conference.parse(args.id);
+            let peer = await Store.ConferencePeer.auth.find(ctx, cid, uid, ctx.auth.tid!);
+            if (!peer) {
+                throw Error('Unable to find peer');
+            }
+            return await Modules.Calls.repo.removeScreenShare(ctx, peer);
+        }),
+        // Deprecated
+        conferenceAlterMediaState: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conference.parse(args.id);
+            return await Modules.Calls.repo.alterConferencePeerMediaState(ctx, cid, uid, ctx.auth.tid!, args.state.audioPaused, args.state.videoPaused);
+        }),
+        // Deprecated
+        conferenceAlterSettings: withUser(async (parent, args) => {
+            return await inTx(parent, async (ctx) => {
+                let coid = IDs.Conversation.parse(args.id);
+                let conf = await Modules.Calls.repo.getOrCreateConference(ctx, coid);
+                if (args.settings.strategy) {
+                    if (args.settings.strategy === 'MASH' && args.settings.iceTransportPolicy) {
+                        if (args.settings.iceTransportPolicy === 'all') {
+                            conf.scheduler = 'mesh-no-relay';
+                        } else {
+                            conf.scheduler = 'mesh';
+                        }
+                    } else if (args.settings.strategy === 'SFU') {
+                        conf.scheduler = 'basic-sfu';
+                    }
+                }
+                return conf;
+            });
         }),
     },
     Subscription: {

@@ -7,13 +7,13 @@ import { createNamedContext } from '@openland/context';
 describe('CallRepository', () => {
     beforeAll(async () => {
         await testEnvironmentStart('calls-repo');
-        container.bind(CallRepository).toSelf().inSingletonScope();
+        container.bind('CallRepository').to(CallRepository).inSingletonScope();
     });
     afterAll( async () => {
       await  testEnvironmentEnd();
     });
     it('should create conference', async () => {
-        let repo = container.get(CallRepository);
+        let repo = container.get<CallRepository>('CallRepository');
         let conf1 = await repo.getOrCreateConference(createNamedContext('test'), 1);
         let conf2 = await repo.getOrCreateConference(createNamedContext('test'), 1);
         expect(conf1.metadata.versionCode).toBe(0);
@@ -23,7 +23,7 @@ describe('CallRepository', () => {
     it('should add peers', async () => {
         let ctx = createNamedContext('test');
         let CID = 2;
-        let repo = container.get(CallRepository);
+        let repo = container.get<CallRepository>('CallRepository');
         let peer = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
         let peers = await Store.ConferencePeer.conference.findAll(ctx, CID);
         expect(peers.length).toBe(1);
@@ -41,7 +41,7 @@ describe('CallRepository', () => {
     it('should automatically connect peers', async () => {
         let ctx = createNamedContext('test');
         let CID = 3;
-        let repo = container.get(CallRepository);
+        let repo = container.get<CallRepository>('CallRepository');
         let peer1 = await repo.addPeer(createNamedContext('test'), CID, 3, 'tid1', 5000);
         let peer2 = await repo.addPeer(createNamedContext('test'), CID, 4, 'tid2', 5000);
         let peers = await Store.ConferencePeer.conference.findAll(ctx, CID);
@@ -58,7 +58,7 @@ describe('CallRepository', () => {
     it('should remove peers and related connections', async () => {
         let ctx = createNamedContext('test');
         let CID = 4;
-        let repo = container.get(CallRepository);
+        let repo = container.get<CallRepository>('CallRepository');
         let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
         let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000);
         await repo.removePeer(ctx, peer1.id);
