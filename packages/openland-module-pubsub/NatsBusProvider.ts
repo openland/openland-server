@@ -1,55 +1,83 @@
 import { BusProvider, BusSubcription } from '@openland/foundationdb-bus';
-import { Client } from 'ts-nats';
+import { Client, Subscription } from 'ts-nats';
+import { asyncRun } from '../openland-mtproto3/utils';
+
+type TopicSubscription = {
+    ncSubscription?: Subscription,
+    listeners: ((data: any) => void)[]
+};
 
 export class NatsBusProvider implements BusProvider {
     private nc: Client;
     private rootTopic = 'event_bus';
-    private subscribers = new Map<string, Array<{ listener: (data: any) => void }>>();
+    private subscriptions = new Map<string, TopicSubscription>();
 
     constructor(client: Client) {
         this.nc = client;
-
-        // tslint:disable:no-floating-promises
-        this.nc.subscribe(this.rootTopic + '.*', (err, msg) => {
-            if (err) {
-                return;
-            }
-
-            let topic = msg.subject.replace(this.rootTopic + '.', '');
-            let subs = this.subscribers.get(topic);
-            if (!subs) {
-                return;
-            }
-
-            for (let sub of subs) {
-                sub.listener(msg.data);
-            }
-        });
     }
 
     publish(topic: string, data: any): void {
-        this.nc.publish(this.rootTopic + '.' + topic, data);
+        this.nc.publish(this.rootTopic + '.' + topic, { payload: data });
     }
 
     subscribe(topic: string, receiver: (data: any) => void): BusSubcription {
-        if (!this.subscribers.has(topic)) {
-            this.subscribers.set(topic, []);
-        }
-        this.subscribers.get(topic)!!.push({ listener: receiver });
+        let subscription = this.getSubscription(topic);
+        subscription.listeners.push(receiver);
+
         return {
             cancel: () => {
-                let subs = this.subscribers.get(topic);
-                if (!subs) {
-                    throw new Error('Pubsub inconsistency');
-                }
-                let index = subs.findIndex(s => s.listener === receiver);
-
-                if (index === -1) {
-                    throw new Error('Pubsub double unsubscribe');
-                } else {
-                    subs.splice(index, 1);
-                }
+                this.unSubscribe(topic, receiver);
             }
         };
+    }
+
+    private getSubscription(topic: string) {
+        if (this.subscriptions.has(topic)) {
+            return this.subscriptions.get(topic)!;
+        }
+
+        let subscription: TopicSubscription = { listeners: [] };
+        this.subscriptions.set(topic, subscription);
+
+        asyncRun(async () => {
+            let ncSubscription = await this.nc.subscribe(this.rootTopic + '.' + topic, (err, msg) => {
+                if (err) {
+                    return;
+                }
+
+                for (let listener of subscription.listeners) {
+                    listener(msg.data.payload);
+                }
+            });
+
+            // in case of race condition
+            if (subscription.ncSubscription) {
+                ncSubscription.unsubscribe();
+            } else {
+                subscription.ncSubscription = ncSubscription;
+            }
+        });
+
+        return subscription;
+    }
+
+    private unSubscribe(topic: string, receiver: (data: any) => void) {
+        let sub = this.subscriptions.get(topic);
+        if (!sub) {
+            throw new Error('Pubsub inconsistency');
+        }
+
+        let index = sub.listeners.findIndex(l => l === receiver);
+
+        if (index === -1) {
+            throw new Error('Pubsub double unsubscribe');
+        } else {
+            sub.listeners.splice(index, 1);
+        }
+
+        if (sub.listeners.length === 0) {
+            sub.ncSubscription?.unsubscribe();
+            this.subscriptions.delete(topic);
+        }
     }
 }
