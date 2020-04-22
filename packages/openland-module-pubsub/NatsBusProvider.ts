@@ -33,7 +33,7 @@ export class NatsBusProvider implements BusProvider {
 
     private getSubscription(topic: string) {
         if (this.subscriptions.has(topic)) {
-            this.subscriptions.get(topic);
+            return this.subscriptions.get(topic)!;
         }
 
         let subscription: TopicSubscription = { listeners: [] };
