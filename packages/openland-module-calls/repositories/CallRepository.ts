@@ -1,3 +1,5 @@
+import { lazyInject } from 'openland-modules/Modules.container';
+import { CallSchedulerKitchen } from './CallSchedulerKitchen';
 import { CallSchedulerMesh } from './CallSchedulerMesh';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
@@ -15,8 +17,12 @@ let callEndedEvent = createHyperlogger<{ duration: number }>('call_ended');
 @injectable()
 export class CallRepository {
 
-    private readonly schedulerMesh = new CallSchedulerMesh('relay');
-    private readonly schedulerMeshNoRelay = new CallSchedulerMesh('all');
+    readonly defaultScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' = 'mesh-no-relay';
+    readonly schedulerMesh = new CallSchedulerMesh('relay');
+    readonly schedulerMeshNoRelay = new CallSchedulerMesh('all');
+
+    @lazyInject('CallSchedulerKitchen')
+    readonly schedulerKitchen!: CallSchedulerKitchen;
 
     getOrCreateConference = async (parent: Context, cid: number) => {
         return await inTx(parent, async (ctx) => {
@@ -33,6 +39,8 @@ export class CallRepository {
             return this.schedulerMesh;
         } else if (kind === 'mesh-no-relay') {
             return this.schedulerMeshNoRelay;
+        } else if (kind === 'basic-sfu') {
+            return this.schedulerKitchen;
         } else {
             throw Error('Unsupported scheduler: ' + kind);
         }
@@ -62,7 +70,7 @@ export class CallRepository {
                 if (conf.scheduler) {
                     conf.currentScheduler = conf.scheduler;
                 } else {
-                    conf.currentScheduler = 'mesh-no-relay'; // Default Scheduler
+                    conf.currentScheduler = this.defaultScheduler; // Default Scheduler
                 }
 
                 // Flush for better correctness
@@ -387,7 +395,7 @@ export class CallRepository {
         return await Store.ConferencePeer.conference.findAll(parent, cid);
     }
 
-    private bumpVersion = async (parent: Context, cid: number) => {
+    bumpVersion = async (parent: Context, cid: number) => {
         await inTx(parent, async (ctx) => {
             let conf = await this.getOrCreateConference(ctx, cid);
             conf.invalidate();
