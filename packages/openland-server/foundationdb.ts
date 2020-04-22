@@ -6,9 +6,10 @@ import { RandomLayer } from '@openland/foundationdb-random';
 import { MigrationsLayer } from '@openland/foundationdb-migrations';
 import { LockLayer } from '@openland/foundationdb-locks';
 import { SingletonWorkerLayer } from '@openland/foundationdb-singleton';
-import { BusLayer, NoOpBus } from '@openland/foundationdb-bus';
-import { RedisBusProvider } from '@openland/foundationdb-bus-redis';
+import { BusLayer } from '@openland/foundationdb-bus';
 import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
+import { NatsBusProvider } from '../openland-module-pubsub/NatsBusProvider';
+import { container } from '../openland-modules/Modules.container';
 
 let cachedDB: Database|null = null;
 
@@ -17,13 +18,7 @@ function createLayers(test: boolean) {
         new RandomLayer(),
         new LockLayer(),
         new SingletonWorkerLayer(),
-        new BusLayer(
-            !process.env.REDIS_HOST
-                ? new NoOpBus()
-                : new RedisBusProvider(
-                    process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT as string, 10) : 6379,
-                    process.env.REDIS_HOST
-                ))
+        new BusLayer(new NatsBusProvider(container.get('NATS')))
     ];
     if (serverRoleEnabled('admin') && !test) {
         layers.push(new MigrationsLayer(migrations));

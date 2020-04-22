@@ -78,6 +78,11 @@ const logger = createLogger('starting');
 export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
 
     if (loadDb) {
+        // Load NATS
+        let client = await connect(process.env.NATS_ENDPOINT ? { payload: Payload.JSON, servers: [process.env.NATS_ENDPOINT] } : { payload: Payload.JSON });
+        container.bind('NATS').toConstantValue(client);
+        logger.log(ctx, 'NATS connected');
+
         let start = currentTime();
         let db = await openDatabase();
         logger.log(ctx, 'Database opened in ' + (currentTime() - start) + ' ms');
@@ -87,11 +92,6 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
         let store = await openStore(storage);
         container.bind<Store>('Store')
             .toConstantValue(store);
-
-        // Load NATS
-        let client = await connect(process.env.NATS_ENDPOINT ? { payload: Payload.JSON, servers: [process.env.NATS_ENDPOINT] } : { payload: Payload.JSON });
-        container.bind('NATS').toConstantValue(client);
-        logger.log(ctx, 'NATS connected');
     }
 
     logger.log(ctx, 'Loading modules...');
