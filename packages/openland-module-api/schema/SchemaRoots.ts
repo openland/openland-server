@@ -135,7 +135,6 @@ export namespace GQLRoots {
     import SuperAdminRoleValues = GQL.SuperAdminRoleValues;
     import EventPlatformValues = GQL.EventPlatformValues;
     import TaskStatusValues = GQL.TaskStatusValues;
-    import MediaStreamStateValues = GQL.MediaStreamStateValues;
     import MediaStreamIceTransportPolicyValues = GQL.MediaStreamIceTransportPolicyValues;
     import MessageButtonStyleValues = GQL.MessageButtonStyleValues;
     import MessageTypeValues = GQL.MessageTypeValues;
@@ -199,7 +198,7 @@ export namespace GQLRoots {
     export type ConferenceJoinResultRoot = { peerId: string, conference: ConferenceRoot };
     export type ConferenceRoot = ConferenceRoom;
     export type ConferenceMediaRoot = { id: number, peerId: number };
-    export type MediaStreamStateRoot = MediaStreamStateValues;
+    export type MediaStreamStateRoot = 'need-offer' | 'wait-offer' | 'need-answer' | 'wait-answer' | 'online' | 'completed';
     export type ConferenceStrategyRoot = GQL.ConferenceStrategyValues;
     export type ConferenceKindRoot = GQL.ConferenceKindValues;
     export type MediaStreamIceTransportPolicyRoot = MediaStreamIceTransportPolicyValues;
@@ -211,6 +210,25 @@ export namespace GQLRoots {
     export type LocalStreamVideoConfigRoot = { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' };
     export type LocalStreamDataChannelConfigRoot = { type: 'dataChannel', ordered: boolean, label: string, id: number };
     export type LocalStreamConfigRoot = LocalStreamAudioConfigRoot | LocalStreamVideoConfigRoot | LocalStreamDataChannelConfigRoot;
+
+    export type IceTransportPolicyRoot = 'relay' | 'all' | 'none';
+    export type VideoSourceRoot = 'default' | 'screen';
+    export type MediaKindRoot = 'audio' | 'video';
+    export type LocalMediaStateRoot = {
+        sendVideo: boolean;
+        sendAudio: boolean;
+        sendScreencast: boolean;
+    };
+    export type MediaSenderRoot = {
+        kind: 'audio' | 'video';
+        codecParams?: string | null | undefined;
+        videoSource?: 'default' | 'screen' | null | undefined;
+    };
+    export type MediaReceiverRoot = {
+        pid: number;
+        kind: 'audio' | 'video';
+        videoSource?: 'default' | 'screen' | null | undefined;
+    };
 
     //
     // Dialogs Updates

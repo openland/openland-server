@@ -6736,9 +6736,9 @@ export interface ConferenceEndStreamShape {
     pid: number;
     seq: number;
     state: 'need-offer' | 'wait-offer' | 'need-answer' | 'wait-answer' | 'online' | 'completed';
-    localStreams: ({ type: 'audio', codec: 'default' | 'opus' } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' } | { type: 'dataChannel', label: string, id: number, ordered: boolean })[];
-    remoteStreams: ({ pid: number, media: { type: 'audio',  } | { type: 'video', source: 'default' | 'screen' } | { type: 'dataChannel', label: string, id: number, ordered: boolean } })[];
-    iceTransportPolicy: 'all' | 'relay';
+    localStreams: ({ type: 'audio', codec: 'default' | 'opus' } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' })[];
+    remoteStreams: ({ pid: number, media: { type: 'audio',  } | { type: 'video', source: 'default' | 'screen' } })[];
+    iceTransportPolicy: 'all' | 'relay' | 'none';
     localSdp: string | null;
     remoteSdp: string | null;
     localCandidates: (string)[];
@@ -6749,9 +6749,9 @@ export interface ConferenceEndStreamCreateShape {
     pid: number;
     seq: number;
     state: 'need-offer' | 'wait-offer' | 'need-answer' | 'wait-answer' | 'online' | 'completed';
-    localStreams: ({ type: 'audio', codec: 'default' | 'opus' } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' } | { type: 'dataChannel', label: string, id: number, ordered: boolean })[];
-    remoteStreams: ({ pid: number, media: { type: 'audio',  } | { type: 'video', source: 'default' | 'screen' } | { type: 'dataChannel', label: string, id: number, ordered: boolean } })[];
-    iceTransportPolicy: 'all' | 'relay';
+    localStreams: ({ type: 'audio', codec: 'default' | 'opus' } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' })[];
+    remoteStreams: ({ pid: number, media: { type: 'audio',  } | { type: 'video', source: 'default' | 'screen' } })[];
+    iceTransportPolicy: 'all' | 'relay' | 'none';
     localSdp?: string | null | undefined;
     remoteSdp?: string | null | undefined;
     localCandidates: (string)[];
@@ -6787,8 +6787,8 @@ export class ConferenceEndStream extends Entity<ConferenceEndStreamShape> {
             this.invalidate();
         }
     }
-    get localStreams(): ({ type: 'audio', codec: 'default' | 'opus' } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' } | { type: 'dataChannel', label: string, id: number, ordered: boolean })[] { return this._rawValue.localStreams; }
-    set localStreams(value: ({ type: 'audio', codec: 'default' | 'opus' } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' } | { type: 'dataChannel', label: string, id: number, ordered: boolean })[]) {
+    get localStreams(): ({ type: 'audio', codec: 'default' | 'opus' } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' })[] { return this._rawValue.localStreams; }
+    set localStreams(value: ({ type: 'audio', codec: 'default' | 'opus' } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' })[]) {
         let normalized = this.descriptor.codec.fields.localStreams.normalize(value);
         if (this._rawValue.localStreams !== normalized) {
             this._rawValue.localStreams = normalized;
@@ -6796,8 +6796,8 @@ export class ConferenceEndStream extends Entity<ConferenceEndStreamShape> {
             this.invalidate();
         }
     }
-    get remoteStreams(): ({ pid: number, media: { type: 'audio',  } | { type: 'video', source: 'default' | 'screen' } | { type: 'dataChannel', label: string, id: number, ordered: boolean } })[] { return this._rawValue.remoteStreams; }
-    set remoteStreams(value: ({ pid: number, media: { type: 'audio',  } | { type: 'video', source: 'default' | 'screen' } | { type: 'dataChannel', label: string, id: number, ordered: boolean } })[]) {
+    get remoteStreams(): ({ pid: number, media: { type: 'audio',  } | { type: 'video', source: 'default' | 'screen' } })[] { return this._rawValue.remoteStreams; }
+    set remoteStreams(value: ({ pid: number, media: { type: 'audio',  } | { type: 'video', source: 'default' | 'screen' } })[]) {
         let normalized = this.descriptor.codec.fields.remoteStreams.normalize(value);
         if (this._rawValue.remoteStreams !== normalized) {
             this._rawValue.remoteStreams = normalized;
@@ -6805,8 +6805,8 @@ export class ConferenceEndStream extends Entity<ConferenceEndStreamShape> {
             this.invalidate();
         }
     }
-    get iceTransportPolicy(): 'all' | 'relay' { return this._rawValue.iceTransportPolicy; }
-    set iceTransportPolicy(value: 'all' | 'relay') {
+    get iceTransportPolicy(): 'all' | 'relay' | 'none' { return this._rawValue.iceTransportPolicy; }
+    set iceTransportPolicy(value: 'all' | 'relay' | 'none') {
         let normalized = this.descriptor.codec.fields.iceTransportPolicy.normalize(value);
         if (this._rawValue.iceTransportPolicy !== normalized) {
             this._rawValue.iceTransportPolicy = normalized;
@@ -6864,9 +6864,9 @@ export class ConferenceEndStreamFactory extends EntityFactory<ConferenceEndStrea
         fields.push({ name: 'pid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'seq', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['need-offer', 'wait-offer', 'need-answer', 'wait-answer', 'online', 'completed'] }, secure: false });
-        fields.push({ name: 'localStreams', type: { type: 'array', inner: { type: 'union', types: { audio: { codec: { type: 'enum', values: ['default', 'opus'] } }, video: { codec: { type: 'enum', values: ['default', 'h264'] }, source: { type: 'enum', values: ['default', 'screen'] } }, dataChannel: { label: { type: 'string' }, id: { type: 'integer' }, ordered: { type: 'boolean' } } } } }, secure: false });
-        fields.push({ name: 'remoteStreams', type: { type: 'array', inner: { type: 'struct', fields: { pid: { type: 'integer' }, media: { type: 'union', types: { audio: {  }, video: { source: { type: 'enum', values: ['default', 'screen'] } }, dataChannel: { label: { type: 'string' }, id: { type: 'integer' }, ordered: { type: 'boolean' } } } } } } }, secure: false });
-        fields.push({ name: 'iceTransportPolicy', type: { type: 'enum', values: ['all', 'relay'] }, secure: false });
+        fields.push({ name: 'localStreams', type: { type: 'array', inner: { type: 'union', types: { audio: { codec: { type: 'enum', values: ['default', 'opus'] } }, video: { codec: { type: 'enum', values: ['default', 'h264'] }, source: { type: 'enum', values: ['default', 'screen'] } } } } }, secure: false });
+        fields.push({ name: 'remoteStreams', type: { type: 'array', inner: { type: 'struct', fields: { pid: { type: 'integer' }, media: { type: 'union', types: { audio: {  }, video: { source: { type: 'enum', values: ['default', 'screen'] } } } } } } }, secure: false });
+        fields.push({ name: 'iceTransportPolicy', type: { type: 'enum', values: ['all', 'relay', 'none'] }, secure: false });
         fields.push({ name: 'localSdp', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'remoteSdp', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'localCandidates', type: { type: 'array', inner: { type: 'string' } }, secure: false });
@@ -6876,9 +6876,9 @@ export class ConferenceEndStreamFactory extends EntityFactory<ConferenceEndStrea
             pid: c.integer,
             seq: c.integer,
             state: c.enum('need-offer', 'wait-offer', 'need-answer', 'wait-answer', 'online', 'completed'),
-            localStreams: c.array(c.union({ audio: c.struct({ codec: c.enum('default', 'opus') }), video: c.struct({ codec: c.enum('default', 'h264'), source: c.enum('default', 'screen') }), dataChannel: c.struct({ label: c.string, id: c.integer, ordered: c.boolean }) })),
-            remoteStreams: c.array(c.struct({ pid: c.integer, media: c.union({ audio: c.struct({  }), video: c.struct({ source: c.enum('default', 'screen') }), dataChannel: c.struct({ label: c.string, id: c.integer, ordered: c.boolean }) }) })),
-            iceTransportPolicy: c.enum('all', 'relay'),
+            localStreams: c.array(c.union({ audio: c.struct({ codec: c.enum('default', 'opus') }), video: c.struct({ codec: c.enum('default', 'h264'), source: c.enum('default', 'screen') }) })),
+            remoteStreams: c.array(c.struct({ pid: c.integer, media: c.union({ audio: c.struct({  }), video: c.struct({ source: c.enum('default', 'screen') }) }) })),
+            iceTransportPolicy: c.enum('all', 'relay', 'none'),
             localSdp: c.optional(c.string),
             remoteSdp: c.optional(c.string),
             localCandidates: c.array(c.string),
