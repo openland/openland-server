@@ -10,6 +10,8 @@ import { setTransactionTracer, setSubspaceTracer } from '@openland/foundationdb/
 // import { createZippedLogger } from '../openland-utils/ZippedLogger';
 import { createMetric } from 'openland-module-monitoring/Metric';
 import { getConcurrencyPool } from 'openland-utils/ConcurrencyPool';
+import { createLogger } from '@openland/log';
+import { encoders } from '@openland/foundationdb';
 // import { Context, ContextName } from '@openland/context';
 // import { LogPathContext } from '@openland/log';
 
@@ -25,6 +27,8 @@ const commitTx = createMetric('tx-commit', 'sum');
 const retryTx = createMetric('tx-retry', 'sum');
 const opRead = createMetric('op-read', 'sum');
 const opWrite = createMetric('op-write', 'sum');
+
+let valueLengthLimitLogger = createLogger('fdb-tracing');
 
 export function setupFdbTracing() {
     setTransactionTracer({
@@ -55,6 +59,9 @@ export function setupFdbTracing() {
         },
         set: (ctx, key, value, handler) => {
             opWrite.increment(ctx);
+            if (value.byteLength > 100000) {
+                valueLengthLimitLogger.log(ctx, 'Value length exceeds limit: ' + JSON.stringify(encoders.json.unpack(value)));
+            }
             // return tracer.traceSync(ctx, 'setKey', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
             return handler();
         },

@@ -37,6 +37,10 @@ export class AugmentationMediator {
                     return { result: 'ok' };
                 }
 
+                if (message.isService) {
+                    return { result: 'ok' };
+                }
+
                 // augmentation exists or was deleted
                 if (message.augmentation) {
                     return { result: 'ok' };
@@ -46,7 +50,12 @@ export class AugmentationMediator {
                 if (urls.length === 0) {
                     return { result: 'ok' };
                 }
+
                 let firstUrl = urls[0];
+                if (message.attachmentsModern?.find(a => a.type === 'rich_attachment' && a.titleLink === firstUrl.url)) {
+                    return { result: 'ok' };
+                }
+
                 let urlInfo = await service.fetchURLInfo(firstUrl.url);
 
                 if (!urlInfo) {

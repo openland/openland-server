@@ -1375,6 +1375,53 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
+        debugFixEditedMessagesAugmentation: withPermission('super-admin', async (parent, args) => {
+            debugTask(parent.auth.uid!, 'debugFixEditedMessagesAugmentation', async (log) => {
+                let count = 0;
+                let limit = 100;
+                let total = 0;
+                let broken = 0;
+                try {
+                    let stream = Store.Message.updated.stream({batchSize: limit});
+                    do {
+                        await inTx(parent, async ctx => {
+                            let messages = await stream.next(ctx);
+                            for (let message of messages) {
+                                if (!message.attachmentsModern) {
+                                    continue;
+                                }
+                                let attachments = message.attachmentsModern;
+                                let links: string[] = [];
+                                let fixedAttachments = [];
+                                for (let a of attachments) {
+                                    if (a.type === 'rich_attachment' && a.titleLink) {
+                                        if (links.includes(a.titleLink)) {
+                                            continue;
+                                        }
+                                        links.push(a.titleLink);
+                                    }
+                                    fixedAttachments.push(a);
+                                }
+                                if (fixedAttachments.length !== attachments.length) {
+                                    broken++;
+                                }
+                                message.attachmentsModern = fixedAttachments;
+                            }
+                            count = messages.length;
+                            total += messages.length;
+                        });
+                        if (total % 10000 === 0) {
+                            await log('Proceed ' + total + ' messages, ' + broken + ' broken');
+                        }
+                    } while (count === limit && count > 0);
+                    await log('Success: proceed ' + total + ' messages, ' + broken + ' broken');
+                } catch (e) {
+                    return `failed ${e.message}`;
+                }
+                return 'ok';
+            });
+            return true;
+        }),
         debugReindexRoomMessagesCounter: withPermission('super-admin', async (parent, args) => {
             debugTaskForAll(Store.ConversationRoom, parent.auth.uid!, 'debugReindexRoomMessagesCounter', async (ctx, cid, log) => {
                 let hits = await Modules.Search.elastic.client.search({

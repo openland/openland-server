@@ -41,6 +41,10 @@ export class CommentAugmentationMediator {
                     return { result: 'ok' };
                 }
                 let firstUrl = urls[0];
+                if (message.attachments?.find(a => a.type === 'rich_attachment' && a.titleLink === firstUrl.url)) {
+                    return { result: 'ok' };
+                }
+
                 let urlInfo = await service.fetchURLInfo(firstUrl.url);
 
                 if (!urlInfo) {
