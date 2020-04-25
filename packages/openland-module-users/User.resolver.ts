@@ -5,7 +5,6 @@ import { IDs, IdsFactory } from 'openland-module-api/IDs';
 import { withAccount, withAny, withUser as withUserResolver } from 'openland-module-api/Resolvers';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
-import { NotFoundError } from '../openland-errors/NotFoundError';
 import { User, UserProfile, UserBadge } from 'openland-module-db/store';
 import { buildMessage, MessagePart, roomMention, userMention } from '../openland-utils/MessageBuilder';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
@@ -57,15 +56,27 @@ export function withProfile(handler: (ctx: AppContext, user: User, profile: User
         }
         if (typeof src === 'number') {
             let user = (await (Store.User.findById(ctx, src)))!;
+            if (user.status === 'deleted') {
+                return handler(ctx, user, null, authorized);
+            }
             let profile = (await (Store.UserProfile.findById(ctx, src)))!;
             return handler(ctx, user, profile, authorized);
         } else if (src instanceof UserFullRoot) {
+            if (src.user.status === 'deleted') {
+                return handler(ctx, src.user, null, authorized);
+            }
             return handler(ctx, src.user, src.profile, authorized);
         } else if (src instanceof User) {
+            if (src.status === 'deleted') {
+                return handler(ctx, src, null, authorized);
+            }
             let profile = (await (Store.UserProfile.findById(ctx, src.id)))!;
             return handler(ctx, src, profile, authorized);
         } else {
             let user = (await (Store.User.findById(ctx, src.id)))!;
+            if (user.status === 'deleted') {
+                return handler(ctx, user, null, authorized);
+            }
             return handler(ctx, user, src, authorized);
         }
 
@@ -79,9 +90,9 @@ export const Resolver: GQLResolver = {
         isYou: withUser((ctx, src, authorized) => authorized ? src.id === ctx.auth.uid : false, true),
         isDeleted: withUser((ctx, src) => src.status === 'deleted', true),
 
-        name: withProfile((ctx, src, profile) => profile ? [profile.firstName, profile.lastName].filter((v) => !!v).join(' ') : src.email, true),
-        firstName: withProfile((ctx, src, profile) => profile ? profile.firstName : src.email, true),
-        lastName: withProfile((ctx, src, profile) => profile ? profile.lastName : null, true),
+        name: withProfile((ctx, src, profile) => profile ? [profile.firstName, profile.lastName].filter((v) => !!v).join(' ') : 'DELETED', true),
+        firstName: withProfile((ctx, src, profile) => profile ? profile.firstName : 'DELETED', true),
+        lastName: withProfile((ctx, src, profile) => profile ? profile.lastName : 'DELETED', true),
         photo: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null, true),
         photoRef: withProfile((ctx, src, profile) => profile && profile.picture, true),
 
@@ -156,9 +167,9 @@ export const Resolver: GQLResolver = {
             } else {
                 user = await Store.User.findById(ctx, IDs.User.parse(args.id));
             }
-            if (user && user.status === 'deleted') {
-                throw new NotFoundError();
-            }
+            // if (user && user.status === 'deleted') {
+            //     throw new NotFoundError();
+            // }
             return user!;
         }),
         mySuccessfulInvitesCount: withUserResolver(async (ctx, args, uid) => {
