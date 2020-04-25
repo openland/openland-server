@@ -262,7 +262,7 @@ export const getEngagementCounters =  async (startDate: number) => {
         todayLikeGivers,
         todayLikeGetters,
         messagesSent,
-        totalCallsDuration: Math.round(moment.duration(totalCallsDuration).asMinutes() * 10) / 10
+        totalCallsDuration: Math.round(moment.duration(totalCallsDuration).asMinutes())
     };
 };
 

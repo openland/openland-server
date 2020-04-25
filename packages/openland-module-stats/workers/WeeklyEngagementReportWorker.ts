@@ -41,7 +41,7 @@ export function createWeeklyEngagementReportWorker() {
                 `✉️ ${counters.messagesSent}`,
                 `❤️ ${counters.todayLikeGivers}`,
                 `🙃 ${counters.todayLikeGetters}`,
-                `📞 ${counters.totalCallsDuration} minutes`
+                `📞 ${counters.totalCallsDuration}`
             ].join('   '))];
 
             await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
