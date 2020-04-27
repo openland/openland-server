@@ -110,6 +110,10 @@ export const Resolver: GQLResolver = {
         kind: (src) => src.kind,
         videoSource: (src) => src.videoSource ? src.videoSource : null
     },
+    MediaKind: {
+        AUDIO: 'audio',
+        VIDEO: 'video'
+    },
     MediaStream: {
         id: (src) => IDs.MediaStream.serialize(src.id),
         state: (src) => src.state,
