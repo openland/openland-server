@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'e33fc58e84ca756646a405091b194a8d';
+export const GQL_SPEC_VERSION = '034792c4de11b9caf22268db94141140';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1620,6 +1620,7 @@ export namespace GQL {
         id: string;
         startTime: Nullable<Date>;
         peers: ConferencePeer[];
+        room: Nullable<Room>;
         kind: ConferenceKind;
         iceServers: ICEServer[];
         strategy: ConferenceStrategy;
@@ -1627,6 +1628,7 @@ export namespace GQL {
     export interface ConferenceIdArgs { }
     export interface ConferenceStartTimeArgs { }
     export interface ConferencePeersArgs { }
+    export interface ConferenceRoomArgs { }
     export interface ConferenceKindArgs { }
     export interface ConferenceIceServersArgs { }
     export interface ConferenceStrategyArgs { }
@@ -7405,12 +7407,14 @@ export interface GQLResolver {
         GQLRoots.ConferenceRoot,
         {
             peers: GQLRoots.ConferencePeerRoot[],
+            room: Nullable<GQLRoots.RoomRoot>,
             iceServers: GQLRoots.ICEServerRoot[],
         },
         {
             id: GQL.ConferenceIdArgs,
             startTime: GQL.ConferenceStartTimeArgs,
             peers: GQL.ConferencePeersArgs,
+            room: GQL.ConferenceRoomArgs,
             kind: GQL.ConferenceKindArgs,
             iceServers: GQL.ConferenceIceServersArgs,
             strategy: GQL.ConferenceStrategyArgs,
