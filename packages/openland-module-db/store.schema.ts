@@ -882,18 +882,23 @@ export default declareSchema(() => {
 
     const localStream = union({
         audio: struct({
-            codec: enumString('default', 'opus')
+            codec: enumString('default', 'opus'),
+            mid: optional(string())
         }),
         video: struct({
             codec: enumString('default', 'h264'),
-            source: enumString('default', 'screen')
+            source: enumString('default', 'screen'),
+            mid: optional(string())
         })
     });
 
     const remoteStream = union({
-        audio: struct({}),
+        audio: struct({
+            mid: optional(string())
+        }),
         video: struct({
-            source: enumString('default', 'screen')
+            source: enumString('default', 'screen'),
+            mid: optional(string())
         })
     });
 

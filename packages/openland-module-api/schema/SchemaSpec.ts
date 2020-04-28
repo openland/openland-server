@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'e33fc58e84ca756646a405091b194a8d';
+export const GQL_SPEC_VERSION = 'b9849152e5464b5c8ca1ff17de384e8d';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1666,18 +1666,22 @@ export namespace GQL {
         kind: MediaKind;
         videoSource: Nullable<VideoSource>;
         codecParams: Nullable<string>;
+        mid: Nullable<string>;
     }
     export interface MediaSenderKindArgs { }
     export interface MediaSenderVideoSourceArgs { }
     export interface MediaSenderCodecParamsArgs { }
+    export interface MediaSenderMidArgs { }
     export interface MediaReceiver {
         peerId: Nullable<string>;
         kind: MediaKind;
         videoSource: Nullable<VideoSource>;
+        mid: Nullable<string>;
     }
     export interface MediaReceiverPeerIdArgs { }
     export interface MediaReceiverKindArgs { }
     export interface MediaReceiverVideoSourceArgs { }
+    export interface MediaReceiverMidArgs { }
     export interface MediaStream {
         id: string;
         seq: number;
@@ -1704,6 +1708,12 @@ export namespace GQL {
     export interface MediaStreamMediaStateArgs { }
     export interface MediaStreamLocalStreamsArgs { }
     export interface MediaStreamPeerIdArgs { }
+    export interface MediaStreamHint {
+        peerId: Nullable<string>;
+        kind: MediaKind;
+        videoSource: Nullable<VideoSource>;
+        mid: Nullable<string>;
+    }
     export interface ConferenceJoinResult {
         peerId: string;
         conference: Conference;
@@ -2936,6 +2946,7 @@ export namespace GQL {
         peerId: string;
         offer: string;
         seq: OptionalNullable<number>;
+        hints: OptionalNullable<MediaStreamHint[]>;
     }
     export interface MutationMediaStreamAnswerArgs {
         id: string;
@@ -7466,6 +7477,7 @@ export interface GQLResolver {
             kind: GQL.MediaSenderKindArgs,
             videoSource: GQL.MediaSenderVideoSourceArgs,
             codecParams: GQL.MediaSenderCodecParamsArgs,
+            mid: GQL.MediaSenderMidArgs,
         }
     >;
     MediaReceiver?: ComplexTypedResolver<
@@ -7477,6 +7489,7 @@ export interface GQLResolver {
             peerId: GQL.MediaReceiverPeerIdArgs,
             kind: GQL.MediaReceiverKindArgs,
             videoSource: GQL.MediaReceiverVideoSourceArgs,
+            mid: GQL.MediaReceiverMidArgs,
         }
     >;
     MediaStream?: ComplexTypedResolver<

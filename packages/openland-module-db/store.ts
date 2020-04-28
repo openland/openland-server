@@ -6736,8 +6736,8 @@ export interface ConferenceEndStreamShape {
     pid: number;
     seq: number;
     state: 'need-offer' | 'wait-offer' | 'need-answer' | 'wait-answer' | 'online' | 'completed';
-    localStreams: ({ type: 'audio', codec: 'default' | 'opus' } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' })[];
-    remoteStreams: ({ pid: number, media: { type: 'audio',  } | { type: 'video', source: 'default' | 'screen' } })[];
+    localStreams: ({ type: 'audio', codec: 'default' | 'opus', mid: string | null } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen', mid: string | null })[];
+    remoteStreams: ({ pid: number, media: { type: 'audio', mid: string | null } | { type: 'video', source: 'default' | 'screen', mid: string | null } })[];
     iceTransportPolicy: 'all' | 'relay' | 'none';
     localSdp: string | null;
     remoteSdp: string | null;
@@ -6749,8 +6749,8 @@ export interface ConferenceEndStreamCreateShape {
     pid: number;
     seq: number;
     state: 'need-offer' | 'wait-offer' | 'need-answer' | 'wait-answer' | 'online' | 'completed';
-    localStreams: ({ type: 'audio', codec: 'default' | 'opus' } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' })[];
-    remoteStreams: ({ pid: number, media: { type: 'audio',  } | { type: 'video', source: 'default' | 'screen' } })[];
+    localStreams: ({ type: 'audio', codec: 'default' | 'opus', mid: string | null | undefined } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen', mid: string | null | undefined })[];
+    remoteStreams: ({ pid: number, media: { type: 'audio', mid: string | null | undefined } | { type: 'video', source: 'default' | 'screen', mid: string | null | undefined } })[];
     iceTransportPolicy: 'all' | 'relay' | 'none';
     localSdp?: string | null | undefined;
     remoteSdp?: string | null | undefined;
@@ -6787,8 +6787,8 @@ export class ConferenceEndStream extends Entity<ConferenceEndStreamShape> {
             this.invalidate();
         }
     }
-    get localStreams(): ({ type: 'audio', codec: 'default' | 'opus' } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' })[] { return this._rawValue.localStreams; }
-    set localStreams(value: ({ type: 'audio', codec: 'default' | 'opus' } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' })[]) {
+    get localStreams(): ({ type: 'audio', codec: 'default' | 'opus', mid: string | null } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen', mid: string | null })[] { return this._rawValue.localStreams; }
+    set localStreams(value: ({ type: 'audio', codec: 'default' | 'opus', mid: string | null } | { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen', mid: string | null })[]) {
         let normalized = this.descriptor.codec.fields.localStreams.normalize(value);
         if (this._rawValue.localStreams !== normalized) {
             this._rawValue.localStreams = normalized;
@@ -6796,8 +6796,8 @@ export class ConferenceEndStream extends Entity<ConferenceEndStreamShape> {
             this.invalidate();
         }
     }
-    get remoteStreams(): ({ pid: number, media: { type: 'audio',  } | { type: 'video', source: 'default' | 'screen' } })[] { return this._rawValue.remoteStreams; }
-    set remoteStreams(value: ({ pid: number, media: { type: 'audio',  } | { type: 'video', source: 'default' | 'screen' } })[]) {
+    get remoteStreams(): ({ pid: number, media: { type: 'audio', mid: string | null } | { type: 'video', source: 'default' | 'screen', mid: string | null } })[] { return this._rawValue.remoteStreams; }
+    set remoteStreams(value: ({ pid: number, media: { type: 'audio', mid: string | null } | { type: 'video', source: 'default' | 'screen', mid: string | null } })[]) {
         let normalized = this.descriptor.codec.fields.remoteStreams.normalize(value);
         if (this._rawValue.remoteStreams !== normalized) {
             this._rawValue.remoteStreams = normalized;
@@ -6864,8 +6864,8 @@ export class ConferenceEndStreamFactory extends EntityFactory<ConferenceEndStrea
         fields.push({ name: 'pid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'seq', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['need-offer', 'wait-offer', 'need-answer', 'wait-answer', 'online', 'completed'] }, secure: false });
-        fields.push({ name: 'localStreams', type: { type: 'array', inner: { type: 'union', types: { audio: { codec: { type: 'enum', values: ['default', 'opus'] } }, video: { codec: { type: 'enum', values: ['default', 'h264'] }, source: { type: 'enum', values: ['default', 'screen'] } } } } }, secure: false });
-        fields.push({ name: 'remoteStreams', type: { type: 'array', inner: { type: 'struct', fields: { pid: { type: 'integer' }, media: { type: 'union', types: { audio: {  }, video: { source: { type: 'enum', values: ['default', 'screen'] } } } } } } }, secure: false });
+        fields.push({ name: 'localStreams', type: { type: 'array', inner: { type: 'union', types: { audio: { codec: { type: 'enum', values: ['default', 'opus'] }, mid: { type: 'optional', inner: { type: 'string' } } }, video: { codec: { type: 'enum', values: ['default', 'h264'] }, source: { type: 'enum', values: ['default', 'screen'] }, mid: { type: 'optional', inner: { type: 'string' } } } } } }, secure: false });
+        fields.push({ name: 'remoteStreams', type: { type: 'array', inner: { type: 'struct', fields: { pid: { type: 'integer' }, media: { type: 'union', types: { audio: { mid: { type: 'optional', inner: { type: 'string' } } }, video: { source: { type: 'enum', values: ['default', 'screen'] }, mid: { type: 'optional', inner: { type: 'string' } } } } } } } }, secure: false });
         fields.push({ name: 'iceTransportPolicy', type: { type: 'enum', values: ['all', 'relay', 'none'] }, secure: false });
         fields.push({ name: 'localSdp', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'remoteSdp', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
@@ -6876,8 +6876,8 @@ export class ConferenceEndStreamFactory extends EntityFactory<ConferenceEndStrea
             pid: c.integer,
             seq: c.integer,
             state: c.enum('need-offer', 'wait-offer', 'need-answer', 'wait-answer', 'online', 'completed'),
-            localStreams: c.array(c.union({ audio: c.struct({ codec: c.enum('default', 'opus') }), video: c.struct({ codec: c.enum('default', 'h264'), source: c.enum('default', 'screen') }) })),
-            remoteStreams: c.array(c.struct({ pid: c.integer, media: c.union({ audio: c.struct({  }), video: c.struct({ source: c.enum('default', 'screen') }) }) })),
+            localStreams: c.array(c.union({ audio: c.struct({ codec: c.enum('default', 'opus'), mid: c.optional(c.string) }), video: c.struct({ codec: c.enum('default', 'h264'), source: c.enum('default', 'screen'), mid: c.optional(c.string) }) })),
+            remoteStreams: c.array(c.struct({ pid: c.integer, media: c.union({ audio: c.struct({ mid: c.optional(c.string) }), video: c.struct({ source: c.enum('default', 'screen'), mid: c.optional(c.string) }) }) })),
             iceTransportPolicy: c.enum('all', 'relay', 'none'),
             localSdp: c.optional(c.string),
             remoteSdp: c.optional(c.string),
