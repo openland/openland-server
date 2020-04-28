@@ -1,3 +1,4 @@
+import { GQL } from 'openland-module-api/schema/SchemaSpec';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { CallSchedulerKitchen } from './CallSchedulerKitchen';
 import { CallSchedulerMesh } from './CallSchedulerMesh';
@@ -292,7 +293,14 @@ export class CallRepository {
     // Streams
     //
 
-    streamOffer = async (parent: Context, streamId: string, peerId: number, offer: string, seq?: number) => {
+    streamOffer = async (
+        parent: Context,
+        streamId: string,
+        peerId: number,
+        offer: string,
+        seq: number | null | undefined,
+        hints: GQL.MediaStreamHint[] | null | undefined
+    ) => {
         await inTx(parent, async (ctx) => {
             let peer = await Store.ConferencePeer.findById(ctx, peerId);
             if (!peer || !peer.enabled) {
@@ -316,7 +324,7 @@ export class CallRepository {
             stream.state = 'wait-answer';
 
             // Schedule
-            await scheduler.onStreamOffer(ctx, peer.cid, peer.id, streamId, offer);
+            await scheduler.onStreamOffer(ctx, peer.cid, peer.id, streamId, offer, hints);
             await stream.flush(ctx);
 
             // Notify state change

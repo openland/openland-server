@@ -306,10 +306,10 @@ export class CallSchedulerMesh implements CallScheduler {
     #getStreamGenericConfig = (streams: MediaSources): StreamConfig[] => {
         let res: StreamConfig[] = [];
         if (streams.videoStream) {
-            res.push({ type: 'video', codec: 'h264', source: 'default' });
+            res.push({ type: 'video', codec: 'h264', source: 'default', mid: null });
         }
         if (streams.audioStream) {
-            res.push({ type: 'audio', codec: 'opus' });
+            res.push({ type: 'audio', codec: 'opus', mid: null });
         }
         return res;
     }
@@ -416,7 +416,7 @@ export class CallSchedulerMesh implements CallScheduler {
     }
 
     #getStreamScreenCastConfig = (streams: MediaSources): StreamConfig[] => {
-        return [{ type: 'video', codec: 'h264', source: 'screen' }];
+        return [{ type: 'video', codec: 'h264', source: 'screen', mid: null }];
     }
 
     //

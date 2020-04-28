@@ -1,3 +1,4 @@
+import { GQL } from 'openland-module-api/schema/SchemaSpec';
 import { Context } from '@openland/context';
 
 export interface MediaSources {
@@ -9,10 +10,12 @@ export interface MediaSources {
 export type StreamConfig = {
     type: 'audio',
     codec: 'default' | 'opus'
+    mid: string | null
 } | {
     type: 'video',
     source: 'default' | 'screen',
     codec: 'default' | 'h264',
+    mid: string | null
 };
 
 export interface CallScheduler {
@@ -24,6 +27,6 @@ export interface CallScheduler {
     onPeerAdded(ctx: Context, cid: number, pid: number, sources: MediaSources): Promise<void>;
 
     onStreamCandidate(ctx: Context, cid: number, pid: number, sid: string, candidate: string): Promise<void>;
-    onStreamOffer(ctx: Context, cid: number, pid: number, sid: string, offer: string): Promise<void>;
+    onStreamOffer(ctx: Context, cid: number, pid: number, sid: string, offer: string, hints: GQL.MediaStreamHint[] | null | undefined): Promise<void>;
     onStreamAnswer(ctx: Context, cid: number, pid: number, sid: string, answer: string): Promise<void>;
 }

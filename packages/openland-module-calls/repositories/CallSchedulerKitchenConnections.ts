@@ -193,7 +193,7 @@ export class CallSchedulerKitchenConnections {
             connection: connection,
             deleted: false
         });
-        
+
         logger.log(ctx, 'Transport ' + kitchenTransport + ' started');
         return kitchenTransport;
     }
@@ -364,13 +364,13 @@ export class CallSchedulerKitchenConnections {
     #getStreamConfigs = (streams: MediaSources): StreamConfig[] => {
         let res: StreamConfig[] = [];
         if (streams.videoStream) {
-            res.push({ type: 'video', codec: 'h264', source: 'default' });
+            res.push({ type: 'video', codec: 'h264', source: 'default', mid: null });
         }
         if (streams.screenCastStream) {
-            res.push({ type: 'video', codec: 'h264', source: 'screen' });
+            res.push({ type: 'video', codec: 'h264', source: 'screen', mid: null });
         }
         if (streams.audioStream) {
-            res.push({ type: 'audio', codec: 'opus' });
+            res.push({ type: 'audio', codec: 'opus', mid: null });
         }
         return res;
     }

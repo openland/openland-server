@@ -128,12 +128,14 @@ export const Resolver: GQLResolver = {
         senders: (src) => src.localStreams.map((v) => ({
             kind: v.type ? 'audio' : 'video',
             codecParams: (v.type === 'video' || v.type === 'audio') ? v.codec : undefined,
-            videoSource: v.type === 'video' ? v.source : undefined
+            videoSource: v.type === 'video' ? v.source : undefined,
+            mid: v.mid
         })),
         receivers: (src) => src.remoteStreams.map((v) => ({
             pid: v.pid,
             kind: v.media.type ? 'audio' : 'video',
-            videoSource: v.media.type === 'video' ? v.media.source : undefined
+            videoSource: v.media.type === 'video' ? v.media.source : undefined,
+            mid: v.media.mid
         })),
 
         // Deprecated
@@ -281,7 +283,7 @@ export const Resolver: GQLResolver = {
             }
 
             // Update
-            await Modules.Calls.repo.streamOffer(ctx, id, pid, args.offer, args.seq === null ? undefined : args.seq);
+            await Modules.Calls.repo.streamOffer(ctx, id, pid, args.offer, args.seq, args.hints);
 
             // Result
             return { id: peer.cid, peerId: peer.id };
