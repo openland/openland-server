@@ -324,7 +324,7 @@ export class CallRepository {
             stream.state = 'wait-answer';
 
             // Schedule
-            await scheduler.onStreamOffer(ctx, peer.cid, peer.id, streamId, offer, hints);
+            await scheduler.onStreamOffer(ctx, peer.cid, peer.id, streamId, offer, hints ? hints : null);
             await stream.flush(ctx);
 
             // Notify state change

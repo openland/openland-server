@@ -18,6 +18,8 @@ export type StreamConfig = {
     mid: string | null
 };
 
+export type StreamHint = GQL.MediaStreamHint;
+
 export interface CallScheduler {
     onConferenceStarted(ctx: Context, cid: number): Promise<void>;
     onConferenceStopped(ctx: Context, cid: number): Promise<void>;
@@ -27,6 +29,6 @@ export interface CallScheduler {
     onPeerAdded(ctx: Context, cid: number, pid: number, sources: MediaSources): Promise<void>;
 
     onStreamCandidate(ctx: Context, cid: number, pid: number, sid: string, candidate: string): Promise<void>;
-    onStreamOffer(ctx: Context, cid: number, pid: number, sid: string, offer: string, hints: GQL.MediaStreamHint[] | null | undefined): Promise<void>;
+    onStreamOffer(ctx: Context, cid: number, pid: number, sid: string, offer: string, hints: StreamHint[] | null): Promise<void>;
     onStreamAnswer(ctx: Context, cid: number, pid: number, sid: string, answer: string): Promise<void>;
 }

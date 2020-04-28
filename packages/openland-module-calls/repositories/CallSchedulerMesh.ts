@@ -1,9 +1,10 @@
 import { Store } from 'openland-module-db/FDB';
 import { createLogger } from '@openland/log';
 import { Context } from '@openland/context';
-import { CallScheduler, StreamConfig, MediaSources } from './CallScheduler';
+import { CallScheduler, StreamConfig, MediaSources, StreamHint } from './CallScheduler';
 import uuid from 'uuid/v4';
 import { ConferenceMeshLink } from 'openland-module-db/store';
+import { parseSDP } from 'openland-module-calls/sdp/parseSDP';
 
 const logger = createLogger('calls-mesh');
 type LinkKind = 'generic' | 'screencast';
@@ -441,7 +442,7 @@ export class CallSchedulerMesh implements CallScheduler {
         otherStream.remoteCandidates = [...otherStream.remoteCandidates, candidate];
     }
 
-    onStreamOffer = async (ctx: Context, cid: number, pid: number, sid: string, offer: string) => {
+    onStreamOffer = async (ctx: Context, cid: number, pid: number, sid: string, offer: string, hints: StreamHint[] | null) => {
         logger.log(ctx, 'Offer: ' + pid + ', ' + offer);
 
         let link = (await Store.ConferenceMeshLink.conference.findAll(ctx, cid))
@@ -462,6 +463,64 @@ export class CallSchedulerMesh implements CallScheduler {
         otherStream.seq++;
         otherStream.remoteSdp = offer;
         otherStream.state = 'need-answer';
+
+        //
+        // Resolving MIDs
+        //
+
+        // Only at most stream of audio/video kind is supported
+        if (otherStream.remoteStreams.filter((v) => v.media.type === 'audio').length > 1) {
+            throw Error('Internal error');
+        }
+        if (otherStream.remoteStreams.filter((v) => v.media.type === 'video').length > 1) {
+            throw Error('Internal error');
+        }
+        // Only at most stream of audio/video kind is supported
+        if (otherStream.localStreams.filter((v) => v.type === 'audio').length > 1) {
+            throw Error('Internal error');
+        }
+        if (otherStream.localStreams.filter((v) => v.type === 'video').length > 1) {
+            throw Error('Internal error');
+        }
+
+        let session = parseSDP(JSON.parse(offer).sdp);
+
+        // Remote Streams
+        let remoteStreams = [...otherStream.remoteStreams];
+        for (let i = 0; i < remoteStreams.length; i++) {
+            if (remoteStreams[i].media.mid) {
+                continue;
+            }
+            let m = session.media.find((v) =>
+                v.type === remoteStreams[i].media.type && (v.direction === 'sendonly' || v.direction === 'sendrecv'));
+            if (m && m.mid) {
+                remoteStreams[i] = {
+                    ...remoteStreams[i],
+                    media: {
+                        ...remoteStreams[i].media,
+                        mid: m.mid.toString()
+                    }
+                };
+            }
+        }
+        otherStream.remoteStreams = remoteStreams;
+
+        // Local Streams
+        let localStreams = [...otherStream.localStreams];
+        for (let i = 0; i < localStreams.length; i++) {
+            if (localStreams[i].mid) {
+                continue;
+            }
+            let m = session.media.find((v) =>
+                v.type === localStreams[i].type && (v.direction === 'recvonly' || v.direction === 'sendrecv'));
+            if (m && m.mid) {
+                localStreams[i] = {
+                    ...localStreams[i],
+                    mid: m.mid.toString()
+                };
+            }
+        }
+        otherStream.localStreams = localStreams;
     }
 
     onStreamAnswer = async (ctx: Context, cid: number, pid: number, sid: string, answer: string) => {

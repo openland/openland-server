@@ -3,7 +3,7 @@ import { CallRepository } from './CallRepository';
 import { Store } from 'openland-module-db/FDB';
 import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 import { Context } from '@openland/context';
-import { CallScheduler, MediaSources } from './CallScheduler';
+import { CallScheduler, MediaSources, StreamHint } from './CallScheduler';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 
@@ -112,8 +112,8 @@ export class CallSchedulerKitchen implements CallScheduler {
         await this.connections.onWebRTCConnectionAnswer(ctx, sid, answer);
     }
 
-    onStreamOffer = async (ctx: Context, cid: number, pid: number, sid: string, offer: string) => {
-        await this.connections.onWebRTCConnectionOffer(ctx, sid, offer);
+    onStreamOffer = async (ctx: Context, cid: number, pid: number, sid: string, offer: string, hints: StreamHint[] | null) => {
+        await this.connections.onWebRTCConnectionOffer(ctx, sid, offer, hints);
     }
 
     onStreamCandidate = async (ctx: Context, cid: number, pid: number, sid: string, candidate: string) => {
