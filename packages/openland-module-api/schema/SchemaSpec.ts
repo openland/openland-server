@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '949b1677dac1c56ebfde5b86fa408fc4';
+export const GQL_SPEC_VERSION = '575e0879f9d3e945b78a39f8cdbbe0f8';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1710,11 +1710,14 @@ export namespace GQL {
     export interface MediaStreamMediaStateArgs { }
     export interface MediaStreamLocalStreamsArgs { }
     export interface MediaStreamPeerIdArgs { }
+    export type MediaDirectionValues = 'SEND' | 'RECEIVE';
+    export type MediaDirection = GQLRoots.MediaDirectionRoot;
     export interface MediaStreamHint {
         peerId: Nullable<string>;
         kind: MediaKind;
         videoSource: Nullable<VideoSource>;
-        mid: Nullable<string>;
+        direction: MediaDirection;
+        mid: string;
     }
     export interface ConferenceJoinResult {
         peerId: string;
@@ -7521,6 +7524,7 @@ export interface GQLResolver {
             peerId: GQL.MediaStreamPeerIdArgs,
         }
     >;
+    MediaDirection?: EnumTypeResolver<'SEND' | 'RECEIVE', GQLRoots.MediaDirectionRoot>;
     ConferenceJoinResult?: ComplexTypedResolver<
         GQL.ConferenceJoinResult,
         GQLRoots.ConferenceJoinResultRoot,

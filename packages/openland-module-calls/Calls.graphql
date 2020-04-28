@@ -76,11 +76,17 @@ type MediaStream {
   senders: [MediaSender!]!
 }
 
+enum MediaDirection { 
+  SEND
+  RECEIVE
+}
+
 input MediaStreamHint {
   peerId: ID
   kind: MediaKind!
   videoSource: VideoSource
-  mid: String
+  direction: MediaDirection!
+  mid: String!
 }
 
 #
