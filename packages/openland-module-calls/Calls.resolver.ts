@@ -55,6 +55,10 @@ export const Resolver: GQLResolver = {
             res.sort((a, b) => a.metadata.createdAt - b.metadata.createdAt);
             return res;
         },
+        room: async (src: ConferenceRoom, args: {}, ctx: Context) => {
+            let chat = await Store.Conversation.findById(ctx, src.id);
+            return chat;
+        },
 
         // Deprecated
         iceServers: resolveIce,
