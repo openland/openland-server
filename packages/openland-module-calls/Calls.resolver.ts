@@ -130,14 +130,14 @@ export const Resolver: GQLResolver = {
         ice: (src) => src.remoteCandidates,
         iceTransportPolicy: (src) => src.iceTransportPolicy,
         senders: (src) => src.localStreams.map((v) => ({
-            kind: v.type ? 'audio' : 'video',
+            kind: v.type,
             codecParams: (v.type === 'video' || v.type === 'audio') ? v.codec : undefined,
             videoSource: v.type === 'video' ? v.source : undefined,
             mid: v.mid
         })),
         receivers: (src) => src.remoteStreams.map((v) => ({
             pid: v.pid,
-            kind: v.media.type ? 'audio' : 'video',
+            kind: v.media.type,
             videoSource: v.media.type === 'video' ? v.media.source : undefined,
             mid: v.media.mid
         })),
