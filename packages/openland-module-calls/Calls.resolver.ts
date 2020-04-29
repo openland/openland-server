@@ -361,6 +361,12 @@ export const Resolver: GQLResolver = {
             let cid = IDs.Conference.parse(args.id);
             return await Modules.Calls.repo.alterConferencePeerMediaState(ctx, cid, uid, ctx.auth.tid!, args.state.audioPaused, args.state.videoPaused);
         }),
+
+        conferenceRequestLocalMediaChange: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conference.parse(args.id);
+            return await Modules.Calls.repo.conferenceRequestLocalMediaChange(ctx, cid, uid, ctx.auth.tid!, args.media);
+        }),
+        
         // Deprecated
         conferenceAlterSettings: withUser(async (parent, args) => {
             return await inTx(parent, async (ctx) => {
