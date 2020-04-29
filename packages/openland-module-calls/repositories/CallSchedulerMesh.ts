@@ -290,9 +290,9 @@ export class CallSchedulerMesh implements CallScheduler {
             stream2.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources1), pid1);
         } else {
             stream2.localStreams = this.#getStreamGenericConfig(sources1);
-            stream2.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources2), pid1);
+            stream2.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources2), pid2);
             stream1.localStreams = this.#getStreamGenericConfig(sources2);
-            stream1.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources1), pid2);
+            stream1.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources1), pid1);
         }
     }
 
