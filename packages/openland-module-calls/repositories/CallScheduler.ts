@@ -18,7 +18,13 @@ export type StreamConfig = {
     mid: string | null
 };
 
-export type StreamHint = GQL.MediaStreamHint;
+export type StreamHint = {
+    peerId: number | null;
+    kind: GQL.MediaKind;
+    videoSource: GQL.VideoSource | null;
+    direction: GQL.MediaDirection;
+    mid: string;
+};
 
 export interface CallScheduler {
     onConferenceStarted(ctx: Context, cid: number): Promise<void>;

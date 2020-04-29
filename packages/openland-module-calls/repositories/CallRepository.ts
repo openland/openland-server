@@ -1,4 +1,3 @@
-import { GQL } from 'openland-module-api/schema/SchemaSpec';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { CallSchedulerKitchen } from './CallSchedulerKitchen';
 import { CallSchedulerMesh } from './CallSchedulerMesh';
@@ -8,7 +7,7 @@ import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { Store } from 'openland-module-db/FDB';
 import { ConferencePeer, ConferenceRoom } from '../../openland-module-db/store';
-import { CallScheduler, MediaSources } from './CallScheduler';
+import { CallScheduler, MediaSources, StreamHint } from './CallScheduler';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 
 let log = createLogger('call-repo');
@@ -335,7 +334,7 @@ export class CallRepository {
         peerId: number,
         offer: string,
         seq: number | null | undefined,
-        hints: GQL.MediaStreamHint[] | null | undefined
+        hints: StreamHint[] | null | undefined
     ) => {
         await inTx(parent, async (ctx) => {
             let peer = await Store.ConferencePeer.findById(ctx, peerId);

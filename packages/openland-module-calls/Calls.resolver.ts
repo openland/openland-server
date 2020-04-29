@@ -287,7 +287,13 @@ export const Resolver: GQLResolver = {
             }
 
             // Update
-            await Modules.Calls.repo.streamOffer(ctx, id, pid, args.offer, args.seq, args.hints);
+            await Modules.Calls.repo.streamOffer(ctx, id, pid, args.offer, args.seq, args.hints ? args.hints.map((v) => ({
+                peerId: v.peerId ? IDs.ConferencePeer.parse(v.peerId) : null,
+                kind: v.kind,
+                direction: v.direction,
+                mid: v.mid,
+                videoSource: v.videoSource
+            })) : null);
 
             // Result
             return { id: peer.cid, peerId: peer.id };
