@@ -118,6 +118,10 @@ export const Resolver: GQLResolver = {
         AUDIO: 'audio',
         VIDEO: 'video'
     },
+    VideoSource: {
+        SCREEN: 'screen',
+        CAMERA: 'default'
+    },
     MediaStream: {
         id: (src) => IDs.MediaStream.serialize(src.id),
         state: (src) => src.state,
@@ -366,7 +370,7 @@ export const Resolver: GQLResolver = {
             let cid = IDs.Conference.parse(args.id);
             return await Modules.Calls.repo.conferenceRequestLocalMediaChange(ctx, cid, uid, ctx.auth.tid!, args.media);
         }),
-        
+
         // Deprecated
         conferenceAlterSettings: withUser(async (parent, args) => {
             return await inTx(parent, async (ctx) => {
