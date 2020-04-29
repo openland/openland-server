@@ -53,9 +53,6 @@ export const Resolver: GQLResolver = {
         }),
     },
     Mutation: {
-        createOrganization: withUser(async (ctx, args, uid) => {
-            return await Modules.Orgs.createOrganization(ctx, uid, args.input);
-        }),
         updateOrganizationProfile: withAccount(async (parent, args, uid, oid) => {
 
             let orgId = oid;

@@ -147,5 +147,10 @@ export const Resolver: GQLResolver = {
                 cursor: haveMore ? IDs.Conversation.serialize(roomsFull[roomsFull.length - 1]!.room.id) : null
             };
         })
+    },
+    Mutation: {
+        createOrganization: withUser(async (ctx, args, uid) => {
+            return await Modules.Orgs.createOrganization(ctx, uid, args.input);
+        }),
     }
 };

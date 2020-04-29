@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '575e0879f9d3e945b78a39f8cdbbe0f8';
+export const GQL_SPEC_VERSION = '64e14c14eea6bf33ad93acc137125f10';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2249,7 +2249,7 @@ export namespace GQL {
         deleteNotification: boolean;
         notificationCenterMarkSeqRead: boolean;
         debugCreateNotification: boolean;
-        createOrganization: OrganizationProfile;
+        createOrganization: Organization;
         updateOrganizationProfile: OrganizationProfile;
         deleteOrganization: boolean;
         registerWebPush: string;
@@ -8017,7 +8017,7 @@ export interface GQLResolver {
             stickerPackUpdate: GQLRoots.StickerPackRoot,
             stickerPackAddSticker: GQLRoots.StickerRoot,
             readNotification: GQLRoots.NotificationCenterRoot,
-            createOrganization: GQLRoots.OrganizationProfileRoot,
+            createOrganization: GQLRoots.OrganizationRoot,
             updateOrganizationProfile: GQLRoots.OrganizationProfileRoot,
             betaDiscoverSkip: Nullable<GQLRoots.DiscoverPageRoot>,
             betaNextDiscoverPageOrChats: Nullable<GQLRoots.DiscoverPageRoot>,
