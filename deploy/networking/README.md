@@ -28,4 +28,8 @@ Both k8s clusters have nats as daemon set.
 
 ### Corporate Services
 Corporate services are shielded by cloudflare with OTP and then routed to `infra-zerotier` vm in google cloud.
-`infra-zerotier` vm routes tcp traffic on ports 443 and 80 to `infra-haproxy` in Bernal DC
+`infra-zerotier` vm routes tcp traffic on ports 443 and 80 to `infra-haproxy` in Bernal DC.
+
+GCP's `infra-zerotier` haproxy is plain tcp proxy with ip limitter to allow only cloudflare origin IP.
+Bernal DC `infra-haproxy` is http proxy that have origin certificate and verifies client certificate 
+from cloudflare (Origin Pull Certificate).
