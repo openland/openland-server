@@ -512,17 +512,17 @@ export class CallSchedulerMesh implements CallScheduler {
                 let media = localStreams[i];
                 let hint: StreamHint | null = null;
                 if (media.type === 'audio') {
-                    let m = hints.find((v) => v.kind === 'audio' && v.direction === 'RECEIVE' && v.peerId === pid);
+                    let m = hints.find((v) => v.kind === 'audio' && v.direction === 'RECEIVE' && v.peerId === otherStream?.pid);
                     if (m) {
                         hint = m;
                     }
                 } else if (media.type === 'video' && media.source === 'default') {
-                    let m = hints.find((v) => v.kind === 'audio' && v.direction === 'RECEIVE' && v.peerId === pid && (v.videoSource === null || v.videoSource === 'default'));
+                    let m = hints.find((v) => v.kind === 'audio' && v.direction === 'RECEIVE' && v.peerId === otherStream?.pid && (v.videoSource === null || v.videoSource === 'default'));
                     if (m) {
                         hint = m;
                     }
                 } else if (media.type === 'video' && media.source === 'screen') {
-                    let m = hints.find((v) => v.kind === 'audio' && v.direction === 'RECEIVE' && v.peerId === pid && v.videoSource === 'screen');
+                    let m = hints.find((v) => v.kind === 'audio' && v.direction === 'RECEIVE' && v.peerId === otherStream?.pid && v.videoSource === 'screen');
                     if (m) {
                         hint = m;
                     }
