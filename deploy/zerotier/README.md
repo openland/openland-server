@@ -10,6 +10,7 @@ curl -s https://install.zerotier.com | sudo bash
 
 ## Join both gateway
 Add routes to my.zerotier.com for both subnets and repsected routers.
+IMPORTANT: Add pod networks from kubernetes too
 
 ## Configure routes
 In GCP specify routes for remote subnet to be routed via this VM.
