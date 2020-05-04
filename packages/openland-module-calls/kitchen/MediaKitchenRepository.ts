@@ -65,8 +65,7 @@ export class MediaKitchenRepository {
             }
             await inTx(parent, async (ctx) => {
                 // Find added and deleted
-                let allActive = await Store.KitchenWorker.active.findAll(ctx);
-                let existing = allActive.find((v) => v.id === w.id);
+                let existing = await Store.KitchenWorker.findById(ctx, w.id);
                 if (existing) {
                     // Kill if already deleted
                     if (existing.deleted) {
@@ -80,7 +79,6 @@ export class MediaKitchenRepository {
                 } else {
                     await this.onWorkerAdded(ctx, w.id);
                 }
-
             });
         }
     }
