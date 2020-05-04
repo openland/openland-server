@@ -1,3 +1,4 @@
+import { createLogger } from '@openland/log';
 import { CallSchedulerKitchenConnections } from './CallSchedulerKitchenConnections';
 import { CallRepository } from './CallRepository';
 import { Store } from 'openland-module-db/FDB';
@@ -23,6 +24,8 @@ function extractCastSources(source: MediaSources): MediaSources {
     };
 }
 
+const logger = createLogger('mediakitchen');
+
 @injectable()
 export class CallSchedulerKitchen implements CallScheduler {
 
@@ -40,16 +43,20 @@ export class CallSchedulerKitchen implements CallScheduler {
     //
 
     onConferenceStarted = async (ctx: Context, cid: number) => {
+        logger.log(ctx, 'Conference Started: ' + cid);
         let routerId = await this.repo.createRouter(ctx);
+        logger.log(ctx, 'Router created: ' + cid + '->' + routerId);
         await Store.ConferenceKitchenRouter.create(ctx, routerId, { cid, deleted: false });
     }
 
     onConferenceStopped = async (ctx: Context, cid: number) => {
+        logger.log(ctx, 'Conference Stopped: ' + cid);
         let router = await Store.ConferenceKitchenRouter.conference.find(ctx, cid);
         if (!router || router.deleted) {
             return;
         }
         router.deleted = true;
+        logger.log(ctx, 'Router deleted: ' + cid + '->' + router.id);
         await this.repo.deleteRouter(ctx, router.id);
     }
 
