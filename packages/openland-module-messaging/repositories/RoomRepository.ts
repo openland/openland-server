@@ -18,6 +18,7 @@ import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { User, ConversationRoom } from 'openland-module-db/store';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { smartSlice } from '../../openland-utils/string';
+import { createWelcomeMessageWorker } from '../workers/welcomeMessageWorker';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -42,6 +43,8 @@ let membersLog = createHyperlogger<{ rid: number, delta: number }>('room-members
 export class RoomRepository {
     // @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
     @lazyInject('ChatMetricsRepository') private readonly metrics!: ChatMetricsRepository;
+
+    public readonly welcomeMessageWorker = createWelcomeMessageWorker();
 
     async createRoom(parent: Context, kind: 'public' | 'group', oid: number | undefined, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean, channel?: boolean, price?: number, interval?: 'week' | 'month') {
         return await inTx(parent, async (ctx) => {
@@ -1182,10 +1185,8 @@ export class RoomRepository {
             }
             const welcomeMessage = await this.resolveConversationWelcomeMessage(ctx, cid);
             if (welcomeMessage && welcomeMessage.isOn && welcomeMessage.sender) {
-                const conv = await this.resolvePrivateChat(ctx, welcomeMessage.sender.id, uid);
-                if (conv && welcomeMessage.message.trim().length !== 0) {
-                    await Modules.Messaging.sendMessage(ctx, conv.id, welcomeMessage.sender.id, { message: welcomeMessage.message });
-                }
+                // Send welcome message after 60s
+                await this.welcomeMessageWorker.pushWork(ctx, { uid, cid }, Date.now() + 1000 * 60);
             }
 
             await Modules.Hooks.onRoomJoin(ctx, cid, uid, by);
