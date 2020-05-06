@@ -7,7 +7,7 @@ import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { Store } from 'openland-module-db/FDB';
 import { ConferencePeer, ConferenceRoom } from '../../openland-module-db/store';
-import { CallScheduler, MediaSources } from './CallScheduler';
+import { CallScheduler, MediaSources, StreamHint } from './CallScheduler';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 
 let log = createLogger('call-repo');
@@ -127,6 +127,42 @@ export class CallRepository {
             }
             peer.audioPaused = typeof audioPaused === 'boolean' ? audioPaused : peer.audioPaused;
             peer.videoPaused = typeof videoPaused === 'boolean' ? videoPaused : peer.videoPaused;
+
+            // Scheduling
+            let scheduler = this.getScheduler(conf.currentScheduler);
+            await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, this.#getStreams(peer, conf));
+
+            // Notify state change
+            await this.bumpVersion(ctx, cid);
+            return await this.getOrCreateConference(ctx, cid);
+        });
+    }
+
+    conferenceRequestLocalMediaChange = async (
+        parent: Context, cid: number, uid: number, tid: string,
+        media: {
+            supportsVideo: boolean;
+            supportsAudio: boolean;
+            wantSendVideo: boolean;
+            wantSendAudio: boolean;
+            wantSendScreencast: boolean;
+        }) => {
+        return await inTx(parent, async (ctx) => {
+            let peer = await Store.ConferencePeer.auth.find(ctx, cid, uid, tid);
+            let conf = await this.getOrCreateConference(ctx, cid);
+            if (!peer) {
+                throw Error('Unable to find peer');
+            }
+            if (!peer.enabled) {
+                return conf;
+            }
+            peer.audioPaused = !media.wantSendAudio;
+            peer.videoPaused = !media.wantSendVideo;
+            if (media.wantSendScreencast) {
+                await this.addScreenShare(ctx, cid, uid, tid);
+            } else {
+                await this.removeScreenShare(ctx, peer);
+            }
 
             // Scheduling
             let scheduler = this.getScheduler(conf.currentScheduler);
@@ -292,7 +328,14 @@ export class CallRepository {
     // Streams
     //
 
-    streamOffer = async (parent: Context, streamId: string, peerId: number, offer: string, seq?: number) => {
+    streamOffer = async (
+        parent: Context,
+        streamId: string,
+        peerId: number,
+        offer: string,
+        seq: number | null | undefined,
+        hints: StreamHint[] | null | undefined
+    ) => {
         await inTx(parent, async (ctx) => {
             let peer = await Store.ConferencePeer.findById(ctx, peerId);
             if (!peer || !peer.enabled) {
@@ -316,7 +359,7 @@ export class CallRepository {
             stream.state = 'wait-answer';
 
             // Schedule
-            await scheduler.onStreamOffer(ctx, peer.cid, peer.id, streamId, offer);
+            await scheduler.onStreamOffer(ctx, peer.cid, peer.id, streamId, offer, hints ? hints : null);
             await stream.flush(ctx);
 
             // Notify state change

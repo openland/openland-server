@@ -1,9 +1,10 @@
 import { Store } from 'openland-module-db/FDB';
 import { createLogger } from '@openland/log';
 import { Context } from '@openland/context';
-import { CallScheduler, StreamConfig, MediaSources } from './CallScheduler';
+import { CallScheduler, StreamConfig, MediaSources, StreamHint } from './CallScheduler';
 import uuid from 'uuid/v4';
 import { ConferenceMeshLink } from 'openland-module-db/store';
+import { parseSDP } from 'openland-module-calls/sdp/parseSDP';
 
 const logger = createLogger('calls-mesh');
 type LinkKind = 'generic' | 'screencast';
@@ -289,9 +290,9 @@ export class CallSchedulerMesh implements CallScheduler {
             stream2.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources1), pid1);
         } else {
             stream2.localStreams = this.#getStreamGenericConfig(sources1);
-            stream2.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources2), pid1);
+            stream2.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources2), pid2);
             stream1.localStreams = this.#getStreamGenericConfig(sources2);
-            stream1.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources1), pid2);
+            stream1.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources1), pid1);
         }
     }
 
@@ -306,10 +307,10 @@ export class CallSchedulerMesh implements CallScheduler {
     #getStreamGenericConfig = (streams: MediaSources): StreamConfig[] => {
         let res: StreamConfig[] = [];
         if (streams.videoStream) {
-            res.push({ type: 'video', codec: 'h264', source: 'default' });
+            res.push({ type: 'video', codec: 'h264', source: 'default', mid: null });
         }
         if (streams.audioStream) {
-            res.push({ type: 'audio', codec: 'opus' });
+            res.push({ type: 'audio', codec: 'opus', mid: null });
         }
         return res;
     }
@@ -416,7 +417,7 @@ export class CallSchedulerMesh implements CallScheduler {
     }
 
     #getStreamScreenCastConfig = (streams: MediaSources): StreamConfig[] => {
-        return [{ type: 'video', codec: 'h264', source: 'screen' }];
+        return [{ type: 'video', codec: 'h264', source: 'screen', mid: null }];
     }
 
     //
@@ -441,7 +442,7 @@ export class CallSchedulerMesh implements CallScheduler {
         otherStream.remoteCandidates = [...otherStream.remoteCandidates, candidate];
     }
 
-    onStreamOffer = async (ctx: Context, cid: number, pid: number, sid: string, offer: string) => {
+    onStreamOffer = async (ctx: Context, cid: number, pid: number, sid: string, offer: string, hints: StreamHint[] | null) => {
         logger.log(ctx, 'Offer: ' + pid + ', ' + offer);
 
         let link = (await Store.ConferenceMeshLink.conference.findAll(ctx, cid))
@@ -462,6 +463,134 @@ export class CallSchedulerMesh implements CallScheduler {
         otherStream.seq++;
         otherStream.remoteSdp = offer;
         otherStream.state = 'need-answer';
+
+        //
+        // Resolving MIDs
+        //
+
+        if (hints) {
+            let remoteStreams = [...otherStream.remoteStreams];
+            for (let i = 0; i < remoteStreams.length; i++) {
+                if (remoteStreams[i].media.mid) {
+                    continue;
+                }
+                let media = remoteStreams[i].media;
+                let hint: StreamHint | null = null;
+                if (media.type === 'audio') {
+                    let m = hints.find((v) => v.kind === 'audio' && v.direction === 'SEND');
+                    if (m) {
+                        hint = m;
+                    }
+                } else if (media.type === 'video' && media.source === 'default') {
+                    let m = hints.find((v) => v.kind === 'video' && (v.videoSource === null || v.videoSource === 'default') && v.direction === 'SEND');
+                    if (m) {
+                        hint = m;
+                    }
+                } else if (media.type === 'video' && media.source === 'screen') {
+                    let m = hints.find((v) => v.kind === 'video' && v.videoSource === 'screen' && v.direction === 'SEND');
+                    if (m) {
+                        hint = m;
+                    }
+                }
+                if (hint) {
+                    remoteStreams[i] = {
+                        ...remoteStreams[i],
+                        media: {
+                            ...media,
+                            mid: hint.mid.toString()
+                        }
+                    };
+                }
+            }
+            otherStream.remoteStreams = remoteStreams;
+
+            let localStreams = [...otherStream.localStreams];
+            for (let i = 0; i < localStreams.length; i++) {
+                if (localStreams[i].mid) {
+                    continue;
+                }
+                let media = localStreams[i];
+                let hint: StreamHint | null = null;
+                if (media.type === 'audio') {
+                    let m = hints.find((v) => v.kind === 'audio' && v.direction === 'RECEIVE' && v.peerId === otherStream?.pid);
+                    if (m) {
+                        hint = m;
+                    }
+                } else if (media.type === 'video' && media.source === 'default') {
+                    let m = hints.find((v) => v.kind === 'video' && v.direction === 'RECEIVE' && v.peerId === otherStream?.pid && (v.videoSource === null || v.videoSource === 'default'));
+                    if (m) {
+                        hint = m;
+                    }
+                } else if (media.type === 'video' && media.source === 'screen') {
+                    let m = hints.find((v) => v.kind === 'video' && v.direction === 'RECEIVE' && v.peerId === otherStream?.pid && v.videoSource === 'screen');
+                    if (m) {
+                        hint = m;
+                    }
+                }
+                if (hint) {
+                    localStreams[i] = {
+                        ...localStreams[i],
+                        mid: hint.mid
+                    };
+                }
+            }
+            otherStream.localStreams = localStreams;
+        } else {
+
+            // Only at most stream of audio/video kind is supported
+            if (otherStream.remoteStreams.filter((v) => v.media.type === 'audio').length > 1) {
+                throw Error('Internal error');
+            }
+            if (otherStream.remoteStreams.filter((v) => v.media.type === 'video').length > 1) {
+                throw Error('Internal error');
+            }
+            // Only at most stream of audio/video kind is supported
+            if (otherStream.localStreams.filter((v) => v.type === 'audio').length > 1) {
+                throw Error('Internal error');
+            }
+            if (otherStream.localStreams.filter((v) => v.type === 'video').length > 1) {
+                throw Error('Internal error');
+            }
+
+            let session = parseSDP(JSON.parse(offer).sdp);
+
+            // Remote Streams
+            let remoteStreams = [...otherStream.remoteStreams];
+            for (let i = 0; i < remoteStreams.length; i++) {
+                if (remoteStreams[i].media.mid) {
+                    continue;
+                }
+                let m = session.media.find((v) =>
+                    v.type === remoteStreams[i].media.type && (v.direction === 'sendonly' || v.direction === 'sendrecv'));
+                if (m && m.mid) {
+                    remoteStreams[i] = {
+                        ...remoteStreams[i],
+                        media: {
+                            ...remoteStreams[i].media,
+                            mid: m.mid.toString()
+                        }
+                    };
+                }
+            }
+            otherStream.remoteStreams = remoteStreams;
+
+            // Local Streams
+            let localStreams = [...otherStream.localStreams];
+            for (let i = 0; i < localStreams.length; i++) {
+                if (localStreams[i].mid) {
+                    continue;
+                }
+                let m = session.media.find((v) =>
+                    v.type === localStreams[i].type && (v.direction === 'recvonly' || v.direction === 'sendrecv'));
+                if (m && m.mid) {
+                    localStreams[i] = {
+                        ...localStreams[i],
+                        mid: m.mid.toString()
+                    };
+                }
+            }
+            otherStream.localStreams = localStreams;
+        }
     }
 
     onStreamAnswer = async (ctx: Context, cid: number, pid: number, sid: string, answer: string) => {

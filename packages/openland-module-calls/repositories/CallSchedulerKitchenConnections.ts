@@ -9,7 +9,7 @@ import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { parseSDP } from 'openland-module-calls/sdp/parseSDP';
 import { extractFingerprints } from '../sdp/extractFingerprints';
-import { MediaSources, StreamConfig } from './CallScheduler';
+import { MediaSources, StreamConfig, StreamHint } from './CallScheduler';
 import { KitchenProducer } from 'openland-module-db/store';
 import { writeSDP } from 'openland-module-calls/sdp/writeSDP';
 import { convertIceCandidate } from 'openland-module-calls/kitchen/convert';
@@ -193,7 +193,7 @@ export class CallSchedulerKitchenConnections {
             connection: connection,
             deleted: false
         });
-        
+
         logger.log(ctx, 'Transport ' + kitchenTransport + ' started');
         return kitchenTransport;
     }
@@ -364,13 +364,13 @@ export class CallSchedulerKitchenConnections {
     #getStreamConfigs = (streams: MediaSources): StreamConfig[] => {
         let res: StreamConfig[] = [];
         if (streams.videoStream) {
-            res.push({ type: 'video', codec: 'h264', source: 'default' });
+            res.push({ type: 'video', codec: 'h264', source: 'default', mid: null });
         }
         if (streams.screenCastStream) {
-            res.push({ type: 'video', codec: 'h264', source: 'screen' });
+            res.push({ type: 'video', codec: 'h264', source: 'screen', mid: null });
         }
         if (streams.audioStream) {
-            res.push({ type: 'audio', codec: 'opus' });
+            res.push({ type: 'audio', codec: 'opus', mid: null });
         }
         return res;
     }
@@ -379,7 +379,7 @@ export class CallSchedulerKitchenConnections {
     // Producer Offer/Answer
     //
 
-    #onProducerTransportOffer = async (ctx: Context, transportId: string, offer: string) => {
+    #onProducerTransportOffer = async (ctx: Context, transportId: string, offer: string, hints: StreamHint[] | null) => {
         let ref = await Store.ConferenceKitchenTransportRef.findById(ctx, transportId);
         if (!ref) {
             return;
@@ -758,7 +758,7 @@ export class CallSchedulerKitchenConnections {
     // Callbacks
     //
 
-    onWebRTCConnectionOffer = async (ctx: Context, transportId: string, offer: string) => {
+    onWebRTCConnectionOffer = async (ctx: Context, transportId: string, offer: string, hints: StreamHint[] | null) => {
 
         //
         // Route offer from web to kitchen producer transport
@@ -775,7 +775,7 @@ export class CallSchedulerKitchenConnections {
         if (connection.kind !== 'producer') {
             throw Error('Received unexpected offer');
         }
-        await this.#onProducerTransportOffer(ctx, transportId, offer);
+        await this.#onProducerTransportOffer(ctx, transportId, offer, hints);
     }
 
     onWebRTCConnectionAnswer = async (ctx: Context, transportId: string, answer: string) => {

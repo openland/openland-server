@@ -55,6 +55,10 @@ export const Resolver: GQLResolver = {
             res.sort((a, b) => a.metadata.createdAt - b.metadata.createdAt);
             return res;
         },
+        room: async (src: ConferenceRoom, args: {}, ctx: Context) => {
+            let chat = await Store.Conversation.findById(ctx, src.id);
+            return chat;
+        },
 
         // Deprecated
         iceServers: resolveIce,
@@ -110,6 +114,14 @@ export const Resolver: GQLResolver = {
         kind: (src) => src.kind,
         videoSource: (src) => src.videoSource ? src.videoSource : null
     },
+    MediaKind: {
+        AUDIO: 'audio',
+        VIDEO: 'video'
+    },
+    VideoSource: {
+        SCREEN: 'screen',
+        CAMERA: 'default'
+    },
     MediaStream: {
         id: (src) => IDs.MediaStream.serialize(src.id),
         state: (src) => src.state,
@@ -118,14 +130,16 @@ export const Resolver: GQLResolver = {
         ice: (src) => src.remoteCandidates,
         iceTransportPolicy: (src) => src.iceTransportPolicy,
         senders: (src) => src.localStreams.map((v) => ({
-            kind: v.type ? 'audio' : 'video',
+            kind: v.type,
             codecParams: (v.type === 'video' || v.type === 'audio') ? v.codec : undefined,
-            videoSource: v.type === 'video' ? v.source : undefined
+            videoSource: v.type === 'video' ? v.source : undefined,
+            mid: v.mid
         })),
         receivers: (src) => src.remoteStreams.map((v) => ({
             pid: v.pid,
-            kind: v.media.type ? 'audio' : 'video',
-            videoSource: v.media.type === 'video' ? v.media.source : undefined
+            kind: v.media.type,
+            videoSource: v.media.type === 'video' ? v.media.source : undefined,
+            mid: v.media.mid
         })),
 
         // Deprecated
@@ -273,7 +287,13 @@ export const Resolver: GQLResolver = {
             }
 
             // Update
-            await Modules.Calls.repo.streamOffer(ctx, id, pid, args.offer, args.seq === null ? undefined : args.seq);
+            await Modules.Calls.repo.streamOffer(ctx, id, pid, args.offer, args.seq, args.hints ? args.hints.map((v) => ({
+                peerId: v.peerId ? IDs.ConferencePeer.parse(v.peerId) : null,
+                kind: v.kind,
+                direction: v.direction,
+                mid: v.mid,
+                videoSource: v.videoSource
+            })) : null);
 
             // Result
             return { id: peer.cid, peerId: peer.id };
@@ -351,6 +371,12 @@ export const Resolver: GQLResolver = {
             let cid = IDs.Conference.parse(args.id);
             return await Modules.Calls.repo.alterConferencePeerMediaState(ctx, cid, uid, ctx.auth.tid!, args.state.audioPaused, args.state.videoPaused);
         }),
+
+        conferenceRequestLocalMediaChange: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conference.parse(args.id);
+            return await Modules.Calls.repo.conferenceRequestLocalMediaChange(ctx, cid, uid, ctx.auth.tid!, args.media);
+        }),
+
         // Deprecated
         conferenceAlterSettings: withUser(async (parent, args) => {
             return await inTx(parent, async (ctx) => {

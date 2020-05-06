@@ -2,6 +2,7 @@ type Conference {
   id: ID!
   startTime: Date
   peers: [ConferencePeer!]!
+  room: Room
 }
 
 type ConferencePeer {
@@ -48,12 +49,14 @@ type MediaSender {
     kind: MediaKind!
     videoSource: VideoSource
     codecParams: String
+    mid: String
 }
 
 type MediaReceiver {
     peerId: ID
     kind: MediaKind!
     videoSource: VideoSource
+    mid: String
 }
 
 type MediaStream {
@@ -71,6 +74,19 @@ type MediaStream {
   # Tracks
   receivers: [MediaReceiver!]!
   senders: [MediaSender!]!
+}
+
+enum MediaDirection { 
+  SEND
+  RECEIVE
+}
+
+input MediaStreamHint {
+  peerId: ID
+  kind: MediaKind!
+  videoSource: VideoSource
+  direction: MediaDirection!
+  mid: String!
 }
 
 #
@@ -118,7 +134,7 @@ extend type Query {
 extend type Mutation {
   conferenceRequestLocalMediaChange(id: ID!, media: LocalMediaInput!): Conference!
 
-  mediaStreamOffer(id: ID!, peerId: ID!, offer: String!, seq: Int): ConferenceMedia!
+  mediaStreamOffer(id: ID!, peerId: ID!, offer: String!, seq: Int, hints: [MediaStreamHint!]): ConferenceMedia!
   mediaStreamAnswer(id: ID!, peerId: ID!, answer: String!, seq: Int): ConferenceMedia!
   mediaStreamCandidate(id: ID!, peerId: ID!, candidate: String!): ConferenceMedia!
 }

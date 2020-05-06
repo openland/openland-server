@@ -229,6 +229,7 @@ export namespace GQLRoots {
         kind: 'audio' | 'video';
         videoSource?: 'default' | 'screen' | null | undefined;
     };
+    export type MediaDirectionRoot = GQL.MediaDirectionValues;
 
     //
     // Dialogs Updates

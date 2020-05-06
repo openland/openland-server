@@ -1,9 +1,10 @@
+import { createLogger } from '@openland/log';
 import { CallSchedulerKitchenConnections } from './CallSchedulerKitchenConnections';
 import { CallRepository } from './CallRepository';
 import { Store } from 'openland-module-db/FDB';
 import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 import { Context } from '@openland/context';
-import { CallScheduler, MediaSources } from './CallScheduler';
+import { CallScheduler, MediaSources, StreamHint } from './CallScheduler';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 
@@ -23,6 +24,8 @@ function extractCastSources(source: MediaSources): MediaSources {
     };
 }
 
+const logger = createLogger('mediakitchen');
+
 @injectable()
 export class CallSchedulerKitchen implements CallScheduler {
 
@@ -40,16 +43,20 @@ export class CallSchedulerKitchen implements CallScheduler {
     //
 
     onConferenceStarted = async (ctx: Context, cid: number) => {
+        logger.log(ctx, 'Conference Started: ' + cid);
         let routerId = await this.repo.createRouter(ctx);
+        logger.log(ctx, 'Router created: ' + cid + '->' + routerId);
         await Store.ConferenceKitchenRouter.create(ctx, routerId, { cid, deleted: false });
     }
 
     onConferenceStopped = async (ctx: Context, cid: number) => {
+        logger.log(ctx, 'Conference Stopped: ' + cid);
         let router = await Store.ConferenceKitchenRouter.conference.find(ctx, cid);
         if (!router || router.deleted) {
             return;
         }
         router.deleted = true;
+        logger.log(ctx, 'Router deleted: ' + cid + '->' + router.id);
         await this.repo.deleteRouter(ctx, router.id);
     }
 
@@ -112,8 +119,8 @@ export class CallSchedulerKitchen implements CallScheduler {
         await this.connections.onWebRTCConnectionAnswer(ctx, sid, answer);
     }
 
-    onStreamOffer = async (ctx: Context, cid: number, pid: number, sid: string, offer: string) => {
-        await this.connections.onWebRTCConnectionOffer(ctx, sid, offer);
+    onStreamOffer = async (ctx: Context, cid: number, pid: number, sid: string, offer: string, hints: StreamHint[] | null) => {
+        await this.connections.onWebRTCConnectionOffer(ctx, sid, offer, hints);
     }
 
     onStreamCandidate = async (ctx: Context, cid: number, pid: number, sid: string, candidate: string) => {

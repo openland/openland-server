@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'e33fc58e84ca756646a405091b194a8d';
+export const GQL_SPEC_VERSION = '64e14c14eea6bf33ad93acc137125f10';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1620,6 +1620,7 @@ export namespace GQL {
         id: string;
         startTime: Nullable<Date>;
         peers: ConferencePeer[];
+        room: Nullable<Room>;
         kind: ConferenceKind;
         iceServers: ICEServer[];
         strategy: ConferenceStrategy;
@@ -1627,6 +1628,7 @@ export namespace GQL {
     export interface ConferenceIdArgs { }
     export interface ConferenceStartTimeArgs { }
     export interface ConferencePeersArgs { }
+    export interface ConferenceRoomArgs { }
     export interface ConferenceKindArgs { }
     export interface ConferenceIceServersArgs { }
     export interface ConferenceStrategyArgs { }
@@ -1666,18 +1668,22 @@ export namespace GQL {
         kind: MediaKind;
         videoSource: Nullable<VideoSource>;
         codecParams: Nullable<string>;
+        mid: Nullable<string>;
     }
     export interface MediaSenderKindArgs { }
     export interface MediaSenderVideoSourceArgs { }
     export interface MediaSenderCodecParamsArgs { }
+    export interface MediaSenderMidArgs { }
     export interface MediaReceiver {
         peerId: Nullable<string>;
         kind: MediaKind;
         videoSource: Nullable<VideoSource>;
+        mid: Nullable<string>;
     }
     export interface MediaReceiverPeerIdArgs { }
     export interface MediaReceiverKindArgs { }
     export interface MediaReceiverVideoSourceArgs { }
+    export interface MediaReceiverMidArgs { }
     export interface MediaStream {
         id: string;
         seq: number;
@@ -1704,6 +1710,15 @@ export namespace GQL {
     export interface MediaStreamMediaStateArgs { }
     export interface MediaStreamLocalStreamsArgs { }
     export interface MediaStreamPeerIdArgs { }
+    export type MediaDirectionValues = 'SEND' | 'RECEIVE';
+    export type MediaDirection = GQLRoots.MediaDirectionRoot;
+    export interface MediaStreamHint {
+        peerId: Nullable<string>;
+        kind: MediaKind;
+        videoSource: Nullable<VideoSource>;
+        direction: MediaDirection;
+        mid: string;
+    }
     export interface ConferenceJoinResult {
         peerId: string;
         conference: Conference;
@@ -2234,7 +2249,7 @@ export namespace GQL {
         deleteNotification: boolean;
         notificationCenterMarkSeqRead: boolean;
         debugCreateNotification: boolean;
-        createOrganization: OrganizationProfile;
+        createOrganization: Organization;
         updateOrganizationProfile: OrganizationProfile;
         deleteOrganization: boolean;
         registerWebPush: string;
@@ -2936,6 +2951,7 @@ export namespace GQL {
         peerId: string;
         offer: string;
         seq: OptionalNullable<number>;
+        hints: OptionalNullable<MediaStreamHint[]>;
     }
     export interface MutationMediaStreamAnswerArgs {
         id: string;
@@ -7405,12 +7421,14 @@ export interface GQLResolver {
         GQLRoots.ConferenceRoot,
         {
             peers: GQLRoots.ConferencePeerRoot[],
+            room: Nullable<GQLRoots.RoomRoot>,
             iceServers: GQLRoots.ICEServerRoot[],
         },
         {
             id: GQL.ConferenceIdArgs,
             startTime: GQL.ConferenceStartTimeArgs,
             peers: GQL.ConferencePeersArgs,
+            room: GQL.ConferenceRoomArgs,
             kind: GQL.ConferenceKindArgs,
             iceServers: GQL.ConferenceIceServersArgs,
             strategy: GQL.ConferenceStrategyArgs,
@@ -7466,6 +7484,7 @@ export interface GQLResolver {
             kind: GQL.MediaSenderKindArgs,
             videoSource: GQL.MediaSenderVideoSourceArgs,
             codecParams: GQL.MediaSenderCodecParamsArgs,
+            mid: GQL.MediaSenderMidArgs,
         }
     >;
     MediaReceiver?: ComplexTypedResolver<
@@ -7477,6 +7496,7 @@ export interface GQLResolver {
             peerId: GQL.MediaReceiverPeerIdArgs,
             kind: GQL.MediaReceiverKindArgs,
             videoSource: GQL.MediaReceiverVideoSourceArgs,
+            mid: GQL.MediaReceiverMidArgs,
         }
     >;
     MediaStream?: ComplexTypedResolver<
@@ -7504,6 +7524,7 @@ export interface GQLResolver {
             peerId: GQL.MediaStreamPeerIdArgs,
         }
     >;
+    MediaDirection?: EnumTypeResolver<'SEND' | 'RECEIVE', GQLRoots.MediaDirectionRoot>;
     ConferenceJoinResult?: ComplexTypedResolver<
         GQL.ConferenceJoinResult,
         GQLRoots.ConferenceJoinResultRoot,
@@ -7996,7 +8017,7 @@ export interface GQLResolver {
             stickerPackUpdate: GQLRoots.StickerPackRoot,
             stickerPackAddSticker: GQLRoots.StickerRoot,
             readNotification: GQLRoots.NotificationCenterRoot,
-            createOrganization: GQLRoots.OrganizationProfileRoot,
+            createOrganization: GQLRoots.OrganizationRoot,
             updateOrganizationProfile: GQLRoots.OrganizationProfileRoot,
             betaDiscoverSkip: Nullable<GQLRoots.DiscoverPageRoot>,
             betaNextDiscoverPageOrChats: Nullable<GQLRoots.DiscoverPageRoot>,
