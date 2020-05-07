@@ -1,4 +1,4 @@
-import { withAny, withPermission } from '../openland-module-api/Resolvers';
+import { withAny, withPermission, withUser } from '../openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { debugTask } from '../openland-utils/debugTask';
@@ -7,11 +7,16 @@ import { Store } from 'openland-module-db/FDB';
 import { getLeaderboardsChatId, getSuperNotificationsBotId } from './workers/utils';
 import { boldString, buildMessage, heading, insaneString, MessagePart } from '../openland-utils/MessageBuilder';
 import { Organization } from '../openland-module-db/store';
+import { IDs } from '../openland-module-api/IDs';
 
 export const Resolver: GQLResolver = {
     Query: {
         trendingRoomsByMessages: withAny( async (ctx, args) => {
             return await Modules.Stats.getTrendingRoomsByMessages(ctx, args.from.getTime(), args.to.getTime(), args.size || undefined);
+        }),
+        groupScreenViews: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conversation.parse(args.id);
+            return await Modules.Stats.getGroupScreenViewsByPeriod(ctx, cid, args.from, args.to);
         }),
     },
     Mutation: {

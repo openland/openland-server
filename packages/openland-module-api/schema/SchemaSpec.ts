@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '64e14c14eea6bf33ad93acc137125f10';
+export const GQL_SPEC_VERSION = '912ff366f582d6f2a74f6cbbe83e70a0';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3882,6 +3882,7 @@ export namespace GQL {
         matchmakingRoom: Nullable<MatchmakingRoom>;
         matchmakingProfile: Nullable<MatchmakingProfile>;
         trendingRoomsByMessages: TrendingRoom[];
+        groupScreenViews: number;
         me: Nullable<User>;
         user: User;
         mySuccessfulInvitesCount: number;
@@ -4206,6 +4207,11 @@ export namespace GQL {
         from: Date;
         to: Date;
         size: OptionalNullable<number>;
+    }
+    export interface QueryGroupScreenViewsArgs {
+        id: string;
+        from: OptionalNullable<Date>;
+        to: OptionalNullable<Date>;
     }
     export interface QueryMeArgs { }
     export interface QueryUserArgs {
@@ -8987,6 +8993,7 @@ export interface GQLResolver {
             matchmakingRoom: GQL.QueryMatchmakingRoomArgs,
             matchmakingProfile: GQL.QueryMatchmakingProfileArgs,
             trendingRoomsByMessages: GQL.QueryTrendingRoomsByMessagesArgs,
+            groupScreenViews: GQL.QueryGroupScreenViewsArgs,
             me: GQL.QueryMeArgs,
             user: GQL.QueryUserArgs,
             mySuccessfulInvitesCount: GQL.QueryMySuccessfulInvitesCountArgs,

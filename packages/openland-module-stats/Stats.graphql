@@ -5,6 +5,7 @@ type TrendingRoom {
 
 extend type Query {
     trendingRoomsByMessages(from: Date!, to: Date!, size: Int): [TrendingRoom!]!
+    groupScreenViews(id: ID!, from: Date, to: Date): Int!
 }
 
 extend type Mutation {
