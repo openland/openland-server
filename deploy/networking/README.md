@@ -52,6 +52,8 @@ Mission DC:
 
 ### IPs
 
+* Mission Public IP: 192.195.80.6
+
 * Mission DL360 iLO: 10.12.0.2
 * Mission DL360 ESXi: 10.12.0.5
 * Mission DL380 iLO: 10.12.0.3
