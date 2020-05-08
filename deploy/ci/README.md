@@ -3,6 +3,8 @@ Build agent requirements:
 * Node 12 + Yarn
 * FoundationDB
 * JDK 8
+* Fly
+* GoogleSDK
 
 ## User
 sudo useradd teamcity
@@ -28,6 +30,19 @@ wget https://foundationdb-origin.apple.com/downloads/6.2.15/ubuntu/installers/fo
 wget https://foundationdb-origin.apple.com/downloads/6.2.15/ubuntu/installers/foundationdb-server_6.2.15-1_amd64.deb
 sudo dpkg -i foundationdb-clients_6.2.15-1_amd64.deb
 sudo dpkg -i foundationdb-server_6.2.15-1_amd64.deb
+
+## Fly
+sudo su -
+curl -L https://getfly.fly.dev/install.sh | sh
+
+## GoogleSDK
+echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+sudo apt-get install apt-transport-https ca-certificates gnupg
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+sudo apt-get update && sudo apt-get install google-cloud-sdk
+sudo apt-get install kubectl
+#### Copy service-account.json
+sudo -u teamcity gcloud auth activate-service-account --key-file=/opt/teamcity/conf/service-account.json
 
 ## Agent
 sudo mkdir /opt/teamcity
