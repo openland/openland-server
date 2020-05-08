@@ -4,11 +4,14 @@ Build agent requirements:
 * FoundationDB
 * JDK 8
 
+## User
+sudo useradd teamcity
+
 ## Docker
 sudo apt-get install -y docker.io
 sudo usermod -aG docker unicorn
-
-NOTE: Authenticate in docker hub
+sudo usermod -aG docker teamcity
+sudo -u teamcity docker login
 
 ## Node JS
 curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
@@ -27,14 +30,12 @@ sudo dpkg -i foundationdb-clients_6.2.15-1_amd64.deb
 sudo dpkg -i foundationdb-server_6.2.15-1_amd64.deb
 
 ## Agent
-
-sudo useradd teamcity
 sudo mkdir /opt/teamcity
 cd /opt/teamcity
 sudo wget https://storage.googleapis.com/openland-distrib/buildAgent.zip
 sudo unzip buildAgent.zip
 sudo rm buildAgent.zip
-sudo chown -R teamcity:teamcity *
+sudo chown -R teamcity:teamcity .
 
 
 Write /etc/systemd/system/teamcity.service:
@@ -43,8 +44,11 @@ Description=TeamCity Build Agent
 After=network.target
 
 [Service]
-Type=forking
+Type=oneshot
 RemainAfterExit=yes
+SuccessExitStatus=0 143
+User=teamcity
+Group=teamcity
 PIDFile=/opt/teamcity/logs/buildAgent.pid
 ExecStart=/opt/teamcity/bin/agent.sh start
 ExecStop=/opt/teamcity/bin/agent.sh stop
