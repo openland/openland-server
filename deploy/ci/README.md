@@ -74,5 +74,5 @@ sudo -u teamcity gcloud auth activate-service-account --key-file=/opt/teamcity/c
 
 ##### Start
 sudo systemctl daemon-reload
-sudo systemctl start teamcity (could hang, just skip)
 sudo systemctl enable teamcity
+sudo systemctl start teamcity (could hang, just skip)
