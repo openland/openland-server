@@ -71,6 +71,7 @@ sudo apt-get update && sudo apt-get install google-cloud-sdk
 sudo apt-get install kubectl
 #### Write /opt/teamcity/conf/service-account.json
 sudo -u teamcity gcloud auth activate-service-account --key-file=/opt/teamcity/conf/service-account.json
+sudo -u teamcity gcloud config set project statecraft-188615
 
 ##### Start
 sudo systemctl daemon-reload
