@@ -14,7 +14,7 @@ sudo mkdir /home/teamcity && sudo chown teamcity:teamcity /home/teamcity
 sudo apt-get install -y docker.io
 sudo usermod -aG docker unicorn
 sudo usermod -aG docker teamcity
-sudo -u teamcity docker login
+sudo docker login
 
 ## Node JS
 curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
