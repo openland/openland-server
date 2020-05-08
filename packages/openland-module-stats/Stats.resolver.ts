@@ -142,5 +142,9 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
+        queueWeeklyRoomScreenViewsLeaderboard: withPermission('super-admin', async (parent, args) => {
+            await Modules.Stats.weeklyRoomViewsQueue.pushImmediateWork(parent);
+            return true;
+        })
     }
 };

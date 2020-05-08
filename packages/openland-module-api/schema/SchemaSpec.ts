@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '912ff366f582d6f2a74f6cbbe83e70a0';
+export const GQL_SPEC_VERSION = 'b0bca876df414a3eca50d8a9246fcd06';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2265,6 +2265,7 @@ export namespace GQL {
         matchmakingProfileFill: MatchmakingProfile;
         matchmakingConnect: boolean;
         createHistoricUserMetricsReport: boolean;
+        queueWeeklyRoomScreenViewsLeaderboard: boolean;
         typingSend: string;
         typingCancel: string;
         alphaSetTyping: string;
@@ -3137,6 +3138,7 @@ export namespace GQL {
         uid: string;
     }
     export interface MutationCreateHistoricUserMetricsReportArgs { }
+    export interface MutationQueueWeeklyRoomScreenViewsLeaderboardArgs { }
     export interface MutationTypingSendArgs {
         conversationId: string;
         type: TypingType;
@@ -8309,6 +8311,7 @@ export interface GQLResolver {
             matchmakingProfileFill: GQL.MutationMatchmakingProfileFillArgs,
             matchmakingConnect: GQL.MutationMatchmakingConnectArgs,
             createHistoricUserMetricsReport: GQL.MutationCreateHistoricUserMetricsReportArgs,
+            queueWeeklyRoomScreenViewsLeaderboard: GQL.MutationQueueWeeklyRoomScreenViewsLeaderboardArgs,
             typingSend: GQL.MutationTypingSendArgs,
             typingCancel: GQL.MutationTypingCancelArgs,
             alphaSetTyping: GQL.MutationAlphaSetTypingArgs,

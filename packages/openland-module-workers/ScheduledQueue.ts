@@ -26,6 +26,28 @@ export class ScheduledQueue<RES extends JsonMap> {
         this.queue = new WorkQueue(taskType);
     }
 
+    addWorker = (handler: (ctx: Context) => RES | Promise<RES>) => {
+        this.queue.addWorker(async (args, ctx) => {
+            let res = await handler(ctx);
+            if (args.scheduled) {
+                await this.ensureNextScheduled(ctx);
+            }
+            return res;
+        });
+
+        let root = createNamedContext('scheduler-' + this.taskType);
+        // tslint:disable-next-line:no-floating-promises
+        (async () => {
+            await inTx(root, async (ctx) => {
+                await this.ensureNextScheduled(ctx);
+            });
+        })();
+    }
+
+    pushImmediateWork = async (ctx: Context) => {
+        await this.queue.pushWork(ctx, { scheduled: false });
+    }
+
     private getNext = () => {
         const now = new Date();
         const weekDay = now.getDay();
@@ -65,34 +87,12 @@ export class ScheduledQueue<RES extends JsonMap> {
         }
     }
 
-    addWorker = (handler: (ctx: Context) => RES | Promise<RES>) => {
-        this.queue.addWorker(async (args, ctx) => {
-            let res = await handler(ctx);
-            if (args.scheduled) {
-                await this.ensureNextScheduled(ctx);
-            }
-            return res;
-        });
-
-        let root = createNamedContext('scheduler-' + this.taskType);
-        // tslint:disable-next-line:no-floating-promises
-        (async () => {
-            await inTx(root, async (ctx) => {
-                await this.ensureNextScheduled(ctx);
-            });
-        })();
-    }
-
-    ensureNextScheduled = async (ctx: Context) => {
+    private ensureNextScheduled = async (ctx: Context) => {
         let pending = await Store.Task.delayedPending.findAll(ctx, this.taskType);
         if (pending.length > 0) {
             return;
         }
 
         await this.queue.pushWork(ctx, { scheduled: true }, this.getNext());
-    }
-
-    pushImmediateWork = async (ctx: Context) => {
-        await this.queue.pushWork(ctx, { scheduled: false });
     }
 }
