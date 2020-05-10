@@ -27,6 +27,10 @@ export async function startAdminInterface() {
 
     app.get('/', (req, res) => res.send('Welcome to Closedland API!'));
     app.get('/stats', async (req, res) => res.json(await Modules.Super.calculateStats(rootCtx)));
+    app.get('/prometheus', (req, res) => {
+        res.set('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
+        res.end(Modules.Monitoring.getPrometheusReport());
+    });
 
     const Server = new ApolloServer({
         schema: await createGraphQLAdminSchema(),
