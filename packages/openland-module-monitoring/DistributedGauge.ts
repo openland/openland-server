@@ -37,7 +37,7 @@ export class DistributedGauge {
             type: 'gauge',
             name: this.name,
             key: key,
-            timeout: time + timeout,
+            timeout: timeout,
             value: value,
             time: time
         });

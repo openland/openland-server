@@ -1,6 +1,11 @@
+import { createLogger } from '@openland/log';
+import { createNamedContext } from '@openland/context';
 import { DistributedGauge } from './DistributedGauge';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { MetricFactory } from './MetricFactory';
+
+const ctx = createNamedContext('collector');
+const logger = createLogger('collector');
 
 class GaugeCollector {
     readonly gauge: DistributedGauge;
@@ -72,6 +77,7 @@ export class DistributedCollector {
     }
 
     #onMetric = (src: any) => {
+        logger.log(ctx, 'Received: ' + JSON.stringify(src));
         if (src.type === 'gauge') {
             let name = src.name;
             let timeout = src.timeout;
