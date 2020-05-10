@@ -4,6 +4,7 @@ import { DistributedMachineGauge } from './DistributedMachineGauge';
 export class MetricFactory {
 
     #gauges = new Map<string, DistributedGauge>();
+    #machineGauges = new Map<string, DistributedMachineGauge>();
 
     getAllGauges() {
         return [...this.#gauges.values()];
@@ -20,6 +21,14 @@ export class MetricFactory {
 
     createMachineGauge = (name: string, description: string) => {
         let gauge = this.createGauge(name, description);
-        return new DistributedMachineGauge(name, gauge);
+        let res = new DistributedMachineGauge(name, gauge);
+        this.#machineGauges.set(name, res);
+        return res;
+    }
+
+    start = () => {
+        for (let gauge of this.#machineGauges.values()) {
+            gauge.start();
+        }
     }
 }

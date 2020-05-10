@@ -23,6 +23,9 @@ export class MonitoringModule {
         if (serverRoleEnabled('admin')) {
             this.collector = new DistributedCollector(Factory);
         }
+
+        // Start reporting
+        Factory.start();
     }
 
     getPrometheusReport = () => {

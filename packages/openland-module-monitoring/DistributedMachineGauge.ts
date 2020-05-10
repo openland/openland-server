@@ -15,9 +15,6 @@ export class DistributedMachineGauge {
     constructor(name: string, gauge: DistributedGauge) {
         this.name = name;
         this.#gauge = gauge;
-        setInterval(() => {
-            this.#gauge.add(this.#value, this.#id, 10000);
-        }, 5000);
         Object.freeze(this);
     }
 
@@ -32,5 +29,12 @@ export class DistributedMachineGauge {
 
     dec = () => {
         this.#value--;
+    }
+
+    // @private
+    start = () => {
+        setInterval(() => {
+            this.#gauge.add(this.#value, this.#id, 10000);
+        }, 5000);
     }
 }
