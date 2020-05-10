@@ -170,7 +170,7 @@ export class MediaKitchenRepository {
     // Transports
     //
 
-    async createTransport(parent: Context, routerId: string) {
+    async createTransport(parent: Context, id: string, routerId: string) {
         return await inTx(parent, async (ctx) => {
             let router = await Store.KitchenRouter.findById(ctx, routerId);
             if (!router) {
@@ -179,7 +179,6 @@ export class MediaKitchenRepository {
             if (router.state === 'deleting' || router.state === 'deleted') {
                 throw Error('Router is being deleted');
             }
-            let id = uuid();
             await Store.KitchenTransport.create(ctx, id, {
                 routerId,
                 state: 'creating'

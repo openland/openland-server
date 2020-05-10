@@ -7,7 +7,7 @@ export interface MediaSources {
     screenCastStream: boolean;
 }
 
-export type StreamConfig = {
+export type ProducerDescriptor = {
     type: 'audio',
     codec: 'default' | 'opus'
     mid: string | null
@@ -16,6 +16,13 @@ export type StreamConfig = {
     source: 'default' | 'screen',
     codec: 'default' | 'h264',
     mid: string | null
+};
+
+export type ConsumerDescriptor = {
+    pid: number,
+    media:
+    | { type: 'audio', mid: string | null | undefined }
+    | { type: 'video', source: 'default' | 'screen', mid: string | null | undefined }
 };
 
 export type StreamHint = {

@@ -1,7 +1,10 @@
+import { createLogger } from '@openland/log';
 import { MediaKitchenService } from '../kitchen/MediaKitchenService';
 import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
+
+const logger = createLogger('mediakitchen');
 
 export function declareRouterCreateWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
     repo.routerCreateQueue.addWorker(async (args, parent) => {
@@ -17,6 +20,7 @@ export function declareRouterCreateWorker(service: MediaKitchenService, repo: Me
             }
             if (!r.workerId) {
                 r.workerId = await repo.pickWorker(ctx);
+                logger.log(ctx, 'Picked worker: ' + args.id + ' -> ' + r.workerId);
             }
             return r;
         });
@@ -26,6 +30,7 @@ export function declareRouterCreateWorker(service: MediaKitchenService, repo: Me
         }
 
         // Create Raw Router
+        logger.log(parent, 'getOrCreateRouter: ' + args.id);
         await service.getOrCreateRouter(workerId, args.id);
 
         // Assign Raw Router
@@ -37,6 +42,7 @@ export function declareRouterCreateWorker(service: MediaKitchenService, repo: Me
             if (r.state === 'creating') {
                 r.state = 'created';
                 await r.flush(ctx);
+                logger.log(parent, 'Router creation completed: ' + args.id);
                 await repo.onRouterCreated(ctx, args.id);
             }
         });

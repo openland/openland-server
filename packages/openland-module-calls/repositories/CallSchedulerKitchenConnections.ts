@@ -9,23 +9,14 @@ import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { parseSDP } from 'openland-module-calls/sdp/parseSDP';
 import { extractFingerprints } from '../sdp/extractFingerprints';
-import { MediaSources, StreamConfig, StreamHint } from './CallScheduler';
+import { MediaSources, StreamHint, ProducerDescriptor, ConsumerDescriptor } from './CallScheduler';
 import { KitchenProducer } from 'openland-module-db/store';
 import { writeSDP } from 'openland-module-calls/sdp/writeSDP';
 import { convertIceCandidate } from 'openland-module-calls/kitchen/convert';
 import { MediaDescription } from 'sdp-transform';
+import { RtpParameters } from 'mediakitchen';
 
 const logger = createLogger('calls-kitchen');
-
-function isEmptySource(source: MediaSources) {
-    return !source.audioStream && !source.videoStream && !source.screenCastStream;
-}
-
-function checkSources(source: MediaSources) {
-    if (source.screenCastStream && source.videoStream) {
-        throw Error('Two video streams are not allowed');
-    }
-}
 
 function convertParameters(src: any) {
     return Object.keys(src).map((key) => `${key}=${src[key]}`).join(';');
@@ -41,6 +32,48 @@ function decodeParameters(src: string) {
     return params;
 }
 
+function getOpusRtpParameters(src: MediaDescription): RtpParameters {
+
+    // Find codec
+    const codec = src.rtp.find((v) => v.codec === 'opus');
+    if (!codec) {
+        throw Error('Unable to find opus codec!');
+    }
+
+    // Find ssrc
+    let ssrc = src.ssrcs![0].id as number;
+
+    // Resolve Parameters
+    let params: any = {};
+    let fmt = src.fmtp.find((v) => v.payload === codec.payload);
+    if (fmt) {
+        params = decodeParameters(fmt.config);
+    }
+    params = {
+        ...params,
+        useinbandfec: 1, // Enable In-Band Forward Error Correction
+        stereo: 0, // Disable stereo
+        usedtx: 1 // Reduce bitrate during silence
+    };
+
+    // Create Producer
+    let codecParameters = {
+        mimeType: 'audio/opus',
+        payloadType: codec.payload,
+        clockRate: 48000,
+        channels: 2,
+        parameters: params,
+        rtcpFeedback: [{
+            type: 'transport-cc'
+        }]
+    };
+
+    return {
+        codecs: [codecParameters],
+        encodings: [{ ssrc: ssrc }]
+    };
+}
+
 @injectable()
 export class CallSchedulerKitchenConnections {
 
@@ -54,124 +87,22 @@ export class CallSchedulerKitchenConnections {
     // Operations
     //
 
-    createProducerConnection = async (ctx: Context, cid: number, pid: number, sources: MediaSources) => {
-
-        // Check sources correctness
-        checkSources(sources);
-
+    createConnection = async (ctx: Context, cid: number, pid: number, produces: MediaSources, consumes: string[]) => {
         // Connection Id
         let id = uuid();
 
-        // Create transport if sources are not empty
-        let transportId: string | null = null;
-        if (!isEmptySource(sources)) {
-            transportId = await this.#createProducerTransport(ctx, cid, pid, sources, id);
-        }
-
-        // Create Connection
-        await Store.ConferenceKitchenConnection.create(ctx, id, {
-            pid, cid,
-            kind: 'producer',
-            producerSources: sources,
-            transportId,
-            deleted: false,
-        });
-
-        return id;
-    }
-
-    updateProducerStreams = async (ctx: Context, id: string, sources: MediaSources) => {
-        checkSources(sources);
-
-        let connection = await Store.ConferenceKitchenConnection.findById(ctx, id);
-        if (!connection || connection.deleted) {
-            throw Error('Unable to find connection');
-        }
-        if (connection.kind !== 'producer') {
-            throw Error('Unable to find connection');
-        }
-
-        // Ignore if nothing changed
-        if (
-            sources.audioStream === connection.producerSources!.audioStream
-            && sources.videoStream === connection.producerSources!.videoStream
-            && sources.screenCastStream === connection.producerSources!.screenCastStream
-        ) {
-            return;
-        }
-
-        if (isEmptySource(sources) && !isEmptySource(connection.producerSources!)) {
-            // Delete producer transport
-            await this.#deleteProducerTransport(ctx, connection.transportId!);
-            connection.producerSources = sources;
-            connection.transportId = null;
-            await connection.flush(ctx);
-        } else if (!isEmptySource(sources) && isEmptySource(connection.producerSources!)) {
-            // Create producer transport
-            let transportId = await this.#createProducerTransport(ctx, connection.cid, connection.pid, sources, connection.id);
-            connection.producerSources = sources;
-            connection.transportId = transportId;
-            await connection.flush(ctx);
-        } else {
-            // Update Connection
-            await this.#restartProducerTransport(ctx, connection.transportId!, sources);
-            connection.producerSources = sources;
-            await connection.flush(ctx);
-        }
-    }
-
-    // createConsumerConnection = async (ctx: Context, cid: number, pid: number, sources: string[]) => {
-    //     // Connection Id
-    //     let id = uuid();
-
-    //     // Resolve sources
-    //     let remoteStreams = await this.#getRemoteStreams(ctx, sources);
-    //     let remoteMidIndex = 0;
-    //     let streamsEnumerated = this.#enumerateStreams(ctx, remoteStreams.streams);
-    //     for (let s of streamsEnumerated) {
-    //         remoteMidIndex = Math.max(s.mid, remoteMidIndex);
-    //     }
-
-    //     // Create transport if sources are not empty
-    //     let transportId: string | null = null;
-    //     if (remoteStreams.producers.length > 0) {
-
-    //         transportId = await this.#createConsumerTransport(ctx, cid, pid, sources, id);
-    //     }
-
-    //     // Create Connection
-    //     await Store.ConferenceKitchenConnection.create(ctx, id, {
-    //         pid, cid,
-    //         kind: 'consumer',
-    //         consumerConnections: sources,
-    //         transportId,
-    //         deleted: false
-    //     });
-    // }
-
-    removeConnection = async (ctx: Context, id: string) => {
-        let connection = await Store.ConferenceKitchenConnection.findById(ctx, id);
-        if (!connection || connection.deleted) {
-            throw Error('Unable to find connection');
-        }
-        connection.deleted = true;
-        if (connection.kind === 'producer') {
-            if (!isEmptySource(connection.producerSources!)) {
-                await this.#deleteProducerTransport(ctx, connection.transportId!);
-                connection.transportId = null;
-            }
-        }
-        await connection.flush(ctx);
-    }
-
-    //
-    // Transport Managing
-    //
-
-    #createProducerTransport = async (ctx: Context, cid: number, pid: number, sources: MediaSources, connection: string) => {
+        // Conference Router
         let router = (await Store.ConferenceKitchenRouter.conference.find(ctx, cid))!;
-        let kitchenTransport = await this.repo.createTransport(ctx, router!.id);
-        await Store.ConferenceEndStream.create(ctx, kitchenTransport, {
+
+        // Connection transport
+        await this.repo.createTransport(ctx, id, router.id);
+
+        // Producers/Consumers
+        let initialProducers = this.#getProducerDescriptors(produces);
+        let initialConsumers = await this.#getConsumerDescriptors(ctx, consumes);
+
+        // End stream
+        await Store.ConferenceEndStream.create(ctx, id, {
             pid,
             seq: 1,
             state: 'need-offer',
@@ -179,47 +110,79 @@ export class CallSchedulerKitchenConnections {
             remoteCandidates: [],
             localSdp: null,
             remoteSdp: null,
-            localStreams: this.#getStreamConfigs(sources),
-            remoteStreams: [],
+            localStreams: initialProducers,
+            remoteStreams: initialConsumers,
             iceTransportPolicy: 'none'
         });
-        await Store.ConferenceKitchenTransportRef.create(ctx, kitchenTransport, {
-            connection: connection
-        });
-        await this.callRepo.bumpVersion(ctx, cid);
 
-        // NOTE: Transport doesnt have any producers until we have offer from the app
-        await Store.ConferenceKitchenProducerTransport.create(ctx, kitchenTransport, {
-            connection: connection,
-            deleted: false
+        // this.repo.createConsumer(ctx, id,)
+
+        // Create Connection
+        await Store.ConferenceKitchenConnection.create(ctx, id, {
+            pid, cid,
+            produces,
+            consumes,
+
+            // Waiting for offer
+            state: 'negotiation-need-offer',
+            audioProducer: null,
+            audioProducerMid: null,
+            videoProducer: null,
+            videoProducerMid: null,
+            screencastProducer: null,
+            screencastProducerMid: null,
+            consumers: initialConsumers.map((v) => ({
+                mid: null,
+                connection: v.connection,
+                kind: v.media.type === 'audio' ? 'audio' : (v.media.source === 'default' ? 'video' : 'screencast'),
+                consumer: ''
+            }))
         });
 
-        logger.log(ctx, 'Transport ' + kitchenTransport + ' started');
-        return kitchenTransport;
+        // Bump
+        await this.callRepo.bumpVersion(ctx, cid, pid);
+
+        return id;
     }
 
-    // #createConsumerTransport = async (ctx: Context, cid: number, pid: number, sources: { connection: string, kind: 'audio' | 'video', mid: number }[], connection: string) => {
-    //     let router = (await Store.ConferenceKitchenRouter.conference.find(ctx, cid))!;
-    //     let kitchenTransport = await this.repo.createTransport(ctx, router!.id);
-    //     await Store.ConferenceEndStream.create(ctx, kitchenTransport, {
-    //         pid,
-    //         seq: 1,
-    //         state: 'need-answer',
-    //         localCandidates: [],
-    //         remoteCandidates: [],
-    //         localSdp: null,
-    //         remoteSdp: null,
-    //         localStreams: [],
-    //         remoteStreams: [],
-    //         iceTransportPolicy: 'all'
-    //     });
-    //     await Store.ConferenceKitchenTransportRef.create(ctx, kitchenTransport, {
-    //         connection: connection
-    //     });
-    //     await this.callRepo.bumpVersion(ctx, cid);
-    //     logger.log(ctx, 'Transport ' + kitchenTransport + ' started');
-    //     return kitchenTransport;
-    // }
+    updateConsumes = async (ctx: Context, id: string, connections: string[]) => {
+        // TODO: Implementg
+    }
+
+    updateProduces = async (ctx: Context, id: string, sources: MediaSources) => {
+        let connection = await Store.ConferenceKitchenConnection.findById(ctx, id);
+        if (!connection || connection.deleted) {
+            throw Error('Unable to find connection');
+        }
+
+        // Ignore if nothing changed
+        if (
+            sources.audioStream === connection.produces.audioStream
+            && sources.videoStream === connection.produces.videoStream
+            && sources.screenCastStream === connection.produces.screenCastStream
+        ) {
+            return;
+        }
+
+        // Update Connection
+        connection.producerSources = sources;
+        await this.#restartTransport(ctx, connection.transportId!, sources);
+        await connection.flush(ctx);
+    }
+
+    removeConnection = async (ctx: Context, id: string) => {
+        let connection = await Store.ConferenceKitchenConnection.findById(ctx, id);
+        if (!connection || connection.deleted) {
+            throw Error('Unable to find connection');
+        }
+        connection.deleted = true;
+        await this.#deleteTransport(ctx, connection.transportId);
+        await connection.flush(ctx);
+    }
+
+    //
+    // Transport Managing
+    //
 
     // #getRemoteStreams = async (ctx: Context, sources: string[]) => {
     //     let res: ({ connection: string, kind: 'audio' | 'video' })[] = [];
@@ -262,7 +225,7 @@ export class CallSchedulerKitchenConnections {
     //     }));
     // }
 
-    #restartProducerTransport = async (ctx: Context, id: string, sources: MediaSources) => {
+    #restartTransport = async (ctx: Context, id: string, sources: MediaSources) => {
         let endStream = await Store.ConferenceEndStream.findById(ctx, id);
         if (!endStream) {
             throw Error('Unable to find stream');
@@ -282,8 +245,8 @@ export class CallSchedulerKitchenConnections {
         if (!connection) {
             return;
         }
-        let producerTransport = await Store.ConferenceKitchenProducerTransport.findById(ctx, id);
-        if (!producerTransport || producerTransport.deleted) {
+        let transport = await Store.ConferenceKitchenTransport.findById(ctx, id);
+        if (!transport || transport.deleted) {
             return;
         }
 
@@ -292,25 +255,14 @@ export class CallSchedulerKitchenConnections {
         endStream.localSdp = null;
         endStream.remoteSdp = null;
         endStream.localStreams = this.#getStreamConfigs(sources);
+        endStream.remoteStreams = [];
 
-        // Delete audio producer if stream was removed
-        if (producerTransport.localAudioProducer && !sources.audioStream) {
-            await this.repo.deleteProducer(ctx, producerTransport.localAudioProducer);
-            producerTransport.localAudioProducer = null;
-        }
-
-        // Delete video producer if stream was removed
-        if (producerTransport.localVideoProducer && !sources.videoStream && !sources.screenCastStream) {
-            await this.repo.deleteProducer(ctx, producerTransport.localVideoProducer);
-            producerTransport.localVideoProducer = null;
-        }
-
-        await this.callRepo.bumpVersion(ctx, peer.cid);
+        await this.callRepo.bumpVersion(ctx, peer.cid, peer.id);
 
         logger.log(ctx, 'Transport ' + id + ' restarted');
     }
 
-    #deleteProducerTransport = async (ctx: Context, id: string) => {
+    #deleteTransport = async (ctx: Context, id: string) => {
 
         let ref = await Store.ConferenceKitchenTransportRef.findById(ctx, id);
         if (!ref) {
@@ -327,7 +279,7 @@ export class CallSchedulerKitchenConnections {
         if (stream.state === 'completed') {
             return;
         }
-        let producerTransport = await Store.ConferenceKitchenProducerTransport.findById(ctx, id);
+        let producerTransport = await Store.ConferenceKitchenTransport.findById(ctx, id);
         if (!producerTransport || producerTransport.deleted) {
             return;
         }
@@ -346,14 +298,20 @@ export class CallSchedulerKitchenConnections {
         stream.remoteStreams = [];
 
         // Delete producers
-        if (producerTransport.localAudioProducer) {
-            await this.repo.deleteProducer(ctx, producerTransport.localAudioProducer);
-            producerTransport.localAudioProducer = null;
+        if (producerTransport.audioProducer) {
+            await this.repo.deleteProducer(ctx, producerTransport.audioProducer);
+            producerTransport.audioProducer = null;
         }
-        if (producerTransport.localVideoProducer) {
-            await this.repo.deleteProducer(ctx, producerTransport.localVideoProducer);
-            producerTransport.localVideoProducer = null;
+        if (producerTransport.videoProducer) {
+            await this.repo.deleteProducer(ctx, producerTransport.videoProducer);
+            producerTransport.videoProducer = null;
         }
+        if (producerTransport.screencastProducer) {
+            await this.repo.deleteProducer(ctx, producerTransport.screencastProducer);
+            producerTransport.screencastProducer = null;
+        }
+
+        // TODO: Delete consumers
 
         // Delete tranport
         producerTransport.deleted = true;
@@ -361,8 +319,49 @@ export class CallSchedulerKitchenConnections {
         logger.log(ctx, 'Transport ' + id + ' stopped');
     }
 
-    #getStreamConfigs = (streams: MediaSources): StreamConfig[] => {
-        let res: StreamConfig[] = [];
+    #getConsumerDescriptors = async (ctx: Context, consumers: string[]) => {
+        let res: ConsumerDescriptor[] = [];
+        for (let c of consumers) {
+            let connection = await Store.ConferenceKitchenConnection.findById(ctx, c);
+            if (!connection) {
+                continue;
+            }
+            if (connection.state === 'closed') {
+                continue;
+            }
+            if (connection.videoProducer) {
+                let producer = await this.#getActiveProducer(ctx, connection.videoProducer);
+                if (producer) {
+                    res.push({
+                        pid: connection.pid,
+                        media: producer.parameters.kind === 'audio' ? {
+                            type: 'audio',
+                            mid: null
+                        } : {
+                                type: 'video',
+                                source: 'default',
+                                mid: null
+                            }
+                    });
+                }
+            }
+        }
+        return res;
+    }
+
+    #getActiveProducer = async (ctx: Context, id: string) => {
+        let producer = await Store.KitchenProducer.findById(ctx, id);
+        if (!producer) {
+            return null;
+        }
+        if (producer.state === 'created') {
+            return producer;
+        }
+        return null;
+    }
+
+    #getProducerDescriptors = (streams: MediaSources): ProducerDescriptor[] => {
+        let res: ProducerDescriptor[] = [];
         if (streams.videoStream) {
             res.push({ type: 'video', codec: 'h264', source: 'default', mid: null });
         }
@@ -379,23 +378,20 @@ export class CallSchedulerKitchenConnections {
     // Producer Offer/Answer
     //
 
-    #onProducerTransportOffer = async (ctx: Context, transportId: string, offer: string, hints: StreamHint[] | null) => {
+    #onTransportOffer = async (ctx: Context, transportId: string, offer: string, hints: StreamHint[]) => {
         let ref = await Store.ConferenceKitchenTransportRef.findById(ctx, transportId);
         if (!ref) {
             return;
         }
         let connection = await Store.ConferenceKitchenConnection.findById(ctx, ref.connection);
-        if (!connection || connection.deleted || connection.transportId !== transportId) {
+        if (!connection || connection.transportState !== 'negotiation' || connection.transportId !== transportId) {
             return;
-        }
-        if (connection.kind !== 'producer') {
-            throw Error('Received unexpected offer');
         }
         let endStream = await Store.ConferenceEndStream.findById(ctx, transportId);
         if (!endStream) {
             return;
         }
-        let producerTransport = await Store.ConferenceKitchenProducerTransport.findById(ctx, transportId);
+        let producerTransport = await Store.ConferenceTra.findById(ctx, transportId);
         if (!producerTransport || producerTransport.deleted) {
             return;
         }
@@ -403,225 +399,273 @@ export class CallSchedulerKitchenConnections {
         // Parsing
         let data = JSON.parse(offer);
         if (data.type !== 'offer') {
-            throw Error('SDP is not offer!');
+            throw Error('SDP is not an offer!');
         }
         let sdp = parseSDP(data.sdp as string);
 
-        // Transport Connect
+        // Check if offer is not empty
         let fingerprints = extractFingerprints(sdp);
-        await this.repo.connectTransport(ctx, transportId, fingerprints);
+        if (fingerprints.length > 0) {
+            await this.repo.connectTransport(ctx, transportId, fingerprints);
+        } else {
+            return;
+        }
+
+        // Create producers if needed
+        for (let h of hints) {
+            let media = sdp.media.find((v) => v.mid === h.mid);
+
+            // Check if hits are compatible
+            if (!media) {
+                throw Error('Inconsistent hints');
+            }
+
+            // Check if direction valid
+            if (media.direction !== 'sendonly' && media.direction !== 'inactive') {
+                throw Error('Incompatible hints');
+            }
+
+            if (h.kind === 'audio') {
+                if (producerTransport.audioProducer) {
+                    if (media.direction === 'inactive') {
+                        // TODO: Pause
+                    } else {
+                        // TODO: Unpause
+                    }
+                } else if (media.direction === 'sendonly') {
+
+                    // Create opus producer
+                    let rtpParameters = getOpusRtpParameters(media);
+                    let producerId = await this.repo.createProducer(ctx, transportId, { kind: 'audio', rtpParameters });
+                    await Store.ConferenceKitchenProducerRef.create(ctx, producerId, { connection: connection.id });
+                } else if (media.direction === 'inactive') {
+                    // Do nothing since producer is not created and it is inactive anyway
+                }
+            } else if (h.kind === 'video') {
+                if (h.videoSource === 'default') {
+                    //
+                } else if (h.videoSource === 'screen') {
+                    //
+                } else {
+                    throw Error('Unknown video source: ' + h.videoSource);
+                }
+            } else {
+                throw Error('Unknown kind: ' + h.kind);
+            }
+        }
 
         // Check SDP
-        let audioStreams = sdp.media.filter((v) => v.type === 'audio');
-        let videoStreams = sdp.media.filter((v) => v.type === 'video');
-        let remainingStreams = sdp.media.filter((v) => v.type !== 'video' && v.type !== 'audio').length;
-        if (remainingStreams > 0) {
-            throw Error('Found some non audio/video streams in SDP');
-        }
-        if (audioStreams.length > 1) {
-            throw Error('Found more than one audio stream in SDP');
-        }
-        if (videoStreams.length > 1) {
-            throw Error('Found more than one audio stream in SDP');
-        }
-        if (endStream.localStreams!.find((v) => v.type === 'audio')) {
-            if (audioStreams.length === 0) {
-                throw Error('Audio stream not found in SDP');
-            }
-        }
-        if (!endStream.localStreams!.find((v) => v.type === 'audio')) {
-            if (audioStreams.length !== 0) {
-                throw Error('Audio stream present in SDP');
-            }
-        }
-        if (endStream.localStreams!.find((v) => v.type === 'video')) {
-            if (videoStreams.length === 0) {
-                throw Error('Video stream not found in SDP');
-            }
-        }
-        if (!endStream.localStreams!.find((v) => v.type === 'video')) {
-            if (videoStreams.length !== 0) {
-                throw Error('Video stream present in SDP');
-            }
-        }
+        // let audioStreams = sdp.media.filter((v) => v.type === 'audio');
+        // let videoStreams = sdp.media.filter((v) => v.type === 'video');
+        // let remainingStreams = sdp.media.filter((v) => v.type !== 'video' && v.type !== 'audio').length;
+        // if (remainingStreams > 0) {
+        //     throw Error('Found some non audio/video streams in SDP');
+        // }
+        // if (audioStreams.length > 1) {
+        //     throw Error('Found more than one audio stream in SDP');
+        // }
+        // if (videoStreams.length > 1) {
+        //     throw Error('Found more than one audio stream in SDP');
+        // }
+        // if (endStream.localStreams!.find((v) => v.type === 'audio')) {
+        //     if (audioStreams.length === 0) {
+        //         throw Error('Audio stream not found in SDP');
+        //     }
+        // }
+        // if (!endStream.localStreams!.find((v) => v.type === 'audio')) {
+        //     if (audioStreams.length !== 0) {
+        //         throw Error('Audio stream present in SDP');
+        //     }
+        // }
+        // if (endStream.localStreams!.find((v) => v.type === 'video')) {
+        //     if (videoStreams.length === 0) {
+        //         throw Error('Video stream not found in SDP');
+        //     }
+        // }
+        // if (!endStream.localStreams!.find((v) => v.type === 'video')) {
+        //     if (videoStreams.length !== 0) {
+        //         throw Error('Video stream present in SDP');
+        //     }
+        // }
 
-        // Resolve Audio
-        if (audioStreams.length === 1) {
-            let audioMedia = audioStreams[0];
-            let ssrc = audioMedia.ssrcs![0].id as number;
-            const codec = audioMedia.rtp.find((v) => v.codec === 'opus');
-            if (!codec) {
-                throw Error('Unable to find audio codec!');
-            }
+        // // Resolve Audio
+        // if (audioStreams.length === 1) {
+        //     let audioMedia = audioStreams[0];
+        //     let ssrc = audioMedia.ssrcs![0].id as number;
+        //     const codec = audioMedia.rtp.find((v) => v.codec === 'opus');
+        //     if (!codec) {
+        //         throw Error('Unable to find audio codec!');
+        //     }
 
-            // Create Audio Producer if not exists
-            if (!producerTransport.localAudioProducer) {
+        //     // Create Audio Producer if not exists
+        //     if (!producerTransport.localAudioProducer) {
 
-                // Resolve Parameters
-                let params: any = {};
-                let fmt = audioMedia.fmtp.find((v) => v.payload === codec.payload);
-                if (fmt) {
-                    params = decodeParameters(fmt.config);
-                }
+        //         // Resolve Parameters
+        //         let params: any = {};
+        //         let fmt = audioMedia.fmtp.find((v) => v.payload === codec.payload);
+        //         if (fmt) {
+        //             params = decodeParameters(fmt.config);
+        //         }
 
-                // Create Producer
-                let codecParameters = {
-                    mimeType: 'audio/opus',
-                    payloadType: codec.payload,
-                    clockRate: 48000,
-                    channels: 2,
-                    parameters: params,
-                    rtcpFeedback: [{
-                        type: 'transport-cc'
-                    }]
-                };
-                let producerId = await this.repo.createProducer(ctx, transportId, {
-                    kind: 'audio',
-                    rtpParameters: {
-                        codecs: [codecParameters],
-                        encodings: [{ ssrc: ssrc }]
-                    }
-                });
+        //         // Create Producer
+        //         let codecParameters = {
+        //             mimeType: 'audio/opus',
+        //             payloadType: codec.payload,
+        //             clockRate: 48000,
+        //             channels: 2,
+        //             parameters: params,
+        //             rtcpFeedback: [{
+        //                 type: 'transport-cc'
+        //             }]
+        //         };
+        //         let producerId = await this.repo.createProducer(ctx, transportId, {
+        //             kind: 'audio',
+        //             rtpParameters: {
+        //                 codecs: [codecParameters],
+        //                 encodings: [{ ssrc: ssrc }]
+        //             }
+        //         });
 
-                // Save producer
-                await Store.ConferenceKitchenProducerRef.create(ctx, producerId, { connection: connection.id, kind: 'audio' });
-                producerTransport.localAudioProducer = producerId;
-            }
-        }
+        //         // Save producer
+        //         await Store.ConferenceKitchenProducerRef.create(ctx, producerId, { connection: connection.id, kind: 'audio' });
+        //         producerTransport.localAudioProducer = producerId;
+        //     }
+        // }
 
-        // Handle Video
-        if (videoStreams.length === 1) {
-            let videoMedia = videoStreams[0];
-            let ssrc = videoMedia.ssrcs![0].id as number;
+        // // Handle Video
+        // if (videoStreams.length === 1) {
+        //     let videoMedia = videoStreams[0];
+        //     let ssrc = videoMedia.ssrcs![0].id as number;
 
-            // Resolving a codec
-            let codecPayload: number | null = null;
-            for (let c of videoMedia.rtp) {
-                if (c.codec !== 'H264') {
-                    continue;
-                }
-                let fmt = videoMedia.fmtp.find((f) => f.payload === c.payload);
-                if (!fmt) {
-                    continue;
-                }
-                let cfg = decodeParameters(fmt.config);
-                if (cfg['packetization-mode'] !== '1') {
-                    continue;
-                }
-                if (cfg['profile-level-id'] !== '42e034' && cfg['profile-level-id'] !== '42e01f') {
-                    continue;
-                }
-                codecPayload = c.payload;
-                break;
-            }
-            if (codecPayload === null) {
-                throw Error('Unable to find vide codec');
-            }
-            let codec = videoMedia.rtp.find((v) => v.payload === codecPayload)!;
+        //     // Resolving a codec
+        //     let codecPayload: number | null = null;
+        //     for (let c of videoMedia.rtp) {
+        //         if (c.codec !== 'H264') {
+        //             continue;
+        //         }
+        //         let fmt = videoMedia.fmtp.find((f) => f.payload === c.payload);
+        //         if (!fmt) {
+        //             continue;
+        //         }
+        //         let cfg = decodeParameters(fmt.config);
+        //         if (cfg['packetization-mode'] !== '1') {
+        //             continue;
+        //         }
+        //         if (cfg['profile-level-id'] !== '42e034' && cfg['profile-level-id'] !== '42e01f') {
+        //             continue;
+        //         }
+        //         codecPayload = c.payload;
+        //         break;
+        //     }
+        //     if (codecPayload === null) {
+        //         throw Error('Unable to find vide codec');
+        //     }
+        //     let codec = videoMedia.rtp.find((v) => v.payload === codecPayload)!;
 
-            // Create Video Producer if possible
-            if (!producerTransport.localVideoProducer) {
+        //     // Create Video Producer if possible
+        //     if (!producerTransport.localVideoProducer) {
 
-                // Resolve Param
-                let params: any = {};
-                let fmt = videoMedia.fmtp.find((v) => v.payload === codec.payload);
-                if (fmt) {
-                    params = decodeParameters(fmt.config);
-                }
-                params['profile-level-id'] = '42e01f';
-                params['packetization-mode'] = 1;
-                params['level-asymmetry-allowed'] = 1;
+        //         // Resolve Param
+        //         let params: any = {};
+        //         let fmt = videoMedia.fmtp.find((v) => v.payload === codec.payload);
+        //         if (fmt) {
+        //             params = decodeParameters(fmt.config);
+        //         }
+        //         params['profile-level-id'] = '42e01f';
+        //         params['packetization-mode'] = 1;
+        //         params['level-asymmetry-allowed'] = 1;
 
-                // Create Producer
-                let codecParameters = {
-                    mimeType: 'video/H264',
-                    payloadType: codec.payload,
-                    clockRate: 90000,
-                    parameters: params,
-                    rtcpFeedback: [{
-                        type: 'transport-cc'
-                    }]
-                };
-                let producerId = await this.repo.createProducer(ctx, transportId, {
-                    kind: 'video',
-                    rtpParameters: {
-                        codecs: [codecParameters],
-                        encodings: [{ ssrc: ssrc }]
-                    }
-                });
+        //         // Create Producer
+        //         let codecParameters = {
+        //             mimeType: 'video/H264',
+        //             payloadType: codec.payload,
+        //             clockRate: 90000,
+        //             parameters: params,
+        //             rtcpFeedback: [{
+        //                 type: 'transport-cc'
+        //             }]
+        //         };
+        //         let producerId = await this.repo.createProducer(ctx, transportId, {
+        //             kind: 'video',
+        //             rtpParameters: {
+        //                 codecs: [codecParameters],
+        //                 encodings: [{ ssrc: ssrc }]
+        //             }
+        //         });
 
-                // Save producer
-                await Store.ConferenceKitchenProducerRef.create(ctx, producerId, { connection: connection.id, kind: 'video' });
-                producerTransport.localVideoProducer = producerId;
-            }
-        }
+        //         // Save producer
+        //         await Store.ConferenceKitchenProducerRef.create(ctx, producerId, { connection: connection.id, kind: 'video' });
+        //         producerTransport.localVideoProducer = producerId;
+        //     }
+        // }
 
         // Generate answer if ready
         await connection.flush(ctx);
-        await this.#checkProducerTransportAnswer(ctx, transportId);
+        await this.#checkTransportAnswer(ctx, transportId);
     }
 
-    #checkProducerTransportAnswer = async (ctx: Context, transportId: string) => {
-        let ref = await Store.ConferenceKitchenTransportRef.findById(ctx, transportId);
-        if (!ref) {
+    #checkTransportAnswer = async (ctx: Context, id: string) => {
+        let connection = await Store.ConferenceKitchenConnection.findById(ctx, id);
+        // If answer is needed
+        if (!connection || connection.state !== 'negotiation-wait-answer') {
             return;
         }
-        let connection = await Store.ConferenceKitchenConnection.findById(ctx, ref.connection);
-        if (!connection || connection.deleted || connection.transportId !== transportId) {
-            return;
-        }
-        if (connection.kind !== 'producer') {
-            throw Error('Received unexpected offer');
-        }
-        let endStream = await Store.ConferenceEndStream.findById(ctx, transportId);
+        // If end stream exists
+        let endStream = await Store.ConferenceEndStream.findById(ctx, id);
         if (!endStream) {
             return;
         }
+        // If end stream is in correct state
         if (endStream.state !== 'wait-answer') {
             return;
         }
-        let transport = await Store.KitchenTransport.findById(ctx, transportId);
+
+        // If transport already connected
+        // TODO: Handle answer generation before connected state since it could be empty transport
+        let transport = await Store.KitchenTransport.findById(ctx, id);
         if (!transport || transport.state !== 'connected') {
-            return;
-        }
-        let producerTransport = await Store.ConferenceKitchenProducerTransport.findById(ctx, transportId);
-        if (!producerTransport || producerTransport.deleted) {
             return;
         }
 
         // Check Audio Producer
         let audioProducer: KitchenProducer | null = null;
-        if (connection.producerSources!.audioStream) {
-            if (producerTransport.localAudioProducer) {
-                let producer = await Store.KitchenProducer.findById(ctx, producerTransport.localAudioProducer);
+        if (connection.produces!.audioStream) {
+            if (connection.audioProducer) {
+                let producer = await this.#getActiveProducer(ctx, connection.audioProducer);
                 if (!producer) {
-                    return;
+                    return; // Not created yet
                 }
-                if (producer.state === 'created') {
-                    audioProducer = producer;
-                } else {
-                    return;
-                }
+                audioProducer = producer;
             } else {
-                return;
+                return; // Should not happen
             }
         }
 
         // Check Video Producer
         let videoProducer: KitchenProducer | null = null;
-        if (connection.producerSources!.videoStream || connection.producerSources!.screenCastStream) {
-            if (producerTransport.localVideoProducer) {
-                let producer = await Store.KitchenProducer.findById(ctx, producerTransport.localVideoProducer);
+        if (connection.produces!.videoStream) {
+            if (connection.videoProducer) {
+                let producer = await this.#getActiveProducer(ctx, connection.videoProducer);
                 if (!producer) {
-                    return;
+                    return; // Not created yet
                 }
-                if (producer.state === 'created') {
-                    videoProducer = producer;
-                } else {
-                    return;
-                }
+                videoProducer = producer;
             } else {
-                return;
+                return; // Should not happen
+            }
+        }
+
+        // Check Screencast Producer
+        let screencastProducer: KitchenProducer | null = null;
+        if (connection.produces!.screenCastStream) {
+            if (connection.screencastProducer) {
+                let producer = await this.#getActiveProducer(ctx, connection.screencastProducer);
+                if (!producer) {
+                    return; // Not created yet
+                }
+                screencastProducer = producer;
+            } else {
+                return; // Should not happen
             }
         }
 
@@ -751,67 +795,49 @@ export class CallSchedulerKitchenConnections {
         endStream.seq++;
         endStream.state = 'online';
         endStream.remoteSdp = JSON.stringify({ type: 'answer', sdp: writeSDP(answer) });
-        await this.callRepo.bumpVersion(ctx, connection.cid);
+        await this.callRepo.bumpVersion(ctx, connection.cid, connection.pid);
     }
 
     //
     // Callbacks
     //
 
-    onWebRTCConnectionOffer = async (ctx: Context, transportId: string, offer: string, hints: StreamHint[] | null) => {
-
-        //
-        // Route offer from web to kitchen producer transport
-        //
-
-        let ref = await Store.ConferenceKitchenTransportRef.findById(ctx, transportId);
-        if (!ref) {
+    onWebRTCConnectionOffer = async (ctx: Context, id: string, offer: string, hints: StreamHint[] | null) => {
+        if (!hints) {
+            throw Error('Unsupported client');
+        }
+        let connection = await Store.ConferenceKitchenConnection.findById(ctx, id);
+        if (!connection || connection.state === 'closed') {
             return;
         }
-        let connection = await Store.ConferenceKitchenConnection.findById(ctx, ref.connection);
-        if (!connection || connection.deleted) {
-            return;
-        }
-        if (connection.kind !== 'producer') {
-            throw Error('Received unexpected offer');
-        }
-        await this.#onProducerTransportOffer(ctx, transportId, offer, hints);
+        await this.#onTransportOffer(ctx, id, offer, hints);
     }
 
-    onWebRTCConnectionAnswer = async (ctx: Context, transportId: string, answer: string) => {
-        //
-    }
-
-    onKitchenTransportCreated = async (ctx: Context, transportId: string) => {
-
-        //
-        // Check if producer transport should send answer
-        //
-
-        await this.#checkProducerTransportAnswer(ctx, transportId);
+    onKitchenTransportCreated = async (ctx: Context, id: string) => {
+        await this.#checkTransportAnswer(ctx, id);
     }
 
     onKitchenProducerCreated = async (ctx: Context, producerId: string) => {
-
-        //
-        // Check if producer transport should send answer
-        //
-
         let ref = await Store.ConferenceKitchenProducerRef.findById(ctx, producerId);
         if (!ref) {
             return;
         }
         let connection = await Store.ConferenceKitchenConnection.findById(ctx, ref.connection);
-        if (!connection || connection.deleted) {
+        if (!connection || connection.state === 'closed') {
             return;
         }
-        if (connection.kind !== 'producer') {
-            throw Error('Received unexpected offer');
-        }
-        await this.#checkProducerTransportAnswer(ctx, connection.transportId!);
+        await this.#checkTransportAnswer(ctx, ref.connection);
     }
 
     onKitchenConsumerCreated = async (ctx: Context, consumerId: string) => {
-        // TODO: Implement
+        let ref = await Store.ConferenceKitchenConsumerRef.findById(ctx, consumerId);
+        if (!ref) {
+            return;
+        }
+        let connection = await Store.ConferenceKitchenConnection.findById(ctx, ref.connection);
+        if (!connection || connection.state === 'closed') {
+            return;
+        }
+        await this.#checkTransportAnswer(ctx, ref.connection);
     }
 }

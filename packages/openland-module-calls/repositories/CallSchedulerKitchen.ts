@@ -8,22 +8,6 @@ import { CallScheduler, MediaSources, StreamHint } from './CallScheduler';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 
-function extractGenericSources(source: MediaSources): MediaSources {
-    return {
-        audioStream: source.audioStream,
-        videoStream: source.videoStream,
-        screenCastStream: false
-    };
-}
-
-function extractCastSources(source: MediaSources): MediaSources {
-    return {
-        audioStream: false,
-        videoStream: false,
-        screenCastStream: source.screenCastStream
-    };
-}
-
 const logger = createLogger('mediakitchen');
 
 @injectable()
@@ -65,20 +49,26 @@ export class CallSchedulerKitchen implements CallScheduler {
     //
 
     onPeerAdded = async (ctx: Context, cid: number, pid: number, sources: MediaSources) => {
-
-        let genericTransport = await this.connections.createProducerConnection(ctx, cid, pid, extractGenericSources(sources));
-        let screencastTransport = await this.connections.createProducerConnection(ctx, cid, pid, extractCastSources(sources));
-
+        let existing = await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid);
+        let consumerConnections = existing.map((v) => v.connection);
+        let connection = await this.connections.createConnection(ctx, cid, pid, sources, consumerConnections);
         await Store.ConferenceKitchenPeer.create(ctx, pid, {
             cid,
-            sources: sources,
-
-            genericTransport: genericTransport,
-            screencastTransport: screencastTransport,
-            consumersTransport: null,
-
+            produces: sources,
+            consumes: consumerConnections,
+            connection,
             active: true
         });
+
+        // Update existing connections
+        for (let e of existing) {
+            if (!e.active) { // Just in case
+                continue;
+            }
+            // Add new connection
+            e.consumes = [...e.consumes, connection];
+            await this.connections.updateConsumes(ctx, e.connection, e.consumes);
+        }
     }
 
     onPeerStreamsChanged = async (ctx: Context, cid: number, pid: number, sources: MediaSources) => {
@@ -86,12 +76,7 @@ export class CallSchedulerKitchen implements CallScheduler {
         if (!peer || !peer.active) {
             return;
         }
-        if (peer.genericTransport) {
-            await this.connections.updateProducerStreams(ctx, peer.genericTransport, extractGenericSources(sources));
-        }
-        if (peer.screencastTransport) {
-            await this.connections.updateProducerStreams(ctx, peer.screencastTransport, extractCastSources(sources));
-        }
+        await this.connections.updateProduces(ctx, peer.connection, sources);
     }
 
     onPeerRemoved = async (ctx: Context, cid: number, pid: number) => {
@@ -100,13 +85,7 @@ export class CallSchedulerKitchen implements CallScheduler {
             return;
         }
 
-        if (peer.genericTransport) {
-            await this.connections.removeConnection(ctx, peer.genericTransport);
-        }
-        if (peer.screencastTransport) {
-            await this.connections.removeConnection(ctx, peer.screencastTransport);
-        }
-
+        await this.connections.removeConnection(ctx, peer.connection);
         peer.active = false;
         await peer.flush(ctx);
     }
@@ -115,12 +94,12 @@ export class CallSchedulerKitchen implements CallScheduler {
     // Events
     //
 
-    onStreamAnswer = async (ctx: Context, cid: number, pid: number, sid: string, answer: string) => {
-        await this.connections.onWebRTCConnectionAnswer(ctx, sid, answer);
-    }
-
     onStreamOffer = async (ctx: Context, cid: number, pid: number, sid: string, offer: string, hints: StreamHint[] | null) => {
         await this.connections.onWebRTCConnectionOffer(ctx, sid, offer, hints);
+    }
+
+    onStreamAnswer = async (ctx: Context, cid: number, pid: number, sid: string, answer: string) => {
+        // Ignore
     }
 
     onStreamCandidate = async (ctx: Context, cid: number, pid: number, sid: string, candidate: string) => {

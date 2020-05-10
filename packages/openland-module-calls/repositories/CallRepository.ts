@@ -110,7 +110,7 @@ export class CallRepository {
             await scheduler.onPeerAdded(ctx, conf.id, id, this.#getStreams(res, conf));
 
             // Notify state change
-            await this.bumpVersion(ctx, cid);
+            await this.bumpVersion(ctx, cid, id);
             return res;
         });
     }
@@ -133,7 +133,7 @@ export class CallRepository {
             await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, this.#getStreams(peer, conf));
 
             // Notify state change
-            await this.bumpVersion(ctx, cid);
+            await this.bumpVersion(ctx, cid, peer.id);
             return await this.getOrCreateConference(ctx, cid);
         });
     }
@@ -169,7 +169,7 @@ export class CallRepository {
             await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, this.#getStreams(peer, conf));
 
             // Notify state change
-            await this.bumpVersion(ctx, cid);
+            await this.bumpVersion(ctx, cid, peer.id);
             return await this.getOrCreateConference(ctx, cid);
         });
     }
@@ -199,7 +199,7 @@ export class CallRepository {
             await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, this.#getStreams(peer, conf));
 
             // Notify state change
-            await this.bumpVersion(ctx, cid);
+            await this.bumpVersion(ctx, cid, peer.id);
             return conf;
         });
     }
@@ -218,7 +218,7 @@ export class CallRepository {
             await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, this.#getStreams(peer, conf));
 
             // Notify state change
-            await this.bumpVersion(ctx, peer.cid);
+            await this.bumpVersion(ctx, peer.cid, peer.id);
             return conf;
         });
     }
@@ -285,7 +285,7 @@ export class CallRepository {
             }
 
             // Notify state change
-            await this.bumpVersion(ctx, existing.cid);
+            await this.bumpVersion(ctx, existing.cid, existing.id);
         });
     }
 
@@ -318,7 +318,7 @@ export class CallRepository {
                 if (a.keepAliveTimeout < now) {
                     log.log(ctx, 'Call Participant Reaped: ' + a.uid + ' from ' + a.cid);
                     await this.removePeer(ctx, a.id);
-                    await this.bumpVersion(ctx, a.cid);
+                    await this.bumpVersion(ctx, a.cid, a.id);
                 }
             }
         });
@@ -363,7 +363,7 @@ export class CallRepository {
             await stream.flush(ctx);
 
             // Notify state change
-            await this.bumpVersion(ctx, peer.cid);
+            await this.bumpVersion(ctx, peer.cid, peer.id);
         });
     }
 
@@ -395,7 +395,7 @@ export class CallRepository {
             await stream.flush(ctx);
 
             // Bump version
-            await this.bumpVersion(ctx, peer.cid);
+            await this.bumpVersion(ctx, peer.cid, peer.id);
         });
     }
 
@@ -426,7 +426,7 @@ export class CallRepository {
             await stream.flush(ctx);
 
             // Bump version
-            await this.bumpVersion(ctx, peer.cid);
+            await this.bumpVersion(ctx, peer.cid, peer.id);
         });
     }
 
@@ -438,7 +438,7 @@ export class CallRepository {
         return await Store.ConferencePeer.conference.findAll(parent, cid);
     }
 
-    bumpVersion = async (parent: Context, cid: number) => {
+    bumpVersion = async (parent: Context, cid: number, pid: number) => {
         await inTx(parent, async (ctx) => {
             let conf = await this.getOrCreateConference(ctx, cid);
             conf.invalidate();
