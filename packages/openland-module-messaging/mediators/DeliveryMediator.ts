@@ -15,12 +15,12 @@ import { NeedNotificationDeliveryRepository } from 'openland-module-messaging/re
 import { Modules } from '../../openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 import { currentRunningTime } from 'openland-utils/timer';
-import { createMetric } from 'openland-module-monitoring/Metric';
+// import { createMetric } from 'openland-module-monitoring/Metric';
 import { createLogger } from '@openland/log';
 
 const tracer = createTracer('message-delivery');
-const deliveryInitialMetric = createMetric('delivery-fan-out', 'average');
-const deliveryMetric = createMetric('delivery-user-multiple', 'average');
+// const deliveryInitialMetric = createMetric('delivery-fan-out', 'average');
+// const deliveryMetric = createMetric('delivery-user-multiple', 'average');
 const log = createLogger('delivery');
 
 @injectable()
@@ -37,7 +37,7 @@ export class DeliveryMediator {
         if (serverRoleEnabled('delivery')) {
             for (let i = 0; i < 25; i++) {
                 this.queue.addWorker(async (item, parent) => {
-                    const start = currentRunningTime();
+                    // const start = currentRunningTime();
                     if (item.action === 'new' || item.action === undefined) {
                         await this.fanOutDelivery(parent, item.messageId, 'new');
                     } else if (item.action === 'delete') {
@@ -47,13 +47,13 @@ export class DeliveryMediator {
                     } else {
                         throw Error('Unknown action: ' + item.action);
                     }
-                    deliveryInitialMetric.add(parent, currentRunningTime() - start);
+                    // deliveryInitialMetric.add(parent, currentRunningTime() - start);
                     return { result: 'ok' };
                 });
             }
             for (let i = 0; i < 25; i++) {
                 this.queueUserMultiple.addWorker(async (item, parent) => {
-                    const start = currentRunningTime();
+                    // const start = currentRunningTime();
                     await tracer.trace(parent, 'deliver-multiple', async (ctx2) => {
                         await inTx(ctx2, async (ctx) => {
                             // Speed up retry loop for lower latency
@@ -71,7 +71,7 @@ export class DeliveryMediator {
                             }
                         });
                     });
-                    deliveryMetric.add(parent, currentRunningTime() - start);
+                    // deliveryMetric.add(parent, currentRunningTime() - start);
                     return { result: 'ok' };
                 });
             }

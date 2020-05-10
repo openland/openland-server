@@ -10,16 +10,16 @@ import { Shutdown } from '../openland-utils/Shutdown';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { getTransaction } from '@openland/foundationdb';
-import { createMetric } from 'openland-module-monitoring/Metric';
+// import { createMetric } from 'openland-module-monitoring/Metric';
 
 const log = createLogger('worker');
 const workCompleted = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_completed');
 const workScheduled = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_scheduled');
-const metricStart = createMetric('worker-started', 'sum');
-const metricFailed = createMetric('worker-failed', 'sum');
-const metricEnd = createMetric('worker-commited', 'sum');
-const workerFetch = createMetric('worker-fetch', 'average');
-const workerPick = createMetric('worker-pick', 'average');
+// const metricStart = createMetric('worker-started', 'sum');
+// const metricFailed = createMetric('worker-failed', 'sum');
+// const metricEnd = createMetric('worker-commited', 'sum');
+// const workerFetch = createMetric('worker-fetch', 'average');
+// const workerPick = createMetric('worker-pick', 'average');
 
 export class WorkQueue<ARGS, RES extends JsonMap> {
     private taskType: string;
@@ -89,9 +89,9 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 let raw = await getTransaction(ctx).getReadVersion();
                 return { res, readVersion: raw };
             });
-            if (task) {
-                workerFetch.add(root, currentRunningTime() - start);
-            }
+            // if (task) {
+            //     workerFetch.add(root, currentRunningTime() - start);
+            // }
             start = currentRunningTime();
             let locked = task && await inTx(root, async (ctx) => {
                 getTransaction(ctx).setOptions({
@@ -114,7 +114,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 return true;
             });
             if (task && locked) {
-                workerPick.add(root, currentRunningTime() - start);
+                // workerPick.add(root, currentRunningTime() - start);
                 // log.log(root, 'Task ' + task.uid + ' found');
                 // let start = currentTime();
                 let breakDelay: (() => void) | undefined;
@@ -135,10 +135,10 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 };
                 let res: RES;
                 try {
-                    metricStart.increment(root);
+                    // metricStart.increment(root);
                     res = await handler(task.res.arguments, rootExec);
                 } catch (e) {
-                    metricFailed.increment(rootExec);
+                    // metricFailed.increment(rootExec);
                     log.warn(root, e);
                     await inTx(root, async (ctx) => {
                         let res2 = await Store.Task.findById(ctx, task!!.res.taskType, task!!.res.uid);
@@ -189,7 +189,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     return false;
                 });
                 if (commited) {
-                    metricEnd.increment(root);
+                    // metricEnd.increment(root);
                     // log.log(root, 'Commited');
                 } else {
                     log.log(root, 'Not commited');

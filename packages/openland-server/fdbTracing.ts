@@ -8,7 +8,7 @@ import { setTransactionTracer, setSubspaceTracer } from '@openland/foundationdb/
 //     setEntityFactoryTracer
 // } from '@openland/foundationdb-entity/lib/tracing';
 // import { createZippedLogger } from '../openland-utils/ZippedLogger';
-import { createMetric } from 'openland-module-monitoring/Metric';
+// import { createMetric } from 'openland-module-monitoring/Metric';
 import { getConcurrencyPool } from 'openland-utils/ConcurrencyPool';
 import { createLogger } from '@openland/log';
 import { encoders } from '@openland/foundationdb';
@@ -21,44 +21,46 @@ import { encoders } from '@openland/foundationdb';
 
 // const getContextPath = (ctx: Context) => ContextName.get(ctx) + ' ' + LogPathContext.get(ctx).join('->');
 
-const ephemeralTx = createMetric('tx-ephemeral', 'sum');
-const newTx = createMetric('tx-start', 'sum');
-const commitTx = createMetric('tx-commit', 'sum');
-const retryTx = createMetric('tx-retry', 'sum');
-const opRead = createMetric('op-read', 'sum');
-const opWrite = createMetric('op-write', 'sum');
+// const ephemeralTx = createMetric('tx-ephemeral', 'sum');
+// const newTx = createMetric('tx-start', 'sum');
+// const commitTx = createMetric('tx-commit', 'sum');
+// const retryTx = createMetric('tx-retry', 'sum');
+// const opRead = createMetric('op-read', 'sum');
+// const opWrite = createMetric('op-write', 'sum');
 
 let valueLengthLimitLogger = createLogger('fdb-tracing');
 
 export function setupFdbTracing() {
     setTransactionTracer({
         tx: async (ctx, handler) => {
-            newTx.increment(ctx);
+            // newTx.increment(ctx);
             // return await tracer.trace(ctx, 'transaction', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
             return handler(ctx);
         },
         commit: async (ctx, handler) => {
-            commitTx.increment(ctx);
+            // commitTx.increment(ctx);
             // return await tracer.trace(ctx, 'transaction commit', () => handler(), { tags: { contextPath: getContextPath(ctx) } })
             return handler();
         },
-        onNewReadWriteTx: (ctx) => newTx.increment(ctx),
+        onNewReadWriteTx: (ctx) => {
+            // newTx.increment(ctx);
+        },
         onRetry: (ctx) => {
-            retryTx.increment(ctx);
+            // retryTx.increment(ctx);
         },
         onNewEphemeralTx: (ctx) => {
-            ephemeralTx.increment(ctx);
+            // ephemeralTx.increment(ctx);
         }
     });
 
     setSubspaceTracer({
         get: async (ctx, key, handler) => {
-            opRead.increment(ctx);
+            // opRead.increment(ctx);
             return getConcurrencyPool(ctx).run(handler);
             // return await tracer.trace(ctx, 'getKey', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
         },
         set: (ctx, key, value, handler) => {
-            opWrite.increment(ctx);
+            // opWrite.increment(ctx);
             if (value.byteLength > 100000) {
                 valueLengthLimitLogger.log(ctx, 'Value length exceeds limit: ' + JSON.stringify(encoders.json.unpack(value)));
             }
@@ -67,13 +69,13 @@ export function setupFdbTracing() {
         },
         range: async (ctx, key, opts, handler) => {
             // return await tracer.trace(ctx, 'getRange', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
-            opRead.increment(ctx);
+            // opRead.increment(ctx);
             let res = await getConcurrencyPool(ctx).run(handler);
-            if (res.length > 0) {
-                opRead.add(ctx, res.length);
-            } else {
-                opRead.add(ctx, 1);
-            }
+            // if (res.length > 0) {
+            //     opRead.add(ctx, res.length);
+            // } else {
+            //     opRead.add(ctx, 1);
+            // }
             return res;
         }
     });
