@@ -11,7 +11,7 @@ class GaugeCollector {
 
     #values = new Map<string, {
         value: number,
-        date: number,
+        time: number,
         timeout: NodeJS.Timeout
     }>();
 
@@ -19,17 +19,17 @@ class GaugeCollector {
         return [...this.#values.values()].map((v) => v.value).reduce((p, c) => p + c, 0);
     }
 
-    report = (value: number, key: string, timeout: number, date: number) => {
+    report = (value: number, key: string, timeout: number, time: number) => {
         let now = Date.now();
 
         // Already timeouted
-        if (date + timeout <= now) {
+        if (time + timeout <= now) {
             return;
         }
 
         let ex = this.#values.get(key);
         // Too old report
-        if (ex && ex.date >= date) {
+        if (ex && ex.time >= time) {
             return;
         }
 
@@ -41,7 +41,7 @@ class GaugeCollector {
         // Write new value
         this.#values.set(key, {
             value,
-            date,
+            time,
             timeout: setTimeout(() => { this.#values.delete(key); }, timeout)
         });
     }
@@ -75,7 +75,7 @@ export class DistributedCollector {
         if (src.type === 'gauge') {
             let name = src.name;
             let timeout = src.timeout;
-            let date = src.date;
+            let time = src.time;
             let key = src.key;
             let value = src.value;
             if (typeof name !== 'string') {
@@ -87,7 +87,7 @@ export class DistributedCollector {
             if (typeof timeout !== 'number') {
                 return;
             }
-            if (typeof date !== 'number') {
+            if (typeof time !== 'number') {
                 return;
             }
             if (typeof value !== 'number') {
@@ -97,7 +97,7 @@ export class DistributedCollector {
             if (!collector) {
                 return;
             }
-            collector.report(value, key, timeout, date);
+            collector.report(value, key, timeout, time);
         }
     }
 }
