@@ -2,7 +2,7 @@ import { delay } from 'openland-utils/timer';
 import { createLogger } from '@openland/log';
 import { Store } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
-import { ClickHouseClient } from './ClickHouseClient';
+import { ClickHouseClient, DatabaseClient } from './ClickHouseClient';
 import { DistributedLock } from '@openland/foundationdb-locks';
 import { inTx } from '@openland/foundationdb';
 
@@ -10,14 +10,35 @@ const database = process.env.CLICKHOUSE_DB || 'openland';
 
 interface Migration {
     name: string;
-    command: (ctx: Context, client: ClickHouseClient) => Promise<void>;
+    command: (ctx: Context, client: DatabaseClient) => Promise<void>;
 }
 const migrations: Migration[] = [];
 
 migrations.push({
     name: '01-db-create',
-    command: async (ctx: Context, client: ClickHouseClient) => {
-        await client.op.createDatabaseIfNotExists(ctx, database);
+    command: async (ctx: Context, client: DatabaseClient) => {
+        await client.createDatabase(ctx);
+    }
+});
+migrations.push({
+    name: '02-presence-create',
+    command: async (ctx: Context, client: DatabaseClient) => {
+        await client.createTable(ctx, 'presences', [{
+            name: 'time',
+            type: 'DateTime'
+        }, {
+            name: 'eid',
+            type: 'String'
+        }, {
+            name: 'uid',
+            type: 'Int64'
+        }, {
+            name: 'platform',
+            type: 'String'
+        }],
+            'toYYYYMM(time)',
+            'time',
+            'eid');
     }
 });
 
@@ -32,6 +53,7 @@ export async function createClient(ctx: Context) {
     let password = process.env.CLICKHOUSE_PASSWORD || '';
 
     let client = new ClickHouseClient(endpoint, username, password);
+    let db = client.withDatabase(database);
     let lock = new DistributedLock('clickhouse-migrations', Store.storage.db, 1);
 
     // Perform migrations
@@ -77,7 +99,7 @@ export async function createClient(ctx: Context) {
                 }
 
                 logger.log(ctx, 'Applying migration ' + m.name);
-                await m.command(ctx, client);
+                await m.command(ctx, db);
             }
 
             logger.log(ctx, 'All migrations applied');
@@ -104,5 +126,5 @@ export async function createClient(ctx: Context) {
         break;
     }
 
-    return client;
+    return db;
 }

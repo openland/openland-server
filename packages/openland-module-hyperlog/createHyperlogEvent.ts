@@ -5,8 +5,14 @@ import { createLogger } from '@openland/log';
 
 const logger = createLogger('hyperlog');
 
-export function createHyperlogger<T>(type: string) {
+export type HyperEvent<T> = {
+    type: string;
+    event(ctx: Context, event: T): void
+};
+
+export function createHyperlogger<T>(type: string): HyperEvent<T> {
     return {
+        type,
         event: (ctx: Context, event: T) => {
             try {
                 Store.HyperLog.create_UNSAFE(ctx, Store.storage.db.get(RandomLayer).nextRandomId(), {
