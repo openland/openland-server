@@ -41,6 +41,30 @@ migrations.push({
             'eid');
     }
 });
+migrations.push({
+    name: '02-messages-create',
+    command: async (ctx: Context, client: DatabaseClient) => {
+        await client.createTable(ctx, 'messages', [{
+            name: 'time',
+            type: 'DateTime'
+        }, {
+            name: 'id',
+            type: 'String'
+        }, {
+            name: 'uid',
+            type: 'Int64'
+        }, {
+            name: 'type',
+            type: 'String'
+        }, {
+            name: 'service',
+            type: 'UInt8'
+        }],
+            'toYYYYMM(time)',
+            '(id, time)',
+            'id');
+    }
+});
 
 const logger = createLogger('clickhouse');
 
