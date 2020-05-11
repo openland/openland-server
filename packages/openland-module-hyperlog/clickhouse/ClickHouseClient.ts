@@ -15,7 +15,7 @@ export class ClickHouseClient {
     };
 
     constructor(endpoint: string, username: string, password: string) {
-        let url = new URL(endpoint);
+        let url = new URL('ch://' + endpoint);
         this.client = new ClickHouse({ host: url.hostname, port: url.port, user: username, password: password });
     }
 
