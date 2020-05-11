@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@apla/clickhouse@^1.6.2":
+  version "1.6.2"
+  resolved "https://registry.yarnpkg.com/@apla/clickhouse/-/clickhouse-1.6.2.tgz#4062ba81dff9c2599ce8b3e9f79102a0356213df"
+  integrity sha512-hMoxoUYHRncS/WnpL+7xfV219q6JrCo4tTOSywwNvjsVT/bPs9oc68oxecLAIP3dMAxLahYVoPDdnPxN08xgMg==
+
 "@apollographql/apollo-tools@^0.4.0":
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/@apollographql/apollo-tools/-/apollo-tools-0.4.0.tgz#8a1a0ab7a0bb12ccc03b72e4a104cfa5d969fd5f"

@@ -19187,6 +19187,74 @@ export class EditorsChoiceChatFactory extends EntityFactory<EditorsChoiceChatSha
     }
 }
 
+export interface ClickHouseMigrationsShape {
+    version: number;
+    applied: (string)[];
+}
+
+export interface ClickHouseMigrationsCreateShape {
+    applied: (string)[];
+}
+
+export class ClickHouseMigrations extends Entity<ClickHouseMigrationsShape> {
+    get version(): number { return this._rawValue.version; }
+    get applied(): (string)[] { return this._rawValue.applied; }
+    set applied(value: (string)[]) {
+        let normalized = this.descriptor.codec.fields.applied.normalize(value);
+        if (this._rawValue.applied !== normalized) {
+            this._rawValue.applied = normalized;
+            this._updatedValues.applied = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class ClickHouseMigrationsFactory extends EntityFactory<ClickHouseMigrationsShape, ClickHouseMigrations> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('clickHouseMigrations');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'version', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'applied', type: { type: 'array', inner: { type: 'string' } }, secure: false });
+        let codec = c.struct({
+            version: c.integer,
+            applied: c.array(c.string),
+        });
+        let descriptor: EntityDescriptor<ClickHouseMigrationsShape> = {
+            name: 'ClickHouseMigrations',
+            storageKey: 'clickHouseMigrations',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new ClickHouseMigrationsFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<ClickHouseMigrationsShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, version: number, src: ClickHouseMigrationsCreateShape): Promise<ClickHouseMigrations> {
+        return this._create(ctx, [version], this.descriptor.codec.normalize({ version, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, version: number, src: ClickHouseMigrationsCreateShape): ClickHouseMigrations {
+        return this._create_UNSAFE(ctx, [version], this.descriptor.codec.normalize({ version, ...src }));
+    }
+
+    findById(ctx: Context, version: number): Promise<ClickHouseMigrations | null> {
+        return this._findById(ctx, [version]);
+    }
+
+    watch(ctx: Context, version: number): Watch {
+        return this._watch(ctx, [version]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ClickHouseMigrationsShape>): ClickHouseMigrations {
+        return new ClickHouseMigrations([value.version], value, this.descriptor, this._flush, ctx);
+    }
+}
+
 const chatUpdatedEventCodec = c.struct({
     cid: c.integer,
     uid: c.integer,
@@ -20546,6 +20614,7 @@ export interface Store extends BaseStore {
     readonly PhonebookItem: PhonebookItemFactory;
     readonly EditorsChoiceChatsCollection: EditorsChoiceChatsCollectionFactory;
     readonly EditorsChoiceChat: EditorsChoiceChatFactory;
+    readonly ClickHouseMigrations: ClickHouseMigrationsFactory;
     readonly ConversationEventStore: ConversationEventStore;
     readonly DialogIndexEventStore: DialogIndexEventStore;
     readonly UserDialogEventStore: UserDialogEventStore;
@@ -20769,6 +20838,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let PhonebookItemPromise = PhonebookItemFactory.open(storage);
     let EditorsChoiceChatsCollectionPromise = EditorsChoiceChatsCollectionFactory.open(storage);
     let EditorsChoiceChatPromise = EditorsChoiceChatFactory.open(storage);
+    let ClickHouseMigrationsPromise = ClickHouseMigrationsFactory.open(storage);
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
     let UserCountersIndexDirectoryPromise = storage.resolveCustomDirectory('userCountersIndex');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
@@ -20963,6 +21033,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         PhonebookItem: await PhonebookItemPromise,
         EditorsChoiceChatsCollection: await EditorsChoiceChatsCollectionPromise,
         EditorsChoiceChat: await EditorsChoiceChatPromise,
+        ClickHouseMigrations: await ClickHouseMigrationsPromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,
         UserCountersIndexDirectory: await UserCountersIndexDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,

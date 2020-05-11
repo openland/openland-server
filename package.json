@@ -6,6 +6,7 @@
   "author": "Steve Kite <korshakov.stepan@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@apla/clickhouse": "^1.6.2",
     "@google-cloud/storage": "^1.7.0",
     "@openland/context": "^0.4.0",
     "@openland/foundationdb": "^5.0.0",

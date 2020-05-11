@@ -66,3 +66,4 @@ Mission DC:
 * Mission Metrics Elastic: 10.12.0.9
 * Mission Metrics FDB: 10.12.0.10
 * Mission Metrics UI: 10.12.0.11
+* Mission Clickhouse: 10.12.0.19

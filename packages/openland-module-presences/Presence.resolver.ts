@@ -7,6 +7,7 @@ import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { CacheRepository } from '../openland-module-cache/CacheRepository';
 import { UserError } from '../openland-errors/UserError';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
+import { Metrics } from 'openland-module-monitoring/Metrics';
 // import { createIterator } from '../openland-utils/asyncIterator';
 
 const cache = new CacheRepository<{ at: number }>('user_installed_apps');
@@ -40,6 +41,13 @@ export const Resolver: GQLResolver = {
             let active = (args.active !== undefined && args.active !== null) ? args.active! : true;
 
             await Modules.Presence.setOnline(ctx, ctx.auth.uid, ctx.auth.tid!, args.timeout, args.platform || 'unknown', active);
+
+            // Report metrics
+            Metrics.UsersOnline.inc('user-' + ctx.auth.uid, args.timeout);
+            if (active) {
+                Metrics.UsersActive.inc('user-' + ctx.auth.uid, args.timeout);
+            }
+            
             return 'ok';
         },
         presenceReportOffline: withAny(async (ctx, args) => {

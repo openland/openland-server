@@ -1,7 +1,7 @@
 import { Store } from './../openland-module-db/FDB';
 import { JsonMap } from 'openland-utils/json';
 import { inTx, inTxLeaky } from '@openland/foundationdb';
-import { delayBreakable, foreverBreakable, currentRunningTime } from 'openland-utils/timer';
+import { delayBreakable, foreverBreakable } from 'openland-utils/timer';
 import { uuid } from 'openland-utils/uuid';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
 import { EventBus } from 'openland-module-pubsub/EventBus';
@@ -73,7 +73,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
         let root = createNamedContext('worker-' + this.taskType);
         let rootExec = createNamedContext('task-' + this.taskType);
         let workLoop = foreverBreakable(root, async () => {
-            let start = currentRunningTime();
+            // let start = currentRunningTime();
             let task = await inTx(root, async (ctx) => {
                 getTransaction(ctx).setOptions({ causal_read_risky: true, priority_system_immediate: true });
 
@@ -92,7 +92,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             // if (task) {
             //     workerFetch.add(root, currentRunningTime() - start);
             // }
-            start = currentRunningTime();
+            // start = currentRunningTime();
             let locked = task && await inTx(root, async (ctx) => {
                 getTransaction(ctx).setOptions({
                     causal_read_risky: true,

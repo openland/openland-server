@@ -2487,4 +2487,13 @@ export default declareSchema(() => {
 
         uniqueIndex('all', ['id']).withCondition((src) => !src.deleted);
     });
+
+    //
+    // Clickhouse Migrations
+    //
+    
+    entity('ClickHouseMigrations', () => {
+        primaryKey('version', integer());
+        field('applied', array(string()));
+    });
 });

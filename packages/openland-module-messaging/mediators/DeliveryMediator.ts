@@ -14,7 +14,7 @@ import { batch } from 'openland-utils/batch';
 import { NeedNotificationDeliveryRepository } from 'openland-module-messaging/repositories/NeedNotificationDeliveryRepository';
 import { Modules } from '../../openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
-import { currentRunningTime } from 'openland-utils/timer';
+// import { currentRunningTime } from 'openland-utils/timer';
 // import { createMetric } from 'openland-module-monitoring/Metric';
 import { createLogger } from '@openland/log';
 
