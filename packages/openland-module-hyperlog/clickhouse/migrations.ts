@@ -37,7 +37,7 @@ migrations.push({
             type: 'String'
         }],
             'toYYYYMM(time)',
-            'time',
+            '(eid, time)',
             'eid');
     }
 });
