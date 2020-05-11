@@ -6,6 +6,8 @@ import { ClickHouseClient } from './ClickHouseClient';
 import { DistributedLock } from '@openland/foundationdb-locks';
 import { inTx } from '@openland/foundationdb';
 
+const database = process.env.CLICKHOUSE_DB || 'openland';
+
 interface Migration {
     name: string;
     command: (ctx: Context, client: ClickHouseClient) => Promise<void>;
@@ -15,7 +17,7 @@ const migrations: Migration[] = [];
 migrations.push({
     name: '01-db-create',
     command: async (ctx: Context, client: ClickHouseClient) => {
-        await client.op.createDatabaseIfNotExists(ctx, 'openland');
+        await client.op.createDatabaseIfNotExists(ctx, database);
     }
 });
 
