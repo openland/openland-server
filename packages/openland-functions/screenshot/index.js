@@ -69,8 +69,12 @@ class UploadCareLoader {
 }
 
 let cachedBrowser;
+let cachedEndpoint;
 
 async function getBrowser() {
+    if (cachedBrowser && cachedBrowser.isConnected()) {
+        return cachedBrowser;
+    }
     if (!cachedBrowser) {
         // Launch headless Chrome. Turn off sandbox so Chrome can run under root.
         cachedBrowser = await puppeteer.launch({
@@ -78,6 +82,13 @@ async function getBrowser() {
             defaultViewport: chromium.defaultViewport,
             executablePath: 'google-chrome-unstable',
             headless: true,
+        });
+        cachedEndpoint = cachedBrowser.wsEndpoint();
+    }
+    if (!cachedBrowser.isConnected() && cachedEndpoint) {
+        cachedBrowser = await puppeteer.connect({
+            browserWSEndpoint: cachedEndpoint,
+            defaultViewport: chromium.defaultViewport
         });
     }
     return cachedBrowser;
