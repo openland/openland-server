@@ -44,7 +44,31 @@ function startSuperAdminsExport(client: DatabaseClient) {
             //       and always treat ex-admins as super admins to remove them 
             //       from our reports
             let superAdmins = await Store.SuperAdmin.findAll(rootCtx);
-            await client.insert(rootCtx, 'users', ['uid', 'admin'], superAdmins.map((v) => [v.id, 1]));
+            for (let u of superAdmins) {
+                let count = await client.count(rootCtx, 'admins', 'uid = ' + u.id);
+                if (count === 0) {
+                    await client.insert(rootCtx, 'admins', ['uid'], [[u.id]]);
+                }
+            }
+            await delay(15000);
+        }
+    });
+}
+
+function startBotsExport(client: DatabaseClient) {
+    let rootCtx = createNamedContext('ch-bots-export');
+    forever(rootCtx, async () => {
+        while (true) {
+            let allUsers = await Store.User.findAll(rootCtx);
+            for (let u of allUsers) {
+                if (!u.isBot) {
+                    continue;
+                }
+                let count = await client.count(rootCtx, 'bots', 'uid = ' + u.id);
+                if (count === 0) {
+                    await client.insert(rootCtx, 'bots', ['uid'], [[u.id]]);
+                }
+            }
             await delay(15000);
         }
     });
@@ -57,5 +81,6 @@ export function startExporters(ctx: Context) {
         startPresenceExport(client);
         startMessagesExport(client);
         startSuperAdminsExport(client);
+        startBotsExport(client);
     })();
 }

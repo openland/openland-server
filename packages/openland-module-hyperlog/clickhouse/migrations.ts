@@ -67,14 +67,24 @@ migrations.push({
 });
 
 migrations.push({
-    name: '03-users',
+    name: '03-admins',
     command: async (ctx: Context, client: DatabaseClient) => {
         await client.createTable(ctx, 'users', [{
             name: 'uid',
             type: 'Int64'
-        }, {
-            name: 'admin',
-            type: 'UInt8'
+        }],
+            'uid',
+            'uid',
+            'uid');
+    }
+});
+
+migrations.push({
+    name: '04-bots',
+    command: async (ctx: Context, client: DatabaseClient) => {
+        await client.createTable(ctx, 'users', [{
+            name: 'uid',
+            type: 'Int64'
         }],
             'uid',
             'uid',
