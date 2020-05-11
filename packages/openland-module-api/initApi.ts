@@ -37,8 +37,8 @@ import {
 } from '../openland-graphql/gqlTracer';
 // import { AuthContext } from '../openland-module-auth/AuthContext';
 import { uuid } from '../openland-utils/uuid';
-import { createMetric } from '../openland-module-monitoring/Metric';
-import { currentRunningTime } from '../openland-utils/timer';
+// import { createMetric } from '../openland-module-monitoring/Metric';
+// import { currentRunningTime } from '../openland-utils/timer';
 import { withLifetime } from '@openland/lifetime';
 // import { initIFTTT } from '../openland-module-ifttt/http.handlers';
 import { InMemoryQueryCache } from '../openland-mtproto3/queryCache';
@@ -58,8 +58,8 @@ import { Shutdown } from '../openland-utils/Shutdown';
 // const loggerWs = createLogger('ws');
 const integrationCtx = createNamedContext('integration-ctx');
 const logger = createLogger('api-module');
-const authMetric = createMetric('auth-metric', 'average');
-const authMetricCtx = createNamedContext('ws');
+// const authMetric = createMetric('auth-metric', 'average');
+// const authMetricCtx = createNamedContext('ws');
 
 const onGqlQuery = createHyperlogger<{ operationName: string, duration: number }>('gql_query_tracing');
 
@@ -240,7 +240,7 @@ export async function initApi(isTest: boolean) {
             executableSchema: Schema(),
             queryCache: new InMemoryQueryCache(),
             onAuth: async (params, req) => {
-                const start = currentRunningTime();
+                // const start = currentRunningTime();
                 try {
                     if (!params || Object.keys(params).length === 0 && req.headers.cookie && req.headers.cookie.length > 0) {
                         let cookies = parseCookies(req.headers.cookie || '');
@@ -248,8 +248,8 @@ export async function initApi(isTest: boolean) {
                     }
                     return await fetchWebSocketParameters(params, null);
                 } finally {
-                    const delta = currentRunningTime() - start;
-                    authMetric.add(authMetricCtx, delta);
+                    // const delta = currentRunningTime() - start;
+                    // authMetric.add(authMetricCtx, delta);
                 }
             },
             context: async (params, operation, req) => {

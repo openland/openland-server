@@ -35,3 +35,11 @@ services:
       - ./.data/elastic:/usr/share/elasticsearch/data
     ports:
       - "127.0.0.1:9200:9200"
+  clickhouse:
+    image: yandex/clickhouse-server:19.16.19.85
+    restart: always
+    ports: 
+      - "127.0.0.1:8123:8123"
+      - "127.0.0.1:9000:9000"
+    volumes:
+      - ./.data/clickhouse:/var/lib/clickhouse
