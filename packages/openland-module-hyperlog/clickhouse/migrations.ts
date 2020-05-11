@@ -66,6 +66,22 @@ migrations.push({
     }
 });
 
+migrations.push({
+    name: '03-users',
+    command: async (ctx: Context, client: DatabaseClient) => {
+        await client.createTable(ctx, 'users', [{
+            name: 'uid',
+            type: 'Int64'
+        }, {
+            name: 'admin',
+            type: 'UInt8'
+        }],
+            'uid',
+            'uid',
+            'uid');
+    }
+});
+
 const logger = createLogger('clickhouse');
 
 export async function createClient(ctx: Context) {

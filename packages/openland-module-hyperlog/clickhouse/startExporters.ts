@@ -1,8 +1,8 @@
 import { Store } from 'openland-module-db/FDB';
 import { updateReader } from 'openland-module-workers/updateReader';
 import { DatabaseClient } from './ClickHouseClient';
-import { Context } from '@openland/context';
-import { backoff } from 'openland-utils/timer';
+import { Context, createNamedContext } from '@openland/context';
+import { backoff, forever, delay } from 'openland-utils/timer';
 import { createClient } from './migrations';
 
 function startPresenceExport(client: DatabaseClient) {
@@ -36,11 +36,26 @@ function startMessagesExport(client: DatabaseClient) {
     });
 }
 
+function startSuperAdminsExport(client: DatabaseClient) {
+    let rootCtx = createNamedContext('ch-users-export');
+    forever(rootCtx, async () => {
+        while (true) {
+            // NOTE: In analytics we are not resetting super admin flag
+            //       and always treat ex-admins as super admins to remove them 
+            //       from our reports
+            let superAdmins = await Store.SuperAdmin.findAll(rootCtx);
+            await client.insert(rootCtx, 'users', ['uid', 'admin'], superAdmins.map((v) => [v.id, 1]));
+            await delay(15000);
+        }
+    });
+}
+
 export function startExporters(ctx: Context) {
     // tslint:disable-next-line:no-floating-promises
     (async () => {
         let client = await backoff(ctx, () => createClient(ctx));
         startPresenceExport(client);
         startMessagesExport(client);
+        startSuperAdminsExport(client);
     })();
 }
