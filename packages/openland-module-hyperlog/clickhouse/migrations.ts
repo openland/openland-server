@@ -69,7 +69,7 @@ migrations.push({
 migrations.push({
     name: '03-admins',
     command: async (ctx: Context, client: DatabaseClient) => {
-        await client.createTable(ctx, 'users', [{
+        await client.createTable(ctx, 'admins', [{
             name: 'uid',
             type: 'Int64'
         }],
@@ -82,7 +82,7 @@ migrations.push({
 migrations.push({
     name: '04-bots',
     command: async (ctx: Context, client: DatabaseClient) => {
-        await client.createTable(ctx, 'users', [{
+        await client.createTable(ctx, 'bots', [{
             name: 'uid',
             type: 'Int64'
         }],
