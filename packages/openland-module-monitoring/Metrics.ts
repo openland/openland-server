@@ -1,10 +1,22 @@
+import { Store } from 'openland-module-db/FDB';
 import { MetricFactory } from './MetricFactory';
 
 export const Factory = new MetricFactory();
 
 export const Metrics = {
+    // Distributed gauges
     Connections: Factory.createMachineGauge('connections', 'Active WebSocket connections'),
 
-    UsersOnline: Factory.createGauge('users_online', 'Total online users'),
-    UsersActive: Factory.createGauge('users_active', 'Total active users'),
+    // Persisted gauges
+    CallWorkers: Factory.createPersistedGauge('calls_workers', 'Number of active workers', async (ctx) => {
+        return (await Store.KitchenWorker.active.findAll(ctx)).length;
+    }),
+    CallRouters: Factory.createPersistedGauge('calls_routers', 'Number of active workers', async (ctx) => {
+        let workers = (await Store.KitchenWorker.active.findAll(ctx));
+        let res = 0;
+        for (let w of workers) {
+            res += (await Store.KitchenRouter.workerActive.findAll(ctx, w.id)).length;
+        }
+        return res;
+    })
 };

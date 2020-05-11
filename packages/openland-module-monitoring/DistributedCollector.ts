@@ -1,8 +1,10 @@
+import { PersistedGauge } from './PersistedGauge';
 import { createLogger } from '@openland/log';
 import { createNamedContext } from '@openland/context';
 import { DistributedGauge } from './DistributedGauge';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { MetricFactory } from './MetricFactory';
+import { inTx } from '@openland/foundationdb';
 
 const ctx = createNamedContext('collector');
 const logger = createLogger('collector');
@@ -55,23 +57,50 @@ class GaugeCollector {
 export class DistributedCollector {
     #factory: MetricFactory;
     #gaugeCollectors = new Map<string, GaugeCollector>();
+    #persistedGauges = new Map<string, PersistedGauge>();
 
     constructor(factory: MetricFactory) {
         this.#factory = factory;
         EventBus.subscribe('metric', this.#onMetric);
-        for (let gauge of this.#factory.getAllGauges()) {
+
+        let metrics = this.#factory.getAllMetrics();
+        for (let gauge of metrics.gauges) {
             this.#gaugeCollectors.set(gauge.name, new GaugeCollector(gauge));
+        }
+        for (let persisted of metrics.persistedGauges) {
+            this.#persistedGauges.set(persisted.name, persisted);
         }
     }
 
-    getPrometheusReport = () => {
+    getPrometheusReport = async () => {
         let res: string[] = [];
+
+        // Distributed gauges
         for (let collector of this.#gaugeCollectors.values()) {
             let gauge = collector.gauge;
             let resolved = collector.resolve();
             res.push('# HELP ' + gauge.name + ' ' + gauge.description);
             res.push('# TYPE ' + gauge.name + ' gauge');
             res.push(gauge.name + ' ' + resolved);
+        }
+
+        // Persisted gauges
+        if (this.#persistedGauges.size > 0) {
+            await inTx(ctx, async (tx) => {
+                for (let gauge of this.#persistedGauges.values()) {
+                    let resolved: number;
+                    try {
+                        resolved = await gauge.query(tx);
+                    } catch (e) {
+                        logger.warn(ctx, 'Unable to receive gauge value for ' + gauge.name + '. Skipping reporting.');
+                        logger.warn(ctx, e);
+                        continue;
+                    }
+                    res.push('# HELP ' + gauge.name + ' ' + gauge.description);
+                    res.push('# TYPE ' + gauge.name + ' gauge');
+                    res.push(gauge.name + ' ' + resolved);
+                }
+            });
         }
         return res.join('\n');
     }
