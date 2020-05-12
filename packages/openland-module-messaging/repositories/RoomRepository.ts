@@ -616,7 +616,10 @@ export class RoomRepository {
     }
 
     async findConversationMembers(ctx: Context, cid: number): Promise<number[]> {
-        let conv = (await Store.Conversation.findById(ctx, cid))!;
+        let conv = await Store.Conversation.findById(ctx, cid);
+        if (!conv) {
+            return [];
+        }
         if (conv.kind === 'private') {
             let p = (await Store.ConversationPrivate.findById(ctx, cid))!;
             return [p.uid1, p.uid2];
