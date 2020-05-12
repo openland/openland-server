@@ -12,7 +12,7 @@ export type ColumnDefinition = {
 
 export class ClickHouseClient {
     private client: any;
-    
+
     constructor(endpoint: string, username: string, password: string) {
         let url = new URL('ch://' + endpoint);
         this.client = new ClickHouse({ host: url.hostname, port: url.port, user: username, password: password });
@@ -52,6 +52,12 @@ export class ClickHouseClient {
         });
     }
 
+    async count(ctx: Context, body: string) {
+        logger.log(ctx, 'Count: ' + body);
+        let res = await this.client.querying(body);
+        return parseInt(res.data[0][0], 10);
+    }
+
     withDatabase(db: string) {
         return {
             createDatabase: async (ctx: Context) => {
@@ -66,6 +72,13 @@ export class ClickHouseClient {
             insert: async (ctx: Context, table: string, columns: string[], data: any[][]) => {
                 let op = 'INSERT INTO ' + db + '.' + table + '';
                 await this.insert(ctx, op, columns, data);
+            },
+            count: async (ctx: Context, table: string, where?: string) => {
+                let op = 'SELECT count() FROM ' + db + '.' + table;
+                if (where) {
+                    op += ' WHERE ' + where;
+                }
+                return await this.count(ctx, op);
             },
             dropTable: async (ctx: Context, table: string) => {
                 await this.execute(ctx, 'DROP TABLE IF EXISTS ' + db + '.' + table);

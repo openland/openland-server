@@ -106,7 +106,7 @@ export class DistributedCollector {
     }
 
     #onMetric = (src: any) => {
-        logger.log(ctx, 'Received: ' + JSON.stringify(src));
+        // logger.log(ctx, 'Received: ' + JSON.stringify(src));
         if (src.type === 'gauge') {
             let name = src.name;
             let timeout = src.timeout;

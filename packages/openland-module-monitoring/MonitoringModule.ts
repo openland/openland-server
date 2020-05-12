@@ -28,9 +28,9 @@ export class MonitoringModule {
         Factory.start();
     }
 
-    getPrometheusReport = () => {
+    getPrometheusReport = async () => {
         if (this.collector) {
-            return this.collector.getPrometheusReport();
+            return await this.collector.getPrometheusReport();
         } else {
             return '';
         }
