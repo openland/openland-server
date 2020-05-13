@@ -1,7 +1,7 @@
 import { Store } from 'openland-module-db/FDB';
 import { createLogger } from '@openland/log';
 import { Context } from '@openland/context';
-import { CallScheduler, StreamConfig, MediaSources, StreamHint } from './CallScheduler';
+import { CallScheduler, MediaSources, StreamHint, ProducerDescriptor } from './CallScheduler';
 import uuid from 'uuid/v4';
 import { ConferenceMeshLink } from 'openland-module-db/store';
 import { parseSDP } from 'openland-module-calls/sdp/parseSDP';
@@ -304,8 +304,8 @@ export class CallSchedulerMesh implements CallScheduler {
         await this.#cleanUpLink(ctx, link);
     }
 
-    #getStreamGenericConfig = (streams: MediaSources): StreamConfig[] => {
-        let res: StreamConfig[] = [];
+    #getStreamGenericConfig = (streams: MediaSources): ProducerDescriptor[] => {
+        let res: ProducerDescriptor[] = [];
         if (streams.videoStream) {
             res.push({ type: 'video', codec: 'h264', source: 'default', mid: null });
         }
@@ -314,7 +314,7 @@ export class CallSchedulerMesh implements CallScheduler {
         }
         return res;
     }
-    #assignConfigPeer = (media: StreamConfig[], pid: number) => {
+    #assignConfigPeer = (media: ProducerDescriptor[], pid: number) => {
         return media.map((v) => ({
             pid,
             media: v
@@ -416,7 +416,7 @@ export class CallSchedulerMesh implements CallScheduler {
         stream2.remoteStreams = [];
     }
 
-    #getStreamScreenCastConfig = (streams: MediaSources): StreamConfig[] => {
+    #getStreamScreenCastConfig = (streams: MediaSources): ProducerDescriptor[] => {
         return [{ type: 'video', codec: 'h264', source: 'screen', mid: null }];
     }
 

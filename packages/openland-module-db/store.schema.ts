@@ -975,7 +975,6 @@ export default declareSchema(() => {
         field('consumes', array(string()));
 
         rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.active);
-        rangeIndex('conferenceStreamers', ['cid', 'createdAt']).withCondition((src) => src.active && src.sources.length > 0);
     });
 
     entity('ConferenceKitchenConnection', () => {
@@ -996,16 +995,11 @@ export default declareSchema(() => {
         field('screencastProducer', optional(string()));
         field('screencastProducerMid', optional(string()));
         field('consumers', array(struct({
-            mid: optional(integer()),
-            kind: enumString('audio', 'video', 'screencast'),
-            consumer: string(),
+            pid: integer(),
+            media: remoteStream,
+            consumer: optional(string()),
             connection: string()
         })));
-    });
-
-    entity('ConferenceKitchenTransportRef', () => {
-        primaryKey('id', string());
-        field('connection', string());
     });
 
     entity('ConferenceKitchenProducerRef', () => {
@@ -2491,7 +2485,7 @@ export default declareSchema(() => {
     //
     // Clickhouse Migrations
     //
-    
+
     entity('ClickHouseMigrations', () => {
         primaryKey('version', integer());
         field('applied', array(string()));

@@ -25,6 +25,17 @@ export type ConsumerDescriptor = {
     | { type: 'video', source: 'default' | 'screen', mid: string | null | undefined }
 };
 
+export type ProducerReference = {
+    pid: number,
+    connection: string,
+    producer: string,
+    media:
+    | { type: 'audio', mid: string | null | undefined }
+    | { type: 'video', source: 'default' | 'screen', mid: string | null | undefined }
+};
+
+export type ConsumerReference = { media: { type: 'audio', mid: string | null | undefined } | { type: 'video', source: 'default' | 'screen', mid: string | null | undefined }, consumer: string, connection: string };
+
 export type StreamHint = {
     peerId: number | null;
     kind: GQL.MediaKind;
