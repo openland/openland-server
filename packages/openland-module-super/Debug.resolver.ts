@@ -206,11 +206,12 @@ export const Resolver: GQLResolver = {
             };
         }),
         debugGlobalCounters: withUser(async (ctx, args, uid) => {
+            let _uid = args.uid ? IDs.User.parse(args.uid) : uid;
             return {
-                allUnreadMessages: await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid),
-                unreadMessagesWithoutMuted: await Store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, uid),
-                allUnreadChats: await Store.UserGlobalCounterAllUnreadChats.get(ctx, uid),
-                unreadChatsWithoutMuted: await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, uid),
+                allUnreadMessages: await Store.UserGlobalCounterAllUnreadMessages.get(ctx, _uid),
+                unreadMessagesWithoutMuted: await Store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, _uid),
+                allUnreadChats: await Store.UserGlobalCounterAllUnreadChats.get(ctx, _uid),
+                unreadChatsWithoutMuted: await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, _uid),
             };
         }),
         debugServerId: withUser(async (ctx, args, uid) => {
