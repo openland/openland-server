@@ -5,6 +5,7 @@ import { Context } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { Store } from 'openland-module-db/FDB';
 import { BaseEvent } from '@openland/foundationdb-entity';
+import { Modules } from '../../openland-modules/Modules';
 
 @injectable()
 export class UserStateRepository {
@@ -168,10 +169,7 @@ export class UserStateRepository {
     }
 
     async fetchUserGlobalCounter(ctx: Context, uid: number) {
-        let settings = await Store.UserSettings.findById(ctx, uid);
-        if (!settings) {
-            return await Store.UserGlobalCounterAllUnreadMessages.get(ctx, uid);
-        }
+        let settings = await Modules.Users.getUserSettings(ctx, uid);
 
         let directory = Store.UserCountersIndexDirectory
             .withKeyEncoding(encoders.tuple)
