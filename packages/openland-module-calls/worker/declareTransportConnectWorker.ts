@@ -20,7 +20,7 @@ export function declareTransportConnectWorker(service: MediaKitchenService, repo
             return { router, ts };
         });
         if (r.ts.state !== 'connecting') {
-            return { result: true };
+            return;
         }
 
         // Connect
@@ -47,7 +47,5 @@ export function declareTransportConnectWorker(service: MediaKitchenService, repo
             ts.state = 'connected';
             // TODO: Notify
         });
-
-        return { result: true };
     });
 }

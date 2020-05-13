@@ -4,7 +4,7 @@ import { Modules } from '../../openland-modules/Modules';
 import { inTx } from '@openland/foundationdb';
 
 export function createWelcomeMessageWorker() {
-    let queue = new WorkQueue<{ cid: number, uid: number }, { result: string }>('welcome_message');
+    let queue = new WorkQueue<{ cid: number, uid: number }>('welcome_message');
     if (serverRoleEnabled('workers')) {
         for (let i = 0; i < 10; i++) {
             queue.addWorker(async (task, root) => {
@@ -16,7 +16,6 @@ export function createWelcomeMessageWorker() {
                             await Modules.Messaging.sendMessage(ctx, conv.id, welcomeMessage.sender.id, { message: welcomeMessage.message });
                         }
                     }
-                    return { result: 'ok' };
                 });
             });
         }

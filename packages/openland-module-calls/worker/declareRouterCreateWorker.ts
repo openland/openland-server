@@ -22,7 +22,7 @@ export function declareRouterCreateWorker(service: MediaKitchenService, repo: Me
         });
         let workerId = router.workerId;
         if (router.state !== 'creating' || !workerId) {
-            return { result: true };
+            return;
         }
 
         // Create Raw Router
@@ -40,7 +40,5 @@ export function declareRouterCreateWorker(service: MediaKitchenService, repo: Me
                 await repo.onRouterCreated(ctx, args.id);
             }
         });
-
-        return { result: true };
     });
 }

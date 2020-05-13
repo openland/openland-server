@@ -19,8 +19,8 @@ export class PaymentMediator {
     readonly subscription: SubscriptionsRepository;
 
     readonly stripe: Stripe;
-    readonly createCustomerQueue = new WorkQueue<{ uid: number }, { result: string }>('stripe-customer-export-task', -1);
-    readonly syncCardQueue = new WorkQueue<{ uid: number, pmid: string }, { result: string }>('stripe-customer-export-card-task', -1);
+    readonly createCustomerQueue = new WorkQueue<{ uid: number }>('stripe-customer-export-task', -1);
+    readonly syncCardQueue = new WorkQueue<{ uid: number, pmid: string }>('stripe-customer-export-card-task', -1);
 
     constructor(token: string, paymentIntents: PaymentIntentsRepository, payments: PaymentsRepository, subscription: SubscriptionsRepository) {
         this.paymentIntents = paymentIntents;

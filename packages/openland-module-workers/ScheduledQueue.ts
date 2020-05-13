@@ -20,19 +20,18 @@ type Config =
     | { interval: 'every-hour', time: { minutes: number } };
 
 export class ScheduledQueue<RES extends JsonMap> {
-    private readonly queue: WorkQueue<{ scheduled: boolean }, RES>;
+    private readonly queue: WorkQueue<{ scheduled: boolean }>;
 
     constructor(private readonly taskType: string, private readonly conf: Config) {
         this.queue = new WorkQueue(taskType);
     }
 
-    addWorker = (handler: (ctx: Context) => RES | Promise<RES>) => {
+    addWorker = (handler: (ctx: Context) => void | Promise<void>) => {
         this.queue.addWorker(async (args, ctx) => {
-            let res = await handler(ctx);
+            await handler(ctx);
             if (args.scheduled) {
                 await this.ensureNextScheduled(ctx);
             }
-            return res;
         });
 
         let root = createNamedContext('scheduler-' + this.taskType);

@@ -20,13 +20,13 @@ export function declareTransportDeleteWorker(service: MediaKitchenService, repo:
             return { router, ts };
         });
         if (r.ts.state === 'deleted') {
-            return { result: true };
+            return;
         }
 
         // Close Router
         let rawTransport = await service.getOrCreateTransport(r.router.workerId!, r.router.id, r.ts.id);
         if (rawTransport.closed) {
-            return { result: true };
+            return;
         }
         await rawTransport.close();
 
@@ -46,7 +46,5 @@ export function declareTransportDeleteWorker(service: MediaKitchenService, repo:
             ts.state = 'deleted';
             await repo.onTransportRemoved(ctx, ts.id);
         });
-
-        return { result: true };
     });
 }

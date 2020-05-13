@@ -22,7 +22,7 @@ export function createDailyPaidLeaderboardWorker() {
             const botId = await getSuperNotificationsBotId(parent);
             if (!chatId || !botId) {
                 log.warn(parent, 'botId or chatId not specified');
-                return { result: 'rejected' };
+                return;
             }
 
             let searchReq = await Modules.Search.elastic.client.msearch({
@@ -161,7 +161,6 @@ export function createDailyPaidLeaderboardWorker() {
             await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
                 ...buildMessage(...message), ignoreAugmentation: true,
             });
-            return { result: 'completed' };
         });
     }
     return queue;

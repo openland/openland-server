@@ -25,8 +25,8 @@ const log = createLogger('delivery');
 
 @injectable()
 export class DeliveryMediator {
-    private readonly queue = new WorkQueue<{ messageId: number, action?: 'new' | 'update' | 'delete' }, { result: string }>('conversation_message_delivery');
-    private readonly queueUserMultiple = new WorkQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }, { result: string }>('conversation_message_delivery_user_multiple');
+    private readonly queue = new WorkQueue<{ messageId: number, action?: 'new' | 'update' | 'delete' }>('conversation_message_delivery');
+    private readonly queueUserMultiple = new WorkQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }>('conversation_message_delivery_user_multiple');
 
     @lazyInject('DeliveryRepository') private readonly repo!: DeliveryRepository;
     @lazyInject('CountersMediator') private readonly counters!: CountersMediator;
@@ -48,7 +48,6 @@ export class DeliveryMediator {
                         throw Error('Unknown action: ' + item.action);
                     }
                     // deliveryInitialMetric.add(parent, currentRunningTime() - start);
-                    return { result: 'ok' };
                 });
             }
             for (let i = 0; i < 25; i++) {
@@ -72,7 +71,6 @@ export class DeliveryMediator {
                         });
                     });
                     // deliveryMetric.add(parent, currentRunningTime() - start);
-                    return { result: 'ok' };
                 });
             }
         }

@@ -27,7 +27,7 @@ export function createWeeklyEngagementReportWorker() {
             const botId = await getSuperNotificationsBotId(parent);
             if (!chatId || !botId) {
                 log.warn(parent, 'botId or chatId not specified');
-                return { result: 'rejected' };
+                return;
             }
 
             let counters = await getEngagementCounters(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -98,8 +98,6 @@ export function createWeeklyEngagementReportWorker() {
                 totalPeople!.value,
                 buildWeeklyRecordAlert('Weekly total users delta')
             );
-
-            return { result: 'completed' };
         });
     }
     return queue;

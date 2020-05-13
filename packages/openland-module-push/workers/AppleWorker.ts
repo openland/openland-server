@@ -15,14 +15,14 @@ const pushSent = createHyperlogger<{ uid: number, tokenId: string }>('push_apns_
 const pushFail = createHyperlogger<{ uid: number, tokenId: string, failures: number, reason: string, disabled: boolean }>('push_apns_failed');
 
 export function createAppleWorker(repo: PushRepository) {
-    let queue = new WorkQueue<ApplePushTask, { result: string }>('push_sender_apns');
+    let queue = new WorkQueue<ApplePushTask>('push_sender_apns');
     if (PushConfig.apple) {
         if (serverRoleEnabled('workers')) {
             for (let i = 0; i < 10; i++) {
                 queue.addWorker(async (task, root) => {
                     let token = await inTx(root, async (ctx) => await repo.getAppleToken(ctx, task.tokenId));
                     if (!token || !token.enabled) {
-                        return { result: 'skipped' };
+                        return;
                     }
 
                     let team = PushConfig.apple!.find((v) => v.bundles.indexOf(token!.bundleId) >= 0);
@@ -84,11 +84,11 @@ export function createAppleWorker(repo: PushRepository) {
                                 });
                             }
 
-                            return { result: 'ok' };
+                            return;
                         } catch (e) {
                             log.warn(root, 'ios_push exception', e);
                             log.log(root, 'ios_push failed', token.uid);
-                            return { result: 'failed' };
+                            return;
                         }
 
                     } else {
@@ -97,7 +97,7 @@ export function createAppleWorker(repo: PushRepository) {
                             await handleFail(t);
                             pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, reason: 'Unable to find team for bundleId: ' + token!.bundleId, disabled: !t.enabled });
                         });
-                        return { result: 'failed' };
+                        return;
                     }
                 });
             }

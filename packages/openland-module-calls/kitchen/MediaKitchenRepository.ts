@@ -18,21 +18,21 @@ const logger = createLogger('mediakitchen');
 export class MediaKitchenRepository {
 
     // Router tasks
-    readonly routerCreateQueue = new WorkQueue<{ id: string }, { result: boolean }>('kitchen-router-create', -1);
-    readonly routerDeleteQueue = new WorkQueue<{ id: string }, { result: boolean }>('kitchen-router-delete', -1);
+    readonly routerCreateQueue = new WorkQueue<{ id: string }>('kitchen-router-create', -1);
+    readonly routerDeleteQueue = new WorkQueue<{ id: string }>('kitchen-router-delete', -1);
 
     // Transport tasks
-    readonly transportCreateQueue = new WorkQueue<{ id: string }, { result: boolean }>('kitchen-transport-create', -1);
-    readonly transportConnectQueue = new WorkQueue<{ id: string }, { result: boolean }>('kitchen-transport-connect', -1);
-    readonly transportDeleteQueue = new WorkQueue<{ id: string }, { result: boolean }>('kitchen-transport-create', -1);
+    readonly transportCreateQueue = new WorkQueue<{ id: string }>('kitchen-transport-create', -1);
+    readonly transportConnectQueue = new WorkQueue<{ id: string }>('kitchen-transport-connect', -1);
+    readonly transportDeleteQueue = new WorkQueue<{ id: string }>('kitchen-transport-create', -1);
 
     // Producer tasks
-    readonly producerCreateQueue = new WorkQueue<{ id: string }, { result: boolean }>('kitchen-producer-create', -1);
-    readonly producerDeleteQueue = new WorkQueue<{ id: string }, { result: boolean }>('kitchen-producer-delete', -1);
+    readonly producerCreateQueue = new WorkQueue<{ id: string }>('kitchen-producer-create', -1);
+    readonly producerDeleteQueue = new WorkQueue<{ id: string }>('kitchen-producer-delete', -1);
 
     // Consumer tasks
-    readonly consumerCreateQueue = new WorkQueue<{ id: string }, { result: boolean }>('kitchen-consumer-create', -1);
-    readonly consumerDeleteQueue = new WorkQueue<{ id: string }, { result: boolean }>('kitchen-consumer-delete', -1);
+    readonly consumerCreateQueue = new WorkQueue<{ id: string }>('kitchen-consumer-create', -1);
+    readonly consumerDeleteQueue = new WorkQueue<{ id: string }>('kitchen-consumer-delete', -1);
 
     @lazyInject('CallSchedulerKitchen')
     readonly scheduler!: CallSchedulerKitchen;

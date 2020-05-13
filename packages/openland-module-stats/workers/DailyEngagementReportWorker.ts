@@ -22,7 +22,7 @@ export function createDailyEngagementReportWorker() {
             const botId = await getSuperNotificationsBotId(parent);
             if (!chatId || !botId) {
                 log.warn(parent, 'botId or chatId not specified');
-                return { result: 'rejected' };
+                return;
             }
 
             let counters = await getEngagementCounters(Date.now() - 24 * 60 * 60 * 1000);
@@ -83,8 +83,6 @@ export function createDailyEngagementReportWorker() {
                 counters.totalCallsDuration,
                 buildDailyRecordAlert(' Total call minutes')
             );
-
-            return { result: 'completed' };
         });
     }
     return queue;

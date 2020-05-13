@@ -35,7 +35,7 @@ type Push = {
 const tracer = createTracer('push');
 
 export function createPushWorker(repo: PushRepository) {
-    let queue = new WorkQueue<Push, { result: string }>('push_sender');
+    let queue = new WorkQueue<Push>('push_sender');
     if (serverRoleEnabled('workers')) {
         for (let i = 0; i < 10; i++) {
             queue.addWorker(async (args, parent) => {
@@ -166,9 +166,6 @@ export function createPushWorker(repo: PushRepository) {
                         }
                     }
 
-                    return {
-                        result: 'ok',
-                    };
                 });
             });
         }

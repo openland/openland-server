@@ -110,7 +110,7 @@ const templates: { [T in Template]: (user: UserProfile) => { type: string, messa
         keyboard: { buttons: [[{ title: 'Install apps', url: '/onboarding_apps', style: 'DEFAULT' }]] }
     }),
 };
-const q = new WorkQueue<{ uid: number, type: DelayedEvents }, { result: string }>('onboarding-delayed');
+const q = new WorkQueue<{ uid: number, type: DelayedEvents }>('onboarding-delayed');
 @injectable()
 export class UserOnboardingModule {
 
@@ -119,7 +119,6 @@ export class UserOnboardingModule {
             q.addWorker((item, rootCtx) => {
                 return inTx(rootCtx, async (ctx) => {
                     await this.onTimeoutFired(ctx, item.type, item.uid);
-                    return { result: item.type };
                 });
             });
         }

@@ -13,13 +13,12 @@ export class CommentsNotificationsMediator {
     @lazyInject('CommentsNotificationsRepository')
     private readonly repo!: CommentsNotificationsRepository;
 
-    private readonly queue = new WorkQueue<{ commentId: number }, { result: string }>('comments_notifications_delivery');
+    private readonly queue = new WorkQueue<{ commentId: number }>('comments_notifications_delivery');
 
     start = () => {
         if (serverRoleEnabled('workers')) {
             this.queue.addWorker(async (item, parent) => {
                 await this.repo.onNewComment(parent, item.commentId);
-                return { result: 'ok' };
             });
         }
     }

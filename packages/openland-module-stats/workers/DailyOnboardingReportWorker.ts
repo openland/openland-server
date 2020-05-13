@@ -22,7 +22,7 @@ export function createDailyOnboardingReportWorker() {
             const botId = await getSuperNotificationsBotId(parent);
             if (!chatId || !botId) {
                 log.warn(parent, 'botId or chatId not specified');
-                return { result: 'rejected' };
+                return;
             }
 
             let counters = await getOnboardingCounters(Date.now() - 24 * 60 * 60 * 1000);
@@ -91,8 +91,6 @@ export function createDailyOnboardingReportWorker() {
                 counters.newThreeLikeGetters,
                 buildDailyRecordAlert('New three like getters')
             );
-
-            return { result: 'completed' };
         });
     }
     return queue;

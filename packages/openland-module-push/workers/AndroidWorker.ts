@@ -14,7 +14,7 @@ const pushSent = createHyperlogger<{ uid: number, tokenId: string }>('push_fireb
 const pushFail = createHyperlogger<{ uid: number, tokenId: string, failures: number, error: string, disabled: boolean }>('push_firebase_failed');
 
 export function createAndroidWorker(repo: PushRepository) {
-    let queue = new WorkQueue<FirebasePushTask, { result: string }>('push_sender_firebase');
+    let queue = new WorkQueue<FirebasePushTask>('push_sender_firebase');
     if (PushConfig.google) {
         if (serverRoleEnabled('workers')) {
             let firbaseApps: { [pkg: string]: Friebase.app.App } = {};
@@ -34,7 +34,7 @@ export function createAndroidWorker(repo: PushRepository) {
                 queue.addWorker(async (task, root) => {
                     let token = (await inTx(root, async ctx => await repo.getAndroidToken(ctx, task.tokenId)))!;
                     if (!token || !token.enabled) {
-                        return { result: 'skipped' };
+                        return;
                     }
                     let firebase = firbaseApps[token.packageId];
                     if (firebase) {
@@ -72,10 +72,10 @@ export function createAndroidWorker(repo: PushRepository) {
                                     pushSent.event(ctx, { uid: token.uid, tokenId: token.id });
                                 });
                             }
-                            return { result: 'ok' };
+                            return;
                         } catch (e) {
                             log.log(root, 'android_push failed', token.uid);
-                            return { result: 'failed' };
+                            return;
                         }
                     } else {
                         await inTx(root, async (ctx) => {
@@ -83,7 +83,7 @@ export function createAndroidWorker(repo: PushRepository) {
                             await handleFail(t);
                             pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, error: 'package not found', disabled: !t.enabled });
                         });
-                        return { result: 'failed' };
+                        return;
                     }
                 });
             }

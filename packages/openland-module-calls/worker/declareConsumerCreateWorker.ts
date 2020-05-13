@@ -29,7 +29,7 @@ export function declareConsumerCreateWorker(service: MediaKitchenService, repo: 
             return { router, ts, pr, cr };
         });
         if (r.cr.state !== 'creating') {
-            return { result: true };
+            return;
         }
 
         // Create Raw Producer
@@ -55,7 +55,5 @@ export function declareConsumerCreateWorker(service: MediaKitchenService, repo: 
                 await repo.onConsumerCreated(ctx, cr.id);
             }
         });
-
-        return { result: true };
     });
 }

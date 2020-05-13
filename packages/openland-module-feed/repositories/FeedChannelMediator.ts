@@ -23,15 +23,14 @@ export default class FeedChannelMediator {
     @lazyInject('FeedRepository')
     private readonly feedRepo!: FeedRepository;
 
-    private readonly autoSubscriptionQueue = new WorkQueue<{ channelId: number, peerType: 'room' | 'organization', peerId: number }, { result: string }>('feed_channel_auto_subscription');
-    private readonly autoSubscriptionQueueMultiple = new WorkQueue<{ channelId: number, uids: number[] }, { result: string }>('feed_channel_auto_subscription_multiple');
+    private readonly autoSubscriptionQueue = new WorkQueue<{ channelId: number, peerType: 'room' | 'organization', peerId: number }>('feed_channel_auto_subscription');
+    private readonly autoSubscriptionQueueMultiple = new WorkQueue<{ channelId: number, uids: number[] }>('feed_channel_auto_subscription_multiple');
 
     start = () => {
         if (serverRoleEnabled('delivery')) {
             for (let i = 0; i < 10; i++) {
                 this.autoSubscriptionQueue.addWorker(async (item, parent) => {
                     await this.fanOutSubscription(parent, item.channelId, item.peerType, item.peerId);
-                    return {result: 'ok'};
                 });
             }
             for (let i = 0; i < 10; i++) {
@@ -46,7 +45,6 @@ export default class FeedChannelMediator {
                             }
                         }
                     });
-                    return {result: 'ok'};
                 });
             }
         }

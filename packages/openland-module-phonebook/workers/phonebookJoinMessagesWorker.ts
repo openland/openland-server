@@ -4,26 +4,26 @@ import { Modules } from '../../openland-modules/Modules';
 import { WorkQueue } from '../../openland-module-workers/WorkQueue';
 
 export function createPhonebookJoinMessagesWorker() {
-    let worker = new WorkQueue<{ uid: number }, { result: string }>('phonebook_join_message');
+    let worker = new WorkQueue<{ uid: number }>('phonebook_join_message');
     return worker;
 }
 
-export function addPhonebookJoinMessagesWorker(worker: WorkQueue<{ uid: number }, { result: string }>) {
+export function addPhonebookJoinMessagesWorker(worker: WorkQueue<{ uid: number }>) {
     worker.addWorker(async (item, parent) => {
         return await inTx(parent, async (ctx) => {
             let user = await Store.User.findById(ctx, item.uid);
             let profile = await Store.UserProfile.findById(ctx, item.uid);
 
             if (!user || !profile) {
-                return { result: 'ok'};
+                return;
             }
             if (!user.phone) {
-                return { result: 'ok'};
+                return;
             }
 
             let sentAlready = await Store.PhonebookJoinMessageSentForPhone.get(ctx, user.phone);
             if (sentAlready) {
-                return { result: 'ok'};
+                return;
             }
 
             let hits = await Modules.Search.elastic.client.search({
@@ -55,7 +55,6 @@ export function addPhonebookJoinMessagesWorker(worker: WorkQueue<{ uid: number }
             }
 
             await Store.PhonebookJoinMessageSentForPhone.set(ctx, user.phone, true);
-            return { result: 'ok'};
         });
     });
 }

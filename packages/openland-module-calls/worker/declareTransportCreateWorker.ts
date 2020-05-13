@@ -24,7 +24,7 @@ export function declareTransportCreateWorker(service: MediaKitchenService, repo:
             return { router, ts };
         });
         if (r.ts.state !== 'creating') {
-            return { result: true };
+            return;
         }
 
         // Create trans
@@ -57,7 +57,5 @@ export function declareTransportCreateWorker(service: MediaKitchenService, repo:
                 await repo.onTransportCreated(ctx, args.id);
             }
         });
-
-        return { result: true };
     });
 }
