@@ -1,3 +1,4 @@
+import { KitchenRtpCapabilities } from './../kitchen/types';
 import { createLogger } from '@openland/log';
 import { KitchenRtpParameters, KitchenIceCandidate } from '../kitchen/types';
 import { writeSDP } from 'openland-module-calls/sdp/writeSDP';
@@ -17,6 +18,39 @@ import { extractOpusRtpParameters, extractH264RtpParameters, convertParameters, 
 import { MediaDescription } from 'sdp-transform';
 
 const logger = createLogger('calls-kitchen');
+
+const EMPTY_ANSWER = writeSDP({
+    version: 0,
+    origin: {
+        username: '-',
+        sessionId: '10000',
+        sessionVersion: 1,
+        netType: 'IN',
+        ipVer: 4,
+        address: '0.0.0.0'
+    } as any,
+    name: '-',
+    timing: { start: 0, stop: 0 },
+    msidSemantic: { semantic: 'WMS', token: '*' },
+    media: []
+});
+
+const RTP_CAPABILITIES_AUDIO: KitchenRtpCapabilities = {
+    codecs: [{
+        kind: 'audio',
+        mimeType: 'audio/opus',
+        clockRate: 48000,
+        channels: 2,
+        parameters: {
+            stereo: 1,
+            maxplaybackrate: 48000,
+            useinbandfec: 1
+        },
+        rtcpFeedback: [{
+            type: 'transport-cc'
+        }]
+    }]
+};
 
 function generateSDP(
     fingerprints: { algorithm: string, value: string }[],
@@ -130,6 +164,8 @@ export class CallSchedulerKitchenTransport {
         // transport id
         let id = uuid();
 
+        logger.log(ctx, 'ProducerTransport Create: ' + pid + ' ' + JSON.stringify(produces));
+
         // Raw transport
         await this.repo.createTransport(ctx, id, router);
 
@@ -178,88 +214,6 @@ export class CallSchedulerKitchenTransport {
         return id;
     }
 
-    createConsumerTransport = async (ctx: Context, router: string, cid: number, pid: number, consumes: string[]) => {
-        // transport id
-        let id = uuid();
-
-        // Raw transport
-        await this.repo.createTransport(ctx, id, router);
-
-        // Resolve active producers
-        let consumers: {
-            pid: number,
-            consumer: string,
-            transport: string,
-            active: boolean,
-            media: { type: 'audio', } | { type: 'video', source: 'default' | 'screen' }
-        }[] = [];
-        let remoteStreams: ({
-            pid: number,
-            media: { type: 'audio', mid: string } | { type: 'video', source: 'default' | 'screen', mid: string }
-        })[] = [];
-        for (let transport of consumes) {
-            let producerTransport = (await Store.ConferenceKitchenProducerTransport.findById(ctx, transport))!;
-            if (producerTransport.audioProducer) {
-                let consumer = await this.repo.createConsumer(ctx, id, producerTransport.audioProducer, {
-                    rtpCapabilities: {
-                        codecs: [{
-                            kind: 'audio',
-                            mimeType: 'audio/opus',
-                            clockRate: 48000,
-                            channels: 2,
-                            parameters: {
-                                stereo: 1,
-                                maxplaybackrate: 48000,
-                                useinbandfec: 1
-                            },
-                            rtcpFeedback: [{
-                                type: 'transport-cc'
-                            }]
-                        }]
-                    }
-                });
-                consumers.push({
-                    pid: producerTransport.pid,
-                    consumer,
-                    transport,
-                    active: true,
-                    media: { type: 'audio' }
-                });
-                remoteStreams.push({
-                    pid: producerTransport.pid,
-                    media: { type: 'audio', mid: (consumers.length - 1).toString() }
-                });
-            }
-
-            // TODO: Implement video
-        }
-
-        // Consumer transport
-        await Store.ConferenceKitchenConsumerTransport.create(ctx, id, {
-            pid,
-            cid,
-            consumes,
-            consumers,
-            state: 'negotiation-wait-offer',
-        });
-
-        // End stream
-        await Store.ConferenceEndStream.create(ctx, id, {
-            pid,
-            seq: 1,
-            state: 'wait-offer',
-            localCandidates: [],
-            remoteCandidates: [],
-            localSdp: null,
-            remoteSdp: null,
-            localStreams: [],
-            remoteStreams,
-            iceTransportPolicy: 'none'
-        });
-
-        return id;
-    }
-
     updateProducerTransport = async (ctx: Context, id: string, produces: MediaSources) => {
         let producer = await Store.ConferenceKitchenProducerTransport.findById(ctx, id);
         if (!producer || producer.state === 'closed') {
@@ -273,8 +227,11 @@ export class CallSchedulerKitchenTransport {
             return;
         }
 
+        logger.log(ctx, 'ProducerTransport Update: ' + producer.pid + ' ' + JSON.stringify(produces));
+
         // Switch to need offer state
         producer.state = 'negotiation-need-offer';
+        producer.produces = { ...produces };
 
         // Update Conference End Stream
         let stream = (await Store.ConferenceEndStream.findById(ctx, id))!;
@@ -302,6 +259,7 @@ export class CallSchedulerKitchenTransport {
         }
         producerTransport.state = 'closed';
         await producerTransport.flush(ctx);
+        logger.log(ctx, 'ProducerTransport Remove: ' + producerTransport.pid);
 
         // Close End Stream
         let stream = (await Store.ConferenceEndStream.findById(ctx, id))!;
@@ -320,6 +278,148 @@ export class CallSchedulerKitchenTransport {
 
         // Bump
         await this.callRepo.bumpVersion(ctx, producerTransport.cid, producerTransport.pid);
+    }
+
+    createConsumerTransport = async (ctx: Context, router: string, cid: number, pid: number, consumes: string[]) => {
+        // transport id
+        let id = uuid();
+
+        // Raw transport
+        await this.repo.createTransport(ctx, id, router);
+
+        // Resolve active producers
+        let consumers: {
+            pid: number,
+            consumer: string,
+            transport: string,
+            active: boolean,
+            media: { type: 'audio', } | { type: 'video', source: 'default' | 'screen' }
+        }[] = [];
+        for (let transport of consumes) {
+            let producerTransport = (await Store.ConferenceKitchenProducerTransport.findById(ctx, transport))!;
+            if (producerTransport.audioProducer) {
+                let consumer = await this.repo.createConsumer(ctx, id, producerTransport.audioProducer, { rtpCapabilities: RTP_CAPABILITIES_AUDIO });
+                consumers.push({
+                    pid: producerTransport.pid,
+                    consumer,
+                    transport,
+                    active: true,
+                    media: { type: 'audio' }
+                });
+            }
+
+            // TODO: Implement video
+        }
+
+        // Consumer transport
+        await Store.ConferenceKitchenConsumerTransport.create(ctx, id, {
+            pid,
+            cid,
+            consumes,
+            consumers,
+            state: 'negotiation-wait-offer',
+        });
+
+        // End stream
+        await Store.ConferenceEndStream.create(ctx, id, {
+            pid,
+            seq: 1,
+            state: 'wait-offer',
+            localCandidates: [],
+            remoteCandidates: [],
+            localSdp: null,
+            remoteSdp: null,
+            localStreams: [],
+            remoteStreams: [],
+            iceTransportPolicy: 'none'
+        });
+
+        return id;
+    }
+
+    #reloadConsumerIfNeeded = async (ctx: Context, transportId: string) => {
+        let consumerTransport = await Store.ConferenceKitchenConsumerTransport.findById(ctx, transportId);
+        if (!consumerTransport || consumerTransport.state === 'closed') {
+            return;
+        }
+        let consumers: {
+            pid: number,
+            consumer: string,
+            transport: string,
+            active: boolean,
+            media: { type: 'audio', } | { type: 'video', source: 'default' | 'screen' }
+        }[] = [];
+        let changed = false;
+
+        // Update active state of existing consumers
+        for (let c of consumerTransport.consumers) {
+            let consumable = !!consumerTransport.consumes.find((v) => v === c.transport);
+
+            // If not consumable: disable if needed
+            if (!consumable) {
+                if (!c.active) {
+                    consumers.push(c);
+                } else {
+                    consumers.push({
+                        ...c,
+                        active: false
+                    });
+                    changed = true;
+                }
+            }
+
+            // If consumable: enable if needed
+            if (consumable) {
+                if (c.active) {
+                    consumers.push(c);
+                } else {
+                    consumers.push({
+                        ...c,
+                        active: true
+                    });
+                    changed = true;
+                }
+            }
+        }
+
+        // Add new consumers
+        for (let c of consumerTransport.consumes) {
+            let producerTransport = (await Store.ConferenceKitchenProducerTransport.findById(ctx, c));
+            if (!producerTransport || producerTransport.state === 'closed') {
+                continue;
+            }
+
+            // Add audio producer if needed
+            if (producerTransport.audioProducer) {
+                if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'audio')) {
+                    let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.audioProducer, { rtpCapabilities: RTP_CAPABILITIES_AUDIO });
+                    consumers.push({
+                        pid: producerTransport.pid,
+                        consumer,
+                        transport: c,
+                        active: true,
+                        media: { type: 'audio' }
+                    });
+                    changed = true;
+                }
+            }
+        }
+
+        // Try to regenerate new offer
+        if (changed) {
+            consumerTransport.state = 'negotiation-wait-offer';
+            await this.#createConsumerOfferIfNeeded(ctx, transportId);
+        }
+    }
+
+    updateConsumerTransport = async (ctx: Context, id: string, consumes: string[]) => {
+        let consumerTransport = await Store.ConferenceKitchenConsumerTransport.findById(ctx, id);
+        if (!consumerTransport || consumerTransport.state === 'closed') {
+            throw Error('Unable to find connection');
+        }
+        consumerTransport.consumes = [...consumes];
+        await consumerTransport.flush(ctx);
+        await this.#reloadConsumerIfNeeded(ctx, id);
     }
 
     removeConsumerTransport = async (ctx: Context, id: string) => {
@@ -355,9 +455,10 @@ export class CallSchedulerKitchenTransport {
         // Find producer transport
         let producerTransport = await Store.ConferenceKitchenProducerTransport.findById(ctx, transportId);
         if (!producerTransport || producerTransport.state !== 'negotiation-need-offer') {
-            logger.log(ctx, 'Ignore');
             return;
         }
+
+        logger.log(ctx, 'ProducerTransport Offer Received: ' + producerTransport.pid);
 
         //
         // Parsing
@@ -373,13 +474,20 @@ export class CallSchedulerKitchenTransport {
         if (fingerprints.length > 0) {
             await this.repo.connectTransport(ctx, transportId, 'server', fingerprints);
         } else {
-            // Do nothing if no fingerprints present
+            // If no fingerprints we assume that SDP is empty: sending default empty answer
+            let endStream = (await Store.ConferenceEndStream.findById(ctx, transportId))!;
+            endStream.seq++;
+            endStream.state = 'online';
+            endStream.remoteSdp = JSON.stringify({ type: 'answer', sdp: EMPTY_ANSWER });
+            producerTransport.state = 'ready';
+            await this.callRepo.bumpVersion(ctx, producerTransport.cid, producerTransport.pid);
             return;
         }
 
         //
         // Handle producers
         //
+        let changed = false;
         for (let h of hints) {
             if (h.direction !== 'SEND') {
                 throw Error('Incompatible hints');
@@ -408,6 +516,7 @@ export class CallSchedulerKitchenTransport {
                     let rtpParameters = extractOpusRtpParameters(media);
                     let producerId = await this.repo.createProducer(ctx, transportId, { kind: 'audio', rtpParameters });
                     producerTransport.audioProducer = producerId;
+                    changed = true;
                 }
             } else if (h.kind === 'video') {
                 if (h.videoSource === 'default') {
@@ -423,6 +532,7 @@ export class CallSchedulerKitchenTransport {
                         let rtpParameters = extractH264RtpParameters(media);
                         let producerId = await this.repo.createProducer(ctx, transportId, { kind: 'video', rtpParameters });
                         producerTransport.videoProducer = producerId;
+                        changed = true;
                     }
                 } else if (h.videoSource === 'screen') {
                     if (!producerTransport.screencastProducerMid) {
@@ -437,6 +547,7 @@ export class CallSchedulerKitchenTransport {
                         let rtpParameters = extractH264RtpParameters(media);
                         let producerId = await this.repo.createProducer(ctx, transportId, { kind: 'video', rtpParameters });
                         producerTransport.screencastProducer = producerId;
+                        changed = true;
                     }
                 } else {
                     throw Error('Unknown video source: ' + h.videoSource);
@@ -450,21 +561,26 @@ export class CallSchedulerKitchenTransport {
         producerTransport.state = 'negotiation-wait-answer';
         await producerTransport.flush(ctx);
         await this.#createProducerAnswerIfNeeded(ctx, transportId);
+
+        // Update all related consumers
+        if (changed) {
+            let consumers = await Store.ConferenceKitchenConsumerTransport.conference.findAll(ctx, producerTransport.cid);
+            for (let c of consumers) {
+                if (c.consumes.find((v) => v === transportId)) {
+                    await this.#reloadConsumerIfNeeded(ctx, c.id);
+                }
+            }
+        }
     }
 
     #createProducerAnswerIfNeeded = async (ctx: Context, transportId: string) => {
         let producerTransport = await Store.ConferenceKitchenProducerTransport.findById(ctx, transportId);
         if (!producerTransport || producerTransport.state !== 'negotiation-wait-answer') {
-            if (producerTransport) {
-                // logger.log(ctx, transportId + ':createProducerAnswerIfNeeded:' + producerTransport.state);
-            }
             return;
         }
-        // logger.log(ctx, transportId + ':createProducerAnswerIfNeeded');
         let endStream = (await Store.ConferenceEndStream.findById(ctx, transportId))!;
         let transport = (await Store.KitchenTransport.findById(ctx, transportId))!;
         if (transport.state !== 'connected') {
-            // logger.log(ctx, transportId + ':createProducerAnswerIfNeeded:2:' + transport.state);
             return;
         }
 
@@ -498,11 +614,12 @@ export class CallSchedulerKitchenTransport {
             screencastProducer = producer;
         }
 
-        // logger.log(ctx, transportId + ':createProducerAnswerIfNeeded:3');
+        logger.log(ctx, 'ProducerTransport Answer: ' + producerTransport.pid);
 
         //
         // Read Offer
         //
+
         let data = JSON.parse(endStream.localSdp!);
         if (data.type !== 'offer') {
             throw Error('SDP is not an offer!');
@@ -554,12 +671,8 @@ export class CallSchedulerKitchenTransport {
     #createConsumerOfferIfNeeded = async (ctx: Context, transportId: string) => {
         let consumerTransport = await Store.ConferenceKitchenConsumerTransport.findById(ctx, transportId);
         if (!consumerTransport || consumerTransport.state !== 'negotiation-wait-offer') {
-            if (consumerTransport) {
-                logger.log(ctx, transportId + ':createConsumerOfferIfNeeded:' + consumerTransport.state);
-            }
             return;
         }
-        logger.log(ctx, transportId + ':createConsumerOfferIfNeeded');
         let endStream = (await Store.ConferenceEndStream.findById(ctx, transportId))!;
         let transport = (await Store.KitchenTransport.findById(ctx, transportId))!;
         if (transport.state !== 'created' && transport.state !== 'connecting' && transport.state !== 'connected') {
@@ -573,7 +686,6 @@ export class CallSchedulerKitchenTransport {
                 return;
             }
         }
-        logger.log(ctx, transportId + ':createConsumerOfferIfNeeded:2');
 
         let iceCandidates = transport.serverParameters!.iceCandidates;
 
@@ -584,11 +696,24 @@ export class CallSchedulerKitchenTransport {
             protocol: string;
             payloads?: string;
         } & MediaDescription> = [];
+        let remoteStreams: ({
+            pid: number,
+            media: { type: 'audio', mid: string } | { type: 'video', source: 'default' | 'screen', mid: string }
+        })[] = [];
+
         let index = 0;
         for (let consumer of consumerTransport.consumers) {
             let cc = (await Store.KitchenConsumer.findById(ctx, consumer.consumer))!;
             if (consumer.media.type === 'audio') {
-                media.push(createMediaDescription(index + '', 'audio', 7, 'sendonly', cc.rtpParameters!, iceCandidates));
+                let mid = index + '';
+                media.push(createMediaDescription(mid, 'audio', 7, 'sendonly', cc.rtpParameters!, iceCandidates));
+                remoteStreams.push({
+                    pid: consumer.pid,
+                    media: {
+                        type: 'audio',
+                        mid
+                    }
+                });
             }
         }
 
@@ -602,17 +727,19 @@ export class CallSchedulerKitchenTransport {
         );
         endStream.seq++;
         endStream.state = 'need-answer';
+        endStream.remoteStreams = remoteStreams;
         endStream.remoteSdp = JSON.stringify({ type: 'offer', sdp: answer });
         consumerTransport.state = 'negotiation-need-answer';
         await this.callRepo.bumpVersion(ctx, consumerTransport.cid, consumerTransport.pid);
     }
 
     #consumerTransportAnswer = async (ctx: Context, transportId: string, answer: string) => {
-        logger.log(ctx, transportId + ':consumerTransportAnswer');
-        // Find producer transport
+        // Find consumer transport
+        // NOTE: We are allowing handling answers even if we already started renegotiation to complete negotiation faster
+        //       and avoiding build up delays
+
         let consumerTransport = await Store.ConferenceKitchenConsumerTransport.findById(ctx, transportId);
-        if (!consumerTransport || consumerTransport.state !== 'negotiation-need-answer') {
-            logger.log(ctx, transportId + ':consumerTransportAnswer:2');
+        if (!consumerTransport || consumerTransport.state !== 'closed') {
             return;
         }
 

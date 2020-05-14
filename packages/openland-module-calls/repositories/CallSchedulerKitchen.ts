@@ -63,7 +63,7 @@ export class CallSchedulerKitchen implements CallScheduler {
         }
         let existing = await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid);
         let producerTransport = await this.transport.createProducerTransport(ctx, router.id, cid, pid, sources);
-        let consumerTransport = existing.length > 0 ? await this.transport.createConsumerTransport(ctx, router.id, cid, pid, existing.map((v) => v.producerTransport!)) : null;
+        let consumerTransport = await this.transport.createConsumerTransport(ctx, router.id, cid, pid, existing.map((v) => v.producerTransport!));
         await Store.ConferenceKitchenPeer.create(ctx, pid, {
             cid,
             producerTransport,
@@ -72,15 +72,17 @@ export class CallSchedulerKitchen implements CallScheduler {
         });
         logger.log(ctx, 'Add peer: end');
 
-        // // Update existing connections
-        // for (let e of existing) {
-        //     if (!e.active) { // Just in case
-        //         continue;
-        //     }
-        //     // Add new connection
-        //     e.consumes = [...e.consumes, connection];
-        //     await this.connections.updateConsumes(ctx, e.connection, e.consumes);
-        // }
+        // Update existing connections
+        for (let e of existing) {
+            if (!e.active) { // Just in case
+                continue;
+            }
+            // Add new connection
+            if (e.consumerTransport) {
+                let ct = (await Store.ConferenceKitchenConsumerTransport.findById(ctx, e.consumerTransport))!;
+                await this.transport.updateConsumerTransport(ctx, e.consumerTransport, [...ct.consumes, producerTransport]);
+            }
+        }
     }
 
     onPeerStreamsChanged = async (ctx: Context, cid: number, pid: number, sources: MediaSources) => {

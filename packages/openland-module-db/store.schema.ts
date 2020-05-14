@@ -994,6 +994,8 @@ export default declareSchema(() => {
         field('videoProducerMid', optional(string()));
         field('screencastProducer', optional(string()));
         field('screencastProducerMid', optional(string()));
+
+        rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.state !== 'closed');
     });
 
     entity('ConferenceKitchenConsumerTransport', () => {
@@ -1010,6 +1012,8 @@ export default declareSchema(() => {
             media: remoteMedia,
             active: boolean()
         })));
+
+        rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.state !== 'closed');
     });
 
     //

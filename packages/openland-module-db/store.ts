@@ -7564,6 +7564,7 @@ export class ConferenceKitchenProducerTransportFactory extends EntityFactory<Con
     static async open(storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory('conferenceKitchenProducerTransport');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceKitchenProducerTransport', 'conference'), condition: (src) => src.state !== 'closed' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -7601,6 +7602,21 @@ export class ConferenceKitchenProducerTransportFactory extends EntityFactory<Con
     private constructor(descriptor: EntityDescriptor<ConferenceKitchenProducerTransportShape>) {
         super(descriptor);
     }
+
+    readonly conference = Object.freeze({
+        findAll: async (ctx: Context, cid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [cid])).items;
+        },
+        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (cid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [cid], opts);
+        },
+        liveStream: (ctx: Context, cid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [cid], opts);
+        },
+    });
 
     create(ctx: Context, id: string, src: ConferenceKitchenProducerTransportCreateShape): Promise<ConferenceKitchenProducerTransport> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
@@ -7694,6 +7710,7 @@ export class ConferenceKitchenConsumerTransportFactory extends EntityFactory<Con
     static async open(storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory('conferenceKitchenConsumerTransport');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceKitchenConsumerTransport', 'conference'), condition: (src) => src.state !== 'closed' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -7721,6 +7738,21 @@ export class ConferenceKitchenConsumerTransportFactory extends EntityFactory<Con
     private constructor(descriptor: EntityDescriptor<ConferenceKitchenConsumerTransportShape>) {
         super(descriptor);
     }
+
+    readonly conference = Object.freeze({
+        findAll: async (ctx: Context, cid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [cid])).items;
+        },
+        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (cid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [cid], opts);
+        },
+        liveStream: (ctx: Context, cid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [cid], opts);
+        },
+    });
 
     create(ctx: Context, id: string, src: ConferenceKitchenConsumerTransportCreateShape): Promise<ConferenceKitchenConsumerTransport> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
