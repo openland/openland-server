@@ -10,8 +10,8 @@ import * as https from 'https';
 import { isAsyncIterator, isSubscriptionQuery } from './utils';
 import { delay } from '../openland-utils/timer';
 import { gqlSubscribe } from './gqlSubscribe';
-import { Context, createNamedContext } from '@openland/context';
-import { createLogger } from '@openland/log';
+import { Context } from '@openland/context';
+// import { createLogger } from '@openland/log';
 import { cancelContext } from '@openland/lifetime';
 import { QueryCache } from './queryCache';
 import { randomKey } from '../openland-utils/random';
@@ -19,7 +19,7 @@ import { randomKey } from '../openland-utils/random';
 import { BoundedConcurrencyPoool } from '../openland-utils/ConcurrencyPool';
 import { Shutdown } from '../openland-utils/Shutdown';
 
-const logger = createLogger('apollo');
+// const logger = createLogger('apollo');
 
 interface GQlServerOperation {
     operationName: string|null|undefined;
@@ -278,7 +278,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
 }
 
 // const metric = createMetric('ws-connections', 'exact');
-const rootCtx = createNamedContext('apollo');
+// const rootCtx = createNamedContext('apollo');
 
 async function handleConnection(params: FuckApolloServerParams, sessions: Map<string, FuckApolloSession>, socket: WebSocket, req: http.IncomingMessage) {
     // metric.increment(rootCtx);
@@ -289,13 +289,13 @@ async function handleConnection(params: FuckApolloServerParams, sessions: Map<st
         await handleMessage(params, socket, req, session, JSON.parse(data.toString()));
     });
     socket.on('close', (code, reason) => {
-        logger.log(rootCtx, 'close connection', code, reason);
+        // logger.log(rootCtx, 'close connection', code, reason);
         session.close();
         sessions.delete(session.id);
         // metric.decrement(rootCtx);
     });
     socket.on('error', (err) => {
-        logger.log(rootCtx, 'connection error', err);
+        // logger.log(rootCtx, 'connection error', err);
         // metric.decrement(rootCtx);
         session.close();
     });

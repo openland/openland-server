@@ -1,10 +1,15 @@
+import { createLogger } from '@openland/log';
 import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { MediaKitchenService } from '../kitchen/MediaKitchenService';
 import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 
+const logger = createLogger('mediakitchen');
+
 export function declareTransportCreateWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
     repo.transportCreateQueue.addWorker(async (args, parent) => {
+
+        logger.log(parent, 'Tryign to create transport: ' + args.id);
 
         let r = await inTx(parent, async (ctx) => {
             let ts = await Store.KitchenTransport.findById(ctx, args.id);

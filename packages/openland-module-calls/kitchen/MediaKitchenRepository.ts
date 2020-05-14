@@ -470,13 +470,13 @@ export class MediaKitchenRepository {
 
     async onProducerCreating(parent: Context, transportId: string, producerId: string) {
         await inTx(parent, async (ctx) => {
-            logger.log(ctx, 'Creating producer: ' + producerId);
+            logger.log(ctx, 'Creating producer: ' + transportId + '/' + producerId);
         });
     }
 
     async onProducerCreated(parent: Context, transportId: string, producerId: string) {
         await inTx(parent, async (ctx) => {
-            logger.log(ctx, 'Created producer: ' + producerId);
+            logger.log(ctx, 'Created producer: ' + transportId + '/' + producerId);
 
             // Create dependent consumers
             let consumers = await Store.KitchenConsumer.producerActive.findAll(ctx, producerId);
@@ -493,7 +493,7 @@ export class MediaKitchenRepository {
 
     async onProducerRemoving(parent: Context, transportId: string, id: string) {
         await inTx(parent, async (ctx) => {
-            logger.log(ctx, 'Removing producer: ' + id);
+            logger.log(ctx, 'Removing producer: ' + transportId + '/' + id);
 
             // Remove consumers
             let consumers = await Store.KitchenConsumer.producerActive.findAll(ctx, id);
@@ -514,7 +514,7 @@ export class MediaKitchenRepository {
 
     async onProducerRemoved(parent: Context, transportId: string, id: string) {
         await inTx(parent, async (ctx) => {
-            logger.log(ctx, 'Removed producer: ' + id);
+            logger.log(ctx, 'Removed producer: ' + transportId + '/' + id);
         });
     }
 
@@ -539,13 +539,13 @@ export class MediaKitchenRepository {
 
     async onConsumerRemoving(parent: Context, transportId: string, consumerId: string) {
         await inTx(parent, async (ctx) => {
-            logger.log(ctx, 'Removing consumer: ' + consumerId);
+            logger.log(ctx, 'Removing consumer: ' + transportId + '/' + consumerId);
         });
     }
 
     async onConsumerRemoved(parent: Context, transportId: string, consumerId: string) {
         await inTx(parent, async (ctx) => {
-            logger.log(ctx, 'Removed consumer: ' + consumerId);
+            logger.log(ctx, 'Removed consumer: ' + transportId + '/' + consumerId);
         });
     }
 
