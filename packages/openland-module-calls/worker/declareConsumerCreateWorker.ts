@@ -55,7 +55,7 @@ export function declareConsumerCreateWorker(service: MediaKitchenService, repo: 
                 cr.state = 'created';
                 cr.rtpParameters = convertRtpParamsToStore(rawConsumer.rtpParameters);
                 await cr.flush(ctx);
-                await repo.onConsumerCreated(ctx, cr.id);
+                await repo.onConsumerCreated(ctx, r.ts.id, cr.id);
             }
         });
 

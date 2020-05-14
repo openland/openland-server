@@ -191,7 +191,7 @@ export class MediaKitchenRepository {
         });
     }
 
-    async connectTransport(parent: Context, transportId: string, fingerprints: { algorithm: string, value: string }[]) {
+    async connectTransport(parent: Context, transportId: string, dtlsRole: 'server' | 'client', fingerprints: { algorithm: string, value: string }[]) {
         return await inTx(parent, async (ctx) => {
             let transport = await Store.KitchenTransport.findById(ctx, transportId);
             if (!transport) {
@@ -200,7 +200,7 @@ export class MediaKitchenRepository {
             if (transport.clientParameters || !(transport.state === 'created' || transport.state === 'creating')) {
                 return;
             }
-            transport.clientParameters = { fingerprints };
+            transport.clientParameters = { fingerprints, dtlsRole };
 
             // Connect Transport if created
             if (transport.state === 'created') {
@@ -257,7 +257,7 @@ export class MediaKitchenRepository {
                     keyFrameRequestDelay: parameters.keyFrameRequestDelay
                 }
             });
-            await this.onProducerCreating(ctx, id);
+            await this.onProducerCreating(ctx, transport.id, id);
             if (transport.state !== 'creating') {
                 await this.producerCreateQueue.pushWork(ctx, { id });
             }
@@ -275,7 +275,7 @@ export class MediaKitchenRepository {
                 return;
             }
             producer.state = 'deleting';
-            await this.onProducerRemoving(ctx, producerId);
+            await this.onProducerRemoving(ctx, producer.transportId, producerId);
             await this.producerDeleteQueue.pushWork(ctx, { id: producerId });
         });
     }
@@ -316,7 +316,7 @@ export class MediaKitchenRepository {
                     paused: params.paused
                 }
             });
-            await this.onConsumerCreating(ctx, id);
+            await this.onConsumerCreating(ctx, transportId, id);
             if (producer.state !== 'creating') {
                 await this.consumerCreateQueue.pushWork(ctx, { id });
             }
@@ -333,7 +333,7 @@ export class MediaKitchenRepository {
             if (consumer.state === 'deleted' || consumer.state === 'deleting') {
                 return;
             }
-            await this.onConsumerRemoving(ctx, consumerId);
+            await this.onConsumerRemoving(ctx, consumer.transportId, consumerId);
             await this.consumerDeleteQueue.pushWork(ctx, { id: consumerId });
         });
     }
@@ -424,6 +424,19 @@ export class MediaKitchenRepository {
         });
     }
 
+    async onTransportConnected(parent: Context, id: string) {
+        await inTx(parent, async (ctx) => {
+            logger.log(ctx, 'Connected transport: ' + id);
+            let transport = await Store.KitchenTransport.findById(ctx, id);
+            if (!transport) {
+                return;
+            }
+
+            // Notify scheduler
+            await this.scheduler.onTransportConnected(ctx, id);
+        });
+    }
+
     async onTransportRemoving(parent: Context, id: string) {
         await inTx(parent, async (ctx) => {
             logger.log(ctx, 'Removing transport: ' + id);
@@ -434,12 +447,12 @@ export class MediaKitchenRepository {
                 if (p.state === 'deleting') {
                     p.state = 'deleted';
                     await p.flush(ctx);
-                    await this.onProducerRemoved(ctx, p.id);
+                    await this.onProducerRemoved(ctx, id, p.id);
                 } else {
                     p.state = 'deleted';
                     await p.flush(ctx);
-                    await this.onProducerRemoving(ctx, p.id);
-                    await this.onProducerRemoved(ctx, p.id);
+                    await this.onProducerRemoving(ctx, id, p.id);
+                    await this.onProducerRemoved(ctx, id, p.id);
                 }
             }
         });
@@ -455,22 +468,30 @@ export class MediaKitchenRepository {
     // Producer Events
     //
 
-    async onProducerCreating(parent: Context, id: string) {
+    async onProducerCreating(parent: Context, transportId: string, producerId: string) {
         await inTx(parent, async (ctx) => {
-            logger.log(ctx, 'Creating producer: ' + id);
+            logger.log(ctx, 'Creating producer: ' + producerId);
         });
     }
 
-    async onProducerCreated(parent: Context, id: string) {
+    async onProducerCreated(parent: Context, transportId: string, producerId: string) {
         await inTx(parent, async (ctx) => {
-            logger.log(ctx, 'Created producer: ' + id);
+            logger.log(ctx, 'Created producer: ' + producerId);
+
+            // Create dependent consumers
+            let consumers = await Store.KitchenConsumer.producerActive.findAll(ctx, producerId);
+            for (let c of consumers) {
+                if (c.state === 'creating') {
+                    await this.consumerCreateQueue.pushWork(ctx, { id: c.id });
+                }
+            }
 
             // Notify scheduler
-            await this.scheduler.onProducerCreated(ctx, id);
+            await this.scheduler.onProducerCreated(ctx, transportId, producerId);
         });
     }
 
-    async onProducerRemoving(parent: Context, id: string) {
+    async onProducerRemoving(parent: Context, transportId: string, id: string) {
         await inTx(parent, async (ctx) => {
             logger.log(ctx, 'Removing producer: ' + id);
 
@@ -480,18 +501,18 @@ export class MediaKitchenRepository {
                 if (c.state === 'deleting') {
                     c.state = 'deleted';
                     await c.flush(ctx);
-                    await this.onConsumerRemoved(ctx, c.id);
+                    await this.onConsumerRemoved(ctx, transportId, c.id);
                 } else {
                     c.state = 'deleted';
                     await c.flush(ctx);
-                    await this.onConsumerRemoving(ctx, c.id);
-                    await this.onConsumerRemoved(ctx, c.id);
+                    await this.onConsumerRemoving(ctx, transportId, c.id);
+                    await this.onConsumerRemoved(ctx, transportId, c.id);
                 }
             }
         });
     }
 
-    async onProducerRemoved(parent: Context, id: string) {
+    async onProducerRemoved(parent: Context, transportId: string, id: string) {
         await inTx(parent, async (ctx) => {
             logger.log(ctx, 'Removed producer: ' + id);
         });
@@ -501,30 +522,30 @@ export class MediaKitchenRepository {
     // Consumer Events
     //
 
-    async onConsumerCreating(parent: Context, id: string) {
+    async onConsumerCreating(parent: Context, transportId: string, consumerId: string) {
         await inTx(parent, async (ctx) => {
-            logger.log(ctx, 'Creating consumer: ' + id);
+            logger.log(ctx, 'Creating consumer: ' + transportId + '/' + consumerId);
         });
     }
 
-    async onConsumerCreated(parent: Context, id: string) {
+    async onConsumerCreated(parent: Context, transportId: string, consumerId: string) {
         await inTx(parent, async (ctx) => {
-            logger.log(ctx, 'Created consumer: ' + id);
+            logger.log(ctx, 'Created consumer: ' + transportId + '/' + consumerId);
 
             // Notify scheduler
-            await this.scheduler.onConsumerCreated(ctx, id);
+            await this.scheduler.onConsumerCreated(ctx, transportId, consumerId);
         });
     }
 
-    async onConsumerRemoving(parent: Context, id: string) {
+    async onConsumerRemoving(parent: Context, transportId: string, consumerId: string) {
         await inTx(parent, async (ctx) => {
-            logger.log(ctx, 'Removing consumer: ' + id);
+            logger.log(ctx, 'Removing consumer: ' + consumerId);
         });
     }
 
-    async onConsumerRemoved(parent: Context, id: string) {
+    async onConsumerRemoved(parent: Context, transportId: string, consumerId: string) {
         await inTx(parent, async (ctx) => {
-            logger.log(ctx, 'Removed consumer: ' + id);
+            logger.log(ctx, 'Removed consumer: ' + consumerId);
         });
     }
 

@@ -33,8 +33,12 @@ export const logger = isProduction ? getPino() : winston.createLogger({
 });
 
 function formatMessage(ctx: Context, name: string, message: string) {
-    let v = LogPathContext.get(ctx);
-    return ContextName.get(ctx) + ' | ' + [...v, name].join(' ➾ ') + ': ' + message;
+    if (isProduction) {
+        let v = LogPathContext.get(ctx);
+        return ContextName.get(ctx) + ' | ' + [...v, name].join(' ➾ ') + ': ' + message;
+    } else {
+        return name + ': ' + message;
+    }
 }
 
 setLogProvider({

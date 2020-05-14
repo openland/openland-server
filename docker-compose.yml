@@ -9,12 +9,16 @@ services:
     ports:
       - "127.0.0.1:4222:4222"
   mediakitchen:
-    image: openland/mediakitchen:v3
+    image: openland/mediakitchen:v4
     restart: always
     environment:
       MEDIAKITCHEN_NATS: "nats://nats:4222"
       MEDIAKITCHEN_MIN_PORT: "11000"
       MEDIAKITCHEN_MAX_PORT: "11100"
+      MEDIAKITCHEN_WORKERS: "1"
+      MEDIAKITCHEN_LOG_LEVEL: "debug"
+      MEDIAKITCHEN_LOG_TAGS: "info,rtp,rbe,dtls,rtcp"
+      DEBUG: "mediasoup:*"
     ports:
       - "127.0.0.1:3478:3478"
       - "127.0.0.1:11000-11100:11000-11100"

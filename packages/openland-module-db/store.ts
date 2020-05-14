@@ -7319,17 +7319,15 @@ export interface ConferenceKitchenPeerShape {
     pid: number;
     cid: number;
     active: boolean;
-    connection: string;
-    produces: { audioStream: boolean, videoStream: boolean, screenCastStream: boolean };
-    consumes: (string)[];
+    producerTransport: string | null;
+    consumerTransport: string | null;
 }
 
 export interface ConferenceKitchenPeerCreateShape {
     cid: number;
     active: boolean;
-    connection: string;
-    produces: { audioStream: boolean, videoStream: boolean, screenCastStream: boolean };
-    consumes: (string)[];
+    producerTransport?: string | null | undefined;
+    consumerTransport?: string | null | undefined;
 }
 
 export class ConferenceKitchenPeer extends Entity<ConferenceKitchenPeerShape> {
@@ -7352,30 +7350,21 @@ export class ConferenceKitchenPeer extends Entity<ConferenceKitchenPeerShape> {
             this.invalidate();
         }
     }
-    get connection(): string { return this._rawValue.connection; }
-    set connection(value: string) {
-        let normalized = this.descriptor.codec.fields.connection.normalize(value);
-        if (this._rawValue.connection !== normalized) {
-            this._rawValue.connection = normalized;
-            this._updatedValues.connection = normalized;
+    get producerTransport(): string | null { return this._rawValue.producerTransport; }
+    set producerTransport(value: string | null) {
+        let normalized = this.descriptor.codec.fields.producerTransport.normalize(value);
+        if (this._rawValue.producerTransport !== normalized) {
+            this._rawValue.producerTransport = normalized;
+            this._updatedValues.producerTransport = normalized;
             this.invalidate();
         }
     }
-    get produces(): { audioStream: boolean, videoStream: boolean, screenCastStream: boolean } { return this._rawValue.produces; }
-    set produces(value: { audioStream: boolean, videoStream: boolean, screenCastStream: boolean }) {
-        let normalized = this.descriptor.codec.fields.produces.normalize(value);
-        if (this._rawValue.produces !== normalized) {
-            this._rawValue.produces = normalized;
-            this._updatedValues.produces = normalized;
-            this.invalidate();
-        }
-    }
-    get consumes(): (string)[] { return this._rawValue.consumes; }
-    set consumes(value: (string)[]) {
-        let normalized = this.descriptor.codec.fields.consumes.normalize(value);
-        if (this._rawValue.consumes !== normalized) {
-            this._rawValue.consumes = normalized;
-            this._updatedValues.consumes = normalized;
+    get consumerTransport(): string | null { return this._rawValue.consumerTransport; }
+    set consumerTransport(value: string | null) {
+        let normalized = this.descriptor.codec.fields.consumerTransport.normalize(value);
+        if (this._rawValue.consumerTransport !== normalized) {
+            this._rawValue.consumerTransport = normalized;
+            this._updatedValues.consumerTransport = normalized;
             this.invalidate();
         }
     }
@@ -7392,16 +7381,14 @@ export class ConferenceKitchenPeerFactory extends EntityFactory<ConferenceKitche
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'cid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'active', type: { type: 'boolean' }, secure: false });
-        fields.push({ name: 'connection', type: { type: 'string' }, secure: false });
-        fields.push({ name: 'produces', type: { type: 'struct', fields: { audioStream: { type: 'boolean' }, videoStream: { type: 'boolean' }, screenCastStream: { type: 'boolean' } } }, secure: false });
-        fields.push({ name: 'consumes', type: { type: 'array', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'producerTransport', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'consumerTransport', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
             pid: c.integer,
             cid: c.integer,
             active: c.boolean,
-            connection: c.string,
-            produces: c.struct({ audioStream: c.boolean, videoStream: c.boolean, screenCastStream: c.boolean }),
-            consumes: c.array(c.string),
+            producerTransport: c.optional(c.string),
+            consumerTransport: c.optional(c.string),
         });
         let descriptor: EntityDescriptor<ConferenceKitchenPeerShape> = {
             name: 'ConferenceKitchenPeer',
@@ -7451,38 +7438,34 @@ export class ConferenceKitchenPeerFactory extends EntityFactory<ConferenceKitche
     }
 }
 
-export interface ConferenceKitchenConnectionShape {
+export interface ConferenceKitchenProducerTransportShape {
     id: string;
     pid: number;
     cid: number;
-    produces: { audioStream: boolean, videoStream: boolean, screenCastStream: boolean };
-    consumes: (string)[];
     state: 'negotiation-need-offer' | 'negotiation-wait-answer' | 'ready' | 'closed';
+    produces: { audioStream: boolean, videoStream: boolean, screenCastStream: boolean };
     audioProducer: string | null;
     audioProducerMid: string | null;
     videoProducer: string | null;
     videoProducerMid: string | null;
     screencastProducer: string | null;
     screencastProducerMid: string | null;
-    consumers: ({ pid: number, media: { type: 'audio', mid: string | null } | { type: 'video', source: 'default' | 'screen', mid: string | null }, consumer: string | null, connection: string })[];
 }
 
-export interface ConferenceKitchenConnectionCreateShape {
+export interface ConferenceKitchenProducerTransportCreateShape {
     pid: number;
     cid: number;
-    produces: { audioStream: boolean, videoStream: boolean, screenCastStream: boolean };
-    consumes: (string)[];
     state: 'negotiation-need-offer' | 'negotiation-wait-answer' | 'ready' | 'closed';
+    produces: { audioStream: boolean, videoStream: boolean, screenCastStream: boolean };
     audioProducer?: string | null | undefined;
     audioProducerMid?: string | null | undefined;
     videoProducer?: string | null | undefined;
     videoProducerMid?: string | null | undefined;
     screencastProducer?: string | null | undefined;
     screencastProducerMid?: string | null | undefined;
-    consumers: ({ pid: number, media: { type: 'audio', mid: string | null | undefined } | { type: 'video', source: 'default' | 'screen', mid: string | null | undefined }, consumer: string | null | undefined, connection: string })[];
 }
 
-export class ConferenceKitchenConnection extends Entity<ConferenceKitchenConnectionShape> {
+export class ConferenceKitchenProducerTransport extends Entity<ConferenceKitchenProducerTransportShape> {
     get id(): string { return this._rawValue.id; }
     get pid(): number { return this._rawValue.pid; }
     set pid(value: number) {
@@ -7502,30 +7485,21 @@ export class ConferenceKitchenConnection extends Entity<ConferenceKitchenConnect
             this.invalidate();
         }
     }
-    get produces(): { audioStream: boolean, videoStream: boolean, screenCastStream: boolean } { return this._rawValue.produces; }
-    set produces(value: { audioStream: boolean, videoStream: boolean, screenCastStream: boolean }) {
-        let normalized = this.descriptor.codec.fields.produces.normalize(value);
-        if (this._rawValue.produces !== normalized) {
-            this._rawValue.produces = normalized;
-            this._updatedValues.produces = normalized;
-            this.invalidate();
-        }
-    }
-    get consumes(): (string)[] { return this._rawValue.consumes; }
-    set consumes(value: (string)[]) {
-        let normalized = this.descriptor.codec.fields.consumes.normalize(value);
-        if (this._rawValue.consumes !== normalized) {
-            this._rawValue.consumes = normalized;
-            this._updatedValues.consumes = normalized;
-            this.invalidate();
-        }
-    }
     get state(): 'negotiation-need-offer' | 'negotiation-wait-answer' | 'ready' | 'closed' { return this._rawValue.state; }
     set state(value: 'negotiation-need-offer' | 'negotiation-wait-answer' | 'ready' | 'closed') {
         let normalized = this.descriptor.codec.fields.state.normalize(value);
         if (this._rawValue.state !== normalized) {
             this._rawValue.state = normalized;
             this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+    get produces(): { audioStream: boolean, videoStream: boolean, screenCastStream: boolean } { return this._rawValue.produces; }
+    set produces(value: { audioStream: boolean, videoStream: boolean, screenCastStream: boolean }) {
+        let normalized = this.descriptor.codec.fields.produces.normalize(value);
+        if (this._rawValue.produces !== normalized) {
+            this._rawValue.produces = normalized;
+            this._updatedValues.produces = normalized;
             this.invalidate();
         }
     }
@@ -7583,8 +7557,129 @@ export class ConferenceKitchenConnection extends Entity<ConferenceKitchenConnect
             this.invalidate();
         }
     }
-    get consumers(): ({ pid: number, media: { type: 'audio', mid: string | null } | { type: 'video', source: 'default' | 'screen', mid: string | null }, consumer: string | null, connection: string })[] { return this._rawValue.consumers; }
-    set consumers(value: ({ pid: number, media: { type: 'audio', mid: string | null } | { type: 'video', source: 'default' | 'screen', mid: string | null }, consumer: string | null, connection: string })[]) {
+}
+
+export class ConferenceKitchenProducerTransportFactory extends EntityFactory<ConferenceKitchenProducerTransportShape, ConferenceKitchenProducerTransport> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('conferenceKitchenProducerTransport');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'pid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'cid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'state', type: { type: 'enum', values: ['negotiation-need-offer', 'negotiation-wait-answer', 'ready', 'closed'] }, secure: false });
+        fields.push({ name: 'produces', type: { type: 'struct', fields: { audioStream: { type: 'boolean' }, videoStream: { type: 'boolean' }, screenCastStream: { type: 'boolean' } } }, secure: false });
+        fields.push({ name: 'audioProducer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'audioProducerMid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'videoProducer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'videoProducerMid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'screencastProducer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'screencastProducerMid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            pid: c.integer,
+            cid: c.integer,
+            state: c.enum('negotiation-need-offer', 'negotiation-wait-answer', 'ready', 'closed'),
+            produces: c.struct({ audioStream: c.boolean, videoStream: c.boolean, screenCastStream: c.boolean }),
+            audioProducer: c.optional(c.string),
+            audioProducerMid: c.optional(c.string),
+            videoProducer: c.optional(c.string),
+            videoProducerMid: c.optional(c.string),
+            screencastProducer: c.optional(c.string),
+            screencastProducerMid: c.optional(c.string),
+        });
+        let descriptor: EntityDescriptor<ConferenceKitchenProducerTransportShape> = {
+            name: 'ConferenceKitchenProducerTransport',
+            storageKey: 'conferenceKitchenProducerTransport',
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new ConferenceKitchenProducerTransportFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<ConferenceKitchenProducerTransportShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: string, src: ConferenceKitchenProducerTransportCreateShape): Promise<ConferenceKitchenProducerTransport> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: ConferenceKitchenProducerTransportCreateShape): ConferenceKitchenProducerTransport {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<ConferenceKitchenProducerTransport | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferenceKitchenProducerTransportShape>): ConferenceKitchenProducerTransport {
+        return new ConferenceKitchenProducerTransport([value.id], value, this.descriptor, this._flush, ctx);
+    }
+}
+
+export interface ConferenceKitchenConsumerTransportShape {
+    id: string;
+    pid: number;
+    cid: number;
+    state: 'negotiation-wait-offer' | 'negotiation-need-answer' | 'ready' | 'closed';
+    consumes: (string)[];
+    consumers: ({ pid: number, transport: string, consumer: string, media: { type: 'audio',  } | { type: 'video', source: 'default' | 'screen' }, active: boolean })[];
+}
+
+export interface ConferenceKitchenConsumerTransportCreateShape {
+    pid: number;
+    cid: number;
+    state: 'negotiation-wait-offer' | 'negotiation-need-answer' | 'ready' | 'closed';
+    consumes: (string)[];
+    consumers: ({ pid: number, transport: string, consumer: string, media: { type: 'audio',  } | { type: 'video', source: 'default' | 'screen' }, active: boolean })[];
+}
+
+export class ConferenceKitchenConsumerTransport extends Entity<ConferenceKitchenConsumerTransportShape> {
+    get id(): string { return this._rawValue.id; }
+    get pid(): number { return this._rawValue.pid; }
+    set pid(value: number) {
+        let normalized = this.descriptor.codec.fields.pid.normalize(value);
+        if (this._rawValue.pid !== normalized) {
+            this._rawValue.pid = normalized;
+            this._updatedValues.pid = normalized;
+            this.invalidate();
+        }
+    }
+    get cid(): number { return this._rawValue.cid; }
+    set cid(value: number) {
+        let normalized = this.descriptor.codec.fields.cid.normalize(value);
+        if (this._rawValue.cid !== normalized) {
+            this._rawValue.cid = normalized;
+            this._updatedValues.cid = normalized;
+            this.invalidate();
+        }
+    }
+    get state(): 'negotiation-wait-offer' | 'negotiation-need-answer' | 'ready' | 'closed' { return this._rawValue.state; }
+    set state(value: 'negotiation-wait-offer' | 'negotiation-need-answer' | 'ready' | 'closed') {
+        let normalized = this.descriptor.codec.fields.state.normalize(value);
+        if (this._rawValue.state !== normalized) {
+            this._rawValue.state = normalized;
+            this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+    get consumes(): (string)[] { return this._rawValue.consumes; }
+    set consumes(value: (string)[]) {
+        let normalized = this.descriptor.codec.fields.consumes.normalize(value);
+        if (this._rawValue.consumes !== normalized) {
+            this._rawValue.consumes = normalized;
+            this._updatedValues.consumes = normalized;
+            this.invalidate();
+        }
+    }
+    get consumers(): ({ pid: number, transport: string, consumer: string, media: { type: 'audio',  } | { type: 'video', source: 'default' | 'screen' }, active: boolean })[] { return this._rawValue.consumers; }
+    set consumers(value: ({ pid: number, transport: string, consumer: string, media: { type: 'audio',  } | { type: 'video', source: 'default' | 'screen' }, active: boolean })[]) {
         let normalized = this.descriptor.codec.fields.consumers.normalize(value);
         if (this._rawValue.consumers !== normalized) {
             this._rawValue.consumers = normalized;
@@ -7594,62 +7689,48 @@ export class ConferenceKitchenConnection extends Entity<ConferenceKitchenConnect
     }
 }
 
-export class ConferenceKitchenConnectionFactory extends EntityFactory<ConferenceKitchenConnectionShape, ConferenceKitchenConnection> {
+export class ConferenceKitchenConsumerTransportFactory extends EntityFactory<ConferenceKitchenConsumerTransportShape, ConferenceKitchenConsumerTransport> {
 
     static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conferenceKitchenConnection');
+        let subspace = await storage.resolveEntityDirectory('conferenceKitchenConsumerTransport');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'pid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'cid', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'produces', type: { type: 'struct', fields: { audioStream: { type: 'boolean' }, videoStream: { type: 'boolean' }, screenCastStream: { type: 'boolean' } } }, secure: false });
+        fields.push({ name: 'state', type: { type: 'enum', values: ['negotiation-wait-offer', 'negotiation-need-answer', 'ready', 'closed'] }, secure: false });
         fields.push({ name: 'consumes', type: { type: 'array', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'state', type: { type: 'enum', values: ['negotiation-need-offer', 'negotiation-wait-answer', 'ready', 'closed'] }, secure: false });
-        fields.push({ name: 'audioProducer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'audioProducerMid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'videoProducer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'videoProducerMid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'screencastProducer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'screencastProducerMid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'consumers', type: { type: 'array', inner: { type: 'struct', fields: { pid: { type: 'integer' }, media: { type: 'union', types: { audio: { mid: { type: 'optional', inner: { type: 'string' } } }, video: { source: { type: 'enum', values: ['default', 'screen'] }, mid: { type: 'optional', inner: { type: 'string' } } } } }, consumer: { type: 'optional', inner: { type: 'string' } }, connection: { type: 'string' } } } }, secure: false });
+        fields.push({ name: 'consumers', type: { type: 'array', inner: { type: 'struct', fields: { pid: { type: 'integer' }, transport: { type: 'string' }, consumer: { type: 'string' }, media: { type: 'union', types: { audio: {  }, video: { source: { type: 'enum', values: ['default', 'screen'] } } } }, active: { type: 'boolean' } } } }, secure: false });
         let codec = c.struct({
             id: c.string,
             pid: c.integer,
             cid: c.integer,
-            produces: c.struct({ audioStream: c.boolean, videoStream: c.boolean, screenCastStream: c.boolean }),
+            state: c.enum('negotiation-wait-offer', 'negotiation-need-answer', 'ready', 'closed'),
             consumes: c.array(c.string),
-            state: c.enum('negotiation-need-offer', 'negotiation-wait-answer', 'ready', 'closed'),
-            audioProducer: c.optional(c.string),
-            audioProducerMid: c.optional(c.string),
-            videoProducer: c.optional(c.string),
-            videoProducerMid: c.optional(c.string),
-            screencastProducer: c.optional(c.string),
-            screencastProducerMid: c.optional(c.string),
-            consumers: c.array(c.struct({ pid: c.integer, media: c.union({ audio: c.struct({ mid: c.optional(c.string) }), video: c.struct({ source: c.enum('default', 'screen'), mid: c.optional(c.string) }) }), consumer: c.optional(c.string), connection: c.string })),
+            consumers: c.array(c.struct({ pid: c.integer, transport: c.string, consumer: c.string, media: c.union({ audio: c.struct({  }), video: c.struct({ source: c.enum('default', 'screen') }) }), active: c.boolean })),
         });
-        let descriptor: EntityDescriptor<ConferenceKitchenConnectionShape> = {
-            name: 'ConferenceKitchenConnection',
-            storageKey: 'conferenceKitchenConnection',
+        let descriptor: EntityDescriptor<ConferenceKitchenConsumerTransportShape> = {
+            name: 'ConferenceKitchenConsumerTransport',
+            storageKey: 'conferenceKitchenConsumerTransport',
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
-        return new ConferenceKitchenConnectionFactory(descriptor);
+        return new ConferenceKitchenConsumerTransportFactory(descriptor);
     }
 
-    private constructor(descriptor: EntityDescriptor<ConferenceKitchenConnectionShape>) {
+    private constructor(descriptor: EntityDescriptor<ConferenceKitchenConsumerTransportShape>) {
         super(descriptor);
     }
 
-    create(ctx: Context, id: string, src: ConferenceKitchenConnectionCreateShape): Promise<ConferenceKitchenConnection> {
+    create(ctx: Context, id: string, src: ConferenceKitchenConsumerTransportCreateShape): Promise<ConferenceKitchenConsumerTransport> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    create_UNSAFE(ctx: Context, id: string, src: ConferenceKitchenConnectionCreateShape): ConferenceKitchenConnection {
+    create_UNSAFE(ctx: Context, id: string, src: ConferenceKitchenConsumerTransportCreateShape): ConferenceKitchenConsumerTransport {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<ConferenceKitchenConnection | null> {
+    findById(ctx: Context, id: string): Promise<ConferenceKitchenConsumerTransport | null> {
         return this._findById(ctx, [id]);
     }
 
@@ -7657,144 +7738,8 @@ export class ConferenceKitchenConnectionFactory extends EntityFactory<Conference
         return this._watch(ctx, [id]);
     }
 
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferenceKitchenConnectionShape>): ConferenceKitchenConnection {
-        return new ConferenceKitchenConnection([value.id], value, this.descriptor, this._flush, ctx);
-    }
-}
-
-export interface ConferenceKitchenProducerRefShape {
-    id: string;
-    connection: string;
-}
-
-export interface ConferenceKitchenProducerRefCreateShape {
-    connection: string;
-}
-
-export class ConferenceKitchenProducerRef extends Entity<ConferenceKitchenProducerRefShape> {
-    get id(): string { return this._rawValue.id; }
-    get connection(): string { return this._rawValue.connection; }
-    set connection(value: string) {
-        let normalized = this.descriptor.codec.fields.connection.normalize(value);
-        if (this._rawValue.connection !== normalized) {
-            this._rawValue.connection = normalized;
-            this._updatedValues.connection = normalized;
-            this.invalidate();
-        }
-    }
-}
-
-export class ConferenceKitchenProducerRefFactory extends EntityFactory<ConferenceKitchenProducerRefShape, ConferenceKitchenProducerRef> {
-
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conferenceKitchenProducerRef');
-        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'id', type: 'string' });
-        let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'connection', type: { type: 'string' }, secure: false });
-        let codec = c.struct({
-            id: c.string,
-            connection: c.string,
-        });
-        let descriptor: EntityDescriptor<ConferenceKitchenProducerRefShape> = {
-            name: 'ConferenceKitchenProducerRef',
-            storageKey: 'conferenceKitchenProducerRef',
-            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
-        };
-        return new ConferenceKitchenProducerRefFactory(descriptor);
-    }
-
-    private constructor(descriptor: EntityDescriptor<ConferenceKitchenProducerRefShape>) {
-        super(descriptor);
-    }
-
-    create(ctx: Context, id: string, src: ConferenceKitchenProducerRefCreateShape): Promise<ConferenceKitchenProducerRef> {
-        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
-    }
-
-    create_UNSAFE(ctx: Context, id: string, src: ConferenceKitchenProducerRefCreateShape): ConferenceKitchenProducerRef {
-        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
-    }
-
-    findById(ctx: Context, id: string): Promise<ConferenceKitchenProducerRef | null> {
-        return this._findById(ctx, [id]);
-    }
-
-    watch(ctx: Context, id: string): Watch {
-        return this._watch(ctx, [id]);
-    }
-
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferenceKitchenProducerRefShape>): ConferenceKitchenProducerRef {
-        return new ConferenceKitchenProducerRef([value.id], value, this.descriptor, this._flush, ctx);
-    }
-}
-
-export interface ConferenceKitchenConsumerRefShape {
-    id: string;
-    connection: string;
-}
-
-export interface ConferenceKitchenConsumerRefCreateShape {
-    connection: string;
-}
-
-export class ConferenceKitchenConsumerRef extends Entity<ConferenceKitchenConsumerRefShape> {
-    get id(): string { return this._rawValue.id; }
-    get connection(): string { return this._rawValue.connection; }
-    set connection(value: string) {
-        let normalized = this.descriptor.codec.fields.connection.normalize(value);
-        if (this._rawValue.connection !== normalized) {
-            this._rawValue.connection = normalized;
-            this._updatedValues.connection = normalized;
-            this.invalidate();
-        }
-    }
-}
-
-export class ConferenceKitchenConsumerRefFactory extends EntityFactory<ConferenceKitchenConsumerRefShape, ConferenceKitchenConsumerRef> {
-
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conferenceKitchenConsumerRef');
-        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'id', type: 'string' });
-        let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'connection', type: { type: 'string' }, secure: false });
-        let codec = c.struct({
-            id: c.string,
-            connection: c.string,
-        });
-        let descriptor: EntityDescriptor<ConferenceKitchenConsumerRefShape> = {
-            name: 'ConferenceKitchenConsumerRef',
-            storageKey: 'conferenceKitchenConsumerRef',
-            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
-        };
-        return new ConferenceKitchenConsumerRefFactory(descriptor);
-    }
-
-    private constructor(descriptor: EntityDescriptor<ConferenceKitchenConsumerRefShape>) {
-        super(descriptor);
-    }
-
-    create(ctx: Context, id: string, src: ConferenceKitchenConsumerRefCreateShape): Promise<ConferenceKitchenConsumerRef> {
-        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
-    }
-
-    create_UNSAFE(ctx: Context, id: string, src: ConferenceKitchenConsumerRefCreateShape): ConferenceKitchenConsumerRef {
-        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
-    }
-
-    findById(ctx: Context, id: string): Promise<ConferenceKitchenConsumerRef | null> {
-        return this._findById(ctx, [id]);
-    }
-
-    watch(ctx: Context, id: string): Watch {
-        return this._watch(ctx, [id]);
-    }
-
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferenceKitchenConsumerRefShape>): ConferenceKitchenConsumerRef {
-        return new ConferenceKitchenConsumerRef([value.id], value, this.descriptor, this._flush, ctx);
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferenceKitchenConsumerTransportShape>): ConferenceKitchenConsumerTransport {
+        return new ConferenceKitchenConsumerTransport([value.id], value, this.descriptor, this._flush, ctx);
     }
 }
 
@@ -7984,14 +7929,14 @@ export interface KitchenTransportShape {
     routerId: string;
     state: 'creating' | 'created' | 'connecting' | 'connected' | 'deleting' | 'deleted';
     serverParameters: { fingerprints: ({ algorithm: string, value: string })[], iceParameters: { usernameFragment: string, password: string }, iceCandidates: ({ type: string, foundation: string, priority: number, ip: string, protocol: 'tcp' | 'udp', port: number })[] } | null;
-    clientParameters: { fingerprints: ({ algorithm: string, value: string })[] } | null;
+    clientParameters: { dtlsRole: 'server' | 'client' | null, fingerprints: ({ algorithm: string, value: string })[] } | null;
 }
 
 export interface KitchenTransportCreateShape {
     routerId: string;
     state: 'creating' | 'created' | 'connecting' | 'connected' | 'deleting' | 'deleted';
     serverParameters?: { fingerprints: ({ algorithm: string, value: string })[], iceParameters: { usernameFragment: string, password: string }, iceCandidates: ({ type: string, foundation: string, priority: number, ip: string, protocol: 'tcp' | 'udp', port: number })[] } | null | undefined;
-    clientParameters?: { fingerprints: ({ algorithm: string, value: string })[] } | null | undefined;
+    clientParameters?: { dtlsRole: 'server' | 'client' | null | undefined, fingerprints: ({ algorithm: string, value: string })[] } | null | undefined;
 }
 
 export class KitchenTransport extends Entity<KitchenTransportShape> {
@@ -8023,8 +7968,8 @@ export class KitchenTransport extends Entity<KitchenTransportShape> {
             this.invalidate();
         }
     }
-    get clientParameters(): { fingerprints: ({ algorithm: string, value: string })[] } | null { return this._rawValue.clientParameters; }
-    set clientParameters(value: { fingerprints: ({ algorithm: string, value: string })[] } | null) {
+    get clientParameters(): { dtlsRole: 'server' | 'client' | null, fingerprints: ({ algorithm: string, value: string })[] } | null { return this._rawValue.clientParameters; }
+    set clientParameters(value: { dtlsRole: 'server' | 'client' | null, fingerprints: ({ algorithm: string, value: string })[] } | null) {
         let normalized = this.descriptor.codec.fields.clientParameters.normalize(value);
         if (this._rawValue.clientParameters !== normalized) {
             this._rawValue.clientParameters = normalized;
@@ -8046,13 +7991,13 @@ export class KitchenTransportFactory extends EntityFactory<KitchenTransportShape
         fields.push({ name: 'routerId', type: { type: 'string' }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['creating', 'created', 'connecting', 'connected', 'deleting', 'deleted'] }, secure: false });
         fields.push({ name: 'serverParameters', type: { type: 'optional', inner: { type: 'struct', fields: { fingerprints: { type: 'array', inner: { type: 'struct', fields: { algorithm: { type: 'string' }, value: { type: 'string' } } } }, iceParameters: { type: 'struct', fields: { usernameFragment: { type: 'string' }, password: { type: 'string' } } }, iceCandidates: { type: 'array', inner: { type: 'struct', fields: { type: { type: 'string' }, foundation: { type: 'string' }, priority: { type: 'integer' }, ip: { type: 'string' }, protocol: { type: 'enum', values: ['tcp', 'udp'] }, port: { type: 'integer' } } } } } } }, secure: false });
-        fields.push({ name: 'clientParameters', type: { type: 'optional', inner: { type: 'struct', fields: { fingerprints: { type: 'array', inner: { type: 'struct', fields: { algorithm: { type: 'string' }, value: { type: 'string' } } } } } } }, secure: false });
+        fields.push({ name: 'clientParameters', type: { type: 'optional', inner: { type: 'struct', fields: { dtlsRole: { type: 'optional', inner: { type: 'enum', values: ['server', 'client'] } }, fingerprints: { type: 'array', inner: { type: 'struct', fields: { algorithm: { type: 'string' }, value: { type: 'string' } } } } } } }, secure: false });
         let codec = c.struct({
             id: c.string,
             routerId: c.string,
             state: c.enum('creating', 'created', 'connecting', 'connected', 'deleting', 'deleted'),
             serverParameters: c.optional(c.struct({ fingerprints: c.array(c.struct({ algorithm: c.string, value: c.string })), iceParameters: c.struct({ usernameFragment: c.string, password: c.string }), iceCandidates: c.array(c.struct({ type: c.string, foundation: c.string, priority: c.integer, ip: c.string, protocol: c.enum('tcp', 'udp'), port: c.integer })) })),
-            clientParameters: c.optional(c.struct({ fingerprints: c.array(c.struct({ algorithm: c.string, value: c.string })) })),
+            clientParameters: c.optional(c.struct({ dtlsRole: c.optional(c.enum('server', 'client')), fingerprints: c.array(c.struct({ algorithm: c.string, value: c.string })) })),
         });
         let descriptor: EntityDescriptor<KitchenTransportShape> = {
             name: 'KitchenTransport',
@@ -20433,9 +20378,8 @@ export interface Store extends BaseStore {
     readonly ConferenceMeshLink: ConferenceMeshLinkFactory;
     readonly ConferenceKitchenRouter: ConferenceKitchenRouterFactory;
     readonly ConferenceKitchenPeer: ConferenceKitchenPeerFactory;
-    readonly ConferenceKitchenConnection: ConferenceKitchenConnectionFactory;
-    readonly ConferenceKitchenProducerRef: ConferenceKitchenProducerRefFactory;
-    readonly ConferenceKitchenConsumerRef: ConferenceKitchenConsumerRefFactory;
+    readonly ConferenceKitchenProducerTransport: ConferenceKitchenProducerTransportFactory;
+    readonly ConferenceKitchenConsumerTransport: ConferenceKitchenConsumerTransportFactory;
     readonly KitchenWorker: KitchenWorkerFactory;
     readonly KitchenRouter: KitchenRouterFactory;
     readonly KitchenTransport: KitchenTransportFactory;
@@ -20656,9 +20600,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ConferenceMeshLinkPromise = ConferenceMeshLinkFactory.open(storage);
     let ConferenceKitchenRouterPromise = ConferenceKitchenRouterFactory.open(storage);
     let ConferenceKitchenPeerPromise = ConferenceKitchenPeerFactory.open(storage);
-    let ConferenceKitchenConnectionPromise = ConferenceKitchenConnectionFactory.open(storage);
-    let ConferenceKitchenProducerRefPromise = ConferenceKitchenProducerRefFactory.open(storage);
-    let ConferenceKitchenConsumerRefPromise = ConferenceKitchenConsumerRefFactory.open(storage);
+    let ConferenceKitchenProducerTransportPromise = ConferenceKitchenProducerTransportFactory.open(storage);
+    let ConferenceKitchenConsumerTransportPromise = ConferenceKitchenConsumerTransportFactory.open(storage);
     let KitchenWorkerPromise = KitchenWorkerFactory.open(storage);
     let KitchenRouterPromise = KitchenRouterFactory.open(storage);
     let KitchenTransportPromise = KitchenTransportFactory.open(storage);
@@ -20850,9 +20793,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ConferenceMeshLink: await ConferenceMeshLinkPromise,
         ConferenceKitchenRouter: await ConferenceKitchenRouterPromise,
         ConferenceKitchenPeer: await ConferenceKitchenPeerPromise,
-        ConferenceKitchenConnection: await ConferenceKitchenConnectionPromise,
-        ConferenceKitchenProducerRef: await ConferenceKitchenProducerRefPromise,
-        ConferenceKitchenConsumerRef: await ConferenceKitchenConsumerRefPromise,
+        ConferenceKitchenProducerTransport: await ConferenceKitchenProducerTransportPromise,
+        ConferenceKitchenConsumerTransport: await ConferenceKitchenConsumerTransportPromise,
         KitchenWorker: await KitchenWorkerPromise,
         KitchenRouter: await KitchenRouterPromise,
         KitchenTransport: await KitchenTransportPromise,

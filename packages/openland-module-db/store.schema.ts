@@ -902,6 +902,13 @@ export default declareSchema(() => {
         })
     });
 
+    const remoteMedia = union({
+        audio: struct({}),
+        video: struct({
+            source: enumString('default', 'screen')
+        })
+    });
+
     entity('ConferenceEndStream', () => {
         primaryKey('id', string());
         field('pid', integer());
@@ -969,47 +976,40 @@ export default declareSchema(() => {
         primaryKey('pid', integer());
         field('cid', integer());
         field('active', boolean());
-        field('connection', string());
-
-        field('produces', localSources);
-        field('consumes', array(string()));
-
+        field('producerTransport', optional(string()));
+        field('consumerTransport', optional(string()));
         rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.active);
     });
 
-    entity('ConferenceKitchenConnection', () => {
+    entity('ConferenceKitchenProducerTransport', () => {
         primaryKey('id', string());
         field('pid', integer());
         field('cid', integer());
 
-        // Model
-        field('produces', localSources);
-        field('consumes', array(string()));
-
-        // Media
         field('state', enumString('negotiation-need-offer', 'negotiation-wait-answer', 'ready', 'closed'));
+        field('produces', localSources);
         field('audioProducer', optional(string()));
         field('audioProducerMid', optional(string()));
         field('videoProducer', optional(string()));
         field('videoProducerMid', optional(string()));
         field('screencastProducer', optional(string()));
         field('screencastProducerMid', optional(string()));
+    });
+
+    entity('ConferenceKitchenConsumerTransport', () => {
+        primaryKey('id', string());
+        field('pid', integer());
+        field('cid', integer());
+
+        field('state', enumString('negotiation-wait-offer', 'negotiation-need-answer', 'ready', 'closed'));
+        field('consumes', array(string()));
         field('consumers', array(struct({
             pid: integer(),
-            media: remoteStream,
-            consumer: optional(string()),
-            connection: string()
+            transport: string(),
+            consumer: string(),
+            media: remoteMedia,
+            active: boolean()
         })));
-    });
-
-    entity('ConferenceKitchenProducerRef', () => {
-        primaryKey('id', string());
-        field('connection', string());
-    });
-
-    entity('ConferenceKitchenConsumerRef', () => {
-        primaryKey('id', string());
-        field('connection', string());
     });
 
     //
@@ -1058,6 +1058,7 @@ export default declareSchema(() => {
 
         // Client Parameters
         field('clientParameters', optional(struct({
+            dtlsRole: optional(enumString('server', 'client')),
             fingerprints: array(struct({
                 algorithm: string(),
                 value: string()

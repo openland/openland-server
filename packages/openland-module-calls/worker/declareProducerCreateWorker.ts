@@ -48,7 +48,7 @@ export function declareProducerCreateWorker(service: MediaKitchenService, repo: 
                 pr.rawId = rawProducer.id;
                 pr.rtpParameters = convertRtpParamsToStore(rawProducer.rtpParameters);
                 await pr.flush(ctx);
-                await repo.onProducerCreated(ctx, pr.id);
+                await repo.onProducerCreated(ctx, pr.transportId, pr.id);
             }
         });
 

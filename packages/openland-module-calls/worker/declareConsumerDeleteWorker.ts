@@ -53,7 +53,7 @@ export function declareConsumerDeleteWorker(service: MediaKitchenService, repo: 
                 return;
             }
             pr.state = 'deleted';
-            await repo.onConsumerRemoved(ctx, pr.id);
+            await repo.onConsumerRemoved(ctx, pr.transportId, pr.id);
         });
 
         return { result: true };

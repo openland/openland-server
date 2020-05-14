@@ -1,5 +1,5 @@
+import { CallSchedulerKitchenTransport } from './CallSchedulerKitchenTransport';
 import { createLogger } from '@openland/log';
-import { CallSchedulerKitchenConnections } from './CallSchedulerKitchenConnections';
 import { CallRepository } from './CallRepository';
 import { Store } from 'openland-module-db/FDB';
 import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
@@ -19,8 +19,8 @@ export class CallSchedulerKitchen implements CallScheduler {
     @lazyInject('MediaKitchenRepository')
     readonly repo!: MediaKitchenRepository;
 
-    @lazyInject('CallSchedulerKitchenConnections')
-    readonly connections!: CallSchedulerKitchenConnections;
+    @lazyInject('CallSchedulerKitchenTransport')
+    readonly transport!: CallSchedulerKitchenTransport;
 
     //
     // Conference Events
@@ -30,6 +30,12 @@ export class CallSchedulerKitchen implements CallScheduler {
         logger.log(ctx, 'Conference Started: ' + cid);
         let routerId = await this.repo.createRouter(ctx);
         logger.log(ctx, 'Router created: ' + cid + '->' + routerId);
+        // Delete kitchen router if exists (due to bug)
+        let existing = await Store.ConferenceKitchenRouter.conference.find(ctx, cid);
+        if (existing) {
+            existing.deleted = true;
+            await existing.flush(ctx);
+        }
         await Store.ConferenceKitchenRouter.create(ctx, routerId, { cid, deleted: false });
     }
 
@@ -49,26 +55,30 @@ export class CallSchedulerKitchen implements CallScheduler {
     //
 
     onPeerAdded = async (ctx: Context, cid: number, pid: number, sources: MediaSources) => {
+
+        let router = await Store.ConferenceKitchenRouter.conference.find(ctx, cid);
+        if (!router || router.deleted) {
+            throw Error('Unknown error');
+        }
         let existing = await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid);
-        let consumerConnections = existing.map((v) => v.connection);
-        let connection = await this.connections.createConnection(ctx, cid, pid, sources, consumerConnections);
+        let producerTransport = existing.length === 0 ? await this.transport.createProducerTransport(ctx, router.id, cid, pid, sources) : null;
+        let consumerTransport = existing.length > 0 ? await this.transport.createConsumerTransport(ctx, router.id, cid, pid, existing.map((v) => v.producerTransport!)) : null;
         await Store.ConferenceKitchenPeer.create(ctx, pid, {
             cid,
-            produces: sources,
-            consumes: consumerConnections,
-            connection,
+            producerTransport,
+            consumerTransport,
             active: true
         });
 
-        // Update existing connections
-        for (let e of existing) {
-            if (!e.active) { // Just in case
-                continue;
-            }
-            // Add new connection
-            e.consumes = [...e.consumes, connection];
-            await this.connections.updateConsumes(ctx, e.connection, e.consumes);
-        }
+        // // Update existing connections
+        // for (let e of existing) {
+        //     if (!e.active) { // Just in case
+        //         continue;
+        //     }
+        //     // Add new connection
+        //     e.consumes = [...e.consumes, connection];
+        //     await this.connections.updateConsumes(ctx, e.connection, e.consumes);
+        // }
     }
 
     onPeerStreamsChanged = async (ctx: Context, cid: number, pid: number, sources: MediaSources) => {
@@ -76,7 +86,9 @@ export class CallSchedulerKitchen implements CallScheduler {
         if (!peer || !peer.active) {
             return;
         }
-        await this.connections.updateProduces(ctx, peer.connection, sources);
+        if (peer.producerTransport) {
+            await this.transport.updateProducerTransport(ctx, peer.producerTransport, sources);
+        }
     }
 
     onPeerRemoved = async (ctx: Context, cid: number, pid: number) => {
@@ -85,7 +97,12 @@ export class CallSchedulerKitchen implements CallScheduler {
             return;
         }
 
-        await this.connections.removeConnection(ctx, peer.connection);
+        if (peer.producerTransport) {
+            await this.transport.removeProducerTransport(ctx, peer.producerTransport);
+        }
+        if (peer.consumerTransport) {
+            await this.transport.removeConsumerTransport(ctx, peer.consumerTransport);
+        }
         peer.active = false;
         await peer.flush(ctx);
     }
@@ -95,11 +112,11 @@ export class CallSchedulerKitchen implements CallScheduler {
     //
 
     onStreamOffer = async (ctx: Context, cid: number, pid: number, sid: string, offer: string, hints: StreamHint[] | null) => {
-        await this.connections.onWebRTCConnectionOffer(ctx, sid, offer, hints);
+        await this.transport.onWebRTCConnectionOffer(ctx, sid, offer, hints);
     }
 
     onStreamAnswer = async (ctx: Context, cid: number, pid: number, sid: string, answer: string) => {
-        // Ignore
+        await this.transport.onWebRTCConnectionAnswer(ctx, sid, answer);
     }
 
     onStreamCandidate = async (ctx: Context, cid: number, pid: number, sid: string, candidate: string) => {
@@ -107,14 +124,18 @@ export class CallSchedulerKitchen implements CallScheduler {
     }
 
     onTransportCreated = async (ctx: Context, transportId: string) => {
-        await this.connections.onKitchenTransportCreated(ctx, transportId);
+        await this.transport.onKitchenTransportCreated(ctx, transportId);
     }
 
-    onProducerCreated = async (ctx: Context, producerId: string) => {
-        await this.connections.onKitchenProducerCreated(ctx, producerId);
+    onTransportConnected = async (ctx: Context, transportId: string) => {
+        await this.transport.onKitchenTransportCreated(ctx, transportId);
     }
 
-    onConsumerCreated = async (ctx: Context, consumerId: string) => {
-        await this.connections.onKitchenConsumerCreated(ctx, consumerId);
+    onProducerCreated = async (ctx: Context, transportId: string, producerId: string) => {
+        await this.transport.onKitchenProducerCreated(ctx, transportId, producerId);
+    }
+
+    onConsumerCreated = async (ctx: Context, transportId: string, consumerId: string) => {
+        await this.transport.onKitchenConsumerCreated(ctx, transportId, consumerId);
     }
 }

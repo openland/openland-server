@@ -48,7 +48,7 @@ export function declareProducerDeleteWorker(service: MediaKitchenService, repo: 
                 return;
             }
             pr.state = 'deleted';
-            await repo.onProducerRemoved(ctx, pr.id);
+            await repo.onProducerRemoved(ctx, pr.transportId, pr.id);
         });
 
         return { result: true };
