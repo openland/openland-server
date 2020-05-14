@@ -30,7 +30,7 @@ export function createWeeklyRoomScreenViewsLeaderboardWorker() {
                         bool: {
                             must: [
                                 { term: { type: 'track' } },
-                                { term: { ['body.isProd']: false } },
+                                { term: { ['body.isProd']: true } },
                                 { term: { ['body.name']: 'invite_landing_view' } },
                                 { term: { ['body.args.invite_type']: 'group' } }, {
                                 range: {
