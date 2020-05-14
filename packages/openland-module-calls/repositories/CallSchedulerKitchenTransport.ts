@@ -184,6 +184,8 @@ export class CallSchedulerKitchenTransport {
         // transport id
         let id = uuid();
 
+        logger.log(ctx, 'ConsumerTransport Create: ' + pid + ' ' + consumes);
+
         // Raw transport
         await this.repo.createTransport(ctx, id, router);
 
@@ -338,6 +340,8 @@ export class CallSchedulerKitchenTransport {
         consumerTransport.state = 'closed';
         await consumerTransport.flush(ctx);
 
+        logger.log(ctx, 'ConsumerTransport Remove: ' + consumerTransport.pid);
+
         // Close End Stream
         let stream = (await Store.ConferenceEndStream.findById(ctx, id))!;
         stream.seq++;
@@ -463,16 +467,11 @@ export class CallSchedulerKitchenTransport {
     #createProducerAnswerIfNeeded = async (ctx: Context, transportId: string) => {
         let producerTransport = await Store.ConferenceKitchenProducerTransport.findById(ctx, transportId);
         if (!producerTransport || producerTransport.state !== 'negotiation-wait-answer') {
-            if (producerTransport) {
-                // logger.log(ctx, transportId + ':createProducerAnswerIfNeeded:' + producerTransport.state);
-            }
             return;
         }
-        // logger.log(ctx, transportId + ':createProducerAnswerIfNeeded');
         let endStream = (await Store.ConferenceEndStream.findById(ctx, transportId))!;
         let transport = (await Store.KitchenTransport.findById(ctx, transportId))!;
         if (transport.state !== 'connected') {
-            // logger.log(ctx, transportId + ':createProducerAnswerIfNeeded:2:' + transport.state);
             return;
         }
 
@@ -562,12 +561,8 @@ export class CallSchedulerKitchenTransport {
     #createConsumerOfferIfNeeded = async (ctx: Context, transportId: string) => {
         let consumerTransport = await Store.ConferenceKitchenConsumerTransport.findById(ctx, transportId);
         if (!consumerTransport || consumerTransport.state !== 'negotiation-wait-offer') {
-            if (consumerTransport) {
-                logger.log(ctx, transportId + ':createConsumerOfferIfNeeded:' + consumerTransport.state);
-            }
             return;
         }
-        logger.log(ctx, transportId + ':createConsumerOfferIfNeeded');
         let endStream = (await Store.ConferenceEndStream.findById(ctx, transportId))!;
         let transport = (await Store.KitchenTransport.findById(ctx, transportId))!;
         if (transport.state !== 'created' && transport.state !== 'connecting' && transport.state !== 'connected') {
@@ -581,7 +576,8 @@ export class CallSchedulerKitchenTransport {
                 return;
             }
         }
-        logger.log(ctx, transportId + ':createConsumerOfferIfNeeded:2');
+        
+        logger.log(ctx, 'ConsumerTransport Create Offer: ' + consumerTransport.pid);
 
         let iceCandidates = transport.serverParameters!.iceCandidates;
 
@@ -616,13 +612,13 @@ export class CallSchedulerKitchenTransport {
     }
 
     #consumerTransportAnswer = async (ctx: Context, transportId: string, answer: string) => {
-        logger.log(ctx, transportId + ':consumerTransportAnswer');
         // Find producer transport
         let consumerTransport = await Store.ConferenceKitchenConsumerTransport.findById(ctx, transportId);
         if (!consumerTransport || consumerTransport.state !== 'negotiation-need-answer') {
-            logger.log(ctx, transportId + ':consumerTransportAnswer:2');
             return;
         }
+
+        logger.log(ctx, 'ConsumerTransport Received Answer: ' + consumerTransport.pid);
 
         //
         // Parsing
