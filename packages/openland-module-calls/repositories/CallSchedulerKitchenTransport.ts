@@ -197,10 +197,6 @@ export class CallSchedulerKitchenTransport {
             active: boolean,
             media: { type: 'audio', } | { type: 'video', source: 'default' | 'screen' }
         }[] = [];
-        let remoteStreams: ({
-            pid: number,
-            media: { type: 'audio', mid: string } | { type: 'video', source: 'default' | 'screen', mid: string }
-        })[] = [];
         for (let transport of consumes) {
             let producerTransport = (await Store.ConferenceKitchenProducerTransport.findById(ctx, transport))!;
             if (producerTransport.audioProducer) {
@@ -229,10 +225,6 @@ export class CallSchedulerKitchenTransport {
                     active: true,
                     media: { type: 'audio' }
                 });
-                remoteStreams.push({
-                    pid: producerTransport.pid,
-                    media: { type: 'audio', mid: (consumers.length - 1).toString() }
-                });
             }
 
             // TODO: Implement video
@@ -257,7 +249,7 @@ export class CallSchedulerKitchenTransport {
             localSdp: null,
             remoteSdp: null,
             localStreams: [],
-            remoteStreams,
+            remoteStreams: [],
             iceTransportPolicy: 'none'
         });
 
@@ -298,6 +290,14 @@ export class CallSchedulerKitchenTransport {
         stream.state = 'need-offer';
         stream.localStreams = localStreams;
         stream.seq++;
+
+        // Update consumers
+        let consumers = await Store.ConferenceKitchenConsumerTransport.fromConference.findAll(ctx, producer.cid);
+        for (let c of consumers) {
+            if (c.consumes.find((v) => v === id)) {
+                await this.#refreshConsumerIfNeeded(ctx, c.id);
+            }
+        }
     }
 
     removeProducerTransport = async (ctx: Context, id: string) => {
@@ -322,6 +322,16 @@ export class CallSchedulerKitchenTransport {
         stream.remoteSdp = null;
         stream.localStreams = [];
         stream.remoteStreams = [];
+
+        // Remove consumes
+        let consumers = await Store.ConferenceKitchenConsumerTransport.fromConference.findAll(ctx, producerTransport.cid);
+        for (let c of consumers) {
+            if (c.consumes.find((v) => v === id)) {
+                c.consumes = c.consumes.filter((v) => v !== id);
+                await c.flush(ctx);
+                await this.#refreshConsumerIfNeeded(ctx, c.id);
+            }
+        }
 
         // Delete transport
         // Not deleting producer transports until we figure out how to deal with eventual consistency
@@ -558,6 +568,10 @@ export class CallSchedulerKitchenTransport {
         await this.callRepo.bumpVersion(ctx, producerTransport.cid, producerTransport.pid);
     }
 
+    #refreshConsumerIfNeeded = async (ctx: Context, transportId: string) => {
+        // TODO: Implement
+    }
+
     #createConsumerOfferIfNeeded = async (ctx: Context, transportId: string) => {
         let consumerTransport = await Store.ConferenceKitchenConsumerTransport.findById(ctx, transportId);
         if (!consumerTransport || consumerTransport.state !== 'negotiation-wait-offer') {
@@ -576,7 +590,7 @@ export class CallSchedulerKitchenTransport {
                 return;
             }
         }
-        
+
         logger.log(ctx, 'ConsumerTransport Create Offer: ' + consumerTransport.pid);
 
         let iceCandidates = transport.serverParameters!.iceCandidates;
@@ -588,11 +602,20 @@ export class CallSchedulerKitchenTransport {
             protocol: string;
             payloads?: string;
         } & MediaDescription> = [];
+        let remoteStreams: ({
+            pid: number,
+            media: { type: 'audio', mid: string } | { type: 'video', source: 'default' | 'screen', mid: string }
+        })[] = [];
         let index = 0;
         for (let consumer of consumerTransport.consumers) {
             let cc = (await Store.KitchenConsumer.findById(ctx, consumer.consumer))!;
+            let mid = index + '';
             if (consumer.media.type === 'audio') {
-                media.push(createMediaDescription(index + '', 'audio', 7, 'sendonly', cc.rtpParameters!, iceCandidates));
+                media.push(createMediaDescription(mid, 'audio', 7, 'sendonly', cc.rtpParameters!, iceCandidates));
+                remoteStreams.push({
+                    pid: consumer.pid,
+                    media: { type: 'audio', mid }
+                });
             }
         }
 
@@ -607,14 +630,15 @@ export class CallSchedulerKitchenTransport {
         endStream.seq++;
         endStream.state = 'need-answer';
         endStream.remoteSdp = JSON.stringify({ type: 'offer', sdp: answer });
+        endStream.remoteStreams = remoteStreams;
         consumerTransport.state = 'negotiation-need-answer';
         await this.callRepo.bumpVersion(ctx, consumerTransport.cid, consumerTransport.pid);
     }
 
     #consumerTransportAnswer = async (ctx: Context, transportId: string, answer: string) => {
-        // Find producer transport
+        // Find consumer transport
         let consumerTransport = await Store.ConferenceKitchenConsumerTransport.findById(ctx, transportId);
-        if (!consumerTransport || consumerTransport.state !== 'negotiation-need-answer') {
+        if (!consumerTransport || consumerTransport.state === 'closed' || consumerTransport.state === 'ready') {
             return;
         }
 
@@ -632,7 +656,6 @@ export class CallSchedulerKitchenTransport {
         // Connect transport
         let fingerprints = extractFingerprints(sdp);
         if (fingerprints.length > 0) {
-            logger.log(ctx, transportId + ':consumerTransportAnswer:3');
             consumerTransport.state = 'ready';
             await this.repo.connectTransport(ctx, transportId, 'client', fingerprints);
         } else {
