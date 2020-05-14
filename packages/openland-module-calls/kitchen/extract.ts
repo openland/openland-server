@@ -7,7 +7,11 @@ function extractParameters(src: string) {
     let parts = src.split(';');
     for (let p of parts) {
         let kv = p.split('=');
-        params[kv[0]] = kv[1];
+        if (kv[0] === 'packetization-mode' || kv[0] === 'level-asymmetry-allowed') {
+            params[kv[0]] = parseInt(kv[1], 10);
+        } else {
+            params[kv[0]] = kv[1];
+        }
     }
     return params;
 }
@@ -92,7 +96,7 @@ export function extractH264RtpParameters(src: MediaDescription): RtpParameters {
             continue;
         }
         let cfg = extractParameters(fmt2.config);
-        if (cfg['packetization-mode'] !== '1') {
+        if (cfg['packetization-mode'] !== 1) {
             continue;
         }
         if (cfg['profile-level-id'] !== '42e034' && cfg['profile-level-id'] !== '42e01f') {

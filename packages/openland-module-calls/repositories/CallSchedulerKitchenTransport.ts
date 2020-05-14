@@ -130,6 +130,8 @@ export class CallSchedulerKitchenTransport {
         // transport id
         let id = uuid();
 
+        logger.log(ctx, 'ProducerTransport Create: ' + pid + ' ' + JSON.stringify(produces));
+
         // Raw transport
         await this.repo.createTransport(ctx, id, router);
 
@@ -273,8 +275,11 @@ export class CallSchedulerKitchenTransport {
             return;
         }
 
+        logger.log(ctx, 'ProducerTransport Update: ' + producer.pid + ' ' + JSON.stringify(produces));
+
         // Switch to need offer state
         producer.state = 'negotiation-need-offer';
+        producer.produces = { ...produces };
 
         // Update Conference End Stream
         let stream = (await Store.ConferenceEndStream.findById(ctx, id))!;
@@ -302,6 +307,8 @@ export class CallSchedulerKitchenTransport {
         }
         producerTransport.state = 'closed';
         await producerTransport.flush(ctx);
+
+        logger.log(ctx, 'ProducerTransport Remove: ' + producerTransport.pid);
 
         // Close End Stream
         let stream = (await Store.ConferenceEndStream.findById(ctx, id))!;
@@ -355,9 +362,10 @@ export class CallSchedulerKitchenTransport {
         // Find producer transport
         let producerTransport = await Store.ConferenceKitchenProducerTransport.findById(ctx, transportId);
         if (!producerTransport || producerTransport.state !== 'negotiation-need-offer') {
-            logger.log(ctx, 'Ignore');
             return;
         }
+
+        logger.log(ctx, 'ProducerTransport Received Offer: ' + producerTransport.pid);
 
         //
         // Parsing
@@ -498,7 +506,7 @@ export class CallSchedulerKitchenTransport {
             screencastProducer = producer;
         }
 
-        // logger.log(ctx, transportId + ':createProducerAnswerIfNeeded:3');
+        logger.log(ctx, 'ProducerTransport Sending Answer: ' + producerTransport.pid);
 
         //
         // Read Offer
