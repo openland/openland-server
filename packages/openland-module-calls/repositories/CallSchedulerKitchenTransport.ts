@@ -200,7 +200,7 @@ export class CallSchedulerKitchenTransport {
         for (let transport of consumes) {
             let producerTransport = (await Store.ConferenceKitchenProducerTransport.findById(ctx, transport))!;
             if (producerTransport.audioProducer) {
-                let consumer = await this.repo.createConsumer(ctx, transport, producerTransport.audioProducer, {
+                let consumer = await this.repo.createConsumer(ctx, id, producerTransport.audioProducer, {
                     rtpCapabilities: {
                         codecs: [{
                             kind: 'audio',
@@ -209,7 +209,8 @@ export class CallSchedulerKitchenTransport {
                             channels: 2,
                             parameters: {
                                 stereo: 1,
-                                maxplaybackrate: 48000
+                                maxplaybackrate: 48000,
+                                useinbandfec: 1
                             },
                             rtcpFeedback: [{
                                 type: 'transport-cc'
@@ -561,6 +562,9 @@ export class CallSchedulerKitchenTransport {
         logger.log(ctx, transportId + ':createConsumerOfferIfNeeded');
         let endStream = (await Store.ConferenceEndStream.findById(ctx, transportId))!;
         let transport = (await Store.KitchenTransport.findById(ctx, transportId))!;
+        if (transport.state !== 'created' && transport.state !== 'connecting' && transport.state !== 'connected') {
+            return;
+        }
 
         // Check if all consumers are ready
         for (let consumer of consumerTransport.consumers) {

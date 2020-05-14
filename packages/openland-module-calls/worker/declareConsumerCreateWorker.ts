@@ -39,7 +39,7 @@ export function declareConsumerCreateWorker(service: MediaKitchenService, repo: 
         let rawConsumer = await service.getOrCreateConsumer(
             r.router.workerId!,
             r.router.id,
-            r.ts.id,
+            r.cr.transportId,
             r.pr.rawId!,
             r.cr.id,
             r.cr.parameters
@@ -55,7 +55,7 @@ export function declareConsumerCreateWorker(service: MediaKitchenService, repo: 
                 cr.state = 'created';
                 cr.rtpParameters = convertRtpParamsToStore(rawConsumer.rtpParameters);
                 await cr.flush(ctx);
-                await repo.onConsumerCreated(ctx, r.ts.id, cr.id);
+                await repo.onConsumerCreated(ctx, r.cr.transportId, cr.id);
             }
         });
 
