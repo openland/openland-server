@@ -317,7 +317,7 @@ export class MediaKitchenRepository {
                 }
             });
             await this.onConsumerCreating(ctx, transportId, id);
-            if (producer.state !== 'creating') {
+            if (producer.state !== 'creating' && transport.state !== 'creating') {
                 await this.consumerCreateQueue.pushWork(ctx, { id });
             }
             return id;
@@ -421,6 +421,17 @@ export class MediaKitchenRepository {
                     await this.producerCreateQueue.pushWork(ctx, { id: p.id });
                 }
             }
+
+            // Create producers if producers are created
+            let consumers = await Store.KitchenConsumer.transportActive.findAll(ctx, id);
+            for (let p of consumers) {
+                if (p.state === 'creating') {
+                    let producer = (await Store.KitchenProducer.findById(ctx, p.producerId))!;
+                    if (producer.state === 'created') {
+                        await this.consumerCreateQueue.pushWork(ctx, { id: p.id });
+                    }
+                }
+            }
         });
     }
 
@@ -482,7 +493,10 @@ export class MediaKitchenRepository {
             let consumers = await Store.KitchenConsumer.producerActive.findAll(ctx, producerId);
             for (let c of consumers) {
                 if (c.state === 'creating') {
-                    await this.consumerCreateQueue.pushWork(ctx, { id: c.id });
+                    let transport = (await Store.KitchenTransport.findById(ctx, c.transportId))!;
+                    if (transport.state === 'created' || transport.state === 'connected' || transport.state === 'connecting') {
+                        await this.consumerCreateQueue.pushWork(ctx, { id: c.id });
+                    }
                 }
             }
 
