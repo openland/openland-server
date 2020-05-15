@@ -11,18 +11,19 @@ import { isAsyncIterator, isSubscriptionQuery } from './utils';
 import { delay } from '../openland-utils/timer';
 import { gqlSubscribe } from './gqlSubscribe';
 import { Context, createNamedContext } from '@openland/context';
-import { createLogger } from '@openland/log';
+// import { createLogger } from '@openland/log';
 import { cancelContext } from '@openland/lifetime';
 import { QueryCache } from './queryCache';
 import { randomKey } from '../openland-utils/random';
 // import { createMetric } from '../openland-module-monitoring/Metric';
 import { BoundedConcurrencyPoool } from '../openland-utils/ConcurrencyPool';
 import { Shutdown } from '../openland-utils/Shutdown';
+import { Metrics } from 'openland-module-monitoring/Metrics';
 
-const logger = createLogger('apollo');
+// const logger = createLogger('apollo');
 
 interface GQlServerOperation {
-    operationName: string|null|undefined;
+    operationName: string | null | undefined;
     variables: any;
     query: string;
 }
@@ -61,7 +62,7 @@ class FuckApolloSession {
     public authParams: any;
     public operations: { [operationId: string]: { destroy(): void } } = {};
     public waitAuth: Promise<any> = Promise.resolve();
-    public socket: WebSocket|null;
+    public socket: WebSocket | null;
     public protocolVersion = 1;
     public lastPingAck: number = Date.now();
     public pingCounter = 0;
@@ -164,7 +165,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
             });
             if (session.protocolVersion === 2) {
                 asyncRun(async () => {
-                    let timeout: NodeJS.Timeout|null = null;
+                    let timeout: NodeJS.Timeout | null = null;
                     while (session.isConnected()) {
                         // Send ping only if previous one was acknowledged
                         if (session.pingCounter !== session.pingAckCounter) {
@@ -278,26 +279,37 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
 }
 
 // const metric = createMetric('ws-connections', 'exact');
-const rootCtx = createNamedContext('apollo');
+// const rootCtx = createNamedContext('apollo');
 
 async function handleConnection(params: FuckApolloServerParams, sessions: Map<string, FuckApolloSession>, socket: WebSocket, req: http.IncomingMessage) {
     // metric.increment(rootCtx);
     let session = new FuckApolloSession(socket);
     sessions.set(session.id, session);
 
+    let closed = false;
+    Metrics.Connections.inc();
+
     socket.on('message', async data => {
         await handleMessage(params, socket, req, session, JSON.parse(data.toString()));
     });
     socket.on('close', (code, reason) => {
-        logger.log(rootCtx, 'close connection', code, reason);
+        // logger.log(rootCtx, 'close connection', code, reason);
         session.close();
         sessions.delete(session.id);
+        if (!closed) {
+            closed = true;
+            Metrics.Connections.dec();
+        }
         // metric.decrement(rootCtx);
     });
     socket.on('error', (err) => {
-        logger.log(rootCtx, 'connection error', err);
+        // logger.log(rootCtx, 'connection error', err);
         // metric.decrement(rootCtx);
         session.close();
+        if (!closed) {
+            closed = true;
+            Metrics.Connections.dec();
+        }
     });
 }
 
