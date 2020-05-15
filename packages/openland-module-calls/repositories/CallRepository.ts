@@ -285,17 +285,13 @@ export class CallRepository {
 
             // Detect call end
             if (detectEnd) {
-                if ((await Store.ConferencePeer.active.findAll(ctx)).length === 0) {
+                if ((await this.findActiveMembers(ctx, existing.cid)).length === 0) {
                     log.log(ctx, 'Conference ended (remove): ' + existing.cid);
                     await scheduler.onConferenceStopped(ctx, existing.cid);
                     if (conf.startTime) {
                         callEndedEvent.event(ctx, { duration: Date.now() - conf.startTime });
                     }
-                } else {
-                    log.log(ctx, 'Not last user: ' + existing.cid + ': ' + JSON.stringify((await Store.ConferencePeer.active.findAll(ctx)).map((v) => v.uid)));
                 }
-            } else {
-                log.log(ctx, 'Not detect end: ' + existing.cid);
             }
 
             // Notify state change
