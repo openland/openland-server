@@ -17,7 +17,7 @@ import { extractFingerprints } from 'openland-module-calls/sdp/extractFingerprin
 import { extractOpusRtpParameters, extractH264RtpParameters, convertParameters, convertIceCandidate } from 'openland-module-calls/kitchen/extract';
 import { MediaDescription } from 'sdp-transform';
 
-const logger = createLogger('calls-kitchen');
+const logger = createLogger('mediakitchen');
 
 const RTP_CAPABILITIES_AUDIO: KitchenRtpCapabilities = {
     codecs: [{

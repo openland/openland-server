@@ -53,6 +53,8 @@ export class CallRepository {
             //     throw Error('Unable to find room');
             // }
 
+            log.log(ctx, 'Add peer: ' + cid + ': ' + uid);
+
             // Handle Call Restart
             let confPeers = await Store.ConferencePeer.conference.findAll(ctx, cid);
             let conf = await this.getOrCreateConference(ctx, cid);
@@ -84,12 +86,13 @@ export class CallRepository {
 
             // Detect call start
             if (justStarted) {
+                log.log(ctx, 'Conference started: ' + cid);
                 await scheduler.onConferenceStarted(ctx, cid);
             }
 
             // Remove peer for same auth token
             let existing = await Store.ConferencePeer.auth.find(ctx, cid, uid, tid);
-            if (existing) {
+            if (existing && existing.enabled) {
                 await this.#doRemovePeer(ctx, existing.id, false);
             }
 
@@ -237,9 +240,10 @@ export class CallRepository {
                 await this.#doRemovePeer(ctx, m.id, false);
             }
             if (members.length > 0) {
+                log.log(ctx, 'Conference ended (end conference): ' + cid);
                 await scheduler.onConferenceStopped(ctx, cid);
                 if (conf.startTime) {
-                    await callEndedEvent.event(ctx, { duration: Date.now() - conf.startTime });
+                    callEndedEvent.event(ctx, { duration: Date.now() - conf.startTime });
                 }
             }
         });
@@ -280,7 +284,11 @@ export class CallRepository {
             // Detect call end
             if (detectEnd) {
                 if ((await Store.ConferencePeer.active.findAll(ctx)).length === 0) {
+                    log.log(ctx, 'Conference ended (remove): ' + existing.cid);
                     await scheduler.onConferenceStopped(ctx, existing.cid);
+                    if (conf.startTime) {
+                        callEndedEvent.event(ctx, { duration: Date.now() - conf.startTime });
+                    }
                 }
             }
 

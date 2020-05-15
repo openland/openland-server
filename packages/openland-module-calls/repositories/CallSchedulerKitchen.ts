@@ -102,6 +102,7 @@ export class CallSchedulerKitchen implements CallScheduler {
     }
 
     onPeerRemoved = async (ctx: Context, cid: number, pid: number) => {
+        logger.log(ctx, 'Remove peer');
         let peer = await Store.ConferenceKitchenPeer.findById(ctx, pid);
         if (!peer || !peer.active) {
             return;
