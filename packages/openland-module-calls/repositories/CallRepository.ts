@@ -274,6 +274,8 @@ export class CallRepository {
             existing.enabled = false;
             await existing.flush(ctx);
 
+            log.log(ctx, 'Remove peer: ' + existing.cid + ': ' + existing.uid);
+
             // Handle media scheduling
             let conf = await this.getOrCreateConference(ctx, existing.cid);
             let scheduler = this.getScheduler(conf.currentScheduler);
@@ -289,7 +291,11 @@ export class CallRepository {
                     if (conf.startTime) {
                         callEndedEvent.event(ctx, { duration: Date.now() - conf.startTime });
                     }
+                } else {
+                    log.log(ctx, 'Not last user: ' + existing.cid + ': ' + JSON.stringify((await Store.ConferencePeer.active.findAll(ctx)).map((v) => v.uid)));
                 }
+            } else {
+                log.log(ctx, 'Not detect end: ' + existing.cid);
             }
 
             // Notify state change
@@ -319,17 +325,20 @@ export class CallRepository {
     }
 
     checkTimeouts = async (parent: Context) => {
-        await inTx(parent, async (ctx) => {
-            let active = await Store.ConferencePeer.active.findAll(ctx);
-            let now = Date.now();
-            for (let a of active) {
-                if (a.keepAliveTimeout < now) {
-                    log.log(ctx, 'Call Participant Reaped: ' + a.uid + ' from ' + a.cid);
-                    await this.removePeer(ctx, a.id);
-                    await this.bumpVersion(ctx, a.cid, a.id);
-                }
+        let now = Date.now();
+        let active = await Store.ConferencePeer.active.findAll(parent);
+        for (let a of active) {
+            if (a.keepAliveTimeout < now) {
+                await inTx(parent, async (ctx) => {
+                    let peer = (await Store.ConferencePeer.findById(ctx, a.id))!;
+                    if (peer.enabled && peer.keepAliveTimeout < now) {
+                        log.log(ctx, 'Call Participant Reaped: ' + a.uid + ' from ' + a.cid);
+                        await this.removePeer(ctx, a.id);
+                        await this.bumpVersion(ctx, a.cid, a.id);
+                    }
+                });
             }
-        });
+        }
     }
 
     //
