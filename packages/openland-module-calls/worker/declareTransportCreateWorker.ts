@@ -5,7 +5,7 @@ import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 
 export function declareTransportCreateWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
     repo.transportCreateQueue.addWorker(async (args, parent) => {
-
+        console.log('Trying to create transport: ' + args.id);
         let r = await inTx(parent, async (ctx) => {
             let ts = await Store.KitchenTransport.findById(ctx, args.id);
             if (!ts) {

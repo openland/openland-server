@@ -116,7 +116,7 @@ function createMediaDescription(
         port,
         rtcpMux: 'rtcp-mux',
         rtcpRsize: 'rtcp-rsize',
-        direction,
+        direction: active ? direction : 'inactive',
 
         // Codec
         rtp: [type === 'audio' ? {
@@ -140,7 +140,7 @@ function createMediaDescription(
         })),
 
         // ICE + DTLS
-        setup: active ? (direction === 'sendonly' ? 'actpass' : 'active') : 'inactive',
+        setup: direction === 'sendonly' ? 'actpass' : 'active',
         connection: { ip: '0.0.0.0', version: 4 },
         candidates: iceCandidates.map((v) => convertIceCandidate(v)),
         endOfCandidates: 'end-of-candidates',
@@ -653,6 +653,18 @@ export class CallSchedulerKitchenTransport {
         for (let c of consumerTransport.consumers) {
             let consumable = !!consumerTransport.consumes.find((v) => v === c.transport);
 
+            // Check if producer paused
+            if (consumable) {
+                let producerTransport = (await Store.ConferenceKitchenProducerTransport.findById(ctx, c.transport))!;
+                if (c.media.type === 'audio') {
+                    consumable = producerTransport.produces.audioStream;
+                } else if (c.media.type === 'video' && c.media.source === 'default') {
+                    consumable = producerTransport.produces.videoStream;
+                } else if (c.media.type === 'video' && c.media.source === 'screen') {
+                    consumable = producerTransport.produces.screenCastStream;
+                }
+            }
+
             // If not consumable: disable if needed
             if (!consumable) {
                 if (!c.active) {
@@ -701,6 +713,36 @@ export class CallSchedulerKitchenTransport {
                     changed = true;
                 }
             }
+
+            // Add video producer if needed
+            if (producerTransport.videoProducer) {
+                if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'video' && v.media.source === 'default')) {
+                    let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.videoProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO });
+                    consumers.push({
+                        pid: producerTransport.pid,
+                        consumer,
+                        transport: c,
+                        active: true,
+                        media: { type: 'video', source: 'default' }
+                    });
+                    changed = true;
+                }
+            }
+
+            // Add screencast producer if needed
+            if (producerTransport.screencastProducer) {
+                if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'video' && v.media.source === 'screen')) {
+                    let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.screencastProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO });
+                    consumers.push({
+                        pid: producerTransport.pid,
+                        consumer,
+                        transport: c,
+                        active: true,
+                        media: { type: 'video', source: 'screen' }
+                    });
+                    changed = true;
+                }
+            }
         }
 
         // Try to regenerate new offer
@@ -710,6 +752,8 @@ export class CallSchedulerKitchenTransport {
             consumerTransport.state = 'negotiation-wait-offer';
             await consumerTransport.flush(ctx);
             await this.#createConsumerOfferIfNeeded(ctx, transportId);
+        } else {
+            logger.log(ctx, 'ConsumerTransport restart NOT needed: ' + consumerTransport.pid);
         }
     }
 
