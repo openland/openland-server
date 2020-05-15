@@ -30,12 +30,15 @@ export class CallSchedulerKitchen implements CallScheduler {
         logger.log(ctx, 'Conference Started: ' + cid);
         let routerId = await this.repo.createRouter(ctx);
         logger.log(ctx, 'Router created: ' + cid + '->' + routerId);
+
         // Delete kitchen router if exists (due to bug)
         let existing = await Store.ConferenceKitchenRouter.conference.find(ctx, cid);
         if (existing) {
             existing.deleted = true;
             await existing.flush(ctx);
+            await this.repo.deleteRouter(ctx, existing.id);
         }
+
         await Store.ConferenceKitchenRouter.create(ctx, routerId, { cid, deleted: false });
     }
 
@@ -61,9 +64,9 @@ export class CallSchedulerKitchen implements CallScheduler {
         if (!router || router.deleted) {
             throw Error('Unknown error');
         }
-        let existing = await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid);
-        let producerTransport = existing.length === 0 ? await this.transport.createProducerTransport(ctx, router.id, cid, pid, sources) : null;
-        let consumerTransport = existing.length > 0 ? await this.transport.createConsumerTransport(ctx, router.id, cid, pid, existing.map((v) => v.producerTransport!)) : null;
+        let existing = (await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid)).filter((v) => !!v.producerTransport);
+        let producerTransport = await this.transport.createProducerTransport(ctx, router.id, cid, pid, sources);
+        let consumerTransport = await this.transport.createConsumerTransport(ctx, router.id, cid, pid, existing.map((v) => v.producerTransport!));
         await Store.ConferenceKitchenPeer.create(ctx, pid, {
             cid,
             producerTransport,

@@ -300,6 +300,18 @@ export class CallSchedulerKitchenTransport {
         }
     }
 
+    updateConsumerTransport = async (ctx: Context, transportId: string, consumes: string[]) => {
+        // Update Consumer
+        let consumerTransport = await Store.ConferenceKitchenConsumerTransport.findById(ctx, transportId);
+        if (!consumerTransport || consumerTransport.state === 'closed') {
+            throw Error('Unable to find connection');
+        }
+        consumerTransport.consumes = consumes;
+        await consumerTransport.flush(ctx);
+
+        await this.#refreshConsumerIfNeeded(ctx, transportId);
+    }
+
     removeProducerTransport = async (ctx: Context, id: string) => {
 
         // Close Connection
@@ -402,6 +414,7 @@ export class CallSchedulerKitchenTransport {
         //
         // Handle producers
         //
+        let changed = false;
         for (let h of hints) {
             if (h.direction !== 'SEND') {
                 throw Error('Incompatible hints');
@@ -430,6 +443,7 @@ export class CallSchedulerKitchenTransport {
                     let rtpParameters = extractOpusRtpParameters(media);
                     let producerId = await this.repo.createProducer(ctx, transportId, { kind: 'audio', rtpParameters });
                     producerTransport.audioProducer = producerId;
+                    changed = true;
                 }
             } else if (h.kind === 'video') {
                 if (h.videoSource === 'default') {
@@ -445,6 +459,7 @@ export class CallSchedulerKitchenTransport {
                         let rtpParameters = extractH264RtpParameters(media);
                         let producerId = await this.repo.createProducer(ctx, transportId, { kind: 'video', rtpParameters });
                         producerTransport.videoProducer = producerId;
+                        changed = true;
                     }
                 } else if (h.videoSource === 'screen') {
                     if (!producerTransport.screencastProducerMid) {
@@ -459,6 +474,7 @@ export class CallSchedulerKitchenTransport {
                         let rtpParameters = extractH264RtpParameters(media);
                         let producerId = await this.repo.createProducer(ctx, transportId, { kind: 'video', rtpParameters });
                         producerTransport.screencastProducer = producerId;
+                        changed = true;
                     }
                 } else {
                     throw Error('Unknown video source: ' + h.videoSource);
@@ -472,6 +488,16 @@ export class CallSchedulerKitchenTransport {
         producerTransport.state = 'negotiation-wait-answer';
         await producerTransport.flush(ctx);
         await this.#createProducerAnswerIfNeeded(ctx, transportId);
+
+        if (changed) {
+            // Update consumers
+            let consumers = await Store.ConferenceKitchenConsumerTransport.fromConference.findAll(ctx, producerTransport.cid);
+            for (let c of consumers) {
+                if (c.consumes.find((v) => v === transportId)) {
+                    await this.#refreshConsumerIfNeeded(ctx, c.id);
+                }
+            }
+        }
     }
 
     #createProducerAnswerIfNeeded = async (ctx: Context, transportId: string) => {
