@@ -3,10 +3,14 @@ import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 
-export function declareProducerDeleteWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
-    repo.producerDeleteQueue.addWorker(async (args, parent) => {
+export function declareConsumerUnpauseWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
+    repo.consumerUnpauseQueue.addWorker(async (args, parent) => {
         let r = await inTx(parent, async (ctx) => {
-            let pr = await Store.KitchenProducer.findById(ctx, args.id);
+            let cr = await Store.KitchenConsumer.findById(ctx, args.id);
+            if (!cr) {
+                throw Error('Unable to find consumer');
+            }
+            let pr = await Store.KitchenProducer.findById(ctx, cr.producerId);
             if (!pr) {
                 throw Error('Unable to find producer');
             }
@@ -21,34 +25,22 @@ export function declareProducerDeleteWorker(service: MediaKitchenService, repo: 
             if (!router.workerId) {
                 throw Error('Unable to find worker');
             }
-            return { router, ts, pr };
+            return { router, ts, pr, cr };
         });
 
-        if (r.pr.state === 'deleted') {
+        if (r.pr.state === 'deleted' || r.pr.state === 'deleting') {
             return;
         }
 
         // Destroy producer
-        let rawProducer = await service.getOrCreateProducer(
+        let rawConsumer = await service.getOrCreateConsumer(
             r.router.workerId!,
             r.router.id,
             r.ts.id,
             r.pr.id,
-            r.pr.parameters
+            r.cr.id,
+            r.cr.parameters
         );
-        await rawProducer.close();
-
-        // Commit
-        await inTx(parent, async (ctx) => {
-            let pr = await Store.KitchenProducer.findById(ctx, args.id);
-            if (!pr) {
-                throw Error('Unable to find producer');
-            }
-            if (pr.state !== 'deleting') {
-                return;
-            }
-            pr.state = 'deleted';
-            await repo.onProducerRemoved(ctx, pr.transportId, pr.id);
-        });
+        await rawConsumer.resume();
     });
 }

@@ -28,7 +28,7 @@ export function declareConsumerDeleteWorker(service: MediaKitchenService, repo: 
             return { router, ts, pr, cr };
         });
 
-        if (r.pr.state !== 'deleted') {
+        if (r.pr.state === 'deleted') {
             return;
         }
 

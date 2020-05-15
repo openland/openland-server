@@ -239,7 +239,7 @@ export class CallSchedulerKitchenTransport {
             }
             if (producerTransport.audioProducer) {
                 if (producerTransport.produces.audioStream) {
-                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.audioProducer, { rtpCapabilities: RTP_CAPABILITIES_AUDIO });
+                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.audioProducer, { rtpCapabilities: RTP_CAPABILITIES_AUDIO, paused: true });
                     consumers.push({
                         pid: producerTransport.pid,
                         consumer,
@@ -252,7 +252,7 @@ export class CallSchedulerKitchenTransport {
 
             if (producerTransport.videoProducer) {
                 if (producerTransport.produces.videoStream) {
-                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.videoProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO });
+                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.videoProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO, paused: true });
                     consumers.push({
                         pid: producerTransport.pid,
                         consumer,
@@ -265,7 +265,7 @@ export class CallSchedulerKitchenTransport {
 
             if (producerTransport.screencastProducer) {
                 if (producerTransport.produces.screenCastStream) {
-                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.screencastProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO });
+                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.screencastProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO, paused: true });
                     consumers.push({
                         pid: producerTransport.pid,
                         consumer,
@@ -719,7 +719,7 @@ export class CallSchedulerKitchenTransport {
             if (producerTransport.audioProducer) {
                 if (producerTransport.produces.audioStream) {
                     if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'audio')) {
-                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.audioProducer, { rtpCapabilities: RTP_CAPABILITIES_AUDIO });
+                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.audioProducer, { rtpCapabilities: RTP_CAPABILITIES_AUDIO, paused: true });
                         consumers.push({
                             pid: producerTransport.pid,
                             consumer,
@@ -736,7 +736,7 @@ export class CallSchedulerKitchenTransport {
             if (producerTransport.videoProducer) {
                 if (producerTransport.produces.videoStream) {
                     if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'video' && v.media.source === 'default')) {
-                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.videoProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO });
+                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.videoProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO, paused: true });
                         consumers.push({
                             pid: producerTransport.pid,
                             consumer,
@@ -753,7 +753,7 @@ export class CallSchedulerKitchenTransport {
             if (producerTransport.screencastProducer) {
                 if (producerTransport.produces.screenCastStream) {
                     if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'video' && v.media.source === 'screen')) {
-                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.screencastProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO });
+                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.screencastProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO, paused: true });
                         consumers.push({
                             pid: producerTransport.pid,
                             consumer,
@@ -878,9 +878,12 @@ export class CallSchedulerKitchenTransport {
         if (fingerprints.length > 0) {
             consumerTransport.state = 'ready';
             await this.repo.connectTransport(ctx, transportId, 'client', fingerprints);
-        } else {
-            // Do nothing if no fingerprints present
-            return;
+        }
+
+        // Unpause consumers
+        for (let media of sdp.media) {
+            let index = parseInt(media.mid! + '', 10);
+            await this.repo.unpauseConsumer(ctx, consumerTransport.consumers[index].consumer);
         }
     }
 

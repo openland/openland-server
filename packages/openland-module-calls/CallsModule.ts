@@ -17,6 +17,7 @@ import { declareProducerCreateWorker } from './worker/declareProducerCreateWorke
 import { declareProducerDeleteWorker } from './worker/declareProducerDeleteWorker';
 import { declareConsumerCreateWorker } from './worker/declareConsumerCreateWorker';
 import { declareConsumerDeleteWorker } from './worker/declareConsumerDeleteWorker';
+import { declareConsumerUnpauseWorker } from './worker/declareConsumerUnpauseWorker';
 
 @injectable()
 export class CallsModule {
@@ -47,6 +48,7 @@ export class CallsModule {
             declareProducerDeleteWorker(this.mediaKitchen, this.mediaKitchenRepo);
             declareConsumerCreateWorker(this.mediaKitchen, this.mediaKitchenRepo);
             declareConsumerDeleteWorker(this.mediaKitchen, this.mediaKitchenRepo);
+            declareConsumerUnpauseWorker(this.mediaKitchen, this.mediaKitchenRepo);
         }
     }
 }

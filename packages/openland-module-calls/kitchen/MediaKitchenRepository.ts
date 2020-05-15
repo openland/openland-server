@@ -32,6 +32,7 @@ export class MediaKitchenRepository {
 
     // Consumer tasks
     readonly consumerCreateQueue = new WorkQueue<{ id: string }>('kitchen-consumer-create', -1);
+    readonly consumerUnpauseQueue = new WorkQueue<{ id: string }>('kitchen-consumer-unpause', -1);
     readonly consumerDeleteQueue = new WorkQueue<{ id: string }>('kitchen-consumer-delete', -1);
 
     @lazyInject('CallSchedulerKitchen')
@@ -323,6 +324,22 @@ export class MediaKitchenRepository {
                 await this.consumerCreateQueue.pushWork(ctx, { id });
             }
             return id;
+        });
+    }
+
+    async unpauseConsumer(parent: Context, consumerId: string) {
+        return await inTx(parent, async (ctx) => {
+            let consumer = await Store.KitchenConsumer.findById(ctx, consumerId);
+            if (!consumer) {
+                throw Error('Unable to find consumer');
+            }
+            if (consumer.state === 'creating') {
+                throw Error('Unable unpause during creating');
+            }
+            if (consumer.state === 'deleted' || consumer.state === 'deleting') {
+                return;
+            }
+            await this.consumerUnpauseQueue.pushWork(ctx, { id: consumerId });
         });
     }
 
