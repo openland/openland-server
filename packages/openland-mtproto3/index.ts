@@ -10,7 +10,7 @@ import * as https from 'https';
 import { isAsyncIterator, isSubscriptionQuery } from './utils';
 import { delay } from '../openland-utils/timer';
 import { gqlSubscribe } from './gqlSubscribe';
-import { Context, createNamedContext } from '@openland/context';
+import { Context } from '@openland/context';
 // import { createLogger } from '@openland/log';
 import { cancelContext } from '@openland/lifetime';
 import { QueryCache } from './queryCache';
