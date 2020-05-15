@@ -65,8 +65,8 @@ export class CallSchedulerKitchen implements CallScheduler {
             throw Error('Unknown error');
         }
         let existing = (await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid)).filter((v) => !!v.producerTransport);
-        let producerTransport = await this.transport.createProducerTransport(ctx, router.id, cid, pid, sources);
-        let consumerTransport = await this.transport.createConsumerTransport(ctx, router.id, cid, pid, existing.map((v) => v.producerTransport!));
+        let producerTransport = existing.length === 0 ? await this.transport.createProducerTransport(ctx, router.id, cid, pid, sources) : null;
+        let consumerTransport = existing.length > 0 ? await this.transport.createConsumerTransport(ctx, router.id, cid, pid, existing.map((v) => v.producerTransport!)) : null;
         await Store.ConferenceKitchenPeer.create(ctx, pid, {
             cid,
             producerTransport,
@@ -75,14 +75,16 @@ export class CallSchedulerKitchen implements CallScheduler {
         });
 
         // Update existing connections
-        for (let e of existing) {
-            if (!e.active) { // Just in case
-                continue;
-            }
-            // Add new connection
-            if (e.consumerTransport) {
-                let ct = (await Store.ConferenceKitchenConsumerTransport.findById(ctx, e.consumerTransport))!;
-                await this.transport.updateConsumerTransport(ctx, e.consumerTransport, [...ct.consumes, producerTransport]);
+        if (producerTransport) {
+            for (let e of existing) {
+                if (!e.active) { // Just in case
+                    continue;
+                }
+                // Add new connection
+                if (e.consumerTransport) {
+                    let ct = (await Store.ConferenceKitchenConsumerTransport.findById(ctx, e.consumerTransport))!;
+                    await this.transport.updateConsumerTransport(ctx, e.consumerTransport, [...ct.consumes, producerTransport]);
+                }
             }
         }
 

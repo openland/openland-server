@@ -36,6 +36,22 @@ const RTP_CAPABILITIES_AUDIO: KitchenRtpCapabilities = {
     }]
 };
 
+const RTP_CAPABILITIES_VIDEO: KitchenRtpCapabilities = {
+    codecs: [{
+        kind: 'video',
+        mimeType: 'video/H264',
+        clockRate: 90000,
+        parameters: {
+            'packetization-mode': 1,
+            'profile-level-id': '42e01f',
+            'level-asymmetry-allowed': 1,
+        },
+        rtcpFeedback: [{
+            type: 'transport-cc'
+        }]
+    }]
+};
+
 function generateSDP(
     fingerprints: { algorithm: string, value: string }[],
     iceParameters: { usernameFragment: string, password: string },
@@ -83,6 +99,7 @@ function createMediaDescription(
     type: 'video' | 'audio',
     port: number,
     direction: 'recvonly' | 'sendonly',
+    active: boolean,
     rtpParameters: KitchenRtpParameters,
     iceCandidates: KitchenIceCandidate[],
 ): {
@@ -123,7 +140,7 @@ function createMediaDescription(
         })),
 
         // ICE + DTLS
-        setup: direction === 'sendonly' ? 'actpass' : 'active',
+        setup: active ? (direction === 'sendonly' ? 'actpass' : 'active') : 'inactive',
         connection: { ip: '0.0.0.0', version: 4 },
         candidates: iceCandidates.map((v) => convertIceCandidate(v)),
         endOfCandidates: 'end-of-candidates',
@@ -228,7 +245,27 @@ export class CallSchedulerKitchenTransport {
                 });
             }
 
-            // TODO: Implement video
+            if (producerTransport.videoProducer) {
+                let consumer = await this.repo.createConsumer(ctx, id, producerTransport.videoProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO });
+                consumers.push({
+                    pid: producerTransport.pid,
+                    consumer,
+                    transport,
+                    active: true,
+                    media: { type: 'video', source: 'default' }
+                });
+            }
+
+            if (producerTransport.screencastProducer) {
+                let consumer = await this.repo.createConsumer(ctx, id, producerTransport.screencastProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO });
+                consumers.push({
+                    pid: producerTransport.pid,
+                    consumer,
+                    transport,
+                    active: true,
+                    media: { type: 'video', source: 'screen' }
+                });
+            }
         }
 
         // Consumer transport
@@ -571,11 +608,11 @@ export class CallSchedulerKitchenTransport {
         for (let m of sdp.media) {
             let mid = m.mid + '';
             if (audioProducer && mid === producerTransport.audioProducerMid) {
-                media.push(createMediaDescription(mid, 'audio', m.port, 'recvonly', audioProducer!.rtpParameters!, iceCandidates));
+                media.push(createMediaDescription(mid, 'audio', m.port, 'recvonly', producerTransport.produces.audioStream, audioProducer!.rtpParameters!, iceCandidates));
             } else if (videoProducer && mid === producerTransport.videoProducerMid) {
-                media.push(createMediaDescription(mid, 'video', m.port, 'recvonly', videoProducer!.rtpParameters!, iceCandidates));
+                media.push(createMediaDescription(mid, 'video', m.port, 'recvonly', producerTransport.produces.videoStream, videoProducer!.rtpParameters!, iceCandidates));
             } else if (screencastProducer && mid === producerTransport.screencastProducerMid) {
-                media.push(createMediaDescription(mid, 'video', m.port, 'recvonly', screencastProducer!.rtpParameters!, iceCandidates));
+                media.push(createMediaDescription(mid, 'video', m.port, 'recvonly', producerTransport.produces.screenCastStream, screencastProducer!.rtpParameters!, iceCandidates));
             } else {
                 throw Error('Unknown media track');
             }
@@ -609,6 +646,8 @@ export class CallSchedulerKitchenTransport {
             media: { type: 'audio', } | { type: 'video', source: 'default' | 'screen' }
         }[] = [];
         let changed = false;
+
+        logger.log(ctx, 'ConsumerTransport restart if needed: ' + consumerTransport.pid);
 
         // Update active state of existing consumers
         for (let c of consumerTransport.consumers) {
@@ -713,10 +752,22 @@ export class CallSchedulerKitchenTransport {
             let cc = (await Store.KitchenConsumer.findById(ctx, consumer.consumer))!;
             let mid = index + '';
             if (consumer.media.type === 'audio') {
-                media.push(createMediaDescription(mid, 'audio', 7, 'sendonly', cc.rtpParameters!, iceCandidates));
+                media.push(createMediaDescription(mid, 'audio', 7, 'sendonly', consumer.active, cc.rtpParameters!, iceCandidates));
                 remoteStreams.push({
                     pid: consumer.pid,
                     media: { type: 'audio', mid }
+                });
+            } else if (consumer.media.type === 'video' && consumer.media.source === 'default') {
+                media.push(createMediaDescription(mid, 'video', 7, 'sendonly', consumer.active, cc.rtpParameters!, iceCandidates));
+                remoteStreams.push({
+                    pid: consumer.pid,
+                    media: { type: 'video', mid, source: 'default' }
+                });
+            } else if (consumer.media.type === 'video' && consumer.media.source === 'screen') {
+                media.push(createMediaDescription(mid, 'video', 7, 'sendonly', consumer.active, cc.rtpParameters!, iceCandidates));
+                remoteStreams.push({
+                    pid: consumer.pid,
+                    media: { type: 'video', mid, source: 'screen' }
                 });
             }
             index++;
