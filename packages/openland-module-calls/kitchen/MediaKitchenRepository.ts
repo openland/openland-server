@@ -24,7 +24,7 @@ export class MediaKitchenRepository {
     // Transport tasks
     readonly transportCreateQueue = new WorkQueue<{ id: string }>('kitchen-transport-create', -1);
     readonly transportConnectQueue = new WorkQueue<{ id: string }>('kitchen-transport-connect', -1);
-    readonly transportDeleteQueue = new WorkQueue<{ id: string }>('kitchen-transport-create', -1);
+    readonly transportDeleteQueue = new WorkQueue<{ id: string }>('kitchen-transport-delete', -1);
 
     // Producer tasks
     readonly producerCreateQueue = new WorkQueue<{ id: string }>('kitchen-producer-create', -1);
@@ -186,6 +186,8 @@ export class MediaKitchenRepository {
             await this.onTransportCreating(ctx, id);
             if (router.state !== 'creating') {
                 await this.transportCreateQueue.pushWork(ctx, { id });
+            } else {
+                logger.log(ctx, 'Not scheduling transport creation: ' + id);
             }
             return id;
         });
@@ -355,7 +357,11 @@ export class MediaKitchenRepository {
             // Create transports
             let transports = await Store.KitchenTransport.routerActive.findAll(ctx, id);
             for (let t of transports) {
-                await this.transportCreateQueue.pushWork(ctx, { id: t.id });
+                logger.log(ctx, 'Transport: ' + t.id);
+                if (t.state === 'creating') {
+                    logger.log(ctx, 'Scheduling transport creation: ' + t.id);
+                    await this.transportCreateQueue.pushWork(ctx, { id: t.id });
+                }
             }
         });
     }

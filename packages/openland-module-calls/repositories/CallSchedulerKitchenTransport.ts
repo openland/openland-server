@@ -300,6 +300,9 @@ export class CallSchedulerKitchenTransport {
             iceTransportPolicy: 'none'
         });
 
+        // Create offer if needed
+        await this.#createConsumerOfferIfNeeded(ctx, id);
+
         return id;
     }
 
