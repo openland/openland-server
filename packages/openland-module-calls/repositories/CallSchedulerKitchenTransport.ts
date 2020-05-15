@@ -1,3 +1,4 @@
+import { KitchenRtpCapabilities } from './../kitchen/types';
 import { createLogger } from '@openland/log';
 import { KitchenRtpParameters, KitchenIceCandidate } from '../kitchen/types';
 import { writeSDP } from 'openland-module-calls/sdp/writeSDP';
@@ -17,6 +18,23 @@ import { extractOpusRtpParameters, extractH264RtpParameters, convertParameters, 
 import { MediaDescription } from 'sdp-transform';
 
 const logger = createLogger('calls-kitchen');
+
+const RTP_CAPABILITIES_AUDIO: KitchenRtpCapabilities = {
+    codecs: [{
+        kind: 'audio',
+        mimeType: 'audio/opus',
+        clockRate: 48000,
+        channels: 2,
+        parameters: {
+            stereo: 1,
+            maxplaybackrate: 48000,
+            useinbandfec: 1
+        },
+        rtcpFeedback: [{
+            type: 'transport-cc'
+        }]
+    }]
+};
 
 function generateSDP(
     fingerprints: { algorithm: string, value: string }[],
@@ -200,24 +218,7 @@ export class CallSchedulerKitchenTransport {
         for (let transport of consumes) {
             let producerTransport = (await Store.ConferenceKitchenProducerTransport.findById(ctx, transport))!;
             if (producerTransport.audioProducer) {
-                let consumer = await this.repo.createConsumer(ctx, id, producerTransport.audioProducer, {
-                    rtpCapabilities: {
-                        codecs: [{
-                            kind: 'audio',
-                            mimeType: 'audio/opus',
-                            clockRate: 48000,
-                            channels: 2,
-                            parameters: {
-                                stereo: 1,
-                                maxplaybackrate: 48000,
-                                useinbandfec: 1
-                            },
-                            rtcpFeedback: [{
-                                type: 'transport-cc'
-                            }]
-                        }]
-                    }
-                });
+                let consumer = await this.repo.createConsumer(ctx, id, producerTransport.audioProducer, { rtpCapabilities: RTP_CAPABILITIES_AUDIO });
                 consumers.push({
                     pid: producerTransport.pid,
                     consumer,
@@ -595,7 +596,81 @@ export class CallSchedulerKitchenTransport {
     }
 
     #refreshConsumerIfNeeded = async (ctx: Context, transportId: string) => {
-        // TODO: Implement
+        let consumerTransport = await Store.ConferenceKitchenConsumerTransport.findById(ctx, transportId);
+        if (!consumerTransport || consumerTransport.state === 'closed') {
+            return;
+        }
+        let consumers: {
+            pid: number,
+            consumer: string,
+            transport: string,
+            active: boolean,
+            media: { type: 'audio', } | { type: 'video', source: 'default' | 'screen' }
+        }[] = [];
+        let changed = false;
+
+        // Update active state of existing consumers
+        for (let c of consumerTransport.consumers) {
+            let consumable = !!consumerTransport.consumes.find((v) => v === c.transport);
+
+            // If not consumable: disable if needed
+            if (!consumable) {
+                if (!c.active) {
+                    consumers.push(c);
+                } else {
+                    consumers.push({
+                        ...c,
+                        active: false
+                    });
+                    changed = true;
+                }
+            }
+
+            // If consumable: enable if needed
+            if (consumable) {
+                if (c.active) {
+                    consumers.push(c);
+                } else {
+                    consumers.push({
+                        ...c,
+                        active: true
+                    });
+                    changed = true;
+                }
+            }
+        }
+
+        // Add new consumers
+        for (let c of consumerTransport.consumes) {
+            let producerTransport = (await Store.ConferenceKitchenProducerTransport.findById(ctx, c));
+            if (!producerTransport || producerTransport.state === 'closed') {
+                continue;
+            }
+
+            // Add audio producer if needed
+            if (producerTransport.audioProducer) {
+                if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'audio')) {
+                    let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.audioProducer, { rtpCapabilities: RTP_CAPABILITIES_AUDIO });
+                    consumers.push({
+                        pid: producerTransport.pid,
+                        consumer,
+                        transport: c,
+                        active: true,
+                        media: { type: 'audio' }
+                    });
+                    changed = true;
+                }
+            }
+        }
+
+        // Try to regenerate new offer
+        if (changed) {
+            logger.log(ctx, 'ConsumerTransport Restart: ' + consumerTransport.pid);
+            consumerTransport.consumers = consumers;
+            consumerTransport.state = 'negotiation-wait-offer';
+            await consumerTransport.flush(ctx);
+            await this.#createConsumerOfferIfNeeded(ctx, transportId);
+        }
     }
 
     #createConsumerOfferIfNeeded = async (ctx: Context, transportId: string) => {

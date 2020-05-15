@@ -73,17 +73,20 @@ export class CallSchedulerKitchen implements CallScheduler {
             consumerTransport,
             active: true
         });
-        logger.log(ctx, 'Add peer: end');
 
-        // // Update existing connections
-        // for (let e of existing) {
-        //     if (!e.active) { // Just in case
-        //         continue;
-        //     }
-        //     // Add new connection
-        //     e.consumes = [...e.consumes, connection];
-        //     await this.connections.updateConsumes(ctx, e.connection, e.consumes);
-        // }
+        // Update existing connections
+        for (let e of existing) {
+            if (!e.active) { // Just in case
+                continue;
+            }
+            // Add new connection
+            if (e.consumerTransport) {
+                let ct = (await Store.ConferenceKitchenConsumerTransport.findById(ctx, e.consumerTransport))!;
+                await this.transport.updateConsumerTransport(ctx, e.consumerTransport, [...ct.consumes, producerTransport]);
+            }
+        }
+
+        logger.log(ctx, 'Add peer: end');
     }
 
     onPeerStreamsChanged = async (ctx: Context, cid: number, pid: number, sources: MediaSources) => {
