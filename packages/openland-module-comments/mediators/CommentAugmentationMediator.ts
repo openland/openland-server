@@ -15,7 +15,7 @@ const linkifyInstance = createLinkifyInstance();
 
 @injectable()
 export class CommentAugmentationMediator {
-    private readonly queue = new WorkQueue<{ commentId: number }, { result: string }>('comment_augmentation_task');
+    private readonly queue = new WorkQueue<{ commentId: number }>('comment_augmentation_task');
 
     @lazyInject('CommentsRepository') private readonly comments!: CommentsRepository;
 
@@ -33,22 +33,22 @@ export class CommentAugmentationMediator {
                 let message = await Store.Comment.findById(ctx, item.commentId);
 
                 if (!message || !message.text) {
-                    return { result: 'ok' };
+                    return;
                 }
 
                 let urls = this.resolveLinks(message);
                 if (urls.length === 0) {
-                    return { result: 'ok' };
+                    return;
                 }
                 let firstUrl = urls[0];
                 if (message.attachments?.find(a => a.type === 'rich_attachment' && a.titleLink === firstUrl.url)) {
-                    return { result: 'ok' };
+                    return;
                 }
 
                 let urlInfo = await service.fetchURLInfo(firstUrl.url);
 
                 if (!urlInfo) {
-                    return { result: 'ok' };
+                    return;
                 }
 
                 let haveContent = (urlInfo.title && urlInfo.description) || (urlInfo.title && urlInfo.imageInfo) || (urlInfo.description && urlInfo.imageInfo);
@@ -95,7 +95,7 @@ export class CommentAugmentationMediator {
                         false
                     );
                 }
-                return { result: 'ok' };
+                return;
             });
         }
     }

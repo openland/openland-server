@@ -19,7 +19,7 @@ export function createWeeklyRoomScreenViewsLeaderboardWorker() {
             const botId = await getSuperNotificationsBotId(parent);
             if (!chatId || !botId) {
                 log.warn(parent, 'botId or chatId not specified');
-                return { result: 'rejected' };
+                return;
             }
 
             let roomMembersDelta = await Modules.Search.elastic.client.search({
@@ -30,7 +30,7 @@ export function createWeeklyRoomScreenViewsLeaderboardWorker() {
                         bool: {
                             must: [
                                 { term: { type: 'track' } },
-                                { term: { ['body.isProd']: false } },
+                                { term: { ['body.isProd']: true } },
                                 { term: { ['body.name']: 'invite_landing_view' } },
                                 { term: { ['body.args.invite_type']: 'group' } }, {
                                 range: {
@@ -73,8 +73,6 @@ export function createWeeklyRoomScreenViewsLeaderboardWorker() {
             await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
                 ...buildMessage(...message), ignoreAugmentation: true,
             });
-
-            return { result: 'completed' };
         });
     }
     return queue;

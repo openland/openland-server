@@ -14,14 +14,14 @@ const pushSent = createHyperlogger<{ uid: number, tokenId: string }>('push_web_s
 const pushFail = createHyperlogger<{ uid: number, tokenId: string, failures: number, statusCode: number, disabled: boolean }>('push_web_failed');
 
 export function createWebWorker(repo: PushRepository) {
-    let queue = new WorkQueue<WebPushTask, { result: string }>('push_sender_web');
+    let queue = new WorkQueue<WebPushTask>('push_sender_web');
     if (PushConfig.webPush) {
         if (serverRoleEnabled('workers')) {
             for (let i = 0; i < 10; i++) {
                 queue.addWorker(async (task, root) => {
                     let token = (await repo.getWebToken(root, task.tokenId))!;
                     if (!token.enabled) {
-                        return { result: 'skipped' };
+                        return;
                     }
 
                     try {
@@ -44,9 +44,8 @@ export function createWebWorker(repo: PushRepository) {
                             });
                         }
                         log.log(root, 'web_push failed', token.uid, JSON.stringify({ statusCode: e.statusCode, body: e.body }));
-                        return { result: 'failed' };
+                        return;
                     }
-                    return { result: 'ok' };
                 });
             }
         }

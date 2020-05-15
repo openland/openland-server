@@ -25,7 +25,7 @@ export function declareProducerCreateWorker(service: MediaKitchenService, repo: 
             return { router, ts, pr };
         });
         if (r.pr.state !== 'creating') {
-            return { result: true };
+            return;
         }
 
         // Create Raw Producer
@@ -51,7 +51,5 @@ export function declareProducerCreateWorker(service: MediaKitchenService, repo: 
                 await repo.onProducerCreated(ctx, pr.transportId, pr.id);
             }
         });
-
-        return { result: true };
     });
 }

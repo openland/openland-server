@@ -9,7 +9,7 @@ import { Modules } from 'openland-modules/Modules';
 
 @injectable()
 export class FeedMentionNotificationsMediator {
-    private readonly queue = new WorkQueue<{ tid: number, messageId: number }, { result: string }>('feed_item_mention_notifications_task');
+    private readonly queue = new WorkQueue<{ tid: number, messageId: number }>('feed_item_mention_notifications_task');
 
     start = () => {
         if (serverRoleEnabled('workers')) {
@@ -17,18 +17,18 @@ export class FeedMentionNotificationsMediator {
                 return await inTx(root, async ctx => {
                     let message = await Store.RichMessage.findById(ctx, item.messageId);
                     if (!message || !message.spans) {
-                        return { result: 'ok' };
+                        return;
                     }
 
                     let topic = await Store.FeedTopic.findById(ctx, item.tid);
                     if (!topic || !topic.key.startsWith('channel-')) {
-                        return { result: 'ok' };
+                        return;
                     }
 
                     let cid = parseInt(topic.key.slice(8), 0);
                     let channel = await Store.FeedChannel.findById(ctx, cid);
                     if (!channel) {
-                        return { result: 'ok' };
+                        return;
                     }
 
                     for (let span of message.spans) {
@@ -90,7 +90,7 @@ export class FeedMentionNotificationsMediator {
                             }
                         }
                     }
-                    return { result: 'ok' };
+                    return;
                 });
             });
         }

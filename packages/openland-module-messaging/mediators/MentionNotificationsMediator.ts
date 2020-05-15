@@ -9,7 +9,7 @@ import { Modules } from 'openland-modules/Modules';
 
 @injectable()
 export class MentionNotificationsMediator {
-    private readonly queue = new WorkQueue<{ messageId: number }, { result: string }>('conversation_message_mention_notifications_task');
+    private readonly queue = new WorkQueue<{ messageId: number }>('conversation_message_mention_notifications_task');
 
     start = () => {
         if (serverRoleEnabled('workers')) {
@@ -18,15 +18,15 @@ export class MentionNotificationsMediator {
 
                     let message = await Store.Message.findById(ctx, item.messageId);
                     if (!message || !message.spans) {
-                        return { result: 'ok' };
+                        return;
                     }
                     if (!await Modules.Messaging.room.isPublicRoom(ctx, message.cid)) {
-                        return { result: 'ok' };
+                        return;
                     }
 
                     let room = await Store.RoomProfile.findById(ctx, message.cid);
                     if (!room) {
-                        return { result: 'ok' };
+                        return;
                     }
 
                     for (let span of message.spans) {
@@ -88,7 +88,6 @@ export class MentionNotificationsMediator {
                             }
                         }
                     }
-                    return { result: 'ok' };
                 });
             });
         }

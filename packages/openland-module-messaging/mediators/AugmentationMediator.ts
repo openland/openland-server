@@ -16,7 +16,7 @@ const linkifyInstance = createLinkifyInstance();
 
 @injectable()
 export class AugmentationMediator {
-    private readonly queue = new WorkQueue<{ messageId: number }, { result: string }>('conversation_message_task');
+    private readonly queue = new WorkQueue<{ messageId: number }>('conversation_message_task');
 
     @lazyInject('MessagingRepository') private readonly messaging!: MessagingRepository;
 
@@ -34,32 +34,32 @@ export class AugmentationMediator {
                 let message = await inTx(root, async ctx => await Store.Message.findById(ctx, item.messageId));
 
                 if (!message || !message.text) {
-                    return { result: 'ok' };
+                    return;
                 }
 
                 if (message.isService) {
-                    return { result: 'ok' };
+                    return;
                 }
 
                 // augmentation exists or was deleted
                 if (message.augmentation) {
-                    return { result: 'ok' };
+                    return;
                 }
 
                 let urls = this.resolveLinks(message);
                 if (urls.length === 0) {
-                    return { result: 'ok' };
+                    return;
                 }
 
                 let firstUrl = urls[0];
                 if (message.attachmentsModern?.find(a => a.type === 'rich_attachment' && a.titleLink === firstUrl.url)) {
-                    return { result: 'ok' };
+                    return;
                 }
 
                 let urlInfo = await service.fetchURLInfo(firstUrl.url);
 
                 if (!urlInfo) {
-                    return { result: 'ok' };
+                    return;
                 }
 
                 let haveContent = (urlInfo.title && urlInfo.description) || (urlInfo.title && urlInfo.imageInfo) || (urlInfo.description && urlInfo.imageInfo);
@@ -111,7 +111,7 @@ export class AugmentationMediator {
                         );
                     }
                 });
-                return { result: 'ok' };
+                return;
             });
         }
     }

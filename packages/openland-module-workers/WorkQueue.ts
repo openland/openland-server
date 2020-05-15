@@ -1,5 +1,4 @@
 import { Store } from './../openland-module-db/FDB';
-import { JsonMap } from 'openland-utils/json';
 import { inTx, inTxLeaky } from '@openland/foundationdb';
 import { delayBreakable, foreverBreakable } from 'openland-utils/timer';
 import { uuid } from 'openland-utils/uuid';
@@ -21,7 +20,7 @@ const workScheduled = createHyperlogger<{ taskId: string, taskType: string, dura
 // const workerFetch = createMetric('worker-fetch', 'average');
 // const workerPick = createMetric('worker-pick', 'average');
 
-export class WorkQueue<ARGS, RES extends JsonMap> {
+export class WorkQueue<ARGS> {
     private taskType: string;
     private pubSubTopic: string;
     private maxFailureCount: number;
@@ -55,7 +54,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
         });
     }
 
-    addWorker = (handler: (item: ARGS, ctx: Context) => RES | Promise<RES>) => {
+    addWorker = (handler: (item: ARGS, ctx: Context) => void | Promise<void>) => {
         let working = true;
         const lockSeed = uuid();
         let awaiter: (() => void) | undefined;
@@ -133,10 +132,9 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     }
                     await lockLoop.stop();
                 };
-                let res: RES;
                 try {
                     // metricStart.increment(root);
-                    res = await handler(task.res.arguments, rootExec);
+                    await handler(task.res.arguments, rootExec);
                 } catch (e) {
                     // metricFailed.increment(rootExec);
                     log.warn(root, e);
@@ -181,7 +179,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     if (res2) {
                         if (res2.taskLockSeed === lockSeed && res2.taskStatus === 'executing') {
                             res2.taskStatus = 'completed';
-                            res2.result = res;
+                            // await Store.Task.descriptor.subspace.clear(ctx, [res2.taskType, res2.uid]);
                             workCompleted.event(ctx, { taskId: res2.uid, taskType: res2.taskType, duration: Date.now() - res2.metadata.createdAt });
                             return true;
                         }

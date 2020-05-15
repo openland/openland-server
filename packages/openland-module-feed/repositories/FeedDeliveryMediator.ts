@@ -14,8 +14,8 @@ import { batch } from '../../openland-utils/batch';
 
 @injectable()
 export class FeedDeliveryMediator {
-    private readonly queue = new WorkQueue<{ itemId: number, action?: 'new' | 'update' | 'delete' }, { result: string }>('feed_item_delivery');
-    private readonly queueUserMultiple = new WorkQueue<{ itemId: number, subscriberIds: number[], action?: 'new' | 'update' | 'delete' }, { result: string }>('feed_item_delivery_user_multiple');
+    private readonly queue = new WorkQueue<{ itemId: number, action?: 'new' | 'update' | 'delete' }>('feed_item_delivery');
+    private readonly queueUserMultiple = new WorkQueue<{ itemId: number, subscriberIds: number[], action?: 'new' | 'update' | 'delete' }>('feed_item_delivery_user_multiple');
 
     start = () => {
         if (serverRoleEnabled('delivery')) {
@@ -30,7 +30,6 @@ export class FeedDeliveryMediator {
                     } else {
                         throw Error('Unknown action: ' + item.action);
                     }
-                    return { result: 'ok' };
                 });
             }
             for (let i = 0; i < 25; i++) {
@@ -50,7 +49,6 @@ export class FeedDeliveryMediator {
                             throw Error('Unknown action: ' + item.action);
                         }
                     });
-                    return { result: 'ok' };
                 });
             }
         }

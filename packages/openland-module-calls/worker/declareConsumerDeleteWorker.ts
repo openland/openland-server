@@ -29,7 +29,7 @@ export function declareConsumerDeleteWorker(service: MediaKitchenService, repo: 
         });
 
         if (r.pr.state !== 'deleted') {
-            return { result: true };
+            return;
         }
 
         // Destroy producer
@@ -55,7 +55,5 @@ export function declareConsumerDeleteWorker(service: MediaKitchenService, repo: 
             pr.state = 'deleted';
             await repo.onConsumerRemoved(ctx, pr.transportId, pr.id);
         });
-
-        return { result: true };
     });
 }

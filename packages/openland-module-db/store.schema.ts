@@ -1544,6 +1544,7 @@ export default declareSchema(() => {
     atomicInt('UserGlobalCounterUnreadChatsWithoutMuted', () => {
         primaryKey('uid', integer());
     });
+    // Global counters END
 
     atomicBool('UserHasFilledAbout', () => {
         primaryKey('uid', integer());
@@ -1560,7 +1561,6 @@ export default declareSchema(() => {
     atomicInt('StatsRecords', () => {
         primaryKey('metricName', string());
     });
-    // Global counters END
 
     atomicInt('RoomMessagesCounter', () => {
         primaryKey('rid', integer());

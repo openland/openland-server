@@ -23,7 +23,7 @@ import { WorkQueue } from 'openland-module-workers/WorkQueue';
 export function startPaymentScheduler(mediator: PaymentMediator) {
     const log = createLogger('payments-scheduler');
     
-    let queue = new WorkQueue<{ uid: number, pid: string, attempt: number }, { result: string }>('payment-executor-task', -1);
+    let queue = new WorkQueue<{ uid: number, pid: string, attempt: number }>('payment-executor-task', -1);
     queue.addWorker(async (item, parent) => {
         await inTx(parent, async (ctx) => {
             log.debug(parent, 'Executing: ' + item.pid);
@@ -43,7 +43,6 @@ export function startPaymentScheduler(mediator: PaymentMediator) {
                 }
             }
         });
-        return { result: 'ok' };
     });
 
     singletonWorker({ db: Store.storage.db, name: 'payment-scheduler', delay: 1000 }, async (parent) => {

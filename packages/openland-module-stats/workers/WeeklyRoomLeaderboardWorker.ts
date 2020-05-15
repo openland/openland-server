@@ -20,7 +20,7 @@ export function createWeeklyRoomLeaderboardWorker() {
             const botId = await getSuperNotificationsBotId(parent);
             if (!chatId || !botId) {
                 log.warn(parent, 'botId or chatId not specified');
-                return { result: 'rejected' };
+                return;
             }
 
             let searchReq = await Modules.Search.elastic.client.search({
@@ -99,8 +99,6 @@ export function createWeeklyRoomLeaderboardWorker() {
             await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
                 ...buildMessage(...message), ignoreAugmentation: true,
             });
-
-            return { result: 'completed' };
         });
     }
     return queue;

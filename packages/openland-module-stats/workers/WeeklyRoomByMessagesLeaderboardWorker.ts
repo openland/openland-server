@@ -18,7 +18,7 @@ export function createWeeklyRoomByMessagesLeaderboardWorker() {
             const botId = await getSuperNotificationsBotId(parent);
             if (!chatId || !botId) {
                 log.warn(parent, 'botId or chatId not specified');
-                return { result: 'rejected' };
+                return;
             }
 
             let roomsWithDelta = await Modules.Stats
@@ -72,8 +72,6 @@ export function createWeeklyRoomByMessagesLeaderboardWorker() {
             await Modules.Messaging.sendMessage(parent, chatId!, botId!, {
                 ...buildMessage(...message), ignoreAugmentation: true,
             });
-
-            return { result: 'completed' };
         });
     }
     return queue;

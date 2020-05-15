@@ -10,7 +10,197 @@ import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
 import NotificationPreviewRoot = GQLRoots.NotificationPreviewRoot;
 
-const updateSettingsResolver = withUser(async (parent, args: GQL.MutationSettingsUpdateArgs, uid: number) => {
+const settingsUpdateResolver = withUser(async (parent, args: GQL.MutationSettingsUpdateArgs, uid: number) => {
+    return await inTx(parent, async (ctx) => {
+        let _uid = uid;
+        if (args.uid && ((await Modules.Super.superRole(ctx, uid)) === 'super-admin')) {
+            _uid = IDs.User.parse(args.uid);
+        }
+        let settings = await Modules.Users.getUserSettings(ctx, _uid);
+        if (!args.settings) {
+            return settings;
+        }
+        if (args.settings.emailFrequency) {
+            settings.emailFrequency = args.settings.emailFrequency as any;
+        }
+        if (args.settings.desktopNotifications) {
+            settings.desktopNotifications = args.settings.desktopNotifications as any;
+            if (settings.desktop) {
+                let desktopChatNotificationEnabled = settings.desktopNotifications === 'all';
+                let desktopDirectNotificationEnabled = settings.desktopNotifications === 'all' || settings.desktopNotifications === 'direct';
+                settings.desktop = {
+                    ...settings.desktop,
+                    direct: {
+                        showNotification: desktopDirectNotificationEnabled,
+                        sound: desktopDirectNotificationEnabled,
+                    },
+                    communityChat: {
+                        showNotification: desktopChatNotificationEnabled,
+                        sound: desktopChatNotificationEnabled
+                    },
+                    organizationChat: {
+                        showNotification: desktopChatNotificationEnabled,
+                        sound: desktopChatNotificationEnabled
+                    },
+                    secretChat: {
+                        showNotification: desktopChatNotificationEnabled,
+                        sound: desktopChatNotificationEnabled
+                    }
+                };
+            }
+        }
+        if (args.settings.mobileNotifications) {
+            settings.mobileNotifications = args.settings.mobileNotifications as any;
+            if (settings.mobile) {
+                let mobileAlertDirect = settings.mobileNotifications === 'all' || settings.mobileNotifications === 'direct';
+                let mobileAlertChat = settings.mobileNotifications === 'all';
+                let mobileChatNotificationEnabled = !!settings.mobileAlert && mobileAlertChat;
+                let mobileDirectNotificationEnabled = !!settings.mobileAlert && mobileAlertDirect;
+                settings.mobile = {
+                    ...settings.mobile,
+                    direct: {
+                        showNotification: mobileDirectNotificationEnabled,
+                        sound: mobileAlertDirect,
+                    },
+                    communityChat: {
+                        showNotification: mobileChatNotificationEnabled,
+                        sound: mobileAlertChat
+                    },
+                    organizationChat: {
+                        showNotification: mobileChatNotificationEnabled,
+                        sound: mobileAlertChat
+                    },
+                    secretChat: {
+                        showNotification: mobileChatNotificationEnabled,
+                        sound: mobileAlertChat
+                    }
+                };
+            }
+        }
+        if (args.settings.mobileAlert !== null && args.settings.mobileAlert !== undefined) {
+            settings.mobileAlert = args.settings.mobileAlert as any;
+            if (settings.mobile) {
+                let mobileAlertDirect = settings.mobileNotifications === 'all' || settings.mobileNotifications === 'direct';
+                let mobileAlertChat = settings.mobileNotifications === 'all';
+                let mobileChatNotificationEnabled = !!settings.mobileAlert && mobileAlertChat;
+                let mobileDirectNotificationEnabled = !!settings.mobileAlert && mobileAlertDirect;
+                settings.mobile = {
+                    ...settings.mobile,
+                    direct: {
+                        showNotification: mobileDirectNotificationEnabled,
+                        sound: mobileAlertDirect,
+                    },
+                    communityChat: {
+                        showNotification: mobileChatNotificationEnabled,
+                        sound: mobileAlertChat
+                    },
+                    organizationChat: {
+                        showNotification: mobileChatNotificationEnabled,
+                        sound: mobileAlertChat
+                    },
+                    secretChat: {
+                        showNotification: mobileChatNotificationEnabled,
+                        sound: mobileAlertChat
+                    }
+                };
+            }
+        }
+        if (args.settings.mobileIncludeText !== null && args.settings.mobileIncludeText !== undefined) {
+            settings.mobileIncludeText = args.settings.mobileIncludeText as any;
+            if (settings.mobile) {
+                settings.mobile.notificationPreview = settings.mobileIncludeText ? 'name_text' : 'name';
+            }
+        }
+        if (args.settings.notificationsDelay !== null && args.settings.notificationsDelay !== undefined) {
+            settings.notificationsDelay = args.settings.notificationsDelay as any;
+        }
+        if (args.settings.commentNotifications && args.settings.commentNotifications !== null) {
+            settings.commentNotifications = args.settings.commentNotifications as any;
+        }
+
+        if (args.settings.commentNotificationsDelivery && args.settings.commentNotificationsDelivery !== null) {
+            settings.commentNotificationsDelivery = args.settings.commentNotificationsDelivery as any;
+            if (settings.desktop) {
+                settings.desktop.comments = {
+                    sound: settings.commentNotificationsDelivery !== 'none',
+                    showNotification: settings.commentNotificationsDelivery !== 'none',
+                };
+            }
+            if (settings.mobile) {
+                settings.mobile.comments = {
+                    sound: settings.commentNotificationsDelivery !== 'none',
+                    showNotification: settings.commentNotificationsDelivery !== 'none',
+                };
+            }
+        }
+
+        let countUnreadChats = !settings.globalCounterType ? false : (settings.globalCounterType === 'unread_chats' || settings.globalCounterType === 'unread_chats_no_muted');
+        let excludeMutedChats = !settings.globalCounterType ? false : (settings.globalCounterType === 'unread_messages_no_muted' || settings.globalCounterType === 'unread_chats_no_muted');
+
+        if (args.settings.countUnreadChats !== undefined && args.settings.countUnreadChats !== null) {
+            countUnreadChats = args.settings.countUnreadChats;
+        }
+        if (args.settings.excludeMutedChats !== undefined && args.settings.excludeMutedChats !== null) {
+            excludeMutedChats = args.settings.excludeMutedChats;
+        }
+
+        if (settings.desktop && args.settings.desktop) {
+            let { desktop } = args.settings;
+            if (desktop.comments) {
+                settings.desktop.comments = desktop.comments;
+            }
+            if (desktop.communityChat) {
+                settings.desktop.communityChat = desktop.communityChat;
+            }
+            if (desktop.direct) {
+                settings.desktop.direct = desktop.direct;
+            }
+            if (desktop.organizationChat) {
+                settings.desktop.organizationChat = desktop.organizationChat;
+            }
+            if (desktop.notificationPreview) {
+                settings.desktop.notificationPreview = desktop.notificationPreview === 'NAME_TEXT' ? 'name_text' : 'name';
+            }
+            if (desktop.secretChat) {
+                settings.desktop.secretChat = desktop.secretChat;
+            }
+        }
+        if (settings.mobile && args.settings.mobile) {
+            let { mobile } = args.settings;
+            if (mobile.comments) {
+                settings.mobile.comments = mobile.comments;
+            }
+            if (mobile.communityChat) {
+                settings.mobile.communityChat = mobile.communityChat;
+            }
+            if (mobile.direct) {
+                settings.mobile.direct = mobile.direct;
+            }
+            if (mobile.organizationChat) {
+                settings.mobile.organizationChat = mobile.organizationChat;
+            }
+            if (mobile.notificationPreview) {
+                settings.mobile.notificationPreview = mobile.notificationPreview === 'NAME_TEXT' ? 'name_text' : 'name';
+            }
+            if (mobile.secretChat) {
+                settings.mobile.secretChat = mobile.secretChat;
+            }
+        }
+
+        if (countUnreadChats) {
+            settings.globalCounterType = excludeMutedChats ? 'unread_chats_no_muted' : 'unread_chats';
+        } else {
+            settings.globalCounterType = excludeMutedChats ? 'unread_messages_no_muted' : 'unread_messages';
+        }
+
+        settings.invalidate();
+        await Modules.Messaging.onGlobalCounterTypeChanged(ctx, _uid);
+
+        return settings;
+    });
+});
+
+const updateSettingsResolver = withUser(async (parent, args: GQL.MutationUpdateSettingsArgs, uid: number) => {
     return await inTx(parent, async (ctx) => {
         let settings = await Modules.Users.getUserSettings(ctx, uid);
         if (!args.settings) {
@@ -255,7 +445,7 @@ export const Resolver: GQLResolver = {
         }),
     },
     Mutation: {
-        settingsUpdate: updateSettingsResolver,
+        settingsUpdate: settingsUpdateResolver,
         updateSettings: updateSettingsResolver,
 
         sendEmailChangeCode: withUser(async (parent, args, uid) => {

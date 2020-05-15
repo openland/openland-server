@@ -97,7 +97,7 @@ extend type Query {
     debugCheckTasksIndex: String!
     debug2WayDirectChatsCounter: Int!
     debugUserMetrics(id: ID!): DebugUserMetrics!
-    debugGlobalCounters: DebugGlobalCounters!
+    debugGlobalCounters(uid: ID): DebugGlobalCounters! #Deprecated
     debugServerId: String!
     debugClientIp: DebugIpInfo
     debugGqlTraces(first: Int!, after: ID): GqlTraceConnection!

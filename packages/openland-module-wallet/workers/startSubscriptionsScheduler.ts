@@ -22,10 +22,9 @@ import { WorkQueue } from 'openland-module-workers/WorkQueue';
 
 export function startSubscriptionsScheduler(repository: SubscriptionsRepository, payments: PaymentMediator) {
 
-    let queue = new WorkQueue<{ pid: string }, { result: string }>('subscription-cancel-task', -1);
+    let queue = new WorkQueue<{ pid: string }>('subscription-cancel-task', -1);
     queue.addWorker(async (item, ctx) => {
         await payments.tryCancelPayment(ctx, item.pid);
-        return { result: 'ok' };
     });
 
     singletonWorker({ db: Store.storage.db, name: 'subscription-scheduler', delay: 1000 }, async (parent) => {

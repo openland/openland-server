@@ -27,7 +27,7 @@ const emailFailed = createHyperlogger<{ to: string, templateId: string }>('email
 const log = createLogger('sendgrid');
 
 export function createEmailWorker() {
-    let queue = new WorkQueue<EmailTask, { result: string }>('emailSender');
+    let queue = new WorkQueue<EmailTask>('emailSender');
     SendGrid.setApiKey(SENDGRID_KEY);
     let isTesting = process.env.TESTING === 'true';
     if (serverRoleEnabled('workers')) {
@@ -39,9 +39,7 @@ export function createEmailWorker() {
                         devTeamEmails.indexOf(args.to.toLowerCase()) < 0 &&
                         !args.to.endsWith('@maildu.de')
                     ) {
-                        return {
-                            result: 'ok'
-                        };
+                        return;
                     }
                 }
 
@@ -67,9 +65,6 @@ export function createEmailWorker() {
                     emailSent.event(ctx2, { templateId: args.templateId, to: args.to });
                 });
             }
-            return {
-                result: 'ok'
-            };
         });
     }
     return queue;

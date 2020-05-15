@@ -25,7 +25,7 @@ export function declareProducerDeleteWorker(service: MediaKitchenService, repo: 
         });
 
         if (r.pr.state !== 'deleted') {
-            return { result: true };
+            return;
         }
 
         // Destroy producer
@@ -50,7 +50,5 @@ export function declareProducerDeleteWorker(service: MediaKitchenService, repo: 
             pr.state = 'deleted';
             await repo.onProducerRemoved(ctx, pr.transportId, pr.id);
         });
-
-        return { result: true };
     });
 }
