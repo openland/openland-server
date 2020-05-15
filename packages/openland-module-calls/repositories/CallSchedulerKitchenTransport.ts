@@ -377,7 +377,8 @@ export class CallSchedulerKitchenTransport {
         stream.remoteStreams = [];
 
         // Delete transport
-        await this.repo.deleteTransport(ctx, id);
+        // Not deleting producer transports until we figure out how to deal with eventual consistency
+        // await this.repo.deleteTransport(ctx, id);
     }
 
     //
@@ -718,6 +719,7 @@ export class CallSchedulerKitchenTransport {
                     media: { type: 'audio', mid }
                 });
             }
+            index++;
         }
 
         // 
