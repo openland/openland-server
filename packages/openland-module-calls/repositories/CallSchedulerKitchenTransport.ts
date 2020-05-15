@@ -234,37 +234,46 @@ export class CallSchedulerKitchenTransport {
         }[] = [];
         for (let transport of consumes) {
             let producerTransport = (await Store.ConferenceKitchenProducerTransport.findById(ctx, transport))!;
+            if (producerTransport.state === 'closed') {
+                continue;
+            }
             if (producerTransport.audioProducer) {
-                let consumer = await this.repo.createConsumer(ctx, id, producerTransport.audioProducer, { rtpCapabilities: RTP_CAPABILITIES_AUDIO });
-                consumers.push({
-                    pid: producerTransport.pid,
-                    consumer,
-                    transport,
-                    active: true,
-                    media: { type: 'audio' }
-                });
+                if (producerTransport.produces.audioStream) {
+                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.audioProducer, { rtpCapabilities: RTP_CAPABILITIES_AUDIO });
+                    consumers.push({
+                        pid: producerTransport.pid,
+                        consumer,
+                        transport,
+                        active: producerTransport.produces.audioStream,
+                        media: { type: 'audio' }
+                    });
+                }
             }
 
             if (producerTransport.videoProducer) {
-                let consumer = await this.repo.createConsumer(ctx, id, producerTransport.videoProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO });
-                consumers.push({
-                    pid: producerTransport.pid,
-                    consumer,
-                    transport,
-                    active: true,
-                    media: { type: 'video', source: 'default' }
-                });
+                if (producerTransport.produces.videoStream) {
+                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.videoProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO });
+                    consumers.push({
+                        pid: producerTransport.pid,
+                        consumer,
+                        transport,
+                        active: true,
+                        media: { type: 'video', source: 'default' }
+                    });
+                }
             }
 
             if (producerTransport.screencastProducer) {
-                let consumer = await this.repo.createConsumer(ctx, id, producerTransport.screencastProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO });
-                consumers.push({
-                    pid: producerTransport.pid,
-                    consumer,
-                    transport,
-                    active: true,
-                    media: { type: 'video', source: 'screen' }
-                });
+                if (producerTransport.produces.screenCastStream) {
+                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.screencastProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO });
+                    consumers.push({
+                        pid: producerTransport.pid,
+                        consumer,
+                        transport,
+                        active: false,
+                        media: { type: 'video', source: 'screen' }
+                    });
+                }
             }
         }
 
@@ -656,12 +665,16 @@ export class CallSchedulerKitchenTransport {
             // Check if producer paused
             if (consumable) {
                 let producerTransport = (await Store.ConferenceKitchenProducerTransport.findById(ctx, c.transport))!;
-                if (c.media.type === 'audio') {
-                    consumable = producerTransport.produces.audioStream;
-                } else if (c.media.type === 'video' && c.media.source === 'default') {
-                    consumable = producerTransport.produces.videoStream;
-                } else if (c.media.type === 'video' && c.media.source === 'screen') {
-                    consumable = producerTransport.produces.screenCastStream;
+                if (producerTransport.state === 'closed') {
+                    consumable = false;
+                } else {
+                    if (c.media.type === 'audio') {
+                        consumable = producerTransport.produces.audioStream;
+                    } else if (c.media.type === 'video' && c.media.source === 'default') {
+                        consumable = producerTransport.produces.videoStream;
+                    } else if (c.media.type === 'video' && c.media.source === 'screen') {
+                        consumable = producerTransport.produces.screenCastStream;
+                    }
                 }
             }
 
@@ -701,46 +714,52 @@ export class CallSchedulerKitchenTransport {
 
             // Add audio producer if needed
             if (producerTransport.audioProducer) {
-                if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'audio')) {
-                    let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.audioProducer, { rtpCapabilities: RTP_CAPABILITIES_AUDIO });
-                    consumers.push({
-                        pid: producerTransport.pid,
-                        consumer,
-                        transport: c,
-                        active: true,
-                        media: { type: 'audio' }
-                    });
-                    changed = true;
+                if (producerTransport.produces.audioStream) {
+                    if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'audio')) {
+                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.audioProducer, { rtpCapabilities: RTP_CAPABILITIES_AUDIO });
+                        consumers.push({
+                            pid: producerTransport.pid,
+                            consumer,
+                            transport: c,
+                            active: true,
+                            media: { type: 'audio' }
+                        });
+                        changed = true;
+                    }
                 }
             }
 
             // Add video producer if needed
             if (producerTransport.videoProducer) {
-                if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'video' && v.media.source === 'default')) {
-                    let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.videoProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO });
-                    consumers.push({
-                        pid: producerTransport.pid,
-                        consumer,
-                        transport: c,
-                        active: true,
-                        media: { type: 'video', source: 'default' }
-                    });
-                    changed = true;
+                if (producerTransport.produces.videoStream) {
+                    if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'video' && v.media.source === 'default')) {
+                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.videoProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO });
+                        consumers.push({
+                            pid: producerTransport.pid,
+                            consumer,
+                            transport: c,
+                            active: true,
+                            media: { type: 'video', source: 'default' }
+                        });
+                        changed = true;
+                    }
                 }
             }
 
             // Add screencast producer if needed
             if (producerTransport.screencastProducer) {
-                if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'video' && v.media.source === 'screen')) {
-                    let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.screencastProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO });
-                    consumers.push({
-                        pid: producerTransport.pid,
-                        consumer,
-                        transport: c,
-                        active: true,
-                        media: { type: 'video', source: 'screen' }
-                    });
-                    changed = true;
+                if (producerTransport.produces.screenCastStream) {
+                    if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'video' && v.media.source === 'screen')) {
+                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.screencastProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO });
+                        consumers.push({
+                            pid: producerTransport.pid,
+                            consumer,
+                            transport: c,
+                            active: true,
+                            media: { type: 'video', source: 'screen' }
+                        });
+                        changed = true;
+                    }
                 }
             }
         }
