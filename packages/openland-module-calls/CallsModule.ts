@@ -36,19 +36,21 @@ export class CallsModule {
     start = async () => {
         this.mediaKitchen = new MediaKitchenService(await connectToCluster({ nc: this.nats }));
 
-        if (serverRoleEnabled('workers')) {
+        if (serverRoleEnabled('calls')) {
             startCallReaper();
             startWorkerTracker(this.mediaKitchen, this.mediaKitchenRepo);
-            declareRouterCreateWorker(this.mediaKitchen, this.mediaKitchenRepo);
-            declareRouterDeleteWorker(this.mediaKitchen, this.mediaKitchenRepo);
-            declareTransportCreateWorker(this.mediaKitchen, this.mediaKitchenRepo);
-            declareTransportConnectWorker(this.mediaKitchen, this.mediaKitchenRepo);
-            declareTransportDeleteWorker(this.mediaKitchen, this.mediaKitchenRepo);
-            declareProducerCreateWorker(this.mediaKitchen, this.mediaKitchenRepo);
-            declareProducerDeleteWorker(this.mediaKitchen, this.mediaKitchenRepo);
-            declareConsumerCreateWorker(this.mediaKitchen, this.mediaKitchenRepo);
-            declareConsumerDeleteWorker(this.mediaKitchen, this.mediaKitchenRepo);
-            declareConsumerUnpauseWorker(this.mediaKitchen, this.mediaKitchenRepo);
+            for (let i = 0; i < 40; i++) {
+                declareRouterCreateWorker(this.mediaKitchen, this.mediaKitchenRepo);
+                declareRouterDeleteWorker(this.mediaKitchen, this.mediaKitchenRepo);
+                declareTransportCreateWorker(this.mediaKitchen, this.mediaKitchenRepo);
+                declareTransportConnectWorker(this.mediaKitchen, this.mediaKitchenRepo);
+                declareTransportDeleteWorker(this.mediaKitchen, this.mediaKitchenRepo);
+                declareProducerCreateWorker(this.mediaKitchen, this.mediaKitchenRepo);
+                declareProducerDeleteWorker(this.mediaKitchen, this.mediaKitchenRepo);
+                declareConsumerCreateWorker(this.mediaKitchen, this.mediaKitchenRepo);
+                declareConsumerDeleteWorker(this.mediaKitchen, this.mediaKitchenRepo);
+                declareConsumerUnpauseWorker(this.mediaKitchen, this.mediaKitchenRepo);
+            }
         }
     }
 }
