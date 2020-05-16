@@ -80,5 +80,7 @@ module.exports = {
         'openland-security': '<rootDir>/packages/openland-security',
         'openland-cli/(.*)': '<rootDir>/packages/openland-cli/$1',
         'openland-cli': '<rootDir>/packages/openland-cli',
+        'openland-config/(.*)': '<rootDir>/packages/openland-config/$1',
+        'openland-config': '<rootDir>/packages/openland-config',
     }
 };

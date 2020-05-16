@@ -119,6 +119,9 @@
       ],
       "openland-cli": [
         "openland-cli"
+      ],
+      "openland-config": [
+        "openland-config"
       ]
     }
   },
