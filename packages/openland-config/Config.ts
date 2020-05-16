@@ -1,25 +1,27 @@
 import * as t from 'io-ts';
 import fs from 'fs';
 import { isRight } from 'fp-ts/lib/Either';
+import { PathReporter } from 'io-ts/lib/PathReporter';
 
 const codec = t.type({
     app: t.type({
-        environment: t.union([t.literal('production'), t.literal('staging'), t.literal('debug'), t.literal('testing')]),
+        environment: t.union([t.literal('production'), t.literal('staging'), t.literal('debug'), t.literal('test')]),
         authenticationSalt: t.string
     }),
     twillio: t.type({
         sid: t.string,
         token: t.string
     }),
-    foundationdb: t.type({
+    foundationdb: t.union([t.type({
         cluster: t.string,
         dcid: t.string
-    }),
-    nats: t.type({
+    }), t.null]),
+    nats: t.union([t.type({
         endpoints: t.array(t.string)
-    }),
+    }), t.null]),
     elasticsearch: t.type({
-        endpoint: t.string
+        endpoint: t.string,
+        writable: t.boolean
     }),
     stripe: t.type({
         public: t.string,
@@ -35,80 +37,68 @@ const codec = t.type({
 
 let configuration: t.TypeOf<typeof codec> | undefined = undefined;
 
+function loadConfigIfNeeded() {
+    if (configuration) {
+        return;
+    }
+    let configPath = process.env.OPENLAND_CONFIG;
+    if (!configPath) {
+        throw Error('Config path not provided');
+    }
+    let res = fs.readFileSync(configPath, { encoding: 'utf8' });
+    let parsed = JSON.parse(res);
+    let decoded = codec.decode(parsed);
+    if (isRight(decoded)) {
+        configuration = decoded.right;
+    } else {
+        throw Error('Error in config: ' + JSON.stringify(PathReporter.report(decoded)));
+    }
+}
+
 class ConfigProvider {
     constructor() {
         Object.freeze(this);
     }
 
     get environment() {
-        if (!configuration) {
-            throw Error('Configuration is not loaded');
-        }
-        return configuration.app.environment;
+        loadConfigIfNeeded();
+        return configuration!.app.environment;
     }
 
     get authenticationSalt() {
-        if (!configuration) {
-            throw Error('Configuration is not loaded');
-        }
-        return configuration.app.authenticationSalt;
+        loadConfigIfNeeded();
+        return configuration!.app.authenticationSalt;
     }
 
     get twillio() {
-        if (!configuration) {
-            throw Error('Configuration is not loaded');
-        }
-        return configuration.twillio;
+        loadConfigIfNeeded();
+        return configuration!.twillio;
     }
 
     get foundationdb() {
-        if (!configuration) {
-            throw Error('Configuration is not loaded');
-        }
-        return configuration.foundationdb;
+        loadConfigIfNeeded();
+        return configuration!.foundationdb;
     }
 
     get nats() {
-        if (!configuration) {
-            throw Error('Configuration is not loaded');
-        }
-        return configuration.nats;
+        loadConfigIfNeeded();
+        return configuration!.nats;
     }
 
     get elasticsearch() {
-        if (!configuration) {
-            throw Error('Configuration is not loaded');
-        }
-        return configuration.elasticsearch;
+        loadConfigIfNeeded();
+        return configuration!.elasticsearch;
     }
 
     get stripe() {
-        if (!configuration) {
-            throw Error('Configuration is not loaded');
-        }
-        return configuration.stripe;
+        loadConfigIfNeeded();
+        return configuration!.stripe;
     }
 
     get clickhouse() {
-        if (!configuration) {
-            throw Error('Configuration is not loaded');
-        }
-        return configuration.clickhouse;
+        loadConfigIfNeeded();
+        return configuration!.clickhouse;
     }
 }
 
 export const Config = new ConfigProvider();
-
-export function loadConfig(path: string) {
-    if (configuration) {
-        throw Error('Configuration already loaded');
-    }
-    let res = fs.readFileSync(path, { encoding: 'utf8' });
-    let parsed = JSON.parse(res);
-    let decoded = codec.decode(parsed);
-    if (isRight(decoded)) {
-        configuration = decoded.right;
-    } else {
-        throw Error('Error in config: ' + decoded.left);
-    }
-}

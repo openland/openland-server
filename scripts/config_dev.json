@@ -1,0 +1,26 @@
+{
+    "app": {
+        "environment": "debug",
+        "authenticationSalt": "DEBUG_SALT. IF IN PRODUCTION - YOU WILL BE FIRED"
+    },
+    "twillio": {
+        "sid": "AC55430ac272f03056cc20a8a97123404d",
+        "token": "e4dd144291faef1952c7899fcf134a48"
+    },
+    "foundationdb": null,
+    "nats": null,
+    "elasticsearch": {
+        "endpoint": "http://localhost:9200/",
+        "writable": true
+    },
+    "stripe": {
+        "public": "pk_test_y80EsXGYQdMKMcJ5lifEM4jx",
+        "secret": "sk_test_bX4FCyKdIBEZZmtdizBGQJpb"
+    },
+    "clickhouse": {
+        "endpoint": "localhost:8123",
+        "database": "debug",
+        "user": "default",
+        "password": ""
+    }
+}

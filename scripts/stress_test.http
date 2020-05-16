@@ -1,4 +1,0 @@
-POST http://localhost:9000/api
-x-openland-token: 2RR0oyo_Jp_wc9Brw2WdJS38SDTywePLoJ1X2ZqDCHvKPF0EcYZcvRlwB-yZhRXF2RveASePRb47vy_79tQ7kQ
-Content-Type: application/json
-@stress_test.json

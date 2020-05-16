@@ -1,1 +1,0 @@
-{"query":"query {\n  me {\n    id\n  }\n}","variables":null}
