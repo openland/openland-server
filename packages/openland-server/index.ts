@@ -26,7 +26,14 @@ import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { setupFdbTracing } from './fdbTracing';
 import { setupNodeJSTracing } from './nodeJSTracing';
+import { Config } from 'openland-config/Config';
 const logger = createLogger('startup');
+
+function assert(expected: string, got: string) {
+    if (expected !== got) {
+        throw Error('Config error. Expected: ' + expected + ', got: ' + got);
+    }
+}
 
 async function initServer() {
     let ctx = createNamedContext('launcher');
@@ -38,6 +45,28 @@ async function initServer() {
         logger.error(ctx, 'uncaughtException', err, origin);
         process.exit(1);
     });
+
+    // Check for production config
+    if (Config.environment === 'production') {
+        if (process.env.TWILIO_SID) {
+            assert(process.env.TWILIO_SID, Config.twillio.sid);
+        }
+        if (process.env.TWILIO_TOKEN) {
+            assert(process.env.TWILIO_TOKEN, Config.twillio.token);
+        }
+        if (process.env.STRIPE_SK) {
+            assert(process.env.STRIPE_SK, Config.stripe.secret);
+        }
+        if (process.env.STRIPE_PK) {
+            assert(process.env.STRIPE_PK, Config.stripe.public);
+        }
+        if (process.env.STRIPE_PK) {
+            assert(process.env.STRIPE_PK, Config.stripe.public);
+        }
+        if (process.env.ELASTIC_ENDPOINT) {
+            assert(process.env.ELASTIC_ENDPOINT, Config.elasticsearch.endpoint);
+        }
+    }
 
     try {
         logger.log(ctx, 'Loading modules');
