@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: openland-server-calls
+  name: openland-server-calls
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: openland-server-calls
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: openland-server-calls
+    spec:
+      containers:
+      - env:
+        - name: SERVER_ROLES
+          value: calls
+        - name: OPENLAND_CONFIG
+          value: /secrets/openland/config.json
+        image: index.docker.io/openland/server:v4176
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 9000
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: openland-server-calls
+        ports:
+        - containerPort: 9000
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9000
+        volumeMounts:
+        - mountPath: /secrets/openland
+          name: openland-config
+          readOnly: true
+      imagePullSecrets:
+      - name: statecraft-docker
+      restartPolicy: Always
+      volumes:
+      - name: openland-config
+        secret:
+          defaultMode: 420
+          secretName: openland-config
