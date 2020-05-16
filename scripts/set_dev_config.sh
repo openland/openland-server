@@ -1,6 +1,5 @@
 set -e
 export NODE_ENV="development" 
-export ELASTIC_ENDPOINT="http://localhost:9200/"
 export GOOGLE_APPLICATION_CREDENTIALS="`pwd`/scripts/google-cloud-dev.json"
 export WEB_PUSH_PUBLIC="BOvxoJt3pHvDl9XDfwtcYPEtKxu7-K1Ztfxh7AyYyNSZa65rsBlt--8d72Y5X7_5kwQWlbaY30J82Olt_g-R7oE"
 export WEB_PUSH_PRIVATE="B6r9Ld6ple838FBD8V-f08Sgc1oA2M8dlX-SrYYhzIA"

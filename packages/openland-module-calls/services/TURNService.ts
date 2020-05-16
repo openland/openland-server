@@ -1,9 +1,6 @@
 // import Twilio from 'twilio';
 //
 // let twillioApi: Twilio.Twilio | undefined;
-// if (process.env.TWILIO_SID && process.env.TWILIO_TOKEN) {
-//     twillioApi = Twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
-// }
 // let iceServers: any | undefined = undefined;
 // let iceServerExpire: number | undefined = undefined;
 

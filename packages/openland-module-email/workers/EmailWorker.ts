@@ -5,6 +5,7 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { EmailTask } from 'openland-module-email/EmailTask';
 import { createLogger } from '@openland/log';
 import { inTx } from '@openland/foundationdb';
+import { Config } from 'openland-config/Config';
 
 export const SENDGRID_KEY = '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';
 
@@ -29,12 +30,11 @@ const log = createLogger('sendgrid');
 export function createEmailWorker() {
     let queue = new WorkQueue<EmailTask>('emailSender');
     SendGrid.setApiKey(SENDGRID_KEY);
-    let isTesting = process.env.TESTING === 'true';
     if (serverRoleEnabled('workers')) {
         queue.addWorker(async (args, ctx) => {
-            if (!isTesting) {
+            if (Config.environment !== 'test') {
                 // Filter for non-production envrionments
-                if (process.env.APP_ENVIRONMENT !== 'production') {
+                if (Config.environment !== 'production') {
                     if (
                         devTeamEmails.indexOf(args.to.toLowerCase()) < 0 &&
                         !args.to.endsWith('@maildu.de')

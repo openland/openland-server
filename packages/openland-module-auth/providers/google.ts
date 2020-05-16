@@ -5,6 +5,7 @@ import { Modules } from '../../openland-modules/Modules';
 import { createNamedContext } from '@openland/context';
 import { OAuth2Client } from 'google-auth-library';
 import { createLogger } from '@openland/log';
+import { Config } from 'openland-config/Config';
 
 const rootCtx = createNamedContext('auth-email');
 const log = createLogger('google-auth');
@@ -36,7 +37,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
             return;
         }
 
-        const clientIdWeb = process.env.APP_ENVIRONMENT === 'production' ? (await Modules.Super.getEnvVar<string>(rootCtx, 'auth-google-web-client-id'))! : '1095846783035-rpgtqd3cbbbagg3ik0rc609olqfnt6ah.apps.googleusercontent.com';
+        const clientIdWeb = Config.environment === 'production' ? (await Modules.Super.getEnvVar<string>(rootCtx, 'auth-google-web-client-id'))! : '1095846783035-rpgtqd3cbbbagg3ik0rc609olqfnt6ah.apps.googleusercontent.com';
 
         if (!client) {
             client = new OAuth2Client(clientIdWeb);

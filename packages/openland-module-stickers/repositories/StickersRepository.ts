@@ -10,6 +10,7 @@ import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { ImageRef } from '../../openland-module-media/ImageRef';
 import { RandomLayer } from '@openland/foundationdb-random';
 import { isDefined } from '../../openland-utils/misc';
+import { Config } from 'openland-config/Config';
 
 export interface StickerPackInput {
     title: string | null;
@@ -21,7 +22,7 @@ export interface StickerInput {
     emoji: string;
 }
 
-const isProd = process.env.APP_ENVIRONMENT === 'production';
+const isProd = Config.environment === 'production';
 const DEFAULT_PACK_IDS = [21, 22, 23, 24, 25];
 
 @injectable()

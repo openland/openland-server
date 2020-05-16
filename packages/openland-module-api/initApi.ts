@@ -1,3 +1,4 @@
+import { Config } from 'openland-config/Config';
 import * as bodyParser from 'body-parser';
 import express from 'express';
 import cors from 'cors';
@@ -169,7 +170,7 @@ export async function initApi(isTest: boolean) {
     const Server = new ApolloServer({
         schema: Schema(),
         introspection: true,
-        tracing: process.env.NODE_ENV !== 'production',
+        tracing: Config.environment !== 'production',
         formatError: (err: any) => {
             logger.warn(rootCtx, err);
             return {

@@ -1,3 +1,4 @@
+import { Config } from 'openland-config/Config';
 import {
     Organization,
     Message,
@@ -264,7 +265,7 @@ export const Resolver: GQLResolver = {
             let type = args.type;
             let user = await Store.User.findById(ctx, uid);
             let email = user!.email!;
-            let isProd = process.env.APP_ENVIRONMENT === 'production';
+            let isProd = Config.environment === 'production';
 
             if (type === 'WELCOME') {
                 await Emails.sendWelcomeEmail(ctx, uid);
@@ -745,7 +746,7 @@ export const Resolver: GQLResolver = {
             return true;
         }),
         debugDeveloperInit: withUser(async (root, args, uid) => {
-            if (process.env.NODE_ENV === 'production') {
+            if (Config.environment === 'production') {
                 return false;
             }
             await inTx(root, async ctx => {

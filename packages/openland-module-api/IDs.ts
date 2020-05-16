@@ -1,20 +1,7 @@
 import { SecIDFactory } from '@openland/secure-id';
 import { Config } from 'openland-config/Config';
 
-let salt = 'DEBUG_SALT. IF IN PRODUCTION - YOU WILL BE FIRED';
-if (!process.env.AUTHENTICATION_SALT || process.env.AUTHENTICATION_SALT.trim() === '') {
-    if (process.env.NODE_ENV === 'production') {
-        throw Error('AUTHENTICATION_SALT is not set');
-    }
-} else {
-    salt = process.env.AUTHENTICATION_SALT!!.trim();
-}
-
-if (salt !== Config.authenticationSalt) {
-    throw Error('Salt mismatch');
-}
-
-export const IdsFactory = new SecIDFactory(salt, 'hashids');
+export const IdsFactory = new SecIDFactory(Config.authenticationSalt, 'hashids');
 
 export const IDs = {
     Organization: IdsFactory.createId('Organization'),
