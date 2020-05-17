@@ -22,6 +22,6 @@ export const ROUTER_CODECS: RtpCodecCapability[] = [{
 export const TRANSPORT_PARAMETERS = {
     enableUdp: true,
     enableTcp: true,
-    preferUdp: true,
-    preferTcp: false,
+    preferUdp: false,
+    preferTcp: true,
 };

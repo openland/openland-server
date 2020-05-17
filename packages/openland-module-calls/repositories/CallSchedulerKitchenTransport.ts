@@ -191,7 +191,7 @@ export class CallSchedulerKitchenTransport {
             remoteSdp: null,
             localStreams: localStreams,
             remoteStreams: [],
-            iceTransportPolicy: 'none'
+            iceTransportPolicy: 'relay'
         });
 
         // Producer transport
@@ -297,7 +297,7 @@ export class CallSchedulerKitchenTransport {
             remoteSdp: null,
             localStreams: [],
             remoteStreams: [],
-            iceTransportPolicy: 'none'
+            iceTransportPolicy: 'relay'
         });
 
         // Create offer if needed
