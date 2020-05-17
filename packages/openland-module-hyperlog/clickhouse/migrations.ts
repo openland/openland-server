@@ -91,6 +91,22 @@ migrations.push({
     }
 });
 
+migrations.push({
+    name: '04-signups',
+    command: async (ctx: Context, client: DatabaseClient) => {
+        await client.createTable(ctx, 'signups', [{
+            name: 'time',
+            type: 'DateTime'
+        }, {
+            name: 'uid',
+            type: 'Int64'
+        }],
+            'toYYYYMM(time)',
+            '(uid, time)',
+            'uid');
+    }
+});
+
 const logger = createLogger('clickhouse');
 
 export async function createClient(ctx: Context) {
