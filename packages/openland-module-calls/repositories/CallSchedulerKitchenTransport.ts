@@ -8,7 +8,7 @@ import { parseSDP } from 'openland-module-calls/sdp/parseSDP';
 import { Store } from 'openland-module-db/FDB';
 import { MediaSources, StreamHint, ProducerDescriptor, Capabilities } from './CallScheduler';
 import { Context } from '@openland/context';
-import { CallRepository } from './CallRepository';
+import { CallRepository, DEFAULT_CAPABILITIES } from './CallRepository';
 import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
@@ -19,50 +19,68 @@ import { MediaDescription } from 'sdp-transform';
 
 const logger = createLogger('mediakitchen');
 
-const RTP_CAPABILITIES_AUDIO: KitchenRtpCapabilities = {
-    codecs: [{
-        kind: 'audio',
-        mimeType: 'audio/opus',
-        clockRate: 48000,
-        channels: 2,
-        parameters: {
-            stereo: 1,
-            maxplaybackrate: 48000,
-            useinbandfec: 1
-        },
-        rtcpFeedback: [{
-            type: 'transport-cc'
-        }]
-    }],
-    headerExtensions: [
-        {
-            preferredId: 3,
-            uri: 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01'
-        }
-    ]
-};
+function getAudioRtpCapabilities(src: Capabilities): KitchenRtpCapabilities {
+    let codec = src.codecs.find((v) => v.mimeType === 'audio/opus');
+    if (!codec) {
+        throw Error('Unable to find OPUS codec');
+    }
 
-const RTP_CAPABILITIES_VIDEO: KitchenRtpCapabilities = {
-    codecs: [{
-        kind: 'video',
-        mimeType: 'video/H264',
-        clockRate: 90000,
-        parameters: {
-            'packetization-mode': 1,
-            'profile-level-id': '42e01f',
-            'level-asymmetry-allowed': 1,
-        },
-        rtcpFeedback: [{
-            type: 'transport-cc'
-        }]
-    }],
-    headerExtensions: [
-        {
-            preferredId: 3,
-            uri: 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01'
-        }
-    ]
-};
+    let res: KitchenRtpCapabilities = {
+        codecs: [{
+            kind: 'audio',
+            mimeType: 'audio/opus',
+            clockRate: 48000,
+            channels: 2,
+            parameters: {
+                stereo: 1,
+                maxplaybackrate: 48000,
+                useinbandfec: 1
+            },
+            rtcpFeedback: codec.rtcpFeedback.map((f) => ({ type: f.type, parameter: f.value }))
+        }],
+        headerExtensions: src.headerExtensions
+            .filter((v) => v.kind === 'audio')
+            .map((h) => ({
+                uri: h.uri,
+                preferredId: h.preferredId,
+                kind: 'audio'
+            }))
+    };
+    return res;
+}
+
+function getVideoRtpCapabilities(src: Capabilities): KitchenRtpCapabilities {
+    let codec = src.codecs.find((v) =>
+        v.mimeType === 'video/H264'
+        && v.parameters.some((p) => p.key === 'profile-level-id' && (p.value === '42e034' || p.value === '42e01f'))
+        && v.parameters.some((p) => p.key === 'packetization-mode' && p.value === '1')
+    );
+    if (!codec) {
+        throw Error('Unable to find H264 codec');
+    }
+
+    let res: KitchenRtpCapabilities = {
+        codecs: [{
+            kind: 'audio',
+            mimeType: 'video/H264',
+            clockRate: 90000,
+            parameters: {
+                'packetization-mode': 1,
+                'profile-level-id': '42e01f',
+                'level-asymmetry-allowed': 1,
+            },
+            rtcpFeedback: codec.rtcpFeedback.map((f) => ({ type: f.type, parameter: f.value }))
+        }],
+        headerExtensions: src.headerExtensions
+            .filter((v) => v.kind === 'video')
+            .map((h) => ({
+                uri: h.uri,
+                preferredId: h.preferredId,
+                kind: 'video'
+            }))
+    };
+    return res;
+}
 
 function generateSDP(
     fingerprints: { algorithm: string, value: string }[],
@@ -251,7 +269,7 @@ export class CallSchedulerKitchenTransport {
             }
             if (producerTransport.audioProducer) {
                 if (producerTransport.produces.audioStream) {
-                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.audioProducer, { rtpCapabilities: RTP_CAPABILITIES_AUDIO, paused: true });
+                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.audioProducer, { rtpCapabilities: getAudioRtpCapabilities(capabilities), paused: true });
                     consumers.push({
                         pid: producerTransport.pid,
                         consumer,
@@ -264,7 +282,7 @@ export class CallSchedulerKitchenTransport {
 
             if (producerTransport.videoProducer) {
                 if (producerTransport.produces.videoStream) {
-                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.videoProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO, paused: true });
+                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.videoProducer, { rtpCapabilities: getVideoRtpCapabilities(capabilities), paused: true });
                     consumers.push({
                         pid: producerTransport.pid,
                         consumer,
@@ -277,7 +295,7 @@ export class CallSchedulerKitchenTransport {
 
             if (producerTransport.screencastProducer) {
                 if (producerTransport.produces.screenCastStream) {
-                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.screencastProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO, paused: true });
+                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.screencastProducer, { rtpCapabilities: getVideoRtpCapabilities(capabilities), paused: true });
                     consumers.push({
                         pid: producerTransport.pid,
                         consumer,
@@ -663,6 +681,7 @@ export class CallSchedulerKitchenTransport {
         if (!consumerTransport || consumerTransport.state === 'closed') {
             return;
         }
+        let capabilities: Capabilities = consumerTransport.capabilities || DEFAULT_CAPABILITIES;
         let consumers: {
             pid: number,
             consumer: string,
@@ -732,7 +751,7 @@ export class CallSchedulerKitchenTransport {
             if (producerTransport.audioProducer) {
                 if (producerTransport.produces.audioStream) {
                     if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'audio')) {
-                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.audioProducer, { rtpCapabilities: RTP_CAPABILITIES_AUDIO, paused: true });
+                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.audioProducer, { rtpCapabilities: getAudioRtpCapabilities(capabilities), paused: true });
                         consumers.push({
                             pid: producerTransport.pid,
                             consumer,
@@ -749,7 +768,7 @@ export class CallSchedulerKitchenTransport {
             if (producerTransport.videoProducer) {
                 if (producerTransport.produces.videoStream) {
                     if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'video' && v.media.source === 'default')) {
-                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.videoProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO, paused: true });
+                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.videoProducer, { rtpCapabilities: getVideoRtpCapabilities(capabilities), paused: true });
                         consumers.push({
                             pid: producerTransport.pid,
                             consumer,
@@ -766,7 +785,7 @@ export class CallSchedulerKitchenTransport {
             if (producerTransport.screencastProducer) {
                 if (producerTransport.produces.screenCastStream) {
                     if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'video' && v.media.source === 'screen')) {
-                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.screencastProducer, { rtpCapabilities: RTP_CAPABILITIES_VIDEO, paused: true });
+                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.screencastProducer, { rtpCapabilities: getVideoRtpCapabilities(capabilities), paused: true });
                         consumers.push({
                             pid: producerTransport.pid,
                             consumer,
