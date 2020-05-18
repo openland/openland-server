@@ -1094,6 +1094,7 @@ export default declareSchema(() => {
     });
 
     const rtpParameters = struct({
+        mid: optional(string()),
         codecs: array(struct({
             mimeType: string(),
             payloadType: integer(),
