@@ -15,7 +15,7 @@ import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import uuid from 'uuid/v4';
 import { extractFingerprints } from 'openland-module-calls/sdp/extractFingerprints';
-import { extractOpusRtpParameters, extractH264RtpParameters, convertParameters, convertIceCandidate } from 'openland-module-calls/kitchen/extract';
+import { extractOpusRtpParameters, extractH264RtpParameters, convertParameters, convertIceCandidate, extractVP8RtpParameters } from 'openland-module-calls/kitchen/extract';
 import { MediaDescription } from 'sdp-transform';
 
 const logger = createLogger('mediakitchen');
@@ -51,18 +51,17 @@ function getAudioRtpCapabilities(src: Capabilities): KitchenRtpCapabilities {
     return res;
 }
 
-function getVideoRtpCapabilities(src: Capabilities): KitchenRtpCapabilities {
-    let codec = src.codecs.find((v) =>
+function getVideoCapabilities(src: Capabilities): KitchenRtpCapabilities {
+
+    let codecs: KitchenRtpCapabilities['codecs'] = [];
+
+    let h264codec = src.codecs.find((v) =>
         v.mimeType === 'video/H264'
         && v.parameters.some((p) => p.key === 'profile-level-id' && (p.value === '42e034' || p.value === '42e01f'))
         && v.parameters.some((p) => p.key === 'packetization-mode' && p.value === '1')
     );
-    if (!codec) {
-        throw Error('Unable to find H264 codec');
-    }
-
-    let res: KitchenRtpCapabilities = {
-        codecs: [{
+    if (h264codec) {
+        codecs.push({
             kind: 'audio',
             mimeType: 'video/H264',
             clockRate: 90000,
@@ -71,8 +70,25 @@ function getVideoRtpCapabilities(src: Capabilities): KitchenRtpCapabilities {
                 'profile-level-id': '42e01f',
                 'level-asymmetry-allowed': 1,
             },
-            rtcpFeedback: codec.rtcpFeedback.map((f) => ({ type: f.type, parameter: f.value }))
-        }],
+            rtcpFeedback: h264codec.rtcpFeedback.map((f) => ({ type: f.type, parameter: f.value }))
+        });
+    }
+
+    let vp8codec = src.codecs.find((v) =>
+        v.mimeType === 'video/VP8'
+    );
+    if (vp8codec) {
+        codecs.push({
+            kind: 'audio',
+            mimeType: 'video/VP8',
+            clockRate: 90000,
+            parameters: {},
+            rtcpFeedback: vp8codec.rtcpFeedback.map((f) => ({ type: f.type, parameter: f.value }))
+        });
+    }
+
+    let res: KitchenRtpCapabilities = {
+        codecs,
         headerExtensions: src.headerExtensions
             .filter((v) => v.kind === 'video')
             .map((h) => ({
@@ -291,7 +307,7 @@ export class CallSchedulerKitchenTransport {
 
             if (producerTransport.videoProducer) {
                 if (producerTransport.produces.videoStream) {
-                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.videoProducer, { rtpCapabilities: getVideoRtpCapabilities(capabilities), paused: true });
+                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.videoProducer, { rtpCapabilities: getVideoCapabilities(capabilities), paused: true });
                     consumers.push({
                         pid: producerTransport.pid,
                         consumer,
@@ -304,7 +320,7 @@ export class CallSchedulerKitchenTransport {
 
             if (producerTransport.screencastProducer) {
                 if (producerTransport.produces.screenCastStream) {
-                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.screencastProducer, { rtpCapabilities: getVideoRtpCapabilities(capabilities), paused: true });
+                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.screencastProducer, { rtpCapabilities: getVideoCapabilities(capabilities), paused: true });
                     consumers.push({
                         pid: producerTransport.pid,
                         consumer,
@@ -562,7 +578,7 @@ export class CallSchedulerKitchenTransport {
                     }
 
                     if (!producerTransport.screencastProducer) {
-                        let rtpParameters = extractH264RtpParameters(media);
+                        let rtpParameters = extractVP8RtpParameters(media);
                         let producerId = await this.repo.createProducer(ctx, transportId, { kind: 'video', rtpParameters });
                         producerTransport.screencastProducer = producerId;
                         changed = true;
@@ -777,7 +793,7 @@ export class CallSchedulerKitchenTransport {
             if (producerTransport.videoProducer) {
                 if (producerTransport.produces.videoStream) {
                     if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'video' && v.media.source === 'default')) {
-                        let caps = getVideoRtpCapabilities(capabilities);
+                        let caps = getVideoCapabilities(capabilities);
                         let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.videoProducer, { rtpCapabilities: caps, paused: true });
                         consumers.push({
                             pid: producerTransport.pid,
@@ -795,7 +811,7 @@ export class CallSchedulerKitchenTransport {
             if (producerTransport.screencastProducer) {
                 if (producerTransport.produces.screenCastStream) {
                     if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'video' && v.media.source === 'screen')) {
-                        let caps = getVideoRtpCapabilities(capabilities);
+                        let caps = getVideoCapabilities(capabilities);
                         let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.screencastProducer, { rtpCapabilities: caps, paused: true });
                         consumers.push({
                             pid: producerTransport.pid,

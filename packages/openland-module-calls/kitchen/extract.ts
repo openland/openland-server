@@ -137,3 +137,42 @@ export function extractH264RtpParameters(src: MediaDescription): RtpParameters {
         encodings: [{ ssrc: ssrc }]
     };
 }
+
+export function extractVP8RtpParameters(src: MediaDescription): RtpParameters {
+
+    /// Find codec
+    const codec = src.rtp.find((v) => v.codec === 'VP8');
+    if (!codec) {
+        throw Error('Unable to find opus codec!');
+    }
+
+    // Find ssrc
+    let ssrc = src.ssrcs![0].id as number;
+
+    // Resolve Parameters
+    let params: any = {};
+    let fmt = src.fmtp.find((v) => v.payload === codec.payload);
+    if (fmt) {
+        params = extractParameters(fmt.config);
+    }
+
+    // Create Producer
+    let codecParameters = {
+        mimeType: 'video/VP8',
+        payloadType: codec.payload,
+        clockRate: 90000,
+        parameters: params,
+        rtcpFeedback: (src.rtcpFb || [])
+            .filter((v) => v.payload === codec.payload)
+            .map((v) => ({ type: v.type, parameter: v.subtype }))
+    };
+
+    return {
+        headerExtensions: (src.ext || []).map((v) => ({
+            uri: v.uri,
+            id: v.value
+        })),
+        codecs: [codecParameters],
+        encodings: [{ ssrc: ssrc }]
+    };
+}

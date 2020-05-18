@@ -31,6 +31,24 @@ export const ROUTER_CODECS: RtpCodecCapability[] = [{
         type: 'nack',
         parameter: 'pli'
     }]
+}, {
+    kind: 'video',
+    mimeType: 'video/VP8',
+    clockRate: 90000,
+    parameters: {},
+    rtcpFeedback: [{
+        type: 'goog-remb'
+    }, {
+        type: 'transport-cc'
+    }, {
+        type: 'ccm',
+        parameter: 'fir'
+    }, {
+        type: 'nack'
+    }, {
+        type: 'nack',
+        parameter: 'pli'
+    }]
 }];
 
 export const TRANSPORT_PARAMETERS = {
