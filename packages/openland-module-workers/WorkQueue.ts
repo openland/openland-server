@@ -179,7 +179,7 @@ export class WorkQueue<ARGS> {
                     if (res2) {
                         if (res2.taskLockSeed === lockSeed && res2.taskStatus === 'executing') {
                             res2.taskStatus = 'completed';
-                            await Store.Task.descriptor.subspace.clear(ctx, [res2.taskType, res2.uid]);
+                            // await Store.Task.descriptor.subspace.clear(ctx, [res2.taskType, res2.uid]);
                             workCompleted.event(ctx, { taskId: res2.uid, taskType: res2.taskType, duration: Date.now() - res2.metadata.createdAt });
                             return true;
                         }

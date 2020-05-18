@@ -1,3 +1,4 @@
+import { Config } from 'openland-config/Config';
 import { WalletPurchaseCreateShape } from './../openland-module-db/store';
 import { OperationsRepository } from './repo/OperationsRepository';
 import { WalletSubscriptionCreateShape } from '../openland-module-db/store';
@@ -40,7 +41,7 @@ export class WalletModule {
     readonly operations: OperationsRepository = new OperationsRepository(Store, this.wallet, this.payments, this.subscriptions);
 
     // Payments Mediator (on/off session)
-    readonly paymentsMediator: PaymentMediator = new PaymentMediator(process.env.STRIPE_SK  || 'sk_test_bX4FCyKdIBEZZmtdizBGQJpb' /* Like Waaaat 🤯 */,
+    readonly paymentsMediator: PaymentMediator = new PaymentMediator(Config.stripe.secret,
         this.paymentIntents, this.payments, this.subscriptions
     );
 

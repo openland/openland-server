@@ -1,3 +1,4 @@
+import { Config } from 'openland-config/Config';
 import { OrganizationInviteLink, ChannelInvitation } from './../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { Modules } from 'openland-modules/Modules';
@@ -30,8 +31,6 @@ export const TEMPLATE_UNREAD_COMMENT = 'a1f0b2e1-835f-4ffc-8ba2-c67f2a6cf6b3';
 export const TEMPLATE_UNREAD_COMMENTS = '78f799d6-cb3a-4c06-bfeb-9eb98b9749cb';
 export const TEMPLATE_WEEKLY_DIGEST = 'd-43e37b53d7ed4ef4afaf758b4a36ca24';
 export const TEMPLATE_GENERIC = 'e1833d55-f948-4eef-9380-4c7a59e66ab0';
-
-const isProd = process.env.APP_ENVIRONMENT === 'production';
 
 const loadUserState = async (ctx: Context, uid: number) => {
     let user = await Store.User.findById(ctx, uid);
@@ -259,7 +258,7 @@ export const Emails = {
                 throw Error('Internal inconsistency');
             }
 
-            let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://openland.com/join/' : 'http://localhost:3000/join/';
+            let domain = Config.environment === 'production' ? 'https://openland.com/join/' : 'http://localhost:3000/join/';
             let orgProfile = (await Store.OrganizationProfile.findById(ctx, oid))!;
             let avatar = await genAvatar(ctx, invite.uid);
 
@@ -359,7 +358,7 @@ export const Emails = {
         let userProfile = await Modules.Users.profileById(ctx, uid);
 
         let org = userProfile!.primaryOrganization ? await Store.OrganizationProfile.findById(ctx, userProfile!.primaryOrganization!) : null;
-        let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://openland.com/joinChannel/' : 'http://localhost:3000/joinChannel/';
+        let domain = Config.environment ? 'https://openland.com/joinChannel/' : 'http://localhost:3000/joinChannel/';
 
         await Modules.Email.enqueueEmail(ctx, {
             subject: `Join ${roomTitle} room at Openland`,
@@ -455,7 +454,7 @@ export const Emails = {
     async sendWeeklyDigestEmail(ctx: Context, uid: number) {
         const user = await loadUserState(ctx, uid);
 
-        const cid = isProd
+        const cid = Config.environment === 'production'
             // openland news
             ? IDs.Conversation.parse('EQvPJ1LamRtJJ9ppVxDDs30Jzw')
             : IDs.Conversation.parse('Wr8D66l5plu52AmgYoBWuznRLX');

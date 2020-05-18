@@ -1,3 +1,4 @@
+import { Config } from 'openland-config/Config';
 import { ApolloClient } from 'apollo-client';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { SchemaLink } from 'apollo-link-schema';
@@ -68,7 +69,7 @@ export class ApiModule {
         ctx = CacheContext.set(ctx, new Map());
         return new ApolloClient({
             cache: new InMemoryCache(),
-            link: new SchemaLink({ schema: Schema(process.env.TESTING === 'true'), context: new AppContext(ctx) })
+            link: new SchemaLink({ schema: Schema(Config.environment === 'test'), context: new AppContext(ctx) })
         });
     }
 }

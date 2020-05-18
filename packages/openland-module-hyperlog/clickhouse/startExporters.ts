@@ -1,7 +1,8 @@
+import { Context } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 import { updateReader } from 'openland-module-workers/updateReader';
 import { DatabaseClient } from './ClickHouseClient';
-import { Context, createNamedContext } from '@openland/context';
+import { createNamedContext } from '@openland/context';
 import { backoff, forever, delay } from 'openland-utils/timer';
 import { createClient } from './migrations';
 
@@ -9,7 +10,7 @@ function startPresenceExport(client: DatabaseClient) {
     updateReader('ch-exporter-reader', 3, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
         let presences = src.filter((v) => v.type === 'presence' && v.body.online === true);
         if (presences.length > 0) {
-            await client.insert(ctx, 'presences', ['time', 'eid', 'uid', 'platform'], presences.map((v) => [Math.round(v.date / 1000), v.id, v.body.uid, v.body.platform]));
+            await client.insert(ctx, 'presences', ['time', 'eid', 'uid', 'platform'], src.map((v) => [Math.round(v.date / 1000), v.id, v.body.uid, v.body.platform]));
         }
     });
 }
@@ -55,6 +56,18 @@ function startSuperAdminsExport(client: DatabaseClient) {
     });
 }
 
+function startSignupsExporter(client: DatabaseClient) {
+    updateReader('ch-exporter-signups', 1, Store.UserProfile.created.stream({ batchSize: 1000 }), async (src, first, ctx) => {
+        let data: any[][] = [];
+        for (let v of src) {
+            let time = Math.round(v.metadata.createdAt / 1000);
+            let uid = v.id;
+            data.push([time, uid]);
+        }
+        await client.insert(ctx, 'signups', ['time', 'uid'], data);
+    });
+}
+
 function startBotsExport(client: DatabaseClient) {
     let rootCtx = createNamedContext('ch-bots-export');
     forever(rootCtx, async () => {
@@ -82,5 +95,6 @@ export function startExporters(ctx: Context) {
         startMessagesExport(client);
         startSuperAdminsExport(client);
         startBotsExport(client);
+        startSignupsExporter(client);
     })();
 }

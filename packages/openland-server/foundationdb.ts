@@ -10,6 +10,7 @@ import { BusLayer, NoOpBus } from '@openland/foundationdb-bus';
 import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
 import { NatsBusProvider } from '../openland-module-pubsub/NatsBusProvider';
 import { container } from '../openland-modules/Modules.container';
+import { Config } from 'openland-config/Config';
 
 let cachedDB: Database|null = null;
 
@@ -40,8 +41,8 @@ export async function openDatabase() {
         return cachedDB;
     }
     let db: Database;
-    if (process.env.FOUNDATION_DB) {
-        fs.writeFileSync('foundation.clusterfile', process.env.FOUNDATION_DB);
+    if (Config.foundationdb) {
+        fs.writeFileSync('foundation.clusterfile', Config.foundationdb.cluster);
         db = await Database.open({ clusterFile: 'foundation.clusterfile', layers: createLayers(false) });
     } else {
         db = await Database.open({ layers: createLayers(false) });
@@ -63,8 +64,8 @@ export async function openDatabase() {
 
 export async function openTestDatabase() {
     let db: Database;
-    if (process.env.FOUNDATION_DB) {
-        fs.writeFileSync('foundation.clusterfile', process.env.FOUNDATION_DB);
+    if (Config.foundationdb) {
+        fs.writeFileSync('foundation.clusterfile', Config.foundationdb.cluster);
         db = await Database.openTest({ clusterFile: 'foundation.clusterfile', layers: createLayers(true) });
     } else {
         db = await Database.openTest({ layers: createLayers(true) });

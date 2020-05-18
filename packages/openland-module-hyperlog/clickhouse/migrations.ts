@@ -1,3 +1,4 @@
+import { Config } from 'openland-config/Config';
 import { delay } from 'openland-utils/timer';
 import { createLogger } from '@openland/log';
 import { Store } from 'openland-module-db/FDB';
@@ -5,8 +6,6 @@ import { Context } from '@openland/context';
 import { ClickHouseClient, DatabaseClient } from './ClickHouseClient';
 import { DistributedLock } from '@openland/foundationdb-locks';
 import { inTx } from '@openland/foundationdb';
-
-const database = process.env.CLICKHOUSE_DB || 'openland';
 
 interface Migration {
     name: string;
@@ -92,18 +91,27 @@ migrations.push({
     }
 });
 
+migrations.push({
+    name: '04-signups',
+    command: async (ctx: Context, client: DatabaseClient) => {
+        await client.createTable(ctx, 'signups', [{
+            name: 'time',
+            type: 'DateTime'
+        }, {
+            name: 'uid',
+            type: 'Int64'
+        }],
+            'toYYYYMM(time)',
+            '(uid, time)',
+            'uid');
+    }
+});
+
 const logger = createLogger('clickhouse');
 
 export async function createClient(ctx: Context) {
-    if (!process.env.CLICKHOUSE_ENDPOINT) {
-        throw Error('CLICKHOUSE_ENDPOINT variable is not set');
-    }
-    let endpoint = process.env.CLICKHOUSE_ENDPOINT;
-    let username = process.env.CLICKHOUSE_USER || 'default';
-    let password = process.env.CLICKHOUSE_PASSWORD || '';
-
-    let client = new ClickHouseClient(endpoint, username, password);
-    let db = client.withDatabase(database);
+    let client = new ClickHouseClient(Config.clickhouse.endpoint, Config.clickhouse.user, Config.clickhouse.password);
+    let db = client.withDatabase(Config.clickhouse.database);
     let lock = new DistributedLock('clickhouse-migrations', Store.storage.db, 1);
 
     // Perform migrations

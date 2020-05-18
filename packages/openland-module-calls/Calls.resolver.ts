@@ -1,3 +1,4 @@
+import { Capabilities } from './repositories/CallScheduler';
 import { ConferenceRoom, ConferencePeer } from './../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { withUser } from 'openland-module-api/Resolvers';
@@ -234,7 +235,11 @@ export const Resolver: GQLResolver = {
     Mutation: {
         conferenceJoin: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conference.parse(args.id);
-            let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 15000, args.kind === 'STREAM' ? 'stream' : 'conference');
+            let capabilities: Capabilities | null = null;
+            if (args.input && args.input.capabilities) {
+                capabilities = args.input.capabilities;
+            }
+            let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 15000, args.kind === 'STREAM' ? 'stream' : 'conference', capabilities);
             let activeMembers = await Modules.Calls.repo.findActiveMembers(ctx, cid);
             if (activeMembers.length === 1) {
                 let fullName = await Modules.Users.getUserFullName(ctx, uid);

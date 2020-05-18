@@ -17,11 +17,24 @@ export const ROUTER_CODECS: RtpCodecCapability[] = [{
         'profile-level-id': '42e01f',
         'level-asymmetry-allowed': 1,
     },
+    rtcpFeedback: [{
+        type: 'goog-remb'
+    }, {
+        type: 'transport-cc'
+    }, {
+        type: 'ccm',
+        parameter: 'fir'
+    }, {
+        type: 'nack'
+    }, {
+        type: 'nack',
+        parameter: 'pli'
+    }]
 }];
 
 export const TRANSPORT_PARAMETERS = {
     enableUdp: true,
     enableTcp: true,
-    preferUdp: true,
-    preferTcp: false,
+    preferUdp: false,
+    preferTcp: true,
 };

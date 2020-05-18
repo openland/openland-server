@@ -1,3 +1,4 @@
+import { Config } from 'openland-config/Config';
 import { WalletModule } from '../openland-module-wallet/WalletModule';
 import { MonitoringModule } from './../openland-module-monitoring/MonitoringModule';
 import { Store } from './../openland-module-db/store';
@@ -79,7 +80,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
 
     if (loadDb) {
         // Load NATS
-        let client = await connect(process.env.NATS_ENDPOINT ? { payload: Payload.JSON, servers: [process.env.NATS_ENDPOINT] } : { payload: Payload.JSON });
+        let client = await connect(Config.nats ? { payload: Payload.JSON, servers: Config.nats.endpoints } : { payload: Payload.JSON });
         container.bind('NATS').toConstantValue(client);
         logger.log(ctx, 'NATS connected');
 

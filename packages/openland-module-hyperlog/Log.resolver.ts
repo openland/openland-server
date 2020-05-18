@@ -6,6 +6,7 @@ import { Context } from '@openland/context';
 import { uuid } from '../openland-utils/uuid';
 import { UserError } from '../openland-errors/UserError';
 import { createLogger } from '@openland/log';
+import { Config } from 'openland-config/Config';
 
 export interface InternalTrackEvent {
     id: string;
@@ -24,7 +25,7 @@ export interface InternalTrackEvent {
 export const trackEvent = createHyperlogger<InternalTrackEvent>('track');
 
 const log = createLogger('track');
-const isProd = process.env.APP_ENVIRONMENT === 'production';
+const isProd = Config.environment === 'production';
 
 export function trackServerEvent(ctx: Context, event: { name: string, uid?: number, args?: any }) {
     trackEvent.event(ctx, {

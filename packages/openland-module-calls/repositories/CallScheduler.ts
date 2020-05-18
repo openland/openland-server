@@ -7,7 +7,7 @@ export interface MediaSources {
     screenCastStream: boolean;
 }
 
-export type StreamConfig = {
+export type ProducerDescriptor = {
     type: 'audio',
     codec: 'default' | 'opus'
     mid: string | null
@@ -18,6 +18,24 @@ export type StreamConfig = {
     mid: string | null
 };
 
+export type ConsumerDescriptor = {
+    pid: number,
+    media:
+    | { type: 'audio', mid: string | null | undefined }
+    | { type: 'video', source: 'default' | 'screen', mid: string | null | undefined }
+};
+
+export type ProducerReference = {
+    pid: number,
+    connection: string,
+    producer: string,
+    media:
+    | { type: 'audio', mid: string | null | undefined }
+    | { type: 'video', source: 'default' | 'screen', mid: string | null | undefined }
+};
+
+export type ConsumerReference = { media: { type: 'audio', mid: string | null | undefined } | { type: 'video', source: 'default' | 'screen', mid: string | null | undefined }, consumer: string, connection: string };
+
 export type StreamHint = {
     peerId: number | null;
     kind: GQL.MediaKind;
@@ -26,13 +44,30 @@ export type StreamHint = {
     mid: string;
 };
 
+export type Capabilities = {
+    codecs: {
+        kind: string;
+        mimeType: string;
+        preferredPayloadType: number;
+        clockRate: number;
+        channels: number | null;
+        parameters: { key: string, value: string }[];
+        rtcpFeedback: { type: string; value: string | null; }[];
+    }[];
+    headerExtensions: {
+        kind: string;
+        uri: string;
+        preferredId: number;
+    }[];
+};
+
 export interface CallScheduler {
     onConferenceStarted(ctx: Context, cid: number): Promise<void>;
     onConferenceStopped(ctx: Context, cid: number): Promise<void>;
 
     onPeerRemoved(ctx: Context, cid: number, pid: number): Promise<void>;
     onPeerStreamsChanged(ctx: Context, cid: number, pid: number, sources: MediaSources): Promise<void>;
-    onPeerAdded(ctx: Context, cid: number, pid: number, sources: MediaSources): Promise<void>;
+    onPeerAdded(ctx: Context, cid: number, pid: number, sources: MediaSources, capabilities: Capabilities): Promise<void>;
 
     onStreamCandidate(ctx: Context, cid: number, pid: number, sid: string, candidate: string): Promise<void>;
     onStreamOffer(ctx: Context, cid: number, pid: number, sid: string, offer: string, hints: StreamHint[] | null): Promise<void>;

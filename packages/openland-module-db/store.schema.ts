@@ -902,6 +902,13 @@ export default declareSchema(() => {
         })
     });
 
+    const remoteMedia = union({
+        audio: struct({}),
+        video: struct({
+            source: enumString('default', 'screen')
+        })
+    });
+
     entity('ConferenceEndStream', () => {
         primaryKey('id', string());
         field('pid', integer());
@@ -965,64 +972,68 @@ export default declareSchema(() => {
         uniqueIndex('conference', ['cid']).withCondition((s) => !s.deleted);
     });
 
+    const capabilities = struct({
+        codecs: array(struct({
+            kind: string(),
+            mimeType: string(),
+            preferredPayloadType: integer(),
+            clockRate: integer(),
+            channels: optional(integer()),
+            parameters: array(struct({ key: string(), value: string() })),
+            rtcpFeedback: array(struct({ type: string(), value: optional(string()) }))
+        })),
+        headerExtensions: array(struct({
+            kind: string(),
+            uri: string(),
+            preferredId: integer()
+        }))
+    });
+
     entity('ConferenceKitchenPeer', () => {
         primaryKey('pid', integer());
         field('cid', integer());
-        field('sources', localSources);
         field('active', boolean());
-
-        // Transports
-        field('genericTransport', optional(string()));
-        field('screencastTransport', optional(string()));
-        field('consumersTransport', optional(string()));
-
+        field('capabilities', optional(capabilities));
+        field('producerTransport', optional(string()));
+        field('consumerTransport', optional(string()));
         rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.active);
-        rangeIndex('conferenceStreamers', ['cid', 'createdAt']).withCondition((src) => src.active && src.sources.length > 0);
-    });
-
-    entity('ConferenceKitchenConnection', () => {
-        primaryKey('id', string());
-        field('kind', enumString('producer', 'consumer'));
-        field('pid', integer());
-        field('cid', integer());
-        field('producerSources', optional(localSources));
-        field('consumerConnections', optional(array(string())));
-
-        field('transportId', optional(string()));
-
-        field('deleted', boolean());
     });
 
     entity('ConferenceKitchenProducerTransport', () => {
         primaryKey('id', string());
-        field('connection', string());
-        field('localAudioProducer', optional(string()));
-        field('localVideoProducer', optional(string()));
-        field('deleted', boolean());
+        field('pid', integer());
+        field('cid', integer());
+
+        field('capabilities', optional(capabilities));
+        field('state', enumString('negotiation-need-offer', 'negotiation-wait-answer', 'ready', 'closed'));
+        field('produces', localSources);
+        field('audioProducer', optional(string()));
+        field('audioProducerMid', optional(string()));
+        field('videoProducer', optional(string()));
+        field('videoProducerMid', optional(string()));
+        field('screencastProducer', optional(string()));
+        field('screencastProducerMid', optional(string()));
+
+        rangeIndex('fromConference', ['cid', 'createdAt']).withCondition((src) => src.state !== 'closed');
     });
 
     entity('ConferenceKitchenConsumerTransport', () => {
         primaryKey('id', string());
-        field('connection', string());
-        field('midCounter', integer());
-        field('sources', array(struct({
-            mid: integer(),
-            kind: enumString('audio', 'video'),
-            connection: string(),
-            consumer: string()
+        field('pid', integer());
+        field('cid', integer());
+
+        field('capabilities', optional(capabilities));
+        field('state', enumString('negotiation-wait-offer', 'negotiation-need-answer', 'ready', 'closed'));
+        field('consumes', array(string()));
+        field('consumers', array(struct({
+            pid: integer(),
+            transport: string(),
+            consumer: string(),
+            media: remoteMedia,
+            active: boolean()
         })));
-        field('deleted', boolean());
-    });
 
-    entity('ConferenceKitchenTransportRef', () => {
-        primaryKey('id', string());
-        field('connection', string());
-    });
-
-    entity('ConferenceKitchenProducerRef', () => {
-        primaryKey('id', string());
-        field('connection', string());
-        field('kind', enumString('audio', 'video'));
+        rangeIndex('fromConference', ['cid', 'createdAt']).withCondition((src) => src.state !== 'closed');
     });
 
     //
@@ -1071,6 +1082,7 @@ export default declareSchema(() => {
 
         // Client Parameters
         field('clientParameters', optional(struct({
+            dtlsRole: optional(enumString('server', 'client')),
             fingerprints: array(struct({
                 algorithm: string(),
                 value: string()
@@ -2498,7 +2510,7 @@ export default declareSchema(() => {
     //
     // Clickhouse Migrations
     //
-    
+
     entity('ClickHouseMigrations', () => {
         primaryKey('version', integer());
         field('applied', array(string()));

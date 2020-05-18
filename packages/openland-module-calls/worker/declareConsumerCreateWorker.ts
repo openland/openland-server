@@ -15,7 +15,10 @@ export function declareConsumerCreateWorker(service: MediaKitchenService, repo: 
             if (!pr) {
                 throw Error('Unable to find producer');
             }
-            let ts = await Store.KitchenTransport.findById(ctx, pr.transportId);
+            if (!pr.rawId) {
+                throw Error('Producer not ready');
+            }
+            let ts = await Store.KitchenTransport.findById(ctx, cr.transportId);
             if (!ts) {
                 throw Error('Unable to find transport');
             }
@@ -36,8 +39,8 @@ export function declareConsumerCreateWorker(service: MediaKitchenService, repo: 
         let rawConsumer = await service.getOrCreateConsumer(
             r.router.workerId!,
             r.router.id,
-            r.ts.id,
-            r.pr.id,
+            r.cr.transportId,
+            r.pr.rawId!,
             r.cr.id,
             r.cr.parameters
         );
@@ -52,7 +55,7 @@ export function declareConsumerCreateWorker(service: MediaKitchenService, repo: 
                 cr.state = 'created';
                 cr.rtpParameters = convertRtpParamsToStore(rawConsumer.rtpParameters);
                 await cr.flush(ctx);
-                await repo.onConsumerCreated(ctx, cr.id);
+                await repo.onConsumerCreated(ctx, r.cr.transportId, cr.id);
             }
         });
     });

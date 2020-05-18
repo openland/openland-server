@@ -28,7 +28,7 @@ export function declareConsumerDeleteWorker(service: MediaKitchenService, repo: 
             return { router, ts, pr, cr };
         });
 
-        if (r.pr.state !== 'deleted') {
+        if (r.pr.state === 'deleted') {
             return;
         }
 
@@ -53,7 +53,7 @@ export function declareConsumerDeleteWorker(service: MediaKitchenService, repo: 
                 return;
             }
             pr.state = 'deleted';
-            await repo.onConsumerRemoved(ctx, pr.id);
+            await repo.onConsumerRemoved(ctx, pr.transportId, pr.id);
         });
     });
 }

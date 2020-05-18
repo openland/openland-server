@@ -1,6 +1,6 @@
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
-import { CallRepository } from './CallRepository';
+import { CallRepository, DEFAULT_CAPABILITIES } from './CallRepository';
 import { Store } from 'openland-module-db/FDB';
 import { createNamedContext } from '@openland/context';
 
@@ -9,8 +9,8 @@ describe('CallRepository', () => {
         await testEnvironmentStart('calls-repo');
         container.bind('CallRepository').to(CallRepository).inSingletonScope();
     });
-    afterAll( async () => {
-      await  testEnvironmentEnd();
+    afterAll(async () => {
+        await testEnvironmentEnd();
     });
     it('should create conference', async () => {
         let repo = container.get<CallRepository>('CallRepository');
@@ -24,7 +24,7 @@ describe('CallRepository', () => {
         let ctx = createNamedContext('test');
         let CID = 2;
         let repo = container.get<CallRepository>('CallRepository');
-        let peer = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
+        let peer = await repo.addPeer(ctx, CID, 3, 'tid1', 5000, 'conference', DEFAULT_CAPABILITIES);
         let peers = await Store.ConferencePeer.conference.findAll(ctx, CID);
         expect(peers.length).toBe(1);
         expect(peer.uid).toBe(3);
@@ -42,8 +42,8 @@ describe('CallRepository', () => {
         let ctx = createNamedContext('test');
         let CID = 3;
         let repo = container.get<CallRepository>('CallRepository');
-        let peer1 = await repo.addPeer(createNamedContext('test'), CID, 3, 'tid1', 5000);
-        let peer2 = await repo.addPeer(createNamedContext('test'), CID, 4, 'tid2', 5000);
+        let peer1 = await repo.addPeer(createNamedContext('test'), CID, 3, 'tid1', 5000, 'conference', DEFAULT_CAPABILITIES);
+        let peer2 = await repo.addPeer(createNamedContext('test'), CID, 4, 'tid2', 5000, 'conference', DEFAULT_CAPABILITIES);
         let peers = await Store.ConferencePeer.conference.findAll(ctx, CID);
         expect(peer1.id).toBeLessThan(peer2.id);
         expect(peer1.uid).toBe(3);
@@ -59,8 +59,8 @@ describe('CallRepository', () => {
         let ctx = createNamedContext('test');
         let CID = 4;
         let repo = container.get<CallRepository>('CallRepository');
-        let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
-        let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000);
+        let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000, 'conference', DEFAULT_CAPABILITIES);
+        let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000, 'conference', DEFAULT_CAPABILITIES);
         await repo.removePeer(ctx, peer1.id);
         let peers = await Store.ConferencePeer.conference.findAll(ctx, CID);
         expect(peers.length).toBe(1);

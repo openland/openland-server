@@ -84,6 +84,7 @@
     "faker": "^4.1.0",
     "firebase-admin": "^8.10.0",
     "form-data": "^2.3.2",
+    "fp-ts": "^2.6.1",
     "geoip-lite": "^1.4.1",
     "globby": "^9.2.0",
     "google-auth-library": "^5.5.1",
@@ -98,6 +99,7 @@
     "inversify": "^5.0.1",
     "inversify-inject-decorators": "^3.1.0",
     "inversify-logger-middleware": "^3.1.0",
+    "io-ts": "^2.2.2",
     "isomorphic-fetch": "^2.2.1",
     "jaeger-client": "^3.15.0",
     "jest": "^22.3.0",
@@ -219,6 +221,7 @@
     "openland-cli": "build/openland-cli",
     "openland-module-video": "build/openland-module-video",
     "openland-module-wallet": "build/openland-module-wallet",
-    "openland-module-phonebook": "build/openland-module-phonebook"
+    "openland-module-phonebook": "build/openland-module-phonebook",
+    "openland-config": "build/openland-config"
   }
 }

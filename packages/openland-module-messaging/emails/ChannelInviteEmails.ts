@@ -2,6 +2,7 @@ import { Modules } from 'openland-modules/Modules';
 import { ChannelInvitation } from 'openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
+import { Config } from 'openland-config/Config';
 const TEMPLATE_INVITE = '024815a8-5602-4412-83f4-4be505c2026a';
 
 export const ChannelInviteEmails = {
@@ -24,7 +25,7 @@ export const ChannelInviteEmails = {
             throw Error('Internal inconsistency');
         }
 
-        let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://openland.com/joinChannel/' : 'http://localhost:3000/joinChannel/';
+        let domain = Config.environment === 'production' ? 'https://openland.com/joinChannel/' : 'http://localhost:3000/joinChannel/';
 
         await Modules.Email.enqueueEmail(ctx, {
             subject: `Join ${channel.title} at Openland`,

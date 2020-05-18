@@ -4,11 +4,12 @@ import { DistributedCollector } from './DistributedCollector';
 // import { EventBus } from 'openland-module-pubsub/EventBus';
 // import { getAllMetrics } from './Metric';
 import { injectable } from 'inversify';
+import { Config } from 'openland-config/Config';
 // import { forever, delay } from 'openland-utils/timer';
 // import { createNamedContext } from '@openland/context';
 // import { logger } from 'openland-server/logs';
 
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = Config.environment;
 
 @injectable()
 export class MonitoringModule {

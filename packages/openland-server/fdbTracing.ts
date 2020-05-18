@@ -15,7 +15,6 @@ import { encoders } from '@openland/foundationdb';
 // import { Context, ContextName } from '@openland/context';
 // import { LogPathContext } from '@openland/log';
 
-// const isProduction = process.env.NODE_ENV === 'production';
 // const logger = (isProduction ? createZippedLogger : createLogger)('FDB');
 // const tracer = createTracer('FDB');
 

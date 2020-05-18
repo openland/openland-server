@@ -11,6 +11,41 @@ type ConferencePeer {
 }
 
 #
+# Media Capabilities
+#
+
+input MediaHeaderExtension {
+  kind: String!
+  uri: String!
+  preferredId: Int!
+}
+
+input MediaRtcpFeedback {
+  type: String!
+  value: String
+}
+
+input CodecParameter {
+  key: String!
+  value: String!
+}
+
+input CodecCapabilities {
+  kind: String!
+  mimeType: String!
+  preferredPayloadType: Int!
+  clockRate: Int!
+  channels: Int
+  parameters: [CodecParameter!]!
+  rtcpFeedback: [MediaRtcpFeedback!]!
+}
+
+input MediaCapabilities {
+  codecs: [CodecCapabilities!]!
+  headerExtensions: [MediaHeaderExtension!]!
+}
+
+#
 # Media Streams
 #
 
@@ -100,6 +135,7 @@ type ConferenceJoinResult {
 
 input ConferenceJoinInput {
     media: LocalMediaInput!
+    capabilities: MediaCapabilities
 }
 
 extend type Mutation {

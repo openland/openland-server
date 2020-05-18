@@ -3,6 +3,7 @@ import { createLogger } from '@openland/log';
 const ClickHouse = require('@apla/clickhouse');
 import { URL } from 'url';
 
+// @ts-ignore
 const logger = createLogger('clickhouse-client');
 
 export type ColumnDefinition = {
@@ -23,17 +24,17 @@ export class ClickHouseClient {
     }
 
     async query(ctx: Context, body: string) {
-        logger.log(ctx, 'Executing: ' + body);
+        // logger.log(ctx, 'Executing: ' + body);
         return (await this.client.querying(body)).data as any[];
     }
 
     async execute(ctx: Context, body: string) {
-        logger.log(ctx, 'Executing: ' + body);
+        // logger.log(ctx, 'Executing: ' + body);
         await this.client.querying(body);
     }
 
     async insert(ctx: Context, body: string, columns: string[], data: any[][]) {
-        logger.log(ctx, 'Inserting: ' + body);
+        // logger.log(ctx, 'Inserting: ' + body);
         await new Promise((resolve, reject) => {
             const writableStream = this.client.query(body, { format: 'JSONEachRow' }, (err: any) => {
                 if (err) {
@@ -53,7 +54,7 @@ export class ClickHouseClient {
     }
 
     async count(ctx: Context, body: string) {
-        logger.log(ctx, 'Count: ' + body);
+        // logger.log(ctx, 'Count: ' + body);
         let res = await this.client.querying(body);
         return parseInt(res.data[0][0], 10);
     }

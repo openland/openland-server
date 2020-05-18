@@ -1,3 +1,4 @@
+import { Config } from 'openland-config/Config';
 import { inTx } from '@openland/foundationdb';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { Modules } from '../openland-modules/Modules';
@@ -34,7 +35,7 @@ export const Resolver: GQLResolver = {
         chat: hook => hook.chatId,
         webhook: hook => {
             let domain = '';
-            if (process.env.APP_ENVIRONMENT === 'production') {
+            if (Config.environment === 'production') {
                 domain = 'https://api.openland.com';
             } else {
                 domain = 'http://localhost:9000';

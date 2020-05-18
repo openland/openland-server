@@ -12,3 +12,4 @@ server/.gradle
 server/out
 workspace.xml
 .idea/
+config_prod.json

@@ -27,6 +27,7 @@ export function declareTransportConnectWorker(service: MediaKitchenService, repo
         let rawTransport = await service.getOrCreateTransport(r.router.workerId!, r.router.id, r.ts.id);
         await rawTransport.connect({
             dtlsParameters: {
+                role: r.ts.clientParameters!.dtlsRole ? r.ts.clientParameters!.dtlsRole : undefined,
                 fingerprints: r.ts.clientParameters!.fingerprints
             }
         });
@@ -45,7 +46,8 @@ export function declareTransportConnectWorker(service: MediaKitchenService, repo
                 return;
             }
             ts.state = 'connected';
-            // TODO: Notify
+            await ts.flush(ctx);
+            await repo.onTransportConnected(ctx, ts.id);
         });
     });
 }

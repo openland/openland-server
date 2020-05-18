@@ -1,10 +1,11 @@
+import { Config } from 'openland-config/Config';
 import { setLogProvider, LogPathContext, LogMetaContext } from '@openland/log';
 import { Context, ContextName } from '@openland/context';
 import winston from 'winston';
 import pino from 'pino';
 import { ZippedLoggerTimes } from '../openland-utils/ZippedLogger';
 
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = Config.environment === 'production';
 
 const getPino = () => {
     let log = pino();
@@ -33,8 +34,12 @@ export const logger = isProduction ? getPino() : winston.createLogger({
 });
 
 function formatMessage(ctx: Context, name: string, message: string) {
-    let v = LogPathContext.get(ctx);
-    return ContextName.get(ctx) + ' | ' + [...v, name].join(' ➾ ') + ': ' + message;
+    if (isProduction) {
+        let v = LogPathContext.get(ctx);
+        return ContextName.get(ctx) + ' | ' + [...v, name].join(' ➾ ') + ': ' + message;
+    } else {
+        return name + ': ' + message;
+    }
 }
 
 setLogProvider({
