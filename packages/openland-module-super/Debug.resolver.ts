@@ -1315,11 +1315,26 @@ export const Resolver: GQLResolver = {
         debugFixUsersPrimaryOrganization: withPermission('super-admin', async (parent) => {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugFixUsersPrimaryOrganization', async (ctx, id, log) => {
                 let profile = await Store.UserProfile.findById(ctx, id);
-                if (profile && !profile.primaryOrganization) {
-                    profile.primaryOrganization = await Modules.Orgs.findPrimaryOrganizationForUser(ctx, id);
-                    if (!profile.primaryOrganization) {
-                        await log(`user[${id}] org not found`);
+                if (!profile) {
+                    return;
+                }
+                if (profile.primaryOrganization) {
+                    let org = await Store.Organization.findById(ctx, profile.primaryOrganization);
+                    if (!org) {
+                        await log(`user[${id}] invalid org`);
+                        profile.primaryOrganization = await Modules.Orgs.findPrimaryOrganizationForUser(ctx, id);
                     }
+                    if (org?.kind !== 'organization') {
+                        await log(`user[${id}] not organization was set`);
+                        profile.primaryOrganization = await Modules.Orgs.findPrimaryOrganizationForUser(ctx, id);
+                    }
+                }
+                if (!profile.primaryOrganization) {
+                    profile.primaryOrganization = await Modules.Orgs.findPrimaryOrganizationForUser(ctx, id);
+                }
+
+                if (!profile.primaryOrganization) {
+                    await log(`user[${id}] org not found`);
                 }
             });
             return true;
