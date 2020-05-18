@@ -6,7 +6,7 @@ let iceServers: any | undefined = undefined;
 let iceServerExpire: number | undefined = undefined;
 
 export async function resolveTurnServices() {
-    if (twillioApi) {
+    if (twillioApi && Config.environment === 'production') {
         let now = Date.now();
         if (iceServers) {
             if (now < iceServerExpire!) {
