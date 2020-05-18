@@ -10,27 +10,27 @@ import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { resolveTurnServices } from './services/TURNService';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
-import { distanceBetweenIP } from '../openland-utils/geoIp/geoIP';
+// import { distanceBetweenIP } from '../openland-utils/geoIp/geoIP';
 import { GQLRoots } from 'openland-module-api/schema/SchemaRoots';
 
-const resolveNearestTurn = async (ip: string) => {
-    let turns = await resolveTurnServices();
-    let nearestDist = Number.MAX_SAFE_INTEGER;
-    let nearest: any;
-    for (let turn of turns) {
-        let dist = await distanceBetweenIP(turn.ip, ip);
-        if (dist < nearestDist) {
-            nearestDist = dist;
-            nearest = turn;
-        }
-    }
-    return nearest;
-};
+// const resolveNearestTurn = async (ip: string) => {
+//     let turns = await resolveTurnServices();
+//     let nearestDist = Number.MAX_SAFE_INTEGER;
+//     let nearest: any;
+//     for (let turn of turns) {
+//         let dist = await distanceBetweenIP(turn.ip, ip);
+//         if (dist < nearestDist) {
+//             nearestDist = dist;
+//             nearest = turn;
+//         }
+//     }
+//     return nearest;
+// };
 
 const resolveIce = async (root: any, args: any, context: AppContext) => {
-    if (context.req.ip) {
-        return [await resolveNearestTurn(context.req.ip)];
-    }
+    // if (context.req.ip) {
+    //     return [await resolveNearestTurn(context.req.ip)];
+    // }
     return await resolveTurnServices();
 };
 
