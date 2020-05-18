@@ -24,7 +24,7 @@ describe('CallRepository', () => {
         let ctx = createNamedContext('test');
         let CID = 2;
         let repo = container.get<CallRepository>('CallRepository');
-        let peer = await repo.addPeer(ctx, CID, 3, 'tid1', 5000, 'conference', DEFAULT_CAPABILITIES);
+        let peer = await repo.addPeer(ctx, CID, 3, 'tid1', 5000, 'conference', DEFAULT_CAPABILITIES, 'unknown');
         let peers = await Store.ConferencePeer.conference.findAll(ctx, CID);
         expect(peers.length).toBe(1);
         expect(peer.uid).toBe(3);
@@ -42,8 +42,8 @@ describe('CallRepository', () => {
         let ctx = createNamedContext('test');
         let CID = 3;
         let repo = container.get<CallRepository>('CallRepository');
-        let peer1 = await repo.addPeer(createNamedContext('test'), CID, 3, 'tid1', 5000, 'conference', DEFAULT_CAPABILITIES);
-        let peer2 = await repo.addPeer(createNamedContext('test'), CID, 4, 'tid2', 5000, 'conference', DEFAULT_CAPABILITIES);
+        let peer1 = await repo.addPeer(createNamedContext('test'), CID, 3, 'tid1', 5000, 'conference', DEFAULT_CAPABILITIES, 'unknown');
+        let peer2 = await repo.addPeer(createNamedContext('test'), CID, 4, 'tid2', 5000, 'conference', DEFAULT_CAPABILITIES, 'unknown');
         let peers = await Store.ConferencePeer.conference.findAll(ctx, CID);
         expect(peer1.id).toBeLessThan(peer2.id);
         expect(peer1.uid).toBe(3);
@@ -59,8 +59,8 @@ describe('CallRepository', () => {
         let ctx = createNamedContext('test');
         let CID = 4;
         let repo = container.get<CallRepository>('CallRepository');
-        let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000, 'conference', DEFAULT_CAPABILITIES);
-        let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000, 'conference', DEFAULT_CAPABILITIES);
+        let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000, 'conference', DEFAULT_CAPABILITIES, 'unknown');
+        let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000, 'conference', DEFAULT_CAPABILITIES, 'unknown');
         await repo.removePeer(ctx, peer1.id);
         let peers = await Store.ConferencePeer.conference.findAll(ctx, CID);
         expect(peers.length).toBe(1);
