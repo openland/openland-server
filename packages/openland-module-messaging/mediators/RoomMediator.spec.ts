@@ -50,7 +50,7 @@ describe('RoomMediator', () => {
         expect(messages[0].uid).toBe(USER_ID);
         expect(messages[0].cid).toBe(room.id);
         let userName = await Modules.Users.getUserFullName(ctx, USER_ID);
-        expect(messages[0].text).toBe(`${userName} created the group Room`);
+        expect(messages[0].text).toBe(`${userName} created the group Room`); // pay attention there is a non-breaking space
     });
 
     it('should be able to join room', async () => {
