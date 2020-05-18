@@ -64,14 +64,14 @@ export function extractOpusRtpParameters(src: MediaDescription): RtpParameters {
         parameters: params,
         rtcpFeedback: (src.rtcpFb || [])
             .filter((v) => v.payload === codec.payload)
-            .map((v) => ({ type: v.type, parameter: v.subtype })),
-        headerExtensions: (src.ext || []).map((v) => ({
-            uri: v.uri,
-            id: v.value
-        }))
+            .map((v) => ({ type: v.type, parameter: v.subtype }))
     };
 
     return {
+        headerExtensions: (src.ext || []).map((v) => ({
+            uri: v.uri,
+            id: v.value
+        })),
         codecs: [codecParameters],
         encodings: [{ ssrc: ssrc }]
     };
@@ -125,14 +125,14 @@ export function extractH264RtpParameters(src: MediaDescription): RtpParameters {
         parameters: params,
         rtcpFeedback: (src.rtcpFb || [])
             .filter((v) => v.payload === codec.payload)
-            .map((v) => ({ type: v.type, parameter: v.subtype })),
-        headerExtensions: (src.ext || []).map((v) => ({
-            uri: v.uri,
-            id: v.value
-        }))
+            .map((v) => ({ type: v.type, parameter: v.subtype }))
     };
 
     return {
+        headerExtensions: (src.ext || []).map((v) => ({
+            uri: v.uri,
+            id: v.value
+        })),
         codecs: [codecParameters],
         encodings: [{ ssrc: ssrc }]
     };
