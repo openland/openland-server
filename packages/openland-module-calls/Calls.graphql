@@ -25,13 +25,18 @@ input MediaRtcpFeedback {
   value: String
 }
 
+input CodecParameter {
+  key: String!
+  value: String!
+}
+
 input CodecCapabilities {
   kind: String!
   mimeType: String!
   preferredPayloadType: Int!
   clockRate: Int!
   channels: Int
-  parameters: String!
+  parameters: [CodecParameter!]!
   rtcpFeedback: [MediaRtcpFeedback!]!
 }
 

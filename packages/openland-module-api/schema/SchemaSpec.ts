@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'e3f49509eaace50cdc2072b0bf32e4b8';
+export const GQL_SPEC_VERSION = '2ae944e54c3746e571f264771cd0c21b';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1647,13 +1647,17 @@ export namespace GQL {
         type: string;
         value: Nullable<string>;
     }
+    export interface CodecParameter {
+        key: string;
+        value: string;
+    }
     export interface CodecCapabilities {
         kind: string;
         mimeType: string;
         preferredPayloadType: number;
         clockRate: number;
         channels: Nullable<number>;
-        parameters: string;
+        parameters: CodecParameter[];
         rtcpFeedback: MediaRtcpFeedback[];
     }
     export interface MediaCapabilities {
