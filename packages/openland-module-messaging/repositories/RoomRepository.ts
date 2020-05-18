@@ -351,7 +351,7 @@ export class RoomRepository {
             };
 
             await Modules.Messaging.sendMessage(ctx, cid, uid, {
-                ...buildMessage(userMention(userName, uid), ' pinned "', boldString(await getMessageContent(message)), '"'),
+                ...buildMessage(userMention(userName, uid), ' pinned “', boldString(await getMessageContent(message)), '”'),
                 isService: true
             });
             return true;

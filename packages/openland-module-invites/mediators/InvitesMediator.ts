@@ -71,7 +71,6 @@ export class InvitesMediator {
             await this.activateUserOrgs(ctx, uid, !isNewUser, 'APP', inviteData.uid);
             let chat = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, inviteData.uid);
             let name1 = await Modules.Users.getUserFullName(ctx, uid);
-            let name2 = await Modules.Users.getUserFullName(ctx, inviteData.uid);
 
             let supportUserId = await Modules.Users.getSupportUserId(ctx);
 
@@ -84,7 +83,7 @@ export class InvitesMediator {
                 chat.id,
                 supportUserId,
                 {
-                    ...buildMessage(`🙌 `, userMention(name2, inviteData.uid), ' — ', userMention(name1, uid), ' has accepted your invite. Now you can chat!'),
+                    ...buildMessage(userMention(name1, uid), ' accepted your invite. Now you can chat!'),
                     isService: true
                 },
                 true

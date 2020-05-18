@@ -57,7 +57,7 @@ export class RoomMediator {
             let userName = await Modules.Users.getUserFullName(parent, uid);
             let chatTypeString = channel ? 'channel' : 'group';
             await this.messaging.sendMessage(ctx, uid, res.id, {
-                ...buildMessage(userMention(userName, uid), ` created the ${chatTypeString} `, boldString(profile.title)),
+                ...buildMessage(userMention(userName, uid), ` created the ${chatTypeString} `, boldString(profile.title)),
                 isService: true,
             });
             if (message) {
@@ -327,7 +327,7 @@ export class RoomMediator {
 
                 if (shouldSendMessage) {
                     await this.messaging.sendMessage(ctx, uid, cid, {
-                        ...buildMessage(userMention(userName, uid), ` left the group`),
+                        ...buildMessage(userMention(userName, uid), ` left the group`),
                         isService: true,
                         isMuted: true,
                         serviceMetadata: {
@@ -434,7 +434,7 @@ export class RoomMediator {
 
             if (res.updatedPhoto) {
                 await this.messaging.sendMessage(ctx, uid, cid, {
-                    ...buildMessage(userMention(userName, uid), ` changed ${conv.isChannel ? 'channel' : 'group'} photo`),
+                    ...buildMessage(userMention(userName, uid), ` changed the ${conv.isChannel ? 'channel' : 'group'} photo`),
                     isService: true,
                     isMuted: true,
                     serviceMetadata: {
@@ -446,7 +446,7 @@ export class RoomMediator {
             }
             if (res.updatedTitle) {
                 await this.messaging.sendMessage(ctx, uid, cid, {
-                    ...buildMessage(userMention(userName, uid), ` changed ${conv.isChannel ? 'channel' : 'group'} name to `, boldString(roomProfile.title)),
+                    ...buildMessage(userMention(userName, uid), ` changed the ${conv.isChannel ? 'channel' : 'group'} name to `, boldString(roomProfile.title)),
                     isService: true,
                     isMuted: true,
                     serviceMetadata: {
@@ -710,11 +710,11 @@ export class RoomMediator {
             if (uids.length === 2) {
                 let name1 = await Modules.Users.getUserFullName(parent, uids[0]);
                 let name2 = await Modules.Users.getUserFullName(parent, uids[1]);
-                return buildMessage(userMention(name1, uids[0]), ' joined the group along with ', userMention(name2, uids[1]));
+                return buildMessage(userMention(name1, uids[0]), ' and ', userMention(name2, uids[1]),  ' joined the group');
             } else {
                 let name = await Modules.Users.getUserFullName(parent, uids[0]);
 
-                return buildMessage(userMention(name, uids[0]), ' joined the group along with ', usersMention(`${uids.length - 1} others`, uids.slice(1)));
+                return buildMessage(userMention(name, uids[0]), ' and ', usersMention(`${uids.length - 1} others`, uids.slice(1)), ' joined the group');
             }
         }
 
@@ -722,10 +722,10 @@ export class RoomMediator {
             if (invitedBy && invitedBy !== uids[0]) {
                 let name = await Modules.Users.getUserFullName(parent, uids[0]);
                 let inviterName = await Modules.Users.getUserFullName(parent, invitedBy);
-                return buildMessage(userMention(name, uids[0]), ' joined the group with invite from ', userMention(inviterName, invitedBy!));
+                return buildMessage(userMention(inviterName, invitedBy!), ' invited ', userMention(name, uids[0]));
             } else {
                 let name = await Modules.Users.getUserFullName(parent, uids[0]);
-                return buildMessage(userMention(name, uids[0]), ' joined the group');
+                return buildMessage(userMention(name, uids[0]), ' joined the group');
             }
         } else if (uids.length === 2) {
             let inviterName = await Modules.Users.getUserFullName(parent, invitedBy!);
@@ -735,7 +735,7 @@ export class RoomMediator {
         } else {
             let inviterName = await Modules.Users.getUserFullName(parent, invitedBy!);
             let name = await Modules.Users.getUserFullName(parent, uids[0]);
-            return buildMessage(userMention(inviterName, invitedBy!), ' invited ', userMention(name, uids[0]), ' along with ', usersMention(`${uids.length - 1} others`, uids.splice(1)));
+            return buildMessage(userMention(inviterName, invitedBy!), ' invited ', userMention(name, uids[0]), ' and ', usersMention(`${uids.length - 1} others`, uids.splice(1)));
         }
     }
 

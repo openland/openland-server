@@ -272,7 +272,7 @@ export class PremiumChatMediator {
     private async roomLeaveMessage(parent: Context, uid: number): Promise<MessageInput> {
         let name = await Modules.Users.getUserFullName(parent, uid);
         return {
-            ...buildMessage(userMention(name, uid), ' left the group'),
+            ...buildMessage(userMention(name, uid), ' left the group'),
             isService: true,
             isMuted: true,
             serviceMetadata: {
