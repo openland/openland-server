@@ -83,7 +83,7 @@ export class InvitesMediator {
                 chat.id,
                 supportUserId,
                 {
-                    ...buildMessage(userMention(name1, uid), ' accepted your invite. Now you can chat!'),
+                    ...buildMessage(userMention(name1, uid), ' accepted your invite. Now you can\u00A0chat!'),
                     isService: true
                 },
                 true

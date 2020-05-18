@@ -244,7 +244,7 @@ export const Resolver: GQLResolver = {
             if (activeMembers.length === 1) {
                 let fullName = await Modules.Users.getUserFullName(ctx, uid);
                 await Modules.Messaging.sendMessage(ctx, cid, uid, {
-                    ...buildMessage(userMention(fullName, uid), ' started a call'),
+                    ...buildMessage(userMention(fullName, uid), ' started a\u00A0call'),
                     isService: true
                 });
             }
