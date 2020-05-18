@@ -7,12 +7,41 @@ import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { Store } from 'openland-module-db/FDB';
 import { ConferencePeer, ConferenceRoom } from '../../openland-module-db/store';
-import { CallScheduler, MediaSources, StreamHint } from './CallScheduler';
+import { CallScheduler, MediaSources, StreamHint, Capabilities } from './CallScheduler';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 
 let log = createLogger('call-repo');
 
 let callEndedEvent = createHyperlogger<{ duration: number }>('call_ended');
+
+export let DEFAULT_CAPABILITIES: Capabilities = {
+    codecs: [{
+        kind: 'audio',
+        mimeType: 'audio/opus',
+        preferredPayloadType: 109,
+        clockRate: 48000,
+        channels: 2,
+        parameters: [
+            { key: 'maxplaybackrate', value: '48000' },
+            { key: 'stereo', value: '1' },
+            { key: 'useinbandfec', value: '1' }
+        ],
+        rtcpFeedback: []
+    }, {
+        kind: 'video',
+        mimeType: 'video/H264',
+        preferredPayloadType: 125,
+        clockRate: 90000,
+        channels: null,
+        parameters: [
+            { key: 'level-asymmetry-allowed', value: '1' },
+            { key: 'packetization-mode', value: '1' },
+            { key: 'profile-level-id', value: '42e01f' },
+        ],
+        rtcpFeedback: []
+    }],
+    headerExtensions: []
+};
 
 @injectable()
 export class CallRepository {
@@ -46,7 +75,7 @@ export class CallRepository {
         }
     }
 
-    addPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number, kind: 'conference' | 'stream' = 'conference') => {
+    addPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number, kind: 'conference' | 'stream' = 'conference', capabilities: Capabilities | null) => {
         return await inTx(parent, async (ctx) => {
             // let room = await this.entities.ConferenceRoom.findById(ctx, cid);
             // if (!room) {
@@ -110,7 +139,11 @@ export class CallRepository {
             });
 
             // Handle scheduling
-            await scheduler.onPeerAdded(ctx, conf.id, id, this.#getStreams(res, conf));
+            let cap = capabilities;
+            if (!cap) {
+                cap = DEFAULT_CAPABILITIES;
+            }
+            await scheduler.onPeerAdded(ctx, conf.id, id, this.#getStreams(res, conf), cap);
 
             // Notify state change
             await this.bumpVersion(ctx, cid, id);

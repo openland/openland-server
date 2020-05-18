@@ -4,7 +4,7 @@ import { CallRepository } from './CallRepository';
 import { Store } from 'openland-module-db/FDB';
 import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 import { Context } from '@openland/context';
-import { CallScheduler, MediaSources, StreamHint } from './CallScheduler';
+import { CallScheduler, MediaSources, StreamHint, Capabilities } from './CallScheduler';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 
@@ -57,7 +57,7 @@ export class CallSchedulerKitchen implements CallScheduler {
     // Peer Events
     //
 
-    onPeerAdded = async (ctx: Context, cid: number, pid: number, sources: MediaSources) => {
+    onPeerAdded = async (ctx: Context, cid: number, pid: number, sources: MediaSources, capabilities: Capabilities) => {
 
         logger.log(ctx, 'Add peer');
         let router = await Store.ConferenceKitchenRouter.conference.find(ctx, cid);

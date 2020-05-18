@@ -44,13 +44,30 @@ export type StreamHint = {
     mid: string;
 };
 
+export type Capabilities = {
+    codecs: {
+        kind: string;
+        mimeType: string;
+        preferredPayloadType: number;
+        clockRate: number;
+        channels: number | null;
+        parameters: { key: string, value: string }[];
+        rtcpFeedback: { type: string; value: string | null; }[];
+    }[];
+    headerExtensions: {
+        kind: string;
+        uri: string;
+        preferredId: number;
+    }[];
+};
+
 export interface CallScheduler {
     onConferenceStarted(ctx: Context, cid: number): Promise<void>;
     onConferenceStopped(ctx: Context, cid: number): Promise<void>;
 
     onPeerRemoved(ctx: Context, cid: number, pid: number): Promise<void>;
     onPeerStreamsChanged(ctx: Context, cid: number, pid: number, sources: MediaSources): Promise<void>;
-    onPeerAdded(ctx: Context, cid: number, pid: number, sources: MediaSources): Promise<void>;
+    onPeerAdded(ctx: Context, cid: number, pid: number, sources: MediaSources, capabilities: Capabilities): Promise<void>;
 
     onStreamCandidate(ctx: Context, cid: number, pid: number, sid: string, candidate: string): Promise<void>;
     onStreamOffer(ctx: Context, cid: number, pid: number, sid: string, offer: string, hints: StreamHint[] | null): Promise<void>;

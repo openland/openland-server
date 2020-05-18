@@ -1,7 +1,7 @@
 import { Store } from 'openland-module-db/FDB';
 import { createLogger } from '@openland/log';
 import { Context } from '@openland/context';
-import { CallScheduler, MediaSources, StreamHint, ProducerDescriptor } from './CallScheduler';
+import { CallScheduler, MediaSources, StreamHint, ProducerDescriptor, Capabilities } from './CallScheduler';
 import uuid from 'uuid/v4';
 import { ConferenceMeshLink } from 'openland-module-db/store';
 import { parseSDP } from 'openland-module-calls/sdp/parseSDP';
@@ -38,7 +38,7 @@ export class CallSchedulerMesh implements CallScheduler {
     // Peer States
     //
 
-    onPeerAdded = async (ctx: Context, cid: number, pid: number, sources: MediaSources) => {
+    onPeerAdded = async (ctx: Context, cid: number, pid: number, sources: MediaSources, capabilities: Capabilities) => {
         logger.log(ctx, 'Peer added: ' + pid + ', ' + JSON.stringify(sources));
 
         // Find existing peers
