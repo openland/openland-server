@@ -38,6 +38,7 @@ export const TRANSPORT_PARAMETERS = {
     enableTcp: true,
     preferUdp: false,
     preferTcp: true,
+    initialAvailableOutgoingBitrate: 6000000 /* 750kb/s */
 };
 
 export const ICE_TRANSPORT_POLICY: 'none' | 'all' | 'relay' = Config.environment === 'production' ? 'relay' : 'all';
