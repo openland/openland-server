@@ -1,3 +1,4 @@
+import { ICE_TRANSPORT_POLICY } from './../kitchen/MediaKitchenProfiles';
 import { KitchenRtpCapabilities } from './../kitchen/types';
 import { createLogger } from '@openland/log';
 import { KitchenRtpParameters, KitchenIceCandidate } from '../kitchen/types';
@@ -46,6 +47,7 @@ function getAudioRtpCapabilities(src: Capabilities): KitchenRtpCapabilities {
                 kind: 'audio'
             }))
     };
+
     return res;
 }
 
@@ -147,6 +149,10 @@ function createMediaDescription(
         rtcpMux: 'rtcp-mux',
         rtcpRsize: 'rtcp-rsize',
         direction: active ? direction : 'inactive',
+        ext: (rtpParameters.headerExtensions || []).map((v) => ({
+            value: v.id,
+            uri: v.uri
+        })),
 
         // Codec
         rtp: [type === 'audio' ? {
@@ -221,7 +227,7 @@ export class CallSchedulerKitchenTransport {
             remoteSdp: null,
             localStreams: localStreams,
             remoteStreams: [],
-            iceTransportPolicy: 'relay'
+            iceTransportPolicy: ICE_TRANSPORT_POLICY
         });
 
         // Producer transport
@@ -328,7 +334,7 @@ export class CallSchedulerKitchenTransport {
             remoteSdp: null,
             localStreams: [],
             remoteStreams: [],
-            iceTransportPolicy: 'relay'
+            iceTransportPolicy: ICE_TRANSPORT_POLICY
         });
 
         // Create offer if needed
@@ -768,7 +774,8 @@ export class CallSchedulerKitchenTransport {
             if (producerTransport.videoProducer) {
                 if (producerTransport.produces.videoStream) {
                     if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'video' && v.media.source === 'default')) {
-                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.videoProducer, { rtpCapabilities: getVideoRtpCapabilities(capabilities), paused: true });
+                        let caps = getVideoRtpCapabilities(capabilities);
+                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.videoProducer, { rtpCapabilities: caps, paused: true });
                         consumers.push({
                             pid: producerTransport.pid,
                             consumer,
@@ -785,7 +792,8 @@ export class CallSchedulerKitchenTransport {
             if (producerTransport.screencastProducer) {
                 if (producerTransport.produces.screenCastStream) {
                     if (!consumers.find((v) => v.pid === producerTransport!.pid && v.media.type === 'video' && v.media.source === 'screen')) {
-                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.screencastProducer, { rtpCapabilities: getVideoRtpCapabilities(capabilities), paused: true });
+                        let caps = getVideoRtpCapabilities(capabilities);
+                        let consumer = await this.repo.createConsumer(ctx, transportId, producerTransport.screencastProducer, { rtpCapabilities: caps, paused: true });
                         consumers.push({
                             pid: producerTransport.pid,
                             consumer,

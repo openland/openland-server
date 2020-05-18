@@ -1,3 +1,4 @@
+import { Config } from 'openland-config/Config';
 import { RtpCodecCapability } from 'mediakitchen';
 
 export const ROUTER_CODECS: RtpCodecCapability[] = [{
@@ -38,3 +39,5 @@ export const TRANSPORT_PARAMETERS = {
     preferUdp: false,
     preferTcp: true,
 };
+
+export const ICE_TRANSPORT_POLICY: 'none' | 'all' | 'relay' = Config.environment === 'production' ? 'relay' : 'all';

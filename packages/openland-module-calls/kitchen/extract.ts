@@ -1,19 +1,9 @@
 import { KitchenIceCandidate } from './types';
-import { MediaDescription } from 'sdp-transform';
+import { MediaDescription, parseParams } from 'sdp-transform';
 import { RtpParameters } from 'mediakitchen';
 
 function extractParameters(src: string) {
-    let params: any = {};
-    let parts = src.split(';');
-    for (let p of parts) {
-        let kv = p.split('=');
-        if (kv[0] === 'packetization-mode' || kv[0] === 'level-asymmetry-allowed') {
-            params[kv[0]] = parseInt(kv[1], 10);
-        } else {
-            params[kv[0]] = kv[1];
-        }
-    }
-    return params;
+    return parseParams(src);
 }
 
 export function convertParameters(src: any) {
@@ -72,9 +62,13 @@ export function extractOpusRtpParameters(src: MediaDescription): RtpParameters {
         clockRate: 48000,
         channels: 2,
         parameters: params,
-        rtcpFeedback: [{
-            type: 'transport-cc'
-        }]
+        rtcpFeedback: (src.rtcpFb || [])
+            .filter((v) => v.payload === codec.payload)
+            .map((v) => ({ type: v.type, parameter: v.subtype })),
+        headerExtensions: (src.ext || []).map((v) => ({
+            uri: v.uri,
+            id: v.value
+        }))
     };
 
     return {
@@ -129,9 +123,13 @@ export function extractH264RtpParameters(src: MediaDescription): RtpParameters {
         payloadType: codec.payload,
         clockRate: 90000,
         parameters: params,
-        rtcpFeedback: [{
-            type: 'transport-cc'
-        }]
+        rtcpFeedback: (src.rtcpFb || [])
+            .filter((v) => v.payload === codec.payload)
+            .map((v) => ({ type: v.type, parameter: v.subtype })),
+        headerExtensions: (src.ext || []).map((v) => ({
+            uri: v.uri,
+            id: v.value
+        }))
     };
 
     return {
