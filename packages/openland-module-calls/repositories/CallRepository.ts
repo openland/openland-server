@@ -75,14 +75,14 @@ export class CallRepository {
         }
     }
 
-    addPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number, kind: 'conference' | 'stream' = 'conference', capabilities: Capabilities | null) => {
+    addPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number, kind: 'conference' | 'stream' = 'conference', capabilities: Capabilities | null, ip: string) => {
         return await inTx(parent, async (ctx) => {
             // let room = await this.entities.ConferenceRoom.findById(ctx, cid);
             // if (!room) {
             //     throw Error('Unable to find room');
             // }
 
-            log.log(ctx, 'Add peer: ' + cid + ': ' + uid);
+            log.log(ctx, 'Add peer: ' + cid + ': ' + uid + ' (ip: ' + ip + ')');
 
             // Handle Call Restart
             let confPeers = await Store.ConferencePeer.conference.findAll(ctx, cid);
