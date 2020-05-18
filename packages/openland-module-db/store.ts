@@ -7319,6 +7319,7 @@ export interface ConferenceKitchenPeerShape {
     pid: number;
     cid: number;
     active: boolean;
+    capabilities: { codecs: ({ kind: string, mimeType: string, preferredPayloadType: number, clockRate: number, channels: number | null, parameters: ({ key: string, value: string })[], rtcpFeedback: ({ type: string, value: string | null })[] })[], headerExtensions: ({ kind: string, uri: string, preferredId: number })[] } | null;
     producerTransport: string | null;
     consumerTransport: string | null;
 }
@@ -7326,6 +7327,7 @@ export interface ConferenceKitchenPeerShape {
 export interface ConferenceKitchenPeerCreateShape {
     cid: number;
     active: boolean;
+    capabilities?: { codecs: ({ kind: string, mimeType: string, preferredPayloadType: number, clockRate: number, channels: number | null | undefined, parameters: ({ key: string, value: string })[], rtcpFeedback: ({ type: string, value: string | null | undefined })[] })[], headerExtensions: ({ kind: string, uri: string, preferredId: number })[] } | null | undefined;
     producerTransport?: string | null | undefined;
     consumerTransport?: string | null | undefined;
 }
@@ -7347,6 +7349,15 @@ export class ConferenceKitchenPeer extends Entity<ConferenceKitchenPeerShape> {
         if (this._rawValue.active !== normalized) {
             this._rawValue.active = normalized;
             this._updatedValues.active = normalized;
+            this.invalidate();
+        }
+    }
+    get capabilities(): { codecs: ({ kind: string, mimeType: string, preferredPayloadType: number, clockRate: number, channels: number | null, parameters: ({ key: string, value: string })[], rtcpFeedback: ({ type: string, value: string | null })[] })[], headerExtensions: ({ kind: string, uri: string, preferredId: number })[] } | null { return this._rawValue.capabilities; }
+    set capabilities(value: { codecs: ({ kind: string, mimeType: string, preferredPayloadType: number, clockRate: number, channels: number | null, parameters: ({ key: string, value: string })[], rtcpFeedback: ({ type: string, value: string | null })[] })[], headerExtensions: ({ kind: string, uri: string, preferredId: number })[] } | null) {
+        let normalized = this.descriptor.codec.fields.capabilities.normalize(value);
+        if (this._rawValue.capabilities !== normalized) {
+            this._rawValue.capabilities = normalized;
+            this._updatedValues.capabilities = normalized;
             this.invalidate();
         }
     }
@@ -7381,12 +7392,14 @@ export class ConferenceKitchenPeerFactory extends EntityFactory<ConferenceKitche
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'cid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'active', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'capabilities', type: { type: 'optional', inner: { type: 'struct', fields: { codecs: { type: 'array', inner: { type: 'struct', fields: { kind: { type: 'string' }, mimeType: { type: 'string' }, preferredPayloadType: { type: 'integer' }, clockRate: { type: 'integer' }, channels: { type: 'optional', inner: { type: 'integer' } }, parameters: { type: 'array', inner: { type: 'struct', fields: { key: { type: 'string' }, value: { type: 'string' } } } }, rtcpFeedback: { type: 'array', inner: { type: 'struct', fields: { type: { type: 'string' }, value: { type: 'optional', inner: { type: 'string' } } } } } } } }, headerExtensions: { type: 'array', inner: { type: 'struct', fields: { kind: { type: 'string' }, uri: { type: 'string' }, preferredId: { type: 'integer' } } } } } } }, secure: false });
         fields.push({ name: 'producerTransport', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'consumerTransport', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
             pid: c.integer,
             cid: c.integer,
             active: c.boolean,
+            capabilities: c.optional(c.struct({ codecs: c.array(c.struct({ kind: c.string, mimeType: c.string, preferredPayloadType: c.integer, clockRate: c.integer, channels: c.optional(c.integer), parameters: c.array(c.struct({ key: c.string, value: c.string })), rtcpFeedback: c.array(c.struct({ type: c.string, value: c.optional(c.string) })) })), headerExtensions: c.array(c.struct({ kind: c.string, uri: c.string, preferredId: c.integer })) })),
             producerTransport: c.optional(c.string),
             consumerTransport: c.optional(c.string),
         });
@@ -7442,6 +7455,7 @@ export interface ConferenceKitchenProducerTransportShape {
     id: string;
     pid: number;
     cid: number;
+    capabilities: { codecs: ({ kind: string, mimeType: string, preferredPayloadType: number, clockRate: number, channels: number | null, parameters: ({ key: string, value: string })[], rtcpFeedback: ({ type: string, value: string | null })[] })[], headerExtensions: ({ kind: string, uri: string, preferredId: number })[] } | null;
     state: 'negotiation-need-offer' | 'negotiation-wait-answer' | 'ready' | 'closed';
     produces: { audioStream: boolean, videoStream: boolean, screenCastStream: boolean };
     audioProducer: string | null;
@@ -7455,6 +7469,7 @@ export interface ConferenceKitchenProducerTransportShape {
 export interface ConferenceKitchenProducerTransportCreateShape {
     pid: number;
     cid: number;
+    capabilities?: { codecs: ({ kind: string, mimeType: string, preferredPayloadType: number, clockRate: number, channels: number | null | undefined, parameters: ({ key: string, value: string })[], rtcpFeedback: ({ type: string, value: string | null | undefined })[] })[], headerExtensions: ({ kind: string, uri: string, preferredId: number })[] } | null | undefined;
     state: 'negotiation-need-offer' | 'negotiation-wait-answer' | 'ready' | 'closed';
     produces: { audioStream: boolean, videoStream: boolean, screenCastStream: boolean };
     audioProducer?: string | null | undefined;
@@ -7482,6 +7497,15 @@ export class ConferenceKitchenProducerTransport extends Entity<ConferenceKitchen
         if (this._rawValue.cid !== normalized) {
             this._rawValue.cid = normalized;
             this._updatedValues.cid = normalized;
+            this.invalidate();
+        }
+    }
+    get capabilities(): { codecs: ({ kind: string, mimeType: string, preferredPayloadType: number, clockRate: number, channels: number | null, parameters: ({ key: string, value: string })[], rtcpFeedback: ({ type: string, value: string | null })[] })[], headerExtensions: ({ kind: string, uri: string, preferredId: number })[] } | null { return this._rawValue.capabilities; }
+    set capabilities(value: { codecs: ({ kind: string, mimeType: string, preferredPayloadType: number, clockRate: number, channels: number | null, parameters: ({ key: string, value: string })[], rtcpFeedback: ({ type: string, value: string | null })[] })[], headerExtensions: ({ kind: string, uri: string, preferredId: number })[] } | null) {
+        let normalized = this.descriptor.codec.fields.capabilities.normalize(value);
+        if (this._rawValue.capabilities !== normalized) {
+            this._rawValue.capabilities = normalized;
+            this._updatedValues.capabilities = normalized;
             this.invalidate();
         }
     }
@@ -7570,6 +7594,7 @@ export class ConferenceKitchenProducerTransportFactory extends EntityFactory<Con
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'pid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'cid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'capabilities', type: { type: 'optional', inner: { type: 'struct', fields: { codecs: { type: 'array', inner: { type: 'struct', fields: { kind: { type: 'string' }, mimeType: { type: 'string' }, preferredPayloadType: { type: 'integer' }, clockRate: { type: 'integer' }, channels: { type: 'optional', inner: { type: 'integer' } }, parameters: { type: 'array', inner: { type: 'struct', fields: { key: { type: 'string' }, value: { type: 'string' } } } }, rtcpFeedback: { type: 'array', inner: { type: 'struct', fields: { type: { type: 'string' }, value: { type: 'optional', inner: { type: 'string' } } } } } } } }, headerExtensions: { type: 'array', inner: { type: 'struct', fields: { kind: { type: 'string' }, uri: { type: 'string' }, preferredId: { type: 'integer' } } } } } } }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['negotiation-need-offer', 'negotiation-wait-answer', 'ready', 'closed'] }, secure: false });
         fields.push({ name: 'produces', type: { type: 'struct', fields: { audioStream: { type: 'boolean' }, videoStream: { type: 'boolean' }, screenCastStream: { type: 'boolean' } } }, secure: false });
         fields.push({ name: 'audioProducer', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
@@ -7582,6 +7607,7 @@ export class ConferenceKitchenProducerTransportFactory extends EntityFactory<Con
             id: c.string,
             pid: c.integer,
             cid: c.integer,
+            capabilities: c.optional(c.struct({ codecs: c.array(c.struct({ kind: c.string, mimeType: c.string, preferredPayloadType: c.integer, clockRate: c.integer, channels: c.optional(c.integer), parameters: c.array(c.struct({ key: c.string, value: c.string })), rtcpFeedback: c.array(c.struct({ type: c.string, value: c.optional(c.string) })) })), headerExtensions: c.array(c.struct({ kind: c.string, uri: c.string, preferredId: c.integer })) })),
             state: c.enum('negotiation-need-offer', 'negotiation-wait-answer', 'ready', 'closed'),
             produces: c.struct({ audioStream: c.boolean, videoStream: c.boolean, screenCastStream: c.boolean }),
             audioProducer: c.optional(c.string),
@@ -7643,6 +7669,7 @@ export interface ConferenceKitchenConsumerTransportShape {
     id: string;
     pid: number;
     cid: number;
+    capabilities: { codecs: ({ kind: string, mimeType: string, preferredPayloadType: number, clockRate: number, channels: number | null, parameters: ({ key: string, value: string })[], rtcpFeedback: ({ type: string, value: string | null })[] })[], headerExtensions: ({ kind: string, uri: string, preferredId: number })[] } | null;
     state: 'negotiation-wait-offer' | 'negotiation-need-answer' | 'ready' | 'closed';
     consumes: (string)[];
     consumers: ({ pid: number, transport: string, consumer: string, media: { type: 'audio',  } | { type: 'video', source: 'default' | 'screen' }, active: boolean })[];
@@ -7651,6 +7678,7 @@ export interface ConferenceKitchenConsumerTransportShape {
 export interface ConferenceKitchenConsumerTransportCreateShape {
     pid: number;
     cid: number;
+    capabilities?: { codecs: ({ kind: string, mimeType: string, preferredPayloadType: number, clockRate: number, channels: number | null | undefined, parameters: ({ key: string, value: string })[], rtcpFeedback: ({ type: string, value: string | null | undefined })[] })[], headerExtensions: ({ kind: string, uri: string, preferredId: number })[] } | null | undefined;
     state: 'negotiation-wait-offer' | 'negotiation-need-answer' | 'ready' | 'closed';
     consumes: (string)[];
     consumers: ({ pid: number, transport: string, consumer: string, media: { type: 'audio',  } | { type: 'video', source: 'default' | 'screen' }, active: boolean })[];
@@ -7673,6 +7701,15 @@ export class ConferenceKitchenConsumerTransport extends Entity<ConferenceKitchen
         if (this._rawValue.cid !== normalized) {
             this._rawValue.cid = normalized;
             this._updatedValues.cid = normalized;
+            this.invalidate();
+        }
+    }
+    get capabilities(): { codecs: ({ kind: string, mimeType: string, preferredPayloadType: number, clockRate: number, channels: number | null, parameters: ({ key: string, value: string })[], rtcpFeedback: ({ type: string, value: string | null })[] })[], headerExtensions: ({ kind: string, uri: string, preferredId: number })[] } | null { return this._rawValue.capabilities; }
+    set capabilities(value: { codecs: ({ kind: string, mimeType: string, preferredPayloadType: number, clockRate: number, channels: number | null, parameters: ({ key: string, value: string })[], rtcpFeedback: ({ type: string, value: string | null })[] })[], headerExtensions: ({ kind: string, uri: string, preferredId: number })[] } | null) {
+        let normalized = this.descriptor.codec.fields.capabilities.normalize(value);
+        if (this._rawValue.capabilities !== normalized) {
+            this._rawValue.capabilities = normalized;
+            this._updatedValues.capabilities = normalized;
             this.invalidate();
         }
     }
@@ -7716,6 +7753,7 @@ export class ConferenceKitchenConsumerTransportFactory extends EntityFactory<Con
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'pid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'cid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'capabilities', type: { type: 'optional', inner: { type: 'struct', fields: { codecs: { type: 'array', inner: { type: 'struct', fields: { kind: { type: 'string' }, mimeType: { type: 'string' }, preferredPayloadType: { type: 'integer' }, clockRate: { type: 'integer' }, channels: { type: 'optional', inner: { type: 'integer' } }, parameters: { type: 'array', inner: { type: 'struct', fields: { key: { type: 'string' }, value: { type: 'string' } } } }, rtcpFeedback: { type: 'array', inner: { type: 'struct', fields: { type: { type: 'string' }, value: { type: 'optional', inner: { type: 'string' } } } } } } } }, headerExtensions: { type: 'array', inner: { type: 'struct', fields: { kind: { type: 'string' }, uri: { type: 'string' }, preferredId: { type: 'integer' } } } } } } }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['negotiation-wait-offer', 'negotiation-need-answer', 'ready', 'closed'] }, secure: false });
         fields.push({ name: 'consumes', type: { type: 'array', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'consumers', type: { type: 'array', inner: { type: 'struct', fields: { pid: { type: 'integer' }, transport: { type: 'string' }, consumer: { type: 'string' }, media: { type: 'union', types: { audio: {  }, video: { source: { type: 'enum', values: ['default', 'screen'] } } } }, active: { type: 'boolean' } } } }, secure: false });
@@ -7723,6 +7761,7 @@ export class ConferenceKitchenConsumerTransportFactory extends EntityFactory<Con
             id: c.string,
             pid: c.integer,
             cid: c.integer,
+            capabilities: c.optional(c.struct({ codecs: c.array(c.struct({ kind: c.string, mimeType: c.string, preferredPayloadType: c.integer, clockRate: c.integer, channels: c.optional(c.integer), parameters: c.array(c.struct({ key: c.string, value: c.string })), rtcpFeedback: c.array(c.struct({ type: c.string, value: c.optional(c.string) })) })), headerExtensions: c.array(c.struct({ kind: c.string, uri: c.string, preferredId: c.integer })) })),
             state: c.enum('negotiation-wait-offer', 'negotiation-need-answer', 'ready', 'closed'),
             consumes: c.array(c.string),
             consumers: c.array(c.struct({ pid: c.integer, transport: c.string, consumer: c.string, media: c.union({ audio: c.struct({  }), video: c.struct({ source: c.enum('default', 'screen') }) }), active: c.boolean })),

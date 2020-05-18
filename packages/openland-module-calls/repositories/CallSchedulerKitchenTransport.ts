@@ -6,7 +6,7 @@ import { SDP } from '../sdp/SDP';
 import { KitchenProducer } from '../../openland-module-db/store';
 import { parseSDP } from 'openland-module-calls/sdp/parseSDP';
 import { Store } from 'openland-module-db/FDB';
-import { MediaSources, StreamHint, ProducerDescriptor } from './CallScheduler';
+import { MediaSources, StreamHint, ProducerDescriptor, Capabilities } from './CallScheduler';
 import { Context } from '@openland/context';
 import { CallRepository } from './CallRepository';
 import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
@@ -173,7 +173,7 @@ export class CallSchedulerKitchenTransport {
     // Create
     //
 
-    createProducerTransport = async (ctx: Context, router: string, cid: number, pid: number, produces: MediaSources) => {
+    createProducerTransport = async (ctx: Context, router: string, cid: number, pid: number, produces: MediaSources, capabilities: Capabilities) => {
         // transport id
         let id = uuid();
 
@@ -211,7 +211,7 @@ export class CallSchedulerKitchenTransport {
             pid,
             cid,
             produces,
-
+            capabilities,
             state: 'negotiation-need-offer',
             audioProducer: null,
             audioProducerMid: null,
@@ -227,7 +227,7 @@ export class CallSchedulerKitchenTransport {
         return id;
     }
 
-    createConsumerTransport = async (ctx: Context, router: string, cid: number, pid: number, consumes: string[]) => {
+    createConsumerTransport = async (ctx: Context, router: string, cid: number, pid: number, consumes: string[], capabilities: Capabilities) => {
         // transport id
         let id = uuid();
 
@@ -293,6 +293,7 @@ export class CallSchedulerKitchenTransport {
         await Store.ConferenceKitchenConsumerTransport.create(ctx, id, {
             pid,
             cid,
+            capabilities,
             consumes,
             consumers,
             state: 'negotiation-wait-offer',

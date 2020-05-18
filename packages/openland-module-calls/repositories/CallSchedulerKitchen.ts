@@ -65,10 +65,11 @@ export class CallSchedulerKitchen implements CallScheduler {
             throw Error('Unknown error');
         }
         let existing = (await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid)).filter((v) => !!v.producerTransport);
-        let producerTransport = await this.transport.createProducerTransport(ctx, router.id, cid, pid, sources);
-        let consumerTransport = await this.transport.createConsumerTransport(ctx, router.id, cid, pid, existing.map((v) => v.producerTransport!));
+        let producerTransport = await this.transport.createProducerTransport(ctx, router.id, cid, pid, sources, capabilities);
+        let consumerTransport = await this.transport.createConsumerTransport(ctx, router.id, cid, pid, existing.map((v) => v.producerTransport!), capabilities);
         await Store.ConferenceKitchenPeer.create(ctx, pid, {
             cid,
+            capabilities,
             producerTransport,
             consumerTransport,
             active: true

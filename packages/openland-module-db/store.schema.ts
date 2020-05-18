@@ -972,10 +972,28 @@ export default declareSchema(() => {
         uniqueIndex('conference', ['cid']).withCondition((s) => !s.deleted);
     });
 
+    const capabilities = struct({
+        codecs: array(struct({
+            kind: string(),
+            mimeType: string(),
+            preferredPayloadType: integer(),
+            clockRate: integer(),
+            channels: optional(integer()),
+            parameters: array(struct({ key: string(), value: string() })),
+            rtcpFeedback: array(struct({ type: string(), value: optional(string()) }))
+        })),
+        headerExtensions: array(struct({
+            kind: string(),
+            uri: string(),
+            preferredId: integer()
+        }))
+    });
+
     entity('ConferenceKitchenPeer', () => {
         primaryKey('pid', integer());
         field('cid', integer());
         field('active', boolean());
+        field('capabilities', optional(capabilities));
         field('producerTransport', optional(string()));
         field('consumerTransport', optional(string()));
         rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.active);
@@ -986,6 +1004,7 @@ export default declareSchema(() => {
         field('pid', integer());
         field('cid', integer());
 
+        field('capabilities', optional(capabilities));
         field('state', enumString('negotiation-need-offer', 'negotiation-wait-answer', 'ready', 'closed'));
         field('produces', localSources);
         field('audioProducer', optional(string()));
@@ -1003,6 +1022,7 @@ export default declareSchema(() => {
         field('pid', integer());
         field('cid', integer());
 
+        field('capabilities', optional(capabilities));
         field('state', enumString('negotiation-wait-offer', 'negotiation-need-answer', 'ready', 'closed'));
         field('consumes', array(string()));
         field('consumers', array(struct({
