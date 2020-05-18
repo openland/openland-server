@@ -33,7 +33,13 @@ const RTP_CAPABILITIES_AUDIO: KitchenRtpCapabilities = {
         rtcpFeedback: [{
             type: 'transport-cc'
         }]
-    }]
+    }],
+    headerExtensions: [
+        {
+            preferredId: 3,
+            uri: 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01'
+        }
+    ]
 };
 
 const RTP_CAPABILITIES_VIDEO: KitchenRtpCapabilities = {
@@ -49,7 +55,13 @@ const RTP_CAPABILITIES_VIDEO: KitchenRtpCapabilities = {
         rtcpFeedback: [{
             type: 'transport-cc'
         }]
-    }]
+    }],
+    headerExtensions: [
+        {
+            preferredId: 3,
+            uri: 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01'
+        }
+    ]
 };
 
 function generateSDP(

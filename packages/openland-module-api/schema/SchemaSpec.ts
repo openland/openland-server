@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'f1cd667fbc68ddf0f0e1f70d9a0f2d2c';
+export const GQL_SPEC_VERSION = 'e3f49509eaace50cdc2072b0bf32e4b8';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1638,6 +1638,28 @@ export namespace GQL {
     }
     export interface ConferencePeerIdArgs { }
     export interface ConferencePeerUserArgs { }
+    export interface MediaHeaderExtension {
+        kind: string;
+        uri: string;
+        preferredId: number;
+    }
+    export interface MediaRtcpFeedback {
+        type: string;
+        value: Nullable<string>;
+    }
+    export interface CodecCapabilities {
+        kind: string;
+        mimeType: string;
+        preferredPayloadType: number;
+        clockRate: number;
+        channels: Nullable<number>;
+        parameters: string;
+        rtcpFeedback: MediaRtcpFeedback[];
+    }
+    export interface MediaCapabilities {
+        codecs: CodecCapabilities[];
+        headerExtensions: MediaHeaderExtension[];
+    }
     export interface ICEServer {
         urls: string[];
         username: Nullable<string>;
@@ -1727,6 +1749,7 @@ export namespace GQL {
     export interface ConferenceJoinResultConferenceArgs { }
     export interface ConferenceJoinInput {
         media: LocalMediaInput;
+        capabilities: Nullable<MediaCapabilities>;
     }
     export interface LocalMediaInput {
         supportsVideo: boolean;
