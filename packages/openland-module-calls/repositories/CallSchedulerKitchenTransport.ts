@@ -181,6 +181,9 @@ function createMediaDescription(
         candidates: iceCandidates.map((v) => convertIceCandidate(v)),
         endOfCandidates: 'end-of-candidates',
         ...{ iceOptions: 'renomination' },
+
+        // SSRC
+        ssrcs: [{ id: rtpParameters.encodings![0].ssrc!, attribute: 'cname', value: rtpParameters.rtcp!.cname! }]
     };
 }
 
@@ -853,10 +856,12 @@ export class CallSchedulerKitchenTransport {
             pid: number,
             media: { type: 'audio', mid: string } | { type: 'video', source: 'default' | 'screen', mid: string }
         })[] = [];
-        let index = 0;
         for (let consumer of consumerTransport.consumers) {
             let cc = (await Store.KitchenConsumer.findById(ctx, consumer.consumer))!;
-            let mid = index + '';
+            let mid = cc.rtpParameters!.mid!;
+            if (!cc.rtpParameters!.mid) {
+                throw Error('Missing MID in consumer');
+            }
             if (consumer.media.type === 'audio') {
                 media.push(createMediaDescription(mid, 'audio', 7, 'sendonly', consumer.active, cc.rtpParameters!, iceCandidates));
                 remoteStreams.push({
@@ -876,7 +881,6 @@ export class CallSchedulerKitchenTransport {
                     media: { type: 'video', mid, source: 'screen' }
                 });
             }
-            index++;
         }
 
         // 
