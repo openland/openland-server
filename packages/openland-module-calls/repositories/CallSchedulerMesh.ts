@@ -424,6 +424,32 @@ export class CallSchedulerMesh implements CallScheduler {
     // Streams
     //
 
+    onStreamFailed = async (ctx: Context, cid: number, pid: number, sid: string) => {
+        let link = (await Store.ConferenceMeshLink.conference.findAll(ctx, cid))
+            .find((v) => v.esid1 === sid || v.esid2 === sid);
+        if (!link || link.state === 'completed') {
+            return;
+        }
+
+        let stream1 = (await Store.ConferenceEndStream.findById(ctx, link.esid1))!;
+        let stream2 = (await Store.ConferenceEndStream.findById(ctx, link.esid2))!;
+
+        // Reset negotiation
+        stream1.seq++;
+        stream2.seq++;
+        stream2.localSdp = null;
+        stream2.remoteSdp = null;
+        stream1.localSdp = null;
+        stream1.remoteSdp = null;
+        if (link.leader === link.pid1) {
+            stream1.state = 'need-offer';
+            stream2.state = 'wait-offer';
+        } else {
+            stream2.state = 'need-offer';
+            stream1.state = 'wait-offer';
+        }
+    }
+
     onStreamCandidate = async (ctx: Context, cid: number, pid: number, sid: string, candidate: string) => {
         // logger.log(ctx, 'Candidate: ' + pid + ', ' + candidate);
 

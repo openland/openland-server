@@ -72,4 +72,5 @@ export interface CallScheduler {
     onStreamCandidate(ctx: Context, cid: number, pid: number, sid: string, candidate: string): Promise<void>;
     onStreamOffer(ctx: Context, cid: number, pid: number, sid: string, offer: string, hints: StreamHint[] | null): Promise<void>;
     onStreamAnswer(ctx: Context, cid: number, pid: number, sid: string, answer: string): Promise<void>;
+    onStreamFailed(ctx: Context, cid: number, pid: number, sid: string): Promise<void>;
 }

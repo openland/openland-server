@@ -476,6 +476,22 @@ export class CallRepository {
         });
     }
 
+    streamFailed = async (parent: Context, streamId: string, peerId: number) => {
+        await inTx(parent, async (ctx) => {
+            let peer = await Store.ConferencePeer.findById(ctx, peerId);
+            if (!peer || !peer.enabled) {
+                return;
+            }
+            let conf = await this.getOrCreateConference(ctx, peer.cid);
+            let scheduler = this.getScheduler(conf.currentScheduler);
+
+            await scheduler.onStreamFailed(ctx, peer.cid, peer.id, streamId);
+
+            // Bump version
+            await this.bumpVersion(ctx, peer.cid, peer.id);
+        });
+    }
+
     //
     // Queries
     //

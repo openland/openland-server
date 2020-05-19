@@ -320,7 +320,6 @@ export const Resolver: GQLResolver = {
             // Result
             return { id: peer.cid, peerId: peer.id };
         }),
-
         mediaStreamCandidate: withUser(async (ctx, args, uid) => {
 
             // Resolve
@@ -337,6 +336,12 @@ export const Resolver: GQLResolver = {
             // Result
             return { id: peer.cid, peerId: peer.id };
         }),
+        mediaStreamFailed: withUser(async (ctx, args, uid) => {
+            let pid = IDs.ConferencePeer.parse(args.peerId);
+            let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
+            await Modules.Calls.repo.streamFailed(ctx, args.id, peer.id);
+            return { id: peer.cid, peerId: peer.id };
+        }),
 
         // Deprecated
         mediaStreamNegotiationNeeded: withUser(async (parent, args, uid) => {
@@ -350,12 +355,6 @@ export const Resolver: GQLResolver = {
                 }
                 return { id: peer.cid, peerId: peer.id };
             });
-        }),
-        // Deprecated
-        mediaStreamFailed: withUser(async (ctx, args, uid) => {
-            let pid = IDs.ConferencePeer.parse(args.peerId);
-            let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
-            return { id: peer.cid, peerId: peer.id };
         }),
         // Deprecated
         conferenceAddScreenShare: withUser(async (ctx, args, uid) => {

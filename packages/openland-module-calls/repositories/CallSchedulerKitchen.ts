@@ -123,6 +123,10 @@ export class CallSchedulerKitchen implements CallScheduler {
     // Events
     //
 
+    onStreamFailed = async (ctx: Context, cid: number, pid: number, sid: string) => {
+        // TODO: Implement
+    }
+
     onStreamOffer = async (ctx: Context, cid: number, pid: number, sid: string, offer: string, hints: StreamHint[] | null) => {
         await this.transport.onWebRTCConnectionOffer(ctx, sid, offer, hints);
     }
