@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '2ae944e54c3746e571f264771cd0c21b';
+export const GQL_SPEC_VERSION = '5246a20191ffe04d756a539d6f5ab806';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2174,7 +2174,6 @@ export namespace GQL {
         conferenceRemoveScreenShare: Conference;
         conferenceAlterSettings: Conference;
         mediaStreamNegotiationNeeded: ConferenceMedia;
-        mediaStreamFailed: ConferenceMedia;
         createOauthApp: OauthApp;
         updateOauthApp: OauthApp;
         betaOrganizationMemberRequestApprove: Organization;
@@ -2247,6 +2246,7 @@ export namespace GQL {
         mediaStreamOffer: ConferenceMedia;
         mediaStreamAnswer: ConferenceMedia;
         mediaStreamCandidate: ConferenceMedia;
+        mediaStreamFailed: ConferenceMedia;
         setEnvVar: boolean;
         setEnvVarString: boolean;
         setEnvVarNumber: boolean;
@@ -2702,10 +2702,6 @@ export namespace GQL {
         peerId: string;
         seq: OptionalNullable<number>;
     }
-    export interface MutationMediaStreamFailedArgs {
-        id: string;
-        peerId: string;
-    }
     export interface MutationCreateOauthAppArgs {
         input: OauthAppInput;
     }
@@ -2992,6 +2988,10 @@ export namespace GQL {
         id: string;
         peerId: string;
         candidate: string;
+    }
+    export interface MutationMediaStreamFailedArgs {
+        id: string;
+        peerId: string;
     }
     export interface MutationSetEnvVarArgs {
         name: string;
@@ -8009,7 +8009,6 @@ export interface GQLResolver {
             conferenceRemoveScreenShare: GQLRoots.ConferenceRoot,
             conferenceAlterSettings: GQLRoots.ConferenceRoot,
             mediaStreamNegotiationNeeded: GQLRoots.ConferenceMediaRoot,
-            mediaStreamFailed: GQLRoots.ConferenceMediaRoot,
             createOauthApp: GQLRoots.OauthAppRoot,
             updateOauthApp: GQLRoots.OauthAppRoot,
             betaOrganizationMemberRequestApprove: GQLRoots.OrganizationRoot,
@@ -8048,6 +8047,7 @@ export interface GQLResolver {
             mediaStreamOffer: GQLRoots.ConferenceMediaRoot,
             mediaStreamAnswer: GQLRoots.ConferenceMediaRoot,
             mediaStreamCandidate: GQLRoots.ConferenceMediaRoot,
+            mediaStreamFailed: GQLRoots.ConferenceMediaRoot,
             featureFlagAdd: GQLRoots.FeatureFlagRoot,
             superAccountFeatureAdd: GQLRoots.SuperAccountRoot,
             superAccountFeatureRemove: GQLRoots.SuperAccountRoot,
@@ -8223,7 +8223,6 @@ export interface GQLResolver {
             conferenceRemoveScreenShare: GQL.MutationConferenceRemoveScreenShareArgs,
             conferenceAlterSettings: GQL.MutationConferenceAlterSettingsArgs,
             mediaStreamNegotiationNeeded: GQL.MutationMediaStreamNegotiationNeededArgs,
-            mediaStreamFailed: GQL.MutationMediaStreamFailedArgs,
             createOauthApp: GQL.MutationCreateOauthAppArgs,
             updateOauthApp: GQL.MutationUpdateOauthAppArgs,
             betaOrganizationMemberRequestApprove: GQL.MutationBetaOrganizationMemberRequestApproveArgs,
@@ -8296,6 +8295,7 @@ export interface GQLResolver {
             mediaStreamOffer: GQL.MutationMediaStreamOfferArgs,
             mediaStreamAnswer: GQL.MutationMediaStreamAnswerArgs,
             mediaStreamCandidate: GQL.MutationMediaStreamCandidateArgs,
+            mediaStreamFailed: GQL.MutationMediaStreamFailedArgs,
             setEnvVar: GQL.MutationSetEnvVarArgs,
             setEnvVarString: GQL.MutationSetEnvVarStringArgs,
             setEnvVarNumber: GQL.MutationSetEnvVarNumberArgs,
