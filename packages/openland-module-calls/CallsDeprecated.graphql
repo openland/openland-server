@@ -89,7 +89,6 @@ extend type Mutation {
     settings: ConferenceSettingsInput!
   ): Conference!
   mediaStreamNegotiationNeeded(id: ID!, peerId: ID!, seq: Int): ConferenceMedia!
-  mediaStreamFailed(id: ID!, peerId: ID!): ConferenceMedia!
 }
 
 input ConferenceSettingsInput {

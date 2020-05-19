@@ -173,6 +173,7 @@ extend type Mutation {
   mediaStreamOffer(id: ID!, peerId: ID!, offer: String!, seq: Int, hints: [MediaStreamHint!]): ConferenceMedia!
   mediaStreamAnswer(id: ID!, peerId: ID!, answer: String!, seq: Int): ConferenceMedia!
   mediaStreamCandidate(id: ID!, peerId: ID!, candidate: String!): ConferenceMedia!
+  mediaStreamFailed(id: ID!, peerId: ID!): ConferenceMedia!
 }
 
 extend type Subscription {
