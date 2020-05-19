@@ -171,16 +171,12 @@ function createMediaDescription(
         })),
 
         // Codec
-        rtp: [type === 'audio' ? {
-            payload: rtpParameters.codecs[0].payloadType,
-            rate: rtpParameters.codecs[0].clockRate,
-            encoding: 2,
-            codec: 'opus',
-        } : {
-                payload: rtpParameters.codecs[0].payloadType,
-                rate: rtpParameters.codecs[0].clockRate,
-                codec: 'H264'
-            }],
+        rtp: rtpParameters.codecs.map((v) => ({
+            codec: v.mimeType.substring(6),
+            payload: v.payloadType,
+            rate: v.clockRate,
+            encoding: v.channels ? v.channels : undefined,
+        })),
         fmtp: [{
             payload: rtpParameters.codecs[0].payloadType,
             config: convertParameters(rtpParameters.codecs[0].parameters || {})
@@ -563,7 +559,7 @@ export class CallSchedulerKitchenTransport {
                     }
 
                     if (!producerTransport.videoProducer) {
-                        let rtpParameters = extractH264RtpParameters(media);
+                        let rtpParameters = extractVP8RtpParameters(media);
                         let producerId = await this.repo.createProducer(ctx, transportId, { kind: 'video', rtpParameters });
                         producerTransport.videoProducer = producerId;
                         changed = true;
@@ -578,7 +574,7 @@ export class CallSchedulerKitchenTransport {
                     }
 
                     if (!producerTransport.screencastProducer) {
-                        let rtpParameters = extractVP8RtpParameters(media);
+                        let rtpParameters = extractH264RtpParameters(media);
                         let producerId = await this.repo.createProducer(ctx, transportId, { kind: 'video', rtpParameters });
                         producerTransport.screencastProducer = producerId;
                         changed = true;
