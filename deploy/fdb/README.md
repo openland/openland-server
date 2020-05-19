@@ -1,15 +1,14 @@
 # FoundationDB
 
-Current used version is 6.0.15.
+Current used version is 6.2.20.
 
-## Install Server 6.0.15
+## Install Server 6.2.20
 
 ```
-wget https://www.foundationdb.org/downloads/6.0.15/ubuntu/installers/foundationdb-clients_6.0.15-1_amd64.deb
-wget https://www.foundationdb.org/downloads/6.0.15/ubuntu/installers/foundationdb-server_6.0.15-1_amd64.deb
-sudo dpkg -i foundationdb-clients_6.0.15-1_amd64.deb
-sudo dpkg -i foundationdb-server_6.0.15-1_amd64.deb
-sudo apt -y --fix-broken install
+wget https://www.foundationdb.org/downloads/6.2.20/ubuntu/installers/foundationdb-clients_6.2.20-1_amd64.deb
+wget https://www.foundationdb.org/downloads/6.2.20/ubuntu/installers/foundationdb-server_6.2.20-1_amd64.deb
+sudo dpkg -i foundationdb-clients_6.2.20-1_amd64.deb
+sudo dpkg -i foundationdb-server_6.2.20-1_amd64.deb
 ```
 
 ## Update Server
