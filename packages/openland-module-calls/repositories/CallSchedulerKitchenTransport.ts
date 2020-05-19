@@ -156,11 +156,23 @@ function createMediaDescription(
     protocol: string;
     payloads?: string;
 } & MediaDescription {
+    let rtcpFb: MediaDescription['rtcpFb'] = [];
+    for (let c of rtpParameters.codecs) {
+        if (c.rtcpFeedback) {
+            for (let v of c.rtcpFeedback) {
+                rtcpFb.push({
+                    payload: c.payloadType,
+                    type: v.type,
+                    subtype: v.parameter ? v.parameter : undefined
+                });
+            }
+        }
+    }
     return {
         mid,
         type,
         protocol: 'UDP/TLS/RTP/SAVPF',
-        payloads: rtpParameters.codecs[0].payloadType.toString(),
+        payloads: rtpParameters.codecs.map((v) => v.payloadType.toString()).join(' '),
         port,
         rtcpMux: 'rtcp-mux',
         rtcpRsize: 'rtcp-rsize',
@@ -177,15 +189,11 @@ function createMediaDescription(
             rate: v.clockRate,
             encoding: v.channels ? v.channels : undefined,
         })),
-        fmtp: [{
-            payload: rtpParameters.codecs[0].payloadType,
-            config: convertParameters(rtpParameters.codecs[0].parameters || {})
-        }],
-        rtcpFb: rtpParameters.codecs[0].rtcpFeedback!.map((v) => ({
-            payload: rtpParameters.codecs[0].payloadType,
-            type: v.type,
-            subtype: v.parameter ? v.parameter : undefined
+        fmtp: rtpParameters.codecs.filter((v) => !!v.parameters && Object.keys(v.parameters).length > 0).map((v) => ({
+            payload: v.payloadType,
+            config: convertParameters(v.parameters!)
         })),
+        rtcpFb,
 
         // ICE + DTLS
         setup: direction === 'sendonly' ? 'actpass' : 'active',

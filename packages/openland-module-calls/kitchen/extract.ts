@@ -1,6 +1,6 @@
 import { KitchenIceCandidate } from './types';
 import { MediaDescription, parseParams } from 'sdp-transform';
-import { RtpParameters } from 'mediakitchen';
+import { RtpParameters, RtpEncoding } from 'mediakitchen';
 
 function extractParameters(src: string) {
     return parseParams(src);
@@ -37,6 +37,68 @@ export function convertIceCandidate(src: KitchenIceCandidate) {
     return res;
 }
 
+export function extractEncodings(src: MediaDescription) {
+
+    //
+    // Collect all ssrc
+    //
+
+    const ssrcs = new Set<number>();
+    if (src.ssrcs) {
+        for (const line of src.ssrcs) {
+            const ssrc = Number(line.id);
+            ssrcs.add(ssrc);
+        }
+    }
+    if (ssrcs.size === 0) {
+        throw new Error('no a=ssrc lines found');
+    }
+
+    //
+    // Separate RTX encodings from plain one
+    //
+    const ssrcToRtxSsrc = new Map<number, number | null>();
+    if (src.ssrcGroups) {
+        for (const line of src.ssrcGroups) {
+            if (line.semantics !== 'FID') {
+                continue;
+            }
+
+            let [ssrcStr, rtxSsrcStr] = line.ssrcs.split(/\s+/);
+
+            let ssrc = Number(ssrcStr);
+            let rtxSsrc = Number(rtxSsrcStr);
+
+            if (ssrcs.has(ssrc)) {
+                // Remove both the SSRC and RTX SSRC from the set so later we know that they
+                // are already handled.
+                ssrcs.delete(ssrc);
+                ssrcs.delete(rtxSsrc);
+                // Add to the map.
+                ssrcToRtxSsrc.set(ssrc, rtxSsrc);
+            }
+        }
+    }
+
+    //
+    // Put plain encodings without RTX to the map
+    //
+    for (const ssrc of ssrcs) {
+        ssrcToRtxSsrc.set(ssrc, null);
+    }
+
+    // Build result list
+    const encodings: RtpEncoding[] = [];
+    for (const [ssrc, rtxSsrc] of ssrcToRtxSsrc) {
+        const encoding: RtpEncoding = { ssrc };
+        if (rtxSsrc) {
+            encoding.rtx = { ssrc: rtxSsrc };
+        }
+        encodings.push(encoding);
+    }
+    return encodings;
+}
+
 export function extractOpusRtpParameters(src: MediaDescription): RtpParameters {
 
     // Find codec
@@ -44,9 +106,6 @@ export function extractOpusRtpParameters(src: MediaDescription): RtpParameters {
     if (!codec) {
         throw Error('Unable to find opus codec!');
     }
-
-    // Find ssrc
-    let ssrc = src.ssrcs![0].id as number;
 
     // Resolve Parameters
     let params: any = {};
@@ -73,7 +132,7 @@ export function extractOpusRtpParameters(src: MediaDescription): RtpParameters {
             id: v.value
         })),
         codecs: [codecParameters],
-        encodings: [{ ssrc: ssrc }]
+        encodings: extractEncodings(src)
     };
 }
 
@@ -107,9 +166,6 @@ export function extractH264RtpParameters(src: MediaDescription): RtpParameters {
         throw Error('Unable to find codec!');
     }
 
-    // Find ssrc
-    let ssrc = src.ssrcs![0].id as number;
-
     // Resolve Param
     let params: any = {};
     let fmt = src.fmtp.find((v) => v.payload === codec.payload);
@@ -117,8 +173,9 @@ export function extractH264RtpParameters(src: MediaDescription): RtpParameters {
         params = extractParameters(fmt.config);
     }
 
-    // Create Producer
-    let codecParameters = {
+    // Create Codecs
+    let codecs: RtpParameters['codecs'] = [];
+    codecs.push({
         mimeType: 'video/H264',
         payloadType: codec.payload,
         clockRate: 90000,
@@ -126,15 +183,24 @@ export function extractH264RtpParameters(src: MediaDescription): RtpParameters {
         rtcpFeedback: (src.rtcpFb || [])
             .filter((v) => v.payload === codec.payload)
             .map((v) => ({ type: v.type, parameter: v.subtype }))
-    };
+    });
+    let rtx = src.rtp.find((v) => v.codec === 'rtx' && src.fmtp.find((f) => f.payload === v.payload && extractParameters(f.config).apt === codec.payload));
+    if (rtx) {
+        codecs.push({
+            mimeType: 'video/rtx',
+            payloadType: rtx.payload,
+            clockRate: 90000,
+            parameters: { apt: codec.payload }
+        });
+    }
 
     return {
         headerExtensions: (src.ext || []).map((v) => ({
             uri: v.uri,
             id: v.value
         })),
-        codecs: [codecParameters],
-        encodings: [{ ssrc: ssrc }]
+        codecs,
+        encodings: extractEncodings(src)
     };
 }
 
@@ -146,9 +212,6 @@ export function extractVP8RtpParameters(src: MediaDescription): RtpParameters {
         throw Error('Unable to find opus codec!');
     }
 
-    // Find ssrc
-    let ssrc = src.ssrcs![0].id as number;
-
     // Resolve Parameters
     let params: any = {};
     let fmt = src.fmtp.find((v) => v.payload === codec.payload);
@@ -156,8 +219,9 @@ export function extractVP8RtpParameters(src: MediaDescription): RtpParameters {
         params = extractParameters(fmt.config);
     }
 
-    // Create Producer
-    let codecParameters = {
+    // Create Codecs
+    let codecs: RtpParameters['codecs'] = [];
+    codecs.push({
         mimeType: 'video/VP8',
         payloadType: codec.payload,
         clockRate: 90000,
@@ -165,14 +229,23 @@ export function extractVP8RtpParameters(src: MediaDescription): RtpParameters {
         rtcpFeedback: (src.rtcpFb || [])
             .filter((v) => v.payload === codec.payload)
             .map((v) => ({ type: v.type, parameter: v.subtype }))
-    };
+    });
+    let rtx = src.rtp.find((v) => v.codec === 'rtx' && src.fmtp.find((f) => f.payload === v.payload && extractParameters(f.config).apt === codec.payload));
+    if (rtx) {
+        codecs.push({
+            mimeType: 'video/rtx',
+            payloadType: rtx.payload,
+            clockRate: 90000,
+            parameters: { apt: codec.payload }
+        });
+    }
 
     return {
         headerExtensions: (src.ext || []).map((v) => ({
             uri: v.uri,
             id: v.value
         })),
-        codecs: [codecParameters],
-        encodings: [{ ssrc: ssrc }]
+        codecs,
+        encodings: extractEncodings(src)
     };
 }
