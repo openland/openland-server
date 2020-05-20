@@ -1339,10 +1339,16 @@ export const Resolver: GQLResolver = {
                     if (!defaultOrg) {
                         await log(`user[${id}] org not found`);
                     } else {
-                        let orgId = IDs.Organization.parse(defaultOrg);
-                        await Modules.Orgs.addUserToOrganization(ctx, id, orgId, id, true);
-                        profile.primaryOrganization = orgId;
-                        await log(`user[${id}] moved to default org`);
+                        try {
+                            let orgId = IDs.Organization.parse(defaultOrg);
+                            await Modules.Orgs.addUserToOrganization(ctx, id, orgId, id, true);
+                            profile.primaryOrganization = orgId;
+                            await log(`user[${id}] moved to default org`);
+                        } catch (e) {
+                            await log(e);
+                            logger.error(rootCtx, e);
+                        }
+
                     }
                 }
             });
