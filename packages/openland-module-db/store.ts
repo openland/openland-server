@@ -1574,6 +1574,7 @@ export class UserFactory extends EntityFactory<UserShape, User> {
         let descriptor: EntityDescriptor<UserShape> = {
             name: 'User',
             storageKey: 'user',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserFactory(descriptor);
@@ -1675,7 +1676,7 @@ export class UserFactory extends EntityFactory<UserShape, User> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserShape>): User {
-        return new User([value.id], value, this.descriptor, this._flush, ctx);
+        return new User([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -1914,6 +1915,7 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
         let descriptor: EntityDescriptor<UserProfileShape> = {
             name: 'UserProfile',
             storageKey: 'userProfile',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserProfileFactory(descriptor);
@@ -1970,7 +1972,7 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserProfileShape>): UserProfile {
-        return new UserProfile([value.id], value, this.descriptor, this._flush, ctx);
+        return new UserProfile([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -2038,6 +2040,7 @@ export class UserProfilePrefilFactory extends EntityFactory<UserProfilePrefilSha
         let descriptor: EntityDescriptor<UserProfilePrefilShape> = {
             name: 'UserProfilePrefil',
             storageKey: 'userProfilePrefil',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserProfilePrefilFactory(descriptor);
@@ -2064,7 +2067,7 @@ export class UserProfilePrefilFactory extends EntityFactory<UserProfilePrefilSha
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserProfilePrefilShape>): UserProfilePrefil {
-        return new UserProfilePrefil([value.id], value, this.descriptor, this._flush, ctx);
+        return new UserProfilePrefil([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -2236,6 +2239,7 @@ export class UserSettingsFactory extends EntityFactory<UserSettingsShape, UserSe
         let descriptor: EntityDescriptor<UserSettingsShape> = {
             name: 'UserSettings',
             storageKey: 'userSettings',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserSettingsFactory(descriptor);
@@ -2262,7 +2266,7 @@ export class UserSettingsFactory extends EntityFactory<UserSettingsShape, UserSe
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserSettingsShape>): UserSettings {
-        return new UserSettings([value.id], value, this.descriptor, this._flush, ctx);
+        return new UserSettings([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -2292,6 +2296,7 @@ export class UserIndexingQueueFactory extends EntityFactory<UserIndexingQueueSha
         let descriptor: EntityDescriptor<UserIndexingQueueShape> = {
             name: 'UserIndexingQueue',
             storageKey: 'userIndexingQueue',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserIndexingQueueFactory(descriptor);
@@ -2333,7 +2338,7 @@ export class UserIndexingQueueFactory extends EntityFactory<UserIndexingQueueSha
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserIndexingQueueShape>): UserIndexingQueue {
-        return new UserIndexingQueue([value.id], value, this.descriptor, this._flush, ctx);
+        return new UserIndexingQueue([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -2441,6 +2446,7 @@ export class OrganizationFactory extends EntityFactory<OrganizationShape, Organi
         let descriptor: EntityDescriptor<OrganizationShape> = {
             name: 'Organization',
             storageKey: 'organization',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new OrganizationFactory(descriptor);
@@ -2479,7 +2485,7 @@ export class OrganizationFactory extends EntityFactory<OrganizationShape, Organi
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OrganizationShape>): Organization {
-        return new Organization([value.id], value, this.descriptor, this._flush, ctx);
+        return new Organization([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -2625,6 +2631,7 @@ export class OrganizationProfileFactory extends EntityFactory<OrganizationProfil
         let descriptor: EntityDescriptor<OrganizationProfileShape> = {
             name: 'OrganizationProfile',
             storageKey: 'organizationProfile',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new OrganizationProfileFactory(descriptor);
@@ -2651,7 +2658,7 @@ export class OrganizationProfileFactory extends EntityFactory<OrganizationProfil
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OrganizationProfileShape>): OrganizationProfile {
-        return new OrganizationProfile([value.id], value, this.descriptor, this._flush, ctx);
+        return new OrganizationProfile([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -2706,6 +2713,7 @@ export class OrganizationEditorialFactory extends EntityFactory<OrganizationEdit
         let descriptor: EntityDescriptor<OrganizationEditorialShape> = {
             name: 'OrganizationEditorial',
             storageKey: 'organizationEditorial',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new OrganizationEditorialFactory(descriptor);
@@ -2732,7 +2740,7 @@ export class OrganizationEditorialFactory extends EntityFactory<OrganizationEdit
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OrganizationEditorialShape>): OrganizationEditorial {
-        return new OrganizationEditorial([value.id], value, this.descriptor, this._flush, ctx);
+        return new OrganizationEditorial([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -2807,6 +2815,7 @@ export class OrganizationMemberFactory extends EntityFactory<OrganizationMemberS
         let descriptor: EntityDescriptor<OrganizationMemberShape> = {
             name: 'OrganizationMember',
             storageKey: 'organizationMember',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new OrganizationMemberFactory(descriptor);
@@ -2875,7 +2884,7 @@ export class OrganizationMemberFactory extends EntityFactory<OrganizationMemberS
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OrganizationMemberShape>): OrganizationMember {
-        return new OrganizationMember([value.oid, value.uid], value, this.descriptor, this._flush, ctx);
+        return new OrganizationMember([value.oid, value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -2905,6 +2914,7 @@ export class OrganizationIndexingQueueFactory extends EntityFactory<Organization
         let descriptor: EntityDescriptor<OrganizationIndexingQueueShape> = {
             name: 'OrganizationIndexingQueue',
             storageKey: 'organizationIndexingQueue',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new OrganizationIndexingQueueFactory(descriptor);
@@ -2946,7 +2956,7 @@ export class OrganizationIndexingQueueFactory extends EntityFactory<Organization
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OrganizationIndexingQueueShape>): OrganizationIndexingQueue {
-        return new OrganizationIndexingQueue([value.id], value, this.descriptor, this._flush, ctx);
+        return new OrganizationIndexingQueue([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -3014,6 +3024,7 @@ export class OnlineFactory extends EntityFactory<OnlineShape, Online> {
         let descriptor: EntityDescriptor<OnlineShape> = {
             name: 'Online',
             storageKey: 'online',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new OnlineFactory(descriptor);
@@ -3040,7 +3051,7 @@ export class OnlineFactory extends EntityFactory<OnlineShape, Online> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OnlineShape>): Online {
-        return new Online([value.uid], value, this.descriptor, this._flush, ctx);
+        return new Online([value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -3126,6 +3137,7 @@ export class PresenceFactory extends EntityFactory<PresenceShape, Presence> {
         let descriptor: EntityDescriptor<PresenceShape> = {
             name: 'Presence',
             storageKey: 'presence',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new PresenceFactory(descriptor);
@@ -3167,7 +3179,7 @@ export class PresenceFactory extends EntityFactory<PresenceShape, Presence> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PresenceShape>): Presence {
-        return new Presence([value.uid, value.tid], value, this.descriptor, this._flush, ctx);
+        return new Presence([value.uid, value.tid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -3235,6 +3247,7 @@ export class ConversationFactory extends EntityFactory<ConversationShape, Conver
         let descriptor: EntityDescriptor<ConversationShape> = {
             name: 'Conversation',
             storageKey: 'conversation',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ConversationFactory(descriptor);
@@ -3261,7 +3274,7 @@ export class ConversationFactory extends EntityFactory<ConversationShape, Conver
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConversationShape>): Conversation {
-        return new Conversation([value.id], value, this.descriptor, this._flush, ctx);
+        return new Conversation([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -3331,6 +3344,7 @@ export class ConversationPrivateFactory extends EntityFactory<ConversationPrivat
         let descriptor: EntityDescriptor<ConversationPrivateShape> = {
             name: 'ConversationPrivate',
             storageKey: 'conversationPrivate',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ConversationPrivateFactory(descriptor);
@@ -3381,7 +3395,7 @@ export class ConversationPrivateFactory extends EntityFactory<ConversationPrivat
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConversationPrivateShape>): ConversationPrivate {
-        return new ConversationPrivate([value.id], value, this.descriptor, this._flush, ctx);
+        return new ConversationPrivate([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -3424,6 +3438,7 @@ export class ConversationOrganizationFactory extends EntityFactory<ConversationO
         let descriptor: EntityDescriptor<ConversationOrganizationShape> = {
             name: 'ConversationOrganization',
             storageKey: 'conversationOrganization',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ConversationOrganizationFactory(descriptor);
@@ -3462,7 +3477,7 @@ export class ConversationOrganizationFactory extends EntityFactory<ConversationO
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConversationOrganizationShape>): ConversationOrganization {
-        return new ConversationOrganization([value.id], value, this.descriptor, this._flush, ctx);
+        return new ConversationOrganization([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -3584,6 +3599,7 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
         let descriptor: EntityDescriptor<ConversationRoomShape> = {
             name: 'ConversationRoom',
             storageKey: 'conversationRoom',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ConversationRoomFactory(descriptor);
@@ -3637,7 +3653,7 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConversationRoomShape>): ConversationRoom {
-        return new ConversationRoom([value.id], value, this.descriptor, this._flush, ctx);
+        return new ConversationRoom([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -3705,6 +3721,7 @@ export class PremiumChatSettingsFactory extends EntityFactory<PremiumChatSetting
         let descriptor: EntityDescriptor<PremiumChatSettingsShape> = {
             name: 'PremiumChatSettings',
             storageKey: 'premiumChatSettings',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new PremiumChatSettingsFactory(descriptor);
@@ -3731,7 +3748,7 @@ export class PremiumChatSettingsFactory extends EntityFactory<PremiumChatSetting
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PremiumChatSettingsShape>): PremiumChatSettings {
-        return new PremiumChatSettings([value.id], value, this.descriptor, this._flush, ctx);
+        return new PremiumChatSettings([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -3790,6 +3807,7 @@ export class PremiumChatUserPassFactory extends EntityFactory<PremiumChatUserPas
         let descriptor: EntityDescriptor<PremiumChatUserPassShape> = {
             name: 'PremiumChatUserPass',
             storageKey: 'premiumChatUserPass',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new PremiumChatUserPassFactory(descriptor);
@@ -3816,7 +3834,7 @@ export class PremiumChatUserPassFactory extends EntityFactory<PremiumChatUserPas
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PremiumChatUserPassShape>): PremiumChatUserPass {
-        return new PremiumChatUserPass([value.cid, value.uid], value, this.descriptor, this._flush, ctx);
+        return new PremiumChatUserPass([value.cid, value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -3977,6 +3995,7 @@ export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProf
         let descriptor: EntityDescriptor<RoomProfileShape> = {
             name: 'RoomProfile',
             storageKey: 'roomProfile',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new RoomProfileFactory(descriptor);
@@ -4033,7 +4052,7 @@ export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProf
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<RoomProfileShape>): RoomProfile {
-        return new RoomProfile([value.id], value, this.descriptor, this._flush, ctx);
+        return new RoomProfile([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -4108,6 +4127,7 @@ export class RoomParticipantFactory extends EntityFactory<RoomParticipantShape, 
         let descriptor: EntityDescriptor<RoomParticipantShape> = {
             name: 'RoomParticipant',
             storageKey: 'roomParticipant',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new RoomParticipantFactory(descriptor);
@@ -4170,7 +4190,7 @@ export class RoomParticipantFactory extends EntityFactory<RoomParticipantShape, 
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<RoomParticipantShape>): RoomParticipant {
-        return new RoomParticipant([value.cid, value.uid], value, this.descriptor, this._flush, ctx);
+        return new RoomParticipant([value.cid, value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -4580,6 +4600,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         let descriptor: EntityDescriptor<MessageShape> = {
             name: 'Message',
             storageKey: 'message',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new MessageFactory(descriptor);
@@ -4663,7 +4684,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<MessageShape>): Message {
-        return new Message([value.id], value, this.descriptor, this._flush, ctx);
+        return new Message([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -4890,6 +4911,7 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
         let descriptor: EntityDescriptor<CommentShape> = {
             name: 'Comment',
             storageKey: 'comment',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new CommentFactory(descriptor);
@@ -4958,7 +4980,7 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<CommentShape>): Comment {
-        return new Comment([value.id], value, this.descriptor, this._flush, ctx);
+        return new Comment([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -5131,6 +5153,7 @@ export class RichMessageFactory extends EntityFactory<RichMessageShape, RichMess
         let descriptor: EntityDescriptor<RichMessageShape> = {
             name: 'RichMessage',
             storageKey: 'richMessage',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new RichMessageFactory(descriptor);
@@ -5172,7 +5195,7 @@ export class RichMessageFactory extends EntityFactory<RichMessageShape, RichMess
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<RichMessageShape>): RichMessage {
-        return new RichMessage([value.id], value, this.descriptor, this._flush, ctx);
+        return new RichMessage([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -5218,6 +5241,7 @@ export class MessageDraftFactory extends EntityFactory<MessageDraftShape, Messag
         let descriptor: EntityDescriptor<MessageDraftShape> = {
             name: 'MessageDraft',
             storageKey: 'messageDraft',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new MessageDraftFactory(descriptor);
@@ -5244,7 +5268,7 @@ export class MessageDraftFactory extends EntityFactory<MessageDraftShape, Messag
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<MessageDraftShape>): MessageDraft {
-        return new MessageDraft([value.uid, value.cid], value, this.descriptor, this._flush, ctx);
+        return new MessageDraft([value.uid, value.cid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -5286,6 +5310,7 @@ export class ConversationSeqFactory extends EntityFactory<ConversationSeqShape, 
         let descriptor: EntityDescriptor<ConversationSeqShape> = {
             name: 'ConversationSeq',
             storageKey: 'conversationSeq',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ConversationSeqFactory(descriptor);
@@ -5312,7 +5337,7 @@ export class ConversationSeqFactory extends EntityFactory<ConversationSeqShape, 
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConversationSeqShape>): ConversationSeq {
-        return new ConversationSeq([value.cid], value, this.descriptor, this._flush, ctx);
+        return new ConversationSeq([value.cid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -5385,6 +5410,7 @@ export class ConversationEventFactory extends EntityFactory<ConversationEventSha
         let descriptor: EntityDescriptor<ConversationEventShape> = {
             name: 'ConversationEvent',
             storageKey: 'conversationEvent',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ConversationEventFactory(descriptor);
@@ -5426,7 +5452,7 @@ export class ConversationEventFactory extends EntityFactory<ConversationEventSha
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConversationEventShape>): ConversationEvent {
-        return new ConversationEvent([value.cid, value.seq], value, this.descriptor, this._flush, ctx);
+        return new ConversationEvent([value.cid, value.seq], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -5539,6 +5565,7 @@ export class UserDialogFactory extends EntityFactory<UserDialogShape, UserDialog
         let descriptor: EntityDescriptor<UserDialogShape> = {
             name: 'UserDialog',
             storageKey: 'userDialog',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserDialogFactory(descriptor);
@@ -5595,7 +5622,7 @@ export class UserDialogFactory extends EntityFactory<UserDialogShape, UserDialog
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserDialogShape>): UserDialog {
-        return new UserDialog([value.uid, value.cid], value, this.descriptor, this._flush, ctx);
+        return new UserDialog([value.uid, value.cid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -5632,6 +5659,7 @@ export class UserDialogHandledMessageFactory extends EntityFactory<UserDialogHan
         let descriptor: EntityDescriptor<UserDialogHandledMessageShape> = {
             name: 'UserDialogHandledMessage',
             storageKey: 'userDialogHandledMessage',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserDialogHandledMessageFactory(descriptor);
@@ -5658,7 +5686,7 @@ export class UserDialogHandledMessageFactory extends EntityFactory<UserDialogHan
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserDialogHandledMessageShape>): UserDialogHandledMessage {
-        return new UserDialogHandledMessage([value.uid, value.cid, value.mid], value, this.descriptor, this._flush, ctx);
+        return new UserDialogHandledMessage([value.uid, value.cid, value.mid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -5704,6 +5732,7 @@ export class UserDialogSettingsFactory extends EntityFactory<UserDialogSettingsS
         let descriptor: EntityDescriptor<UserDialogSettingsShape> = {
             name: 'UserDialogSettings',
             storageKey: 'userDialogSettings',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserDialogSettingsFactory(descriptor);
@@ -5730,7 +5759,7 @@ export class UserDialogSettingsFactory extends EntityFactory<UserDialogSettingsS
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserDialogSettingsShape>): UserDialogSettings {
-        return new UserDialogSettings([value.uid, value.cid], value, this.descriptor, this._flush, ctx);
+        return new UserDialogSettings([value.uid, value.cid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -5881,6 +5910,7 @@ export class UserDialogEventFactory extends EntityFactory<UserDialogEventShape, 
         let descriptor: EntityDescriptor<UserDialogEventShape> = {
             name: 'UserDialogEvent',
             storageKey: 'userDialogEvent',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserDialogEventFactory(descriptor);
@@ -5922,7 +5952,7 @@ export class UserDialogEventFactory extends EntityFactory<UserDialogEventShape, 
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserDialogEventShape>): UserDialogEvent {
-        return new UserDialogEvent([value.uid, value.seq], value, this.descriptor, this._flush, ctx);
+        return new UserDialogEvent([value.uid, value.seq], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -5968,6 +5998,7 @@ export class CommentStateFactory extends EntityFactory<CommentStateShape, Commen
         let descriptor: EntityDescriptor<CommentStateShape> = {
             name: 'CommentState',
             storageKey: 'commentState',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new CommentStateFactory(descriptor);
@@ -5994,7 +6025,7 @@ export class CommentStateFactory extends EntityFactory<CommentStateShape, Commen
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<CommentStateShape>): CommentState {
-        return new CommentState([value.peerType, value.peerId], value, this.descriptor, this._flush, ctx);
+        return new CommentState([value.peerType, value.peerId], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -6040,6 +6071,7 @@ export class CommentSeqFactory extends EntityFactory<CommentSeqShape, CommentSeq
         let descriptor: EntityDescriptor<CommentSeqShape> = {
             name: 'CommentSeq',
             storageKey: 'commentSeq',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new CommentSeqFactory(descriptor);
@@ -6066,7 +6098,7 @@ export class CommentSeqFactory extends EntityFactory<CommentSeqShape, CommentSeq
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<CommentSeqShape>): CommentSeq {
-        return new CommentSeq([value.peerType, value.peerId], value, this.descriptor, this._flush, ctx);
+        return new CommentSeq([value.peerType, value.peerId], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -6143,6 +6175,7 @@ export class CommentEventFactory extends EntityFactory<CommentEventShape, Commen
         let descriptor: EntityDescriptor<CommentEventShape> = {
             name: 'CommentEvent',
             storageKey: 'commentEvent',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new CommentEventFactory(descriptor);
@@ -6184,7 +6217,7 @@ export class CommentEventFactory extends EntityFactory<CommentEventShape, Commen
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<CommentEventShape>): CommentEvent {
-        return new CommentEvent([value.peerType, value.peerId, value.seq], value, this.descriptor, this._flush, ctx);
+        return new CommentEvent([value.peerType, value.peerId, value.seq], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -6248,6 +6281,7 @@ export class CommentsSubscriptionFactory extends EntityFactory<CommentsSubscript
         let descriptor: EntityDescriptor<CommentsSubscriptionShape> = {
             name: 'CommentsSubscription',
             storageKey: 'commentsSubscription',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new CommentsSubscriptionFactory(descriptor);
@@ -6289,7 +6323,7 @@ export class CommentsSubscriptionFactory extends EntityFactory<CommentsSubscript
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<CommentsSubscriptionShape>): CommentsSubscription {
-        return new CommentsSubscription([value.peerType, value.peerId, value.uid], value, this.descriptor, this._flush, ctx);
+        return new CommentsSubscription([value.peerType, value.peerId, value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -6362,6 +6396,7 @@ export class CommentEventGlobalFactory extends EntityFactory<CommentEventGlobalS
         let descriptor: EntityDescriptor<CommentEventGlobalShape> = {
             name: 'CommentEventGlobal',
             storageKey: 'commentEventGlobal',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new CommentEventGlobalFactory(descriptor);
@@ -6403,7 +6438,7 @@ export class CommentEventGlobalFactory extends EntityFactory<CommentEventGlobalS
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<CommentEventGlobalShape>): CommentEventGlobal {
-        return new CommentEventGlobal([value.uid, value.seq], value, this.descriptor, this._flush, ctx);
+        return new CommentEventGlobal([value.uid, value.seq], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -6510,6 +6545,7 @@ export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, Co
         let descriptor: EntityDescriptor<ConferenceRoomShape> = {
             name: 'ConferenceRoom',
             storageKey: 'conferenceRoom',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ConferenceRoomFactory(descriptor);
@@ -6536,7 +6572,7 @@ export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, Co
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferenceRoomShape>): ConferenceRoom {
-        return new ConferenceRoom([value.id], value, this.descriptor, this._flush, ctx);
+        return new ConferenceRoom([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -6659,6 +6695,7 @@ export class ConferencePeerFactory extends EntityFactory<ConferencePeerShape, Co
         let descriptor: EntityDescriptor<ConferencePeerShape> = {
             name: 'ConferencePeer',
             storageKey: 'conferencePeer',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ConferencePeerFactory(descriptor);
@@ -6727,7 +6764,7 @@ export class ConferencePeerFactory extends EntityFactory<ConferencePeerShape, Co
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferencePeerShape>): ConferencePeer {
-        return new ConferencePeer([value.id], value, this.descriptor, this._flush, ctx);
+        return new ConferencePeer([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -6887,6 +6924,7 @@ export class ConferenceEndStreamFactory extends EntityFactory<ConferenceEndStrea
         let descriptor: EntityDescriptor<ConferenceEndStreamShape> = {
             name: 'ConferenceEndStream',
             storageKey: 'conferenceEndStream',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ConferenceEndStreamFactory(descriptor);
@@ -6928,7 +6966,7 @@ export class ConferenceEndStreamFactory extends EntityFactory<ConferenceEndStrea
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferenceEndStreamShape>): ConferenceEndStream {
-        return new ConferenceEndStream([value.id], value, this.descriptor, this._flush, ctx);
+        return new ConferenceEndStream([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -6988,6 +7026,7 @@ export class ConferenceMeshPeerFactory extends EntityFactory<ConferenceMeshPeerS
         let descriptor: EntityDescriptor<ConferenceMeshPeerShape> = {
             name: 'ConferenceMeshPeer',
             storageKey: 'conferenceMeshPeer',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ConferenceMeshPeerFactory(descriptor);
@@ -7029,7 +7068,7 @@ export class ConferenceMeshPeerFactory extends EntityFactory<ConferenceMeshPeerS
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferenceMeshPeerShape>): ConferenceMeshPeer {
-        return new ConferenceMeshPeer([value.cid, value.pid], value, this.descriptor, this._flush, ctx);
+        return new ConferenceMeshPeer([value.cid, value.pid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -7164,6 +7203,7 @@ export class ConferenceMeshLinkFactory extends EntityFactory<ConferenceMeshLinkS
         let descriptor: EntityDescriptor<ConferenceMeshLinkShape> = {
             name: 'ConferenceMeshLink',
             storageKey: 'conferenceMeshLink',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ConferenceMeshLinkFactory(descriptor);
@@ -7217,7 +7257,7 @@ export class ConferenceMeshLinkFactory extends EntityFactory<ConferenceMeshLinkS
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferenceMeshLinkShape>): ConferenceMeshLink {
-        return new ConferenceMeshLink([value.id], value, this.descriptor, this._flush, ctx);
+        return new ConferenceMeshLink([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -7273,6 +7313,7 @@ export class ConferenceKitchenRouterFactory extends EntityFactory<ConferenceKitc
         let descriptor: EntityDescriptor<ConferenceKitchenRouterShape> = {
             name: 'ConferenceKitchenRouter',
             storageKey: 'conferenceKitchenRouter',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ConferenceKitchenRouterFactory(descriptor);
@@ -7311,7 +7352,7 @@ export class ConferenceKitchenRouterFactory extends EntityFactory<ConferenceKitc
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferenceKitchenRouterShape>): ConferenceKitchenRouter {
-        return new ConferenceKitchenRouter([value.id], value, this.descriptor, this._flush, ctx);
+        return new ConferenceKitchenRouter([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -7406,6 +7447,7 @@ export class ConferenceKitchenPeerFactory extends EntityFactory<ConferenceKitche
         let descriptor: EntityDescriptor<ConferenceKitchenPeerShape> = {
             name: 'ConferenceKitchenPeer',
             storageKey: 'conferenceKitchenPeer',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ConferenceKitchenPeerFactory(descriptor);
@@ -7447,7 +7489,7 @@ export class ConferenceKitchenPeerFactory extends EntityFactory<ConferenceKitche
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferenceKitchenPeerShape>): ConferenceKitchenPeer {
-        return new ConferenceKitchenPeer([value.pid], value, this.descriptor, this._flush, ctx);
+        return new ConferenceKitchenPeer([value.pid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -7620,6 +7662,7 @@ export class ConferenceKitchenProducerTransportFactory extends EntityFactory<Con
         let descriptor: EntityDescriptor<ConferenceKitchenProducerTransportShape> = {
             name: 'ConferenceKitchenProducerTransport',
             storageKey: 'conferenceKitchenProducerTransport',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ConferenceKitchenProducerTransportFactory(descriptor);
@@ -7661,7 +7704,7 @@ export class ConferenceKitchenProducerTransportFactory extends EntityFactory<Con
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferenceKitchenProducerTransportShape>): ConferenceKitchenProducerTransport {
-        return new ConferenceKitchenProducerTransport([value.id], value, this.descriptor, this._flush, ctx);
+        return new ConferenceKitchenProducerTransport([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -7769,6 +7812,7 @@ export class ConferenceKitchenConsumerTransportFactory extends EntityFactory<Con
         let descriptor: EntityDescriptor<ConferenceKitchenConsumerTransportShape> = {
             name: 'ConferenceKitchenConsumerTransport',
             storageKey: 'conferenceKitchenConsumerTransport',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ConferenceKitchenConsumerTransportFactory(descriptor);
@@ -7810,7 +7854,7 @@ export class ConferenceKitchenConsumerTransportFactory extends EntityFactory<Con
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConferenceKitchenConsumerTransportShape>): ConferenceKitchenConsumerTransport {
-        return new ConferenceKitchenConsumerTransport([value.id], value, this.descriptor, this._flush, ctx);
+        return new ConferenceKitchenConsumerTransport([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -7853,6 +7897,7 @@ export class KitchenWorkerFactory extends EntityFactory<KitchenWorkerShape, Kitc
         let descriptor: EntityDescriptor<KitchenWorkerShape> = {
             name: 'KitchenWorker',
             storageKey: 'kitchenWorker',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new KitchenWorkerFactory(descriptor);
@@ -7894,7 +7939,7 @@ export class KitchenWorkerFactory extends EntityFactory<KitchenWorkerShape, Kitc
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<KitchenWorkerShape>): KitchenWorker {
-        return new KitchenWorker([value.id], value, this.descriptor, this._flush, ctx);
+        return new KitchenWorker([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -7950,6 +7995,7 @@ export class KitchenRouterFactory extends EntityFactory<KitchenRouterShape, Kitc
         let descriptor: EntityDescriptor<KitchenRouterShape> = {
             name: 'KitchenRouter',
             storageKey: 'kitchenRouter',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new KitchenRouterFactory(descriptor);
@@ -7991,7 +8037,7 @@ export class KitchenRouterFactory extends EntityFactory<KitchenRouterShape, Kitc
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<KitchenRouterShape>): KitchenRouter {
-        return new KitchenRouter([value.id], value, this.descriptor, this._flush, ctx);
+        return new KitchenRouter([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -8073,6 +8119,7 @@ export class KitchenTransportFactory extends EntityFactory<KitchenTransportShape
         let descriptor: EntityDescriptor<KitchenTransportShape> = {
             name: 'KitchenTransport',
             storageKey: 'kitchenTransport',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new KitchenTransportFactory(descriptor);
@@ -8114,7 +8161,7 @@ export class KitchenTransportFactory extends EntityFactory<KitchenTransportShape
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<KitchenTransportShape>): KitchenTransport {
-        return new KitchenTransport([value.id], value, this.descriptor, this._flush, ctx);
+        return new KitchenTransport([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -8236,6 +8283,7 @@ export class KitchenProducerFactory extends EntityFactory<KitchenProducerShape, 
         let descriptor: EntityDescriptor<KitchenProducerShape> = {
             name: 'KitchenProducer',
             storageKey: 'kitchenProducer',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new KitchenProducerFactory(descriptor);
@@ -8292,7 +8340,7 @@ export class KitchenProducerFactory extends EntityFactory<KitchenProducerShape, 
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<KitchenProducerShape>): KitchenProducer {
-        return new KitchenProducer([value.id], value, this.descriptor, this._flush, ctx);
+        return new KitchenProducer([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -8415,6 +8463,7 @@ export class KitchenConsumerFactory extends EntityFactory<KitchenConsumerShape, 
         let descriptor: EntityDescriptor<KitchenConsumerShape> = {
             name: 'KitchenConsumer',
             storageKey: 'kitchenConsumer',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new KitchenConsumerFactory(descriptor);
@@ -8486,7 +8535,7 @@ export class KitchenConsumerFactory extends EntityFactory<KitchenConsumerShape, 
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<KitchenConsumerShape>): KitchenConsumer {
-        return new KitchenConsumer([value.id], value, this.descriptor, this._flush, ctx);
+        return new KitchenConsumer([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -8536,6 +8585,7 @@ export class UserEdgeFactory extends EntityFactory<UserEdgeShape, UserEdge> {
         let descriptor: EntityDescriptor<UserEdgeShape> = {
             name: 'UserEdge',
             storageKey: 'userEdge',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserEdgeFactory(descriptor);
@@ -8622,7 +8672,7 @@ export class UserEdgeFactory extends EntityFactory<UserEdgeShape, UserEdge> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserEdgeShape>): UserEdge {
-        return new UserEdge([value.uid1, value.uid2], value, this.descriptor, this._flush, ctx);
+        return new UserEdge([value.uid1, value.uid2], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -8669,6 +8719,7 @@ export class UserGroupEdgeFactory extends EntityFactory<UserGroupEdgeShape, User
         let descriptor: EntityDescriptor<UserGroupEdgeShape> = {
             name: 'UserGroupEdge',
             storageKey: 'userGroupEdge',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserGroupEdgeFactory(descriptor);
@@ -8710,7 +8761,7 @@ export class UserGroupEdgeFactory extends EntityFactory<UserGroupEdgeShape, User
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserGroupEdgeShape>): UserGroupEdge {
-        return new UserGroupEdge([value.uid, value.cid], value, this.descriptor, this._flush, ctx);
+        return new UserGroupEdge([value.uid, value.cid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -8752,6 +8803,7 @@ export class UserInfluencerUserIndexFactory extends EntityFactory<UserInfluencer
         let descriptor: EntityDescriptor<UserInfluencerUserIndexShape> = {
             name: 'UserInfluencerUserIndex',
             storageKey: 'userInfluencerUserIndex',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserInfluencerUserIndexFactory(descriptor);
@@ -8778,7 +8830,7 @@ export class UserInfluencerUserIndexFactory extends EntityFactory<UserInfluencer
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserInfluencerUserIndexShape>): UserInfluencerUserIndex {
-        return new UserInfluencerUserIndex([value.uid], value, this.descriptor, this._flush, ctx);
+        return new UserInfluencerUserIndex([value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -8820,6 +8872,7 @@ export class UserInfluencerIndexFactory extends EntityFactory<UserInfluencerInde
         let descriptor: EntityDescriptor<UserInfluencerIndexShape> = {
             name: 'UserInfluencerIndex',
             storageKey: 'userInfluencerIndex',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserInfluencerIndexFactory(descriptor);
@@ -8846,7 +8899,7 @@ export class UserInfluencerIndexFactory extends EntityFactory<UserInfluencerInde
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserInfluencerIndexShape>): UserInfluencerIndex {
-        return new UserInfluencerIndex([value.uid], value, this.descriptor, this._flush, ctx);
+        return new UserInfluencerIndex([value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -8929,6 +8982,7 @@ export class UserBadgeFactory extends EntityFactory<UserBadgeShape, UserBadge> {
         let descriptor: EntityDescriptor<UserBadgeShape> = {
             name: 'UserBadge',
             storageKey: 'userBadge',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserBadgeFactory(descriptor);
@@ -8985,7 +9039,7 @@ export class UserBadgeFactory extends EntityFactory<UserBadgeShape, UserBadge> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserBadgeShape>): UserBadge {
-        return new UserBadge([value.id], value, this.descriptor, this._flush, ctx);
+        return new UserBadge([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -9033,6 +9087,7 @@ export class UserRoomBadgeFactory extends EntityFactory<UserRoomBadgeShape, User
         let descriptor: EntityDescriptor<UserRoomBadgeShape> = {
             name: 'UserRoomBadge',
             storageKey: 'userRoomBadge',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserRoomBadgeFactory(descriptor);
@@ -9089,7 +9144,7 @@ export class UserRoomBadgeFactory extends EntityFactory<UserRoomBadgeShape, User
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserRoomBadgeShape>): UserRoomBadge {
-        return new UserRoomBadge([value.uid, value.cid], value, this.descriptor, this._flush, ctx);
+        return new UserRoomBadge([value.uid, value.cid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -9160,6 +9215,7 @@ export class ShortnameReservationFactory extends EntityFactory<ShortnameReservat
         let descriptor: EntityDescriptor<ShortnameReservationShape> = {
             name: 'ShortnameReservation',
             storageKey: 'shortnameReservation',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ShortnameReservationFactory(descriptor);
@@ -9222,7 +9278,7 @@ export class ShortnameReservationFactory extends EntityFactory<ShortnameReservat
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ShortnameReservationShape>): ShortnameReservation {
-        return new ShortnameReservation([value.shortname], value, this.descriptor, this._flush, ctx);
+        return new ShortnameReservation([value.shortname], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -9264,6 +9320,7 @@ export class NotificationCenterFactory extends EntityFactory<NotificationCenterS
         let descriptor: EntityDescriptor<NotificationCenterShape> = {
             name: 'NotificationCenter',
             storageKey: 'notificationCenter',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new NotificationCenterFactory(descriptor);
@@ -9290,7 +9347,7 @@ export class NotificationCenterFactory extends EntityFactory<NotificationCenterS
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<NotificationCenterShape>): NotificationCenter {
-        return new NotificationCenter([value.id], value, this.descriptor, this._flush, ctx);
+        return new NotificationCenter([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -9333,6 +9390,7 @@ export class UserNotificationCenterFactory extends EntityFactory<UserNotificatio
         let descriptor: EntityDescriptor<UserNotificationCenterShape> = {
             name: 'UserNotificationCenter',
             storageKey: 'userNotificationCenter',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserNotificationCenterFactory(descriptor);
@@ -9371,7 +9429,7 @@ export class UserNotificationCenterFactory extends EntityFactory<UserNotificatio
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserNotificationCenterShape>): UserNotificationCenter {
-        return new UserNotificationCenter([value.id], value, this.descriptor, this._flush, ctx);
+        return new UserNotificationCenter([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -9453,6 +9511,7 @@ export class NotificationFactory extends EntityFactory<NotificationShape, Notifi
         let descriptor: EntityDescriptor<NotificationShape> = {
             name: 'Notification',
             storageKey: 'notification',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new NotificationFactory(descriptor);
@@ -9494,7 +9553,7 @@ export class NotificationFactory extends EntityFactory<NotificationShape, Notifi
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<NotificationShape>): Notification {
-        return new Notification([value.id], value, this.descriptor, this._flush, ctx);
+        return new Notification([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -9614,6 +9673,7 @@ export class NotificationCenterStateFactory extends EntityFactory<NotificationCe
         let descriptor: EntityDescriptor<NotificationCenterStateShape> = {
             name: 'NotificationCenterState',
             storageKey: 'notificationCenterState',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new NotificationCenterStateFactory(descriptor);
@@ -9640,7 +9700,7 @@ export class NotificationCenterStateFactory extends EntityFactory<NotificationCe
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<NotificationCenterStateShape>): NotificationCenterState {
-        return new NotificationCenterState([value.ncid], value, this.descriptor, this._flush, ctx);
+        return new NotificationCenterState([value.ncid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -9713,6 +9773,7 @@ export class NotificationCenterEventFactory extends EntityFactory<NotificationCe
         let descriptor: EntityDescriptor<NotificationCenterEventShape> = {
             name: 'NotificationCenterEvent',
             storageKey: 'notificationCenterEvent',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new NotificationCenterEventFactory(descriptor);
@@ -9754,7 +9815,7 @@ export class NotificationCenterEventFactory extends EntityFactory<NotificationCe
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<NotificationCenterEventShape>): NotificationCenterEvent {
-        return new NotificationCenterEvent([value.ncid, value.seq], value, this.descriptor, this._flush, ctx);
+        return new NotificationCenterEvent([value.ncid, value.seq], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -9796,6 +9857,7 @@ export class UserMessagingStateFactory extends EntityFactory<UserMessagingStateS
         let descriptor: EntityDescriptor<UserMessagingStateShape> = {
             name: 'UserMessagingState',
             storageKey: 'userMessagingState',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserMessagingStateFactory(descriptor);
@@ -9822,7 +9884,7 @@ export class UserMessagingStateFactory extends EntityFactory<UserMessagingStateS
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserMessagingStateShape>): UserMessagingState {
-        return new UserMessagingState([value.uid], value, this.descriptor, this._flush, ctx);
+        return new UserMessagingState([value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -9942,6 +10004,7 @@ export class UserNotificationsStateFactory extends EntityFactory<UserNotificatio
         let descriptor: EntityDescriptor<UserNotificationsStateShape> = {
             name: 'UserNotificationsState',
             storageKey: 'userNotificationsState',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserNotificationsStateFactory(descriptor);
@@ -9968,7 +10031,7 @@ export class UserNotificationsStateFactory extends EntityFactory<UserNotificatio
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserNotificationsStateShape>): UserNotificationsState {
-        return new UserNotificationsState([value.uid], value, this.descriptor, this._flush, ctx);
+        return new UserNotificationsState([value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -10011,6 +10074,7 @@ export class FeedSubscriberFactory extends EntityFactory<FeedSubscriberShape, Fe
         let descriptor: EntityDescriptor<FeedSubscriberShape> = {
             name: 'FeedSubscriber',
             storageKey: 'feedSubscriber',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new FeedSubscriberFactory(descriptor);
@@ -10049,7 +10113,7 @@ export class FeedSubscriberFactory extends EntityFactory<FeedSubscriberShape, Fe
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<FeedSubscriberShape>): FeedSubscriber {
-        return new FeedSubscriber([value.id], value, this.descriptor, this._flush, ctx);
+        return new FeedSubscriber([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -10097,6 +10161,7 @@ export class FeedSubscriptionFactory extends EntityFactory<FeedSubscriptionShape
         let descriptor: EntityDescriptor<FeedSubscriptionShape> = {
             name: 'FeedSubscription',
             storageKey: 'feedSubscription',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new FeedSubscriptionFactory(descriptor);
@@ -10153,7 +10218,7 @@ export class FeedSubscriptionFactory extends EntityFactory<FeedSubscriptionShape
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<FeedSubscriptionShape>): FeedSubscription {
-        return new FeedSubscription([value.sid, value.tid], value, this.descriptor, this._flush, ctx);
+        return new FeedSubscription([value.sid, value.tid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -10211,6 +10276,7 @@ export class FeedTopicFactory extends EntityFactory<FeedTopicShape, FeedTopic> {
         let descriptor: EntityDescriptor<FeedTopicShape> = {
             name: 'FeedTopic',
             storageKey: 'feedTopic',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new FeedTopicFactory(descriptor);
@@ -10279,7 +10345,7 @@ export class FeedTopicFactory extends EntityFactory<FeedTopicShape, FeedTopic> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<FeedTopicShape>): FeedTopic {
-        return new FeedTopic([value.id], value, this.descriptor, this._flush, ctx);
+        return new FeedTopic([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -10390,6 +10456,7 @@ export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
         let descriptor: EntityDescriptor<FeedEventShape> = {
             name: 'FeedEvent',
             storageKey: 'feedEvent',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new FeedEventFactory(descriptor);
@@ -10473,7 +10540,7 @@ export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<FeedEventShape>): FeedEvent {
-        return new FeedEvent([value.id], value, this.descriptor, this._flush, ctx);
+        return new FeedEvent([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -10608,6 +10675,7 @@ export class FeedChannelFactory extends EntityFactory<FeedChannelShape, FeedChan
         let descriptor: EntityDescriptor<FeedChannelShape> = {
             name: 'FeedChannel',
             storageKey: 'feedChannel',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new FeedChannelFactory(descriptor);
@@ -10664,7 +10732,7 @@ export class FeedChannelFactory extends EntityFactory<FeedChannelShape, FeedChan
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<FeedChannelShape>): FeedChannel {
-        return new FeedChannel([value.id], value, this.descriptor, this._flush, ctx);
+        return new FeedChannel([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -10738,6 +10806,7 @@ export class FeedChannelAdminFactory extends EntityFactory<FeedChannelAdminShape
         let descriptor: EntityDescriptor<FeedChannelAdminShape> = {
             name: 'FeedChannelAdmin',
             storageKey: 'feedChannelAdmin',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new FeedChannelAdminFactory(descriptor);
@@ -10794,7 +10863,7 @@ export class FeedChannelAdminFactory extends EntityFactory<FeedChannelAdminShape
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<FeedChannelAdminShape>): FeedChannelAdmin {
-        return new FeedChannelAdmin([value.channelId, value.uid], value, this.descriptor, this._flush, ctx);
+        return new FeedChannelAdmin([value.channelId, value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -10824,6 +10893,7 @@ export class FeedChannelIndexingQueueFactory extends EntityFactory<FeedChannelIn
         let descriptor: EntityDescriptor<FeedChannelIndexingQueueShape> = {
             name: 'FeedChannelIndexingQueue',
             storageKey: 'feedChannelIndexingQueue',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new FeedChannelIndexingQueueFactory(descriptor);
@@ -10865,7 +10935,7 @@ export class FeedChannelIndexingQueueFactory extends EntityFactory<FeedChannelIn
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<FeedChannelIndexingQueueShape>): FeedChannelIndexingQueue {
-        return new FeedChannelIndexingQueue([value.id], value, this.descriptor, this._flush, ctx);
+        return new FeedChannelIndexingQueue([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -10907,6 +10977,7 @@ export class UserFeedStateFactory extends EntityFactory<UserFeedStateShape, User
         let descriptor: EntityDescriptor<UserFeedStateShape> = {
             name: 'UserFeedState',
             storageKey: 'userFeedState',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserFeedStateFactory(descriptor);
@@ -10933,7 +11004,7 @@ export class UserFeedStateFactory extends EntityFactory<UserFeedStateShape, User
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserFeedStateShape>): UserFeedState {
-        return new UserFeedState([value.uid], value, this.descriptor, this._flush, ctx);
+        return new UserFeedState([value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -10998,6 +11069,7 @@ export class FeedChannelAutoSubscriptionFactory extends EntityFactory<FeedChanne
         let descriptor: EntityDescriptor<FeedChannelAutoSubscriptionShape> = {
             name: 'FeedChannelAutoSubscription',
             storageKey: 'feedChannelAutoSubscription',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new FeedChannelAutoSubscriptionFactory(descriptor);
@@ -11054,7 +11126,7 @@ export class FeedChannelAutoSubscriptionFactory extends EntityFactory<FeedChanne
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<FeedChannelAutoSubscriptionShape>): FeedChannelAutoSubscription {
-        return new FeedChannelAutoSubscription([value.channelId, value.peerType, value.peerId], value, this.descriptor, this._flush, ctx);
+        return new FeedChannelAutoSubscription([value.channelId, value.peerType, value.peerId], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -11110,6 +11182,7 @@ export class ChatAudienceCalculatingQueueFactory extends EntityFactory<ChatAudie
         let descriptor: EntityDescriptor<ChatAudienceCalculatingQueueShape> = {
             name: 'ChatAudienceCalculatingQueue',
             storageKey: 'chatAudienceCalculatingQueue',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ChatAudienceCalculatingQueueFactory(descriptor);
@@ -11151,7 +11224,7 @@ export class ChatAudienceCalculatingQueueFactory extends EntityFactory<ChatAudie
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ChatAudienceCalculatingQueueShape>): ChatAudienceCalculatingQueue {
-        return new ChatAudienceCalculatingQueue([value.id], value, this.descriptor, this._flush, ctx);
+        return new ChatAudienceCalculatingQueue([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -11220,6 +11293,7 @@ export class ChannelLinkFactory extends EntityFactory<ChannelLinkShape, ChannelL
         let descriptor: EntityDescriptor<ChannelLinkShape> = {
             name: 'ChannelLink',
             storageKey: 'channelLink',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ChannelLinkFactory(descriptor);
@@ -11261,7 +11335,7 @@ export class ChannelLinkFactory extends EntityFactory<ChannelLinkShape, ChannelL
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ChannelLinkShape>): ChannelLink {
-        return new ChannelLink([value.id], value, this.descriptor, this._flush, ctx);
+        return new ChannelLink([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -11304,6 +11378,7 @@ export class AppInviteLinkFactory extends EntityFactory<AppInviteLinkShape, AppI
         let descriptor: EntityDescriptor<AppInviteLinkShape> = {
             name: 'AppInviteLink',
             storageKey: 'appInviteLink',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new AppInviteLinkFactory(descriptor);
@@ -11342,7 +11417,7 @@ export class AppInviteLinkFactory extends EntityFactory<AppInviteLinkShape, AppI
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<AppInviteLinkShape>): AppInviteLink {
-        return new AppInviteLink([value.id], value, this.descriptor, this._flush, ctx);
+        return new AppInviteLink([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -11411,6 +11486,7 @@ export class OrganizationPublicInviteLinkFactory extends EntityFactory<Organizat
         let descriptor: EntityDescriptor<OrganizationPublicInviteLinkShape> = {
             name: 'OrganizationPublicInviteLink',
             storageKey: 'organizationPublicInviteLink',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new OrganizationPublicInviteLinkFactory(descriptor);
@@ -11449,7 +11525,7 @@ export class OrganizationPublicInviteLinkFactory extends EntityFactory<Organizat
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OrganizationPublicInviteLinkShape>): OrganizationPublicInviteLink {
-        return new OrganizationPublicInviteLink([value.id], value, this.descriptor, this._flush, ctx);
+        return new OrganizationPublicInviteLink([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -11610,6 +11686,7 @@ export class OrganizationInviteLinkFactory extends EntityFactory<OrganizationInv
         let descriptor: EntityDescriptor<OrganizationInviteLinkShape> = {
             name: 'OrganizationInviteLink',
             storageKey: 'organizationInviteLink',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new OrganizationInviteLinkFactory(descriptor);
@@ -11660,7 +11737,7 @@ export class OrganizationInviteLinkFactory extends EntityFactory<OrganizationInv
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OrganizationInviteLinkShape>): OrganizationInviteLink {
-        return new OrganizationInviteLink([value.id], value, this.descriptor, this._flush, ctx);
+        return new OrganizationInviteLink([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -11795,6 +11872,7 @@ export class ChannelInvitationFactory extends EntityFactory<ChannelInvitationSha
         let descriptor: EntityDescriptor<ChannelInvitationShape> = {
             name: 'ChannelInvitation',
             storageKey: 'channelInvitation',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ChannelInvitationFactory(descriptor);
@@ -11851,7 +11929,7 @@ export class ChannelInvitationFactory extends EntityFactory<ChannelInvitationSha
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ChannelInvitationShape>): ChannelInvitation {
-        return new ChannelInvitation([value.id], value, this.descriptor, this._flush, ctx);
+        return new ChannelInvitation([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -11898,6 +11976,7 @@ export class DiscoverUserPickedTagsFactory extends EntityFactory<DiscoverUserPic
         let descriptor: EntityDescriptor<DiscoverUserPickedTagsShape> = {
             name: 'DiscoverUserPickedTags',
             storageKey: 'discoverUserPickedTags',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new DiscoverUserPickedTagsFactory(descriptor);
@@ -11936,7 +12015,7 @@ export class DiscoverUserPickedTagsFactory extends EntityFactory<DiscoverUserPic
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<DiscoverUserPickedTagsShape>): DiscoverUserPickedTags {
-        return new DiscoverUserPickedTags([value.uid, value.id], value, this.descriptor, this._flush, ctx);
+        return new DiscoverUserPickedTags([value.uid, value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -11978,6 +12057,7 @@ export class DiscoverStateFactory extends EntityFactory<DiscoverStateShape, Disc
         let descriptor: EntityDescriptor<DiscoverStateShape> = {
             name: 'DiscoverState',
             storageKey: 'discoverState',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new DiscoverStateFactory(descriptor);
@@ -12004,7 +12084,7 @@ export class DiscoverStateFactory extends EntityFactory<DiscoverStateShape, Disc
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<DiscoverStateShape>): DiscoverState {
-        return new DiscoverState([value.uid], value, this.descriptor, this._flush, ctx);
+        return new DiscoverState([value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -12098,6 +12178,7 @@ export class UserOnboardingStateFactory extends EntityFactory<UserOnboardingStat
         let descriptor: EntityDescriptor<UserOnboardingStateShape> = {
             name: 'UserOnboardingState',
             storageKey: 'userOnboardingState',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserOnboardingStateFactory(descriptor);
@@ -12124,7 +12205,7 @@ export class UserOnboardingStateFactory extends EntityFactory<UserOnboardingStat
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserOnboardingStateShape>): UserOnboardingState {
-        return new UserOnboardingState([value.uid], value, this.descriptor, this._flush, ctx);
+        return new UserOnboardingState([value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -12285,6 +12366,7 @@ export class PushFirebaseFactory extends EntityFactory<PushFirebaseShape, PushFi
         let descriptor: EntityDescriptor<PushFirebaseShape> = {
             name: 'PushFirebase',
             storageKey: 'pushFirebase',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new PushFirebaseFactory(descriptor);
@@ -12338,7 +12420,7 @@ export class PushFirebaseFactory extends EntityFactory<PushFirebaseShape, PushFi
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PushFirebaseShape>): PushFirebase {
-        return new PushFirebase([value.id], value, this.descriptor, this._flush, ctx);
+        return new PushFirebase([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -12499,6 +12581,7 @@ export class PushAppleFactory extends EntityFactory<PushAppleShape, PushApple> {
         let descriptor: EntityDescriptor<PushAppleShape> = {
             name: 'PushApple',
             storageKey: 'pushApple',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new PushAppleFactory(descriptor);
@@ -12552,7 +12635,7 @@ export class PushAppleFactory extends EntityFactory<PushAppleShape, PushApple> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PushAppleShape>): PushApple {
-        return new PushApple([value.id], value, this.descriptor, this._flush, ctx);
+        return new PushApple([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -12687,6 +12770,7 @@ export class PushWebFactory extends EntityFactory<PushWebShape, PushWeb> {
         let descriptor: EntityDescriptor<PushWebShape> = {
             name: 'PushWeb',
             storageKey: 'pushWeb',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new PushWebFactory(descriptor);
@@ -12740,7 +12824,7 @@ export class PushWebFactory extends EntityFactory<PushWebShape, PushWeb> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PushWebShape>): PushWeb {
-        return new PushWeb([value.id], value, this.descriptor, this._flush, ctx);
+        return new PushWeb([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -12888,6 +12972,7 @@ export class PushSafariFactory extends EntityFactory<PushSafariShape, PushSafari
         let descriptor: EntityDescriptor<PushSafariShape> = {
             name: 'PushSafari',
             storageKey: 'pushSafari',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new PushSafariFactory(descriptor);
@@ -12941,7 +13026,7 @@ export class PushSafariFactory extends EntityFactory<PushSafariShape, PushSafari
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PushSafariShape>): PushSafari {
-        return new PushSafari([value.id], value, this.descriptor, this._flush, ctx);
+        return new PushSafari([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -12988,6 +13073,7 @@ export class AppHookFactory extends EntityFactory<AppHookShape, AppHook> {
         let descriptor: EntityDescriptor<AppHookShape> = {
             name: 'AppHook',
             storageKey: 'appHook',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new AppHookFactory(descriptor);
@@ -13026,7 +13112,7 @@ export class AppHookFactory extends EntityFactory<AppHookShape, AppHook> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<AppHookShape>): AppHook {
-        return new AppHook([value.appId, value.chatId], value, this.descriptor, this._flush, ctx);
+        return new AppHook([value.appId, value.chatId], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -13121,6 +13207,7 @@ export class StickerPackFactory extends EntityFactory<StickerPackShape, StickerP
         let descriptor: EntityDescriptor<StickerPackShape> = {
             name: 'StickerPack',
             storageKey: 'stickerPack',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new StickerPackFactory(descriptor);
@@ -13162,7 +13249,7 @@ export class StickerPackFactory extends EntityFactory<StickerPackShape, StickerP
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<StickerPackShape>): StickerPack {
-        return new StickerPack([value.id], value, this.descriptor, this._flush, ctx);
+        return new StickerPack([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -13217,6 +13304,7 @@ export class UserStickersStateFactory extends EntityFactory<UserStickersStateSha
         let descriptor: EntityDescriptor<UserStickersStateShape> = {
             name: 'UserStickersState',
             storageKey: 'userStickersState',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserStickersStateFactory(descriptor);
@@ -13243,7 +13331,7 @@ export class UserStickersStateFactory extends EntityFactory<UserStickersStateSha
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserStickersStateShape>): UserStickersState {
-        return new UserStickersState([value.uid], value, this.descriptor, this._flush, ctx);
+        return new UserStickersState([value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -13339,6 +13427,7 @@ export class StickerFactory extends EntityFactory<StickerShape, Sticker> {
         let descriptor: EntityDescriptor<StickerShape> = {
             name: 'Sticker',
             storageKey: 'sticker',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new StickerFactory(descriptor);
@@ -13395,7 +13484,7 @@ export class StickerFactory extends EntityFactory<StickerShape, Sticker> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<StickerShape>): Sticker {
-        return new Sticker([value.id], value, this.descriptor, this._flush, ctx);
+        return new Sticker([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -13454,6 +13543,7 @@ export class MatchmakingRoomFactory extends EntityFactory<MatchmakingRoomShape, 
         let descriptor: EntityDescriptor<MatchmakingRoomShape> = {
             name: 'MatchmakingRoom',
             storageKey: 'matchmakingRoom',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new MatchmakingRoomFactory(descriptor);
@@ -13480,7 +13570,7 @@ export class MatchmakingRoomFactory extends EntityFactory<MatchmakingRoomShape, 
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<MatchmakingRoomShape>): MatchmakingRoom {
-        return new MatchmakingRoom([value.peerId, value.peerType], value, this.descriptor, this._flush, ctx);
+        return new MatchmakingRoom([value.peerId, value.peerType], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -13531,6 +13621,7 @@ export class MatchmakingProfileFactory extends EntityFactory<MatchmakingProfileS
         let descriptor: EntityDescriptor<MatchmakingProfileShape> = {
             name: 'MatchmakingProfile',
             storageKey: 'matchmakingProfile',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new MatchmakingProfileFactory(descriptor);
@@ -13572,7 +13663,7 @@ export class MatchmakingProfileFactory extends EntityFactory<MatchmakingProfileS
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<MatchmakingProfileShape>): MatchmakingProfile {
-        return new MatchmakingProfile([value.peerId, value.peerType, value.uid], value, this.descriptor, this._flush, ctx);
+        return new MatchmakingProfile([value.peerId, value.peerType, value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -13707,6 +13798,7 @@ export class OauthApplicationFactory extends EntityFactory<OauthApplicationShape
         let descriptor: EntityDescriptor<OauthApplicationShape> = {
             name: 'OauthApplication',
             storageKey: 'oauthApplication',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new OauthApplicationFactory(descriptor);
@@ -13760,7 +13852,7 @@ export class OauthApplicationFactory extends EntityFactory<OauthApplicationShape
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OauthApplicationShape>): OauthApplication {
-        return new OauthApplication([value.id], value, this.descriptor, this._flush, ctx);
+        return new OauthApplication([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -13881,6 +13973,7 @@ export class OauthContextFactory extends EntityFactory<OauthContextShape, OauthC
         let descriptor: EntityDescriptor<OauthContextShape> = {
             name: 'OauthContext',
             storageKey: 'oauthContext',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new OauthContextFactory(descriptor);
@@ -13919,7 +14012,7 @@ export class OauthContextFactory extends EntityFactory<OauthContextShape, OauthC
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OauthContextShape>): OauthContext {
-        return new OauthContext([value.id], value, this.descriptor, this._flush, ctx);
+        return new OauthContext([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -14016,6 +14109,7 @@ export class OauthTokenFactory extends EntityFactory<OauthTokenShape, OauthToken
         let descriptor: EntityDescriptor<OauthTokenShape> = {
             name: 'OauthToken',
             storageKey: 'oauthToken',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new OauthTokenFactory(descriptor);
@@ -14084,7 +14178,7 @@ export class OauthTokenFactory extends EntityFactory<OauthTokenShape, OauthToken
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OauthTokenShape>): OauthToken {
-        return new OauthToken([value.uuid], value, this.descriptor, this._flush, ctx);
+        return new OauthToken([value.uuid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -14139,6 +14233,7 @@ export class UserLocationFactory extends EntityFactory<UserLocationShape, UserLo
         let descriptor: EntityDescriptor<UserLocationShape> = {
             name: 'UserLocation',
             storageKey: 'userLocation',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserLocationFactory(descriptor);
@@ -14165,7 +14260,7 @@ export class UserLocationFactory extends EntityFactory<UserLocationShape, UserLo
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserLocationShape>): UserLocation {
-        return new UserLocation([value.uid], value, this.descriptor, this._flush, ctx);
+        return new UserLocation([value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -14285,6 +14380,7 @@ export class PowerupFactory extends EntityFactory<PowerupShape, Powerup> {
         let descriptor: EntityDescriptor<PowerupShape> = {
             name: 'Powerup',
             storageKey: 'powerup',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new PowerupFactory(descriptor);
@@ -14311,7 +14407,7 @@ export class PowerupFactory extends EntityFactory<PowerupShape, Powerup> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PowerupShape>): Powerup {
-        return new Powerup([value.id], value, this.descriptor, this._flush, ctx);
+        return new Powerup([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -14372,6 +14468,7 @@ export class ChatPowerupFactory extends EntityFactory<ChatPowerupShape, ChatPowe
         let descriptor: EntityDescriptor<ChatPowerupShape> = {
             name: 'ChatPowerup',
             storageKey: 'chatPowerup',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ChatPowerupFactory(descriptor);
@@ -14428,7 +14525,7 @@ export class ChatPowerupFactory extends EntityFactory<ChatPowerupShape, ChatPowe
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ChatPowerupShape>): ChatPowerup {
-        return new ChatPowerup([value.pid, value.cid], value, this.descriptor, this._flush, ctx);
+        return new ChatPowerup([value.pid, value.cid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -14553,6 +14650,7 @@ export class PermissionRequestFactory extends EntityFactory<PermissionRequestSha
         let descriptor: EntityDescriptor<PermissionRequestShape> = {
             name: 'PermissionRequest',
             storageKey: 'permissionRequest',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new PermissionRequestFactory(descriptor);
@@ -14651,7 +14749,7 @@ export class PermissionRequestFactory extends EntityFactory<PermissionRequestSha
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PermissionRequestShape>): PermissionRequest {
-        return new PermissionRequest([value.id], value, this.descriptor, this._flush, ctx);
+        return new PermissionRequest([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -14694,6 +14792,7 @@ export class UserStorageNamespaceFactory extends EntityFactory<UserStorageNamesp
         let descriptor: EntityDescriptor<UserStorageNamespaceShape> = {
             name: 'UserStorageNamespace',
             storageKey: 'userStorageNamespace',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserStorageNamespaceFactory(descriptor);
@@ -14732,7 +14831,7 @@ export class UserStorageNamespaceFactory extends EntityFactory<UserStorageNamesp
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserStorageNamespaceShape>): UserStorageNamespace {
-        return new UserStorageNamespace([value.id], value, this.descriptor, this._flush, ctx);
+        return new UserStorageNamespace([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -14805,6 +14904,7 @@ export class UserStorageRecordFactory extends EntityFactory<UserStorageRecordSha
         let descriptor: EntityDescriptor<UserStorageRecordShape> = {
             name: 'UserStorageRecord',
             storageKey: 'userStorageRecord',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserStorageRecordFactory(descriptor);
@@ -14843,7 +14943,7 @@ export class UserStorageRecordFactory extends EntityFactory<UserStorageRecordSha
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserStorageRecordShape>): UserStorageRecord {
-        return new UserStorageRecord([value.uid, value.id], value, this.descriptor, this._flush, ctx);
+        return new UserStorageRecord([value.uid, value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -14899,6 +14999,7 @@ export class UserStripeCustomerFactory extends EntityFactory<UserStripeCustomerS
         let descriptor: EntityDescriptor<UserStripeCustomerShape> = {
             name: 'UserStripeCustomer',
             storageKey: 'userStripeCustomer',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserStripeCustomerFactory(descriptor);
@@ -14937,7 +15038,7 @@ export class UserStripeCustomerFactory extends EntityFactory<UserStripeCustomerS
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserStripeCustomerShape>): UserStripeCustomer {
-        return new UserStripeCustomer([value.uid], value, this.descriptor, this._flush, ctx);
+        return new UserStripeCustomer([value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -15090,6 +15191,7 @@ export class UserStripeCardFactory extends EntityFactory<UserStripeCardShape, Us
         let descriptor: EntityDescriptor<UserStripeCardShape> = {
             name: 'UserStripeCard',
             storageKey: 'userStripeCard',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new UserStripeCardFactory(descriptor);
@@ -15155,7 +15257,7 @@ export class UserStripeCardFactory extends EntityFactory<UserStripeCardShape, Us
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserStripeCardShape>): UserStripeCard {
-        return new UserStripeCard([value.uid, value.pmid], value, this.descriptor, this._flush, ctx);
+        return new UserStripeCard([value.uid, value.pmid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -15223,6 +15325,7 @@ export class WalletFactory extends EntityFactory<WalletShape, Wallet> {
         let descriptor: EntityDescriptor<WalletShape> = {
             name: 'Wallet',
             storageKey: 'wallet',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new WalletFactory(descriptor);
@@ -15249,7 +15352,7 @@ export class WalletFactory extends EntityFactory<WalletShape, Wallet> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<WalletShape>): Wallet {
-        return new Wallet([value.uid], value, this.descriptor, this._flush, ctx);
+        return new Wallet([value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -15346,6 +15449,7 @@ export class WalletTransactionFactory extends EntityFactory<WalletTransactionSha
         let descriptor: EntityDescriptor<WalletTransactionShape> = {
             name: 'WalletTransaction',
             storageKey: 'walletTransaction',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new WalletTransactionFactory(descriptor);
@@ -15417,7 +15521,7 @@ export class WalletTransactionFactory extends EntityFactory<WalletTransactionSha
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<WalletTransactionShape>): WalletTransaction {
-        return new WalletTransaction([value.id], value, this.descriptor, this._flush, ctx);
+        return new WalletTransaction([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -15463,6 +15567,7 @@ export class WalletDepositRequestFactory extends EntityFactory<WalletDepositRequ
         let descriptor: EntityDescriptor<WalletDepositRequestShape> = {
             name: 'WalletDepositRequest',
             storageKey: 'walletDepositRequest',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new WalletDepositRequestFactory(descriptor);
@@ -15489,7 +15594,7 @@ export class WalletDepositRequestFactory extends EntityFactory<WalletDepositRequ
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<WalletDepositRequestShape>): WalletDepositRequest {
-        return new WalletDepositRequest([value.uid, value.retryKey], value, this.descriptor, this._flush, ctx);
+        return new WalletDepositRequest([value.uid, value.retryKey], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -15539,6 +15644,7 @@ export class WalletTransferRequestFactory extends EntityFactory<WalletTransferRe
         let descriptor: EntityDescriptor<WalletTransferRequestShape> = {
             name: 'WalletTransferRequest',
             storageKey: 'walletTransferRequest',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new WalletTransferRequestFactory(descriptor);
@@ -15565,7 +15671,7 @@ export class WalletTransferRequestFactory extends EntityFactory<WalletTransferRe
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<WalletTransferRequestShape>): WalletTransferRequest {
-        return new WalletTransferRequest([value.fromUid, value.toUid, value.retryKey], value, this.descriptor, this._flush, ctx);
+        return new WalletTransferRequest([value.fromUid, value.toUid, value.retryKey], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -15687,6 +15793,7 @@ export class WalletPurchaseFactory extends EntityFactory<WalletPurchaseShape, Wa
         let descriptor: EntityDescriptor<WalletPurchaseShape> = {
             name: 'WalletPurchase',
             storageKey: 'walletPurchase',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new WalletPurchaseFactory(descriptor);
@@ -15743,7 +15850,7 @@ export class WalletPurchaseFactory extends EntityFactory<WalletPurchaseShape, Wa
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<WalletPurchaseShape>): WalletPurchase {
-        return new WalletPurchase([value.id], value, this.descriptor, this._flush, ctx);
+        return new WalletPurchase([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -15852,6 +15959,7 @@ export class WalletSubscriptionFactory extends EntityFactory<WalletSubscriptionS
         let descriptor: EntityDescriptor<WalletSubscriptionShape> = {
             name: 'WalletSubscription',
             storageKey: 'walletSubscription',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new WalletSubscriptionFactory(descriptor);
@@ -15908,7 +16016,7 @@ export class WalletSubscriptionFactory extends EntityFactory<WalletSubscriptionS
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<WalletSubscriptionShape>): WalletSubscription {
-        return new WalletSubscription([value.id], value, this.descriptor, this._flush, ctx);
+        return new WalletSubscription([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -15950,6 +16058,7 @@ export class WalletSubscriptionSchedulingFactory extends EntityFactory<WalletSub
         let descriptor: EntityDescriptor<WalletSubscriptionSchedulingShape> = {
             name: 'WalletSubscriptionScheduling',
             storageKey: 'walletSubscriptionScheduling',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new WalletSubscriptionSchedulingFactory(descriptor);
@@ -15976,7 +16085,7 @@ export class WalletSubscriptionSchedulingFactory extends EntityFactory<WalletSub
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<WalletSubscriptionSchedulingShape>): WalletSubscriptionScheduling {
-        return new WalletSubscriptionScheduling([value.id], value, this.descriptor, this._flush, ctx);
+        return new WalletSubscriptionScheduling([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -16075,6 +16184,7 @@ export class WalletSubscriptionPeriodFactory extends EntityFactory<WalletSubscri
         let descriptor: EntityDescriptor<WalletSubscriptionPeriodShape> = {
             name: 'WalletSubscriptionPeriod',
             storageKey: 'walletSubscriptionPeriod',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new WalletSubscriptionPeriodFactory(descriptor);
@@ -16116,7 +16226,7 @@ export class WalletSubscriptionPeriodFactory extends EntityFactory<WalletSubscri
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<WalletSubscriptionPeriodShape>): WalletSubscriptionPeriod {
-        return new WalletSubscriptionPeriod([value.id, value.index], value, this.descriptor, this._flush, ctx);
+        return new WalletSubscriptionPeriod([value.id, value.index], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -16184,6 +16294,7 @@ export class PaymentIntentFactory extends EntityFactory<PaymentIntentShape, Paym
         let descriptor: EntityDescriptor<PaymentIntentShape> = {
             name: 'PaymentIntent',
             storageKey: 'paymentIntent',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new PaymentIntentFactory(descriptor);
@@ -16210,7 +16321,7 @@ export class PaymentIntentFactory extends EntityFactory<PaymentIntentShape, Paym
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PaymentIntentShape>): PaymentIntent {
-        return new PaymentIntent([value.id], value, this.descriptor, this._flush, ctx);
+        return new PaymentIntent([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -16307,6 +16418,7 @@ export class PaymentFactory extends EntityFactory<PaymentShape, Payment> {
         let descriptor: EntityDescriptor<PaymentShape> = {
             name: 'Payment',
             storageKey: 'payment',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new PaymentFactory(descriptor);
@@ -16378,7 +16490,7 @@ export class PaymentFactory extends EntityFactory<PaymentShape, Payment> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PaymentShape>): Payment {
-        return new Payment([value.id], value, this.descriptor, this._flush, ctx);
+        return new Payment([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -16459,6 +16571,7 @@ export class PaymentSchedulingFactory extends EntityFactory<PaymentSchedulingSha
         let descriptor: EntityDescriptor<PaymentSchedulingShape> = {
             name: 'PaymentScheduling',
             storageKey: 'paymentScheduling',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new PaymentSchedulingFactory(descriptor);
@@ -16485,7 +16598,7 @@ export class PaymentSchedulingFactory extends EntityFactory<PaymentSchedulingSha
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PaymentSchedulingShape>): PaymentScheduling {
-        return new PaymentScheduling([value.id], value, this.descriptor, this._flush, ctx);
+        return new PaymentScheduling([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -16527,6 +16640,7 @@ export class StripeEventsCursorFactory extends EntityFactory<StripeEventsCursorS
         let descriptor: EntityDescriptor<StripeEventsCursorShape> = {
             name: 'StripeEventsCursor',
             storageKey: 'stripeEventsCursor',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new StripeEventsCursorFactory(descriptor);
@@ -16553,7 +16667,7 @@ export class StripeEventsCursorFactory extends EntityFactory<StripeEventsCursorS
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<StripeEventsCursorShape>): StripeEventsCursor {
-        return new StripeEventsCursor([value.id], value, this.descriptor, this._flush, ctx);
+        return new StripeEventsCursor([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -16634,6 +16748,7 @@ export class StripeEventFactory extends EntityFactory<StripeEventShape, StripeEv
         let descriptor: EntityDescriptor<StripeEventShape> = {
             name: 'StripeEvent',
             storageKey: 'stripeEvent',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new StripeEventFactory(descriptor);
@@ -16660,7 +16775,7 @@ export class StripeEventFactory extends EntityFactory<StripeEventShape, StripeEv
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<StripeEventShape>): StripeEvent {
-        return new StripeEvent([value.id], value, this.descriptor, this._flush, ctx);
+        return new StripeEvent([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -16702,6 +16817,7 @@ export class SequenceFactory extends EntityFactory<SequenceShape, Sequence> {
         let descriptor: EntityDescriptor<SequenceShape> = {
             name: 'Sequence',
             storageKey: 'sequence',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new SequenceFactory(descriptor);
@@ -16728,7 +16844,7 @@ export class SequenceFactory extends EntityFactory<SequenceShape, Sequence> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<SequenceShape>): Sequence {
-        return new Sequence([value.sequence], value, this.descriptor, this._flush, ctx);
+        return new Sequence([value.sequence], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -16770,6 +16886,7 @@ export class EnvironmentFactory extends EntityFactory<EnvironmentShape, Environm
         let descriptor: EntityDescriptor<EnvironmentShape> = {
             name: 'Environment',
             storageKey: 'environment',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new EnvironmentFactory(descriptor);
@@ -16796,7 +16913,7 @@ export class EnvironmentFactory extends EntityFactory<EnvironmentShape, Environm
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<EnvironmentShape>): Environment {
-        return new Environment([value.production], value, this.descriptor, this._flush, ctx);
+        return new Environment([value.production], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -16838,6 +16955,7 @@ export class EnvironmentVariableFactory extends EntityFactory<EnvironmentVariabl
         let descriptor: EntityDescriptor<EnvironmentVariableShape> = {
             name: 'EnvironmentVariable',
             storageKey: 'environmentVariable',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new EnvironmentVariableFactory(descriptor);
@@ -16864,7 +16982,7 @@ export class EnvironmentVariableFactory extends EntityFactory<EnvironmentVariabl
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<EnvironmentVariableShape>): EnvironmentVariable {
-        return new EnvironmentVariable([value.name], value, this.descriptor, this._flush, ctx);
+        return new EnvironmentVariable([value.name], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -16911,6 +17029,7 @@ export class ServiceCacheFactory extends EntityFactory<ServiceCacheShape, Servic
         let descriptor: EntityDescriptor<ServiceCacheShape> = {
             name: 'ServiceCache',
             storageKey: 'serviceCache',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ServiceCacheFactory(descriptor);
@@ -16952,7 +17071,7 @@ export class ServiceCacheFactory extends EntityFactory<ServiceCacheShape, Servic
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ServiceCacheShape>): ServiceCache {
-        return new ServiceCache([value.service, value.key], value, this.descriptor, this._flush, ctx);
+        return new ServiceCache([value.service, value.key], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -17007,6 +17126,7 @@ export class ReaderStateFactory extends EntityFactory<ReaderStateShape, ReaderSt
         let descriptor: EntityDescriptor<ReaderStateShape> = {
             name: 'ReaderState',
             storageKey: 'readerState',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ReaderStateFactory(descriptor);
@@ -17033,7 +17153,7 @@ export class ReaderStateFactory extends EntityFactory<ReaderStateShape, ReaderSt
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ReaderStateShape>): ReaderState {
-        return new ReaderState([value.id], value, this.descriptor, this._flush, ctx);
+        return new ReaderState([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -17088,6 +17208,7 @@ export class SuperAdminFactory extends EntityFactory<SuperAdminShape, SuperAdmin
         let descriptor: EntityDescriptor<SuperAdminShape> = {
             name: 'SuperAdmin',
             storageKey: 'superAdmin',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new SuperAdminFactory(descriptor);
@@ -17114,7 +17235,7 @@ export class SuperAdminFactory extends EntityFactory<SuperAdminShape, SuperAdmin
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<SuperAdminShape>): SuperAdmin {
-        return new SuperAdmin([value.id], value, this.descriptor, this._flush, ctx);
+        return new SuperAdmin([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -17197,6 +17318,7 @@ export class AuthTokenFactory extends EntityFactory<AuthTokenShape, AuthToken> {
         let descriptor: EntityDescriptor<AuthTokenShape> = {
             name: 'AuthToken',
             storageKey: 'authToken',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new AuthTokenFactory(descriptor);
@@ -17250,7 +17372,7 @@ export class AuthTokenFactory extends EntityFactory<AuthTokenShape, AuthToken> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<AuthTokenShape>): AuthToken {
-        return new AuthToken([value.uuid], value, this.descriptor, this._flush, ctx);
+        return new AuthToken([value.uuid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -17357,6 +17479,7 @@ export class AuthCodeSessionFactory extends EntityFactory<AuthCodeSessionShape, 
         let descriptor: EntityDescriptor<AuthCodeSessionShape> = {
             name: 'AuthCodeSession',
             storageKey: 'authCodeSession',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new AuthCodeSessionFactory(descriptor);
@@ -17383,7 +17506,7 @@ export class AuthCodeSessionFactory extends EntityFactory<AuthCodeSessionShape, 
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<AuthCodeSessionShape>): AuthCodeSession {
-        return new AuthCodeSession([value.uid], value, this.descriptor, this._flush, ctx);
+        return new AuthCodeSession([value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -17425,6 +17548,7 @@ export class FeatureFlagFactory extends EntityFactory<FeatureFlagShape, FeatureF
         let descriptor: EntityDescriptor<FeatureFlagShape> = {
             name: 'FeatureFlag',
             storageKey: 'featureFlag',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new FeatureFlagFactory(descriptor);
@@ -17451,7 +17575,7 @@ export class FeatureFlagFactory extends EntityFactory<FeatureFlagShape, FeatureF
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<FeatureFlagShape>): FeatureFlag {
-        return new FeatureFlag([value.key], value, this.descriptor, this._flush, ctx);
+        return new FeatureFlag([value.key], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -17520,6 +17644,7 @@ export class OrganizationFeaturesFactory extends EntityFactory<OrganizationFeatu
         let descriptor: EntityDescriptor<OrganizationFeaturesShape> = {
             name: 'OrganizationFeatures',
             storageKey: 'organizationFeatures',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new OrganizationFeaturesFactory(descriptor);
@@ -17558,7 +17683,7 @@ export class OrganizationFeaturesFactory extends EntityFactory<OrganizationFeatu
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OrganizationFeaturesShape>): OrganizationFeatures {
-        return new OrganizationFeatures([value.id], value, this.descriptor, this._flush, ctx);
+        return new OrganizationFeatures([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -17629,6 +17754,7 @@ export class HyperLogFactory extends EntityFactory<HyperLogShape, HyperLog> {
         let descriptor: EntityDescriptor<HyperLogShape> = {
             name: 'HyperLog',
             storageKey: 'hyperLog',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new HyperLogFactory(descriptor);
@@ -17700,7 +17826,7 @@ export class HyperLogFactory extends EntityFactory<HyperLogShape, HyperLog> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<HyperLogShape>): HyperLog {
-        return new HyperLog([value.id], value, this.descriptor, this._flush, ctx);
+        return new HyperLog([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -17825,6 +17951,10 @@ export class Task extends Entity<TaskShape> {
             this.invalidate();
         }
     }
+
+    delete(ctx: Context) {
+        return this._delete(ctx);
+    }
 }
 
 export class TaskFactory extends EntityFactory<TaskShape, Task> {
@@ -17867,6 +17997,7 @@ export class TaskFactory extends EntityFactory<TaskShape, Task> {
         let descriptor: EntityDescriptor<TaskShape> = {
             name: 'Task',
             storageKey: 'task',
+            allowDelete: true,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new TaskFactory(descriptor);
@@ -17953,7 +18084,7 @@ export class TaskFactory extends EntityFactory<TaskShape, Task> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<TaskShape>): Task {
-        return new Task([value.taskType, value.uid], value, this.descriptor, this._flush, ctx);
+        return new Task([value.taskType, value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -18066,6 +18197,7 @@ export class DelayedTaskFactory extends EntityFactory<DelayedTaskShape, DelayedT
         let descriptor: EntityDescriptor<DelayedTaskShape> = {
             name: 'DelayedTask',
             storageKey: 'delayedTask',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new DelayedTaskFactory(descriptor);
@@ -18122,7 +18254,7 @@ export class DelayedTaskFactory extends EntityFactory<DelayedTaskShape, DelayedT
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<DelayedTaskShape>): DelayedTask {
-        return new DelayedTask([value.taskType, value.uid], value, this.descriptor, this._flush, ctx);
+        return new DelayedTask([value.taskType, value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -18181,6 +18313,7 @@ export class ServiceThrottleFactory extends EntityFactory<ServiceThrottleShape, 
         let descriptor: EntityDescriptor<ServiceThrottleShape> = {
             name: 'ServiceThrottle',
             storageKey: 'serviceThrottle',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ServiceThrottleFactory(descriptor);
@@ -18207,7 +18340,7 @@ export class ServiceThrottleFactory extends EntityFactory<ServiceThrottleShape, 
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ServiceThrottleShape>): ServiceThrottle {
-        return new ServiceThrottle([value.service, value.key], value, this.descriptor, this._flush, ctx);
+        return new ServiceThrottle([value.service, value.key], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -18306,6 +18439,7 @@ export class OneTimeCodeFactory extends EntityFactory<OneTimeCodeShape, OneTimeC
         let descriptor: EntityDescriptor<OneTimeCodeShape> = {
             name: 'OneTimeCode',
             storageKey: 'oneTimeCode',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new OneTimeCodeFactory(descriptor);
@@ -18344,7 +18478,7 @@ export class OneTimeCodeFactory extends EntityFactory<OneTimeCodeShape, OneTimeC
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<OneTimeCodeShape>): OneTimeCode {
-        return new OneTimeCode([value.service, value.id], value, this.descriptor, this._flush, ctx);
+        return new OneTimeCode([value.service, value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -18391,6 +18525,7 @@ export class DebugEventFactory extends EntityFactory<DebugEventShape, DebugEvent
         let descriptor: EntityDescriptor<DebugEventShape> = {
             name: 'DebugEvent',
             storageKey: 'debugEvent',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new DebugEventFactory(descriptor);
@@ -18432,7 +18567,7 @@ export class DebugEventFactory extends EntityFactory<DebugEventShape, DebugEvent
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<DebugEventShape>): DebugEvent {
-        return new DebugEvent([value.uid, value.seq], value, this.descriptor, this._flush, ctx);
+        return new DebugEvent([value.uid, value.seq], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -18474,6 +18609,7 @@ export class DebugEventStateFactory extends EntityFactory<DebugEventStateShape, 
         let descriptor: EntityDescriptor<DebugEventStateShape> = {
             name: 'DebugEventState',
             storageKey: 'debugEventState',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new DebugEventStateFactory(descriptor);
@@ -18500,7 +18636,7 @@ export class DebugEventStateFactory extends EntityFactory<DebugEventStateShape, 
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<DebugEventStateShape>): DebugEventState {
-        return new DebugEventState([value.uid], value, this.descriptor, this._flush, ctx);
+        return new DebugEventState([value.uid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -18581,6 +18717,7 @@ export class EntityCounterStateFactory extends EntityFactory<EntityCounterStateS
         let descriptor: EntityDescriptor<EntityCounterStateShape> = {
             name: 'EntityCounterState',
             storageKey: 'entityCounterState',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new EntityCounterStateFactory(descriptor);
@@ -18607,7 +18744,7 @@ export class EntityCounterStateFactory extends EntityFactory<EntityCounterStateS
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<EntityCounterStateShape>): EntityCounterState {
-        return new EntityCounterState([value.id], value, this.descriptor, this._flush, ctx);
+        return new EntityCounterState([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -18650,6 +18787,7 @@ export class GqlTraceFactory extends EntityFactory<GqlTraceShape, GqlTrace> {
         let descriptor: EntityDescriptor<GqlTraceShape> = {
             name: 'GqlTrace',
             storageKey: 'gqlTrace',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new GqlTraceFactory(descriptor);
@@ -18691,7 +18829,7 @@ export class GqlTraceFactory extends EntityFactory<GqlTraceShape, GqlTrace> {
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<GqlTraceShape>): GqlTrace {
-        return new GqlTrace([value.id], value, this.descriptor, this._flush, ctx);
+        return new GqlTrace([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -18774,6 +18912,7 @@ export class PhonebookItemFactory extends EntityFactory<PhonebookItemShape, Phon
         let descriptor: EntityDescriptor<PhonebookItemShape> = {
             name: 'PhonebookItem',
             storageKey: 'phonebookItem',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new PhonebookItemFactory(descriptor);
@@ -18830,7 +18969,7 @@ export class PhonebookItemFactory extends EntityFactory<PhonebookItemShape, Phon
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PhonebookItemShape>): PhonebookItem {
-        return new PhonebookItem([value.id], value, this.descriptor, this._flush, ctx);
+        return new PhonebookItem([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -18939,6 +19078,7 @@ export class EditorsChoiceChatsCollectionFactory extends EntityFactory<EditorsCh
         let descriptor: EntityDescriptor<EditorsChoiceChatsCollectionShape> = {
             name: 'EditorsChoiceChatsCollection',
             storageKey: 'editorsChoiceChatsCollection',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new EditorsChoiceChatsCollectionFactory(descriptor);
@@ -18995,7 +19135,7 @@ export class EditorsChoiceChatsCollectionFactory extends EntityFactory<EditorsCh
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<EditorsChoiceChatsCollectionShape>): EditorsChoiceChatsCollection {
-        return new EditorsChoiceChatsCollection([value.id], value, this.descriptor, this._flush, ctx);
+        return new EditorsChoiceChatsCollection([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -19077,6 +19217,7 @@ export class EditorsChoiceChatFactory extends EntityFactory<EditorsChoiceChatSha
         let descriptor: EntityDescriptor<EditorsChoiceChatShape> = {
             name: 'EditorsChoiceChat',
             storageKey: 'editorsChoiceChat',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new EditorsChoiceChatFactory(descriptor);
@@ -19115,7 +19256,7 @@ export class EditorsChoiceChatFactory extends EntityFactory<EditorsChoiceChatSha
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<EditorsChoiceChatShape>): EditorsChoiceChat {
-        return new EditorsChoiceChat([value.id], value, this.descriptor, this._flush, ctx);
+        return new EditorsChoiceChat([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -19157,6 +19298,7 @@ export class ClickHouseMigrationsFactory extends EntityFactory<ClickHouseMigrati
         let descriptor: EntityDescriptor<ClickHouseMigrationsShape> = {
             name: 'ClickHouseMigrations',
             storageKey: 'clickHouseMigrations',
+            allowDelete: false,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ClickHouseMigrationsFactory(descriptor);
@@ -19183,7 +19325,7 @@ export class ClickHouseMigrationsFactory extends EntityFactory<ClickHouseMigrati
     }
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ClickHouseMigrationsShape>): ClickHouseMigrations {
-        return new ClickHouseMigrations([value.version], value, this.descriptor, this._flush, ctx);
+        return new ClickHouseMigrations([value.version], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 

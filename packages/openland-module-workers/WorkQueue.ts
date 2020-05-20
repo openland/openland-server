@@ -178,8 +178,7 @@ export class WorkQueue<ARGS> {
                     let res2 = await Store.Task.findById(ctx, task!!.res.taskType, task!!.res.uid);
                     if (res2) {
                         if (res2.taskLockSeed === lockSeed && res2.taskStatus === 'executing') {
-                            res2.taskStatus = 'completed';
-                            // await Store.Task.descriptor.subspace.clear(ctx, [res2.taskType, res2.uid]);
+                            await res2.delete(ctx);
                             workCompleted.event(ctx, { taskId: res2.uid, taskType: res2.taskType, duration: Date.now() - res2.metadata.createdAt });
                             return true;
                         }

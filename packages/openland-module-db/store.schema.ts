@@ -18,7 +18,7 @@ import {
     array,
     union,
     event,
-    float,
+    float, allowDelete,
 } from '@openland/foundationdb-compiler';
 import { eventStore } from '@openland/foundationdb-compiler/lib/builder';
 
@@ -2396,6 +2396,8 @@ export default declareSchema(() => {
             .withCondition((src) => src.taskStatus === 'executing');
         rangeIndex('failing', ['taskFailureTime'])
             .withCondition((src) => src.taskStatus === 'failing');
+
+        allowDelete();
     });
 
     entity('DelayedTask', () => {
