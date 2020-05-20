@@ -1316,8 +1316,13 @@ export const Resolver: GQLResolver = {
             let defaultOrg = await Modules.Super.getEnvVar<string>(rootCtx, 'default-org-id');
 
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugFixUsersPrimaryOrganization', async (ctx, id, log) => {
+                let user = (await Store.User.findById(ctx, id))!;
                 let profile = await Store.UserProfile.findById(ctx, id);
                 if (!profile) {
+                    return;
+                }
+                if (user.isBot) {
+                    profile.primaryOrganization = null;
                     return;
                 }
                 if (profile.primaryOrganization) {
