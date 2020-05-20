@@ -1313,6 +1313,8 @@ export const Resolver: GQLResolver = {
             return true;
         }),
         debugFixUsersPrimaryOrganization: withPermission('super-admin', async (parent) => {
+            let defaultOrg = await Modules.Super.getEnvVar<string>(rootCtx, 'default-org-id');
+
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugFixUsersPrimaryOrganization', async (ctx, id, log) => {
                 let profile = await Store.UserProfile.findById(ctx, id);
                 if (!profile) {
@@ -1334,7 +1336,14 @@ export const Resolver: GQLResolver = {
                 }
 
                 if (!profile.primaryOrganization) {
-                    await log(`user[${id}] org not found`);
+                    if (!defaultOrg) {
+                        await log(`user[${id}] org not found`);
+                    } else {
+                        let orgId = IDs.Organization.parse(defaultOrg);
+                        await Modules.Orgs.addUserToOrganization(ctx, id, orgId, id, true);
+                        profile.primaryOrganization = orgId;
+                        await log(`user[${id}] moved to default org`);
+                    }
                 }
             });
             return true;
