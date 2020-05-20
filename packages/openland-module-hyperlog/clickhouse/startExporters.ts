@@ -5,6 +5,7 @@ import { DatabaseClient } from './ClickHouseClient';
 import { createNamedContext } from '@openland/context';
 import { backoff, forever, delay } from 'openland-utils/timer';
 import { createClient } from './migrations';
+import { HyperLog } from '../../openland-module-db/store';
 
 function startPresenceExport(client: DatabaseClient) {
     updateReader('ch-exporter-reader', 3, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
@@ -56,7 +57,7 @@ function startSuperAdminsExport(client: DatabaseClient) {
     });
 }
 
-function startSignupsExporter(client: DatabaseClient) {
+function startSignupsExport(client: DatabaseClient) {
     updateReader('ch-exporter-signups', 1, Store.UserProfile.created.stream({ batchSize: 1000 }), async (src, first, ctx) => {
         let data: any[][] = [];
         for (let v of src) {
@@ -87,6 +88,57 @@ function startBotsExport(client: DatabaseClient) {
     });
 }
 
+function startAnalyticsExport(client: DatabaseClient) {
+    updateReader('ch-analytics-exporter-reader', 1, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
+        // common fields: time, uid
+        let simpleTypes = [
+            'user_activated', 'new-mobile-user', 'new-sender',
+            'new-about-filler', 'new-three-like-giver', 'new-three-like-getter'
+        ];
+        let complexTypes = ['new-inviter', 'new-reaction', 'call_ended'];
+
+        let analyticsTypes = simpleTypes.concat(complexTypes);
+
+        let eventsToIndex = src.filter((v) => analyticsTypes.includes(v.type) && (v.body.isTest === null || v.body.isTest === undefined || !v.body.isTest));
+        if (eventsToIndex.length > 0) {
+            let eventsByType = eventsToIndex.reduce((map, a) => {
+                map.has(a.type) ? map.get(a.type)!.push(a) : map.set(a.type, [a]);
+                return map;
+            }, new Map<string, HyperLog[]>());
+            for (let [type, values] of eventsByType.entries()) {
+                let clickhouseTableName = type.replace(/-/g, '_');
+                if (simpleTypes.includes(type)) {
+                    await client.insert(ctx, clickhouseTableName, ['time', 'uid'], values.map((v) => [Math.round(v.date / 1000), v.body.uid]));
+                }
+                if (type === 'new-inviter') {
+                    await client.insert(
+                        ctx,
+                        clickhouseTableName,
+                        ['time', 'uid', 'invitee_id'],
+                        values.map((v) => [Math.round(v.date / 1000), v.body.uid, v.body.inviteeId])
+                    );
+                }
+                if (type === 'new-reaction') {
+                    await client.insert(
+                        ctx,
+                        'reaction',
+                        ['time', 'id', 'uid', 'mid', 'message_author_id'],
+                        values.map((v) => [Math.round(v.date / 1000), v.id, v.body.uid, v.body.mid, v.body.messageAuthorId])
+                    );
+                }
+                if (type === 'call_ended') {
+                    await client.insert(
+                        ctx,
+                        'call_ended',
+                        ['time', 'duration', 'id'],
+                        values.map((v) => [Math.round(v.date / 1000), v.body.duration, v.id])
+                    );
+                }
+            }
+        }
+    });
+}
+
 export function startExporters(ctx: Context) {
     // tslint:disable-next-line:no-floating-promises
     (async () => {
@@ -95,6 +147,7 @@ export function startExporters(ctx: Context) {
         startMessagesExport(client);
         startSuperAdminsExport(client);
         startBotsExport(client);
-        startSignupsExporter(client);
+        startSignupsExport(client);
+        startAnalyticsExport(client);
     })();
 }

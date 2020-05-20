@@ -107,6 +107,164 @@ migrations.push({
     }
 });
 
+migrations.push({
+    name: '05-user_activated',
+    command: async (ctx: Context, client: DatabaseClient) => {
+        await client.createTable(ctx, 'user_activated', [{
+            name: 'time',
+            type: 'DateTime',
+        }, {
+            name: 'uid',
+            type: 'Int64',
+        }],
+            'toYYYYMM(time)',
+            '(uid, time)',
+            'uid');
+    }
+});
+
+migrations.push({
+    name: '06-new-mobile-user',
+    command: async (ctx: Context, client: DatabaseClient) => {
+        await client.createTable(ctx, 'new_mobile_user', [{
+                name: 'time',
+                type: 'DateTime',
+            }, {
+                name: 'uid',
+                type: 'Int64',
+            }],
+            'toYYYYMM(time)',
+            '(uid, time)',
+            'uid');
+    }
+});
+
+migrations.push({
+    name: '07-new_sender',
+    command: async (ctx: Context, client: DatabaseClient) => {
+        await client.createTable(ctx, 'new_sender', [{
+                name: 'time',
+                type: 'DateTime',
+            }, {
+                name: 'uid',
+                type: 'Int64',
+            }],
+            'toYYYYMM(time)',
+            '(uid, time)',
+            'uid');
+    }
+});
+
+migrations.push({
+    name: '08-new_inviter',
+    command: async (ctx: Context, client: DatabaseClient) => {
+        await client.createTable(ctx, 'new_inviter', [{
+                name: 'time',
+                type: 'DateTime',
+            }, {
+                name: 'uid',
+                type: 'Int64',
+            }, {
+                name: 'invitee_id',
+                type: 'Int64',
+            }],
+            'toYYYYMM(time)',
+            '(uid, time)',
+            'uid');
+    }
+});
+
+migrations.push({
+    name: '09-new-about-filler',
+    command: async (ctx: Context, client: DatabaseClient) => {
+        await client.createTable(ctx, 'new_about_filler', [{
+                name: 'time',
+                type: 'DateTime',
+            }, {
+                name: 'uid',
+                type: 'Int64',
+            }],
+            'toYYYYMM(time)',
+            '(uid, time)',
+            'uid');
+    }
+});
+
+migrations.push({
+    name: '10-new-three-like-getter',
+    command: async (ctx: Context, client: DatabaseClient) => {
+        await client.createTable(ctx, 'new_three_like_getter', [{
+                name: 'time',
+                type: 'DateTime',
+            }, {
+                name: 'uid',
+                type: 'Int64',
+            }],
+            'toYYYYMM(time)',
+            '(uid, time)',
+            'uid');
+    }
+});
+
+migrations.push({
+    name: '11-new-three-like-giver',
+    command: async (ctx: Context, client: DatabaseClient) => {
+        await client.createTable(ctx, 'new_three_like_giver', [{
+                name: 'time',
+                type: 'DateTime',
+            }, {
+                name: 'uid',
+                type: 'Int64',
+            }],
+            'toYYYYMM(time)',
+            '(uid, time)',
+            'uid');
+    }
+});
+
+migrations.push({
+    name: '12-new-reaction',
+    command: async (ctx: Context, client: DatabaseClient) => {
+        await client.createTable(ctx, 'reaction', [{
+                name: 'time',
+                type: 'DateTime',
+            }, {
+                name: 'id',
+                type: 'String',
+            }, {
+                name: 'uid',
+                type: 'Int64',
+            }, {
+                name: 'mid',
+                type: 'Int64',
+            }, {
+                name: 'message_author_id',
+                type: 'Int64',
+            }],
+            'toYYYYMM(time)',
+            '(id, uid, time)',
+            'id');
+    }
+});
+
+migrations.push({
+    name: '13-call-ended',
+    command: async (ctx: Context, client: DatabaseClient) => {
+        await client.createTable(ctx, 'call_ended', [{
+            name: 'time',
+            type: 'DateTime',
+        }, {
+            name: 'duration',
+            type: 'Int64'
+        }, {
+            name: 'id',
+            type: 'String'
+        }], 'toYYYYMM(time)',
+            '(id, time)',
+            'id');
+    }
+});
+
 const logger = createLogger('clickhouse');
 
 export async function createClient(ctx: Context) {
