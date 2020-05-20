@@ -567,7 +567,7 @@ export class CallSchedulerKitchenTransport {
                     }
 
                     if (!producerTransport.videoProducer) {
-                        let rtpParameters = extractVP8RtpParameters(media);
+                        let rtpParameters = extractH264RtpParameters(media);
                         let producerId = await this.repo.createProducer(ctx, transportId, { kind: 'video', rtpParameters });
                         producerTransport.videoProducer = producerId;
                         changed = true;
@@ -582,7 +582,7 @@ export class CallSchedulerKitchenTransport {
                     }
 
                     if (!producerTransport.screencastProducer) {
-                        let rtpParameters = extractH264RtpParameters(media);
+                        let rtpParameters = extractVP8RtpParameters(media);
                         let producerId = await this.repo.createProducer(ctx, transportId, { kind: 'video', rtpParameters });
                         producerTransport.screencastProducer = producerId;
                         changed = true;
