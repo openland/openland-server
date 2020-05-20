@@ -1348,7 +1348,6 @@ export const Resolver: GQLResolver = {
                             await log(e);
                             logger.error(rootCtx, e);
                         }
-
                     }
                 }
             });
