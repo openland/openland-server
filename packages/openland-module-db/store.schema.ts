@@ -2472,6 +2472,7 @@ export default declareSchema(() => {
         primaryKey('id', string());
         field('lastId', optional(json()));
         field('deletedCount', integer());
+        field('brokenRecordsCount', optional(integer()));
         field('version', optional(integer()));
     });
 

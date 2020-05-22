@@ -26,5 +26,12 @@ export const Metrics = {
             return state.deletedCount;
         }
         return 0;
+    }),
+    BrokenTasks: Factory.createPersistedGauge('broken_tasks', 'Count of broken tasks in db', async ctx => {
+        let state = await Store.EntityCleanerState.findById(ctx, 'Task');
+        if (state) {
+            return state.brokenRecordsCount || 0;
+        }
+        return 0;
     })
 };

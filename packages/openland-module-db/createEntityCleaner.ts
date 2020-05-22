@@ -25,15 +25,26 @@ export function createEntityCleaner<T extends DeletableEntity>(name: string, ver
         }
 
         await inTx(root, async ctx => {
+            let deletedDelta = 0;
+            let brokenDelta = 0;
+
             // TODO: move this to Entity layer
             let data = await entity.descriptor.subspace.range(ctx, [], {limit: batchSize, after});
-            let res: T[] = data.map(v => (entity as any)._createEntityInstance(ctx, (entity as any)._decode(ctx, v.value)));
+            let res: T[] = [];
+            for (let record of data) {
+                try {
+                    let decoded = (entity as any)._decode(ctx, record.value);
+                    let val = (entity as any)._createEntityInstance(ctx, decoded);
+                    res.push(val);
+                } catch (e) {
+                    brokenDelta++;
+                }
+            }
 
             if (res.length === 0) {
                 return;
             }
             after = data[data.length - 1].key;
-            let deletedDelta = 0;
 
             for (let item of res) {
                 if (condition(item)) {
@@ -47,14 +58,21 @@ export function createEntityCleaner<T extends DeletableEntity>(name: string, ver
                 if (existing.metadata.versionCode === latest.metadata.versionCode) {
                     latest.lastId = after;
                     latest.version = version;
+
+                    if (!latest.brokenRecordsCount) {
+                        latest.brokenRecordsCount = 0;
+                    }
+
                     if (first) {
                         latest.deletedCount = deletedDelta;
+                        latest.brokenRecordsCount = brokenDelta;
                     } else {
                         latest.deletedCount += deletedDelta;
+                        latest.brokenRecordsCount += brokenDelta;
                     }
                 }
             } else if (!latest) {
-                await Store.EntityCleanerState.create(ctx, name, { lastId: after, version: version, deletedCount: deletedDelta });
+                await Store.EntityCleanerState.create(ctx, name, { lastId: after, version: version, deletedCount: deletedDelta, brokenRecordsCount: brokenDelta });
             }
         });
     });

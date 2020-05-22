@@ -18837,12 +18837,14 @@ export interface EntityCleanerStateShape {
     id: string;
     lastId: any | null;
     deletedCount: number;
+    brokenRecordsCount: number | null;
     version: number | null;
 }
 
 export interface EntityCleanerStateCreateShape {
     lastId?: any | null | undefined;
     deletedCount: number;
+    brokenRecordsCount?: number | null | undefined;
     version?: number | null | undefined;
 }
 
@@ -18863,6 +18865,15 @@ export class EntityCleanerState extends Entity<EntityCleanerStateShape> {
         if (this._rawValue.deletedCount !== normalized) {
             this._rawValue.deletedCount = normalized;
             this._updatedValues.deletedCount = normalized;
+            this.invalidate();
+        }
+    }
+    get brokenRecordsCount(): number | null { return this._rawValue.brokenRecordsCount; }
+    set brokenRecordsCount(value: number | null) {
+        let normalized = this.descriptor.codec.fields.brokenRecordsCount.normalize(value);
+        if (this._rawValue.brokenRecordsCount !== normalized) {
+            this._rawValue.brokenRecordsCount = normalized;
+            this._updatedValues.brokenRecordsCount = normalized;
             this.invalidate();
         }
     }
@@ -18887,11 +18898,13 @@ export class EntityCleanerStateFactory extends EntityFactory<EntityCleanerStateS
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'lastId', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
         fields.push({ name: 'deletedCount', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'brokenRecordsCount', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'version', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.string,
             lastId: c.optional(c.any),
             deletedCount: c.integer,
+            brokenRecordsCount: c.optional(c.integer),
             version: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<EntityCleanerStateShape> = {
