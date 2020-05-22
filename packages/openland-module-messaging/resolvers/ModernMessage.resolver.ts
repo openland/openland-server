@@ -385,7 +385,7 @@ export const Resolver: GQLResolver = {
         date: src => src.metadata.createdAt,
         sender: async (src, args, ctx) => {
             if (src.deleted || isMessageHiddenForUser(src, ctx.auth.uid!)) {
-                const deletedUserId = await Modules.Users.getDeletedUserId(ctx);
+                const deletedUserId = Modules.Users.getDeletedUserId();
                 if (deletedUserId) {
                     return deletedUserId;
                 }
@@ -486,7 +486,7 @@ export const Resolver: GQLResolver = {
             // message can be deleted, while sender can be alive or deleted
 
             if (src.deleted || isMessageHiddenForUser(src, ctx.auth.uid!)) {
-                const deletedUserId = await Modules.Users.getDeletedUserId(ctx);
+                const deletedUserId = Modules.Users.getDeletedUserId();
                 if (deletedUserId) {
                     return deletedUserId;
                 }
@@ -730,7 +730,7 @@ export const Resolver: GQLResolver = {
             // message can be deleted, while sender can be alive or deleted
 
             if (src.deleted || isMessageHiddenForUser(src, ctx.auth.uid!)) {
-                const deletedUserId = await Modules.Users.getDeletedUserId(ctx);
+                const deletedUserId = Modules.Users.getDeletedUserId();
                 if (deletedUserId) {
                     return deletedUserId;
                 }

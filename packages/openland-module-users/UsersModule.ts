@@ -5,20 +5,23 @@ import { UserSearch } from './search/UserSearch';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { ProfileInput } from './ProfileInput';
 import { injectable, inject } from 'inversify';
-import { inTx } from '@openland/foundationdb';
+import { inTx, withReadOnlyTransaction } from '@openland/foundationdb';
 import { Emails } from 'openland-module-email/Emails';
 import { ImageRef } from 'openland-module-media/ImageRef';
-import { Context } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import { Modules } from '../openland-modules/Modules';
 import { AudienceCounterRepository } from './repositories/AudienceCounterRepository';
 import { declareUserAudienceCalculator } from './workers/userAudienceCalculator';
+
+const rootCtx = createNamedContext('users_module');
 
 @injectable()
 export class UsersModule {
     private readonly repo: UserRepository;
     private readonly audienceCounterRepo: AudienceCounterRepository;
     public readonly search = new UserSearch();
+    private deletedUserId: number|null = null;
 
     constructor(
         @inject('UserRepository') userRepo: UserRepository,
@@ -28,11 +31,13 @@ export class UsersModule {
         this.audienceCounterRepo = audienceCounterRepo;
     }
 
-    start = () => {
+    start = async () => {
         if (serverRoleEnabled('workers')) {
             userProfileIndexer();
             declareUserAudienceCalculator();
         }
+
+        this.deletedUserId = await Modules.Super.getEnvVar<number>(withReadOnlyTransaction(rootCtx), 'deleted-user-id');
     }
 
     async createUser(ctx: Context, authInfo: AuthInfo) {
@@ -156,8 +161,8 @@ export class UsersModule {
         return await Modules.Super.getEnvVar<number>(ctx, 'support-user-id');
     }
 
-    async getDeletedUserId(ctx: Context) {
-        return await Modules.Super.getEnvVar<number>(ctx, 'deleted-user-id');
+    getDeletedUserId() {
+        return this.deletedUserId;
     }
 
     async onChatMembersCountChange(ctx: Context, cid: number, delta: number) {
