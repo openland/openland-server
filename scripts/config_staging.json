@@ -8,7 +8,7 @@
         "token": "e4dd144291faef1952c7899fcf134a48"
     },
     "foundationdb": {
-        "cluster": "pVxVc4eI:psi4uXSA@10.138.0.2:4500",
+        "cluster": "pVxVc4eI:FCbmq4MaGND0HbIGxvBU3LaBvOoNocCD@10.12.139.111:4500",
         "dcid": "us-west1"
     },
     "nats": null,

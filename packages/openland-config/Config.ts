@@ -36,6 +36,7 @@ const codec = t.type({
 });
 
 let configuration: t.TypeOf<typeof codec> | undefined = undefined;
+let enableTracing: boolean = false;
 
 function loadConfigIfNeeded() {
     if (configuration) {
@@ -52,6 +53,10 @@ function loadConfigIfNeeded() {
         configuration = decoded.right;
     } else {
         throw Error('Error in config: ' + JSON.stringify(PathReporter.report(decoded)));
+    }
+
+    if (process.env.JAEGER_AGENT_HOST) {
+        enableTracing = true;
     }
 }
 
@@ -98,6 +103,10 @@ class ConfigProvider {
     get clickhouse() {
         loadConfigIfNeeded();
         return configuration!.clickhouse;
+    }
+
+    get enableTracing() {
+        return enableTracing;
     }
 }
 
