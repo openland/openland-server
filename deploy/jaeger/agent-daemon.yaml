@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: jaeger-agent
+  namespace: kube-system
+  labels:
+    app: jaeger-agent
+spec:
+  selector:
+    matchLabels:
+      name: jaeger-agent
+  template:
+    metadata:
+      labels:
+        name: jaeger-agent
+    spec:
+      hostNetwork: true
+      containers:
+        - name: jaeger-agent
+          image: jaegertracing/jaeger-agent:1.18
+          args:
+            - "--reporter.grpc.host-port=jaeger.openland.infra:14250"
+          resources:
+            requests:
+              cpu: 50m
