@@ -68,13 +68,11 @@ export class ShortnameRepository {
     }
 
     async findShortnameByOwner(parent: Context, ownerType: OwnerType, ownerId: number) {
-        return await inTx(parent, async ctx => {
-            let record = await Store.ShortnameReservation.fromOwner.find(ctx, ownerType, ownerId);
-            if (record && record.enabled) {
-                return record;
-            }
-            return null;
-        });
+        let record = await Store.ShortnameReservation.fromOwner.find(parent, ownerType, ownerId);
+        if (record && record.enabled) {
+            return record;
+        }
+        return null;
     }
 
     async setShortName(parent: Context, shortname: string, ownerType: OwnerType, ownerId: number, uid: number) {
