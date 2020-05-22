@@ -18,5 +18,13 @@ export const Metrics = {
             res += (await Store.KitchenRouter.workerActive.findAll(ctx, w.id)).length;
         }
         return res;
+    }),
+
+    TasksDeletionProgress: Factory.createPersistedGauge('tasks_deletion', 'Completed tasks deletion progress', async ctx => {
+        let state = await Store.EntityCleanerState.findById(ctx, 'Task');
+        if (state) {
+            return state.deletedCount;
+        }
+        return 0;
     })
 };
