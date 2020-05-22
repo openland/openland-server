@@ -97,6 +97,10 @@ export const Resolver: GQLResolver = {
                 } else if (proom.uid2 === parent.auth.uid!) {
                     return proom.uid1;
                 } else {
+                    let deletedUserId = Modules.Users.getDeletedUserId();
+                    if (deletedUserId) {
+                        return deletedUserId;
+                    }
                     throw new AccessDeniedError();
                 }
             });

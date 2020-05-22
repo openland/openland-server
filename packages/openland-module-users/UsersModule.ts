@@ -13,8 +13,10 @@ import { NotFoundError } from '../openland-errors/NotFoundError';
 import { Modules } from '../openland-modules/Modules';
 import { AudienceCounterRepository } from './repositories/AudienceCounterRepository';
 import { declareUserAudienceCalculator } from './workers/userAudienceCalculator';
+import { createLogger } from '@openland/log';
 
 const rootCtx = createNamedContext('users_module');
+const log = createLogger('users_module');
 
 @injectable()
 export class UsersModule {
@@ -38,6 +40,10 @@ export class UsersModule {
         }
 
         this.deletedUserId = await Modules.Super.getEnvVar<number>(withReadOnlyTransaction(rootCtx), 'deleted-user-id');
+
+        if (!this.deletedUserId) {
+            log.warn(rootCtx, 'deleted-user-id is not set');
+        }
     }
 
     async createUser(ctx: Context, authInfo: AuthInfo) {
