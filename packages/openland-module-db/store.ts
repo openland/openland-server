@@ -18833,6 +18833,101 @@ export class GqlTraceFactory extends EntityFactory<GqlTraceShape, GqlTrace> {
     }
 }
 
+export interface EntityCleanerStateShape {
+    id: string;
+    lastId: any | null;
+    deletedCount: number;
+    version: number | null;
+}
+
+export interface EntityCleanerStateCreateShape {
+    lastId?: any | null | undefined;
+    deletedCount: number;
+    version?: number | null | undefined;
+}
+
+export class EntityCleanerState extends Entity<EntityCleanerStateShape> {
+    get id(): string { return this._rawValue.id; }
+    get lastId(): any | null { return this._rawValue.lastId; }
+    set lastId(value: any | null) {
+        let normalized = this.descriptor.codec.fields.lastId.normalize(value);
+        if (this._rawValue.lastId !== normalized) {
+            this._rawValue.lastId = normalized;
+            this._updatedValues.lastId = normalized;
+            this.invalidate();
+        }
+    }
+    get deletedCount(): number { return this._rawValue.deletedCount; }
+    set deletedCount(value: number) {
+        let normalized = this.descriptor.codec.fields.deletedCount.normalize(value);
+        if (this._rawValue.deletedCount !== normalized) {
+            this._rawValue.deletedCount = normalized;
+            this._updatedValues.deletedCount = normalized;
+            this.invalidate();
+        }
+    }
+    get version(): number | null { return this._rawValue.version; }
+    set version(value: number | null) {
+        let normalized = this.descriptor.codec.fields.version.normalize(value);
+        if (this._rawValue.version !== normalized) {
+            this._rawValue.version = normalized;
+            this._updatedValues.version = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class EntityCleanerStateFactory extends EntityFactory<EntityCleanerStateShape, EntityCleanerState> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('entityCleanerState');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'lastId', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
+        fields.push({ name: 'deletedCount', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'version', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            lastId: c.optional(c.any),
+            deletedCount: c.integer,
+            version: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<EntityCleanerStateShape> = {
+            name: 'EntityCleanerState',
+            storageKey: 'entityCleanerState',
+            allowDelete: false,
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new EntityCleanerStateFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<EntityCleanerStateShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: string, src: EntityCleanerStateCreateShape): Promise<EntityCleanerState> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: EntityCleanerStateCreateShape): EntityCleanerState {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<EntityCleanerState | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<EntityCleanerStateShape>): EntityCleanerState {
+        return new EntityCleanerState([value.id], value, this.descriptor, this._flush, this._delete, ctx);
+    }
+}
+
 export interface PhonebookItemShape {
     id: number;
     uid: number;
@@ -20683,6 +20778,7 @@ export interface Store extends BaseStore {
     readonly DebugEventState: DebugEventStateFactory;
     readonly EntityCounterState: EntityCounterStateFactory;
     readonly GqlTrace: GqlTraceFactory;
+    readonly EntityCleanerState: EntityCleanerStateFactory;
     readonly PhonebookItem: PhonebookItemFactory;
     readonly EditorsChoiceChatsCollection: EditorsChoiceChatsCollectionFactory;
     readonly EditorsChoiceChat: EditorsChoiceChatFactory;
@@ -20905,6 +21001,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let DebugEventStatePromise = DebugEventStateFactory.open(storage);
     let EntityCounterStatePromise = EntityCounterStateFactory.open(storage);
     let GqlTracePromise = GqlTraceFactory.open(storage);
+    let EntityCleanerStatePromise = EntityCleanerStateFactory.open(storage);
     let PhonebookItemPromise = PhonebookItemFactory.open(storage);
     let EditorsChoiceChatsCollectionPromise = EditorsChoiceChatsCollectionFactory.open(storage);
     let EditorsChoiceChatPromise = EditorsChoiceChatFactory.open(storage);
@@ -21098,6 +21195,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         DebugEventState: await DebugEventStatePromise,
         EntityCounterState: await EntityCounterStatePromise,
         GqlTrace: await GqlTracePromise,
+        EntityCleanerState: await EntityCleanerStatePromise,
         PhonebookItem: await PhonebookItemPromise,
         EditorsChoiceChatsCollection: await EditorsChoiceChatsCollectionPromise,
         EditorsChoiceChat: await EditorsChoiceChatPromise,

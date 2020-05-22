@@ -252,6 +252,13 @@ export const Resolver: GQLResolver = {
             }
             return 0;
         }),
+        debugEntitiesCleanerProgress: withPermission('super-admin', async (ctx, args) => {
+            let state = await Store.EntityCleanerState.findById(ctx, args.name);
+            if (state) {
+                return state.deletedCount;
+            }
+            return 0;
+        }),
     },
     Mutation: {
         debugSendSMS: withPermission('super-admin', async (ctx, args) => {

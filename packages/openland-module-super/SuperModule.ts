@@ -6,6 +6,8 @@ import { PermissionsRepository } from './repositories/PermissionsRepository';
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { EnvironmentVariablesRepository, EnvVarValueType } from './repositories/EnvironmentVariablesRepository';
+import { createEntityCleaner } from '../openland-module-db/createEntityCleaner';
+import { Task } from '../openland-module-db/store';
 
 @injectable()
 export class SuperModule {
@@ -62,5 +64,7 @@ export class SuperModule {
         // createEntitiesCounter('HyperLog', 3, Store.HyperLog, 5000);
         // createEntitiesCounter('Task', 1, Store.Task, 5000);
         // createEntitiesCounter('Message', 1, Store.Message, 5000);
+
+        createEntityCleaner<Task>('Task', 0, Store.Task, 2000, (task) => task.taskStatus === 'completed');
     }
 }

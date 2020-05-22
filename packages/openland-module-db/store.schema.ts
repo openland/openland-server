@@ -2468,6 +2468,13 @@ export default declareSchema(() => {
         rangeIndex('trace', ['id']);
     });
 
+    entity('EntityCleanerState', () => {
+        primaryKey('id', string());
+        field('lastId', optional(json()));
+        field('deletedCount', integer());
+        field('version', optional(integer()));
+    });
+
     //
     //  Phonebook
     //
