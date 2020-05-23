@@ -53,10 +53,10 @@ export const ROUTER_CODECS: RtpCodecCapability[] = [{
 
 export const TRANSPORT_PARAMETERS = {
     enableTcp: true,
-    preferTcp: true,
-    enableUdp: false,
-    preferUdp: false,
+    preferTcp: false,
+    enableUdp: true,
+    preferUdp: true,
     initialAvailableOutgoingBitrate: 6000000 /* 750kb/s */
 };
 
-export const ICE_TRANSPORT_POLICY: 'none' | 'all' | 'relay' = Config.environment === 'production' ? 'none' : 'all';
+export const ICE_TRANSPORT_POLICY: 'none' | 'all' | 'relay' = Config.environment === 'production' ? 'relay' : 'all';
