@@ -12,7 +12,7 @@ export class GeoModule {
     @inject('GeoRepository')
     private readonly repo!: GeoRepository;
 
-    public start = () => {
+    public start = async () => {
         //
     }
 

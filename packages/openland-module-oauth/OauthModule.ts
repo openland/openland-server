@@ -25,7 +25,7 @@ function isValidScope(scope: string) {
 
 @injectable()
 export class OauthModule {
-    start = () => {
+    start = async () => {
         // no op
     }
 

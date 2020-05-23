@@ -67,7 +67,7 @@ export class MessagingModule {
     // Start
     //
 
-    start = () => {
+    start = async () => {
         this.augmentation.start();
         this.delivery.start();
         if (serverRoleEnabled('workers')) {

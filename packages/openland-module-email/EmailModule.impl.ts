@@ -7,7 +7,7 @@ import { Context } from '@openland/context';
 export class EmailModuleImpl {
     private readonly worker = createEmailWorker();
 
-    start = () => {
+    start = async () => {
         // Nothing to do
     }
 

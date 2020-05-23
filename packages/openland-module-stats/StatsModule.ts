@@ -42,7 +42,7 @@ export class StatsModule {
     public readonly weeklyPaidLeaderboardQueue = createWeeklyPaidLeaderboardWorker();
     public readonly weeklyRoomViewsQueue = createWeeklyRoomScreenViewsLeaderboardWorker();
 
-    start = () => {
+    start = async () => {
         // no op
     }
 

@@ -8,7 +8,7 @@ import { Organization, Notification, ConversationRoom } from 'openland-module-db
 
 @injectable()
 export class MetricsModule {
-    start = () => {
+    start = async () => {
         // Nothing to do
     }
 

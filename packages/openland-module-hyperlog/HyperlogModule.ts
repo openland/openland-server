@@ -6,7 +6,7 @@ import { startExporters } from './clickhouse/startExporters';
 
 @injectable()
 export class HyperlogModule {
-    start = () => {
+    start = async () => {
         if (serverRoleEnabled('admin')) {
             declareHyperlogIndexer();
             startExporters(createNamedContext('hyperlog'));

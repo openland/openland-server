@@ -28,7 +28,7 @@ const getPaymentsNotificationsChatId = async (ctx: Context) => await Modules.Sup
 
 @injectable()
 export class HooksModule {
-    start = () => {
+    start = async () => {
         // no op
     }
 
@@ -71,7 +71,7 @@ export class HooksModule {
     /*
      * Orgs
      */
-    onFirstOrganizationActivated = async (ctx: Context, oid: number, conditions: { type: 'BY_SUPER_ADMIN', uid: number } | { type: 'BY_INVITE', uid: number, inviteType: 'APP' | 'ROOM', inviteOwner: number } | { type: 'OWNER_ADDED_TO_ORG',  uid: number, owner: number, otherOid: number } | { type: 'ACTIVATED_AUTOMATICALLY', uid: number }) => {
+    onFirstOrganizationActivated = async (ctx: Context, oid: number, conditions: { type: 'BY_SUPER_ADMIN', uid: number } | { type: 'BY_INVITE', uid: number, inviteType: 'APP' | 'ROOM', inviteOwner: number } | { type: 'OWNER_ADDED_TO_ORG', uid: number, owner: number, otherOid: number } | { type: 'ACTIVATED_AUTOMATICALLY', uid: number }) => {
         let botId = await getSuperNotificationsBotId(ctx);
         let chatId = await getSuperNotificationsChatId(ctx);
 

@@ -3,7 +3,7 @@ import { Context } from '@openland/context';
 
 export class EmailModuleMock {
 
-    start = () => {
+    start = async () => {
         // Nothing to do
     }
 

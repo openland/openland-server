@@ -1,8 +1,9 @@
+import { DiscussionsModule } from './../openland-module-discussions/DiscussionsModule';
+import 'reflect-metadata';
 import { Config } from 'openland-config/Config';
 import { WalletModule } from '../openland-module-wallet/WalletModule';
 import { MonitoringModule } from './../openland-module-monitoring/MonitoringModule';
 import { Store } from './../openland-module-db/store';
-import 'reflect-metadata';
 import { container } from './Modules.container';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
 import { DBModule } from 'openland-module-db/DBModule';
@@ -73,6 +74,7 @@ import { loadDiscoverModule } from '../openland-module-discover/DiscoverModule.c
 import { PhonebookModule } from '../openland-module-phonebook/PhonebookModule';
 import { loadPhonebookModule } from '../openland-module-phonebook/PhonebookModule.container';
 import { connect, Payload } from 'ts-nats';
+import { loadDiscussionsModule } from 'openland-module-discussions/Discussions.container';
 
 const logger = createLogger('starting');
 
@@ -146,6 +148,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadPermissionsModule();
     loadDiscoverModule();
     loadPhonebookModule();
+    loadDiscussionsModule();
     container.bind(PhonebookModule).toSelf().inSingletonScope();
 
     logger.log(ctx, 'Modules loaded');
@@ -231,7 +234,9 @@ export async function startAllModules(ctx: Context) {
     await container.get(PermissionsModule).start();
     logger.log(ctx, 'Starting module: Phonebook');
     await container.get(PhonebookModule).start();
-
+    logger.log(ctx, 'Starting module: Discussions');
+    await container.get(DiscussionsModule).start();
+    
     // Enable API after all modules started
     logger.log(ctx, 'Starting module: API');
     await container.get(ApiModule).start();

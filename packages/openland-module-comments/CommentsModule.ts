@@ -15,7 +15,7 @@ export class CommentsModule {
     @lazyInject('CommentsNotificationsMediator')
     readonly notificationsMediator!: CommentsNotificationsMediator;
 
-    start = () => {
+    start = async () => {
         this.augmentation.start();
         this.notificationsMediator.start();
         // Nothing to do

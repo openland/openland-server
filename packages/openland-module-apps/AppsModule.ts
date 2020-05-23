@@ -9,7 +9,7 @@ export class AppsModule {
     @lazyInject('AppsRepository')
     private readonly repo!: AppsRepository;
 
-    start = () => {
+    start = async () => {
 
         // Nothing to do
     }

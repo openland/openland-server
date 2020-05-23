@@ -19,7 +19,7 @@ export class SocialModule {
         this.connections = connections;
     }
 
-    start = () => {
+    start = async () => {
         if (serverRoleEnabled('workers')) {
             startInfluencerIndexer();
             startConnectionsIndexer();

@@ -22,7 +22,7 @@ export class InvitesModule {
         this.orgInvitesRepo = orgInvitesRepo;
     }
 
-    start = () => {
+    start = async () => {
         if (serverRoleEnabled('workers')) {
             invitesIndexer();
         }

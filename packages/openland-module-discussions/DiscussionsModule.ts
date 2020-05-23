@@ -1,9 +1,8 @@
 import { injectable } from 'inversify';
 
 @injectable()
-export class PubsubModule {
-
+export class DiscussionsModule {
     start = async () => {
-        // Nothing to do
+        // No op
     }
 }

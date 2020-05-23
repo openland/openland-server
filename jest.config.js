@@ -68,6 +68,8 @@ module.exports = {
         'openland-module-hooks': '<rootDir>/packages/openland-module-hooks',
         'openland-module-wallet/(.*)': '<rootDir>/packages/openland-module-wallet/$1',
         'openland-module-wallet': '<rootDir>/packages/openland-module-wallet',
+        'openland-module-discussions/(.*)': '<rootDir>/packages/openland-module-discussions/$1',
+        'openland-module-discussions': '<rootDir>/packages/openland-module-discussions',
         'openland-repositories/(.*)': '<rootDir>/packages/openland-repositories/$1',
         'openland-repositories': '<rootDir>/packages/openland-repositories',
         'openland-utils/(.*)': '<rootDir>/packages/openland-utils/$1',

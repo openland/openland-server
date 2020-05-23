@@ -24,7 +24,7 @@ export class MediaModule {
     static UPLOAD_CARE_PUB_KEY = 'b70227616b5eac21ba88';
     static UPLOAD_CARE_AUTH = 'Uploadcare.Simple b70227616b5eac21ba88:65d4918fb06d4fe0bec8';
 
-    start = () => {
+    start = async () => {
         // Nothing to do
     }
 

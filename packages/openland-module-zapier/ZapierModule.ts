@@ -9,7 +9,7 @@ type ZapierConfig = {
 
 @injectable()
 export class ZapierModule {
-    start = () => {
+    start = async () => {
         // no op
     }
 

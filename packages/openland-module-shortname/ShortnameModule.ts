@@ -22,7 +22,7 @@ export class ShortnameModule {
         return this.repo.setShortName(parent, shortname, ownerType, ownerId, uid);
     }
 
-    start = () => {
+    start = async () => {
         // Nothing to do
     }
 }

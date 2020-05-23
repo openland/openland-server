@@ -1,3 +1,4 @@
+import { DiscussionsModule } from './../openland-module-discussions/DiscussionsModule';
 import { WalletModule } from '../openland-module-wallet/WalletModule';
 import { PushModule } from 'openland-module-push/PushModule';
 import { WorkerModule } from 'openland-module-workers/WorkerModule';
@@ -165,6 +166,9 @@ class ModulesImpl {
     }
     get Phonebook() {
         return container.get(PhonebookModule);
+    }
+    get Discussions() {
+        return container.get(DiscussionsModule);
     }
 }
 

@@ -18,7 +18,7 @@ export class DiscoverModule {
 
     private data = new DiscoverData();
 
-    start = () => {
+    start = async () => {
         // Nothing to do
     }
 

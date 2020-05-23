@@ -25,7 +25,7 @@ export class FeedModule {
     @lazyInject('FeedChannelMediator')
     private readonly channels!: FeedChannelMediator;
 
-    start = () => {
+    start = async () => {
         this.delivery.start();
         this.channels.start();
         if (serverRoleEnabled('workers')) {

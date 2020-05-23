@@ -114,7 +114,7 @@ const q = new WorkQueue<{ uid: number, type: DelayedEvents }>('onboarding-delaye
 @injectable()
 export class UserOnboardingModule {
 
-    start = () => {
+    start = async () => {
         if (serverRoleEnabled('workers')) {
             q.addWorker((item, rootCtx) => {
                 return inTx(rootCtx, async (ctx) => {

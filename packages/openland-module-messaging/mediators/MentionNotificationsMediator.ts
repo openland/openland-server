@@ -11,7 +11,7 @@ import { Modules } from 'openland-modules/Modules';
 export class MentionNotificationsMediator {
     private readonly queue = new WorkQueue<{ messageId: number }>('conversation_message_mention_notifications_task');
 
-    start = () => {
+    start = async () => {
         if (serverRoleEnabled('workers')) {
             this.queue.addWorker(async (item, root) => {
                 return await inTx(root, async ctx => {

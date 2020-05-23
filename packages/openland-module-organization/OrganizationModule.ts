@@ -19,7 +19,7 @@ export class OrganizationModule {
     @lazyInject('OrganizationRepository')
     private readonly repo!: OrganizationRepository;
 
-    start = () => {
+    start = async () => {
         if (serverRoleEnabled('workers')) {
             organizationProfileIndexer();
         }

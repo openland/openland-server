@@ -16,7 +16,7 @@ export class PushModule {
     readonly webWorker = createWebWorker(this.repository);
     readonly worker = createPushWorker(this.repository);
 
-    start = () => {
+    start = async () => {
         // Load config
         require('./PushConfig');
     }

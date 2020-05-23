@@ -7,7 +7,7 @@ export class PermissionsModule {
     @inject('PermissionsRepository')
     private readonly repo!: PermissionsRepository;
 
-    start = () => {
+    start = async () => {
         // no op
     }
 
@@ -19,7 +19,7 @@ export class PermissionsModule {
         return this.repo.hasSomethingGranted(parent, uid, gid);
     }
 
-    public updatePermissionStatus(parent: Context, info: PermissionRequestInfo,  status: 'rejected' | 'granted') {
+    public updatePermissionStatus(parent: Context, info: PermissionRequestInfo, status: 'rejected' | 'granted') {
         return this.repo.updatePermissionStatus(parent, info, status);
     }
 

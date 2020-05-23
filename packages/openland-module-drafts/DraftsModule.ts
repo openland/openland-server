@@ -18,7 +18,7 @@ export class DraftsModule {
         return this.repo.clearDraft(ctx, uid, conversationId);
     }
 
-    start = () => {
+    start = async () => {
         // Nothing to do
     }
 }

@@ -114,6 +114,9 @@
       "openland-module-billing": [
         "openland-module-billing"
       ],
+      "openland-module-discussions": [
+        "openland-module-discussions"
+      ],
       "openland-errors": [
         "openland-errors"
       ],

@@ -13,7 +13,7 @@ import { MatchmakingMediator } from './mediators/MatchmakingMediator';
 export class MatchmakingModule {
     @lazyInject('MatchmakingMediator') private readonly mediator!: MatchmakingMediator;
 
-    start = () => {
+    start = async () => {
         // no op
     }
 

@@ -11,7 +11,7 @@ import { Modules } from 'openland-modules/Modules';
 export class FeedMentionNotificationsMediator {
     private readonly queue = new WorkQueue<{ tid: number, messageId: number }>('feed_item_mention_notifications_task');
 
-    start = () => {
+    start = async () => {
         if (serverRoleEnabled('workers')) {
             this.queue.addWorker(async (item, root) => {
                 return await inTx(root, async ctx => {

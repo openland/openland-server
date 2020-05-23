@@ -8,7 +8,7 @@ export class SearchModule {
 
     readonly elastic = new ElasticService(new ES.Client({ host: Config.elasticsearch.endpoint }));
 
-    start = () => {
+    start = async () => {
         //
     }
 }

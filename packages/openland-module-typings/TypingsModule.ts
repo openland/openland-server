@@ -19,7 +19,7 @@ export class TypingsModule {
     private xPubSub = new Pubsub<TypingEvent>();
     private rootCtx = createNamedContext('typings');
 
-    start = () => {
+    start = async () => {
         let timer = setInterval(() => this.cache.clear(), 1000 * 30);
         Shutdown.registerWork({
             name: 'typings',

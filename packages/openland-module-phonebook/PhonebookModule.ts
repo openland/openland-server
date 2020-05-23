@@ -17,7 +17,7 @@ export class PhonebookModule {
 
     private messagesWorker = createPhonebookJoinMessagesWorker();
 
-    public start = () => {
+    public start = async () => {
         if (serverRoleEnabled('workers')) {
             phonebookIndexer();
         }

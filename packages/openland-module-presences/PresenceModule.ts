@@ -27,7 +27,7 @@ export class PresenceModule {
     private localSub = new Pubsub<OnlineEvent>(false);
     private rootCtx = createNamedContext('presence');
 
-    start = () => {
+    start = async () => {
         // tslint:disable-next-line:no-floating-promises
         (async () => {
             let supportId = await Modules.Users.getSupportUserId(this.rootCtx);

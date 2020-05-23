@@ -3,7 +3,7 @@ import { injectable } from 'inversify';
 @injectable()
 export class DBModule {
 
-    start = () => {
+    start = async () => {
         require('./FDB');
     }
 }

@@ -222,6 +222,7 @@
     "openland-module-video": "build/openland-module-video",
     "openland-module-wallet": "build/openland-module-wallet",
     "openland-module-phonebook": "build/openland-module-phonebook",
-    "openland-config": "build/openland-config"
+    "openland-config": "build/openland-config",
+    "openland-module-discussions": "build/openland-module-discussions"
   }
 }

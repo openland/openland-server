@@ -5,7 +5,7 @@ import { injectable } from 'inversify';
 export class WorkerModule {
     private readonly scheduler = new ModernScheduller();
 
-    start = () => {
+    start = async () => {
         this.scheduler.start();
     }
 }

@@ -8,7 +8,7 @@ export class PowerupsModule {
     @inject('PowerupsRepository')
     private readonly repo!: PowerupsRepository;
 
-    public start = () => {
+    public start = async () => {
         //
     }
 

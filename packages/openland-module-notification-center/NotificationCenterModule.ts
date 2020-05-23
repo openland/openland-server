@@ -16,7 +16,7 @@ export class NotificationCenterModule {
     @lazyInject('NotificationCenterMediator')
     private readonly mediator!: NotificationCenterMediator;
 
-    start = () => {
+    start = async () => {
         if (serverRoleEnabled('workers')) {
             startPushNotificationWorker();
             startEmailNotificationWorker();

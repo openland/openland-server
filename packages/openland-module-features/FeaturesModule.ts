@@ -5,7 +5,7 @@ import { injectable } from 'inversify';
 export class FeaturesModule {
     readonly repo = new FeatureRepository();
     
-    start = () => {
+    start = async () => {
         // Nothing to do
     }
 }
