@@ -7,7 +7,7 @@ import { Context } from '@openland/context';
 type DeletableEntity = Entity<any> & { delete(ctx: Context): void };
 
 export function createEntityCleaner<T extends DeletableEntity>(name: string, version: number, entity: EntityFactory<any, any>, batchSize: number, condition: (val: T) => boolean) {
-    singletonWorker({ name: 'entities_cleaner' + name, version, delay: 1000, db: Store.storage.db }, async (root) => {
+    singletonWorker({ name: 'entities_cleaner' + name, version, delay: 50, db: Store.storage.db }, async (root) => {
         let existing = await inTx(root, async (ctx) => await Store.EntityCleanerState.findById(ctx, name));
         let first = false;
         let after: undefined|any[] = undefined;
