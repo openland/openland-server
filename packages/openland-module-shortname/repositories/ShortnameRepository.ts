@@ -5,7 +5,7 @@ import { Context } from '@openland/context';
 import { Modules } from '../../openland-modules/Modules';
 import { injectable } from 'inversify';
 
-export type OwnerType = 'user' | 'org' | 'feed_channel' | 'room' | 'collection';
+export type OwnerType = 'user' | 'org' | 'feed_channel' | 'room' | 'collection' | 'hub';
 
 @injectable()
 export class ShortnameRepository {

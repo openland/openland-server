@@ -10,7 +10,7 @@ import {
     User,
     Organization,
     FeedChannel,
-    ConversationRoom, EditorsChoiceChatsCollection,
+    ConversationRoom, EditorsChoiceChatsCollection, DiscussionHub,
 } from 'openland-module-db/store';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
@@ -27,6 +27,8 @@ export const Resolver: GQLResolver = {
                 return 'SharedRoom';
             } else if (src instanceof EditorsChoiceChatsCollection) {
                 return 'DiscoverChatsCollection';
+            } else if (src instanceof DiscussionHub) {
+                return 'Hub';
             }
 
             throw new Error('Unknown shortname type');
@@ -36,7 +38,7 @@ export const Resolver: GQLResolver = {
     Query: {
         alphaResolveShortName: async (src, args, ctx) => {
             let ownerId;
-            let ownerType;
+            let ownerType: 'user' | 'org' | 'feed_channel' | 'room' | 'collection' | 'hub' | undefined;
             try {
                 let idInfo = IdsFactory.resolve(args.shortname);
                 if (idInfo.type === IDs.User) {
@@ -75,6 +77,8 @@ export const Resolver: GQLResolver = {
                 return await Store.ConversationRoom.findById(ctx, ownerId);
             } else if (ownerType === 'collection') {
                 return await Store.EditorsChoiceChatsCollection.findById(ctx, ownerId);
+            } else if (ownerType === 'hub') {
+                return (await Store.DiscussionHub.findById(ctx, ownerId)) as any /* WFT? */;
             }
 
             return null;
@@ -169,6 +173,11 @@ export const Resolver: GQLResolver = {
         shortname: async (src, args, ctx) => {
             let shortName = await Modules.Shortnames.findShortnameByOwner(ctx, 'collection', src.id);
             return shortName ? shortName.shortname : null;
+        },
+    },
+    Hub: {
+        shortname: async (src, args, ctx) => {
+            return (await Modules.Shortnames.findShortnameByOwner(ctx, 'hub', src.id))!.shortname;
         },
     }
 };

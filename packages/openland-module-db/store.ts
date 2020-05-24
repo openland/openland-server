@@ -9150,21 +9150,21 @@ export class UserRoomBadgeFactory extends EntityFactory<UserRoomBadgeShape, User
 
 export interface ShortnameReservationShape {
     shortname: string;
-    ownerType: 'org' | 'user' | 'feed_channel' | 'room' | 'collection';
+    ownerType: 'org' | 'user' | 'feed_channel' | 'room' | 'collection' | 'hub';
     ownerId: number;
     enabled: boolean;
 }
 
 export interface ShortnameReservationCreateShape {
-    ownerType: 'org' | 'user' | 'feed_channel' | 'room' | 'collection';
+    ownerType: 'org' | 'user' | 'feed_channel' | 'room' | 'collection' | 'hub';
     ownerId: number;
     enabled: boolean;
 }
 
 export class ShortnameReservation extends Entity<ShortnameReservationShape> {
     get shortname(): string { return this._rawValue.shortname; }
-    get ownerType(): 'org' | 'user' | 'feed_channel' | 'room' | 'collection' { return this._rawValue.ownerType; }
-    set ownerType(value: 'org' | 'user' | 'feed_channel' | 'room' | 'collection') {
+    get ownerType(): 'org' | 'user' | 'feed_channel' | 'room' | 'collection' | 'hub' { return this._rawValue.ownerType; }
+    set ownerType(value: 'org' | 'user' | 'feed_channel' | 'room' | 'collection' | 'hub') {
         let normalized = this.descriptor.codec.fields.ownerType.normalize(value);
         if (this._rawValue.ownerType !== normalized) {
             this._rawValue.ownerType = normalized;
@@ -9203,12 +9203,12 @@ export class ShortnameReservationFactory extends EntityFactory<ShortnameReservat
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'shortname', type: 'string' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'ownerType', type: { type: 'enum', values: ['org', 'user', 'feed_channel', 'room', 'collection'] }, secure: false });
+        fields.push({ name: 'ownerType', type: { type: 'enum', values: ['org', 'user', 'feed_channel', 'room', 'collection', 'hub'] }, secure: false });
         fields.push({ name: 'ownerId', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
         let codec = c.struct({
             shortname: c.string,
-            ownerType: c.enum('org', 'user', 'feed_channel', 'room', 'collection'),
+            ownerType: c.enum('org', 'user', 'feed_channel', 'room', 'collection', 'hub'),
             ownerId: c.integer,
             enabled: c.boolean,
         });
@@ -9250,13 +9250,13 @@ export class ShortnameReservationFactory extends EntityFactory<ShortnameReservat
     });
 
     readonly fromOwner = Object.freeze({
-        find: async (ctx: Context, ownerType: 'org' | 'user' | 'feed_channel' | 'room' | 'collection', ownerId: number) => {
+        find: async (ctx: Context, ownerType: 'org' | 'user' | 'feed_channel' | 'room' | 'collection' | 'hub', ownerId: number) => {
             return this._findFromUniqueIndex(ctx, [ownerType, ownerId], this.descriptor.secondaryIndexes[2]);
         },
-        findAll: async (ctx: Context, ownerType: 'org' | 'user' | 'feed_channel' | 'room' | 'collection') => {
+        findAll: async (ctx: Context, ownerType: 'org' | 'user' | 'feed_channel' | 'room' | 'collection' | 'hub') => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [ownerType])).items;
         },
-        query: (ctx: Context, ownerType: 'org' | 'user' | 'feed_channel' | 'room' | 'collection', opts?: RangeQueryOptions<number>) => {
+        query: (ctx: Context, ownerType: 'org' | 'user' | 'feed_channel' | 'room' | 'collection' | 'hub', opts?: RangeQueryOptions<number>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[2], [ownerType], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
@@ -19438,7 +19438,7 @@ export class ClickHouseMigrationsFactory extends EntityFactory<ClickHouseMigrati
 }
 
 export interface DiscussionHubShape {
-    id: string;
+    id: number;
     description: { type: 'personal', uid: number } | { type: 'public', title: string } | { type: 'system', title: string } | { type: 'secret', title: string, uid: number };
 }
 
@@ -19447,7 +19447,7 @@ export interface DiscussionHubCreateShape {
 }
 
 export class DiscussionHub extends Entity<DiscussionHubShape> {
-    get id(): string { return this._rawValue.id; }
+    get id(): number { return this._rawValue.id; }
     get description(): { type: 'personal', uid: number } | { type: 'public', title: string } | { type: 'system', title: string } | { type: 'secret', title: string, uid: number } { return this._rawValue.description; }
     set description(value: { type: 'personal', uid: number } | { type: 'public', title: string } | { type: 'system', title: string } | { type: 'secret', title: string, uid: number }) {
         let normalized = this.descriptor.codec.fields.description.normalize(value);
@@ -19465,11 +19465,11 @@ export class DiscussionHubFactory extends EntityFactory<DiscussionHubShape, Disc
         let subspace = await storage.resolveEntityDirectory('discussionHub');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'id', type: 'string' });
+        primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'description', type: { type: 'union', types: { personal: { uid: { type: 'integer' } }, public: { title: { type: 'string' } }, system: { title: { type: 'string' } }, secret: { title: { type: 'string' }, uid: { type: 'integer' } } } }, secure: false });
         let codec = c.struct({
-            id: c.string,
+            id: c.integer,
             description: c.union({ personal: c.struct({ uid: c.integer }), public: c.struct({ title: c.string }), system: c.struct({ title: c.string }), secret: c.struct({ title: c.string, uid: c.integer }) }),
         });
         let descriptor: EntityDescriptor<DiscussionHubShape> = {
@@ -19485,19 +19485,19 @@ export class DiscussionHubFactory extends EntityFactory<DiscussionHubShape, Disc
         super(descriptor);
     }
 
-    create(ctx: Context, id: string, src: DiscussionHubCreateShape): Promise<DiscussionHub> {
+    create(ctx: Context, id: number, src: DiscussionHubCreateShape): Promise<DiscussionHub> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    create_UNSAFE(ctx: Context, id: string, src: DiscussionHubCreateShape): DiscussionHub {
+    create_UNSAFE(ctx: Context, id: number, src: DiscussionHubCreateShape): DiscussionHub {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<DiscussionHub | null> {
+    findById(ctx: Context, id: number): Promise<DiscussionHub | null> {
         return this._findById(ctx, [id]);
     }
 
-    watch(ctx: Context, id: string): Watch {
+    watch(ctx: Context, id: number): Watch {
         return this._watch(ctx, [id]);
     }
 

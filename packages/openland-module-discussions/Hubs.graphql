@@ -14,6 +14,7 @@ type Hub {
 
 input HubInput {
     title: String
+    shortname: String
 }
 
 extend type Query {

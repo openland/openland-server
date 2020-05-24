@@ -1252,7 +1252,7 @@ export default declareSchema(() => {
 
     entity('ShortnameReservation', () => {
         primaryKey('shortname', string());
-        field('ownerType', enumString('org', 'user', 'feed_channel', 'room', 'collection'));
+        field('ownerType', enumString('org', 'user', 'feed_channel', 'room', 'collection', 'hub'));
         field('ownerId', integer());
         field('enabled', boolean());
         uniqueIndex('user', ['ownerId']).withCondition((src) => src.ownerType === 'user' && src.enabled); // deprecated

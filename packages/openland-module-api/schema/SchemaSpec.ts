@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'bc97d2edb54acc5ab133320967b3f9d1';
+export const GQL_SPEC_VERSION = 'ef71c05c7b223f4508470e65e63aff33';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1059,13 +1059,16 @@ export namespace GQL {
         title: string;
         type: HubType;
         owner: Nullable<User>;
+        shortname: string;
     }
     export interface HubIdArgs { }
     export interface HubTitleArgs { }
     export interface HubTypeArgs { }
     export interface HubOwnerArgs { }
+    export interface HubShortnameArgs { }
     export interface HubInput {
         title: Nullable<string>;
+        shortname: Nullable<string>;
     }
     export type MediaStreamIceTransportPolicyValues = 'all' | 'relay';
     export type MediaStreamIceTransportPolicy = GQLRoots.MediaStreamIceTransportPolicyRoot;
@@ -5682,7 +5685,7 @@ export namespace GQL {
     export interface RoomInviteIdArgs { }
     export interface RoomInviteRoomArgs { }
     export interface RoomInviteInvitedByUserArgs { }
-    export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection;
+    export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection | Hub;
 }
 
 export interface GQLResolver {
@@ -6879,6 +6882,7 @@ export interface GQLResolver {
             title: GQL.HubTitleArgs,
             type: GQL.HubTypeArgs,
             owner: GQL.HubOwnerArgs,
+            shortname: GQL.HubShortnameArgs,
         }
     >;
     MediaStreamIceTransportPolicy?: EnumTypeResolver<'all' | 'relay', GQLRoots.MediaStreamIceTransportPolicyRoot>;
@@ -10471,5 +10475,5 @@ export interface GQLResolver {
             invitedByUser: GQL.RoomInviteInvitedByUserArgs,
         }
     >;
-    ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom' | 'DiscoverChatsCollection'>;
+    ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom' | 'DiscoverChatsCollection' | 'Hub'>;
 }

@@ -27,7 +27,7 @@ export const Resolver: GQLResolver = {
     },
     Mutation: {
         hubCreate: withPermission('super-admin', (ctx, args) => {
-            return Modules.Discussions.hubs.createSystemHub(args.input.title!, ctx);
+            return Modules.Discussions.hubs.createSystemHub(args.input.title!, args.input.shortname!, ctx.auth.uid!, ctx);
         })
     }
 };

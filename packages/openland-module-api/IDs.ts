@@ -88,6 +88,6 @@ export const IDs = {
     DiscoverTopFreeCursor: IdsFactory.createId('DiscoverTopFreeCursor'),
     GqlTrace: IdsFactory.createId('GqlTrace'),
 
-    Hub: IdsFactory.createStringId('Hub'),
+    Hub: IdsFactory.createId('Hub'),
     Discussion: IdsFactory.createStringId('Discussion')
 };

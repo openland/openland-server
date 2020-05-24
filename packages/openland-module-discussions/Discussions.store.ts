@@ -24,7 +24,7 @@ import {
 
 export function discussionsStore() {
     entity('DiscussionHub', () => {
-        primaryKey('id', string());
+        primaryKey('id', integer());
         field('description', union({
             'personal': struct({ uid: integer() }),
             'public': struct({ title: string() }),
