@@ -21,6 +21,7 @@ import {
     float, allowDelete,
 } from '@openland/foundationdb-compiler';
 import { eventStore } from '@openland/foundationdb-compiler/lib/builder';
+import { discussionsStore } from '../openland-module-discussions/Discussions.store';
 
 export default declareSchema(() => {
 
@@ -2526,4 +2527,6 @@ export default declareSchema(() => {
         primaryKey('version', integer());
         field('applied', array(string()));
     });
+
+    discussionsStore();
 });

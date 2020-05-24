@@ -1,0 +1,26 @@
+enum HubType {
+    SYSTEM,
+    PERSONAL,
+    PUBLIC,
+    SECRET
+}
+
+type Hub {
+    id: ID!
+    title: String!
+    type: HubType!
+    owner: User
+}
+
+input HubInput {
+    title: String
+}
+
+extend type Query {
+    hubs: [Hub!]!
+    hub(id: ID!): Hub
+}
+
+extend type Mutation {
+    hubCreate(input: HubInput!): Hub!
+}

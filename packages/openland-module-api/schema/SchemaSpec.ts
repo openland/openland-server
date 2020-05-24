@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'ee459155b2f649f383added577d73ec7';
+export const GQL_SPEC_VERSION = 'bc97d2edb54acc5ab133320967b3f9d1';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1052,6 +1052,21 @@ export namespace GQL {
     }
     export interface AuthPointEmailArgs { }
     export interface AuthPointPhoneArgs { }
+    export type HubTypeValues = 'SYSTEM' | 'PERSONAL' | 'PUBLIC' | 'SECRET';
+    export type HubType = GQLRoots.HubTypeRoot;
+    export interface Hub {
+        id: string;
+        title: string;
+        type: HubType;
+        owner: Nullable<User>;
+    }
+    export interface HubIdArgs { }
+    export interface HubTitleArgs { }
+    export interface HubTypeArgs { }
+    export interface HubOwnerArgs { }
+    export interface HubInput {
+        title: Nullable<string>;
+    }
     export type MediaStreamIceTransportPolicyValues = 'all' | 'relay';
     export type MediaStreamIceTransportPolicy = GQLRoots.MediaStreamIceTransportPolicyRoot;
     export interface MediaStreamSettings {
@@ -1924,6 +1939,37 @@ export namespace GQL {
         state: Nullable<string>;
     }
     export interface DialogUpdateStateStateArgs { }
+    export interface Discussion {
+        id: string;
+        author: Nullable<User>;
+        title: string;
+        hub: Hub;
+        createdAt: Date;
+        updatedAt: Nullable<Date>;
+        deletedAt: Nullable<Date>;
+    }
+    export interface DiscussionIdArgs { }
+    export interface DiscussionAuthorArgs { }
+    export interface DiscussionTitleArgs { }
+    export interface DiscussionHubArgs { }
+    export interface DiscussionCreatedAtArgs { }
+    export interface DiscussionUpdatedAtArgs { }
+    export interface DiscussionDeletedAtArgs { }
+    export interface DiscussionInput {
+        title: Nullable<string>;
+    }
+    export interface DiscussionEdge {
+        node: Discussion;
+        cursor: string;
+    }
+    export interface DiscussionEdgeNodeArgs { }
+    export interface DiscussionEdgeCursorArgs { }
+    export interface DiscussionConnection {
+        edges: DiscussionEdge[];
+        pageInfo: PageInfo;
+    }
+    export interface DiscussionConnectionEdgesArgs { }
+    export interface DiscussionConnectionPageInfoArgs { }
     export interface EnvVar {
         name: string;
         value: string;
@@ -2169,6 +2215,7 @@ export namespace GQL {
         sendPhonePairCode: string;
         pairPhone: boolean;
         updateSettings: Settings;
+        hubCreate: Hub;
         conferenceAlterMediaState: Conference;
         conferenceAddScreenShare: Conference;
         conferenceRemoveScreenShare: Conference;
@@ -2682,6 +2729,9 @@ export namespace GQL {
     }
     export interface MutationUpdateSettingsArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
+    }
+    export interface MutationHubCreateArgs {
+        input: HubInput;
     }
     export interface MutationConferenceAlterMediaStateArgs {
         id: string;
@@ -3841,6 +3891,8 @@ export namespace GQL {
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
+        hubs: Hub[];
+        hub: Nullable<Hub>;
         myOauthApps: OauthApp[];
         oauthContext: Nullable<OauthContext>;
         alphaOrganizationMembers: OrganizationMember[];
@@ -3875,6 +3927,7 @@ export namespace GQL {
         conference: Conference;
         conferenceMedia: ConferenceMedia;
         dialogsState: DialogUpdateState;
+        discussions: DiscussionConnection;
         envVars: Nullable<EnvVar[]>;
         envVar: Nullable<EnvVar>;
         featureFlags: FeatureFlag[];
@@ -4056,6 +4109,10 @@ export namespace GQL {
     }
     export interface QuerySettingsArgs { }
     export interface QueryAuthPointsArgs { }
+    export interface QueryHubsArgs { }
+    export interface QueryHubArgs {
+        id: string;
+    }
     export interface QueryMyOauthAppsArgs { }
     export interface QueryOauthContextArgs {
         code: string;
@@ -4142,6 +4199,11 @@ export namespace GQL {
         peerId: string;
     }
     export interface QueryDialogsStateArgs { }
+    export interface QueryDiscussionsArgs {
+        hubs: OptionalNullable<string[]>;
+        limit: number;
+        after: OptionalNullable<string>;
+    }
     export interface QueryEnvVarsArgs { }
     export interface QueryEnvVarArgs {
         name: string;
@@ -6805,6 +6867,20 @@ export interface GQLResolver {
             phone: GQL.AuthPointPhoneArgs,
         }
     >;
+    HubType?: EnumTypeResolver<'SYSTEM' | 'PERSONAL' | 'PUBLIC' | 'SECRET', GQLRoots.HubTypeRoot>;
+    Hub?: ComplexTypedResolver<
+        GQL.Hub,
+        GQLRoots.HubRoot,
+        {
+            owner: Nullable<GQLRoots.UserRoot>,
+        },
+        {
+            id: GQL.HubIdArgs,
+            title: GQL.HubTitleArgs,
+            type: GQL.HubTypeArgs,
+            owner: GQL.HubOwnerArgs,
+        }
+    >;
     MediaStreamIceTransportPolicy?: EnumTypeResolver<'all' | 'relay', GQLRoots.MediaStreamIceTransportPolicyRoot>;
     MediaStreamSettings?: ComplexTypedResolver<
         GQL.MediaStreamSettings,
@@ -7796,6 +7872,46 @@ export interface GQLResolver {
             state: GQL.DialogUpdateStateStateArgs,
         }
     >;
+    Discussion?: ComplexTypedResolver<
+        GQL.Discussion,
+        GQLRoots.DiscussionRoot,
+        {
+            author: Nullable<GQLRoots.UserRoot>,
+            hub: GQLRoots.HubRoot,
+        },
+        {
+            id: GQL.DiscussionIdArgs,
+            author: GQL.DiscussionAuthorArgs,
+            title: GQL.DiscussionTitleArgs,
+            hub: GQL.DiscussionHubArgs,
+            createdAt: GQL.DiscussionCreatedAtArgs,
+            updatedAt: GQL.DiscussionUpdatedAtArgs,
+            deletedAt: GQL.DiscussionDeletedAtArgs,
+        }
+    >;
+    DiscussionEdge?: ComplexTypedResolver<
+        GQL.DiscussionEdge,
+        GQLRoots.DiscussionEdgeRoot,
+        {
+            node: GQLRoots.DiscussionRoot,
+        },
+        {
+            node: GQL.DiscussionEdgeNodeArgs,
+            cursor: GQL.DiscussionEdgeCursorArgs,
+        }
+    >;
+    DiscussionConnection?: ComplexTypedResolver<
+        GQL.DiscussionConnection,
+        GQLRoots.DiscussionConnectionRoot,
+        {
+            edges: GQLRoots.DiscussionEdgeRoot[],
+            pageInfo: GQLRoots.PageInfoRoot,
+        },
+        {
+            edges: GQL.DiscussionConnectionEdgesArgs,
+            pageInfo: GQL.DiscussionConnectionPageInfoArgs,
+        }
+    >;
     EnvVar?: ComplexTypedResolver<
         GQL.EnvVar,
         GQLRoots.EnvVarRoot,
@@ -8008,6 +8124,7 @@ export interface GQLResolver {
             debugFixStickerPack: Nullable<GQLRoots.StickerPackRoot>,
             settingsUpdate: GQLRoots.SettingsRoot,
             updateSettings: GQLRoots.SettingsRoot,
+            hubCreate: GQLRoots.HubRoot,
             conferenceAlterMediaState: GQLRoots.ConferenceRoot,
             conferenceAddScreenShare: GQLRoots.ConferenceRoot,
             conferenceRemoveScreenShare: GQLRoots.ConferenceRoot,
@@ -8222,6 +8339,7 @@ export interface GQLResolver {
             sendPhonePairCode: GQL.MutationSendPhonePairCodeArgs,
             pairPhone: GQL.MutationPairPhoneArgs,
             updateSettings: GQL.MutationUpdateSettingsArgs,
+            hubCreate: GQL.MutationHubCreateArgs,
             conferenceAlterMediaState: GQL.MutationConferenceAlterMediaStateArgs,
             conferenceAddScreenShare: GQL.MutationConferenceAddScreenShareArgs,
             conferenceRemoveScreenShare: GQL.MutationConferenceRemoveScreenShareArgs,
@@ -8804,6 +8922,8 @@ export interface GQLResolver {
             dialogs: GQLRoots.DialogsConnectionRoot,
             settings: GQLRoots.SettingsRoot,
             authPoints: GQLRoots.AuthPointRoot,
+            hubs: GQLRoots.HubRoot[],
+            hub: Nullable<GQLRoots.HubRoot>,
             myOauthApps: GQLRoots.OauthAppRoot[],
             oauthContext: Nullable<GQLRoots.OauthContextRoot>,
             alphaOrganizationMembers: GQLRoots.OrganizationMemberRoot[],
@@ -8836,6 +8956,7 @@ export interface GQLResolver {
             conference: GQLRoots.ConferenceRoot,
             conferenceMedia: GQLRoots.ConferenceMediaRoot,
             dialogsState: GQLRoots.DialogUpdateStateRoot,
+            discussions: GQLRoots.DiscussionConnectionRoot,
             envVars: Nullable<GQLRoots.EnvVarRoot[]>,
             envVar: Nullable<GQLRoots.EnvVarRoot>,
             featureFlags: GQLRoots.FeatureFlagRoot[],
@@ -8959,6 +9080,8 @@ export interface GQLResolver {
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
             authPoints: GQL.QueryAuthPointsArgs,
+            hubs: GQL.QueryHubsArgs,
+            hub: GQL.QueryHubArgs,
             myOauthApps: GQL.QueryMyOauthAppsArgs,
             oauthContext: GQL.QueryOauthContextArgs,
             alphaOrganizationMembers: GQL.QueryAlphaOrganizationMembersArgs,
@@ -8993,6 +9116,7 @@ export interface GQLResolver {
             conference: GQL.QueryConferenceArgs,
             conferenceMedia: GQL.QueryConferenceMediaArgs,
             dialogsState: GQL.QueryDialogsStateArgs,
+            discussions: GQL.QueryDiscussionsArgs,
             envVars: GQL.QueryEnvVarsArgs,
             envVar: GQL.QueryEnvVarArgs,
             featureFlags: GQL.QueryFeatureFlagsArgs,

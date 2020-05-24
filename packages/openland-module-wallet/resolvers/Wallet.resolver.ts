@@ -363,7 +363,7 @@ export const Resolver: GQLResolver = {
         //
         // Config
         //
-        stripeToken: withAccount( async () => Modules.Wallet.getStripePK()),
+        stripeToken: async () => Modules.Wallet.getStripePK(),
     },
     Mutation: {
 

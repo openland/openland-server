@@ -1,0 +1,28 @@
+type Discussion {
+    id: ID!
+    author: User
+    title: String!
+
+    hub: Hub!
+    createdAt: Date!
+    updatedAt: Date
+    deletedAt: Date
+}
+
+input DiscussionInput {
+    title: String
+}
+
+type DiscussionEdge {
+    node: Discussion!
+    cursor: String!
+}
+
+type DiscussionConnection {
+    edges: [DiscussionEdge!]!
+    pageInfo: PageInfo!
+}
+
+extend type Query {
+    discussions(hubs: [ID!], limit: Int!, after: String): DiscussionConnection!
+}

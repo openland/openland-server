@@ -19437,6 +19437,209 @@ export class ClickHouseMigrationsFactory extends EntityFactory<ClickHouseMigrati
     }
 }
 
+export interface DiscussionHubShape {
+    id: string;
+    description: { type: 'personal', uid: number } | { type: 'public', title: string } | { type: 'system', title: string } | { type: 'secret', title: string, uid: number };
+}
+
+export interface DiscussionHubCreateShape {
+    description: { type: 'personal', uid: number } | { type: 'public', title: string } | { type: 'system', title: string } | { type: 'secret', title: string, uid: number };
+}
+
+export class DiscussionHub extends Entity<DiscussionHubShape> {
+    get id(): string { return this._rawValue.id; }
+    get description(): { type: 'personal', uid: number } | { type: 'public', title: string } | { type: 'system', title: string } | { type: 'secret', title: string, uid: number } { return this._rawValue.description; }
+    set description(value: { type: 'personal', uid: number } | { type: 'public', title: string } | { type: 'system', title: string } | { type: 'secret', title: string, uid: number }) {
+        let normalized = this.descriptor.codec.fields.description.normalize(value);
+        if (this._rawValue.description !== normalized) {
+            this._rawValue.description = normalized;
+            this._updatedValues.description = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class DiscussionHubFactory extends EntityFactory<DiscussionHubShape, DiscussionHub> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('discussionHub');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'description', type: { type: 'union', types: { personal: { uid: { type: 'integer' } }, public: { title: { type: 'string' } }, system: { title: { type: 'string' } }, secret: { title: { type: 'string' }, uid: { type: 'integer' } } } }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            description: c.union({ personal: c.struct({ uid: c.integer }), public: c.struct({ title: c.string }), system: c.struct({ title: c.string }), secret: c.struct({ title: c.string, uid: c.integer }) }),
+        });
+        let descriptor: EntityDescriptor<DiscussionHubShape> = {
+            name: 'DiscussionHub',
+            storageKey: 'discussionHub',
+            allowDelete: false,
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new DiscussionHubFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<DiscussionHubShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: string, src: DiscussionHubCreateShape): Promise<DiscussionHub> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: DiscussionHubCreateShape): DiscussionHub {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<DiscussionHub | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<DiscussionHubShape>): DiscussionHub {
+        return new DiscussionHub([value.id], value, this.descriptor, this._flush, this._delete, ctx);
+    }
+}
+
+export interface DiscussionShape {
+    id: string;
+    uid: number;
+    title: string;
+    state: 'draft' | 'published' | 'archived';
+    publishedAt: number | null;
+    editedAt: number | null;
+    archivedAt: number | null;
+}
+
+export interface DiscussionCreateShape {
+    uid: number;
+    title: string;
+    state: 'draft' | 'published' | 'archived';
+    publishedAt?: number | null | undefined;
+    editedAt?: number | null | undefined;
+    archivedAt?: number | null | undefined;
+}
+
+export class Discussion extends Entity<DiscussionShape> {
+    get id(): string { return this._rawValue.id; }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get title(): string { return this._rawValue.title; }
+    set title(value: string) {
+        let normalized = this.descriptor.codec.fields.title.normalize(value);
+        if (this._rawValue.title !== normalized) {
+            this._rawValue.title = normalized;
+            this._updatedValues.title = normalized;
+            this.invalidate();
+        }
+    }
+    get state(): 'draft' | 'published' | 'archived' { return this._rawValue.state; }
+    set state(value: 'draft' | 'published' | 'archived') {
+        let normalized = this.descriptor.codec.fields.state.normalize(value);
+        if (this._rawValue.state !== normalized) {
+            this._rawValue.state = normalized;
+            this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+    get publishedAt(): number | null { return this._rawValue.publishedAt; }
+    set publishedAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.publishedAt.normalize(value);
+        if (this._rawValue.publishedAt !== normalized) {
+            this._rawValue.publishedAt = normalized;
+            this._updatedValues.publishedAt = normalized;
+            this.invalidate();
+        }
+    }
+    get editedAt(): number | null { return this._rawValue.editedAt; }
+    set editedAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.editedAt.normalize(value);
+        if (this._rawValue.editedAt !== normalized) {
+            this._rawValue.editedAt = normalized;
+            this._updatedValues.editedAt = normalized;
+            this.invalidate();
+        }
+    }
+    get archivedAt(): number | null { return this._rawValue.archivedAt; }
+    set archivedAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.archivedAt.normalize(value);
+        if (this._rawValue.archivedAt !== normalized) {
+            this._rawValue.archivedAt = normalized;
+            this._updatedValues.archivedAt = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class DiscussionFactory extends EntityFactory<DiscussionShape, Discussion> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('discussion');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'title', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'state', type: { type: 'enum', values: ['draft', 'published', 'archived'] }, secure: false });
+        fields.push({ name: 'publishedAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'editedAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'archivedAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            id: c.string,
+            uid: c.integer,
+            title: c.string,
+            state: c.enum('draft', 'published', 'archived'),
+            publishedAt: c.optional(c.integer),
+            editedAt: c.optional(c.integer),
+            archivedAt: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<DiscussionShape> = {
+            name: 'Discussion',
+            storageKey: 'discussion',
+            allowDelete: false,
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new DiscussionFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<DiscussionShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, id: string, src: DiscussionCreateShape): Promise<Discussion> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: string, src: DiscussionCreateShape): Discussion {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: string): Promise<Discussion | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: string): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<DiscussionShape>): Discussion {
+        return new Discussion([value.id], value, this.descriptor, this._flush, this._delete, ctx);
+    }
+}
+
 const chatUpdatedEventCodec = c.struct({
     cid: c.integer,
     uid: c.integer,
@@ -20796,6 +20999,8 @@ export interface Store extends BaseStore {
     readonly EditorsChoiceChatsCollection: EditorsChoiceChatsCollectionFactory;
     readonly EditorsChoiceChat: EditorsChoiceChatFactory;
     readonly ClickHouseMigrations: ClickHouseMigrationsFactory;
+    readonly DiscussionHub: DiscussionHubFactory;
+    readonly Discussion: DiscussionFactory;
     readonly ConversationEventStore: ConversationEventStore;
     readonly DialogIndexEventStore: DialogIndexEventStore;
     readonly UserDialogEventStore: UserDialogEventStore;
@@ -21019,6 +21224,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let EditorsChoiceChatsCollectionPromise = EditorsChoiceChatsCollectionFactory.open(storage);
     let EditorsChoiceChatPromise = EditorsChoiceChatFactory.open(storage);
     let ClickHouseMigrationsPromise = ClickHouseMigrationsFactory.open(storage);
+    let DiscussionHubPromise = DiscussionHubFactory.open(storage);
+    let DiscussionPromise = DiscussionFactory.open(storage);
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
     let UserCountersIndexDirectoryPromise = storage.resolveCustomDirectory('userCountersIndex');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
@@ -21213,6 +21420,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         EditorsChoiceChatsCollection: await EditorsChoiceChatsCollectionPromise,
         EditorsChoiceChat: await EditorsChoiceChatPromise,
         ClickHouseMigrations: await ClickHouseMigrationsPromise,
+        DiscussionHub: await DiscussionHubPromise,
+        Discussion: await DiscussionPromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,
         UserCountersIndexDirectory: await UserCountersIndexDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,

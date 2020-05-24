@@ -76,7 +76,12 @@ import {
     WalletPurchase,
     WalletLockedChanged,
     EditorsChoiceChatsCollection,
-    EditorsChoiceChat, WalletPurchaseCreateShape, GqlTrace, ConferenceEndStream,
+    EditorsChoiceChat,
+    WalletPurchaseCreateShape,
+    GqlTrace,
+    ConferenceEndStream,
+    DiscussionHub,
+    Discussion,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -692,4 +697,13 @@ export namespace GQLRoots {
 
     export type TaskStatusRoot = TaskStatusValues;
 
+    //
+    // Discussions
+    //
+
+    export type HubRoot = DiscussionHub;
+    export type HubTypeRoot = 'system' | 'personal' | 'public' | 'secret';
+    export type DiscussionRoot = Discussion;
+    export type DiscussionConnectionRoot = { edges: DiscussionEdgeRoot[], pageInfo: PageInfoRoot };
+    export type DiscussionEdgeRoot = { node: DiscussionRoot, cursor: string };
 }
