@@ -21,6 +21,7 @@ import {
     event,
     float, allowDelete,
 } from '@openland/foundationdb-compiler';
+import { Image, Spans } from '../openland-module-db/store.schema';
 
 export function discussionsStore() {
     entity('DiscussionHub', () => {
@@ -36,11 +37,21 @@ export function discussionsStore() {
         primaryKey('id', integer());
         field('uid', integer());
         field('hubId', integer());
-        field('title', string());
         field('state', enumString('draft', 'published', 'archived'));
         field('publishedAt', optional(integer()));
         field('editedAt', optional(integer()));
         field('archivedAt', optional(integer()));
+
+        field('title', string());
+        field('content', optional(array(union({
+            text: struct({
+                text: string(),
+                spans: Spans
+            }),
+            image: struct({
+                image: Image
+            })
+        }))));
 
         rangeIndex('draft', ['uid', 'id']).withCondition((src) => src.state === 'draft');
         rangeIndex('published', ['hubId', 'publishedAt']).withCondition((src) => src.state === 'published');

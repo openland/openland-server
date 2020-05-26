@@ -5,12 +5,16 @@ import { Discussion } from '../../openland-module-db/store';
 import { withPermission, withUser } from '../../openland-module-api/Resolvers';
 import { Modules } from '../../openland-modules/Modules';
 import { inTx } from '@openland/foundationdb';
+import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
+import ParagraphRoot = GQLRoots.ParagraphRoot;
+import { resolveDiscussionInput } from './resolveDisussionInput';
 
 export const Resolver: GQLResolver = {
     Discussion: {
         id: src => IDs.Discussion.serialize(src.id),
         author: src => src.uid,
         title: src => src.title,
+        content: src => src.content || [],
         hub: async (src, args, ctx) => (await Store.DiscussionHub.findById(ctx, src.hubId))!,
         createdAt: src => src.metadata.createdAt,
         updatedAt: src => src.metadata.updatedAt,
@@ -20,6 +24,28 @@ export const Resolver: GQLResolver = {
     DiscussionConnection: {
         items: src => src.items,
         cursor: src => src.cursor
+    },
+
+    Paragraph: {
+        __resolveType(root: ParagraphRoot) {
+            if (root.type === 'text') {
+                return 'TextParagraph';
+            } else if (root.type === 'image') {
+                return 'ImageParagraph';
+            }
+            throw new Error('Unknown paragraph type ' + root);
+        }
+    },
+    TextParagraph: {
+        text: src => src.text,
+        spans: src => src.spans
+    },
+    ImageParagraph: {
+        image: src => ({
+            uuid: src.image.image.uuid,
+            metadata: src.image.info,
+            crop: src.image.image.crop
+        })
     },
 
     Query: {
@@ -58,10 +84,12 @@ export const Resolver: GQLResolver = {
 
     Mutation: {
         discussionCreate: withUser(async (ctx, args, uid) => {
-            return await Modules.Discussions.discussions.createDiscussion(ctx, uid, IDs.Hub.parse(args.hub), {
-                title: args.input.title!,
-                isDraft: args.isDraft
-            });
+            return await Modules.Discussions.discussions.createDiscussion(
+                ctx,
+                uid,
+                IDs.Hub.parse(args.hub),
+                await resolveDiscussionInput(ctx, args.input, args.isDraft)
+            );
         }),
         discussionDraftPublish: withUser(async (ctx, args, uid) => {
             return await Modules.Discussions.discussions.publishDraftDiscussion(ctx, uid, IDs.Discussion.parse(args.draftId));

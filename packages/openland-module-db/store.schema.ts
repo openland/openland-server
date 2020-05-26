@@ -23,6 +23,57 @@ import {
 import { eventStore } from '@openland/foundationdb-compiler/lib/builder';
 import { discussionsStore } from '../openland-module-discussions/Discussions.store';
 
+//
+// Shared declarations
+//
+export const basicSpan = struct({
+    offset: integer(), length: integer(),
+});
+export const ImageRef = struct({
+    uuid: string(), crop: optional(struct({
+        x: integer(), y: integer(), w: integer(), h: integer(),
+    })),
+});
+export const FileInfo = struct({
+    name: string(),
+    size: integer(),
+    isImage: boolean(),
+    isStored: boolean(),
+    imageWidth: optional(integer()),
+    imageHeight: optional(integer()),
+    imageFormat: optional(string()),
+    mimeType: string(),
+});
+export const Image = struct({
+    image: ImageRef, info: FileInfo,
+});
+export const Spans = array(union({
+    user_mention: struct({
+        offset: integer(), length: integer(), user: integer(),
+    }),
+    multi_user_mention: struct({
+        offset: integer(), length: integer(), users: array(integer()),
+    }),
+    room_mention: struct({
+        offset: integer(), length: integer(), room: integer(),
+    }),
+    link: struct({
+        offset: integer(), length: integer(), url: string(),
+    }),
+    date_text: struct({
+        offset: integer(), length: integer(), date: integer(),
+    }),
+    bold_text: basicSpan,
+    italic_text: basicSpan,
+    irony_text: basicSpan,
+    inline_code_text: basicSpan,
+    code_block_text: basicSpan,
+    insane_text: basicSpan,
+    loud_text: basicSpan,
+    rotating_text: basicSpan,
+    all_mention: basicSpan,
+}));
+
 export default declareSchema(() => {
 
     //
@@ -279,57 +330,6 @@ export default declareSchema(() => {
         uniqueIndex('requests', ['cid', 'uid']).withCondition((src) => src.status === 'requested');
         uniqueIndex('userActive', ['uid', 'cid']).withCondition((src) => src.status === 'joined');
     });
-
-    //
-    // Content
-    //
-    const basicSpan = struct({
-        offset: integer(), length: integer(),
-    });
-    const ImageRef = struct({
-        uuid: string(), crop: optional(struct({
-            x: integer(), y: integer(), w: integer(), h: integer(),
-        })),
-    });
-    const FileInfo = struct({
-        name: string(),
-        size: integer(),
-        isImage: boolean(),
-        isStored: boolean(),
-        imageWidth: optional(integer()),
-        imageHeight: optional(integer()),
-        imageFormat: optional(string()),
-        mimeType: string(),
-    });
-    const Image = struct({
-        image: ImageRef, info: FileInfo,
-    });
-    const Spans = array(union({
-        user_mention: struct({
-            offset: integer(), length: integer(), user: integer(),
-        }),
-        multi_user_mention: struct({
-            offset: integer(), length: integer(), users: array(integer()),
-        }),
-        room_mention: struct({
-            offset: integer(), length: integer(), room: integer(),
-        }),
-        link: struct({
-            offset: integer(), length: integer(), url: string(),
-        }),
-        date_text: struct({
-            offset: integer(), length: integer(), date: integer(),
-        }),
-        bold_text: basicSpan,
-        italic_text: basicSpan,
-        irony_text: basicSpan,
-        inline_code_text: basicSpan,
-        code_block_text: basicSpan,
-        insane_text: basicSpan,
-        loud_text: basicSpan,
-        rotating_text: basicSpan,
-        all_mention: basicSpan,
-    }));
 
     entity('Message', () => {
         primaryKey('id', integer());

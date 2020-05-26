@@ -118,6 +118,11 @@ import { RichMessageReaction, Slide } from '../../openland-module-rich-message/r
 import { PowerupChatUserSettings } from 'openland-module-powerups/PowerupsRepository';
 import Stripe from 'stripe';
 import { PermissionGroup } from 'openland-module-permissions/PermissionsRepository';
+import {
+    DiscussionContent,
+    ImageParagraph,
+    TextParagraph
+} from '../../openland-module-discussions/repositories/DiscussionsRepository';
 
 //
 //  Root types
@@ -157,6 +162,7 @@ export namespace GQLRoots {
     import SharedRoomKindValues = GQL.SharedRoomKindValues;
     import RoomMemberRoleValues = GQL.RoomMemberRoleValues;
     import PurchaseStateValues = GQL.PurchaseStateValues;
+    import DiscussionContentTypeValues = GQL.DiscussionContentTypeValues;
     export type MutationRoot = any;
     export type QueryRoot = any;
     export type SubscriptionRoot = any;
@@ -706,4 +712,8 @@ export namespace GQLRoots {
     export type HubTypeRoot = 'system' | 'personal' | 'public' | 'secret';
     export type DiscussionRoot = Discussion;
     export type DiscussionConnectionRoot = { items: DiscussionRoot[], cursor: string|null };
+    export type ParagraphRoot = DiscussionContent;
+    export type ImageParagraphRoot = ImageParagraph;
+    export type TextParagraphRoot = TextParagraph;
+    export type DiscussionContentTypeRoot = DiscussionContentTypeValues;
 }

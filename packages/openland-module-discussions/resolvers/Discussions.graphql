@@ -2,6 +2,7 @@ type Discussion {
     id: ID!
     author: User
     title: String!
+    content: [Paragraph!]!
 
     hub: Hub!
     createdAt: Date!
@@ -9,8 +10,32 @@ type Discussion {
     deletedAt: Date
 }
 
+union Paragraph = TextParagraph | ImageParagraph
+
+type TextParagraph {
+    text: String!
+    spans: [MessageSpan!]!
+}
+
+type ImageParagraph {
+    image: Image!
+}
+
 input DiscussionInput {
     title: String
+    content: [DiscussionContentInput!]
+}
+
+enum DiscussionContentType {
+    Text,
+    Image
+}
+
+input DiscussionContentInput {
+    type: DiscussionContentType!
+    text: String
+    spans: [MessageSpanInput!]
+    image: ImageRefInput
 }
 
 type DiscussionConnection {

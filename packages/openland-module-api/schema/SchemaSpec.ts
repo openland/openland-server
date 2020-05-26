@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '8f87a3e7cd04d930f2acdc5f8ca68af3';
+export const GQL_SPEC_VERSION = 'c06b111ad740d6e13688b7f06909d434';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1950,6 +1950,7 @@ export namespace GQL {
         id: string;
         author: Nullable<User>;
         title: string;
+        content: Paragraph[];
         hub: Hub;
         createdAt: Date;
         updatedAt: Nullable<Date>;
@@ -1958,12 +1959,33 @@ export namespace GQL {
     export interface DiscussionIdArgs { }
     export interface DiscussionAuthorArgs { }
     export interface DiscussionTitleArgs { }
+    export interface DiscussionContentArgs { }
     export interface DiscussionHubArgs { }
     export interface DiscussionCreatedAtArgs { }
     export interface DiscussionUpdatedAtArgs { }
     export interface DiscussionDeletedAtArgs { }
+    export type Paragraph = TextParagraph | ImageParagraph;
+    export interface TextParagraph {
+        text: string;
+        spans: MessageSpan[];
+    }
+    export interface TextParagraphTextArgs { }
+    export interface TextParagraphSpansArgs { }
+    export interface ImageParagraph {
+        image: Image;
+    }
+    export interface ImageParagraphImageArgs { }
     export interface DiscussionInput {
         title: Nullable<string>;
+        content: Nullable<DiscussionContentInput[]>;
+    }
+    export type DiscussionContentTypeValues = 'Text' | 'Image';
+    export type DiscussionContentType = GQLRoots.DiscussionContentTypeRoot;
+    export interface DiscussionContentInput {
+        type: DiscussionContentType;
+        text: Nullable<string>;
+        spans: Nullable<MessageSpanInput[]>;
+        image: Nullable<ImageRefInput>;
     }
     export interface DiscussionConnection {
         items: Discussion[];
@@ -7914,18 +7936,43 @@ export interface GQLResolver {
         GQLRoots.DiscussionRoot,
         {
             author: Nullable<GQLRoots.UserRoot>,
+            content: GQLRoots.ParagraphRoot[],
             hub: GQLRoots.HubRoot,
         },
         {
             id: GQL.DiscussionIdArgs,
             author: GQL.DiscussionAuthorArgs,
             title: GQL.DiscussionTitleArgs,
+            content: GQL.DiscussionContentArgs,
             hub: GQL.DiscussionHubArgs,
             createdAt: GQL.DiscussionCreatedAtArgs,
             updatedAt: GQL.DiscussionUpdatedAtArgs,
             deletedAt: GQL.DiscussionDeletedAtArgs,
         }
     >;
+    Paragraph?: UnionTypeResolver<GQLRoots.ParagraphRoot, 'TextParagraph' | 'ImageParagraph'>;
+    TextParagraph?: ComplexTypedResolver<
+        GQL.TextParagraph,
+        GQLRoots.TextParagraphRoot,
+        {
+            spans: GQLRoots.MessageSpanRoot[],
+        },
+        {
+            text: GQL.TextParagraphTextArgs,
+            spans: GQL.TextParagraphSpansArgs,
+        }
+    >;
+    ImageParagraph?: ComplexTypedResolver<
+        GQL.ImageParagraph,
+        GQLRoots.ImageParagraphRoot,
+        {
+            image: GQLRoots.ImageRoot,
+        },
+        {
+            image: GQL.ImageParagraphImageArgs,
+        }
+    >;
+    DiscussionContentType?: EnumTypeResolver<'Text' | 'Image', GQLRoots.DiscussionContentTypeRoot>;
     DiscussionConnection?: ComplexTypedResolver<
         GQL.DiscussionConnection,
         GQLRoots.DiscussionConnectionRoot,

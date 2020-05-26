@@ -19510,21 +19510,23 @@ export interface DiscussionShape {
     id: number;
     uid: number;
     hubId: number;
-    title: string;
     state: 'draft' | 'published' | 'archived';
     publishedAt: number | null;
     editedAt: number | null;
     archivedAt: number | null;
+    title: string;
+    content: ({ type: 'text', text: string, spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] } | { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } } })[] | null;
 }
 
 export interface DiscussionCreateShape {
     uid: number;
     hubId: number;
-    title: string;
     state: 'draft' | 'published' | 'archived';
     publishedAt?: number | null | undefined;
     editedAt?: number | null | undefined;
     archivedAt?: number | null | undefined;
+    title: string;
+    content?: ({ type: 'text', text: string, spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] } | { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } } })[] | null | undefined;
 }
 
 export class Discussion extends Entity<DiscussionShape> {
@@ -19544,15 +19546,6 @@ export class Discussion extends Entity<DiscussionShape> {
         if (this._rawValue.hubId !== normalized) {
             this._rawValue.hubId = normalized;
             this._updatedValues.hubId = normalized;
-            this.invalidate();
-        }
-    }
-    get title(): string { return this._rawValue.title; }
-    set title(value: string) {
-        let normalized = this.descriptor.codec.fields.title.normalize(value);
-        if (this._rawValue.title !== normalized) {
-            this._rawValue.title = normalized;
-            this._updatedValues.title = normalized;
             this.invalidate();
         }
     }
@@ -19592,6 +19585,24 @@ export class Discussion extends Entity<DiscussionShape> {
             this.invalidate();
         }
     }
+    get title(): string { return this._rawValue.title; }
+    set title(value: string) {
+        let normalized = this.descriptor.codec.fields.title.normalize(value);
+        if (this._rawValue.title !== normalized) {
+            this._rawValue.title = normalized;
+            this._updatedValues.title = normalized;
+            this.invalidate();
+        }
+    }
+    get content(): ({ type: 'text', text: string, spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] } | { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } } })[] | null { return this._rawValue.content; }
+    set content(value: ({ type: 'text', text: string, spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] } | { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } } })[] | null) {
+        let normalized = this.descriptor.codec.fields.content.normalize(value);
+        if (this._rawValue.content !== normalized) {
+            this._rawValue.content = normalized;
+            this._updatedValues.content = normalized;
+            this.invalidate();
+        }
+    }
 
     delete(ctx: Context) {
         return this._delete(ctx);
@@ -19610,20 +19621,22 @@ export class DiscussionFactory extends EntityFactory<DiscussionShape, Discussion
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'hubId', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'title', type: { type: 'string' }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['draft', 'published', 'archived'] }, secure: false });
         fields.push({ name: 'publishedAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'editedAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'archivedAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'title', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'content', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { text: { text: { type: 'string' }, spans: { type: 'array', inner: { type: 'union', types: { user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, user: { type: 'integer' } }, multi_user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, users: { type: 'array', inner: { type: 'integer' } } }, room_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, room: { type: 'integer' } }, link: { offset: { type: 'integer' }, length: { type: 'integer' }, url: { type: 'string' } }, date_text: { offset: { type: 'integer' }, length: { type: 'integer' }, date: { type: 'integer' } }, bold_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, italic_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, irony_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, inline_code_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, code_block_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, insane_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, loud_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, rotating_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, all_mention: { offset: { type: 'integer' }, length: { type: 'integer' } } } } } }, image: { image: { type: 'struct', fields: { image: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } }, info: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } } } } } } } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             uid: c.integer,
             hubId: c.integer,
-            title: c.string,
             state: c.enum('draft', 'published', 'archived'),
             publishedAt: c.optional(c.integer),
             editedAt: c.optional(c.integer),
             archivedAt: c.optional(c.integer),
+            title: c.string,
+            content: c.optional(c.array(c.union({ text: c.struct({ text: c.string, spans: c.array(c.union({ user_mention: c.struct({ offset: c.integer, length: c.integer, user: c.integer }), multi_user_mention: c.struct({ offset: c.integer, length: c.integer, users: c.array(c.integer) }), room_mention: c.struct({ offset: c.integer, length: c.integer, room: c.integer }), link: c.struct({ offset: c.integer, length: c.integer, url: c.string }), date_text: c.struct({ offset: c.integer, length: c.integer, date: c.integer }), bold_text: c.struct({ offset: c.integer, length: c.integer }), italic_text: c.struct({ offset: c.integer, length: c.integer }), irony_text: c.struct({ offset: c.integer, length: c.integer }), inline_code_text: c.struct({ offset: c.integer, length: c.integer }), code_block_text: c.struct({ offset: c.integer, length: c.integer }), insane_text: c.struct({ offset: c.integer, length: c.integer }), loud_text: c.struct({ offset: c.integer, length: c.integer }), rotating_text: c.struct({ offset: c.integer, length: c.integer }), all_mention: c.struct({ offset: c.integer, length: c.integer }) })) }), image: c.struct({ image: c.struct({ image: c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) }), info: c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string }) }) }) }))),
         });
         let descriptor: EntityDescriptor<DiscussionShape> = {
             name: 'Discussion',
