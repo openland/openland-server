@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '033344f07a9d08e26b13fe1109a7f698';
+export const GQL_SPEC_VERSION = '7d988baa9cb844ae8d0ea6108ac24b6e';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1951,7 +1951,7 @@ export namespace GQL {
         author: Nullable<User>;
         title: string;
         content: Paragraph[];
-        hub: Hub;
+        hub: Nullable<Hub>;
         createdAt: Date;
         updatedAt: Nullable<Date>;
         deletedAt: Nullable<Date>;
@@ -1976,6 +1976,7 @@ export namespace GQL {
     }
     export interface ImageParagraphImageArgs { }
     export interface DiscussionInput {
+        hub: Nullable<string>;
         title: Nullable<string>;
         content: Nullable<DiscussionContentInput[]>;
     }
@@ -3074,7 +3075,6 @@ export namespace GQL {
         peerId: string;
     }
     export interface MutationDiscussionCreateArgs {
-        hub: string;
         input: DiscussionInput;
         isDraft: boolean;
     }
@@ -7937,7 +7937,7 @@ export interface GQLResolver {
         {
             author: Nullable<GQLRoots.UserRoot>,
             content: GQLRoots.ParagraphRoot[],
-            hub: GQLRoots.HubRoot,
+            hub: Nullable<GQLRoots.HubRoot>,
         },
         {
             id: GQL.DiscussionIdArgs,

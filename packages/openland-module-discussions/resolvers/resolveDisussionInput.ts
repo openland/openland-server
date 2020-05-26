@@ -5,6 +5,7 @@ import { resolveSpansInput } from '../../openland-module-rich-message/resolvers/
 import { UserError } from '../../openland-errors/UserError';
 import { Modules } from '../../openland-modules/Modules';
 import { Context } from '@openland/context';
+import { IDs } from '../../openland-module-api/IDs';
 
 export async function resolveDiscussionInput(ctx: Context, input: DiscussionInputGQL, isDraft: boolean): Promise<DiscussionInput> {
     let content: DiscussionContentInput[] = [];
@@ -37,6 +38,7 @@ export async function resolveDiscussionInput(ctx: Context, input: DiscussionInpu
     return {
         title: input.title!,
         content,
-        isDraft
+        isDraft,
+        hubId: input.hub ? IDs.Hub.parse(input.hub) : null
     };
 }

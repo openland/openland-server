@@ -33,6 +33,7 @@ export type DiscussionParagraphSpans =
     AllMentionSpan;
 
 export type DiscussionInput = {
+    hubId: number | null
     title: string
     isDraft: boolean
     content: DiscussionContentInput[]
@@ -64,15 +65,22 @@ export type TextParagraph = {
 export type ImageParagraph = { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } } };
 
 export class DiscussionsRepository {
-    createDiscussion = async (parent: Context, uid: number, hubId: number, input: DiscussionInput) => {
+    createDiscussion = async (parent: Context, uid: number, input: DiscussionInput) => {
         return inTx(parent, async ctx => {
-            let hub = await Store.DiscussionHub.findById(ctx, hubId);
-            if (!hub) {
-                throw new UserError('Hub not found');
+            if (!input.isDraft && !input.hubId) {
+                throw new UserError('Can\'t publish discussion with no hub');
             }
-            // Support public hubs only for now
-            if (hub.description.type !== 'public') {
-                throw new AccessDeniedError();
+
+            // Access check
+            if (input.hubId) {
+                let hub = await Store.DiscussionHub.findById(ctx, input.hubId);
+                if (!hub) {
+                    throw new UserError('Hub not found');
+                }
+                // Support public hubs only for now
+                if (hub.description.type !== 'public') {
+                    throw new AccessDeniedError();
+                }
             }
 
             // Resolve next id
@@ -81,7 +89,7 @@ export class DiscussionsRepository {
             // Create discussion
             let discussion = await Store.Discussion.create(ctx, id, {
                 uid,
-                hubId,
+                hubId: input.hubId ? input.hubId : null,
                 title: input.title,
                 content: input.content || [],
                 state: input.isDraft ? 'draft' : 'published',
@@ -104,6 +112,9 @@ export class DiscussionsRepository {
             }
             if (discussion.uid !== uid) {
                 throw new AccessDeniedError();
+            }
+            if (!discussion.hubId) {
+                throw new UserError('Can\'t publish discussion with no hub');
             }
             if (discussion.state !== 'draft') {
                 throw new UserError('Discussion was already published');

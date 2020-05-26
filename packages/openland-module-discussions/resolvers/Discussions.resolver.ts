@@ -15,7 +15,7 @@ export const Resolver: GQLResolver = {
         author: src => src.uid,
         title: src => src.title,
         content: src => src.content || [],
-        hub: async (src, args, ctx) => (await Store.DiscussionHub.findById(ctx, src.hubId))!,
+        hub: async (src, args, ctx) => src.hubId ? (await Store.DiscussionHub.findById(ctx, src.hubId))! : null,
         createdAt: src => src.metadata.createdAt,
         updatedAt: src => src.metadata.updatedAt,
         deletedAt: src => src.archivedAt
@@ -97,7 +97,6 @@ export const Resolver: GQLResolver = {
             return await Modules.Discussions.discussions.createDiscussion(
                 ctx,
                 uid,
-                IDs.Hub.parse(args.hub),
                 await resolveDiscussionInput(ctx, args.input, args.isDraft)
             );
         }),

@@ -36,7 +36,7 @@ export function discussionsStore() {
     entity('Discussion', () => {
         primaryKey('id', integer());
         field('uid', integer());
-        field('hubId', integer());
+        field('hubId', optional(integer()));
         field('state', enumString('draft', 'published', 'archived'));
         field('publishedAt', optional(integer()));
         field('editedAt', optional(integer()));

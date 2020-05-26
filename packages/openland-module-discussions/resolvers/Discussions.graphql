@@ -4,7 +4,7 @@ type Discussion {
     title: String!
     content: [Paragraph!]!
 
-    hub: Hub!
+    hub: Hub
     createdAt: Date!
     updatedAt: Date
     deletedAt: Date
@@ -22,6 +22,7 @@ type ImageParagraph {
 }
 
 input DiscussionInput {
+    hub: ID
     title: String
     content: [DiscussionContentInput!]
 }
@@ -49,7 +50,7 @@ extend type Query {
 }
 
 extend type Mutation {
-    discussionCreate(hub: ID!, input: DiscussionInput!, isDraft: Boolean!): Discussion!
+    discussionCreate(input: DiscussionInput!, isDraft: Boolean!): Discussion!
     discussionDraftPublish(draftId: ID!): Discussion!
     discussionsDropAll: Boolean!
 }
