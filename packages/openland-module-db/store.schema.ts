@@ -453,7 +453,7 @@ export default declareSchema(() => {
     entity('Comment', () => {
         primaryKey('id', integer());
         field('peerId', integer());
-        field('peerType', enumString('message', 'feed_item'));
+        field('peerType', enumString('message', 'feed_item', 'discussion'));
         field('parentCommentId', optional(integer()));
         field('uid', integer());
         field('repeatKey', optional(string()));

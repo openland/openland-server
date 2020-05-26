@@ -63,7 +63,7 @@ export interface CommentInput {
     overrideName?: string | null;
 }
 
-export type CommentPeerType = 'message' | 'feed_item';
+export type CommentPeerType = 'message' | 'feed_item' | 'discussion';
 
 @injectable()
 export class CommentsRepository {

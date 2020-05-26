@@ -33,7 +33,7 @@ export function discussionsStore() {
         }));
     });
     entity('Discussion', () => {
-        primaryKey('id', string());
+        primaryKey('id', integer());
         field('uid', integer());
         field('hubId', integer());
         field('title', string());
@@ -42,7 +42,9 @@ export function discussionsStore() {
         field('editedAt', optional(integer()));
         field('archivedAt', optional(integer()));
 
-        rangeIndex('draft', ['uid', 'createdAt']).withCondition((src) => src.state === 'draft');
+        rangeIndex('draft', ['uid', 'id']).withCondition((src) => src.state === 'draft');
         rangeIndex('published', ['hubId', 'publishedAt']).withCondition((src) => src.state === 'published');
+
+        allowDelete();
     });
 }

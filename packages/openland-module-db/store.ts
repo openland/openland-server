@@ -4691,7 +4691,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
 export interface CommentShape {
     id: number;
     peerId: number;
-    peerType: 'message' | 'feed_item';
+    peerType: 'message' | 'feed_item' | 'discussion';
     parentCommentId: number | null;
     uid: number;
     repeatKey: string | null;
@@ -4709,7 +4709,7 @@ export interface CommentShape {
 
 export interface CommentCreateShape {
     peerId: number;
-    peerType: 'message' | 'feed_item';
+    peerType: 'message' | 'feed_item' | 'discussion';
     parentCommentId?: number | null | undefined;
     uid: number;
     repeatKey?: string | null | undefined;
@@ -4736,8 +4736,8 @@ export class Comment extends Entity<CommentShape> {
             this.invalidate();
         }
     }
-    get peerType(): 'message' | 'feed_item' { return this._rawValue.peerType; }
-    set peerType(value: 'message' | 'feed_item') {
+    get peerType(): 'message' | 'feed_item' | 'discussion' { return this._rawValue.peerType; }
+    set peerType(value: 'message' | 'feed_item' | 'discussion') {
         let normalized = this.descriptor.codec.fields.peerType.normalize(value);
         if (this._rawValue.peerType !== normalized) {
             this._rawValue.peerType = normalized;
@@ -4876,7 +4876,7 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'peerId', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'peerType', type: { type: 'enum', values: ['message', 'feed_item'] }, secure: false });
+        fields.push({ name: 'peerType', type: { type: 'enum', values: ['message', 'feed_item', 'discussion'] }, secure: false });
         fields.push({ name: 'parentCommentId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'repeatKey', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
@@ -4893,7 +4893,7 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
         let codec = c.struct({
             id: c.integer,
             peerId: c.integer,
-            peerType: c.enum('message', 'feed_item'),
+            peerType: c.enum('message', 'feed_item', 'discussion'),
             parentCommentId: c.optional(c.integer),
             uid: c.integer,
             repeatKey: c.optional(c.string),
@@ -4922,16 +4922,16 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
     }
 
     readonly peer = Object.freeze({
-        findAll: async (ctx: Context, peerType: 'message' | 'feed_item', peerId: number) => {
+        findAll: async (ctx: Context, peerType: 'message' | 'feed_item' | 'discussion', peerId: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId])).items;
         },
-        query: (ctx: Context, peerType: 'message' | 'feed_item', peerId: number, opts?: RangeQueryOptions<number>) => {
+        query: (ctx: Context, peerType: 'message' | 'feed_item' | 'discussion', peerId: number, opts?: RangeQueryOptions<number>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
-        stream: (peerType: 'message' | 'feed_item', peerId: number, opts?: StreamProps) => {
+        stream: (peerType: 'message' | 'feed_item' | 'discussion', peerId: number, opts?: StreamProps) => {
             return this._createStream(this.descriptor.secondaryIndexes[0], [peerType, peerId], opts);
         },
-        liveStream: (ctx: Context, peerType: 'message' | 'feed_item', peerId: number, opts?: StreamProps) => {
+        liveStream: (ctx: Context, peerType: 'message' | 'feed_item' | 'discussion', peerId: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [peerType, peerId], opts);
         },
     });
@@ -4952,13 +4952,13 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
     });
 
     readonly repeat = Object.freeze({
-        find: async (ctx: Context, peerType: 'message' | 'feed_item', peerId: number, repeatKey: string | null) => {
+        find: async (ctx: Context, peerType: 'message' | 'feed_item' | 'discussion', peerId: number, repeatKey: string | null) => {
             return this._findFromUniqueIndex(ctx, [peerType, peerId, repeatKey], this.descriptor.secondaryIndexes[2]);
         },
-        findAll: async (ctx: Context, peerType: 'message' | 'feed_item', peerId: number) => {
+        findAll: async (ctx: Context, peerType: 'message' | 'feed_item' | 'discussion', peerId: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [peerType, peerId])).items;
         },
-        query: (ctx: Context, peerType: 'message' | 'feed_item', peerId: number, opts?: RangeQueryOptions<string | null>) => {
+        query: (ctx: Context, peerType: 'message' | 'feed_item' | 'discussion', peerId: number, opts?: RangeQueryOptions<string | null>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[2], [peerType, peerId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
@@ -19507,7 +19507,7 @@ export class DiscussionHubFactory extends EntityFactory<DiscussionHubShape, Disc
 }
 
 export interface DiscussionShape {
-    id: string;
+    id: number;
     uid: number;
     hubId: number;
     title: string;
@@ -19528,7 +19528,7 @@ export interface DiscussionCreateShape {
 }
 
 export class Discussion extends Entity<DiscussionShape> {
-    get id(): string { return this._rawValue.id; }
+    get id(): number { return this._rawValue.id; }
     get uid(): number { return this._rawValue.uid; }
     set uid(value: number) {
         let normalized = this.descriptor.codec.fields.uid.normalize(value);
@@ -19592,6 +19592,10 @@ export class Discussion extends Entity<DiscussionShape> {
             this.invalidate();
         }
     }
+
+    delete(ctx: Context) {
+        return this._delete(ctx);
+    }
 }
 
 export class DiscussionFactory extends EntityFactory<DiscussionShape, Discussion> {
@@ -19599,10 +19603,10 @@ export class DiscussionFactory extends EntityFactory<DiscussionShape, Discussion
     static async open(storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory('discussion');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'draft', storageKey: 'draft', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('discussion', 'draft'), condition: (src) => src.state === 'draft' });
+        secondaryIndexes.push({ name: 'draft', storageKey: 'draft', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('discussion', 'draft'), condition: (src) => src.state === 'draft' });
         secondaryIndexes.push({ name: 'published', storageKey: 'published', type: { type: 'range', fields: [{ name: 'hubId', type: 'integer' }, { name: 'publishedAt', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('discussion', 'published'), condition: (src) => src.state === 'published' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'id', type: 'string' });
+        primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'hubId', type: { type: 'integer' }, secure: false });
@@ -19612,7 +19616,7 @@ export class DiscussionFactory extends EntityFactory<DiscussionShape, Discussion
         fields.push({ name: 'editedAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'archivedAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
-            id: c.string,
+            id: c.integer,
             uid: c.integer,
             hubId: c.integer,
             title: c.string,
@@ -19624,7 +19628,7 @@ export class DiscussionFactory extends EntityFactory<DiscussionShape, Discussion
         let descriptor: EntityDescriptor<DiscussionShape> = {
             name: 'Discussion',
             storageKey: 'discussion',
-            allowDelete: false,
+            allowDelete: true,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new DiscussionFactory(descriptor);
@@ -19664,19 +19668,19 @@ export class DiscussionFactory extends EntityFactory<DiscussionShape, Discussion
         },
     });
 
-    create(ctx: Context, id: string, src: DiscussionCreateShape): Promise<Discussion> {
+    create(ctx: Context, id: number, src: DiscussionCreateShape): Promise<Discussion> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    create_UNSAFE(ctx: Context, id: string, src: DiscussionCreateShape): Discussion {
+    create_UNSAFE(ctx: Context, id: number, src: DiscussionCreateShape): Discussion {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<Discussion | null> {
+    findById(ctx: Context, id: number): Promise<Discussion | null> {
         return this._findById(ctx, [id]);
     }
 
-    watch(ctx: Context, id: string): Watch {
+    watch(ctx: Context, id: number): Watch {
         return this._watch(ctx, [id]);
     }
 

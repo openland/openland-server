@@ -1,10 +1,10 @@
 import { Context } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
 import { Store } from '../../openland-module-db/FDB';
-import { uuid } from '../../openland-utils/uuid';
 import { UserError } from '../../openland-errors/UserError';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
+import { resolveSequenceNumber } from '../../openland-module-db/resolveSequenceNumber';
 
 type DiscussionInput = {
     title: string;
@@ -23,7 +23,8 @@ export class DiscussionsRepository {
                 throw new AccessDeniedError();
             }
 
-            let id = uuid();
+            // Resolve next id
+            let id = await resolveSequenceNumber(ctx, 'discussion-id');
 
             // Create discussion
             let discussion = await Store.Discussion.create(ctx, id, {
@@ -42,7 +43,7 @@ export class DiscussionsRepository {
         });
     }
 
-    publishDraftDiscussion = async (parent: Context, uid: number, draftId: string) => {
+    publishDraftDiscussion = async (parent: Context, uid: number, draftId: number) => {
         return inTx(parent, async ctx => {
             let discussion = await Store.Discussion.findById(ctx, draftId);
             if (!discussion) {

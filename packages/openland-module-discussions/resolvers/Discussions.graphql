@@ -26,4 +26,5 @@ extend type Query {
 extend type Mutation {
     discussionCreate(hub: ID!, input: DiscussionInput!, isDraft: Boolean!): Discussion!
     discussionDraftPublish(draftId: ID!): Discussion!
+    discussionsDropAll: Boolean!
 }

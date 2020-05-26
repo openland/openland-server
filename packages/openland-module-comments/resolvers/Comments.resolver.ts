@@ -342,6 +342,16 @@ export const Resolver: GQLResolver = {
                 peerId: itemId,
             };
         }),
+        discussionComments: withUser(async (ctx, args, uid) => {
+            let Zz = IDs.Discussion.parse(args.discussionId);
+            let comments = await Store.Comment.peer.findAll(ctx, 'discussion', itemId);
+
+            return {
+                comments: comments.filter(c => c.visible),
+                peerType: 'feed_item',
+                peerId: itemId,
+            };
+        }),
         comments: withUser(async (ctx, args, uid) => {
             let id = IdsFactory.resolve(args.peerId);
             let peerId: number | null;

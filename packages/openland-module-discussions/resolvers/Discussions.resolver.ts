@@ -2,8 +2,9 @@ import { IDs } from '../../openland-module-api/IDs';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Store } from '../../openland-module-db/FDB';
 import { Discussion } from '../../openland-module-db/store';
-import { withUser } from '../../openland-module-api/Resolvers';
+import { withPermission, withUser } from '../../openland-module-api/Resolvers';
 import { Modules } from '../../openland-modules/Modules';
+import { inTx } from '@openland/foundationdb';
 
 export const Resolver: GQLResolver = {
     Discussion: {
@@ -65,5 +66,14 @@ export const Resolver: GQLResolver = {
         discussionDraftPublish: withUser(async (ctx, args, uid) => {
             return await Modules.Discussions.discussions.publishDraftDiscussion(ctx, uid, IDs.Discussion.parse(args.draftId));
         }),
+        discussionsDropAll: withPermission(['super-admin'], async (root) => {
+            return await inTx(root, async ctx => {
+                let discussions = await Store.Discussion.findAll(ctx);
+                for (let discussion of discussions) {
+                    await discussion.delete(ctx);
+                }
+                return true;
+            });
+        })
     }
 };

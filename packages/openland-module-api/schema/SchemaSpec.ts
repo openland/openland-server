@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9cdab9a4520f52de0541658e30a3029d';
+export const GQL_SPEC_VERSION = '0f66e9e490742d523f61e20eb4bed0bd';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2294,6 +2294,7 @@ export namespace GQL {
         mediaStreamFailed: ConferenceMedia;
         discussionCreate: Discussion;
         discussionDraftPublish: Discussion;
+        discussionsDropAll: boolean;
         setEnvVar: boolean;
         setEnvVarString: boolean;
         setEnvVarNumber: boolean;
@@ -3054,6 +3055,7 @@ export namespace GQL {
     export interface MutationDiscussionDraftPublishArgs {
         draftId: string;
     }
+    export interface MutationDiscussionsDropAllArgs { }
     export interface MutationSetEnvVarArgs {
         name: string;
         value: string;
@@ -3934,6 +3936,7 @@ export namespace GQL {
         conversationState: ConversationUpdateState;
         messageComments: CommentsPeer;
         feedItemComments: CommentsPeer;
+        discussionComments: CommentsPeer;
         comments: CommentsPeer;
         conference: Conference;
         conferenceMedia: ConferenceMedia;
@@ -4199,6 +4202,9 @@ export namespace GQL {
     }
     export interface QueryFeedItemCommentsArgs {
         feedItemId: string;
+    }
+    export interface QueryDiscussionCommentsArgs {
+        discussionId: string;
     }
     export interface QueryCommentsArgs {
         peerId: string;
@@ -8429,6 +8435,7 @@ export interface GQLResolver {
             mediaStreamFailed: GQL.MutationMediaStreamFailedArgs,
             discussionCreate: GQL.MutationDiscussionCreateArgs,
             discussionDraftPublish: GQL.MutationDiscussionDraftPublishArgs,
+            discussionsDropAll: GQL.MutationDiscussionsDropAllArgs,
             setEnvVar: GQL.MutationSetEnvVarArgs,
             setEnvVarString: GQL.MutationSetEnvVarStringArgs,
             setEnvVarNumber: GQL.MutationSetEnvVarNumberArgs,
@@ -8963,6 +8970,7 @@ export interface GQLResolver {
             conversationState: GQLRoots.ConversationUpdateStateRoot,
             messageComments: GQLRoots.CommentsPeerRoot,
             feedItemComments: GQLRoots.CommentsPeerRoot,
+            discussionComments: GQLRoots.CommentsPeerRoot,
             comments: GQLRoots.CommentsPeerRoot,
             conference: GQLRoots.ConferenceRoot,
             conferenceMedia: GQLRoots.ConferenceMediaRoot,
@@ -9124,6 +9132,7 @@ export interface GQLResolver {
             conversationState: GQL.QueryConversationStateArgs,
             messageComments: GQL.QueryMessageCommentsArgs,
             feedItemComments: GQL.QueryFeedItemCommentsArgs,
+            discussionComments: GQL.QueryDiscussionCommentsArgs,
             comments: GQL.QueryCommentsArgs,
             conference: GQL.QueryConferenceArgs,
             conferenceMedia: GQL.QueryConferenceMediaArgs,
