@@ -100,11 +100,20 @@ export const Resolver: GQLResolver = {
             return await Modules.Discussions.discussions.createDiscussion(
                 ctx,
                 uid,
-                await resolveDiscussionInput(ctx, args.input, args.isDraft)
+                await resolveDiscussionInput(ctx, args.input),
+                args.isDraft
             );
         }),
         discussionDraftPublish: withUser(async (ctx, args, uid) => {
             return await Modules.Discussions.discussions.publishDraftDiscussion(ctx, uid, IDs.Discussion.parse(args.draftId));
+        }),
+        discussionUpdate: withUser(async (ctx, args, uid) => {
+            return await Modules.Discussions.discussions.editDiscussion(
+                ctx,
+                IDs.Discussion.parse(args.id),
+                uid,
+                await resolveDiscussionInput(ctx, args.input),
+            );
         }),
         discussionsDropAll: withPermission(['super-admin'], async (root) => {
             return await inTx(root, async ctx => {

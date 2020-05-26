@@ -7,7 +7,7 @@ import { Modules } from '../../openland-modules/Modules';
 import { Context } from '@openland/context';
 import { IDs } from '../../openland-module-api/IDs';
 
-export async function resolveDiscussionInput(ctx: Context, input: DiscussionInputGQL, isDraft: boolean): Promise<DiscussionInput> {
+export async function resolveDiscussionInput(ctx: Context, input: DiscussionInputGQL): Promise<DiscussionInput> {
     let content: DiscussionContentInput[] = [];
     if (input.content) {
         for (let part of input.content) {
@@ -38,7 +38,6 @@ export async function resolveDiscussionInput(ctx: Context, input: DiscussionInpu
     return {
         title: input.title!,
         content,
-        isDraft,
         hubId: input.hub ? IDs.Hub.parse(input.hub) : null
     };
 }

@@ -53,5 +53,6 @@ extend type Query {
 extend type Mutation {
     discussionCreate(input: DiscussionInput!, isDraft: Boolean!): Discussion!
     discussionDraftPublish(draftId: ID!): Discussion!
+    discussionUpdate(id: ID!, input: DiscussionInput!): Discussion!
     discussionsDropAll: Boolean!
 }

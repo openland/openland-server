@@ -34,8 +34,7 @@ export type DiscussionParagraphSpans =
 
 export type DiscussionInput = {
     hubId: number | null
-    title: string
-    isDraft: boolean
+    title: string | null
     content: DiscussionContentInput[]
 };
 
@@ -65,9 +64,9 @@ export type TextParagraph = {
 export type ImageParagraph = { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } } };
 
 export class DiscussionsRepository {
-    createDiscussion = async (parent: Context, uid: number, input: DiscussionInput) => {
+    createDiscussion = async (parent: Context, uid: number, input: DiscussionInput, isDraft: boolean) => {
         return inTx(parent, async ctx => {
-            if (!input.isDraft && !input.hubId) {
+            if (!isDraft && !input.hubId) {
                 throw new UserError('Can\'t publish discussion with no hub');
             }
 
@@ -90,13 +89,39 @@ export class DiscussionsRepository {
             let discussion = await Store.Discussion.create(ctx, id, {
                 uid,
                 hubId: input.hubId ? input.hubId : null,
-                title: input.title,
+                title: input.title || '',
                 content: input.content || [],
-                state: input.isDraft ? 'draft' : 'published',
+                state: isDraft ? 'draft' : 'published',
             });
 
-            if (!input.isDraft) {
+            if (!isDraft) {
                 discussion.publishedAt = Date.now();
+            }
+            await discussion.flush(ctx);
+
+            return discussion;
+        });
+    }
+
+    editDiscussion = async (parent: Context, id: number, uid: number, input: DiscussionInput) => {
+        return inTx(parent, async ctx => {
+            let discussion = await Store.Discussion.findById(ctx, id);
+            if (!discussion) {
+                throw new NotFoundError();
+            }
+            if (discussion.uid !== uid) {
+                throw new AccessDeniedError();
+            }
+
+            // Update values
+            if (input.hubId) {
+                discussion.hubId = input.hubId;
+            }
+            if (input.title) {
+                discussion.title = input.title;
+            }
+            if (input.content) {
+                discussion.content = input.content;
             }
             await discussion.flush(ctx);
 
@@ -115,6 +140,12 @@ export class DiscussionsRepository {
             }
             if (!discussion.hubId) {
                 throw new UserError('Can\'t publish discussion with no hub');
+            }
+            if (discussion.title.trim().length === 0) {
+                throw new UserError('Title can\t be empty');
+            }
+            if (discussion.content?.length === 0) {
+                throw new UserError('Content can\t be empty');
             }
             if (discussion.state !== 'draft') {
                 throw new UserError('Discussion was already published');

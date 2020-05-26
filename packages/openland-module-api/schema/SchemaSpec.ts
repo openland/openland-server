@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '1e109ae32b95eeeb27475a84ba9d7d1e';
+export const GQL_SPEC_VERSION = '16169ecfeb0de7dc9fb32d723c541392';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2321,6 +2321,7 @@ export namespace GQL {
         mediaStreamFailed: ConferenceMedia;
         discussionCreate: Discussion;
         discussionDraftPublish: Discussion;
+        discussionUpdate: Discussion;
         discussionsDropAll: boolean;
         setEnvVar: boolean;
         setEnvVarString: boolean;
@@ -3080,6 +3081,10 @@ export namespace GQL {
     }
     export interface MutationDiscussionDraftPublishArgs {
         draftId: string;
+    }
+    export interface MutationDiscussionUpdateArgs {
+        id: string;
+        input: DiscussionInput;
     }
     export interface MutationDiscussionsDropAllArgs { }
     export interface MutationSetEnvVarArgs {
@@ -8248,6 +8253,7 @@ export interface GQLResolver {
             mediaStreamFailed: GQLRoots.ConferenceMediaRoot,
             discussionCreate: GQLRoots.DiscussionRoot,
             discussionDraftPublish: GQLRoots.DiscussionRoot,
+            discussionUpdate: GQLRoots.DiscussionRoot,
             featureFlagAdd: GQLRoots.FeatureFlagRoot,
             superAccountFeatureAdd: GQLRoots.SuperAccountRoot,
             superAccountFeatureRemove: GQLRoots.SuperAccountRoot,
@@ -8500,6 +8506,7 @@ export interface GQLResolver {
             mediaStreamFailed: GQL.MutationMediaStreamFailedArgs,
             discussionCreate: GQL.MutationDiscussionCreateArgs,
             discussionDraftPublish: GQL.MutationDiscussionDraftPublishArgs,
+            discussionUpdate: GQL.MutationDiscussionUpdateArgs,
             discussionsDropAll: GQL.MutationDiscussionsDropAllArgs,
             setEnvVar: GQL.MutationSetEnvVarArgs,
             setEnvVarString: GQL.MutationSetEnvVarStringArgs,
