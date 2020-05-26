@@ -5,7 +5,7 @@ import { DatabaseClient } from './ClickHouseClient';
 import { createNamedContext } from '@openland/context';
 import { backoff, forever, delay } from 'openland-utils/timer';
 import { createClient } from './migrations';
-import { HyperLog } from '../../openland-module-db/store';
+import { HyperLog } from '../openland-module-db/store';
 
 function startPresenceExport(client: DatabaseClient) {
     updateReader('ch-exporter-reader', 3, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
