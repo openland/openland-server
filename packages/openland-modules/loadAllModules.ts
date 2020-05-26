@@ -75,6 +75,7 @@ import { PhonebookModule } from '../openland-module-phonebook/PhonebookModule';
 import { loadPhonebookModule } from '../openland-module-phonebook/PhonebookModule.container';
 import { connect, Payload } from 'ts-nats';
 import { loadDiscussionsModule } from 'openland-module-discussions/Discussions.container';
+import { ClickHouseModule } from '../openland-module-clickhouse/ClickHouseModule';
 
 const logger = createLogger('starting');
 
@@ -150,6 +151,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadPhonebookModule();
     loadDiscussionsModule();
     container.bind(PhonebookModule).toSelf().inSingletonScope();
+    container.bind(ClickHouseModule).toSelf().inSingletonScope();
 
     logger.log(ctx, 'Modules loaded');
 }
@@ -236,6 +238,8 @@ export async function startAllModules(ctx: Context) {
     await container.get(PhonebookModule).start();
     logger.log(ctx, 'Starting module: Discussions');
     await container.get(DiscussionsModule).start();
+    logger.log(ctx, 'Starting module: ClickHouse');
+    await container.get(ClickHouseModule).start();
     
     // Enable API after all modules started
     logger.log(ctx, 'Starting module: API');

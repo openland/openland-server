@@ -41,6 +41,7 @@ import { GeoModule } from '../openland-module-geo/GeoModule';
 import { PowerupsModule } from '../openland-module-powerups/PowerupsModule';
 import { PermissionsModule } from '../openland-module-permissions/PermissionsModule';
 import { PhonebookModule } from '../openland-module-phonebook/PhonebookModule';
+import { ClickHouseModule } from '../openland-module-clickhouse/ClickHouseModule';
 
 class ModulesImpl {
 
@@ -169,6 +170,9 @@ class ModulesImpl {
     }
     get Discussions() {
         return container.get(DiscussionsModule);
+    }
+    get ClickHouse() {
+        return container.get(ClickHouseModule);
     }
 }
 
