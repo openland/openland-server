@@ -90,5 +90,5 @@ export const IDs = {
 
     Hub: IdsFactory.createId('Hub'),
     Discussion: IdsFactory.createStringId('Discussion'),
-    DiscussionCursor: IdsFactory.createId('DiscussionCursor')
+    DiscussionCursor: IdsFactory.createStringId('DiscussionCursor')
 };

@@ -27,7 +27,7 @@ export const Resolver: GQLResolver = {
             let discussions = await Promise.all(hubIds.map(hub => Store.Discussion.published.query(ctx, hub, {
                 limit: args.limit + 1,
                 reverse: true,
-                after: args.after ? IDs.DiscussionCursor.parse(args.after) : null
+                after: args.after ? parseInt(IDs.DiscussionCursor.parse(args.after), 10) : null
             })));
             let allDiscussions: Discussion[] = [];
             for (let res of discussions) {
@@ -38,9 +38,21 @@ export const Resolver: GQLResolver = {
 
             return {
                 items,
-                cursor: items.length > 0 && haveMore ? IDs.DiscussionCursor.serialize(items[items.length - 1].publishedAt!) : null
+                cursor: items.length > 0 && haveMore ? IDs.DiscussionCursor.serialize(items[items.length - 1].publishedAt!.toString(10)) : null
             };
-        }
+        },
+        discussionMyDrafts: withUser(async (ctx, args, uid) => {
+            let drafts = await Store.Discussion.draft.query(ctx, uid, {
+                limit: args.first,
+                reverse: true,
+                after: args.after ? parseInt(IDs.DiscussionCursor.parse(args.after), 10) : null
+            });
+
+            return {
+                items: drafts.items,
+                cursor: drafts.haveMore ? IDs.DiscussionCursor.serialize(drafts.items[drafts.items.length - 1].metadata.createdAt.toString(10)) : null
+            };
+        })
     },
 
     Mutation: {
