@@ -19614,8 +19614,9 @@ export class DiscussionFactory extends EntityFactory<DiscussionShape, Discussion
     static async open(storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory('discussion');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'draft', storageKey: 'draft', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('discussion', 'draft'), condition: (src) => src.state === 'draft' });
+        secondaryIndexes.push({ name: 'draft', storageKey: 'draft', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('discussion', 'draft'), condition: (src) => src.state === 'draft' });
         secondaryIndexes.push({ name: 'published', storageKey: 'published', type: { type: 'range', fields: [{ name: 'hubId', type: 'integer' }, { name: 'publishedAt', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('discussion', 'published'), condition: (src) => src.state === 'published' });
+        secondaryIndexes.push({ name: 'publishedAll', storageKey: 'publishedAll', type: { type: 'range', fields: [{ name: 'publishedAt', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('discussion', 'publishedAll'), condition: (src) => src.state === 'published' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -19678,6 +19679,21 @@ export class DiscussionFactory extends EntityFactory<DiscussionShape, Discussion
         },
         liveStream: (ctx: Context, hubId: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [hubId], opts);
+        },
+    });
+
+    readonly publishedAll = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[2], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [], opts);
         },
     });
 

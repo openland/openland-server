@@ -50,6 +50,20 @@ export const Resolver: GQLResolver = {
 
     Query: {
         discussions: async (_, args, ctx) => {
+            // Return all discussions if no hubs provided
+            if (args.hubs.length === 0) {
+                let res = await Store.Discussion.publishedAll.query(ctx, {
+                    limit: args.limit,
+                    reverse: true,
+                    after: args.after ? parseInt(IDs.DiscussionCursor.parse(args.after), 10) : null
+                });
+
+                return {
+                    items: res.items,
+                    cursor: res.haveMore ? IDs.DiscussionCursor.serialize(res.items[res.items.length - 1].publishedAt!.toString(10)) : null
+                };
+            }
+
             let hubIds = args.hubs.map(h => IDs.Hub.parse(h));
             let discussions = await Promise.all(hubIds.map(hub => Store.Discussion.published.query(ctx, hub, {
                 limit: args.limit + 1,

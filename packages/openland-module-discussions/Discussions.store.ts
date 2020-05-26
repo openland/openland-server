@@ -53,8 +53,9 @@ export function discussionsStore() {
             })
         }))));
 
-        rangeIndex('draft', ['uid', 'id']).withCondition((src) => src.state === 'draft');
+        rangeIndex('draft', ['uid', 'updatedAt']).withCondition((src) => src.state === 'draft');
         rangeIndex('published', ['hubId', 'publishedAt']).withCondition((src) => src.state === 'published');
+        rangeIndex('publishedAll', ['publishedAt']).withCondition((src) => src.state === 'published');
 
         allowDelete();
     });
