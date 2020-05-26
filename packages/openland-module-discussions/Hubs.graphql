@@ -24,4 +24,5 @@ extend type Query {
 
 extend type Mutation {
     hubCreate(input: HubInput!): Hub!
+    hubCreatePublic(input: HubInput!): Hub!
 }

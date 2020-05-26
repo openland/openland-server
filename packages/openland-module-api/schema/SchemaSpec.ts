@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'ef71c05c7b223f4508470e65e63aff33';
+export const GQL_SPEC_VERSION = '1839cdb7ceca5045f0987939b85e04f1';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1961,18 +1961,12 @@ export namespace GQL {
     export interface DiscussionInput {
         title: Nullable<string>;
     }
-    export interface DiscussionEdge {
-        node: Discussion;
-        cursor: string;
-    }
-    export interface DiscussionEdgeNodeArgs { }
-    export interface DiscussionEdgeCursorArgs { }
     export interface DiscussionConnection {
-        edges: DiscussionEdge[];
-        pageInfo: PageInfo;
+        items: Discussion[];
+        cursor: Nullable<string>;
     }
-    export interface DiscussionConnectionEdgesArgs { }
-    export interface DiscussionConnectionPageInfoArgs { }
+    export interface DiscussionConnectionItemsArgs { }
+    export interface DiscussionConnectionCursorArgs { }
     export interface EnvVar {
         name: string;
         value: string;
@@ -2219,6 +2213,7 @@ export namespace GQL {
         pairPhone: boolean;
         updateSettings: Settings;
         hubCreate: Hub;
+        hubCreatePublic: Hub;
         conferenceAlterMediaState: Conference;
         conferenceAddScreenShare: Conference;
         conferenceRemoveScreenShare: Conference;
@@ -2297,6 +2292,8 @@ export namespace GQL {
         mediaStreamAnswer: ConferenceMedia;
         mediaStreamCandidate: ConferenceMedia;
         mediaStreamFailed: ConferenceMedia;
+        discussionCreate: Discussion;
+        discussionDraftPublish: Discussion;
         setEnvVar: boolean;
         setEnvVarString: boolean;
         setEnvVarNumber: boolean;
@@ -2736,6 +2733,9 @@ export namespace GQL {
     export interface MutationHubCreateArgs {
         input: HubInput;
     }
+    export interface MutationHubCreatePublicArgs {
+        input: HubInput;
+    }
     export interface MutationConferenceAlterMediaStateArgs {
         id: string;
         state: MediaStreamMediaStateInput;
@@ -3045,6 +3045,13 @@ export namespace GQL {
     export interface MutationMediaStreamFailedArgs {
         id: string;
         peerId: string;
+    }
+    export interface MutationDiscussionCreateArgs {
+        input: OptionalNullable<DiscussionInput>;
+        isDraft: boolean;
+    }
+    export interface MutationDiscussionDraftPublishArgs {
+        draftId: string;
     }
     export interface MutationSetEnvVarArgs {
         name: string;
@@ -3931,6 +3938,7 @@ export namespace GQL {
         conferenceMedia: ConferenceMedia;
         dialogsState: DialogUpdateState;
         discussions: DiscussionConnection;
+        discussionMyDrafts: DiscussionConnection;
         envVars: Nullable<EnvVar[]>;
         envVar: Nullable<EnvVar>;
         featureFlags: FeatureFlag[];
@@ -4205,6 +4213,10 @@ export namespace GQL {
     export interface QueryDiscussionsArgs {
         hubs: OptionalNullable<string[]>;
         limit: number;
+        after: OptionalNullable<string>;
+    }
+    export interface QueryDiscussionMyDraftsArgs {
+        first: number;
         after: OptionalNullable<string>;
     }
     export interface QueryEnvVarsArgs { }
@@ -7893,27 +7905,15 @@ export interface GQLResolver {
             deletedAt: GQL.DiscussionDeletedAtArgs,
         }
     >;
-    DiscussionEdge?: ComplexTypedResolver<
-        GQL.DiscussionEdge,
-        GQLRoots.DiscussionEdgeRoot,
-        {
-            node: GQLRoots.DiscussionRoot,
-        },
-        {
-            node: GQL.DiscussionEdgeNodeArgs,
-            cursor: GQL.DiscussionEdgeCursorArgs,
-        }
-    >;
     DiscussionConnection?: ComplexTypedResolver<
         GQL.DiscussionConnection,
         GQLRoots.DiscussionConnectionRoot,
         {
-            edges: GQLRoots.DiscussionEdgeRoot[],
-            pageInfo: GQLRoots.PageInfoRoot,
+            items: GQLRoots.DiscussionRoot[],
         },
         {
-            edges: GQL.DiscussionConnectionEdgesArgs,
-            pageInfo: GQL.DiscussionConnectionPageInfoArgs,
+            items: GQL.DiscussionConnectionItemsArgs,
+            cursor: GQL.DiscussionConnectionCursorArgs,
         }
     >;
     EnvVar?: ComplexTypedResolver<
@@ -8129,6 +8129,7 @@ export interface GQLResolver {
             settingsUpdate: GQLRoots.SettingsRoot,
             updateSettings: GQLRoots.SettingsRoot,
             hubCreate: GQLRoots.HubRoot,
+            hubCreatePublic: GQLRoots.HubRoot,
             conferenceAlterMediaState: GQLRoots.ConferenceRoot,
             conferenceAddScreenShare: GQLRoots.ConferenceRoot,
             conferenceRemoveScreenShare: GQLRoots.ConferenceRoot,
@@ -8173,6 +8174,8 @@ export interface GQLResolver {
             mediaStreamAnswer: GQLRoots.ConferenceMediaRoot,
             mediaStreamCandidate: GQLRoots.ConferenceMediaRoot,
             mediaStreamFailed: GQLRoots.ConferenceMediaRoot,
+            discussionCreate: GQLRoots.DiscussionRoot,
+            discussionDraftPublish: GQLRoots.DiscussionRoot,
             featureFlagAdd: GQLRoots.FeatureFlagRoot,
             superAccountFeatureAdd: GQLRoots.SuperAccountRoot,
             superAccountFeatureRemove: GQLRoots.SuperAccountRoot,
@@ -8344,6 +8347,7 @@ export interface GQLResolver {
             pairPhone: GQL.MutationPairPhoneArgs,
             updateSettings: GQL.MutationUpdateSettingsArgs,
             hubCreate: GQL.MutationHubCreateArgs,
+            hubCreatePublic: GQL.MutationHubCreatePublicArgs,
             conferenceAlterMediaState: GQL.MutationConferenceAlterMediaStateArgs,
             conferenceAddScreenShare: GQL.MutationConferenceAddScreenShareArgs,
             conferenceRemoveScreenShare: GQL.MutationConferenceRemoveScreenShareArgs,
@@ -8422,6 +8426,8 @@ export interface GQLResolver {
             mediaStreamAnswer: GQL.MutationMediaStreamAnswerArgs,
             mediaStreamCandidate: GQL.MutationMediaStreamCandidateArgs,
             mediaStreamFailed: GQL.MutationMediaStreamFailedArgs,
+            discussionCreate: GQL.MutationDiscussionCreateArgs,
+            discussionDraftPublish: GQL.MutationDiscussionDraftPublishArgs,
             setEnvVar: GQL.MutationSetEnvVarArgs,
             setEnvVarString: GQL.MutationSetEnvVarStringArgs,
             setEnvVarNumber: GQL.MutationSetEnvVarNumberArgs,
@@ -8961,6 +8967,7 @@ export interface GQLResolver {
             conferenceMedia: GQLRoots.ConferenceMediaRoot,
             dialogsState: GQLRoots.DialogUpdateStateRoot,
             discussions: GQLRoots.DiscussionConnectionRoot,
+            discussionMyDrafts: GQLRoots.DiscussionConnectionRoot,
             envVars: Nullable<GQLRoots.EnvVarRoot[]>,
             envVar: Nullable<GQLRoots.EnvVarRoot>,
             featureFlags: GQLRoots.FeatureFlagRoot[],
@@ -9121,6 +9128,7 @@ export interface GQLResolver {
             conferenceMedia: GQL.QueryConferenceMediaArgs,
             dialogsState: GQL.QueryDialogsStateArgs,
             discussions: GQL.QueryDiscussionsArgs,
+            discussionMyDrafts: GQL.QueryDiscussionMyDraftsArgs,
             envVars: GQL.QueryEnvVarsArgs,
             envVar: GQL.QueryEnvVarArgs,
             featureFlags: GQL.QueryFeatureFlagsArgs,

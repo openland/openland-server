@@ -35,10 +35,14 @@ export function discussionsStore() {
     entity('Discussion', () => {
         primaryKey('id', string());
         field('uid', integer());
+        field('hubId', integer());
         field('title', string());
         field('state', enumString('draft', 'published', 'archived'));
         field('publishedAt', optional(integer()));
         field('editedAt', optional(integer()));
         field('archivedAt', optional(integer()));
+
+        rangeIndex('draft', ['uid', 'id']).withCondition((src) => src.state === 'draft');
+        rangeIndex('published', ['hubId', 'id']).withCondition((src) => src.state === 'published');
     });
 }
