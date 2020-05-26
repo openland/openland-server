@@ -52,7 +52,7 @@ export const Resolver: GQLResolver = {
             // Return all discussions if no hubs provided
             if (args.hubs.length === 0) {
                 let res = await Store.Discussion.publishedAll.query(ctx, {
-                    limit: args.limit,
+                    limit: args.first,
                     reverse: true,
                     after: args.after ? parseInt(IDs.DiscussionCursor.parse(args.after), 10) : null
                 });
@@ -65,7 +65,7 @@ export const Resolver: GQLResolver = {
 
             let hubIds = args.hubs.map(h => IDs.Hub.parse(h));
             let discussions = await Promise.all(hubIds.map(hub => Store.Discussion.published.query(ctx, hub, {
-                limit: args.limit + 1,
+                limit: args.first + 1,
                 reverse: true,
                 after: args.after ? parseInt(IDs.DiscussionCursor.parse(args.after), 10) : null
             })));
@@ -73,8 +73,8 @@ export const Resolver: GQLResolver = {
             for (let res of discussions) {
                 allDiscussions.push(...res.items);
             }
-            let items = allDiscussions.sort((a, b) => b.publishedAt! - a.publishedAt!).splice(0, args.limit);
-            let haveMore = allDiscussions.length > args.limit;
+            let items = allDiscussions.sort((a, b) => b.publishedAt! - a.publishedAt!).splice(0, args.first);
+            let haveMore = allDiscussions.length > args.first;
 
             return {
                 items,

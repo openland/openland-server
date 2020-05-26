@@ -46,7 +46,7 @@ type DiscussionConnection {
 
 extend type Query {
     discussion(id: ID!): Discussion
-    discussions(hubs: [ID!]!, limit: Int!, after: String): DiscussionConnection!
+    discussions(hubs: [ID!]!, first: Int!, after: String): DiscussionConnection!
     discussionMyDrafts(first: Int!, after: String): DiscussionConnection!
 }
 
