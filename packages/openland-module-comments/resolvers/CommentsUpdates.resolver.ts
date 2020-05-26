@@ -67,6 +67,9 @@ export const Resolver: GQLResolver = {
                 } else if (id.type === IDs.FeedItem) {
                     peerId = id.id as number;
                     peerType = 'feed_item';
+                } else if (id.type === IDs.Discussion) {
+                    peerId = id.id as number;
+                    peerType = 'discussion';
                 } else {
                     throw new UserError('Unknown peer');
                 }

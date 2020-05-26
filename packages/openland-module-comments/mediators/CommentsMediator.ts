@@ -113,6 +113,48 @@ export class CommentsMediator {
         });
     }
 
+    async addDiscussionComment(parent: Context, discussionId: number, uid: number, commentInput: CommentInput) {
+        return await inTx(parent, async (ctx) => {
+            // TODO: check access
+            let discussion = await Store.Discussion.findById(ctx, discussionId);
+            if (!discussion) {
+                throw new NotFoundError();
+            }
+
+            //
+            // Allow overrides only for super admins
+            //
+            if (commentInput.overrideAvatar || commentInput.overrideName) {
+                let permissions = await Modules.Super.resolvePermissions(ctx, { uid: uid, oid: null });
+                if (!permissions.has('super-admin')) {
+                    commentInput.overrideName = null;
+                    commentInput.overrideAvatar = null;
+                }
+            }
+
+            //
+            // Create comment
+            //
+            let res = await this.repo.createComment(ctx, 'discussion', discussionId, uid, commentInput);
+
+            //
+            //  Subscribe to notifications
+            //
+            await this.notificationsMediator.subscribeToComments(ctx, 'discussion', discussionId, uid, 'all');
+
+            //
+            // Send notifications
+            //
+            await this.notificationsMediator.onNewComment(ctx, res);
+
+            if (!commentInput.ignoreAugmentation) {
+                await this.augmentation.onNewComment(ctx, res);
+            }
+
+            return res;
+        });
+    }
+
     async editComment(parent: Context, commentId: number, uid: number, newComment: CommentInput, markEdited: boolean) {
         return await inTx(parent, async (ctx) => {
             let comment = await Store.Comment.findById(ctx, commentId);

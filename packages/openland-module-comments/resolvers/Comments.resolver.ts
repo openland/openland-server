@@ -8,7 +8,7 @@ import {
 } from '../../openland-module-messaging/MessageInput';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { CommentSpan } from '../repositories/CommentsRepository';
-import { FeedEvent, Message } from '../../openland-module-db/store';
+import { Discussion, FeedEvent, Message } from '../../openland-module-db/store';
 import { resolveRichMessageCreation } from '../../openland-module-rich-message/resolvers/resolveRichMessageCreation';
 import { UserError } from '../../openland-errors/UserError';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
@@ -21,6 +21,8 @@ export const Resolver: GQLResolver = {
                 return IDs.CommentMessagePeer.serialize(src.peerId);
             } else if (src.peerType === 'feed_item') {
                 return IDs.CommentFeedItemPeer.serialize(src.peerId);
+            } else if (src.peerType === 'discussion') {
+                return IDs.CommentDiscussionPeer.serialize(src.peerId);
             } else {
                 throw new Error('Unknown comments peer type: ' + src.peerType);
             }
@@ -34,8 +36,10 @@ export const Resolver: GQLResolver = {
         peerRoot: async (src, args, ctx) => {
             if (src.peerType === 'message') {
                 return (await Store.Message.findById(ctx, src.peerId))!;
-            }  else if (src.peerType === 'feed_item') {
+            } else if (src.peerType === 'feed_item') {
                 return (await Store.FeedEvent.findById(ctx, src.peerId))!;
+            } else if (src.peerType === 'discussion') {
+                return (await Store.Discussion.findById(ctx, src.peerId))!;
             } else {
                 throw new Error('Unknown comments peer type: ' + src.peerType);
             }
@@ -62,6 +66,8 @@ export const Resolver: GQLResolver = {
                 return 'CommentPeerRootMessage';
             } else if (obj instanceof FeedEvent) {
                 return 'CommentPeerRootFeedItem';
+            } else if (obj instanceof Discussion) {
+                return 'CommentPeerRootDiscussion';
             } else {
                 throw new Error('Unknown comments peer root type: ' + obj);
             }
@@ -74,6 +80,9 @@ export const Resolver: GQLResolver = {
     CommentPeerRootFeedItem: {
         item: async (src, args, ctx) => src
     },
+    CommentPeerRootDiscussion: {
+        discussion: async (src, args, ctx) => src
+    },
     CommentSubscription: {
         type: src => src.kind.toUpperCase() as CommentSubscriptionTypeRoot
     },
@@ -82,7 +91,7 @@ export const Resolver: GQLResolver = {
         betaAddComment: withUser(async (ctx, args, uid) => {
             let id = IdsFactory.resolve(args.peerId);
             let peerId: number | null;
-            let peerType: 'message' | 'feed_item' | null;
+            let peerType: 'message' | 'feed_item' | 'discussion' | null;
 
             if (id.type === IDs.ConversationMessage) {
                 peerId = id.id as number;
@@ -90,6 +99,9 @@ export const Resolver: GQLResolver = {
             } else if (id.type === IDs.FeedItem) {
                 peerId = id.id as number;
                 peerType = 'feed_item';
+            } else if (id.type === IDs.Discussion) {
+                peerId = id.id as number;
+                peerType = 'discussion';
             } else {
                 throw new UserError('Unknown peer');
             }
@@ -104,6 +116,12 @@ export const Resolver: GQLResolver = {
                 });
             } else if (peerType === 'feed_item') {
                 return await Modules.Comments.addFeedItemComment(ctx, peerId, uid, {
+                    ...(await resolveRichMessageCreation(ctx, args)),
+                    replyToComment,
+                    repeatKey: args.repeatKey,
+                });
+            } else if (peerType === 'discussion') {
+                return await Modules.Comments.addDiscussionComment(ctx, peerId, uid, {
                     ...(await resolveRichMessageCreation(ctx, args)),
                     replyToComment,
                     repeatKey: args.repeatKey,
@@ -342,10 +360,20 @@ export const Resolver: GQLResolver = {
                 peerId: itemId,
             };
         }),
+        discussionComments: withUser(async (ctx, args, uid) => {
+            let discussionId = IDs.Discussion.parse(args.discussionId);
+            let comments = await Store.Comment.peer.findAll(ctx, 'discussion', discussionId);
+
+            return {
+                comments: comments.filter(c => c.visible),
+                peerType: 'feed_item',
+                peerId: discussionId,
+            };
+        }),
         comments: withUser(async (ctx, args, uid) => {
             let id = IdsFactory.resolve(args.peerId);
             let peerId: number | null;
-            let peerType: 'message' | 'feed_item' | null;
+            let peerType: 'message' | 'feed_item' | 'discussion' | null;
 
             if (id.type === IDs.ConversationMessage) {
                 peerId = id.id as number;
@@ -353,12 +381,14 @@ export const Resolver: GQLResolver = {
             } else if (id.type === IDs.FeedItem) {
                 peerId = id.id as number;
                 peerType = 'feed_item';
+            } else if (id.type === IDs.Discussion) {
+                peerId = id.id as number;
+                peerType = 'discussion';
             } else {
                 throw new UserError('Unknown peer');
             }
 
             let comments = await Store.Comment.peer.findAll(ctx, peerType, peerId);
-
             return {
                 comments: comments.filter(c => c.visible),
                 peerType: peerType,

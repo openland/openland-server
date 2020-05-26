@@ -1,7 +1,7 @@
 import { IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
-import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
-import { withPermission } from 'openland-module-api/Resolvers';
+import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
+import { withPermission, withUser } from 'openland-module-api/Resolvers';
 import { Store } from 'openland-module-db/FDB';
 
 export const Resolver: GQLResolver = {
@@ -27,7 +27,10 @@ export const Resolver: GQLResolver = {
     },
     Mutation: {
         hubCreate: withPermission('super-admin', (ctx, args) => {
-            return Modules.Discussions.hubs.createSystemHub(args.input.title!, args.input.shortname!, ctx.auth.uid!, ctx);
+            return Modules.Discussions.hubs.createSystemHub(ctx, ctx.auth.uid!, args.input.title!, args.input.shortname!);
+        }),
+        hubCreatePublic: withUser(async (ctx, args, uid) => {
+            return Modules.Discussions.hubs.createPublicHub(ctx, uid, args.input.title!, args.input.shortname!);
         })
     }
 };

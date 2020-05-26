@@ -29,6 +29,10 @@ export class CommentsModule {
         return this.mediator.addFeedItemComment(ctx, feedItemId, uid, commentInput);
     }
 
+    async addDiscussionComment(ctx: Context, discussionId: number, uid: number, commentInput: CommentInput) {
+        return this.mediator.addDiscussionComment(ctx, discussionId, uid, commentInput);
+    }
+
     async editComment(ctx: Context, commentId: number, uid: number, commentInput: CommentInput, markEdited: boolean) {
         return this.mediator.editComment(ctx, commentId, uid, commentInput, markEdited);
     }

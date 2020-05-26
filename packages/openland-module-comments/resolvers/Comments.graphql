@@ -16,7 +16,7 @@ type CommentEntry {
     childComments: [CommentEntry!]!
 }
 
-union CommentPeerRoot = CommentPeerRootMessage | CommentPeerRootFeedItem
+union CommentPeerRoot = CommentPeerRootMessage | CommentPeerRootFeedItem | CommentPeerRootDiscussion
 
 type CommentPeerRootMessage {
     message: GeneralMessage!
@@ -25,6 +25,10 @@ type CommentPeerRootMessage {
 
 type CommentPeerRootFeedItem {
     item: FeedItem!
+}
+
+type CommentPeerRootDiscussion {
+    discussion: Discussion!
 }
 
 enum CommentSubscriptionType {
@@ -39,6 +43,7 @@ type CommentSubscription {
 extend type Query {
     messageComments(messageId: ID!): CommentsPeer!
     feedItemComments(feedItemId: ID!): CommentsPeer!
+    discussionComments(discussionId: ID!): CommentsPeer!
     comments(peerId: ID!): CommentsPeer!
 }
 
