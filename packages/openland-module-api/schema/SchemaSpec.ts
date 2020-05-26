@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0f66e9e490742d523f61e20eb4bed0bd';
+export const GQL_SPEC_VERSION = '8f87a3e7cd04d930f2acdc5f8ca68af3';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1617,7 +1617,7 @@ export namespace GQL {
     export interface CommentEntryBetaCommentArgs { }
     export interface CommentEntryParentCommentArgs { }
     export interface CommentEntryChildCommentsArgs { }
-    export type CommentPeerRoot = CommentPeerRootMessage | CommentPeerRootFeedItem;
+    export type CommentPeerRoot = CommentPeerRootMessage | CommentPeerRootFeedItem | CommentPeerRootDiscussion;
     export interface CommentPeerRootMessage {
         message: GeneralMessage;
         chat: Room;
@@ -1628,6 +1628,10 @@ export namespace GQL {
         item: FeedItem;
     }
     export interface CommentPeerRootFeedItemItemArgs { }
+    export interface CommentPeerRootDiscussion {
+        discussion: Discussion;
+    }
+    export interface CommentPeerRootDiscussionDiscussionArgs { }
     export type CommentSubscriptionTypeValues = 'ALL' | 'DIRECT';
     export type CommentSubscriptionType = GQLRoots.CommentSubscriptionTypeRoot;
     export interface CommentSubscription {
@@ -7524,7 +7528,7 @@ export interface GQLResolver {
             childComments: GQL.CommentEntryChildCommentsArgs,
         }
     >;
-    CommentPeerRoot?: UnionTypeResolver<GQLRoots.CommentPeerRootRoot, 'CommentPeerRootMessage' | 'CommentPeerRootFeedItem'>;
+    CommentPeerRoot?: UnionTypeResolver<GQLRoots.CommentPeerRootRoot, 'CommentPeerRootMessage' | 'CommentPeerRootFeedItem' | 'CommentPeerRootDiscussion'>;
     CommentPeerRootMessage?: ComplexTypedResolver<
         GQL.CommentPeerRootMessage,
         GQLRoots.CommentPeerRootMessageRoot,
@@ -7545,6 +7549,16 @@ export interface GQLResolver {
         },
         {
             item: GQL.CommentPeerRootFeedItemItemArgs,
+        }
+    >;
+    CommentPeerRootDiscussion?: ComplexTypedResolver<
+        GQL.CommentPeerRootDiscussion,
+        GQLRoots.CommentPeerRootDiscussionRoot,
+        {
+            discussion: GQLRoots.DiscussionRoot,
+        },
+        {
+            discussion: GQL.CommentPeerRootDiscussionDiscussionArgs,
         }
     >;
     CommentSubscriptionType?: EnumTypeResolver<'ALL' | 'DIRECT', GQLRoots.CommentSubscriptionTypeRoot>;

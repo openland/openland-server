@@ -31,6 +31,7 @@ export const IDs = {
     NotificationCounter: IdsFactory.createId('NotificationCounter'),
     CommentMessagePeer: IdsFactory.createId('CommentMessagePeer'),
     CommentFeedItemPeer: IdsFactory.createId('CommentRichMessagePeer'),
+    CommentDiscussionPeer: IdsFactory.createId('CommentDiscussionPeer'),
     CommentEntry: IdsFactory.createId('CommentEntry'),
     Settings: IdsFactory.createId('Settings'),
     WallEntity: IdsFactory.createId('WallEntity'),

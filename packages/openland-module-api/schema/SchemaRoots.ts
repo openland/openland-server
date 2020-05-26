@@ -516,7 +516,7 @@ export namespace GQLRoots {
     //
     //  Comments
     //
-    export type CommentsPeerRoot = { peerType: 'message' | 'feed_item', peerId: number, comments: Comment[] };
+    export type CommentsPeerRoot = { peerType: 'message' | 'feed_item' | 'discussion', peerId: number, comments: Comment[] };
     export type CommentEntryRoot = Comment;
     export type CommentUpdateContainerRoot = LiveStreamItem<CommentEvent>;
     export type CommentUpdateSingleRoot = LiveStreamItem<CommentEvent>;
@@ -525,10 +525,11 @@ export namespace GQLRoots {
     export type CommentReceivedRoot = CommentEvent;
     export type CommentUpdatedRoot = CommentEvent;
     export type CommentUpdatesStateRoot = { state: string };
-    export type CommentPeerRootRoot = Message | FeedEvent;
+    export type CommentPeerRootRoot = Message | FeedEvent | Discussion;
     export type CommentSubscriptionRoot = CommentsSubscription;
     export type CommentPeerRootMessageRoot = Message;
     export type CommentPeerRootFeedItemRoot = FeedEvent;
+    export type CommentPeerRootDiscussionRoot = Discussion;
     export type CommentSubscriptionTypeRoot = 'all' | 'direct';
 
     export type CommentGlobalUpdateContainerRoot = LiveStreamItem<CommentEventGlobal>;
