@@ -45,6 +45,9 @@ export const Resolver: GQLResolver = {
     },
 
     Query: {
+        discussion: async (_, args, ctx) => {
+            return await Store.Discussion.findById(ctx, IDs.Discussion.parse(args.id));
+        },
         discussions: async (_, args, ctx) => {
             // Return all discussions if no hubs provided
             if (args.hubs.length === 0) {

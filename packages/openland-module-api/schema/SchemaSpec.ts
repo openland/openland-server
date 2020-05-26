@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '7d988baa9cb844ae8d0ea6108ac24b6e';
+export const GQL_SPEC_VERSION = '1e109ae32b95eeeb27475a84ba9d7d1e';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3967,6 +3967,7 @@ export namespace GQL {
         conference: Conference;
         conferenceMedia: ConferenceMedia;
         dialogsState: DialogUpdateState;
+        discussion: Nullable<Discussion>;
         discussions: DiscussionConnection;
         discussionMyDrafts: DiscussionConnection;
         envVars: Nullable<EnvVar[]>;
@@ -4243,6 +4244,9 @@ export namespace GQL {
         peerId: string;
     }
     export interface QueryDialogsStateArgs { }
+    export interface QueryDiscussionArgs {
+        id: string;
+    }
     export interface QueryDiscussionsArgs {
         hubs: string[];
         limit: number;
@@ -9036,6 +9040,7 @@ export interface GQLResolver {
             conference: GQLRoots.ConferenceRoot,
             conferenceMedia: GQLRoots.ConferenceMediaRoot,
             dialogsState: GQLRoots.DialogUpdateStateRoot,
+            discussion: Nullable<GQLRoots.DiscussionRoot>,
             discussions: GQLRoots.DiscussionConnectionRoot,
             discussionMyDrafts: GQLRoots.DiscussionConnectionRoot,
             envVars: Nullable<GQLRoots.EnvVarRoot[]>,
@@ -9198,6 +9203,7 @@ export interface GQLResolver {
             conference: GQL.QueryConferenceArgs,
             conferenceMedia: GQL.QueryConferenceMediaArgs,
             dialogsState: GQL.QueryDialogsStateArgs,
+            discussion: GQL.QueryDiscussionArgs,
             discussions: GQL.QueryDiscussionsArgs,
             discussionMyDrafts: GQL.QueryDiscussionMyDraftsArgs,
             envVars: GQL.QueryEnvVarsArgs,
