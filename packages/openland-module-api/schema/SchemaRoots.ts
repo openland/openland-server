@@ -704,6 +704,5 @@ export namespace GQLRoots {
     export type HubRoot = DiscussionHub;
     export type HubTypeRoot = 'system' | 'personal' | 'public' | 'secret';
     export type DiscussionRoot = Discussion;
-    export type DiscussionConnectionRoot = { edges: DiscussionEdgeRoot[], pageInfo: PageInfoRoot };
-    export type DiscussionEdgeRoot = { node: DiscussionRoot, cursor: string };
+    export type DiscussionConnectionRoot = { items: DiscussionRoot[], cursor: string|null };
 }

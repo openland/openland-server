@@ -19,11 +19,11 @@ type DiscussionConnection {
 }
 
 extend type Query {
-    discussions(hubs: [ID!], limit: Int!, after: String): DiscussionConnection!
+    discussions(hubs: [ID!]!, limit: Int!, after: String): DiscussionConnection!
     discussionMyDrafts(first: Int!, after: String): DiscussionConnection!
 }
 
 extend type Mutation {
-    discussionCreate(input: DiscussionInput, isDraft: Boolean!): Discussion!
+    discussionCreate(hub: ID!, input: DiscussionInput!, isDraft: Boolean!): Discussion!
     discussionDraftPublish(draftId: ID!): Discussion!
 }

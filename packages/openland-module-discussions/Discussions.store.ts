@@ -42,7 +42,7 @@ export function discussionsStore() {
         field('editedAt', optional(integer()));
         field('archivedAt', optional(integer()));
 
-        rangeIndex('draft', ['uid', 'id']).withCondition((src) => src.state === 'draft');
-        rangeIndex('published', ['hubId', 'id']).withCondition((src) => src.state === 'published');
+        rangeIndex('draft', ['uid', 'createdAt']).withCondition((src) => src.state === 'draft');
+        rangeIndex('published', ['hubId', 'publishedAt']).withCondition((src) => src.state === 'published');
     });
 }

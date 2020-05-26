@@ -19509,6 +19509,7 @@ export class DiscussionHubFactory extends EntityFactory<DiscussionHubShape, Disc
 export interface DiscussionShape {
     id: string;
     uid: number;
+    hubId: number;
     title: string;
     state: 'draft' | 'published' | 'archived';
     publishedAt: number | null;
@@ -19518,6 +19519,7 @@ export interface DiscussionShape {
 
 export interface DiscussionCreateShape {
     uid: number;
+    hubId: number;
     title: string;
     state: 'draft' | 'published' | 'archived';
     publishedAt?: number | null | undefined;
@@ -19533,6 +19535,15 @@ export class Discussion extends Entity<DiscussionShape> {
         if (this._rawValue.uid !== normalized) {
             this._rawValue.uid = normalized;
             this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get hubId(): number { return this._rawValue.hubId; }
+    set hubId(value: number) {
+        let normalized = this.descriptor.codec.fields.hubId.normalize(value);
+        if (this._rawValue.hubId !== normalized) {
+            this._rawValue.hubId = normalized;
+            this._updatedValues.hubId = normalized;
             this.invalidate();
         }
     }
@@ -19588,10 +19599,13 @@ export class DiscussionFactory extends EntityFactory<DiscussionShape, Discussion
     static async open(storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory('discussion');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'draft', storageKey: 'draft', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('discussion', 'draft'), condition: (src) => src.state === 'draft' });
+        secondaryIndexes.push({ name: 'published', storageKey: 'published', type: { type: 'range', fields: [{ name: 'hubId', type: 'integer' }, { name: 'publishedAt', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('discussion', 'published'), condition: (src) => src.state === 'published' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'hubId', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'title', type: { type: 'string' }, secure: false });
         fields.push({ name: 'state', type: { type: 'enum', values: ['draft', 'published', 'archived'] }, secure: false });
         fields.push({ name: 'publishedAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
@@ -19600,6 +19614,7 @@ export class DiscussionFactory extends EntityFactory<DiscussionShape, Discussion
         let codec = c.struct({
             id: c.string,
             uid: c.integer,
+            hubId: c.integer,
             title: c.string,
             state: c.enum('draft', 'published', 'archived'),
             publishedAt: c.optional(c.integer),
@@ -19618,6 +19633,36 @@ export class DiscussionFactory extends EntityFactory<DiscussionShape, Discussion
     private constructor(descriptor: EntityDescriptor<DiscussionShape>) {
         super(descriptor);
     }
+
+    readonly draft = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    readonly published = Object.freeze({
+        findAll: async (ctx: Context, hubId: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [hubId])).items;
+        },
+        query: (ctx: Context, hubId: number, opts?: RangeQueryOptions<number | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [hubId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (hubId: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [hubId], opts);
+        },
+        liveStream: (ctx: Context, hubId: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [hubId], opts);
+        },
+    });
 
     create(ctx: Context, id: string, src: DiscussionCreateShape): Promise<Discussion> {
         return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));

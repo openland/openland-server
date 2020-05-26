@@ -1,6 +1,6 @@
 import { IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
-import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from 'openland-module-api/Resolvers';
 import { Store } from 'openland-module-db/FDB';
 

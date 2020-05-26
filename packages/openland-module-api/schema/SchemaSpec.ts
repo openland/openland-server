@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '1839cdb7ceca5045f0987939b85e04f1';
+export const GQL_SPEC_VERSION = '9cdab9a4520f52de0541658e30a3029d';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3047,7 +3047,8 @@ export namespace GQL {
         peerId: string;
     }
     export interface MutationDiscussionCreateArgs {
-        input: OptionalNullable<DiscussionInput>;
+        hub: string;
+        input: DiscussionInput;
         isDraft: boolean;
     }
     export interface MutationDiscussionDraftPublishArgs {
@@ -4211,7 +4212,7 @@ export namespace GQL {
     }
     export interface QueryDialogsStateArgs { }
     export interface QueryDiscussionsArgs {
-        hubs: OptionalNullable<string[]>;
+        hubs: string[];
         limit: number;
         after: OptionalNullable<string>;
     }

@@ -89,5 +89,6 @@ export const IDs = {
     GqlTrace: IdsFactory.createId('GqlTrace'),
 
     Hub: IdsFactory.createId('Hub'),
-    Discussion: IdsFactory.createStringId('Discussion')
+    Discussion: IdsFactory.createStringId('Discussion'),
+    DiscussionCursor: IdsFactory.createId('DiscussionCursor')
 };
