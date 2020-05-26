@@ -18,7 +18,7 @@ type TextParagraph {
 }
 
 type ImageParagraph {
-    image: Image!
+    image: ImageRef!
 }
 
 input DiscussionInput {

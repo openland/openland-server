@@ -41,11 +41,7 @@ export const Resolver: GQLResolver = {
         spans: src => src.spans
     },
     ImageParagraph: {
-        image: src => ({
-            uuid: src.image.image.uuid,
-            metadata: src.image.info,
-            crop: src.image.image.crop
-        })
+        image: src => src.image.image
     },
 
     Query: {

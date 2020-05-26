@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'c06b111ad740d6e13688b7f06909d434';
+export const GQL_SPEC_VERSION = '033344f07a9d08e26b13fe1109a7f698';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1972,7 +1972,7 @@ export namespace GQL {
     export interface TextParagraphTextArgs { }
     export interface TextParagraphSpansArgs { }
     export interface ImageParagraph {
-        image: Image;
+        image: ImageRef;
     }
     export interface ImageParagraphImageArgs { }
     export interface DiscussionInput {
@@ -7966,7 +7966,7 @@ export interface GQLResolver {
         GQL.ImageParagraph,
         GQLRoots.ImageParagraphRoot,
         {
-            image: GQLRoots.ImageRoot,
+            image: GQLRoots.ImageRefRoot,
         },
         {
             image: GQL.ImageParagraphImageArgs,
