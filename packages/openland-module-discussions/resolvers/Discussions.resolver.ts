@@ -61,6 +61,9 @@ export const Resolver: GQLResolver = {
                 title: args.input.title!,
                 isDraft: args.isDraft
             });
-        })
+        }),
+        discussionDraftPublish: withUser(async (ctx, args, uid) => {
+            return await Modules.Discussions.discussions.publishDraftDiscussion(ctx, uid, IDs.Discussion.parse(args.draftId));
+        }),
     }
 };
