@@ -92,14 +92,17 @@ export class WorkQueue<ARGS> {
             //     workerFetch.add(root, currentRunningTime() - start);
             // }
             // start = currentRunningTime();
-            let locked = task && await inTx(root, async (ctx) => {
+            let shouldExecute = task && await inTx(root, async (ctx) => {
                 getTransaction(ctx).setOptions({
                     causal_read_risky: true,
                     priority_system_immediate: true,
                     retry_limit: 10
                 });
 
-                let tsk = (await Store.Task.findById(ctx, task!.res.taskType, task!.res.uid))!;
+                let tsk = await Store.Task.findById(ctx, task!.res.taskType, task!.res.uid);
+                if (!tsk) {
+                    return false;
+                }
                 if (tsk.taskStatus !== 'pending') {
                     if (tsk.taskStatus === 'executing' && tsk.taskLockSeed === lockSeed) {
                         return true;
@@ -112,7 +115,8 @@ export class WorkQueue<ARGS> {
                 workScheduled.event(ctx, { taskId: tsk.uid, taskType: tsk.taskType, duration: Date.now() - tsk.metadata.createdAt });
                 return true;
             });
-            if (task && locked) {
+
+            if (task && shouldExecute) {
                 // workerPick.add(root, currentRunningTime() - start);
                 // log.log(root, 'Task ' + task.uid + ' found');
                 // let start = currentTime();
