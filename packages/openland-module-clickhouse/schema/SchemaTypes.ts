@@ -3,70 +3,77 @@ import { schema } from './SchemaBuilder';
 
 export type NumberField = {
     type: 'number',
-    nullable?: boolean,
+    dbType: 'Int8' | 'Int16' | 'Int32' | 'Int64' | 'UInt8' | 'UInt16' | 'UInt32' | 'UInt64' | 'Float32' | 'Float64',
 };
 export type BooleanField = {
     type: 'boolean',
-    nullable?: boolean,
+    dbType: 'UInt8',
 };
 export type StringField = {
     type: 'string',
-    nullable?: boolean,
+    dbType: 'String',
 };
 export type DateField = {
     type: 'date',
-    nullable?: boolean,
+    dbType: 'Date' | 'DateTime',
 };
 
 export type StructField<TStruct> = {
     type: 'struct';
-    fields: FieldInfo[];
-    nullable?: boolean;
+    fields: SimpleFieldInfo[];
 };
 
-export type Field = NumberField | BooleanField | StringField | DateField | StructField<any>;
-type NullableField<T extends Field> = T & { nullable: true };
+export type SimpleField = (NumberField | BooleanField | StringField | DateField) & { nullable?: boolean };
+export type Field = SimpleField | StructField<any>;
+export type NullableField<T extends SimpleField> = T & {
+    nullable: true
+};
 
-export type SimpleFieldType = 'string' | 'boolean' | 'number' | 'date';
-type FieldType<TField extends Field> =
+type FieldTypeInternal<TField extends Field> =
     TField extends StringField ? string :
         TField extends NumberField ? number :
             TField extends BooleanField ? boolean :
                 TField extends DateField ? number :
                     TField extends StructField<infer T> ? T : never;
 
-export type FieldTypeWithNullable<TField extends Field> = TField extends NullableField<infer T> ? FieldType<T> | null : FieldType<TField>;
+export type FieldType<TField extends Field> = TField extends NullableField<infer T> ? FieldTypeInternal<T> | null : FieldTypeInternal<TField>;
 
-export type FieldInfo = { name: string, type: SimpleFieldType, nullable: boolean };
+export type SimpleFieldInfo = { name: string, field: SimpleField };
+export type StructFieldInfo = { name: string, field: StructField<any> };
 
 export type SchemaShape = { [key: string]: Field };
-export type ShapeToSchema<T extends SchemaShape> = { [TKey in keyof T]: FieldTypeWithNullable<T[TKey]> };
+export type ShapeToSchema<T extends SchemaShape> = { [TKey in keyof T]: FieldType<T[TKey]> };
+export type TypeFromSchema<TSchema extends Schema<any>> = TSchema extends Schema<infer T> ? T : never;
 
 export function string(): StringField {
     return {
-        type: 'string'
+        type: 'string',
+        dbType: 'String'
     };
 }
 
-export function integer(): NumberField {
+export function integer(dbType: NumberField['dbType'] = 'Int64'): NumberField {
     return {
-        type: 'number'
+        type: 'number',
+        dbType: dbType
     };
 }
 
 export function boolean(): BooleanField {
     return {
-        type: 'boolean'
+        type: 'boolean',
+        dbType: 'UInt8'
     };
 }
 
-export function date(): DateField {
+export function date(dbType: DateField['dbType'] = 'DateTime'): DateField {
     return {
-        type: 'date'
+        type: 'date',
+        dbType: dbType
     };
 }
 
-export function nullable<TField extends Field>(field: TField): NullableField<TField> {
+export function nullable<TField extends SimpleField>(field: TField): NullableField<TField> {
     return {
         ...field,
         nullable: true,
@@ -83,6 +90,6 @@ export function struct<T extends SchemaShape>(shape: T | Schema<ShapeToSchema<T>
 
     return {
         type: 'struct',
-        fields: s.fields(),
+        fields: s.fields,
     };
 }

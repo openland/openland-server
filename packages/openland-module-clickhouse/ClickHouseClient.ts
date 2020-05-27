@@ -8,8 +8,12 @@ const logger = createLogger('clickhouse-client');
 
 export type ColumnDefinition = {
     name: string;
-    type: 'Date' | 'DateTime' | 'Int8' | 'Int16' | 'Int32' | 'Int64' | 'UInt8' | 'UInt16' | 'UInt32' | 'UInt64' | 'Float32' | 'Float64' | 'String'
+    type: 'Date' | 'DateTime' | 'Int8' | 'Int16' | 'Int32' | 'Int64' | 'UInt8' | 'UInt16' | 'UInt32' | 'UInt64' | 'Float32' | 'Float64' | 'String' |
+    'Nullable(Date)' | 'Nullable(DateTime)' | 'Nullable(Int8)' | 'Nullable(Int16)' | 'Nullable(Int32)' | 'Nullable(Int64)' | 'Nullable(UInt8)' |
+        'Nullable(UInt16)' | 'Nullable(UInt32)' | 'Nullable(UInt64)' | 'Nullable(Float32)' | 'Nullable(Float64)' | 'Nullable(String)';
 };
+
+export type ColumnTypeDefinition = 'Date' | 'DateTime' | 'Int8' | 'Int16' | 'Int32' | 'Int64' | 'UInt8' | 'UInt16' | 'UInt32' | 'UInt64' | 'Float32' | 'Float64' | 'String';
 
 export class ClickHouseClient {
     private client: any;
@@ -83,6 +87,10 @@ export class ClickHouseClient {
             },
             dropTable: async (ctx: Context, table: string) => {
                 await this.execute(ctx, 'DROP TABLE IF EXISTS ' + db + '.' + table);
+            },
+            query: async (ctx: Context, body: string) => {
+                // logger.log(ctx, 'Executing: ' + body);
+                return (await this.client.querying(body)).data as any[];
             }
         };
     }

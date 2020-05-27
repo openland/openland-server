@@ -1,4 +1,7 @@
-import { FieldInfo, SimpleFieldType } from './SchemaTypes';
+import { SimpleField, SimpleFieldInfo } from './SchemaTypes';
+import { FromDbFieldNormalizer, fromDbNormalizers, ToDbFieldNormalizer, toDbNormalizers } from './normalizers';
+
+type DbType = string | number | null;
 
 const set = (obj: any, path: string, value: any) => {
     let keys = path.split('.');
@@ -13,7 +16,7 @@ const set = (obj: any, path: string, value: any) => {
     return obj;
 };
 
-const get = (obj: any, path: string) => {
+const get = <TReturn = any>(obj: any, path: string): TReturn | undefined => {
     let keys = path.split('.');
     let current = obj;
     for (let key of keys.slice(0, -1)) {
@@ -26,34 +29,55 @@ const get = (obj: any, path: string) => {
     return current[keys[keys.length - 1]];
 };
 
-type DatabaseFields = SimpleFieldType[];
-
 export class Schema<T> {
-    #fields: FieldInfo[];
+    #fields: SimpleFieldInfo[];
 
-    constructor(fields: FieldInfo[]) {
+    constructor(fields: SimpleFieldInfo[]) {
         this.#fields = fields;
     }
 
-    mapToDb(obj: T): DatabaseFields {
-        let values: DatabaseFields = [];
+    mapToDb(obj: T): DbType[] {
+        let values: DbType[] = [];
         for (let field of this.#fields) {
-            let path = field.name.replace(/_/g, '.');
-            values.push(get(obj, path));
+            let path = field.name;
+
+            let normalize = get<ToDbFieldNormalizer<SimpleField>>(toDbNormalizers, field.field.dbType)!;
+            let fieldData = get(obj, path);
+            if (!field.field.nullable && (fieldData === undefined || fieldData === null)) {
+                throw new Error(`${path} shouldn't be null`);
+            } else if (fieldData === undefined || fieldData === null) {
+                values.push(null);
+            } else {
+                values.push(normalize(fieldData));
+            }
         }
         return values;
     }
 
-    mapFromDb(fields: DatabaseFields): T {
+    mapFromDb(fields: DbType[]): T {
         let value: any = {};
         for (let i = 0; i < this.#fields.length; ++i) {
-            let path = this.#fields[i].name.replace(/_/g, '.');
-            set(value, path, fields[i]);
+            let path = this.#fields[i].name;
+            let normalize = get<FromDbFieldNormalizer<SimpleField>>(fromDbNormalizers, this.#fields[i].field.type)!;
+            let fieldValue = fields[i];
+            if (fieldValue === null) {
+                set(value, path, null);
+            } else {
+                set(value, path, normalize(fieldValue));
+            }
         }
         return value;
     }
 
-    fields = () => {
+    mapArrayToDb(objs: T[]): DbType[][] {
+        return objs.map(a => this.mapToDb(a));
+    }
+
+    mapArrayFromDb(objs: DbType[][]): T[] {
+        return objs.map(a => this.mapFromDb(a));
+    }
+
+    get fields() {
         return this.#fields;
     }
 }
