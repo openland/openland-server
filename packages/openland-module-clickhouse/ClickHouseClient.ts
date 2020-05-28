@@ -2,17 +2,20 @@ import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 const ClickHouse = require('@apla/clickhouse');
 import { URL } from 'url';
+import { Database } from './DatabaseClient';
 
 // @ts-ignore
 const logger = createLogger('clickhouse-client');
 
 export type ColumnDefinition = {
     name: string;
-    type: 'Date' | 'DateTime' | 'Int8' | 'Int16' | 'Int32' | 'Int64' | 'UInt8' | 'UInt16' | 'UInt32' | 'UInt64' | 'Float32' | 'Float64' | 'String'
+    type: 'Date' | 'DateTime' | 'Int8' | 'Int16' | 'Int32' | 'Int64' | 'UInt8' | 'UInt16' | 'UInt32' | 'UInt64' | 'Float32' | 'Float64' | 'String' |
+    'Nullable(Date)' | 'Nullable(DateTime)' | 'Nullable(Int8)' | 'Nullable(Int16)' | 'Nullable(Int32)' | 'Nullable(Int64)' | 'Nullable(UInt8)' |
+        'Nullable(UInt16)' | 'Nullable(UInt32)' | 'Nullable(UInt64)' | 'Nullable(Float32)' | 'Nullable(Float64)' | 'Nullable(String)';
 };
 
 export class ClickHouseClient {
-    private client: any;
+    public client: any;
 
     constructor(endpoint: string, username: string, password: string) {
         let url = new URL('ch://' + endpoint);
@@ -60,31 +63,7 @@ export class ClickHouseClient {
     }
 
     withDatabase(db: string) {
-        return {
-            createDatabase: async (ctx: Context) => {
-                await this.execute(ctx, 'CREATE DATABASE IF NOT EXISTS ' + db);
-            },
-            createTable: async (ctx: Context, table: string, columns: ColumnDefinition[], partition: string, orderBy: string, primaryKey: string) => {
-                let op = 'CREATE TABLE IF NOT EXISTS ' + db + '.' + table +
-                    ' (' + columns.map((v) => (v.name + ' ' + v.type)).join(', ') + ')' +
-                    ' ENGINE = MergeTree() PARTITION BY ' + partition + ' ORDER BY ' + orderBy + ' PRIMARY KEY ' + primaryKey;
-                await this.execute(ctx, op);
-            },
-            insert: async (ctx: Context, table: string, columns: string[], data: any[][]) => {
-                let op = 'INSERT INTO ' + db + '.' + table + '';
-                await this.insert(ctx, op, columns, data);
-            },
-            count: async (ctx: Context, table: string, where?: string) => {
-                let op = 'SELECT count() FROM ' + db + '.' + table;
-                if (where) {
-                    op += ' WHERE ' + where;
-                }
-                return await this.count(ctx, op);
-            },
-            dropTable: async (ctx: Context, table: string) => {
-                await this.execute(ctx, 'DROP TABLE IF EXISTS ' + db + '.' + table);
-            }
-        };
+        return new Database(this, db);
     }
 }
 

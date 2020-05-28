@@ -76,12 +76,17 @@ import { loadPhonebookModule } from '../openland-module-phonebook/PhonebookModul
 import { connect, Payload } from 'ts-nats';
 import { loadDiscussionsModule } from 'openland-module-discussions/Discussions.container';
 import { ClickHouseModule } from '../openland-module-clickhouse/ClickHouseModule';
+import { createClient } from '../openland-module-clickhouse/migrations';
 
 const logger = createLogger('starting');
 
 export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
 
     if (loadDb) {
+        // Load clickhouse
+        let chClient = await createClient(ctx);
+        container.bind('ClickHouse').toConstantValue(chClient);
+
         // Load NATS
         let client = await connect(Config.nats ? { payload: Payload.JSON, servers: Config.nats.endpoints } : { payload: Payload.JSON });
         container.bind('NATS').toConstantValue(client);

@@ -1,30 +1,29 @@
 import {
-    Field, FieldInfo, FieldTypeWithNullable, SchemaShape, ShapeToSchema, StructField,
+    Field, SimpleFieldInfo, FieldType, SchemaShape, ShapeToSchema, SimpleField, StructField,
 } from './SchemaTypes';
 import { Schema } from './Schema';
 
 export class SchemaBuilder<T> {
-    #fields: FieldInfo[];
+    #fields: SimpleFieldInfo[];
 
-    constructor(fields: FieldInfo[] = []) {
+    private constructor(fields: SimpleFieldInfo[] = []) {
         this.#fields = fields;
     }
 
     public field<TName extends string, TField extends Field>(
         name: TName,
         field: TField,
-    ): SchemaBuilder<T & { [_ in TName]: FieldTypeWithNullable<TField> }> {
+    ): SchemaBuilder<T & { [_ in TName]: FieldType<TField> }> {
         this.validateFieldName(name);
 
         if (field.type !== 'struct') {
-            this.#fields.push({ name, type: field.type, nullable: field.nullable || false });
-        } else if (field.type === 'struct') {
+            this.#fields.push({ name, field: field as SimpleField });
+        } else {
             let structField = field as any as StructField<any>;
-            this.#fields.push(...structField.fields.map(a => ({ ...a, name: `${name}_${a.name}` })));
+            this.#fields.push(...structField.fields.map(a => ({ ...a, name: `${name}.${a.name}` })));
         }
 
-        // @ts-ignore
-        return this;
+        return this as SchemaBuilder<any>;
     }
 
     public build(): Schema<T> {
@@ -34,9 +33,6 @@ export class SchemaBuilder<T> {
     private validateFieldName(name: string) {
         if (!this.#fields.every(a => a.name !== name)) {
             throw new Error(`Schema already contains field with given name: ${name}`);
-        }
-        if (name.includes('_')) {
-            throw new Error('Field name should not contain underscore character');
         }
         if (name.includes('.')) {
             throw new Error('Field name should not contain dot character');

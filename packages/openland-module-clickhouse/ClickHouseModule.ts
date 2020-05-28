@@ -3,11 +3,12 @@ import { startExporters } from './startExporters';
 import { createNamedContext } from '@openland/context';
 import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
 
+let ctx = createNamedContext('clickhouse');
 @injectable()
 export class ClickHouseModule {
-    start = () => {
+    start = async () => {
         if (serverRoleEnabled('admin')) {
-            startExporters(createNamedContext('clickhouse'));
+            startExporters(ctx);
         }
     }
 }
