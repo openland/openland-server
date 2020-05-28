@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '2dea5c49a5e466670770aef7dfa47c60';
+export const GQL_SPEC_VERSION = '8d1246f3436ac0ee7319d187bc0a69da';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2231,6 +2231,7 @@ export namespace GQL {
         debugCreateTransfer: string;
         debugSetCommission: boolean;
         debugFixEditedMessagesAugmentation: boolean;
+        debugReindexUsers: boolean;
         debugCalcEntitiesCount: boolean;
         debugCalcEntitiesCountAll: boolean;
         settingsUpdate: Settings;
@@ -2734,6 +2735,7 @@ export namespace GQL {
         percents: number;
     }
     export interface MutationDebugFixEditedMessagesAugmentationArgs { }
+    export interface MutationDebugReindexUsersArgs { }
     export interface MutationDebugCalcEntitiesCountArgs {
         entity: string;
     }
@@ -8416,6 +8418,7 @@ export interface GQLResolver {
             debugCreateTransfer: GQL.MutationDebugCreateTransferArgs,
             debugSetCommission: GQL.MutationDebugSetCommissionArgs,
             debugFixEditedMessagesAugmentation: GQL.MutationDebugFixEditedMessagesAugmentationArgs,
+            debugReindexUsers: GQL.MutationDebugReindexUsersArgs,
             debugCalcEntitiesCount: GQL.MutationDebugCalcEntitiesCountArgs,
             debugCalcEntitiesCountAll: GQL.MutationDebugCalcEntitiesCountAllArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,

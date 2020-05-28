@@ -1544,7 +1544,7 @@ export class UserFactory extends EntityFactory<UserShape, User> {
         secondaryIndexes.push({ name: 'authId', storageKey: 'authId', type: { type: 'unique', fields: [{ name: 'authId', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'authId'), condition: src => src.status !== 'deleted' });
         secondaryIndexes.push({ name: 'email', storageKey: 'email', type: { type: 'unique', fields: [{ name: 'email', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'email'), condition: src => (!!src.email) && src.status !== 'deleted' });
         secondaryIndexes.push({ name: 'googleId', storageKey: 'googleId', type: { type: 'unique', fields: [{ name: 'googleId', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'googleId'), condition: src => (!!src.googleId) && src.status !== 'deleted' });
-        secondaryIndexes.push({ name: 'phone', storageKey: 'phone', type: { type: 'unique', fields: [{ name: 'phone', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'phone'), condition: src => (!!src.googleId) && src.status !== 'deleted' });
+        secondaryIndexes.push({ name: 'fromPhone', storageKey: 'fromPhone', type: { type: 'unique', fields: [{ name: 'phone', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'fromPhone'), condition: src => (!!src.phone) && src.status !== 'deleted' });
         secondaryIndexes.push({ name: 'owner', storageKey: 'owner', type: { type: 'range', fields: [{ name: 'botOwner', type: 'opt_integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'owner'), condition: src => src.botOwner });
         secondaryIndexes.push({ name: 'superBots', storageKey: 'superBots', type: { type: 'range', fields: [] }, subspace: await storage.resolveEntityIndexDirectory('user', 'superBots'), condition: src => src.isBot === true && src.isSuperBot });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
@@ -1620,7 +1620,7 @@ export class UserFactory extends EntityFactory<UserShape, User> {
         },
     });
 
-    readonly phone = Object.freeze({
+    readonly fromPhone = Object.freeze({
         find: async (ctx: Context, phone: string | null) => {
             return this._findFromUniqueIndex(ctx, [phone], this.descriptor.secondaryIndexes[3]);
         },

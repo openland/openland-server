@@ -120,7 +120,7 @@ export class AuthManagementMediator {
             }
 
             // Check that phone is not used
-            let existingUser = await Store.User.phone.find(ctx, phone);
+            let existingUser = await Store.User.fromPhone.find(ctx, phone);
             if (existingUser) {
                 throw new UserError('This phone is already used');
             }

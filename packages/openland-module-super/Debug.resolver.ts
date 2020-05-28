@@ -1563,6 +1563,19 @@ export const Resolver: GQLResolver = {
                 return true;
             });
         }),
+        debugReindexUsers: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugReindexUsers', async (root, id) => {
+                await inTx(root, async ctx => {
+                    let user = await Store.User.findById(ctx, id);
+                    if (!user) {
+                        return;
+                    }
+                    user.invalidate();
+                    await user.flush(ctx);
+                });
+            });
+            return true;
+        }),
 
         debugCalcEntitiesCount: withPermission('super-admin', async (ctx, args) => {
             let uid = ctx.auth.uid!;
