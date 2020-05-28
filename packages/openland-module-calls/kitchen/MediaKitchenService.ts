@@ -28,7 +28,7 @@ export class MediaKitchenService {
     async getOrCreateRouter(workerId: string, id: string) {
         let worker = this.cluster.workers.find((v) => v.id === workerId);
         if (!worker) {
-            throw Error('Unable to find assigned worker');
+            throw Error('Unable to find assigned worker: ' + workerId);
         }
         let rawRouter = await worker.createRouter({ mediaCodecs: ROUTER_CODECS }, id);
         return rawRouter;
