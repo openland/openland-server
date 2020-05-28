@@ -2373,6 +2373,24 @@ export default declareSchema(() => {
         rangeIndex('onlineChangeEvents', ['createdAt']).withCondition((src) => src.type === 'online_status');
     });
 
+    eventStore('HyperLogStore', () => {
+        //
+    });
+
+    event('HyperLogEvent', () => {
+        field('id', string());
+        field('eventType', string());
+        field('date', integer());
+        field('body', json());
+    });
+
+    event('HyperLogUserEvent', () => {
+        field('id', string());
+        field('eventType', string());
+        field('date', integer());
+        field('body', json());
+    });
+
     entity('Task', () => {
         primaryKey('taskType', string());
         primaryKey('uid', string());

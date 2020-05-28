@@ -20617,6 +20617,82 @@ export class StripeEventCreated extends BaseEvent {
     get eventDate(): number { return this.raw.eventDate; }
 }
 
+const hyperLogEventCodec = c.struct({
+    id: c.string,
+    eventType: c.string,
+    date: c.integer,
+    body: c.any,
+});
+
+interface HyperLogEventShape {
+    id: string;
+    eventType: string;
+    date: number;
+    body: any;
+}
+
+export class HyperLogEvent extends BaseEvent {
+
+    static create(data: HyperLogEventShape) {
+        return new HyperLogEvent(hyperLogEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new HyperLogEvent(hyperLogEventCodec.decode(data));
+    }
+
+    static encode(event: HyperLogEvent) {
+        return hyperLogEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('hyperLogEvent', data);
+    }
+
+    get id(): string { return this.raw.id; }
+    get eventType(): string { return this.raw.eventType; }
+    get date(): number { return this.raw.date; }
+    get body(): any { return this.raw.body; }
+}
+
+const hyperLogUserEventCodec = c.struct({
+    id: c.string,
+    eventType: c.string,
+    date: c.integer,
+    body: c.any,
+});
+
+interface HyperLogUserEventShape {
+    id: string;
+    eventType: string;
+    date: number;
+    body: any;
+}
+
+export class HyperLogUserEvent extends BaseEvent {
+
+    static create(data: HyperLogUserEventShape) {
+        return new HyperLogUserEvent(hyperLogUserEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new HyperLogUserEvent(hyperLogUserEventCodec.decode(data));
+    }
+
+    static encode(event: HyperLogUserEvent) {
+        return hyperLogUserEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('hyperLogUserEvent', data);
+    }
+
+    get id(): string { return this.raw.id; }
+    get eventType(): string { return this.raw.eventType; }
+    get date(): number { return this.raw.date; }
+    get body(): any { return this.raw.body; }
+}
+
 export class ConversationEventStore extends EventStore {
 
     static async open(storage: EntityStorage, factory: EventFactory) {
@@ -20897,6 +20973,41 @@ export class StripeEventStore extends EventStore {
     }
 }
 
+export class HyperLogStore extends EventStore {
+
+    static async open(storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory('hyperLogStore');
+        const descriptor = {
+            name: 'HyperLogStore',
+            storageKey: 'hyperLogStore',
+            subspace,
+            storage,
+            factory
+        };
+        return new HyperLogStore(descriptor);
+    }
+
+    private constructor(descriptor: EventStoreDescriptor) {
+        super(descriptor);
+    }
+
+    post(ctx: Context, event: BaseEvent) {
+        this._post(ctx, [], event);
+    }
+
+    async findAll(ctx: Context) {
+        return this._findAll(ctx, []);
+    }
+
+    createStream(opts?: { batchSize?: number, after?: string }) {
+        return this._createStream([], opts);
+    }
+
+    createLiveStream(ctx: Context, opts?: { batchSize?: number, after?: string }) {
+        return this._createLiveStream(ctx, [], opts);
+    }
+}
+
 export interface Store extends BaseStore {
     readonly ConversationLastSeq: ConversationLastSeqFactory;
     readonly UserDialogReadMessageId: UserDialogReadMessageIdFactory;
@@ -21087,6 +21198,7 @@ export interface Store extends BaseStore {
     readonly UserLocationEventStore: UserLocationEventStore;
     readonly UserWalletUpdates: UserWalletUpdates;
     readonly StripeEventStore: StripeEventStore;
+    readonly HyperLogStore: HyperLogStore;
     readonly UserDialogIndexDirectory: Subspace;
     readonly UserCountersIndexDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
@@ -21123,6 +21235,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('walletBalanceChanged', WalletBalanceChanged.encode as any, WalletBalanceChanged.decode);
     eventFactory.registerEventType('walletLockedChanged', WalletLockedChanged.encode as any, WalletLockedChanged.decode);
     eventFactory.registerEventType('stripeEventCreated', StripeEventCreated.encode as any, StripeEventCreated.decode);
+    eventFactory.registerEventType('hyperLogEvent', HyperLogEvent.encode as any, HyperLogEvent.decode);
+    eventFactory.registerEventType('hyperLogUserEvent', HyperLogUserEvent.encode as any, HyperLogUserEvent.decode);
     let ConversationLastSeqPromise = ConversationLastSeqFactory.open(storage);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
@@ -21316,6 +21430,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserLocationEventStorePromise = UserLocationEventStore.open(storage, eventFactory);
     let UserWalletUpdatesPromise = UserWalletUpdates.open(storage, eventFactory);
     let StripeEventStorePromise = StripeEventStore.open(storage, eventFactory);
+    let HyperLogStorePromise = HyperLogStore.open(storage, eventFactory);
     return {
         storage,
         eventFactory,
@@ -21512,5 +21627,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserLocationEventStore: await UserLocationEventStorePromise,
         UserWalletUpdates: await UserWalletUpdatesPromise,
         StripeEventStore: await StripeEventStorePromise,
+        HyperLogStore: await HyperLogStorePromise,
     };
 }
