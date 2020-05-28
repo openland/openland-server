@@ -2,7 +2,7 @@ import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 const ClickHouse = require('@apla/clickhouse');
 import { URL } from 'url';
-import { Database } from './DatabaseClient';
+import { DatabaseClient as Database } from './DatabaseClient';
 
 // @ts-ignore
 const logger = createLogger('clickhouse-client');
