@@ -1,8 +1,9 @@
 import { schema, SimpleField, SimpleFieldInfo, string, TypeFromSchema } from './schema';
-import { ColumnDefinition, DatabaseClient } from './ClickHouseClient';
+import { ColumnDefinition } from './ClickHouseClient';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { Table } from './schema/Table';
+import { DatabaseClient } from './DatabaseClient';
 
 const describeSchema = schema({
     name: string(),
