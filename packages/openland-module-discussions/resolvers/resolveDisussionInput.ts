@@ -12,6 +12,9 @@ export async function resolveDiscussionInput(ctx: Context, input: DiscussionInpu
     if (input.content) {
         for (let part of input.content) {
             if (part.type === 'Text') {
+                if (part.text?.includes('\n')) {
+                    throw new UserError('Line breaks should be divided to separate paragraph');
+                }
                 content.push({
                     type: 'text',
                     text: part.text || '',
