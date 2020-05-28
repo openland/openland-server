@@ -83,7 +83,7 @@ export class AuthManagementRepository {
             if (user.phone) {
                 throw new UserError(`You already have phone`);
             }
-            let existing = await Store.User.phone.find(ctx, phone);
+            let existing = await Store.User.fromPhone.find(ctx, phone);
             if (existing) {
                 throw new UserError('This email already used');
             }

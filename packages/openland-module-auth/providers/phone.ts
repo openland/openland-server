@@ -100,7 +100,7 @@ export function initPhoneAuthProvider(app: Express) {
             let code = await phoneCode.create(ctx, { phone, authToken: base64.encodeBuffer(randomBytes(64)) });
             await SmsService.sendSms(phone, `Openland code: ${code.code}. Valid for 5 minutes.`);
 
-            let existingUser = await Store.User.phone.find(ctx, phone);
+            let existingUser = await Store.User.fromPhone.find(ctx, phone);
             if (existingUser) {
                 let profile = await Store.UserProfile.findById(ctx, existingUser.id);
                 return {
@@ -175,7 +175,7 @@ export function initPhoneAuthProvider(app: Express) {
             // Mark code used
             await phoneCode.onUse(ctx, authCode.code);
 
-            let existingUser = await Store.User.phone.find(ctx, phone);
+            let existingUser = await Store.User.fromPhone.find(ctx, phone);
 
             if (existingUser) {
                 let token = await Modules.Auth.createToken(ctx, existingUser.id);
