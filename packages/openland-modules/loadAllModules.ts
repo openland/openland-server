@@ -83,10 +83,6 @@ const logger = createLogger('starting');
 export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
 
     if (loadDb) {
-        // Load clickhouse
-        let chClient = await createClient(ctx);
-        container.bind('ClickHouse').toConstantValue(chClient);
-
         // Load NATS
         let client = await connect(Config.nats ? { payload: Payload.JSON, servers: Config.nats.endpoints } : { payload: Payload.JSON });
         container.bind('NATS').toConstantValue(client);
@@ -101,6 +97,11 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
         let store = await openStore(storage);
         container.bind<Store>('Store')
             .toConstantValue(store);
+
+        // Load clickhouse
+        let chClient = await createClient(ctx);
+        container.bind('ClickHouse').toConstantValue(chClient);
+        logger.log(ctx, 'ClickHouse connected');
     }
 
     logger.log(ctx, 'Loading modules...');
