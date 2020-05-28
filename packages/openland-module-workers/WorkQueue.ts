@@ -114,7 +114,7 @@ export class WorkQueue<ARGS> {
                 tsk.taskLockSeed = lockSeed;
                 tsk.taskLockTimeout = Date.now() + 15000;
                 tsk.taskStatus = 'executing';
-                workScheduled.event(ctx, { taskId: tsk.uid, taskType: tsk.taskType, duration: Date.now() - tsk.metadata.createdAt });
+                workScheduled.event(ctx, { taskId: tsk.uid, taskType: tsk.taskType, duration: Date.now() - (tsk.startAt ||  tsk.metadata.createdAt) });
                 return true;
             });
 
