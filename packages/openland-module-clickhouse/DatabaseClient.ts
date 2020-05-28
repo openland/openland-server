@@ -17,6 +17,10 @@ export class DatabaseClient {
         return this.#tables.all().map(a => new TableClient(this, this.#tables.get(a.name)));
     }
 
+    get dbName() {
+        return this.#dbName;
+    }
+
     get<T = any>(tableName: string): TableClient<T> {
         return new TableClient<T>(this, this.#tables.get(tableName));
     }

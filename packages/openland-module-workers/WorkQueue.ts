@@ -8,13 +8,13 @@ import { Shutdown } from '../openland-utils/Shutdown';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { getTransaction } from '@openland/foundationdb';
-import { taskCompletedLog, taskScheduledLog } from '../openland-module-hyperlog/loggers';
+import loggers from '../openland-module-hyperlog/loggers';
 // import { createMetric } from 'openland-module-monitoring/Metric';
 
 const log = createLogger('worker');
 
-const workCompleted = taskCompletedLog;
-const workScheduled = taskScheduledLog;
+const workCompleted = loggers.TaskCompleted;
+const workScheduled = loggers.TaskScheduled;
 
 // const metricStart = createMetric('worker-started', 'sum');
 // const metricFailed = createMetric('worker-failed', 'sum');

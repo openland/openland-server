@@ -43,7 +43,7 @@ export class TableClient<T> {
 
         let dbFields: DescribeRow[];
         try {
-            dbFields = describeSchema.mapArrayFromDb(await this.#client.query(ctx, `DESCRIBE debug.${this.#table.name}`));
+            dbFields = describeSchema.mapArrayFromDb(await this.#client.query(ctx, `DESCRIBE ${this.#client.dbName}.${this.#table.name}`));
         } catch (e) {
             if (e.code === 60) {
                  await this.createTable(ctx);
