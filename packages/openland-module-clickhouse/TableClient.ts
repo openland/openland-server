@@ -46,7 +46,7 @@ export class TableClient<T> {
             dbFields = describeSchema.mapArrayFromDb(await this.#client.query(ctx, `DESCRIBE debug.${this.#table.name}`));
         } catch (e) {
             if (e.code === 60) {
-                this.createTable(ctx);
+                 await this.createTable(ctx);
                 return;
             } else {
                 throw e;
