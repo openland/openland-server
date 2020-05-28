@@ -3,9 +3,10 @@ import { delay } from 'openland-utils/timer';
 import { createLogger } from '@openland/log';
 import { Store } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
-import { ClickHouseClient, DatabaseClient } from './ClickHouseClient';
+import { ClickHouseClient } from './ClickHouseClient';
 import { DistributedLock } from '@openland/foundationdb-locks';
 import { inTx } from '@openland/foundationdb';
+import { DatabaseClient } from './DatabaseClient';
 
 interface Migration {
     name: string;
@@ -338,6 +339,41 @@ export async function createClient(ctx: Context) {
                 mig.applied = updated;
             }
         });
+
+        break;
+    }
+
+    // Init newly added tables
+    lock = new DistributedLock('clickhouse-tables', Store.storage.db, 1);
+    while (true) {
+        // Trying to get lock
+        let acquired = await lock.tryLock(ctx, 5000);
+        if (!acquired) {
+            logger.log(ctx, 'Unable to get lock: retrying');
+            await delay(1000);
+            continue;
+        }
+
+        let completed = false;
+
+        // Lock refresh and release
+        // tslint:disable-next-line:no-floating-promises
+        (async () => {
+            while (!completed) {
+                await lock.refresh(ctx, 5000);
+                await delay(500);
+            }
+            await lock.releaseLock(ctx);
+        })();
+
+        try {
+            // Init all tables
+            for (let table of db.tables) {
+                await table.init(ctx);
+            }
+        } finally {
+            completed = true;
+        }
 
         break;
     }

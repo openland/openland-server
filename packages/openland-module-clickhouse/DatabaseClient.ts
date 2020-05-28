@@ -1,45 +1,24 @@
 import { ClickHouseClient, ColumnDefinition } from './ClickHouseClient';
 import { Context } from '@openland/context';
-import { Table } from './schema/Table';
+import { TableSpace } from './TableSpace';
 import { TableClient } from './TableClient';
-
-class TableSpace {
-    #tableMap: Map<string, Table<any>> = new Map<string, Table<any>>();
-    #db: DatabaseClient;
-
-    constructor(parent: DatabaseClient) {
-        this.#db = parent;
-    }
-
-    with<TSchema>(table: Table<TSchema>): TableSpace {
-        if (this.#tableMap.has(table.name)) {
-            throw new Error(`Table with the name '${table.name}' already added`);
-        }
-        this.#tableMap.set(table.name, table);
-        return this;
-    }
-
-    get(tableName: string): TableClient<any>  {
-        if (!this.#tableMap.has(tableName)) {
-            throw new Error(`Table space does not contain table with the name '${tableName}'`);
-        }
-
-        return new TableClient<any>(this.#db, this.#tableMap.get(tableName)!);
-    }
-}
 
 export class DatabaseClient {
     #client: ClickHouseClient;
     #dbName: string;
-    #tables: TableSpace = new TableSpace(this);
+    #tables = TableSpace;
 
     constructor(client: ClickHouseClient, db: string) {
         this.#client = client;
         this.#dbName = db;
     }
 
-    get tables() {
-        return this.#tables;
+    get tables(): TableClient<any>[] {
+        return this.#tables.all().map(a => new TableClient(this, this.#tables.get(a.name)));
+    }
+
+    get<T = any>(tableName: string): TableClient<T> {
+        return new TableClient<T>(this, this.#tables.get(tableName));
     }
 
     async createDatabase(ctx: Context) {
@@ -53,7 +32,7 @@ export class DatabaseClient {
 
     async insert(ctx: Context, table: string, columns: string[], data: any[][]) {
         let op = 'INSERT INTO ' + this.#dbName + '.' + table + '';
-        await this.insert(ctx, op, columns, data);
+        await this.#client.insert(ctx, op, columns, data);
     }
 
     async count(ctx: Context, table: string, where?: string) {

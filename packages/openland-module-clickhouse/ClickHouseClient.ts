@@ -2,7 +2,7 @@ import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 const ClickHouse = require('@apla/clickhouse');
 import { URL } from 'url';
-import { DatabaseClient as Database } from './DatabaseClient';
+import { DatabaseClient } from './DatabaseClient';
 
 // @ts-ignore
 const logger = createLogger('clickhouse-client');
@@ -63,8 +63,6 @@ export class ClickHouseClient {
     }
 
     withDatabase(db: string) {
-        return new Database(this, db);
+        return new DatabaseClient(this, db);
     }
 }
-
-export type DatabaseClient = ReturnType<ClickHouseClient['withDatabase']>;

@@ -4,16 +4,18 @@ import { delayBreakable, foreverBreakable } from 'openland-utils/timer';
 import { uuid } from 'openland-utils/uuid';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
 import { EventBus } from 'openland-module-pubsub/EventBus';
-import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { getTransaction } from '@openland/foundationdb';
+import { taskCompletedLog, taskScheduledLog } from '../openland-module-hyperlog/loggers';
 // import { createMetric } from 'openland-module-monitoring/Metric';
 
 const log = createLogger('worker');
-const workCompleted = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_completed');
-const workScheduled = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_scheduled');
+
+const workCompleted = taskCompletedLog;
+const workScheduled = taskScheduledLog;
+
 // const metricStart = createMetric('worker-started', 'sum');
 // const metricFailed = createMetric('worker-failed', 'sum');
 // const metricEnd = createMetric('worker-commited', 'sum');

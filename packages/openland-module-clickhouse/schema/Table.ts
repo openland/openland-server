@@ -30,3 +30,7 @@ export class Table<T> {
         return this.#engineConfig;
     }
 }
+
+export const table = <T>(name: string, schema: Schema<T>, id: string, partition: string, orderBy: string) => {
+    return new Table<T>(name, schema, { id, partition, orderBy });
+};

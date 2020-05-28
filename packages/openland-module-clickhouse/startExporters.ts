@@ -1,11 +1,11 @@
 import { Context } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 import { updateReader } from 'openland-module-workers/updateReader';
-import { DatabaseClient } from './ClickHouseClient';
 import { createNamedContext } from '@openland/context';
 import { forever, delay } from 'openland-utils/timer';
-import { HyperLog } from '../openland-module-db/store';
+import { HyperLog, HyperLogEvent } from '../openland-module-db/store';
 import { container } from '../openland-modules/Modules.container';
+import { DatabaseClient } from './DatabaseClient';
 
 function startPresenceExport(client: DatabaseClient) {
     updateReader('ch-exporter-reader', 3, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
@@ -139,6 +139,24 @@ function startAnalyticsExport(client: DatabaseClient) {
     });
 }
 
+function startHyperlogExport(client: DatabaseClient) {
+    updateReader('clickhouse-hyperlog-modern', 1, Store.HyperLogStore.createStream({ batchSize: 5000 }), async (src, first, ctx) => {
+        let eventsByType = src.reduce<Map<string, HyperLogEvent[]>>((acc, val) => {
+            let event = val.raw as HyperLogEvent;
+            if (!acc.has(event.eventType)) {
+                acc.set(event.eventType, [event]);
+            }
+            acc.get(event.eventType)!.push(event);
+            return acc;
+        }, new Map<string, HyperLogEvent[]>());
+
+        for (let [type, values] of eventsByType.entries()) {
+            let table = client.get(type);
+            await table.insert(ctx, values.map(a => ({ id: a.id, date: a.date, ...a.body })));
+        }
+    });
+}
+
 export function startExporters(ctx: Context) {
     // tslint:disable-next-line:no-floating-promises
     (async () => {
@@ -149,5 +167,6 @@ export function startExporters(ctx: Context) {
         startBotsExport(client);
         startSignupsExport(client);
         startAnalyticsExport(client);
+        startHyperlogExport(client);
     })();
 }
