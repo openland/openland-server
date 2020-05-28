@@ -3,9 +3,9 @@ import { Store } from 'openland-module-db/FDB';
 import { updateReader } from 'openland-module-workers/updateReader';
 import { DatabaseClient } from './ClickHouseClient';
 import { createNamedContext } from '@openland/context';
-import { backoff, forever, delay } from 'openland-utils/timer';
-import { createClient } from './migrations';
+import { forever, delay } from 'openland-utils/timer';
 import { HyperLog } from '../openland-module-db/store';
+import { container } from '../openland-modules/Modules.container';
 
 function startPresenceExport(client: DatabaseClient) {
     updateReader('ch-exporter-reader', 3, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
@@ -142,7 +142,7 @@ function startAnalyticsExport(client: DatabaseClient) {
 export function startExporters(ctx: Context) {
     // tslint:disable-next-line:no-floating-promises
     (async () => {
-        let client = await backoff(ctx, () => createClient(ctx));
+        let client = container.get<DatabaseClient>('ClickHouse');
         startPresenceExport(client);
         startMessagesExport(client);
         startSuperAdminsExport(client);
