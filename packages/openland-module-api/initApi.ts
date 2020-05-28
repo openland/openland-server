@@ -255,7 +255,7 @@ export async function initApi(isTest: boolean) {
             },
             context: async (params, operation, req) => {
                 let opId = uuid();
-                let ctx = buildWebSocketContext(params || {}, req.headers.forwarded || req.connection.remoteAddress).ctx;
+                let ctx = buildWebSocketContext(params || {}, req.headers['x-forwarded-for'] as string || req.connection.remoteAddress).ctx;
                 ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `query ${opId} ${operation.operationName || ''}`);
                 ctx = withGqlQueryId(ctx, opId);
@@ -265,7 +265,7 @@ export async function initApi(isTest: boolean) {
             },
             subscriptionContext: async (params, operation, firstCtx, req) => {
                 let opId = firstCtx ? GqlQueryIdNamespace.get(firstCtx)! : uuid();
-                let ctx = buildWebSocketContext(params || {}, req!.headers.forwarded || req!.connection.remoteAddress).ctx;
+                let ctx = buildWebSocketContext(params || {}, req.headers['x-forwarded-for'] as string || req!.connection.remoteAddress).ctx;
                 ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `subscription ${opId} ${operation.operationName || ''}`);
                 ctx = withGqlQueryId(ctx, opId);
