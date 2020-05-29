@@ -84,7 +84,13 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
 
     if (loadDb) {
         // Load NATS
-        let client = await connect(Config.nats ? { payload: Payload.JSON, servers: Config.nats.endpoints } : { payload: Payload.JSON });
+        let client = await connect({
+            payload: Payload.JSON,
+            servers: Config.nats ? Config.nats.endpoints : undefined,
+            pingInterval: 500,
+            reconnectTimeWait: 1000,
+            noRandomize: true
+        });
         container.bind('NATS').toConstantValue(client);
         logger.log(ctx, 'NATS connected');
 
@@ -246,7 +252,7 @@ export async function startAllModules(ctx: Context) {
     await container.get(DiscussionsModule).start();
     logger.log(ctx, 'Starting module: ClickHouse');
     await container.get(ClickHouseModule).start();
-    
+
     // Enable API after all modules started
     logger.log(ctx, 'Starting module: API');
     await container.get(ApiModule).start();
