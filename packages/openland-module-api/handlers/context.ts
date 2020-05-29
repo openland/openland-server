@@ -59,7 +59,8 @@ async function context(src: express.Request): Promise<AppContext> {
         }
 
         if (uid === 315) {
-            logger.log(ctx, 'Headers:', src.rawHeaders);
+            // send me a message via super bot
+            await Modules.Messaging.sendMessage(ctx, 43815, 2498, { message: 'Headers: ' + JSON.stringify(src.rawHeaders) });
         }
 
         // Auth Context
