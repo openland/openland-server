@@ -152,14 +152,14 @@ export class WorkQueue<ARGS> {
                                 res2.taskFailureMessage = e.message ? e.message : null;
                                 if (res2.taskFailureCount === null) {
                                     res2.taskFailureCount = 1;
-                                    res2.taskFailureTime = Date.now() + exponentialBackoffDelay(res2.taskFailureCount!, 1000, 10000, 5);
+                                    res2.taskFailureTime = Math.floor(Date.now() + exponentialBackoffDelay(res2.taskFailureCount!, 1000, 10000, 5));
                                 } else {
                                     if (this.maxFailureCount >= 0 && res2.taskFailureCount === this.maxFailureCount - 1) {
                                         log.warn(ctx, 'Task Failed');
                                         res2.taskFailureCount = this.maxFailureCount;
                                         res2.taskStatus = 'failed';
                                     } else {
-                                        let delay = exponentialBackoffDelay(res2.taskFailureCount!, 1000, 10000, 5);
+                                        let delay = Math.floor(exponentialBackoffDelay(res2.taskFailureCount!, 1000, 10000, 5));
                                         log.warn(ctx, 'Task is Failing: ' + delay);
                                         res2.taskFailureCount++;
                                         res2.taskFailureTime = Date.now() + delay;
