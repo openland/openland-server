@@ -31,12 +31,16 @@ export function createEntityCleaner<T extends DeletableEntity>(name: string, ver
             // TODO: move this to Entity layer
             let data = await entity.descriptor.subspace.range(ctx, [], {limit: batchSize, after});
             let res: T[] = [];
+
+            // wtf imported TupleItem is not assignable
+            let brokenRecords: typeof data = [];
             for (let record of data) {
                 try {
                     let decoded = (entity as any)._decode(ctx, record.value);
                     let val = (entity as any)._createEntityInstance(ctx, decoded);
                     res.push(val);
                 } catch (e) {
+                    brokenRecords.push(record);
                     brokenDelta++;
                 }
             }
@@ -50,6 +54,14 @@ export function createEntityCleaner<T extends DeletableEntity>(name: string, ver
                 if (condition(item)) {
                     await item.delete(ctx);
                     deletedDelta++;
+                }
+            }
+
+            for (let record of brokenRecords) {
+                await entity.descriptor.subspace.clear(ctx, record.key);
+                let value = record.value;
+                for (let index of entity.descriptor.secondaryIndexes) {
+                    await index.subspace.clear(ctx, [...index.type.fields.map(a => value[a.name]), ...record.key]);
                 }
             }
 
