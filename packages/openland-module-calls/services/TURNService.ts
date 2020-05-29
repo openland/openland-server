@@ -26,7 +26,7 @@ export async function resolveTurnServices() {
     // }
 
     let kitchenIceServers = Modules.Calls.mediaKitchen.cluster.workers.map(a => ({
-        ip: a.appData.ip,
+        ip: a.appData.ip as string,
         urls: ['turn:' + a.appData.ip + ':3478'],
         username: 'user',
         credential: 'emFsdXBhCg',
