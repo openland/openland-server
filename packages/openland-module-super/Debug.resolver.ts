@@ -27,7 +27,6 @@ import { buildMessage, heading } from '../openland-utils/MessageBuilder';
 import { AuthContext } from '../openland-module-auth/AuthContext';
 import { SmsService } from '../openland-utils/SmsService';
 import uuid from 'uuid';
-import { geoIP } from '../openland-utils/geoIp/geoIP';
 import { EntityFactory } from '@openland/foundationdb-entity';
 import { findEntitiesCount } from '../openland-module-db/findEntitiesCount';
 import { asyncRun } from '../openland-mtproto3/utils';
@@ -91,9 +90,9 @@ export const Resolver: GQLResolver = {
     },
     DebugIpInfo: {
         ip: (root) => root,
-        location: async root => (await geoIP(root)).coordinates,
-        locationCode: async root => (await geoIP(root)).location_code,
-        locationName: async root => (await geoIP(root)).location_name
+        location: (root, _, ctx) => ctx.req.latLong || null,
+        locationCode: async root => '',
+        locationName: async root => 'null',
     },
     DebugEvent: {
         seq: src => src.seq,

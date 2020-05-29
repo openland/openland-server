@@ -1,29 +1,24 @@
 import * as geoip from 'geoip-lite';
 
+type LatLong = { long: number, lat: number };
+
 export type GeoIPResponse = {
     location_code: string,
     location_name: string,
-    coordinates: { long: number, lat: number } | null
+    coordinates: LatLong | null
 };
 
 const deg2rad = (deg: number) => {
     return deg * Math.PI / 180;
 };
 
-export async function distanceBetweenIP(ip1: string, ip2: string) {
-    let lookup1 = await geoIP(ip1);
-    let lookup2 = await geoIP(ip2);
-
-    if (!lookup1.coordinates || !lookup2.coordinates) {
-        return -1;
-    }
-
+export async function distanceBetween(cords1: LatLong, cords2: LatLong) {
     var R = 6371; // earth radius
 
-    let lat1 = deg2rad(lookup1.coordinates.lat);
-    let lat2 = deg2rad(lookup2.coordinates.lat);
-    let latDelta = deg2rad(lookup2.coordinates.lat - lookup1.coordinates.lat);
-    let longDelta = deg2rad(lookup2.coordinates.long - lookup1.coordinates.long);
+    let lat1 = deg2rad(cords1.lat);
+    let lat2 = deg2rad(cords2.lat);
+    let latDelta = deg2rad(cords2.lat - cords1.lat);
+    let longDelta = deg2rad(cords2.long - cords1.long);
 
     let a = Math.sin(latDelta / 2) * Math.sin(latDelta / 2)
         + Math.sin(longDelta / 2) * Math.sin(longDelta / 2) * Math.cos(lat1) * Math.cos(lat2);

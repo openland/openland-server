@@ -25,7 +25,14 @@ async function context(src: express.Request): Promise<AppContext> {
         let tid: string | undefined;
         let oid: number | undefined;
 
-        res = RequestContext.set(res, { ip: src.header('X-Forwarded-For') || src.connection.remoteAddress });
+        let latLong = src.header('X-Client-Geo-LatLong')?.split(', ').map(a => parseInt(a, 10));
+        res = RequestContext.set(res, {
+            ip: src.header('X-Forwarded-For')?.split(', ')[0] || src.connection.remoteAddress,
+            latLong: latLong ? {
+                lat: latLong[0],
+                long: latLong[1]
+            } : undefined,
+        });
 
         // User
         if ((src as any).user !== null && (src as any).user !== undefined) {
@@ -49,6 +56,10 @@ async function context(src: express.Request): Promise<AppContext> {
                 let profile = await Modules.Users.profileById(ctx, uid);
                 oid = (profile && profile.primaryOrganization) || oid;
             }
+        }
+
+        if (uid === 315) {
+            logger.log(ctx, 'Headers:', src.rawHeaders);
         }
 
         // Auth Context
