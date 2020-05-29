@@ -58,6 +58,10 @@ async function context(src: express.Request): Promise<AppContext> {
             }
         }
 
+        if (uid === 315) {
+            logger.log(ctx, 'Headers:', src.rawHeaders);
+        }
+
         // Auth Context
         res = AuthContext.set(res, { tid, uid, oid });
         if (uid && tid) {
