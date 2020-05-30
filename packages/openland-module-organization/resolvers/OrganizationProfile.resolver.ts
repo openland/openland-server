@@ -12,6 +12,9 @@ import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Organization } from 'openland-module-db/store';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
+import { createLogger } from '@openland/log';
+
+const log = createLogger('organization_profile_resolver');
 
 export const Resolver: GQLResolver = {
     OrganizationProfile: {
@@ -54,6 +57,7 @@ export const Resolver: GQLResolver = {
     },
     Mutation: {
         updateOrganizationProfile: withAccount(async (parent, args, uid, oid) => {
+            log.log(parent, 'updateOrganizationProfile', args.input);
 
             let orgId = oid;
             if (args.id) {
