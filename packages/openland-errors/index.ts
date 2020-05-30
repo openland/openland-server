@@ -11,7 +11,6 @@ import { IDs } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
-import APM from 'elastic-apm-node';
 
 interface FormattedError {
     uuid: string;
@@ -36,7 +35,6 @@ const logger = createLogger('error-formatter');
 const handleUnexpectedError = (uuid: string, error: { message: string, originalError: any }, info?: QueryInfo) => {
     // Raven.captureException(error.originalError);
     logger.warn(ctx, error.originalError, 'unexpected_error', uuid, error, info);
-    APM.captureError(error.originalError, { message: error.message, custom: info });
 
     // tslint:disable:no-floating-promises
     (async () => {
