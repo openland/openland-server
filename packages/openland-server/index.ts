@@ -27,15 +27,8 @@ import { createLogger } from '@openland/log';
 import { setupFdbTracing } from './fdbTracing';
 import { setupNodeJSTracing } from './nodeJSTracing';
 import { Config } from 'openland-config/Config';
-import APM from 'elastic-apm-node';
 
 const logger = createLogger('startup');
-
-APM.start({
-    // Set custom APM Server URL (default: http://localhost:8200)
-    serverUrl: Config.apm?.endpoint || '',
-    active: Config.environment === 'production'
-});
 
 function assert(expected: string, got: string) {
     if (expected !== got) {
