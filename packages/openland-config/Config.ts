@@ -23,6 +23,9 @@ const codec = t.type({
         endpoint: t.string,
         writable: t.boolean
     }),
+    apm: t.union([t.type({
+        endpoint: t.string
+    }), t.null, t.undefined]),
     stripe: t.type({
         public: t.string,
         secret: t.string
@@ -107,6 +110,15 @@ class ConfigProvider {
 
     get enableTracing() {
         return enableTracing;
+    }
+
+    get apm() {
+        loadConfigIfNeeded();
+        if (configuration!.apm) {
+            return configuration!.apm!;
+        } else {
+            return null;
+        }
     }
 }
 

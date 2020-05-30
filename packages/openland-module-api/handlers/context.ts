@@ -25,7 +25,7 @@ async function context(src: express.Request): Promise<AppContext> {
         let tid: string | undefined;
         let oid: number | undefined;
 
-        let latLong = src.header('X-Client-Geo-LatLong')?.split(', ').map(a => parseInt(a, 10));
+        let latLong = src.header('X-Client-Geo-LatLong')?.split(',').map(a => parseInt(a, 10));
         res = RequestContext.set(res, {
             ip: src.header('X-Forwarded-For')?.split(', ')[0] || src.connection.remoteAddress,
             latLong: latLong ? {
@@ -59,7 +59,8 @@ async function context(src: express.Request): Promise<AppContext> {
         }
 
         if (uid === 315) {
-            logger.log(ctx, 'Headers:', src.rawHeaders);
+            // send me a message via super bot
+            await Modules.Messaging.sendMessage(ctx, 43815, 2498, { message: 'Headers: ' + JSON.stringify(src.rawHeaders) });
         }
 
         // Auth Context
