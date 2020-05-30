@@ -3,6 +3,7 @@ import { setLogProvider, LogPathContext, LogMetaContext } from '@openland/log';
 import { Context, ContextName } from '@openland/context';
 import winston from 'winston';
 import pino from 'pino';
+import APM from 'elastic-apm-node';
 import { ZippedLoggerTimes } from '../openland-utils/ZippedLogger';
 
 const isProduction = Config.environment === 'production';
@@ -64,8 +65,10 @@ setLogProvider({
             logger.debug(obj);
         } else if (level === 'error') {
             logger.error(obj);
+            APM.captureError(obj, { handled: false });
         } else if (level === 'warn') {
             logger.warn(obj);
+            APM.captureError(obj, { handled: true });
         } else {
             logger.info(obj);
         }
