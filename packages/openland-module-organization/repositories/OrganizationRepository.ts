@@ -10,9 +10,6 @@ import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { Modules } from '../../openland-modules/Modules';
 import { Store } from '../../openland-module-db/FDB';
 import { OrganizationMember } from 'openland-module-db/store';
-import { createLogger } from '@openland/log';
-
-const log = createLogger('org_repo');
 
 @injectable()
 export class OrganizationRepository {
@@ -56,10 +53,6 @@ export class OrganizationRepository {
                 instagram: null,
                 joinedMembersCount: null
             });
-
-            if (Sanitizer.sanitizeString(input.name)! === 'DELETED') {
-                log.log(ctx, 'org with DELETED name');
-            }
 
             // Create editorial data
             await Store.OrganizationEditorial.create(ctx, orgId, {
