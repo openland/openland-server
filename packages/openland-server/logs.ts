@@ -7,6 +7,12 @@ import { ZippedLoggerTimes } from '../openland-utils/ZippedLogger';
 
 const isProduction = Config.environment === 'production';
 
+import APM from 'elastic-apm-node';
+const apm = APM.start({
+    serverUrl: Config.apm?.endpoint || '',
+    active: isProduction
+});
+
 const getPino = () => {
     let log = pino();
     log.level = 'debug';
@@ -64,8 +70,10 @@ setLogProvider({
             logger.debug(obj);
         } else if (level === 'error') {
             logger.error(obj);
+            apm.captureError(obj, { handled: false });
         } else if (level === 'warn') {
             logger.warn(obj);
+            apm.captureError(obj, { handled: true });
         } else {
             logger.info(obj);
         }

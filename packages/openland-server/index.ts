@@ -27,15 +27,8 @@ import { createLogger } from '@openland/log';
 import { setupFdbTracing } from './fdbTracing';
 import { setupNodeJSTracing } from './nodeJSTracing';
 import { Config } from 'openland-config/Config';
-import APM from 'elastic-apm-node';
 
 const logger = createLogger('startup');
-
-const apm = APM.start({
-    // Set custom APM Server URL (default: http://localhost:8200)
-    serverUrl: Config.apm?.endpoint || '',
-    active: Config.environment === 'production'
-});
 
 function assert(expected: string, got: string) {
     if (expected !== got) {
@@ -47,12 +40,10 @@ async function initServer() {
     let ctx = createNamedContext('launcher');
     process.on('unhandledRejection', (reason, promise) => {
         logger.error(ctx, 'unhandledRejection', reason, promise);
-        apm!.captureError(reason);
     });
     // WTF with typings?
     process.on('uncaughtException' as any, (err: any, origin: any) => {
         logger.error(ctx, 'uncaughtException', err, origin);
-        apm!.captureError(err);
         process.exit(1);
     });
 
