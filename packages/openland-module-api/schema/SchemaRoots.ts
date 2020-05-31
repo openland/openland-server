@@ -620,7 +620,7 @@ export namespace GQLRoots {
     //
     //  Shortnames
     //
-    export type ShortNameDestinationRoot = User | Organization | FeedChannel | ConversationRoom | EditorsChoiceChatsCollection;
+    export type ShortNameDestinationRoot = User | Organization | FeedChannel | ConversationRoom | EditorsChoiceChatsCollection | DiscussionHub;
 
     //
     // Oauth

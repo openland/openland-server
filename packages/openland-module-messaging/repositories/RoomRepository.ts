@@ -49,7 +49,7 @@ export class RoomRepository {
     async createRoom(parent: Context, kind: 'public' | 'group', oid: number | undefined, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean, channel?: boolean, price?: number, interval?: 'week' | 'month') {
         return await inTx(parent, async (ctx) => {
             let id = await this.fetchNextConversationId(ctx);
-            let conv = await Store.Conversation.create(ctx, id, { kind: 'room' });
+            let conv = await Store.Conversation.create(ctx, id, {kind: 'room'});
             await Store.ConversationRoom.create(ctx, id, {
                 kind,
                 ownerId: uid,
@@ -70,7 +70,7 @@ export class RoomRepository {
                     price,
                     interval: interval,
                 });
-                await Store.PremiumChatUserPass.create(ctx, id, uid, { isActive: true });
+                await Store.PremiumChatUserPass.create(ctx, id, uid, {isActive: true});
             }
             await this.createRoomParticipant(ctx, id, uid, {
                 role: 'owner',
@@ -273,7 +273,7 @@ export class RoomRepository {
 
             await conv.flush(ctx);
 
-            return { updatedTitle, updatedPhoto };
+            return {updatedTitle, updatedPhoto};
         });
     }
 
@@ -561,8 +561,11 @@ export class RoomRepository {
             let conv = await Store.ConversationPrivate.users.find(ctx, Math.min(uid1, uid2), Math.max(uid1, uid2));
             if (!conv) {
                 let id = await this.fetchNextConversationId(ctx);
-                await (await Store.Conversation.create(ctx, id, { kind: 'private' })).flush(ctx);
-                conv = await Store.ConversationPrivate.create(ctx, id, { uid1: Math.min(uid1, uid2), uid2: Math.max(uid1, uid2) });
+                await (await Store.Conversation.create(ctx, id, {kind: 'private'})).flush(ctx);
+                conv = await Store.ConversationPrivate.create(ctx, id, {
+                    uid1: Math.min(uid1, uid2),
+                    uid2: Math.max(uid1, uid2)
+                });
                 this.metrics.onChatCreated(ctx, uid1);
                 this.metrics.onChatCreated(ctx, uid2);
                 await conv.flush(ctx);
@@ -574,7 +577,7 @@ export class RoomRepository {
     async hasPrivateChat(parent: Context, uid1: number, uid2: number) {
         let conv = await Store.ConversationPrivate.users.find(parent, Math.min(uid1, uid2), Math.max(uid1, uid2));
         if (conv) {
-            let message = await Store.Message.chat.query(parent, conv.id, { limit: 1 });
+            let message = await Store.Message.chat.query(parent, conv.id, {limit: 1});
             return message.items.length === 1;
         }
         return !!conv;
@@ -585,8 +588,8 @@ export class RoomRepository {
             let conv = await Store.ConversationOrganization.organization.find(ctx, oid);
             if (!conv) {
                 let id = await this.fetchNextConversationId(ctx);
-                await (await Store.Conversation.create(ctx, id, { kind: 'organization' })).flush(ctx);
-                conv = await Store.ConversationOrganization.create(ctx, id, { oid });
+                await (await Store.Conversation.create(ctx, id, {kind: 'organization'})).flush(ctx);
+                conv = await Store.ConversationOrganization.create(ctx, id, {oid});
                 await conv.flush(ctx);
             }
             return (await Store.Conversation.findById(ctx, conv.id))!;
@@ -869,6 +872,15 @@ export class RoomRepository {
         }
     }
 
+    async canUserSeeChat(ctx: Context, uid: number, cid: number) {
+        try {
+            await this.checkCanUserSeeChat(ctx, uid, cid);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
     async checkCanUserSeeChat(ctx: Context, uid: number, cid: number) {
         let conv = await Store.Conversation.findById(ctx, cid);
         if (!conv) {
@@ -1011,7 +1023,7 @@ export class RoomRepository {
             }
 
             let membersCount = (await Store.RoomProfile.findById(parent, rid)!)!.activeMembersCount || 0;
-            toSort.push({ rid, count: membersCount });
+            toSort.push({rid, count: membersCount});
         }
         let res = toSort.sort((a, b) => b.count - a.count).map(r => r.rid);
 
@@ -1099,7 +1111,7 @@ export class RoomRepository {
         return await inTx(parent, async (ctx) => {
             let sequence = await Store.Sequence.findById(ctx, 'conversation-id');
             if (!sequence) {
-                sequence = (await Store.Sequence.create(ctx, 'conversation-id', { value: 0 }));
+                sequence = (await Store.Sequence.create(ctx, 'conversation-id', {value: 0}));
                 await sequence.flush(ctx);
             }
             return ++sequence.value;
@@ -1156,8 +1168,8 @@ export class RoomRepository {
     //
     private async onRoomJoin(parent: Context, cid: number, uid: number, by: number) {
         return await inTx(parent, async (ctx) => {
-            await EventBus.publish(`chat_join_${cid}`, { uid, cid });
-            membersLog.event(ctx, { rid: cid, delta: 1 });
+            await EventBus.publish(`chat_join_${cid}`, {uid, cid});
+            membersLog.event(ctx, {rid: cid, delta: 1});
 
             let room = await Store.ConversationRoom.findById(ctx, cid);
             let roomProfile = await Store.RoomProfile.findById(ctx, cid);
@@ -1189,7 +1201,7 @@ export class RoomRepository {
             const welcomeMessage = await this.resolveConversationWelcomeMessage(ctx, cid);
             if (welcomeMessage && welcomeMessage.isOn && welcomeMessage.sender) {
                 // Send welcome message after 60s
-                await this.welcomeMessageWorker.pushWork(ctx, { uid, cid }, Date.now() + 1000 * 60);
+                await this.welcomeMessageWorker.pushWork(ctx, {uid, cid}, Date.now() + 1000 * 60);
             }
 
             await Modules.Hooks.onRoomJoin(ctx, cid, uid, by);
@@ -1198,12 +1210,12 @@ export class RoomRepository {
 
     private async onRoomLeave(parent: Context, cid: number, uid: number, wasKicked: boolean) {
         return await inTx(parent, async (ctx) => {
-            membersLog.event(ctx, { rid: cid, delta: -1 });
+            membersLog.event(ctx, {rid: cid, delta: -1});
             let roomProfile = await Store.RoomProfile.findById(ctx, cid);
             if (await this.isPublicCommunityChat(ctx, cid)) {
                 await Store.UserAudienceCounter.add(ctx, uid, (roomProfile!.activeMembersCount ? (roomProfile!.activeMembersCount) : 0) * -1);
             }
-            await EventBus.publish(`chat_leave_${cid}`, { uid, cid });
+            await EventBus.publish(`chat_leave_${cid}`, {uid, cid});
 
             let userRoomBadge = await Store.UserRoomBadge.findById(ctx, uid, cid);
 
