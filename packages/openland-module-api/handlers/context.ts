@@ -25,7 +25,7 @@ async function context(src: express.Request): Promise<AppContext> {
         let tid: string | undefined;
         let oid: number | undefined;
 
-        let latLong = src.header('X-Client-Geo-LatLong')?.split(',').map(a => parseInt(a, 10));
+        let latLong = src.header('X-Client-Geo-LatLong')?.split(',').map(a => parseFloat(a));
         res = RequestContext.set(res, {
             ip: src.header('X-Forwarded-For')?.split(', ')[0] || src.connection.remoteAddress,
             latLong: latLong ? {

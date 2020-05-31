@@ -185,7 +185,7 @@ export async function initApi(isTest: boolean) {
             if (ctx.connection) {
                 let wsctx = ctx.connection.context;
                 let ip = context.req.header('X-Forwarded-For')!.split(', ')[0] || context.req.connection.remoteAddress;
-                let latLong = context.req.header('X-Client-Geo-LatLong')?.split(',').map(a => parseInt(a, 10));
+                let latLong = context.req.header('X-Client-Geo-LatLong')?.split(',').map(a => parseFloat(a));
                 let ctx2 = buildWebSocketContext(wsctx || {}, ip, latLong ? { lat: latLong[0], long: latLong[1] } : undefined);
                 return withConcurrentcyPool(ctx2, buildConcurrencyPool(ctx2));
             }
@@ -258,7 +258,7 @@ export async function initApi(isTest: boolean) {
             context: async (params, operation, req) => {
                 let opId = uuid();
                 let ip = req.headers['x-forwarded-for'] as string || req.connection.remoteAddress;
-                let latLong = (req.headers['x-client-geo-latlong'] as string | undefined)?.split(',').map(a => parseInt(a, 10));
+                let latLong = (req.headers['x-client-geo-latlong'] as string | undefined)?.split(',').map(a => parseFloat(a));
                 let ctx = buildWebSocketContext(params || {}, ip,  latLong ? { lat: latLong[0], long: latLong[1] } : undefined).ctx;
                 ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `query ${opId} ${operation.operationName || ''}`);
