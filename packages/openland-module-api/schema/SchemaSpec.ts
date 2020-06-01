@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '8d1246f3436ac0ee7319d187bc0a69da';
+export const GQL_SPEC_VERSION = '0493f982fff877ad6acff892b010a8e1';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1951,6 +1951,8 @@ export namespace GQL {
         author: Nullable<User>;
         title: string;
         content: Paragraph[];
+        draft: Nullable<DiscussionDraft>;
+        canEdit: boolean;
         hub: Nullable<Hub>;
         createdAt: Date;
         updatedAt: Nullable<Date>;
@@ -1960,11 +1962,33 @@ export namespace GQL {
     export interface DiscussionAuthorArgs { }
     export interface DiscussionTitleArgs { }
     export interface DiscussionContentArgs { }
+    export interface DiscussionDraftArgs { }
+    export interface DiscussionCanEditArgs { }
     export interface DiscussionHubArgs { }
     export interface DiscussionCreatedAtArgs { }
     export interface DiscussionUpdatedAtArgs { }
     export interface DiscussionDeletedAtArgs { }
-    export type Paragraph = TextParagraph | ImageParagraph;
+    export interface DiscussionDraft {
+        id: string;
+        author: Nullable<User>;
+        title: string;
+        content: Paragraph[];
+        publishedCopy: Nullable<Discussion>;
+        hub: Nullable<Hub>;
+        createdAt: Date;
+        updatedAt: Nullable<Date>;
+        deletedAt: Nullable<Date>;
+    }
+    export interface DiscussionDraftIdArgs { }
+    export interface DiscussionDraftAuthorArgs { }
+    export interface DiscussionDraftTitleArgs { }
+    export interface DiscussionDraftContentArgs { }
+    export interface DiscussionDraftPublishedCopyArgs { }
+    export interface DiscussionDraftHubArgs { }
+    export interface DiscussionDraftCreatedAtArgs { }
+    export interface DiscussionDraftUpdatedAtArgs { }
+    export interface DiscussionDraftDeletedAtArgs { }
+    export type Paragraph = TextParagraph | ImageParagraph | H1Paragraph | H2Paragraph;
     export interface TextParagraph {
         text: string;
         spans: MessageSpan[];
@@ -1972,15 +1996,27 @@ export namespace GQL {
     export interface TextParagraphTextArgs { }
     export interface TextParagraphSpansArgs { }
     export interface ImageParagraph {
+        url: string;
         image: ImageRef;
+        fileMetadata: FileMetadata;
     }
+    export interface ImageParagraphUrlArgs { }
     export interface ImageParagraphImageArgs { }
+    export interface ImageParagraphFileMetadataArgs { }
+    export interface H1Paragraph {
+        text: string;
+    }
+    export interface H1ParagraphTextArgs { }
+    export interface H2Paragraph {
+        text: string;
+    }
+    export interface H2ParagraphTextArgs { }
     export interface DiscussionInput {
         hub: Nullable<string>;
         title: Nullable<string>;
         content: Nullable<DiscussionContentInput[]>;
     }
-    export type DiscussionContentTypeValues = 'Text' | 'Image';
+    export type DiscussionContentTypeValues = 'Text' | 'Image' | 'H1' | 'H2';
     export type DiscussionContentType = GQLRoots.DiscussionContentTypeRoot;
     export interface DiscussionContentInput {
         type: DiscussionContentType;
@@ -1994,6 +2030,12 @@ export namespace GQL {
     }
     export interface DiscussionConnectionItemsArgs { }
     export interface DiscussionConnectionCursorArgs { }
+    export interface DiscussionDraftConnection {
+        items: DiscussionDraft[];
+        cursor: Nullable<string>;
+    }
+    export interface DiscussionDraftConnectionItemsArgs { }
+    export interface DiscussionDraftConnectionCursorArgs { }
     export interface EnvVar {
         name: string;
         value: string;
@@ -2320,9 +2362,9 @@ export namespace GQL {
         mediaStreamAnswer: ConferenceMedia;
         mediaStreamCandidate: ConferenceMedia;
         mediaStreamFailed: ConferenceMedia;
-        discussionCreate: Discussion;
+        discussionCreate: DiscussionDraft;
+        discussionUpdate: DiscussionDraft;
         discussionDraftPublish: Discussion;
-        discussionUpdate: Discussion;
         discussionsDropAll: boolean;
         setEnvVar: boolean;
         setEnvVarString: boolean;
@@ -3079,14 +3121,13 @@ export namespace GQL {
     }
     export interface MutationDiscussionCreateArgs {
         input: DiscussionInput;
-        isDraft: boolean;
-    }
-    export interface MutationDiscussionDraftPublishArgs {
-        draftId: string;
     }
     export interface MutationDiscussionUpdateArgs {
         id: string;
         input: DiscussionInput;
+    }
+    export interface MutationDiscussionDraftPublishArgs {
+        draftId: string;
     }
     export interface MutationDiscussionsDropAllArgs { }
     export interface MutationSetEnvVarArgs {
@@ -3975,8 +4016,9 @@ export namespace GQL {
         conferenceMedia: ConferenceMedia;
         dialogsState: DialogUpdateState;
         discussion: Nullable<Discussion>;
+        discussionDraft: Nullable<DiscussionDraft>;
         discussions: DiscussionConnection;
-        discussionMyDrafts: DiscussionConnection;
+        discussionMyDrafts: DiscussionDraftConnection;
         envVars: Nullable<EnvVar[]>;
         envVar: Nullable<EnvVar>;
         featureFlags: FeatureFlag[];
@@ -4254,8 +4296,11 @@ export namespace GQL {
     export interface QueryDiscussionArgs {
         id: string;
     }
+    export interface QueryDiscussionDraftArgs {
+        id: string;
+    }
     export interface QueryDiscussionsArgs {
-        hubs: string[];
+        hubs: OptionalNullable<string[]>;
         first: number;
         after: OptionalNullable<string>;
     }
@@ -7948,6 +7993,7 @@ export interface GQLResolver {
         {
             author: Nullable<GQLRoots.UserRoot>,
             content: GQLRoots.ParagraphRoot[],
+            draft: Nullable<GQLRoots.DiscussionDraftRoot>,
             hub: Nullable<GQLRoots.HubRoot>,
         },
         {
@@ -7955,13 +8001,36 @@ export interface GQLResolver {
             author: GQL.DiscussionAuthorArgs,
             title: GQL.DiscussionTitleArgs,
             content: GQL.DiscussionContentArgs,
+            draft: GQL.DiscussionDraftArgs,
+            canEdit: GQL.DiscussionCanEditArgs,
             hub: GQL.DiscussionHubArgs,
             createdAt: GQL.DiscussionCreatedAtArgs,
             updatedAt: GQL.DiscussionUpdatedAtArgs,
             deletedAt: GQL.DiscussionDeletedAtArgs,
         }
     >;
-    Paragraph?: UnionTypeResolver<GQLRoots.ParagraphRoot, 'TextParagraph' | 'ImageParagraph'>;
+    DiscussionDraft?: ComplexTypedResolver<
+        GQL.DiscussionDraft,
+        GQLRoots.DiscussionDraftRoot,
+        {
+            author: Nullable<GQLRoots.UserRoot>,
+            content: GQLRoots.ParagraphRoot[],
+            publishedCopy: Nullable<GQLRoots.DiscussionRoot>,
+            hub: Nullable<GQLRoots.HubRoot>,
+        },
+        {
+            id: GQL.DiscussionDraftIdArgs,
+            author: GQL.DiscussionDraftAuthorArgs,
+            title: GQL.DiscussionDraftTitleArgs,
+            content: GQL.DiscussionDraftContentArgs,
+            publishedCopy: GQL.DiscussionDraftPublishedCopyArgs,
+            hub: GQL.DiscussionDraftHubArgs,
+            createdAt: GQL.DiscussionDraftCreatedAtArgs,
+            updatedAt: GQL.DiscussionDraftUpdatedAtArgs,
+            deletedAt: GQL.DiscussionDraftDeletedAtArgs,
+        }
+    >;
+    Paragraph?: UnionTypeResolver<GQLRoots.ParagraphRoot, 'TextParagraph' | 'ImageParagraph' | 'H1Paragraph' | 'H2Paragraph'>;
     TextParagraph?: ComplexTypedResolver<
         GQL.TextParagraph,
         GQLRoots.TextParagraphRoot,
@@ -7978,12 +8047,33 @@ export interface GQLResolver {
         GQLRoots.ImageParagraphRoot,
         {
             image: GQLRoots.ImageRefRoot,
+            fileMetadata: GQLRoots.FileMetadataRoot,
         },
         {
+            url: GQL.ImageParagraphUrlArgs,
             image: GQL.ImageParagraphImageArgs,
+            fileMetadata: GQL.ImageParagraphFileMetadataArgs,
         }
     >;
-    DiscussionContentType?: EnumTypeResolver<'Text' | 'Image', GQLRoots.DiscussionContentTypeRoot>;
+    H1Paragraph?: ComplexTypedResolver<
+        GQL.H1Paragraph,
+        GQLRoots.H1ParagraphRoot,
+        {
+        },
+        {
+            text: GQL.H1ParagraphTextArgs,
+        }
+    >;
+    H2Paragraph?: ComplexTypedResolver<
+        GQL.H2Paragraph,
+        GQLRoots.H2ParagraphRoot,
+        {
+        },
+        {
+            text: GQL.H2ParagraphTextArgs,
+        }
+    >;
+    DiscussionContentType?: EnumTypeResolver<'Text' | 'Image' | 'H1' | 'H2', GQLRoots.DiscussionContentTypeRoot>;
     DiscussionConnection?: ComplexTypedResolver<
         GQL.DiscussionConnection,
         GQLRoots.DiscussionConnectionRoot,
@@ -7993,6 +8083,17 @@ export interface GQLResolver {
         {
             items: GQL.DiscussionConnectionItemsArgs,
             cursor: GQL.DiscussionConnectionCursorArgs,
+        }
+    >;
+    DiscussionDraftConnection?: ComplexTypedResolver<
+        GQL.DiscussionDraftConnection,
+        GQLRoots.DiscussionDraftConnectionRoot,
+        {
+            items: GQLRoots.DiscussionDraftRoot[],
+        },
+        {
+            items: GQL.DiscussionDraftConnectionItemsArgs,
+            cursor: GQL.DiscussionDraftConnectionCursorArgs,
         }
     >;
     EnvVar?: ComplexTypedResolver<
@@ -8253,9 +8354,9 @@ export interface GQLResolver {
             mediaStreamAnswer: GQLRoots.ConferenceMediaRoot,
             mediaStreamCandidate: GQLRoots.ConferenceMediaRoot,
             mediaStreamFailed: GQLRoots.ConferenceMediaRoot,
-            discussionCreate: GQLRoots.DiscussionRoot,
+            discussionCreate: GQLRoots.DiscussionDraftRoot,
+            discussionUpdate: GQLRoots.DiscussionDraftRoot,
             discussionDraftPublish: GQLRoots.DiscussionRoot,
-            discussionUpdate: GQLRoots.DiscussionRoot,
             featureFlagAdd: GQLRoots.FeatureFlagRoot,
             superAccountFeatureAdd: GQLRoots.SuperAccountRoot,
             superAccountFeatureRemove: GQLRoots.SuperAccountRoot,
@@ -8508,8 +8609,8 @@ export interface GQLResolver {
             mediaStreamCandidate: GQL.MutationMediaStreamCandidateArgs,
             mediaStreamFailed: GQL.MutationMediaStreamFailedArgs,
             discussionCreate: GQL.MutationDiscussionCreateArgs,
-            discussionDraftPublish: GQL.MutationDiscussionDraftPublishArgs,
             discussionUpdate: GQL.MutationDiscussionUpdateArgs,
+            discussionDraftPublish: GQL.MutationDiscussionDraftPublishArgs,
             discussionsDropAll: GQL.MutationDiscussionsDropAllArgs,
             setEnvVar: GQL.MutationSetEnvVarArgs,
             setEnvVarString: GQL.MutationSetEnvVarStringArgs,
@@ -9051,8 +9152,9 @@ export interface GQLResolver {
             conferenceMedia: GQLRoots.ConferenceMediaRoot,
             dialogsState: GQLRoots.DialogUpdateStateRoot,
             discussion: Nullable<GQLRoots.DiscussionRoot>,
+            discussionDraft: Nullable<GQLRoots.DiscussionDraftRoot>,
             discussions: GQLRoots.DiscussionConnectionRoot,
-            discussionMyDrafts: GQLRoots.DiscussionConnectionRoot,
+            discussionMyDrafts: GQLRoots.DiscussionDraftConnectionRoot,
             envVars: Nullable<GQLRoots.EnvVarRoot[]>,
             envVar: Nullable<GQLRoots.EnvVarRoot>,
             featureFlags: GQLRoots.FeatureFlagRoot[],
@@ -9214,6 +9316,7 @@ export interface GQLResolver {
             conferenceMedia: GQL.QueryConferenceMediaArgs,
             dialogsState: GQL.QueryDialogsStateArgs,
             discussion: GQL.QueryDiscussionArgs,
+            discussionDraft: GQL.QueryDiscussionDraftArgs,
             discussions: GQL.QueryDiscussionsArgs,
             discussionMyDrafts: GQL.QueryDiscussionMyDraftsArgs,
             envVars: GQL.QueryEnvVarsArgs,

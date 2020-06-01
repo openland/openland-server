@@ -81,7 +81,7 @@ import {
     GqlTrace,
     ConferenceEndStream,
     DiscussionHub,
-    Discussion,
+    Discussion, DiscussionDraft,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -119,7 +119,7 @@ import { PowerupChatUserSettings } from 'openland-module-powerups/PowerupsReposi
 import Stripe from 'stripe';
 import { PermissionGroup } from 'openland-module-permissions/PermissionsRepository';
 import {
-    DiscussionContent,
+    DiscussionContent, H1Paragraph, H2Paragraph,
     ImageParagraph,
     TextParagraph
 } from '../../openland-module-discussions/repositories/DiscussionsRepository';
@@ -711,9 +711,13 @@ export namespace GQLRoots {
     export type HubRoot = DiscussionHub;
     export type HubTypeRoot = 'system' | 'personal' | 'public' | 'secret';
     export type DiscussionRoot = Discussion;
+    export type DiscussionDraftRoot = DiscussionDraft;
     export type DiscussionConnectionRoot = { items: DiscussionRoot[], cursor: string|null };
+    export type DiscussionDraftConnectionRoot = { items: DiscussionDraft[], cursor: string|null };
     export type ParagraphRoot = DiscussionContent;
     export type ImageParagraphRoot = ImageParagraph;
     export type TextParagraphRoot = TextParagraph;
+    export type H1ParagraphRoot = H1Paragraph;
+    export type H2ParagraphRoot = H2Paragraph;
     export type DiscussionContentTypeRoot = DiscussionContentTypeValues;
 }

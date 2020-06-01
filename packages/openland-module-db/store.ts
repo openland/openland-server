@@ -19510,23 +19510,25 @@ export interface DiscussionShape {
     id: number;
     uid: number;
     hubId: number | null;
-    state: 'draft' | 'published' | 'archived';
+    state: 'published' | 'archived';
     publishedAt: number | null;
     editedAt: number | null;
     archivedAt: number | null;
+    version: number;
     title: string;
-    content: ({ type: 'text', text: string, spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] } | { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } } })[] | null;
+    content: ({ type: 'text', text: string, spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] } | { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } } } | { type: 'h1', text: string } | { type: 'h2', text: string })[] | null;
 }
 
 export interface DiscussionCreateShape {
     uid: number;
     hubId?: number | null | undefined;
-    state: 'draft' | 'published' | 'archived';
+    state: 'published' | 'archived';
     publishedAt?: number | null | undefined;
     editedAt?: number | null | undefined;
     archivedAt?: number | null | undefined;
+    version: number;
     title: string;
-    content?: ({ type: 'text', text: string, spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] } | { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } } })[] | null | undefined;
+    content?: ({ type: 'text', text: string, spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] } | { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } } } | { type: 'h1', text: string } | { type: 'h2', text: string })[] | null | undefined;
 }
 
 export class Discussion extends Entity<DiscussionShape> {
@@ -19549,8 +19551,8 @@ export class Discussion extends Entity<DiscussionShape> {
             this.invalidate();
         }
     }
-    get state(): 'draft' | 'published' | 'archived' { return this._rawValue.state; }
-    set state(value: 'draft' | 'published' | 'archived') {
+    get state(): 'published' | 'archived' { return this._rawValue.state; }
+    set state(value: 'published' | 'archived') {
         let normalized = this.descriptor.codec.fields.state.normalize(value);
         if (this._rawValue.state !== normalized) {
             this._rawValue.state = normalized;
@@ -19585,6 +19587,15 @@ export class Discussion extends Entity<DiscussionShape> {
             this.invalidate();
         }
     }
+    get version(): number { return this._rawValue.version; }
+    set version(value: number) {
+        let normalized = this.descriptor.codec.fields.version.normalize(value);
+        if (this._rawValue.version !== normalized) {
+            this._rawValue.version = normalized;
+            this._updatedValues.version = normalized;
+            this.invalidate();
+        }
+    }
     get title(): string { return this._rawValue.title; }
     set title(value: string) {
         let normalized = this.descriptor.codec.fields.title.normalize(value);
@@ -19594,8 +19605,8 @@ export class Discussion extends Entity<DiscussionShape> {
             this.invalidate();
         }
     }
-    get content(): ({ type: 'text', text: string, spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] } | { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } } })[] | null { return this._rawValue.content; }
-    set content(value: ({ type: 'text', text: string, spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] } | { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } } })[] | null) {
+    get content(): ({ type: 'text', text: string, spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] } | { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } } } | { type: 'h1', text: string } | { type: 'h2', text: string })[] | null { return this._rawValue.content; }
+    set content(value: ({ type: 'text', text: string, spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] } | { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } } } | { type: 'h1', text: string } | { type: 'h2', text: string })[] | null) {
         let normalized = this.descriptor.codec.fields.content.normalize(value);
         if (this._rawValue.content !== normalized) {
             this._rawValue.content = normalized;
@@ -19614,7 +19625,6 @@ export class DiscussionFactory extends EntityFactory<DiscussionShape, Discussion
     static async open(storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory('discussion');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'draft', storageKey: 'draft', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('discussion', 'draft'), condition: (src) => src.state === 'draft' });
         secondaryIndexes.push({ name: 'published', storageKey: 'published', type: { type: 'range', fields: [{ name: 'hubId', type: 'opt_integer' }, { name: 'publishedAt', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('discussion', 'published'), condition: (src) => src.state === 'published' });
         secondaryIndexes.push({ name: 'publishedAll', storageKey: 'publishedAll', type: { type: 'range', fields: [{ name: 'publishedAt', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('discussion', 'publishedAll'), condition: (src) => src.state === 'published' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
@@ -19622,22 +19632,24 @@ export class DiscussionFactory extends EntityFactory<DiscussionShape, Discussion
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'hubId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
-        fields.push({ name: 'state', type: { type: 'enum', values: ['draft', 'published', 'archived'] }, secure: false });
+        fields.push({ name: 'state', type: { type: 'enum', values: ['published', 'archived'] }, secure: false });
         fields.push({ name: 'publishedAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'editedAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'archivedAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'version', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'title', type: { type: 'string' }, secure: false });
-        fields.push({ name: 'content', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { text: { text: { type: 'string' }, spans: { type: 'array', inner: { type: 'union', types: { user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, user: { type: 'integer' } }, multi_user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, users: { type: 'array', inner: { type: 'integer' } } }, room_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, room: { type: 'integer' } }, link: { offset: { type: 'integer' }, length: { type: 'integer' }, url: { type: 'string' } }, date_text: { offset: { type: 'integer' }, length: { type: 'integer' }, date: { type: 'integer' } }, bold_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, italic_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, irony_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, inline_code_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, code_block_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, insane_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, loud_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, rotating_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, all_mention: { offset: { type: 'integer' }, length: { type: 'integer' } } } } } }, image: { image: { type: 'struct', fields: { image: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } }, info: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } } } } } } } }, secure: false });
+        fields.push({ name: 'content', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { text: { text: { type: 'string' }, spans: { type: 'array', inner: { type: 'union', types: { user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, user: { type: 'integer' } }, multi_user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, users: { type: 'array', inner: { type: 'integer' } } }, room_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, room: { type: 'integer' } }, link: { offset: { type: 'integer' }, length: { type: 'integer' }, url: { type: 'string' } }, date_text: { offset: { type: 'integer' }, length: { type: 'integer' }, date: { type: 'integer' } }, bold_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, italic_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, irony_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, inline_code_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, code_block_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, insane_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, loud_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, rotating_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, all_mention: { offset: { type: 'integer' }, length: { type: 'integer' } } } } } }, image: { image: { type: 'struct', fields: { image: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } }, info: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } } } }, h1: { text: { type: 'string' } }, h2: { text: { type: 'string' } } } } } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             uid: c.integer,
             hubId: c.optional(c.integer),
-            state: c.enum('draft', 'published', 'archived'),
+            state: c.enum('published', 'archived'),
             publishedAt: c.optional(c.integer),
             editedAt: c.optional(c.integer),
             archivedAt: c.optional(c.integer),
+            version: c.integer,
             title: c.string,
-            content: c.optional(c.array(c.union({ text: c.struct({ text: c.string, spans: c.array(c.union({ user_mention: c.struct({ offset: c.integer, length: c.integer, user: c.integer }), multi_user_mention: c.struct({ offset: c.integer, length: c.integer, users: c.array(c.integer) }), room_mention: c.struct({ offset: c.integer, length: c.integer, room: c.integer }), link: c.struct({ offset: c.integer, length: c.integer, url: c.string }), date_text: c.struct({ offset: c.integer, length: c.integer, date: c.integer }), bold_text: c.struct({ offset: c.integer, length: c.integer }), italic_text: c.struct({ offset: c.integer, length: c.integer }), irony_text: c.struct({ offset: c.integer, length: c.integer }), inline_code_text: c.struct({ offset: c.integer, length: c.integer }), code_block_text: c.struct({ offset: c.integer, length: c.integer }), insane_text: c.struct({ offset: c.integer, length: c.integer }), loud_text: c.struct({ offset: c.integer, length: c.integer }), rotating_text: c.struct({ offset: c.integer, length: c.integer }), all_mention: c.struct({ offset: c.integer, length: c.integer }) })) }), image: c.struct({ image: c.struct({ image: c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) }), info: c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string }) }) }) }))),
+            content: c.optional(c.array(c.union({ text: c.struct({ text: c.string, spans: c.array(c.union({ user_mention: c.struct({ offset: c.integer, length: c.integer, user: c.integer }), multi_user_mention: c.struct({ offset: c.integer, length: c.integer, users: c.array(c.integer) }), room_mention: c.struct({ offset: c.integer, length: c.integer, room: c.integer }), link: c.struct({ offset: c.integer, length: c.integer, url: c.string }), date_text: c.struct({ offset: c.integer, length: c.integer, date: c.integer }), bold_text: c.struct({ offset: c.integer, length: c.integer }), italic_text: c.struct({ offset: c.integer, length: c.integer }), irony_text: c.struct({ offset: c.integer, length: c.integer }), inline_code_text: c.struct({ offset: c.integer, length: c.integer }), code_block_text: c.struct({ offset: c.integer, length: c.integer }), insane_text: c.struct({ offset: c.integer, length: c.integer }), loud_text: c.struct({ offset: c.integer, length: c.integer }), rotating_text: c.struct({ offset: c.integer, length: c.integer }), all_mention: c.struct({ offset: c.integer, length: c.integer }) })) }), image: c.struct({ image: c.struct({ image: c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) }), info: c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string }) }) }), h1: c.struct({ text: c.string }), h2: c.struct({ text: c.string }) }))),
         });
         let descriptor: EntityDescriptor<DiscussionShape> = {
             name: 'Discussion',
@@ -19652,48 +19664,33 @@ export class DiscussionFactory extends EntityFactory<DiscussionShape, Discussion
         super(descriptor);
     }
 
-    readonly draft = Object.freeze({
-        findAll: async (ctx: Context, uid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
-        },
-        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (uid: number, opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
-        },
-        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
-        },
-    });
-
     readonly published = Object.freeze({
         findAll: async (ctx: Context, hubId: number | null) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [hubId])).items;
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [hubId])).items;
         },
         query: (ctx: Context, hubId: number | null, opts?: RangeQueryOptions<number | null>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [hubId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [hubId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (hubId: number | null, opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[1], [hubId], opts);
+            return this._createStream(this.descriptor.secondaryIndexes[0], [hubId], opts);
         },
         liveStream: (ctx: Context, hubId: number | null, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [hubId], opts);
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [hubId], opts);
         },
     });
 
     readonly publishedAll = Object.freeze({
         findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
         },
         query: (ctx: Context, opts?: RangeQueryOptions<number | null>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[2], [], opts);
+            return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
         },
         liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [], opts);
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
         },
     });
 
@@ -19715,6 +19712,186 @@ export class DiscussionFactory extends EntityFactory<DiscussionShape, Discussion
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<DiscussionShape>): Discussion {
         return new Discussion([value.id], value, this.descriptor, this._flush, this._delete, ctx);
+    }
+}
+
+export interface DiscussionDraftShape {
+    id: number;
+    uid: number;
+    hubId: number | null;
+    state: 'draft' | 'archived';
+    editedAt: number | null;
+    archivedAt: number | null;
+    version: number;
+    title: string;
+    content: ({ type: 'text', text: string, spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] } | { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } } } | { type: 'h1', text: string } | { type: 'h2', text: string })[] | null;
+}
+
+export interface DiscussionDraftCreateShape {
+    uid: number;
+    hubId?: number | null | undefined;
+    state: 'draft' | 'archived';
+    editedAt?: number | null | undefined;
+    archivedAt?: number | null | undefined;
+    version: number;
+    title: string;
+    content?: ({ type: 'text', text: string, spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] } | { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } } } | { type: 'h1', text: string } | { type: 'h2', text: string })[] | null | undefined;
+}
+
+export class DiscussionDraft extends Entity<DiscussionDraftShape> {
+    get id(): number { return this._rawValue.id; }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get hubId(): number | null { return this._rawValue.hubId; }
+    set hubId(value: number | null) {
+        let normalized = this.descriptor.codec.fields.hubId.normalize(value);
+        if (this._rawValue.hubId !== normalized) {
+            this._rawValue.hubId = normalized;
+            this._updatedValues.hubId = normalized;
+            this.invalidate();
+        }
+    }
+    get state(): 'draft' | 'archived' { return this._rawValue.state; }
+    set state(value: 'draft' | 'archived') {
+        let normalized = this.descriptor.codec.fields.state.normalize(value);
+        if (this._rawValue.state !== normalized) {
+            this._rawValue.state = normalized;
+            this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+    get editedAt(): number | null { return this._rawValue.editedAt; }
+    set editedAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.editedAt.normalize(value);
+        if (this._rawValue.editedAt !== normalized) {
+            this._rawValue.editedAt = normalized;
+            this._updatedValues.editedAt = normalized;
+            this.invalidate();
+        }
+    }
+    get archivedAt(): number | null { return this._rawValue.archivedAt; }
+    set archivedAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.archivedAt.normalize(value);
+        if (this._rawValue.archivedAt !== normalized) {
+            this._rawValue.archivedAt = normalized;
+            this._updatedValues.archivedAt = normalized;
+            this.invalidate();
+        }
+    }
+    get version(): number { return this._rawValue.version; }
+    set version(value: number) {
+        let normalized = this.descriptor.codec.fields.version.normalize(value);
+        if (this._rawValue.version !== normalized) {
+            this._rawValue.version = normalized;
+            this._updatedValues.version = normalized;
+            this.invalidate();
+        }
+    }
+    get title(): string { return this._rawValue.title; }
+    set title(value: string) {
+        let normalized = this.descriptor.codec.fields.title.normalize(value);
+        if (this._rawValue.title !== normalized) {
+            this._rawValue.title = normalized;
+            this._updatedValues.title = normalized;
+            this.invalidate();
+        }
+    }
+    get content(): ({ type: 'text', text: string, spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] } | { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } } } | { type: 'h1', text: string } | { type: 'h2', text: string })[] | null { return this._rawValue.content; }
+    set content(value: ({ type: 'text', text: string, spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number })[] } | { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } } } | { type: 'h1', text: string } | { type: 'h2', text: string })[] | null) {
+        let normalized = this.descriptor.codec.fields.content.normalize(value);
+        if (this._rawValue.content !== normalized) {
+            this._rawValue.content = normalized;
+            this._updatedValues.content = normalized;
+            this.invalidate();
+        }
+    }
+
+    delete(ctx: Context) {
+        return this._delete(ctx);
+    }
+}
+
+export class DiscussionDraftFactory extends EntityFactory<DiscussionDraftShape, DiscussionDraft> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('discussionDraft');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'draft', storageKey: 'draft', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('discussionDraft', 'draft'), condition: (src) => src.state === 'draft' });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'hubId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'state', type: { type: 'enum', values: ['draft', 'archived'] }, secure: false });
+        fields.push({ name: 'editedAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'archivedAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'version', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'title', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'content', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { text: { text: { type: 'string' }, spans: { type: 'array', inner: { type: 'union', types: { user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, user: { type: 'integer' } }, multi_user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, users: { type: 'array', inner: { type: 'integer' } } }, room_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, room: { type: 'integer' } }, link: { offset: { type: 'integer' }, length: { type: 'integer' }, url: { type: 'string' } }, date_text: { offset: { type: 'integer' }, length: { type: 'integer' }, date: { type: 'integer' } }, bold_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, italic_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, irony_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, inline_code_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, code_block_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, insane_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, loud_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, rotating_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, all_mention: { offset: { type: 'integer' }, length: { type: 'integer' } } } } } }, image: { image: { type: 'struct', fields: { image: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } }, info: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } } } }, h1: { text: { type: 'string' } }, h2: { text: { type: 'string' } } } } } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            uid: c.integer,
+            hubId: c.optional(c.integer),
+            state: c.enum('draft', 'archived'),
+            editedAt: c.optional(c.integer),
+            archivedAt: c.optional(c.integer),
+            version: c.integer,
+            title: c.string,
+            content: c.optional(c.array(c.union({ text: c.struct({ text: c.string, spans: c.array(c.union({ user_mention: c.struct({ offset: c.integer, length: c.integer, user: c.integer }), multi_user_mention: c.struct({ offset: c.integer, length: c.integer, users: c.array(c.integer) }), room_mention: c.struct({ offset: c.integer, length: c.integer, room: c.integer }), link: c.struct({ offset: c.integer, length: c.integer, url: c.string }), date_text: c.struct({ offset: c.integer, length: c.integer, date: c.integer }), bold_text: c.struct({ offset: c.integer, length: c.integer }), italic_text: c.struct({ offset: c.integer, length: c.integer }), irony_text: c.struct({ offset: c.integer, length: c.integer }), inline_code_text: c.struct({ offset: c.integer, length: c.integer }), code_block_text: c.struct({ offset: c.integer, length: c.integer }), insane_text: c.struct({ offset: c.integer, length: c.integer }), loud_text: c.struct({ offset: c.integer, length: c.integer }), rotating_text: c.struct({ offset: c.integer, length: c.integer }), all_mention: c.struct({ offset: c.integer, length: c.integer }) })) }), image: c.struct({ image: c.struct({ image: c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) }), info: c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string }) }) }), h1: c.struct({ text: c.string }), h2: c.struct({ text: c.string }) }))),
+        });
+        let descriptor: EntityDescriptor<DiscussionDraftShape> = {
+            name: 'DiscussionDraft',
+            storageKey: 'discussionDraft',
+            allowDelete: true,
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new DiscussionDraftFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<DiscussionDraftShape>) {
+        super(descriptor);
+    }
+
+    readonly draft = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: DiscussionDraftCreateShape): Promise<DiscussionDraft> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: DiscussionDraftCreateShape): DiscussionDraft {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<DiscussionDraft | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<DiscussionDraftShape>): DiscussionDraft {
+        return new DiscussionDraft([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -21190,6 +21367,7 @@ export interface Store extends BaseStore {
     readonly ClickHouseMigrations: ClickHouseMigrationsFactory;
     readonly DiscussionHub: DiscussionHubFactory;
     readonly Discussion: DiscussionFactory;
+    readonly DiscussionDraft: DiscussionDraftFactory;
     readonly ConversationEventStore: ConversationEventStore;
     readonly DialogIndexEventStore: DialogIndexEventStore;
     readonly UserDialogEventStore: UserDialogEventStore;
@@ -21418,6 +21596,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ClickHouseMigrationsPromise = ClickHouseMigrationsFactory.open(storage);
     let DiscussionHubPromise = DiscussionHubFactory.open(storage);
     let DiscussionPromise = DiscussionFactory.open(storage);
+    let DiscussionDraftPromise = DiscussionDraftFactory.open(storage);
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
     let UserCountersIndexDirectoryPromise = storage.resolveCustomDirectory('userCountersIndex');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
@@ -21615,6 +21794,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ClickHouseMigrations: await ClickHouseMigrationsPromise,
         DiscussionHub: await DiscussionHubPromise,
         Discussion: await DiscussionPromise,
+        DiscussionDraft: await DiscussionDraftPromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,
         UserCountersIndexDirectory: await UserCountersIndexDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,

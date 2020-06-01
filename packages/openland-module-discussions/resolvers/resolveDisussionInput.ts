@@ -35,6 +35,24 @@ export async function resolveDiscussionInput(ctx: Context, input: DiscussionInpu
                     }
                 });
             }
+            if (part.type === 'H1') {
+                if (part.text?.includes('\n')) {
+                    throw new UserError('Line breaks should be divided to separate paragraph');
+                }
+                content.push({
+                    type: 'h1',
+                    text: part.text || ''
+                });
+            }
+            if (part.type === 'H2') {
+                if (part.text?.includes('\n')) {
+                    throw new UserError('Line breaks should be divided to separate paragraph');
+                }
+                content.push({
+                    type: 'h2',
+                    text: part.text || ''
+                });
+            }
         }
     }
 
