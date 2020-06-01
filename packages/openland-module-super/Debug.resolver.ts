@@ -92,7 +92,7 @@ export const Resolver: GQLResolver = {
         ip: (root) => root,
         location: (root, _, ctx) => ctx.req.latLong || null,
         locationCode: async root => '',
-        locationName: async root => 'null',
+        locationName: async root => '',
     },
     DebugEvent: {
         seq: src => src.seq,

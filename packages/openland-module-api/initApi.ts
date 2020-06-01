@@ -184,9 +184,7 @@ export async function initApi(isTest: boolean) {
             // WS
             if (ctx.connection) {
                 let wsctx = ctx.connection.context;
-                let ip = context.req.header('X-Forwarded-For')!.split(', ')[0] || context.req.connection.remoteAddress;
-                let latLong = context.req.header('X-Client-Geo-LatLong')?.split(',').map(a => parseFloat(a));
-                let ctx2 = buildWebSocketContext(wsctx || {}, ip, latLong ? { lat: latLong[0], long: latLong[1] } : undefined);
+                let ctx2 = buildWebSocketContext(wsctx || {}, context.req.header('X-Forwarded-For'), context.req.header('X-Client-Geo-LatLong'));
                 return withConcurrentcyPool(ctx2, buildConcurrencyPool(ctx2));
             }
             await TokenChecker(context.req, context.res);
@@ -257,9 +255,7 @@ export async function initApi(isTest: boolean) {
             },
             context: async (params, operation, req) => {
                 let opId = uuid();
-                let ip = req.headers['x-forwarded-for'] as string || req.connection.remoteAddress;
-                let latLong = (req.headers['x-client-geo-latlong'] as string | undefined)?.split(',').map(a => parseFloat(a));
-                let ctx = buildWebSocketContext(params || {}, ip,  latLong ? { lat: latLong[0], long: latLong[1] } : undefined).ctx;
+                let ctx = buildWebSocketContext(params || {}, req.headers['x-forwarded-for'] as string, req.headers['x-client-geo-latlong'] as string).ctx;
                 ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `query ${opId} ${operation.operationName || ''}`);
                 ctx = withGqlQueryId(ctx, opId);
@@ -269,7 +265,7 @@ export async function initApi(isTest: boolean) {
             },
             subscriptionContext: async (params, operation, firstCtx, req) => {
                 let opId = firstCtx ? GqlQueryIdNamespace.get(firstCtx)! : uuid();
-                let ctx = buildWebSocketContext(params || {}, (req.headers['x-forwarded-for'] as string).split(', ')[0] || req!.connection.remoteAddress).ctx;
+                let ctx = buildWebSocketContext(params || {}, req.headers['x-forwarded-for'] as string, req.headers['x-client-geo-latlong'] as string).ctx;
                 ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `subscription ${opId} ${operation.operationName || ''}`);
                 ctx = withGqlQueryId(ctx, opId);
