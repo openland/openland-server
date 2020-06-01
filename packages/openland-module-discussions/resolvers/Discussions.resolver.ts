@@ -8,6 +8,7 @@ import { inTx } from '@openland/foundationdb';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import ParagraphRoot = GQLRoots.ParagraphRoot;
 import { resolveDiscussionInput } from './resolveDisussionInput';
+import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
 
 export const Resolver: GQLResolver = {
     Discussion: {
@@ -16,12 +17,39 @@ export const Resolver: GQLResolver = {
         title: src => src.title,
         content: src => src.content || [],
         hub: async (src, args, ctx) => src.hubId ? (await Store.DiscussionHub.findById(ctx, src.hubId))! : null,
+        draft: async (src, args, ctx) => {
+            let draft = await Store.DiscussionDraft.findById(ctx, src.id);
+            if (!ctx.auth.uid) {
+                return null;
+            }
+            if (draft?.id === ctx.auth.uid) {
+                return draft;
+            }
+
+            return null;
+        },
+        canEdit: (src, args, ctx) => src.uid === ctx.auth.uid,
+        createdAt: src => src.metadata.createdAt,
+        updatedAt: src => src.metadata.updatedAt,
+        deletedAt: src => src.archivedAt
+    },
+    DiscussionDraft: {
+        id: src => IDs.Discussion.serialize(src.id),
+        author: src => src.uid,
+        title: src => src.title,
+        content: src => src.content || [],
+        hub: async (src, args, ctx) => src.hubId ? (await Store.DiscussionHub.findById(ctx, src.hubId))! : null,
+        publishedCopy: (src, args, ctx) => Store.Discussion.findById(ctx, src.id),
         createdAt: src => src.metadata.createdAt,
         updatedAt: src => src.metadata.updatedAt,
         deletedAt: src => src.archivedAt
     },
 
     DiscussionConnection: {
+        items: src => src.items,
+        cursor: src => src.cursor
+    },
+    DiscussionDraftConnection: {
         items: src => src.items,
         cursor: src => src.cursor
     },
@@ -32,6 +60,10 @@ export const Resolver: GQLResolver = {
                 return 'TextParagraph';
             } else if (root.type === 'image') {
                 return 'ImageParagraph';
+            } else if (root.type === 'h1') {
+                return 'H1Paragraph';
+            } else if (root.type === 'h2') {
+                return 'H2Paragraph';
             }
             throw new Error('Unknown paragraph type ' + root);
         }
@@ -41,16 +73,31 @@ export const Resolver: GQLResolver = {
         spans: src => src.spans
     },
     ImageParagraph: {
-        image: src => src.image.image
+        url: src => buildBaseImageUrl({uuid: src.image.image.uuid, crop: src.image.image.crop || null})!,
+        image: src => src.image.image,
+        fileMetadata: src => src.image.info
+    },
+    H1Paragraph: {
+        text: src => src.text
+    },
+    H2Paragraph: {
+        text: src => src.text
     },
 
     Query: {
         discussion: async (_, args, ctx) => {
             return await Store.Discussion.findById(ctx, IDs.Discussion.parse(args.id));
         },
+        discussionDraft: withUser(async (ctx, args, uid) => {
+            let draft = await Store.DiscussionDraft.findById(ctx, IDs.Discussion.parse(args.id));
+            if (draft && draft.uid === uid) {
+                return draft;
+            }
+            return null;
+        }),
         discussions: async (_, args, ctx) => {
             // Return all discussions if no hubs provided
-            if (args.hubs.length === 0) {
+            if (!args.hubs || args.hubs.length === 0) {
                 let res = await Store.Discussion.publishedAll.query(ctx, {
                     limit: args.first,
                     reverse: true,
@@ -82,7 +129,7 @@ export const Resolver: GQLResolver = {
             };
         },
         discussionMyDrafts: withUser(async (ctx, args, uid) => {
-            let drafts = await Store.Discussion.draft.query(ctx, uid, {
+            let drafts = await Store.DiscussionDraft.draft.query(ctx, uid, {
                 limit: args.first,
                 reverse: true,
                 after: args.after ? parseInt(IDs.DiscussionCursor.parse(args.after), 10) : null
@@ -100,8 +147,7 @@ export const Resolver: GQLResolver = {
             return await Modules.Discussions.discussions.createDiscussion(
                 ctx,
                 uid,
-                await resolveDiscussionInput(ctx, args.input),
-                args.isDraft
+                await resolveDiscussionInput(ctx, args.input)
             );
         }),
         discussionDraftPublish: withUser(async (ctx, args, uid) => {
@@ -117,6 +163,10 @@ export const Resolver: GQLResolver = {
         }),
         discussionsDropAll: withPermission(['super-admin'], async (root) => {
             return await inTx(root, async ctx => {
+                let drafts = await Store.DiscussionDraft.findAll(ctx);
+                for (let draft of drafts) {
+                    await draft.delete(ctx);
+                }
                 let discussions = await Store.Discussion.findAll(ctx);
                 for (let discussion of discussions) {
                     await discussion.delete(ctx);

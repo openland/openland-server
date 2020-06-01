@@ -23,6 +23,18 @@ import {
 } from '@openland/foundationdb-compiler';
 import { Image, Spans } from '../openland-module-db/store.schema';
 
+const DiscussionContent = union({
+    text: struct({
+        text: string(),
+        spans: Spans
+    }),
+    image: struct({
+        image: Image
+    }),
+    h1: struct({ text: string() }),
+    h2: struct({ text: string() }),
+});
+
 export function discussionsStore() {
     entity('DiscussionHub', () => {
         primaryKey('id', integer());
@@ -33,29 +45,39 @@ export function discussionsStore() {
             'secret': struct({ title: string(), uid: integer() })
         }));
     });
+
     entity('Discussion', () => {
         primaryKey('id', integer());
         field('uid', integer());
         field('hubId', optional(integer()));
-        field('state', enumString('draft', 'published', 'archived'));
+        field('state', enumString('published', 'archived'));
         field('publishedAt', optional(integer()));
         field('editedAt', optional(integer()));
         field('archivedAt', optional(integer()));
+        field('version', integer());
 
         field('title', string());
-        field('content', optional(array(union({
-            text: struct({
-                text: string(),
-                spans: Spans
-            }),
-            image: struct({
-                image: Image
-            })
-        }))));
+        field('content', optional(array(DiscussionContent)));
 
-        rangeIndex('draft', ['uid', 'updatedAt']).withCondition((src) => src.state === 'draft');
         rangeIndex('published', ['hubId', 'publishedAt']).withCondition((src) => src.state === 'published');
         rangeIndex('publishedAll', ['publishedAt']).withCondition((src) => src.state === 'published');
+
+        allowDelete();
+    });
+
+    entity('DiscussionDraft', () => {
+        primaryKey('id', integer());
+        field('uid', integer());
+        field('hubId', optional(integer()));
+        field('state', enumString('draft', 'archived'));
+        field('editedAt', optional(integer()));
+        field('archivedAt', optional(integer()));
+        field('version', integer());
+
+        field('title', string());
+        field('content', optional(array(DiscussionContent)));
+
+        rangeIndex('draft', ['uid', 'updatedAt']).withCondition((src) => src.state === 'draft');
 
         allowDelete();
     });

@@ -21,7 +21,6 @@ import {
     float, allowDelete,
 } from '@openland/foundationdb-compiler';
 import { eventStore } from '@openland/foundationdb-compiler/lib/builder';
-import { discussionsStore } from '../openland-module-discussions/Discussions.store';
 
 //
 // Shared declarations
@@ -73,6 +72,8 @@ export const Spans = array(union({
     rotating_text: basicSpan,
     all_mention: basicSpan,
 }));
+
+import { discussionsStore } from '../openland-module-discussions/Discussions.store';
 
 export default declareSchema(() => {
 

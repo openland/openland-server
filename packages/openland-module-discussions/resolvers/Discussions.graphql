@@ -3,6 +3,8 @@ type Discussion {
     author: User
     title: String!
     content: [Paragraph!]!
+    draft: DiscussionDraft
+    canEdit: Boolean!
 
     hub: Hub
     createdAt: Date!
@@ -10,7 +12,24 @@ type Discussion {
     deletedAt: Date
 }
 
-union Paragraph = TextParagraph | ImageParagraph
+type DiscussionDraft {
+    id: ID!
+    author: User
+    title: String!
+    content: [Paragraph!]!
+    publishedCopy: Discussion
+
+    hub: Hub
+    createdAt: Date!
+    updatedAt: Date
+    deletedAt: Date
+}
+
+union Paragraph =
+    | TextParagraph
+    | ImageParagraph
+    | H1Paragraph
+    | H2Paragraph
 
 type TextParagraph {
     text: String!
@@ -18,7 +37,17 @@ type TextParagraph {
 }
 
 type ImageParagraph {
+    url: String!
     image: ImageRef!
+    fileMetadata: FileMetadata!
+}
+
+type H1Paragraph {
+    text: String!
+}
+
+type H2Paragraph {
+    text: String!
 }
 
 input DiscussionInput {
@@ -29,7 +58,9 @@ input DiscussionInput {
 
 enum DiscussionContentType {
     Text,
-    Image
+    Image,
+    H1,
+    H2
 }
 
 input DiscussionContentInput {
@@ -44,15 +75,21 @@ type DiscussionConnection {
     cursor: String
 }
 
+type DiscussionDraftConnection {
+    items: [DiscussionDraft!]!
+    cursor: String
+}
+
 extend type Query {
     discussion(id: ID!): Discussion
-    discussions(hubs: [ID!]!, first: Int!, after: String): DiscussionConnection!
-    discussionMyDrafts(first: Int!, after: String): DiscussionConnection!
+    discussionDraft(id: ID!): DiscussionDraft
+    discussions(hubs: [ID!], first: Int!, after: String): DiscussionConnection!
+    discussionMyDrafts(first: Int!, after: String): DiscussionDraftConnection!
 }
 
 extend type Mutation {
-    discussionCreate(input: DiscussionInput!, isDraft: Boolean!): Discussion!
+    discussionCreate(input: DiscussionInput!): DiscussionDraft!
+    discussionUpdate(id: ID!, input: DiscussionInput!): DiscussionDraft!
     discussionDraftPublish(draftId: ID!): Discussion!
-    discussionUpdate(id: ID!, input: DiscussionInput!): Discussion!
     discussionsDropAll: Boolean!
 }
