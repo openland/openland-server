@@ -13,6 +13,7 @@ import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
 import { distanceBetween, geoIP } from '../openland-utils/geoIp/geoIP';
 import { GQLRoots } from 'openland-module-api/schema/SchemaRoots';
 
+// @ts-ignore
 const resolveNearestTurn = async (latLong: { lat: number, long: number }) => {
     let turns = await resolveTurnServices();
     let nearestDist = Number.MAX_SAFE_INTEGER;
@@ -35,9 +36,9 @@ const resolveNearestTurn = async (latLong: { lat: number, long: number }) => {
 };
 
 const resolveIce = async (root: any, args: any, context: AppContext) => {
-    if (context.req.latLong) {
-        return await resolveNearestTurn(context.req.latLong);
-    }
+    // if (context.req.latLong) {
+    //     return await resolveNearestTurn(context.req.latLong);
+    // }
     return await resolveTurnServices();
 };
 
