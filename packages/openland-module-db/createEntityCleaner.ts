@@ -3,6 +3,7 @@ import { singletonWorker } from '@openland/foundationdb-singleton';
 import { Store } from './FDB';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
+import { logger } from '../openland-server/logs';
 
 type DeletableEntity = Entity<any> & { delete(ctx: Context): void };
 
@@ -61,7 +62,11 @@ export function createEntityCleaner<T extends DeletableEntity>(name: string, ver
                 for (let index of entity.descriptor.secondaryIndexes) {
                     let indexKey = [...index.type.fields.map(a => value[a.name]), ...record.key];
                     if (indexKey.every(a => a !== undefined)) {
-                        await index.subspace.clear(ctx, indexKey);
+                        try {
+                            await index.subspace.clear(ctx, indexKey);
+                        } catch (e) {
+                            logger.warn(`Broken entity index '${index.name}' key - ${JSON.stringify(indexKey)}`);
+                        }
                     }
                 }
                 deletedDelta++;
