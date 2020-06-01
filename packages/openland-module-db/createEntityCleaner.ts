@@ -47,7 +47,7 @@ export function createEntityCleaner<T extends DeletableEntity>(name: string, ver
                 }
             }
 
-            if (res.length === 0) {
+            if (res.length === 0 || brokenRecords.length === 0) {
                 return;
             }
             after = data[data.length - 1].key;
