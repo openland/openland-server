@@ -3,9 +3,10 @@ import { singletonWorker } from '@openland/foundationdb-singleton';
 import { Store } from './FDB';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
-import { logger } from '../openland-server/logs';
+import { createLogger } from '@openland/log';
 
 type DeletableEntity = Entity<any> & { delete(ctx: Context): void };
+const log = createLogger('entity-cleaner');
 
 export function createEntityCleaner<T extends DeletableEntity>(name: string, version: number, entity: EntityFactory<any, any>, batchSize: number, condition: (val: T) => boolean) {
     singletonWorker({ name: 'entities_cleaner' + name, version, delay: 50, db: Store.storage.db }, async (root) => {
@@ -65,7 +66,7 @@ export function createEntityCleaner<T extends DeletableEntity>(name: string, ver
                         try {
                             await index.subspace.clear(ctx, indexKey);
                         } catch (e) {
-                            logger.warn(`Broken entity index '${index.name}' key - ${JSON.stringify(indexKey)}`);
+                            log.warn(ctx, `Broken entity index '${index.name}' key - ${JSON.stringify(indexKey)}`);
                         }
                     }
                 }
