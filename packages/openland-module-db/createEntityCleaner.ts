@@ -65,6 +65,7 @@ export function createEntityCleaner<T extends DeletableEntity>(name: string, ver
                     if (indexKey.every(a => a !== undefined)) {
                         try {
                             await index.subspace.clear(ctx, indexKey);
+                            log.warn(ctx, `Broken entity cleared from ${index.name}`);
                         } catch (e) {
                             log.warn(ctx, `Broken entity index '${index.name}' key - ${JSON.stringify(indexKey)}`);
                         }

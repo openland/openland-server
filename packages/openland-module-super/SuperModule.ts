@@ -65,6 +65,6 @@ export class SuperModule {
         // createEntitiesCounter('Task', 1, Store.Task, 5000);
         // createEntitiesCounter('Message', 1, Store.Message, 5000);
 
-        createEntityCleaner<Task>('Task', 3, Store.Task, 4000, (task) => task.taskStatus === 'completed');
+        createEntityCleaner<Task>('Task', 4, Store.Task, 4000, (task) => task.taskStatus === 'completed');
     }
 }
