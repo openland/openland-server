@@ -129,6 +129,9 @@ export class WorkQueue<ARGS> {
                     await d.promise;
                     await inTx(root, async ctx => {
                         let tsk = (await Store.Task.findById(ctx, task!.res.taskType, task!.res.uid))!;
+                        if (!tsk) {
+                            return;
+                        }
                         tsk.taskLockTimeout = Date.now() + 15000;
                     });
                 });
