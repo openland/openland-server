@@ -645,6 +645,10 @@ export class RoomMediator {
         return await this.repo.checkAccess(ctx, uid, cid);
     }
 
+    async canUserSeeChat(ctx: Context, uid: number, cid: number) {
+        return await this.repo.canUserSeeChat(ctx, uid, cid);
+    }
+
     async checkCanUserSeeChat(ctx: Context, uid: number, cid: number) {
         return await this.repo.checkCanUserSeeChat(ctx, uid, cid);
     }

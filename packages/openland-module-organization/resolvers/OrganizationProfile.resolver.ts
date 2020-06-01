@@ -135,12 +135,13 @@ export const Resolver: GQLResolver = {
 
                 // Schedule indexing
                 await Modules.Orgs.markForUndexing(ctx, profile.id);
-                // Index rooms
+                // Reindex rooms
                 let orgRooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, orgId);
                 let profiles = await Promise.all(orgRooms.map(room => Store.RoomProfile.findById(ctx, room.id)));
                 for (let roomProfile of profiles) {
                     if (roomProfile) {
-                        await roomProfile!.flush(ctx);
+                        await roomProfile.invalidate();
+                        await roomProfile.flush(ctx);
                     }
                 }
 

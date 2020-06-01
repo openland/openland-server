@@ -74,11 +74,29 @@ export const Resolver: GQLResolver = {
             } else if (ownerType === 'feed_channel' && authorized) {
                 return await Store.FeedChannel.findById(ctx, ownerId);
             } else if (ownerType === 'room') {
-                return await Store.ConversationRoom.findById(ctx, ownerId);
+                let room = await Store.ConversationRoom.findById(ctx, ownerId);
+                if (!room) {
+                    return null;
+                }
+                if (authorized && (await Modules.Messaging.room.canUserSeeChat(ctx, ctx.auth.uid!, room.id))) {
+                    return room;
+                }
+                if (!authorized) {
+                    if (room.kind !== 'public') {
+                        return null;
+                    }
+                    if (room.oid) {
+                        let org = (await Store.Organization.findById(ctx, room.oid))!;
+                        if (org.kind === 'community' && org.private) {
+                            return null;
+                        }
+                    }
+                }
+                return null;
             } else if (ownerType === 'collection') {
                 return await Store.EditorsChoiceChatsCollection.findById(ctx, ownerId);
             } else if (ownerType === 'hub') {
-                return (await Store.DiscussionHub.findById(ctx, ownerId)) as any /* WFT? */;
+                return (await Store.DiscussionHub.findById(ctx, ownerId));
             }
 
             return null;

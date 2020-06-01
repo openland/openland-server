@@ -170,7 +170,7 @@ export const Resolver: GQLResolver = {
             } else if (premiumChatSettings.interval) {
                 throw Error('Unknown subscription interval: ' + premiumChatSettings.interval);
             }
-            return { id, price: premiumChatSettings.price, interval };
+            return {id, price: premiumChatSettings.price, interval};
         }),
         premiumSubscription: withAuthFallback(withConverationId(async (ctx, id) => {
             let pass = ctx.auth.uid && await Store.PremiumChatUserPass.findById(ctx, id, ctx.auth.uid);
@@ -219,7 +219,7 @@ export const Resolver: GQLResolver = {
                 return [];
             }
 
-            let members = (await Store.RoomParticipant.active.query(ctx, id, { limit: 50 })).items;
+            let members = (await Store.RoomParticipant.active.query(ctx, id, {limit: 50})).items;
             let profiles = await Promise.all(members.map(m => Store.UserProfile.findById(ctx, m.uid)));
 
             let membersWithPhoto = profiles.filter(p => p!.picture);
@@ -245,7 +245,7 @@ export const Resolver: GQLResolver = {
                 })).items;
             }
 
-            return (await Store.RoomParticipant.active.query(ctx, id, { limit: args.first || 1000 })).items;
+            return (await Store.RoomParticipant.active.query(ctx, id, {limit: args.first || 1000})).items;
         }), []),
         requests: withAuthFallback(withConverationId(async (ctx, id) => ctx.auth.uid && (await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)) || []), []),
         settings: withAuthFallback(async (root, args, ctx) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)), {
@@ -430,8 +430,8 @@ export const Resolver: GQLResolver = {
             if (id.type === IDs.Conversation) {
                 if (await Modules.Messaging.room.userWasKickedFromRoom(ctx, uid, id.id as number)) {
                     return id.id as number;
-                } else {
-                    await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, id.id as number);
+                } else if (!await Modules.Messaging.room.canUserSeeChat(ctx, uid, id.id as number)) {
+                    return null;
                 }
                 return id.id as number;
             } else if (id.type === IDs.User) {
@@ -439,11 +439,11 @@ export const Resolver: GQLResolver = {
             } else if (id.type === IDs.Organization) {
                 let member = await Store.OrganizationMember.findById(ctx, id.id as number, uid);
                 if (!member || member.status !== 'joined') {
-                    throw new IDMailformedError('Invalid id');
+                    return null;
                 }
                 return await Modules.Messaging.room.resolveOrganizationChat(ctx, id.id as number);
             } else {
-                throw new IDMailformedError('Invalid id');
+                return null;
             }
         }),
         rooms: withAccount(async (ctx, args, uid, oid) => {
@@ -503,7 +503,7 @@ export const Resolver: GQLResolver = {
                 })).items;
             }
 
-            return (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true })).items;
+            return (await Store.Message.chat.query(ctx, roomId, {limit: args.first!, reverse: true})).items;
         }),
         roomMember: withActivatedUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.roomId);
@@ -545,7 +545,7 @@ export const Resolver: GQLResolver = {
                     })).items;
                 }
 
-                return (await Store.RoomParticipant.active.query(ctx, roomId, { limit: args.first || 1000 })).items;
+                return (await Store.RoomParticipant.active.query(ctx, roomId, {limit: args.first || 1000})).items;
             }
         }),
         roomAdmins: withActivatedUser(async (ctx, args, uid) => {
@@ -569,7 +569,7 @@ export const Resolver: GQLResolver = {
             if (!conversation) {
                 throw new Error('Room not found');
             }
-            let badges = (await Store.UserRoomBadge.chat.query(ctx, roomId, { limit: args.first || 1000 })).items;
+            let badges = (await Store.UserRoomBadge.chat.query(ctx, roomId, {limit: args.first || 1000})).items;
             return (await Promise.all(badges.map(b => Store.RoomParticipant.findById(ctx, b.cid, b.uid)))).filter(isDefined);
         }),
 
@@ -620,10 +620,10 @@ export const Resolver: GQLResolver = {
             clauses.push({
                 bool: {
                     should: [
-                        { term: { listed: true } },
-                        { terms: { oid: userOrgs } }
+                        {term: {listed: true}},
+                        {terms: {oid: userOrgs}}
                     ],
-                    must_not: { terms: { cid: userDialogs.map(d => d.cid) } }
+                    must_not: {terms: {cid: userDialogs.map(d => d.cid)}}
                 }
             });
 
@@ -633,8 +633,8 @@ export const Resolver: GQLResolver = {
                 size: args.first,
                 from: args.after ? parseInt(args.after, 10) : 0,
                 body: {
-                    sort: [{ membersCount: 'desc' }],
-                    query: { bool: { must: clauses } }
+                    sort: [{membersCount: 'desc'}],
+                    query: {bool: {must: clauses}}
                 }
             });
 
@@ -828,7 +828,7 @@ export const Resolver: GQLResolver = {
         // invite links
         betaRoomInviteLinkSendEmail: withUser(async (parent, args, uid) => {
             await validate({
-                inviteRequests: [{ email: defined(emailValidator) }]
+                inviteRequests: [{email: defined(emailValidator)}]
             }, args);
 
             await inTx(parent, async (ctx) => {
