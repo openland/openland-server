@@ -26,7 +26,7 @@ export function createEntityCleaner<T extends DeletableEntity>(name: string, ver
             first = true;
         }
 
-        log.warn(root, 'Cleaner cursor: ' + JSON.stringify(after));
+        // log.warn(root, 'Cleaner cursor: ' + JSON.stringify(after));
 
         await inTx(root, async ctx => {
             let deletedDelta = 0;
