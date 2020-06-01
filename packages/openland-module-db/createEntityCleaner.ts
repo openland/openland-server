@@ -3,8 +3,10 @@ import { singletonWorker } from '@openland/foundationdb-singleton';
 import { Store } from './FDB';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
+import { createLogger } from '@openland/log';
 
 type DeletableEntity = Entity<any> & { delete(ctx: Context): void };
+const log = createLogger('entity-cleaner');
 
 export function createEntityCleaner<T extends DeletableEntity>(name: string, version: number, entity: EntityFactory<any, any>, batchSize: number, condition: (val: T) => boolean) {
     singletonWorker({ name: 'entities_cleaner' + name, version, delay: 50, db: Store.storage.db }, async (root) => {
@@ -24,9 +26,10 @@ export function createEntityCleaner<T extends DeletableEntity>(name: string, ver
             first = true;
         }
 
+        log.warn(root, 'Cleaner cursor: ' + JSON.stringify(after));
+
         await inTx(root, async ctx => {
             let deletedDelta = 0;
-            let brokenDelta = 0;
 
             // TODO: move this to Entity layer
             let data = await entity.descriptor.subspace.range(ctx, [], {limit: batchSize, after});
@@ -41,11 +44,10 @@ export function createEntityCleaner<T extends DeletableEntity>(name: string, ver
                     res.push(val);
                 } catch (e) {
                     brokenRecords.push(record);
-                    brokenDelta++;
                 }
             }
 
-            if (res.length === 0) {
+            if (res.length === 0 || brokenRecords.length === 0) {
                 return;
             }
             after = data[data.length - 1].key;
@@ -61,8 +63,17 @@ export function createEntityCleaner<T extends DeletableEntity>(name: string, ver
                 await entity.descriptor.subspace.clear(ctx, record.key);
                 let value = record.value;
                 for (let index of entity.descriptor.secondaryIndexes) {
-                    await index.subspace.clear(ctx, [...index.type.fields.map(a => value[a.name]), ...record.key]);
+                    let indexKey = [...index.type.fields.map(a => value[a.name]), ...record.key];
+                    if (indexKey.every(a => a !== undefined)) {
+                        try {
+                            await index.subspace.clear(ctx, indexKey);
+                            log.warn(ctx, `Broken entity cleared from ${index.name}`);
+                        } catch (e) {
+                            log.warn(ctx, `Broken entity index '${index.name}' key - ${JSON.stringify(indexKey)}`);
+                        }
+                    }
                 }
+                deletedDelta++;
             }
 
             let latest = await Store.EntityCleanerState.findById(ctx, name);
@@ -77,14 +88,14 @@ export function createEntityCleaner<T extends DeletableEntity>(name: string, ver
 
                     if (first) {
                         latest.deletedCount = deletedDelta;
-                        latest.brokenRecordsCount = brokenDelta;
+                        latest.brokenRecordsCount = 0;
                     } else {
                         latest.deletedCount += deletedDelta;
-                        latest.brokenRecordsCount += brokenDelta;
+                        latest.brokenRecordsCount += 0;
                     }
                 }
             } else if (!latest) {
-                await Store.EntityCleanerState.create(ctx, name, { lastId: after, version: version, deletedCount: deletedDelta, brokenRecordsCount: brokenDelta });
+                await Store.EntityCleanerState.create(ctx, name, { lastId: after, version: version, deletedCount: deletedDelta, brokenRecordsCount: 0 });
             }
         });
     });

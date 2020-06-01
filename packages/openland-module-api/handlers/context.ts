@@ -10,7 +10,7 @@ import { randomGlobalInviteKey } from 'openland-utils/random';
 import { createLogger, withLogMeta } from '@openland/log';
 import { withReadOnlyTransaction, inTx } from '@openland/foundationdb';
 import { withGqlTrace } from '../../openland-graphql/gqlTracer';
-import { RequestContext } from '../RequestContext';
+import { setRequestContextFrom } from '../RequestContext';
 
 let tracer = createTracer('express');
 const logger = createLogger('http');
@@ -25,14 +25,7 @@ async function context(src: express.Request): Promise<AppContext> {
         let tid: string | undefined;
         let oid: number | undefined;
 
-        let latLong = src.header('X-Client-Geo-LatLong')?.split(',').map(a => parseInt(a, 10));
-        res = RequestContext.set(res, {
-            ip: src.header('X-Forwarded-For')?.split(', ')[0] || src.connection.remoteAddress,
-            latLong: latLong ? {
-                lat: latLong[0],
-                long: latLong[1]
-            } : undefined,
-        });
+        res = setRequestContextFrom(res, src.header('X-Forwarded-For'), src.header('X-Client-Geo-LatLong'));
 
         // User
         if ((src as any).user !== null && (src as any).user !== undefined) {
