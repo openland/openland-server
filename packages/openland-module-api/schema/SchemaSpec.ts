@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '6dfb54c0d1577afe19a2ed2a00480fe4';
+export const GQL_SPEC_VERSION = '193fd1c49276c2c1cb63048a62cb1729';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -813,6 +813,24 @@ export namespace GQL {
         info: Nullable<string>;
         phone: string;
     }
+    export type ChannelTypeValues = 'SYSTEM' | 'PERSONAL' | 'PUBLIC' | 'SECRET';
+    export type ChannelType = GQLRoots.ChannelTypeRoot;
+    export interface Channel {
+        id: string;
+        title: string;
+        type: ChannelType;
+        owner: Nullable<User>;
+        shortname: string;
+    }
+    export interface ChannelIdArgs { }
+    export interface ChannelTitleArgs { }
+    export interface ChannelTypeArgs { }
+    export interface ChannelOwnerArgs { }
+    export interface ChannelShortnameArgs { }
+    export interface ChannelInput {
+        title: Nullable<string>;
+        shortname: Nullable<string>;
+    }
     export type DebugEmailTypeValues = 'WELCOME' | 'ACCOUNT_ACTIVATED' | 'ACCOUNT_DEACTIVATED' | 'MEMBER_REMOVED' | 'MEMBERSHIP_LEVEL_CHANGED' | 'INVITE' | 'MEMBER_JOINED' | 'SIGNUP_CODE' | 'SIGIN_CODE' | 'UNREAD_MESSAGE' | 'UNREAD_MESSAGES' | 'PUBLIC_ROOM_INVITE' | 'PRIVATE_ROOM_INVITE' | 'ROOM_INVITE_ACCEPTED' | 'WEEKLY_DIGEST' | 'GENERIC';
     export type DebugEmailType = GQLRoots.DebugEmailTypeRoot;
     export interface DebugID {
@@ -1052,24 +1070,6 @@ export namespace GQL {
     }
     export interface AuthPointEmailArgs { }
     export interface AuthPointPhoneArgs { }
-    export type HubTypeValues = 'SYSTEM' | 'PERSONAL' | 'PUBLIC' | 'SECRET';
-    export type HubType = GQLRoots.HubTypeRoot;
-    export interface Hub {
-        id: string;
-        title: string;
-        type: HubType;
-        owner: Nullable<User>;
-        shortname: string;
-    }
-    export interface HubIdArgs { }
-    export interface HubTitleArgs { }
-    export interface HubTypeArgs { }
-    export interface HubOwnerArgs { }
-    export interface HubShortnameArgs { }
-    export interface HubInput {
-        title: Nullable<string>;
-        shortname: Nullable<string>;
-    }
     export type MediaStreamIceTransportPolicyValues = 'all' | 'relay';
     export type MediaStreamIceTransportPolicy = GQLRoots.MediaStreamIceTransportPolicyRoot;
     export interface MediaStreamSettings {
@@ -1617,7 +1617,7 @@ export namespace GQL {
     export interface CommentEntryBetaCommentArgs { }
     export interface CommentEntryParentCommentArgs { }
     export interface CommentEntryChildCommentsArgs { }
-    export type CommentPeerRoot = CommentPeerRootMessage | CommentPeerRootFeedItem | CommentPeerRootDiscussion;
+    export type CommentPeerRoot = CommentPeerRootMessage | CommentPeerRootFeedItem | CommentPeerRootPost;
     export interface CommentPeerRootMessage {
         message: GeneralMessage;
         chat: Room;
@@ -1628,10 +1628,10 @@ export namespace GQL {
         item: FeedItem;
     }
     export interface CommentPeerRootFeedItemItemArgs { }
-    export interface CommentPeerRootDiscussion {
-        discussion: Discussion;
+    export interface CommentPeerRootPost {
+        post: Post;
     }
-    export interface CommentPeerRootDiscussionDiscussionArgs { }
+    export interface CommentPeerRootPostPostArgs { }
     export type CommentSubscriptionTypeValues = 'ALL' | 'DIRECT';
     export type CommentSubscriptionType = GQLRoots.CommentSubscriptionTypeRoot;
     export interface CommentSubscription {
@@ -1954,96 +1954,6 @@ export namespace GQL {
         state: Nullable<string>;
     }
     export interface DialogUpdateStateStateArgs { }
-    export interface Discussion {
-        id: string;
-        author: Nullable<User>;
-        title: string;
-        content: Paragraph[];
-        draft: Nullable<DiscussionDraft>;
-        canEdit: boolean;
-        hub: Nullable<Hub>;
-        createdAt: Date;
-        updatedAt: Nullable<Date>;
-        deletedAt: Nullable<Date>;
-    }
-    export interface DiscussionIdArgs { }
-    export interface DiscussionAuthorArgs { }
-    export interface DiscussionTitleArgs { }
-    export interface DiscussionContentArgs { }
-    export interface DiscussionDraftArgs { }
-    export interface DiscussionCanEditArgs { }
-    export interface DiscussionHubArgs { }
-    export interface DiscussionCreatedAtArgs { }
-    export interface DiscussionUpdatedAtArgs { }
-    export interface DiscussionDeletedAtArgs { }
-    export interface DiscussionDraft {
-        id: string;
-        author: Nullable<User>;
-        title: string;
-        content: Paragraph[];
-        publishedCopy: Nullable<Discussion>;
-        hub: Nullable<Hub>;
-        createdAt: Date;
-        updatedAt: Nullable<Date>;
-        deletedAt: Nullable<Date>;
-    }
-    export interface DiscussionDraftIdArgs { }
-    export interface DiscussionDraftAuthorArgs { }
-    export interface DiscussionDraftTitleArgs { }
-    export interface DiscussionDraftContentArgs { }
-    export interface DiscussionDraftPublishedCopyArgs { }
-    export interface DiscussionDraftHubArgs { }
-    export interface DiscussionDraftCreatedAtArgs { }
-    export interface DiscussionDraftUpdatedAtArgs { }
-    export interface DiscussionDraftDeletedAtArgs { }
-    export type Paragraph = TextParagraph | ImageParagraph | H1Paragraph | H2Paragraph;
-    export interface TextParagraph {
-        text: string;
-        spans: MessageSpan[];
-    }
-    export interface TextParagraphTextArgs { }
-    export interface TextParagraphSpansArgs { }
-    export interface ImageParagraph {
-        url: string;
-        image: ImageRef;
-        fileMetadata: FileMetadata;
-    }
-    export interface ImageParagraphUrlArgs { }
-    export interface ImageParagraphImageArgs { }
-    export interface ImageParagraphFileMetadataArgs { }
-    export interface H1Paragraph {
-        text: string;
-    }
-    export interface H1ParagraphTextArgs { }
-    export interface H2Paragraph {
-        text: string;
-    }
-    export interface H2ParagraphTextArgs { }
-    export interface DiscussionInput {
-        hub: Nullable<string>;
-        title: Nullable<string>;
-        content: Nullable<DiscussionContentInput[]>;
-    }
-    export type DiscussionContentTypeValues = 'Text' | 'Image' | 'H1' | 'H2';
-    export type DiscussionContentType = GQLRoots.DiscussionContentTypeRoot;
-    export interface DiscussionContentInput {
-        type: DiscussionContentType;
-        text: Nullable<string>;
-        spans: Nullable<MessageSpanInput[]>;
-        image: Nullable<ImageRefInput>;
-    }
-    export interface DiscussionConnection {
-        items: Discussion[];
-        cursor: Nullable<string>;
-    }
-    export interface DiscussionConnectionItemsArgs { }
-    export interface DiscussionConnectionCursorArgs { }
-    export interface DiscussionDraftConnection {
-        items: DiscussionDraft[];
-        cursor: Nullable<string>;
-    }
-    export interface DiscussionDraftConnectionItemsArgs { }
-    export interface DiscussionDraftConnectionCursorArgs { }
     export interface EnvVar {
         name: string;
         value: string;
@@ -2213,6 +2123,8 @@ export namespace GQL {
         alphaJoinInvite: string;
         joinAppInvite: string;
         phonebookAdd: boolean;
+        channelCreate: Channel;
+        channelCreatePublic: Channel;
         debugSendSMS: boolean;
         debugSerializeId: string;
         debugSendEmail: Nullable<boolean>;
@@ -2290,8 +2202,6 @@ export namespace GQL {
         sendPhonePairCode: string;
         pairPhone: boolean;
         updateSettings: Settings;
-        hubCreate: Hub;
-        hubCreatePublic: Hub;
         conferenceAlterMediaState: Conference;
         conferenceAddScreenShare: Conference;
         conferenceRemoveScreenShare: Conference;
@@ -2370,10 +2280,6 @@ export namespace GQL {
         mediaStreamAnswer: ConferenceMedia;
         mediaStreamCandidate: ConferenceMedia;
         mediaStreamFailed: ConferenceMedia;
-        discussionCreate: DiscussionDraft;
-        discussionUpdate: DiscussionDraft;
-        discussionDraftPublish: Discussion;
-        discussionsDropAll: boolean;
         setEnvVar: boolean;
         setEnvVarString: boolean;
         setEnvVarNumber: boolean;
@@ -2406,6 +2312,10 @@ export namespace GQL {
         createOrganization: Organization;
         updateOrganizationProfile: OrganizationProfile;
         deleteOrganization: boolean;
+        postDraftCreate: PostDraft;
+        postDraftUpdate: PostDraft;
+        postDraftPublish: Post;
+        postsDropAll: boolean;
         registerWebPush: string;
         registerPush: string;
         debugSendAndroidDataPush: boolean;
@@ -2657,6 +2567,12 @@ export namespace GQL {
     export interface MutationPhonebookAddArgs {
         records: PhonebookRecordInput[];
     }
+    export interface MutationChannelCreateArgs {
+        input: ChannelInput;
+    }
+    export interface MutationChannelCreatePublicArgs {
+        input: ChannelInput;
+    }
     export interface MutationDebugSendSMSArgs {
         to: string;
         message: string;
@@ -2810,12 +2726,6 @@ export namespace GQL {
     }
     export interface MutationUpdateSettingsArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
-    }
-    export interface MutationHubCreateArgs {
-        input: HubInput;
-    }
-    export interface MutationHubCreatePublicArgs {
-        input: HubInput;
     }
     export interface MutationConferenceAlterMediaStateArgs {
         id: string;
@@ -3127,17 +3037,6 @@ export namespace GQL {
         id: string;
         peerId: string;
     }
-    export interface MutationDiscussionCreateArgs {
-        input: DiscussionInput;
-    }
-    export interface MutationDiscussionUpdateArgs {
-        id: string;
-        input: DiscussionInput;
-    }
-    export interface MutationDiscussionDraftPublishArgs {
-        draftId: string;
-    }
-    export interface MutationDiscussionsDropAllArgs { }
     export interface MutationSetEnvVarArgs {
         name: string;
         value: string;
@@ -3268,6 +3167,17 @@ export namespace GQL {
     export interface MutationDeleteOrganizationArgs {
         id: string;
     }
+    export interface MutationPostDraftCreateArgs {
+        input: PostInput;
+    }
+    export interface MutationPostDraftUpdateArgs {
+        id: string;
+        input: PostInput;
+    }
+    export interface MutationPostDraftPublishArgs {
+        id: string;
+    }
+    export interface MutationPostsDropAllArgs { }
     export interface MutationRegisterWebPushArgs {
         endpoint: string;
     }
@@ -3931,6 +3841,96 @@ export namespace GQL {
     }
     export interface PopularNowRoomConnectionItemsArgs { }
     export interface PopularNowRoomConnectionCursorArgs { }
+    export interface Post {
+        id: string;
+        author: Nullable<User>;
+        title: string;
+        content: Paragraph[];
+        draft: Nullable<PostDraft>;
+        canEdit: boolean;
+        hub: Nullable<Channel>;
+        createdAt: Date;
+        updatedAt: Nullable<Date>;
+        deletedAt: Nullable<Date>;
+    }
+    export interface PostIdArgs { }
+    export interface PostAuthorArgs { }
+    export interface PostTitleArgs { }
+    export interface PostContentArgs { }
+    export interface PostDraftArgs { }
+    export interface PostCanEditArgs { }
+    export interface PostHubArgs { }
+    export interface PostCreatedAtArgs { }
+    export interface PostUpdatedAtArgs { }
+    export interface PostDeletedAtArgs { }
+    export interface PostDraft {
+        id: string;
+        author: Nullable<User>;
+        title: string;
+        content: Paragraph[];
+        publishedCopy: Nullable<Post>;
+        hub: Nullable<Channel>;
+        createdAt: Date;
+        updatedAt: Nullable<Date>;
+        deletedAt: Nullable<Date>;
+    }
+    export interface PostDraftIdArgs { }
+    export interface PostDraftAuthorArgs { }
+    export interface PostDraftTitleArgs { }
+    export interface PostDraftContentArgs { }
+    export interface PostDraftPublishedCopyArgs { }
+    export interface PostDraftHubArgs { }
+    export interface PostDraftCreatedAtArgs { }
+    export interface PostDraftUpdatedAtArgs { }
+    export interface PostDraftDeletedAtArgs { }
+    export type Paragraph = TextParagraph | ImageParagraph | H1Paragraph | H2Paragraph;
+    export interface TextParagraph {
+        text: string;
+        spans: MessageSpan[];
+    }
+    export interface TextParagraphTextArgs { }
+    export interface TextParagraphSpansArgs { }
+    export interface ImageParagraph {
+        url: string;
+        image: ImageRef;
+        fileMetadata: FileMetadata;
+    }
+    export interface ImageParagraphUrlArgs { }
+    export interface ImageParagraphImageArgs { }
+    export interface ImageParagraphFileMetadataArgs { }
+    export interface H1Paragraph {
+        text: string;
+    }
+    export interface H1ParagraphTextArgs { }
+    export interface H2Paragraph {
+        text: string;
+    }
+    export interface H2ParagraphTextArgs { }
+    export interface PostInput {
+        hub: Nullable<string>;
+        title: Nullable<string>;
+        content: Nullable<PostContentInput[]>;
+    }
+    export type PostContentTypeValues = 'Text' | 'Image' | 'H1' | 'H2';
+    export type PostContentType = GQLRoots.PostContentTypeRoot;
+    export interface PostContentInput {
+        type: PostContentType;
+        text: Nullable<string>;
+        spans: Nullable<MessageSpanInput[]>;
+        image: Nullable<ImageRefInput>;
+    }
+    export interface PostConnection {
+        items: Post[];
+        cursor: Nullable<string>;
+    }
+    export interface PostConnectionItemsArgs { }
+    export interface PostConnectionCursorArgs { }
+    export interface PostDraftConnection {
+        items: PostDraft[];
+        cursor: Nullable<string>;
+    }
+    export interface PostDraftConnectionItemsArgs { }
+    export interface PostDraftConnectionCursorArgs { }
     export interface ProfilePrefill {
         firstName: Nullable<string>;
         lastName: Nullable<string>;
@@ -3965,6 +3965,8 @@ export namespace GQL {
         appInviteFromUser: string;
         appInviteInfo: Nullable<AppInvite>;
         alphaResolveInvite: Nullable<ResolveInviteEntry>;
+        channels: Channel[];
+        channel: Nullable<Channel>;
         debugParseID: DebugID;
         debugCrashQuery: string;
         debugUrlInfo: Nullable<UrlAugmentation>;
@@ -3986,8 +3988,6 @@ export namespace GQL {
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
-        hubs: Hub[];
-        hub: Nullable<Hub>;
         myOauthApps: OauthApp[];
         oauthContext: Nullable<OauthContext>;
         alphaOrganizationMembers: OrganizationMember[];
@@ -4018,15 +4018,11 @@ export namespace GQL {
         conversationState: ConversationUpdateState;
         messageComments: CommentsPeer;
         feedItemComments: CommentsPeer;
-        discussionComments: CommentsPeer;
+        postComments: CommentsPeer;
         comments: CommentsPeer;
         conference: Conference;
         conferenceMedia: ConferenceMedia;
         dialogsState: DialogUpdateState;
-        discussion: Nullable<Discussion>;
-        discussionDraft: Nullable<DiscussionDraft>;
-        discussions: DiscussionConnection;
-        discussionMyDrafts: DiscussionDraftConnection;
         envVars: Nullable<EnvVar[]>;
         envVar: Nullable<EnvVar>;
         featureFlags: FeatureFlag[];
@@ -4054,6 +4050,10 @@ export namespace GQL {
         discoverPopularNow: PopularNowRoomConnection;
         discoverTopPremium: SharedRoomConnection;
         discoverTopFree: SharedRoomConnection;
+        post: Nullable<Post>;
+        postDraft: Nullable<PostDraft>;
+        posts: PostConnection;
+        postMyDrafts: PostDraftConnection;
         myProfilePrefill: Nullable<ProfilePrefill>;
         pushSettings: PushSettings;
         sessionState: SessionState;
@@ -4162,6 +4162,10 @@ export namespace GQL {
     export interface QueryAlphaResolveInviteArgs {
         key: string;
     }
+    export interface QueryChannelsArgs { }
+    export interface QueryChannelArgs {
+        id: string;
+    }
     export interface QueryDebugParseIDArgs {
         id: string;
     }
@@ -4208,10 +4212,6 @@ export namespace GQL {
     }
     export interface QuerySettingsArgs { }
     export interface QueryAuthPointsArgs { }
-    export interface QueryHubsArgs { }
-    export interface QueryHubArgs {
-        id: string;
-    }
     export interface QueryMyOauthAppsArgs { }
     export interface QueryOauthContextArgs {
         code: string;
@@ -4287,8 +4287,8 @@ export namespace GQL {
     export interface QueryFeedItemCommentsArgs {
         feedItemId: string;
     }
-    export interface QueryDiscussionCommentsArgs {
-        discussionId: string;
+    export interface QueryPostCommentsArgs {
+        postId: string;
     }
     export interface QueryCommentsArgs {
         peerId: string;
@@ -4301,21 +4301,6 @@ export namespace GQL {
         peerId: string;
     }
     export interface QueryDialogsStateArgs { }
-    export interface QueryDiscussionArgs {
-        id: string;
-    }
-    export interface QueryDiscussionDraftArgs {
-        id: string;
-    }
-    export interface QueryDiscussionsArgs {
-        hubs: OptionalNullable<string[]>;
-        first: number;
-        after: OptionalNullable<string>;
-    }
-    export interface QueryDiscussionMyDraftsArgs {
-        first: number;
-        after: OptionalNullable<string>;
-    }
     export interface QueryEnvVarsArgs { }
     export interface QueryEnvVarArgs {
         name: string;
@@ -4389,6 +4374,21 @@ export namespace GQL {
         after: OptionalNullable<string>;
     }
     export interface QueryDiscoverTopFreeArgs {
+        first: number;
+        after: OptionalNullable<string>;
+    }
+    export interface QueryPostArgs {
+        id: string;
+    }
+    export interface QueryPostDraftArgs {
+        id: string;
+    }
+    export interface QueryPostsArgs {
+        hubs: OptionalNullable<string[]>;
+        first: number;
+        after: OptionalNullable<string>;
+    }
+    export interface QueryPostMyDraftsArgs {
         first: number;
         after: OptionalNullable<string>;
     }
@@ -5794,7 +5794,7 @@ export namespace GQL {
     export interface RoomInviteIdArgs { }
     export interface RoomInviteRoomArgs { }
     export interface RoomInviteInvitedByUserArgs { }
-    export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection | Hub;
+    export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection | Channel;
 }
 
 export interface GQLResolver {
@@ -6745,6 +6745,21 @@ export interface GQLResolver {
             alphaReactions: GQL.MessageAlphaReactionsArgs,
         }
     >;
+    ChannelType?: EnumTypeResolver<'SYSTEM' | 'PERSONAL' | 'PUBLIC' | 'SECRET', GQLRoots.ChannelTypeRoot>;
+    Channel?: ComplexTypedResolver<
+        GQL.Channel,
+        GQLRoots.ChannelRoot,
+        {
+            owner: Nullable<GQLRoots.UserRoot>,
+        },
+        {
+            id: GQL.ChannelIdArgs,
+            title: GQL.ChannelTitleArgs,
+            type: GQL.ChannelTypeArgs,
+            owner: GQL.ChannelOwnerArgs,
+            shortname: GQL.ChannelShortnameArgs,
+        }
+    >;
     DebugEmailType?: EnumTypeResolver<'WELCOME' | 'ACCOUNT_ACTIVATED' | 'ACCOUNT_DEACTIVATED' | 'MEMBER_REMOVED' | 'MEMBERSHIP_LEVEL_CHANGED' | 'INVITE' | 'MEMBER_JOINED' | 'SIGNUP_CODE' | 'SIGIN_CODE' | 'UNREAD_MESSAGE' | 'UNREAD_MESSAGES' | 'PUBLIC_ROOM_INVITE' | 'PRIVATE_ROOM_INVITE' | 'ROOM_INVITE_ACCEPTED' | 'WEEKLY_DIGEST' | 'GENERIC', GQLRoots.DebugEmailTypeRoot>;
     DebugID?: ComplexTypedResolver<
         GQL.DebugID,
@@ -6977,21 +6992,6 @@ export interface GQLResolver {
         {
             email: GQL.AuthPointEmailArgs,
             phone: GQL.AuthPointPhoneArgs,
-        }
-    >;
-    HubType?: EnumTypeResolver<'SYSTEM' | 'PERSONAL' | 'PUBLIC' | 'SECRET', GQLRoots.HubTypeRoot>;
-    Hub?: ComplexTypedResolver<
-        GQL.Hub,
-        GQLRoots.HubRoot,
-        {
-            owner: Nullable<GQLRoots.UserRoot>,
-        },
-        {
-            id: GQL.HubIdArgs,
-            title: GQL.HubTitleArgs,
-            type: GQL.HubTypeArgs,
-            owner: GQL.HubOwnerArgs,
-            shortname: GQL.HubShortnameArgs,
         }
     >;
     MediaStreamIceTransportPolicy?: EnumTypeResolver<'all' | 'relay', GQLRoots.MediaStreamIceTransportPolicyRoot>;
@@ -7614,7 +7614,7 @@ export interface GQLResolver {
             childComments: GQL.CommentEntryChildCommentsArgs,
         }
     >;
-    CommentPeerRoot?: UnionTypeResolver<GQLRoots.CommentPeerRootRoot, 'CommentPeerRootMessage' | 'CommentPeerRootFeedItem' | 'CommentPeerRootDiscussion'>;
+    CommentPeerRoot?: UnionTypeResolver<GQLRoots.CommentPeerRootRoot, 'CommentPeerRootMessage' | 'CommentPeerRootFeedItem' | 'CommentPeerRootPost'>;
     CommentPeerRootMessage?: ComplexTypedResolver<
         GQL.CommentPeerRootMessage,
         GQLRoots.CommentPeerRootMessageRoot,
@@ -7637,14 +7637,14 @@ export interface GQLResolver {
             item: GQL.CommentPeerRootFeedItemItemArgs,
         }
     >;
-    CommentPeerRootDiscussion?: ComplexTypedResolver<
-        GQL.CommentPeerRootDiscussion,
-        GQLRoots.CommentPeerRootDiscussionRoot,
+    CommentPeerRootPost?: ComplexTypedResolver<
+        GQL.CommentPeerRootPost,
+        GQLRoots.CommentPeerRootPostRoot,
         {
-            discussion: GQLRoots.DiscussionRoot,
+            post: GQLRoots.PostRoot,
         },
         {
-            discussion: GQL.CommentPeerRootDiscussionDiscussionArgs,
+            post: GQL.CommentPeerRootPostPostArgs,
         }
     >;
     CommentSubscriptionType?: EnumTypeResolver<'ALL' | 'DIRECT', GQLRoots.CommentSubscriptionTypeRoot>;
@@ -8007,115 +8007,6 @@ export interface GQLResolver {
             state: GQL.DialogUpdateStateStateArgs,
         }
     >;
-    Discussion?: ComplexTypedResolver<
-        GQL.Discussion,
-        GQLRoots.DiscussionRoot,
-        {
-            author: Nullable<GQLRoots.UserRoot>,
-            content: GQLRoots.ParagraphRoot[],
-            draft: Nullable<GQLRoots.DiscussionDraftRoot>,
-            hub: Nullable<GQLRoots.HubRoot>,
-        },
-        {
-            id: GQL.DiscussionIdArgs,
-            author: GQL.DiscussionAuthorArgs,
-            title: GQL.DiscussionTitleArgs,
-            content: GQL.DiscussionContentArgs,
-            draft: GQL.DiscussionDraftArgs,
-            canEdit: GQL.DiscussionCanEditArgs,
-            hub: GQL.DiscussionHubArgs,
-            createdAt: GQL.DiscussionCreatedAtArgs,
-            updatedAt: GQL.DiscussionUpdatedAtArgs,
-            deletedAt: GQL.DiscussionDeletedAtArgs,
-        }
-    >;
-    DiscussionDraft?: ComplexTypedResolver<
-        GQL.DiscussionDraft,
-        GQLRoots.DiscussionDraftRoot,
-        {
-            author: Nullable<GQLRoots.UserRoot>,
-            content: GQLRoots.ParagraphRoot[],
-            publishedCopy: Nullable<GQLRoots.DiscussionRoot>,
-            hub: Nullable<GQLRoots.HubRoot>,
-        },
-        {
-            id: GQL.DiscussionDraftIdArgs,
-            author: GQL.DiscussionDraftAuthorArgs,
-            title: GQL.DiscussionDraftTitleArgs,
-            content: GQL.DiscussionDraftContentArgs,
-            publishedCopy: GQL.DiscussionDraftPublishedCopyArgs,
-            hub: GQL.DiscussionDraftHubArgs,
-            createdAt: GQL.DiscussionDraftCreatedAtArgs,
-            updatedAt: GQL.DiscussionDraftUpdatedAtArgs,
-            deletedAt: GQL.DiscussionDraftDeletedAtArgs,
-        }
-    >;
-    Paragraph?: UnionTypeResolver<GQLRoots.ParagraphRoot, 'TextParagraph' | 'ImageParagraph' | 'H1Paragraph' | 'H2Paragraph'>;
-    TextParagraph?: ComplexTypedResolver<
-        GQL.TextParagraph,
-        GQLRoots.TextParagraphRoot,
-        {
-            spans: GQLRoots.MessageSpanRoot[],
-        },
-        {
-            text: GQL.TextParagraphTextArgs,
-            spans: GQL.TextParagraphSpansArgs,
-        }
-    >;
-    ImageParagraph?: ComplexTypedResolver<
-        GQL.ImageParagraph,
-        GQLRoots.ImageParagraphRoot,
-        {
-            image: GQLRoots.ImageRefRoot,
-            fileMetadata: GQLRoots.FileMetadataRoot,
-        },
-        {
-            url: GQL.ImageParagraphUrlArgs,
-            image: GQL.ImageParagraphImageArgs,
-            fileMetadata: GQL.ImageParagraphFileMetadataArgs,
-        }
-    >;
-    H1Paragraph?: ComplexTypedResolver<
-        GQL.H1Paragraph,
-        GQLRoots.H1ParagraphRoot,
-        {
-        },
-        {
-            text: GQL.H1ParagraphTextArgs,
-        }
-    >;
-    H2Paragraph?: ComplexTypedResolver<
-        GQL.H2Paragraph,
-        GQLRoots.H2ParagraphRoot,
-        {
-        },
-        {
-            text: GQL.H2ParagraphTextArgs,
-        }
-    >;
-    DiscussionContentType?: EnumTypeResolver<'Text' | 'Image' | 'H1' | 'H2', GQLRoots.DiscussionContentTypeRoot>;
-    DiscussionConnection?: ComplexTypedResolver<
-        GQL.DiscussionConnection,
-        GQLRoots.DiscussionConnectionRoot,
-        {
-            items: GQLRoots.DiscussionRoot[],
-        },
-        {
-            items: GQL.DiscussionConnectionItemsArgs,
-            cursor: GQL.DiscussionConnectionCursorArgs,
-        }
-    >;
-    DiscussionDraftConnection?: ComplexTypedResolver<
-        GQL.DiscussionDraftConnection,
-        GQLRoots.DiscussionDraftConnectionRoot,
-        {
-            items: GQLRoots.DiscussionDraftRoot[],
-        },
-        {
-            items: GQL.DiscussionDraftConnectionItemsArgs,
-            cursor: GQL.DiscussionDraftConnectionCursorArgs,
-        }
-    >;
     EnvVar?: ComplexTypedResolver<
         GQL.EnvVar,
         GQLRoots.EnvVarRoot,
@@ -8324,12 +8215,12 @@ export interface GQLResolver {
             cardMakeDefault: GQLRoots.CreditCardRoot,
             cardDepositIntent: GQLRoots.PaymentIntentRoot,
             subscriptionCancel: GQLRoots.WalletSubscriptionRoot,
+            channelCreate: GQLRoots.ChannelRoot,
+            channelCreatePublic: GQLRoots.ChannelRoot,
             debugCreateTestUser: GQLRoots.UserRoot,
             debugFixStickerPack: Nullable<GQLRoots.StickerPackRoot>,
             settingsUpdate: GQLRoots.SettingsRoot,
             updateSettings: GQLRoots.SettingsRoot,
-            hubCreate: GQLRoots.HubRoot,
-            hubCreatePublic: GQLRoots.HubRoot,
             conferenceAlterMediaState: GQLRoots.ConferenceRoot,
             conferenceAddScreenShare: GQLRoots.ConferenceRoot,
             conferenceRemoveScreenShare: GQLRoots.ConferenceRoot,
@@ -8374,9 +8265,6 @@ export interface GQLResolver {
             mediaStreamAnswer: GQLRoots.ConferenceMediaRoot,
             mediaStreamCandidate: GQLRoots.ConferenceMediaRoot,
             mediaStreamFailed: GQLRoots.ConferenceMediaRoot,
-            discussionCreate: GQLRoots.DiscussionDraftRoot,
-            discussionUpdate: GQLRoots.DiscussionDraftRoot,
-            discussionDraftPublish: GQLRoots.DiscussionRoot,
             featureFlagAdd: GQLRoots.FeatureFlagRoot,
             superAccountFeatureAdd: GQLRoots.SuperAccountRoot,
             superAccountFeatureRemove: GQLRoots.SuperAccountRoot,
@@ -8386,6 +8274,9 @@ export interface GQLResolver {
             readNotification: GQLRoots.NotificationCenterRoot,
             createOrganization: GQLRoots.OrganizationRoot,
             updateOrganizationProfile: GQLRoots.OrganizationProfileRoot,
+            postDraftCreate: GQLRoots.PostDraftRoot,
+            postDraftUpdate: GQLRoots.PostDraftRoot,
+            postDraftPublish: GQLRoots.PostRoot,
             betaDiscoverSkip: Nullable<GQLRoots.DiscoverPageRoot>,
             betaNextDiscoverPageOrChats: Nullable<GQLRoots.DiscoverPageRoot>,
             betaSaveSelectedTags: Nullable<GQLRoots.DiscoverPageRoot>,
@@ -8471,6 +8362,8 @@ export interface GQLResolver {
             alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs,
             joinAppInvite: GQL.MutationJoinAppInviteArgs,
             phonebookAdd: GQL.MutationPhonebookAddArgs,
+            channelCreate: GQL.MutationChannelCreateArgs,
+            channelCreatePublic: GQL.MutationChannelCreatePublicArgs,
             debugSendSMS: GQL.MutationDebugSendSMSArgs,
             debugSerializeId: GQL.MutationDebugSerializeIdArgs,
             debugSendEmail: GQL.MutationDebugSendEmailArgs,
@@ -8548,8 +8441,6 @@ export interface GQLResolver {
             sendPhonePairCode: GQL.MutationSendPhonePairCodeArgs,
             pairPhone: GQL.MutationPairPhoneArgs,
             updateSettings: GQL.MutationUpdateSettingsArgs,
-            hubCreate: GQL.MutationHubCreateArgs,
-            hubCreatePublic: GQL.MutationHubCreatePublicArgs,
             conferenceAlterMediaState: GQL.MutationConferenceAlterMediaStateArgs,
             conferenceAddScreenShare: GQL.MutationConferenceAddScreenShareArgs,
             conferenceRemoveScreenShare: GQL.MutationConferenceRemoveScreenShareArgs,
@@ -8628,10 +8519,6 @@ export interface GQLResolver {
             mediaStreamAnswer: GQL.MutationMediaStreamAnswerArgs,
             mediaStreamCandidate: GQL.MutationMediaStreamCandidateArgs,
             mediaStreamFailed: GQL.MutationMediaStreamFailedArgs,
-            discussionCreate: GQL.MutationDiscussionCreateArgs,
-            discussionUpdate: GQL.MutationDiscussionUpdateArgs,
-            discussionDraftPublish: GQL.MutationDiscussionDraftPublishArgs,
-            discussionsDropAll: GQL.MutationDiscussionsDropAllArgs,
             setEnvVar: GQL.MutationSetEnvVarArgs,
             setEnvVarString: GQL.MutationSetEnvVarStringArgs,
             setEnvVarNumber: GQL.MutationSetEnvVarNumberArgs,
@@ -8664,6 +8551,10 @@ export interface GQLResolver {
             createOrganization: GQL.MutationCreateOrganizationArgs,
             updateOrganizationProfile: GQL.MutationUpdateOrganizationProfileArgs,
             deleteOrganization: GQL.MutationDeleteOrganizationArgs,
+            postDraftCreate: GQL.MutationPostDraftCreateArgs,
+            postDraftUpdate: GQL.MutationPostDraftUpdateArgs,
+            postDraftPublish: GQL.MutationPostDraftPublishArgs,
+            postsDropAll: GQL.MutationPostsDropAllArgs,
             registerWebPush: GQL.MutationRegisterWebPushArgs,
             registerPush: GQL.MutationRegisterPushArgs,
             debugSendAndroidDataPush: GQL.MutationDebugSendAndroidDataPushArgs,
@@ -9082,6 +8973,115 @@ export interface GQLResolver {
             cursor: GQL.PopularNowRoomConnectionCursorArgs,
         }
     >;
+    Post?: ComplexTypedResolver<
+        GQL.Post,
+        GQLRoots.PostRoot,
+        {
+            author: Nullable<GQLRoots.UserRoot>,
+            content: GQLRoots.ParagraphRoot[],
+            draft: Nullable<GQLRoots.PostDraftRoot>,
+            hub: Nullable<GQLRoots.ChannelRoot>,
+        },
+        {
+            id: GQL.PostIdArgs,
+            author: GQL.PostAuthorArgs,
+            title: GQL.PostTitleArgs,
+            content: GQL.PostContentArgs,
+            draft: GQL.PostDraftArgs,
+            canEdit: GQL.PostCanEditArgs,
+            hub: GQL.PostHubArgs,
+            createdAt: GQL.PostCreatedAtArgs,
+            updatedAt: GQL.PostUpdatedAtArgs,
+            deletedAt: GQL.PostDeletedAtArgs,
+        }
+    >;
+    PostDraft?: ComplexTypedResolver<
+        GQL.PostDraft,
+        GQLRoots.PostDraftRoot,
+        {
+            author: Nullable<GQLRoots.UserRoot>,
+            content: GQLRoots.ParagraphRoot[],
+            publishedCopy: Nullable<GQLRoots.PostRoot>,
+            hub: Nullable<GQLRoots.ChannelRoot>,
+        },
+        {
+            id: GQL.PostDraftIdArgs,
+            author: GQL.PostDraftAuthorArgs,
+            title: GQL.PostDraftTitleArgs,
+            content: GQL.PostDraftContentArgs,
+            publishedCopy: GQL.PostDraftPublishedCopyArgs,
+            hub: GQL.PostDraftHubArgs,
+            createdAt: GQL.PostDraftCreatedAtArgs,
+            updatedAt: GQL.PostDraftUpdatedAtArgs,
+            deletedAt: GQL.PostDraftDeletedAtArgs,
+        }
+    >;
+    Paragraph?: UnionTypeResolver<GQLRoots.ParagraphRoot, 'TextParagraph' | 'ImageParagraph' | 'H1Paragraph' | 'H2Paragraph'>;
+    TextParagraph?: ComplexTypedResolver<
+        GQL.TextParagraph,
+        GQLRoots.TextParagraphRoot,
+        {
+            spans: GQLRoots.MessageSpanRoot[],
+        },
+        {
+            text: GQL.TextParagraphTextArgs,
+            spans: GQL.TextParagraphSpansArgs,
+        }
+    >;
+    ImageParagraph?: ComplexTypedResolver<
+        GQL.ImageParagraph,
+        GQLRoots.ImageParagraphRoot,
+        {
+            image: GQLRoots.ImageRefRoot,
+            fileMetadata: GQLRoots.FileMetadataRoot,
+        },
+        {
+            url: GQL.ImageParagraphUrlArgs,
+            image: GQL.ImageParagraphImageArgs,
+            fileMetadata: GQL.ImageParagraphFileMetadataArgs,
+        }
+    >;
+    H1Paragraph?: ComplexTypedResolver<
+        GQL.H1Paragraph,
+        GQLRoots.H1ParagraphRoot,
+        {
+        },
+        {
+            text: GQL.H1ParagraphTextArgs,
+        }
+    >;
+    H2Paragraph?: ComplexTypedResolver<
+        GQL.H2Paragraph,
+        GQLRoots.H2ParagraphRoot,
+        {
+        },
+        {
+            text: GQL.H2ParagraphTextArgs,
+        }
+    >;
+    PostContentType?: EnumTypeResolver<'Text' | 'Image' | 'H1' | 'H2', GQLRoots.PostContentTypeRoot>;
+    PostConnection?: ComplexTypedResolver<
+        GQL.PostConnection,
+        GQLRoots.PostConnectionRoot,
+        {
+            items: GQLRoots.PostRoot[],
+        },
+        {
+            items: GQL.PostConnectionItemsArgs,
+            cursor: GQL.PostConnectionCursorArgs,
+        }
+    >;
+    PostDraftConnection?: ComplexTypedResolver<
+        GQL.PostDraftConnection,
+        GQLRoots.PostDraftConnectionRoot,
+        {
+            items: GQLRoots.PostDraftRoot[],
+        },
+        {
+            items: GQL.PostDraftConnectionItemsArgs,
+            cursor: GQL.PostDraftConnectionCursorArgs,
+        }
+    >;
     ProfilePrefill?: ComplexTypedResolver<
         GQL.ProfilePrefill,
         GQLRoots.ProfilePrefillRoot,
@@ -9122,6 +9122,8 @@ export interface GQLResolver {
             alphaInviteInfo: Nullable<GQLRoots.InviteInfoRoot>,
             appInviteInfo: Nullable<GQLRoots.AppInviteRoot>,
             alphaResolveInvite: Nullable<GQLRoots.ResolveInviteEntryRoot>,
+            channels: GQLRoots.ChannelRoot[],
+            channel: Nullable<GQLRoots.ChannelRoot>,
             debugParseID: GQLRoots.DebugIDRoot,
             debugUrlInfo: Nullable<GQLRoots.UrlAugmentationRoot>,
             userPresence: GQLRoots.DebugUserPresenceRoot[],
@@ -9136,8 +9138,6 @@ export interface GQLResolver {
             dialogs: GQLRoots.DialogsConnectionRoot,
             settings: GQLRoots.SettingsRoot,
             authPoints: GQLRoots.AuthPointRoot,
-            hubs: GQLRoots.HubRoot[],
-            hub: Nullable<GQLRoots.HubRoot>,
             myOauthApps: GQLRoots.OauthAppRoot[],
             oauthContext: Nullable<GQLRoots.OauthContextRoot>,
             alphaOrganizationMembers: GQLRoots.OrganizationMemberRoot[],
@@ -9166,15 +9166,11 @@ export interface GQLResolver {
             conversationState: GQLRoots.ConversationUpdateStateRoot,
             messageComments: GQLRoots.CommentsPeerRoot,
             feedItemComments: GQLRoots.CommentsPeerRoot,
-            discussionComments: GQLRoots.CommentsPeerRoot,
+            postComments: GQLRoots.CommentsPeerRoot,
             comments: GQLRoots.CommentsPeerRoot,
             conference: GQLRoots.ConferenceRoot,
             conferenceMedia: GQLRoots.ConferenceMediaRoot,
             dialogsState: GQLRoots.DialogUpdateStateRoot,
-            discussion: Nullable<GQLRoots.DiscussionRoot>,
-            discussionDraft: Nullable<GQLRoots.DiscussionDraftRoot>,
-            discussions: GQLRoots.DiscussionConnectionRoot,
-            discussionMyDrafts: GQLRoots.DiscussionDraftConnectionRoot,
             envVars: Nullable<GQLRoots.EnvVarRoot[]>,
             envVar: Nullable<GQLRoots.EnvVarRoot>,
             featureFlags: GQLRoots.FeatureFlagRoot[],
@@ -9201,6 +9197,10 @@ export interface GQLResolver {
             discoverPopularNow: GQLRoots.PopularNowRoomConnectionRoot,
             discoverTopPremium: GQLRoots.SharedRoomConnectionRoot,
             discoverTopFree: GQLRoots.SharedRoomConnectionRoot,
+            post: Nullable<GQLRoots.PostRoot>,
+            postDraft: Nullable<GQLRoots.PostDraftRoot>,
+            posts: GQLRoots.PostConnectionRoot,
+            postMyDrafts: GQLRoots.PostDraftConnectionRoot,
             myProfilePrefill: Nullable<GQLRoots.ProfilePrefillRoot>,
             pushSettings: GQLRoots.PushSettingsRoot,
             sessionState: GQLRoots.SessionStateRoot,
@@ -9277,6 +9277,8 @@ export interface GQLResolver {
             appInviteFromUser: GQL.QueryAppInviteFromUserArgs,
             appInviteInfo: GQL.QueryAppInviteInfoArgs,
             alphaResolveInvite: GQL.QueryAlphaResolveInviteArgs,
+            channels: GQL.QueryChannelsArgs,
+            channel: GQL.QueryChannelArgs,
             debugParseID: GQL.QueryDebugParseIDArgs,
             debugCrashQuery: GQL.QueryDebugCrashQueryArgs,
             debugUrlInfo: GQL.QueryDebugUrlInfoArgs,
@@ -9298,8 +9300,6 @@ export interface GQLResolver {
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
             authPoints: GQL.QueryAuthPointsArgs,
-            hubs: GQL.QueryHubsArgs,
-            hub: GQL.QueryHubArgs,
             myOauthApps: GQL.QueryMyOauthAppsArgs,
             oauthContext: GQL.QueryOauthContextArgs,
             alphaOrganizationMembers: GQL.QueryAlphaOrganizationMembersArgs,
@@ -9330,15 +9330,11 @@ export interface GQLResolver {
             conversationState: GQL.QueryConversationStateArgs,
             messageComments: GQL.QueryMessageCommentsArgs,
             feedItemComments: GQL.QueryFeedItemCommentsArgs,
-            discussionComments: GQL.QueryDiscussionCommentsArgs,
+            postComments: GQL.QueryPostCommentsArgs,
             comments: GQL.QueryCommentsArgs,
             conference: GQL.QueryConferenceArgs,
             conferenceMedia: GQL.QueryConferenceMediaArgs,
             dialogsState: GQL.QueryDialogsStateArgs,
-            discussion: GQL.QueryDiscussionArgs,
-            discussionDraft: GQL.QueryDiscussionDraftArgs,
-            discussions: GQL.QueryDiscussionsArgs,
-            discussionMyDrafts: GQL.QueryDiscussionMyDraftsArgs,
             envVars: GQL.QueryEnvVarsArgs,
             envVar: GQL.QueryEnvVarArgs,
             featureFlags: GQL.QueryFeatureFlagsArgs,
@@ -9366,6 +9362,10 @@ export interface GQLResolver {
             discoverPopularNow: GQL.QueryDiscoverPopularNowArgs,
             discoverTopPremium: GQL.QueryDiscoverTopPremiumArgs,
             discoverTopFree: GQL.QueryDiscoverTopFreeArgs,
+            post: GQL.QueryPostArgs,
+            postDraft: GQL.QueryPostDraftArgs,
+            posts: GQL.QueryPostsArgs,
+            postMyDrafts: GQL.QueryPostMyDraftsArgs,
             myProfilePrefill: GQL.QueryMyProfilePrefillArgs,
             pushSettings: GQL.QueryPushSettingsArgs,
             sessionState: GQL.QuerySessionStateArgs,
@@ -10693,5 +10693,5 @@ export interface GQLResolver {
             invitedByUser: GQL.RoomInviteInvitedByUserArgs,
         }
     >;
-    ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom' | 'DiscoverChatsCollection' | 'Hub'>;
+    ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom' | 'DiscoverChatsCollection' | 'Channel'>;
 }
