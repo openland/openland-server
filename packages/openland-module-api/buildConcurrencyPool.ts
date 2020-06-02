@@ -1,18 +1,16 @@
+import { Concurrency } from './../openland-server/concurrency';
 import { AppContext } from 'openland-modules/AppContext';
-import { ConcurrencyPool, UnboundedConcurrencyPool, BoundedConcurrencyPoool } from 'openland-utils/ConcurrencyPool';
-
-let pools = new Map<String, ConcurrencyPool>();
+import { ConcurrencyPool } from 'openland-utils/ConcurrencyPool';
 
 export function buildConcurrencyPool(ctx: AppContext): ConcurrencyPool {
     if (ctx.auth.tid) {
         let tid = ctx.auth.tid;
-        if (!pools.has(tid)) {
-            let res = new BoundedConcurrencyPoool(30);
-            pools.set(tid, res);
-            return res;
-        }
-        return pools.get(tid)!;
+        return Concurrency.FDB.get('tid:' + tid);
     } else {
-        return UnboundedConcurrencyPool;
+        if (ctx.req.ip) {
+            return Concurrency.FDB.get('ip:' + ctx.req.ip!);
+        } else {
+            return Concurrency.Default;
+        }
     }
 }

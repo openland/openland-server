@@ -60,7 +60,7 @@ export async function* gqlSubscribe(
                 yield event;
             }
         } catch (e) {
-            yield {errors: [e]};
+            yield { errors: [e] };
         }
         return;
     } else {

@@ -1,3 +1,4 @@
+import { Concurrency } from './../openland-server/concurrency';
 import {
     DocumentNode,
     execute,
@@ -16,7 +17,6 @@ import { cancelContext } from '@openland/lifetime';
 import { QueryCache } from './queryCache';
 import { randomKey } from '../openland-utils/random';
 // import { createMetric } from '../openland-module-monitoring/Metric';
-import { BoundedConcurrencyPoool } from '../openland-utils/ConcurrencyPool';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 
@@ -67,7 +67,8 @@ class FuckApolloSession {
     public lastPingAck: number = Date.now();
     public pingCounter = 0;
     public pingAckCounter = 0;
-    public executionPool = new BoundedConcurrencyPoool(16);
+    public executionPool = Concurrency.Execution.get(this.id);
+    public operationBucket = Concurrency.Operation.get(this.id);
 
     constructor(socket: WebSocket) {
         this.socket = socket;
@@ -219,31 +220,45 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                 asyncRun(async () => {
                     await params.onOperation(ctx, operation);
 
-                    let iterator = await gqlSubscribe({
-                        schema: params.executableSchema,
-                        document: query,
-                        operationName: operation.operationName,
-                        variableValues: operation.variables,
-                        fetchContext: async () => await params.subscriptionContext(session.authParams, operation, ctx, req),
-                        ctx,
-                        onEventResolveFinish: (_ctx, duration) => params.onEventResolveFinish(_ctx, operation, duration)
-                    });
-
-                    if (!isAsyncIterator(iterator)) {
+                    if (!session.operationBucket.tryTake()) {
                         // handle error
-                        session.sendData(message.id, await params.formatResponse(iterator, operation, ctx));
+                        session.sendData(message.id, await params.formatResponse({
+                            errors: [{
+                                shouldRetry: true
+                            }]
+                        }, operation, ctx));
                         session.sendComplete(message.id);
                         session.stopOperation(message.id);
                         return;
-                    }
+                    } else {
+                        let iterator = await session.executionPool.run(async () => {
+                            return gqlSubscribe({
+                                schema: params.executableSchema,
+                                document: query,
+                                operationName: operation.operationName,
+                                variableValues: operation.variables,
+                                fetchContext: async () => await params.subscriptionContext(session.authParams, operation, ctx, req),
+                                ctx,
+                                onEventResolveFinish: (_ctx, duration) => params.onEventResolveFinish(_ctx, operation, duration)
+                            });
+                        });
 
-                    for await (let event of iterator) {
-                        if (!working) {
-                            break;
+                        if (!isAsyncIterator(iterator)) {
+                            // handle error
+                            session.sendData(message.id, await params.formatResponse(iterator, operation, ctx));
+                            session.sendComplete(message.id);
+                            session.stopOperation(message.id);
+                            return;
                         }
-                        session.sendData(message.id, await params.formatResponse(event, operation, ctx));
+
+                        for await (let event of iterator) {
+                            if (!working) {
+                                break;
+                            }
+                            session.sendData(message.id, await params.formatResponse(event, operation, ctx));
+                        }
+                        session.sendComplete(message.id);
                     }
-                    session.sendComplete(message.id);
                 });
                 session.addOperation(message.id, () => {
                     working = false;

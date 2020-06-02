@@ -10,7 +10,7 @@ export const UnboundedConcurrencyPool: ConcurrencyPool = {
     }
 };
 
-export class BoundedConcurrencyPoool implements ConcurrencyPool {
+export class BoundedConcurrencyPool implements ConcurrencyPool {
     readonly concurrencyFactor: number;
     private inFlight = 0;
     private pending: (() => void)[] = [];
