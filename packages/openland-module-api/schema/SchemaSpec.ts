@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0493f982fff877ad6acff892b010a8e1';
+export const GQL_SPEC_VERSION = '6dfb54c0d1577afe19a2ed2a00480fe4';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1657,9 +1657,17 @@ export namespace GQL {
     export interface ConferencePeer {
         id: string;
         user: User;
+        mediaState: ConferencePeerMediaState;
     }
     export interface ConferencePeerIdArgs { }
     export interface ConferencePeerUserArgs { }
+    export interface ConferencePeerMediaStateArgs { }
+    export interface ConferencePeerMediaState {
+        audioPaused: boolean;
+        videoPaused: boolean;
+    }
+    export interface ConferencePeerMediaStateAudioPausedArgs { }
+    export interface ConferencePeerMediaStateVideoPausedArgs { }
     export interface MediaHeaderExtension {
         kind: string;
         uri: string;
@@ -7672,10 +7680,22 @@ export interface GQLResolver {
         GQLRoots.ConferencePeerRoot,
         {
             user: GQLRoots.UserRoot,
+            mediaState: GQLRoots.ConferencePeerMediaStateRoot,
         },
         {
             id: GQL.ConferencePeerIdArgs,
             user: GQL.ConferencePeerUserArgs,
+            mediaState: GQL.ConferencePeerMediaStateArgs,
+        }
+    >;
+    ConferencePeerMediaState?: ComplexTypedResolver<
+        GQL.ConferencePeerMediaState,
+        GQLRoots.ConferencePeerMediaStateRoot,
+        {
+        },
+        {
+            audioPaused: GQL.ConferencePeerMediaStateAudioPausedArgs,
+            videoPaused: GQL.ConferencePeerMediaStateVideoPausedArgs,
         }
     >;
     ICEServer?: ComplexTypedResolver<
