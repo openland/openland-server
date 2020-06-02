@@ -922,6 +922,7 @@ export class RoomRepository {
                     if (!await Modules.Orgs.isUserMember(ctx, uid, org.id)) {
                         throw new AccessDeniedError();
                     }
+
                 }
             }
         } else if (conv.kind === 'organization') {

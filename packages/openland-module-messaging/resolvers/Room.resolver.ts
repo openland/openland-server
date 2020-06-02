@@ -198,7 +198,17 @@ export const Resolver: GQLResolver = {
         }), false),
 
         membership: withConverationId(async (ctx, id, args, showPlaceholder) => (showPlaceholder ? 'none' : (ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none')) as any),
-        role: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? 'MEMBER' : (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase() as RoomMemberRoleRoot), 'MEMBER'),
+        role: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => {
+            if (showPlaceholder) {
+                return 'MEMBER';
+            }
+            // TODO: Remove this after web release
+            let room = (await Store.ConversationRoom.findById(ctx, id))!;
+            if (room.oid && (await Modules.Orgs.isUserAdmin(ctx, ctx.auth.uid!, room.oid))) {
+                return 'ADMIN';
+            }
+            return (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase() as RoomMemberRoleRoot;
+        }), 'MEMBER'),
         membersCount: withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? 0 : (profile && profile.activeMembersCount) || 0),
         onlineMembersCount: withConverationId(async (ctx, id, args, showPlaceholder) => {
             if (showPlaceholder) {
