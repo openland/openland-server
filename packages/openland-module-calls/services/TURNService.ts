@@ -1,13 +1,16 @@
 import { Modules } from '../../openland-modules/Modules';
 import { Config } from 'openland-config/Config';
 import Twilio from 'twilio';
+import { Context } from '@openland/context';
 
 let twillioApi = Twilio(Config.twillio.sid, Config.twillio.token);
 let iceServers: any | undefined = undefined;
 let iceServerExpire: number | undefined = undefined;
 
-export async function resolveTurnServices() {
-    if (twillioApi && Config.environment === 'production') {
+export async function resolveTurnServices(ctx: Context) {
+    let useCustomTurns = await Modules.Super.getEnvVar<boolean>(ctx, 'custom-turns-enabled') || false;
+
+    if (twillioApi && Config.environment === 'production' && !useCustomTurns) {
         let now = Date.now();
         if (iceServers) {
             if (now < iceServerExpire!) {
