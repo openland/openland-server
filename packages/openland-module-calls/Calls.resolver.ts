@@ -10,36 +10,36 @@ import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { resolveTurnServices } from './services/TURNService';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
-import { distanceBetween, geoIP } from '../openland-utils/geoIp/geoIP';
+// import { distanceBetween, geoIP } from '../openland-utils/geoIp/geoIP';
 import { GQLRoots } from 'openland-module-api/schema/SchemaRoots';
 
 // @ts-ignore
-const resolveNearestTurn = async (latLong: { lat: number, long: number }) => {
-    let turns = await resolveTurnServices();
-    let nearestDist = Number.MAX_SAFE_INTEGER;
-    let nearest: any;
-    for (let turn of turns) {
-        let turnPosition = await geoIP(turn.ip);
-        if (!turnPosition.coordinates) {
-            continue;
-        }
-        let dist = await distanceBetween(turnPosition.coordinates, latLong);
-        if (dist < nearestDist) {
-            nearestDist = dist;
-            nearest = turn;
-        }
-    }
-    if (!nearest) {
-        return turns;
-    }
-    return [nearest];
-};
+// const resolveNearestTurn = async (latLong: { lat: number, long: number }) => {
+//     let turns = await resolveTurnServices();
+//     let nearestDist = Number.MAX_SAFE_INTEGER;
+//     let nearest: any;
+//     for (let turn of turns) {
+//         let turnPosition = await geoIP(turn.ip);
+//         if (!turnPosition.coordinates) {
+//             continue;
+//         }
+//         let dist = await distanceBetween(turnPosition.coordinates, latLong);
+//         if (dist < nearestDist) {
+//             nearestDist = dist;
+//             nearest = turn;
+//         }
+//     }
+//     if (!nearest) {
+//         return turns;
+//     }
+//     return [nearest];
+// };
 
 const resolveIce = async (root: any, args: any, context: AppContext) => {
     // if (context.req.latLong) {
     //     return await resolveNearestTurn(context.req.latLong);
     // }
-    return await resolveTurnServices();
+    return await resolveTurnServices(root);
 };
 
 const resolveMeshStreamLink = async (src: { id: string, pid: number }, ctx: AppContext) => {
