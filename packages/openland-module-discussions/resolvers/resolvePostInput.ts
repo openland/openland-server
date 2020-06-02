@@ -1,14 +1,14 @@
 import { GQL } from '../../openland-module-api/schema/SchemaSpec';
-import DiscussionInputGQL = GQL.DiscussionInput;
-import { DiscussionContentInput, DiscussionInput } from '../repositories/DiscussionsRepository';
+import PostInputGQL = GQL.PostInput;
+import { PostContentInput, PostInput } from '../repositories/PostsRepository';
 import { resolveSpansInput } from '../../openland-module-rich-message/resolvers/resolveRichMessageCreation';
 import { UserError } from '../../openland-errors/UserError';
 import { Modules } from '../../openland-modules/Modules';
 import { Context } from '@openland/context';
 import { IDs } from '../../openland-module-api/IDs';
 
-export async function resolveDiscussionInput(ctx: Context, input: DiscussionInputGQL): Promise<DiscussionInput> {
-    let content: DiscussionContentInput[] = [];
+export async function resolveDiscussionInput(ctx: Context, input: PostInputGQL): Promise<PostInput> {
+    let content: PostContentInput[] = [];
     if (input.content) {
         for (let part of input.content) {
             if (part.type === 'Text') {

@@ -16,7 +16,7 @@ import {
 import { ImageRef } from '../../openland-module-media/ImageRef';
 import { FileInfo } from '../../openland-module-media/FileInfo';
 
-export type DiscussionParagraphSpans =
+export type PostParagraphSpans =
     UserMentionSpan |
     MultiUserMentionSpan |
     RoomMentionSpan |
@@ -32,16 +32,16 @@ export type DiscussionParagraphSpans =
     DateTextSpan |
     AllMentionSpan;
 
-export type DiscussionInput = {
+export type PostInput = {
     hubId: number | null
     title: string | null
-    content: DiscussionContentInput[]
+    content: PostContentInput[]
 };
 
 type TextParagraphInput = {
     type: 'text',
     text: string,
-    spans: DiscussionParagraphSpans[],
+    spans: PostParagraphSpans[],
 };
 
 type ImageParagraphInput = {
@@ -59,13 +59,13 @@ type H2ParagraphInput = {
     text: string,
 };
 
-export type DiscussionContentInput =
+export type PostContentInput =
     | TextParagraphInput
     | ImageParagraphInput
     | H1ParagraphInput
     | H2ParagraphInput;
 
-export type DiscussionContent =
+export type PostContent =
     | TextParagraph
     | ImageParagraph
     | H1Paragraph
@@ -74,7 +74,7 @@ export type DiscussionContent =
 export type TextParagraph = {
     type: 'text'
     text: string
-    spans: DiscussionParagraphSpans[]
+    spans: PostParagraphSpans[]
 };
 
 export type ImageParagraph = { type: 'image', image: { image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null }, info: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } } };
@@ -83,8 +83,8 @@ export type H1Paragraph = { type: 'h1', text: string };
 
 export type H2Paragraph = { type: 'h2', text: string };
 
-export class DiscussionsRepository {
-    createDiscussion = async (parent: Context, uid: number, input: DiscussionInput) => {
+export class PostsRepository {
+    createPostDraft = async (parent: Context, uid: number, input: PostInput) => {
         return inTx(parent, async ctx => {
             // Access check
             if (input.hubId) {
@@ -117,7 +117,7 @@ export class DiscussionsRepository {
         });
     }
 
-    editDiscussion = async (parent: Context, id: number, uid: number, input: DiscussionInput) => {
+    editPostDraft = async (parent: Context, id: number, uid: number, input: PostInput) => {
         return inTx(parent, async ctx => {
             let draft = await Store.DiscussionDraft.findById(ctx, id);
             if (!draft) {
@@ -149,7 +149,7 @@ export class DiscussionsRepository {
         });
     }
 
-    publishDraftDiscussion = async (parent: Context, uid: number, draftId: number) => {
+    publishDraftPost = async (parent: Context, uid: number, draftId: number) => {
         return inTx(parent, async ctx => {
             let draft = await Store.DiscussionDraft.findById(ctx, draftId);
             if (!draft) {

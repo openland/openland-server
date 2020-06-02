@@ -28,7 +28,7 @@ export const Resolver: GQLResolver = {
             } else if (src instanceof EditorsChoiceChatsCollection) {
                 return 'DiscoverChatsCollection';
             } else if (src instanceof DiscussionHub) {
-                return 'Hub';
+                return 'Channel';
             }
 
             throw new Error('Unknown shortname type');
@@ -193,7 +193,7 @@ export const Resolver: GQLResolver = {
             return shortName ? shortName.shortname : null;
         },
     },
-    Hub: {
+    Channel: {
         shortname: async (src, args, ctx) => {
             return (await Modules.Shortnames.findShortnameByOwner(ctx, 'hub', src.id))!.shortname;
         },

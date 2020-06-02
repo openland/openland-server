@@ -1,0 +1,28 @@
+enum ChannelType {
+    SYSTEM,
+    PERSONAL,
+    PUBLIC,
+    SECRET
+}
+
+type Channel {
+    id: ID!
+    title: String!
+    type: ChannelType!
+    owner: User
+}
+
+input ChannelInput {
+    title: String
+    shortname: String
+}
+
+extend type Query {
+    channels: [Channel!]!
+    channel(id: ID!): Channel
+}
+
+extend type Mutation {
+    channelCreate(input: ChannelInput!): Channel!
+    channelCreatePublic(input: ChannelInput!): Channel!
+}

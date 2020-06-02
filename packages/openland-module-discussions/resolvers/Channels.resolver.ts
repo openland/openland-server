@@ -5,31 +5,31 @@ import { withPermission, withUser } from 'openland-module-api/Resolvers';
 import { Store } from 'openland-module-db/FDB';
 
 export const Resolver: GQLResolver = {
-    Hub: {
+    Channel: {
         id: (src) => IDs.Hub.serialize(src.id),
         title: async (src, _, ctx) => src.description.type === 'personal' ? Modules.Users.getUserFullName(ctx, src.description.uid) + ' personal hub' : src.description.title,
         type: (src) => src.description.type,
         owner: (src) => (src.description.type === 'personal' || src.description.type === 'secret') ? src.description.uid : null
     },
-    HubType: {
+    ChannelType: {
         SYSTEM: 'system',
         PUBLIC: 'public',
         SECRET: 'secret',
         PERSONAL: 'personal'
     },
     Query: {
-        hub: async (_, args, ctx) => {
+        channel: async (_, args, ctx) => {
             return await Store.DiscussionHub.findById(ctx, IDs.Hub.parse(args.id));
         },
-        hubs: async (_, args, ctx) => {
+        channels: async (_, args, ctx) => {
             return await Store.DiscussionHub.findAll(ctx);
         }
     },
     Mutation: {
-        hubCreate: withPermission('super-admin', (ctx, args) => {
+        channelCreate: withPermission('super-admin', (ctx, args) => {
             return Modules.Discussions.hubs.createSystemHub(ctx, ctx.auth.uid!, args.input.title!, args.input.shortname!);
         }),
-        hubCreatePublic: withUser(async (ctx, args, uid) => {
+        channelCreatePublic: withUser(async (ctx, args, uid) => {
             return Modules.Discussions.hubs.createPublicHub(ctx, uid, args.input.title!, args.input.shortname!);
         })
     }

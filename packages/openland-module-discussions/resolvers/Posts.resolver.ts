@@ -7,11 +7,11 @@ import { Modules } from '../../openland-modules/Modules';
 import { inTx } from '@openland/foundationdb';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import ParagraphRoot = GQLRoots.ParagraphRoot;
-import { resolveDiscussionInput } from './resolveDisussionInput';
+import { resolveDiscussionInput } from './resolvePostInput';
 import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
 
 export const Resolver: GQLResolver = {
-    Discussion: {
+    Post: {
         id: src => IDs.Discussion.serialize(src.id),
         author: src => src.uid,
         title: src => src.title,
@@ -33,7 +33,7 @@ export const Resolver: GQLResolver = {
         updatedAt: src => src.metadata.updatedAt,
         deletedAt: src => src.archivedAt
     },
-    DiscussionDraft: {
+    PostDraft: {
         id: src => IDs.Discussion.serialize(src.id),
         author: src => src.uid,
         title: src => src.title,
@@ -45,11 +45,11 @@ export const Resolver: GQLResolver = {
         deletedAt: src => src.archivedAt
     },
 
-    DiscussionConnection: {
+    PostConnection: {
         items: src => src.items,
         cursor: src => src.cursor
     },
-    DiscussionDraftConnection: {
+    PostDraftConnection: {
         items: src => src.items,
         cursor: src => src.cursor
     },
@@ -85,17 +85,17 @@ export const Resolver: GQLResolver = {
     },
 
     Query: {
-        discussion: async (_, args, ctx) => {
+        post: async (_, args, ctx) => {
             return await Store.Discussion.findById(ctx, IDs.Discussion.parse(args.id));
         },
-        discussionDraft: withUser(async (ctx, args, uid) => {
+        postDraft: withUser(async (ctx, args, uid) => {
             let draft = await Store.DiscussionDraft.findById(ctx, IDs.Discussion.parse(args.id));
             if (draft && draft.uid === uid) {
                 return draft;
             }
             return null;
         }),
-        discussions: async (_, args, ctx) => {
+        posts: async (_, args, ctx) => {
             // Return all discussions if no hubs provided
             if (!args.hubs || args.hubs.length === 0) {
                 let res = await Store.Discussion.publishedAll.query(ctx, {
@@ -128,7 +128,7 @@ export const Resolver: GQLResolver = {
                 cursor: items.length > 0 && haveMore ? IDs.DiscussionCursor.serialize(items[items.length - 1].publishedAt!.toString(10)) : null
             };
         },
-        discussionMyDrafts: withUser(async (ctx, args, uid) => {
+        postMyDrafts: withUser(async (ctx, args, uid) => {
             let drafts = await Store.DiscussionDraft.draft.query(ctx, uid, {
                 limit: args.first,
                 reverse: true,
@@ -143,25 +143,25 @@ export const Resolver: GQLResolver = {
     },
 
     Mutation: {
-        discussionCreate: withUser(async (ctx, args, uid) => {
-            return await Modules.Discussions.discussions.createDiscussion(
+        postDraftCreate: withUser(async (ctx, args, uid) => {
+            return await Modules.Discussions.discussions.createPostDraft(
                 ctx,
                 uid,
                 await resolveDiscussionInput(ctx, args.input)
             );
         }),
-        discussionDraftPublish: withUser(async (ctx, args, uid) => {
-            return await Modules.Discussions.discussions.publishDraftDiscussion(ctx, uid, IDs.Discussion.parse(args.draftId));
-        }),
-        discussionUpdate: withUser(async (ctx, args, uid) => {
-            return await Modules.Discussions.discussions.editDiscussion(
+        postDraftUpdate: withUser(async (ctx, args, uid) => {
+            return await Modules.Discussions.discussions.editPostDraft(
                 ctx,
                 IDs.Discussion.parse(args.id),
                 uid,
                 await resolveDiscussionInput(ctx, args.input),
             );
         }),
-        discussionsDropAll: withPermission(['super-admin'], async (root) => {
+        postDraftPublish: withUser(async (ctx, args, uid) => {
+            return await Modules.Discussions.discussions.publishDraftPost(ctx, uid, IDs.Discussion.parse(args.id));
+        }),
+        postsDropAll: withPermission(['super-admin'], async (root) => {
             return await inTx(root, async ctx => {
                 let drafts = await Store.DiscussionDraft.findAll(ctx);
                 for (let draft of drafts) {

@@ -1,25 +1,25 @@
-type Discussion {
+type Post {
     id: ID!
     author: User
     title: String!
     content: [Paragraph!]!
-    draft: DiscussionDraft
+    draft: PostDraft
     canEdit: Boolean!
 
-    hub: Hub
+    hub: Channel
     createdAt: Date!
     updatedAt: Date
     deletedAt: Date
 }
 
-type DiscussionDraft {
+type PostDraft {
     id: ID!
     author: User
     title: String!
     content: [Paragraph!]!
-    publishedCopy: Discussion
+    publishedCopy: Post
 
-    hub: Hub
+    hub: Channel
     createdAt: Date!
     updatedAt: Date
     deletedAt: Date
@@ -50,46 +50,46 @@ type H2Paragraph {
     text: String!
 }
 
-input DiscussionInput {
+input PostInput {
     hub: ID
     title: String
-    content: [DiscussionContentInput!]
+    content: [PostContentInput!]
 }
 
-enum DiscussionContentType {
+enum PostContentType {
     Text,
     Image,
     H1,
     H2
 }
 
-input DiscussionContentInput {
-    type: DiscussionContentType!
+input PostContentInput {
+    type: PostContentType!
     text: String
     spans: [MessageSpanInput!]
     image: ImageRefInput
 }
 
-type DiscussionConnection {
-    items: [Discussion!]!
+type PostConnection {
+    items: [Post!]!
     cursor: String
 }
 
-type DiscussionDraftConnection {
-    items: [DiscussionDraft!]!
+type PostDraftConnection {
+    items: [PostDraft!]!
     cursor: String
 }
 
 extend type Query {
-    discussion(id: ID!): Discussion
-    discussionDraft(id: ID!): DiscussionDraft
-    discussions(hubs: [ID!], first: Int!, after: String): DiscussionConnection!
-    discussionMyDrafts(first: Int!, after: String): DiscussionDraftConnection!
+    post(id: ID!): Post
+    postDraft(id: ID!): PostDraft
+    posts(hubs: [ID!], first: Int!, after: String): PostConnection!
+    postMyDrafts(first: Int!, after: String): PostDraftConnection!
 }
 
 extend type Mutation {
-    discussionCreate(input: DiscussionInput!): DiscussionDraft!
-    discussionUpdate(id: ID!, input: DiscussionInput!): DiscussionDraft!
-    discussionDraftPublish(draftId: ID!): Discussion!
-    discussionsDropAll: Boolean!
+    postDraftCreate(input: PostInput!): PostDraft!
+    postDraftUpdate(id: ID!, input: PostInput!): PostDraft!
+    postDraftPublish(id: ID!): Post!
+    postsDropAll: Boolean!
 }

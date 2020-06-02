@@ -67,7 +67,7 @@ export const Resolver: GQLResolver = {
             } else if (obj instanceof FeedEvent) {
                 return 'CommentPeerRootFeedItem';
             } else if (obj instanceof Discussion) {
-                return 'CommentPeerRootDiscussion';
+                return 'CommentPeerRootPost';
             } else {
                 throw new Error('Unknown comments peer root type: ' + obj);
             }
@@ -80,8 +80,8 @@ export const Resolver: GQLResolver = {
     CommentPeerRootFeedItem: {
         item: async (src, args, ctx) => src
     },
-    CommentPeerRootDiscussion: {
-        discussion: async (src, args, ctx) => src
+    CommentPeerRootPost: {
+        post: async (src, args, ctx) => src
     },
     CommentSubscription: {
         type: src => src.kind.toUpperCase() as CommentSubscriptionTypeRoot
@@ -360,8 +360,8 @@ export const Resolver: GQLResolver = {
                 peerId: itemId,
             };
         }),
-        discussionComments: withUser(async (ctx, args, uid) => {
-            let discussionId = IDs.Discussion.parse(args.discussionId);
+        postComments: withUser(async (ctx, args, uid) => {
+            let discussionId = IDs.Discussion.parse(args.postId);
             let comments = await Store.Comment.peer.findAll(ctx, 'discussion', discussionId);
 
             return {

@@ -1,4 +1,4 @@
-union ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection | Hub
+union ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection | Channel
 
 extend type Query {
     alphaResolveShortName(shortname: String!): ShortNameDestination
@@ -40,6 +40,6 @@ extend type DiscoverChatsCollection {
     shortname: String
 }
 
-extend type Hub {
+extend type Channel {
     shortname: String!
 }

@@ -119,10 +119,10 @@ import { PowerupChatUserSettings } from 'openland-module-powerups/PowerupsReposi
 import Stripe from 'stripe';
 import { PermissionGroup } from 'openland-module-permissions/PermissionsRepository';
 import {
-    DiscussionContent, H1Paragraph, H2Paragraph,
+    PostContent, H1Paragraph, H2Paragraph,
     ImageParagraph,
     TextParagraph
-} from '../../openland-module-discussions/repositories/DiscussionsRepository';
+} from '../../openland-module-discussions/repositories/PostsRepository';
 
 //
 //  Root types
@@ -162,7 +162,7 @@ export namespace GQLRoots {
     import SharedRoomKindValues = GQL.SharedRoomKindValues;
     import RoomMemberRoleValues = GQL.RoomMemberRoleValues;
     import PurchaseStateValues = GQL.PurchaseStateValues;
-    import DiscussionContentTypeValues = GQL.DiscussionContentTypeValues;
+    import PostContentTypeValues = GQL.PostContentTypeValues;
     export type MutationRoot = any;
     export type QueryRoot = any;
     export type SubscriptionRoot = any;
@@ -535,7 +535,7 @@ export namespace GQLRoots {
     export type CommentSubscriptionRoot = CommentsSubscription;
     export type CommentPeerRootMessageRoot = Message;
     export type CommentPeerRootFeedItemRoot = FeedEvent;
-    export type CommentPeerRootDiscussionRoot = Discussion;
+    export type CommentPeerRootPostRoot = Discussion;
     export type CommentSubscriptionTypeRoot = 'all' | 'direct';
 
     export type CommentGlobalUpdateContainerRoot = LiveStreamItem<CommentEventGlobal>;
@@ -708,16 +708,16 @@ export namespace GQLRoots {
     // Discussions
     //
 
-    export type HubRoot = DiscussionHub;
-    export type HubTypeRoot = 'system' | 'personal' | 'public' | 'secret';
-    export type DiscussionRoot = Discussion;
-    export type DiscussionDraftRoot = DiscussionDraft;
-    export type DiscussionConnectionRoot = { items: DiscussionRoot[], cursor: string|null };
-    export type DiscussionDraftConnectionRoot = { items: DiscussionDraft[], cursor: string|null };
-    export type ParagraphRoot = DiscussionContent;
+    export type ChannelRoot = DiscussionHub;
+    export type ChannelTypeRoot = 'system' | 'personal' | 'public' | 'secret';
+    export type PostRoot = Discussion;
+    export type PostDraftRoot = DiscussionDraft;
+    export type PostConnectionRoot = { items: PostRoot[], cursor: string|null };
+    export type PostDraftConnectionRoot = { items: DiscussionDraft[], cursor: string|null };
+    export type ParagraphRoot = PostContent;
     export type ImageParagraphRoot = ImageParagraph;
     export type TextParagraphRoot = TextParagraph;
     export type H1ParagraphRoot = H1Paragraph;
     export type H2ParagraphRoot = H2Paragraph;
-    export type DiscussionContentTypeRoot = DiscussionContentTypeValues;
+    export type PostContentTypeRoot = PostContentTypeValues;
 }
