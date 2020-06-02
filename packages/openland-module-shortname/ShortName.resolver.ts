@@ -51,6 +51,8 @@ export const Resolver: GQLResolver = {
                     ownerType = 'room';
                 } else if (idInfo.type === IDs.DiscoverChatsCollection) {
                     ownerType = 'collection';
+                } else if (idInfo.type === IDs.Hub) {
+                    ownerType = 'hub';
                 }
                 ownerId = idInfo.id as number;
             } catch {
@@ -92,7 +94,7 @@ export const Resolver: GQLResolver = {
                         }
                     }
                 }
-                return null;
+                return room;
             } else if (ownerType === 'collection') {
                 return await Store.EditorsChoiceChatsCollection.findById(ctx, ownerId);
             } else if (ownerType === 'hub') {
