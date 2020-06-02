@@ -288,6 +288,7 @@ export const Resolver: GQLResolver = {
                 let parsed = parser.parseQuery(args.query);
                 let elasticQuery = buildElasticQuery(parsed);
                 clauses.push(elasticQuery);
+                clauses.push({ term: { deleted: false } });
 
                 if (args.sort) {
                     sort = parser.parseSort(args.sort);
