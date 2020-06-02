@@ -48,6 +48,18 @@ function formatMessage(ctx: Context, name: string, message: string) {
     }
 }
 
+function formatApmError(ctx: Context, service: string, message: string) {
+    return {
+        message: formatMessage(ctx, service, message),
+        params: {
+            context: ContextName.get(ctx),
+            parent: LogPathContext.get(ctx),
+            ...LogMetaContext.get(ctx),
+        },
+        name: service,
+    };
+}
+
 setLogProvider({
     log: (ctx, service, level, message) => {
         let obj: any;
@@ -70,10 +82,11 @@ setLogProvider({
             logger.debug(obj);
         } else if (level === 'error') {
             logger.error(obj);
-            apm.captureError(obj, { handled: true });
+            apm.captureError(formatApmError(ctx, service, message), { labels: { level } });
         } else if (level === 'warn') {
             logger.warn(obj);
-            apm.captureError(obj, { handled: true });
+            apm.captureError(formatApmError(ctx, service, message), { labels: { level } });
+
         } else {
             logger.info(obj);
         }
