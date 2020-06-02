@@ -9,6 +9,7 @@ import { Store } from 'openland-module-db/FDB';
 import { ConferencePeer, ConferenceRoom } from '../../openland-module-db/store';
 import { CallScheduler, MediaSources, StreamHint, Capabilities } from './CallScheduler';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
+import { notifyFastWatch } from 'openland-module-db/fastWatch';
 
 let log = createLogger('call-repo');
 
@@ -146,7 +147,7 @@ export class CallRepository {
             await scheduler.onPeerAdded(ctx, conf.id, id, this.#getStreams(res, conf), cap);
 
             // Notify state change
-            await this.bumpVersion(ctx, cid, id);
+            await this.notifyConferenceChanged(ctx, cid);
             return res;
         });
     }
@@ -169,7 +170,7 @@ export class CallRepository {
             await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, this.#getStreams(peer, conf));
 
             // Notify state change
-            await this.bumpVersion(ctx, cid, peer.id);
+            await this.notifyConferenceChanged(ctx, cid);
             return await this.getOrCreateConference(ctx, cid);
         });
     }
@@ -205,7 +206,7 @@ export class CallRepository {
             await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, this.#getStreams(peer, conf));
 
             // Notify state change
-            await this.bumpVersion(ctx, cid, peer.id);
+            await this.notifyConferenceChanged(ctx, cid);
             return await this.getOrCreateConference(ctx, cid);
         });
     }
@@ -235,7 +236,7 @@ export class CallRepository {
             await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, this.#getStreams(peer, conf));
 
             // Notify state change
-            await this.bumpVersion(ctx, cid, peer.id);
+            await this.notifyConferenceChanged(ctx, cid);
             return conf;
         });
     }
@@ -254,7 +255,7 @@ export class CallRepository {
             await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, this.#getStreams(peer, conf));
 
             // Notify state change
-            await this.bumpVersion(ctx, peer.cid, peer.id);
+            await this.notifyConferenceChanged(ctx, peer.cid);
             return conf;
         });
     }
@@ -327,8 +328,8 @@ export class CallRepository {
                 }
             }
 
-            // Notify state change
-            await this.bumpVersion(ctx, existing.cid, existing.id);
+            // Fast watch notify
+            await this.notifyConferenceChanged(ctx, existing.cid);
         });
     }
 
@@ -363,7 +364,7 @@ export class CallRepository {
                     if (peer.enabled && peer.keepAliveTimeout < now) {
                         log.log(ctx, 'Call Participant Reaped: ' + a.uid + ' from ' + a.cid);
                         await this.removePeer(ctx, a.id);
-                        await this.bumpVersion(ctx, a.cid, a.id);
+                        // await this.bumpVersion(ctx, a.cid, a.id);
                     }
                 });
             }
@@ -500,10 +501,20 @@ export class CallRepository {
         return await Store.ConferencePeer.conference.findAll(parent, cid);
     }
 
+    // Deprecated
     bumpVersion = async (parent: Context, cid: number, pid: number) => {
+        // await inTx(parent, async (ctx) => {
+        //     let conf = await this.getOrCreateConference(ctx, cid);
+        //     conf.invalidate();
+        // });
+        await this.notifyConferenceChanged(parent, cid);
+    }
+
+    notifyConferenceChanged = async (parent: Context, cid: number) => {
         await inTx(parent, async (ctx) => {
             let conf = await this.getOrCreateConference(ctx, cid);
             conf.invalidate();
+            notifyFastWatch(ctx, 'conference-' + cid);
         });
     }
 

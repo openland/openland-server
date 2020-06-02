@@ -12,6 +12,7 @@ import { resolveTurnServices } from './services/TURNService';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
 // import { distanceBetween, geoIP } from '../openland-utils/geoIp/geoIP';
 import { GQLRoots } from 'openland-module-api/schema/SchemaRoots';
+import { fastWatch } from 'openland-module-db/fastWatch';
 
 // @ts-ignore
 // const resolveNearestTurn = async (latLong: { lat: number, long: number }) => {
@@ -420,50 +421,54 @@ export const Resolver: GQLResolver = {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: { id: string }, parent: AppContext) {
+            subscribe: async function* (_: any, args: { id: string }, parent: AppContext) {
                 let cid = IDs.Conference.parse(args.id);
-                let ended = false;
-                return {
-                    ...(async function* func() {
-                        while (!ended) {
-                            let r = await inTx(parent, async (ctx) => {
-                                let settings = await Store.ConferenceRoom.findById(ctx, cid);
-                                let watch = Store.ConferenceRoom.watch(ctx, cid);
-                                return { settings, watch };
-                            });
-                            yield r.settings!;
-                            await r.watch.promise!;
-                        }
-                    })(),
-                    return: async () => {
-                        ended = true;
-                        return 'ok';
+                while (true) {
+                    let changed = await fastWatch(parent, 'conference-' + cid,
+                        async (ctx) => (await Store.ConferenceRoom.findById(ctx, cid))!.metadata.versionCode
+                    );
+                    if (changed) {
+                        yield await inTx(parent, async (ctx) => {
+                            return (await Store.ConferenceRoom.findById(ctx, cid))!;
+                        });
+                    } {
+                        break;
                     }
-                };
+                }
             }
         },
         alphaConferenceMediaWatch: {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: { id: string, peerId: string }, ctx: AppContext) {
+            subscribe: async function* (_: any, args: { id: string, peerId: string }, parent: AppContext) {
                 let cid = IDs.Conference.parse(args.id);
                 let pid = IDs.ConferencePeer.parse(args.peerId);
-                let ended = false;
-                return {
-                    ...(async function* func() {
-                        while (!ended) {
-                            // let settings = await FDB.ConferenceRoom.findById(ctx, cid);
-                            yield { id: cid, peerId: pid };
-                            let w = await inTx(ctx, async (ctx2) => Store.ConferenceRoom.watch(ctx2, cid));
-                            await w.promise;
-                        }
-                    })(),
-                    return: async () => {
-                        ended = true;
-                        return 'ok';
+                while (true) {
+                    let changed = await fastWatch(parent, 'conference-' + cid,
+                        async (ctx) => (await Store.ConferenceRoom.findById(ctx, cid))!.metadata.versionCode
+                    );
+                    if (changed) {
+                        yield { id: cid, peerId: pid };
+                    } {
+                        break;
                     }
-                };
+                }
+                // let ended = false;
+                // return {
+                //     ...(async function* func() {
+                //         while (!ended) {
+                //             // let settings = await FDB.ConferenceRoom.findById(ctx, cid);
+                //             yield { id: cid, peerId: pid };
+                //             let w = await inTx(ctx, async (ctx2) => Store.ConferenceRoom.watch(ctx2, cid));
+                //             await w.promise;
+                //         }
+                //     })(),
+                //     return: async () => {
+                //         ended = true;
+                //         return 'ok';
+                //     }
+                // };
             }
         }
     }
