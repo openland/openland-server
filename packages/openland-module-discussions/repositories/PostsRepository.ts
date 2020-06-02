@@ -5,32 +5,21 @@ import { UserError } from '../../openland-errors/UserError';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { resolveSequenceNumber } from '../../openland-module-db/resolveSequenceNumber';
-import {
-    AllMentionSpan,
-    BoldTextSpan, CodeBlockTextSpan, DateTextSpan, InlineCodeTextSpan, InsaneTextSpan, IronyTextSpan, ItalicTextSpan,
-    LinkSpan, LoudTextSpan,
-    MultiUserMentionSpan,
-    RoomMentionSpan, RotatingTextSpan,
-    UserMentionSpan
-} from '../../openland-module-messaging/MessageInput';
 import { ImageRef } from '../../openland-module-media/ImageRef';
 import { FileInfo } from '../../openland-module-media/FileInfo';
 
+type BasicSpan<T> = { type: T, offset: number, length: number };
+
+export type LinkPostSpan = { type: 'link', offset: number, length: number, url: string };
+export type BoldTextPostSpan = BasicSpan<'bold_text'>;
+export type ItalicTextPostSpan = BasicSpan<'italic_text'>;
+export type IronyTextPostSpan = BasicSpan<'irony_text'>;
+
 export type PostParagraphSpans =
-    UserMentionSpan |
-    MultiUserMentionSpan |
-    RoomMentionSpan |
-    LinkSpan |
-    BoldTextSpan |
-    ItalicTextSpan |
-    IronyTextSpan |
-    InlineCodeTextSpan |
-    CodeBlockTextSpan |
-    InsaneTextSpan |
-    LoudTextSpan |
-    RotatingTextSpan |
-    DateTextSpan |
-    AllMentionSpan;
+    LinkPostSpan |
+    BoldTextPostSpan |
+    ItalicTextPostSpan |
+    IronyTextPostSpan;
 
 export type PostInput = {
     hubId: number | null

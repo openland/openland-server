@@ -9,6 +9,8 @@ import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import ParagraphRoot = GQLRoots.ParagraphRoot;
 import { resolveDiscussionInput } from './resolvePostInput';
 import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
+import { UserError } from '../../openland-errors/UserError';
+import PostSpanRoot = GQLRoots.PostSpanRoot;
 
 export const Resolver: GQLResolver = {
     Post: {
@@ -16,7 +18,7 @@ export const Resolver: GQLResolver = {
         author: src => src.uid,
         title: src => src.title,
         content: src => src.content || [],
-        hub: async (src, args, ctx) => src.hubId ? (await Store.DiscussionHub.findById(ctx, src.hubId))! : null,
+        channel: async (src, args, ctx) => src.hubId ? (await Store.DiscussionHub.findById(ctx, src.hubId))! : null,
         draft: async (src, args, ctx) => {
             let draft = await Store.DiscussionDraft.findById(ctx, src.id);
             if (!ctx.auth.uid) {
@@ -38,7 +40,7 @@ export const Resolver: GQLResolver = {
         author: src => src.uid,
         title: src => src.title,
         content: src => src.content || [],
-        hub: async (src, args, ctx) => src.hubId ? (await Store.DiscussionHub.findById(ctx, src.hubId))! : null,
+        channel: async (src, args, ctx) => src.hubId ? (await Store.DiscussionHub.findById(ctx, src.hubId))! : null,
         publishedCopy: (src, args, ctx) => Store.Discussion.findById(ctx, src.id),
         createdAt: src => src.metadata.createdAt,
         updatedAt: src => src.metadata.updatedAt,
@@ -82,6 +84,22 @@ export const Resolver: GQLResolver = {
     },
     H2Paragraph: {
         text: src => src.text
+    },
+
+    PostSpan: {
+        __resolveType(src: PostSpanRoot) {
+            if (src.type === 'link') {
+                return 'PostSpanLink';
+            } else if (src.type === 'bold_text') {
+                return 'PostSpanBold';
+            } else if (src.type === 'italic_text') {
+                return 'PostSpanItalic';
+            } else if (src.type === 'irony_text') {
+                return 'PostSpanIrony';
+            } else {
+                throw new UserError('Unknown post span type: ' + (src as any).type);
+            }
+        },
     },
 
     Query: {

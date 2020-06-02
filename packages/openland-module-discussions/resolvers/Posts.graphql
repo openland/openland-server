@@ -6,7 +6,7 @@ type Post {
     draft: PostDraft
     canEdit: Boolean!
 
-    hub: Channel
+    channel: Channel
     createdAt: Date!
     updatedAt: Date
     deletedAt: Date
@@ -19,10 +19,50 @@ type PostDraft {
     content: [Paragraph!]!
     publishedCopy: Post
 
-    hub: Channel
+    channel: Channel
     createdAt: Date!
     updatedAt: Date
     deletedAt: Date
+}
+
+interface PostSpan {
+    offset: Int!
+    length: Int!
+}
+
+type PostSpanBold implements PostSpan {
+    offset: Int!
+    length: Int!
+}
+
+type PostSpanItalic implements PostSpan {
+    offset: Int!
+    length: Int!
+}
+
+type PostSpanIrony implements PostSpan {
+    offset: Int!
+    length: Int!
+}
+
+type PostSpanLink implements PostSpan {
+    offset: Int!
+    length: Int!
+    url: String!
+}
+
+enum PostSpanType {
+    Bold,
+    Italic,
+    Irony,
+    Link
+}
+
+input PostSpanInput {
+    offset: Int!
+    length: Int!
+    type: PostSpanType!
+    url: String
 }
 
 union Paragraph =
@@ -33,7 +73,7 @@ union Paragraph =
 
 type TextParagraph {
     text: String!
-    spans: [MessageSpan!]!
+    spans: [PostSpan!]!
 }
 
 type ImageParagraph {
@@ -66,7 +106,7 @@ enum PostContentType {
 input PostContentInput {
     type: PostContentType!
     text: String
-    spans: [MessageSpanInput!]
+    spans: [PostSpanInput!]
     image: ImageRefInput
 }
 

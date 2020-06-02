@@ -1,27 +1,28 @@
 // @ts-nocheck
 import {
-    declareSchema,
-    atomicInt,
     primaryKey,
-    atomicBool,
     integer,
     entity,
     field,
     string,
     optional,
-    boolean,
     rangeIndex,
-    uniqueIndex,
     enumString,
-    json,
     struct,
-    customDirectory,
     array,
     union,
-    event,
-    float, allowDelete,
+    allowDelete,
 } from '@openland/foundationdb-compiler';
-import { Image, Spans } from '../openland-module-db/store.schema';
+import { basicSpan, Image } from '../openland-module-db/store.schema';
+
+const Spans = array(union({
+    link: struct({
+        offset: integer(), length: integer(), url: string(),
+    }),
+    bold_text: basicSpan,
+    italic_text: basicSpan,
+    irony_text: basicSpan,
+}));
 
 const DiscussionContent = union({
     text: struct({

@@ -121,7 +121,7 @@ import { PermissionGroup } from 'openland-module-permissions/PermissionsReposito
 import {
     PostContent, H1Paragraph, H2Paragraph,
     ImageParagraph,
-    TextParagraph
+    TextParagraph, PostParagraphSpans, LinkPostSpan, BoldTextPostSpan, ItalicTextPostSpan, IronyTextPostSpan
 } from '../../openland-module-discussions/repositories/PostsRepository';
 
 //
@@ -163,6 +163,7 @@ export namespace GQLRoots {
     import RoomMemberRoleValues = GQL.RoomMemberRoleValues;
     import PurchaseStateValues = GQL.PurchaseStateValues;
     import PostContentTypeValues = GQL.PostContentTypeValues;
+    import PostSpanTypeValues = GQL.PostSpanTypeValues;
     export type MutationRoot = any;
     export type QueryRoot = any;
     export type SubscriptionRoot = any;
@@ -721,4 +722,10 @@ export namespace GQLRoots {
     export type H1ParagraphRoot = H1Paragraph;
     export type H2ParagraphRoot = H2Paragraph;
     export type PostContentTypeRoot = PostContentTypeValues;
+    export type PostSpanRoot = PostParagraphSpans;
+    export type PostSpanLinkRoot = LinkPostSpan;
+    export type PostSpanBoldRoot = BoldTextPostSpan;
+    export type PostSpanItalicRoot = ItalicTextPostSpan;
+    export type PostSpanIronyRoot = IronyTextPostSpan;
+    export type PostSpanTypeRoot = PostSpanTypeValues;
 }

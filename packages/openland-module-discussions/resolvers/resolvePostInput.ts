@@ -1,11 +1,25 @@
 import { GQL } from '../../openland-module-api/schema/SchemaSpec';
 import PostInputGQL = GQL.PostInput;
-import { PostContentInput, PostInput } from '../repositories/PostsRepository';
-import { resolveSpansInput } from '../../openland-module-rich-message/resolvers/resolveRichMessageCreation';
+import { PostContentInput, PostInput, PostParagraphSpans } from '../repositories/PostsRepository';
 import { UserError } from '../../openland-errors/UserError';
 import { Modules } from '../../openland-modules/Modules';
 import { Context } from '@openland/context';
 import { IDs } from '../../openland-module-api/IDs';
+import PostSpanInput = GQL.PostSpanInput;
+
+export function resolveSpansInput(input: PostSpanInput[] = []) {
+    let spans: PostParagraphSpans[] = [];
+    for (let span of input) {
+        if (span.type === 'Bold') {
+            spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
+        } else if (span.type === 'Italic') {
+            spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
+        } else if (span.type === 'Irony') {
+            spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
+        }
+    }
+    return spans;
+}
 
 export async function resolveDiscussionInput(ctx: Context, input: PostInputGQL): Promise<PostInput> {
     let content: PostContentInput[] = [];

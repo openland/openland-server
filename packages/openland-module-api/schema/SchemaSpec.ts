@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '193fd1c49276c2c1cb63048a62cb1729';
+export const GQL_SPEC_VERSION = '55bf04ff1c937c4af7e5c6032ca607a4';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3848,7 +3848,7 @@ export namespace GQL {
         content: Paragraph[];
         draft: Nullable<PostDraft>;
         canEdit: boolean;
-        hub: Nullable<Channel>;
+        channel: Nullable<Channel>;
         createdAt: Date;
         updatedAt: Nullable<Date>;
         deletedAt: Nullable<Date>;
@@ -3859,7 +3859,7 @@ export namespace GQL {
     export interface PostContentArgs { }
     export interface PostDraftArgs { }
     export interface PostCanEditArgs { }
-    export interface PostHubArgs { }
+    export interface PostChannelArgs { }
     export interface PostCreatedAtArgs { }
     export interface PostUpdatedAtArgs { }
     export interface PostDeletedAtArgs { }
@@ -3869,7 +3869,7 @@ export namespace GQL {
         title: string;
         content: Paragraph[];
         publishedCopy: Nullable<Post>;
-        hub: Nullable<Channel>;
+        channel: Nullable<Channel>;
         createdAt: Date;
         updatedAt: Nullable<Date>;
         deletedAt: Nullable<Date>;
@@ -3879,14 +3879,54 @@ export namespace GQL {
     export interface PostDraftTitleArgs { }
     export interface PostDraftContentArgs { }
     export interface PostDraftPublishedCopyArgs { }
-    export interface PostDraftHubArgs { }
+    export interface PostDraftChannelArgs { }
     export interface PostDraftCreatedAtArgs { }
     export interface PostDraftUpdatedAtArgs { }
     export interface PostDraftDeletedAtArgs { }
+    export interface PostSpan {
+        offset: number;
+        length: number;
+    }
+    export interface PostSpanOffsetArgs { }
+    export interface PostSpanLengthArgs { }
+    export interface PostSpanBold extends PostSpan {
+        offset: number;
+        length: number;
+    }
+    export interface PostSpanBoldOffsetArgs { }
+    export interface PostSpanBoldLengthArgs { }
+    export interface PostSpanItalic extends PostSpan {
+        offset: number;
+        length: number;
+    }
+    export interface PostSpanItalicOffsetArgs { }
+    export interface PostSpanItalicLengthArgs { }
+    export interface PostSpanIrony extends PostSpan {
+        offset: number;
+        length: number;
+    }
+    export interface PostSpanIronyOffsetArgs { }
+    export interface PostSpanIronyLengthArgs { }
+    export interface PostSpanLink extends PostSpan {
+        offset: number;
+        length: number;
+        url: string;
+    }
+    export interface PostSpanLinkOffsetArgs { }
+    export interface PostSpanLinkLengthArgs { }
+    export interface PostSpanLinkUrlArgs { }
+    export type PostSpanTypeValues = 'Bold' | 'Italic' | 'Irony' | 'Link';
+    export type PostSpanType = GQLRoots.PostSpanTypeRoot;
+    export interface PostSpanInput {
+        offset: number;
+        length: number;
+        type: PostSpanType;
+        url: Nullable<string>;
+    }
     export type Paragraph = TextParagraph | ImageParagraph | H1Paragraph | H2Paragraph;
     export interface TextParagraph {
         text: string;
-        spans: MessageSpan[];
+        spans: PostSpan[];
     }
     export interface TextParagraphTextArgs { }
     export interface TextParagraphSpansArgs { }
@@ -3916,7 +3956,7 @@ export namespace GQL {
     export interface PostContentInput {
         type: PostContentType;
         text: Nullable<string>;
-        spans: Nullable<MessageSpanInput[]>;
+        spans: Nullable<PostSpanInput[]>;
         image: Nullable<ImageRefInput>;
     }
     export interface PostConnection {
@@ -8980,7 +9020,7 @@ export interface GQLResolver {
             author: Nullable<GQLRoots.UserRoot>,
             content: GQLRoots.ParagraphRoot[],
             draft: Nullable<GQLRoots.PostDraftRoot>,
-            hub: Nullable<GQLRoots.ChannelRoot>,
+            channel: Nullable<GQLRoots.ChannelRoot>,
         },
         {
             id: GQL.PostIdArgs,
@@ -8989,7 +9029,7 @@ export interface GQLResolver {
             content: GQL.PostContentArgs,
             draft: GQL.PostDraftArgs,
             canEdit: GQL.PostCanEditArgs,
-            hub: GQL.PostHubArgs,
+            channel: GQL.PostChannelArgs,
             createdAt: GQL.PostCreatedAtArgs,
             updatedAt: GQL.PostUpdatedAtArgs,
             deletedAt: GQL.PostDeletedAtArgs,
@@ -9002,7 +9042,7 @@ export interface GQLResolver {
             author: Nullable<GQLRoots.UserRoot>,
             content: GQLRoots.ParagraphRoot[],
             publishedCopy: Nullable<GQLRoots.PostRoot>,
-            hub: Nullable<GQLRoots.ChannelRoot>,
+            channel: Nullable<GQLRoots.ChannelRoot>,
         },
         {
             id: GQL.PostDraftIdArgs,
@@ -9010,18 +9050,61 @@ export interface GQLResolver {
             title: GQL.PostDraftTitleArgs,
             content: GQL.PostDraftContentArgs,
             publishedCopy: GQL.PostDraftPublishedCopyArgs,
-            hub: GQL.PostDraftHubArgs,
+            channel: GQL.PostDraftChannelArgs,
             createdAt: GQL.PostDraftCreatedAtArgs,
             updatedAt: GQL.PostDraftUpdatedAtArgs,
             deletedAt: GQL.PostDraftDeletedAtArgs,
         }
     >;
+    PostSpan?: InterfaceTypeResolver<GQLRoots.PostSpanRoot, 'PostSpanBold' | 'PostSpanItalic' | 'PostSpanIrony' | 'PostSpanLink'>;
+    PostSpanBold?: ComplexTypedResolver<
+        GQL.PostSpanBold,
+        GQLRoots.PostSpanBoldRoot,
+        {
+        },
+        {
+            offset: GQL.PostSpanBoldOffsetArgs,
+            length: GQL.PostSpanBoldLengthArgs,
+        }
+    >;
+    PostSpanItalic?: ComplexTypedResolver<
+        GQL.PostSpanItalic,
+        GQLRoots.PostSpanItalicRoot,
+        {
+        },
+        {
+            offset: GQL.PostSpanItalicOffsetArgs,
+            length: GQL.PostSpanItalicLengthArgs,
+        }
+    >;
+    PostSpanIrony?: ComplexTypedResolver<
+        GQL.PostSpanIrony,
+        GQLRoots.PostSpanIronyRoot,
+        {
+        },
+        {
+            offset: GQL.PostSpanIronyOffsetArgs,
+            length: GQL.PostSpanIronyLengthArgs,
+        }
+    >;
+    PostSpanLink?: ComplexTypedResolver<
+        GQL.PostSpanLink,
+        GQLRoots.PostSpanLinkRoot,
+        {
+        },
+        {
+            offset: GQL.PostSpanLinkOffsetArgs,
+            length: GQL.PostSpanLinkLengthArgs,
+            url: GQL.PostSpanLinkUrlArgs,
+        }
+    >;
+    PostSpanType?: EnumTypeResolver<'Bold' | 'Italic' | 'Irony' | 'Link', GQLRoots.PostSpanTypeRoot>;
     Paragraph?: UnionTypeResolver<GQLRoots.ParagraphRoot, 'TextParagraph' | 'ImageParagraph' | 'H1Paragraph' | 'H2Paragraph'>;
     TextParagraph?: ComplexTypedResolver<
         GQL.TextParagraph,
         GQLRoots.TextParagraphRoot,
         {
-            spans: GQLRoots.MessageSpanRoot[],
+            spans: GQLRoots.PostSpanRoot[],
         },
         {
             text: GQL.TextParagraphTextArgs,

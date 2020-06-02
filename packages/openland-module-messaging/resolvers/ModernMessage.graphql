@@ -336,15 +336,15 @@ input MentionInput {
     length: Int!
 }
 
+#
+#   Markdown
+#
+
 type MessageSpanLink implements MessageSpan {
     offset: Int!
     length: Int!
     url: String!
 }
-
-#
-#   Markdown
-#
 
 type MessageSpanBold implements MessageSpan {
     offset: Int!
