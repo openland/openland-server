@@ -78,7 +78,13 @@ export const Resolver: GQLResolver = {
     },
     ConferencePeer: {
         id: (src: ConferencePeer) => IDs.ConferencePeer.serialize(src.id),
-        user: (src: ConferencePeer) => src.uid
+        user: (src: ConferencePeer) => src.uid,
+        mediaState: async (src) => {
+            return {
+                videoPaused: !!src.videoPaused,
+                audioPaused: !!src.audioPaused,
+            };
+        },
     },
 
     //

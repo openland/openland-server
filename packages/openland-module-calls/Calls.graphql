@@ -8,6 +8,12 @@ type Conference {
 type ConferencePeer {
   id: ID!
   user: User!
+  mediaState: ConferencePeerMediaState!
+}
+
+type ConferencePeerMediaState {
+  audioPaused: Boolean!
+  videoPaused: Boolean!
 }
 
 #
