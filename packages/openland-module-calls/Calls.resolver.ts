@@ -40,7 +40,7 @@ const resolveIce = async (root: any, args: any, context: AppContext) => {
     // if (context.req.latLong) {
     //     return await resolveNearestTurn(context.req.latLong);
     // }
-    return await resolveTurnServices(root);
+    return await resolveTurnServices(context);
 };
 
 const resolveMeshStreamLink = async (src: { id: string, pid: number }, ctx: AppContext) => {
