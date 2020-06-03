@@ -425,15 +425,16 @@ export const Resolver: GQLResolver = {
             },
             subscribe: async function* (_: any, args: { id: string }, parent: AppContext) {
                 let cid = IDs.Conference.parse(args.id);
+
+                yield await inTx(parent, async (ctx) => (await Store.ConferenceRoom.findById(ctx, cid))!);
+
                 while (true) {
                     let changed = await fastWatch(parent, 'conference-' + cid,
                         async (ctx) => (await Store.ConferenceRoom.findById(ctx, cid))!.metadata.versionCode
                     );
                     if (changed) {
-                        yield await inTx(parent, async (ctx) => {
-                            return (await Store.ConferenceRoom.findById(ctx, cid))!;
-                        });
-                    } {
+                        yield await inTx(parent, async (ctx) => (await Store.ConferenceRoom.findById(ctx, cid))!);
+                    } else {
                         break;
                     }
                 }
