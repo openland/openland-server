@@ -9,6 +9,9 @@ import { AppContext } from 'openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
 import NotificationPreviewRoot = GQLRoots.NotificationPreviewRoot;
+import SubscriptionWatchSettingsArgs = GQL.SubscriptionWatchSettingsArgs;
+import SubscriptionSettingsWatchArgs = GQL.SubscriptionSettingsWatchArgs;
+import { fastWatch } from '../openland-module-db/fastWatch';
 
 const settingsUpdateResolver = withUser(async (parent, args: GQL.MutationSettingsUpdateArgs, uid: number) => {
     return await inTx(parent, async (ctx) => {
@@ -195,7 +198,7 @@ const settingsUpdateResolver = withUser(async (parent, args: GQL.MutationSetting
 
         settings.invalidate();
         await Modules.Messaging.onGlobalCounterTypeChanged(ctx, _uid);
-
+        await Modules.Users.notifyUserSettingsChanged(ctx, uid);
         return settings;
     });
 });
@@ -381,7 +384,7 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationUpdateS
 
         settings.invalidate();
         await Modules.Messaging.onGlobalCounterTypeChanged(ctx, uid);
-
+        await Modules.Users.notifyUserSettingsChanged(ctx, uid);
         return settings;
     });
 });
@@ -467,48 +470,50 @@ export const Resolver: GQLResolver = {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async (_: any, args, ctx) => {
-                if (!ctx.auth.uid) {
+            subscribe: async function* (_: any, args: SubscriptionWatchSettingsArgs, parent: AppContext) {
+                if (!parent.auth.uid) {
                     throw new AccessDeniedError();
                 }
-                let ended = false;
-                return {
-                    ...(async function* func() {
-                        while (!ended) {
-                            let settings = await Modules.Users.getUserSettings(ctx, ctx.auth.uid!!);
-                            yield settings;
-                            await Modules.Users.waitForNextSettings(ctx, ctx.auth.uid!);
-                        }
-                    })(),
-                    return: async () => {
-                        ended = true;
-                        return 'ok';
+
+                yield await Modules.Users.getUserSettings(parent, parent.auth.uid);
+
+                while (true) {
+                    let changed = await fastWatch(parent, 'user-settings-' + parent.auth.uid,
+                        async (ctx) => (await Modules.Users.getUserSettings(parent, parent.auth.uid!))!.metadata.versionCode
+                    );
+                    if (changed) {
+                        yield await Modules.Users.getUserSettings(parent, parent.auth.uid);
+                    } else {
+                        break;
                     }
-                };
+                }
+
+                return;
             }
         },
         settingsWatch: {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async (r, args, ctx) => {
-                if (!ctx.auth.uid) {
+            subscribe: async function* (_: any, args: SubscriptionSettingsWatchArgs, parent: AppContext) {
+                if (!parent.auth.uid) {
                     throw new AccessDeniedError();
                 }
-                let ended = false;
-                return {
-                    ...(async function* func() {
-                        while (!ended) {
-                            let settings = await Modules.Users.getUserSettings(ctx, ctx.auth.uid!!);
-                            yield settings;
-                            await Modules.Users.waitForNextSettings(ctx, ctx.auth.uid!);
-                        }
-                    })(),
-                    return: async () => {
-                        ended = true;
-                        return 'ok';
+
+                yield await Modules.Users.getUserSettings(parent, parent.auth.uid);
+
+                while (true) {
+                    let changed = await fastWatch(parent, 'user-settings-' + parent.auth.uid,
+                        async (ctx) => (await Modules.Users.getUserSettings(parent, parent.auth.uid!))!.metadata.versionCode
+                    );
+                    if (changed) {
+                        yield await Modules.Users.getUserSettings(parent, parent.auth.uid);
+                    } else {
+                        break;
                     }
-                };
+                }
+
+                return;
             }
         }
     }

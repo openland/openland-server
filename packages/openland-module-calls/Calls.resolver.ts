@@ -446,6 +446,9 @@ export const Resolver: GQLResolver = {
             subscribe: async function* (_: any, args: { id: string, peerId: string }, parent: AppContext) {
                 let cid = IDs.Conference.parse(args.id);
                 let pid = IDs.ConferencePeer.parse(args.peerId);
+
+                yield { id: cid, peerId: pid };
+
                 while (true) {
                     let changed = await fastWatch(parent, 'conference-' + cid,
                         async (ctx) => (await Store.ConferenceRoom.findById(ctx, cid))!.metadata.versionCode

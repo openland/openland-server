@@ -13,6 +13,7 @@ import { Store } from 'openland-module-db/FDB';
 import { UserBadge } from 'openland-module-db/store';
 import { Modules } from 'openland-modules/Modules';
 import { uuid } from '../../openland-utils/uuid';
+import { notifyFastWatch } from '../../openland-module-db/fastWatch';
 
 const userCreated = createHyperlogger<{ uid: number }>('user_created');
 const userActivated = createHyperlogger<{ uid: number, isTest: boolean }>('user_activated');
@@ -248,6 +249,14 @@ export class UserRepository {
                 });
             }
             return settings;
+        });
+    }
+
+    notifyUserSettingsChanged = async (parent: Context, uid: number) => {
+        await inTx(parent, async (ctx) => {
+            let settings = await this.getUserSettings(ctx, uid);
+            settings.invalidate();
+            notifyFastWatch(ctx, 'user-settings-' + uid);
         });
     }
 

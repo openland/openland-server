@@ -103,6 +103,10 @@ export class UsersModule {
         return await this.repo.getUserSettings(ctx, uid);
     }
 
+    async notifyUserSettingsChanged(parent: Context, uid: number) {
+        return await this.repo.notifyUserSettingsChanged(parent, uid);
+    }
+
     async waitForNextSettings(ctx: Context, uid: number) {
         await this.repo.waitForNextSettings(ctx, uid);
     }
