@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '55bf04ff1c937c4af7e5c6032ca607a4';
+export const GQL_SPEC_VERSION = '5f6f412c10661d1ebd453a92dcb3d7a8';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1665,9 +1665,11 @@ export namespace GQL {
     export interface ConferencePeerMediaState {
         audioPaused: boolean;
         videoPaused: boolean;
+        screencastEnabled: boolean;
     }
     export interface ConferencePeerMediaStateAudioPausedArgs { }
     export interface ConferencePeerMediaStateVideoPausedArgs { }
+    export interface ConferencePeerMediaStateScreencastEnabledArgs { }
     export interface MediaHeaderExtension {
         kind: string;
         uri: string;
@@ -7736,6 +7738,7 @@ export interface GQLResolver {
         {
             audioPaused: GQL.ConferencePeerMediaStateAudioPausedArgs,
             videoPaused: GQL.ConferencePeerMediaStateVideoPausedArgs,
+            screencastEnabled: GQL.ConferencePeerMediaStateScreencastEnabledArgs,
         }
     >;
     ICEServer?: ComplexTypedResolver<
