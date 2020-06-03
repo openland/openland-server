@@ -19,6 +19,7 @@ import { randomKey } from '../openland-utils/random';
 // import { createMetric } from '../openland-module-monitoring/Metric';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { Metrics } from 'openland-module-monitoring/Metrics';
+import uuid from 'uuid';
 
 // const logger = createLogger('apollo');
 
@@ -129,6 +130,12 @@ class FuckApolloSession {
     }
 
     isConnected = () => this.socket && this.socket!.readyState === WebSocket.OPEN && this.state === 'CONNECTED';
+
+    sendRateLimitError = (id: string) => this.sendData(id, {
+        message: 'An unexpected error occurred. Please, try again. If the problem persists, please contact support@openland.com.',
+        uuid: uuid(),
+        shouldRetry: true
+    })
 }
 
 const asyncRun = (handler: () => Promise<any>) => {
@@ -189,6 +196,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
     } else if (session.state === 'CONNECTED' || session.state === 'WAITING_CONNECT') {
         await Promise.resolve(session.waitAuth);
 
+        // TODO: add query validation
         if (message.type && message.type === 'start') {
             let operation = fetchGQlServerOperation(message.payload);
             let query: DocumentNode;
@@ -222,11 +230,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
 
                     if (!session.operationBucket.tryTake()) {
                         // handle error
-                        session.sendData(message.id, await params.formatResponse({
-                            errors: [{
-                                shouldRetry: true
-                            }]
-                        }, operation, ctx));
+                        session.sendRateLimitError(message.id);
                         session.sendComplete(message.id);
                         session.stopOperation(message.id);
                         return;
@@ -266,6 +270,13 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                 });
             } else {
                 let ctx = await params.context(session.authParams, operation, req);
+                if (!session.operationBucket.tryTake()) {
+                    // handle error
+                    session.sendRateLimitError(message.id);
+                    session.sendComplete(message.id);
+                    session.stopOperation(message.id);
+                    return;
+                }
                 await params.onOperation(ctx, operation);
                 let opStartTime = Date.now();
                 let result = await session.executionPool.run(async () => execute({
