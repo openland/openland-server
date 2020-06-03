@@ -7,8 +7,8 @@ export const Concurrency = {
     Operation: new SimpleFactory(() => {
         return new TokenBucket({
             maxTokens: 20,
-            refillDelay: 1000,
-            refillAmount: 1
+            refillDelay: 100,
+            refillAmount: 2
         });
     }),
 
