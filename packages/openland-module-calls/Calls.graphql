@@ -14,6 +14,7 @@ type ConferencePeer {
 type ConferencePeerMediaState {
   audioPaused: Boolean!
   videoPaused: Boolean!
+  screencastEnabled: Boolean!
 }
 
 #

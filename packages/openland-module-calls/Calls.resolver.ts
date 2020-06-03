@@ -80,8 +80,10 @@ export const Resolver: GQLResolver = {
     ConferencePeer: {
         id: (src: ConferencePeer) => IDs.ConferencePeer.serialize(src.id),
         user: (src: ConferencePeer) => src.uid,
-        mediaState: async (src) => {
+        mediaState: async (src, args, ctx) => {
+            let conf = await Store.ConferenceRoom.findById(ctx, src.cid);
             return {
+                screencastEnabled: src.id === conf?.screenSharingPeerId,
                 videoPaused: !!src.videoPaused,
                 audioPaused: !!src.audioPaused,
             };
