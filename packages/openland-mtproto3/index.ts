@@ -132,9 +132,12 @@ class FuckApolloSession {
     isConnected = () => this.socket && this.socket!.readyState === WebSocket.OPEN && this.state === 'CONNECTED';
 
     sendRateLimitError = (id: string) => this.sendData(id, {
-        message: 'An unexpected error occurred. Please, try again. If the problem persists, please contact support@openland.com.',
-        uuid: uuid(),
-        shouldRetry: true
+        data: null,
+        errors: [{
+            message: 'An unexpected error occurred. Please, try again. If the problem persists, please contact support@openland.com.',
+            uuid: uuid(),
+            shouldRetry: true
+        }]
     })
 }
 
