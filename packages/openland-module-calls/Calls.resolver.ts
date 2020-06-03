@@ -452,7 +452,7 @@ export const Resolver: GQLResolver = {
                     );
                     if (changed) {
                         yield { id: cid, peerId: pid };
-                    } {
+                    } else {
                         break;
                     }
                 }
