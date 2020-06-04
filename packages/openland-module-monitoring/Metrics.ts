@@ -7,6 +7,7 @@ export const Metrics = {
     // Distributed gauges
     Connections: Factory.createMachineGauge('connections', 'Active WebSocket connections'),
     GQLRequestTime: Factory.createGauge('gql_request_time', 'Time of GraphQL request resolving', 'median'),
+    GQLRequests: Factory.createMachineGauge('gql_requests', 'Number of parallel graphql requests'),
 
     // Persisted gauges
     CallWorkers: Factory.createPersistedGauge('calls_workers', 'Number of active workers', async (ctx) => {
