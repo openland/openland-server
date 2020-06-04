@@ -16,14 +16,14 @@ class GaugeCollector {
         this.gauge = gauge;
     }
 
-    #values = new Map<string, {
+    _values = new Map<string, {
         value: number,
         time: number,
         timeout: NodeJS.Timeout
     }>();
 
     resolve = () => {
-        return [...this.#values.values()].map((v) => v.value).reduce((p, c) => p + c, 0);
+        return [...this._values.values()].map((v) => v.value).reduce((p, c) => p + c, 0);
     }
 
     report = (value: number, key: string, timeout: number, time: number) => {
@@ -34,7 +34,7 @@ class GaugeCollector {
             return;
         }
 
-        let ex = this.#values.get(key);
+        let ex = this._values.get(key);
         // Too old report
         if (ex && ex.time >= time) {
             return;
@@ -46,11 +46,22 @@ class GaugeCollector {
         }
 
         // Write new value
-        this.#values.set(key, {
+        this._values.set(key, {
             value,
             time,
-            timeout: setTimeout(() => { this.#values.delete(key); }, timeout)
+            timeout: setTimeout(() => { this._values.delete(key); }, timeout)
         });
+    }
+}
+
+class MeanGaugeCollector extends GaugeCollector {
+    constructor(gauge: DistributedGauge) {
+        super(gauge);
+    }
+
+    resolve = () => {
+        let values = [...this._values.values()].map((v) => v.value).sort();
+        return values[Math.ceil(values.length / 2)];
     }
 }
 
@@ -65,7 +76,7 @@ export class DistributedCollector {
 
         let metrics = this.#factory.getAllMetrics();
         for (let gauge of metrics.gauges) {
-            this.#gaugeCollectors.set(gauge.name, new GaugeCollector(gauge));
+            this.#gaugeCollectors.set(gauge.name, gauge.func === 'sum' ? new GaugeCollector(gauge) : new MeanGaugeCollector(gauge));
         }
         for (let persisted of metrics.persistedGauges) {
             this.#persistedGauges.set(persisted.name, persisted);

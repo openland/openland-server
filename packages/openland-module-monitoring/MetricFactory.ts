@@ -16,17 +16,17 @@ export class MetricFactory {
         };
     }
 
-    createGauge = (name: string, description: string) => {
+    createGauge = (name: string, description: string, func: 'sum' | 'median' = 'sum') => {
         if (this.#gauges.has(name) || this.#persistedGauges.has(name)) {
             throw Error('Gauge already exists');
         }
-        let res = new DistributedGauge(name, description);
+        let res = new DistributedGauge(name, description, func);
         this.#gauges.set(name, res);
         return res;
     }
 
-    createMachineGauge = (name: string, description: string) => {
-        let gauge = this.createGauge(name, description);
+    createMachineGauge = (name: string, description: string, func: 'sum' | 'median' = 'sum') => {
+        let gauge = this.createGauge(name, description, func);
         let res = new DistributedMachineGauge(name, gauge);
         this.#machineGauges.set(name, res);
         return res;

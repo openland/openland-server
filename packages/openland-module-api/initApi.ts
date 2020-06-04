@@ -48,9 +48,9 @@ import { initVostokApiServer } from '../openland-mtproto3/vostok-api/vostokApiSe
 import { EventBus } from '../openland-module-pubsub/EventBus';
 import { initOauth2 } from '../openland-module-oauth/http.handlers';
 import { AuthContext } from '../openland-module-auth/AuthContext';
-import { createHyperlogger } from '../openland-module-hyperlog/createHyperlogEvent';
 import { initPhoneAuthProvider } from '../openland-module-auth/providers/phone';
 import { Shutdown } from '../openland-utils/Shutdown';
+import { Metrics } from '../openland-module-monitoring/Metrics';
 // import { Store } from '../openland-module-db/FDB';
 // import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
@@ -62,7 +62,7 @@ const logger = createLogger('api-module');
 // const authMetric = createMetric('auth-metric', 'average');
 // const authMetricCtx = createNamedContext('ws');
 
-const onGqlQuery = createHyperlogger<{ operationName: string, duration: number }>('gql_query_tracing');
+// const onGqlQuery = createHyperlogger<{ operationName: string, duration: number }>('gql_query_tracing');
 
 export async function initApi(isTest: boolean) {
     const rootCtx = createNamedContext('init');
@@ -292,12 +292,7 @@ export async function initApi(isTest: boolean) {
                 // }
 
                 if (operation.operationName) {
-                    await inTx(rootCtx, async _ctx => {
-                        await onGqlQuery.event(_ctx, {
-                            operationName: operation.operationName!,
-                            duration
-                        });
-                    });
+                    Metrics.GQLRequestTime.add(duration, uuid(), 10000);
                 }
             },
             onEventResolveFinish: async (ctx, operation, duration) => {
@@ -307,12 +302,7 @@ export async function initApi(isTest: boolean) {
                     await saveTrace(trace.getTrace());
                 }
                 if (operation.operationName) {
-                    await inTx(rootCtx, async _ctx => {
-                        await onGqlQuery.event(_ctx, {
-                            operationName: 'Event: ' + operation.operationName,
-                            duration
-                        });
-                    });
+                    Metrics.GQLRequestTime.add(duration, uuid(), 10000);
                 }
             },
             formatResponse: async (value, operation, ctx) => {

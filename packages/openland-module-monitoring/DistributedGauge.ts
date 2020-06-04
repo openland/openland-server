@@ -1,33 +1,25 @@
 import { EventBus } from 'openland-module-pubsub/EventBus';
 
 /**
- * DistributedGauge calculates sum of distributed reported values with timeout support.
+ * DistributedGauge calculates a specific function of distributed reported values with timeout support.
  * Useful for Online counter calculation: report each user with increment and appropriate timeout
  * and total online count will be calculated correctly without duplicates.
  */
 export class DistributedGauge {
     readonly name: string;
     readonly description: string;
+    readonly func: 'sum' | 'median';
 
-    constructor(name: string, description: string) {
+    constructor(name: string, description: string, func: 'sum' | 'median') {
         this.name = name;
         this.description = description;
+        this.func = func;
         Object.freeze(this);
     }
 
     /**
-     * Increments distributed gauge with timeout.
-     * Collector node will summ all increments to calculate 
-     * resulting value and will remove value from a set once timeout 
-     * is passed.
-     */
-    inc = (key: string, timeout: number) => {
-        this.add(1, key, timeout);
-    }
-
-    /**
      * Adds a value to distributed gauge with timeout.
-     * Collector node will summ all additions to calculate 
+     * Collector node will resolve all additions to calculate
      * resulting value and will remove value from a set once timeout 
      * is passed.
      */
