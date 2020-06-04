@@ -20,7 +20,8 @@ let devTeamEmails = [
     'nabovyan@bk.ru',
     'steve+kite@openland.com',
     'steve+k@openland.com',
-    'bot@openland.com'
+    'bot@openland.com',
+    'danila@openland.com'
 ];
 
 const emailSent = createHyperlogger<{ to: string, templateId: string }>('email_sent');

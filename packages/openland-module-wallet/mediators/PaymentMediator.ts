@@ -506,7 +506,7 @@ export class PaymentMediator {
 
         await backoff(parent, async () => {
             while (true) {
-                if (this.updatePaymentIntent(parent, id)) {
+                if (await this.updatePaymentIntent(parent, id)) {
                     return;
                 }
                 await this.stripe.paymentIntents.cancel(id);
