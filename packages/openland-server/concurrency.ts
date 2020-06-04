@@ -8,7 +8,7 @@ export const Concurrency = {
         return new TokenBucket({
             maxTokens: 20,
             refillDelay: 100,
-            refillAmount: 2
+            refillAmount: 5
         });
     }),
 
