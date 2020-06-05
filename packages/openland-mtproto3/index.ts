@@ -66,6 +66,7 @@ class FuckApolloSession {
     public socket: WebSocket | null;
     public protocolVersion = 1;
     public lastPingAck: number = Date.now();
+    public lastRequestTime: number = Date.now();
     public pingCounter = 0;
     public pingAckCounter = 0;
     public executionPool = Concurrency.Execution.get(this.id);
@@ -195,9 +196,18 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                     }
                 });
             }
+            let oldConnectionsTimeout = setTimeout(() => {
+                if (!session.isConnected()) {
+                    clearInterval(oldConnectionsTimeout);
+                } else if (session.isConnected() && Date.now() - session.lastRequestTime > 1000 * 60 * 5) {
+                    session.close();
+                    clearInterval(oldConnectionsTimeout);
+                }
+            }, 1000 * 10);
         })();
     } else if (session.state === 'CONNECTED' || session.state === 'WAITING_CONNECT') {
         await Promise.resolve(session.waitAuth);
+        session.lastRequestTime = Date.now();
 
         // TODO: add query validation
         if (message.type && message.type === 'start') {
@@ -296,8 +306,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
         } else if (message.type && message.type === 'stop') {
             session.stopOperation(message.id);
         } else if (message.type && message.type === 'connection_terminate') {
-            session.stopAllOperations();
-            socket.close();
+            session.close();
         } else if (message.type && message.type === 'ping' && session.protocolVersion === 2) {
             session.sendPingAck();
         } else if (message.type && message.type === 'pong' && session.protocolVersion === 2) {
@@ -314,7 +323,6 @@ async function handleConnection(params: FuckApolloServerParams, sessions: Map<st
     // metric.increment(rootCtx);
     let session = new FuckApolloSession(socket);
     sessions.set(session.id, session);
-
     let closed = false;
     Metrics.Connections.inc();
 
@@ -325,6 +333,7 @@ async function handleConnection(params: FuckApolloServerParams, sessions: Map<st
         // logger.log(rootCtx, 'close connection', code, reason);
         session.close();
         sessions.delete(session.id);
+        // console.log('close');
         if (!closed) {
             closed = true;
             Metrics.Connections.dec();
