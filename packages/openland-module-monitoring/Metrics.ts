@@ -9,6 +9,8 @@ export const Metrics = {
     GQLRequestTime: Factory.createGauge('gql_request_time', 'Time of GraphQL request resolving', 'median'),
     GQLRequests: Factory.createMachineGauge('gql_requests', 'Number of parallel graphql requests'),
     SpaceXSessions: Factory.createMachineGauge('spacex_sessions', 'Number of active SpaceX sessions'),
+    SpaceXSessionsAuthenticated: Factory.createMachineGauge('spacex_sessions_authenticated', 'Number of active authenticated SpaceX sessions'),
+    SpaceXSessionsAnonymous: Factory.createMachineGauge('spacex_sessions_anonymous', 'Number of active authenticated SpaceX sessions'),
     SpaceXOperations: Factory.createMachineGauge('spacex_ops', 'Number of active SpaceX operations'),
 
     // Persisted gauges

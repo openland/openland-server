@@ -45,6 +45,11 @@ export class SpaceXSession {
         this.descriptor = params.descriptor;
         this.schema = params.schema;
         Metrics.SpaceXSessions.inc();
+        if (this.descriptor.type === 'authenticated') {
+            Metrics.SpaceXSessionsAuthenticated.inc();
+        } else if (this.descriptor.type === 'anonymnous') {
+            Metrics.SpaceXSessionsAnonymous.inc();
+        }
 
         // Keep session in memory until explicitly closed to avoid
         // invalid metrics
@@ -144,6 +149,11 @@ export class SpaceXSession {
         this.closed = true;
         activeSessions.delete(this.uuid);
         Metrics.SpaceXSessions.dec();
+        if (this.descriptor.type === 'authenticated') {
+            Metrics.SpaceXSessionsAuthenticated.dec();
+        } else if (this.descriptor.type === 'anonymnous') {
+            Metrics.SpaceXSessionsAnonymous.dec();
+        }
         for (let op of [...this.activeOperations.values()]) {
             op();
         }
