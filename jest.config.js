@@ -84,5 +84,7 @@ module.exports = {
         'openland-cli': '<rootDir>/packages/openland-cli',
         'openland-config/(.*)': '<rootDir>/packages/openland-config/$1',
         'openland-config': '<rootDir>/packages/openland-config',
+        'openland-spacex/(.*)': '<rootDir>/packages/openland-spacex/$1',
+        'openland-spacex': '<rootDir>/packages/openland-spacex',
     }
 };

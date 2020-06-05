@@ -1,14 +1,14 @@
+import { SpaceXSession, SpaceXSessionDescriptor } from './../openland-spacex/SpaceXSession';
 import { Concurrency } from './../openland-server/concurrency';
 import {
     DocumentNode,
-    execute,
     GraphQLSchema,
     parse,
 } from 'graphql';
 import WebSocket = require('ws');
 import * as http from 'http';
 import * as https from 'https';
-import { isAsyncIterator, isSubscriptionQuery } from './utils';
+import { isAsyncIterator } from './utils';
 import { delay } from '../openland-utils/timer';
 import { gqlSubscribe } from './gqlSubscribe';
 import { Context } from '@openland/context';
@@ -20,6 +20,7 @@ import { randomKey } from '../openland-utils/random';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import uuid from 'uuid';
+import { getOperationType } from 'openland-spacex/utils/getOperationType';
 
 // const logger = createLogger('apollo');
 
@@ -48,11 +49,11 @@ interface FuckApolloServerParams {
 
     subscriptionContext(params: any, operation: GQlServerOperation, firstCtx: Context | undefined, req: http.IncomingMessage): Promise<Context>;
 
-    formatResponse(response: any, operation: GQlServerOperation, context: Context): Promise<any>;
+    formatResponse(response: any, operation: GQlServerOperation, context: Context): any;
 
     onOperation(ctx: Context, operation: GQlServerOperation): Promise<any>;
 
-    onOperationFinish(ctx: Context, operation: GQlServerOperation, duration: number): Promise<any>;
+    onOperationFinish(ctx: Context, operation: GQlServerOperation, duration: number): void;
 
     onEventResolveFinish(ctx: Context, operation: GQlServerOperation, duration: number): Promise<any>;
 }
@@ -64,6 +65,7 @@ class FuckApolloSession {
     public operations: { [operationId: string]: { destroy(): void } } = {};
     public waitAuth: Promise<any> = Promise.resolve();
     public socket: WebSocket | null;
+    public session!: SpaceXSession;
     public protocolVersion = 1;
     public lastPingAck: number = Date.now();
     public lastRequestTime: number = Date.now();
@@ -128,6 +130,9 @@ class FuckApolloSession {
         this.socket!.removeAllListeners('error');
         this.socket = null;
         this.operations = {};
+        if (this.session) {
+            this.session.close();
+        }
     }
 
     isConnected = () => this.socket && this.socket!.readyState === WebSocket.OPEN && this.state === 'CONNECTED';
@@ -167,6 +172,18 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
         session.waitAuth = (async () => {
             session.authParams = await params.onAuth(message.payload, req);
             session.sendConnectionAck();
+
+            // Create SpaceX Session
+            let descriptor: SpaceXSessionDescriptor;
+            if (session.authParams.uid) {
+                descriptor = { type: 'authenticated', uid: session.authParams.uid, tid: session.authParams.tid };
+            } else {
+                descriptor = { type: 'anonymnous' };
+            }
+            session.session = new SpaceXSession({
+                descriptor,
+                schema: params.executableSchema
+            });
             session.waitAuth = Promise.resolve();
             session.setConnected();
             asyncRun(async () => {
@@ -233,9 +250,8 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
             }
 
             // let query = parse(message.payload.query);
-            let isSubscription = isSubscriptionQuery(query, operation.operationName);
-
-            if (isSubscription) {
+            let opType = getOperationType(query, operation.operationName);
+            if (opType === 'subscription') {
                 let working = true;
                 let ctx = await params.subscriptionContext(session.authParams, operation, undefined, req);
                 asyncRun(async () => {
@@ -292,16 +308,17 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                 }
                 await params.onOperation(ctx, operation);
                 let opStartTime = Date.now();
-                let result = await session.executionPool.run(async () => execute({
-                    schema: params.executableSchema,
-                    document: query,
-                    operationName: operation.operationName,
-                    variableValues: operation.variables,
-                    contextValue: ctx
-                }));
-                session.sendData(message.id, await params.formatResponse(result, operation, ctx));
-                session.sendComplete(message.id);
-                await params.onOperationFinish(ctx, operation, Date.now() - opStartTime);
+                session.session.operation(ctx, query, operation.variables, (res) => {
+                    if (res.type === 'data') {
+                        session.sendData(message.id, params.formatResponse({ data: res.data }, operation, ctx));
+                        session.sendComplete(message.id);
+                        params.onOperationFinish(ctx, operation, Date.now() - opStartTime);
+                    } else if (res.type === 'errors') {
+                        session.sendData(message.id, params.formatResponse({ errors: res.errors }, operation, ctx));
+                        session.sendComplete(message.id);
+                        params.onOperationFinish(ctx, operation, Date.now() - opStartTime);
+                    }
+                });
             }
         } else if (message.type && message.type === 'stop') {
             session.stopOperation(message.id);

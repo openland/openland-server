@@ -285,7 +285,7 @@ export async function initApi(isTest: boolean) {
                 // }
                 Metrics.GQLRequests.inc();
             },
-            onOperationFinish: async (ctx, operation, duration) => {
+            onOperationFinish: (ctx, operation, duration) => {
                 // let trace = gqlTraceNamespace.get(ctx);
                 // if (trace) {
                 //     trace.onRequestFinish();
@@ -304,7 +304,7 @@ export async function initApi(isTest: boolean) {
                     Metrics.GQLRequestTime.add(duration, uuid(), 10000);
                 }
             },
-            formatResponse: async (value, operation, ctx) => {
+            formatResponse: (value, operation, ctx) => {
                 let auth = AuthContext.get(ctx);
                 let uid = auth.uid;
                 let oid = auth.oid;

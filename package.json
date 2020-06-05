@@ -224,6 +224,7 @@
     "openland-module-wallet": "build/openland-module-wallet",
     "openland-module-phonebook": "build/openland-module-phonebook",
     "openland-config": "build/openland-config",
-    "openland-module-discussions": "build/openland-module-discussions"
+    "openland-module-discussions": "build/openland-module-discussions",
+    "openland-spacex": "build/openland-spacex"
   }
 }

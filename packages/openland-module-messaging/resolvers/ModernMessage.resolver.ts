@@ -266,7 +266,7 @@ export function parseLinks(message: string): MessageSpan[] {
 
 const urlInfoService = createUrlInfoService();
 
-export async function fetchMessageFallback(message: Message | Comment | RichMessage): Promise<string> {
+export function fetchMessageFallback(message: Message | Comment | RichMessage): string {
     const attachFallback = (mime?: string | null, isImage?: boolean | null) => {
         if (!mime) {
             return Texts.Notifications.DOCUMENT_ATTACH;
