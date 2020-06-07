@@ -1,3 +1,4 @@
+import { apm } from './../openland-log/apm';
 import { Config } from 'openland-config/Config';
 import { setLogProvider, LogPathContext, LogMetaContext } from '@openland/log';
 import { Context, ContextName } from '@openland/context';
@@ -6,13 +7,6 @@ import pino from 'pino';
 import { ZippedLoggerTimes } from '../openland-utils/ZippedLogger';
 
 const isProduction = Config.environment === 'production';
-
-import APM from 'elastic-apm-node';
-export const apm = APM.start({
-    serverUrl: Config.apm?.endpoint || '',
-    active: isProduction,
-    instrument: false
-});
 
 const getPino = () => {
     let log = pino();

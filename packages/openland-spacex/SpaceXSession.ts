@@ -1,3 +1,4 @@
+import { createTracer } from 'openland-log/createTracer';
 import { createLogger } from '@openland/log';
 import { Config } from 'openland-config/Config';
 import { ConcurrencyPool } from 'openland-utils/ConcurrencyPool';
@@ -32,6 +33,7 @@ export type OpRef = {
 let activeSessions = new Map<string, SpaceXSession>();
 const spaceXCtx = createNamedContext('spacex');
 const logger = createLogger('spacex');
+const tracer = createTracer('spacex');
 
 export class SpaceXSession {
     readonly uuid = uuid();
@@ -67,7 +69,7 @@ export class SpaceXSession {
         }
     }
 
-    operation(context: Context, document: DocumentNode, variables: any, handler: (result: OpResult) => void): OpRef {
+    operation(parentContext: Context, document: DocumentNode, variables: any, handler: (result: OpResult) => void): OpRef {
         if (this.closed) {
             throw Error('Session already closed');
         }
@@ -96,15 +98,17 @@ export class SpaceXSession {
                 }
 
                 // Executing in concurrency pool
-                let res = await this.concurrencyPool.run(async () => {
-                    if (completed) {
-                        return null;
-                    }
-                    return await execute({
-                        schema: this.schema,
-                        document: document,
-                        variableValues: variables,
-                        contextValue: context
+                let res = await tracer.trace(parentContext, docOp, async (context) => {
+                    return await this.concurrencyPool.run(async () => {
+                        if (completed) {
+                            return null;
+                        }
+                        return await execute({
+                            schema: this.schema,
+                            document: document,
+                            variableValues: variables,
+                            contextValue: context
+                        });
                     });
                 });
 

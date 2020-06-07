@@ -619,13 +619,6 @@
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/@types/http-assert/-/http-assert-1.5.0.tgz#56c95c69b51e7168b0d6727005d1fb2a00aaef94"
 
-"@types/jaeger-client@^3.15.0":
-  version "3.15.1"
-  resolved "https://registry.yarnpkg.com/@types/jaeger-client/-/jaeger-client-3.15.1.tgz#1105852053ca5aad35315d99517366273715b5f8"
-  dependencies:
-    opentracing "~0.14.3"
-    prom-client "~11.3.0"
-
 "@types/jest@^23.1.3":
   version "23.3.14"
   resolved "https://registry.yarnpkg.com/@types/jest/-/jest-23.3.14.tgz#37daaf78069e7948520474c87b80092ea912520a"
@@ -946,10 +939,6 @@ ansi-align@^2.0.0:
   resolved "https://registry.yarnpkg.com/ansi-align/-/ansi-align-2.0.0.tgz#c36aeccba563b89ceb556f3690f0b1d9e3547f7f"
   dependencies:
     string-width "^2.0.0"
-
-ansi-color@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/ansi-color/-/ansi-color-0.2.1.tgz#3e75c037475217544ed763a8db5709fa9ae5bf9a"
 
 ansi-escapes@^3.0.0:
   version "3.2.0"
@@ -1728,14 +1717,6 @@ buffer-from@^1.0.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/buffer-from/-/buffer-from-1.1.1.tgz#32713bc028f75c02fdb710d7c7bcec1f2c6070ef"
   integrity sha512-MQcXEUbCKtEo7bhqEs6560Hyd4XaovZlO/k9V3hjVUF/zwW7KBVdSK4gIt/bzwS9MbR5qob+F5jusZsb0YQK2A==
-
-bufrw@^1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/bufrw/-/bufrw-1.2.1.tgz#93f222229b4f5f5e2cd559236891407f9853663b"
-  dependencies:
-    ansi-color "^0.2.1"
-    error "^7.0.0"
-    xtend "^4.0.0"
 
 builtin-modules@^1.1.1:
   version "1.1.1"
@@ -2678,6 +2659,13 @@ elastic-apm-http-client@^9.4.0:
     stream-chopper "^3.0.1"
     unicode-byte-truncate "^1.0.0"
 
+elastic-apm-node-opentracing@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/elastic-apm-node-opentracing/-/elastic-apm-node-opentracing-2.0.0.tgz#91271aab5a1f4c3424758f062aa06c92b047962f"
+  integrity sha512-v41/V0OTURLgwb35TF4CEOPXieg9XMA3grbeKSzKbDPZg4wWOL7DlBdRJfs/zyxw3VmIBz7rQsanDYXFgjVqCA==
+  dependencies:
+    opentracing "^0.14.3"
+
 elastic-apm-node@^3.6.1:
   version "3.6.1"
   resolved "https://registry.yarnpkg.com/elastic-apm-node/-/elastic-apm-node-3.6.1.tgz#bce1bca37ff92db6c36df20c7fe6c51ea865c8e6"
@@ -2796,13 +2784,6 @@ error-stack-parser@^2.0.6:
   integrity sha512-d51brTeqC+BHlwF0BhPtcYgF5nlzf9ZZ0ZIUQNZpc9ZB9qw5IJ2diTrBY9jlCJkTLITYPjmiX6OWCwH+fuyNgQ==
   dependencies:
     stackframe "^1.1.1"
-
-error@7.0.2, error@^7.0.0:
-  version "7.0.2"
-  resolved "https://registry.yarnpkg.com/error/-/error-7.0.2.tgz#a5f75fff4d9926126ddac0ea5dc38e689153cb02"
-  dependencies:
-    string-template "~0.2.1"
-    xtend "~4.0.0"
 
 es-abstract@^1.17.0-next.1, es-abstract@^1.17.4, es-abstract@^1.17.5:
   version "1.17.5"
@@ -4607,16 +4588,6 @@ iterall@^1.1.3, iterall@^1.2.1:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/iterall/-/iterall-1.2.2.tgz#92d70deb8028e0c39ff3164fdbf4d8b088130cd7"
 
-jaeger-client@^3.15.0:
-  version "3.15.0"
-  resolved "https://registry.yarnpkg.com/jaeger-client/-/jaeger-client-3.15.0.tgz#01e38937aa161d3118bdd685dd1b1eabab6bcf5e"
-  dependencies:
-    node-int64 "^0.4.0"
-    opentracing "^0.13.0"
-    thriftrw "^3.5.0"
-    uuid "^3.2.1"
-    xorshift "^0.2.0"
-
 jest-changed-files@^22.2.0:
   version "22.4.3"
   resolved "https://registry.yarnpkg.com/jest-changed-files/-/jest-changed-files-22.4.3.tgz#8882181e022c38bd46a2e4d18d44d19d90a90fb2"
@@ -5275,10 +5246,6 @@ logform@^2.1.1:
     fecha "^2.3.3"
     ms "^2.1.1"
     triple-beam "^1.3.0"
-
-long@^2.4.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/long/-/long-2.4.0.tgz#9fa180bb1d9500cdc29c4156766a1995e1f4524f"
 
 long@^4.0.0:
   version "4.0.0"
@@ -5992,13 +5959,10 @@ onetime@^5.1.0:
   dependencies:
     mimic-fn "^2.1.0"
 
-opentracing@^0.13.0:
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/opentracing/-/opentracing-0.13.0.tgz#6a341442f09d7d866bc11ed03de1e3828e3d6aab"
-
-opentracing@~0.14.3:
+opentracing@^0.14.3:
   version "0.14.4"
   resolved "https://registry.yarnpkg.com/opentracing/-/opentracing-0.14.4.tgz#a113408ea740da3a90fde5b3b0011a375c2e4268"
+  integrity sha512-nNnZDkUNExBwEpb7LZaeMeQgvrlO8l4bgY/LvGNZCR0xG/dGWqHqjKrAmR5GUoYo0FIz38kxasvA1aevxWs2CA==
 
 optimism@^0.9.0:
   version "0.9.6"
@@ -6382,12 +6346,6 @@ prom-client@^12.0.0:
   version "12.0.0"
   resolved "https://registry.yarnpkg.com/prom-client/-/prom-client-12.0.0.tgz#9689379b19bd3f6ab88a9866124db9da3d76c6ed"
   integrity sha512-JbzzHnw0VDwCvoqf8y1WDtq4wSBAbthMB1pcVI/0lzdqHGJI3KBJDXle70XK+c7Iv93Gihqo0a5LlOn+g8+DrQ==
-  dependencies:
-    tdigest "^0.1.1"
-
-prom-client@~11.3.0:
-  version "11.3.0"
-  resolved "https://registry.yarnpkg.com/prom-client/-/prom-client-11.3.0.tgz#fe93f360182f1ec1921722efc211a6c0e68e0253"
   dependencies:
     tdigest "^0.1.1"
 
@@ -7378,10 +7336,6 @@ string-length@^2.0.0:
     astral-regex "^1.0.0"
     strip-ansi "^4.0.0"
 
-string-template@~0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/string-template/-/string-template-0.2.1.tgz#42932e598a352d01fc22ec3367d9d84eec6c9add"
-
 string-width@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-1.0.2.tgz#118bdf5b8cdc51a2a7e70d211e07e2b0b9b107d3"
@@ -7617,14 +7571,6 @@ test-exclude@^4.2.1:
 text-hex@1.0.x:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/text-hex/-/text-hex-1.0.0.tgz#69dc9c1b17446ee79a92bf5b884bb4b9127506f5"
-
-thriftrw@^3.5.0:
-  version "3.11.3"
-  resolved "https://registry.yarnpkg.com/thriftrw/-/thriftrw-3.11.3.tgz#2cef6b4d089b7ba6275198b86582881582907d45"
-  dependencies:
-    bufrw "^1.2.1"
-    error "7.0.2"
-    long "^2.4.0"
 
 throat@^4.0.0:
   version "4.1.0"
@@ -8375,11 +8321,7 @@ xmlbuilder@9.0.1:
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/xmlbuilder/-/xmlbuilder-9.0.1.tgz#91cd70897755363eba57c12ddeeab4a341a61f65"
 
-xorshift@^0.2.0:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/xorshift/-/xorshift-0.2.1.tgz#fcd82267e9351c13f0fb9c73307f25331d29c63a"
-
-xtend@^4.0.0, xtend@^4.0.1, xtend@~4.0.0, xtend@~4.0.1:
+xtend@^4.0.1, xtend@~4.0.1:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/xtend/-/xtend-4.0.2.tgz#bb72779f5fa465186b1f438f674fa347fdb5db54"
 
