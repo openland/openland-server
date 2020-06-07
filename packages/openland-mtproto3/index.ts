@@ -84,6 +84,7 @@ class FuckApolloSession {
 
     send = (data: any) => {
         if (this.socket) {
+            Metrics.WebSocketPacketsOut.inc();
             this.socket.send(JSON.stringify(data));
         }
     }
@@ -341,9 +342,10 @@ async function handleConnection(params: FuckApolloServerParams, sessions: Map<st
     let session = new FuckApolloSession(socket);
     sessions.set(session.id, session);
     let closed = false;
-    Metrics.Connections.inc();
+    Metrics.WebSocketConnections.inc();
 
     socket.on('message', async data => {
+        Metrics.WebSocketPacketsIn.inc();
         await handleMessage(params, socket, req, session, JSON.parse(data.toString()));
     });
     socket.on('close', (code, reason) => {
@@ -353,7 +355,7 @@ async function handleConnection(params: FuckApolloServerParams, sessions: Map<st
         // console.log('close');
         if (!closed) {
             closed = true;
-            Metrics.Connections.dec();
+            Metrics.WebSocketConnections.dec();
         }
         // metric.decrement(rootCtx);
     });
@@ -363,7 +365,7 @@ async function handleConnection(params: FuckApolloServerParams, sessions: Map<st
         session.close();
         if (!closed) {
             closed = true;
-            Metrics.Connections.dec();
+            Metrics.WebSocketConnections.dec();
         }
     });
 }

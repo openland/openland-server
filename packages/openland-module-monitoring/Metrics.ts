@@ -5,10 +5,13 @@ export const Factory = new MetricFactory();
 
 export const Metrics = {
     // Distributed gauges
-    Connections: Factory.createMachineGauge('connections', 'Active WebSocket connections'),
+    WebSocketConnections: Factory.createMachineGauge('connections', 'Active WebSocket connections'),
+    WebSocketPacketsIn: Factory.createFrequencyGauge('ws_in_hz', 'WebSocket incoming packets frequency'),
+    WebSocketPacketsOut: Factory.createFrequencyGauge('ws_out_hz', 'WebSocket outgoing packets frequency'),
+
     GQLRequestTime: Factory.createGauge('gql_request_time', 'Time of GraphQL request resolving', 'median'),
     GQLRequests: Factory.createMachineGauge('gql_requests', 'Number of parallel graphql requests'),
-    
+
     // SpaceX
     SpaceXSessions: Factory.createMachineGauge('spacex_sessions', 'Number of active SpaceX sessions'),
     SpaceXSessionsAuthenticated: Factory.createMachineGauge('spacex_sessions_authenticated', 'Number of active authenticated SpaceX sessions'),
