@@ -9,17 +9,21 @@ export const Metrics = {
     GQLRequestTime: Factory.createGauge('gql_request_time', 'Time of GraphQL request resolving', 'median'),
     GQLRequests: Factory.createMachineGauge('gql_requests', 'Number of parallel graphql requests'),
     
+    // SpaceX
     SpaceXSessions: Factory.createMachineGauge('spacex_sessions', 'Number of active SpaceX sessions'),
     SpaceXSessionsAuthenticated: Factory.createMachineGauge('spacex_sessions_authenticated', 'Number of active authenticated SpaceX sessions'),
     SpaceXSessionsAnonymous: Factory.createMachineGauge('spacex_sessions_anonymous', 'Number of active authenticated SpaceX sessions'),
     SpaceXOperations: Factory.createMachineGauge('spacex_ops', 'Number of active SpaceX operations'),
-    SpaceXOperationsFrequence: Factory.createFrequencyGauge('spacex_ops_hz', 'Number of active SpaceX operations'),
+    SpaceXOperationsFrequence: Factory.createFrequencyGauge('spacex_ops_hz', 'Frequence of SpaceX operations'),
 
-    // Persisted gauges
+    // Tracing
+    TracingFrequence: Factory.createFrequencyGauge('tracing_span_hz', 'Tracing spans generation frequence'),
+
+    // Calls
     CallWorkers: Factory.createPersistedGauge('calls_workers', 'Number of active workers', async (ctx) => {
         return (await Store.KitchenWorker.active.findAll(ctx)).length;
     }),
-    CallRouters: Factory.createPersistedGauge('calls_routers', 'Number of active workers', async (ctx) => {
+    CallRouters: Factory.createPersistedGauge('calls_routers', 'Number of active routers', async (ctx) => {
         let workers = (await Store.KitchenWorker.active.findAll(ctx));
         let res = 0;
         for (let w of workers) {
@@ -28,6 +32,7 @@ export const Metrics = {
         return res;
     }),
 
+    // Debug
     TasksDeletionProgress: Factory.createPersistedGauge('tasks_deletion', 'Completed tasks deletion progress', async ctx => {
         let state = await Store.EntityCleanerState.findById(ctx, 'Task');
         if (state) {
