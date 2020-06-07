@@ -1,4 +1,4 @@
-import { apm } from './../openland-log/apm';
+// import { apm } from './../openland-log/apm';
 import { Config } from 'openland-config/Config';
 import { setLogProvider, LogPathContext, LogMetaContext } from '@openland/log';
 import { Context, ContextName } from '@openland/context';
@@ -43,17 +43,17 @@ function formatMessage(ctx: Context, name: string, message: string) {
     }
 }
 
-function formatApmError(ctx: Context, service: string, message: string) {
-    return {
-        message: formatMessage(ctx, service, message),
-        params: {
-            context: ContextName.get(ctx),
-            parent: LogPathContext.get(ctx),
-            ...LogMetaContext.get(ctx),
-        },
-        name: service,
-    };
-}
+// function formatApmError(ctx: Context, service: string, message: string) {
+//     return {
+//         message: formatMessage(ctx, service, message),
+//         params: {
+//             context: ContextName.get(ctx),
+//             parent: LogPathContext.get(ctx),
+//             ...LogMetaContext.get(ctx),
+//         },
+//         name: service,
+//     };
+// }
 
 setLogProvider({
     log: (ctx, service, level, message) => {
@@ -77,10 +77,10 @@ setLogProvider({
             logger.debug(obj);
         } else if (level === 'error') {
             logger.error(obj);
-            apm.captureError(formatApmError(ctx, service, message), { labels: { level } });
+            // apm.captureError(formatApmError(ctx, service, message), { labels: { level } });
         } else if (level === 'warn') {
             logger.warn(obj);
-            apm.captureError(formatApmError(ctx, service, message), { labels: { level } });
+            // apm.captureError(formatApmError(ctx, service, message), { labels: { level } });
 
         } else {
             logger.info(obj);
