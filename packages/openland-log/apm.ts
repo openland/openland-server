@@ -5,5 +5,6 @@ export const apm = APM.start({
     serviceName: 'global',
     serverUrl: Config.apm?.endpoint || '',
     active: Config.environment === 'production',
-    instrument: false
+    instrument: false,
+    instrumentIncomingHTTPRequests: false
 });
