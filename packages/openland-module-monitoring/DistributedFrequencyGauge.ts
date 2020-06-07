@@ -29,7 +29,7 @@ export class DistributedFrequencyGauge {
             if (time - this.lastOpsTime < MIN_OPS_TIME) {
                 return;
             }
-            let hz = Math.floor(this.ops.length / ((this.lastOpsTime - time) / 1000));
+            let hz = Math.floor(this.ops.length / ((time - this.lastOpsTime) / 1000));
             this.gauge.set(hz);
         }, REPORT_WINDOW);
     }
