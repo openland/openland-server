@@ -86,6 +86,7 @@ export class SpaceXSession {
             }
         };
         Metrics.SpaceXOperations.inc();
+        Metrics.SpaceXOperationsFrequence.inc();
         this.activeOperations.set(id, abort);
 
         // tslint:disable-next-line:no-floating-promises

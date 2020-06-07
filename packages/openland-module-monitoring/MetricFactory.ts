@@ -1,3 +1,4 @@
+import { DistributedFrequencyGauge } from './DistributedFrequencyGauge';
 import { PersistedGauge } from './PersistedGauge';
 import { Context } from '@openland/context';
 import { DistributedGauge } from './DistributedGauge';
@@ -8,6 +9,7 @@ export class MetricFactory {
     #gauges = new Map<string, DistributedGauge>();
     #machineGauges = new Map<string, DistributedMachineGauge>();
     #persistedGauges = new Map<string, PersistedGauge>();
+    #frequencyGauges = new Map<string, DistributedFrequencyGauge>();
 
     getAllMetrics() {
         return {
@@ -32,6 +34,13 @@ export class MetricFactory {
         return res;
     }
 
+    createFrequencyGauge = (name: string, description: string) => {
+        let gauge = this.createMachineGauge(name, description);
+        let res = new DistributedFrequencyGauge(gauge);
+        this.#frequencyGauges.set(name, res);
+        return res;
+    }
+
     createPersistedGauge = (name: string, description: string, query: (ctx: Context) => Promise<number>) => {
         if (this.#gauges.has(name) || this.#persistedGauges.has(name)) {
             throw Error('Gauge already exists');
@@ -43,6 +52,9 @@ export class MetricFactory {
 
     start = () => {
         for (let gauge of this.#machineGauges.values()) {
+            gauge.start();
+        }
+        for (let gauge of this.#frequencyGauges.values()) {
             gauge.start();
         }
     }
