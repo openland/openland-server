@@ -9,8 +9,6 @@ import { fetchKeyFromRequest } from '../openland-utils/fetchKeyFromRequest';
 import { Modules } from 'openland-modules/Modules';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
-import { apm } from '../openland-server/logs';
-import { IDs } from '../openland-module-api/IDs';
 
 const rootContext = createNamedContext('auth-v2');
 const logger = createLogger('auth-v2');
@@ -50,9 +48,6 @@ export const TokenChecker = async function (req: express.Request, response: expr
             let uid = await inTx(rootContext, async (ctx) => await Modules.Auth.findToken(ctx, accessToken as string));
             if (uid !== null) {
                 (req as any).user = { uid: uid.uid, tid: uid.uuid };
-                apm.setUserContext({
-                    username: IDs.User.serialize(uid.uid),
-                });
             }
         }
     } catch (e) {
