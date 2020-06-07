@@ -10,7 +10,8 @@ const isProduction = Config.environment === 'production';
 import APM from 'elastic-apm-node';
 export const apm = APM.start({
     serverUrl: Config.apm?.endpoint || '',
-    active: isProduction
+    active: isProduction,
+    instrument: false
 });
 
 const getPino = () => {
