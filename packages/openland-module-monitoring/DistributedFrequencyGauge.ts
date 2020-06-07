@@ -48,6 +48,7 @@ export class DistributedFrequencyGauge {
         }
         let time = currentRunningTime();
         let cleanUntil = time - AVERAGE_WINDOW;
+        this.lastOpsTime = cleanUntil;
         while (this.ops.length > 0 && this.ops[0] <= cleanUntil) {
             this.ops.shift();
         }
