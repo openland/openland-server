@@ -3,12 +3,13 @@ import { STracer } from '../STracer';
 import { SSpan } from '../SSpan';
 import { Context } from '@openland/context';
 import { TracingContext } from './TracingContext';
+import { JaegerTracer } from 'jaeger-client';
 
 export class OpenSpan implements SSpan {
     readonly instance: any;
-    private readonly tracer: any;
+    private readonly tracer: JaegerTracer;
 
-    constructor(src: any, name: string, parent?: SSpan, args?: any) {
+    constructor(src: JaegerTracer, name: string, parent?: SSpan, args?: any) {
         this.tracer = src;
         this.instance = this.tracer.startSpan(name, { ...args, childOf: parent ? (parent as any).instance : undefined });
     }
@@ -19,9 +20,9 @@ export class OpenSpan implements SSpan {
 }
 
 export class OpenTracer implements STracer {
-    private readonly tracer: any;
+    private readonly tracer: JaegerTracer;
 
-    constructor(src: any) {
+    constructor(src: JaegerTracer) {
         this.tracer = src;
     }
 
