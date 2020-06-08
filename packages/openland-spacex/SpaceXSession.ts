@@ -100,7 +100,7 @@ export class SpaceXSession {
                 }
 
                 // Executing in concurrency pool
-                let res = await tracer.trace(parentContext, op.operationName || docOp, async (context) => {
+                let res = await tracer.trace(parentContext, docOp, async (context) => {
                     if (op.operationName) {
                         setTracingTag(context, 'operation_name', op.operationName);
                     }
