@@ -242,36 +242,34 @@ export class RoomMediator {
         });
     }
 
-    async canKickFromRoom(parent: Context, cid: number, uid: number, kickedUid: number) {
-        return await inTx(parent, async (ctx) => {
-            let canKick = false;
+    async canKickFromRoom(ctx: Context, cid: number, uid: number, kickedUid: number) {
+        let canKick = false;
 
-            let conv = await Store.ConversationRoom.findById(ctx, cid);
-            if (!conv) {
-                return false;
-            }
+        let conv = await Store.ConversationRoom.findById(ctx, cid);
+        if (!conv) {
+            return false;
+        }
 
-            let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
-            let existingMembership = await this.repo.findMembershipStatus(ctx, kickedUid, cid);
-            if (!existingMembership || existingMembership.status !== 'joined') {
-                return false;
-            }
+        let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
+        let existingMembership = await this.repo.findMembershipStatus(ctx, kickedUid, cid);
+        if (!existingMembership || existingMembership.status !== 'joined') {
+            return false;
+        }
 
-            if (isSuperAdmin) {
-                canKick = true;
-            }
-            if (existingMembership.invitedBy === uid) {
-                canKick = true;
-            } else if (conv.oid && await Modules.Orgs.isUserOwner(ctx, uid, conv.oid)) {
-                canKick = true;
-            } else if (conv.ownerId === uid && (conv.oid ? !await Modules.Orgs.isUserOwner(ctx, kickedUid, conv.oid) : true)) {
-                canKick = true;
-            } else if (conv.oid && await Modules.Orgs.isUserAdmin(ctx, uid, conv.oid) && !await Modules.Orgs.isUserOwner(ctx, kickedUid, conv.oid) && conv.ownerId !== kickedUid) {
-                canKick = true;
-            }
+        if (isSuperAdmin) {
+            canKick = true;
+        }
+        if (existingMembership.invitedBy === uid) {
+            canKick = true;
+        } else if (conv.oid && await Modules.Orgs.isUserOwner(ctx, uid, conv.oid)) {
+            canKick = true;
+        } else if (conv.ownerId === uid && (conv.oid ? !await Modules.Orgs.isUserOwner(ctx, kickedUid, conv.oid) : true)) {
+            canKick = true;
+        } else if (conv.oid && await Modules.Orgs.isUserAdmin(ctx, uid, conv.oid) && !await Modules.Orgs.isUserOwner(ctx, kickedUid, conv.oid) && conv.ownerId !== kickedUid) {
+            canKick = true;
+        }
 
-            return canKick;
-        });
+        return canKick;
     }
 
     async declineJoinRoomRequest(parent: Context, cid: number, by: number, requestedUid: number) {
@@ -346,34 +344,32 @@ export class RoomMediator {
         });
     }
 
-    async canEditRoom(parent: Context, cid: number, uid: number) {
-        return await inTx(parent, async (ctx) => {
-            let conv = await Store.ConversationRoom.findById(ctx, cid);
-            if (!conv) {
-                return false;
-            }
-
-            if (await this.repo.userHaveAdminPermissionsInChat(ctx, conv, uid)) {
-                return true;
-            }
-
-            //
-            // Check membership in chat
-            //
-            let existingMembership = await this.repo.findMembershipStatus(ctx, uid, cid);
-            if (!existingMembership || existingMembership.status !== 'joined') {
-                return false;
-            }
-
-            //
-            //  Anyone can edit secret group (but not channel)
-            //
-            if (conv.kind === 'group' && !conv.isChannel) {
-                return true;
-            }
-
+    async canEditRoom(ctx: Context, cid: number, uid: number) {
+        let conv = await Store.ConversationRoom.findById(ctx, cid);
+        if (!conv) {
             return false;
-        });
+        }
+
+        if (await this.repo.userHaveAdminPermissionsInChat(ctx, conv, uid)) {
+            return true;
+        }
+
+        //
+        // Check membership in chat
+        //
+        let existingMembership = await this.repo.findMembershipStatus(ctx, uid, cid);
+        if (!existingMembership || existingMembership.status !== 'joined') {
+            return false;
+        }
+
+        //
+        //  Anyone can edit secret group (but not channel)
+        //
+        if (conv.kind === 'group' && !conv.isChannel) {
+            return true;
+        }
+
+        return false;
     }
 
     async userHaveAdminPermissionsInRoom(parent: Context, uid: number, cid: number) {
@@ -394,31 +390,29 @@ export class RoomMediator {
         });
     }
 
-    async checkCanSendMessage(parent: Context, cid: number, uid: number) {
-        return await inTx(parent, async (ctx) => {
-            let conv = await Store.ConversationRoom.findById(ctx, cid);
-            if (!conv) {
-                return false;
-            }
+    async checkCanSendMessage(ctx: Context, cid: number, uid: number) {
+        let conv = await Store.ConversationRoom.findById(ctx, cid);
+        if (!conv) {
+            return false;
+        }
 
-            if (await this.repo.userHaveAdminPermissionsInChat(ctx, conv, uid)) {
-                return true;
-            }
-
-            //
-            // Check membership in chat
-            //
-            let existingMembership = await this.repo.findMembershipStatus(ctx, uid, cid);
-            if (!existingMembership || existingMembership.status !== 'joined') {
-                return false;
-            }
-
-            if (conv.isChannel) {
-                return false;
-            }
-
+        if (await this.repo.userHaveAdminPermissionsInChat(ctx, conv, uid)) {
             return true;
-        });
+        }
+
+        //
+        // Check membership in chat
+        //
+        let existingMembership = await this.repo.findMembershipStatus(ctx, uid, cid);
+        if (!existingMembership || existingMembership.status !== 'joined') {
+            return false;
+        }
+
+        if (conv.isChannel) {
+            return false;
+        }
+
+        return true;
     }
 
     async updateRoomProfile(parent: Context, cid: number, uid: number, profile: Partial<RoomProfileInput>) {

@@ -16,11 +16,11 @@ export class UserStateRepository {
     }
 
     async getRoomSettings(parent: Context, uid: number, cid: number) {
+        let res = await Store.UserDialogSettings.findById(parent, uid, cid);
+        if (res) {
+            return res;
+        }
         return await inTx(parent, async (ctx) => {
-            let res = await Store.UserDialogSettings.findById(ctx, uid, cid);
-            if (res) {
-                return res;
-            }
             return await Store.UserDialogSettings.create(ctx, uid, cid, { mute: false });
         });
     }
