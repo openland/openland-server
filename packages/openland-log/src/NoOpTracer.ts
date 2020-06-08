@@ -10,7 +10,7 @@ export class NoOpSpan implements SSpan {
 }
 
 export class NoOpTracer implements STracer {
-    startSpan(name: string, parent?: SSpan, args?: any) {
+    startSpan(name: string, parent?: SSpan) {
         Metrics.TracingFrequence.inc();
         return new NoOpSpan();
     }
