@@ -20,6 +20,17 @@ import { MediaDescription } from 'sdp-transform';
 
 const logger = createLogger('mediakitchen');
 
+function isSupportedHeaderExtension(extension: {
+    kind: string;
+    uri: string;
+}): boolean {
+    // Not every browser support this extension
+    if (extension.uri === 'urn:3gpp:video-orientation') {
+        return false;
+    }
+    return true;
+}
+
 function getAudioRtpCapabilities(src: Capabilities): KitchenRtpCapabilities {
     let codec = src.codecs.find((v) => v.mimeType === 'audio/opus');
     if (!codec) {
@@ -41,6 +52,7 @@ function getAudioRtpCapabilities(src: Capabilities): KitchenRtpCapabilities {
         }],
         headerExtensions: src.headerExtensions
             .filter((v) => v.kind === 'audio')
+            .filter((v) => isSupportedHeaderExtension(v))
             .map((h) => ({
                 uri: h.uri,
                 preferredId: h.preferredId,
@@ -91,6 +103,7 @@ function getVideoCapabilities(src: Capabilities): KitchenRtpCapabilities {
         codecs,
         headerExtensions: src.headerExtensions
             .filter((v) => v.kind === 'video')
+            .filter((v) => isSupportedHeaderExtension(v))
             .map((h) => ({
                 uri: h.uri,
                 preferredId: h.preferredId,
