@@ -309,7 +309,7 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                 }
                 await params.onOperation(ctx, operation);
                 let opStartTime = Date.now();
-                session.session.operation(ctx, query, operation.variables, (res) => {
+                session.session.operation(ctx, { document: query, variables: operation.variables, operationName: operation.operationName }, (res) => {
                     if (res.type === 'data') {
                         session.sendData(message.id, params.formatResponse({ data: res.data }, operation, ctx));
                         session.sendComplete(message.id);

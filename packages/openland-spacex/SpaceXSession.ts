@@ -8,6 +8,7 @@ import { Metrics } from 'openland-module-monitoring/Metrics';
 import { Context, createNamedContext } from '@openland/context';
 import { DocumentNode, GraphQLSchema, execute } from 'graphql';
 import { getOperationType } from './utils/getOperationType';
+import { setTracingTag } from 'openland-log/setTracingTag';
 
 export type SpaceXSessionDescriptor = { type: 'anonymnous' } | { type: 'authenticated', uid: number, tid: string };
 
@@ -69,7 +70,7 @@ export class SpaceXSession {
         }
     }
 
-    operation(parentContext: Context, document: DocumentNode, variables: any, handler: (result: OpResult) => void): OpRef {
+    operation(parentContext: Context, op: { document: DocumentNode, variables: any, operationName?: string }, handler: (result: OpResult) => void): OpRef {
         if (this.closed) {
             throw Error('Session already closed');
         }
@@ -93,21 +94,25 @@ export class SpaceXSession {
         (async () => {
             try {
                 // We are doing check here to have a single place to throw errors
-                let docOp = getOperationType(document);
+                let docOp = getOperationType(op.document, op.operationName);
                 if (docOp !== 'query' && docOp !== 'mutation') {
                     throw Error('Invalid operation type');
                 }
 
                 // Executing in concurrency pool
-                let res = await tracer.trace(parentContext, docOp, async (context) => {
+                let res = await tracer.trace(parentContext, op.operationName || docOp, async (context) => {
+                    if (op.operationName) {
+                        setTracingTag(context, 'operation_name', op.operationName);
+                    }
                     return await this.concurrencyPool.run(async () => {
                         if (completed) {
                             return null;
                         }
                         return await execute({
                             schema: this.schema,
-                            document: document,
-                            variableValues: variables,
+                            document: op.document,
+                            operationName: op.operationName,
+                            variableValues: op.variables,
                             contextValue: context
                         });
                     });

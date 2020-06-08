@@ -17,6 +17,10 @@ export class OpenSpan implements SSpan {
         });
     }
 
+    setTag(key: string, value: any) {
+        this.instance.setTag(key, value);
+    }
+
     finish() {
         this.instance.finish();
     }

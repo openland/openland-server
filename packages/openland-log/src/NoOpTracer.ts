@@ -4,6 +4,11 @@ import { SSpan } from '../SSpan';
 import { Context } from '@openland/context';
 
 export class NoOpSpan implements SSpan {
+
+    setTag(key: string, value: any) {
+        // Nothing to do
+    }
+
     finish() {
         // Nothing to do
     }
