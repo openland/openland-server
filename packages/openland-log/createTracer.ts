@@ -13,7 +13,10 @@ export function createTracer(name: string): STracer {
     if (Config.environment === 'production' && Config.enableTracing) {
         return new OpenTracer(initTracer({
             serviceName: name,
-            sampler: { type: 'const', param: 1 }
+            sampler: { type: 'const', param: 1 },
+            reporter: {
+                logSpans: true
+            }
         }, {
             logger: {
                 info: (src) => logger.log(ctx, src),
