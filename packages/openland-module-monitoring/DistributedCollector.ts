@@ -85,8 +85,8 @@ export class DistributedCollector {
             let resolved = collector.resolve();
             res.push('# HELP ' + gauge.name + ' ' + gauge.description);
             res.push('# TYPE ' + gauge.name + ' gauge');
-            res.push(gauge.name + '{func=sum}' + ' ' + resolved.sum);
-            res.push(gauge.name + '{func=median}' + ' ' + resolved.median);
+            res.push(gauge.name + '{func="sum"}' + ' ' + resolved.sum);
+            res.push(gauge.name + '{func="median"}' + ' ' + resolved.median);
         }
 
         // Persisted gauges
