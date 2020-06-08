@@ -10,7 +10,7 @@ import { setTransactionTracer, setSubspaceTracer } from '@openland/foundationdb/
 // import { createZippedLogger } from '../openland-utils/ZippedLogger';
 // import { createMetric } from 'openland-module-monitoring/Metric';
 import { getConcurrencyPool } from 'openland-utils/ConcurrencyPool';
-import { createLogger } from '@openland/log';
+import { createLogger, LogPathContext } from '@openland/log';
 import { encoders } from '@openland/foundationdb';
 import { createTracer } from 'openland-log/createTracer';
 // import { Context, ContextName } from '@openland/context';
@@ -33,7 +33,8 @@ let valueLengthLimitLogger = createLogger('fdb-tracing');
 export function setupFdbTracing() {
     setTransactionTracer({
         tx: async (ctx, handler) => {
-            return await tracer.trace(ctx, 'transaction', (child) => handler(child));
+            const path = LogPathContext.get(ctx);
+            return await tracer.trace(ctx, 'transaction', (child  ) => handler(child), { path: path.join(' -> ') });
         },
         commit: async (ctx, handler) => {
             // commitTx.increment(ctx);
