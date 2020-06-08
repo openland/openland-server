@@ -596,26 +596,24 @@ export class RoomRepository {
         });
     }
 
-    async resolveConversationOrganization(parent: Context, cid: number) {
-        return await inTx(parent, async (ctx) => {
-            //
-            // Legacy organization-type conversations
-            //
-            let conversationOrganization = await Store.ConversationOrganization.findById(ctx, cid);
-            if (conversationOrganization) {
-                return await Store.Organization.findById(ctx, conversationOrganization.oid);
-            }
+    async resolveConversationOrganization(ctx: Context, cid: number) {
+        //
+        // Legacy organization-type conversations
+        //
+        let conversationOrganization = await Store.ConversationOrganization.findById(ctx, cid);
+        if (conversationOrganization) {
+            return await Store.Organization.findById(ctx, conversationOrganization.oid);
+        }
 
-            //
-            //  Modern rooms
-            //
-            let room = await Store.ConversationRoom.findById(ctx, cid);
-            if (room && room.oid) {
-                return await Store.Organization.findById(ctx, room.oid);
-            }
+        //
+        //  Modern rooms
+        //
+        let room = await Store.ConversationRoom.findById(ctx, cid);
+        if (room && room.oid) {
+            return await Store.Organization.findById(ctx, room.oid);
+        }
 
-            return null;
-        });
+        return null;
     }
 
     async findConversationMembers(ctx: Context, cid: number): Promise<number[]> {
