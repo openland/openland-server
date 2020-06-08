@@ -11,3 +11,13 @@ sudo docker run -d --name jaeger --restart=unless-stopped \
   -p 14250:14250 \
   -p 9411:9411 \
   jaegertracing/all-in-one:1.18
+
+
+# Use host ip to connect to DaemonSet's Pod
+
+```
+- name: JAEGER_AGENT_HOST
+  valueFrom:
+    fieldRef:
+      fieldPath: status.hostIP
+```

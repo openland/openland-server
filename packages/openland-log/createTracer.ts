@@ -1,22 +1,16 @@
-// import { apm } from './apm';
-// import APM from 'elastic-apm-node';
-// import { Config } from 'openland-config/Config';
+import { Config } from 'openland-config/Config';
 import { STracer } from './STracer';
-// import { OpenTracer } from './src/OpenTracer';
+import { OpenTracer } from './src/OpenTracer';
 import { NoOpTracer } from './src/NoOpTracer';
-// const Tracer = require('elastic-apm-node-opentracing');
+import { initTracer } from 'jaeger-client';
 
 export function createTracer(name: string): STracer {
-    // if (Config.environment === 'production' && Config.enableTracing && Config.apm) {
-    //     // const apm = APM.start({
-    //     //     serviceName: name,
-    //     //     serverUrl: Config.apm.endpoint,
-    //     //     active: true,
-    //     //     instrument: false
-    //     // });
-    //     return new OpenTracer(new Tracer(apm));
-    // } else {
-    //     return new NoOpTracer();
-    // }
-    return new NoOpTracer();
+    if (Config.environment === 'production' && Config.enableTracing) {
+        return new OpenTracer(initTracer({
+            serviceName: name,
+            sampler: { type: 'const', param: 1 }
+        }, {}));
+    } else {
+        return new NoOpTracer();
+    }
 }
