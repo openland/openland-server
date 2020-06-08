@@ -4,10 +4,10 @@ import { Store } from 'openland-module-db/FDB';
 import { IDs, IdsFactory } from 'openland-module-api/IDs';
 import { withAccount, withAny, withUser as withUserResolver } from 'openland-module-api/Resolvers';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
-import { AppContext } from 'openland-modules/AppContext';
 import { User, UserProfile, UserBadge } from 'openland-module-db/store';
 import { buildMessage, MessagePart, roomMention, userMention } from '../openland-utils/MessageBuilder';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
+import { Context } from '@openland/context';
 
 type UserRoot = User | UserProfile | number | UserFullRoot;
 
@@ -21,15 +21,15 @@ export class UserFullRoot {
     }
 }
 
-export async function userRootFull(ctx: AppContext, uid: number) {
+export async function userRootFull(ctx: Context, uid: number) {
     let user = (await (Store.User.findById(ctx, uid)))!;
     let profile = (await (Store.UserProfile.findById(ctx, uid)))!;
 
     return new UserFullRoot(user, profile);
 }
 
-export function withUser(handler: (ctx: AppContext, user: User, authorized: Boolean) => any, noAuthNeeded: boolean = false) {
-    return async (src: UserRoot, _params: {}, ctx: AppContext) => {
+export function withUser(handler: (ctx: Context, user: User, authorized: Boolean) => any, noAuthNeeded: boolean = false) {
+    return async (src: UserRoot, _params: {}, ctx: Context) => {
         let authorized = !!ctx.auth.uid;
         if (!authorized && !noAuthNeeded) {
             throw new AccessDeniedError();
@@ -48,8 +48,8 @@ export function withUser(handler: (ctx: AppContext, user: User, authorized: Bool
     };
 }
 
-export function withProfile(handler: (ctx: AppContext, user: User, profile: UserProfile | null, authorized: Boolean) => any, noAuthNeeded: boolean = false) {
-    return async (src: UserRoot, _params: {}, ctx: AppContext) => {
+export function withProfile(handler: (ctx: Context, user: User, profile: UserProfile | null, authorized: Boolean) => any, noAuthNeeded: boolean = false) {
+    return async (src: UserRoot, _params: {}, ctx: Context) => {
         let authorized = !!ctx.auth.uid;
         if (!authorized && !noAuthNeeded) {
             throw new AccessDeniedError();
@@ -151,7 +151,7 @@ export const Resolver: GQLResolver = {
         chat: src => src.cid
     },
     Query: {
-        me: async function (_obj: any, _params: {}, ctx: AppContext) {
+        me: async function (_obj: any, _params: {}, ctx: Context) {
             if (!ctx.auth.uid) {
                 return null;
             } else {

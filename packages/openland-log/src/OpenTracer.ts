@@ -30,28 +30,15 @@ export class OpenTracer implements STracer {
         return new OpenSpan(this.tracer, name, parent, args);
     }
 
-    async trace<T>(ctx: Context, op: string, handler: (ctx: Context) => Promise<T>, args?: any): Promise<T> {
+    async trace<T>(parent: Context, op: string, handler: (ctx: Context) => Promise<T>, args?: any): Promise<T> {
         Metrics.TracingFrequence.inc();
-        let c = TracingContext.get(ctx);
+        let c = TracingContext.get(parent);
         let span = this.startSpan(op, c.span ? c.span : undefined, args);
-        ctx = TracingContext.set(ctx, { span });
+        let ctx = TracingContext.set(parent, { span });
         try {
             return await handler(ctx);
         } finally {
             span.finish();
         }
     }
-
-    traceSync<T>(ctx: Context, op: string, handler: (ctx: Context) => T, args?: any): T {
-        Metrics.TracingFrequence.inc();
-        let c = TracingContext.get(ctx);
-        let span = this.startSpan(op, c.span ? c.span : undefined, args);
-        ctx = TracingContext.set(ctx, { span });
-        try {
-            return handler(ctx);
-        } finally {
-            span.finish();
-        }
-    }
-
 }

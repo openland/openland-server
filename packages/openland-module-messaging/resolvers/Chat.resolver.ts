@@ -1,3 +1,4 @@
+import { Context } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
 import { IDs, IdsFactory } from '../../openland-module-api/IDs';
 import { withUser, resolveUser, withAccount } from '../../openland-module-api/Resolvers';
@@ -19,7 +20,6 @@ import { Message } from 'openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
-import { AppContext } from 'openland-modules/AppContext';
 import { MessageAttachmentInput, MessageSpan } from '../MessageInput';
 import { prepareLegacyMentionsInput } from './ModernMessage.resolver';
 import { createLogger } from '@openland/log';
@@ -32,7 +32,7 @@ const logger = createLogger('chat');
 
 export const Resolver: GQLResolver = {
     Conversation: {
-        __resolveType: async (src: Conversation, ctx: AppContext) => {
+        __resolveType: async (src: Conversation, ctx: Context) => {
             if (src.kind === 'private') {
                 return 'PrivateConversation';
             } else if (src.kind === 'organization') {
@@ -247,7 +247,7 @@ export const Resolver: GQLResolver = {
         iconInfo: (src: URLAugmentation) => src.iconInfo,
         hostname: (src: URLAugmentation) => src.hostname,
         type: (src: URLAugmentation) => 'url',
-        extra: async (src: URLAugmentation, args: {}, ctx: AppContext) => null,
+        extra: async (src: URLAugmentation, args: {}, ctx: Context) => null,
         date: () => ''
     },
     ConversationMessage: {
@@ -365,7 +365,7 @@ export const Resolver: GQLResolver = {
         photoRef: (src: any) => src.picture,
     },
     ChatReadResult: {
-        conversation: async (src: { uid: number, conversationId: number }, args: {}, ctx: AppContext) => (await Store.Conversation.findById(ctx, src.conversationId))!,
+        conversation: async (src: { uid: number, conversationId: number }, args: {}, ctx: Context) => (await Store.Conversation.findById(ctx, src.conversationId))!,
         counter: (src: { uid: number, conversationId: number }) => src.uid
     },
     ComposeSearchResult: {
@@ -387,7 +387,7 @@ export const Resolver: GQLResolver = {
                 return IDs.NotificationCounter.serialize(src.uid);
             }
         },
-        unreadCount: async (src: number | { uid: number, counter: number }, args: {}, ctx: AppContext) => {
+        unreadCount: async (src: number | { uid: number, counter: number }, args: {}, ctx: Context) => {
             if (typeof src === 'number') {
                 return Modules.Messaging.fetchUserGlobalCounter(ctx, src);
             } else {

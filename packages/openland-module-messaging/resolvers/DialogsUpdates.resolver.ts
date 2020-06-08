@@ -1,3 +1,4 @@
+import { Context } from '@openland/context';
 import { BaseEvent, LiveStreamItem } from '@openland/foundationdb-entity';
 import { IDs } from 'openland-module-api/IDs';
 import { Store } from 'openland-module-db/FDB';
@@ -15,7 +16,6 @@ import {
     UserDialogTitleUpdatedEvent
 } from 'openland-module-db/store';
 import { GQLResolver, GQL } from '../../openland-module-api/schema/SchemaSpec';
-import { AppContext } from 'openland-modules/AppContext';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
@@ -170,7 +170,7 @@ export const Resolver: GQLResolver = {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function* (r: any, args: GQL.SubscriptionDialogsUpdatesArgs, ctx: AppContext) {
+            subscribe: async function* (r: any, args: GQL.SubscriptionDialogsUpdatesArgs, ctx: Context) {
                 if (!ctx.auth.uid) {
                     throw new AccessDeniedError();
                 }

@@ -1,3 +1,4 @@
+import { Context } from '@openland/context';
 import {
     UserDialogSettings,
     Conversation,
@@ -32,7 +33,6 @@ import {
     mustBeArray,
     emailValidator
 } from 'openland-utils/NewInputValidator';
-import { AppContext } from 'openland-modules/AppContext';
 import { MessageMention } from '../MessageInput';
 import { MaybePromise } from '../../openland-module-api/schema/SchemaUtils';
 import { buildElasticQuery, QueryParser } from '../../openland-utils/QueryParser';
@@ -46,8 +46,8 @@ import PostMessageTypeRoot = GQLRoots.PostMessageTypeRoot;
 
 type RoomRoot = Conversation | number;
 
-function withConverationId<T, R>(handler: (ctx: AppContext, src: number, args: T, showPlaceholder: boolean) => MaybePromise<R>) {
-    return async (src: SharedRoomRoot, args: T, ctx: AppContext) => {
+function withConverationId<T, R>(handler: (ctx: Context, src: number, args: T, showPlaceholder: boolean) => MaybePromise<R>) {
+    return async (src: SharedRoomRoot, args: T, ctx: Context) => {
         if (typeof src === 'number') {
             let showPlaceholder = ctx.auth!.uid ? await Modules.Messaging.room.userWasKickedFromRoom(ctx, ctx.auth!.uid!, src) : false;
             return handler(ctx, src, args, showPlaceholder);
@@ -58,8 +58,8 @@ function withConverationId<T, R>(handler: (ctx: AppContext, src: number, args: T
     };
 }
 
-function withRoomProfile(handler: (ctx: AppContext, src: RoomProfile | null, showPlaceholder: boolean) => any) {
-    return async (src: SharedRoomRoot, args: {}, ctx: AppContext) => {
+function withRoomProfile(handler: (ctx: Context, src: RoomProfile | null, showPlaceholder: boolean) => any) {
+    return async (src: SharedRoomRoot, args: {}, ctx: Context) => {
         if (typeof src === 'number') {
             let showPlaceholder = ctx.auth!.uid ? await Modules.Messaging.room.userWasKickedFromRoom(ctx, ctx.auth!.uid!, src) : false;
             return handler(ctx, (await Store.RoomProfile.findById(ctx, src)), showPlaceholder);
@@ -72,7 +72,7 @@ function withRoomProfile(handler: (ctx: AppContext, src: RoomProfile | null, sho
 
 export const Resolver: GQLResolver = {
     Room: {
-        __resolveType: async (src: Conversation | number, ctx: AppContext) => {
+        __resolveType: async (src: Conversation | number, ctx: Context) => {
             let conv: Conversation;
             if (typeof src === 'number') {
                 conv = (await Store.Conversation.findById(ctx, src))!;
@@ -88,7 +88,7 @@ export const Resolver: GQLResolver = {
     },
     PrivateRoom: {
         id: (root: RoomRoot) => IDs.Conversation.serialize(typeof root === 'number' ? root : root.id),
-        user: async (root: RoomRoot, args: {}, parent: AppContext) => {
+        user: async (root: RoomRoot, args: {}, parent: Context) => {
             // In some cases we can't get ConversationPrivate here because it's not available in previous transaction, so we create new one
             return await inTx(parent, async (ctx) => {
                 let proom = (await Store.ConversationPrivate.findById(ctx, typeof root === 'number' ? root : root.id))!;
@@ -105,7 +105,7 @@ export const Resolver: GQLResolver = {
                 }
             });
         },
-        settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)),
+        settings: async (root: RoomRoot, args: {}, ctx: Context) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)),
         pinnedMessage: async (root, args, ctx) => {
             let proom = (await Store.ConversationPrivate.findById(ctx, typeof root === 'number' ? root : root.id))!;
             if (proom.pinnedMessage) {
@@ -114,7 +114,7 @@ export const Resolver: GQLResolver = {
                 return null;
             }
         },
-        myBadge: (root: RoomRoot, args: {}, ctx: AppContext) => Modules.Users.getUserBadge(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)),
+        myBadge: (root: RoomRoot, args: {}, ctx: Context) => Modules.Users.getUserBadge(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)),
     },
     SharedRoomMembershipStatus: {
         MEMBER: 'joined',

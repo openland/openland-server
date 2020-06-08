@@ -24,7 +24,6 @@ import { createUrlInfoService, URLAugmentation } from '../workers/UrlInfoService
 import { Texts } from '../texts';
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
 import { MessageMention } from '../MessageInput';
-import { AppContext } from 'openland-modules/AppContext';
 import { Store } from 'openland-module-db/FDB';
 import MessageSourceRoot = GQLRoots.MessageSourceRoot;
 import MentionPeerRoot = GQLRoots.MentionPeerRoot;
@@ -326,7 +325,7 @@ export function fetchMessageFallback(message: Message | Comment | RichMessage): 
     return fallback.join('\n');
 }
 
-async function getMessageSenderBadge(ctx: AppContext, src: Message | Comment): Promise<UserBadge | null> {
+async function getMessageSenderBadge(ctx: Context, src: Message | Comment): Promise<UserBadge | null> {
     let cid: number | undefined = undefined;
 
     if (src instanceof Message) {

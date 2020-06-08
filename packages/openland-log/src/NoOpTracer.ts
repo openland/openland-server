@@ -19,9 +19,4 @@ export class NoOpTracer implements STracer {
         Metrics.TracingFrequence.inc();
         return handler(ctx);
     }
-
-    traceSync<T>(ctx: Context, op: string, handler: (ctx: Context) => T): T {
-        Metrics.TracingFrequence.inc();
-        return handler(ctx);
-    }
 }

@@ -14,7 +14,6 @@ import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
 import { createUrlInfoService } from '../openland-module-messaging/workers/UrlInfoService';
 import { inTx, encoders } from '@openland/foundationdb';
-import { AppContext } from '../openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { ddMMYYYYFormat, delay } from '../openland-utils/timer';
 import { randomInt, randomKey } from '../openland-utils/random';
@@ -1628,7 +1627,7 @@ export const Resolver: GQLResolver = {
             resolve: async msg => {
                 return msg;
             },
-            subscribe: async function* (r: any, args: GQL.SubscriptionDebugEventsArgs, ctx: AppContext) {
+            subscribe: async function* (r: any, args: GQL.SubscriptionDebugEventsArgs, ctx: Context) {
                 let uid = ctx.auth.uid;
 
                 if (!uid || !((await Modules.Super.superRole(ctx, uid)) === 'super-admin')) {
@@ -1664,7 +1663,7 @@ export const Resolver: GQLResolver = {
             resolve: async msg => {
                 return msg;
             },
-            subscribe: async function* (r: any, args: GQL.SubscriptionLifecheckArgs, ctx: AppContext) {
+            subscribe: async function* (r: any, args: GQL.SubscriptionLifecheckArgs, ctx: Context) {
                 let i = 1;
                 while (true) {
                     let data = 'pong ' + Date.now() + ' ' + i++;
@@ -1678,7 +1677,7 @@ export const Resolver: GQLResolver = {
             resolve: async msg => {
                 return msg;
             },
-            subscribe: async function* (r: any, args: GQL.SubscriptionDebugReaderStateArgs, ctx: AppContext) {
+            subscribe: async function* (r: any, args: GQL.SubscriptionDebugReaderStateArgs, ctx: Context) {
                 let uid = ctx.auth.uid;
 
                 if (!uid || !((await Modules.Super.superRole(ctx, uid)) === 'super-admin')) {
@@ -1709,7 +1708,7 @@ export const Resolver: GQLResolver = {
             resolve: async msg => {
                 return msg;
             },
-            subscribe: async function* (r: any, args: GQL.SubscriptionDebugServerIdArgs, ctx: AppContext) {
+            subscribe: async function* (r: any, args: GQL.SubscriptionDebugServerIdArgs, ctx: Context) {
                 let uid = ctx.auth.uid;
 
                 if (!uid || !((await Modules.Super.superRole(ctx, uid)) === 'super-admin')) {

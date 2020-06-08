@@ -1,3 +1,4 @@
+import { Context } from '@openland/context';
 import { Config } from 'openland-config/Config';
 import { inTx } from '@openland/foundationdb';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
@@ -10,7 +11,6 @@ import { Sanitizer } from '../openland-utils/Sanitizer';
 import { withProfile } from '../openland-module-users/User.resolver';
 import { Store } from 'openland-module-db/FDB';
 import { EventBus } from '../openland-module-pubsub/EventBus';
-import { AppContext } from '../openland-modules/AppContext';
 import { createIterator } from '../openland-utils/asyncIterator';
 import { onContextCancel } from '@openland/lifetime';
 
@@ -161,7 +161,7 @@ export const Resolver: GQLResolver = {
             resolve: async msg => {
                 return msg;
             },
-            subscribe: async function (r: any, args: GQL.SubscriptionUserEventBusArgs, ctx: AppContext) {
+            subscribe: async function (r: any, args: GQL.SubscriptionUserEventBusArgs, ctx: Context) {
                 let uid = ctx.auth.uid;
                 if (!uid) {
                     throw new AccessDeniedError();
@@ -178,7 +178,7 @@ export const Resolver: GQLResolver = {
             resolve: async msg => {
                 return msg;
             },
-            subscribe: async function (r: any, args: GQL.SubscriptionUserEventBusArgs, ctx: AppContext) {
+            subscribe: async function (r: any, args: GQL.SubscriptionUserEventBusArgs, ctx: Context) {
                 let uid = ctx.auth.uid;
                 if (!uid) {
                     throw new AccessDeniedError();

@@ -4,5 +4,4 @@ import { SSpan } from './SSpan';
 export interface STracer {
     startSpan(name: string, parent?: SSpan): SSpan;
     trace<T>(ctx: Context, op: string, handler: (ctx: Context) => Promise<T>, args?: any): Promise<T>;
-    traceSync<T>(ctx: Context, op: string, handler: (ctx: Context) => T, args?: any): T;
 }

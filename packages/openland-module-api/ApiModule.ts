@@ -13,7 +13,6 @@ import { Schema } from './schema/Schema';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { CacheContext } from './CacheContext';
 import { Store } from 'openland-module-db/FDB';
-import { AppContext } from 'openland-modules/AppContext';
 import { createNamedContext } from '@openland/context';
 import { withLogMeta, createLogger } from '@openland/log';
 import { Shutdown } from '../openland-utils/Shutdown';
@@ -69,7 +68,7 @@ export class ApiModule {
         ctx = CacheContext.set(ctx, new Map());
         return new ApolloClient({
             cache: new InMemoryCache(),
-            link: new SchemaLink({ schema: Schema(Config.environment === 'test'), context: new AppContext(ctx) })
+            link: new SchemaLink({ schema: Schema(Config.environment === 'test'), context: ctx })
         });
     }
 }

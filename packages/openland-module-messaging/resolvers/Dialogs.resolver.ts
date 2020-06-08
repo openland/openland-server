@@ -1,17 +1,17 @@
+import { Context } from '@openland/context';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Store } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AuthContext } from 'openland-module-auth/AuthContext';
-import { AppContext } from 'openland-modules/AppContext';
 import { encoders } from '@openland/foundationdb';
 
 export const Resolver: GQLResolver = {
     Dialog: {
         id: (src: { cid: number }) => IDs.Dialog.serialize(src.cid),
         cid: (src: { cid: number }) => IDs.Conversation.serialize(src.cid),
-        fid: async (src: { cid: number }, args: {}, ctx: AppContext) => {
+        fid: async (src: { cid: number }, args: {}, ctx: Context) => {
             let conv = (await Store.Conversation.findById(ctx, src.cid))!;
             if (conv.kind === 'organization') {
                 return IDs.Organization.serialize((await Store.ConversationOrganization.findById(ctx, src.cid))!.oid);
@@ -31,7 +31,7 @@ export const Resolver: GQLResolver = {
                 throw Error('Unknwon conversation type');
             }
         },
-        kind: async (src: { cid: number }, args: {}, ctx: AppContext) => {
+        kind: async (src: { cid: number }, args: {}, ctx: Context) => {
             let conv = (await Store.Conversation.findById(ctx, src.cid))!;
             if (conv.kind === 'organization') {
                 return 'INTERNAL';
@@ -52,29 +52,29 @@ export const Resolver: GQLResolver = {
                 throw Error('Unknwon conversation type');
             }
         },
-        isChannel: async (src: { cid: number }, args: {}, ctx: AppContext) => {
+        isChannel: async (src: { cid: number }, args: {}, ctx: Context) => {
             let room = await Store.ConversationRoom.findById(ctx, src.cid);
             return !!(room && room.isChannel);
         },
-        isPremium: async (src: { cid: number }, args: {}, ctx: AppContext) => {
+        isPremium: async (src: { cid: number }, args: {}, ctx: Context) => {
             let room = await Store.ConversationRoom.findById(ctx, src.cid);
             return !!(room && room.isPremium);
         },
 
-        title: async (src: { cid: number }, args: {}, ctx: AppContext) => {
+        title: async (src: { cid: number }, args: {}, ctx: Context) => {
             return Modules.Messaging.room.resolveConversationTitle(ctx, src.cid, ctx.auth.uid!);
         },
-        photo: async (src: { cid: number }, args: {}, ctx: AppContext) => {
+        photo: async (src: { cid: number }, args: {}, ctx: Context) => {
             return await Modules.Messaging.room.resolveConversationPhoto(ctx, src.cid, ctx.auth.uid!);
         },
 
-        unreadCount: async (src: { cid: number }, args: {}, ctx: AppContext) => {
+        unreadCount: async (src: { cid: number }, args: {}, ctx: Context) => {
             return Store.UserDialogCounter.byId(ctx.auth.uid!, src.cid).get(ctx);
         },
 
-        topMessage: (src: { cid: number }, args: {}, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.cid, ctx.auth.uid!),
-        betaTopMessage: (src: { cid: number }, args: {}, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.cid, ctx.auth.uid!),
-        alphaTopMessage: (src: { cid: number }, args: {}, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.cid, ctx.auth.uid!),
+        topMessage: (src: { cid: number }, args: {}, ctx: Context) => Modules.Messaging.findTopMessage(ctx, src.cid, ctx.auth.uid!),
+        betaTopMessage: (src: { cid: number }, args: {}, ctx: Context) => Modules.Messaging.findTopMessage(ctx, src.cid, ctx.auth.uid!),
+        alphaTopMessage: (src: { cid: number }, args: {}, ctx: Context) => Modules.Messaging.findTopMessage(ctx, src.cid, ctx.auth.uid!),
         isMuted: async (src: { cid: number }, _, ctx) => await Modules.Messaging.isChatMuted(ctx, ctx.auth.uid!, src.cid),
         haveMention: async (src: { cid: number }, _, ctx) => {
             return await Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid).get(ctx);

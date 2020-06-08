@@ -1,9 +1,9 @@
+import { Context } from '@openland/context';
 import { NotificationCenterEvent } from './../../openland-module-db/store';
 import { Store } from './../../openland-module-db/FDB';
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import NotificationCenterUpdateContainerRoot = GQLRoots.NotificationCenterUpdateContainerRoot;
-import { AppContext } from '../../openland-modules/AppContext';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { Modules } from '../../openland-modules/Modules';
 import UpdatedNotificationContentRoot = GQLRoots.UpdatedNotificationContentRoot;
@@ -88,7 +88,7 @@ export const Resolver: GQLResolver = {
             resolve: async msg => {
                 return msg;
             },
-            subscribe: async function (r: any, args: GQL.SubscriptionNotificationCenterUpdatesArgs, ctx: AppContext) {
+            subscribe: async function (r: any, args: GQL.SubscriptionNotificationCenterUpdatesArgs, ctx: Context) {
                 let uid = ctx.auth.uid;
                 if (!uid) {
                     throw new AccessDeniedError();

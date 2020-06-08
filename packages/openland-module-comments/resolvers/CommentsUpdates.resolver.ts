@@ -1,7 +1,7 @@
+import { Context } from '@openland/context';
 import { CommentEvent } from './../../openland-module-db/store';
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Store } from '../../openland-module-db/FDB';
-import { AppContext } from '../../openland-modules/AppContext';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { IDs, IdsFactory } from '../../openland-module-api/IDs';
 import { UserError } from '../../openland-errors/UserError';
@@ -52,7 +52,7 @@ export const Resolver: GQLResolver = {
             resolve: async msg => {
                 return msg;
             },
-            subscribe: async function* (r: any, args: GQL.SubscriptionCommentUpdatesArgs, ctx: AppContext) {
+            subscribe: async function* (r: any, args: GQL.SubscriptionCommentUpdatesArgs, ctx: Context) {
                 let uid = ctx.auth.uid;
                 if (!uid) {
                     throw new AccessDeniedError();

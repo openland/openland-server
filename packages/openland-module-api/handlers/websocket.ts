@@ -3,7 +3,6 @@ import { IDs } from '../IDs';
 import { Modules } from 'openland-modules/Modules';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { CacheContext } from 'openland-module-api/CacheContext';
-import { AppContext } from 'openland-modules/AppContext';
 import { createNamedContext } from '@openland/context';
 import { randomGlobalInviteKey } from 'openland-utils/random';
 import { withLogMeta, createLogger } from '@openland/log';
@@ -70,5 +69,5 @@ export function buildWebSocketContext(args: any, ipHeader?: string, latLongHeade
     res = CacheContext.set(res, new Map());
     res = withLogMeta(res, { connection: randomGlobalInviteKey(8) });
 
-    return new AppContext(res);
+    return res;
 }

@@ -6,7 +6,6 @@ import { GraphQLField, GraphQLFieldResolver, GraphQLObjectType, GraphQLResolveIn
 import { wrapAllResolvers } from '../Resolvers';
 import { buildSchema } from 'openland-graphql/buildSchema';
 import { buildResolvers } from 'openland-graphql/buildResolvers';
-import { AppContext, GQLAppContext } from 'openland-modules/AppContext';
 import { merge } from '../../openland-utils/merge';
 import { withLogPath } from '@openland/log';
 import { gqlTraceNamespace } from '../../openland-graphql/gqlTracer';
@@ -53,7 +52,7 @@ export const Schema = (forTest: boolean = false) => {
             info: GraphQLResolveInfo
         ) => {
             let path = fetchResolvePath(info);
-            let ctx = (context as AppContext).ctx;
+            let ctx = context;
             let ctx2 = withLogPath(ctx, path.join('->'));
             // let name = 'Field:' + field.name;
             // if (type.name === 'Query') {
@@ -67,12 +66,12 @@ export const Schema = (forTest: boolean = false) => {
             if (trace) {
                 let t = trace.onResolve(info);
                 try {
-                    return await originalResolver(root, args, new GQLAppContext(ctx2, info), info);
+                    return await originalResolver(root, args, ctx2, info);
                 } finally {
                     t();
                 }
             }
-            return await originalResolver(root, args, new GQLAppContext(ctx2, info), info);
+            return await originalResolver(root, args, ctx2, info);
         }
     );
 };

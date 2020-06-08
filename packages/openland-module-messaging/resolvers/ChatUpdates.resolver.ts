@@ -1,3 +1,4 @@
+import { Context } from '@openland/context';
 import { MessageDeletedEvent, ChatUpdatedEvent } from './../../openland-module-db/store';
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
@@ -9,7 +10,6 @@ import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { Modules } from '../../openland-modules/Modules';
 import { delay } from '../../openland-utils/timer';
 import { EventBus } from '../../openland-module-pubsub/EventBus';
-import { AppContext } from '../../openland-modules/AppContext';
 import { BaseEvent } from '@openland/foundationdb-entity';
 import { MessageReceivedEvent, MessageUpdatedEvent } from 'openland-module-db/store';
 
@@ -97,7 +97,7 @@ export const Resolver: GQLResolver = {
             resolve: async msg => {
                 return msg;
             },
-            subscribe: async function* (r: any, args: GQL.SubscriptionChatUpdatesArgs, ctx: AppContext) {
+            subscribe: async function* (r: any, args: GQL.SubscriptionChatUpdatesArgs, ctx: Context) {
                 if (!ctx.auth.uid) {
                     throw new AccessDeniedError();
                 }

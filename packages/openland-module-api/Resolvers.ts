@@ -3,13 +3,12 @@ import { ErrorText } from '../openland-errors/ErrorText';
 import { GraphQLField, GraphQLFieldResolver, GraphQLObjectType, GraphQLSchema } from 'graphql';
 import { Store } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
-import { AppContext, GQLAppContext } from 'openland-modules/AppContext';
 import { MaybePromise } from './schema/SchemaUtils';
 import { CacheContext } from './CacheContext';
-import { createNamedContext } from '@openland/context';
+import { createNamedContext, Context } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
 
-async function fetchPermissions(ctx: AppContext) {
+async function fetchPermissions(ctx: Context) {
     if (ctx.cache.has('permissions')) {
         return (await ctx.cache.get('permissions')) as Set<string>;
     }
@@ -18,12 +17,12 @@ async function fetchPermissions(ctx: AppContext) {
     return await res;
 }
 
-async function fetchOrganizationId(ctx: AppContext) {
+async function fetchOrganizationId(ctx: Context) {
     return ctx.auth.oid;
 }
 
-export function withPermission<T, R, F>(permission: string | string[], resolver: (ctx: AppContext, args: T, root: F) => Promise<R>): (root: F, args: T, ctx: AppContext) => MaybePromise<R> {
-    return async function (root: F, args: T, ctx: AppContext) {
+export function withPermission<T, R, F>(permission: string | string[], resolver: (ctx: Context, args: T, root: F) => Promise<R>): (root: F, args: T, ctx: Context) => MaybePromise<R> {
+    return async function (root: F, args: T, ctx: Context) {
         let permissions = await fetchPermissions(ctx);
         if (Array.isArray(permission)) {
             for (let p of permission) {
@@ -40,8 +39,8 @@ export function withPermission<T, R, F>(permission: string | string[], resolver:
     };
 }
 
-export function withAccount<T, R>(resolver: (ctx: AppContext, args: T, uid: number, org: number) => Promise<R>): (_: any, args: T, ctx: AppContext) => MaybePromise<R> {
-    return async function (_: any, args: T, ctx: AppContext) {
+export function withAccount<T, R>(resolver: (ctx: Context, args: T, uid: number, org: number) => Promise<R>): (_: any, args: T, ctx: Context) => MaybePromise<R> {
+    return async function (_: any, args: T, ctx: Context) {
         if (!ctx.auth.uid) {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
@@ -54,8 +53,8 @@ export function withAccount<T, R>(resolver: (ctx: AppContext, args: T, uid: numb
     };
 }
 
-export function withActivatedUser<T, R, P>(resolver: (ctx: AppContext, args: T, uid: number, parent: P) => Promise<R>): (parent: P, args: T, ctx: AppContext) => MaybePromise<R> {
-    return async function (parent: P, args: T, ctx: AppContext) {
+export function withActivatedUser<T, R, P>(resolver: (ctx: Context, args: T, uid: number, parent: P) => Promise<R>): (parent: P, args: T, ctx: Context) => MaybePromise<R> {
+    return async function (parent: P, args: T, ctx: Context) {
         if (!ctx.auth.uid) {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
@@ -67,8 +66,8 @@ export function withActivatedUser<T, R, P>(resolver: (ctx: AppContext, args: T, 
     };
 }
 
-export function withUser<T, R>(resolver: (ctx: AppContext, args: T, uid: number) => Promise<R>): (_: any, args: T, ctx: AppContext) => MaybePromise<R> {
-    return async function (_: any, args: T, ctx: AppContext) {
+export function withUser<T, R>(resolver: (ctx: Context, args: T, uid: number) => Promise<R>): (_: any, args: T, ctx: Context) => MaybePromise<R> {
+    return async function (_: any, args: T, ctx: Context) {
         if (!ctx.auth.uid) {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
@@ -76,21 +75,21 @@ export function withUser<T, R>(resolver: (ctx: AppContext, args: T, uid: number)
     };
 }
 
-export function withAny<T, R>(resolver: (ctx: AppContext, args: T) => Promise<R>): (_: any, args: T, ctx: AppContext) => MaybePromise<R> {
-    return async (_: any, args: T, ctx: AppContext) => {
+export function withAny<T, R>(resolver: (ctx: Context, args: T) => Promise<R>): (_: any, args: T, ctx: Context) => MaybePromise<R> {
+    return async (_: any, args: T, ctx: Context) => {
         return await resolver(ctx, args);
     };
 }
 
 export function resolveUser<T extends { userId: number }>() {
-    return async function (src: T, args: T, ctx: AppContext) {
+    return async function (src: T, args: T, ctx: Context) {
         return (await Store.User.findById(ctx, src.userId))!;
     };
 }
 
-type BasicResolver<Root, Args, Res> = (root: Root, args: Args, ctx: AppContext) =>  MaybePromise<Res>;
+type BasicResolver<Root, Args, Res> = (root: Root, args: Args, ctx: Context) =>  MaybePromise<Res>;
 export function withAuthFallback<Root, Args, Res, Fallback>(resolver: BasicResolver<Root, Args, Res>, fallback: Res): BasicResolver<Root, Args, Res> {
-    return async function (src: Root, args: Args, ctx: AppContext) {
+    return async function (src: Root, args: Args, ctx: Context) {
         if (!ctx.auth.uid) {
             return fallback;
         }
@@ -122,11 +121,10 @@ export function wrapAllResolvers(schema: GraphQLSchema, handler: FieldHandler) {
 
                 let fieldResolve = field.resolve;
                 if (field.resolve) {
-                    field.resolve = async (root: any, args: any, context: AppContext, info: any) => {
-                        if (!context || !context.ctx) {
+                    field.resolve = async (root: any, args: any, context: Context, info: any) => {
+                        if (!context) {
                             let res = defaultContext;
-                            res = CacheContext.set(res, new Map());
-                            context = new GQLAppContext(res, info);
+                            context = CacheContext.set(res, new Map());
                         }
                         return await handler(type as GraphQLObjectType, field, fieldResolve!, root, args, context, info);
                     };

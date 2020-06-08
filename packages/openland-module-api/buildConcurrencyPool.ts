@@ -1,8 +1,8 @@
 import { Concurrency } from './../openland-server/concurrency';
-import { AppContext } from 'openland-modules/AppContext';
 import { ConcurrencyPool } from 'openland-utils/ConcurrencyPool';
+import { Context } from '@openland/context';
 
-export function buildConcurrencyPool(ctx: AppContext): ConcurrencyPool {
+export function buildConcurrencyPool(ctx: Context): ConcurrencyPool {
     if (ctx.auth.tid) {
         let tid = ctx.auth.tid;
         return Concurrency.FDB.get('tid:' + tid);

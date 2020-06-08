@@ -1,8 +1,8 @@
+import { Context } from '@openland/context';
 import { Modules } from 'openland-modules/Modules';
 import { withAccount, withAny } from 'openland-module-api/Resolvers';
 import { IDs } from 'openland-module-api/IDs';
 import { OnlineEvent } from './PresenceModule';
-import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { CacheRepository } from '../openland-module-cache/CacheRepository';
 import { UserError } from '../openland-errors/UserError';
@@ -49,7 +49,7 @@ export const Resolver: GQLResolver = {
         }),
 
         // TODO: Move to Push Module
-        alphaReportActive: async (_: any, args, ctx: AppContext) => {
+        alphaReportActive: async (_: any, args, ctx: Context) => {
             if (!ctx.auth.uid) {
                 throw Error('Not authorized');
             }

@@ -4,11 +4,11 @@ import { Store } from 'openland-module-db/FDB';
 import { withAccount } from 'openland-module-api/Resolvers';
 import { IDs } from 'openland-module-api/IDs';
 import { GQLResolver, GQL } from 'openland-module-api/schema/SchemaSpec';
-import { AppContext } from 'openland-modules/AppContext';
 import { WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, WalletTransactionCanceled, PaymentStatusChanged, WalletLockedChanged, WalletSubscription, WalletPurchase } from 'openland-module-db/store';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { inTx } from '@openland/foundationdb';
+import { Context } from '@openland/context';
 
 export const Resolver: GQLResolver = {
     CreditCard: {
@@ -498,7 +498,7 @@ export const Resolver: GQLResolver = {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function* (r: any, args: GQL.SubscriptionWalletUpdatesArgs, ctx: AppContext) {
+            subscribe: async function* (r: any, args: GQL.SubscriptionWalletUpdatesArgs, ctx: Context) {
                 let stream = Store.UserWalletUpdates.createLiveStream(ctx, ctx.auth.uid!, { batchSize: 20, after: IDs.WalletUpdatesCursor.parse(args.fromState) });
                 for await (let event of stream) {
                     yield event;

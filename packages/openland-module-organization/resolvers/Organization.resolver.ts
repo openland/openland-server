@@ -1,3 +1,4 @@
+import { Context } from '@openland/context';
 import { IDs } from 'openland-module-api/IDs';
 import { Store } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
@@ -5,7 +6,6 @@ import { Modules } from 'openland-modules/Modules';
 import { withAny, withUser } from 'openland-module-api/Resolvers';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { resolveOrganizationJoinedMembers, resolveOrganizationJoinedAdminMembers, resolveOrganizationMembersWithStatus } from './utils/resolveOrganizationJoinedMembers';
-import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Organization } from 'openland-module-db/store';
 import { isDefined } from '../../openland-utils/misc';
@@ -13,7 +13,7 @@ import { createLogger } from '@openland/log';
 
 const log = createLogger('organization_resolver');
 
-const resolveOrganizationRooms = async (src: Organization, args: {}, ctx: AppContext) => {
+const resolveOrganizationRooms = async (src: Organization, args: {}, ctx: Context) => {
     let haveAccess = src.kind === 'community' ? true : (ctx.auth.uid && ctx.auth.oid && await Modules.Orgs.isUserMember(ctx, ctx.auth.uid, src.id));
     if (!haveAccess) {
         return [];
@@ -37,26 +37,26 @@ const resolveOrganizationRooms = async (src: Organization, args: {}, ctx: AppCon
 export const Resolver: GQLResolver = {
     Organization: {
         id: (src: Organization) => IDs.Organization.serialize(src.id),
-        isMine: (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? Modules.Orgs.isUserMember(ctx, ctx.auth.uid!, src.id) : false,
+        isMine: (src: Organization, args: {}, ctx: Context) => ctx.auth.uid ? Modules.Orgs.isUserMember(ctx, ctx.auth.uid!, src.id) : false,
         isDeleted: (src: Organization) => src.status === 'deleted',
 
-        name: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.name,
-        photo: async (src: Organization, args: {}, ctx: AppContext) => buildBaseImageUrl(((await Store.OrganizationProfile.findById(ctx, src.id)))!.photo),
+        name: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.name,
+        photo: async (src: Organization, args: {}, ctx: Context) => buildBaseImageUrl(((await Store.OrganizationProfile.findById(ctx, src.id)))!.photo),
 
-        website: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.website,
-        about: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.about,
-        twitter: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.twitter,
-        facebook: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.facebook,
-        linkedin: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.linkedin,
-        instagram: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.instagram,
+        website: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.website,
+        about: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.about,
+        twitter: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.twitter,
+        facebook: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.facebook,
+        linkedin: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.linkedin,
+        instagram: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.instagram,
 
-        betaIsOwner: (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? Modules.Orgs.isUserOwner(ctx, ctx.auth.uid!, src.id) : false,
-        betaIsAdmin: (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? Modules.Orgs.isUserAdmin(ctx, ctx.auth.uid!, src.id) : false,
-        betaIsPrimary: async (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? (await Store.UserProfile.findById(ctx, ctx.auth.uid))!.primaryOrganization === src.id : false,
+        betaIsOwner: (src: Organization, args: {}, ctx: Context) => ctx.auth.uid ? Modules.Orgs.isUserOwner(ctx, ctx.auth.uid!, src.id) : false,
+        betaIsAdmin: (src: Organization, args: {}, ctx: Context) => ctx.auth.uid ? Modules.Orgs.isUserAdmin(ctx, ctx.auth.uid!, src.id) : false,
+        betaIsPrimary: async (src: Organization, args: {}, ctx: Context) => ctx.auth.uid ? (await Store.UserProfile.findById(ctx, ctx.auth.uid))!.primaryOrganization === src.id : false,
 
         // Refactor?
         superAccountId: (src: Organization) => IDs.SuperAccount.serialize(src.id),
-        alphaIsOwner: (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? Modules.Orgs.isUserAdmin(ctx, ctx.auth.uid!, src.id) : false,
+        alphaIsOwner: (src: Organization, args: {}, ctx: Context) => ctx.auth.uid ? Modules.Orgs.isUserAdmin(ctx, ctx.auth.uid!, src.id) : false,
         alphaOrganizationMembers: async (src, args, ctx) => {
             return await resolveOrganizationJoinedMembers(ctx, {
                 afterMemberId: args.after ? IDs.User.parse(args.after) : undefined,
@@ -69,19 +69,19 @@ export const Resolver: GQLResolver = {
                 first: args.first
             }, src.id);
         },
-        alphaOrganizationMemberRequests: async (src: Organization, args: {}, ctx: AppContext) => await resolveOrganizationMembersWithStatus(ctx, src.id, 'requested'),
-        alphaFeatured: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationEditorial.findById(ctx, src.id)))!.featured,
+        alphaOrganizationMemberRequests: async (src: Organization, args: {}, ctx: Context) => await resolveOrganizationMembersWithStatus(ctx, src.id, 'requested'),
+        alphaFeatured: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationEditorial.findById(ctx, src.id)))!.featured,
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
         alphaIsPrivate: (src: Organization) => src.private || false,
 
         betaPublicRooms: resolveOrganizationRooms,
         betaPublicRoomsCount: async (src, args, ctx) => (await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, src.id)).length,
         status: async (src: Organization) => src.status,
-        membersCount: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id))!.joinedMembersCount || 0),
+        membersCount: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id))!.joinedMembersCount || 0),
         personal: async (src: Organization) => src.personal || false,
     },
     Query: {
-        myOrganizations: async (_: any, args: {}, ctx: AppContext) => {
+        myOrganizations: async (_: any, args: {}, ctx: Context) => {
             if (ctx.auth.uid) {
                 return (await Promise.all((await Store.OrganizationMember.user.findAll(ctx, 'joined', ctx.auth.uid))
                     .map((v) => Store.Organization.findById(ctx, v.oid))))

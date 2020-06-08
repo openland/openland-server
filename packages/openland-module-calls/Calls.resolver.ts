@@ -5,7 +5,6 @@ import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
 import { Context } from '@openland/context';
-import { AppContext } from 'openland-modules/AppContext';
 import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { resolveTurnServices } from './services/TURNService';
@@ -43,7 +42,7 @@ const resolveIce = async (root: any, args: any, context: AppContext) => {
     return await resolveTurnServices(context);
 };
 
-const resolveMeshStreamLink = async (src: { id: string, pid: number }, ctx: AppContext) => {
+const resolveMeshStreamLink = async (src: { id: string, pid: number }, ctx: Context) => {
     let peer = await Store.ConferencePeer.findById(ctx, src.pid);
     if (!peer) {
         return null;
@@ -97,10 +96,10 @@ export const Resolver: GQLResolver = {
     ConferenceMedia: {
         id: (src) => IDs.ConferenceMedia.serialize(src.id),
         iceServers: resolveIce,
-        streams: async (src, args: {}, ctx: AppContext) => {
+        streams: async (src, args: {}, ctx: Context) => {
             return await Store.ConferenceEndStream.peer.findAll(ctx, src.peerId);
         },
-        localMedia: async (src, args: {}, ctx: AppContext) => {
+        localMedia: async (src, args: {}, ctx: Context) => {
             let conf = await Store.ConferenceRoom.findById(ctx, src.id);
             let peer = await Store.ConferencePeer.findById(ctx, src.peerId);
             return ({
@@ -423,7 +422,7 @@ export const Resolver: GQLResolver = {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function* (_: any, args: { id: string }, parent: AppContext) {
+            subscribe: async function* (_: any, args: { id: string }, parent: Context) {
                 let cid = IDs.Conference.parse(args.id);
 
                 yield await inTx(parent, async (ctx) => (await Store.ConferenceRoom.findById(ctx, cid))!);
@@ -444,7 +443,7 @@ export const Resolver: GQLResolver = {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function* (_: any, args: { id: string, peerId: string }, parent: AppContext) {
+            subscribe: async function* (_: any, args: { id: string, peerId: string }, parent: Context) {
                 let cid = IDs.Conference.parse(args.id);
                 let pid = IDs.ConferencePeer.parse(args.peerId);
 

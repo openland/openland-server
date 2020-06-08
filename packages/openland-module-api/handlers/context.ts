@@ -4,8 +4,7 @@ import { createTracer } from 'openland-log/createTracer';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { TracingContext } from 'openland-log/src/TracingContext';
 import { CacheContext } from 'openland-module-api/CacheContext';
-import { AppContext } from 'openland-modules/AppContext';
-import { createNamedContext } from '@openland/context';
+import { createNamedContext, Context } from '@openland/context';
 import { randomGlobalInviteKey } from 'openland-utils/random';
 import { createLogger, withLogMeta } from '@openland/log';
 import { withReadOnlyTransaction, inTx } from '@openland/foundationdb';
@@ -17,7 +16,7 @@ const logger = createLogger('http');
 
 let rootContext = createNamedContext('http');
 
-async function context(src: express.Request): Promise<AppContext> {
+async function context(src: express.Request): Promise<Context> {
 
     return await inTx(rootContext, async (ctx) => {
         let res = rootContext;
@@ -69,12 +68,12 @@ async function context(src: express.Request): Promise<AppContext> {
         res = withLogMeta(res, { connection: randomGlobalInviteKey(8) });
         res = withGqlTrace(res, 'http');
 
-        return new AppContext(res);
+        return res;
     });
 }
 
 export async function callContextMiddleware(isTest: boolean, req: express.Request, res: express.Response) {
-    let ctx: AppContext;
+    let ctx: Context;
     try {
         ctx = await context(req);
     } catch (e) {

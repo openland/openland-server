@@ -1,7 +1,7 @@
+import { Context } from '@openland/context';
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import FeedUpdateRoot = GQLRoots.FeedUpdateRoot;
-import { AppContext } from '../../openland-modules/AppContext';
 import { Modules } from '../../openland-modules/Modules';
 import { Store } from '../../openland-module-db/FDB';
 import {
@@ -66,7 +66,7 @@ export const Resolver: GQLResolver = {
     Subscription: {
         homeFeedUpdates: {
             resolve: (msg: any) => msg,
-            subscribe: async function (r: any, args: GQL.SubscriptionHomeFeedUpdatesArgs, ctx: AppContext) {
+            subscribe: async function (r: any, args: GQL.SubscriptionHomeFeedUpdatesArgs, ctx: Context) {
                 let uid = ctx.auth.uid!;
                 let subscriber = await Modules.Feed.resolveSubscriber(ctx, 'user-' + uid);
 

@@ -12,7 +12,6 @@ import { errorHandler, QueryInfo } from '../openland-errors';
 import { withAudit } from '../openland-module-auth/providers/email';
 import { IDs } from './IDs';
 import { Modules } from 'openland-modules/Modules';
-import { AppContext } from 'openland-modules/AppContext';
 import { initSafariPush } from '../openland-module-push/safari/handlers';
 import { initAppHandlers } from '../openland-module-apps/Apps.handler';
 import { ApolloServer } from 'apollo-server-express';
@@ -255,24 +254,22 @@ export async function initApi(isTest: boolean) {
             },
             context: async (params, operation, req) => {
                 let opId = uuid();
-                let ctx = buildWebSocketContext(params || {}, req.headers['x-forwarded-for'] as string, req.headers['x-client-geo-latlong'] as string).ctx;
+                let ctx = buildWebSocketContext(params || {}, req.headers['x-forwarded-for'] as string, req.headers['x-client-geo-latlong'] as string);
                 ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `query ${opId} ${operation.operationName || ''}`);
                 ctx = withGqlQueryId(ctx, opId);
                 ctx = withGqlTrace(ctx, `query ${opId} ${operation.operationName || ''}`);
-                let ctx2 = new AppContext(ctx);
-                return new AppContext(withConcurrentcyPool(ctx2, buildConcurrencyPool(ctx2)));
+                return withConcurrentcyPool(ctx, buildConcurrencyPool(ctx));
             },
             subscriptionContext: async (params, operation, firstCtx, req) => {
                 let opId = firstCtx ? GqlQueryIdNamespace.get(firstCtx)! : uuid();
-                let ctx = buildWebSocketContext(params || {}, req.headers['x-forwarded-for'] as string, req.headers['x-client-geo-latlong'] as string).ctx;
+                let ctx = buildWebSocketContext(params || {}, req.headers['x-forwarded-for'] as string, req.headers['x-client-geo-latlong'] as string);
                 ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `subscription ${opId} ${operation.operationName || ''}`);
                 ctx = withGqlQueryId(ctx, opId);
                 ctx = withGqlTrace(ctx, `subscription ${opId} ${operation.operationName || ''}`);
                 ctx = withLifetime(ctx);
-                let ctx2 = new AppContext(ctx);
-                return new AppContext(withConcurrentcyPool(ctx2, buildConcurrencyPool(ctx2)));
+                return withConcurrentcyPool(ctx, buildConcurrencyPool(ctx));
             },
             onOperation: async (ctx, operation) => {
                 // if (!isTest) {
@@ -336,24 +333,22 @@ export async function initApi(isTest: boolean) {
             },
             context: async (params, operation) => {
                 let opId = uuid();
-                let ctx = buildWebSocketContext(params || {}).ctx;
+                let ctx = buildWebSocketContext(params || {});
                 ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `query ${opId} ${operation.operationName || ''}`);
                 ctx = withGqlQueryId(ctx, opId);
                 ctx = withGqlTrace(ctx, `query ${opId} ${operation.operationName || ''}`);
-
-                return new AppContext(ctx);
+                return ctx;
             },
             subscriptionContext: async (params, operation, firstCtx) => {
                 let opId = firstCtx ? GqlQueryIdNamespace.get(firstCtx)! : uuid();
-                let ctx = buildWebSocketContext(params || {}).ctx;
+                let ctx = buildWebSocketContext(params || {});
                 ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `subscription ${opId} ${operation.operationName || ''}`);
                 ctx = withGqlQueryId(ctx, opId);
                 ctx = withGqlTrace(ctx, `subscription ${opId} ${operation.operationName || ''}`);
                 ctx = withLifetime(ctx);
-
-                return new AppContext(ctx);
+                return ctx;
             },
             onOperation: async (ctx, operation) => {
                 // noop

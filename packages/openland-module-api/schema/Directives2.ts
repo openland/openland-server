@@ -1,3 +1,4 @@
+import { Context } from '@openland/context';
 import { SchemaDirectiveVisitor } from 'graphql-tools';
 import {
     defaultFieldResolver,
@@ -17,19 +18,18 @@ import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { ErrorText } from 'openland-errors/ErrorText';
 import { withPermission } from 'openland-module-api/Resolvers';
 import { AuthContext } from 'openland-module-auth/AuthContext';
-import { AppContext } from 'openland-modules/AppContext';
 import { UserError } from '../../openland-errors/UserError';
 // import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 // import { fetchResolvePath } from './Schema';
 
 function createFieldDirective(
-    resolver: (root: any, args: any, context: AppContext, info: any, originalResolver: GraphQLFieldResolver<any, any, any>, directiveArgs: any) => any
+    resolver: (root: any, args: any, context: Context, info: any, originalResolver: GraphQLFieldResolver<any, any, any>, directiveArgs: any) => any
 ): typeof SchemaDirectiveVisitor {
     return class extends SchemaDirectiveVisitor {
         visitFieldDefinition(field: GraphQLField<any, any>) {
             const { resolve = defaultFieldResolver } = field;
 
-            field.resolve = async (root: any, args: any, context: AppContext, info: any) => {
+            field.resolve = async (root: any, args: any, context: Context, info: any) => {
                 return await resolver(root, args, context, info, resolve, this.args);
             };
         }

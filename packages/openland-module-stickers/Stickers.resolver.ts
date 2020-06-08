@@ -1,8 +1,8 @@
+import { Context } from '@openland/context';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { Modules } from 'openland-modules/Modules';
 import { withActivatedUser } from '../openland-module-api/Resolvers';
 import { IDs } from '../openland-module-api/IDs';
-import { AppContext } from '../openland-modules/AppContext';
 import { MaybePromise } from '../openland-module-api/schema/SchemaUtils';
 import { Sticker, StickerPack } from 'openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
@@ -10,14 +10,14 @@ import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
 import StickerPackRoot = GQLRoots.StickerPackRoot;
 import StickerRoot = GQLRoots.StickerRoot;
 
-function withStickerPackId<T, R>(handler: (ctx: AppContext, src: number, args: T) => MaybePromise<R>) {
-    return (src: StickerPackRoot, args: T, ctx: AppContext) => {
+function withStickerPackId<T, R>(handler: (ctx: Context, src: number, args: T) => MaybePromise<R>) {
+    return (src: StickerPackRoot, args: T, ctx: Context) => {
         return typeof src === 'number' ? handler(ctx, src, args) : handler(ctx, src.id, args);
     };
 }
 
-function withStickerPack<T, R>(handler: (ctx: AppContext, pack: StickerPack, args: T) => MaybePromise<R>) {
-    return async (src: StickerPackRoot, args: T, ctx: AppContext) => {
+function withStickerPack<T, R>(handler: (ctx: Context, pack: StickerPack, args: T) => MaybePromise<R>) {
+    return async (src: StickerPackRoot, args: T, ctx: Context) => {
         if (typeof src === 'number') {
             let pack = await Store.StickerPack.findById(ctx, src);
             if (!pack) {
@@ -30,8 +30,8 @@ function withStickerPack<T, R>(handler: (ctx: AppContext, pack: StickerPack, arg
     };
 }
 
-function withSticker<T, R>(handler: (ctx: AppContext, sticker: Sticker, args: T) => MaybePromise<R>) {
-    return async (src: StickerRoot, args: T, ctx: AppContext) => {
+function withSticker<T, R>(handler: (ctx: Context, sticker: Sticker, args: T) => MaybePromise<R>) {
+    return async (src: StickerRoot, args: T, ctx: Context) => {
         if (typeof src === 'string') {
             let sticker = await Store.Sticker.findById(ctx, src);
             if (!sticker) {

@@ -1,3 +1,4 @@
+import { Context } from '@openland/context';
 import { IDs } from 'openland-module-api/IDs';
 import { Store } from 'openland-module-db/FDB';
 import { withUser, withAccount } from 'openland-module-api/Resolvers';
@@ -8,7 +9,6 @@ import { ErrorText } from 'openland-errors/ErrorText';
 import { inTx } from '@openland/foundationdb';
 import { stringNotEmpty, validate } from 'openland-utils/NewInputValidator';
 import { Sanitizer } from 'openland-utils/Sanitizer';
-import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Organization } from 'openland-module-db/store';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
@@ -19,25 +19,25 @@ const log = createLogger('organization_profile_resolver');
 export const Resolver: GQLResolver = {
     OrganizationProfile: {
         id: (src: Organization) => IDs.OrganizationProfile.serialize(src.id),
-        name: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.name,
-        photoRef: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.photo,
+        name: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.name,
+        photoRef: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.photo,
 
-        website: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.website,
-        websiteTitle: (src: Organization, args: {}, ctx: AppContext) => null,
-        about: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.about,
-        twitter: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.twitter,
-        facebook: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.facebook,
-        linkedin: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.linkedin,
-        instagram: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.instagram,
+        website: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.website,
+        websiteTitle: (src: Organization, args: {}, ctx: Context) => null,
+        about: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.about,
+        twitter: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.twitter,
+        facebook: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.facebook,
+        linkedin: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.linkedin,
+        instagram: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.instagram,
 
-        alphaPublished: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationEditorial.findById(ctx, src.id)))!.listed,
+        alphaPublished: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationEditorial.findById(ctx, src.id)))!.listed,
         alphaEditorial: (src: Organization) => src.editorial,
-        alphaFeatured: async (src: Organization, args: {}, ctx: AppContext) => ((await Store.OrganizationEditorial.findById(ctx, src.id)))!.featured,
+        alphaFeatured: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationEditorial.findById(ctx, src.id)))!.featured,
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
         alphaIsPrivate: (src: Organization) => src.private || false,
     },
     Query: {
-        myOrganizationProfile: async (_: any, args: {}, ctx: AppContext) => {
+        myOrganizationProfile: async (_: any, args: {}, ctx: Context) => {
             if (ctx.auth.oid) {
                 return await Store.Organization.findById(ctx, ctx.auth.oid);
             }

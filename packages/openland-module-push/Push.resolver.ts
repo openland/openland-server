@@ -1,6 +1,6 @@
+import { Context } from '@openland/context';
 import { Modules } from 'openland-modules/Modules';
 import { PushConfig } from './PushConfig';
-import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { createLogger } from '@openland/log';
 import { withPermission } from '../openland-module-api/Resolvers';
@@ -15,7 +15,7 @@ export const Resolver: GQLResolver = {
         })
     },
     Mutation: {
-        registerWebPush: async (_: any, args: { endpoint: string }, ctx: AppContext) => {
+        registerWebPush: async (_: any, args: { endpoint: string }, ctx: Context) => {
             if (!ctx.auth.uid || !ctx.auth.tid) {
                 throw Error('Unable to register push for non-registered user');
             }

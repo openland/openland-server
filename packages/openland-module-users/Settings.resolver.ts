@@ -5,13 +5,13 @@ import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from '@openland/foundationdb';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
-import { AppContext } from 'openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
 import NotificationPreviewRoot = GQLRoots.NotificationPreviewRoot;
 import SubscriptionWatchSettingsArgs = GQL.SubscriptionWatchSettingsArgs;
 import SubscriptionSettingsWatchArgs = GQL.SubscriptionSettingsWatchArgs;
 import { fastWatch } from '../openland-module-db/fastWatch';
+import { Context } from '@openland/context';
 
 const settingsUpdateResolver = withUser(async (parent, args: GQL.MutationSettingsUpdateArgs, uid: number) => {
     return await inTx(parent, async (ctx) => {
@@ -418,7 +418,7 @@ export const Resolver: GQLResolver = {
     },
     Settings: {
         id: src => IDs.Settings.serialize(src.id),
-        primaryEmail: async (src: UserSettings, args: {}, ctx: AppContext) => (await Store.User.findById(ctx, src.id))!.email || '',
+        primaryEmail: async (src: UserSettings, args: {}, ctx: Context) => (await Store.User.findById(ctx, src.id))!.email || '',
         emailFrequency: src => src.emailFrequency,
         desktopNotifications: src => src.desktopNotifications,
         mobileNotifications: src => src.mobileNotifications,
@@ -470,7 +470,7 @@ export const Resolver: GQLResolver = {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function* (_: any, args: SubscriptionWatchSettingsArgs, parent: AppContext) {
+            subscribe: async function* (_: any, args: SubscriptionWatchSettingsArgs, parent: Context) {
                 if (!parent.auth.uid) {
                     throw new AccessDeniedError();
                 }
@@ -495,7 +495,7 @@ export const Resolver: GQLResolver = {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function* (_: any, args: SubscriptionSettingsWatchArgs, parent: AppContext) {
+            subscribe: async function* (_: any, args: SubscriptionSettingsWatchArgs, parent: Context) {
                 if (!parent.auth.uid) {
                     throw new AccessDeniedError();
                 }

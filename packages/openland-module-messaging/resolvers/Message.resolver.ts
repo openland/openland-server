@@ -1,13 +1,13 @@
+import { Context } from '@openland/context';
 import { Message } from 'openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
 import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
-import { AppContext } from 'openland-modules/AppContext';
 
 type MessageRoot = Message | number;
 
-function withMessage<T>(handler: (ctx: AppContext, user: Message) => T) {
-    return async (src: MessageRoot, _params: {}, ctx: AppContext) => {
+function withMessage<T>(handler: (ctx: Context, user: Message) => T) {
+    return async (src: MessageRoot, _params: {}, ctx: Context) => {
         if (typeof src === 'number') {
             let msg = (await (Store.Message.findById(ctx, src)))!;
             return handler(ctx, msg);

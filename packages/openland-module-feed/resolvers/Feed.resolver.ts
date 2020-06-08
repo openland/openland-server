@@ -1,3 +1,4 @@
+import { Context } from '@openland/context';
 import {
     Conversation,
     FeedChannel,
@@ -15,7 +16,6 @@ import { IDs } from 'openland-module-api/IDs';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import { resolveRichMessageCreation } from '../../openland-module-rich-message/resolvers/resolveRichMessageCreation';
 import FeedItemRoot = GQLRoots.FeedItemRoot;
-import { AppContext } from '../../openland-modules/AppContext';
 import { fetchMessageFallback, hasMention } from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
 import SlideRoot = GQLRoots.SlideRoot;
 import FeedPostAuthorRoot = GQLRoots.FeedPostAuthorRoot;
@@ -29,8 +29,8 @@ import { inTx } from '@openland/foundationdb';
 import { UserError } from '../../openland-errors/UserError';
 import { isDefined } from '../../openland-utils/misc';
 
-export function withRichMessage<T>(handler: (ctx: AppContext, message: RichMessage, src: FeedEvent) => Promise<T> | T) {
-    return async (src: FeedEvent, _params: {}, ctx: AppContext) => {
+export function withRichMessage<T>(handler: (ctx: Context, message: RichMessage, src: FeedEvent) => Promise<T> | T) {
+    return async (src: FeedEvent, _params: {}, ctx: Context) => {
         let message = await Store.RichMessage.findById(ctx, src.content.richMessageId);
         return handler(ctx, message!, src);
     };

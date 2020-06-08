@@ -9,6 +9,9 @@ if (Symbol.asyncIterator === undefined) {
 // Register Modules
 require('module-alias/register');
 
+// Context Patching
+import './context';
+
 // Logs
 import './logs';
 
