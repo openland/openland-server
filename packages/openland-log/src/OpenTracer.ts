@@ -38,15 +38,10 @@ export class OpenTracer implements STracer {
         return new OpenSpan(this.tracer, name, parent);
     }
 
-    async trace<T>(parent: Context, op: string, handler: (ctx: Context) => Promise<T>, tags?: { [key: string]: any }): Promise<T> {
+    async trace<T>(parent: Context, op: string, handler: (ctx: Context) => Promise<T>): Promise<T> {
         Metrics.TracingFrequence.inc();
         let c = TracingContext.get(parent);
         let span = this.startSpan(op, c.span ? c.span : undefined);
-        if (tags) {
-            for (let [key, value] of Object.entries(tags)) {
-                span.setTag(key, value);
-            }
-        }
         let ctx = TracingContext.set(parent, { span });
         try {
             return await handler(ctx);

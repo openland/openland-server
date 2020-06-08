@@ -13,6 +13,7 @@ import { getConcurrencyPool } from 'openland-utils/ConcurrencyPool';
 import { createLogger, LogPathContext } from '@openland/log';
 import { encoders } from '@openland/foundationdb';
 import { createTracer } from 'openland-log/createTracer';
+import { setTracingTag } from '../openland-log/setTracingTag';
 // import { Context, ContextName } from '@openland/context';
 // import { LogPathContext } from '@openland/log';
 
@@ -34,7 +35,10 @@ export function setupFdbTracing() {
     setTransactionTracer({
         tx: async (ctx, handler) => {
             const path = LogPathContext.get(ctx);
-            return await tracer.trace(ctx, 'transaction', (child  ) => handler(child), { path: path.join(' -> ') });
+            return await tracer.trace(ctx, 'transaction', (child  ) => {
+                setTracingTag(child, 'path', path.join(' -> '));
+                return handler(child);
+            });
         },
         commit: async (ctx, handler) => {
             // commitTx.increment(ctx);
