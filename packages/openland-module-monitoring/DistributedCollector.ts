@@ -16,14 +16,18 @@ class GaugeCollector {
         this.gauge = gauge;
     }
 
-    _values = new Map<string, {
+    #values = new Map<string, {
         value: number,
         time: number,
         timeout: NodeJS.Timeout
     }>();
 
     resolve = () => {
-        return [...this._values.values()].map((v) => v.value).reduce((p, c) => p + c, 0);
+        let values = [...this.#values.values()].map((v) => v.value).sort();
+        return {
+            sum: values.reduce((p, c) => p + c, 0),
+            median: values[Math.floor(values.length / 2)] || 0,
+        };
     }
 
     report = (value: number, key: string, timeout: number, time: number) => {
@@ -34,7 +38,7 @@ class GaugeCollector {
             return;
         }
 
-        let ex = this._values.get(key);
+        let ex = this.#values.get(key);
         // Too old report
         if (ex && ex.time >= time) {
             return;
@@ -46,22 +50,11 @@ class GaugeCollector {
         }
 
         // Write new value
-        this._values.set(key, {
+        this.#values.set(key, {
             value,
             time,
-            timeout: setTimeout(() => { this._values.delete(key); }, timeout)
+            timeout: setTimeout(() => { this.#values.delete(key); }, timeout)
         });
-    }
-}
-
-class MeanGaugeCollector extends GaugeCollector {
-    constructor(gauge: DistributedGauge) {
-        super(gauge);
-    }
-
-    resolve = () => {
-        let values = [...this._values.values()].map((v) => v.value).sort();
-        return values[Math.ceil(values.length / 2)];
     }
 }
 
@@ -76,7 +69,7 @@ export class DistributedCollector {
 
         let metrics = this.#factory.getAllMetrics();
         for (let gauge of metrics.gauges) {
-            this.#gaugeCollectors.set(gauge.name, gauge.func === 'sum' ? new GaugeCollector(gauge) : new MeanGaugeCollector(gauge));
+            this.#gaugeCollectors.set(gauge.name, new GaugeCollector(gauge));
         }
         for (let persisted of metrics.persistedGauges) {
             this.#persistedGauges.set(persisted.name, persisted);
@@ -92,7 +85,8 @@ export class DistributedCollector {
             let resolved = collector.resolve();
             res.push('# HELP ' + gauge.name + ' ' + gauge.description);
             res.push('# TYPE ' + gauge.name + ' gauge');
-            res.push(gauge.name + ' ' + resolved);
+            res.push(gauge.name + '{label=sum}' + ' ' + resolved.sum);
+            res.push(gauge.name + '{label=median}' + ' ' + resolved.median);
         }
 
         // Persisted gauges
