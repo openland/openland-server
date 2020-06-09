@@ -3,6 +3,7 @@ import * as geoip from 'geoip-lite';
 type LatLong = { long: number, lat: number };
 
 export type GeoIPResponse = {
+    ip: string,
     location_code: string,
     location_name: string,
     coordinates: LatLong | null
@@ -30,12 +31,14 @@ export async function geoIP(ip: string): Promise<GeoIPResponse> {
     let lookup = geoip.lookup(ip);
     if (!lookup) {
         return {
+            ip: ip,
             location_name: '_',
             location_code: '_',
             coordinates: null
         };
     }
     return {
+        ip: ip,
         location_name: lookup.city,
         location_code: lookup.country,
         coordinates: {

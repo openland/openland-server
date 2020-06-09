@@ -123,6 +123,7 @@ import {
     ImageParagraph,
     TextParagraph, PostParagraphSpans, LinkPostSpan, BoldTextPostSpan, ItalicTextPostSpan, IronyTextPostSpan
 } from '../../openland-module-discussions/repositories/PostsRepository';
+import { GeoIPResponse } from '../../openland-utils/geoIp/geoIP';
 
 //
 //  Root types
@@ -635,7 +636,7 @@ export namespace GQLRoots {
     //
     export type GeoLocationRoot = { long: number; lat: number; };
     export type UserLocationRoot = UserLocation;
-    export type IpLocationRoot = string;
+    export type IpLocationRoot = GeoIPResponse;
 
     //
     // Powerups
