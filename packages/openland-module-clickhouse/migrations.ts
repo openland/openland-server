@@ -6,7 +6,7 @@ import { Context } from '@openland/context';
 import { ClickHouseClient } from './ClickHouseClient';
 import { DistributedLock } from '@openland/foundationdb-locks';
 import { inTx } from '@openland/foundationdb';
-import { DatabaseClient } from './DatabaseClient';
+import DatabaseClient from './DatabaseClient';
 
 interface Migration {
     name: string;

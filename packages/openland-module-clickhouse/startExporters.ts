@@ -5,7 +5,7 @@ import { createNamedContext } from '@openland/context';
 import { forever, delay } from 'openland-utils/timer';
 import { HyperLog, HyperLogEvent } from '../openland-module-db/store';
 import { container } from '../openland-modules/Modules.container';
-import { DatabaseClient } from './DatabaseClient';
+import DatabaseClient from './DatabaseClient';
 
 function startPresenceExport(client: DatabaseClient) {
     updateReader('ch-exporter-reader', 3, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
@@ -145,8 +145,9 @@ function startHyperlogExport(client: DatabaseClient) {
             let event = val.raw as HyperLogEvent;
             if (!acc.has(event.eventType)) {
                 acc.set(event.eventType, [event]);
+            } else {
+                acc.get(event.eventType)!.push(event);
             }
-            acc.get(event.eventType)!.push(event);
             return acc;
         }, new Map<string, HyperLogEvent[]>());
 

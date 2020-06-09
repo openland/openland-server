@@ -3,7 +3,7 @@ import { Context } from '@openland/context';
 import { TableSpace } from './TableSpace';
 import { TableClient } from './TableClient';
 
-export class DatabaseClient {
+export default class DatabaseClient {
     #client: ClickHouseClient;
     #dbName: string;
     #tables = TableSpace;
@@ -30,7 +30,7 @@ export class DatabaseClient {
     }
 
     async createTable(ctx: Context, table: string, columns: ColumnDefinition[], partition: string, orderBy: string, primaryKey: string) {
-        let op = 'CREATE TABLE IF NOT EXISTS ' + this.#dbName + '.' + table + ' (' + columns.map((v) => (v.name + ' ' + v.type)).join(', ') + ')' + ' ENGINE = MergeTree() PARTITION BY ' + partition + ' ORDER BY ' + orderBy + ' PRIMARY KEY ' + primaryKey;
+        let op = 'CREATE TABLE IF NOT EXISTS ' + this.#dbName + '.' + table + ' (' + columns.map((v) => (`"${v.name}"` + ' ' + v.type)).join(', ') + ')' + ' ENGINE = MergeTree() PARTITION BY ' + partition + ' ORDER BY ' + orderBy + ' PRIMARY KEY ' + primaryKey;
         await this.#client.execute(ctx, op);
     }
 

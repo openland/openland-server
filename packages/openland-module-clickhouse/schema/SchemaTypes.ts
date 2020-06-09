@@ -41,7 +41,7 @@ type FieldTypeInternal<TField extends Field> =
                     TField extends StructField<infer T1> ? T1 :
                         TField extends UnionField<any, infer T2> ? T2 : never;
 
-export type FieldType<TField extends Field> = TField extends NullableField<infer T> ? FieldTypeInternal<T> | null : FieldTypeInternal<TField>;
+export type FieldType<TField extends Field> = TField extends NullableField<infer T> ? FieldTypeInternal<T> | null | undefined : FieldTypeInternal<TField>;
 
 export type FieldInfo = { name: string, field: Field };
 export type SimpleFieldInfo = { name: string, field: SimpleField };

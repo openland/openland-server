@@ -3,7 +3,7 @@ import { ColumnDefinition } from './ClickHouseClient';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { Table } from './schema/Table';
-import { DatabaseClient } from './DatabaseClient';
+import DatabaseClient from './DatabaseClient';
 
 const describeSchema = schema({
     name: string(),
@@ -62,8 +62,12 @@ export class TableClient<T> {
             if (!fieldDescriptor) {
                 throw new Error(`Initiating table ${this.#table.name} failed: field '${field.name}' is not in schema. Probably you should create migration`);
             }
-            if (fieldDescriptor.dbType !== field.type) {
-                throw new Error(`Initiating table ${this.#table.name} failed: invalid type of '${field.name}'. Probably you should create migration`);
+            let dbType: string = fieldDescriptor.dbType;
+            if (fieldDescriptor.nullable) {
+                dbType = 'Nullable(' + fieldDescriptor.dbType + ')';
+            }
+            if (dbType !== field.type) {
+                throw new Error(`Initiating table ${this.#table.name} failed: invalid type of '${field.name}'. Expected ${fieldDescriptor.dbType}, but got ${field.type}. Probably you should create migration`);
             }
         }
     }
