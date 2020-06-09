@@ -35,7 +35,7 @@ export function setupFdbTracing() {
     setTransactionTracer({
         tx: async (ctx, handler) => {
             const path = LogPathContext.get(ctx);
-            return await tracer.trace(ctx, 'transaction', (child  ) => {
+            return await tracer.trace(ctx, 'transaction', (child) => {
                 setTracingTag(child, 'path', path.join(' -> '));
                 return handler(child);
             });
@@ -58,8 +58,11 @@ export function setupFdbTracing() {
 
     setSubspaceTracer({
         get: async (ctx, key, handler) => {
-            // opRead.increment(ctx);
-            return getConcurrencyPool(ctx).run(handler);
+            return await tracer.trace(ctx, 'getKey', async (child) => {
+                const path = LogPathContext.get(ctx);
+                setTracingTag(child, 'path', path.join(' -> '));
+                return await getConcurrencyPool(child).run(handler);
+            });
             // return await tracer.trace(ctx, 'getKey', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
         },
         set: (ctx, key, value, handler) => {
@@ -71,15 +74,11 @@ export function setupFdbTracing() {
             return handler();
         },
         range: async (ctx, key, opts, handler) => {
-            // return await tracer.trace(ctx, 'getRange', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
-            // opRead.increment(ctx);
-            let res = await getConcurrencyPool(ctx).run(handler);
-            // if (res.length > 0) {
-            //     opRead.add(ctx, res.length);
-            // } else {
-            //     opRead.add(ctx, 1);
-            // }
-            return res;
+            return await tracer.trace(ctx, 'getRange', async (child) => {
+                const path = LogPathContext.get(ctx);
+                setTracingTag(child, 'path', path.join(' -> '));
+                return await getConcurrencyPool(ctx).run(handler);
+            });
         }
     });
 

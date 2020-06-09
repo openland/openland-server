@@ -19,7 +19,7 @@ const Errors = {
     server_error: 'An unexpected error occurred. Please try again.',
     session_not_found: 'An unexpected error occurred. Please try again.',
     code_expired: 'This code has expired. Please click Resend and we\'ll send you a new verification email.',
-    wrong_code: 'The code you entered is incorrect. Please check the code in the email and try again.',
+    wrong_code: 'Wrong code',
     no_email_or_phone: 'Please enter your email address',
     no_session: 'An unexpected error occurred. Please try again.',
     no_code: 'Please enter the 6-digit code we\'ve just sent to your email',
@@ -27,7 +27,7 @@ const Errors = {
     invalid_email: 'It looks like this email is incorrect. Please check your email address and try again.',
     invalid_auth_token: 'An unexpected error occurred. Please try again.',
     session_expired: 'An unexpected error occurred. Please try again.',
-    wrong_code_length: 'The code you entered is incorrect. Please check the code in the email and try again.',
+    wrong_code_length: 'Wrong code',
     too_many_attempts: 'Too many requests. Try again later'
 };
 

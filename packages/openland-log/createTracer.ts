@@ -18,7 +18,7 @@ export function createTracer(name: string): STracer {
         }));
         return new OpenTracer(initTracer({
             serviceName: name,
-            sampler: { type: 'const', param: 1 },
+            sampler: { type: 'probabilistic', param: 0.1 },
             reporter: {
                 logSpans: false,
                 collectorEndpoint: process.env.JAEGER_ENDPOINT ? process.env.JAEGER_ENDPOINT : undefined,

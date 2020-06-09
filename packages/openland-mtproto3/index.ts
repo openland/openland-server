@@ -8,19 +8,19 @@ import {
 import WebSocket = require('ws');
 import * as http from 'http';
 import * as https from 'https';
-import { isAsyncIterator } from './utils';
+// import { isAsyncIterator } from './utils';
 import { delay } from '../openland-utils/timer';
-import { gqlSubscribe } from './gqlSubscribe';
+// import { gqlSubscribe } from './gqlSubscribe';
 import { Context } from '@openland/context';
 // import { createLogger } from '@openland/log';
-import { cancelContext } from '@openland/lifetime';
+// import { cancelContext } from '@openland/lifetime';
 import { QueryCache } from './queryCache';
 import { randomKey } from '../openland-utils/random';
 // import { createMetric } from '../openland-module-monitoring/Metric';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import uuid from 'uuid';
-import { getOperationType } from 'openland-spacex/utils/getOperationType';
+// import { getOperationType } from 'openland-spacex/utils/getOperationType';
 
 // const logger = createLogger('apollo');
 
@@ -250,77 +250,33 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                 return;
             }
 
-            // let query = parse(message.payload.query);
-            let opType = getOperationType(query, operation.operationName);
-            if (opType === 'subscription') {
-                let working = true;
-                let ctx = await params.subscriptionContext(session.authParams, operation, undefined, req);
-                asyncRun(async () => {
-                    await params.onOperation(ctx, operation);
-
-                    if (!session.operationBucket.tryTake()) {
-                        // handle error
-                        session.sendRateLimitError(message.id);
-                        session.sendComplete(message.id);
-                        session.stopOperation(message.id);
-                        return;
-                    } else {
-                        let iterator = await session.executionPool.run(async () => {
-                            return gqlSubscribe({
-                                schema: params.executableSchema,
-                                document: query,
-                                operationName: operation.operationName,
-                                variableValues: operation.variables,
-                                fetchContext: async () => await params.subscriptionContext(session.authParams, operation, ctx, req),
-                                ctx,
-                                onEventResolveFinish: (_ctx, duration) => params.onEventResolveFinish(_ctx, operation, duration)
-                            });
-                        });
-
-                        if (!isAsyncIterator(iterator)) {
-                            // handle error
-                            session.sendData(message.id, await params.formatResponse(iterator, operation, ctx));
-                            session.sendComplete(message.id);
-                            session.stopOperation(message.id);
-                            return;
-                        }
-
-                        for await (let event of iterator) {
-                            if (!working) {
-                                break;
-                            }
-                            session.sendData(message.id, await params.formatResponse(event, operation, ctx));
-                        }
-                        session.sendComplete(message.id);
-                    }
-                });
-                session.addOperation(message.id, () => {
-                    working = false;
-                    cancelContext(ctx);
-                });
-            } else {
-                let ctx = await params.context(session.authParams, operation, req);
-                if (!session.operationBucket.tryTake()) {
-                    // handle error
-                    session.sendRateLimitError(message.id);
-                    session.sendComplete(message.id);
-                    session.stopOperation(message.id);
-                    return;
-                }
-                await params.onOperation(ctx, operation);
-                let opStartTime = Date.now();
-                session.session.operation(ctx, { document: query, variables: operation.variables, operationName: operation.operationName }, (res) => {
-                    if (res.type === 'data') {
-                        session.sendData(message.id, params.formatResponse({ data: res.data }, operation, ctx));
-                        session.sendComplete(message.id);
-                        params.onOperationFinish(ctx, operation, Date.now() - opStartTime);
-                    } else if (res.type === 'errors') {
-                        session.sendData(message.id, params.formatResponse({ errors: res.errors }, operation, ctx));
-                        session.sendComplete(message.id);
-                        params.onOperationFinish(ctx, operation, Date.now() - opStartTime);
-                    }
-                });
+            //
+            // Execute Operation
+            //
+            
+            let ctx = await params.context(session.authParams, operation, req);
+            if (!session.operationBucket.tryTake()) {
+                // handle error
+                session.sendRateLimitError(message.id);
+                session.sendComplete(message.id);
+                session.stopOperation(message.id);
+                return;
             }
+            await params.onOperation(ctx, operation);
+            let opStartTime = Date.now();
+            let op = session.session.operation(ctx, { document: query, variables: operation.variables, operationName: operation.operationName }, (res) => {
+                if (res.type === 'data') {
+                    session.sendData(message.id, params.formatResponse({ data: res.data }, operation, ctx));
+                } else if (res.type === 'errors') {
+                    session.sendData(message.id, params.formatResponse({ errors: res.errors }, operation, ctx));
+                } else if (res.type === 'completed') {
+                    session.sendComplete(message.id);
+                    params.onOperationFinish(ctx, operation, Date.now() - opStartTime);
+                }
+            });
+            session.addOperation(message.id, () => {
+                op.cancel();
+            });
         } else if (message.type && message.type === 'stop') {
             session.stopOperation(message.id);
         } else if (message.type && message.type === 'connection_terminate') {
