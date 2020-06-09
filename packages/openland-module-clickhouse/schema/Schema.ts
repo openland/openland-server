@@ -30,17 +30,15 @@ const get = <TReturn = any>(obj: any, path: string): TReturn | undefined => {
 };
 
 export class Schema<T> {
-    #fields: SimpleFieldInfo[];
+    #fieldsMap: Map<SimpleFieldInfo, string>;
 
-    constructor(fields: SimpleFieldInfo[]) {
-        this.#fields = fields;
+    constructor(fields: Map<SimpleFieldInfo, string>) {
+        this.#fieldsMap = fields;
     }
 
     mapToDb(obj: T): DbType[] {
         let values: DbType[] = [];
-        for (let field of this.#fields) {
-            let path = field.name;
-
+        for (let [field, path] of this.#fieldsMap.entries()) {
             let normalize = get<ToDbFieldNormalizer<SimpleField>>(toDbNormalizers, field.field.dbType)!;
             let fieldData = get(obj, path);
             if (!field.field.nullable && (fieldData === undefined || fieldData === null)) {
@@ -56,9 +54,10 @@ export class Schema<T> {
 
     mapFromDb(fields: DbType[]): T {
         let value: any = {};
-        for (let i = 0; i < this.#fields.length; ++i) {
-            let path = this.#fields[i].name;
-            let normalize = get<FromDbFieldNormalizer<SimpleField>>(fromDbNormalizers, this.#fields[i].field.type)!;
+        let mapEntries: [SimpleFieldInfo, string][] = [...this.#fieldsMap.entries()];
+        for (let i = 0; i < mapEntries.length; ++i) {
+            let path = mapEntries[i][1];
+            let normalize = get<FromDbFieldNormalizer<SimpleField>>(fromDbNormalizers, mapEntries[i][0].field.type)!;
             let fieldValue = fields[i];
             if (fieldValue === null) {
                 set(value, path, null);
@@ -78,6 +77,6 @@ export class Schema<T> {
     }
 
     get fields() {
-        return this.#fields;
+        return [...this.#fieldsMap.keys()];
     }
 }

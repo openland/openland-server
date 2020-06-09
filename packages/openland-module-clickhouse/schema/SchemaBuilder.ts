@@ -1,12 +1,30 @@
 import {
-    Field, SimpleFieldInfo, FieldType, SchemaShape, ShapeToSchema, SimpleField, StructField,
+    Field, FieldInfo, FieldType, isSimpleField, nullable, SchemaShape, ShapeToSchema, SimpleFieldInfo, string,
 } from './SchemaTypes';
 import { Schema } from './Schema';
 
-export class SchemaBuilder<T> {
-    #fields: SimpleFieldInfo[];
+function addFieldsToSchema(fields: FieldInfo[], map: Map<SimpleFieldInfo, string>, objectPath: string[], dbPath: string[], shouldBeNullable: boolean) {
+    for (let next of fields) {
+        if (isSimpleField(next.field)) {
+            map.set({ name: [...dbPath, next.name].join('.'), field: shouldBeNullable ? nullable(next.field) : next.field }, [...objectPath, next.name].join('.'));
+        }
+        if (next.field.type === 'struct') {
+            addFieldsToSchema(next.field.schema.fields, map, [...objectPath, next.name], [...dbPath, next.name], shouldBeNullable);
+        }
+        if (next.field.type === 'union') {
+            map.set({ name: [...dbPath, next.name, 'type'].join('.'), field: string() }, [...objectPath, next.name, 'type'].join('.'));
+            for (let [type, s] of Object.entries(next.field.schema)) {
+                addFieldsToSchema(s.fields, map, [...objectPath, next.name], [...dbPath, next.name, type], true);
+            }
+        }
+    }
+    return map;
+}
 
-    private constructor(fields: SimpleFieldInfo[] = []) {
+export class SchemaBuilder<T> {
+    #fields: FieldInfo[];
+
+    private constructor(fields: FieldInfo[] = []) {
         this.#fields = fields;
     }
 
@@ -15,19 +33,14 @@ export class SchemaBuilder<T> {
         field: TField,
     ): SchemaBuilder<T & { [_ in TName]: FieldType<TField> }> {
         this.validateFieldName(name);
-
-        if (field.type !== 'struct') {
-            this.#fields.push({ name, field: field as SimpleField });
-        } else {
-            let structField = field as any as StructField<any>;
-            this.#fields.push(...structField.fields.map(a => ({ ...a, name: `${name}.${a.name}` })));
-        }
-
+        this.#fields.push({ name, field });
         return this as SchemaBuilder<any>;
     }
 
     public build(): Schema<T> {
-        return new Schema<T>(this.#fields);
+        let map = new Map<SimpleFieldInfo, string>();
+        addFieldsToSchema(this.#fields, map, [], [], false);
+        return new Schema<T>(map);
     }
 
     private validateFieldName(name: string) {
@@ -37,6 +50,10 @@ export class SchemaBuilder<T> {
         if (name.includes('.')) {
             throw new Error('Field name should not contain dot character');
         }
+    }
+
+    static create<T = any>(): SchemaBuilder<T> {
+        return new SchemaBuilder<T>();
     }
 
     static fromShape<T extends SchemaShape>(shape: T): SchemaBuilder<ShapeToSchema<T>> {
