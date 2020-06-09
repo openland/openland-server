@@ -79,6 +79,7 @@ export class SpaceXSession {
         if (this.closed) {
             throw Error('Session already closed');
         }
+        let docOp = getOperationType(op.document, op.operationName);
         let id = uuid();
         const lifetime = withLifetime(parentContext);
         let abort = () => {
@@ -87,19 +88,27 @@ export class SpaceXSession {
                 handler({ type: 'aborted' });
             }
             if (this.activeOperations.has(id)) {
-                Metrics.SpaceXOperations.dec();
+                if (docOp === 'subscription') {
+                    Metrics.SpaceXSubscriptions.dec();
+                } else {
+                    Metrics.SpaceXOperations.dec();
+                }
                 this.activeOperations.delete(id);
             }
         };
-        Metrics.SpaceXOperations.inc();
+        
         Metrics.SpaceXOperationsFrequence.inc();
         this.activeOperations.set(id, abort);
+        if (docOp === 'subscription') {
+            Metrics.SpaceXSubscriptions.inc();
+        } else {
+            Metrics.SpaceXOperations.inc();
+        }
 
         // tslint:disable-next-line:no-floating-promises
         (async () => {
             try {
                 // We are doing check here to have a single place to throw errors
-                let docOp = getOperationType(op.document, op.operationName);
                 if (docOp !== 'query' && docOp !== 'mutation' && docOp !== 'subscription') {
                     throw Error('Invalid operation type: ' + docOp);
                 }
@@ -181,6 +190,7 @@ export class SpaceXSession {
                                 op,
                                 rootValue: event
                             });
+                            Metrics.SpaceXSubscriptionEvents.inc();
 
                             // Check if canceled
                             if (!resolved) {

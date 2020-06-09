@@ -17,7 +17,9 @@ export const Metrics = {
     SpaceXSessionsAuthenticated: Factory.createMachineGauge('spacex_sessions_authenticated', 'Number of active authenticated SpaceX sessions'),
     SpaceXSessionsAnonymous: Factory.createMachineGauge('spacex_sessions_anonymous', 'Number of active authenticated SpaceX sessions'),
     SpaceXOperations: Factory.createMachineGauge('spacex_ops', 'Number of active SpaceX operations'),
-    SpaceXOperationsFrequence: Factory.createFrequencyGauge('spacex_ops_hz', 'Frequence of SpaceX operations'),
+    SpaceXOperationsFrequence: Factory.createFrequencyGauge('spacex_ops_hz', 'Frequency of SpaceX operations'),
+    SpaceXSubscriptions: Factory.createMachineGauge('spacex_sub', 'Number of active SpaceX subscriptions'),
+    SpaceXSubscriptionEvents: Factory.createFrequencyGauge('spacex_sub_hz', 'Frequency of SpaceX subscription events'),
 
     // Tracing
     TracingFrequence: Factory.createFrequencyGauge('tracing_span_hz', 'Tracing spans generation frequence'),
