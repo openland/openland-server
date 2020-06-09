@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5f6f412c10661d1ebd453a92dcb3d7a8';
+export const GQL_SPEC_VERSION = '2c0541ae43e1ec7ec1b91300b10346ae';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -903,16 +903,6 @@ export namespace GQL {
     export interface DebugGlobalCountersUnreadMessagesWithoutMutedArgs { }
     export interface DebugGlobalCountersAllUnreadChatsArgs { }
     export interface DebugGlobalCountersUnreadChatsWithoutMutedArgs { }
-    export interface DebugIpInfo {
-        ip: string;
-        locationCode: string;
-        locationName: string;
-        location: Nullable<GeoLocation>;
-    }
-    export interface DebugIpInfoIpArgs { }
-    export interface DebugIpInfoLocationCodeArgs { }
-    export interface DebugIpInfoLocationNameArgs { }
-    export interface DebugIpInfoLocationArgs { }
     export interface GqlTrace {
         id: string;
         name: string;
@@ -2009,6 +1999,16 @@ export namespace GQL {
     export interface UserLocationIsSharingArgs { }
     export interface UserLocationUserArgs { }
     export interface UserLocationLastLocationsArgs { }
+    export interface IpLocation {
+        ip: string;
+        countryCode: Nullable<string>;
+        locationName: Nullable<string>;
+        location: Nullable<GeoLocation>;
+    }
+    export interface IpLocationIpArgs { }
+    export interface IpLocationCountryCodeArgs { }
+    export interface IpLocationLocationNameArgs { }
+    export interface IpLocationLocationArgs { }
     export interface GeoLocationInput {
         long: number;
         lat: number;
@@ -4021,7 +4021,6 @@ export namespace GQL {
         debugUserMetrics: DebugUserMetrics;
         debugGlobalCounters: DebugGlobalCounters;
         debugServerId: string;
-        debugClientIp: Nullable<DebugIpInfo>;
         debugGqlTraces: GqlTraceConnection;
         debugGqlTrace: GqlTrace;
         debugUserWallet: WalletAccount;
@@ -4069,6 +4068,7 @@ export namespace GQL {
         envVar: Nullable<EnvVar>;
         featureFlags: FeatureFlag[];
         myLocation: UserLocation;
+        ipLocation: Nullable<IpLocation>;
         shouldShareLocation: boolean;
         myStickers: UserStickers;
         createdStickerPacks: StickerPack[];
@@ -4231,7 +4231,6 @@ export namespace GQL {
         uid: OptionalNullable<string>;
     }
     export interface QueryDebugServerIdArgs { }
-    export interface QueryDebugClientIpArgs { }
     export interface QueryDebugGqlTracesArgs {
         first: number;
         after: OptionalNullable<string>;
@@ -4349,6 +4348,7 @@ export namespace GQL {
     }
     export interface QueryFeatureFlagsArgs { }
     export interface QueryMyLocationArgs { }
+    export interface QueryIpLocationArgs { }
     export interface QueryShouldShareLocationArgs { }
     export interface QueryMyStickersArgs { }
     export interface QueryCreatedStickerPacksArgs { }
@@ -6890,19 +6890,6 @@ export interface GQLResolver {
             unreadChatsWithoutMuted: GQL.DebugGlobalCountersUnreadChatsWithoutMutedArgs,
         }
     >;
-    DebugIpInfo?: ComplexTypedResolver<
-        GQL.DebugIpInfo,
-        GQLRoots.DebugIpInfoRoot,
-        {
-            location: Nullable<GQLRoots.GeoLocationRoot>,
-        },
-        {
-            ip: GQL.DebugIpInfoIpArgs,
-            locationCode: GQL.DebugIpInfoLocationCodeArgs,
-            locationName: GQL.DebugIpInfoLocationNameArgs,
-            location: GQL.DebugIpInfoLocationArgs,
-        }
-    >;
     GqlTrace?: ComplexTypedResolver<
         GQL.GqlTrace,
         GQLRoots.GqlTraceRoot,
@@ -8147,6 +8134,19 @@ export interface GQLResolver {
             lastLocations: GQL.UserLocationLastLocationsArgs,
         }
     >;
+    IpLocation?: ComplexTypedResolver<
+        GQL.IpLocation,
+        GQLRoots.IpLocationRoot,
+        {
+            location: Nullable<GQLRoots.GeoLocationRoot>,
+        },
+        {
+            ip: GQL.IpLocationIpArgs,
+            countryCode: GQL.IpLocationCountryCodeArgs,
+            locationName: GQL.IpLocationLocationNameArgs,
+            location: GQL.IpLocationLocationArgs,
+        }
+    >;
     ImageSticker?: ComplexTypedResolver<
         GQL.ImageSticker,
         GQLRoots.ImageStickerRoot,
@@ -9217,7 +9217,6 @@ export interface GQLResolver {
             debugEventsState: GQLRoots.DebugEventsStateRoot,
             debugUserMetrics: GQLRoots.DebugUserMetricsRoot,
             debugGlobalCounters: GQLRoots.DebugGlobalCountersRoot,
-            debugClientIp: Nullable<GQLRoots.DebugIpInfoRoot>,
             debugGqlTraces: GQLRoots.GqlTraceConnectionRoot,
             debugGqlTrace: GQLRoots.GqlTraceRoot,
             debugUserWallet: GQLRoots.WalletAccountRoot,
@@ -9261,6 +9260,7 @@ export interface GQLResolver {
             envVar: Nullable<GQLRoots.EnvVarRoot>,
             featureFlags: GQLRoots.FeatureFlagRoot[],
             myLocation: GQLRoots.UserLocationRoot,
+            ipLocation: Nullable<GQLRoots.IpLocationRoot>,
             myStickers: GQLRoots.UserStickersRoot,
             createdStickerPacks: GQLRoots.StickerPackRoot[],
             stickersByEmoji: GQLRoots.StickerRoot[],
@@ -9377,7 +9377,6 @@ export interface GQLResolver {
             debugUserMetrics: GQL.QueryDebugUserMetricsArgs,
             debugGlobalCounters: GQL.QueryDebugGlobalCountersArgs,
             debugServerId: GQL.QueryDebugServerIdArgs,
-            debugClientIp: GQL.QueryDebugClientIpArgs,
             debugGqlTraces: GQL.QueryDebugGqlTracesArgs,
             debugGqlTrace: GQL.QueryDebugGqlTraceArgs,
             debugUserWallet: GQL.QueryDebugUserWalletArgs,
@@ -9425,6 +9424,7 @@ export interface GQLResolver {
             envVar: GQL.QueryEnvVarArgs,
             featureFlags: GQL.QueryFeatureFlagsArgs,
             myLocation: GQL.QueryMyLocationArgs,
+            ipLocation: GQL.QueryIpLocationArgs,
             shouldShareLocation: GQL.QueryShouldShareLocationArgs,
             myStickers: GQL.QueryMyStickersArgs,
             createdStickerPacks: GQL.QueryCreatedStickerPacksArgs,

@@ -183,7 +183,13 @@ export async function initApi(isTest: boolean) {
             // WS
             if (ctx.connection) {
                 let wsctx = ctx.connection.context;
-                let ctx2 = buildWebSocketContext(wsctx || {}, context.req.header('X-Forwarded-For'), context.req.header('X-Client-Geo-LatLong'));
+                let ctx2 = buildWebSocketContext(
+                    wsctx || {},
+                    context.req.header('X-Forwarded-For'),
+                    context.req.header('X-Client-Geo-LatLong'),
+                    context.req.header('X-Client-Geo-Location')
+                );
+
                 return withConcurrentcyPool(ctx2, buildConcurrencyPool(ctx2));
             }
             await TokenChecker(context.req, context.res);
@@ -254,7 +260,12 @@ export async function initApi(isTest: boolean) {
             },
             context: async (params, operation, req) => {
                 let opId = uuid();
-                let ctx = buildWebSocketContext(params || {}, req.headers['x-forwarded-for'] as string, req.headers['x-client-geo-latlong'] as string);
+                let ctx = buildWebSocketContext(
+                    params || {},
+                    req.headers['x-forwarded-for'] as string,
+                    req.headers['x-client-geo-latlong'] as string,
+                    req.headers['x-client-geo-location'] as string
+                );
                 ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `query ${opId} ${operation.operationName || ''}`);
                 ctx = withGqlQueryId(ctx, opId);
@@ -263,7 +274,12 @@ export async function initApi(isTest: boolean) {
             },
             subscriptionContext: async (params, operation, firstCtx, req) => {
                 let opId = firstCtx ? GqlQueryIdNamespace.get(firstCtx)! : uuid();
-                let ctx = buildWebSocketContext(params || {}, req.headers['x-forwarded-for'] as string, req.headers['x-client-geo-latlong'] as string);
+                let ctx = buildWebSocketContext(
+                    params || {},
+                    req.headers['x-forwarded-for'] as string,
+                    req.headers['x-client-geo-latlong'] as string,
+                    req.headers['x-client-geo-location'] as string,
+                );
                 ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `subscription ${opId} ${operation.operationName || ''}`);
                 ctx = withGqlQueryId(ctx, opId);

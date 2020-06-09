@@ -56,9 +56,9 @@ export async function fetchWebSocketParameters(args: any, websocket: any) {
     });
 }
 
-export function buildWebSocketContext(args: any, ipHeader?: string, latLongHeader?: string) {
+export function buildWebSocketContext(args: any, ipHeader?: string, latLongHeader?: string, locationHeader?: string) {
     let res = rootContextResolve;
-    res = setRequestContextFrom(res, ipHeader, latLongHeader);
+    res = setRequestContextFrom(res, ipHeader, latLongHeader, locationHeader);
     if (args.uid && args.tid) {
         res = AuthContext.set(res, { uid: args.uid, tid: args.tid });
         res = withLogMeta(res, { uid: args.uid, tid: args.tid });

@@ -24,7 +24,12 @@ async function context(src: express.Request): Promise<Context> {
         let tid: string | undefined;
         let oid: number | undefined;
 
-        res = setRequestContextFrom(res, src.header('X-Forwarded-For'), src.header('X-Client-Geo-LatLong'));
+        res = setRequestContextFrom(
+            res,
+            src.header('X-Forwarded-For'),
+            src.header('X-Client-Geo-LatLong'),
+            src.header('X-Client-Geo-Location')
+        );
 
         // User
         if ((src as any).user !== null && (src as any).user !== undefined) {

@@ -87,12 +87,6 @@ export const Resolver: GQLResolver = {
         platform: src => src.platform,
         active: src => src.active,
     },
-    DebugIpInfo: {
-        ip: (root) => root,
-        location: (root, _, ctx) => ctx.req.latLong || null,
-        locationCode: async root => '',
-        locationName: async root => '',
-    },
     DebugEvent: {
         seq: src => src.seq,
         key: src => src.key || '',
@@ -216,9 +210,6 @@ export const Resolver: GQLResolver = {
         debugServerId: withUser(async (ctx, args, uid) => {
             return ServerId;
         }),
-        debugClientIp: (_, __, ctx) => {
-            return ctx.req.ip || null;
-        },
         debugGqlTraces: withPermission('super-admin', async (ctx, args) => {
             let afterId = args.after ? IDs.GqlTrace.parse(args.after) : null;
             if (!args.first || args.first <= 0) {

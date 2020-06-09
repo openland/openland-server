@@ -10,6 +10,13 @@ type UserLocation {
     lastLocations: [GeoLocation!]!
 }
 
+type IpLocation {
+    ip: String!
+    countryCode: String
+    locationName: String
+    location: GeoLocation
+}
+
 input GeoLocationInput {
     long: Float!
     lat: Float!
@@ -17,6 +24,7 @@ input GeoLocationInput {
 
 extend type Query {
     myLocation: UserLocation!
+    ipLocation: IpLocation
     shouldShareLocation: Boolean!
 }
 

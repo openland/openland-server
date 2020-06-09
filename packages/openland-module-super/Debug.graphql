@@ -66,13 +66,6 @@ type DebugGlobalCounters {
     unreadChatsWithoutMuted: Int!
 }
 
-type DebugIpInfo {
-    ip: String!
-    locationCode: String!
-    locationName: String!
-    location: GeoLocation
-}
-
 type GqlTrace {
     id: ID!
     name: String!
@@ -99,7 +92,6 @@ extend type Query {
     debugUserMetrics(id: ID!): DebugUserMetrics!
     debugGlobalCounters(uid: ID): DebugGlobalCounters! #Deprecated
     debugServerId: String!
-    debugClientIp: DebugIpInfo
     debugGqlTraces(first: Int!, after: ID): GqlTraceConnection!
     debugGqlTrace(id: ID!): GqlTrace!
     debugUserWallet(id: ID!): WalletAccount!

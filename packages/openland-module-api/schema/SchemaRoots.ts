@@ -516,7 +516,6 @@ export namespace GQLRoots {
     export type EnvVarRoot = EnvironmentVariable;
     export type OrganizationChatStatsRoot = any;
     export type DebugEmailTypeRoot = DebugEmailTypeValues;
-    export type DebugIpInfoRoot = string;
     export type SuperNotificationTypeRoot = SuperNotificationTypeValues;
     export type GqlTraceRoot = GqlTrace;
     export type GqlTraceConnectionRoot = { items: GqlTraceRoot[], cursor?: string };
@@ -636,6 +635,7 @@ export namespace GQLRoots {
     //
     export type GeoLocationRoot = { long: number; lat: number; };
     export type UserLocationRoot = UserLocation;
+    export type IpLocationRoot = string;
 
     //
     // Powerups
