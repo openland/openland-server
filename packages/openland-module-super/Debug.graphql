@@ -177,7 +177,7 @@ extend type Mutation {
     debugSetCommission(cid: ID!, percents: Int!): Boolean!
     debugFixEditedMessagesAugmentation: Boolean!
     debugReindexUsers: Boolean!
-
+    debugSetChatPayments(cid: ID!, price: Int!, interval: WalletSubscriptionInterval): Boolean!
     debugCalcEntitiesCount(entity: String!): Boolean!
     debugCalcEntitiesCountAll: Boolean!
 }

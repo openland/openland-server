@@ -1565,6 +1565,27 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
+        debugSetChatPayments: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async ctx => {
+                let cid = IDs.Conversation.parse(args.cid);
+                let room = await Store.ConversationRoom.findById(ctx, cid);
+                if (!room) {
+                    throw new NotFoundError();
+                }
+                let settings =  await Store.PremiumChatSettings.findById(ctx, cid);
+                if (settings) {
+                    settings.price = args.price;
+                    settings.interval = args.interval === 'MONTH' ? 'month' : args.interval === 'WEEK' ? 'week' : null;
+                }
+                room.isPremium = args.price > 0;
+
+                let profile = await Store.RoomProfile.findById(ctx, cid);
+                profile!.invalidate();
+                await profile!.flush(ctx);
+
+                return true;
+            });
+        }),
 
         debugCalcEntitiesCount: withPermission('super-admin', async (ctx, args) => {
             let uid = ctx.auth.uid!;
@@ -1585,7 +1606,7 @@ export const Resolver: GQLResolver = {
         }),
         debugCalcEntitiesCountAll: withPermission('super-admin', async (ctx, args) => {
             let uid = ctx.auth.uid!;
-            let res: {name: string, count: number}[] = [];
+            let res: { name: string, count: number }[] = [];
 
             asyncRun(async () => {
                 for (let f in container.get('Store') as any) {
@@ -1603,7 +1624,7 @@ export const Resolver: GQLResolver = {
                         }
 
                         let count = await findEntitiesCount(entity);
-                        res.push({ name, count });
+                        res.push({name, count});
                         await sendSuperNotification(rootCtx, uid, `${entity.descriptor.name} count: ${count}`);
                     }
                 }
