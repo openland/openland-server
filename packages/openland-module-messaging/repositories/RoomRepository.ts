@@ -433,10 +433,14 @@ export class RoomRepository {
             room.oid = toOrg;
             await room.flush(ctx);
 
+            // Reindex
             await Modules.Orgs.markForUndexing(ctx, toOrg);
             if (prevOrg) {
                 await Modules.Orgs.markForUndexing(ctx, toOrg);
             }
+            let profile = await Store.RoomProfile.findById(ctx, cid);
+            profile!.invalidate();
+            await profile!.flush(ctx);
 
             return (await Store.Conversation.findById(ctx, cid))!;
         });
