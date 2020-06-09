@@ -226,6 +226,7 @@
     "openland-module-phonebook": "build/openland-module-phonebook",
     "openland-config": "build/openland-config",
     "openland-module-discussions": "build/openland-module-discussions",
-    "openland-spacex": "build/openland-spacex"
+    "openland-spacex": "build/openland-spacex",
+    "openland-mtproto3": "build/openland-mtproto3"
   }
 }

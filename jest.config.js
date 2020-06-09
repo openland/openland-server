@@ -72,6 +72,8 @@ module.exports = {
         'openland-module-discussions': '<rootDir>/packages/openland-module-discussions',
         'openland-repositories/(.*)': '<rootDir>/packages/openland-repositories/$1',
         'openland-repositories': '<rootDir>/packages/openland-repositories',
+        'openland-mtproto3/(.*)': '<rootDir>/packages/openland-mtproto3/$1',
+        'openland-mtproto3': '<rootDir>/packages/openland-mtproto3',
         'openland-utils/(.*)': '<rootDir>/packages/openland-utils/$1',
         'openland-utils': '<rootDir>/packages/openland-utils',
         'openland-log/(.*)': '<rootDir>/packages/openland-log/$1',

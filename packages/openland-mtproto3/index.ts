@@ -309,16 +309,18 @@ async function handleMessage(params: FuckApolloServerParams, socket: WebSocket, 
                 }
                 await params.onOperation(ctx, operation);
                 let opStartTime = Date.now();
-                session.session.operation(ctx, { document: query, variables: operation.variables, operationName: operation.operationName }, (res) => {
+                let op = session.session.operation(ctx, { document: query, variables: operation.variables, operationName: operation.operationName }, (res) => {
                     if (res.type === 'data') {
                         session.sendData(message.id, params.formatResponse({ data: res.data }, operation, ctx));
-                        session.sendComplete(message.id);
-                        params.onOperationFinish(ctx, operation, Date.now() - opStartTime);
                     } else if (res.type === 'errors') {
                         session.sendData(message.id, params.formatResponse({ errors: res.errors }, operation, ctx));
+                    } else if (res.type === 'completed') {
                         session.sendComplete(message.id);
                         params.onOperationFinish(ctx, operation, Date.now() - opStartTime);
                     }
+                });
+                session.addOperation(message.id, () => {
+                    op.cancel();
                 });
             }
         } else if (message.type && message.type === 'stop') {
