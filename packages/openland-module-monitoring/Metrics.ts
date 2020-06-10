@@ -19,7 +19,7 @@ export const Metrics = {
     SpaceXSubscriptionEvents: Factory.createFrequencyGauge('spacex_sub_hz', 'Frequency of SpaceX subscription events'),
 
     // GQL: Obsolete
-    GQLRequestTime: Factory.createGauge('gql_request_time', 'Time of GraphQL request resolving', 'median'),
+    GQLRequestTime: Factory.createGauge('gql_request_time', 'Time of GraphQL request resolving'),
     GQLRequests: Factory.createMachineGauge('gql_requests', 'Number of parallel graphql requests'),
 
     // Tracing
