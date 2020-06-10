@@ -8,12 +8,10 @@ import { EventBus } from 'openland-module-pubsub/EventBus';
 export class DistributedGauge {
     readonly name: string;
     readonly description: string;
-    readonly func: 'sum' | 'median';
 
-    constructor(name: string, description: string, func: 'sum' | 'median') {
+    constructor(name: string, description: string) {
         this.name = name;
         this.description = description;
-        this.func = func;
         Object.freeze(this);
     }
 
