@@ -53,7 +53,6 @@ function httpHandler(handler: (req: express.Request) => Promise<any>) {
     return async (req: express.Request, response: express.Response) => {
         try {
             let res = await handler(req);
-            // console.log(res);
             if (res) {
                 response.json(res);
                 return;
