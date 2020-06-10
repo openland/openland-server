@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '2c0541ae43e1ec7ec1b91300b10346ae';
+export const GQL_SPEC_VERSION = '9d4842f1f0088922d5e1efd80ab8189a';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2196,6 +2196,7 @@ export namespace GQL {
         debugSetCommission: boolean;
         debugFixEditedMessagesAugmentation: boolean;
         debugReindexUsers: boolean;
+        debugSetChatPayments: boolean;
         debugCalcEntitiesCount: boolean;
         debugCalcEntitiesCountAll: boolean;
         settingsUpdate: Settings;
@@ -2704,6 +2705,11 @@ export namespace GQL {
     }
     export interface MutationDebugFixEditedMessagesAugmentationArgs { }
     export interface MutationDebugReindexUsersArgs { }
+    export interface MutationDebugSetChatPaymentsArgs {
+        cid: string;
+        price: number;
+        interval: OptionalNullable<WalletSubscriptionInterval>;
+    }
     export interface MutationDebugCalcEntitiesCountArgs {
         entity: string;
     }
@@ -8476,6 +8482,7 @@ export interface GQLResolver {
             debugSetCommission: GQL.MutationDebugSetCommissionArgs,
             debugFixEditedMessagesAugmentation: GQL.MutationDebugFixEditedMessagesAugmentationArgs,
             debugReindexUsers: GQL.MutationDebugReindexUsersArgs,
+            debugSetChatPayments: GQL.MutationDebugSetChatPaymentsArgs,
             debugCalcEntitiesCount: GQL.MutationDebugCalcEntitiesCountArgs,
             debugCalcEntitiesCountAll: GQL.MutationDebugCalcEntitiesCountAllArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,

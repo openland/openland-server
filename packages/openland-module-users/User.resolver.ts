@@ -85,7 +85,15 @@ export function withProfile(handler: (ctx: Context, user: User, profile: UserPro
 
 export const Resolver: GQLResolver = {
     User: {
-        id: withUser((ctx, src) => IDs.User.serialize(src.id), true),
+        id: (src) => {
+            if (typeof src === 'number') {
+                return IDs.User.serialize(src);
+            }
+            if (src instanceof UserFullRoot) {
+                return IDs.User.serialize(src.user.id);
+            }
+            return IDs.User.serialize(src.id);
+        },
         isBot: withUser((ctx, src) => src.isBot || false, true),
         isYou: withUser((ctx, src, authorized) => authorized ? src.id === ctx.auth.uid : false, true),
         isDeleted: withUser((ctx, src) => src.status === 'deleted', true),

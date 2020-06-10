@@ -415,16 +415,32 @@ export class RoomRepository {
     async moveRoom(parent: Context, cid: number, uid: number, toOrg: number) {
         return await inTx(parent, async (ctx) => {
             let room = await Store.ConversationRoom.findById(ctx, cid);
-
             if (!room) {
                 throw new NotFoundError();
             }
 
-            if (!Modules.Orgs.isUserMember(ctx, uid, toOrg)) {
+            if (!(await this.userHaveAdminPermissionsInChat(ctx, room, uid))) {
+                throw new AccessDeniedError();
+            }
+            let isSuper = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
+
+            if (!(await Modules.Orgs.isUserAdmin(ctx, uid, toOrg)) && !isSuper) {
                 throw new AccessDeniedError();
             }
 
+            let prevOrg = room.oid;
+
             room.oid = toOrg;
+            await room.flush(ctx);
+
+            // Reindex
+            await Modules.Orgs.markForUndexing(ctx, toOrg);
+            if (prevOrg) {
+                await Modules.Orgs.markForUndexing(ctx, toOrg);
+            }
+            let profile = await Store.RoomProfile.findById(ctx, cid);
+            profile!.invalidate();
+            await profile!.flush(ctx);
 
             return (await Store.Conversation.findById(ctx, cid))!;
         });
