@@ -21,7 +21,6 @@ import { TokenChecker } from '../openland-module-auth/authV2';
 import { parseCookies } from '../openland-utils/parseCookies';
 import { decode } from 'openland-utils/base64';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
-import { createFuckApolloWSServer } from '../openland-mtproto3';
 import * as url from 'url';
 import { buildConcurrencyPool } from './buildConcurrencyPool';
 import { withConcurrentcyPool } from 'openland-utils/ConcurrencyPool';
@@ -50,6 +49,7 @@ import { AuthContext } from '../openland-module-auth/AuthContext';
 import { initPhoneAuthProvider } from '../openland-module-auth/providers/phone';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { Metrics } from '../openland-module-monitoring/Metrics';
+import { createSpaceXServer } from '../openland-spacex/spaceXServer';
 // import { Store } from '../openland-module-db/FDB';
 // import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 // import { createFuckApolloWSServer } from '../openland-mtproto3';
@@ -240,9 +240,7 @@ export async function initApi(isTest: boolean) {
             }
         }
         // const wsCtx = createNamedContext('ws-gql');
-        let fuckApolloWS = await createFuckApolloWSServer({
-            server: undefined, // httpServer ,
-            path: '/api',
+        let spacex = await createSpaceXServer({
             executableSchema: Schema(),
             queryCache: new InMemoryQueryCache(),
             onAuth: async (params, req) => {
@@ -267,13 +265,13 @@ export async function initApi(isTest: boolean) {
                     req.headers['x-client-geo-location'] as string
                 );
                 ctx = withReadOnlyTransaction(ctx);
-                ctx = withLogPath(ctx, `query ${opId} ${operation.operationName || ''}`);
+                ctx = withLogPath(ctx, `query ${opId} ${operation.name || ''}`);
                 ctx = withGqlQueryId(ctx, opId);
-                ctx = withGqlTrace(ctx, `query ${opId} ${operation.operationName || ''}`);
+                ctx = withGqlTrace(ctx, `query ${opId} ${operation.name || ''}`);
                 return withConcurrentcyPool(ctx, buildConcurrencyPool(ctx));
             },
-            subscriptionContext: async (params, operation, firstCtx, req) => {
-                let opId = firstCtx ? GqlQueryIdNamespace.get(firstCtx)! : uuid();
+            subscriptionContext: async (params, operation, req) => {
+                // let opId = firstCtx ? GqlQueryIdNamespace.get(firstCtx)! : uuid();
                 let ctx = buildWebSocketContext(
                     params || {},
                     req.headers['x-forwarded-for'] as string,
@@ -281,9 +279,9 @@ export async function initApi(isTest: boolean) {
                     req.headers['x-client-geo-location'] as string,
                 );
                 ctx = withReadOnlyTransaction(ctx);
-                ctx = withLogPath(ctx, `subscription ${opId} ${operation.operationName || ''}`);
-                ctx = withGqlQueryId(ctx, opId);
-                ctx = withGqlTrace(ctx, `subscription ${opId} ${operation.operationName || ''}`);
+                ctx = withLogPath(ctx, `subscription ${operation.name || ''}`);
+                // ctx = withGqlQueryId(ctx, opId);
+                ctx = withGqlTrace(ctx, `subscription ${operation.name || ''}`);
                 ctx = withLifetime(ctx);
                 return withConcurrentcyPool(ctx, buildConcurrencyPool(ctx));
             },
@@ -313,7 +311,7 @@ export async function initApi(isTest: boolean) {
                     trace.onRequestFinish();
                     await saveTrace(trace.getTrace());
                 }
-                if (operation.operationName) {
+                if (operation.name) {
                     Metrics.GQLRequestTime.add(duration, uuid(), 10000);
                 }
             },
@@ -394,7 +392,7 @@ export async function initApi(isTest: boolean) {
 
         EventBus.subscribe('auth_token_revoke', (data: { tokens: { uuid: string, salt: string }[] }) => {
             for (let token of data.tokens) {
-                for (let entry of fuckApolloWS.sessions.entries()) {
+                for (let entry of spacex.connections.entries()) {
                     let [, session] = entry;
                     if (session.authParams && session.authParams.tid && session.authParams.tid === token.uuid) {
                         session.close();
@@ -415,12 +413,12 @@ export async function initApi(isTest: boolean) {
             const pathname = url.parse(request.url).pathname;
 
             if (pathname === '/api') {
-                fuckApolloWS.ws.handleUpgrade(request, socket, head, (_ws) => {
-                    fuckApolloWS.ws.emit('connection', _ws, request);
+                spacex.ws.handleUpgrade(request, socket, head, (_ws) => {
+                    spacex.ws.emit('connection', _ws, request);
                 });
             } else if (pathname === '/gql_ws') {
-                fuckApolloWS.ws.handleUpgrade(request, socket, head, (_ws) => {
-                    fuckApolloWS.ws.emit('connection', _ws, request);
+                spacex.ws.handleUpgrade(request, socket, head, (_ws) => {
+                    spacex.ws.emit('connection', _ws, request);
                 });
             } else if (pathname === '/vostok') {
                 vostok.ws.handleUpgrade(request, socket, head, (_ws) => {
