@@ -149,6 +149,9 @@ export function initPhoneAuthProvider(app: Express) {
             let authCode = await phoneCode.findById(ctx, session);
 
             if (!authCode) {
+                if (await phoneCode.isExpired(ctx, session)) {
+                    throw new HttpError('code_expired');
+                }
                 throw new HttpError('session_not_found');
             }
 

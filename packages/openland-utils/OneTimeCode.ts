@@ -43,6 +43,20 @@ class OneTimeCodeRepo<Data> {
         });
     }
 
+    async isExpired(parent: Context, id: string) {
+        return await inTx(parent, async ctx => {
+            let now = Math.floor(Date.now() / 1000);
+            let res = await Store.OneTimeCode.findById(ctx, this.service, id);
+            if (!res || !res.enabled) {
+                return false;
+            }
+            if (res.expires < now || res.attemptsCount <= this.maxAttempts)  {
+                return true;
+            }
+            return false;
+        });
+    }
+
     async findByCode(parent: Context, code: string) {
         return await inTx(parent, async ctx => {
             let now = Math.floor(Date.now() / 1000);
