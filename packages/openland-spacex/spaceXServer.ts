@@ -52,6 +52,10 @@ async function handleAuth(params: SpaceXServerParams, req: http.IncomingMessage,
     // Keep alive loop
     asyncRun(async () => {
         while (connection.isConnected()) {
+            // Close connection by timout
+            if (Date.now() - connection.lastRequestTime > 1000 * 60 * 5) {
+                connection.close();
+            }
             connection.sendKeepAlive();
             await delay(5000);
         }
@@ -95,6 +99,7 @@ async function handleMessage(params: SpaceXServerParams, socket: WebSocket, req:
         await handleAuth(params, req, connection, message);
     } else if (connection.state === 'connected' || connection.state === 'connecting') {
         await connection.waitAuth();
+        connection.lastRequestTime = Date.now();
 
         let startOp = decode(StartMessageCodec, message);
         if (startOp) {
@@ -141,6 +146,7 @@ export async function createSpaceXServer(params: SpaceXServerParams) {
     ws.on('connection', async (socket, req) => {
         await handleConnection(params, socket, req);
     });
+
     Shutdown.registerWork({
         name: 'spacex-server',
         shutdown: async () => ws.close()

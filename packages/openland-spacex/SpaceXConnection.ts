@@ -18,6 +18,7 @@ export class SpaceXConnection {
     public session!: SpaceXSession;
     private closed = false;
     private authWaiters: (() => void)[] = [];
+    public lastRequestTime: number = Date.now();
     public operationBucket = Concurrency.Operation.get(this.id);
 
     constructor(socket: WebSocket) {
@@ -86,8 +87,8 @@ export class SpaceXConnection {
         if (this.closed) {
             return;
         }
-        this.pinger?.terminate();
         this.closed = true;
+        this.pinger?.terminate();
         this.stopAllOperations();
         this.socket?.close();
         this.socket?.removeAllListeners('message');
