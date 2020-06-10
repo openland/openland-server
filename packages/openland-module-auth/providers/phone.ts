@@ -9,6 +9,7 @@ import { Store } from '../../openland-module-db/FDB';
 import * as base64 from '../../openland-utils/base64';
 import { randomBytes } from 'crypto';
 import { Modules } from '../../openland-modules/Modules';
+import { createLogger } from '@openland/log';
 
 const Errors = {
     wrong_arg: 'An unexpected error occurred. Please try again.',
@@ -24,7 +25,8 @@ const Errors = {
     invalid_auth_token: 'An unexpected error occurred. Please try again.',
     session_expired: 'An unexpected error occurred. Please try again.',
     wrong_code_length: 'Wrong code',
-    too_many_attempts: 'Too many requests. Try again later'
+    too_many_attempts: 'Too many requests. Try again later',
+    wrong_phone: 'Invalid phone number'
 };
 
 type ErrorsEnum = keyof typeof Errors;
@@ -40,11 +42,17 @@ class HttpError extends Error {
     }
 }
 
+const CodeLength = 6;
+const phoneThrottle = createPersistenceThrottle('auth_phone');
+const phoneCode = createOneTimeCodeGenerator<{ phone: string, authToken: string }>('email_change', 60 * 5, 5, CodeLength);
+const rootCtx = createNamedContext('auth-phone');
+const log = createLogger('auth-phone');
+const phoneRegexp = /^\+[1-9]{1}[0-9]{3,14}$/;
+
 function httpHandler(handler: (req: express.Request) => Promise<any>) {
     return async (req: express.Request, response: express.Response) => {
         try {
             let res = await handler(req);
-            // console.log(res);
             if (res) {
                 response.json(res);
                 return;
@@ -53,7 +61,7 @@ function httpHandler(handler: (req: express.Request) => Promise<any>) {
                 return;
             }
         } catch (e) {
-            // console.log(e);
+            log.log(rootCtx, 'error', e);
             if (e instanceof HttpError) {
                 if (!Errors[e.code]) {
                     response.json({ ok: false, errorCode: 'server_error', errorText: Errors.server_error });
@@ -68,12 +76,6 @@ function httpHandler(handler: (req: express.Request) => Promise<any>) {
         }
     };
 }
-
-const CodeLength = 6;
-const phoneThrottle = createPersistenceThrottle('auth_phone');
-const phoneCode = createOneTimeCodeGenerator<{ phone: string, authToken: string }>('email_change', 60 * 5, 5, CodeLength);
-const rootCtx = createNamedContext('auth-phone');
-const phoneRegexp = /^\+[1-9]{1}[0-9]{3,14}$/;
 
 export function initPhoneAuthProvider(app: Express) {
     app.post('/auth/phone/sendCode', bodyParser.json(), httpHandler(async req => {
@@ -98,7 +100,15 @@ export function initPhoneAuthProvider(app: Express) {
 
             // Create one time code
             let code = await phoneCode.create(ctx, { phone, authToken: base64.encodeBuffer(randomBytes(64)) });
-            await SmsService.sendSms(phone, `Openland code: ${code.code}. Valid for 5 minutes.`);
+            try {
+                await SmsService.sendSms(phone, `Openland code: ${code.code}. Valid for 5 minutes.`);
+            } catch (e) {
+                if (e.code && e.code === 21211) {
+                    throw new HttpError('wrong_phone');
+                } else {
+                    throw e;
+                }
+            }
 
             let existingUser = await Store.User.fromPhone.find(ctx, phone);
             if (existingUser) {

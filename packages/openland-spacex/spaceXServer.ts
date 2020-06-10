@@ -53,7 +53,7 @@ async function handleAuth(params: SpaceXServerParams, req: http.IncomingMessage,
     asyncRun(async () => {
         while (connection.isConnected()) {
             // Close connection by timout
-            if (Date.now() - connection.lastRequestTime > 1000 * 60 * 5) {
+            if (Date.now() - connection.lastRequestTime > 1000 * 60 * 60) {
                 connection.close();
             }
             connection.sendKeepAlive();
