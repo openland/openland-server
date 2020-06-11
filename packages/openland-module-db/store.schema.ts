@@ -795,6 +795,11 @@ export default declareSchema(() => {
         field('uid', integer());
         field('cid', integer());
     });
+    event('UserDialogCallStateChangedEvent', () => {
+        field('uid', integer());
+        field('cid', integer());
+        field('hasActiveCall', boolean());
+    });
     eventStore('UserDialogEventStore', () => {
         primaryKey('uid', integer());
     });

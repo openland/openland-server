@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9d4842f1f0088922d5e1efd80ab8189a';
+export const GQL_SPEC_VERSION = '63eefb75b22a022516fa9919e06d400c';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1811,7 +1811,7 @@ export namespace GQL {
     export interface DialogUpdateBatchSeqArgs { }
     export interface DialogUpdateBatchStateArgs { }
     export type DialogUpdateContainer = DialogUpdateSingle | DialogUpdateBatch;
-    export type DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted | DialogPhotoUpdated | DialogMuteChanged | DialogMentionedChanged | DialogBump | DialogPeerUpdated;
+    export type DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted | DialogPhotoUpdated | DialogMuteChanged | DialogMentionedChanged | DialogBump | DialogPeerUpdated | DialogCallStateChanged;
     export interface SilentMessageInfo {
         mobile: boolean;
         desktop: boolean;
@@ -1936,6 +1936,12 @@ export namespace GQL {
     }
     export interface DialogPeerUpdatedCidArgs { }
     export interface DialogPeerUpdatedPeerArgs { }
+    export interface DialogCallStateChanged {
+        cid: string;
+        hasActiveCall: boolean;
+    }
+    export interface DialogCallStateChangedCidArgs { }
+    export interface DialogCallStateChangedHasActiveCallArgs { }
     export interface DialogMentionedChanged {
         cid: string;
         haveMention: boolean;
@@ -7862,7 +7868,7 @@ export interface GQLResolver {
         }
     >;
     DialogUpdateContainer?: UnionTypeResolver<GQLRoots.DialogUpdateContainerRoot, 'DialogUpdateSingle' | 'DialogUpdateBatch'>;
-    DialogUpdate?: UnionTypeResolver<GQLRoots.DialogUpdateRoot, 'DialogMessageReceived' | 'DialogMessageUpdated' | 'DialogMessageDeleted' | 'DialogMessageRead' | 'DialogTitleUpdated' | 'DialogDeleted' | 'DialogPhotoUpdated' | 'DialogMuteChanged' | 'DialogMentionedChanged' | 'DialogBump' | 'DialogPeerUpdated'>;
+    DialogUpdate?: UnionTypeResolver<GQLRoots.DialogUpdateRoot, 'DialogMessageReceived' | 'DialogMessageUpdated' | 'DialogMessageDeleted' | 'DialogMessageRead' | 'DialogTitleUpdated' | 'DialogDeleted' | 'DialogPhotoUpdated' | 'DialogMuteChanged' | 'DialogMentionedChanged' | 'DialogBump' | 'DialogPeerUpdated' | 'DialogCallStateChanged'>;
     SilentMessageInfo?: ComplexTypedResolver<
         GQL.SilentMessageInfo,
         GQLRoots.SilentMessageInfoRoot,
@@ -8022,6 +8028,16 @@ export interface GQLResolver {
         {
             cid: GQL.DialogPeerUpdatedCidArgs,
             peer: GQL.DialogPeerUpdatedPeerArgs,
+        }
+    >;
+    DialogCallStateChanged?: ComplexTypedResolver<
+        GQL.DialogCallStateChanged,
+        GQLRoots.DialogCallStateChangedRoot,
+        {
+        },
+        {
+            cid: GQL.DialogCallStateChangedCidArgs,
+            hasActiveCall: GQL.DialogCallStateChangedHasActiveCallArgs,
         }
     >;
     DialogMentionedChanged?: ComplexTypedResolver<

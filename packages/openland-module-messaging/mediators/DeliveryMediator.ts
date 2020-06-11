@@ -17,6 +17,7 @@ import { Store } from 'openland-module-db/FDB';
 // import { currentRunningTime } from 'openland-utils/timer';
 // import { createMetric } from 'openland-module-monitoring/Metric';
 import { createLogger } from '@openland/log';
+import has = Reflect.has;
 
 const tracer = createTracer('message-delivery');
 // const deliveryInitialMetric = createMetric('delivery-fan-out', 'average');
@@ -193,6 +194,15 @@ export class DeliveryMediator {
         await inTx(parent, async (ctx) => {
             await this.repo.deliverGlobalCounterToUser(ctx, uid);
             await this.needNotification.setNeedNotificationDelivery(ctx, uid);
+        });
+    }
+
+    onCallStateChanged = async (parent: Context, cid: number, hasActiveCall: boolean) => {
+        await inTx(parent, async ctx => {
+            let members = await this.room.findConversationMembers(ctx, cid);
+            for (let m of members) {
+                await this.repo.deliverCallStateChangedToUser(ctx, m, cid, hasActiveCall);
+            }
         });
     }
 

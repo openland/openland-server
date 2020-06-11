@@ -81,7 +81,8 @@ import {
     GqlTrace,
     ConferenceEndStream,
     DiscussionHub,
-    Discussion, DiscussionDraft,
+    Discussion,
+    DiscussionDraft, UserDialogCallStateChangedEvent,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -496,6 +497,7 @@ export namespace GQLRoots {
     export type DialogBumpRoot = UserDialogBumpEvent;
     export type DialogMentionedChangedRoot = any;
     export type DialogPeerUpdatedRoot = UserDialogPeerUpdatedEvent;
+    export type DialogCallStateChangedRoot = UserDialogCallStateChangedEvent;
 
     //
     //  Search
