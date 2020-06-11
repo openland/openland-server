@@ -50,7 +50,7 @@ async function initZapierInternal(app: Express) {
           let uid = (req as any).uid;
           let userChats = await Store.RoomParticipant.userActive.findAll(ctx, uid);
           let commonChats = await Promise.all(userChats.map(a => Store.RoomParticipant.findById(ctx, a.cid, config!.BotId)));
-          commonChats = commonChats.filter(a => a && a.status === 'joined' && a.invitedBy === uid);
+          commonChats = commonChats.filter(a => a && a.status === 'joined');
 
           res.status(200).json(
               await Promise.all(commonChats.map(async a => ({
@@ -61,6 +61,9 @@ async function initZapierInternal(app: Express) {
        });
     });
 
+    /*
+    * Obsolete
+    * */
     app.get('/integrations/zapier/v1/triggers/fetch_channels', checkAuth, bodyParser.json(), async (req, res) => {
         await inTx(rootCtx, async ctx => {
             log.log(ctx, '/triggers/fetch_channels', req.body);
