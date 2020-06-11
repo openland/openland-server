@@ -196,6 +196,15 @@ export class DeliveryMediator {
         });
     }
 
+    onCallStateChanged = async (parent: Context, cid: number, hasActiveCall: boolean) => {
+        await inTx(parent, async ctx => {
+            let members = await this.room.findConversationMembers(ctx, cid);
+            for (let m of members) {
+                await this.repo.deliverCallStateChangedToUser(ctx, m, cid, hasActiveCall);
+            }
+        });
+    }
+
     //
     // Deliver action to every member of the conversation
     //

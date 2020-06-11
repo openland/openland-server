@@ -13,7 +13,7 @@ type DialogUpdateBatch {
 
 union DialogUpdateContainer = DialogUpdateSingle | DialogUpdateBatch
 
-union DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted | DialogPhotoUpdated | DialogMuteChanged | DialogMentionedChanged | DialogBump | DialogPeerUpdated
+union DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted | DialogPhotoUpdated | DialogMuteChanged | DialogMentionedChanged | DialogBump | DialogPeerUpdated | DialogCallStateChanged
 
 type SilentMessageInfo {
     mobile: Boolean!
@@ -99,6 +99,11 @@ type DialogMuteChanged {
 type DialogPeerUpdated {
     cid: ID!
     peer: Room!
+}
+
+type DialogCallStateChanged {
+    cid: ID!
+    hasActiveCall: Boolean!
 }
 
 # depricated

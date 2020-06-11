@@ -20409,6 +20409,41 @@ export class UserDialogPeerUpdatedEvent extends BaseEvent {
     get cid(): number { return this.raw.cid; }
 }
 
+const userDialogCallStateChangedEventCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+    hasActiveCall: c.boolean,
+});
+
+interface UserDialogCallStateChangedEventShape {
+    uid: number;
+    cid: number;
+    hasActiveCall: boolean;
+}
+
+export class UserDialogCallStateChangedEvent extends BaseEvent {
+
+    static create(data: UserDialogCallStateChangedEventShape) {
+        return new UserDialogCallStateChangedEvent(userDialogCallStateChangedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UserDialogCallStateChangedEvent(userDialogCallStateChangedEventCodec.decode(data));
+    }
+
+    static encode(event: UserDialogCallStateChangedEvent) {
+        return userDialogCallStateChangedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('userDialogCallStateChangedEvent', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+    get hasActiveCall(): boolean { return this.raw.hasActiveCall; }
+}
+
 const feedItemReceivedEventCodec = c.struct({
     subscriberId: c.optional(c.integer),
     itemId: c.integer,
@@ -21413,6 +21448,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('userDialogPhotoUpdatedEvent', UserDialogPhotoUpdatedEvent.encode as any, UserDialogPhotoUpdatedEvent.decode);
     eventFactory.registerEventType('userDialogMuteChangedEvent', UserDialogMuteChangedEvent.encode as any, UserDialogMuteChangedEvent.decode);
     eventFactory.registerEventType('userDialogPeerUpdatedEvent', UserDialogPeerUpdatedEvent.encode as any, UserDialogPeerUpdatedEvent.decode);
+    eventFactory.registerEventType('userDialogCallStateChangedEvent', UserDialogCallStateChangedEvent.encode as any, UserDialogCallStateChangedEvent.decode);
     eventFactory.registerEventType('feedItemReceivedEvent', FeedItemReceivedEvent.encode as any, FeedItemReceivedEvent.decode);
     eventFactory.registerEventType('feedItemUpdatedEvent', FeedItemUpdatedEvent.encode as any, FeedItemUpdatedEvent.decode);
     eventFactory.registerEventType('feedItemDeletedEvent', FeedItemDeletedEvent.encode as any, FeedItemDeletedEvent.decode);

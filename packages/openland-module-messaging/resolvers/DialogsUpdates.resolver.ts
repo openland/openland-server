@@ -3,7 +3,7 @@ import { BaseEvent, LiveStreamItem } from '@openland/foundationdb-entity';
 import { IDs } from 'openland-module-api/IDs';
 import { Store } from 'openland-module-db/FDB';
 import {
-    UserDialogBumpEvent,
+    UserDialogBumpEvent, UserDialogCallStateChangedEvent,
     UserDialogDeletedEvent,
     UserDialogEvent,
     UserDialogMessageDeletedEvent,
@@ -13,7 +13,7 @@ import {
     UserDialogMuteChangedEvent,
     UserDialogPeerUpdatedEvent,
     UserDialogPhotoUpdatedEvent,
-    UserDialogTitleUpdatedEvent
+    UserDialogTitleUpdatedEvent,
 } from 'openland-module-db/store';
 import { GQLResolver, GQL } from '../../openland-module-api/schema/SchemaSpec';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
@@ -71,6 +71,8 @@ export const Resolver: GQLResolver = {
                 return 'DialogMuteChanged';
             } else if (obj instanceof UserDialogPeerUpdatedEvent) {
                 return 'DialogPeerUpdated';
+            } else if (obj instanceof UserDialogCallStateChangedEvent) {
+                return 'DialogCallStateChanged';
             }
             throw Error('Unknown dialog update type: ' + obj.type);
         }
@@ -147,7 +149,11 @@ export const Resolver: GQLResolver = {
         cid: src => IDs.Conversation.serialize(src.cid!),
         peer: src => src.cid
     },
-    // depricated
+    DialogCallStateChanged: {
+        hasActiveCall: src => src.hasActiveCall,
+        cid: src => IDs.Conversation.serialize(src.cid),
+    },
+    // deprecated
     DialogMentionedChanged: {
         cid: (src) => IDs.Conversation.serialize(src.cid!),
         haveMention: async () => false

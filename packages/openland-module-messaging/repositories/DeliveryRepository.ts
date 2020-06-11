@@ -7,7 +7,7 @@ import { ImageRef } from 'openland-module-media/ImageRef';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
 import {
     Message,
-    UserDialogBumpEvent,
+    UserDialogBumpEvent, UserDialogCallStateChangedEvent,
     UserDialogDeletedEvent,
     UserDialogMessageDeletedEvent,
     UserDialogMessageReadEvent,
@@ -16,7 +16,7 @@ import {
     UserDialogMuteChangedEvent,
     UserDialogPeerUpdatedEvent,
     UserDialogPhotoUpdatedEvent,
-    UserDialogTitleUpdatedEvent
+    UserDialogTitleUpdatedEvent,
 } from 'openland-module-db/store';
 
 @injectable()
@@ -190,5 +190,13 @@ export class DeliveryRepository {
                 cid,
             }));
         });
+    }
+
+    async deliverCallStateChangedToUser(ctx: Context, uid: number, cid: number, hasActiveCall: boolean) {
+        Store.UserDialogEventStore.post(ctx, uid, UserDialogCallStateChangedEvent.create({
+            uid,
+            cid,
+            hasActiveCall
+        }));
     }
 }

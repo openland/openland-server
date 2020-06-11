@@ -10,6 +10,7 @@ import { ConferencePeer, ConferenceRoom } from '../../openland-module-db/store';
 import { CallScheduler, MediaSources, StreamHint, Capabilities } from './CallScheduler';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { notifyFastWatch } from 'openland-module-db/fastWatch';
+import { DeliveryMediator } from '../../openland-module-messaging/mediators/DeliveryMediator';
 
 let log = createLogger('call-repo');
 
@@ -53,6 +54,8 @@ export class CallRepository {
 
     @lazyInject('CallSchedulerKitchen')
     readonly schedulerKitchen!: CallSchedulerKitchen;
+    @lazyInject('DeliveryMediator')
+    readonly delivery!: DeliveryMediator;
 
     getOrCreateConference = async (parent: Context, cid: number) => {
         return await inTx(parent, async (ctx) => {
@@ -118,6 +121,9 @@ export class CallRepository {
             if (justStarted) {
                 log.log(ctx, 'Conference started: ' + cid);
                 await scheduler.onConferenceStarted(ctx, cid);
+
+                // Notify all about call state
+                await this.delivery.onCallStateChanged(ctx, cid, true);
             }
 
             // Remove peer for same auth token
@@ -276,6 +282,8 @@ export class CallRepository {
             if (members.length > 0) {
                 log.log(ctx, 'Conference ended (end conference): ' + cid);
                 await scheduler.onConferenceStopped(ctx, cid);
+                // Notify all about call state
+                await this.delivery.onCallStateChanged(ctx, cid, false);
                 if (conf.startTime) {
                     callEndedEvent.event(ctx, { duration: Date.now() - conf.startTime });
                 }
@@ -322,6 +330,9 @@ export class CallRepository {
                 if ((await this.findActiveMembers(ctx, existing.cid)).length === 0) {
                     log.log(ctx, 'Conference ended (remove): ' + existing.cid);
                     await scheduler.onConferenceStopped(ctx, existing.cid);
+
+                    // Notify all about call state
+                    await this.delivery.onCallStateChanged(ctx, existing.cid, false);
                     if (conf.startTime) {
                         callEndedEvent.event(ctx, { duration: Date.now() - conf.startTime });
                     }
