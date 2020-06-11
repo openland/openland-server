@@ -50,6 +50,7 @@ import { AuthContext } from '../openland-module-auth/AuthContext';
 import { initPhoneAuthProvider } from '../openland-module-auth/providers/phone';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { Metrics } from '../openland-module-monitoring/Metrics';
+import { createSpaceXServer } from '../openland-spacex/spaceXServer';
 // import { createSpaceXServer } from '../openland-spacex/spaceXServer';
 // import { Store } from '../openland-module-db/FDB';
 // import { fetchNextDBSeq } from '../openland-utils/dbSeq';
@@ -393,103 +394,103 @@ export async function initApi(isTest: boolean) {
             }
         });
 
-        // await createSpaceXServer({
-        //     executableSchema: Schema(),
-        //     queryCache: new InMemoryQueryCache(),
-        //     onAuth: async (params, req) => {
-        //         // const start = currentRunningTime();
-        //         try {
-        //             if (!params || Object.keys(params).length === 0 && req.headers.cookie && req.headers.cookie.length > 0) {
-        //                 let cookies = parseCookies(req.headers.cookie || '');
-        //                 return await fetchWebSocketParameters({'x-openland-token': cookies['x-openland-token']}, null);
-        //             }
-        //             return await fetchWebSocketParameters(params, null);
-        //         } finally {
-        //             // const delta = currentRunningTime() - start;
-        //             // authMetric.add(authMetricCtx, delta);
-        //         }
-        //     },
-        //     context: async (params, operation, req) => {
-        //         let opId = uuid();
-        //         let ctx = buildWebSocketContext(
-        //             params || {},
-        //             req.headers['x-forwarded-for'] as string,
-        //             req.headers['x-client-geo-latlong'] as string,
-        //             req.headers['x-client-geo-location'] as string
-        //         );
-        //         ctx = withReadOnlyTransaction(ctx);
-        //         ctx = withLogPath(ctx, `query ${opId} ${operation.name || ''}`);
-        //         ctx = withGqlQueryId(ctx, opId);
-        //         ctx = withGqlTrace(ctx, `query ${opId} ${operation.name || ''}`);
-        //         return withConcurrentcyPool(ctx, buildConcurrencyPool(ctx));
-        //     },
-        //     subscriptionContext: async (params, operation, req) => {
-        //         // let opId = firstCtx ? GqlQueryIdNamespace.get(firstCtx)! : uuid();
-        //         let ctx = buildWebSocketContext(
-        //             params || {},
-        //             req.headers['x-forwarded-for'] as string,
-        //             req.headers['x-client-geo-latlong'] as string,
-        //             req.headers['x-client-geo-location'] as string,
-        //         );
-        //         ctx = withReadOnlyTransaction(ctx);
-        //         ctx = withLogPath(ctx, `subscription ${operation.name || ''}`);
-        //         // ctx = withGqlQueryId(ctx, opId);
-        //         ctx = withGqlTrace(ctx, `subscription ${operation.name || ''}`);
-        //         ctx = withLifetime(ctx);
-        //         return withConcurrentcyPool(ctx, buildConcurrencyPool(ctx));
-        //     },
-        //     onOperation: async (ctx, operation) => {
-        //         // if (!isTest) {
-        //         //     let opId = GqlQueryIdNamespace.get(ctx) || 'unknown query';
-        //         //     if (AuthContext.get(ctx).uid) {
-        //         //         logger.log(wsCtx, `GraphQL ${opId} [#${AuthContext.get(ctx).uid}]: ${JSON.stringify(operation)}`);
-        //         //     } else {
-        //         //         logger.log(wsCtx, `GraphQL ${opId} [#ANON]: ${JSON.stringify(operation)}`);
-        //         //     }
-        //         // }
-        //         Metrics.GQLRequests.inc();
-        //     },
-        //     onOperationFinish: (ctx, operation, duration) => {
-        //         // let trace = gqlTraceNamespace.get(ctx);
-        //         // if (trace) {
-        //         //     trace.onRequestFinish();
-        //         //     await saveTrace(trace.getTrace());
-        //         // }
-        //         Metrics.GQLRequests.dec();
-        //         Metrics.GQLRequestTime.add(duration, uuid(), 10000);
-        //     },
-        //     onEventResolveFinish: async (ctx, operation, duration) => {
-        //         let trace = gqlTraceNamespace.get(ctx);
-        //         if (trace) {
-        //             trace.onRequestFinish();
-        //             await saveTrace(trace.getTrace());
-        //         }
-        //         if (operation.name) {
-        //             Metrics.GQLRequestTime.add(duration, uuid(), 10000);
-        //         }
-        //     },
-        //     formatResponse: (value, operation, ctx) => {
-        //         let auth = AuthContext.get(ctx);
-        //         let uid = auth.uid;
-        //         let oid = auth.oid;
-        //
-        //         let queryInfo: QueryInfo = {
-        //             uid,
-        //             oid,
-        //             transport: 'ws',
-        //             query: JSON.stringify(operation)
-        //         };
-        //
-        //         let errors: any[] | undefined;
-        //         if (value.errors) {
-        //             errors = value.errors && value.errors.map((e: any) => formatError(e, queryInfo));
-        //         }
-        //         return ({
-        //             ...value,
-        //             errors: errors,
-        //         });
-        //     }
-        // });
+        let spacex = await createSpaceXServer({
+            executableSchema: Schema(),
+            queryCache: new InMemoryQueryCache(),
+            onAuth: async (params, req) => {
+                // const start = currentRunningTime();
+                try {
+                    if (!params || Object.keys(params).length === 0 && req.headers.cookie && req.headers.cookie.length > 0) {
+                        let cookies = parseCookies(req.headers.cookie || '');
+                        return await fetchWebSocketParameters({'x-openland-token': cookies['x-openland-token']}, null);
+                    }
+                    return await fetchWebSocketParameters(params, null);
+                } finally {
+                    // const delta = currentRunningTime() - start;
+                    // authMetric.add(authMetricCtx, delta);
+                }
+            },
+            context: async (params, operation, req) => {
+                let opId = uuid();
+                let ctx = buildWebSocketContext(
+                    params || {},
+                    req.headers['x-forwarded-for'] as string,
+                    req.headers['x-client-geo-latlong'] as string,
+                    req.headers['x-client-geo-location'] as string
+                );
+                ctx = withReadOnlyTransaction(ctx);
+                ctx = withLogPath(ctx, `query ${opId} ${operation.name || ''}`);
+                ctx = withGqlQueryId(ctx, opId);
+                ctx = withGqlTrace(ctx, `query ${opId} ${operation.name || ''}`);
+                return withConcurrentcyPool(ctx, buildConcurrencyPool(ctx));
+            },
+            subscriptionContext: async (params, operation, req) => {
+                // let opId = firstCtx ? GqlQueryIdNamespace.get(firstCtx)! : uuid();
+                let ctx = buildWebSocketContext(
+                    params || {},
+                    req.headers['x-forwarded-for'] as string,
+                    req.headers['x-client-geo-latlong'] as string,
+                    req.headers['x-client-geo-location'] as string,
+                );
+                ctx = withReadOnlyTransaction(ctx);
+                ctx = withLogPath(ctx, `subscription ${operation.name || ''}`);
+                // ctx = withGqlQueryId(ctx, opId);
+                ctx = withGqlTrace(ctx, `subscription ${operation.name || ''}`);
+                ctx = withLifetime(ctx);
+                return withConcurrentcyPool(ctx, buildConcurrencyPool(ctx));
+            },
+            onOperation: async (ctx, operation) => {
+                // if (!isTest) {
+                //     let opId = GqlQueryIdNamespace.get(ctx) || 'unknown query';
+                //     if (AuthContext.get(ctx).uid) {
+                //         logger.log(wsCtx, `GraphQL ${opId} [#${AuthContext.get(ctx).uid}]: ${JSON.stringify(operation)}`);
+                //     } else {
+                //         logger.log(wsCtx, `GraphQL ${opId} [#ANON]: ${JSON.stringify(operation)}`);
+                //     }
+                // }
+                Metrics.GQLRequests.inc();
+            },
+            onOperationFinish: (ctx, operation, duration) => {
+                // let trace = gqlTraceNamespace.get(ctx);
+                // if (trace) {
+                //     trace.onRequestFinish();
+                //     await saveTrace(trace.getTrace());
+                // }
+                Metrics.GQLRequests.dec();
+                Metrics.GQLRequestTime.add(duration, uuid(), 10000);
+            },
+            onEventResolveFinish: async (ctx, operation, duration) => {
+                let trace = gqlTraceNamespace.get(ctx);
+                if (trace) {
+                    trace.onRequestFinish();
+                    await saveTrace(trace.getTrace());
+                }
+                if (operation.name) {
+                    Metrics.GQLRequestTime.add(duration, uuid(), 10000);
+                }
+            },
+            formatResponse: (value, operation, ctx) => {
+                let auth = AuthContext.get(ctx);
+                let uid = auth.uid;
+                let oid = auth.oid;
+
+                let queryInfo: QueryInfo = {
+                    uid,
+                    oid,
+                    transport: 'ws',
+                    query: JSON.stringify(operation)
+                };
+
+                let errors: any[] | undefined;
+                if (value.errors) {
+                    errors = value.errors && value.errors.map((e: any) => formatError(e, queryInfo));
+                }
+                return ({
+                    ...value,
+                    errors: errors,
+                });
+            }
+        });
 
         EventBus.subscribe('auth_token_revoke', (data: { tokens: { uuid: string, salt: string }[] }) => {
             for (let token of data.tokens) {
@@ -514,12 +515,12 @@ export async function initApi(isTest: boolean) {
             const pathname = url.parse(request.url).pathname;
 
             if (pathname === '/api') {
-                fuckApolloWS.ws.handleUpgrade(request, socket, head, (_ws) => {
-                    fuckApolloWS.ws.emit('connection', _ws, request);
+                spacex.ws.handleUpgrade(request, socket, head, (_ws) => {
+                    spacex.ws.emit('connection', _ws, request);
                 });
             } else if (pathname === '/gql_ws') {
-                fuckApolloWS.ws.handleUpgrade(request, socket, head, (_ws) => {
-                    fuckApolloWS.ws.emit('connection', _ws, request);
+                spacex.ws.handleUpgrade(request, socket, head, (_ws) => {
+                    spacex.ws.emit('connection', _ws, request);
                 });
             } else if (pathname === '/vostok') {
                 vostok.ws.handleUpgrade(request, socket, head, (_ws) => {
