@@ -22,6 +22,7 @@ type Dialog {
     alphaTopMessage: ModernMessage
     isMuted: Boolean!
     haveMention: Boolean!
+    hasActiveCall: Boolean!
     membership: SharedRoomMembershipStatus!
 }
 

@@ -6450,6 +6450,7 @@ export interface ConferenceRoomShape {
     kind: 'conference' | 'stream' | null;
     screenSharingPeerId: number | null;
     streamerId: number | null;
+    active: boolean | null;
 }
 
 export interface ConferenceRoomCreateShape {
@@ -6459,6 +6460,7 @@ export interface ConferenceRoomCreateShape {
     kind?: 'conference' | 'stream' | null | undefined;
     screenSharingPeerId?: number | null | undefined;
     streamerId?: number | null | undefined;
+    active?: boolean | null | undefined;
 }
 
 export class ConferenceRoom extends Entity<ConferenceRoomShape> {
@@ -6517,6 +6519,15 @@ export class ConferenceRoom extends Entity<ConferenceRoomShape> {
             this.invalidate();
         }
     }
+    get active(): boolean | null { return this._rawValue.active; }
+    set active(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.active.normalize(value);
+        if (this._rawValue.active !== normalized) {
+            this._rawValue.active = normalized;
+            this._updatedValues.active = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, ConferenceRoom> {
@@ -6533,6 +6544,7 @@ export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, Co
         fields.push({ name: 'kind', type: { type: 'optional', inner: { type: 'enum', values: ['conference', 'stream'] } }, secure: false });
         fields.push({ name: 'screenSharingPeerId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'streamerId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'active', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             scheduler: c.optional(c.enum('mesh', 'mesh-no-relay', 'basic-sfu')),
@@ -6541,6 +6553,7 @@ export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, Co
             kind: c.optional(c.enum('conference', 'stream')),
             screenSharingPeerId: c.optional(c.integer),
             streamerId: c.optional(c.integer),
+            active: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<ConferenceRoomShape> = {
             name: 'ConferenceRoom',

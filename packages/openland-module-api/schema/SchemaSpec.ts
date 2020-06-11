@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '63eefb75b22a022516fa9919e06d400c';
+export const GQL_SPEC_VERSION = '930262fc231851b36f63847e77e3d16f';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -940,6 +940,7 @@ export namespace GQL {
         alphaTopMessage: Nullable<ModernMessage>;
         isMuted: boolean;
         haveMention: boolean;
+        hasActiveCall: boolean;
         membership: SharedRoomMembershipStatus;
     }
     export interface DialogIdArgs { }
@@ -956,6 +957,7 @@ export namespace GQL {
     export interface DialogAlphaTopMessageArgs { }
     export interface DialogIsMutedArgs { }
     export interface DialogHaveMentionArgs { }
+    export interface DialogHasActiveCallArgs { }
     export interface DialogMembershipArgs { }
     export interface DialogsConnection {
         items: Dialog[];
@@ -6951,6 +6953,7 @@ export interface GQLResolver {
             alphaTopMessage: GQL.DialogAlphaTopMessageArgs,
             isMuted: GQL.DialogIsMutedArgs,
             haveMention: GQL.DialogHaveMentionArgs,
+            hasActiveCall: GQL.DialogHasActiveCallArgs,
             membership: GQL.DialogMembershipArgs,
         }
     >;

@@ -863,6 +863,7 @@ export default declareSchema(() => {
         field('kind', optional(enumString('conference', 'stream')));
         field('screenSharingPeerId', optional(integer()));
         field('streamerId', optional(integer()));
+        field('active', optional(boolean()));
     });
 
     entity('ConferencePeer', () => {

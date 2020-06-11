@@ -96,6 +96,7 @@ export class CallRepository {
 
                 // Reset Start Time
                 conf.startTime = Date.now();
+                conf.active = true;
 
                 // Update conference type: broadcasting, simple conference
                 conf.kind = kind;
@@ -110,6 +111,8 @@ export class CallRepository {
 
                 // Flush for better correctness
                 await conf.flush(ctx);
+
+                await this.onConferenceStarted(ctx, conf);
 
                 justStarted = true;
             }
@@ -282,11 +285,9 @@ export class CallRepository {
             if (members.length > 0) {
                 log.log(ctx, 'Conference ended (end conference): ' + cid);
                 await scheduler.onConferenceStopped(ctx, cid);
-                // Notify all about call state
-                await this.delivery.onCallStateChanged(ctx, cid, false);
-                if (conf.startTime) {
-                    callEndedEvent.event(ctx, { duration: Date.now() - conf.startTime });
-                }
+
+                conf.active = false;
+                await this.onConferenceEnded(ctx, conf);
             }
         });
     }
@@ -331,11 +332,8 @@ export class CallRepository {
                     log.log(ctx, 'Conference ended (remove): ' + existing.cid);
                     await scheduler.onConferenceStopped(ctx, existing.cid);
 
-                    // Notify all about call state
-                    await this.delivery.onCallStateChanged(ctx, existing.cid, false);
-                    if (conf.startTime) {
-                        callEndedEvent.event(ctx, { duration: Date.now() - conf.startTime });
-                    }
+                    conf.active = false;
+                    await this.onConferenceEnded(ctx, conf);
                 }
             }
 
@@ -380,6 +378,23 @@ export class CallRepository {
                 });
             }
         }
+    }
+
+    //
+    // Conference hooks
+    //
+
+    onConferenceEnded = async (ctx: Context, conf: ConferenceRoom) => {
+        // Show conference in dialogs list
+        await this.delivery.onCallStateChanged(ctx, conf.id, false);
+
+        if (conf.startTime) {
+            callEndedEvent.event(ctx, { duration: Date.now() - conf.startTime! });
+        }
+    }
+
+    onConferenceStarted = async (ctx: Context, conf: ConferenceRoom) => {
+        await this.delivery.onCallStateChanged(ctx, conf.id, true);
     }
 
     //
