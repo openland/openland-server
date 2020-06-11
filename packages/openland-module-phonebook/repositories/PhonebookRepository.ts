@@ -6,9 +6,10 @@ import { Store } from '../../openland-module-db/FDB';
 import { resolveSequenceNumber } from '../../openland-module-db/resolveSequenceNumber';
 
 export type PhonebookRecordInput = {
-    name: string;
+    firstName: string;
+    lastName: string|null;
     info: string|null;
-    phone: string;
+    phones: string[];
 };
 
 const phoneRegexp = /^\+[1-9]{1}[0-9]{3,14}$/;
@@ -21,14 +22,18 @@ export class PhonebookRepository {
         }
         return await inTx(parent, async ctx => {
             for (let record of records) {
-                if (!phoneRegexp.test(record.phone.trim())) {
-                    throw new UserError('Invalid phone ' + record.phone);
+                for (let phone of record.phones) {
+                    if (!phoneRegexp.test(phone.trim())) {
+                        throw new UserError('Invalid phone ' + phone);
+                    }
                 }
+
                 let id = await resolveSequenceNumber(ctx, 'phonebook-record');
                 await Store.PhonebookItem.create(ctx, id, {
                     uid,
-                    name: record.name,
-                    phone: record.phone.trim(),
+                    firstName: record.firstName,
+                    lastName: record.lastName,
+                    phones: record.phones.map(p => p.trim()),
                     info: record.info
                 });
             }

@@ -2504,9 +2504,10 @@ export default declareSchema(() => {
     entity('PhonebookItem', () => {
         primaryKey('id', integer());
         field('uid', integer());
-        field('name', string());
+        field('firstName', string());
+        field('lastName', optional(string()));
         field('info', optional(string()));
-        field('phone', string());
+        field('phones', array(string()));
         rangeIndex('user', ['uid', 'id']);
         rangeIndex('updated', ['updatedAt']);
     });

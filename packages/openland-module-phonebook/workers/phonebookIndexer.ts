@@ -3,7 +3,7 @@ import { Store } from '../../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 
 export function phonebookIndexer() {
-    declareSearchIndexer('phonebook-index', 11, 'phonebook', Store.PhonebookItem.updated.stream({ batchSize: 200 }))
+    declareSearchIndexer('phonebook-index', 13, 'phonebook', Store.PhonebookItem.updated.stream({ batchSize: 200 }))
         .withProperties({
             id: {
                 type: 'integer'
@@ -11,11 +11,14 @@ export function phonebookIndexer() {
             uid: {
                 type: 'integer'
             },
-            name: {
+            firstName: {
                 type: 'text'
             },
-            phone: {
-                type: 'keyword'
+            lastName: {
+                type: 'text'
+            },
+            phones: {
+                type: 'text'
             },
             info: {
                 type: 'text'
@@ -33,8 +36,9 @@ export function phonebookIndexer() {
                     id: item.id,
                     doc: {
                         uid: item.uid,
-                        name: item.name,
-                        phone: item.phone,
+                        firstName: item.firstName,
+                        lastName: item.lastName || '',
+                        phones: item.phones.join(' '),
                         info: item.info || undefined
                     }
                 };
