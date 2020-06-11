@@ -32,7 +32,7 @@ export function addPhonebookJoinMessagesWorker(worker: WorkQueue<{ uid: number }
                 body: {
                     query: {
                         bool: {
-                            must: [{ term: { phone: user.phone } }]
+                            must: [{ match_phrase_prefix: { phones: '+79605204994' } }]
                         }
                     },
                 },

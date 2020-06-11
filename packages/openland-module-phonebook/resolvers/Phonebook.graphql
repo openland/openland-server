@@ -6,9 +6,10 @@
 #}
 #
 input PhonebookRecordInput {
-    name: String!
+    firstName: String!
+    lastName: String
     info: String
-    phone: String!
+    phones: [String!]!
 }
 #
 #type PhonebookRecordConnection {

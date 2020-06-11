@@ -18957,16 +18957,18 @@ export class EntityCleanerStateFactory extends EntityFactory<EntityCleanerStateS
 export interface PhonebookItemShape {
     id: number;
     uid: number;
-    name: string;
+    firstName: string;
+    lastName: string | null;
     info: string | null;
-    phone: string;
+    phones: (string)[];
 }
 
 export interface PhonebookItemCreateShape {
     uid: number;
-    name: string;
+    firstName: string;
+    lastName?: string | null | undefined;
     info?: string | null | undefined;
-    phone: string;
+    phones: (string)[];
 }
 
 export class PhonebookItem extends Entity<PhonebookItemShape> {
@@ -18980,12 +18982,21 @@ export class PhonebookItem extends Entity<PhonebookItemShape> {
             this.invalidate();
         }
     }
-    get name(): string { return this._rawValue.name; }
-    set name(value: string) {
-        let normalized = this.descriptor.codec.fields.name.normalize(value);
-        if (this._rawValue.name !== normalized) {
-            this._rawValue.name = normalized;
-            this._updatedValues.name = normalized;
+    get firstName(): string { return this._rawValue.firstName; }
+    set firstName(value: string) {
+        let normalized = this.descriptor.codec.fields.firstName.normalize(value);
+        if (this._rawValue.firstName !== normalized) {
+            this._rawValue.firstName = normalized;
+            this._updatedValues.firstName = normalized;
+            this.invalidate();
+        }
+    }
+    get lastName(): string | null { return this._rawValue.lastName; }
+    set lastName(value: string | null) {
+        let normalized = this.descriptor.codec.fields.lastName.normalize(value);
+        if (this._rawValue.lastName !== normalized) {
+            this._rawValue.lastName = normalized;
+            this._updatedValues.lastName = normalized;
             this.invalidate();
         }
     }
@@ -18998,12 +19009,12 @@ export class PhonebookItem extends Entity<PhonebookItemShape> {
             this.invalidate();
         }
     }
-    get phone(): string { return this._rawValue.phone; }
-    set phone(value: string) {
-        let normalized = this.descriptor.codec.fields.phone.normalize(value);
-        if (this._rawValue.phone !== normalized) {
-            this._rawValue.phone = normalized;
-            this._updatedValues.phone = normalized;
+    get phones(): (string)[] { return this._rawValue.phones; }
+    set phones(value: (string)[]) {
+        let normalized = this.descriptor.codec.fields.phones.normalize(value);
+        if (this._rawValue.phones !== normalized) {
+            this._rawValue.phones = normalized;
+            this._updatedValues.phones = normalized;
             this.invalidate();
         }
     }
@@ -19020,15 +19031,17 @@ export class PhonebookItemFactory extends EntityFactory<PhonebookItemShape, Phon
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'name', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'firstName', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'lastName', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'info', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'phone', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'phones', type: { type: 'array', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             uid: c.integer,
-            name: c.string,
+            firstName: c.string,
+            lastName: c.optional(c.string),
             info: c.optional(c.string),
-            phone: c.string,
+            phones: c.array(c.string),
         });
         let descriptor: EntityDescriptor<PhonebookItemShape> = {
             name: 'PhonebookItem',
