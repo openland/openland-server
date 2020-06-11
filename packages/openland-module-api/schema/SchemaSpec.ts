@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '930262fc231851b36f63847e77e3d16f';
+export const GQL_SPEC_VERSION = '64e5e5cc1d8cff452bd8acdd6baab997';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -809,9 +809,10 @@ export namespace GQL {
     export interface MessageQuotedArgs { }
     export interface MessageAlphaReactionsArgs { }
     export interface PhonebookRecordInput {
-        name: string;
+        firstName: string;
+        lastName: Nullable<string>;
         info: Nullable<string>;
-        phone: string;
+        phones: string[];
     }
     export type ChannelTypeValues = 'SYSTEM' | 'PERSONAL' | 'PUBLIC' | 'SECRET';
     export type ChannelType = GQLRoots.ChannelTypeRoot;
