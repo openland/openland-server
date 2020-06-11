@@ -119,8 +119,9 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
 
     let [chatTitle, senderName] = await Promise.all([
         Modules.Messaging.room.resolveConversationTitle(ctx, conversation.id, uid),
-        Modules.Users.getUserFullName(ctx, sender.id)
+        message.overrideName || Modules.Users.getUserFullName(ctx, sender.id)
     ]);
+    let senderPicture = message.overrideAvatar || sender.picture;
 
     if (chatTitle.startsWith('@')) {
         chatTitle = chatTitle.slice(1);
@@ -135,14 +136,13 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
     if (message.isService) {
         pushTitle = chatTitle;
     }
-
     let pushBody = await fetchMessageFallback(message);
 
     let push = {
         uid: uid,
         title: pushTitle,
         body: pushBody,
-        picture: sender.picture ? buildBaseImageUrl(sender.picture!!) : null,
+        picture: senderPicture ? buildBaseImageUrl(senderPicture) : null,
         counter: unreadCounter,
         conversationId: conversation.id,
         deepLink: null,
