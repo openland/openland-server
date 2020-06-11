@@ -17,7 +17,6 @@ import { Store } from 'openland-module-db/FDB';
 // import { currentRunningTime } from 'openland-utils/timer';
 // import { createMetric } from 'openland-module-monitoring/Metric';
 import { createLogger } from '@openland/log';
-import has = Reflect.has;
 
 const tracer = createTracer('message-delivery');
 // const deliveryInitialMetric = createMetric('delivery-fan-out', 'average');
