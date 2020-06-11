@@ -3,10 +3,13 @@ import { container } from 'openland-modules/Modules.container';
 import { CallRepository, DEFAULT_CAPABILITIES } from './CallRepository';
 import { Store } from 'openland-module-db/FDB';
 import { createNamedContext } from '@openland/context';
+import { DeliveryMediator } from '../../openland-module-messaging/mediators/DeliveryMediator';
+jest.mock('../../openland-module-messaging/mediators/DeliveryMediator');
 
 describe('CallRepository', () => {
     beforeAll(async () => {
         await testEnvironmentStart('calls-repo');
+        container.bind('DeliveryMediator').toConstantValue(new DeliveryMediator());
         container.bind('CallRepository').to(CallRepository).inSingletonScope();
     });
     afterAll(async () => {
