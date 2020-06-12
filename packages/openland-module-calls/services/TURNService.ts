@@ -48,24 +48,44 @@ export async function resolveTurnServices(ctx: Context) {
     });
     let ip = nearest.appData.ip as string;
 
-    return [
-        {
-            ip: ip,
-            urls: ['stun:' + ip + ':3478'],
-            username: 'user',
-            credential: 'emFsdXBhCg',
-        },
-        {
-            ip: ip,
-            urls: ['turn:' + ip + ':3478?transport=udp'],
-            username: 'user',
-            credential: 'emFsdXBhCg',
-        },
-        {
-            ip: ip,
-            urls: ['turn:' + ip + ':3478?transport=tcp'],
-            username: 'user',
-            credential: 'emFsdXBhCg',
-        }
-    ];
+    let enableTcp = await Modules.Super.getEnvVar<boolean>(ctx, 'custom-enable-tcp') || false;
+
+    let turns: {
+        ip: string,
+        urls: string[],
+        username: string,
+        credential: string
+    }[] = [];
+
+    const stun = {
+        ip: ip,
+        urls: ['stun:' + ip + ':3478'],
+        username: 'user',
+        credential: 'emFsdXBhCg',
+    };
+    // const turnAll = {
+    //     ip: ip,
+    //     urls: ['stun:' + ip + ':3478'],
+    //     username: 'user',
+    //     credential: 'emFsdXBhCg',
+    // };
+    const turnTcp = {
+        ip: ip,
+        urls: ['stun:' + ip + ':3478?transport=tcp'],
+        username: 'user',
+        credential: 'emFsdXBhCg',
+    };
+    const turnUdp = {
+        ip: ip,
+        urls: ['stun:' + ip + ':3478?transport=udp'],
+        username: 'user',
+        credential: 'emFsdXBhCg',
+    };
+    turns.push(stun);
+    turns.push(turnUdp);
+    if (enableTcp) {
+        turns.push(turnTcp);
+    }
+
+    return turns;
 }
