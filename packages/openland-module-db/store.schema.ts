@@ -1052,6 +1052,7 @@ export default declareSchema(() => {
 
     entity('KitchenWorker', () => {
         primaryKey('id', string());
+        field('appData', optional(json()));
         field('deleted', boolean());
         rangeIndex('active', ['id']).withCondition((s) => !s.deleted);
     });

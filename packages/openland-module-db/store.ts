@@ -7873,15 +7873,26 @@ export class ConferenceKitchenConsumerTransportFactory extends EntityFactory<Con
 
 export interface KitchenWorkerShape {
     id: string;
+    appData: any | null;
     deleted: boolean;
 }
 
 export interface KitchenWorkerCreateShape {
+    appData?: any | null | undefined;
     deleted: boolean;
 }
 
 export class KitchenWorker extends Entity<KitchenWorkerShape> {
     get id(): string { return this._rawValue.id; }
+    get appData(): any | null { return this._rawValue.appData; }
+    set appData(value: any | null) {
+        let normalized = this.descriptor.codec.fields.appData.normalize(value);
+        if (this._rawValue.appData !== normalized) {
+            this._rawValue.appData = normalized;
+            this._updatedValues.appData = normalized;
+            this.invalidate();
+        }
+    }
     get deleted(): boolean { return this._rawValue.deleted; }
     set deleted(value: boolean) {
         let normalized = this.descriptor.codec.fields.deleted.normalize(value);
@@ -7902,9 +7913,11 @@ export class KitchenWorkerFactory extends EntityFactory<KitchenWorkerShape, Kitc
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'appData', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
         fields.push({ name: 'deleted', type: { type: 'boolean' }, secure: false });
         let codec = c.struct({
             id: c.string,
+            appData: c.optional(c.any),
             deleted: c.boolean,
         });
         let descriptor: EntityDescriptor<KitchenWorkerShape> = {
