@@ -21,6 +21,8 @@ export class PhonebookRepository {
             throw new UserError(`Can't save more than 500 records in one call`);
         }
         return await inTx(parent, async ctx => {
+            let storedRecords = await Store.PhonebookItem.user.findAll(ctx, uid);
+
             for (let record of records) {
                 for (let phone of record.phones) {
                     if (!phoneRegexp.test(phone.trim())) {
@@ -28,14 +30,21 @@ export class PhonebookRepository {
                     }
                 }
 
-                let id = await resolveSequenceNumber(ctx, 'phonebook-record');
-                await Store.PhonebookItem.create(ctx, id, {
-                    uid,
-                    firstName: record.firstName,
-                    lastName: record.lastName,
-                    phones: record.phones.map(p => p.trim()),
-                    info: record.info
-                });
+                let existing = storedRecords.find(r => r.firstName + '' + (r.lastName || ''));
+
+                if (existing) {
+                    existing.phones = record.phones;
+                    existing.info = record.info;
+                } else {
+                    let id = await resolveSequenceNumber(ctx, 'phonebook-record');
+                    await Store.PhonebookItem.create(ctx, id, {
+                        uid,
+                        firstName: record.firstName,
+                        lastName: record.lastName,
+                        phones: record.phones.map(p => p.trim()),
+                        info: record.info
+                    });
+                }
             }
         });
     }
