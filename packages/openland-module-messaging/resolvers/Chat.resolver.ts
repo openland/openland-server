@@ -329,7 +329,7 @@ export const Resolver: GQLResolver = {
         alphaMentions: async src => src.complexMentions
     },
     InviteServiceMetadata: {
-        // users: (src: any, args: {}, ctx: AppContext) => src.userIds.map((id: number) => FDB.User.findById(ctx, id)),
+        // users: (src: any, args: {}, ctx: Context) => src.userIds.map((id: number) => FDB.User.findById(ctx, id)),
         users: (src, args, ctx) => [],
         invitedBy: async (src, args, ctx) => (await Store.User.findById(ctx, src.invitedById))!
     },
