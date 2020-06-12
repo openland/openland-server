@@ -75,22 +75,18 @@ async function getBrowser() {
     if (cachedBrowser && cachedBrowser.isConnected()) {
         return cachedBrowser;
     }
-    if (!cachedBrowser) {
-        // Launch headless Chrome. Turn off sandbox so Chrome can run under root.
-        cachedBrowser = await puppeteer.launch({
-            args: chromium.args,
-            defaultViewport: chromium.defaultViewport,
-            executablePath: 'google-chrome-unstable',
-            headless: true,
-        });
-        cachedEndpoint = cachedBrowser.wsEndpoint();
-    }
-    if (!cachedBrowser.isConnected() && cachedEndpoint) {
-        cachedBrowser = await puppeteer.connect({
-            browserWSEndpoint: cachedEndpoint,
-            defaultViewport: chromium.defaultViewport
-        });
-    }
+
+    // Launch headless Chrome. Turn off sandbox so Chrome can run under root.
+    cachedBrowser = await puppeteer.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: 'google-chrome-unstable',
+        headless: true,
+    });
+    cachedBrowser.on('disconnected', () => {
+        cachedBrowser = null;
+    })
+
     return cachedBrowser;
 }
 
