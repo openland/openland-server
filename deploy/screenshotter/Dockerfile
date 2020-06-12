@@ -1,1 +1,1 @@
-FROM openland/chrome-screenshot:v7.1
+FROM openland/chrome-screenshot:v7.2.0
