@@ -30,7 +30,7 @@ export class PhonebookRepository {
                     }
                 }
 
-                let existing = storedRecords.find(r => r.firstName + '' + (r.lastName || ''));
+                let existing = storedRecords.find(r => (record.firstName + '' + (record.lastName || '')) === (r.firstName + '' + (r.lastName || '')));
 
                 if (existing) {
                     existing.phones = record.phones;
