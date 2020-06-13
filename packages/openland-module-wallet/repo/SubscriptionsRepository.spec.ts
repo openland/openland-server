@@ -10,10 +10,10 @@ const DAY = 24 * 60 * 60 * 1000;
 describe('SubscriptionsRepository', () => {
     beforeAll(async () => {
         await testEnvironmentStart('subscriptions');
-    });
+    }, 50000);
     afterAll(async () => {
         await testEnvironmentEnd();
-    });
+    }, 50000);
 
     it('should expire if first period was not paid yet', async () => {
         let payments = new PaymentsRepository(Store);
@@ -51,7 +51,7 @@ describe('SubscriptionsRepository', () => {
         await subscriptions.doScheduling(ctx, id, now);
         subs = (await Store.WalletSubscription.findById(ctx, id))!;
         expect(subs.state).toBe('expired');
-    });
+    }, 50000);
 
     it('should implement grace period', async () => {
         let payments = new PaymentsRepository(Store);
@@ -234,7 +234,7 @@ describe('SubscriptionsRepository', () => {
         expect(subs.uid).toBe(24);
         expect(subs.amount).toBe(100);
         expect(subs.interval).toBe('week');
-    });
+    }, 50000);
 
     it('should implement retrying period', async () => {
         let payments = new PaymentsRepository(Store);
@@ -378,5 +378,5 @@ describe('SubscriptionsRepository', () => {
 
         // Should cancel after expiring subscription
         expect(await subscriptions.tryCancelSubscription(ctx, id)).toBe(true);
-    });
+    }, 50000);
 });
