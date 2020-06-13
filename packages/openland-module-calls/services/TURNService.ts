@@ -71,13 +71,13 @@ export async function resolveTurnServices(ctx: Context) {
     // };
     const turnTcp = {
         ip: ip,
-        urls: ['stun:' + ip + ':3478?transport=tcp'],
+        urls: ['turn:' + ip + ':3478?transport=tcp'],
         username: 'user',
         credential: 'emFsdXBhCg',
     };
     const turnUdp = {
         ip: ip,
-        urls: ['stun:' + ip + ':3478?transport=udp'],
+        urls: ['turn:' + ip + ':3478?transport=udp'],
         username: 'user',
         credential: 'emFsdXBhCg',
     };
