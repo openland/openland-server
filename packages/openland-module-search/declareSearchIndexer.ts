@@ -28,15 +28,15 @@ export class SearchIndexer<T, P extends SearchIndexerProperties> {
     readonly client = Modules.Search.elastic.client;
     properties?: SearchIndexerProperties;
 
-    constructor(name: string, version: number, index: string, stream: Stream<T>) {
-        this.name = name;
-        this.version = version;
-        this.index = index;
-        this.stream = stream;
+    constructor(opts: { name: string, version: number, index: string, stream: Stream<T> }) {
+        this.name = opts.name;
+        this.version = opts.version;
+        this.index = opts.index;
+        this.stream = opts.stream;
     }
 
     withProperties<Pr extends SearchIndexerProperties>(properties: Pr) {
-        let indexer = new SearchIndexer<T, Pr>(this.name, this.version, this.index, this.stream);
+        let indexer = new SearchIndexer<T, Pr>({ name: this.name, version: this.version, index: this.index, stream: this.stream });
         indexer.properties = properties;
         return indexer;
     }
@@ -102,6 +102,6 @@ export class SearchIndexer<T, P extends SearchIndexerProperties> {
     }
 }
 
-export function declareSearchIndexer<T>(name: string, version: number, index: string, stream: Stream<T>) {
-    return new SearchIndexer(name, version, index, stream);
+export function declareSearchIndexer<T>(opts: { name: string, version: number, index: string, stream: Stream<T> }) {
+    return new SearchIndexer(opts);
 }
