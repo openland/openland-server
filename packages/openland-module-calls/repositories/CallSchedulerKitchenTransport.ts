@@ -15,22 +15,11 @@ import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import uuid from 'uuid/v4';
 import { extractFingerprints } from 'openland-module-calls/sdp/extractFingerprints';
-import { extractOpusRtpParameters, extractH264RtpParameters, convertParameters, convertIceCandidate, extractVP8RtpParameters } from 'openland-module-calls/kitchen/extract';
+import { extractOpusRtpParameters, extractH264RtpParameters, convertParameters, convertIceCandidate, extractVP8RtpParameters, isSupportedHeaderExtension } from 'openland-module-calls/kitchen/extract';
 import { MediaDescription } from 'sdp-transform';
 import { Modules } from 'openland-modules/Modules';
 
 const logger = createLogger('mediakitchen');
-
-function isSupportedHeaderExtension(extension: {
-    kind: string;
-    uri: string;
-}): boolean {
-    // Not every browser support this extension
-    if (extension.uri === 'urn:3gpp:video-orientation') {
-        return false;
-    }
-    return true;
-}
 
 function getAudioRtpCapabilities(src: Capabilities): KitchenRtpCapabilities {
     let codec = src.codecs.find((v) => v.mimeType === 'audio/opus');
