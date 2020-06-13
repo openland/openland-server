@@ -37,7 +37,10 @@ export async function testEnvironmentStart(name: string) {
 
     // New Entity
     let storage = new EntityStorage(db);
+    start = currentTime();
+    logger.log(ctx, 'Opening store');
     let store = await openStore(storage);
+    logger.log(ctx, 'Store opened in ' + (currentTime() - start) + ' ms');
     container.bind<Store>('Store')
         .toConstantValue(store);
 

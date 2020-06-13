@@ -78,7 +78,7 @@ export class MediaKitchenRepository {
                         }
                     }
                 } else {
-                    await this.onWorkerAdded(ctx, w.id);
+                    await this.onWorkerAdded(ctx, w.id, w.appData);
                 }
             });
         }
@@ -115,12 +115,12 @@ export class MediaKitchenRepository {
         });
     }
 
-    async onWorkerAdded(parent: Context, id: string) {
+    async onWorkerAdded(parent: Context, id: string, appData: any) {
         await inTx(parent, async (ctx) => {
             logger.log(ctx, 'Worker registered: ' + id);
 
             // Register worker
-            await Store.KitchenWorker.create(ctx, id, { deleted: false });
+            await Store.KitchenWorker.create(ctx, id, { deleted: false, appData });
         });
     }
 

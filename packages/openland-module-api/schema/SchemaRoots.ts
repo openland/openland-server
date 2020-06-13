@@ -124,7 +124,7 @@ import {
     ImageParagraph,
     TextParagraph, PostParagraphSpans, LinkPostSpan, BoldTextPostSpan, ItalicTextPostSpan, IronyTextPostSpan
 } from '../../openland-module-discussions/repositories/PostsRepository';
-import { GeoIPResponse } from '../../openland-utils/geoIp/geoIP';
+import { GeoIPResponse } from '../../openland-utils/geoIP';
 
 //
 //  Root types

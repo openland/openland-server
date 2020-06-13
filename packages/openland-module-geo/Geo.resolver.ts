@@ -2,7 +2,7 @@ import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withActivatedUser, withAny } from '../openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { IDs } from '../openland-module-api/IDs';
-import { geoIP } from '../openland-utils/geoIp/geoIP';
+import { geoIP } from '../openland-utils/geoIP';
 
 export const Resolver: GQLResolver = {
     IpLocation: {
@@ -30,7 +30,7 @@ export const Resolver: GQLResolver = {
     },
     // Subscription: {
     //     shouldShareLocationUpdates: {
-    //         subscribe: async function* (_: any, args: any, context: AppContext) {
+    //         subscribe: async function* (_: any, args: any, context: Context) {
     //
     //         }
     //     }

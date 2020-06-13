@@ -22,13 +22,13 @@ describe('OrganizationModule', () => {
         container.bind(SuperModule).toSelf().inSingletonScope();
         container.bind(HooksModule).toSelf().inSingletonScope();
         // console.log('loaded in ' + (Date.now() - start) + ' ms');
-    });
-    afterAll( async () => {
-      await  testEnvironmentEnd();
-    });
+    }, 50000);
+    afterAll(async () => {
+        await testEnvironmentEnd();
+    }, 50000);
 
     async function createUser(ctx: Context, index: number) {
-        let user = await Modules.Users.createUser(ctx, {email: index + 'some@email.comn'});
+        let user = await Modules.Users.createUser(ctx, { email: index + 'some@email.comn' });
         await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
         return user;
     }
@@ -37,7 +37,7 @@ describe('OrganizationModule', () => {
         let ctx = createNamedContext('test');
 
         // Create Test User
-        let user = await Modules.Users.createUser(ctx, {email: 'some@email.comn'});
+        let user = await Modules.Users.createUser(ctx, { email: 'some@email.comn' });
         let profile = await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
 
         // Assert default user status
@@ -65,22 +65,22 @@ describe('OrganizationModule', () => {
         // Should NOT update primary organization since organization is not activated yet
         let profile2 = (await Store.UserProfile.findById(ctx, user.id))!;
         expect(profile2.primaryOrganization).toBe(org.id);
-    });
+    }, 50000);
 
     it('should activate organization for activated user', async () => {
         let ctx = createNamedContext('test');
-        let user = await Modules.Users.createUser(ctx, {email: 'som2@email.comn'});
+        let user = await Modules.Users.createUser(ctx, { email: 'som2@email.comn' });
         await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
         await Modules.Users.activateUser(ctx, user.id, true);
         let org1 = await Modules.Orgs.createOrganization(ctx, user.id, { name: 'hey' });
         await Modules.Orgs.createOrganization(ctx, user.id, { name: 'hey' });
         let profile2 = (await Store.UserProfile.findById(ctx, user.id))!;
         expect(profile2.primaryOrganization).toBe(org1.id);
-    });
+    }, 50000);
 
     it('should select primary organization from first activated', async () => {
         let ctx = createNamedContext('test');
-        let user = await Modules.Users.createUser(ctx, {email: 'some2@email.comn'});
+        let user = await Modules.Users.createUser(ctx, { email: 'some2@email.comn' });
         await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
         // await Modules.Users.activateUser(user.id);
 
@@ -95,17 +95,17 @@ describe('OrganizationModule', () => {
 
         let profile2 = (await Store.UserProfile.findById(ctx, user.id))!;
         expect(profile2.primaryOrganization).toBe(org1.id);
-    });
+    }, 50000);
 
     it('should activate user on organization activation', async () => {
         let ctx = createNamedContext('test');
 
         // Create User and Org
-        let user = await Modules.Users.createUser(ctx, {email: 'some3@email.comn'});
+        let user = await Modules.Users.createUser(ctx, { email: 'some3@email.comn' });
         await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
         let userp = (await Store.UserProfile.findById(ctx, user.id))!;
         expect(userp.primaryOrganization).toBeNull();
-        let user2 = await Modules.Users.createUser(ctx, {email: 'some4@email.comn'});
+        let user2 = await Modules.Users.createUser(ctx, { email: 'some4@email.comn' });
         await Modules.Users.createUserProfile(ctx, user2.id, { firstName: 'Some Name' });
         let user2p = (await Store.UserProfile.findById(ctx, user2.id))!;
         expect(user2p.primaryOrganization).toBeNull();
@@ -126,13 +126,13 @@ describe('OrganizationModule', () => {
         let user5p = (await Store.UserProfile.findById(ctx, user2.id))!;
         expect(user5.status).toEqual('activated');
         expect(user5p.primaryOrganization).toEqual(org.id);
-    });
+    }, 50000);
 
     it('should not activate deleted organization', async () => {
         let ctx = createNamedContext('test');
 
         // Create User and Org
-        let user = await Modules.Users.createUser(ctx, {email: 'some____3@email.comn'});
+        let user = await Modules.Users.createUser(ctx, { email: 'some____3@email.comn' });
         await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
 
         // Create Organization
@@ -146,13 +146,13 @@ describe('OrganizationModule', () => {
         org = (await Store.Organization.findById(ctx, org.id))!;
 
         expect(org.status).toEqual('deleted');
-    });
+    }, 50000);
 
     it('should suspend organization and DO NOT suspend user', async () => {
         let ctx = createNamedContext('test');
 
         // Create User and Org
-        let user = await Modules.Users.createUser(ctx, {email: 'some5@email.comn'});
+        let user = await Modules.Users.createUser(ctx, { email: 'some5@email.comn' });
         await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
         await Modules.Users.activateUser(ctx, user.id, true);
         user = (await Store.User.findById(ctx, user.id))!;
@@ -170,13 +170,13 @@ describe('OrganizationModule', () => {
         // Check user status
         let user4 = (await Store.User.findById(ctx, user.id))!;
         expect(user4.status).toEqual('activated');
-    });
+    }, 50000);
 
     it('should activate user on joining to activated organization', async () => {
         let ctx = createNamedContext('test');
 
         // Create Owner and Org
-        let user = await Modules.Users.createUser(ctx, {email: 'some6@email.comn'});
+        let user = await Modules.Users.createUser(ctx, { email: 'some6@email.comn' });
         await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
         await Modules.Users.activateUser(ctx, user.id, true);
         user = (await Store.User.findById(ctx, user.id))!;
@@ -185,14 +185,14 @@ describe('OrganizationModule', () => {
         expect(org.status).toEqual('activated');
 
         // Add user
-        let user2 = await Modules.Users.createUser(ctx, {email: 'some7@email.com'});
+        let user2 = await Modules.Users.createUser(ctx, { email: 'some7@email.com' });
         await Modules.Users.createUserProfile(ctx, user2.id, { firstName: 'Some Name' });
         await Modules.Orgs.addUserToOrganization(ctx, user2.id, org.id, user.id);
         user2 = (await Store.User.findById(ctx, user2.id))!;
         let user2p = (await Store.UserProfile.findById(ctx, user2.id))!;
         expect(user2.status).toEqual('activated');
         expect(user2p.primaryOrganization).toEqual(org.id);
-    });
+    }, 50000);
 
     it('should not remove user from organization if it is last organization for user', async () => {
         let ctx = createNamedContext('test');
@@ -205,7 +205,7 @@ describe('OrganizationModule', () => {
 
         // Disallow kicking admin by non-admin
         await expect(Modules.Orgs.removeUserFromOrganization(ctx, user2.id, org.id, user2.id)).rejects.toThrowError();
-    });
+    }, 50000);
 
     it('should pick another primary organization when removing primary one', async () => {
         let ctx = createNamedContext('test');
@@ -228,7 +228,7 @@ describe('OrganizationModule', () => {
         user2p = (await Store.UserProfile.findById(ctx, user2.id))!;
         expect(user1p.primaryOrganization).toEqual(org.id);
         expect(user2p.primaryOrganization).toEqual(org2.id);
-    });
+    }, 50000);
 
     it('should return correct membership status for users', async () => {
         let ctx = createNamedContext('test');
@@ -281,7 +281,7 @@ describe('OrganizationModule', () => {
         expect(await Modules.Orgs.isUserAdmin(ctx, user2.id, org.id)).toBe(false);
         expect(await Modules.Orgs.isUserAdmin(ctx, user3.id, org.id)).toBe(false);
         expect(await Modules.Orgs.isUserAdmin(ctx, user4.id, org.id)).toBe(false);
-    });
+    }, 50000);
 
     it('should downgrade membership on organization left', async () => {
         let ctx = createNamedContext('test');
@@ -305,7 +305,7 @@ describe('OrganizationModule', () => {
         expect(await Modules.Orgs.isUserOwner(ctx, user3.id, org.id)).toBe(false);
         expect(await Modules.Orgs.isUserMember(ctx, user3.id, org.id)).toBe(true);
         expect(await Modules.Orgs.isUserAdmin(ctx, user3.id, org.id)).toBe(false);
-    });
+    }, 50000);
 
     it('should allow role changing only to owners', async () => {
         let ctx = createNamedContext('test');
@@ -332,7 +332,7 @@ describe('OrganizationModule', () => {
 
         // Throw error when trying to edit role for non-member
         await expect(Modules.Orgs.updateMemberRole(ctx, user4.id, org.id, 'member', user1.id)).rejects.toThrowError();
-    });
+    }, 50000);
 
     it('should handle kicking securely', async () => {
         let ctx = createNamedContext('test');
@@ -367,5 +367,5 @@ describe('OrganizationModule', () => {
 
         // Should handle double kick gracefully
         expect(await Modules.Orgs.removeUserFromOrganization(ctx, user3.id, org.id, user1.id)).toBe(false);
-    });
+    }, 50000);
 });

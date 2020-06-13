@@ -10,6 +10,16 @@ export function convertParameters(src: any) {
     return Object.keys(src).map((key) => `${key}=${src[key]}`).join(';');
 }
 
+export function isSupportedHeaderExtension(extension: {
+    uri: string;
+}): boolean {
+    // Not every browser support this extension
+    if (extension.uri === 'urn:3gpp:video-orientation') {
+        return false;
+    }
+    return true;
+}
+
 export function convertIceCandidate(src: KitchenIceCandidate) {
     let res: {
         foundation: string;
@@ -127,10 +137,12 @@ export function extractOpusRtpParameters(src: MediaDescription): RtpParameters {
     };
 
     return {
-        headerExtensions: (src.ext || []).map((v) => ({
-            uri: v.uri,
-            id: v.value
-        })),
+        headerExtensions: (src.ext || [])
+            .map((v) => ({
+                uri: v.uri,
+                id: v.value
+            }))
+            .filter((v) => isSupportedHeaderExtension(v)),
         codecs: [codecParameters],
         encodings: extractEncodings(src)
     };
@@ -195,10 +207,12 @@ export function extractH264RtpParameters(src: MediaDescription): RtpParameters {
     }
 
     return {
-        headerExtensions: (src.ext || []).map((v) => ({
-            uri: v.uri,
-            id: v.value
-        })),
+        headerExtensions: (src.ext || [])
+            .map((v) => ({
+                uri: v.uri,
+                id: v.value
+            }))
+            .filter((v) => isSupportedHeaderExtension(v)),
         codecs,
         encodings: extractEncodings(src)
     };
@@ -241,10 +255,12 @@ export function extractVP8RtpParameters(src: MediaDescription): RtpParameters {
     }
 
     return {
-        headerExtensions: (src.ext || []).map((v) => ({
-            uri: v.uri,
-            id: v.value
-        })),
+        headerExtensions: (src.ext || [])
+            .map((v) => ({
+                uri: v.uri,
+                id: v.value
+            }))
+            .filter((v) => isSupportedHeaderExtension(v)),
         codecs,
         encodings: extractEncodings(src)
     };

@@ -9,7 +9,6 @@ import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { resolveTurnServices } from './services/TURNService';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
-// import { distanceBetween, geoIP } from '../openland-utils/geoIp/geoIP';
 import { GQLRoots } from 'openland-module-api/schema/SchemaRoots';
 import { fastWatch } from 'openland-module-db/fastWatch';
 
@@ -35,7 +34,7 @@ import { fastWatch } from 'openland-module-db/fastWatch';
 //     return [nearest];
 // };
 
-const resolveIce = async (root: any, args: any, context: AppContext) => {
+const resolveIce = async (root: any, args: any, context: Context) => {
     // if (context.req.latLong) {
     //     return await resolveNearestTurn(context.req.latLong);
     // }

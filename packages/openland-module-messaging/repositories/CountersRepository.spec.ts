@@ -18,10 +18,10 @@ describe('CountersRepository', () => {
         // container.bind('MessagingRepository').to(MessagingRepository).inSingletonScope();
         container.bind(UsersModule).toSelf().inSingletonScope();
         loadUsersModule();
-    });
-    afterAll( async () => {
-        await  testEnvironmentEnd();
-    });
+    }, 50000);
+    afterAll(async () => {
+        await testEnvironmentEnd();
+    }, 50000);
     it('should increment counter and decrement', async () => {
         let ctx = createNamedContext('test');
         let urepo = container.get<UserStateRepository>('UserStateRepository');
@@ -56,7 +56,7 @@ describe('CountersRepository', () => {
         // Read
         expect((await repo.onMessageRead(ctx, 2, mid3)).delta).toBe(-3);
         expect((await repo.onMessageRead(ctx, 1, mid3)).delta).toBe(0);
-    });
+    }, 50000);
 
     it('should properly decrement on middle-read', async () => {
         let ctx = createNamedContext('test');
@@ -92,7 +92,7 @@ describe('CountersRepository', () => {
 
         expect(receiverLocalCounter).toBe(3);
         expect(receiverGlobalCounter).toBe(3);
-    });
+    }, 50000);
 
     it('should be order-independent', async () => {
         let ctx = createNamedContext('test');
@@ -112,7 +112,7 @@ describe('CountersRepository', () => {
         let receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 2, 2);
         expect(receiverLocalCounter).toBe(0);
         expect(await Store.UserDialogReadMessageId.get(ctx, 2, 2)).toBe(mid3.id);
-    });
+    }, 50000);
 
     // it('should be tolerant to double invoke', async () => {
     //     let ctx = createNamedContext('test')();
@@ -157,7 +157,7 @@ describe('CountersRepository', () => {
         let receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 3, 4);
         expect(receiverLocalCounter).toBe(1);
         expect(receiverHaveMention).toBe(false);
-    });
+    }, 50000);
 
     it('should mark dialog mention for messages with mentions', async () => {
         let ctx = createNamedContext('test');
@@ -190,7 +190,7 @@ describe('CountersRepository', () => {
         receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, 6, 5);
         expect(receiverLocalCounter).toBe(3);
         expect(receiverHaveMention).toBe(true);
-    });
+    }, 50000);
 
     it('should clear mention flag on read', async () => {
         let ctx = createNamedContext('test');
@@ -225,7 +225,7 @@ describe('CountersRepository', () => {
         let receiverLocalCounter = await urepo.getUserMessagingDialogUnread(ctx, R_UID, CID);
         expect(receiverLocalCounter).toBe(0);
         expect(receiverHaveMention).toBe(false);
-    });
+    }, 50000);
 
     // it('should not increment global counter for muted chat', async () => {
     //     await inTx(createNamedContext('test')(), async ctx => {
