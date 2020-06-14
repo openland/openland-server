@@ -1,6 +1,11 @@
+import { createNamedContext } from '@openland/context';
+import { createLogger } from '@openland/log';
 import { ElasticClient } from './ElasticClient';
 import { Config } from 'openland-config/Config';
 import * as ES from 'elasticsearch';
+
+const log = createLogger('elastic');
+const ctx = createNamedContext('init');
 
 export class ElasticService {
     readonly client!: ElasticClient;
@@ -20,6 +25,7 @@ export class ElasticService {
                 let client = new ES.Client({ host: secondary.endpoint });
                 if (Config.elasticsearch.writable) {
                     this.clusterMap.set('default', client);
+                    log.log(ctx, 'Loaded cluster ' + secondary.name + ': ' + secondary.endpoint);
                 }
                 if (secondary.name === 'default') {
                     this.client = new ElasticClient(client);
@@ -34,6 +40,7 @@ export class ElasticService {
             this.client = new ElasticClient(client);
 
             if (Config.elasticsearch.writable) {
+                log.log(ctx, 'Loaded cluster <default>: ' + Config.elasticsearch.endpoint);
                 this.clusterMap.set('default', client);
                 this.clusters.push('default');
             }

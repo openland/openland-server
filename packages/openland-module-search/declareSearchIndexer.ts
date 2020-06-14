@@ -1,10 +1,11 @@
 import { updateReader } from 'openland-module-workers/updateReader';
 import { Modules } from 'openland-modules/Modules';
-import { Context } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { Stream } from '@openland/foundationdb-entity/lib/Stream';
 
 const log = createLogger('elastic-indexer');
+const rootCtx = createNamedContext('init');
 
 type SearchFieldType = 'integer' | 'keyword' | 'text' | 'boolean' | 'date' | 'long';
 
@@ -80,6 +81,8 @@ export class SearchIndexer<T, P extends SearchIndexerProperties> {
             if (!client) {
                 continue;
             }
+
+            log.log(rootCtx, 'Start indexer: ' + name + '(' + cluster + ')');
 
             updateReader('index-' + name, this.version, this.stream, async (items, first, ctx) => {
                 if (first) {
