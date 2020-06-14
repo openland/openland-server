@@ -22,11 +22,11 @@ const codec = t.type({
     elasticsearch: t.type({
         endpoint: t.string,
         writable: t.boolean,
-        secondary: t.union([
-            t.type({
+        clusters: t.union([
+            t.array(t.type({
                 name: t.string,
                 endpoint: t.string
-            }),
+            })),
             t.undefined, t.null
         ])
     }),

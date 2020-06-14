@@ -7,7 +7,8 @@ export function phonebookIndexer() {
         name: 'phonebook-index',
         version: 13,
         index: 'phonebook',
-        stream: Store.PhonebookItem.updated.stream({ batchSize: 200 })
+        stream: Store.PhonebookItem.updated.stream({ batchSize: 200 }),
+        includedClusters: ['default']
     }).withProperties({
         id: {
             type: 'integer'
