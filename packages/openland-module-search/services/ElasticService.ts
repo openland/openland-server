@@ -24,7 +24,7 @@ export class ElasticService {
                 this.clusters.push(secondary.name);
                 let client = new ES.Client({ host: secondary.endpoint });
                 if (Config.elasticsearch.writable) {
-                    this.clusterMap.set('default', client);
+                    this.clusterMap.set(secondary.name, client);
                     log.log(ctx, 'Loaded cluster ' + secondary.name + ': ' + secondary.endpoint);
                 }
                 if (secondary.name === 'default') {
