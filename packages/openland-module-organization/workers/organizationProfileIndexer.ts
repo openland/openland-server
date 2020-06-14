@@ -6,7 +6,7 @@ import { inTx } from '@openland/foundationdb';
 export function organizationProfileIndexer() {
     declareSearchIndexer({
         name: 'organization-profile-index',
-        version: 8,
+        version: 9,
         index: 'organization', stream: Store.OrganizationIndexingQueue.updated.stream({ batchSize: 50 })
     }).withProperties({
         name: {
