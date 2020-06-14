@@ -94,7 +94,10 @@ export class SearchIndexer<T, P extends SearchIndexerProperties> {
                         try {
                             log.log(ctx, 'Updating properties of ' + name);
                             await client.indices.putMapping({
-                                index: this.index, type: this.index, body: {
+                                includeTypeName: true,
+                                index: this.index,
+                                type: this.index,
+                                body: {
                                     properties: this.properties
                                 }
                             });
