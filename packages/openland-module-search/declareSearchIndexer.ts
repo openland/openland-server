@@ -25,10 +25,9 @@ export class SearchIndexer<T, P extends SearchIndexerProperties> {
     readonly version: number;
     readonly index: string;
     readonly stream: Stream<T>;
-    readonly client = Modules.Search.elastic.client;
     properties?: SearchIndexerProperties;
-    excludedClusters: string[];
-    includedClusters: string[];
+    readonly excludedClusters: string[];
+    readonly includedClusters: string[];
 
     constructor(opts: { name: string, version: number, index: string, stream: Stream<T>, excludedClusters?: string[], includedClusters?: string[] }) {
         this.name = opts.name;
@@ -40,9 +39,15 @@ export class SearchIndexer<T, P extends SearchIndexerProperties> {
     }
 
     withProperties<Pr extends SearchIndexerProperties>(properties: Pr) {
-        let indexer = new SearchIndexer<T, Pr>({ name: this.name, version: this.version, index: this.index, stream: this.stream });
+        let indexer = new SearchIndexer<T, Pr>({
+            name: this.name,
+            version: this.version,
+            index: this.index,
+            stream: this.stream,
+            excludedClusters: this.excludedClusters,
+            includedClusters: this.includedClusters
+        });
         indexer.properties = properties;
-        indexer.excludedClusters = this.excludedClusters;
         return indexer;
     }
 
