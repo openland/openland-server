@@ -100,6 +100,7 @@ export class SearchIndexer<T, P extends SearchIndexerProperties> {
                             });
                         } catch (e) {
                             if (e.body && e.body.error && e.body.error.type && e.body.error.type === 'illegal_argument_exception') {
+                                log.warn(ctx, e.body);
                                 log.log(ctx, 'Deleting ' + name);
                                 await client.indices.delete({ index: this.index });
                             }
