@@ -21,7 +21,14 @@ const codec = t.type({
     }), t.null]),
     elasticsearch: t.type({
         endpoint: t.string,
-        writable: t.boolean
+        writable: t.boolean,
+        secondary: t.union([
+            t.type({
+                name: t.string,
+                endpoint: t.string
+            }),
+            t.undefined, t.null
+        ])
     }),
     apm: t.union([t.type({
         endpoint: t.string

@@ -42,19 +42,19 @@ export class SearchIndexer<T, P extends SearchIndexerProperties> {
     }
 
     start(handler: (item: T, ctx: Context) => Promise<{ id: string | number, doc: HandlerReturnType<P> } | null>) {
-        if (!Modules.Search.elastic.isWritable) {
+        if (!Modules.Search.elastic.client.writable) {
             return;
         }
         updateReader('index-' + this.name, this.version, this.stream, async (items, first, ctx) => {
             if (first) {
-                if (await this.client.indices.exists({ index: this.index }) !== true) {
+                if (await this.client.writableClient.indices.exists({ index: this.index }) !== true) {
                     log.log(ctx, 'Creating index ' + this.name);
-                    await this.client.indices.create({ index: this.index });
+                    await this.client.writableClient.indices.create({ index: this.index });
                 }
                 if (this.properties) {
                     try {
                         log.log(ctx, 'Updating properties of ' + this.name);
-                        await this.client.indices.putMapping({
+                        await this.client.writableClient.indices.putMapping({
                             index: this.index, type: this.index, body: {
                                 properties: this.properties
                             }
@@ -62,7 +62,7 @@ export class SearchIndexer<T, P extends SearchIndexerProperties> {
                     } catch (e) {
                         if (e.body && e.body.error && e.body.error.type && e.body.error.type === 'illegal_argument_exception') {
                             log.log(ctx, 'Deleting ' + this.name);
-                            await this.client.indices.delete({ index: this.index });
+                            await this.client.writableClient.indices.delete({ index: this.index });
                         }
                         throw e;
                     }
@@ -86,7 +86,7 @@ export class SearchIndexer<T, P extends SearchIndexerProperties> {
             }
             if (converted.length > 0) {
                 try {
-                    let res = await Modules.Search.elastic.client.bulk({
+                    let res = await Modules.Search.elastic.client.writableClient.bulk({
                         body: converted,
                     });
                     if (res.errors) {
