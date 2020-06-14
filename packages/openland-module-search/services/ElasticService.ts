@@ -22,7 +22,7 @@ export class ElasticService {
                     continue;
                 }
                 this.clusters.push(secondary.name);
-                let client = new ES.Client({ host: secondary.endpoint });
+                let client = new ES.Client({ host: secondary.endpoint, apiVersion: secondary.version ? secondary.version : undefined });
                 if (Config.elasticsearch.writable) {
                     this.clusterMap.set(secondary.name, client);
                     log.log(ctx, 'Loaded cluster ' + secondary.name + ': ' + secondary.endpoint);

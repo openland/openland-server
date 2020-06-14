@@ -25,6 +25,7 @@ const codec = t.type({
         clusters: t.union([
             t.array(t.type({
                 name: t.string,
+                version: t.union([t.string, t.undefined, t.null]),
                 endpoint: t.string
             })),
             t.undefined, t.null
