@@ -42,11 +42,11 @@ export async function resolveTurnServices(ctx: Context) {
     // Find closest
     let nearest = pickClosest({
         location: requestLocation,
-        data: ['35.228.24.228', '35.245.151.83'],
-        ipExtractor: (src) => src,
+        data: workers,
+        ipExtractor: (src) => src.appData.ip,
         tolerance: 10
     });
-    let ip = nearest;
+    let ip = nearest.appData.ip as string;
 
     let enableTcp = await Modules.Super.getEnvVar<boolean>(ctx, 'custom-enable-tcp') || false;
 

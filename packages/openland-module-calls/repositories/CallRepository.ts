@@ -48,7 +48,7 @@ export let DEFAULT_CAPABILITIES: Capabilities = {
 @injectable()
 export class CallRepository {
 
-    readonly defaultScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' = 'mesh-no-relay';
+    readonly defaultScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' = 'basic-sfu';
     readonly schedulerMesh = new CallSchedulerMesh('relay');
     readonly schedulerMeshNoRelay = new CallSchedulerMesh('all');
 
@@ -61,7 +61,12 @@ export class CallRepository {
         return await inTx(parent, async (ctx) => {
             let res = await Store.ConferenceRoom.findById(ctx, cid);
             if (!res) {
-                res = await Store.ConferenceRoom.create(ctx, cid, { scheduler: 'mesh', currentScheduler: 'mesh', kind: 'conference', startTime: null });
+                res = await Store.ConferenceRoom.create(ctx, cid, {
+                    scheduler: this.defaultScheduler,
+                    currentScheduler: this.defaultScheduler,
+                    kind: 'conference',
+                    startTime: null
+                });
             }
             return res;
         });
