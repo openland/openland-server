@@ -84,6 +84,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
 
     if (loadDb) {
         // Load NATS
+        logger.log(ctx, 'Connecting to NATS');
         let client = await connect({
             payload: Payload.JSON,
             servers: Config.nats ? Config.nats.endpoints : undefined,

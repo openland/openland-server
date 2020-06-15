@@ -2,13 +2,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: openland-server-calls
-  name: openland-server-calls
+    app: openland-server-api
+  name: openland-server-api
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: openland-server-calls
+      app: openland-server-api
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -17,20 +17,27 @@ spec:
   template:
     metadata:
       labels:
-        app: openland-server-calls
+        app: openland-server-api
     spec:
       containers:
       - env:
         - name: SERVER_ROLES
-          value: calls
+          value: api
         - name: OPENLAND_CONFIG
           value: /secrets/openland/config.json
+        - name: JAEGER_AGENT_HOST
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.hostIP
+        - name: JAEGER_AGENT_PORT
+          value: "6832"
         image: index.docker.io/openland/server:<version>
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
           httpGet:
-            path: /
+            path: /status
             port: 9000
             scheme: HTTP
           initialDelaySeconds: 15
@@ -43,7 +50,7 @@ spec:
           protocol: TCP
         readinessProbe:
           httpGet:
-            path: /
+            path: /status
             port: 9000
         volumeMounts:
         - mountPath: /secrets/openland
