@@ -48,7 +48,7 @@ export let DEFAULT_CAPABILITIES: Capabilities = {
 @injectable()
 export class CallRepository {
 
-    readonly defaultScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' = 'basic-sfu';
+    readonly defaultScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' = 'mesh';
     readonly schedulerMesh = new CallSchedulerMesh('relay');
     readonly schedulerMeshNoRelay = new CallSchedulerMesh('all');
 

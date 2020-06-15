@@ -10,8 +10,14 @@
     "foundationdb": null,
     "nats": null,
     "elasticsearch": {
-        "endpoint": "http://localhost:9200/",
-        "writable": true
+        "primary": "default",
+        "clusters": [
+            {
+                "name": "default",
+                "writable": true,
+                "endpoint": "http://localhost:9200/"
+            }
+        ]
     },
     "stripe": {
         "public": "pk_test_y80EsXGYQdMKMcJ5lifEM4jx",
