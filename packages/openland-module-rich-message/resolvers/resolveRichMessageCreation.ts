@@ -1,6 +1,12 @@
-import { MessageAttachmentFileInput } from '../../openland-module-messaging/MessageInput';
+import {
+    AllMentionSpan,
+    BoldTextSpan, CodeBlockTextSpan, DateTextSpan, InlineCodeTextSpan, InsaneTextSpan, IronyTextSpan, ItalicTextSpan,
+    LinkSpan, LoudTextSpan,
+    MessageAttachmentFileInput,
+    MultiUserMentionSpan, RoomMentionSpan, RotatingTextSpan,
+    UserMentionSpan
+} from '../../openland-module-messaging/MessageInput';
 import { RichMessageInput, SlideInput as RichMessageSlideInput } from '../repositories/RichMessageRepository';
-import { CommentSpan } from '../../openland-module-comments/repositories/CommentsRepository';
 import { IDs, IdsFactory } from '../../openland-module-api/IDs';
 import { Modules } from '../../openland-modules/Modules';
 import { Nullable, OptionalNullable } from '../../openland-module-api/schema/SchemaUtils';
@@ -29,8 +35,24 @@ export interface MentionInput {
     length: number;
 }
 
+export type RichMessageSpan =
+    UserMentionSpan |
+    MultiUserMentionSpan |
+    RoomMentionSpan |
+    LinkSpan |
+    BoldTextSpan |
+    ItalicTextSpan |
+    IronyTextSpan |
+    InlineCodeTextSpan |
+    CodeBlockTextSpan |
+    InsaneTextSpan |
+    LoudTextSpan |
+    RotatingTextSpan |
+    DateTextSpan |
+    AllMentionSpan;
+
 export function resolveSpansInput(input: MessageSpanInput[] = []) {
-    let spans: CommentSpan[] = [];
+    let spans: RichMessageSpan[] = [];
     for (let span of input) {
         if (span.type === 'Bold') {
             spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
@@ -54,7 +76,7 @@ export function resolveSpansInput(input: MessageSpanInput[] = []) {
 }
 
 export function resolveMentionsInput(input: MentionInput[] = []) {
-    let mentions: CommentSpan[] = [];
+    let mentions: RichMessageSpan[] = [];
     for (let mention of input) {
         if (mention.userId) {
             mentions.push({
@@ -89,7 +111,7 @@ export function resolveMentionsInput(input: MentionInput[] = []) {
 }
 
 export async function resolveRichMessageCreation(ctx: Context, input: Input): Promise<RichMessageInput> {
-    let spans: CommentSpan[] = [];
+    let spans: RichMessageSpan[] = [];
 
     //
     // Mentions

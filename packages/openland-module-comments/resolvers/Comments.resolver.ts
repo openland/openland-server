@@ -9,10 +9,10 @@ import {
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { CommentSpan } from '../repositories/CommentsRepository';
 import { Discussion, FeedEvent, Message } from '../../openland-module-db/store';
-import { resolveRichMessageCreation } from '../../openland-module-rich-message/resolvers/resolveRichMessageCreation';
 import { UserError } from '../../openland-errors/UserError';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import CommentSubscriptionTypeRoot = GQLRoots.CommentSubscriptionTypeRoot;
+import { resolveCommentInput } from './resolveCommentInput';
 
 export const Resolver: GQLResolver = {
     CommentsPeer: {
@@ -110,19 +110,19 @@ export const Resolver: GQLResolver = {
 
             if (peerType === 'message') {
                 return await Modules.Comments.addMessageComment(ctx, peerId, uid, {
-                    ...(await resolveRichMessageCreation(ctx, args)),
+                    ...(await resolveCommentInput(ctx, args)),
                     replyToComment,
                     repeatKey: args.repeatKey,
                 });
             } else if (peerType === 'feed_item') {
                 return await Modules.Comments.addFeedItemComment(ctx, peerId, uid, {
-                    ...(await resolveRichMessageCreation(ctx, args)),
+                    ...(await resolveCommentInput(ctx, args)),
                     replyToComment,
                     repeatKey: args.repeatKey,
                 });
             } else if (peerType === 'discussion') {
                 return await Modules.Comments.addDiscussionComment(ctx, peerId, uid, {
-                    ...(await resolveRichMessageCreation(ctx, args)),
+                    ...(await resolveCommentInput(ctx, args)),
                     replyToComment,
                     repeatKey: args.repeatKey,
                 });
