@@ -7,7 +7,6 @@ import { Store } from 'openland-module-db/FDB';
 import { getLeaderboardsChatId, getSuperNotificationsBotId } from './workers/utils';
 import { boldString, buildMessage, heading, insaneString, MessagePart } from '../openland-utils/MessageBuilder';
 import { Organization } from '../openland-module-db/store';
-import { IDs } from '../openland-module-api/IDs';
 
 export const Resolver: GQLResolver = {
     Query: {
@@ -15,7 +14,7 @@ export const Resolver: GQLResolver = {
             return await Modules.Stats.getTrendingRoomsByMessages(ctx, args.from.getTime(), args.to.getTime(), args.size || undefined);
         }),
         groupScreenViews: withUser(async (ctx, args, uid) => {
-            let cid = IDs.Conversation.parse(args.id);
+            // let cid = IDs.Conversation.parse(args.id);
             return 0;
         }),
     },
