@@ -326,41 +326,43 @@ export class StatsModule {
     }
 
     getGroupScreenViewsByPeriod = async (ctx: Context, cid: number, from?: Date | null, to?: Date | null) => {
-        let encryptedId = IDs.Conversation.serialize(cid);
-        let terms: any = [
-            { term: { type: 'track' } },
-            { term: { ['body.isProd']: true } },
-            { term: { ['body.name']: 'invite_landing_view' } },
-            { term: { ['body.args.invite_type']: 'group' } },
-            { match: { ['body.args.entity_id']: { query: encryptedId } } },
-        ];
+        return 0;
 
-        let dateTerm: any = {};
-        if (from) {
-            dateTerm.gte = from.getTime();
-        }
-        if (to) {
-            dateTerm.lte = to.getTime();
-        }
-        if (dateTerm.gte || dateTerm.lte) {
-            terms.push({
-                range: {
-                    ['body.time']: dateTerm
-                }
-            });
-        }
-        let request = await Modules.Search.elastic.client.search({
-            index: 'hyperlog', type: 'hyperlog',
-            size: 0,
-            body: {
-                query: {
-                    bool: {
-                        must: terms,
-                    }
-                }
-            }
-        });
-
-        return (request.hits.total as any).value;
+        // let encryptedId = IDs.Conversation.serialize(cid);
+        // let terms: any = [
+        //     { term: { type: 'track' } },
+        //     { term: { ['body.isProd']: true } },
+        //     { term: { ['body.name']: 'invite_landing_view' } },
+        //     { term: { ['body.args.invite_type']: 'group' } },
+        //     { match: { ['body.args.entity_id']: { query: encryptedId } } },
+        // ];
+        //
+        // let dateTerm: any = {};
+        // if (from) {
+        //     dateTerm.gte = from.getTime();
+        // }
+        // if (to) {
+        //     dateTerm.lte = to.getTime();
+        // }
+        // if (dateTerm.gte || dateTerm.lte) {
+        //     terms.push({
+        //         range: {
+        //             ['body.time']: dateTerm
+        //         }
+        //     });
+        // }
+        // let request = await Modules.Search.elastic.client.search({
+        //     index: 'hyperlog', type: 'hyperlog',
+        //     size: 0,
+        //     body: {
+        //         query: {
+        //             bool: {
+        //                 must: terms,
+        //             }
+        //         }
+        //     }
+        // });
+        //
+        // return (request.hits.total as any).value;
     }
 }
