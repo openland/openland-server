@@ -91,4 +91,10 @@ export default {
             }
         })
     }),
+    /*
+     * Auth events
+     */
+    SmsSentEvent: createModernHyperlogger('sms_sent', {
+        phone: string(),
+    })
 };

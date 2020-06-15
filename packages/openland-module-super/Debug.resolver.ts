@@ -251,7 +251,7 @@ export const Resolver: GQLResolver = {
     },
     Mutation: {
         debugSendSMS: withPermission('super-admin', async (ctx, args) => {
-            await SmsService.sendSms(args.to, args.message);
+            await SmsService.sendSms(ctx, args.to, args.message);
             return true;
         }),
         lifecheck: () => `i'm still ok`,
