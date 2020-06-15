@@ -16,7 +16,7 @@ export const Resolver: GQLResolver = {
         }),
         groupScreenViews: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.id);
-            return await Modules.Stats.getGroupScreenViewsByPeriod(ctx, cid, args.from, args.to);
+            return 0;
         }),
     },
     Mutation: {
