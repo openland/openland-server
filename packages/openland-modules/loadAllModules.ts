@@ -88,7 +88,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
         let client = await connect({
             payload: Payload.JSON,
             servers: Config.nats ? Config.nats.endpoints : undefined,
-            pingInterval: 500,
+            pingInterval: 5000,
             reconnectTimeWait: 1000,
             maxReconnectAttempts: -1,
             noRandomize: true
