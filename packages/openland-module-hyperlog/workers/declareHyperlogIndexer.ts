@@ -6,7 +6,8 @@ export function declareHyperlogIndexer() {
         name: 'hyperlog',
         version: 1,
         index: 'hyperlog',
-        stream: Store.HyperLog.created.stream({ batchSize: 5000 })
+        stream: Store.HyperLog.created.stream({ batchSize: 5000 }),
+        includedClusters: ['default']
     }).withProperties({
         type: {
             type: 'keyword'

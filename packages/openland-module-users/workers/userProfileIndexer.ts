@@ -6,7 +6,7 @@ import { inTx } from '@openland/foundationdb';
 export function userProfileIndexer() {
     declareSearchIndexer({
         name: 'user-profile-index',
-        version: 16,
+        version: 17,
         index: 'user_profile',
         stream: Store.UserIndexingQueue.updated.stream({ batchSize: 50 })
     }).withProperties({

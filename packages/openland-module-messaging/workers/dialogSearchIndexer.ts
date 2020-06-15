@@ -7,7 +7,7 @@ import { DialogNeedReindexEvent } from '../../openland-module-db/store';
 export function dialogSearchIndexer() {
     declareSearchIndexer({
         name: 'dialog-index',
-        version: 9,
+        version: 10,
         index: 'dialog',
         stream: Store.DialogIndexEventStore.createStream({ batchSize: 1500 })
     }).withProperties({

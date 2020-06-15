@@ -5,7 +5,7 @@ import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexe
 export function invitesIndexer() {
     declareSearchIndexer({
         name: 'invites-room-index',
-        version: 3,
+        version: 4,
         index: 'invites-room',
         stream: Store.ChannelInvitation.updated.stream({ batchSize: 50 })
     }).withProperties({

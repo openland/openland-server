@@ -21,7 +21,15 @@ const codec = t.type({
     }), t.null]),
     elasticsearch: t.type({
         endpoint: t.string,
-        writable: t.boolean
+        writable: t.boolean,
+        clusters: t.union([
+            t.array(t.type({
+                name: t.string,
+                version: t.union([t.string, t.undefined, t.null]),
+                endpoint: t.string
+            })),
+            t.undefined, t.null
+        ])
     }),
     apm: t.union([t.type({
         endpoint: t.string

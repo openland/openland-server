@@ -7,7 +7,7 @@ import { Organization } from 'openland-module-db/store';
 export function roomsSearchIndexer() {
     declareSearchIndexer({
         name: 'room-index',
-        version: 13,
+        version: 14,
         index: 'room',
         stream: Store.RoomProfile.updated.stream({ batchSize: 50 })
     }).withProperties({

@@ -6,7 +6,7 @@ import { Modules } from '../../openland-modules/Modules';
 export function messagesIndexer() {
     declareSearchIndexer({
         name: 'message-index',
-        version: 9,
+        version: 10,
         index: 'message',
         stream: Store.Message.updated.stream({ batchSize: 200 })
     }).withProperties({
