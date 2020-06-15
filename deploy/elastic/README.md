@@ -27,7 +27,7 @@ Specify:
 ```
 cluster.name: openland-elastic-mission (same for each node in cluster)
 node.name: openland-elastic-0 (should match VM name)
-network.host: 0.0.0.0
+network.host: 0.0.0.0``
 discovery.seed_hosts: ["127.0.0.1"] (for first node it is 127.0.0.1, but for other is IP of first node)
 ```
 
