@@ -1572,7 +1572,7 @@ export const Resolver: GQLResolver = {
                 if (!room) {
                     throw new NotFoundError();
                 }
-                let settings =  await Store.PremiumChatSettings.findById(ctx, cid);
+                let settings = await Store.PremiumChatSettings.findById(ctx, cid);
                 if (settings) {
                     settings.price = args.price;
                     settings.interval = args.interval === 'MONTH' ? 'month' : args.interval === 'WEEK' ? 'week' : null;
@@ -1632,6 +1632,25 @@ export const Resolver: GQLResolver = {
             });
 
             return true;
+        }),
+        debugSetRoomOwner: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async ctx => {
+                let cid = IDs.Conversation.parse(args.roomId);
+                let uid = IDs.User.parse(args.owner);
+
+                let room = await Store.ConversationRoom.findById(ctx, cid);
+                if (!room) {
+                    return false;
+                }
+                let member = await Store.RoomParticipant.findById(ctx, cid, uid);
+                if (!member) {
+                    return false;
+                }
+                room.ownerId = uid;
+                await room.flush(ctx);
+
+                return true;
+            });
         }),
     },
     Subscription: {

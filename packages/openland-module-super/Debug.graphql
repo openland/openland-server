@@ -180,6 +180,7 @@ extend type Mutation {
     debugSetChatPayments(cid: ID!, price: Int!, interval: WalletSubscriptionInterval): Boolean!
     debugCalcEntitiesCount(entity: String!): Boolean!
     debugCalcEntitiesCountAll: Boolean!
+    debugSetRoomOwner(roomId: ID!, owner: ID!): Boolean!
 }
 
 extend type Subscription {
