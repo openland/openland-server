@@ -9,7 +9,6 @@ import { Context } from '@openland/context';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { injectable } from 'inversify';
 import { Worker } from 'mediakitchen';
-import { randomInt } from 'openland-utils/random';
 import uuid from 'uuid/v4';
 import { convertRtpCapabilitiesToStore, convertRtpParamsToStore } from 'openland-module-calls/kitchen/convert';
 import { pickClosest } from 'openland-utils/geo';
