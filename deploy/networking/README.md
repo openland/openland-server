@@ -68,5 +68,6 @@ Mission DC:
 * Mission Metrics UI: 10.12.0.11
 * Mission Clickhouse: 10.12.0.19
 * Mission Jaeger: 10.12.69.10
-* Mission openland-elastic-0: 10.12.233.241:9200
-* Mission openland-elastic-1: 10.12.126.50:9000
+* Mission openland-elastic-0: 10.12.233.241
+* Mission openland-elastic-1: 10.12.126.50
+* Mission staging-elastic: 10.12.55.42

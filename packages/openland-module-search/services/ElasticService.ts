@@ -16,34 +16,25 @@ export class ElasticService {
 
         // Connected Clusters
         let defaultSet = false;
-        if (Config.elasticsearch.clusters) {
-            for (let secondary of Config.elasticsearch.clusters!) {
-                if (this.clusters.find((v) => v === secondary.name)) {
-                    continue;
-                }
-                this.clusters.push(secondary.name);
-                let client = new ES.Client({ host: secondary.endpoint, apiVersion: secondary.version ? secondary.version : undefined });
-                if (Config.elasticsearch.writable) {
-                    this.clusterMap.set(secondary.name, client);
-                    log.log(ctx, 'Loaded cluster ' + secondary.name + ': ' + secondary.endpoint);
-                }
-                if (secondary.name === 'default') {
-                    this.client = new ElasticClient(client);
-                    defaultSet = true;
-                }
+        for (let cluster of Config.elasticsearch.clusters!) {
+            if (this.clusters.find((v) => v === cluster.name)) {
+                continue;
+            }
+            this.clusters.push(cluster.name);
+            let client = new ES.Client({ host: cluster.endpoint, apiVersion: cluster.version ? cluster.version : undefined });
+            if (cluster.writable !== false) {
+                this.clusterMap.set(cluster.name, client);
+                log.log(ctx, 'Loaded cluster ' + cluster.name + ': ' + cluster.endpoint);
+            }
+            if (cluster.name === Config.elasticsearch.primary) {
+                this.client = new ElasticClient(client);
+                defaultSet = true;
             }
         }
 
         // Use default settings if default endpoint is not explicitly defined
         if (!defaultSet) {
-            let client = new ES.Client({ host: Config.elasticsearch.endpoint });
-            this.client = new ElasticClient(client);
-
-            if (Config.elasticsearch.writable) {
-                log.log(ctx, 'Loaded cluster <default>: ' + Config.elasticsearch.endpoint);
-                this.clusterMap.set('default', client);
-                this.clusters.push('default');
-            }
+            throw Error('Unable to find primary cluster: "' + Config.elasticsearch.primary + '"');
         }
     }
 
