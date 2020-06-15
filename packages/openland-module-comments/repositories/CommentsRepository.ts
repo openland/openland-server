@@ -15,7 +15,7 @@ import {
     ItalicTextSpan,
     LinkSpan,
     LoudTextSpan,
-    MultiUserMentionSpan,
+    MultiUserMentionSpan, OrganizationMentionSpan,
     RoomMentionSpan,
     RotatingTextSpan,
     UserMentionSpan,
@@ -44,7 +44,8 @@ export type CommentSpan =
     LoudTextSpan |
     RotatingTextSpan |
     DateTextSpan |
-    AllMentionSpan;
+    AllMentionSpan |
+    OrganizationMentionSpan;
 
 export interface CommentInput {
     repeatKey?: string | null;

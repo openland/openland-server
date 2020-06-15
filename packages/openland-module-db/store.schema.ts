@@ -476,6 +476,9 @@ export default declareSchema(() => {
             room_mention: struct({
                 offset: integer(), length: integer(), room: integer(),
             }),
+            organization_mention: struct({
+                offset: integer(), length: integer(), organization: integer(),
+            }),
             link: struct({
                 offset: integer(), length: integer(), url: string(),
             }),
