@@ -140,7 +140,7 @@ export const Resolver: GQLResolver = {
             } else if (args.page) {
                 offset = (args.page - 1) * args.first;
             }
-            let total = hits.hits.total;
+            let total = (hits.hits.total as any).value;
 
             return {
                 edges: orgs.map((p, i) => {

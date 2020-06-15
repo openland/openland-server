@@ -380,7 +380,7 @@ export const Resolver: GQLResolver = {
             }
 
             let uids = hits.hits.hits.map((v) => parseInt(v._id, 10));
-            let total = hits.hits.total;
+            let total = (hits.hits.total as any).value;
 
             // Fetch profiles
             let users = (await Promise.all(uids.map((v) => Store.User.findById(ctx, v)))).filter(u => u);
@@ -613,7 +613,7 @@ export const Resolver: GQLResolver = {
             return {
                 globalItems,
                 localItems,
-                cursor: (from + args.first >= hits.hits.total) ? undefined : IDs.MentionSearchCursor.serialize(from + hits.hits.hits.length),
+                cursor: (from + args.first >= (hits.hits.total as any).value) ? undefined : IDs.MentionSearchCursor.serialize(from + hits.hits.hits.length),
             };
         })
     },

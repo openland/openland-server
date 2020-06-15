@@ -654,7 +654,7 @@ export const Resolver: GQLResolver = {
             if (args.after) {
                 offset = parseInt(args.after, 10);
             }
-            let total = hits.hits.total;
+            let total = (hits.hits.total as any).value;
 
             return {
                 edges: rooms.map((p, i) => {

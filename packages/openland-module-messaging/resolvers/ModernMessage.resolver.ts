@@ -1194,10 +1194,10 @@ export const Resolver: GQLResolver = {
             }
 
             let summaryHits = hits.responses!.reduce<{ hits: any[], total: number }>(
-                (acc, val) => ({ hits: acc.hits.concat(val.hits.hits), total: acc.total + val.hits.total }), { hits: [], total: 0 });
+                (acc, val) => ({ hits: acc.hits.concat(val.hits.hits), total: acc.total + (val.hits.total as any).value }), { hits: [], total: 0 });
 
             let messages: (Message | null)[] = await Promise.all(summaryHits.hits.map((v) => Store.Message.findById(ctx, parseInt(v._id, 10))));
-            let offset = hits.responses![0].hits.total;
+            let offset = (hits.responses![0].hits.total as any).value;
             if (args.around || args.before) {
                 offset = Math.max(0, offset - args.first);
             }
@@ -1249,10 +1249,10 @@ export const Resolver: GQLResolver = {
             ]);
 
             return {
-                links: links.hits.total,
-                images: images.hits.total,
-                documents: documents.hits.total,
-                videos: videos.hits.total
+                links: (links.hits.total as any).value,
+                images: (images.hits.total as any).value,
+                documents: (documents.hits.total as any).value,
+                videos: (videos.hits.total as any).value
             };
         }),
     },

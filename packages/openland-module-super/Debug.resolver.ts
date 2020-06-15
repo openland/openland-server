@@ -1464,7 +1464,7 @@ export const Resolver: GQLResolver = {
                         sort: [{createdAt: 'desc'}], query: {bool: {must: [{term: {cid}}]}},
                     },
                 });
-                await Store.RoomMessagesCounter.set(ctx, cid, hits.hits.total);
+                await Store.RoomMessagesCounter.set(ctx, cid, (hits.hits.total as any).value);
             });
 
             return true;
