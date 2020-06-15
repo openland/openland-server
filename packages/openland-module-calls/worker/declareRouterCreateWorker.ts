@@ -19,7 +19,7 @@ export function declareRouterCreateWorker(service: MediaKitchenService, repo: Me
                 return r;
             }
             if (!r.workerId) {
-                r.workerId = await repo.pickWorker(ctx);
+                r.workerId = await repo.pickWorker(ctx, args.ip);
                 logger.log(ctx, 'Picked worker: ' + args.id + ' -> ' + r.workerId);
             }
             return r;
