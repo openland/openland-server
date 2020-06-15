@@ -311,7 +311,7 @@ export const Resolver: GQLResolver = {
                 if (args.after) {
                     offset = parseInt(args.after, 10);
                 }
-                let total = hits.hits.total;
+                let total = (hits.hits.total as any).value;
 
                 return {
                     edges: messages.filter(isDefined).map((p, i) => {
@@ -323,7 +323,6 @@ export const Resolver: GQLResolver = {
                     }), pageInfo: {
                         hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
                         hasPreviousPage: false,
-
                         itemsCount: total,
                         pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
                         currentPage: Math.floor(offset / args.first) + 1,
