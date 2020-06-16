@@ -74,8 +74,8 @@ Useful calculator for splitting network to subnets: http://www.davidc.net/sites/
 * Kubernetes Subnets
 * * 10.32.0.0/18 (openland-server-us-west1/pods)
 * * 10.32.64.0/18 (openland-server-us-west1/services)
-* * 10.32.128.0/18
-* * 10.32.192.0/18
+* * 10.32.128.0/18 (openland-workers-us-west1/pods)
+* * 10.32.192.0/18 (openland-workers-us-west1/services)
 * * 10.33.0.0/18
 * * 10.33.64.0/18
 * * 10.33.128.0/18

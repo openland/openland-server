@@ -44,7 +44,7 @@ spec:
           periodSeconds: 20
           successThreshold: 1
           timeoutSeconds: 1
-        name: openland-server-calls
+        name: openland-server
         ports:
         - containerPort: 9000
           protocol: TCP
