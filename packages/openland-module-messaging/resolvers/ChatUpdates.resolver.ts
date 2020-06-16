@@ -121,43 +121,7 @@ export const Resolver: GQLResolver = {
                 // Fallback cursor
                 let after: string | null = null;
                 if (args.fromState) {
-                    try {
-                        after = IDs.ChatUpdatesCursor.parse(args.fromState);
-                    } catch (e) {
-                        let oldEvents = await Store.ConversationEvent.user.query(ctx, chatId, {
-                            afterCursor: args.fromState
-                        });
-                        if (oldEvents.items.length > 0) {
-                            let events: BaseEvent[] = [];
-                            for (let e of oldEvents.items) {
-                                if (e.kind === 'chat_updated') {
-                                    events.push(ChatUpdatedEvent.create({
-                                        cid: e.cid,
-                                        uid: e.uid!
-                                    }));
-                                } else if (e.kind === 'message_received') {
-                                    events.push(MessageReceivedEvent.create({
-                                        cid: e.cid,
-                                        mid: e.mid!
-                                    }));
-                                } else if (e.kind === 'message_updated') {
-                                    events.push(MessageUpdatedEvent.create({
-                                        cid: e.cid,
-                                        mid: e.mid!
-                                    }));
-                                } else if (e.kind === 'message_deleted') {
-                                    events.push(MessageDeletedEvent.create({
-                                        cid: e.cid,
-                                        mid: e.mid!
-                                    }));
-                                }
-                            }
-                            yield {
-                                items: events,
-                                cursor: '' /* Start of stream */
-                            };
-                        }
-                    }
+                    after = IDs.ChatUpdatesCursor.parse(args.fromState);
                 }
 
                 // New event source

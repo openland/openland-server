@@ -358,7 +358,7 @@ async function fetchMessages(ctx: Context, cid: number, forUid: number, opts: Ra
     messages.items = messages.items.filter(m => !m.hiddenForUids?.includes(forUid));
 
     while (messages.items.length < (opts.limit || 0) && messages.haveMore) {
-        let more = await Store.Message.chat.query(ctx, cid, { ...opts, after });
+        let more = await Store.Message.chat.query(ctx, cid, { ...opts, after, limit: 1 });
         if (more.items.length === 0) {
             messages.haveMore = false;
             return messages;

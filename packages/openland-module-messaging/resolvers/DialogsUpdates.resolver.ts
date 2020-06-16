@@ -5,7 +5,6 @@ import { Store } from 'openland-module-db/FDB';
 import {
     UserDialogBumpEvent, UserDialogCallStateChangedEvent,
     UserDialogDeletedEvent,
-    UserDialogEvent,
     UserDialogMessageDeletedEvent,
     UserDialogMessageReadEvent,
     UserDialogMessageReceivedEvent,
@@ -20,7 +19,6 @@ import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
-import { isDefined } from '../../openland-utils/misc';
 
 export const Resolver: GQLResolver = {
     /*
@@ -183,77 +181,7 @@ export const Resolver: GQLResolver = {
                 let fromState: string | undefined = undefined;
                 let isOldCursor = false;
                 if (args.fromState) {
-                    try {
-                        fromState = IDs.DialogsUpdatesCursor.parse(args.fromState);
-                    } catch (e) {
-                        isOldCursor = true;
-                        // Send old updates
-                        let oldZipedGenerator = await Modules.Messaging.zipUpdatesInBatchesAfter(ctx, ctx.auth.uid!, args.fromState || undefined);
-                        let oldEvents: UserDialogEvent[] = [];
-                        for await (let event of oldZipedGenerator) {
-                            oldEvents.push(...event.items);
-                        }
-                        let converted = oldEvents
-                            .map(event => {
-                                if (event.kind === 'message_received') {
-                                    return UserDialogMessageReceivedEvent.create({
-                                        uid: event.uid,
-                                        cid: event.cid!,
-                                        mid: event.mid!,
-                                    });
-                                } else if (event.kind === 'message_updated') {
-                                    return UserDialogMessageUpdatedEvent.create({
-                                        uid: event.uid,
-                                        cid: event.cid!,
-                                        mid: event.mid!
-                                    });
-                                } else if (event.kind === 'message_deleted') {
-                                    return UserDialogMessageDeletedEvent.create({
-                                        uid: event.uid,
-                                        cid: event.cid!,
-                                        mid: event.mid!
-                                    });
-                                } else if (event.kind === 'message_read') {
-                                    return UserDialogMessageReadEvent.create({
-                                        uid: event.uid,
-                                        cid: event.cid!,
-                                        mid: event.mid
-                                    });
-                                } else if (event.kind === 'title_updated') {
-                                    return UserDialogTitleUpdatedEvent.create({
-                                        uid: event.uid,
-                                        cid: event.cid!,
-                                        title: event.title!
-                                    });
-                                } else if (event.kind === 'dialog_deleted') {
-                                    return UserDialogDeletedEvent.create({
-                                        uid: event.uid,
-                                        cid: event.cid!,
-                                    });
-                                } else if (event.kind === 'dialog_bump') {
-                                    return UserDialogBumpEvent.create({
-                                        uid: event.uid,
-                                        cid: event.cid!,
-                                    });
-                                } else if (event.kind === 'photo_updated') {
-                                    return UserDialogPhotoUpdatedEvent.create({
-                                        uid: event.uid,
-                                        cid: event.cid!,
-                                        photo: event.photo
-                                    });
-                                } else if (event.kind === 'dialog_mute_changed') {
-                                    return UserDialogMuteChangedEvent.create({
-                                        uid: event.uid,
-                                        cid: event.cid!,
-                                        mute: event.mute!
-                                    });
-                                }
-                                return null;
-                            })
-                            .filter(isDefined);
-
-                        yield { items: converted, cursor: '' };
-                    }
+                    fromState = IDs.DialogsUpdatesCursor.parse(args.fromState);
                 }
 
                 if (isOldCursor) {
