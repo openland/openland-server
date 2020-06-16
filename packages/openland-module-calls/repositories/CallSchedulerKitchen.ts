@@ -28,7 +28,7 @@ export class CallSchedulerKitchen implements CallScheduler {
 
     onConferenceStarted = async (ctx: Context, cid: number) => {
         logger.log(ctx, 'Conference Started: ' + cid);
-        let routerId = await this.repo.createRouter(ctx);
+        let routerId = await this.repo.createRouter(ctx, ctx.req.ip ? ctx.req.ip : undefined);
         logger.log(ctx, 'Router created: ' + cid + '->' + routerId);
 
         // Delete kitchen router if exists (due to bug)
