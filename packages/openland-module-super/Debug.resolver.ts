@@ -1653,25 +1653,14 @@ export const Resolver: GQLResolver = {
             });
         }),
         debugApplySchedulerToConferences: withPermission('super-admin', async (parent, args) => {
-            await debugTask(parent.auth.uid!, 'apply-scheduler', async (log) => {
-                try {
-                    let total = 0;
-                    await inTx(parent, async ctx => {
-                        let conferences = await Store.ConferenceRoom.findAll(ctx);
-                        for (let conf of conferences) {
-                            conf.scheduler = args.scheduler === 'SFU' ? 'basic-sfu' : 'mesh';
-                            total++;
-                            if (total % 100) {
-                                await log('Count: ' + total);
-                            }
-                        }
-                    });
-                    await log('Count: ' + total);
-                } catch (e) {
-                    return 'Error: ' + e;
+            let total = 0;
+            await debugTaskForAll(Store.ConferenceRoom, parent.auth.uid!, 'apply-scheduler', async (ctx, id, log) => {
+                let conf = await Store.ConferenceRoom.findById(ctx, id);
+                conf!.scheduler = args.scheduler === 'SFU' ? 'basic-sfu' : 'mesh';
+                total++;
+                if (total % 1000 === 0) {
+                    await log('Total:' + total);
                 }
-
-                return 'success';
             });
             return true;
         }),

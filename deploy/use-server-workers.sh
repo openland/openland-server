@@ -1,0 +1,1 @@
+gcloud container clusters get-credentials openland-workers-us-west1 --region us-west1 --project statecraft-188615

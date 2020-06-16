@@ -1,3 +1,4 @@
+import { Config } from 'openland-config/Config';
 import { createPushWorker } from './workers/PushWorker';
 import { Store } from 'openland-module-db/FDB';
 import { PushRepository } from './repositories/PushRepository';
@@ -7,6 +8,7 @@ import { createWebWorker } from './workers/WebWorker';
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { Push } from './workers/types';
+import WebPush from 'web-push';
 
 @injectable()
 export class PushModule {
@@ -17,8 +19,13 @@ export class PushModule {
     readonly worker = createPushWorker(this.repository);
 
     start = async () => {
-        // Load config
-        require('./PushConfig');
+        if (Config.pushWeb) {
+            WebPush.setVapidDetails(
+                'mailto:support@openland.com',
+                Config.pushWeb.public,
+                Config.pushWeb.private
+            );
+        }
     }
 
     async registerPushApple(ctx: Context, uid: number, tid: string, token: string, bundleId: string, sandbox: boolean) {
