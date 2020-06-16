@@ -347,6 +347,7 @@ function isMessageHiddenForUser(message: Message | Comment | RichMessage, forUid
     }
     return false;
 }
+
 export const Resolver: GQLResolver = {
     ModernMessage: {
         __resolveType(src: ModernMessageRoot) {

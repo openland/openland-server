@@ -171,7 +171,23 @@ export const Resolver: GQLResolver = {
 
                 for await (let event of generator) {
                     if (haveAccess) {
-                        yield event;
+                        let events: BaseEvent[] = [];
+                        for (let ev of event.items) {
+                            if (
+                                ev instanceof MessageReceivedEvent ||
+                                ev instanceof MessageUpdatedEvent ||
+                                ev instanceof MessageDeletedEvent
+                            ) {
+                                if (ev.hiddenForUids?.includes(uid)) {
+                                    continue;
+                                }
+                            }
+                            events.push(ev);
+                        }
+                        yield {
+                            items: events,
+                            cursor: event.cursor
+                        };
                     } else {
                         yield lostAccessEvent;
                         subscription.cancel();
