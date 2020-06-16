@@ -235,6 +235,20 @@ export class HooksModule {
         Modules.Metrics.onChatJoined(ctx, uid, addedByUser);
 
         await Modules.Feed.onAutoSubscriptionPeerNewMember(ctx, uid, 'room', cid);
+
+        /*
+         * Hack for mesto.community
+         */
+        if (cid === 89503) {
+            let mestoDefaultChatIds = [88914, 88912, 88910, 88908, 89740, 91565, 99729, 89805];
+            for (let mestoCid of mestoDefaultChatIds) {
+                let conv = await Store.ConversationRoom.findById(ctx, mestoCid);
+                if (!conv) {
+                    continue;
+                }
+                await Modules.Messaging.room.joinRoom(ctx, mestoCid, uid);
+            }
+        }
     }
 
     onOrgJoin = async (ctx: Context, oid: number, uid: number) => {

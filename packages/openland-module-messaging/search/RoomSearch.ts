@@ -76,7 +76,7 @@ export class RoomSearch {
         } else if (options.page) {
             offset = (options.page - 1) * options.first;
         }
-        let total = hits.hits.total;
+        let total = (hits.hits.total as any).value;
 
         return {
             edges: rooms.map((p, i) => {

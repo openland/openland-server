@@ -28,7 +28,7 @@ export const getOnboardingCounters = async (startDate: number) => {
             },
         }, size: 0,
     });
-    let newUserEntrances = activationsData.hits.total;
+    let newUserEntrances = (activationsData.hits.total as any).value;
 
     const newMobileUsersQuery = await Modules.Search.elastic.client.search({
         index: 'hyperlog', type: 'hyperlog', body: {
@@ -45,7 +45,7 @@ export const getOnboardingCounters = async (startDate: number) => {
             },
         }, size: 0,
     });
-    const newMobileUsers = newMobileUsersQuery.hits.total;
+    const newMobileUsers = (newMobileUsersQuery.hits.total as any).value;
 
     const newSendersQuery = await Modules.Search.elastic.client.search({
         index: 'hyperlog', type: 'hyperlog', body: {
@@ -62,7 +62,7 @@ export const getOnboardingCounters = async (startDate: number) => {
             },
         }, size: 0,
     });
-    const newSenders = newSendersQuery.hits.total;
+    const newSenders = (newSendersQuery.hits.total as any).value;
 
     const newInvitersQuery = await Modules.Search.elastic.client.search({
         index: 'hyperlog', type: 'hyperlog', body: {
@@ -79,7 +79,7 @@ export const getOnboardingCounters = async (startDate: number) => {
             },
         }, size: 0,
     });
-    const newInviters = newInvitersQuery.hits.total;
+    const newInviters = (newInvitersQuery.hits.total as any).value;
 
     const newThreeLikeGiversQuery = await Modules.Search.elastic.client.search({
         index: 'hyperlog', type: 'hyperlog', body: {
@@ -96,7 +96,7 @@ export const getOnboardingCounters = async (startDate: number) => {
             },
         }, size: 0,
     });
-    const newThreeLikeGivers = newThreeLikeGiversQuery.hits.total;
+    const newThreeLikeGivers = (newThreeLikeGiversQuery.hits.total as any).value;
 
     const newThreeLikeGettersQuery = await Modules.Search.elastic.client.search({
         index: 'hyperlog', type: 'hyperlog', body: {
@@ -113,7 +113,7 @@ export const getOnboardingCounters = async (startDate: number) => {
             },
         }, size: 0,
     });
-    const newThreeLikeGetters = newThreeLikeGettersQuery.hits.total;
+    const newThreeLikeGetters = (newThreeLikeGettersQuery.hits.total as any).value;
 
     let newAboutFillersData = await Modules.Search.elastic.client.search({
         index: 'hyperlog', type: 'hyperlog', // scroll: '1m',
@@ -200,7 +200,7 @@ export const getEngagementCounters =  async (startDate: number) => {
     });
 
     let senders = sendersData.aggregations.senders.value;
-    let messagesSent = sendersData.hits.total;
+    let messagesSent = (sendersData.hits.total as any).value;
 
     let todayLikersData = await Modules.Search.elastic.client.search({
         index: 'hyperlog', type: 'hyperlog', // scroll: '1m',

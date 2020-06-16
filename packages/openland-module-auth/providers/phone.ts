@@ -101,7 +101,7 @@ export function initPhoneAuthProvider(app: Express) {
             // Create one time code
             let code = await phoneCode.create(ctx, { phone, authToken: base64.encodeBuffer(randomBytes(64)) });
             try {
-                await SmsService.sendSms(phone, `Openland code: ${code.code}. Valid for 5 minutes.`);
+                await SmsService.sendSms(ctx, phone, `Openland code: ${code.code}. Valid for 5 minutes.`);
             } catch (e) {
                 if (e.code && e.code === 21211) {
                     throw new HttpError('wrong_phone');

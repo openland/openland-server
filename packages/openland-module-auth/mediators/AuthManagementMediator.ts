@@ -135,7 +135,7 @@ export class AuthManagementMediator {
             let code = await phonePairCode.create(ctx, {phone, uid});
 
             // Send code
-            await SmsService.sendSms(phone, `Openland code: ${code.code}. Valid for 5 minutes.`);
+            await SmsService.sendSms(ctx, phone, `Openland code: ${code.code}. Valid for 5 minutes.`);
             await phonePairSMSThrottle.onFire(ctx, phone);
 
             return code.id;

@@ -53,7 +53,7 @@ export const Resolver: GQLResolver = {
 
             return {
                 items: roomHits.hits.hits.map(a => parseInt(a._id, 10)),
-                cursor: roomHits.hits.total <= (from + args.first) ? null : IDs.DiscoverTopPremiumCursor.serialize(from + args.first),
+                cursor: (roomHits.hits.total as any).value <= (from + args.first) ? null : IDs.DiscoverTopPremiumCursor.serialize(from + args.first),
             };
         }),
         discoverTopFree: withAny(async (ctx, args) => {
@@ -82,7 +82,7 @@ export const Resolver: GQLResolver = {
 
             return {
                 items: roomHits.hits.hits.map(a => parseInt(a._id, 10)),
-                cursor: roomHits.hits.total <= (from + args.first) ? null : IDs.DiscoverTopFreeCursor.serialize(from + args.first),
+                cursor: (roomHits.hits.total as any).value <= (from + args.first) ? null : IDs.DiscoverTopFreeCursor.serialize(from + args.first),
             };
         }),
         discoverNewAndGrowing: withAny(async (ctx, args) => {
@@ -121,7 +121,7 @@ export const Resolver: GQLResolver = {
 
             return {
                 items: hits.hits.hits.map(a => parseInt(a._id, 10)),
-                cursor: hits.hits.total > (from + args.first) ? (from + args.first).toString() : null,
+                cursor: (hits.hits.total as any).value > (from + args.first) ? (from + args.first).toString() : null,
             };
         }),
     }

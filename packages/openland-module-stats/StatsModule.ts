@@ -361,6 +361,6 @@ export class StatsModule {
             }
         });
 
-        return request.hits.total;
+        return (request.hits.total as any).value;
     }
 }

@@ -1,3 +1,4 @@
+import { geoIP } from 'openland-utils/geoIP';
 import { KitchenProducerParams, KitchenConsumerParams } from './types';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { CallSchedulerKitchen } from '../repositories/CallSchedulerKitchen';
@@ -8,9 +9,9 @@ import { Context } from '@openland/context';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { injectable } from 'inversify';
 import { Worker } from 'mediakitchen';
-import { randomInt } from 'openland-utils/random';
 import uuid from 'uuid/v4';
 import { convertRtpCapabilitiesToStore, convertRtpParamsToStore } from 'openland-module-calls/kitchen/convert';
+import { pickClosest } from 'openland-utils/geo';
 
 const logger = createLogger('mediakitchen');
 
@@ -18,7 +19,7 @@ const logger = createLogger('mediakitchen');
 export class MediaKitchenRepository {
 
     // Router tasks
-    readonly routerCreateQueue = new WorkQueue<{ id: string }>('kitchen-router-create', -1);
+    readonly routerCreateQueue = new WorkQueue<{ id: string, ip: string | undefined }>('kitchen-router-create', -1);
     readonly routerDeleteQueue = new WorkQueue<{ id: string }>('kitchen-router-delete', -1);
 
     // Transport tasks
@@ -124,14 +125,31 @@ export class MediaKitchenRepository {
         });
     }
 
-    async pickWorker(parent: Context) {
+    async pickWorker(parent: Context, ip: string | undefined) {
         return await inTx(parent, async (ctx) => {
             let active = await Store.KitchenWorker.active.findAll(ctx);
             if (active.length === 0) {
                 throw Error('No workers available');
             }
-            let index = randomInt(0, active.length);
-            return active[index].id;
+
+            // Resolve location
+            let requestLocation = { lat: 37.773972, long: -122.431297 }; // Default is SF
+            if (ip) {
+                let geo = geoIP(ip);
+                if (geo.coordinates) {
+                    requestLocation = geo.coordinates;
+                }
+            }
+
+            // Resolve Closest Worker
+            let nearest = pickClosest({
+                location: requestLocation,
+                data: active,
+                ipExtractor: (src) => src.appData.ip,
+                tolerance: 10
+            });
+
+            return nearest.id;
         });
     }
 
@@ -139,14 +157,14 @@ export class MediaKitchenRepository {
     // Routers
     //
 
-    async createRouter(parent: Context) {
+    async createRouter(parent: Context, ip: string | undefined) {
         return await inTx(parent, async (ctx) => {
             let id = uuid();
             await Store.KitchenRouter.create(ctx, id, {
                 state: 'creating'
             });
             await this.onRouterCreating(ctx, id);
-            await this.routerCreateQueue.pushWork(ctx, { id });
+            await this.routerCreateQueue.pushWork(ctx, { id, ip });
             return id;
         });
     }
