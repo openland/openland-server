@@ -1659,7 +1659,7 @@ export const Resolver: GQLResolver = {
                     await inTx(parent, async ctx => {
                         let conferences = await Store.ConferenceRoom.findAll(ctx);
                         for (let conf of conferences) {
-                            conf.scheduler = args.scheduler === 'SFU' ? 'basic-sfu' : 'mesh-no-relay';
+                            conf.scheduler = args.scheduler === 'SFU' ? 'basic-sfu' : 'mesh';
                             total++;
                             if (total % 100) {
                                 await log('Count: ' + total);
