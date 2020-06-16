@@ -2,13 +2,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: openland-server-calls
-  name: openland-server-calls
+    app: openland-server-delivery
+  name: openland-server-delivery
 spec:
-  replicas: 2
+  replicas: 6
   selector:
     matchLabels:
-      app: openland-server-calls
+      app: openland-server-delivery
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -17,12 +17,12 @@ spec:
   template:
     metadata:
       labels:
-        app: openland-server-calls
+        app: openland-server-delivery
     spec:
       containers:
       - env:
         - name: SERVER_ROLES
-          value: calls
+          value: delivery
         - name: OPENLAND_CONFIG
           value: /secrets/openland/config.json
         image: index.docker.io/openland/server:<version>

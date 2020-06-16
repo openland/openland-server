@@ -1,0 +1,1 @@
+kubectl get secret openland-config -o jsonpath="{.data.config\.json}" | base64 --decode > config.json

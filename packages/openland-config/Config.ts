@@ -40,7 +40,50 @@ const codec = t.type({
         database: t.string,
         user: t.string,
         password: t.string
-    })
+    }),
+
+    pushWeb: t.union([
+        t.type({
+            private: t.string,
+            public: t.string
+        }),
+        t.undefined,
+        t.null
+    ]),
+    pushApple: t.union([
+        t.type({
+            teams: t.array(t.type({
+                key: t.string,
+                keyId: t.string,
+                teamId: t.string,
+                bundles: t.array(t.string)
+            }))
+        }),
+        t.undefined,
+        t.null
+    ]),
+    pushGoogle: t.union([
+        t.type({
+            accounts: t.array(t.type({
+                key: t.type({
+                    type: t.string,
+                    project_id: t.string,
+                    private_key_id: t.string,
+                    private_key: t.string,
+                    client_email: t.string,
+                    client_id: t.string,
+                    auth_uri: t.string,
+                    token_uri: t.string,
+                    auth_provider_x509_cert_url: t.string,
+                    client_x509_cert_url: t.string
+                }),
+                endpoint: t.string,
+                packages: t.array(t.string)
+            }))
+        }),
+        t.undefined,
+        t.null
+    ])
 });
 
 let configuration: t.TypeOf<typeof codec> | undefined = undefined;
@@ -121,6 +164,33 @@ class ConfigProvider {
         loadConfigIfNeeded();
         if (configuration!.apm) {
             return configuration!.apm!;
+        } else {
+            return null;
+        }
+    }
+
+    get pushWeb() {
+        loadConfigIfNeeded();
+        if (configuration!.pushWeb) {
+            return configuration!.pushWeb;
+        } else {
+            return null;
+        }
+    }
+
+    get pushApple() {
+        loadConfigIfNeeded();
+        if (configuration!.pushApple) {
+            return configuration!.pushApple;
+        } else {
+            return null;
+        }
+    }
+
+    get pushGoogle() {
+        loadConfigIfNeeded();
+        if (configuration!.pushGoogle) {
+            return configuration!.pushGoogle;
         } else {
             return null;
         }

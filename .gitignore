@@ -13,3 +13,5 @@ server/out
 workspace.xml
 .idea/
 config_prod.json
+deploy/production-config.json
+deploy/config.json
