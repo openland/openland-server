@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    k8s-app: filebeat
+  name: filebeat-inputs
+  namespace: kube-system
+data:
+  kubernetes.yml: |-
+    - type: docker
+      containers.ids:
+      - "*"
+      json.overwrite_keys: true
+      json.keys_under_root: true
+      json.add_error_key: true
+      json.ignore_decoding_error: true
+      processors:
+        - drop_fields:
+            when:
+              has_fields: ['kubernetes.labels.app']
+            fields:
+              - 'kubernetes.labels.app'
+        - add_kubernetes_metadata:
+        - drop_event:
+            when:
+              equals:
+                kubernetes.container.name: "filebeat"
