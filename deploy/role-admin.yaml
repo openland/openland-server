@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: openland-server-admin
+  name: openland-server-admin
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: openland-server-admin
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: openland-server-admin
+    spec:
+      containers:
+      - env:
+        - name: SERVER_ROLES
+          value: admin
+        - name: OPENLAND_CONFIG
+          value: /secrets/openland/config.json
+        image: index.docker.io/openland/server:<version>
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 8319
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: openland-server
+        ports:
+        - containerPort: 8319
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8319
+        volumeMounts:
+        - mountPath: /secrets/openland
+          name: openland-config
+          readOnly: true
+      imagePullSecrets:
+      - name: openland-docker
+      restartPolicy: Always
+      volumes:
+      - name: openland-config
+        secret:
+          defaultMode: 420
+          secretName: openland-config
