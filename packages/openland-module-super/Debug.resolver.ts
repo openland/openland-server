@@ -1661,7 +1661,7 @@ export const Resolver: GQLResolver = {
                         for (let conf of conferences) {
                             conf.scheduler = args.scheduler === 'SFU' ? 'basic-sfu' : 'mesh';
                             total++;
-                            if (total % 100) {
+                            if (total % 100 === 0) {
                                 await log('Count: ' + total);
                             }
                         }
