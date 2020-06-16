@@ -15,7 +15,7 @@ export async function resolveTurnServices(ctx: Context) {
         .filter((v) => v.appData && typeof v.appData.ip === 'string');
 
     // Resolve twillio turn servers if workers are missing or twillio is enforced
-    if (twillioApi && Config.environment === 'production' && (!useCustomTurns || workers.length === 0)) {
+    if (twillioApi && Config.environment === 'production' && !useCustomTurns || workers.length === 0) {
         let now = Date.now();
         if (iceServers) {
             if (now < iceServerExpire!) {
@@ -39,6 +39,13 @@ export async function resolveTurnServices(ctx: Context) {
         requestLocation = ctx.req.latLong;
     }
 
+    let turns: {
+        ip: string,
+        urls: string[],
+        username: string,
+        credential: string
+    }[] = [];
+
     // Find closest
     let nearest = pickClosest({
         location: requestLocation,
@@ -49,13 +56,6 @@ export async function resolveTurnServices(ctx: Context) {
     let ip = nearest.appData.ip as string;
 
     let enableTcp = await Modules.Super.getEnvVar<boolean>(ctx, 'custom-enable-tcp') || false;
-
-    let turns: {
-        ip: string,
-        urls: string[],
-        username: string,
-        credential: string
-    }[] = [];
 
     const stun = {
         ip: ip,
