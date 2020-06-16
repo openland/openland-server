@@ -96,7 +96,8 @@ export class MessagingRepository {
 
             Store.ConversationEventStore.post(ctx, cid, MessageReceivedEvent.create({
                 cid,
-                mid
+                mid,
+                hiddenForUids: message.hiddenForUids || []
             }));
 
             //
@@ -165,7 +166,8 @@ export class MessagingRepository {
 
             Store.ConversationEventStore.post(ctx, message!.cid, MessageUpdatedEvent.create({
                 cid: message!.cid,
-                mid
+                mid,
+                hiddenForUids: message.hiddenForUids || []
             }));
         });
     }
@@ -190,7 +192,8 @@ export class MessagingRepository {
 
             Store.ConversationEventStore.post(ctx, message!.cid, MessageDeletedEvent.create({
                 cid: message!.cid,
-                mid
+                mid,
+                hiddenForUids: message.hiddenForUids || []
             }));
         });
     }

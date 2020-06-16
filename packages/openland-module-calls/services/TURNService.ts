@@ -39,6 +39,13 @@ export async function resolveTurnServices(ctx: Context) {
         requestLocation = ctx.req.latLong;
     }
 
+    let turns: {
+        ip: string,
+        urls: string[],
+        username: string,
+        credential: string
+    }[] = [];
+
     // Find closest
     let nearest = pickClosest({
         location: requestLocation,
@@ -49,13 +56,6 @@ export async function resolveTurnServices(ctx: Context) {
     let ip = nearest.appData.ip as string;
 
     let enableTcp = await Modules.Super.getEnvVar<boolean>(ctx, 'custom-enable-tcp') || false;
-
-    let turns: {
-        ip: string,
-        urls: string[],
-        username: string,
-        credential: string
-    }[] = [];
 
     const stun = {
         ip: ip,

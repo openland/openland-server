@@ -19969,11 +19969,13 @@ export class ChatUpdatedEvent extends BaseEvent {
 const messageReceivedEventCodec = c.struct({
     cid: c.integer,
     mid: c.integer,
+    hiddenForUids: c.optional(c.array(c.integer)),
 });
 
 interface MessageReceivedEventShape {
     cid: number;
     mid: number;
+    hiddenForUids?: (number)[] | null | undefined;
 }
 
 export class MessageReceivedEvent extends BaseEvent {
@@ -19996,16 +19998,19 @@ export class MessageReceivedEvent extends BaseEvent {
 
     get cid(): number { return this.raw.cid; }
     get mid(): number { return this.raw.mid; }
+    get hiddenForUids(): (number)[] | null { return this.raw.hiddenForUids; }
 }
 
 const messageUpdatedEventCodec = c.struct({
     cid: c.integer,
     mid: c.integer,
+    hiddenForUids: c.optional(c.array(c.integer)),
 });
 
 interface MessageUpdatedEventShape {
     cid: number;
     mid: number;
+    hiddenForUids?: (number)[] | null | undefined;
 }
 
 export class MessageUpdatedEvent extends BaseEvent {
@@ -20028,16 +20033,19 @@ export class MessageUpdatedEvent extends BaseEvent {
 
     get cid(): number { return this.raw.cid; }
     get mid(): number { return this.raw.mid; }
+    get hiddenForUids(): (number)[] | null { return this.raw.hiddenForUids; }
 }
 
 const messageDeletedEventCodec = c.struct({
     cid: c.integer,
     mid: c.integer,
+    hiddenForUids: c.optional(c.array(c.integer)),
 });
 
 interface MessageDeletedEventShape {
     cid: number;
     mid: number;
+    hiddenForUids?: (number)[] | null | undefined;
 }
 
 export class MessageDeletedEvent extends BaseEvent {
@@ -20060,6 +20068,7 @@ export class MessageDeletedEvent extends BaseEvent {
 
     get cid(): number { return this.raw.cid; }
     get mid(): number { return this.raw.mid; }
+    get hiddenForUids(): (number)[] | null { return this.raw.hiddenForUids; }
 }
 
 const dialogNeedReindexEventCodec = c.struct({

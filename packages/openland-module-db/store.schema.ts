@@ -657,14 +657,17 @@ export default declareSchema(() => {
     event('MessageReceivedEvent', () => {
         field('cid', integer());
         field('mid', integer());
+        field('hiddenForUids', optional(array(integer())));
     });
     event('MessageUpdatedEvent', () => {
         field('cid', integer());
         field('mid', integer());
+        field('hiddenForUids', optional(array(integer())));
     });
     event('MessageDeletedEvent', () => {
         field('cid', integer());
         field('mid', integer());
+        field('hiddenForUids', optional(array(integer())));
     });
     eventStore('ConversationEventStore', () => {
         primaryKey('cid', integer());

@@ -33,6 +33,7 @@ import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { isDefined } from '../../openland-utils/misc';
 import MessageReactionTypeRoot = GQLRoots.MessageReactionTypeRoot;
 import { InvalidInputError } from '../../openland-errors/InvalidInputError';
+import { RangeQueryOptions } from '@openland/foundationdb-entity';
 
 export function hasMention(message: Message | RichMessage, uid: number) {
     if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
@@ -347,6 +348,35 @@ function isMessageHiddenForUser(message: Message | Comment | RichMessage, forUid
     }
     return false;
 }
+
+async function fetchMessages(ctx: Context, cid: number, forUid: number, opts: RangeQueryOptions<number>) {
+    let messages = await Store.Message.chat.query(ctx, cid, opts);
+    if (messages.items.length === 0) {
+        return messages;
+    }
+    let after = messages.items[messages.items.length - 1].id;
+    messages.items = messages.items.filter(m => !m.hiddenForUids?.includes(forUid));
+
+    while (messages.items.length < (opts.limit || 0) && messages.haveMore) {
+        let more = await Store.Message.chat.query(ctx, cid, { ...opts, after });
+        if (more.items.length === 0) {
+            messages.haveMore = false;
+            return messages;
+        }
+        after = more.items[more.items.length - 1].id;
+
+        let filtered = more.items.filter(m => !m.hiddenForUids?.includes(forUid));
+        messages.items.push(...filtered);
+        messages.haveMore = more.haveMore;
+        messages.cursor = more.cursor;
+    }
+    if (opts.limit) {
+        messages.items = messages.items.slice(0, opts.limit);
+    }
+
+    return messages;
+}
+
 export const Resolver: GQLResolver = {
     ModernMessage: {
         __resolveType(src: ModernMessageRoot) {
@@ -1033,7 +1063,7 @@ export const Resolver: GQLResolver = {
                     reverse: true
                 })).items;
             }
-            return (await Store.Message.chat.query(ctx, roomId, {limit: args.first!, reverse: true})).items;
+            return(await fetchMessages(ctx, roomId, uid, {limit: args.first!, reverse: true})).items;
         }),
 
         gammaMessages: withUser(async (ctx, args, uid) => {
@@ -1065,7 +1095,7 @@ export const Resolver: GQLResolver = {
                 let after: Message[] = [];
 
                 if (beforeId && await Store.Message.findById(ctx, beforeId)) {
-                    let beforeQuery = (await Store.Message.chat.query(ctx, roomId, {
+                    let beforeQuery = (await fetchMessages(ctx, roomId, uid, {
                         after: beforeId,
                         limit: args.first!,
                         reverse: true
@@ -1074,7 +1104,7 @@ export const Resolver: GQLResolver = {
                     haveMoreBackward = beforeQuery.haveMore;
                 }
                 if (afterId && await Store.Message.findById(ctx, afterId)) {
-                    let afterQuery = (await Store.Message.chat.query(ctx, roomId, {
+                    let afterQuery = (await fetchMessages(ctx, roomId, uid, {
                         after: afterId,
                         limit: args.first!
                     }));
@@ -1084,12 +1114,14 @@ export const Resolver: GQLResolver = {
                 let aroundMessage: Message | undefined | null;
                 if (aroundId) {
                     aroundMessage = await Store.Message.findById(ctx, aroundId);
+                    if (aroundMessage && aroundMessage.hiddenForUids?.includes(uid)) {
+                        aroundMessage = null;
+                    }
                 }
-
                 messages = [...after, ...(aroundMessage && !aroundMessage.deleted) ? [aroundMessage] : [], ...before];
             } else {
                 haveMoreForward = false;
-                let beforeQuery = (await Store.Message.chat.query(ctx, roomId, {limit: args.first!, reverse: true}));
+                let beforeQuery = (await fetchMessages(ctx, roomId, uid, {limit: args.first!, reverse: true}));
                 messages = beforeQuery.items;
                 haveMoreBackward = beforeQuery.haveMore;
             }
