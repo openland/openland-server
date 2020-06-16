@@ -1,3 +1,4 @@
+import { Config } from 'openland-config/Config';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { CallSchedulerKitchen } from './CallSchedulerKitchen';
 import { CallSchedulerMesh } from './CallSchedulerMesh';
@@ -48,7 +49,7 @@ export let DEFAULT_CAPABILITIES: Capabilities = {
 @injectable()
 export class CallRepository {
 
-    readonly defaultScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' = 'mesh';
+    readonly defaultScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' = Config.environment === 'production' ? 'basic-sfu' : 'mesh';
     readonly schedulerMesh = new CallSchedulerMesh('relay');
     readonly schedulerMeshNoRelay = new CallSchedulerMesh('all');
 
