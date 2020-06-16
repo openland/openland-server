@@ -1,6 +1,6 @@
+import { Config } from 'openland-config/Config';
 import { Context } from '@openland/context';
 import { Modules } from 'openland-modules/Modules';
-import { PushConfig } from './PushConfig';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { createLogger } from '@openland/log';
 import { withPermission } from '../openland-module-api/Resolvers';
@@ -11,7 +11,7 @@ const pushLog = createLogger('push');
 export const Resolver: GQLResolver = {
     Query: {
         pushSettings: () => ({
-            webPushKey: PushConfig.webPush && PushConfig.webPush.public
+            webPushKey: Config.pushWeb && Config.pushWeb.public
         })
     },
     Mutation: {

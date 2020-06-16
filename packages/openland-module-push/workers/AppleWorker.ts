@@ -1,4 +1,5 @@
 import APN from 'apn';
+import { Config } from 'openland-config/Config';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { ApplePushTask } from './types';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
@@ -6,7 +7,6 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { handleFail } from './util/handleFail';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { inTx } from '@openland/foundationdb';
-import { PushConfig } from 'openland-module-push/PushConfig';
 import { createLogger } from '@openland/log';
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();
@@ -16,7 +16,7 @@ const pushFail = createHyperlogger<{ uid: number, tokenId: string, failures: num
 
 export function createAppleWorker(repo: PushRepository) {
     let queue = new WorkQueue<ApplePushTask>('push_sender_apns');
-    if (PushConfig.apple) {
+    if (Config.pushApple) {
         if (serverRoleEnabled('workers')) {
             for (let i = 0; i < 10; i++) {
                 queue.addWorker(async (task, root) => {
@@ -25,7 +25,7 @@ export function createAppleWorker(repo: PushRepository) {
                         return;
                     }
 
-                    let team = PushConfig.apple!.find((v) => v.bundles.indexOf(token!.bundleId) >= 0);
+                    let team = Config.pushApple!.teams!.find((v) => v.bundles.indexOf(token!.bundleId) >= 0);
                     if (team) {
                         if (!providers.has(token.sandbox)) {
                             providers.set(token.sandbox, new Map());
