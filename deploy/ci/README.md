@@ -37,6 +37,14 @@ sudo dpkg -i foundationdb-server_6.2.15-1_amd64.deb
 sudo su -
 curl -L https://getfly.fly.dev/install.sh | sh
 
+## Rancher
+wget https://releases.rancher.com/cli2/v2.4.3/rancher-linux-amd64-v2.4.3.tar.gz
+tar -xvf rancher-linux-amd64-v2.4.3.tar.gz
+sudo mv ./rancher-v2.4.3/rancher /usr/bin/
+
+## Openland Secondary K8S
+Copy config to /home/teamcity/openland-secondary.yaml
+
 ## Agent
 sudo mkdir /opt/teamcity
 cd /opt/teamcity
