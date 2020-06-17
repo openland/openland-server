@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '8daa21490e1d9a0d5111c258bcd92f2d';
+export const GQL_SPEC_VERSION = '36eb7f0b623984aa0056a5084c4848b0';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2210,7 +2210,6 @@ export namespace GQL {
         debugCalcEntitiesCountAll: boolean;
         debugSetRoomOwner: boolean;
         debugApplySchedulerToConferences: boolean;
-        debugReindexSharedMediaForMessages: boolean;
         settingsUpdate: Settings;
         sendEmailChangeCode: string;
         changeEmail: boolean;
@@ -2730,8 +2729,9 @@ export namespace GQL {
         roomId: string;
         owner: string;
     }
-    export interface MutationDebugApplySchedulerToConferencesArgs { }
-    export interface MutationDebugReindexSharedMediaForMessagesArgs { }
+    export interface MutationDebugApplySchedulerToConferencesArgs {
+        scheduler: ConferenceStrategy;
+    }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
         uid: OptionalNullable<string>;
@@ -4164,7 +4164,6 @@ export namespace GQL {
         lastReadedMessage: Nullable<ModernMessage>;
         chatSharedMedia: SharedMediaConnection;
         chatSharedMediaCounters: SharedMediaCounters;
-        alphaChatSharedMedia: AlphaSharedMediaConnection;
         room: Nullable<Room>;
         rooms: Room[];
         roomSuper: Nullable<RoomSuper>;
@@ -4626,14 +4625,6 @@ export namespace GQL {
     }
     export interface QueryChatSharedMediaCountersArgs {
         chatId: string;
-    }
-    export interface QueryAlphaChatSharedMediaArgs {
-        chatId: string;
-        mediaTypes: SharedMediaType[];
-        first: number;
-        after: OptionalNullable<string>;
-        before: OptionalNullable<string>;
-        around: OptionalNullable<string>;
     }
     export interface QueryRoomArgs {
         id: string;
@@ -5399,20 +5390,6 @@ export namespace GQL {
     }
     export interface SharedMediaConnectionEdgesArgs { }
     export interface SharedMediaConnectionPageInfoArgs { }
-    export interface SharedMediaEdge {
-        message: ModernMessage;
-        attachment: ModernMessageAttachment;
-    }
-    export interface SharedMediaEdgeMessageArgs { }
-    export interface SharedMediaEdgeAttachmentArgs { }
-    export interface AlphaSharedMediaConnection {
-        edges: SharedMediaEdge[];
-        hasNext: boolean;
-        hasPrevious: boolean;
-    }
-    export interface AlphaSharedMediaConnectionEdgesArgs { }
-    export interface AlphaSharedMediaConnectionHasNextArgs { }
-    export interface AlphaSharedMediaConnectionHasPreviousArgs { }
     export interface ImageFallback {
         photo: string;
         text: string;
@@ -5428,11 +5405,9 @@ export namespace GQL {
     export interface ModernMessageAttachment {
         id: string;
         fallback: string;
-        sharedMediaCursor: string;
     }
     export interface ModernMessageAttachmentIdArgs { }
     export interface ModernMessageAttachmentFallbackArgs { }
-    export interface ModernMessageAttachmentSharedMediaCursorArgs { }
     export interface MessageRichAttachment extends ModernMessageAttachment {
         id: string;
         title: Nullable<string>;
@@ -5448,7 +5423,6 @@ export namespace GQL {
         socialImagePreview: Nullable<string>;
         keyboard: Nullable<MessageKeyboard>;
         fallback: string;
-        sharedMediaCursor: string;
     }
     export interface MessageRichAttachmentIdArgs { }
     export interface MessageRichAttachmentTitleArgs { }
@@ -5464,41 +5438,34 @@ export namespace GQL {
     export interface MessageRichAttachmentSocialImagePreviewArgs { }
     export interface MessageRichAttachmentKeyboardArgs { }
     export interface MessageRichAttachmentFallbackArgs { }
-    export interface MessageRichAttachmentSharedMediaCursorArgs { }
     export interface MessageAttachmentFile extends ModernMessageAttachment {
         id: string;
         fileId: string;
         fileMetadata: FileMetadata;
         filePreview: Nullable<string>;
         fallback: string;
-        sharedMediaCursor: string;
     }
     export interface MessageAttachmentFileIdArgs { }
     export interface MessageAttachmentFileFileIdArgs { }
     export interface MessageAttachmentFileFileMetadataArgs { }
     export interface MessageAttachmentFileFilePreviewArgs { }
     export interface MessageAttachmentFileFallbackArgs { }
-    export interface MessageAttachmentFileSharedMediaCursorArgs { }
     export interface MessageAttachmentPost extends ModernMessageAttachment {
         id: string;
         post: FeedItem;
         fallback: string;
-        sharedMediaCursor: string;
     }
     export interface MessageAttachmentPostIdArgs { }
     export interface MessageAttachmentPostPostArgs { }
     export interface MessageAttachmentPostFallbackArgs { }
-    export interface MessageAttachmentPostSharedMediaCursorArgs { }
     export interface MessageAttachmentPurchase extends ModernMessageAttachment {
         id: string;
         fallback: string;
         purchase: Purchase;
-        sharedMediaCursor: string;
     }
     export interface MessageAttachmentPurchaseIdArgs { }
     export interface MessageAttachmentPurchaseFallbackArgs { }
     export interface MessageAttachmentPurchasePurchaseArgs { }
-    export interface MessageAttachmentPurchaseSharedMediaCursorArgs { }
     export interface FileAttachmentInput {
         fileId: string;
     }
@@ -8549,7 +8516,6 @@ export interface GQLResolver {
             debugCalcEntitiesCountAll: GQL.MutationDebugCalcEntitiesCountAllArgs,
             debugSetRoomOwner: GQL.MutationDebugSetRoomOwnerArgs,
             debugApplySchedulerToConferences: GQL.MutationDebugApplySchedulerToConferencesArgs,
-            debugReindexSharedMediaForMessages: GQL.MutationDebugReindexSharedMediaForMessagesArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailChangeCode: GQL.MutationSendEmailChangeCodeArgs,
             changeEmail: GQL.MutationChangeEmailArgs,
@@ -9399,7 +9365,6 @@ export interface GQLResolver {
             lastReadedMessage: Nullable<GQLRoots.ModernMessageRoot>,
             chatSharedMedia: GQLRoots.SharedMediaConnectionRoot,
             chatSharedMediaCounters: GQLRoots.SharedMediaCountersRoot,
-            alphaChatSharedMedia: GQLRoots.AlphaSharedMediaConnectionRoot,
             room: Nullable<GQLRoots.RoomRoot>,
             rooms: GQLRoots.RoomRoot[],
             roomSuper: Nullable<GQLRoots.RoomSuperRoot>,
@@ -9569,7 +9534,6 @@ export interface GQLResolver {
             lastReadedMessage: GQL.QueryLastReadedMessageArgs,
             chatSharedMedia: GQL.QueryChatSharedMediaArgs,
             chatSharedMediaCounters: GQL.QueryChatSharedMediaCountersArgs,
-            alphaChatSharedMedia: GQL.QueryAlphaChatSharedMediaArgs,
             room: GQL.QueryRoomArgs,
             rooms: GQL.QueryRoomsArgs,
             roomSuper: GQL.QueryRoomSuperArgs,
@@ -10325,30 +10289,6 @@ export interface GQLResolver {
             pageInfo: GQL.SharedMediaConnectionPageInfoArgs,
         }
     >;
-    SharedMediaEdge?: ComplexTypedResolver<
-        GQL.SharedMediaEdge,
-        GQLRoots.SharedMediaEdgeRoot,
-        {
-            message: GQLRoots.ModernMessageRoot,
-            attachment: GQLRoots.ModernMessageAttachmentRoot,
-        },
-        {
-            message: GQL.SharedMediaEdgeMessageArgs,
-            attachment: GQL.SharedMediaEdgeAttachmentArgs,
-        }
-    >;
-    AlphaSharedMediaConnection?: ComplexTypedResolver<
-        GQL.AlphaSharedMediaConnection,
-        GQLRoots.AlphaSharedMediaConnectionRoot,
-        {
-            edges: GQLRoots.SharedMediaEdgeRoot[],
-        },
-        {
-            edges: GQL.AlphaSharedMediaConnectionEdgesArgs,
-            hasNext: GQL.AlphaSharedMediaConnectionHasNextArgs,
-            hasPrevious: GQL.AlphaSharedMediaConnectionHasPreviousArgs,
-        }
-    >;
     ImageFallback?: ComplexTypedResolver<
         GQL.ImageFallback,
         GQLRoots.ImageFallbackRoot,
@@ -10396,7 +10336,6 @@ export interface GQLResolver {
             socialImagePreview: GQL.MessageRichAttachmentSocialImagePreviewArgs,
             keyboard: GQL.MessageRichAttachmentKeyboardArgs,
             fallback: GQL.MessageRichAttachmentFallbackArgs,
-            sharedMediaCursor: GQL.MessageRichAttachmentSharedMediaCursorArgs,
         }
     >;
     MessageAttachmentFile?: ComplexTypedResolver<
@@ -10411,7 +10350,6 @@ export interface GQLResolver {
             fileMetadata: GQL.MessageAttachmentFileFileMetadataArgs,
             filePreview: GQL.MessageAttachmentFileFilePreviewArgs,
             fallback: GQL.MessageAttachmentFileFallbackArgs,
-            sharedMediaCursor: GQL.MessageAttachmentFileSharedMediaCursorArgs,
         }
     >;
     MessageAttachmentPost?: ComplexTypedResolver<
@@ -10424,7 +10362,6 @@ export interface GQLResolver {
             id: GQL.MessageAttachmentPostIdArgs,
             post: GQL.MessageAttachmentPostPostArgs,
             fallback: GQL.MessageAttachmentPostFallbackArgs,
-            sharedMediaCursor: GQL.MessageAttachmentPostSharedMediaCursorArgs,
         }
     >;
     MessageAttachmentPurchase?: ComplexTypedResolver<
@@ -10437,7 +10374,6 @@ export interface GQLResolver {
             id: GQL.MessageAttachmentPurchaseIdArgs,
             fallback: GQL.MessageAttachmentPurchaseFallbackArgs,
             purchase: GQL.MessageAttachmentPurchasePurchaseArgs,
-            sharedMediaCursor: GQL.MessageAttachmentPurchaseSharedMediaCursorArgs,
         }
     >;
     MessageKeyboard?: ComplexTypedResolver<
