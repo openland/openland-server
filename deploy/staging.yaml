@@ -2,30 +2,25 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: openland-server-calls
-  name: openland-server-calls
+    app: openland-server-staging
+  name: openland-server-staging
 spec:
-  replicas: 2
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
   selector:
     matchLabels:
-      app: openland-server-calls
-  strategy:
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
-    type: RollingUpdate
+      app: openland-server-staging
   template:
     metadata:
       labels:
-        app: openland-server-calls
+        app: openland-server-staging
     spec:
       containers:
       - env:
-        - name: SERVER_ROLES
-          value: calls
         - name: OPENLAND_CONFIG
           value: /secrets/openland/config.json
-        image: index.docker.io/openland/server:<version>
+        image: index.docker.io/openland/server:v4401
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -33,25 +28,40 @@ spec:
             path: /
             port: 9000
             scheme: HTTP
-          initialDelaySeconds: 15
+          initialDelaySeconds: 30
           periodSeconds: 20
           successThreshold: 1
-          timeoutSeconds: 1
+          timeoutSeconds: 5
         name: openland-server
         ports:
         - containerPort: 9000
           protocol: TCP
         readinessProbe:
+          failureThreshold: 3
           httpGet:
             path: /
             port: 9000
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
         volumeMounts:
         - mountPath: /secrets/openland
           name: openland-config
           readOnly: true
+      - image: nats:2.1.6-scratch
+        imagePullPolicy: IfNotPresent
+        name: nats
+        ports:
+        - containerPort: 4222
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
       imagePullSecrets:
       - name: openland-docker
-      restartPolicy: Always
       volumes:
       - name: openland-config
         secret:

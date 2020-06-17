@@ -2,13 +2,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: openland-server-calls
-  name: openland-server-calls
+    app: openland-server-admin
+  name: openland-server-admin
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
-      app: openland-server-calls
+      app: openland-server-admin
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -17,12 +17,12 @@ spec:
   template:
     metadata:
       labels:
-        app: openland-server-calls
+        app: openland-server-admin
     spec:
       containers:
       - env:
         - name: SERVER_ROLES
-          value: calls
+          value: admin
         - name: OPENLAND_CONFIG
           value: /secrets/openland/config.json
         image: index.docker.io/openland/server:<version>
@@ -31,7 +31,7 @@ spec:
           failureThreshold: 3
           httpGet:
             path: /
-            port: 9000
+            port: 8319
             scheme: HTTP
           initialDelaySeconds: 15
           periodSeconds: 20
@@ -39,12 +39,12 @@ spec:
           timeoutSeconds: 1
         name: openland-server
         ports:
-        - containerPort: 9000
+        - containerPort: 8319
           protocol: TCP
         readinessProbe:
           httpGet:
             path: /
-            port: 9000
+            port: 8319
         volumeMounts:
         - mountPath: /secrets/openland
           name: openland-config

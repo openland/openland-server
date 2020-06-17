@@ -1,0 +1,1 @@
+gcloud container clusters get-credentials media-europe-west2 --region europe-west2 --project statecraft-188615

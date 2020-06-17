@@ -88,6 +88,7 @@ function createURLInfoFetcher() {
         .specialUrl((_, hostname) => hostname.endsWith('docsend.com'), async () => false)
         .specialUrl((_, hostname) => hostname.endsWith('openland.myjetbrains.com'), async () => false)
         .specialUrl((_, hostname) => hostname.endsWith('vimeo.com'), async () => false)
+        .specialUrl((_, hostname) => hostname.endsWith('instagram.com'), async () => false)
         .specialUrl((_, hostname) => hostname.endsWith('wikipedia.org'), async (url) => {
             let raw = await fetchRawURLInfo(url);
             if (raw && raw.doc) {

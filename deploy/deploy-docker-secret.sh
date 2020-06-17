@@ -1,0 +1,1 @@
+kubectl create secret docker-registry openland-docker --docker-server=https://index.docker.io/v1/ --docker-username=openlandci --docker-password=ppfRVhFZtocWyywvG9CpKFPX --docker-email=devopsbot@openland.com

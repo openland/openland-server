@@ -537,16 +537,37 @@ export const Resolver: GQLResolver = {
                 );
             }
 
+            let functions: any[] = [
+                {
+                    filter: { match: { _type: 'user_profile' } },
+                    weight: 3
+                },
+                {
+                    filter: { match: { _type: 'room' } },
+                    weight: 2
+                },
+                {
+                    filter: { match: { _type: 'organization' } },
+                    weight: 1
+                }
+            ];
+
             let hits = await Modules.Search.elastic.client.search({
-                index: 'user_profile,organization,room',
+                index: 'user_profile,room,organization',
                 from: from,
                 size: args.first,
                 body: {
                     query: {
-                        bool: {
-                            should: clauses,
-                        },
-                    },
+                        function_score: {
+                            query: {
+                                bool: {
+                                    should: clauses,
+                                },
+                            },
+                            functions: functions,
+                            boost_mode: 'multiply'
+                        }
+                    }
                 },
             });
 
