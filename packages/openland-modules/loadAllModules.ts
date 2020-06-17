@@ -78,6 +78,7 @@ import { loadDiscussionsModule } from 'openland-module-discussions/Discussions.c
 import { ClickHouseModule } from '../openland-module-clickhouse/ClickHouseModule';
 import { createClient } from '../openland-module-clickhouse/migrations';
 import { broker } from 'openland-server/moleculer';
+import { Shutdown } from 'openland-utils/Shutdown';
 
 const logger = createLogger('starting');
 
@@ -99,6 +100,20 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
 
         // Load Broker
         await broker.start();
+
+        // Nats + Broker shutdown
+        Shutdown.registerWork({
+            name: 'broker',
+            shutdown: async () => {
+                await broker.stop();
+            }
+        }); 
+        Shutdown.registerWork({
+            name: 'nats',
+            shutdown: async () => {
+                client.close();
+            }
+        });
 
         // Load Database
         let start = currentTime();
