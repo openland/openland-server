@@ -98,7 +98,7 @@ export const Resolver: GQLResolver = {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async (r, args, ctx) => {
+            subscribe: async (_, args, ctx) => {
                 if (!ctx.auth.uid) {
                     throw new AccessDeniedError();
                 }
@@ -125,7 +125,7 @@ export const Resolver: GQLResolver = {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async (r, args, ctx) => {
+            subscribe: async (_, args, ctx) => {
                 if (!ctx.auth.uid) {
                     throw new AccessDeniedError();
                 }
@@ -149,7 +149,7 @@ export const Resolver: GQLResolver = {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async (r, args, ctx) => {
+            subscribe: async (_, args, ctx) => {
                 if (!ctx.auth.uid) {
                     throw new AccessDeniedError();
                 }

@@ -505,6 +505,7 @@ export const Resolver: GQLResolver = {
                         status: 'joined',
                     });
                 }
+                Store.RoomParticipantsVersion.increment(ctx, chat.id);
 
                 return true;
             });
