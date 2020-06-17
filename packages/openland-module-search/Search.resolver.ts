@@ -547,7 +547,7 @@ export const Resolver: GQLResolver = {
                     weight: 2
                 },
                 {
-                    filter: { match: { _type: 'room' } },
+                    filter: { match: { _type: 'organization' } },
                     weight: 1
                 }
             ];
