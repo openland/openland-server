@@ -571,8 +571,6 @@ export const Resolver: GQLResolver = {
                 },
             });
 
-            console.dir(hits, {depth: null});
-
             let dataPromises = [...hits.hits.hits.map(async hit => {
                 if (hit._type === 'user_profile') {
                     return await Store.User.findById(ctx, parseInt(hit._id, 10));
