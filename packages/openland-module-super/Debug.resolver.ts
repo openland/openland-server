@@ -1664,6 +1664,41 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
+        debugReindexSharedMediaForMessages: withPermission('super-admin', async (parent) => {
+            await debugTaskForAll(Store.Message, parent.auth.uid!, 'reindex-messages-shared-media', async (ctx, id) => {
+                let msg = await Store.Message.findById(ctx, id);
+                if (!msg?.attachmentsModern) {
+                    return;
+                }
+
+                for (let i = 0; i < msg.attachmentsModern.length; i++) {
+                    let attach = msg.attachmentsModern[i];
+
+                    let sharedMediaType: 'document' | 'link' | 'image'| 'video' | null = null;
+                    if (attach.type === 'file_attachment') {
+                        if (attach.fileMetadata && attach.fileMetadata.isImage) {
+                            sharedMediaType = 'image';
+                        } else if (attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
+                            sharedMediaType = 'video';
+                        } else if (attach.fileId) {
+                            sharedMediaType = 'document';
+                        }
+                    } else if (attach.type === 'rich_attachment') {
+                        sharedMediaType = 'link';
+                    }
+                    if (!sharedMediaType) {
+                        continue;
+                    }
+
+                    await Store.MessageSharedMedia.create(ctx, msg.cid, msg.id, attach.id, {
+                        deleted: false,
+                        orderKey: msg.id * 100 + i,
+                        type: sharedMediaType,
+                    });
+                }
+            });
+            return true;
+        })
     },
     Subscription: {
         debugEvents: {

@@ -449,6 +449,20 @@ export default declareSchema(() => {
         uniqueIndex('repeat', ['uid', 'cid', 'repeatKey']).withCondition((src) => !!src.repeatKey);
     });
 
+    entity('MessageSharedMedia', () => {
+        primaryKey('cid', integer());
+        primaryKey('mid', integer());
+        primaryKey('id', string());
+        field('orderKey', integer());
+        field('type', enumString('link', 'image', 'document', 'video'));
+        field('deleted', boolean());
+
+        rangeIndex('message', ['mid', 'orderKey']).withCondition(a => !a.deleted);
+        rangeIndex('chat', ['cid', 'orderKey']).withCondition(a => !a.deleted);
+        rangeIndex('chatByType', ['cid', 'type', 'orderKey']).withCondition(a => !a.deleted);
+        uniqueIndex('byOrder', ['orderKey']).withCondition(a => !a.deleted);
+    });
+
     //
     // Comments
     //

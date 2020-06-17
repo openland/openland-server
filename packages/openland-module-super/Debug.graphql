@@ -182,6 +182,7 @@ extend type Mutation {
     debugCalcEntitiesCountAll: Boolean!
     debugSetRoomOwner(roomId: ID!, owner: ID!): Boolean!
     debugApplySchedulerToConferences(scheduler: ConferenceStrategy!): Boolean!
+    debugReindexSharedMediaForMessages: Boolean!
 }
 
 extend type Subscription {

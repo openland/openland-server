@@ -115,6 +115,9 @@ export class MessagingRepository {
                 await Modules.Stats.onRoomMessageSent(ctx, cid);
             }
 
+            // Update shared media
+            await this.indexSharedMedia(ctx, msg, attachments);
+
             //
             // Notify hooks
             //
@@ -147,10 +150,18 @@ export class MessagingRepository {
                 message.edited = true;
             }
             if (newMessage.attachments) {
+                let attachments = await this.prepareAttachments(ctx, newMessage.attachments || []);
                 if (newMessage.appendAttachments) {
-                    message.attachmentsModern = [...(message.attachmentsModern || []), ...await this.prepareAttachments(ctx, newMessage.attachments || [])];
+                    let startIndex = (message.attachmentsModern?.length || 0);
+                    message.attachmentsModern = [...(message.attachmentsModern || []), ...attachments];
+                    await this.indexSharedMedia(ctx, message, attachments, startIndex);
                 } else {
-                    message.attachmentsModern = await this.prepareAttachments(ctx, newMessage.attachments || []);
+                    message.attachmentsModern = attachments;
+                    let prevSharedMedia = await Store.MessageSharedMedia.message.findAll(ctx, message.id);
+                    for (let media of prevSharedMedia) {
+                        media.deleted = true;
+                    }
+                    await this.indexSharedMedia(ctx, message, attachments);
                 }
             }
             if (newMessage.spans) {
@@ -185,6 +196,11 @@ export class MessagingRepository {
             //
 
             message.deleted = true;
+            // Delete shared media
+            let prevSharedMedia = await Store.MessageSharedMedia.message.findAll(ctx, message.id);
+            for (let media of prevSharedMedia) {
+                media.deleted = true;
+            }
 
             //
             // Write Event
@@ -334,5 +350,33 @@ export class MessagingRepository {
             return REACTIONS_LEGACY.get(reaction)!;
         }
         return 'LIKE';
+    }
+
+    private async indexSharedMedia(ctx: Context, msg: Message, attachments: MessageAttachment[], startIndex: number = 0) {
+        for (let i = startIndex; i < attachments.length + startIndex; i++) {
+            let attach = attachments[i - startIndex];
+
+            let sharedMediaType: 'document' | 'link' | 'image'| 'video' | null = null;
+            if (attach.type === 'file_attachment') {
+                if (attach.fileMetadata && attach.fileMetadata.isImage) {
+                    sharedMediaType = 'image';
+                } else if (attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
+                    sharedMediaType = 'video';
+                } else if (attach.fileId) {
+                    sharedMediaType = 'document';
+                }
+            } else if (attach.type === 'rich_attachment') {
+                sharedMediaType = 'link';
+            }
+            if (!sharedMediaType) {
+                continue;
+            }
+
+            await Store.MessageSharedMedia.create(ctx, msg.cid, msg.id, attach.id, {
+                deleted: false,
+                orderKey: msg.id * 100 + i,
+                type: sharedMediaType,
+            });
+        }
     }
 }

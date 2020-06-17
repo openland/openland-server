@@ -149,6 +149,16 @@ type SharedMediaConnection {
     pageInfo: PageInfo!
 }
 
+type SharedMediaEdge {
+    message: ModernMessage!
+    attachment: ModernMessageAttachment!
+}
+type AlphaSharedMediaConnection {
+    edges: [SharedMediaEdge!]!
+    hasNext: Boolean!
+    hasPrevious: Boolean!
+}
+
 extend type Query {
     messages(chatId: ID!, first: Int!, before: ID): [ModernMessage!]!
     gammaMessages(chatId: ID!, first: Int!, before: ID, after: ID, around: ID): GammaMessagesBatch
@@ -156,6 +166,7 @@ extend type Query {
     lastReadedMessage(chatId: ID!): ModernMessage
     chatSharedMedia(chatId: ID!, mediaTypes: [SharedMediaType!]!, first: Int!, after: ID, before: ID, around: ID): SharedMediaConnection!
     chatSharedMediaCounters(chatId: ID!): SharedMediaCounters!
+    alphaChatSharedMedia(chatId: ID!, mediaTypes: [SharedMediaType!]!, first: Int!, after: ID, before: ID, around: ID): AlphaSharedMediaConnection!
 }
 
 extend type Mutation {
@@ -198,6 +209,7 @@ type Image {
 interface ModernMessageAttachment {
     id: ID!
     fallback: String!
+    sharedMediaCursor: String!
 }
 
 type MessageRichAttachment implements ModernMessageAttachment {
@@ -215,6 +227,7 @@ type MessageRichAttachment implements ModernMessageAttachment {
     socialImagePreview: String
     keyboard: MessageKeyboard
     fallback: String!
+    sharedMediaCursor: String!
 }
 
 type MessageAttachmentFile implements ModernMessageAttachment {
@@ -223,18 +236,21 @@ type MessageAttachmentFile implements ModernMessageAttachment {
     fileMetadata: FileMetadata!
     filePreview: String
     fallback: String!
+    sharedMediaCursor: String!
 }
 
 type MessageAttachmentPost implements ModernMessageAttachment {
     id: ID!
     post: FeedItem!
     fallback: String!
+    sharedMediaCursor: String!
 }
 
 type MessageAttachmentPurchase implements ModernMessageAttachment {
     id: ID!
     fallback: String!
     purchase: Purchase!
+    sharedMediaCursor: String!
 }
 
 input FileAttachmentInput {
