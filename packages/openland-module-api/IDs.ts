@@ -91,7 +91,5 @@ export const IDs = {
 
     Hub: IdsFactory.createId('Hub'),
     Discussion: IdsFactory.createId('Discussion'),
-    DiscussionCursor: IdsFactory.createStringId('DiscussionCursor'),
-
-    ChatSharedMediaCursor: IdsFactory.createId('ChatSharedMediaCursor'),
+    DiscussionCursor: IdsFactory.createStringId('DiscussionCursor')
 };

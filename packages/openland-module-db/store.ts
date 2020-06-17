@@ -4688,170 +4688,6 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
     }
 }
 
-export interface MessageSharedMediaShape {
-    cid: number;
-    mid: number;
-    id: string;
-    orderKey: number;
-    type: 'link' | 'image' | 'document' | 'video';
-    deleted: boolean;
-}
-
-export interface MessageSharedMediaCreateShape {
-    orderKey: number;
-    type: 'link' | 'image' | 'document' | 'video';
-    deleted: boolean;
-}
-
-export class MessageSharedMedia extends Entity<MessageSharedMediaShape> {
-    get cid(): number { return this._rawValue.cid; }
-    get mid(): number { return this._rawValue.mid; }
-    get id(): string { return this._rawValue.id; }
-    get orderKey(): number { return this._rawValue.orderKey; }
-    set orderKey(value: number) {
-        let normalized = this.descriptor.codec.fields.orderKey.normalize(value);
-        if (this._rawValue.orderKey !== normalized) {
-            this._rawValue.orderKey = normalized;
-            this._updatedValues.orderKey = normalized;
-            this.invalidate();
-        }
-    }
-    get type(): 'link' | 'image' | 'document' | 'video' { return this._rawValue.type; }
-    set type(value: 'link' | 'image' | 'document' | 'video') {
-        let normalized = this.descriptor.codec.fields.type.normalize(value);
-        if (this._rawValue.type !== normalized) {
-            this._rawValue.type = normalized;
-            this._updatedValues.type = normalized;
-            this.invalidate();
-        }
-    }
-    get deleted(): boolean { return this._rawValue.deleted; }
-    set deleted(value: boolean) {
-        let normalized = this.descriptor.codec.fields.deleted.normalize(value);
-        if (this._rawValue.deleted !== normalized) {
-            this._rawValue.deleted = normalized;
-            this._updatedValues.deleted = normalized;
-            this.invalidate();
-        }
-    }
-}
-
-export class MessageSharedMediaFactory extends EntityFactory<MessageSharedMediaShape, MessageSharedMedia> {
-
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('messageSharedMedia');
-        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'message', storageKey: 'message', type: { type: 'range', fields: [{ name: 'mid', type: 'integer' }, { name: 'orderKey', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('messageSharedMedia', 'message'), condition: a => !a.deleted });
-        secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'orderKey', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('messageSharedMedia', 'chat'), condition: a => !a.deleted });
-        secondaryIndexes.push({ name: 'chatByType', storageKey: 'chatByType', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'type', type: 'string' }, { name: 'orderKey', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('messageSharedMedia', 'chatByType'), condition: a => !a.deleted });
-        secondaryIndexes.push({ name: 'byOrder', storageKey: 'byOrder', type: { type: 'unique', fields: [{ name: 'orderKey', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('messageSharedMedia', 'byOrder'), condition: a => !a.deleted });
-        let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'cid', type: 'integer' });
-        primaryKeys.push({ name: 'mid', type: 'integer' });
-        primaryKeys.push({ name: 'id', type: 'string' });
-        let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'orderKey', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'type', type: { type: 'enum', values: ['link', 'image', 'document', 'video'] }, secure: false });
-        fields.push({ name: 'deleted', type: { type: 'boolean' }, secure: false });
-        let codec = c.struct({
-            cid: c.integer,
-            mid: c.integer,
-            id: c.string,
-            orderKey: c.integer,
-            type: c.enum('link', 'image', 'document', 'video'),
-            deleted: c.boolean,
-        });
-        let descriptor: EntityDescriptor<MessageSharedMediaShape> = {
-            name: 'MessageSharedMedia',
-            storageKey: 'messageSharedMedia',
-            allowDelete: false,
-            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
-        };
-        return new MessageSharedMediaFactory(descriptor);
-    }
-
-    private constructor(descriptor: EntityDescriptor<MessageSharedMediaShape>) {
-        super(descriptor);
-    }
-
-    readonly message = Object.freeze({
-        findAll: async (ctx: Context, mid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [mid])).items;
-        },
-        query: (ctx: Context, mid: number, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [mid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (mid: number, opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[0], [mid], opts);
-        },
-        liveStream: (ctx: Context, mid: number, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [mid], opts);
-        },
-    });
-
-    readonly chat = Object.freeze({
-        findAll: async (ctx: Context, cid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [cid])).items;
-        },
-        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (cid: number, opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[1], [cid], opts);
-        },
-        liveStream: (ctx: Context, cid: number, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [cid], opts);
-        },
-    });
-
-    readonly chatByType = Object.freeze({
-        findAll: async (ctx: Context, cid: number, type: 'link' | 'image' | 'document' | 'video') => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [cid, type])).items;
-        },
-        query: (ctx: Context, cid: number, type: 'link' | 'image' | 'document' | 'video', opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[2], [cid, type], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (cid: number, type: 'link' | 'image' | 'document' | 'video', opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[2], [cid, type], opts);
-        },
-        liveStream: (ctx: Context, cid: number, type: 'link' | 'image' | 'document' | 'video', opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [cid, type], opts);
-        },
-    });
-
-    readonly byOrder = Object.freeze({
-        find: async (ctx: Context, orderKey: number) => {
-            return this._findFromUniqueIndex(ctx, [orderKey], this.descriptor.secondaryIndexes[3]);
-        },
-        findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[3], [])).items;
-        },
-        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[3], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-    });
-
-    create(ctx: Context, cid: number, mid: number, id: string, src: MessageSharedMediaCreateShape): Promise<MessageSharedMedia> {
-        return this._create(ctx, [cid, mid, id], this.descriptor.codec.normalize({ cid, mid, id, ...src }));
-    }
-
-    create_UNSAFE(ctx: Context, cid: number, mid: number, id: string, src: MessageSharedMediaCreateShape): MessageSharedMedia {
-        return this._create_UNSAFE(ctx, [cid, mid, id], this.descriptor.codec.normalize({ cid, mid, id, ...src }));
-    }
-
-    findById(ctx: Context, cid: number, mid: number, id: string): Promise<MessageSharedMedia | null> {
-        return this._findById(ctx, [cid, mid, id]);
-    }
-
-    watch(ctx: Context, cid: number, mid: number, id: string): Watch {
-        return this._watch(ctx, [cid, mid, id]);
-    }
-
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<MessageSharedMediaShape>): MessageSharedMedia {
-        return new MessageSharedMedia([value.cid, value.mid, value.id], value, this.descriptor, this._flush, this._delete, ctx);
-    }
-}
-
 export interface CommentShape {
     id: number;
     peerId: number;
@@ -21494,7 +21330,6 @@ export interface Store extends BaseStore {
     readonly RoomProfile: RoomProfileFactory;
     readonly RoomParticipant: RoomParticipantFactory;
     readonly Message: MessageFactory;
-    readonly MessageSharedMedia: MessageSharedMediaFactory;
     readonly Comment: CommentFactory;
     readonly RichMessage: RichMessageFactory;
     readonly MessageDraft: MessageDraftFactory;
@@ -21725,7 +21560,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let RoomProfilePromise = RoomProfileFactory.open(storage);
     let RoomParticipantPromise = RoomParticipantFactory.open(storage);
     let MessagePromise = MessageFactory.open(storage);
-    let MessageSharedMediaPromise = MessageSharedMediaFactory.open(storage);
     let CommentPromise = CommentFactory.open(storage);
     let RichMessagePromise = RichMessageFactory.open(storage);
     let MessageDraftPromise = MessageDraftFactory.open(storage);
@@ -21924,7 +21758,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         RoomProfile: await RoomProfilePromise,
         RoomParticipant: await RoomParticipantPromise,
         Message: await MessagePromise,
-        MessageSharedMedia: await MessageSharedMediaPromise,
         Comment: await CommentPromise,
         RichMessage: await RichMessagePromise,
         MessageDraft: await MessageDraftPromise,

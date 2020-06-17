@@ -1,5 +1,5 @@
 import {
-    Organization, RichMessage, UserBadge, UserProfile, ConversationRoom, FeedEvent, MessageSharedMedia,
+    Organization, RichMessage, UserBadge, UserProfile, ConversationRoom, FeedEvent,
 } from 'openland-module-db/store';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { withUser } from '../../openland-module-api/Resolvers';
@@ -976,9 +976,6 @@ export const Resolver: GQLResolver = {
         },
         filePreview: src => src.attachment.filePreview,
         fallback: src => 'File attachment',
-        sharedMediaCursor: src => {
-            return IDs.ChatSharedMediaCursor.serialize(src.message.id * 100 + (src.message.attachmentsModern?.findIndex(a => a.id === src.attachment.id) || 0));
-        },
     },
     MessageRichAttachment: {
         id: src => IDs.MessageAttachment.serialize(src.attachment.id),
@@ -1022,17 +1019,11 @@ export const Resolver: GQLResolver = {
 
             return { buttons: src.attachment.keyboard.buttons as (MessageButton & { id: string })[][] };
         },
-        sharedMediaCursor: src => {
-            return IDs.ChatSharedMediaCursor.serialize(src.message.id * 100 + (src.message.attachmentsModern?.findIndex(a => a.id === src.attachment.id) || 0));
-        },
     },
     MessageAttachmentPurchase: {
-        id: src => IDs.MessageAttachment.serialize(src.attachment.id),
-        fallback: src => 'Donation attachment',
-        purchase: async (src, _, ctx) => (await Store.WalletPurchase.findById(ctx, src.attachment.pid))!,
-        sharedMediaCursor: src => {
-            return IDs.ChatSharedMediaCursor.serialize(src.message.id * 100 + (src.message.attachmentsModern?.findIndex(a => a.id === src.attachment.id) || 0));
-        },
+      id: src => IDs.MessageAttachment.serialize('kek'),
+      fallback: src => 'Donation attachment',
+      purchase: async (src, _, ctx) => (await Store.WalletPurchase.findById(ctx, src.attachment.pid))!,
     },
     MentionPeer: {
         __resolveType(obj: MentionPeerRoot) {
@@ -1057,13 +1048,6 @@ export const Resolver: GQLResolver = {
         }
     },
 
-    SharedMediaEdge: {
-        message: async (src, _, ctx) => (await Store.Message.findById(ctx, src.mid))!,
-        attachment: async (src, _, ctx) => {
-            let message = await Store.Message.findById(ctx, src.mid);
-            return { message: message!, attachment: message!.attachmentsModern!.find(a => a.id === src.id)! };
-        }
-    },
     Query: {
         messages: withUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.chatId);
@@ -1303,50 +1287,6 @@ export const Resolver: GQLResolver = {
                 videos: (videos.hits.total as any).value
             };
         }),
-        alphaChatSharedMedia: withUser(async (ctx, args, uid) => {
-            let chatId = IDs.Conversation.parse(args.chatId);
-            await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
-
-            let cursor: number | null = null;
-            if (args.before || args.after || args.around) {
-                cursor = IDs.ChatSharedMediaCursor.parse((args.before || args.around || args.after)!);
-            }
-
-            let leftSize = (args.around || args.before) ? args.first : 0;
-            let rightSize = (args.around || args.after || !cursor) ? args.first : 0;
-
-            let results: MessageSharedMedia[] = [];
-            let leftHaveMore = false;
-            let rightHaveMore = false;
-            if (leftSize) {
-                let left = await Promise.all(args.mediaTypes.map(a => Store.MessageSharedMedia.chatByType.query(ctx, chatId, a.toLowerCase() as any, { after: cursor, limit: leftSize })));
-                for (let part of left) {
-                    results = results.concat(part.items);
-                    if (part.haveMore) {
-                        leftHaveMore = true;
-                    }
-                }
-            }
-            if (args.around) {
-                let centerElement = await Store.MessageSharedMedia.byOrder.find(ctx, cursor!);
-                results.push(centerElement!);
-            }
-            if (rightSize) {
-                let right = await Promise.all(args.mediaTypes.map(a => Store.MessageSharedMedia.chatByType.query(ctx, chatId, a.toLowerCase() as any, { after: cursor, limit: rightSize, reverse: true })));
-                for (let part of right) {
-                    results = results.concat(part.items);
-                    if (part.haveMore) {
-                        rightHaveMore = true;
-                    }
-                }
-            }
-            results = results.sort((a, b) => b.orderKey - a.orderKey);
-            return {
-                edges: results,
-                hasNext: rightHaveMore,
-                hasPrevious: leftHaveMore,
-            };
-        })
     },
 
     Mutation: {
