@@ -63,8 +63,6 @@ export class CallRepository {
             let res = await Store.ConferenceRoom.findById(ctx, cid);
             if (!res) {
                 res = await Store.ConferenceRoom.create(ctx, cid, {
-                    scheduler: this.defaultScheduler,
-                    currentScheduler: this.defaultScheduler,
                     kind: 'conference',
                     startTime: null
                 });

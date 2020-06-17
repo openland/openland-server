@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5b707c79328be525a4505b241f8b1097';
+export const GQL_SPEC_VERSION = '8daa21490e1d9a0d5111c258bcd92f2d';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2730,9 +2730,7 @@ export namespace GQL {
         roomId: string;
         owner: string;
     }
-    export interface MutationDebugApplySchedulerToConferencesArgs {
-        scheduler: ConferenceStrategy;
-    }
+    export interface MutationDebugApplySchedulerToConferencesArgs { }
     export interface MutationDebugReindexSharedMediaForMessagesArgs { }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
