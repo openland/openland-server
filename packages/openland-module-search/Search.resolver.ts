@@ -538,7 +538,7 @@ export const Resolver: GQLResolver = {
             }
 
             let hits = await Modules.Search.elastic.client.search({
-                index: 'user_profile,organization,room',
+                index: 'user_profile,room,organization',
                 from: from,
                 size: args.first,
                 body: {
