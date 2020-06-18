@@ -1,5 +1,5 @@
-import { Subscription, Client } from 'ts-nats';
 import uuid from 'uuid/v4';
+import { Subscription, Client } from 'ts-nats';
 import { asyncRun } from 'openland-mtproto3/utils';
 
 export class RemoteTransport {
@@ -21,6 +21,7 @@ export class RemoteTransport {
     private keepAliveTimer: NodeJS.Timer | null = null;
     private timeoutTimer: NodeJS.Timer | null = null;
     private remoteId: string | null = null;
+    private sent = new Map<number, any>();
 
     constructor(opts: { client: Client, keepAlive: number }) {
         this.keepAlive = opts.keepAlive;
@@ -66,6 +67,12 @@ export class RemoteTransport {
                     let seq = msg.data.seq as number;
                     this.onReceivedSeq(seq);
                 }
+            } else if (msg.data.type === 'nack') {
+                let seq = msg.data.seq as number;
+                let body = this.sent.get(seq);
+                if (body) {
+                    this.client.publish(msg.reply!, { body, seq });
+                }
             }
         });
     }
@@ -87,7 +94,7 @@ export class RemoteTransport {
             this.retryTimer = setTimeout(() => {
                 asyncRun(async () => {
                     try {
-                        let response = await this.client.request(`streams.${this.remoteId}`, 5000, { seq });
+                        let response = await this.client.request(`streams.${this.remoteId}`, 5000, { type: 'nack', seq });
                         if (this.status === 'stopped') {
                             return;
                         }
@@ -178,6 +185,20 @@ export class RemoteTransport {
             }
             this.stop();
         }, 5000);
+    }
+
+    send(body: any) {
+        if (this.status !== 'connected') {
+            throw Error('Not connected yet');
+        }
+        this.sentSeq++;
+        let seq = this.sentSeq;
+        this.sent.set(seq, body);
+        this.client.publish(`streams.${this.remoteId}`, {
+            type: 'msg',
+            seq,
+            body
+        });
     }
 
     stop() {
