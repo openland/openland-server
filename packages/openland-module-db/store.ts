@@ -4567,10 +4567,99 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chat'), condition: (src) => !src.deleted });
         secondaryIndexes.push({ name: 'chatSeq', storageKey: 'chatSeq', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'seq', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chatSeq'), condition: (src) => !src.deleted });
-        secondaryIndexes.push({ name: 'hasImageAttachment', storageKey: 'hasImageAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasImageAttachment'), condition: (src) => !src.deleted && require('./store.schema.js').detectMessageAttachmentTypes(src).hasImageAttachment });
-        secondaryIndexes.push({ name: 'hasLinkAttachment', storageKey: 'hasLinkAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasLinkAttachment'), condition: (src) => !src.deleted && require('./store.schema.js').detectMessageAttachmentTypes(src).hasLinkAttachment });
-        secondaryIndexes.push({ name: 'hasVideoAttachment', storageKey: 'hasVideoAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasVideoAttachment'), condition: (src) => !src.deleted && require('./store.schema.js').detectMessageAttachmentTypes(src).hasVideoAttachment });
-        secondaryIndexes.push({ name: 'hasDocumentAttachment', storageKey: 'hasDocumentAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasDocumentAttachment'), condition: (src) => !src.deleted && require('./store.schema.js').detectMessageAttachmentTypes(src).hasDocumentAttachment });
+        secondaryIndexes.push({ name: 'hasImageAttachment', storageKey: 'hasImageAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasImageAttachment'), condition: (item) => {
+            if (item.deleted) {
+                return false;
+            }
+            if (item.fileId) {
+                if (item.fileMetadata && item.fileMetadata.isImage) {
+                    return true;
+                }
+            }
+            else if (item.attachments) {
+                for (let attach of item.attachments) {
+                    if (attach.fileMetadata && attach.fileMetadata.isImage) {
+                        return true;
+                    }
+                }
+            }
+            else if (item.attachmentsModern) {
+                for (let attach of item.attachmentsModern) {
+                    if (attach.type === 'file_attachment') {
+                        if (attach.fileMetadata && attach.fileMetadata.isImage) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        } });
+        secondaryIndexes.push({ name: 'hasLinkAttachment', storageKey: 'hasLinkAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasLinkAttachment'), condition: (item) => {
+            if (item.deleted) {
+                return false;
+            }
+            if (item.augmentation) {
+                return true;
+            }
+            if (item.attachmentsModern) {
+                for (let attach of item.attachmentsModern) {
+                    if (attach.type === 'rich_attachment') {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        } });
+        secondaryIndexes.push({ name: 'hasVideoAttachment', storageKey: 'hasVideoAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasVideoAttachment'), condition: (item) => {
+            if (item.deleted) {
+                return false;
+            }
+            if (item.fileId && item.fileMetadata && item.fileMetadata.mimeType.startsWith('video/')) {
+                return true;
+            }
+            else if (item.attachments) {
+                for (let attach of item.attachments) {
+                    if (attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
+                        return true;
+                    }
+                }
+            }
+            else if (item.attachmentsModern) {
+                for (let attach of item.attachmentsModern) {
+                    if (attach.type === 'file_attachment' && attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        } });
+        secondaryIndexes.push({ name: 'hasDocumentAttachment', storageKey: 'hasDocumentAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasDocumentAttachment'), condition: (item) => {
+            if (item.deleted) {
+                return false;
+            }
+            if (item.fileId) {
+                if (item.fileMetadata && !item.fileMetadata.isImage && !item.fileMetadata.mimeType.startsWith('video/')) {
+                    return true;
+                }
+            }
+            else if (item.attachments) {
+                for (let attach of item.attachments) {
+                    if (attach.fileMetadata && !attach.fileMetadata.isImage && !attach.fileMetadata.mimeType.startsWith('video/')) {
+                        return true;
+                    }
+                }
+            }
+            else if (item.attachmentsModern) {
+                for (let attach of item.attachmentsModern) {
+                    if (attach.type === 'file_attachment') {
+                        if (attach.fileMetadata && !attach.fileMetadata.isImage && !attach.fileMetadata.mimeType.startsWith('video/')) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        } });
         secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'updated'), condition: undefined });
         secondaryIndexes.push({ name: 'repeat', storageKey: 'repeat', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }, { name: 'repeatKey', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'repeat'), condition: (src) => !!src.repeatKey });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
