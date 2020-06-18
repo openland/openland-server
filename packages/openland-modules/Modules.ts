@@ -1,3 +1,4 @@
+import { Client } from 'ts-nats';
 import { DiscussionsModule } from './../openland-module-discussions/DiscussionsModule';
 import { WalletModule } from '../openland-module-wallet/WalletModule';
 import { PushModule } from 'openland-module-push/PushModule';
@@ -173,6 +174,9 @@ class ModulesImpl {
     }
     get ClickHouse() {
         return container.get(ClickHouseModule);
+    }
+    get NATS() {
+        return container.get<Client>('NATS');
     }
 }
 

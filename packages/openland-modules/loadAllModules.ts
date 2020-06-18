@@ -77,6 +77,8 @@ import { connect, Payload } from 'ts-nats';
 import { loadDiscussionsModule } from 'openland-module-discussions/Discussions.container';
 import { ClickHouseModule } from '../openland-module-clickhouse/ClickHouseModule';
 import { createClient } from '../openland-module-clickhouse/migrations';
+import { broker } from 'openland-server/moleculer';
+import { Shutdown } from 'openland-utils/Shutdown';
 
 const logger = createLogger('starting');
 
@@ -96,11 +98,30 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
         container.bind('NATS').toConstantValue(client);
         logger.log(ctx, 'NATS connected');
 
+        // Load Broker
+        await broker.start();
+
+        // Nats + Broker shutdown
+        Shutdown.registerWork({
+            name: 'broker',
+            shutdown: async () => {
+                await broker.stop();
+            }
+        });
+        Shutdown.registerWork({
+            name: 'nats',
+            shutdown: async () => {
+                await client.drain();
+                client.close();
+            }
+        });
+
+        // Load Database
         let start = currentTime();
         let db = await openDatabase();
         logger.log(ctx, 'Database opened in ' + (currentTime() - start) + ' ms');
 
-        // New entity
+        // Load Entity Store
         let storage = new EntityStorage(db);
         let store = await openStore(storage);
         container.bind<Store>('Store')

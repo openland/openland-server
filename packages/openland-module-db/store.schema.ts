@@ -333,6 +333,9 @@ export default declareSchema(() => {
         uniqueIndex('requests', ['cid', 'uid']).withCondition((src) => src.status === 'requested');
         uniqueIndex('userActive', ['uid', 'cid']).withCondition((src) => src.status === 'joined');
     });
+    atomicInt('RoomParticipantsVersion', () => {
+        primaryKey('cid', integer());
+    });
 
     entity('Message', () => {
         primaryKey('id', integer());

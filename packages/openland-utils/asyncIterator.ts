@@ -1,5 +1,6 @@
-export function createIterator<T>(onExit: () => void): AsyncIterable<T> & { push(data: T): void, complete(): void } {
-    let events: (T|null)[] = [];
+export type PushableIterator<T> = AsyncIterable<T> & { push(data: T): void, complete(): void };
+export function createIterator<T>(onExit: () => void): PushableIterator<T> {
+    let events: (T | null)[] = [];
     let resolvers: any[] = [];
 
     const getValue = () => {
@@ -8,9 +9,9 @@ export function createIterator<T>(onExit: () => void): AsyncIterable<T> & { push
                 let val = events.shift();
 
                 if (val === null) {
-                    resolve({ value: undefined, done: true} as any);
+                    resolve({ value: undefined, done: true } as any);
                 } else {
-                    resolve({ value: val!, done: false});
+                    resolve({ value: val!, done: false });
                 }
             } else {
                 resolvers.push(resolve);

@@ -46,6 +46,42 @@ export class ConversationLastSeqFactory extends AtomicIntegerFactory {
     }
 }
 
+export class RoomParticipantsVersionFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('roomParticipantsVersion');
+        return new RoomParticipantsVersionFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(cid: number) {
+        return this._findById([cid]);
+    }
+
+    get(ctx: Context, cid: number) {
+        return this._get(ctx, [cid]);
+    }
+
+    set(ctx: Context, cid: number, value: number) {
+        return this._set(ctx, [cid], value);
+    }
+
+    add(ctx: Context, cid: number, value: number) {
+        return this._add(ctx, [cid], value);
+    }
+
+    increment(ctx: Context, cid: number) {
+        return this._increment(ctx, [cid]);
+    }
+
+    decrement(ctx: Context, cid: number) {
+        return this._decrement(ctx, [cid]);
+    }
+}
+
 export class UserDialogReadMessageIdFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -21270,6 +21306,7 @@ export class HyperLogStore extends EventStore {
 
 export interface Store extends BaseStore {
     readonly ConversationLastSeq: ConversationLastSeqFactory;
+    readonly RoomParticipantsVersion: RoomParticipantsVersionFactory;
     readonly UserDialogReadMessageId: UserDialogReadMessageIdFactory;
     readonly FeedChannelMembersCount: FeedChannelMembersCountFactory;
     readonly FeedChannelPostsCount: FeedChannelPostsCountFactory;
@@ -21500,6 +21537,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('hyperLogEvent', HyperLogEvent.encode as any, HyperLogEvent.decode);
     eventFactory.registerEventType('hyperLogUserEvent', HyperLogUserEvent.encode as any, HyperLogUserEvent.decode);
     let ConversationLastSeqPromise = ConversationLastSeqFactory.open(storage);
+    let RoomParticipantsVersionPromise = RoomParticipantsVersionFactory.open(storage);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
     let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(storage);
@@ -21698,6 +21736,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         storage,
         eventFactory,
         ConversationLastSeq: await ConversationLastSeqPromise,
+        RoomParticipantsVersion: await RoomParticipantsVersionPromise,
         UserDialogReadMessageId: await UserDialogReadMessageIdPromise,
         FeedChannelMembersCount: await FeedChannelMembersCountPromise,
         FeedChannelPostsCount: await FeedChannelPostsCountPromise,

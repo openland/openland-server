@@ -10,6 +10,8 @@ import { EventBus } from '../openland-module-pubsub/EventBus';
 import { perf } from '../openland-utils/perf';
 import { Context, createNamedContext } from '@openland/context';
 import { getTransaction } from '@openland/foundationdb';
+import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { registerPresenceService } from './service/registerPresenceService';
 
 const presenceEvent = createHyperlogger<{ uid: number, online: boolean, platform: string | null }>('presence');
 
@@ -38,6 +40,10 @@ export class PresenceModule {
         EventBus.subscribe(`online_change`, async (event: OnlineEvent) => {
             await this.handleOnlineChange(event);
         });
+
+        if (serverRoleEnabled('workers')) {
+            registerPresenceService();
+        }
     }
 
     public async setOnline(parent: Context, uid: number, tid: string, timeout: number, platform: string, active: boolean) {

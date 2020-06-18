@@ -49,9 +49,8 @@ export const Resolver: GQLResolver = {
             return 'ok';
         }),
         typingCancel: withUser(async (ctx, args, uid) => {
-            let chatId = IDs.Conversation.parse(args.conversationId);
-            let members = await Modules.Messaging.room.findConversationMembers(ctx, chatId);
-            await Modules.Typings.cancelTyping(uid, chatId, members);
+            let conversationId = IDs.Conversation.parse(args.conversationId);
+            await Modules.Typings.setTyping(uid, conversationId, 'cancel');
             return 'ok';
         }),
     },
