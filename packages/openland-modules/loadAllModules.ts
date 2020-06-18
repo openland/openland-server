@@ -107,10 +107,11 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
             shutdown: async () => {
                 await broker.stop();
             }
-        }); 
+        });
         Shutdown.registerWork({
             name: 'nats',
             shutdown: async () => {
+                await client.drain();
                 client.close();
             }
         });
