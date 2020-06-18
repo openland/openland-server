@@ -1653,13 +1653,40 @@ export const Resolver: GQLResolver = {
                 return true;
             });
         }),
-        debugApplySchedulerToConferences: withPermission('super-admin', async (parent, args) => {
+        debugClearSchedulerFromConferences: withPermission('super-admin', async (parent) => {
             await debugTaskForAll(Store.ConferenceRoom, parent.auth.uid!, 'apply-scheduler', async (ctx, id, log) => {
                 let conf = await Store.ConferenceRoom.findById(ctx, id);
                 conf!.scheduler = null;
             });
             return true;
         }),
+        debugInvalidateAllMessages: withPermission('super-admin', async (parent) => {
+            debugTask(parent.auth.uid!, 'debugInvalidateAllMessages', async (log) => {
+                let count = 0;
+                let limit = 100;
+                let total = 0;
+                try {
+                    let stream = Store.Message.updated.stream({batchSize: limit});
+                    do {
+                        await inTx(parent, async ctx => {
+                            let messages = await stream.next(ctx);
+                            for (let message of messages) {
+                                message.invalidate();
+                            }
+                            count = messages.length;
+                            total += messages.length;
+                        });
+                        if (total % 10000 === 0) {
+                            await log('Proceed ' + total + ' messages');
+                        }
+                    } while (count === limit && count > 0);
+                } catch (e) {
+                    return `failed ${e.message}`;
+                }
+                return 'ok';
+            });
+            return true;
+        })
     },
     Subscription: {
         debugEvents: {

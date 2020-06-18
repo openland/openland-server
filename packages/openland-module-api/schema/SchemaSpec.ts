@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '36eb7f0b623984aa0056a5084c4848b0';
+export const GQL_SPEC_VERSION = '83b8e6c17b443f81f55b67ec1d7347d5';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2209,7 +2209,8 @@ export namespace GQL {
         debugCalcEntitiesCount: boolean;
         debugCalcEntitiesCountAll: boolean;
         debugSetRoomOwner: boolean;
-        debugApplySchedulerToConferences: boolean;
+        debugClearSchedulerFromConferences: boolean;
+        debugInvalidateAllMessages: boolean;
         settingsUpdate: Settings;
         sendEmailChangeCode: string;
         changeEmail: boolean;
@@ -2729,9 +2730,8 @@ export namespace GQL {
         roomId: string;
         owner: string;
     }
-    export interface MutationDebugApplySchedulerToConferencesArgs {
-        scheduler: ConferenceStrategy;
-    }
+    export interface MutationDebugClearSchedulerFromConferencesArgs { }
+    export interface MutationDebugInvalidateAllMessagesArgs { }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
         uid: OptionalNullable<string>;
@@ -8515,7 +8515,8 @@ export interface GQLResolver {
             debugCalcEntitiesCount: GQL.MutationDebugCalcEntitiesCountArgs,
             debugCalcEntitiesCountAll: GQL.MutationDebugCalcEntitiesCountAllArgs,
             debugSetRoomOwner: GQL.MutationDebugSetRoomOwnerArgs,
-            debugApplySchedulerToConferences: GQL.MutationDebugApplySchedulerToConferencesArgs,
+            debugClearSchedulerFromConferences: GQL.MutationDebugClearSchedulerFromConferencesArgs,
+            debugInvalidateAllMessages: GQL.MutationDebugInvalidateAllMessagesArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailChangeCode: GQL.MutationSendEmailChangeCodeArgs,
             changeEmail: GQL.MutationChangeEmailArgs,

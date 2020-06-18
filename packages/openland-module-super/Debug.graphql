@@ -181,7 +181,8 @@ extend type Mutation {
     debugCalcEntitiesCount(entity: String!): Boolean!
     debugCalcEntitiesCountAll: Boolean!
     debugSetRoomOwner(roomId: ID!, owner: ID!): Boolean!
-    debugApplySchedulerToConferences(scheduler: ConferenceStrategy!): Boolean!
+    debugClearSchedulerFromConferences: Boolean!
+    debugInvalidateAllMessages: Boolean!
 }
 
 extend type Subscription {
