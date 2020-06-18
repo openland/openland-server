@@ -498,10 +498,10 @@ export default declareSchema(() => {
 
         rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
         rangeIndex('chatSeq', ['cid', 'seq']).withCondition((src) => !src.deleted);
-        rangeIndex('hasImageAttachment', ['cid', 'id']).withCondition((src) => !src.deleted && require('./store.schema.ts').detectMessageAttachmentTypes(src).hasImageAttachment);
-        rangeIndex('hasLinkAttachment', ['cid', 'id']).withCondition((src) => !src.deleted && require('./store.schema.ts').detectMessageAttachmentTypes(src).hasLinkAttachment);
-        rangeIndex('hasVideoAttachment', ['cid', 'id']).withCondition((src) => !src.deleted && require('./store.schema.ts').detectMessageAttachmentTypes(src).hasVideoAttachment);
-        rangeIndex('hasDocumentAttachment', ['cid', 'id']).withCondition((src) => !src.deleted && require('./store.schema.ts').detectMessageAttachmentTypes(src).hasDocumentAttachment);
+        rangeIndex('hasImageAttachment', ['cid', 'id']).withCondition((src) => !src.deleted && require('./store.schema.js').detectMessageAttachmentTypes(src).hasImageAttachment);
+        rangeIndex('hasLinkAttachment', ['cid', 'id']).withCondition((src) => !src.deleted && require('./store.schema.js').detectMessageAttachmentTypes(src).hasLinkAttachment);
+        rangeIndex('hasVideoAttachment', ['cid', 'id']).withCondition((src) => !src.deleted && require('./store.schema.js').detectMessageAttachmentTypes(src).hasVideoAttachment);
+        rangeIndex('hasDocumentAttachment', ['cid', 'id']).withCondition((src) => !src.deleted && require('./store.schema.js').detectMessageAttachmentTypes(src).hasDocumentAttachment);
         rangeIndex('updated', ['updatedAt']);
         uniqueIndex('repeat', ['uid', 'cid', 'repeatKey']).withCondition((src) => !!src.repeatKey);
     });
