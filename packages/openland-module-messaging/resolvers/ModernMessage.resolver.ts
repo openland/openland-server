@@ -32,7 +32,6 @@ import ModernMessageRoot = GQLRoots.ModernMessageRoot;
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { isDefined } from '../../openland-utils/misc';
 import MessageReactionTypeRoot = GQLRoots.MessageReactionTypeRoot;
-import { InvalidInputError } from '../../openland-errors/InvalidInputError';
 import { RangeQueryOptions } from '@openland/foundationdb-entity';
 import MentionInput = GQL.MentionInput;
 
@@ -1214,73 +1213,52 @@ export const Resolver: GQLResolver = {
             let chatId = IDs.Conversation.parse(args.chatId);
             await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
 
-            const termByType = {
-                LINK: {haveLinkAttachment: true},
-                IMAGE: {haveImageAttachment: true},
-                DOCUMENT: {haveDocumentAttachment: true},
-                VIDEO: {haveVideoAttachment: true},
-            };
-
-            const mediaTypesTerms = args.mediaTypes.map(type => ({term: termByType[type]}));
-            const clauses: any[] = [
-                {term: {cid: chatId}},
-                {bool: {should: mediaTypesTerms}},
-                {term: {deleted: false}},
-            ];
-
-            if ([args.before, args.around, args.after].filter(a => !!a).length > 1) {
-                throw new InvalidInputError([{ key: 'after', message: 'Only one field of after/before/around should be specified' }]);
-            }
-            let cursor = Math.pow(10, 9);
+            let cursor: number | null = null;
             if (args.before || args.after || args.around) {
                 cursor = IDs.ConversationMessage.parse((args.before || args.around || args.after)!);
             }
 
-            let queries: any[];
-            const buildQuery = (size: number, query: any, sort: 'asc' | 'desc' = 'desc') => {
-                return [
-                    { index: 'message', type: 'message' },
-                    { size: size, sort: [{createdAt: sort }], query: query }
-                ];
+            const mediaTypeToIndex = {
+                IMAGE: Store.Message.hasImageAttachment,
+                VIDEO: Store.Message.hasVideoAttachment,
+                DOCUMENT: Store.Message.hasDocumentAttachment,
+                LINK: Store.Message.hasLinkAttachment
             };
 
-            if (args.before) {
-                queries = [
-                    ...buildQuery(args.first, { bool: { must: [...clauses, { range: { id: { gt: cursor } }}] } }),
-                    ...buildQuery(0, { bool: { must: [...clauses, { range: { id: { lte: cursor } }}] } })
-                ];
-            } else if (args.around) {
-                queries = [
-                    ...buildQuery(args.first, { bool: { must: [...clauses, { range: { id: { gt: cursor } }}] } }, 'asc'),
-                    ...buildQuery(args.first + 1, { bool: { must: [...clauses, { range: { id: { lte: cursor } }}] } })
-                ];
-            } else {
-                queries = [
-                    ...buildQuery(0, { bool: { must: [...clauses, { range: { id: { gte: cursor } }}] } }),
-                    ...buildQuery(args.first, { bool: { must: [...clauses, { range: { id: { lt: cursor } }}] } }),
-                ];
-            }
+            let leftSize = (args.around || args.before) ? args.first : 0;
+            let rightSize = (args.around || args.after || !cursor) ? args.first : 0;
 
-            let hits = await Modules.Search.elastic.client.msearch({
-                body: queries
-            });
-
-            if (args.around) {
-                hits.responses![0].hits.hits = hits.responses![0].hits.hits.reverse();
-            }
-
-            let summaryHits = hits.responses!.reduce<{ hits: any[], total: number }>(
-                (acc, val) => ({ hits: acc.hits.concat(val.hits.hits), total: acc.total + (val.hits.total as any).value }), { hits: [], total: 0 });
-
-            let messages: (Message | null)[] = await Promise.all(summaryHits.hits.map((v) => Store.Message.findById(ctx, parseInt(v._id, 10))));
-            let offset = (hits.responses![0].hits.total as any).value;
-            if (args.around || args.before) {
-                offset = Math.max(0, offset - args.first);
+            let messages: Message[] = [];
+            let leftHaveMore = false;
+            let rightHaveMore = false;
+            if (leftSize) {
+                let left = await Promise.all(args.mediaTypes.map(a => mediaTypeToIndex[a].query(ctx, chatId, { after: cursor, limit: leftSize })));
+                let results: Message[] = [];
+                for (let part of left) {
+                    results = results.concat(part.items);
+                    if (part.haveMore) {
+                        leftHaveMore = true;
+                    }
+                }
+                results = results.sort((a, b) => b.id - a.id);
+                messages = messages.concat(results.slice(0, leftSize));
             }
             if (args.around) {
-                args.first = args.first * 2 + 1;
+                let centerElement = await Store.Message.findById(ctx, cursor!);
+                messages.push(centerElement!);
             }
-            let total = summaryHits.total;
+            if (rightSize) {
+                let right = await Promise.all(args.mediaTypes.map(a => mediaTypeToIndex[a].query(ctx, chatId, { after: cursor, limit: rightSize, reverse: true })));
+                let results: Message[] = [];
+                for (let part of right) {
+                    results = results.concat(part.items);
+                    if (part.haveMore) {
+                        rightHaveMore = true;
+                    }
+                }
+                results = results.sort((a, b) => b.id - a.id);
+                messages = messages.concat(results.slice(0, rightSize));
+            }
             return {
                 edges: messages.filter(isDefined).map((p, i) => {
                     return {
@@ -1288,16 +1266,16 @@ export const Resolver: GQLResolver = {
                             message: p, chat: p!.cid,
                         },
                         cursor: IDs.ConversationMessage.serialize(p.id),
-                        index: total - i - offset
+                        index: 0
                     };
                 }), pageInfo: {
-                    hasNextPage: (total - offset) > args.first,
-                    hasPreviousPage: offset > 0,
+                    hasNextPage: rightHaveMore,
+                    hasPreviousPage: leftHaveMore,
 
-                    itemsCount: total,
-                    pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
-                    currentPage: Math.floor(offset / args.first) + 1,
-                    openEnded: true,
+                    /* WTF Clients, why you are requesting this but don't use?? */
+                    itemsCount: 0,
+                    pagesCount: 0,
+                    currentPage: 0
                 },
             };
         }),
