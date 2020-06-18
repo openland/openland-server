@@ -73,57 +73,6 @@ export const Spans = array(union({
     all_mention: basicSpan,
 }));
 
-export const detectMessageAttachmentTypes = (item: any) => {
-    let haveLinkAttachment = false;
-    let haveImageAttachment = false;
-    let haveDocumentAttachment = false;
-    let haveVideoAttachment = false;
-
-    if (item.augmentation) {
-        haveLinkAttachment = true;
-    }
-
-    if (item.fileId) {
-        if (item.fileMetadata && item.fileMetadata.isImage) {
-            haveImageAttachment = true;
-        } else if (item.fileMetadata && item.fileMetadata.mimeType.startsWith('video/')) {
-            haveVideoAttachment = true;
-        } else if (item.fileId) {
-            haveDocumentAttachment = true;
-        }
-    } else if (item.attachments) {
-        for (let attach of item.attachments) {
-            if (attach.fileMetadata && attach.fileMetadata.isImage) {
-                haveImageAttachment = true;
-            } else if (attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
-                haveVideoAttachment = true;
-            } else if (attach.fileId) {
-                haveDocumentAttachment = true;
-            }
-        }
-    } else if (item.attachmentsModern) {
-        for (let attach of item.attachmentsModern) {
-            if (attach.type === 'file_attachment') {
-                if (attach.fileMetadata && attach.fileMetadata.isImage) {
-                    haveImageAttachment = true;
-                } else if (attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
-                    haveVideoAttachment = true;
-                } else if (attach.fileId) {
-                    haveDocumentAttachment = true;
-                }
-            } else if (attach.type === 'rich_attachment') {
-                haveLinkAttachment = true;
-            }
-        }
-    }
-    return {
-        hasDocumentAttachment: haveDocumentAttachment,
-        hasLinkAttachment: haveLinkAttachment,
-        hasVideoAttachment: haveVideoAttachment,
-        hasImageAttachment: haveImageAttachment
-    };
-};
-
 import { discussionsStore } from '../openland-module-discussions/Discussions.store';
 
 export default declareSchema(() => {
@@ -498,10 +447,98 @@ export default declareSchema(() => {
 
         rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
         rangeIndex('chatSeq', ['cid', 'seq']).withCondition((src) => !src.deleted);
-        rangeIndex('hasImageAttachment', ['cid', 'id']).withCondition((src) => !src.deleted && require('./store.schema.js').detectMessageAttachmentTypes(src).hasImageAttachment);
-        rangeIndex('hasLinkAttachment', ['cid', 'id']).withCondition((src) => !src.deleted && require('./store.schema.js').detectMessageAttachmentTypes(src).hasLinkAttachment);
-        rangeIndex('hasVideoAttachment', ['cid', 'id']).withCondition((src) => !src.deleted && require('./store.schema.js').detectMessageAttachmentTypes(src).hasVideoAttachment);
-        rangeIndex('hasDocumentAttachment', ['cid', 'id']).withCondition((src) => !src.deleted && require('./store.schema.js').detectMessageAttachmentTypes(src).hasDocumentAttachment);
+        rangeIndex('hasImageAttachment', ['cid', 'id']).withCondition((item) => {
+            if (item.deleted) {
+                return false;
+            }
+
+            if (item.fileId) {
+                if (item.fileMetadata && item.fileMetadata.isImage) {
+                    return true;
+                }
+            } else if (item.attachments) {
+                for (let attach of item.attachments) {
+                    if (attach.fileMetadata && attach.fileMetadata.isImage) {
+                        return true;
+                    }
+                }
+            } else if (item.attachmentsModern) {
+                for (let attach of item.attachmentsModern) {
+                    if (attach.type === 'file_attachment') {
+                        if (attach.fileMetadata && attach.fileMetadata.isImage) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        });
+        rangeIndex('hasLinkAttachment', ['cid', 'id']).withCondition((item) => {
+            if (item.deleted) {
+                return false;
+            }
+
+            if (item.augmentation) {
+                return true;
+            }
+
+            if (item.attachmentsModern) {
+                for (let attach of item.attachmentsModern) {
+                    if (attach.type === 'rich_attachment') {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        });
+        rangeIndex('hasVideoAttachment', ['cid', 'id']).withCondition((item) => {
+            if (item.deleted) {
+                return false;
+            }
+
+            if (item.fileId && item.fileMetadata && item.fileMetadata.mimeType.startsWith('video/')) {
+                return true;
+            } else if (item.attachments) {
+                for (let attach of item.attachments) {
+                    if (attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
+                        return true;
+                    }
+                }
+            } else if (item.attachmentsModern) {
+                for (let attach of item.attachmentsModern) {
+                    if (attach.type === 'file_attachment' && attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        });
+        rangeIndex('hasDocumentAttachment', ['cid', 'id']).withCondition((item) => {
+            if (item.deleted) {
+                return false;
+            }
+
+            if (item.fileId) {
+                if (item.fileMetadata && !item.fileMetadata.isImage && !item.fileMetadata.mimeType.startsWith('video/')) {
+                    return true;
+                }
+            } else if (item.attachments) {
+                for (let attach of item.attachments) {
+                    if (attach.fileMetadata && !attach.fileMetadata.isImage && !attach.fileMetadata.mimeType.startsWith('video/')) {
+                        return true;
+                    }
+                }
+            } else if (item.attachmentsModern) {
+                for (let attach of item.attachmentsModern) {
+                    if (attach.type === 'file_attachment') {
+                        if (attach.fileMetadata && !attach.fileMetadata.isImage && !attach.fileMetadata.mimeType.startsWith('video/')) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        });
         rangeIndex('updated', ['updatedAt']);
         uniqueIndex('repeat', ['uid', 'cid', 'repeatKey']).withCondition((src) => !!src.repeatKey);
     });
