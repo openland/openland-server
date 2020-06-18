@@ -456,13 +456,15 @@ export default declareSchema(() => {
                 if (item.fileMetadata && item.fileMetadata.isImage) {
                     return true;
                 }
-            } else if (item.attachments) {
+            }
+            if (item.attachments) {
                 for (let attach of item.attachments) {
                     if (attach.fileMetadata && attach.fileMetadata.isImage) {
                         return true;
                     }
                 }
-            } else if (item.attachmentsModern) {
+            }
+            if (item.attachmentsModern) {
                 for (let attach of item.attachmentsModern) {
                     if (attach.type === 'file_attachment') {
                         if (attach.fileMetadata && attach.fileMetadata.isImage) {
@@ -498,13 +500,15 @@ export default declareSchema(() => {
 
             if (item.fileId && item.fileMetadata && item.fileMetadata.mimeType.startsWith('video/')) {
                 return true;
-            } else if (item.attachments) {
+            }
+            if (item.attachments) {
                 for (let attach of item.attachments) {
                     if (attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
                         return true;
                     }
                 }
-            } else if (item.attachmentsModern) {
+            }
+            if (item.attachmentsModern) {
                 for (let attach of item.attachmentsModern) {
                     if (attach.type === 'file_attachment' && attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
                         return true;
@@ -522,13 +526,15 @@ export default declareSchema(() => {
                 if (item.fileMetadata && !item.fileMetadata.isImage && !item.fileMetadata.mimeType.startsWith('video/')) {
                     return true;
                 }
-            } else if (item.attachments) {
+            }
+            if (item.attachments) {
                 for (let attach of item.attachments) {
                     if (attach.fileMetadata && !attach.fileMetadata.isImage && !attach.fileMetadata.mimeType.startsWith('video/')) {
                         return true;
                     }
                 }
-            } else if (item.attachmentsModern) {
+            }
+            if (item.attachmentsModern) {
                 for (let attach of item.attachmentsModern) {
                     if (attach.type === 'file_attachment') {
                         if (attach.fileMetadata && !attach.fileMetadata.isImage && !attach.fileMetadata.mimeType.startsWith('video/')) {
