@@ -160,6 +160,12 @@ function handleAsync(callback) {
     }
 }
 
+app.post('/status', handleAsync(async (req, res) => {
+    await lock.inLock(async () => {
+        res.send('It works!');
+    });
+}));
+
 app.post('/', handleAsync(async (req, res) => {
     await lock.inLock(async () => {
         if (!page) {

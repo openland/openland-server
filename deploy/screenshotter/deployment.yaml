@@ -21,24 +21,24 @@ spec:
     spec:
       containers:
         - name: screenshotter
-          image: index.docker.io/openland/chrome-screenshot:v7.1
+          image: index.docker.io/openland/chrome-screenshot:v7.3.0
           resources: {}
           livenessProbe:
             failureThreshold: 3
             httpGet:
-              path: /
-              port: 80
+              path: /status
+              port: 8080
               scheme: HTTP
             initialDelaySeconds: 15
             periodSeconds: 20
             successThreshold: 1
             timeoutSeconds: 1
           ports:
-            - containerPort: 80
+            - containerPort: 8080
               protocol: TCP
           readinessProbe:
             httpGet:
-              path: /
-              port: 80
+              path: /status
+              port: 8080
       imagePullSecrets:
         - name: openland-docker
