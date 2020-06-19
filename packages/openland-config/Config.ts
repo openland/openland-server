@@ -83,6 +83,13 @@ const codec = t.type({
         }),
         t.undefined,
         t.null
+    ]),
+    screenshotter: t.union([
+        t.type({
+            endpoint: t.string
+        }),
+        t.null,
+        t.undefined
     ])
 });
 
@@ -193,6 +200,15 @@ class ConfigProvider {
             return configuration!.pushGoogle;
         } else {
             return null;
+        }
+    }
+
+    get screenshotter() {
+        loadConfigIfNeeded();
+        if (configuration!.screenshotter) {
+            return configuration!.screenshotter.endpoint;
+        } else {
+            return 'https://links.openlandservers.com';
         }
     }
 }

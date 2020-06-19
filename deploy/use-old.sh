@@ -1,1 +1,0 @@
-gcloud container clusters get-credentials statekube --zone us-west1-a --project statecraft-188615

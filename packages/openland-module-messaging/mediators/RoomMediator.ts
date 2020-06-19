@@ -720,7 +720,7 @@ export class RoomMediator {
             if (invitedBy && invitedBy !== uids[0]) {
                 let name = await Modules.Users.getUserFullName(parent, uids[0]);
                 let inviterName = await Modules.Users.getUserFullName(parent, invitedBy);
-                return buildMessage(userMention(inviterName, invitedBy!), ' invited ', userMention(name, uids[0]));
+                return buildMessage(userMention(inviterName, invitedBy!), ' added ', userMention(name, uids[0]));
             } else {
                 let name = await Modules.Users.getUserFullName(parent, uids[0]);
                 return buildMessage(userMention(name, uids[0]), ' joined the\u00A0group');
@@ -729,11 +729,11 @@ export class RoomMediator {
             let inviterName = await Modules.Users.getUserFullName(parent, invitedBy!);
             let name1 = await Modules.Users.getUserFullName(parent, uids[0]);
             let name2 = await Modules.Users.getUserFullName(parent, uids[1]);
-            return buildMessage(userMention(inviterName, invitedBy!), ' invited ', userMention(name1, uids[0]), ' and ', userMention(name2, uids[1]));
+            return buildMessage(userMention(inviterName, invitedBy!), ' added ', userMention(name1, uids[0]), ' and ', userMention(name2, uids[1]));
         } else {
             let inviterName = await Modules.Users.getUserFullName(parent, invitedBy!);
             let name = await Modules.Users.getUserFullName(parent, uids[0]);
-            return buildMessage(userMention(inviterName, invitedBy!), ' invited ', userMention(name, uids[0]), ' and ', usersMention(`${uids.length - 1}\u00A0others`, uids.splice(1)));
+            return buildMessage(userMention(inviterName, invitedBy!), ' added ', userMention(name, uids[0]), ' and ', usersMention(`${uids.length - 1}\u00A0others`, uids.splice(1)));
         }
     }
 
