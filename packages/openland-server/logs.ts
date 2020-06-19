@@ -10,7 +10,7 @@ const isProduction = Config.environment === 'production';
 
 const getPino = () => {
     let log = pino();
-    log.level = 'debug';
+    log.level = 'warn';
     return log;
 };
 
