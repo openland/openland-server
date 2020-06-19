@@ -160,7 +160,7 @@ function handleAsync(callback) {
     }
 }
 
-app.post('/status', handleAsync(async (req, res) => {
+app.get('/status', handleAsync(async (req, res) => {
     await lock.inLock(async () => {
         res.send('It works!');
     });

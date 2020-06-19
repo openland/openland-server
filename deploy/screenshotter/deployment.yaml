@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: screenshotter
-          image: index.docker.io/openland/chrome-screenshot:v7.3.0
+          image: index.docker.io/openland/chrome-screenshot:v7.3.1
           resources: {}
           livenessProbe:
             failureThreshold: 3
