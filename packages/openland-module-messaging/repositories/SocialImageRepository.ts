@@ -1,3 +1,4 @@
+import { Config } from 'openland-config/Config';
 import fetch from 'node-fetch';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
@@ -59,7 +60,7 @@ export class SocialImageRepository {
     }
 
     renderSocialImage = async (title: string, image: string | null): Promise<ImageRef | null> => {
-        let res = await fetch('https://links.openlandservers.com/render', {
+        let res = await fetch(Config.screenshotter + '/render', {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
