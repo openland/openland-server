@@ -20,6 +20,13 @@ export const Metrics = {
     SpaceXSubscriptions: Factory.createMachineGauge('spacex_sub', 'Number of active SpaceX subscriptions'),
     SpaceXSubscriptionEvents: Factory.createFrequencyGauge('spacex_sub_hz', 'Frequency of SpaceX subscription events'),
 
+    // Presences
+    Online: Factory.createGauge('users_online', 'Total online users'),
+    OnlineWeb: Factory.createGauge('users_online_web', 'Online Web Users'),
+    OnlineIOS: Factory.createGauge('users_online_ios', 'Online iOS Users'),
+    OnlineAndroid: Factory.createGauge('users_online_android', 'Online Android Users'),
+    OnlineUnknown: Factory.createGauge('users_online_unknwon', 'Online Unknown Users'),
+
     // Tracing
     TracingFrequence: Factory.createFrequencyGauge('tracing_span_hz', 'Tracing spans generation frequence'),
 
