@@ -23,7 +23,7 @@ class GaugeCollector {
     }>();
 
     resolve = () => {
-        let values = [...this.#values.values()].map((v) => v.value).sort();
+        let values = [...this.#values.values()].map((v) => v.value).sort((a, b) => a - b);
         return {
             sum: values.reduce((p, c) => p + c, 0),
             count: values.length,
@@ -70,7 +70,7 @@ class SummaryCollector {
 
     resolve = () => {
         let res: { p: number, v: number }[] = [];
-        let values = [...this.#values.values()].sort();
+        let values = [...this.#values.values()].sort((a, b) => a - b);
         if (this.#values.size !== 0) {
             for (let p of this.summary.quantiles) {
                 if (p === 0) {
