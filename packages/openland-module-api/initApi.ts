@@ -49,7 +49,6 @@ import { initOauth2 } from '../openland-module-oauth/http.handlers';
 import { AuthContext } from '../openland-module-auth/AuthContext';
 import { initPhoneAuthProvider } from '../openland-module-auth/providers/phone';
 import { Shutdown } from '../openland-utils/Shutdown';
-import { Metrics } from '../openland-module-monitoring/Metrics';
 import { createSpaceXServer } from '../openland-spacex/spaceXServer';
 // import { createSpaceXServer } from '../openland-spacex/spaceXServer';
 // import { Store } from '../openland-module-db/FDB';
