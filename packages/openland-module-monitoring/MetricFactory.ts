@@ -1,3 +1,4 @@
+import { DistributedSummary } from './DistributedSummary';
 import { DistributedFrequencyGauge } from './DistributedFrequencyGauge';
 import { PersistedGauge } from './PersistedGauge';
 import { Context } from '@openland/context';
@@ -10,16 +11,18 @@ export class MetricFactory {
     #machineGauges = new Map<string, DistributedMachineGauge>();
     #persistedGauges = new Map<string, PersistedGauge>();
     #frequencyGauges = new Map<string, DistributedFrequencyGauge>();
+    #summaries = new Map<string, DistributedSummary>();
 
     getAllMetrics() {
         return {
             gauges: [...this.#gauges.values()],
-            persistedGauges: [...this.#persistedGauges.values()]
+            persistedGauges: [...this.#persistedGauges.values()],
+            summaries: [...this.#summaries.values()]
         };
     }
 
     createGauge = (name: string, description: string) => {
-        if (this.#gauges.has(name) || this.#persistedGauges.has(name)) {
+        if (this.#gauges.has(name) || this.#persistedGauges.has(name) || this.#summaries.has(name)) {
             throw Error('Gauge already exists');
         }
         let res = new DistributedGauge(name, description);
@@ -47,6 +50,15 @@ export class MetricFactory {
         }
         let res = new PersistedGauge(name, description, query);
         this.#persistedGauges.set(name, res);
+        return res;
+    }
+
+    createSummary = (name: string, description: string, quantiles: number[]) => {
+        if (this.#gauges.has(name) || this.#persistedGauges.has(name) || this.#summaries.has(name)) {
+            throw Error('Name already used');
+        }
+        let res = new DistributedSummary(name, description, quantiles);
+        this.#summaries.set(name, res);
         return res;
     }
 

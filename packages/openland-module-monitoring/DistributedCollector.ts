@@ -1,3 +1,4 @@
+import { DistributedSummary } from './DistributedSummary';
 import { PersistedGauge } from './PersistedGauge';
 import { createLogger } from '@openland/log';
 import { createNamedContext } from '@openland/context';
@@ -5,7 +6,6 @@ import { DistributedGauge } from './DistributedGauge';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { MetricFactory } from './MetricFactory';
 import { inTx } from '@openland/foundationdb';
-
 const ctx = createNamedContext('collector');
 const logger = createLogger('collector');
 
@@ -26,6 +26,7 @@ class GaugeCollector {
         let values = [...this.#values.values()].map((v) => v.value).sort();
         return {
             sum: values.reduce((p, c) => p + c, 0),
+            count: values.length,
             median: values[Math.floor(values.length / 2)] || 0,
         };
     }
@@ -58,9 +59,50 @@ class GaugeCollector {
     }
 }
 
+class SummaryCollector {
+    readonly summary: DistributedSummary;
+    #lastObservation = 0;
+    #values = new Map<number, number>();
+
+    constructor(summary: DistributedSummary) {
+        this.summary = summary;
+    }
+
+    resolve = () => {
+        let res: { p: number, v: number }[] = [];
+        let values = [...this.#values.values()].sort();
+        if (this.#values.size !== 0) {
+            for (let p of this.summary.quantiles) {
+                if (p === 0) {
+                    res.push({ p, v: values[0] });
+                } else {
+                    let index = Math.ceil(values.length * p) - 1;
+                    res.push({ p, v: values[index] });
+                }
+            }
+        }
+        return { percentiles: res, total: values.length, sum: values.reduce((p, c) => p + c, 0) };
+    }
+
+    report = (value: number, time: number) => {
+        let now = Date.now();
+        // Already timeouted
+        if (time + 5000 <= now) {
+            return;
+        }
+
+        let id = this.#lastObservation++;
+        this.#values.set(id, value);
+        setTimeout(() => {
+            this.#values.delete(id);
+        }, 5000);
+    }
+}
+
 export class DistributedCollector {
     #factory: MetricFactory;
     #gaugeCollectors = new Map<string, GaugeCollector>();
+    #summaryCollectors = new Map<string, SummaryCollector>();
     #persistedGauges = new Map<string, PersistedGauge>();
 
     constructor(factory: MetricFactory) {
@@ -74,6 +116,9 @@ export class DistributedCollector {
         for (let persisted of metrics.persistedGauges) {
             this.#persistedGauges.set(persisted.name, persisted);
         }
+        for (let summary of metrics.summaries) {
+            this.#summaryCollectors.set(summary.name, new SummaryCollector(summary));
+        }
     }
 
     getPrometheusReport = async () => {
@@ -85,8 +130,20 @@ export class DistributedCollector {
             let resolved = collector.resolve();
             res.push('# HELP ' + gauge.name + ' ' + gauge.description);
             res.push('# TYPE ' + gauge.name + ' gauge');
-            res.push(gauge.name + '{func="sum"}' + ' ' + resolved.sum);
-            res.push(gauge.name + '{func="median"}' + ' ' + resolved.median);
+            res.push(gauge.name + ' ' + resolved.sum);
+        }
+
+        // Summaries
+        for (let collector of this.#summaryCollectors.values()) {
+            let summary = collector.summary;
+            let resolved = collector.resolve();
+            res.push('# HELP ' + summary.name + ' ' + summary.description);
+            res.push('# TYPE ' + summary.name + ' summary');
+            res.push(summary.name + '_sum ' + resolved.sum);
+            res.push(summary.name + '_count ' + resolved.total);
+            for (let r of resolved.percentiles) {
+                res.push(summary.name + '{quantile="' + r.p + '"} ' + r.v);
+            }
         }
 
         // Persisted gauges
@@ -138,6 +195,24 @@ export class DistributedCollector {
                 return;
             }
             collector.report(value, key, timeout, time);
+        } else if (src.type === 'summary') {
+            let name = src.name;
+            let value = src.value;
+            let time = src.time;
+            if (typeof name !== 'string') {
+                return;
+            }
+            if (typeof time !== 'number') {
+                return;
+            }
+            if (typeof value !== 'number') {
+                return;
+            }
+            let collector = this.#summaryCollectors.get(name);
+            if (!collector) {
+                return;
+            }
+            collector.report(value, time);
         }
     }
 }

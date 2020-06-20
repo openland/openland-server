@@ -3,6 +3,8 @@ import { MetricFactory } from './MetricFactory';
 
 export const Factory = new MetricFactory();
 
+const DEFAULT_QUANTILES = [0.01, 0.05, 0.5, 0.9, 0.95, 0.99, 0.999];
+
 export const Metrics = {
 
     // SpaceX
@@ -14,13 +16,9 @@ export const Metrics = {
     SpaceXSessionsAnonymous: Factory.createMachineGauge('spacex_sessions_anonymous', 'Number of active authenticated SpaceX sessions'),
     SpaceXOperations: Factory.createMachineGauge('spacex_ops', 'Number of active SpaceX operations'),
     SpaceXOperationsFrequence: Factory.createFrequencyGauge('spacex_ops_hz', 'Frequency of SpaceX operations'),
-    SpaceXOperationTime: Factory.createGauge('spacex_req_duration', 'Duration of SpaceX operation'),
+    SpaceXOperationTime: Factory.createSummary('spacex_operation_duration', 'Duration of SpaceX operation', DEFAULT_QUANTILES),
     SpaceXSubscriptions: Factory.createMachineGauge('spacex_sub', 'Number of active SpaceX subscriptions'),
     SpaceXSubscriptionEvents: Factory.createFrequencyGauge('spacex_sub_hz', 'Frequency of SpaceX subscription events'),
-
-    // GQL: Obsolete
-    GQLRequestTime: Factory.createGauge('gql_request_time', 'Time of GraphQL request resolving'),
-    GQLRequests: Factory.createMachineGauge('gql_requests', 'Number of parallel graphql requests'),
 
     // Tracing
     TracingFrequence: Factory.createFrequencyGauge('tracing_span_hz', 'Tracing spans generation frequence'),

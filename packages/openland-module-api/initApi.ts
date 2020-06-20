@@ -298,7 +298,6 @@ export async function initApi(isTest: boolean) {
                 //         logger.log(wsCtx, `GraphQL ${opId} [#ANON]: ${JSON.stringify(operation)}`);
                 //     }
                 // }
-                Metrics.GQLRequests.inc();
             },
             onOperationFinish: (ctx, operation, duration) => {
                 // let trace = gqlTraceNamespace.get(ctx);
@@ -306,17 +305,12 @@ export async function initApi(isTest: boolean) {
                 //     trace.onRequestFinish();
                 //     await saveTrace(trace.getTrace());
                 // }
-                Metrics.GQLRequests.dec();
-                Metrics.GQLRequestTime.add(duration, uuid(), 10000);
             },
             onEventResolveFinish: async (ctx, operation, duration) => {
                 let trace = gqlTraceNamespace.get(ctx);
                 if (trace) {
                     trace.onRequestFinish();
                     await saveTrace(trace.getTrace());
-                }
-                if (operation.operationName) {
-                    Metrics.GQLRequestTime.add(duration, uuid(), 10000);
                 }
             },
             formatResponse: (value, operation, ctx) => {
@@ -448,7 +442,6 @@ export async function initApi(isTest: boolean) {
                 //         logger.log(wsCtx, `GraphQL ${opId} [#ANON]: ${JSON.stringify(operation)}`);
                 //     }
                 // }
-                Metrics.GQLRequests.inc();
             },
             onOperationFinish: (ctx, operation, duration) => {
                 // let trace = gqlTraceNamespace.get(ctx);
@@ -456,17 +449,12 @@ export async function initApi(isTest: boolean) {
                 //     trace.onRequestFinish();
                 //     await saveTrace(trace.getTrace());
                 // }
-                Metrics.GQLRequests.dec();
-                Metrics.GQLRequestTime.add(duration, uuid(), 10000);
             },
             onEventResolveFinish: async (ctx, operation, duration) => {
                 let trace = gqlTraceNamespace.get(ctx);
                 if (trace) {
                     trace.onRequestFinish();
                     await saveTrace(trace.getTrace());
-                }
-                if (operation.name) {
-                    Metrics.GQLRequestTime.add(duration, uuid(), 10000);
                 }
             },
             formatResponse: (value, operation, ctx) => {

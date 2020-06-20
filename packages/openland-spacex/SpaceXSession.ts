@@ -1,3 +1,4 @@
+import { currentRunningTime } from 'openland-utils/timer';
 import { withReadOnlyTransaction, withoutTransaction } from '@openland/foundationdb';
 import { createTracer } from 'openland-log/createTracer';
 import { createLogger } from '@openland/log';
@@ -277,7 +278,8 @@ export class SpaceXSession {
         op: { document: DocumentNode, variables: any, operationName?: string }
     }) {
         return this._guard({ ctx: opts.ctx, type: opts.type, operationName: opts.op.operationName }, async (context) => {
-            return await execute({
+            let start = currentRunningTime();
+            let res = await execute({
                 schema: this.schema,
                 document: opts.op.document,
                 operationName: opts.op.operationName,
@@ -285,6 +287,9 @@ export class SpaceXSession {
                 contextValue: context,
                 rootValue: opts.rootValue
             });
+            let duration = currentRunningTime() - start;
+            Metrics.SpaceXOperationTime.report(duration);
+            return res;
         });
     }
 
