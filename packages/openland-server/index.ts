@@ -27,7 +27,7 @@ import '../openland-utils/Shutdown';
 import { loadAllModules, startAllModules } from 'openland-modules/loadAllModules';
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
-import { setupFdbTracing } from './fdbTracing';
+import { setupFdbTracing } from '../openland-module-db/fdbTracing';
 import { setupNodeJSTracing } from './nodeJSTracing';
 
 const logger = createLogger('startup');

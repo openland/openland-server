@@ -1,3 +1,4 @@
+import { SpaceXContext } from './SpaceXContext';
 import { currentRunningTime } from 'openland-utils/timer';
 import { withReadOnlyTransaction, withoutTransaction } from '@openland/foundationdb';
 import { createTracer } from 'openland-log/createTracer';
@@ -13,6 +14,7 @@ import { getOperationType } from './utils/getOperationType';
 import { setTracingTag } from 'openland-log/setTracingTag';
 import { isAsyncIterator } from 'openland-mtproto3/utils';
 import { isContextCancelled, withLifetime, cancelContext } from '@openland/lifetime';
+import { withCounters, reportCounters } from 'openland-module-db/FDBCounterContext';
 
 export type SpaceXSessionDescriptor = { type: 'anonymnous' } | { type: 'authenticated', uid: number, tid: string };
 
@@ -82,10 +84,11 @@ export class SpaceXSession {
         }
         let docOp = getOperationType(op.document, op.operationName);
         let id = uuid();
-        const lifetime = withLifetime(parentContext);
+        let opContext = withLifetime(parentContext);
+        opContext = SpaceXContext.set(opContext, true);
         let abort = () => {
-            if (!isContextCancelled(lifetime)) {
-                cancelContext(lifetime);
+            if (!isContextCancelled(opContext)) {
+                cancelContext(opContext);
                 handler({ type: 'aborted' });
             }
             if (this.activeOperations.has(id)) {
@@ -97,7 +100,7 @@ export class SpaceXSession {
                 this.activeOperations.delete(id);
             }
         };
-        
+
         Metrics.SpaceXOperationsFrequence.inc();
         this.activeOperations.set(id, abort);
         if (docOp === 'subscription') {
@@ -122,7 +125,7 @@ export class SpaceXSession {
 
                     // Executing in concurrency pool
                     let res = await this._execute({
-                        ctx: lifetime,
+                        ctx: opContext,
                         type: docOp,
                         op
                     });
@@ -131,10 +134,10 @@ export class SpaceXSession {
                     if (!res) {
                         return;
                     }
-                    if (isContextCancelled(lifetime)) {
+                    if (isContextCancelled(opContext)) {
                         return;
                     }
-                    cancelContext(lifetime);
+                    cancelContext(opContext);
 
                     // This handlers could throw errors, but they are ignored since we are already 
                     // in completed state
@@ -148,7 +151,7 @@ export class SpaceXSession {
                 } else {
 
                     // Subscription
-                    let eventStream = await this._guard({ ctx: lifetime, type: 'subscription', operationName: op.operationName }, async (context) => {
+                    let eventStream = await this._guard({ ctx: opContext, type: 'subscription', operationName: op.operationName }, async (context) => {
                         return await createSourceEventStream(
                             this.schema,
                             op.document,
@@ -163,12 +166,12 @@ export class SpaceXSession {
                     if (!eventStream) {
                         return;
                     }
-                    if (isContextCancelled(lifetime)) {
+                    if (isContextCancelled(opContext)) {
                         return;
                     }
 
                     if (isAsyncIterator(eventStream)) {
-                        if (isContextCancelled(lifetime)) {
+                        if (isContextCancelled(opContext)) {
                             return;
                         }
 
@@ -176,12 +179,12 @@ export class SpaceXSession {
                         for await (let event of eventStream) {
 
                             // Check if canceled
-                            if (isContextCancelled(lifetime)) {
+                            if (isContextCancelled(opContext)) {
                                 return;
                             }
 
                             // Remove transaction and add new read one
-                            let resolveContext = withoutTransaction(lifetime);
+                            let resolveContext = withoutTransaction(opContext);
                             resolveContext = withReadOnlyTransaction(resolveContext);
 
                             // Execute
@@ -197,13 +200,13 @@ export class SpaceXSession {
                             if (!resolved) {
                                 return;
                             }
-                            if (isContextCancelled(lifetime)) {
+                            if (isContextCancelled(opContext)) {
                                 return;
                             }
 
                             // Handle event or error
                             if (resolved.errors && resolved.errors.length > 0) {
-                                cancelContext(lifetime);
+                                cancelContext(opContext);
                                 handler({ type: 'errors', errors: [...resolved.errors!] });
                                 handler({ type: 'completed' });
                                 break;
@@ -212,14 +215,14 @@ export class SpaceXSession {
                             }
                         }
 
-                        if (!isContextCancelled(lifetime)) {
-                            cancelContext(lifetime);
+                        if (!isContextCancelled(opContext)) {
+                            cancelContext(opContext);
                             handler({ type: 'completed' });
                         }
                     } else {
                         // Weird branch. Probabbly just to handle errors.
-                        if (!isContextCancelled(lifetime)) {
-                            cancelContext(lifetime);
+                        if (!isContextCancelled(opContext)) {
+                            cancelContext(opContext);
                             if (eventStream.errors && eventStream.errors.length > 0) {
                                 handler({ type: 'errors', errors: [...eventStream.errors!] });
                                 handler({ type: 'completed' });
@@ -231,16 +234,16 @@ export class SpaceXSession {
                     }
                 }
             } catch (e) {
-                if (isContextCancelled(lifetime)) {
+                if (isContextCancelled(opContext)) {
                     return;
                 }
-                cancelContext(lifetime);
+                cancelContext(opContext);
                 handler({ type: 'errors', errors: [e] });
                 handler({ type: 'completed' });
             } finally {
                 // Cleanup
-                if (!isContextCancelled(lifetime)) {
-                    cancelContext(lifetime);
+                if (!isContextCancelled(opContext)) {
+                    cancelContext(opContext);
                 }
                 abort();
             }
@@ -279,16 +282,19 @@ export class SpaceXSession {
     }) {
         return this._guard({ ctx: opts.ctx, type: opts.type, operationName: opts.op.operationName }, async (context) => {
             let start = currentRunningTime();
+            let ctx = context;
+            ctx = withCounters(ctx);
             let res = await execute({
                 schema: this.schema,
                 document: opts.op.document,
                 operationName: opts.op.operationName,
                 variableValues: opts.op.variables,
-                contextValue: context,
+                contextValue: ctx,
                 rootValue: opts.rootValue
             });
             let duration = currentRunningTime() - start;
             Metrics.SpaceXOperationTime.report(duration);
+            reportCounters(ctx);
             return res;
         });
     }

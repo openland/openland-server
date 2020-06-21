@@ -1,7 +1,7 @@
 import { setTransactionTracer, setSubspaceTracer } from '@openland/foundationdb/lib/tracing';
 // import { LogPathContext } from '@openland/log';
 // import { createTracer } from '../openland-log/createTracer';
-// import { Context, ContextName } from '@openland/context';
+// import { Context, ContextName, createContextNamespace } from '@openland/context';
 // import {
 //     seAtomicBooleanFactoryTracer,
 //     seAtomicIntegerFactoryTracer,
@@ -14,6 +14,9 @@ import { createLogger, LogPathContext } from '@openland/log';
 import { encoders } from '@openland/foundationdb';
 import { createTracer } from 'openland-log/createTracer';
 import { setTracingTag } from '../openland-log/setTracingTag';
+import { Metrics } from 'openland-module-monitoring/Metrics';
+import { isWithinSpaceX } from 'openland-spacex/SpaceXContext';
+import { counterNamespace } from './FDBCounterContext';
 // import { Context, ContextName } from '@openland/context';
 // import { LogPathContext } from '@openland/log';
 
@@ -35,9 +38,9 @@ export function setupFdbTracing() {
     setTransactionTracer({
         tx: async (ctx, handler) => {
             const path = LogPathContext.get(ctx);
-            return await tracer.trace(ctx, 'transaction', (child) => {
+            return await tracer.trace(ctx, 'transaction', async (child) => {
                 setTracingTag(child, 'path', path.join(' -> '));
-                return handler(child);
+                return await handler(child);
             });
         },
         commit: async (ctx, handler) => {
@@ -49,15 +52,24 @@ export function setupFdbTracing() {
             // newTx.increment(ctx);
         },
         onRetry: (ctx) => {
-            // retryTx.increment(ctx);
+            if (isWithinSpaceX(ctx)) {
+                Metrics.SpaceXRetry.inc();
+            }
         },
         onNewEphemeralTx: (ctx) => {
-            // ephemeralTx.increment(ctx);
+            if (isWithinSpaceX(ctx)) {
+                Metrics.SpaceXEphemeralTransactions.inc();
+            }
         }
     });
 
     setSubspaceTracer({
         get: async (ctx, key, handler) => {
+            let counter = counterNamespace.get(ctx);
+            if (counter && !counter.flushed) {
+                counter.readCount++;
+            }
+
             return await tracer.trace(ctx, 'getKey', async (child) => {
                 const path = LogPathContext.get(ctx);
                 setTracingTag(child, 'path', path.join(' -> '));
@@ -66,6 +78,11 @@ export function setupFdbTracing() {
             // return await tracer.trace(ctx, 'getKey', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
         },
         set: (ctx, key, value, handler) => {
+            let counter = counterNamespace.get(ctx);
+            if (counter && !counter.flushed) {
+                counter.writeCount++;
+            }
+
             // opWrite.increment(ctx);
             if (value.byteLength > 100000) {
                 valueLengthLimitLogger.log(ctx, 'Value length exceeds limit: ' + JSON.stringify(encoders.json.unpack(value)));
@@ -77,7 +94,12 @@ export function setupFdbTracing() {
             return await tracer.trace(ctx, 'getRange', async (child) => {
                 const path = LogPathContext.get(ctx);
                 setTracingTag(child, 'path', path.join(' -> '));
-                return await getConcurrencyPool(ctx).run(handler);
+                let res = await getConcurrencyPool(ctx).run(handler);
+                let counter = counterNamespace.get(ctx);
+                if (counter && !counter.flushed) {
+                    counter.readCount += res.length;
+                }
+                return res;
             });
         }
     });
