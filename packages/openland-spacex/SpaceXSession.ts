@@ -294,7 +294,11 @@ export class SpaceXSession {
             });
             let duration = currentRunningTime() - start;
             Metrics.SpaceXOperationTime.report(duration);
-            reportCounters(ctx);
+            let counters = reportCounters(ctx);
+            if (counters) {
+                Metrics.SpaceXWrites.report(counters.writeCount);
+                Metrics.SpaceXReads.report(counters.writeCount);
+            }
             return res;
         });
     }

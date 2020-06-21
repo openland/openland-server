@@ -9,10 +9,11 @@ export function withCounters(ctx: Context) {
 export function reportCounters(ctx: Context) {
     let counters = counterNamespace.get(ctx);
     if (!counters) {
-        return;
+        return null;
     }
     if (counters.flushed) {
-        return;
+        return null;
     }
     counters.flushed = true;
+    return { readCount: counters.readCount, writeCount: counters.writeCount };
 }
