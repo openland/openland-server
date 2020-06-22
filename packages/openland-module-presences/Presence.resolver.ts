@@ -42,19 +42,21 @@ export const Resolver: GQLResolver = {
 
             await Modules.Presence.setOnline(ctx, ctx.auth.uid, ctx.auth.tid!, args.timeout, args.platform || 'unknown', active);
 
-            Metrics.Online.add(1, 'uid-' + ctx.auth.uid!, 5000);
-            if (args.platform) {
-                if (args.platform.startsWith('web')) {
-                    Metrics.OnlineWeb.add(1, 'uid-' + ctx.auth.uid!, 5000);
-                } else if (args.platform.startsWith('android')) {
-                    Metrics.OnlineAndroid.add(1, 'uid-' + ctx.auth.uid!, 5000);
-                } else if (args.platform.startsWith('ios')) {
-                    Metrics.OnlineIOS.add(1, 'uid-' + ctx.auth.uid!, 5000);
+            if (active) {
+                Metrics.Online.add(1, 'uid-' + ctx.auth.uid!, 5000);
+                if (args.platform) {
+                    if (args.platform.startsWith('web')) {
+                        Metrics.OnlineWeb.add(1, 'uid-' + ctx.auth.uid!, 5000);
+                    } else if (args.platform.startsWith('android')) {
+                        Metrics.OnlineAndroid.add(1, 'uid-' + ctx.auth.uid!, 5000);
+                    } else if (args.platform.startsWith('ios')) {
+                        Metrics.OnlineIOS.add(1, 'uid-' + ctx.auth.uid!, 5000);
+                    } else {
+                        Metrics.OnlineUnknown.add(1, 'uid-' + ctx.auth.uid!, 5000);
+                    }
                 } else {
                     Metrics.OnlineUnknown.add(1, 'uid-' + ctx.auth.uid!, 5000);
                 }
-            } else {
-                Metrics.OnlineUnknown.add(1, 'uid-' + ctx.auth.uid!, 5000);
             }
 
             return 'ok';
