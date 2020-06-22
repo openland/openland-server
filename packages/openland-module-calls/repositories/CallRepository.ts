@@ -50,8 +50,8 @@ export let DEFAULT_CAPABILITIES: Capabilities = {
 export class CallRepository {
 
     readonly defaultScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' = Config.environment === 'production' ? 'basic-sfu' : 'mesh';
-    readonly schedulerMesh = new CallSchedulerMesh('relay');
-    readonly schedulerMeshNoRelay = new CallSchedulerMesh('all');
+    readonly schedulerMesh = new CallSchedulerMesh('relay', this);
+    readonly schedulerMeshNoRelay = new CallSchedulerMesh('all', this);
 
     @lazyInject('CallSchedulerKitchen')
     readonly schedulerKitchen!: CallSchedulerKitchen;
@@ -439,8 +439,8 @@ export class CallRepository {
             await scheduler.onStreamOffer(ctx, peer.cid, peer.id, streamId, offer, hints ? hints : null);
             await stream.flush(ctx);
 
-            // Notify state change
-            await this.bumpVersion(ctx, peer.cid, peer.id);
+            // Notify peer state change
+            await this.notifyConferencePeerChanged(ctx, peer.cid, peer.id); // Since state was updated
         });
     }
 
@@ -471,8 +471,8 @@ export class CallRepository {
             await scheduler.onStreamAnswer(ctx, peer.cid, peer.id, streamId, answer);
             await stream.flush(ctx);
 
-            // Bump version
-            await this.bumpVersion(ctx, peer.cid, peer.id);
+            // Notify peer state change
+            await this.notifyConferencePeerChanged(ctx, peer.cid, peer.id); // Since state was updated
         });
     }
 
@@ -501,9 +501,6 @@ export class CallRepository {
             // Scheduling
             await scheduler.onStreamCandidate(ctx, peer.cid, peer.id, streamId, candidate);
             await stream.flush(ctx);
-
-            // Bump version
-            await this.bumpVersion(ctx, peer.cid, peer.id);
         });
     }
 
@@ -517,9 +514,6 @@ export class CallRepository {
             let scheduler = this.getScheduler(conf.currentScheduler);
 
             await scheduler.onStreamFailed(ctx, peer.cid, peer.id, streamId);
-
-            // Bump version
-            await this.bumpVersion(ctx, peer.cid, peer.id);
         });
     }
 
@@ -531,13 +525,15 @@ export class CallRepository {
         return await Store.ConferencePeer.conference.findAll(parent, cid);
     }
 
-    // Deprecated
-    bumpVersion = async (parent: Context, cid: number, pid: number) => {
-        // await inTx(parent, async (ctx) => {
-        //     let conf = await this.getOrCreateConference(ctx, cid);
-        //     conf.invalidate();
-        // });
-        await this.notifyConferenceChanged(parent, cid);
+    notifyConferencePeerChanged = async (parent: Context, cid: number, pid: number) => {
+        await inTx(parent, async (ctx) => {
+            let peer = await Store.ConferencePeer.findById(ctx, pid);
+            if (!peer || !peer.enabled) {
+                return;
+            }
+            peer.invalidate();
+            notifyFastWatch(ctx, 'conference-peer-' + cid + '-' + pid);
+        });
     }
 
     notifyConferenceChanged = async (parent: Context, cid: number) => {
