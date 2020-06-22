@@ -42,7 +42,7 @@ export const Resolver: GQLResolver = {
 
             await Modules.Presence.setOnline(ctx, ctx.auth.uid, ctx.auth.tid!, args.timeout, args.platform || 'unknown', active);
 
-            Metrics.OnlineWeb.add(1, 'uid-' + ctx.auth.uid!, 5000);
+            Metrics.Online.add(1, 'uid-' + ctx.auth.uid!, 5000);
             if (args.platform) {
                 if (args.platform.startsWith('web')) {
                     Metrics.OnlineWeb.add(1, 'uid-' + ctx.auth.uid!, 5000);
