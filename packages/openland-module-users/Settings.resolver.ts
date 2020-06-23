@@ -451,11 +451,11 @@ export const Resolver: GQLResolver = {
         settingsUpdate: settingsUpdateResolver,
         updateSettings: updateSettingsResolver,
 
-        sendEmailChangeCode: withUser(async (parent, args, uid) => {
-            return await Modules.Auth.authManagement.sendEmailChangeCode(parent, uid, args.newEmail);
+        sendEmailPairCode: withUser(async (parent, args, uid) => {
+            return await Modules.Auth.authManagement.sendEmailPairCode(parent, uid, args.email);
         }),
-        changeEmail: withUser(async (parent, args, uid) => {
-            return await Modules.Auth.authManagement.changeEmail(parent, uid, args.sessionId, args.confirmationCode);
+        pairEmail: withUser(async (parent, args, uid) => {
+            return await Modules.Auth.authManagement.pairEmail(parent, uid, args.sessionId, args.confirmationCode);
         }),
 
         sendPhonePairCode: withUser(async (parent, args, uid) => {

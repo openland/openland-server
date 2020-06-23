@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '83b8e6c17b443f81f55b67ec1d7347d5';
+export const GQL_SPEC_VERSION = '473d88ac4323f22a1d7913493c929a1f';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2212,8 +2212,8 @@ export namespace GQL {
         debugClearSchedulerFromConferences: boolean;
         debugInvalidateAllMessages: boolean;
         settingsUpdate: Settings;
-        sendEmailChangeCode: string;
-        changeEmail: boolean;
+        sendEmailPairCode: string;
+        pairEmail: boolean;
         sendPhonePairCode: string;
         pairPhone: boolean;
         updateSettings: Settings;
@@ -2736,10 +2736,10 @@ export namespace GQL {
         settings: OptionalNullable<UpdateSettingsInput>;
         uid: OptionalNullable<string>;
     }
-    export interface MutationSendEmailChangeCodeArgs {
-        newEmail: string;
+    export interface MutationSendEmailPairCodeArgs {
+        email: string;
     }
-    export interface MutationChangeEmailArgs {
+    export interface MutationPairEmailArgs {
         sessionId: string;
         confirmationCode: string;
     }
@@ -8518,8 +8518,8 @@ export interface GQLResolver {
             debugClearSchedulerFromConferences: GQL.MutationDebugClearSchedulerFromConferencesArgs,
             debugInvalidateAllMessages: GQL.MutationDebugInvalidateAllMessagesArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
-            sendEmailChangeCode: GQL.MutationSendEmailChangeCodeArgs,
-            changeEmail: GQL.MutationChangeEmailArgs,
+            sendEmailPairCode: GQL.MutationSendEmailPairCodeArgs,
+            pairEmail: GQL.MutationPairEmailArgs,
             sendPhonePairCode: GQL.MutationSendPhonePairCodeArgs,
             pairPhone: GQL.MutationPairPhoneArgs,
             updateSettings: GQL.MutationUpdateSettingsArgs,
