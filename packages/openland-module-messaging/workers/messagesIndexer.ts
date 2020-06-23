@@ -6,7 +6,7 @@ import { Modules } from '../../openland-modules/Modules';
 export function messagesIndexer() {
     declareSearchIndexer({
         name: 'message-index',
-        version: 11,
+        version: 12,
         index: 'message',
         stream: Store.Message.updated.stream({ batchSize: 200 })
     }).withProperties({
@@ -67,7 +67,7 @@ export function messagesIndexer() {
             filter: {
                 hashtag_as_alphanum: {
                     type: 'word_delimiter',
-                    type_table: ['# => ALPHANUM']
+                    type_table: ['# => ALPHANUM', '@ => ALPHANUM']
                 }
             },
             analyzer: {
