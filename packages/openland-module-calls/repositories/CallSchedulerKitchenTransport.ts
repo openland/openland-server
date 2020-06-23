@@ -431,9 +431,6 @@ export class CallSchedulerKitchenTransport {
         await consumerTransport.flush(ctx);
 
         await this.#refreshConsumerIfNeeded(ctx, transportId);
-
-        // Notify state change
-        await this.callRepo.notifyConferencePeerChanged(ctx, consumerTransport.cid, consumerTransport.pid);
     }
 
     removeProducerTransport = async (ctx: Context, id: string) => {
