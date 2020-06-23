@@ -272,8 +272,8 @@ export class CallSchedulerKitchenTransport {
             screencastProducerMid: null,
         });
 
-        // Notify State Change
-        await this.callRepo.notifyConferencePeerChanged(ctx, cid, pid);
+        // Bump
+        await this.callRepo.bumpVersion(ctx, cid, pid);
 
         return id;
     }
@@ -368,9 +368,6 @@ export class CallSchedulerKitchenTransport {
         // Create offer if needed
         await this.#createConsumerOfferIfNeeded(ctx, id);
 
-        // Notify state change
-        await this.callRepo.notifyConferencePeerChanged(ctx, cid, pid);
-
         return id;
     }
 
@@ -408,9 +405,6 @@ export class CallSchedulerKitchenTransport {
         stream.state = 'need-offer';
         stream.localStreams = localStreams;
         stream.seq++;
-
-        // Notify State Change
-        await this.callRepo.notifyConferencePeerChanged(ctx, producer.cid, producer.pid);
 
         // Update consumers
         let consumers = await Store.ConferenceKitchenConsumerTransport.fromConference.findAll(ctx, producer.cid);
@@ -470,8 +464,8 @@ export class CallSchedulerKitchenTransport {
         // Not deleting producer transports until we figure out how to deal with eventual consistency
         // await this.repo.deleteTransport(ctx, id);
 
-        // Notify state change
-        await this.callRepo.notifyConferencePeerChanged(ctx, producerTransport.cid, producerTransport.pid);
+        // Bump
+        await this.callRepo.bumpVersion(ctx, producerTransport.cid, producerTransport.pid);
     }
 
     removeConsumerTransport = async (ctx: Context, id: string) => {
@@ -499,9 +493,6 @@ export class CallSchedulerKitchenTransport {
         // Delete transport
         // Not deleting producer transports until we figure out how to deal with eventual consistency
         // await this.repo.deleteTransport(ctx, id);
-
-        // Notify state change
-        await this.callRepo.notifyConferencePeerChanged(ctx, consumerTransport.cid, consumerTransport.pid);
     }
 
     //
@@ -716,9 +707,7 @@ export class CallSchedulerKitchenTransport {
         endStream.state = 'online';
         endStream.remoteSdp = JSON.stringify({ type: 'answer', sdp: answer });
         producerTransport.state = 'ready';
-
-        // Notify State Change
-        await this.callRepo.notifyConferencePeerChanged(ctx, producerTransport.cid, producerTransport.pid);
+        await this.callRepo.bumpVersion(ctx, producerTransport.cid, producerTransport.pid);
     }
 
     #refreshConsumerIfNeeded = async (ctx: Context, transportId: string) => {
@@ -932,9 +921,7 @@ export class CallSchedulerKitchenTransport {
         endStream.remoteSdp = JSON.stringify({ type: 'offer', sdp: answer });
         endStream.remoteStreams = remoteStreams;
         consumerTransport.state = 'negotiation-need-answer';
-        
-        // Notify State Change
-        await this.callRepo.notifyConferencePeerChanged(ctx, consumerTransport.cid, consumerTransport.pid);
+        await this.callRepo.bumpVersion(ctx, consumerTransport.cid, consumerTransport.pid);
     }
 
     #consumerTransportAnswer = async (ctx: Context, transportId: string, answer: string) => {
