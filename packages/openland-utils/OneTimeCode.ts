@@ -37,7 +37,11 @@ class OneTimeCodeRepo<Data> {
             let now = Math.floor(Date.now() / 1000);
             let res = await Store.OneTimeCode.findById(ctx, this.service, id);
             if (res && res.enabled && res.expires > now && res.attemptsCount <= this.maxAttempts) {
-                return res;
+                return {
+                    id: res.id,
+                    data: res.data as Data,
+                    code: res.code
+                };
             }
             return null;
         });
