@@ -20,14 +20,12 @@ const phonePairSMSThrottle = createPersistenceThrottle('phone_change');
 const phonePairCode = createOneTimeCodeGenerator<{ oldPhone: string | null, phone: string, uid: number }>('phone_pair', 60 * 5, 5, 6);
 
 const Texts = {
-    PhonePaired_SMS: templated<{ phone: string }>(`You have paired phone: {{phone}} to your Openland account, if this was not you please contact us`),
     PhoneChanged_SMS: templated<{ phone: string }>(`Your phone was changed to {{phone}}, if this was not you please contact us`),
     PhonePaired_Email: templated<{ phone: string }>(`You have paired phone: {{phone}} to your Openland account, if this was not you please contact us`),
     PhoneChanged_Email: templated<{ phone: string }>(`Your phone was changed to {{phone}}, if this was not you please contact us`),
 
     EmailPaired_SMS: templated<{ email: string }>(`You have paired email: {{email}} to your Openland account, if this was not you please contact us`),
     EmailChanged_SMS: templated<{ email: string }>(`Your email was changed to {{email}}, if this was not you please contact us`),
-    EmailPaired_Email: templated<{ email: string }>(`You have paired email: {{email}} to your Openland account, if this was not you please contact us`),
     EmailChanged_Email: templated<{ email: string }>(`Your email was changed to {{email}}, if this was not you please contact us`),
 };
 
@@ -104,8 +102,8 @@ export class AuthManagementMediator {
             // Inform about change
             if (code.data.oldEmail) {
                 await Emails.sendGenericEmailTo(ctx, code.data.oldEmail, {
-                    title: isChange ? 'Your email was changed' : 'You have paired email',
-                    text: isChange ? Texts.EmailChanged_Email({email: code.data.email}) : Texts.EmailPaired_Email({email: code.data.email}),
+                    title: 'Your email was changed',
+                    text: Texts.EmailChanged_Email({email: code.data.email}),
                     link: 'https://openland.com/mail/LOaDEWDj9zsVv999DDpJiEj05K',
                     buttonText: 'contact support'
                 });
@@ -189,7 +187,7 @@ export class AuthManagementMediator {
 
             // Inform about pairing
             if (code.data.oldPhone) {
-                await SmsService.sendSms(ctx, code.data.oldPhone, isChange ? Texts.PhoneChanged_SMS({phone: code.data.phone}) : Texts.PhonePaired_SMS({phone: code.data.phone}));
+                await SmsService.sendSms(ctx, code.data.oldPhone, Texts.PhoneChanged_SMS({phone: code.data.phone}));
             }
             if (user.email) {
                 await Emails.sendGenericEmailTo(ctx, user.email, {
