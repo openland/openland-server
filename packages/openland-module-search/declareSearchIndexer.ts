@@ -21,12 +21,13 @@ type SearchIndexerProperties = { [key: string]: { type: SearchFieldType } };
 
 type HandlerReturnType<P extends SearchIndexerProperties> = { [K in keyof P]?: ToType<P[K]['type']> };
 
-export class SearchIndexer<T, P extends SearchIndexerProperties> {
+export class SearchIndexer<T, P extends SearchIndexerProperties, S> {
     readonly name: string;
     readonly version: number;
     readonly index: string;
     readonly stream: Stream<T>;
     properties?: SearchIndexerProperties;
+    settings?: any;
     readonly excludedClusters: string[];
     readonly includedClusters: string[];
 
@@ -40,7 +41,7 @@ export class SearchIndexer<T, P extends SearchIndexerProperties> {
     }
 
     withProperties<Pr extends SearchIndexerProperties>(properties: Pr) {
-        let indexer = new SearchIndexer<T, Pr>({
+        let indexer = new SearchIndexer<T, Pr, S>({
             name: this.name,
             version: this.version,
             index: this.index,
@@ -49,6 +50,21 @@ export class SearchIndexer<T, P extends SearchIndexerProperties> {
             includedClusters: this.includedClusters
         });
         indexer.properties = properties;
+        indexer.settings = this.settings;
+        return indexer;
+    }
+
+    withSettings<Settings>(settings: Settings) {
+        let indexer = new SearchIndexer<T, P, Settings>({
+            name: this.name,
+            version: this.version,
+            index: this.index,
+            stream: this.stream,
+            excludedClusters: this.excludedClusters,
+            includedClusters: this.includedClusters,
+        });
+        indexer.properties = this.properties;
+        indexer.settings = settings;
         return indexer;
     }
 
@@ -89,6 +105,30 @@ export class SearchIndexer<T, P extends SearchIndexerProperties> {
                     if (await client.indices.exists({ index: this.index }) !== true) {
                         log.log(ctx, 'Creating index ' + name);
                         await client.indices.create({ index: this.index });
+                    }
+                    if (this.settings) {
+                        try {
+                            log.log(ctx, 'Updating settings of ' + name);
+                            await client.indices.close({
+                                index: this.index,
+                            });
+                            await client.indices.putSettings({
+                                index: this.index,
+                                body: {
+                                    settings: this.settings,
+                                },
+                            });
+                            await client.indices.open({
+                                index: this.index,
+                            });
+                        } catch (e) {
+                            if (e.body && e.body.error && e.body.error.type && e.body.error.type === 'illegal_argument_exception') {
+                                log.warn(ctx, e.body);
+                                log.log(ctx, 'Deleting ' + name);
+                                await client.indices.delete({ index: this.index });
+                            }
+                            throw e;
+                        }
                     }
                     if (this.properties) {
                         try {

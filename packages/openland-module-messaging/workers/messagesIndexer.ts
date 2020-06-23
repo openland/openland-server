@@ -6,7 +6,7 @@ import { Modules } from '../../openland-modules/Modules';
 export function messagesIndexer() {
     declareSearchIndexer({
         name: 'message-index',
-        version: 10,
+        version: 11,
         index: 'message',
         stream: Store.Message.updated.stream({ batchSize: 200 })
     }).withProperties({
@@ -35,7 +35,8 @@ export function messagesIndexer() {
             type: 'boolean'
         },
         text: {
-            type: 'text'
+            type: 'text',
+            analyzer: 'hashtag',
         },
         haveLinkAttachment: {
             type: 'boolean'
@@ -55,6 +56,29 @@ export function messagesIndexer() {
         updatedAt: {
             type: 'date'
         },
+    }).withSettings({
+        analysis: {
+            char_filter: {
+                space_hashtags: {
+                    type: 'mapping',
+                    mappings: ['#=>|#']
+                }
+            },
+            filter: {
+                hashtag_as_alphanum: {
+                    type: 'word_delimiter',
+                    type_table: ['# => ALPHANUM']
+                }
+            },
+            analyzer: {
+                hashtag: {
+                    type: 'custom',
+                    char_filter: 'space_hashtags',
+                    tokenizer: 'whitespace',
+                    filter: ['lowercase', 'hashtag_as_alphanum']
+                }
+            }
+        }
     }).start(async (item, parent) => {
         return await inTx(parent, async (ctx) => {
             let room = await Store.Conversation.findById(ctx, item.cid);
