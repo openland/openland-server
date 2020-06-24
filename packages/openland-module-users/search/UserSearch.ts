@@ -88,7 +88,7 @@ export class UserSearch {
                     index: 'user_profile',
                     type: 'user_profile',
                     size: options && options.limit ? options.limit : 20,
-                    body: { query: mainQuery },
+                    body: { query: mainQuery, sort: ['_score'] },
                     from: options && options.after ? parseInt(options.after, 10) : (options && options.page ? ((options.page - 1) * (options && options.limit ? options.limit : 20)) : 0),
                 });
                 let uids = hits.hits.hits.map((v) => parseInt(v._id, 10));
