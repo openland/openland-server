@@ -104,8 +104,44 @@ export const Resolver: GQLResolver = {
         photo: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null, true),
         photoRef: withProfile((ctx, src, profile) => profile && profile.picture, true),
 
-        email: withProfile((ctx, src, profile, authorized) => authorized ? (profile ? (src.isBot ? null : profile.email) : null) : null, true),
-        phone: withProfile((ctx, src, profile) => profile ? profile.phone : null),
+        email: withUser(async (ctx, src, authorized) => {
+            if (!authorized) {
+                return null;
+            }
+            if (!src.email) {
+                return null;
+            }
+
+            if (ctx.auth.uid === src.id) {
+                return src.email;
+            }
+
+            let settings = await Modules.Users.getUserSettings(ctx, src.id);
+            if (!settings.privacy || settings.privacy.whoCanSeeEmail === 'everyone') {
+                return src.email;
+            } else {
+                return null;
+            }
+        }, true),
+        phone: withUser(async (ctx, src, authorized) => {
+            if (!authorized) {
+                return null;
+            }
+            if (!src.phone) {
+                return null;
+            }
+
+            if (ctx.auth.uid === src.id) {
+                return src.phone;
+            }
+
+            let settings = await Modules.Users.getUserSettings(ctx, src.id);
+            if (!settings.privacy || settings.privacy.whoCanSeePhone === 'everyone') {
+                return src.phone;
+            } else {
+                return null;
+            }
+        }, true),
         about: withProfile((ctx, src, profile) => profile ? profile.about : null, true),
         website: withProfile((ctx, src, profile) => profile ? profile.website : null),
         linkedin: withProfile((ctx, src, profile) => profile && profile.linkedin),
