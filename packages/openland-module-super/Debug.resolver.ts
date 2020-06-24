@@ -248,6 +248,15 @@ export const Resolver: GQLResolver = {
             }
             return 0;
         }),
+        debugUserSearch: withPermission('super-admin', async (ctx, args) => {
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'user_profile',
+                type: 'user_profile',
+                size: 100,
+                body: JSON.parse(args.query),
+            });
+            return JSON.stringify(hits.hits.hits);
+        }),
     },
     Mutation: {
         debugSendSMS: withPermission('super-admin', async (ctx, args) => {

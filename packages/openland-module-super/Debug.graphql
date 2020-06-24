@@ -97,6 +97,7 @@ extend type Query {
     debugUserWallet(id: ID!): WalletAccount!
     debugEntitiesCounter(name: String!): Int!
     debugEntitiesCleanerProgress(name: String!): Int!
+    debugUserSearch(query: String!): String!
 }
 
 enum SuperNotificationType {
