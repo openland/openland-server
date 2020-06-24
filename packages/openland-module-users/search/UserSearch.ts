@@ -32,30 +32,30 @@ export class UserSearch {
         }
 
         if (options && options.uid) {
-            let profilePromise = Store.UserProfile.findById(ctx, options.uid);
-            let organizationsPromise = Modules.Orgs.findUserOrganizations(ctx, options.uid);
+            // let profilePromise = Store.UserProfile.findById(ctx, options.uid);
+            // let organizationsPromise = Modules.Orgs.findUserOrganizations(ctx, options.uid);
             let topDialogs = await Store.UserEdge.forwardWeight.query(ctx, options.uid, { limit: 300, reverse: true });
-            let profile = await profilePromise;
-            let organizations = await organizationsPromise;
+            // let profile = await profilePromise;
+            // let organizations = await organizationsPromise;
             let functions: any[] = [];
 
-            // Huge boost if primary organization same
-            if (profile && profile.primaryOrganization) {
-                functions.push({
-                    filter: { match: { primaryOrganization: profile.primaryOrganization } },
-                    weight: 8
-                });
-            }
-
-            // Boost if have common organizations (more common organizations - more boost)
-            if (organizations.length > 0) {
-                for (let o of organizations) {
-                    functions.push({
-                        filter: { match: { organizations: o } },
-                        weight: 2
-                    });
-                }
-            }
+            // // Huge boost if primary organization same
+            // if (profile && profile.primaryOrganization) {
+            //     functions.push({
+            //         filter: { match: { primaryOrganization: profile.primaryOrganization } },
+            //         weight: 8
+            //     });
+            // }
+            //
+            // // Boost if have common organizations (more common organizations - more boost)
+            // if (organizations.length > 0) {
+            //     for (let o of organizations) {
+            //         functions.push({
+            //             filter: { match: { organizations: o } },
+            //             weight: 2
+            //         });
+            //     }
+            // }
 
             // Boost top dialogs
             for (let dialog of topDialogs.items) {
