@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'dae91e38676e295d5472a4ac98302435';
+export const GQL_SPEC_VERSION = '1b50cceb8ad3c3026c89a1ce50274a3c';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -978,6 +978,8 @@ export namespace GQL {
     export type NotificationsDelay = GQLRoots.NotificationsDelayRoot;
     export type NotificationPreviewValues = 'NAME_TEXT' | 'NAME';
     export type NotificationPreview = GQLRoots.NotificationPreviewRoot;
+    export type PrivacyWhoCanSeeValues = 'EVERYONE' | 'NOBODY';
+    export type PrivacyWhoCanSee = GQLRoots.PrivacyWhoCanSeeRoot;
     export interface ChatTypeNotificationSettings {
         showNotification: boolean;
         sound: boolean;
@@ -1016,6 +1018,8 @@ export namespace GQL {
         mobile: Nullable<PlatformNotificationSettingsInput>;
         countUnreadChats: Nullable<boolean>;
         excludeMutedChats: Nullable<boolean>;
+        whoCanSeeEmail: Nullable<PrivacyWhoCanSee>;
+        whoCanSeePhone: Nullable<PrivacyWhoCanSee>;
         notificationsDelay: Nullable<NotificationsDelay>;
         desktopNotifications: Nullable<NotificationMessages>;
         mobileNotifications: Nullable<NotificationMessages>;
@@ -1033,6 +1037,8 @@ export namespace GQL {
         mobile: PlatformNotificationSettings;
         countUnreadChats: boolean;
         excludeMutedChats: boolean;
+        whoCanSeeEmail: PrivacyWhoCanSee;
+        whoCanSeePhone: PrivacyWhoCanSee;
         notificationsDelay: NotificationsDelay;
         desktopNotifications: NotificationMessages;
         mobileNotifications: NotificationMessages;
@@ -1049,6 +1055,8 @@ export namespace GQL {
     export interface SettingsMobileArgs { }
     export interface SettingsCountUnreadChatsArgs { }
     export interface SettingsExcludeMutedChatsArgs { }
+    export interface SettingsWhoCanSeeEmailArgs { }
+    export interface SettingsWhoCanSeePhoneArgs { }
     export interface SettingsNotificationsDelayArgs { }
     export interface SettingsDesktopNotificationsArgs { }
     export interface SettingsMobileNotificationsArgs { }
@@ -2211,6 +2219,7 @@ export namespace GQL {
         debugSetRoomOwner: boolean;
         debugClearSchedulerFromConferences: boolean;
         debugInvalidateAllMessages: boolean;
+        debugFixUserSettings: boolean;
         settingsUpdate: Settings;
         sendEmailPairCode: string;
         pairEmail: boolean;
@@ -2734,6 +2743,7 @@ export namespace GQL {
     }
     export interface MutationDebugClearSchedulerFromConferencesArgs { }
     export interface MutationDebugInvalidateAllMessagesArgs { }
+    export interface MutationDebugFixUserSettingsArgs { }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
         uid: OptionalNullable<string>;
@@ -4058,6 +4068,7 @@ export namespace GQL {
         debugUserWallet: WalletAccount;
         debugEntitiesCounter: number;
         debugEntitiesCleanerProgress: number;
+        debugUserSearch: string;
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
@@ -4279,6 +4290,9 @@ export namespace GQL {
     }
     export interface QueryDebugEntitiesCleanerProgressArgs {
         name: string;
+    }
+    export interface QueryDebugUserSearchArgs {
+        query: string;
     }
     export interface QueryDialogsArgs {
         first: number;
@@ -7008,6 +7022,7 @@ export interface GQLResolver {
     CommentsNotificationDelivery?: EnumTypeResolver<'ALL' | 'NONE', GQLRoots.CommentsNotificationDeliveryRoot>;
     NotificationsDelay?: EnumTypeResolver<'NONE' | 'MIN_1' | 'MIN_15', GQLRoots.NotificationsDelayRoot>;
     NotificationPreview?: EnumTypeResolver<'NAME_TEXT' | 'NAME', GQLRoots.NotificationPreviewRoot>;
+    PrivacyWhoCanSee?: EnumTypeResolver<'EVERYONE' | 'NOBODY', GQLRoots.PrivacyWhoCanSeeRoot>;
     ChatTypeNotificationSettings?: ComplexTypedResolver<
         GQL.ChatTypeNotificationSettings,
         GQLRoots.ChatTypeNotificationSettingsRoot,
@@ -7052,6 +7067,8 @@ export interface GQLResolver {
             mobile: GQL.SettingsMobileArgs,
             countUnreadChats: GQL.SettingsCountUnreadChatsArgs,
             excludeMutedChats: GQL.SettingsExcludeMutedChatsArgs,
+            whoCanSeeEmail: GQL.SettingsWhoCanSeeEmailArgs,
+            whoCanSeePhone: GQL.SettingsWhoCanSeePhoneArgs,
             notificationsDelay: GQL.SettingsNotificationsDelayArgs,
             desktopNotifications: GQL.SettingsDesktopNotificationsArgs,
             mobileNotifications: GQL.SettingsMobileNotificationsArgs,
@@ -8541,6 +8558,7 @@ export interface GQLResolver {
             debugSetRoomOwner: GQL.MutationDebugSetRoomOwnerArgs,
             debugClearSchedulerFromConferences: GQL.MutationDebugClearSchedulerFromConferencesArgs,
             debugInvalidateAllMessages: GQL.MutationDebugInvalidateAllMessagesArgs,
+            debugFixUserSettings: GQL.MutationDebugFixUserSettingsArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailPairCode: GQL.MutationSendEmailPairCodeArgs,
             pairEmail: GQL.MutationPairEmailArgs,
@@ -9448,6 +9466,7 @@ export interface GQLResolver {
             debugUserWallet: GQL.QueryDebugUserWalletArgs,
             debugEntitiesCounter: GQL.QueryDebugEntitiesCounterArgs,
             debugEntitiesCleanerProgress: GQL.QueryDebugEntitiesCleanerProgressArgs,
+            debugUserSearch: GQL.QueryDebugUserSearchArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
             authPoints: GQL.QueryAuthPointsArgs,
