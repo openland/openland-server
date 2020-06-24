@@ -14,17 +14,18 @@ export class UserSearch {
 
         let mainQuery: any = {
             bool: {
-                should: normalized.length > 0 ? [
-                    { match_phrase_prefix: options && options.byName ? { name: query } : { search: query } },
-                    { match_phrase_prefix: { shortName: query } },
-                    { match: { status: 'activated' } }
-                ] : [{ match: { status: 'activated' } }],
-                // must_not: options && options.uid ? [
-                //     // { match: { _id: options.uid } },
-                //     { match: { status: 'deleted' } },
-                //     { match: { status: 'suspended' } },
-                //     { match: { status: 'pending' } },
-                // ] : [],
+                // activated AND (name match OR short_name match)
+                must: [
+                    { match: { status: 'activated' } },
+                    {
+                        bool: {
+                            should: normalized.length > 0 ? [
+                                { match_phrase_prefix: options && options.byName ? { name: query } : { search: query } },
+                                { match_phrase_prefix: { shortName: query } },
+                            ] : []
+                        }
+                    }
+                ]
             },
         };
         if (options && options.uids) {
