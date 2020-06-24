@@ -2,10 +2,9 @@ import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 import { createTracer } from 'openland-log/createTracer';
 import { Context } from '@openland/context';
-import { createLogger } from '@openland/log';
 
 const tracer = createTracer('user-search');
-const log = createLogger('user-search');
+// const log = createLogger('user-search');
 
 type UserSearchQueryOptions = { uid?: number, byName?: boolean, uids?: number[] };
 type UserSearchOptions = UserSearchQueryOptions & { limit?: number, after?: string, page?: number };
@@ -18,13 +17,14 @@ export class UserSearch {
                 should: normalized.length > 0 ? [
                     { match_phrase_prefix: options && options.byName ? { name: query } : { search: query } },
                     { match_phrase_prefix: { shortName: query } },
-                ] : [],
-                must_not: options && options.uid ? [
-                    // { match: { _id: options.uid } },
-                    { match: { status: 'deleted' } },
-                    { match: { status: 'suspended' } },
-                    { match: { status: 'pending' } },
-                ] : [],
+                    { match: { status: 'activated' } }
+                ] : [{ match: { status: 'activated' } }],
+                // must_not: options && options.uid ? [
+                //     // { match: { _id: options.uid } },
+                //     { match: { status: 'deleted' } },
+                //     { match: { status: 'suspended' } },
+                //     { match: { status: 'pending' } },
+                // ] : [],
             },
         };
         if (options && options.uids) {
@@ -32,30 +32,30 @@ export class UserSearch {
         }
 
         if (options && options.uid) {
-            // let profilePromise = Store.UserProfile.findById(ctx, options.uid);
-            // let organizationsPromise = Modules.Orgs.findUserOrganizations(ctx, options.uid);
+            let profilePromise = Store.UserProfile.findById(ctx, options.uid);
+            let organizationsPromise = Modules.Orgs.findUserOrganizations(ctx, options.uid);
             let topDialogs = await Store.UserEdge.forwardWeight.query(ctx, options.uid, { limit: 300, reverse: true });
-            // let profile = await profilePromise;
-            // let organizations = await organizationsPromise;
+            let profile = await profilePromise;
+            let organizations = await organizationsPromise;
             let functions: any[] = [];
 
-            // // Huge boost if primary organization same
-            // if (profile && profile.primaryOrganization) {
-            //     functions.push({
-            //         filter: { match: { primaryOrganization: profile.primaryOrganization } },
-            //         weight: 8
-            //     });
-            // }
-            //
-            // // Boost if have common organizations (more common organizations - more boost)
-            // if (organizations.length > 0) {
-            //     for (let o of organizations) {
-            //         functions.push({
-            //             filter: { match: { organizations: o } },
-            //             weight: 2
-            //         });
-            //     }
-            // }
+            // Huge boost if primary organization same
+            if (profile && profile.primaryOrganization) {
+                functions.push({
+                    filter: { match: { primaryOrganization: profile.primaryOrganization } },
+                    weight: 8
+                });
+            }
+
+            // Boost if have common organizations (more common organizations - more boost)
+            if (organizations.length > 0) {
+                for (let o of organizations) {
+                    functions.push({
+                        filter: { match: { organizations: o } },
+                        weight: 2
+                    });
+                }
+            }
 
             // Boost top dialogs
             for (let dialog of topDialogs.items) {
@@ -76,7 +76,6 @@ export class UserSearch {
             }
         }
 
-        log.log(ctx, JSON.stringify(mainQuery));
         return mainQuery;
     }
 
