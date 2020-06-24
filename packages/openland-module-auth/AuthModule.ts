@@ -4,6 +4,7 @@ import { TokenRepository } from './repositories/TokenRepository';
 import { Context } from '@openland/context';
 import { lazyInject } from '../openland-modules/Modules.container';
 import { AuthManagementMediator } from './mediators/AuthManagementMediator';
+import { SessionsMediator } from './mediators/SessionsMediator';
 
 @injectable()
 export class AuthModule {
@@ -13,6 +14,8 @@ export class AuthModule {
     private readonly tokenRepo!: TokenRepository;
     @lazyInject('AuthManagementMediator')
     public readonly authManagement!: AuthManagementMediator;
+    @lazyInject('SessionsMediator')
+    public readonly sessions!: SessionsMediator;
 
     start = () => {
         //

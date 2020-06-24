@@ -38,6 +38,11 @@ export class TokenRepository {
         });
     }
 
+    async findActiveUserTokens(parent: Context, uid: number) {
+        let tokens = await Store.AuthToken.user.findAll(parent, uid);
+        return tokens.filter(a => a.enabled);
+    }
+
     async findToken(token: string) {
         return this.loader.load(token);
     }
@@ -54,9 +59,22 @@ export class TokenRepository {
         });
     }
 
-    async revokeUserTokens(parent: Context, uid: number) {
+    async revokeTokenById(parent: Context, id: string) {
+        return await inTx(parent, async (ctx) => {
+            let authToken = await Store.AuthToken.findById(ctx, id);
+
+            if (authToken) {
+                authToken.enabled = false;
+                await EventBus.publish('auth_token_revoke', { tokens: [{ uuid: authToken.uuid, salt: authToken.salt }] });
+                this.loader.clear(authToken.salt);
+            }
+        });
+    }
+
+    async revokeUserTokens(parent: Context, uid: number, exceptId?: string) {
         await inTx(parent, async ctx => {
             let tokens = await Store.AuthToken.user.findAll(ctx, uid);
+            tokens = tokens.filter(a => a.uuid !== exceptId);
             tokens.forEach(t => t.enabled = false);
             tokens.forEach(t => this.loader.clear(t.salt));
             await EventBus.publish('auth_token_revoke', { tokens: tokens.map(t => ({ uuid: t.uuid, salt: t.salt})) });

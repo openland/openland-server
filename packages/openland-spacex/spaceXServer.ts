@@ -16,6 +16,7 @@ import { parse } from 'graphql';
 import { PingPong } from './PingPong';
 import { delay } from '../openland-utils/timer';
 import { asyncRun } from './utils/asyncRun';
+import { EventBus } from '../openland-module-pubsub/EventBus';
 
 export const SpaceXConnections = new Map<string, SpaceXConnection>();
 
@@ -145,6 +146,17 @@ export async function createSpaceXServer(params: SpaceXServerParams) {
     const ws = new WebSocket.Server(params.server ? { server: params.server, path: params.path } : { noServer: true });
     ws.on('connection', async (socket, req) => {
         await handleConnection(params, socket, req);
+    });
+
+    EventBus.subscribe('auth_token_revoke', (data: { tokens: { uuid: string, salt: string }[] }) => {
+        for (let token of data.tokens) {
+            for (let entry of SpaceXConnections.entries()) {
+                let [, session] = entry;
+                if (session.authParams && session.authParams.tid && session.authParams.tid === token.uuid) {
+                    session.close();
+                }
+            }
+        }
     });
 
     Shutdown.registerWork({

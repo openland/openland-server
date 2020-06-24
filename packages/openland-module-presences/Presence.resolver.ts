@@ -8,6 +8,7 @@ import { CacheRepository } from '../openland-module-cache/CacheRepository';
 import { UserError } from '../openland-errors/UserError';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { Metrics } from 'openland-module-monitoring/Metrics';
+import { Store } from '../openland-module-db/FDB';
 // import { createIterator } from '../openland-utils/asyncIterator';
 
 const cache = new CacheRepository<{ at: number }>('user_installed_apps');
@@ -41,6 +42,10 @@ export const Resolver: GQLResolver = {
             let active = (args.active !== undefined && args.active !== null) ? args.active! : true;
 
             await Modules.Presence.setOnline(ctx, ctx.auth.uid, ctx.auth.tid!, args.timeout, args.platform || 'unknown', active);
+            if (ctx.req.ip) {
+                let token = await Store.AuthToken.findById(ctx, ctx.auth.tid!);
+                token!.lastIp = ctx.req.ip;
+            }
 
             if (active) {
                 Metrics.Online.add(1, 'uid-' + ctx.auth.uid!, 5000);

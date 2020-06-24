@@ -79,7 +79,6 @@ export class PresenceModule {
 
                 if (haveActivePresence) {
                     online.active = true;
-                    online.activeExpires = expires;
                 } else {
                     online.active = active;
                 }

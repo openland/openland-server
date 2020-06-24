@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '473d88ac4323f22a1d7913493c929a1f';
+export const GQL_SPEC_VERSION = 'dae91e38676e295d5472a4ac98302435';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2335,6 +2335,8 @@ export namespace GQL {
         registerPush: string;
         debugSendAndroidDataPush: boolean;
         debugSendAppleDataPush: boolean;
+        terminateSession: boolean;
+        terminateAllSessionsExcept: boolean;
         betaDiscoverSkip: Nullable<DiscoverPage>;
         betaNextDiscoverReset: boolean;
         betaNextDiscoverPageOrChats: Nullable<DiscoverPage>;
@@ -3218,6 +3220,12 @@ export namespace GQL {
     export interface MutationDebugSendAppleDataPushArgs {
         uid: string;
         message: string;
+    }
+    export interface MutationTerminateSessionArgs {
+        id: string;
+    }
+    export interface MutationTerminateAllSessionsExceptArgs {
+        id: string;
     }
     export interface MutationBetaDiscoverSkipArgs {
         selectedTagsIds: string[];
@@ -4122,6 +4130,7 @@ export namespace GQL {
         postMyDrafts: PostDraftConnection;
         myProfilePrefill: Nullable<ProfilePrefill>;
         pushSettings: PushSettings;
+        activeSessions: Nullable<Session>[];
         sessionState: SessionState;
         betaNextDiscoverPage: Nullable<DiscoverPage>;
         gammaNextDiscoverPage: Nullable<DiscoverPage>;
@@ -4460,6 +4469,7 @@ export namespace GQL {
     }
     export interface QueryMyProfilePrefillArgs { }
     export interface QueryPushSettingsArgs { }
+    export interface QueryActiveSessionsArgs { }
     export interface QuerySessionStateArgs { }
     export interface QueryBetaNextDiscoverPageArgs {
         selectedTagsIds: string[];
@@ -4690,6 +4700,20 @@ export namespace GQL {
     export interface QueryAlphaResolveShortNameArgs {
         shortname: string;
     }
+    export interface Session {
+        id: string;
+        lastIp: string;
+        lastLocation: string;
+        online: Nullable<boolean>;
+        lastSeen: Nullable<Date>;
+        platform: Nullable<string>;
+    }
+    export interface SessionIdArgs { }
+    export interface SessionLastIpArgs { }
+    export interface SessionLastLocationArgs { }
+    export interface SessionOnlineArgs { }
+    export interface SessionLastSeenArgs { }
+    export interface SessionPlatformArgs { }
     export interface SessionState {
         isLoggedIn: boolean;
         isProfileCreated: boolean;
@@ -8641,6 +8665,8 @@ export interface GQLResolver {
             registerPush: GQL.MutationRegisterPushArgs,
             debugSendAndroidDataPush: GQL.MutationDebugSendAndroidDataPushArgs,
             debugSendAppleDataPush: GQL.MutationDebugSendAppleDataPushArgs,
+            terminateSession: GQL.MutationTerminateSessionArgs,
+            terminateAllSessionsExcept: GQL.MutationTerminateAllSessionsExceptArgs,
             betaDiscoverSkip: GQL.MutationBetaDiscoverSkipArgs,
             betaNextDiscoverReset: GQL.MutationBetaNextDiscoverResetArgs,
             betaNextDiscoverPageOrChats: GQL.MutationBetaNextDiscoverPageOrChatsArgs,
@@ -9328,6 +9354,7 @@ export interface GQLResolver {
             postMyDrafts: GQLRoots.PostDraftConnectionRoot,
             myProfilePrefill: Nullable<GQLRoots.ProfilePrefillRoot>,
             pushSettings: GQLRoots.PushSettingsRoot,
+            activeSessions: Nullable<GQLRoots.SessionRoot>[],
             sessionState: GQLRoots.SessionStateRoot,
             betaNextDiscoverPage: Nullable<GQLRoots.DiscoverPageRoot>,
             gammaNextDiscoverPage: Nullable<GQLRoots.DiscoverPageRoot>,
@@ -9493,6 +9520,7 @@ export interface GQLResolver {
             postMyDrafts: GQL.QueryPostMyDraftsArgs,
             myProfilePrefill: GQL.QueryMyProfilePrefillArgs,
             pushSettings: GQL.QueryPushSettingsArgs,
+            activeSessions: GQL.QueryActiveSessionsArgs,
             sessionState: GQL.QuerySessionStateArgs,
             betaNextDiscoverPage: GQL.QueryBetaNextDiscoverPageArgs,
             gammaNextDiscoverPage: GQL.QueryGammaNextDiscoverPageArgs,
@@ -9552,6 +9580,20 @@ export interface GQLResolver {
             betaUserAvailableRooms: GQL.QueryBetaUserAvailableRoomsArgs,
             alphaUserAvailableRooms: GQL.QueryAlphaUserAvailableRoomsArgs,
             alphaResolveShortName: GQL.QueryAlphaResolveShortNameArgs,
+        }
+    >;
+    Session?: ComplexTypedResolver<
+        GQL.Session,
+        GQLRoots.SessionRoot,
+        {
+        },
+        {
+            id: GQL.SessionIdArgs,
+            lastIp: GQL.SessionLastIpArgs,
+            lastLocation: GQL.SessionLastLocationArgs,
+            online: GQL.SessionOnlineArgs,
+            lastSeen: GQL.SessionLastSeenArgs,
+            platform: GQL.SessionPlatformArgs,
         }
     >;
     SessionState?: ComplexTypedResolver<

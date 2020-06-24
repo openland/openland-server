@@ -731,4 +731,9 @@ export namespace GQLRoots {
     export type PostSpanItalicRoot = ItalicTextPostSpan;
     export type PostSpanIronyRoot = IronyTextPostSpan;
     export type PostSpanTypeRoot = PostSpanTypeValues;
+
+    //
+    // Sessions
+    //
+    export type SessionRoot = { token: AuthToken, presence?: Presence };
 }

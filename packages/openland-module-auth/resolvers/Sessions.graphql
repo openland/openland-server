@@ -1,0 +1,17 @@
+type Session {
+    id: ID!
+    lastIp: String!
+    lastLocation: String!
+    online: Boolean
+    lastSeen: Date
+    platform: String
+}
+
+extend type Query {
+    activeSessions: [Session]!
+}
+
+extend type Mutation {
+    terminateSession(id: ID!): Boolean!
+    terminateAllSessionsExcept(id: ID!): Boolean!
+}

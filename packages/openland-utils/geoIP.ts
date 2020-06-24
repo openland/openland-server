@@ -13,8 +13,8 @@ export function geoIP(ip: string): GeoIPResponse {
     if (!lookup) {
         return {
             ip: ip,
-            location_name: '_',
-            location_code: '_',
+            location_name: 'Unknown',
+            location_code: 'Unknown',
             coordinates: null
         };
     }
