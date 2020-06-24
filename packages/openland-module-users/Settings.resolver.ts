@@ -137,6 +137,19 @@ const settingsUpdateResolver = withUser(async (parent, args: GQL.MutationSetting
             }
         }
 
+        if (!settings.privacy) {
+            settings.privacy = {
+                whoCanSeePhone: 'everyone',
+                whoCanSeeEmail: 'everyone'
+            };
+        }
+        if (args.settings.whoCanSeeEmail) {
+            settings.privacy.whoCanSeeEmail = args.settings.whoCanSeeEmail === 'EVERYONE' ? 'everyone' : 'nobody';
+        }
+        if (args.settings.whoCanSeePhone) {
+            settings.privacy.whoCanSeePhone = args.settings.whoCanSeePhone === 'EVERYONE' ? 'everyone' : 'nobody';
+        }
+
         let countUnreadChats = !settings.globalCounterType ? false : (settings.globalCounterType === 'unread_chats' || settings.globalCounterType === 'unread_chats_no_muted');
         let excludeMutedChats = !settings.globalCounterType ? false : (settings.globalCounterType === 'unread_messages_no_muted' || settings.globalCounterType === 'unread_chats_no_muted');
 
@@ -323,6 +336,19 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationUpdateS
             }
         }
 
+        if (!settings.privacy) {
+            settings.privacy = {
+                whoCanSeePhone: 'everyone',
+                whoCanSeeEmail: 'everyone'
+            };
+        }
+        if (args.settings.whoCanSeeEmail) {
+            settings.privacy.whoCanSeeEmail = args.settings.whoCanSeeEmail === 'EVERYONE' ? 'everyone' : 'nobody';
+        }
+        if (args.settings.whoCanSeePhone) {
+            settings.privacy.whoCanSeePhone = args.settings.whoCanSeePhone === 'EVERYONE' ? 'everyone' : 'nobody';
+        }
+
         let countUnreadChats = !settings.globalCounterType ? false : (settings.globalCounterType === 'unread_chats' || settings.globalCounterType === 'unread_chats_no_muted');
         let excludeMutedChats = !settings.globalCounterType ? false : (settings.globalCounterType === 'unread_messages_no_muted' || settings.globalCounterType === 'unread_chats_no_muted');
 
@@ -430,7 +456,25 @@ export const Resolver: GQLResolver = {
         countUnreadChats: src => !src.globalCounterType ? false : (src.globalCounterType === 'unread_chats' || src.globalCounterType === 'unread_chats_no_muted'),
         excludeMutedChats: src => !src.globalCounterType ? false : (src.globalCounterType === 'unread_messages_no_muted' || src.globalCounterType === 'unread_chats_no_muted'),
         desktop: src => src.desktop,
-        mobile: src => src.mobile
+        mobile: src => src.mobile,
+        whoCanSeeEmail: src => {
+            if (!src.privacy) {
+                return 'EVERYONE';
+            }
+            if (src.privacy.whoCanSeeEmail === 'everyone') {
+                return 'EVERYONE';
+            }
+            return 'NOBODY';
+        },
+        whoCanSeePhone: src => {
+            if (!src.privacy) {
+                return 'EVERYONE';
+            }
+            if (src.privacy.whoCanSeePhone === 'everyone') {
+                return 'EVERYONE';
+            }
+            return 'NOBODY';
+        },
     },
     PlatformNotificationSettings: {
         notificationPreview: src => src.notificationPreview.toUpperCase() as NotificationPreviewRoot

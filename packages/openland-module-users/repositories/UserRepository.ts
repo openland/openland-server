@@ -245,7 +245,11 @@ export class UserRepository {
                     commentNotificationsDelivery: null,
                     globalCounterType: null,
                     desktop: allPlatformEnabled,
-                    mobile: allPlatformEnabled
+                    mobile: allPlatformEnabled,
+                    privacy: {
+                        whoCanSeeEmail: 'everyone',
+                        whoCanSeePhone: 'everyone'
+                    }
                 });
             }
             return settings;

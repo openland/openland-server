@@ -1686,6 +1686,21 @@ export const Resolver: GQLResolver = {
                 return 'ok';
             });
             return true;
+        }),
+        debugFixUserSettings: withPermission('super-admin', async (parent) => {
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugFixUserSettings', async (ctx, uid, log) => {
+                let settings = await Store.UserSettings.findById(ctx, uid);
+                if (!settings) {
+                    return;
+                }
+                if (!settings.privacy) {
+                    settings.privacy = {
+                        whoCanSeeEmail: 'everyone',
+                        whoCanSeePhone: 'everyone'
+                    };
+                }
+            });
+            return true;
         })
     },
     Subscription: {

@@ -183,6 +183,7 @@ extend type Mutation {
     debugSetRoomOwner(roomId: ID!, owner: ID!): Boolean!
     debugClearSchedulerFromConferences: Boolean!
     debugInvalidateAllMessages: Boolean!
+    debugFixUserSettings: Boolean!
 }
 
 extend type Subscription {
