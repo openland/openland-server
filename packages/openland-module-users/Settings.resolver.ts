@@ -139,8 +139,8 @@ const settingsUpdateResolver = withUser(async (parent, args: GQL.MutationSetting
 
         if (!settings.privacy) {
             settings.privacy = {
-                whoCanSeePhone: 'everyone',
-                whoCanSeeEmail: 'everyone'
+                whoCanSeePhone: 'nobody',
+                whoCanSeeEmail: 'nobody'
             };
         }
         if (args.settings.whoCanSeeEmail) {
@@ -338,8 +338,8 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationUpdateS
 
         if (!settings.privacy) {
             settings.privacy = {
-                whoCanSeePhone: 'everyone',
-                whoCanSeeEmail: 'everyone'
+                whoCanSeePhone: 'nobody',
+                whoCanSeeEmail: 'nobody'
             };
         }
         if (args.settings.whoCanSeeEmail) {
