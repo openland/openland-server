@@ -2,8 +2,10 @@ import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 import { createTracer } from 'openland-log/createTracer';
 import { Context } from '@openland/context';
+import { createLogger } from '@openland/log';
 
 const tracer = createTracer('user-search');
+const log = createLogger('user-search');
 
 type UserSearchQueryOptions = { uid?: number, byName?: boolean, uids?: number[] };
 type UserSearchOptions = UserSearchQueryOptions & { limit?: number, after?: string, page?: number };
@@ -74,6 +76,7 @@ export class UserSearch {
             }
         }
 
+        log.log(ctx, JSON.stringify(mainQuery));
         return mainQuery;
     }
 
