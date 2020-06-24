@@ -1704,8 +1704,8 @@ export const Resolver: GQLResolver = {
                 }
                 if (!settings.privacy) {
                     settings.privacy = {
-                        whoCanSeeEmail: 'everyone',
-                        whoCanSeePhone: 'everyone'
+                        whoCanSeeEmail: 'nobody',
+                        whoCanSeePhone: 'nobody'
                     };
                 }
             });
