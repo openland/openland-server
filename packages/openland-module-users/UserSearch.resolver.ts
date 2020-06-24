@@ -8,7 +8,16 @@ export const Resolver: GQLResolver = {
     Query: {
         userSearch: withAny(async (ctx, args) => {
 
-            let {uids, total} = await Modules.Users.searchForUsers(ctx, args.query || '', { uid: ctx.auth.uid, limit: args.first, page: (args.page || undefined), after: (args.after || undefined) });
+            let {uids, total} = await Modules.Users.searchForUsers(
+                ctx,
+                args.query || '',
+                {
+                    uid: ctx.auth.uid,
+                    limit: args.first,
+                    page: (args.page || undefined),
+                    after: (args.after || undefined)
+                }
+            );
 
             if (uids.length === 0) {
                 return {
@@ -57,7 +66,12 @@ export const Resolver: GQLResolver = {
             let cid = IDs.Conversation.parse(args.chatId);
             await Modules.Messaging.room.checkAccess(ctx, uid, cid);
 
-            let {uids, total} = await Modules.Users.searchForUsers(ctx, args.query || '', { uid: ctx.auth.uid, limit: args.first, page: (args.page || undefined), after: (args.after || undefined) });
+            let {uids, total} = await Modules.Users.searchForUsers(ctx, args.query || '', {
+                uid: ctx.auth.uid,
+                limit: args.first,
+                page: (args.page || undefined),
+                after: (args.after || undefined)
+            });
 
             if (uids.length === 0) {
                 return {
@@ -105,7 +119,7 @@ export const Resolver: GQLResolver = {
         }),
         alphaProfiles: withAny(async (ctx, args) => {
 
-            let {uids, total} = await Modules.Users.searchForUsers(ctx, args.query || '', { uid: ctx.auth.uid });
+            let {uids, total} = await Modules.Users.searchForUsers(ctx, args.query || '', {uid: ctx.auth.uid});
 
             if (uids.length === 0) {
                 return {

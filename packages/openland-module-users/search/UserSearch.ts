@@ -4,6 +4,7 @@ import { createTracer } from 'openland-log/createTracer';
 import { Context } from '@openland/context';
 
 const tracer = createTracer('user-search');
+// const log = createLogger('user-search');
 
 type UserSearchQueryOptions = { uid?: number, byName?: boolean, uids?: number[] };
 type UserSearchOptions = UserSearchQueryOptions & { limit?: number, after?: string, page?: number };
@@ -13,16 +14,18 @@ export class UserSearch {
 
         let mainQuery: any = {
             bool: {
-                should: normalized.length > 0 ? [
-                    { match_phrase_prefix: options && options.byName ? { name: query } : { search: query } },
-                    { match_phrase_prefix: { shortName: query } },
-                ] : [],
-                must_not: options && options.uid ? [
-                    // { match: { _id: options.uid } },
-                    { match: { status: 'deleted' } },
-                    { match: { status: 'suspended' } },
-                    { match: { status: 'pending' } },
-                ] : [],
+                // activated AND (name match OR short_name match)
+                must: [
+                    { match: { status: 'activated' } },
+                    {
+                        bool: {
+                            should: normalized.length > 0 ? [
+                                { match_phrase_prefix: options && options.byName ? { name: query } : { search: query } },
+                                { match_phrase_prefix: { shortName: query } },
+                            ] : []
+                        }
+                    }
+                ]
             },
         };
         if (options && options.uids) {
@@ -85,7 +88,7 @@ export class UserSearch {
                     index: 'user_profile',
                     type: 'user_profile',
                     size: options && options.limit ? options.limit : 20,
-                    body: { query: mainQuery },
+                    body: { query: mainQuery, sort: ['_score'] },
                     from: options && options.after ? parseInt(options.after, 10) : (options && options.page ? ((options.page - 1) * (options && options.limit ? options.limit : 20)) : 0),
                 });
                 let uids = hits.hits.hits.map((v) => parseInt(v._id, 10));

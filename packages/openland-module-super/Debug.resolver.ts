@@ -248,6 +248,15 @@ export const Resolver: GQLResolver = {
             }
             return 0;
         }),
+        debugUserSearch: withPermission('super-admin', async (ctx, args) => {
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'user_profile',
+                type: 'user_profile',
+                size: 100,
+                body: JSON.parse(args.query),
+            });
+            return JSON.stringify(hits.hits.hits);
+        }),
     },
     Mutation: {
         debugSendSMS: withPermission('super-admin', async (ctx, args) => {
@@ -1684,6 +1693,21 @@ export const Resolver: GQLResolver = {
                     return `failed ${e.message}`;
                 }
                 return 'ok';
+            });
+            return true;
+        }),
+        debugFixUserSettings: withPermission('super-admin', async (parent) => {
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugFixUserSettings', async (ctx, uid, log) => {
+                let settings = await Store.UserSettings.findById(ctx, uid);
+                if (!settings) {
+                    return;
+                }
+                if (!settings.privacy) {
+                    settings.privacy = {
+                        whoCanSeeEmail: 'nobody',
+                        whoCanSeePhone: 'nobody'
+                    };
+                }
             });
             return true;
         })

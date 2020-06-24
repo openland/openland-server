@@ -34,6 +34,11 @@ enum NotificationPreview {
     NAME
 }
 
+enum PrivacyWhoCanSee {
+    EVERYONE,
+    NOBODY
+}
+
 type ChatTypeNotificationSettings {
     showNotification: Boolean!
     sound: Boolean!
@@ -69,7 +74,8 @@ input UpdateSettingsInput {
     mobile: PlatformNotificationSettingsInput
     countUnreadChats: Boolean
     excludeMutedChats: Boolean
-
+    whoCanSeeEmail: PrivacyWhoCanSee
+    whoCanSeePhone: PrivacyWhoCanSee
 
     # Deprecated
     notificationsDelay: NotificationsDelay
@@ -90,6 +96,8 @@ type Settings {
     mobile: PlatformNotificationSettings!
     countUnreadChats: Boolean!
     excludeMutedChats: Boolean!
+    whoCanSeeEmail: PrivacyWhoCanSee!
+    whoCanSeePhone: PrivacyWhoCanSee!
 
     # Deprecated
     notificationsDelay: NotificationsDelay!

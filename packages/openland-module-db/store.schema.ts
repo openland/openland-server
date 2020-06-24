@@ -163,6 +163,10 @@ export default declareSchema(() => {
         field('globalCounterType', optional(enumString('unread_messages', 'unread_chats', 'unread_messages_no_muted', 'unread_chats_no_muted')));
         field('desktop', platformNotificationSettings);
         field('mobile', platformNotificationSettings);
+        field('privacy', optional(struct({
+            whoCanSeeEmail: enumString('everyone', 'nobody'),
+            whoCanSeePhone: enumString('everyone', 'nobody'),
+        })));
     });
 
     entity('UserIndexingQueue', () => {

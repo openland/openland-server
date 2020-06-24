@@ -97,6 +97,7 @@ extend type Query {
     debugUserWallet(id: ID!): WalletAccount!
     debugEntitiesCounter(name: String!): Int!
     debugEntitiesCleanerProgress(name: String!): Int!
+    debugUserSearch(query: String!): String!
 }
 
 enum SuperNotificationType {
@@ -183,6 +184,7 @@ extend type Mutation {
     debugSetRoomOwner(roomId: ID!, owner: ID!): Boolean!
     debugClearSchedulerFromConferences: Boolean!
     debugInvalidateAllMessages: Boolean!
+    debugFixUserSettings: Boolean!
 }
 
 extend type Subscription {
