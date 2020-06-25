@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'd1ad4aacf76f8ab806eff452f5e7ce2d';
+export const GQL_SPEC_VERSION = '841ae888331dc860b62acc8efd26ca77';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4723,6 +4723,7 @@ export namespace GQL {
         online: Nullable<boolean>;
         lastSeen: Nullable<Date>;
         platform: Nullable<string>;
+        current: boolean;
     }
     export interface SessionIdArgs { }
     export interface SessionLastIpArgs { }
@@ -4730,6 +4731,7 @@ export namespace GQL {
     export interface SessionOnlineArgs { }
     export interface SessionLastSeenArgs { }
     export interface SessionPlatformArgs { }
+    export interface SessionCurrentArgs { }
     export interface SessionState {
         isLoggedIn: boolean;
         isProfileCreated: boolean;
@@ -9616,6 +9618,7 @@ export interface GQLResolver {
             online: GQL.SessionOnlineArgs,
             lastSeen: GQL.SessionLastSeenArgs,
             platform: GQL.SessionPlatformArgs,
+            current: GQL.SessionCurrentArgs,
         }
     >;
     SessionState?: ComplexTypedResolver<

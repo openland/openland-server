@@ -5,6 +5,7 @@ type Session {
     online: Boolean
     lastSeen: Date
     platform: String
+    current: Boolean!
 }
 
 extend type Query {

@@ -12,6 +12,7 @@ export const Resolver: GQLResolver = {
         lastSeen: root => root.presence?.lastSeen || null,
         online: root => root.presence ? root.presence.lastSeen + root.presence.lastSeenTimeout > Date.now() : null,
         platform: root => root.presence?.platform || null,
+        current: (root, _, ctx) => root.token.uuid === ctx.auth.tid!,
     },
     Query: {
         activeSessions: withActivatedUser(async (ctx, args, uid) => {
