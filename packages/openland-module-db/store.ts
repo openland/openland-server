@@ -3539,6 +3539,7 @@ export interface ConversationRoomShape {
     listed: boolean | null;
     isChannel: boolean | null;
     isPremium: boolean | null;
+    isDeleted: boolean | null;
 }
 
 export interface ConversationRoomCreateShape {
@@ -3549,6 +3550,7 @@ export interface ConversationRoomCreateShape {
     listed?: boolean | null | undefined;
     isChannel?: boolean | null | undefined;
     isPremium?: boolean | null | undefined;
+    isDeleted?: boolean | null | undefined;
 }
 
 export class ConversationRoom extends Entity<ConversationRoomShape> {
@@ -3616,6 +3618,15 @@ export class ConversationRoom extends Entity<ConversationRoomShape> {
             this.invalidate();
         }
     }
+    get isDeleted(): boolean | null { return this._rawValue.isDeleted; }
+    set isDeleted(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.isDeleted.normalize(value);
+        if (this._rawValue.isDeleted !== normalized) {
+            this._rawValue.isDeleted = normalized;
+            this._updatedValues.isDeleted = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape, ConversationRoom> {
@@ -3623,8 +3634,8 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
     static async open(storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory('conversationRoom');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'organization', storageKey: 'organization', type: { type: 'range', fields: [{ name: 'oid', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationRoom', 'organization'), condition: (v) => v.kind === 'public' || v.kind === 'internal' });
-        secondaryIndexes.push({ name: 'organizationPublicRooms', storageKey: 'organizationPublicRooms', type: { type: 'unique', fields: [{ name: 'oid', type: 'opt_integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationRoom', 'organizationPublicRooms'), condition: (v) => v.kind === 'public' });
+        secondaryIndexes.push({ name: 'organization', storageKey: 'organization', type: { type: 'range', fields: [{ name: 'oid', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationRoom', 'organization'), condition: (v) => (v.kind === 'public' || v.kind === 'internal') && !v.isDeleted });
+        secondaryIndexes.push({ name: 'organizationPublicRooms', storageKey: 'organizationPublicRooms', type: { type: 'unique', fields: [{ name: 'oid', type: 'opt_integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationRoom', 'organizationPublicRooms'), condition: (v) => v.kind === 'public' && !v.isDeleted });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -3635,6 +3646,7 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
         fields.push({ name: 'listed', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'isChannel', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'isPremium', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'isDeleted', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             kind: c.enum('organization', 'internal', 'public', 'group'),
@@ -3644,6 +3656,7 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
             listed: c.optional(c.boolean),
             isChannel: c.optional(c.boolean),
             isPremium: c.optional(c.boolean),
+            isDeleted: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<ConversationRoomShape> = {
             name: 'ConversationRoom',

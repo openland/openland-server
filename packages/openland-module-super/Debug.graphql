@@ -185,6 +185,7 @@ extend type Mutation {
     debugClearSchedulerFromConferences: Boolean!
     debugInvalidateAllMessages: Boolean!
     debugFixUserSettings: Boolean!
+    debugFixDeletedRooms: Boolean!
 }
 
 extend type Subscription {

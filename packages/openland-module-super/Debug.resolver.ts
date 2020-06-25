@@ -1710,7 +1710,20 @@ export const Resolver: GQLResolver = {
                 }
             });
             return true;
-        })
+        }),
+        debugFixDeletedRooms: withPermission('super-admin', async (parent) => {
+            debugTaskForAll(Store.ConversationRoom, parent.auth.uid!, 'debugFixDeletedRooms', async (ctx, id, log) => {
+                let conv = await Store.Conversation.findById(ctx, id);
+                if (conv && conv.deleted) {
+                    let room = await Store.ConversationRoom.findById(ctx, conv.id);
+                    if (!room) {
+                        return;
+                    }
+                    room.isDeleted = true;
+                }
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {
