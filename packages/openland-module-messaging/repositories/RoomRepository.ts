@@ -457,18 +457,18 @@ export class RoomRepository {
 
     async deleteRoom(parent: Context, cid: number) {
         return await inTx(parent, async (ctx) => {
-            // let room = await this.entities.ConversationRoom.findById(ctx, cid);
-            //
-            // if (!room) {
-            //     throw new NotFoundError();
-            // }
-
             let conv = await Store.Conversation.findById(ctx, cid);
             if (conv!.deleted) {
                 return false;
             }
             conv!.deleted = true;
             await conv!.flush(ctx);
+
+            let room = await Store.ConversationRoom.findById(ctx, cid);
+            if (room) {
+                room.isDeleted = true;
+                await room.flush(ctx);
+            }
 
             return true;
         });

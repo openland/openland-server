@@ -288,10 +288,11 @@ export default declareSchema(() => {
         field('listed', optional(boolean()));
         field('isChannel', optional(boolean()));
         field('isPremium', optional(boolean()));
+        field('isDeleted', optional(boolean()));
         rangeIndex('organization', ['oid'])
-            .withCondition((v) => v.kind === 'public' || v.kind === 'internal');
+            .withCondition((v) => (v.kind === 'public' || v.kind === 'internal') && !v.isDeleted);
         uniqueIndex('organizationPublicRooms', ['oid', 'id'])
-            .withCondition((v) => v.kind === 'public');
+            .withCondition((v) => v.kind === 'public' && !v.isDeleted);
     });
 
     entity('PremiumChatSettings', () => {

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9522db1acd6ed9e871cec5567bf58bec';
+export const GQL_SPEC_VERSION = 'd1ad4aacf76f8ab806eff452f5e7ce2d';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2220,6 +2220,7 @@ export namespace GQL {
         debugClearSchedulerFromConferences: boolean;
         debugInvalidateAllMessages: boolean;
         debugFixUserSettings: boolean;
+        debugFixDeletedRooms: boolean;
         settingsUpdate: Settings;
         sendEmailPairCode: string;
         pairEmail: boolean;
@@ -2744,6 +2745,7 @@ export namespace GQL {
     export interface MutationDebugClearSchedulerFromConferencesArgs { }
     export interface MutationDebugInvalidateAllMessagesArgs { }
     export interface MutationDebugFixUserSettingsArgs { }
+    export interface MutationDebugFixDeletedRoomsArgs { }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
         uid: OptionalNullable<string>;
@@ -4721,7 +4723,6 @@ export namespace GQL {
         online: Nullable<boolean>;
         lastSeen: Nullable<Date>;
         platform: Nullable<string>;
-        current: boolean;
     }
     export interface SessionIdArgs { }
     export interface SessionLastIpArgs { }
@@ -4729,7 +4730,6 @@ export namespace GQL {
     export interface SessionOnlineArgs { }
     export interface SessionLastSeenArgs { }
     export interface SessionPlatformArgs { }
-    export interface SessionCurrentArgs { }
     export interface SessionState {
         isLoggedIn: boolean;
         isProfileCreated: boolean;
@@ -8561,6 +8561,7 @@ export interface GQLResolver {
             debugClearSchedulerFromConferences: GQL.MutationDebugClearSchedulerFromConferencesArgs,
             debugInvalidateAllMessages: GQL.MutationDebugInvalidateAllMessagesArgs,
             debugFixUserSettings: GQL.MutationDebugFixUserSettingsArgs,
+            debugFixDeletedRooms: GQL.MutationDebugFixDeletedRoomsArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailPairCode: GQL.MutationSendEmailPairCodeArgs,
             pairEmail: GQL.MutationPairEmailArgs,
@@ -9615,7 +9616,6 @@ export interface GQLResolver {
             online: GQL.SessionOnlineArgs,
             lastSeen: GQL.SessionLastSeenArgs,
             platform: GQL.SessionPlatformArgs,
-            current: GQL.SessionCurrentArgs,
         }
     >;
     SessionState?: ComplexTypedResolver<
