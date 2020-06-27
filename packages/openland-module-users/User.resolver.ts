@@ -103,6 +103,7 @@ export const Resolver: GQLResolver = {
         lastName: withProfile((ctx, src, profile) => profile ? profile.lastName : 'DELETED', true),
         photo: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null, true),
         photoRef: withProfile((ctx, src, profile) => profile && profile.picture, true),
+        about: withProfile((ctx, src, profile) => profile ? profile.about : null, true),
 
         // email: withUser(async (ctx, src, authorized) => {
         //     if (!authorized) {
