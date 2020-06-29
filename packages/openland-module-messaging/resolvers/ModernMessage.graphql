@@ -397,6 +397,12 @@ type MessageSpanAllMention implements MessageSpan {
     length: Int!
 }
 
+type MessageSpanHashTag implements MessageSpan {
+    offset: Int!
+    length: Int!
+    tag: String!
+}
+
 enum MessageSpanType {
     Bold,
     Italic,

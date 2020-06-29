@@ -387,6 +387,9 @@ export default declareSchema(() => {
             loud_text: basicSpan,
             rotating_text: basicSpan,
             all_mention: basicSpan,
+            hash_tag: struct({
+                offset: integer(), length: integer(), tag: string(),
+            }),
         }))));
         field('attachmentsModern', optional(array(union({
             file_attachment: struct({
