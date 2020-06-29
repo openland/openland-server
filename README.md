@@ -3,7 +3,7 @@
 1) Instal Docker
 2) Instal Docker Compose
 3) Install FoundationDB 6.0.15 Client https://foundationdb-origin.apple.com/download/download-6.0.15/
-4) Install NodeJS v10.16.0
+4) Install NodeJS v12.16.1
 5) Install yarn: `brew install yarn`
 6) Install dependencies `yarn`
 7) Run dev infrastructure `docker-compose up -d`
