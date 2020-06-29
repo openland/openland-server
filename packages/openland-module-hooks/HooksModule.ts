@@ -239,8 +239,8 @@ export class HooksModule {
         /*
          * Hack for mesto.community
          */
-        if (cid === 89503) {
-            let mestoDefaultChatIds = [88914, 88912, 88910, 88908, 89740, 91565, 99729, 89805];
+        if (cid === 88912) {
+            let mestoDefaultChatIds = [88914, 88910, 88908, 89740, 91565, 99729, 89805, 111097];
             for (let mestoCid of mestoDefaultChatIds) {
                 let conv = await Store.ConversationRoom.findById(ctx, mestoCid);
                 if (!conv) {
