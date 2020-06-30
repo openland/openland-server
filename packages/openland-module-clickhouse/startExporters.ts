@@ -17,8 +17,7 @@ function startPresenceExport(client: DatabaseClient) {
 }
 
 function startMessagesExport(client: DatabaseClient) {
-    updateReader('ch-exporter-messages', 1, Store.Message.updated.stream({ batchSize: 1000 }), async (src, first, ctx) => {
-
+    updateReader('ch-exporter-messages', 1, Store.Message.created.stream({ batchSize: 1000 }), async (src, first, ctx) => {
         let data: any[][] = [];
         for (let v of src) {
             let time = Math.round(v.metadata.createdAt / 1000);
@@ -41,19 +40,17 @@ function startMessagesExport(client: DatabaseClient) {
 function startSuperAdminsExport(client: DatabaseClient) {
     let rootCtx = createNamedContext('ch-users-export');
     forever(rootCtx, async () => {
-        while (true) {
-            // NOTE: In analytics we are not resetting super admin flag
-            //       and always treat ex-admins as super admins to remove them 
-            //       from our reports
-            let superAdmins = await Store.SuperAdmin.findAll(rootCtx);
-            for (let u of superAdmins) {
-                let count = await client.count(rootCtx, 'admins', 'uid = ' + u.id);
-                if (count === 0) {
-                    await client.insert(rootCtx, 'admins', ['uid'], [[u.id]]);
-                }
+        // NOTE: In analytics we are not resetting super admin flag
+        //       and always treat ex-admins as super admins to remove them
+        //       from our reports
+        let superAdmins = await Store.SuperAdmin.findAll(rootCtx);
+        for (let u of superAdmins) {
+            let count = await client.count(rootCtx, 'admins', 'uid = ' + u.id);
+            if (count === 0) {
+                await client.insert(rootCtx, 'admins', ['uid'], [[u.id]]);
             }
-            await delay(15000);
         }
+        await delay(15000);
     });
 }
 
@@ -72,19 +69,17 @@ function startSignupsExport(client: DatabaseClient) {
 function startBotsExport(client: DatabaseClient) {
     let rootCtx = createNamedContext('ch-bots-export');
     forever(rootCtx, async () => {
-        while (true) {
-            let allUsers = await Store.User.findAll(rootCtx);
-            for (let u of allUsers) {
-                if (!u.isBot) {
-                    continue;
-                }
-                let count = await client.count(rootCtx, 'bots', 'uid = ' + u.id);
-                if (count === 0) {
-                    await client.insert(rootCtx, 'bots', ['uid'], [[u.id]]);
-                }
+        let allUsers = await Store.User.findAll(rootCtx);
+        for (let u of allUsers) {
+            if (!u.isBot) {
+                continue;
             }
-            await delay(15000);
+            let count = await client.count(rootCtx, 'bots', 'uid = ' + u.id);
+            if (count === 0) {
+                await client.insert(rootCtx, 'bots', ['uid'], [[u.id]]);
+            }
         }
+        await delay(15000);
     });
 }
 

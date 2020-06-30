@@ -554,6 +554,7 @@ export default declareSchema(() => {
             return false;
         });
         rangeIndex('updated', ['updatedAt']);
+        rangeIndex('created', ['createdAt']);
         uniqueIndex('repeat', ['uid', 'cid', 'repeatKey']).withCondition((src) => !!src.repeatKey);
     });
 

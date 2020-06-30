@@ -4687,6 +4687,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
             return false;
         } });
         secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'updated'), condition: undefined });
+        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'created'), condition: undefined });
         secondaryIndexes.push({ name: 'repeat', storageKey: 'repeat', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }, { name: 'repeatKey', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'repeat'), condition: (src) => !!src.repeatKey });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -4870,15 +4871,30 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         },
     });
 
+    readonly created = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[7], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[7], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[7], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[7], [], opts);
+        },
+    });
+
     readonly repeat = Object.freeze({
         find: async (ctx: Context, uid: number, cid: number, repeatKey: string | null) => {
-            return this._findFromUniqueIndex(ctx, [uid, cid, repeatKey], this.descriptor.secondaryIndexes[7]);
+            return this._findFromUniqueIndex(ctx, [uid, cid, repeatKey], this.descriptor.secondaryIndexes[8]);
         },
         findAll: async (ctx: Context, uid: number, cid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[7], [uid, cid])).items;
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[8], [uid, cid])).items;
         },
         query: (ctx: Context, uid: number, cid: number, opts?: RangeQueryOptions<string | null>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[7], [uid, cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+            return this._query(ctx, this.descriptor.secondaryIndexes[8], [uid, cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
