@@ -1707,7 +1707,11 @@ export const Resolver: GQLResolver = {
                         whoCanSeeEmail: 'nobody',
                         whoCanSeePhone: 'nobody'
                     };
+                } else {
+                    settings.privacy.whoCanSeeEmail = 'nobody';
+                    settings.privacy.whoCanSeePhone = 'nobody';
                 }
+                await settings.flush(ctx);
             });
             return true;
         }),
