@@ -260,7 +260,7 @@ export class MessagingMediator {
 
             let message = (await Store.Message.findById(ctx, mid!))!;
             if (message.uid !== uid) {
-                if (!(await this.room.canEditRoom(ctx, message.cid, uid))) {
+                if (!(await this.room.userHaveAdminPermissionsInRoom(ctx, uid, message.cid))) {
                     throw new AccessDeniedError();
                 }
             }
