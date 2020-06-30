@@ -1723,6 +1723,22 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
+        debugUnsubscribeEveryoneFromChat: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async ctx => {
+                let canceled = 0;
+
+                let cid = IDs.Conversation.parse(args.cid);
+                let subs = await Store.RoomParticipant.active.findAll(ctx, cid);
+                for (let sub of subs) {
+                    let subscriptions = await Store.WalletSubscription.user.findAll(ctx, sub.uid);
+                    let subscription = subscriptions.find(a => a.proudct.type === 'group' && a.proudct.gid === cid);
+                    if (subscription && await Modules.Wallet.subscriptions.tryCancelSubscription(ctx, subscription.id)) {
+                        canceled++;
+                    }
+                }
+                return canceled;
+            });
+        })
     },
     Subscription: {
         debugEvents: {
