@@ -459,7 +459,7 @@ export const Resolver: GQLResolver = {
         mobile: src => src.mobile,
         whoCanSeeEmail: src => {
             if (!src.privacy) {
-                return 'EVERYONE';
+                return 'NOBODY';
             }
             if (src.privacy.whoCanSeeEmail === 'everyone') {
                 return 'EVERYONE';
@@ -468,7 +468,7 @@ export const Resolver: GQLResolver = {
         },
         whoCanSeePhone: src => {
             if (!src.privacy) {
-                return 'EVERYONE';
+                return 'NOBODY';
             }
             if (src.privacy.whoCanSeePhone === 'everyone') {
                 return 'EVERYONE';
