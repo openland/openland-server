@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '612791e5324eff3feba84ff230890075';
+export const GQL_SPEC_VERSION = 'cdee934316a6348139af561ab7cac4ae';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -5669,7 +5669,7 @@ export namespace GQL {
     export interface MessageSpanHashTagOffsetArgs { }
     export interface MessageSpanHashTagLengthArgs { }
     export interface MessageSpanHashTagTagArgs { }
-    export type MessageSpanTypeValues = 'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock' | 'Insane' | 'Loud' | 'Rotating' | 'Link';
+    export type MessageSpanTypeValues = 'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock' | 'Insane' | 'Loud' | 'Rotating' | 'Link' | 'HashTag';
     export type MessageSpanType = GQLRoots.MessageSpanTypeRoot;
     export interface MessageSpanInput {
         offset: number;
@@ -10660,7 +10660,7 @@ export interface GQLResolver {
             tag: GQL.MessageSpanHashTagTagArgs,
         }
     >;
-    MessageSpanType?: EnumTypeResolver<'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock' | 'Insane' | 'Loud' | 'Rotating' | 'Link', GQLRoots.MessageSpanTypeRoot>;
+    MessageSpanType?: EnumTypeResolver<'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock' | 'Insane' | 'Loud' | 'Rotating' | 'Link' | 'HashTag', GQLRoots.MessageSpanTypeRoot>;
     Room?: UnionTypeResolver<GQLRoots.RoomRoot, 'PrivateRoom' | 'SharedRoom'>;
     PrivateRoom?: ComplexTypedResolver<
         GQL.PrivateRoom,

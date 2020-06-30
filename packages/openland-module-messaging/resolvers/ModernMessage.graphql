@@ -412,7 +412,8 @@ enum MessageSpanType {
     Insane,
     Loud,
     Rotating,
-    Link
+    Link,
+    HashTag
 }
 
 input MessageSpanInput {
