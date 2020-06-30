@@ -6,7 +6,7 @@ import { inTx } from '@openland/foundationdb';
 export function userProfileIndexer() {
     declareSearchIndexer({
         name: 'user-profile-index',
-        version: 17,
+        version: 18,
         index: 'user_profile',
         stream: Store.UserIndexingQueue.updated.stream({ batchSize: 50 })
     }).withProperties({
@@ -49,7 +49,35 @@ export function userProfileIndexer() {
         search: {
             type: 'text'
         },
-    }).start(async (item, parent) => {
+        about: {
+            type: 'text',
+            analyzer: 'hashtag'
+        }
+    }).withSettings({
+        analysis: {
+            char_filter: {
+                space_hashtags: {
+                    type: 'mapping',
+                    mappings: ['#=>|#']
+                }
+            },
+            filter: {
+                hashtag_as_alphanum: {
+                    type: 'word_delimiter',
+                    type_table: ['# => ALPHANUM', '@ => ALPHANUM']
+                }
+            },
+            analyzer: {
+                hashtag: {
+                    type: 'custom',
+                    char_filter: 'space_hashtags',
+                    tokenizer: 'whitespace',
+                    filter: ['lowercase', 'hashtag_as_alphanum']
+                }
+            }
+        }
+    })
+        .start(async (item, parent) => {
         return await inTx(parent, async (ctx) => {
             let profile = (await Store.UserProfile.findById(ctx, item.id));
 
@@ -84,6 +112,7 @@ export function userProfileIndexer() {
                     shortName: shortName ? shortName.shortname : undefined,
                     userId: item.id,
                     search: searchData.join(' '),
+                    about: profile.about || '',
                     primaryOrganization: profile.primaryOrganization || undefined,
                     organizations: orgs,
                     ivitedBy: user ? (user.invitedBy || undefined) : undefined,
