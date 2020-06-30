@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '841ae888331dc860b62acc8efd26ca77';
+export const GQL_SPEC_VERSION = '612791e5324eff3feba84ff230890075';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -5661,6 +5661,14 @@ export namespace GQL {
     }
     export interface MessageSpanAllMentionOffsetArgs { }
     export interface MessageSpanAllMentionLengthArgs { }
+    export interface MessageSpanHashTag extends MessageSpan {
+        offset: number;
+        length: number;
+        tag: string;
+    }
+    export interface MessageSpanHashTagOffsetArgs { }
+    export interface MessageSpanHashTagLengthArgs { }
+    export interface MessageSpanHashTagTagArgs { }
     export type MessageSpanTypeValues = 'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock' | 'Insane' | 'Loud' | 'Rotating' | 'Link';
     export type MessageSpanType = GQLRoots.MessageSpanTypeRoot;
     export interface MessageSpanInput {
@@ -10479,7 +10487,7 @@ export interface GQLResolver {
             reaction: GQL.ModernMessageReactionReactionArgs,
         }
     >;
-    MessageSpan?: InterfaceTypeResolver<GQLRoots.MessageSpanRoot, 'MessageSpanUserMention' | 'MessageSpanMultiUserMention' | 'MessageSpanRoomMention' | 'MessageSpanOrganizationMention' | 'MessageSpanLink' | 'MessageSpanBold' | 'MessageSpanItalic' | 'MessageSpanIrony' | 'MessageSpanInlineCode' | 'MessageSpanCodeBlock' | 'MessageSpanInsane' | 'MessageSpanLoud' | 'MessageSpanRotating' | 'MessageSpanDate' | 'MessageSpanAllMention'>;
+    MessageSpan?: InterfaceTypeResolver<GQLRoots.MessageSpanRoot, 'MessageSpanUserMention' | 'MessageSpanMultiUserMention' | 'MessageSpanRoomMention' | 'MessageSpanOrganizationMention' | 'MessageSpanLink' | 'MessageSpanBold' | 'MessageSpanItalic' | 'MessageSpanIrony' | 'MessageSpanInlineCode' | 'MessageSpanCodeBlock' | 'MessageSpanInsane' | 'MessageSpanLoud' | 'MessageSpanRotating' | 'MessageSpanDate' | 'MessageSpanAllMention' | 'MessageSpanHashTag'>;
     MessageSpanUserMention?: ComplexTypedResolver<
         GQL.MessageSpanUserMention,
         GQLRoots.MessageSpanUserMentionRoot,
@@ -10639,6 +10647,17 @@ export interface GQLResolver {
         {
             offset: GQL.MessageSpanAllMentionOffsetArgs,
             length: GQL.MessageSpanAllMentionLengthArgs,
+        }
+    >;
+    MessageSpanHashTag?: ComplexTypedResolver<
+        GQL.MessageSpanHashTag,
+        GQLRoots.MessageSpanHashTagRoot,
+        {
+        },
+        {
+            offset: GQL.MessageSpanHashTagOffsetArgs,
+            length: GQL.MessageSpanHashTagLengthArgs,
+            tag: GQL.MessageSpanHashTagTagArgs,
         }
     >;
     MessageSpanType?: EnumTypeResolver<'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock' | 'Insane' | 'Loud' | 'Rotating' | 'Link', GQLRoots.MessageSpanTypeRoot>;

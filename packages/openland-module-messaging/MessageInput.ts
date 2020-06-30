@@ -34,6 +34,7 @@ export type LoudTextSpan = BasicSpan<'loud_text'>;
 export type RotatingTextSpan = BasicSpan<'rotating_text'>;
 export type DateTextSpan = { type: 'date_text', offset: number, length: number, date: number };
 export type AllMentionSpan = BasicSpan<'all_mention'>;
+export type HashTagSpan = { type: 'hash_tag', offset: number, length: number, tag: string };
 
 export type MessageSpan =
     UserMentionSpan |
@@ -50,7 +51,8 @@ export type MessageSpan =
     RotatingTextSpan |
     DateTextSpan |
     AllMentionSpan |
-    OrganizationMentionSpan;
+    OrganizationMentionSpan |
+    HashTagSpan;
 
 export type FileMetadata = {
     isStored: boolean | undefined,

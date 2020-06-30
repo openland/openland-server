@@ -1702,12 +1702,11 @@ export const Resolver: GQLResolver = {
                 if (!settings) {
                     return;
                 }
-                if (!settings.privacy) {
-                    settings.privacy = {
-                        whoCanSeeEmail: 'nobody',
-                        whoCanSeePhone: 'nobody'
-                    };
-                }
+                settings.privacy = {
+                    whoCanSeeEmail: 'nobody',
+                    whoCanSeePhone: 'nobody'
+                };
+                await settings.flush(ctx);
             });
             return true;
         }),

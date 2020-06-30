@@ -926,6 +926,8 @@ export const Resolver: GQLResolver = {
                 return 'MessageSpanAllMention';
             } else if (src.type === 'organization_mention') {
                 return 'MessageSpanOrganizationMention';
+            } else if (src.type === 'hash_tag') {
+                return 'MessageSpanHashTag';
             } else {
                 throw new UserError('Unknown message span type: ' + (src as any).type);
             }

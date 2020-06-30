@@ -111,6 +111,11 @@ export class MessagingMediator {
                 }
             }
 
+            // Parse hashtags
+            if (!msg.isService) {
+                spans.push(...this.parseHashTags(msg.message || ''));
+            }
+
             //
             // Parse dates
             //
@@ -199,6 +204,9 @@ export class MessagingMediator {
                 if (dates.length > 0) {
                     spans.push(...dates);
                 }
+
+                // Parse hashtags
+                spans.push(...this.parseHashTags(newMessage.message || ''));
             }
 
             // Update
@@ -344,5 +352,22 @@ export class MessagingMediator {
                 date: part.start.date().getTime()
             };
         });
+    }
+
+    private parseHashTags(message: string): MessageSpan[] {
+        let res: MessageSpan[] = [];
+        let hashTagRegexp = /#([a-zA-Z\d_]+)/gm;
+        let match: RegExpExecArray | null;
+
+        while ((match = hashTagRegexp.exec(message))) {
+            res.push({
+                type: 'hash_tag',
+                offset: match.index,
+                length: match[0].length,
+                tag: match[1]
+            });
+        }
+
+        return res;
     }
 }
