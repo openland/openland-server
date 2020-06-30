@@ -118,7 +118,10 @@ export const Resolver: GQLResolver = {
             }
 
             let settings = await Modules.Users.getUserSettings(ctx, src.id);
-            if (!settings.privacy || settings.privacy.whoCanSeeEmail === 'everyone') {
+            if (!settings.privacy) {
+                return null;
+            }
+            if (settings.privacy.whoCanSeeEmail === 'everyone') {
                 return src.email;
             } else {
                 return null;
@@ -137,7 +140,10 @@ export const Resolver: GQLResolver = {
             }
 
             let settings = await Modules.Users.getUserSettings(ctx, src.id);
-            if (!settings.privacy || settings.privacy.whoCanSeePhone === 'everyone') {
+            if (!settings.privacy) {
+                return null;
+            }
+            if (settings.privacy.whoCanSeePhone === 'everyone') {
                 return src.phone;
             } else {
                 return null;
