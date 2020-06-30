@@ -260,9 +260,7 @@ export class MessagingMediator {
 
             let message = (await Store.Message.findById(ctx, mid!))!;
             if (message.uid !== uid) {
-                let membership = await Modules.Messaging.room.findMembershipStatus(ctx, uid, message.cid);
-                if (await Modules.Super.superRole(ctx, uid) !== 'super-admin'
-                    && membership?.role !== 'admin' && membership?.role !== 'owner') {
+                if (!(await this.room.canEditRoom(ctx, message.cid, uid))) {
                     throw new AccessDeniedError();
                 }
             }
