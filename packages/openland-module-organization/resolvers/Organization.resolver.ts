@@ -90,6 +90,15 @@ export const Resolver: GQLResolver = {
             }
             return [];
         },
+        myCommunities: async (_: any, args: {}, ctx: Context) => {
+            if (!ctx.auth.uid) {
+                return [];
+            }
+            return (await Promise.all((await Store.OrganizationMember.user.findAll(ctx, 'joined', ctx.auth.uid))
+                .map((v) => Store.Organization.findById(ctx, v.oid))))
+                .filter(isDefined)
+                .filter((v) => v!.status !== 'suspended' && v!.status !== 'deleted' && v.kind === 'community');
+        },
         organization: withAny(async (ctx, args) => {
             let shortname = await Modules.Shortnames.findShortname(ctx, args.id);
             let orgId: number;
