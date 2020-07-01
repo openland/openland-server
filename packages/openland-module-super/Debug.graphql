@@ -186,6 +186,7 @@ extend type Mutation {
     debugInvalidateAllMessages: Boolean!
     debugFixUserSettings: Boolean!
     debugFixDeletedRooms: Boolean!
+    debugUnsubscribeEveryoneFromChat(cid: ID!): Int!
 }
 
 extend type Subscription {
