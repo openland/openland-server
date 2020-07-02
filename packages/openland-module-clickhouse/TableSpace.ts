@@ -1,13 +1,18 @@
-import { Table } from './schema/Table';
+import { Table } from './Table';
+import { Schema } from './schema';
 
 class TableSpaceImpl {
     #tableMap: Map<string, Table<any>> = new Map<string, Table<any>>();
+    #locked: boolean = false;
 
-    add<TSchema>(table: Table<TSchema>): TableSpaceImpl {
-        if (this.#tableMap.has(table.name)) {
-            throw new Error(`Table with the name '${table.name}' already added`);
+    add<TSchema>(t: Table<TSchema>): TableSpaceImpl {
+        if (this.#locked) {
+            throw new Error('TableSpace is locked');
         }
-        this.#tableMap.set(table.name, table);
+        if (this.#tableMap.has(t.name)) {
+            throw new Error(`Table with the name '${t.name}' already added`);
+        }
+        this.#tableMap.set(t.name, t);
         return this;
     }
 
@@ -22,6 +27,16 @@ class TableSpaceImpl {
     all(): Table<any>[] {
         return Array.from(this.#tableMap.values());
     }
+
+    lock() {
+        this.#locked = true;
+    }
 }
 
 export const TableSpace = new TableSpaceImpl();
+
+export const table = <T>(name: string, schema: Schema<T>, config: Table<any>['engineConfig']) => {
+    const t = new Table(name, schema, config);
+    TableSpace.add(t);
+    return t;
+};

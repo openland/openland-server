@@ -7,6 +7,7 @@ import { ClickHouseClient } from './ClickHouseClient';
 import { DistributedLock } from '@openland/foundationdb-locks';
 import { inTx } from '@openland/foundationdb';
 import DatabaseClient from './DatabaseClient';
+import { TableSpace } from './TableSpace';
 
 interface Migration {
     name: string;
@@ -368,10 +369,11 @@ export async function createClient(ctx: Context) {
 
         try {
             // Init all tables
-            for (let table of db.tables) {
-                await table.init(ctx);
+            for (let table of TableSpace.all()) {
+                await table.init(ctx, db);
             }
         } finally {
+            TableSpace.lock();
             completed = true;
         }
 
