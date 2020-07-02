@@ -1,36 +1,30 @@
 import { ClickHouseClient, ColumnDefinition } from './ClickHouseClient';
-import { Context } from '@openland/context';
-import { TableSpace } from './TableSpace';
-import { TableClient } from './TableClient';
+import { Context, createContextNamespace } from '@openland/context';
+
+export const ChDatabaseContext = createContextNamespace<DatabaseClient | null>('ch-database', null);
+export const withChDatabase = (parent: Context, db: DatabaseClient)  => {
+    return ChDatabaseContext.set(parent, db);
+};
 
 export default class DatabaseClient {
     #client: ClickHouseClient;
     #dbName: string;
-    #tables = TableSpace;
 
     constructor(client: ClickHouseClient, db: string) {
         this.#client = client;
         this.#dbName = db;
     }
 
-    get tables(): TableClient<any>[] {
-        return this.#tables.all().map(a => new TableClient(this, this.#tables.get(a.name)));
-    }
-
     get dbName() {
         return this.#dbName;
-    }
-
-    get<T = any>(tableName: string): TableClient<T> {
-        return new TableClient<T>(this, this.#tables.get(tableName));
     }
 
     async createDatabase(ctx: Context) {
         await this.#client.execute(ctx, 'CREATE DATABASE IF NOT EXISTS ' + this.#dbName);
     }
 
-    async createTable(ctx: Context, table: string, columns: ColumnDefinition[], partition: string, orderBy: string, primaryKey: string) {
-        let op = 'CREATE TABLE IF NOT EXISTS ' + this.#dbName + '.' + table + ' (' + columns.map((v) => (`"${v.name}"` + ' ' + v.type)).join(', ') + ')' + ' ENGINE = MergeTree() PARTITION BY ' + partition + ' ORDER BY ' + orderBy + ' PRIMARY KEY ' + primaryKey;
+    async createTable(ctx: Context, table: string, columns: ColumnDefinition[], partition: string, orderBy: string, primaryKey: string, engine: string = 'MergeTree()') {
+        let op = 'CREATE TABLE IF NOT EXISTS ' + this.#dbName + '.' + table + ' (' + columns.map((v) => (`"${v.name}"` + ' ' + v.type)).join(', ') + ')' + ` ENGINE = ${engine} PARTITION BY ` + partition + ' ORDER BY ' + orderBy + ' PRIMARY KEY ' + primaryKey;
         await this.#client.execute(ctx, op);
     }
 

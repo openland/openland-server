@@ -5,9 +5,9 @@ import { createLogger } from '@openland/log';
 import {
     date, Schema, SchemaBuilder, SchemaShape, ShapeToSchema, string, TypeFromSchema,
 } from '../openland-module-clickhouse/schema';
-import { table } from '../openland-module-clickhouse/schema/Table';
-import { TableSpace } from '../openland-module-clickhouse/TableSpace';
+import { table } from '../openland-module-clickhouse/TableSpace';
 import { HyperLogEvent } from '../openland-module-db/store';
+import { Table } from '../openland-module-clickhouse/Table';
 
 const logger = createLogger('hyperlog');
 
@@ -33,15 +33,27 @@ export function createHyperlogger<T>(type: string): HyperEvent<T> {
     };
 }
 
-export function createModernHyperlogger<T extends SchemaShape>(type: string, chSchema: T, partition?: string, orderBy?: string): HyperEvent<TypeFromSchema<Schema<ShapeToSchema<T>>>> {
+export function createModernHyperlogger<T extends SchemaShape>(
+    type: string,
+    chSchema: T,
+    partition?: string,
+    orderBy?: string
+): HyperEvent<TypeFromSchema<Schema<ShapeToSchema<T>>>> & { table: Table<ShapeToSchema<T>> } {
     // add default hyperlog fields
     let builder = SchemaBuilder.fromShape(chSchema);
     builder.field('id', string());
     builder.field('date', date());
 
-    // build and register table
-    let chTable = table(type, builder.build(), 'id', partition || 'toYYYYMM(date)',  orderBy || '(id, date)');
-    TableSpace.add(chTable);
+    // Declare table
+    const t = table(
+        type,
+        builder.build(),
+        {
+            primaryKey: 'id',
+            partition: partition || 'toYYYYMM(date)',
+            orderBy: orderBy || '(id, date)'
+        }
+    );
 
     return {
         type,
@@ -56,6 +68,7 @@ export function createModernHyperlogger<T extends SchemaShape>(type: string, chS
             } catch (e) {
                 logger.warn(ctx, e);
             }
-        }
+        },
+        table: t,
     };
 }
