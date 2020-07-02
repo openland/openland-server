@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'cdee934316a6348139af561ab7cac4ae';
+export const GQL_SPEC_VERSION = '242455c3ec230143535c2b8474403f39';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2221,6 +2221,7 @@ export namespace GQL {
         debugInvalidateAllMessages: boolean;
         debugFixUserSettings: boolean;
         debugFixDeletedRooms: boolean;
+        debugUnsubscribeEveryoneFromChat: number;
         settingsUpdate: Settings;
         sendEmailPairCode: string;
         pairEmail: boolean;
@@ -2746,6 +2747,9 @@ export namespace GQL {
     export interface MutationDebugInvalidateAllMessagesArgs { }
     export interface MutationDebugFixUserSettingsArgs { }
     export interface MutationDebugFixDeletedRoomsArgs { }
+    export interface MutationDebugUnsubscribeEveryoneFromChatArgs {
+        cid: string;
+    }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
         uid: OptionalNullable<string>;
@@ -4124,6 +4128,7 @@ export namespace GQL {
         myNotifications: NotificationConnection;
         myOrganization: Nullable<Organization>;
         myOrganizations: Organization[];
+        myCommunities: Organization[];
         organization: Organization;
         organizationPublicRooms: SharedRoomConnection;
         myOrganizationProfile: OrganizationProfile;
@@ -4415,6 +4420,7 @@ export namespace GQL {
     }
     export interface QueryMyOrganizationArgs { }
     export interface QueryMyOrganizationsArgs { }
+    export interface QueryMyCommunitiesArgs { }
     export interface QueryOrganizationArgs {
         id: string;
     }
@@ -5669,7 +5675,7 @@ export namespace GQL {
     export interface MessageSpanHashTagOffsetArgs { }
     export interface MessageSpanHashTagLengthArgs { }
     export interface MessageSpanHashTagTagArgs { }
-    export type MessageSpanTypeValues = 'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock' | 'Insane' | 'Loud' | 'Rotating' | 'Link' | 'HashTag';
+    export type MessageSpanTypeValues = 'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock' | 'Insane' | 'Loud' | 'Rotating' | 'Link';
     export type MessageSpanType = GQLRoots.MessageSpanTypeRoot;
     export interface MessageSpanInput {
         offset: number;
@@ -8572,6 +8578,7 @@ export interface GQLResolver {
             debugInvalidateAllMessages: GQL.MutationDebugInvalidateAllMessagesArgs,
             debugFixUserSettings: GQL.MutationDebugFixUserSettingsArgs,
             debugFixDeletedRooms: GQL.MutationDebugFixDeletedRoomsArgs,
+            debugUnsubscribeEveryoneFromChat: GQL.MutationDebugUnsubscribeEveryoneFromChatArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailPairCode: GQL.MutationSendEmailPairCodeArgs,
             pairEmail: GQL.MutationPairEmailArgs,
@@ -9366,6 +9373,7 @@ export interface GQLResolver {
             myNotifications: GQLRoots.NotificationConnectionRoot,
             myOrganization: Nullable<GQLRoots.OrganizationRoot>,
             myOrganizations: GQLRoots.OrganizationRoot[],
+            myCommunities: GQLRoots.OrganizationRoot[],
             organization: GQLRoots.OrganizationRoot,
             organizationPublicRooms: GQLRoots.SharedRoomConnectionRoot,
             myOrganizationProfile: GQLRoots.OrganizationProfileRoot,
@@ -9533,6 +9541,7 @@ export interface GQLResolver {
             myNotifications: GQL.QueryMyNotificationsArgs,
             myOrganization: GQL.QueryMyOrganizationArgs,
             myOrganizations: GQL.QueryMyOrganizationsArgs,
+            myCommunities: GQL.QueryMyCommunitiesArgs,
             organization: GQL.QueryOrganizationArgs,
             organizationPublicRooms: GQL.QueryOrganizationPublicRoomsArgs,
             myOrganizationProfile: GQL.QueryMyOrganizationProfileArgs,
@@ -10660,7 +10669,7 @@ export interface GQLResolver {
             tag: GQL.MessageSpanHashTagTagArgs,
         }
     >;
-    MessageSpanType?: EnumTypeResolver<'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock' | 'Insane' | 'Loud' | 'Rotating' | 'Link' | 'HashTag', GQLRoots.MessageSpanTypeRoot>;
+    MessageSpanType?: EnumTypeResolver<'Bold' | 'Italic' | 'Irony' | 'InlineCode' | 'CodeBlock' | 'Insane' | 'Loud' | 'Rotating' | 'Link', GQLRoots.MessageSpanTypeRoot>;
     Room?: UnionTypeResolver<GQLRoots.RoomRoot, 'PrivateRoom' | 'SharedRoom'>;
     PrivateRoom?: ComplexTypedResolver<
         GQL.PrivateRoom,

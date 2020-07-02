@@ -6,6 +6,8 @@ import { forever, delay } from 'openland-utils/timer';
 import { HyperLog, HyperLogEvent } from '../openland-module-db/store';
 import { container } from '../openland-modules/Modules.container';
 import DatabaseClient from './DatabaseClient';
+import { table, TableSpace } from './TableSpace';
+import { boolean, integer, schema } from './schema';
 
 function startPresenceExport(client: DatabaseClient) {
     updateReader('ch-exporter-reader', 3, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
@@ -17,8 +19,7 @@ function startPresenceExport(client: DatabaseClient) {
 }
 
 function startMessagesExport(client: DatabaseClient) {
-    updateReader('ch-exporter-messages', 1, Store.Message.updated.stream({ batchSize: 1000 }), async (src, first, ctx) => {
-
+    updateReader('ch-exporter-messages', 1, Store.Message.created.stream({ batchSize: 1000 }), async (src, first, ctx) => {
         let data: any[][] = [];
         for (let v of src) {
             let time = Math.round(v.metadata.createdAt / 1000);
@@ -41,19 +42,17 @@ function startMessagesExport(client: DatabaseClient) {
 function startSuperAdminsExport(client: DatabaseClient) {
     let rootCtx = createNamedContext('ch-users-export');
     forever(rootCtx, async () => {
-        while (true) {
-            // NOTE: In analytics we are not resetting super admin flag
-            //       and always treat ex-admins as super admins to remove them 
-            //       from our reports
-            let superAdmins = await Store.SuperAdmin.findAll(rootCtx);
-            for (let u of superAdmins) {
-                let count = await client.count(rootCtx, 'admins', 'uid = ' + u.id);
-                if (count === 0) {
-                    await client.insert(rootCtx, 'admins', ['uid'], [[u.id]]);
-                }
+        // NOTE: In analytics we are not resetting super admin flag
+        //       and always treat ex-admins as super admins to remove them
+        //       from our reports
+        let superAdmins = await Store.SuperAdmin.findAll(rootCtx);
+        for (let u of superAdmins) {
+            let count = await client.count(rootCtx, 'admins', 'uid = ' + u.id);
+            if (count === 0) {
+                await client.insert(rootCtx, 'admins', ['uid'], [[u.id]]);
             }
-            await delay(15000);
         }
+        await delay(15000);
     });
 }
 
@@ -72,19 +71,17 @@ function startSignupsExport(client: DatabaseClient) {
 function startBotsExport(client: DatabaseClient) {
     let rootCtx = createNamedContext('ch-bots-export');
     forever(rootCtx, async () => {
-        while (true) {
-            let allUsers = await Store.User.findAll(rootCtx);
-            for (let u of allUsers) {
-                if (!u.isBot) {
-                    continue;
-                }
-                let count = await client.count(rootCtx, 'bots', 'uid = ' + u.id);
-                if (count === 0) {
-                    await client.insert(rootCtx, 'bots', ['uid'], [[u.id]]);
-                }
+        let allUsers = await Store.User.findAll(rootCtx);
+        for (let u of allUsers) {
+            if (!u.isBot) {
+                continue;
             }
-            await delay(15000);
+            let count = await client.count(rootCtx, 'bots', 'uid = ' + u.id);
+            if (count === 0) {
+                await client.insert(rootCtx, 'bots', ['uid'], [[u.id]]);
+            }
         }
+        await delay(15000);
     });
 }
 
@@ -152,13 +149,36 @@ function startHyperlogExport(client: DatabaseClient) {
         }, new Map<string, HyperLogEvent[]>());
 
         for (let [type, values] of eventsByType.entries()) {
-            let table = client.get(type);
-            await table.insert(ctx, values.map(a => ({ id: a.id, date: a.date, ...a.body })));
+            let t = TableSpace.get(type);
+            await t.insert(ctx, client, values.map(a => ({ id: a.id, date: a.date, ...a.body })));
         }
     });
 }
 
-export function startExporters(ctx: Context) {
+const orgUsers = table('org_users', schema({
+    uid: integer(),
+    oid: integer(),
+    deleted: boolean(),
+    sign: integer('Int8'),
+}), {
+    engine: 'CollapsingMergeTree(sign)',
+    orderBy: '(oid, uid)',
+    partition: 'oid',
+    primaryKey: '(oid, uid)'
+});
+function startOrgUsersExport(client: DatabaseClient) {
+    // Now only for mesto ¯\_(ツ)_/¯
+    updateReader('clickhouse-org-users-exporter-joined', 1, Store.OrganizationMember.organization.stream('joined', 11954, { batchSize: 100 }), async (src, first, ctx) => {
+        await orgUsers.insert(ctx, client, src.map(a => ({
+            uid: a.uid,
+            oid: a.oid,
+            deleted: false,
+            sign: 1,
+        })));
+    });
+}
+
+export function startExporters(parent: Context) {
     // tslint:disable-next-line:no-floating-promises
     (async () => {
         let client = container.get<DatabaseClient>('ClickHouse');
@@ -169,5 +189,6 @@ export function startExporters(ctx: Context) {
         startSignupsExport(client);
         startAnalyticsExport(client);
         startHyperlogExport(client);
+        startOrgUsersExport(client);
     })();
 }
