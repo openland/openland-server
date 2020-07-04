@@ -22,7 +22,13 @@ export const Metrics = {
     SpaceXEphemeralTransactions: Factory.createFrequencyGauge('spacex_ephemeral_hz', 'Frequency of ephemeral transactions'),
     SpaceXRetry: Factory.createFrequencyGauge('spacex_retry_hz', 'Frequency of transaction retry'),
     SpaceXReads: Factory.createSummary('spacex_reads', 'Summary of read operations', DEFAULT_QUANTILES),
+    SpaceXReadsByOperation: Factory.createTaggedSummary(
+        'spacex_reads_op',
+        'Summary of read operations',
+        DEFAULT_QUANTILES, ['subscription', 'subscription-resolve', 'query', 'mutation']),
     SpaceXWrites: Factory.createSummary('spacex_writes', 'Summary of write operations', DEFAULT_QUANTILES),
+    SpaceXWritesByOperation: Factory.createTaggedSummary('spacex_writes_op', 'Summary of writes operations', DEFAULT_QUANTILES,
+        ['subscription', 'subscription-resolve', 'query', 'mutation']),
 
     // Presences
     Online: Factory.createGauge('users_online', 'Total online users'),

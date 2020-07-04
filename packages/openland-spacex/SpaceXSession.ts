@@ -297,7 +297,9 @@ export class SpaceXSession {
             let counters = reportCounters(ctx);
             if (counters) {
                 Metrics.SpaceXWrites.report(counters.writeCount);
+                Metrics.SpaceXWritesByOperation.report(counters.writeCount, opts.type);
                 Metrics.SpaceXReads.report(counters.readCount);
+                Metrics.SpaceXReadsByOperation.report(counters.writeCount, opts.type);
             }
             return res;
         });

@@ -4,6 +4,7 @@ import { PersistedGauge } from './PersistedGauge';
 import { Context } from '@openland/context';
 import { DistributedGauge } from './DistributedGauge';
 import { DistributedMachineGauge } from './DistributedMachineGauge';
+import { DistributedTaggedSummary } from './DistributedTaggedSummary';
 
 export class MetricFactory {
 
@@ -12,19 +13,20 @@ export class MetricFactory {
     #persistedGauges = new Map<string, PersistedGauge>();
     #frequencyGauges = new Map<string, DistributedFrequencyGauge>();
     #summaries = new Map<string, DistributedSummary>();
+    #taggedSummaries = new Map<string, DistributedTaggedSummary>();
 
     getAllMetrics() {
         return {
             gauges: [...this.#gauges.values()],
             persistedGauges: [...this.#persistedGauges.values()],
-            summaries: [...this.#summaries.values()]
+            summaries: [...this.#summaries.values()],
+            taggedSummaries: [...this.#taggedSummaries.values()]
         };
     }
 
     createGauge = (name: string, description: string) => {
-        if (this.#gauges.has(name) || this.#persistedGauges.has(name) || this.#summaries.has(name)) {
-            throw Error('Gauge already exists');
-        }
+        this.ensureNameIsNotUsed(name);
+
         let res = new DistributedGauge(name, description);
         this.#gauges.set(name, res);
         return res;
@@ -45,20 +47,26 @@ export class MetricFactory {
     }
 
     createPersistedGauge = (name: string, description: string, query: (ctx: Context) => Promise<number>) => {
-        if (this.#gauges.has(name) || this.#persistedGauges.has(name)) {
-            throw Error('Gauge already exists');
-        }
+        this.ensureNameIsNotUsed(name);
+
         let res = new PersistedGauge(name, description, query);
         this.#persistedGauges.set(name, res);
         return res;
     }
 
     createSummary = (name: string, description: string, quantiles: number[]) => {
-        if (this.#gauges.has(name) || this.#persistedGauges.has(name) || this.#summaries.has(name)) {
-            throw Error('Name already used');
-        }
+        this.ensureNameIsNotUsed(name);
+
         let res = new DistributedSummary(name, description, quantiles);
         this.#summaries.set(name, res);
+        return res;
+    }
+
+    createTaggedSummary = (name: string, description: string, quantiles: number[], tags: string[]) => {
+        this.ensureNameIsNotUsed(name);
+
+        let res = new DistributedTaggedSummary(name, description, quantiles, tags);
+        this.#taggedSummaries.set(name, res);
         return res;
     }
 
@@ -68,6 +76,12 @@ export class MetricFactory {
         }
         for (let gauge of this.#frequencyGauges.values()) {
             gauge.start();
+        }
+    }
+
+    private ensureNameIsNotUsed(name: string) {
+        if (this.#gauges.has(name) || this.#persistedGauges.has(name) || this.#summaries.has(name) || this.#taggedSummaries.has(name)) {
+            throw Error('Name already used');
         }
     }
 }

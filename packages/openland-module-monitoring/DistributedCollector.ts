@@ -6,6 +6,7 @@ import { DistributedGauge } from './DistributedGauge';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { MetricFactory } from './MetricFactory';
 import { inTx } from '@openland/foundationdb';
+import { DistributedTaggedSummary } from './DistributedTaggedSummary';
 const ctx = createNamedContext('collector');
 const logger = createLogger('collector');
 
@@ -99,10 +100,39 @@ class SummaryCollector {
     }
 }
 
+class TaggedSummaryCollector {
+    readonly summary: DistributedTaggedSummary;
+    #collectors = new Map<string, SummaryCollector>();
+
+    constructor(summary: DistributedTaggedSummary) {
+        this.summary = summary;
+        for (let tag of summary.tags) {
+            this.#collectors.set(tag, new SummaryCollector(new DistributedSummary(this.summary.name + '_' + tag, this.summary.description, this.summary.quantiles)));
+        }
+    }
+
+    resolve = () => {
+        let values: { tag: string, resolved: any }[] = [];
+        for (let [tag, collector] of this.#collectors.entries()) {
+            values.push({ tag, resolved: collector.resolve() });
+        }
+        return values;
+    }
+
+    report = (value: number, time: number, tag: string) => {
+        let collector = this.#collectors.get(tag);
+        if (!collector) {
+            throw new Error('Tag not found: ' + tag);
+        }
+        collector!.report(value, time);
+    }
+}
+
 export class DistributedCollector {
     #factory: MetricFactory;
     #gaugeCollectors = new Map<string, GaugeCollector>();
     #summaryCollectors = new Map<string, SummaryCollector>();
+    #taggedSummaryCollectors = new Map<string, TaggedSummaryCollector>();
     #persistedGauges = new Map<string, PersistedGauge>();
 
     constructor(factory: MetricFactory) {
@@ -118,6 +148,9 @@ export class DistributedCollector {
         }
         for (let summary of metrics.summaries) {
             this.#summaryCollectors.set(summary.name, new SummaryCollector(summary));
+        }
+        for (let taggedSummary of metrics.taggedSummaries) {
+            this.#taggedSummaryCollectors.set(taggedSummary.name, new TaggedSummaryCollector(taggedSummary));
         }
     }
 
@@ -143,6 +176,20 @@ export class DistributedCollector {
             res.push(summary.name + '_count ' + resolved.total);
             for (let r of resolved.percentiles) {
                 res.push(summary.name + '{quantile="' + r.p + '"} ' + r.v);
+            }
+        }
+
+        for (let collector of this.#taggedSummaryCollectors.values()) {
+            let summary = collector.summary;
+            let resolvedTags = collector.resolve();
+            for (let { tag, resolved } of resolvedTags) {
+                res.push('# HELP ' + summary.name + `_${tag}` + ' ' + summary.description);
+                res.push('# TYPE ' + summary.name + `_${tag}` + ' summary');
+                res.push(summary.name + `_${tag}` + '_sum ' + resolved.sum);
+                res.push(summary.name + `_${tag}` + '_count ' + resolved.total);
+                for (let r of resolved.percentiles) {
+                    res.push(summary.name + `_${tag}` + '{quantile="' + r.p + '"} ' + r.v);
+                }
             }
         }
 
@@ -213,6 +260,25 @@ export class DistributedCollector {
                 return;
             }
             collector.report(value, time);
+        } else if (src.type === 'tagged_summary') {
+            let name = src.name;
+            let value = src.value;
+            let time = src.time;
+            let tag = src.tag;
+            if (typeof name !== 'string') {
+                return;
+            }
+            if (typeof time !== 'number') {
+                return;
+            }
+            if (typeof value !== 'number') {
+                return;
+            }
+            let collector = this.#taggedSummaryCollectors.get(name);
+            if (!collector) {
+                return;
+            }
+            collector.report(value, time, tag);
         }
     }
 }
