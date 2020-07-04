@@ -298,6 +298,20 @@ export class SpaceXSession {
             if (counters) {
                 Metrics.SpaceXWrites.report(counters.writeCount);
                 Metrics.SpaceXReads.report(counters.readCount);
+
+                if (opts.type === 'query') {
+                    Metrics.SpaceXWritesPerQuery.report(counters.writeCount);
+                    Metrics.SpaceXReadsPerQuery.report(counters.readCount);
+                } else if (opts.type === 'mutation') {
+                    Metrics.SpaceXWritesPerMutation.report(counters.writeCount);
+                    Metrics.SpaceXReadsPerMutation.report(counters.readCount);
+                } else if (opts.type === 'subscription') {
+                    Metrics.SpaceXWritesPerSubscription.report(counters.writeCount);
+                    Metrics.SpaceXReadsPerSubscription.report(counters.readCount);
+                } else if (opts.type === 'subscription-resolve') {
+                    Metrics.SpaceXWritesPerSubscriptionResolve.report(counters.writeCount);
+                    Metrics.SpaceXReadsPerSubscriptionResolve.report(counters.readCount);
+                }
             }
             return res;
         });
