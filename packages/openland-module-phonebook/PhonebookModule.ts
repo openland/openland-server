@@ -4,10 +4,10 @@ import { PhonebookRecordInput, PhonebookRepository } from './repositories/Phoneb
 import { lazyInject } from '../openland-modules/Modules.container';
 import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
 import { phonebookIndexer } from './workers/phonebookIndexer';
-import {
-    addPhonebookJoinMessagesWorker,
-    createPhonebookJoinMessagesWorker
-} from './workers/phonebookJoinMessagesWorker';
+// import {
+//     addPhonebookJoinMessagesWorker,
+//     createPhonebookJoinMessagesWorker
+// } from './workers/phonebookJoinMessagesWorker';
 import { inTx } from '@openland/foundationdb';
 
 @injectable()
@@ -15,14 +15,14 @@ export class PhonebookModule {
     @lazyInject(PhonebookRepository)
     public readonly repo!: PhonebookRepository;
 
-    private messagesWorker = createPhonebookJoinMessagesWorker();
+    // private messagesWorker = createPhonebookJoinMessagesWorker();
 
     public start = async () => {
         if (serverRoleEnabled('workers')) {
             phonebookIndexer();
         }
         if (serverRoleEnabled('workers')) {
-            addPhonebookJoinMessagesWorker(this.messagesWorker);
+            // addPhonebookJoinMessagesWorker(this.messagesWorker);
         }
     }
 
@@ -32,13 +32,13 @@ export class PhonebookModule {
 
     async onPhonePair(parent: Context, uid: number) {
         await inTx(parent, async ctx => {
-            await this.messagesWorker.pushWork(ctx, { uid });
+            // await this.messagesWorker.pushWork(ctx, { uid });
         });
     }
 
     async onNewUser(parent: Context, uid: number) {
         await inTx(parent, async ctx => {
-            await this.messagesWorker.pushWork(ctx, { uid });
+            // await this.messagesWorker.pushWork(ctx, { uid });
         });
     }
 }
