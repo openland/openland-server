@@ -294,6 +294,7 @@ export class SpaceXSession {
             });
             let duration = currentRunningTime() - start;
             Metrics.SpaceXOperationTime.report(duration);
+            Metrics.SpaceXOperationTimeTagged.report(opts.type + ' ' + (opts.op.operationName || 'Unknown'), duration);
             let counters = reportCounters(ctx);
             if (counters) {
                 Metrics.SpaceXWrites.report(counters.writeCount);

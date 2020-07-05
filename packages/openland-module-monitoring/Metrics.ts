@@ -17,6 +17,7 @@ export const Metrics = {
     SpaceXOperations: Factory.createMachineGauge('spacex_ops', 'Number of active SpaceX operations'),
     SpaceXOperationsFrequence: Factory.createFrequencyGauge('spacex_ops_hz', 'Frequency of SpaceX operations'),
     SpaceXOperationTime: Factory.createSummary('spacex_operation_duration', 'Duration of SpaceX operation', DEFAULT_QUANTILES),
+    SpaceXOperationTimeTagged: Factory.createTaggedSummary('spacex_operation_duration_tagged', 'Duration of SpaceX operation', DEFAULT_QUANTILES),
     SpaceXSubscriptions: Factory.createMachineGauge('spacex_sub', 'Number of active SpaceX subscriptions'),
     SpaceXSubscriptionEvents: Factory.createFrequencyGauge('spacex_sub_hz', 'Frequency of SpaceX subscription events'),
     SpaceXEphemeralTransactions: Factory.createFrequencyGauge('spacex_ephemeral_hz', 'Frequency of ephemeral transactions'),
