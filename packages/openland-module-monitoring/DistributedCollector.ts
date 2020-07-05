@@ -210,10 +210,10 @@ export class DistributedCollector {
             res.push('# HELP ' + summary.name + ' ' + summary.description);
             res.push('# TYPE ' + summary.name + ' summary');
             for (let tag of resolved.tags) {
-                res.push(summary.name + '_sum{tag="' + tag + '"} ' + tag.sum);
-                res.push(summary.name + '_count{tag="' + tag + '"} ' + tag.total);
+                res.push(summary.name + '_sum{tag="' + tag.tag + '"} ' + tag.sum);
+                res.push(summary.name + '_count{tag="' + tag.tag + '"} ' + tag.total);
                 for (let r of tag.percentiles) {
-                    res.push(summary.name + '{quantile="' + r.p + '",tag="' + tag + '"} ' + r.v);
+                    res.push(summary.name + '{quantile="' + r.p + '",tag="' + tag.tag + '"} ' + r.v);
                 }
             }
         }
