@@ -22,7 +22,7 @@ export class UserSearch {
                             should: normalized.length > 0 ? [
                                 { match_phrase_prefix: options && options.byName ? { name: query } : { search: query } },
                                 { match_phrase_prefix: { shortName: query } },
-                                { match: { about: { query, boost: 0.7 } } },
+                                // { match: { about: { query, boost: 0.7 } } },
                             ] : []
                         }
                     }

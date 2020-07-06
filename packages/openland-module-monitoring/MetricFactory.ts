@@ -1,3 +1,4 @@
+import { DistributedTaggedSummary } from './DistributedTaggedSummary';
 import { DistributedSummary } from './DistributedSummary';
 import { DistributedFrequencyGauge } from './DistributedFrequencyGauge';
 import { PersistedGauge } from './PersistedGauge';
@@ -12,19 +13,19 @@ export class MetricFactory {
     #persistedGauges = new Map<string, PersistedGauge>();
     #frequencyGauges = new Map<string, DistributedFrequencyGauge>();
     #summaries = new Map<string, DistributedSummary>();
+    #summariesTagged = new Map<string, DistributedTaggedSummary>();
 
     getAllMetrics() {
         return {
             gauges: [...this.#gauges.values()],
             persistedGauges: [...this.#persistedGauges.values()],
-            summaries: [...this.#summaries.values()]
+            summaries: [...this.#summaries.values()],
+            summariesTagged: [...this.#summariesTagged.values()]
         };
     }
 
     createGauge = (name: string, description: string) => {
-        if (this.#gauges.has(name) || this.#persistedGauges.has(name) || this.#summaries.has(name)) {
-            throw Error('Gauge already exists');
-        }
+        this.#checkName(name);
         let res = new DistributedGauge(name, description);
         this.#gauges.set(name, res);
         return res;
@@ -45,20 +46,23 @@ export class MetricFactory {
     }
 
     createPersistedGauge = (name: string, description: string, query: (ctx: Context) => Promise<number>) => {
-        if (this.#gauges.has(name) || this.#persistedGauges.has(name)) {
-            throw Error('Gauge already exists');
-        }
+        this.#checkName(name);
         let res = new PersistedGauge(name, description, query);
         this.#persistedGauges.set(name, res);
         return res;
     }
 
     createSummary = (name: string, description: string, quantiles: number[]) => {
-        if (this.#gauges.has(name) || this.#persistedGauges.has(name) || this.#summaries.has(name)) {
-            throw Error('Name already used');
-        }
+        this.#checkName(name);
         let res = new DistributedSummary(name, description, quantiles);
         this.#summaries.set(name, res);
+        return res;
+    }
+
+    createTaggedSummary = (name: string, description: string, quantiles: number[]) => {
+        this.#checkName(name);
+        let res = new DistributedTaggedSummary(name, description, quantiles);
+        this.#summariesTagged.set(name, res);
         return res;
     }
 
@@ -68,6 +72,12 @@ export class MetricFactory {
         }
         for (let gauge of this.#frequencyGauges.values()) {
             gauge.start();
+        }
+    }
+
+    #checkName = (name: string) => {
+        if (this.#gauges.has(name) || this.#persistedGauges.has(name) || this.#summaries.has(name) || this.#summariesTagged.has(name)) {
+            throw Error('Name already used');
         }
     }
 }

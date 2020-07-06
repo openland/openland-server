@@ -1738,6 +1738,15 @@ export const Resolver: GQLResolver = {
                 }
                 return canceled;
             });
+        }),
+        debugInviteMembersFromChat: withPermission('super-admin', async (parent, args) => {
+            await inTx(parent, async ctx => {
+                let from = IDs.Conversation.parse(args.cid);
+                let to = IDs.Conversation.parse(args.dest);
+                let prevMembers = await Modules.Messaging.room.findConversationMembers(ctx, from);
+                await Modules.Messaging.room.inviteToRoom(ctx, to, parent.auth.uid!, prevMembers);
+            });
+            return true;
         })
     },
     Subscription: {

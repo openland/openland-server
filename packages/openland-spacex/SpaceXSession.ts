@@ -293,11 +293,29 @@ export class SpaceXSession {
                 rootValue: opts.rootValue
             });
             let duration = currentRunningTime() - start;
+            let tag = opts.type + ' ' + (opts.op.operationName || 'Unknown');
             Metrics.SpaceXOperationTime.report(duration);
+            Metrics.SpaceXOperationTimeTagged.report(tag, duration);
             let counters = reportCounters(ctx);
             if (counters) {
                 Metrics.SpaceXWrites.report(counters.writeCount);
                 Metrics.SpaceXReads.report(counters.readCount);
+                Metrics.SpaceXWritesTagged.report(tag, counters.writeCount);
+                Metrics.SpaceXReadsTagged.report(tag, counters.readCount);
+
+                if (opts.type === 'query') {
+                    Metrics.SpaceXWritesPerQuery.report(counters.writeCount);
+                    Metrics.SpaceXReadsPerQuery.report(counters.readCount);
+                } else if (opts.type === 'mutation') {
+                    Metrics.SpaceXWritesPerMutation.report(counters.writeCount);
+                    Metrics.SpaceXReadsPerMutation.report(counters.readCount);
+                } else if (opts.type === 'subscription') {
+                    Metrics.SpaceXWritesPerSubscription.report(counters.writeCount);
+                    Metrics.SpaceXReadsPerSubscription.report(counters.readCount);
+                } else if (opts.type === 'subscription-resolve') {
+                    Metrics.SpaceXWritesPerSubscriptionResolve.report(counters.writeCount);
+                    Metrics.SpaceXReadsPerSubscriptionResolve.report(counters.readCount);
+                }
             }
             return res;
         });

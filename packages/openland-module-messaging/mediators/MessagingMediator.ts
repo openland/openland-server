@@ -354,7 +354,7 @@ export class MessagingMediator {
 
     private parseHashTags(message: string): MessageSpan[] {
         let res: MessageSpan[] = [];
-        let hashTagRegexp = /#([a-zA-Z\d_]+)/gm;
+        let hashTagRegexp = /#([a-zA-Zа-яА-ЯёЁ\d_]+)/gm;
         let match: RegExpExecArray | null;
 
         while ((match = hashTagRegexp.exec(message))) {
