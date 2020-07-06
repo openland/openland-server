@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '66e0e3823c2866aa0cd80b5fd50a4f40';
+export const GQL_SPEC_VERSION = 'bc87add1cee8cb03b9f857f5ed8a622b';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2222,7 +2222,7 @@ export namespace GQL {
         debugFixUserSettings: boolean;
         debugFixDeletedRooms: boolean;
         debugUnsubscribeEveryoneFromChat: number;
-        debugInviteMembersFromChat: Nullable<boolean>;
+        debugInviteMembersFromChat: boolean;
         settingsUpdate: Settings;
         sendEmailPairCode: string;
         pairEmail: boolean;
