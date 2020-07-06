@@ -1751,7 +1751,7 @@ export const Resolver: GQLResolver = {
                     await inTx(parent, async ctx => {
                         await Modules.Messaging.room.inviteToRoom(ctx, to, parent.auth.uid!, b);
 
-                        total += batch.length;
+                        total += b.length;
                         await log('Invited ' + total + ' members');
                     });
                 }
