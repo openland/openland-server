@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '242455c3ec230143535c2b8474403f39';
+export const GQL_SPEC_VERSION = '66e0e3823c2866aa0cd80b5fd50a4f40';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2222,6 +2222,7 @@ export namespace GQL {
         debugFixUserSettings: boolean;
         debugFixDeletedRooms: boolean;
         debugUnsubscribeEveryoneFromChat: number;
+        debugInviteMembersFromChat: Nullable<boolean>;
         settingsUpdate: Settings;
         sendEmailPairCode: string;
         pairEmail: boolean;
@@ -2749,6 +2750,10 @@ export namespace GQL {
     export interface MutationDebugFixDeletedRoomsArgs { }
     export interface MutationDebugUnsubscribeEveryoneFromChatArgs {
         cid: string;
+    }
+    export interface MutationDebugInviteMembersFromChatArgs {
+        cid: string;
+        dest: string;
     }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
@@ -8579,6 +8584,7 @@ export interface GQLResolver {
             debugFixUserSettings: GQL.MutationDebugFixUserSettingsArgs,
             debugFixDeletedRooms: GQL.MutationDebugFixDeletedRoomsArgs,
             debugUnsubscribeEveryoneFromChat: GQL.MutationDebugUnsubscribeEveryoneFromChatArgs,
+            debugInviteMembersFromChat: GQL.MutationDebugInviteMembersFromChatArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailPairCode: GQL.MutationSendEmailPairCodeArgs,
             pairEmail: GQL.MutationPairEmailArgs,
