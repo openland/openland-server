@@ -35,6 +35,10 @@ export const Metrics = {
     SpaceXWritesPerSubscriptionResolve: Factory.createSummary('spacex_writes_subscription_resolve', 'Summary of read operations per subscription resolve', DEFAULT_QUANTILES),
     SpaceXWritesPerMutation: Factory.createSummary('spacex_writes_mutation', 'Summary of read operations per mutation', DEFAULT_QUANTILES),
 
+    // Hyperlog
+    HyperLogSent: Factory.createFrequencyGauge('hyperlog_writes', 'Frequence of writes to a hyperlog'),
+    HyperLogSentTagged: Factory.createTaggedFrequencyGauge('hyperlog_writes_tagged', 'Frequence of writes to a hyperlog'),
+
     // Presences
     Online: Factory.createGauge('users_online', 'Total online users'),
     OnlineWeb: Factory.createGauge('users_online_web', 'Online Web Users'),
