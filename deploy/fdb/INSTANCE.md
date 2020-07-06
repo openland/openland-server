@@ -18,9 +18,6 @@ else
         echo UUID=`blkid -s UUID -o value /dev/nvme0n1` $MNT_DIR ext4 discard,defaults,nofail 0 2 | tee -a /etc/fstab
 fi
 
-# Create User and Group
-useradd -G foundationdb foundationdb || true
-
 # Create FDB working directory
 FDB_DIR=/mnt/disks/data/foundationdb
 if [[ -d "$FDB_DIR" ]]; then
