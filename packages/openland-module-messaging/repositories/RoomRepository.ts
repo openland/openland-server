@@ -1,3 +1,4 @@
+import { Events } from 'openland-module-hyperlog/Events';
 import { ExpiringCache } from './../../openland-utils/ExpiringCache';
 import { RoomParticipantCreateShape, Message, ChatUpdatedEvent } from './../../openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
@@ -17,7 +18,6 @@ import { boldString, buildMessage, userMention } from '../../openland-utils/Mess
 import { MessageAttachmentFile } from '../MessageInput';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { User, ConversationRoom } from 'openland-module-db/store';
-import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { smartSlice } from '../../openland-utils/string';
 import { createWelcomeMessageWorker } from '../workers/welcomeMessageWorker';
 
@@ -37,8 +37,6 @@ export type WelcomeMessageT = {
     sender: User | null,
     message: string
 };
-
-let membersLog = createHyperlogger<{ rid: number, delta: number }>('room-members-change');
 
 @injectable()
 export class RoomRepository {
@@ -1201,8 +1199,8 @@ export class RoomRepository {
     //
     private async onRoomJoin(parent: Context, cid: number, uid: number, by: number) {
         return await inTx(parent, async (ctx) => {
-            await EventBus.publish(`chat_join_${cid}`, { uid, cid });
-            membersLog.event(ctx, { rid: cid, delta: 1 });
+            EventBus.publish(`chat_join_${cid}`, { uid, cid });
+            Events.MembersLog.event(ctx, { rid: cid, delta: 1 });
 
             let room = await Store.ConversationRoom.findById(ctx, cid);
             let roomProfile = await Store.RoomProfile.findById(ctx, cid);
@@ -1210,7 +1208,7 @@ export class RoomRepository {
                 throw new Error('Room not found');
             }
             if (await this.isPublicCommunityChat(ctx, cid)) {
-                await Store.UserAudienceCounter.add(ctx, uid, roomProfile.activeMembersCount ? (roomProfile.activeMembersCount) - 1 : 0);
+                Store.UserAudienceCounter.add(ctx, uid, roomProfile.activeMembersCount ? (roomProfile.activeMembersCount) - 1 : 0);
             }
             if (room.oid) {
                 let org = await Store.Organization.findById(ctx, room.oid);
@@ -1243,10 +1241,10 @@ export class RoomRepository {
 
     private async onRoomLeave(parent: Context, cid: number, uid: number, wasKicked: boolean) {
         return await inTx(parent, async (ctx) => {
-            membersLog.event(ctx, { rid: cid, delta: -1 });
+            Events.MembersLog.event(ctx, { rid: cid, delta: -1 });
             let roomProfile = await Store.RoomProfile.findById(ctx, cid);
             if (await this.isPublicCommunityChat(ctx, cid)) {
-                await Store.UserAudienceCounter.add(ctx, uid, (roomProfile!.activeMembersCount ? (roomProfile!.activeMembersCount) : 0) * -1);
+                Store.UserAudienceCounter.add(ctx, uid, (roomProfile!.activeMembersCount ? (roomProfile!.activeMembersCount) : 0) * -1);
             }
             await EventBus.publish(`chat_leave_${cid}`, { uid, cid });
 

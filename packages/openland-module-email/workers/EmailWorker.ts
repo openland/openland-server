@@ -1,11 +1,11 @@
 import SendGrid from '@sendgrid/mail';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
-import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { EmailTask } from 'openland-module-email/EmailTask';
 import { createLogger } from '@openland/log';
 import { inTx } from '@openland/foundationdb';
 import { Config } from 'openland-config/Config';
+import { Events } from 'openland-module-hyperlog/Events';
 
 export const SENDGRID_KEY = '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';
 
@@ -24,8 +24,6 @@ let devTeamEmails = [
     'danila@openland.com'
 ];
 
-const emailSent = createHyperlogger<{ to: string, templateId: string }>('email_sent');
-const emailFailed = createHyperlogger<{ to: string, templateId: string }>('email_failed');
 const log = createLogger('sendgrid');
 
 export function createEmailWorker() {
@@ -58,12 +56,12 @@ export function createEmailWorker() {
                 } catch (e) {
                     log.error(ctx, 'email to', args.to);
                     await inTx(ctx, async (ctx2) => {
-                        emailFailed.event(ctx2, { templateId: args.templateId, to: args.to });
+                        Events.EmailFailed.event(ctx2, { templateId: args.templateId, to: args.to });
                     });
                     throw e;
                 }
                 await inTx(ctx, async (ctx2) => {
-                    emailSent.event(ctx2, { templateId: args.templateId, to: args.to });
+                    Events.EmailSent.event(ctx2, { templateId: args.templateId, to: args.to });
                 });
             }
         });

@@ -1,3 +1,4 @@
+import { Events } from 'openland-module-hyperlog/Events';
 import APN from 'apn';
 import { Config } from 'openland-config/Config';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
@@ -5,14 +6,11 @@ import { ApplePushTask } from './types';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { handleFail } from './util/handleFail';
-import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { inTx } from '@openland/foundationdb';
 import { createLogger } from '@openland/log';
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 const log = createLogger('apns');
-const pushSent = createHyperlogger<{ uid: number, tokenId: string }>('push_apns_sent');
-const pushFail = createHyperlogger<{ uid: number, tokenId: string, failures: number, reason: string, disabled: boolean }>('push_apns_failed');
 
 export function createAppleWorker(repo: PushRepository) {
     let queue = new WorkQueue<ApplePushTask>('push_sender_apns');
@@ -75,12 +73,12 @@ export function createAppleWorker(repo: PushRepository) {
                                     await inTx(root, async (ctx) => {
                                         let t = (await repo.getAppleToken(ctx, task.tokenId))!;
                                         await handleFail(t);
-                                        pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, reason: reason!, disabled: !t.enabled });
+                                        Events.ApnsPushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, reason: reason!, disabled: !t.enabled });
                                     });
                                 }
                             } else {
                                 await inTx(root, async (ctx) => {
-                                    pushSent.event(ctx, { uid: token!.uid, tokenId: token!.id });
+                                    Events.ApnsPushSent.event(ctx, { uid: token!.uid, tokenId: token!.id });
                                 });
                             }
 
@@ -95,7 +93,7 @@ export function createAppleWorker(repo: PushRepository) {
                         await inTx(root, async (ctx) => {
                             let t = (await repo.getAppleToken(ctx, task.tokenId))!;
                             await handleFail(t);
-                            pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, reason: 'Unable to find team for bundleId: ' + token!.bundleId, disabled: !t.enabled });
+                            Events.ApnsPushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, reason: 'Unable to find team for bundleId: ' + token!.bundleId, disabled: !t.enabled });
                         });
                         return;
                     }
