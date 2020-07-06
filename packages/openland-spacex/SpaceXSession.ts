@@ -293,12 +293,15 @@ export class SpaceXSession {
                 rootValue: opts.rootValue
             });
             let duration = currentRunningTime() - start;
+            let tag = opts.type + ' ' + (opts.op.operationName || 'Unknown');
             Metrics.SpaceXOperationTime.report(duration);
-            Metrics.SpaceXOperationTimeTagged.report(opts.type + ' ' + (opts.op.operationName || 'Unknown'), duration);
+            Metrics.SpaceXOperationTimeTagged.report(tag, duration);
             let counters = reportCounters(ctx);
             if (counters) {
                 Metrics.SpaceXWrites.report(counters.writeCount);
                 Metrics.SpaceXReads.report(counters.readCount);
+                Metrics.SpaceXWritesTagged.report(tag, counters.writeCount);
+                Metrics.SpaceXReadsTagged.report(tag, counters.readCount);
 
                 if (opts.type === 'query') {
                     Metrics.SpaceXWritesPerQuery.report(counters.writeCount);
