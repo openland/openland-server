@@ -1097,8 +1097,11 @@ export const Resolver: GQLResolver = {
         messages: withUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.chatId);
             let beforeId = args.before ? IDs.ConversationMessage.parse(args.before) : null;
-            await Modules.Messaging.room.checkAccess(ctx, uid, roomId);
-            if (!args.first || args.first <= 0) {
+            if (
+                !(await Modules.Messaging.room.canUserSeeChat(ctx, uid, roomId)) ||
+                !args.first ||
+                args.first <= 0
+            ) {
                 return [];
             }
             if (args.before && await Store.Message.findById(ctx, beforeId!)) {
@@ -1113,8 +1116,11 @@ export const Resolver: GQLResolver = {
 
         gammaMessages: withUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.chatId);
-            await Modules.Messaging.room.checkAccess(ctx, uid, roomId);
-            if (!args.first || args.first <= 0) {
+            if (
+                !(await Modules.Messaging.room.canUserSeeChat(ctx, uid, roomId)) ||
+                !args.first ||
+                args.first <= 0
+            ) {
                 return {
                     haveMoreForward: false,
                     haveMoreBackward: false,
