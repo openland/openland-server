@@ -59,7 +59,9 @@ export class CommentsNotificationsRepository {
                     continue;
                 }
                 if (!(await Store.CommentsSubscription.findById(ctx, comment.peerType, comment.peerId, mention.user))) {
-                    await this.subscribeToComments(ctx, comment.peerType, comment.peerId, mention.user, 'all');
+                    if (await this.shouldSubscribeToNotifications(parent, comment.peerType, comment.peerId, mention.user)) {
+                        await this.subscribeToComments(ctx, comment.peerType, comment.peerId, mention.user, 'all');
+                    }
                 }
             }
 
@@ -125,9 +127,29 @@ export class CommentsNotificationsRepository {
                     continue;
                 }
                 if (!(await Store.CommentsSubscription.findById(ctx, peerType, peerId, mention.user))) {
-                    await this.subscribeToComments(ctx, peerType, peerId, mention.user, 'all', false);
+                    if (await this.shouldSubscribeToNotifications(parent, peerType, peerId, mention.user)) {
+                        await this.subscribeToComments(ctx, peerType, peerId, mention.user, 'all', false);
+                    }
                 }
             }
+        });
+    }
+
+    private async shouldSubscribeToNotifications(parent: Context, peerType: CommentPeerType, peerId: number, uid: number) {
+        return await inTx(parent, async ctx => {
+            if (peerType === 'feed_item' || peerType === 'discussion') {
+                return true;
+            }
+
+            if (peerType === 'message') {
+                let message = (await Store.Message.findById(ctx, peerId))!;
+                let isPublicChat = await Modules.Messaging.room.isPublicRoom(ctx, message.cid);
+                let isMember = await Modules.Messaging.room.isRoomMember(ctx, uid, message.cid);
+
+                return isPublicChat || isMember;
+            }
+
+            return false;
         });
     }
 }
