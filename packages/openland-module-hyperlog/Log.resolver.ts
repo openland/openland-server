@@ -61,7 +61,7 @@ export const Resolver: GQLResolver = {
                     if (i.event.trim().length === 0) {
                         throw new UserError('Event should be string');
                     }
-                    trackEvent.event(ctx2, {
+                    Events.TrackEvent.event(ctx2, {
                         did: args.did,
                         id: i.id,
                         name: i.event,
