@@ -95,13 +95,13 @@ export class MentionNotificationsMediator {
 
     onNewMessage = async (ctx: Context, message: Message) => {
         if (this.haveMentions(message)) {
-            await this.queue.pushWork(ctx, { messageId: message.id });
+            await this.queue.pushWork(ctx, {messageId: message.id});
         }
     }
 
     onMessageUpdated = async (ctx: Context, message: Message) => {
         if (this.haveMentions(message)) {
-            await this.queue.pushWork(ctx, { messageId: message.id });
+            await this.queue.pushWork(ctx, {messageId: message.id});
         }
     }
 
@@ -110,6 +110,7 @@ export class MentionNotificationsMediator {
             a.type === 'user_mention' ||
             a.type === 'multi_user_mention' ||
             a.type === 'organization_mention' ||
-            a.type === 'room_mention');
+            a.type === 'room_mention'
+        );
     }
 }
