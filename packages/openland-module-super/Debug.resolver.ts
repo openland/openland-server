@@ -30,6 +30,7 @@ import { EntityFactory } from '@openland/foundationdb-entity';
 import { findEntitiesCount } from '../openland-module-db/findEntitiesCount';
 import { asyncRun } from '../openland-mtproto3/utils';
 import { container } from '../openland-modules/Modules.container';
+import { batch } from '../openland-utils/batch';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -1740,11 +1741,21 @@ export const Resolver: GQLResolver = {
             });
         }),
         debugInviteMembersFromChat: withPermission('super-admin', async (parent, args) => {
-            await inTx(parent, async ctx => {
-                let from = IDs.Conversation.parse(args.cid);
-                let to = IDs.Conversation.parse(args.dest);
-                let prevMembers = await Modules.Messaging.room.findConversationMembers(ctx, from);
-                await Modules.Messaging.room.inviteToRoom(ctx, to, parent.auth.uid!, prevMembers);
+            let from = IDs.Conversation.parse(args.cid);
+            let to = IDs.Conversation.parse(args.dest);
+            debugTask(parent.auth.uid!, 'debugInviteMembersFromChat', async (log) => {
+                let prevMembers = await Modules.Messaging.room.findConversationMembers(parent, from);
+                let members = batch(prevMembers, 20);
+                let total = 0;
+                for (let b of members) {
+                    await inTx(parent, async ctx => {
+                        await Modules.Messaging.room.inviteToRoom(ctx, to, parent.auth.uid!, b);
+
+                        total += batch.length;
+                        await log('Invited ' + total + ' members');
+                    });
+                }
+                return 'ok';
             });
             return true;
         })
