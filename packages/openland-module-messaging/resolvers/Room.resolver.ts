@@ -211,18 +211,19 @@ export const Resolver: GQLResolver = {
         }), 'MEMBER'),
         membersCount: withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? 0 : (profile && profile.activeMembersCount) || 0),
         onlineMembersCount: withConverationId(async (ctx, id, args, showPlaceholder) => {
-            if (showPlaceholder) {
-                return 0;
-            }
-            let onlineCount = 0;
-            let members = (await Modules.Messaging.room.findConversationMembers(ctx, id));
-            let membersOnline = await Promise.all(members.map(m => Store.Online.findById(ctx, m)));
-            for (let online of membersOnline) {
-                if (online && online.lastSeen > Date.now()) {
-                    onlineCount++;
-                }
-            }
-            return onlineCount;
+            return 0;
+            // if (showPlaceholder) {
+            //     return 0;
+            // }
+            // let onlineCount = 0;
+            // let members = (await Modules.Messaging.room.findConversationMembers(ctx, id));
+            // let membersOnline = await Promise.all(members.map(m => Store.Online.findById(ctx, m)));
+            // for (let online of membersOnline) {
+            //     if (online && online.lastSeen > Date.now()) {
+            //         onlineCount++;
+            //     }
+            // }
+            // return onlineCount;
         }),
         previewMembers: withConverationId(async (ctx, id, args, showPlaceholder) => {
             if (showPlaceholder) {
