@@ -8,15 +8,9 @@
 set -euxo pipefail
 
 # Format and mount disk
-MNT_DIR=/mnt/disks/data
-if [[ -d "$MNT_DIR" ]]; then
-        echo "Disk already mounted"
-else 
-        mkfs.ext4 -m 0 -F -E lazy_itable_init=0,lazy_journal_init=0,discard /dev/nvme0n1; \
-        mkdir -p $MNT_DIR
-        mount -o discard,defaults /dev/nvme0n1 $MNT_DIR
-        echo UUID=`blkid -s UUID -o value /dev/nvme0n1` $MNT_DIR ext4 discard,defaults,nofail 0 2 | tee -a /etc/fstab
-fi
+mkfs.ext4 -m 0 -F -E lazy_itable_init=0,lazy_journal_init=0,discard /dev/nvme0n1
+mkdir -p /mnt/disks/data
+mount -o discard,defaults /dev/nvme0n1 /mnt/disks/data
 
 # Create FDB working directory
 FDB_DIR=/mnt/disks/data/foundationdb

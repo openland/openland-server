@@ -20,7 +20,8 @@ export class TypingsModule {
     }
 
     public async setTyping(uid: number, conversationId: number, type: TypingTypeRoot) {
-        await broker.call('typings.send', {
+        // tslint:disable-next-line:no-floating-promises
+        broker.call('typings.send', {
             uid: uid,
             cid: conversationId,
             type: type
