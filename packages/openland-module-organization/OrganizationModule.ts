@@ -245,7 +245,8 @@ export class OrganizationModule {
     async updateMemberRole(parent: Context, uid: number, oid: number, role: 'admin' | 'member', by: number) {
         return await inTx(parent, async (ctx) => {
             let isOwner = await this.isUserOwner(ctx, by, oid);
-            if (!isOwner) {
+            let isSuperAdmin = (await Modules.Super.superRole(ctx, by)) === 'super-admin';
+            if (!isOwner && !isSuperAdmin) {
                 throw new AccessDeniedError('Only owners can change roles');
             }
             if (await this.isUserOwner(ctx, uid, oid)) {
