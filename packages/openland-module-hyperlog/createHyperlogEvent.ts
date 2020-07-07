@@ -8,6 +8,7 @@ import {
 import { table } from '../openland-module-clickhouse/TableSpace';
 import { HyperLogEvent } from '../openland-module-db/store';
 import { Table } from '../openland-module-clickhouse/Table';
+import { Metrics } from 'openland-module-monitoring/Metrics';
 
 const logger = createLogger('hyperlog');
 
@@ -26,6 +27,8 @@ export function createHyperlogger<T>(type: string): HyperEvent<T> {
                     date: Date.now(),
                     body: event
                 });
+                Metrics.HyperLogSent.inc();
+                Metrics.HyperLogSentTagged.inc(type);
             } catch (e) {
                 logger.warn(ctx, e);
             }

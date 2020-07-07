@@ -1,3 +1,4 @@
+import { Events } from 'openland-module-hyperlog/Events';
 import { inTx } from '@openland/foundationdb';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { Sanitizer } from 'openland-utils/Sanitizer';
@@ -6,7 +7,6 @@ import { NotFoundError } from 'openland-errors/NotFoundError';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { Context } from '@openland/context';
 import { injectable } from 'inversify';
-import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { fetchNextDBSeq } from 'openland-utils/dbSeq';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { Store } from 'openland-module-db/FDB';
@@ -14,10 +14,6 @@ import { UserBadge } from 'openland-module-db/store';
 import { Modules } from 'openland-modules/Modules';
 import { uuid } from '../../openland-utils/uuid';
 import { notifyFastWatch } from '../../openland-module-db/fastWatch';
-
-const userCreated = createHyperlogger<{ uid: number }>('user_created');
-const userActivated = createHyperlogger<{ uid: number, isTest: boolean }>('user_activated');
-const userProfileCreated = createHyperlogger<{ uid: number }>('user_profile_created');
 
 export type AuthInfo = {
     email?: string,
@@ -42,7 +38,7 @@ export class UserRepository {
             // Build next user id sequence number
             let seq = (await Store.Sequence.findById(ctx, 'user-id'));
             if (!seq) {
-                seq = await Store.Sequence.create(ctx, 'user-id', {value: 0});
+                seq = await Store.Sequence.create(ctx, 'user-id', { value: 0 });
             }
             let id = ++seq.value;
             await seq.flush(ctx);
@@ -54,13 +50,13 @@ export class UserRepository {
                 invitedBy: null,
                 isSuperBot: null,
                 botOwner: null,
-                ...(authInfo.email ? {email: authInfo.email.toLocaleLowerCase()} : {}),
-                ...(authInfo.googleId ? {googleId: authInfo.googleId} : {}),
-                ...(authInfo.phone ? {phone: authInfo.phone} : {})
+                ...(authInfo.email ? { email: authInfo.email.toLocaleLowerCase() } : {}),
+                ...(authInfo.googleId ? { googleId: authInfo.googleId } : {}),
+                ...(authInfo.phone ? { phone: authInfo.phone } : {})
             }));
 
             await res.flush(ctx);
-            userCreated.event(ctx, {uid: id});
+            Events.UserCreated.event(ctx, { uid: id });
             return res;
         });
     }
@@ -76,7 +72,7 @@ export class UserRepository {
                 user.invitedBy = user.invitedBy || invitedBy;
                 await user.flush(ctx);
                 await this.markForUndexing(ctx, uid);
-                userActivated.event(ctx, {uid, isTest: await Modules.Users.isTest(ctx, user.id)});
+                Events.UserActivated.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, user.id) });
                 return true;
             } else {
                 return false;
@@ -171,7 +167,7 @@ export class UserRepository {
             });
             await profile.flush(ctx);
             await this.markForUndexing(ctx, uid);
-            userProfileCreated.event(ctx, {uid: uid});
+            Events.UserProfileCreated.event(ctx, { uid: uid });
             return profile;
         });
     }
@@ -194,7 +190,7 @@ export class UserRepository {
      */
 
     async createSystemBot(ctx: Context, key: string, name: string, photoRef: ImageRef) {
-        let user = await this.createUser(ctx, {email: 'hello@openland.com'});
+        let user = await this.createUser(ctx, { email: 'hello@openland.com' });
         await this.createUserProfile(ctx, user.id, {
             firstName: name,
             photoRef: photoRef,
@@ -207,8 +203,8 @@ export class UserRepository {
     async createTestUser(parent: Context, key: string, name: string) {
         return await inTx(parent, async (ctx) => {
             let email = `test-user-${key}@openland.com`;
-            let user = await this.createUser(ctx, {email});
-            await this.createUserProfile(ctx, user.id, {firstName: name, email});
+            let user = await this.createUser(ctx, { email });
+            await this.createUserProfile(ctx, user.id, { firstName: name, email });
             await this.activateUser(ctx, user.id);
             return user.id;
         });
@@ -339,7 +335,7 @@ export class UserRepository {
             } else {
                 if (!isSuper) {
                     // set primary if needed
-                    let userBadges = (await Store.UserBadge.user.query(ctx, uid, {limit: 2})).items;
+                    let userBadges = (await Store.UserBadge.user.query(ctx, uid, { limit: 2 })).items;
 
                     if (userBadges.length === 1) {
                         let profile = await Store.UserProfile.findById(ctx, uid);

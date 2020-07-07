@@ -1,3 +1,4 @@
+import { Events } from 'openland-module-hyperlog/Events';
 import { Config } from 'openland-config/Config';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { FirebasePushTask } from './types';
@@ -5,13 +6,10 @@ import * as Friebase from 'firebase-admin';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { handleFail } from './util/handleFail';
-import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { inTx } from '@openland/foundationdb';
 import { createLogger } from '@openland/log';
 
 const log = createLogger('firebase');
-const pushSent = createHyperlogger<{ uid: number, tokenId: string }>('push_firebase_sent');
-const pushFail = createHyperlogger<{ uid: number, tokenId: string, failures: number, error: string, disabled: boolean }>('push_firebase_failed');
 
 export function createAndroidWorker(repo: PushRepository) {
     let queue = new WorkQueue<FirebasePushTask>('push_sender_firebase');
@@ -65,11 +63,11 @@ export function createAndroidWorker(repo: PushRepository) {
                                 await inTx(root, async (ctx) => {
                                     let t = (await repo.getAndroidToken(ctx, task.tokenId))!;
                                     await handleFail(t);
-                                    pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, error: res, disabled: !t.enabled });
+                                    Events.FirebasePushFailed.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, error: res, disabled: !t.enabled });
                                 });
                             } else {
                                 await inTx(root, async (ctx) => {
-                                    pushSent.event(ctx, { uid: token.uid, tokenId: token.id });
+                                    Events.FirebasePushSent.event(ctx, { uid: token.uid, tokenId: token.id });
                                 });
                             }
                             return;
@@ -81,7 +79,7 @@ export function createAndroidWorker(repo: PushRepository) {
                         await inTx(root, async (ctx) => {
                             let t = (await repo.getAndroidToken(ctx, task.tokenId))!;
                             await handleFail(t);
-                            pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, error: 'package not found', disabled: !t.enabled });
+                            Events.FirebasePushFailed.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, error: 'package not found', disabled: !t.enabled });
                         });
                         return;
                     }

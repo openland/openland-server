@@ -1,7 +1,7 @@
+import { Events } from 'openland-module-hyperlog/Events';
 import { inTx } from '@openland/foundationdb';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { withAny } from 'openland-module-api/Resolvers';
-import { createHyperlogger } from './createHyperlogEvent';
 import { Context } from '@openland/context';
 import { uuid } from '../openland-utils/uuid';
 import { UserError } from '../openland-errors/UserError';
@@ -22,13 +22,11 @@ export interface InternalTrackEvent {
     time: number;
 }
 
-export const trackEvent = createHyperlogger<InternalTrackEvent>('track');
-
 const log = createLogger('track');
 const isProd = Config.environment === 'production';
 
 export function trackServerEvent(ctx: Context, event: { name: string, uid?: number, args?: any }) {
-    trackEvent.event(ctx, {
+    Events.TrackEvent.event(ctx, {
         id: uuid(),
         platform: 'WEB',
         did: 'server',
@@ -63,7 +61,7 @@ export const Resolver: GQLResolver = {
                     if (i.event.trim().length === 0) {
                         throw new UserError('Event should be string');
                     }
-                    trackEvent.event(ctx2, {
+                    Events.TrackEvent.event(ctx2, {
                         did: args.did,
                         id: i.id,
                         name: i.event,

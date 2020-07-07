@@ -9,13 +9,11 @@ import { createLogger } from '@openland/log';
 import { Store } from 'openland-module-db/FDB';
 import { ConferencePeer, ConferenceRoom } from '../../openland-module-db/store';
 import { CallScheduler, MediaSources, StreamHint, Capabilities } from './CallScheduler';
-import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { notifyFastWatch } from 'openland-module-db/fastWatch';
 import { DeliveryMediator } from '../../openland-module-messaging/mediators/DeliveryMediator';
+import { Events } from 'openland-module-hyperlog/Events';
 
 let log = createLogger('call-repo');
-
-let callEndedEvent = createHyperlogger<{ duration: number }>('call_ended');
 
 export let DEFAULT_CAPABILITIES: Capabilities = {
     codecs: [{
@@ -393,7 +391,7 @@ export class CallRepository {
         await this.delivery.onCallStateChanged(ctx, conf.id, false);
 
         if (conf.startTime) {
-            callEndedEvent.event(ctx, { duration: Date.now() - conf.startTime! });
+            Events.CallEnded.event(ctx, { duration: Date.now() - conf.startTime! });
         }
     }
 

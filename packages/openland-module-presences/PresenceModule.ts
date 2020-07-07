@@ -1,9 +1,9 @@
+import { Events } from 'openland-module-hyperlog/Events';
 import { Store } from './../openland-module-db/FDB';
 import { inTx, withReadOnlyTransaction } from '@openland/foundationdb';
 import Timer = NodeJS.Timer;
 import { createIterator } from '../openland-utils/asyncIterator';
 import { Pubsub, PubsubSubcription } from '../openland-module-pubsub/pubsub';
-import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { injectable } from 'inversify';
 import { Modules } from '../openland-modules/Modules';
 import { EventBus } from '../openland-module-pubsub/EventBus';
@@ -12,8 +12,6 @@ import { Context, createNamedContext } from '@openland/context';
 import { getTransaction } from '@openland/foundationdb';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { registerPresenceService } from './service/registerPresenceService';
-
-const presenceEvent = createHyperlogger<{ uid: number, online: boolean, platform: string | null }>('presence');
 
 export interface OnlineEvent {
     userId: number;
@@ -87,7 +85,7 @@ export class PresenceModule {
                 await online.flush(ctx);
             }
 
-            presenceEvent.event(ctx, { uid, platform, online: true });
+            Events.PresenceEvent.event(ctx, { uid, platform, online: true });
             // this.onlines.set(uid, { lastSeen: expires, active: (online ? online.active : active) || false });
             let event = {
                 userId: uid,
@@ -110,7 +108,7 @@ export class PresenceModule {
                 online.lastSeen = Date.now();
                 online.active = false;
             }
-            presenceEvent.event(ctx, { uid, platform: null, online: false });
+            Events.PresenceEvent.event(ctx, { uid, platform: null, online: false });
             // this.onlines.set(uid, { lastSeen: Date.now(), active: false });
             let event = {
                 userId: uid,

@@ -342,7 +342,9 @@ export class SpaceXSession {
                 if (isContextCancelled(opts.ctx)) {
                     return null;
                 }
-                return handler(context);
+                return await tracer.trace(context, 'run', async (context2) => {
+                    return await handler(context2);
+                });
             });
         });
         if (isContextCancelled(opts.ctx)) {

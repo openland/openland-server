@@ -21,3 +21,7 @@ const ENABLED_SERVER_ROLES = (process.env.SERVER_ROLES && process.env.SERVER_ROL
 export function serverRoleEnabled(role: ServerRole): boolean {
     return ENABLED_SERVER_ROLES.indexOf(role) > -1;
 }
+
+export function getServerRoles() {
+    return ENABLED_SERVER_ROLES;
+}
