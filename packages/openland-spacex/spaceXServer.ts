@@ -74,7 +74,7 @@ async function handleOperation(params: SpaceXServerParams, req: http.IncomingMes
     let ctx = await params.context(connection.authParams, operation, req);
     if (!connection.operationBucket.tryTake()) {
         // handle error
-        connection.sendRateLimitError(id);
+        await connection.sendRateLimitError(id);
         connection.sendComplete(id);
         connection.stopOperation(id);
         return;
