@@ -14,7 +14,7 @@ export const Concurrency = {
 
     // Parallel operation execution pool. Unique for each connection.
     Execution: new SimpleFactory(() => {
-        return new BoundedConcurrencyPool(16) as ConcurrencyPool;
+        return new BoundedConcurrencyPool(64) as ConcurrencyPool;
     }),
 
     // FoundationDB operation pool. Unique per authentication token.

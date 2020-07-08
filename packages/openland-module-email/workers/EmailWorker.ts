@@ -14,6 +14,8 @@ let devTeamEmails = [
     'steve@openland.com',
     'yury@openland.com',
     'max@openland.com',
+    'max+1@openland.com',
+    'max+2@openland.com',
     'gleb@openland.com',
     'narek@openland.com',
     'xeroxaltox@gmail.com',
