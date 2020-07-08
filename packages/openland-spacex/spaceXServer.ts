@@ -82,11 +82,11 @@ async function handleOperation(params: SpaceXServerParams, req: http.IncomingMes
     await params.onOperation(ctx, operation);
     let opStartTime = Date.now();
     let query = parse(operation.query);
-    let op = connection.session.operation(ctx, { document: query, variables: operation.variables, operationName: operation.name }, async (res) => {
+    let op = connection.session.operation(ctx, { document: query, variables: operation.variables, operationName: operation.name }, (res) => {
         if (res.type === 'data') {
-            await connection.sendData(id, params.formatResponse({ data: res.data }, operation, ctx));
+            connection.sendData(id, params.formatResponse({ data: res.data }, operation, ctx));
         } else if (res.type === 'errors') {
-            await connection.sendData(id, params.formatResponse({ errors: res.errors }, operation, ctx));
+            connection.sendData(id, params.formatResponse({ errors: res.errors }, operation, ctx));
         } else if (res.type === 'completed') {
             connection.sendComplete(id);
             params.onOperationFinish(ctx, operation, Date.now() - opStartTime);

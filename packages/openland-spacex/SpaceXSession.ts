@@ -78,7 +78,7 @@ export class SpaceXSession {
         }
     }
 
-    operation(parentContext: Context, op: { document: DocumentNode, variables: any, operationName?: string }, handler: (result: OpResult) => Promise<void>): OpRef {
+    operation(parentContext: Context, op: { document: DocumentNode, variables: any, operationName?: string }, handler: (result: OpResult) => void): OpRef {
         if (this.closed) {
             throw Error('Session already closed');
         }
@@ -89,7 +89,6 @@ export class SpaceXSession {
         let abort = () => {
             if (!isContextCancelled(opContext)) {
                 cancelContext(opContext);
-                // tslint:disable-next-line:no-floating-promises
                 handler({ type: 'aborted' });
             }
             if (this.activeOperations.has(id)) {
@@ -143,11 +142,11 @@ export class SpaceXSession {
                     // This handlers could throw errors, but they are ignored since we are already 
                     // in completed state
                     if (res.errors && res.errors.length > 0) {
-                        await handler({ type: 'errors', errors: [...res.errors!] });
-                        await handler({ type: 'completed' });
+                        handler({ type: 'errors', errors: [...res.errors!] });
+                        handler({ type: 'completed' });
                     } else {
-                        await handler({ type: 'data', data: res.data });
-                        await handler({ type: 'completed' });
+                        handler({ type: 'data', data: res.data });
+                        handler({ type: 'completed' });
                     }
                 } else {
 
@@ -207,28 +206,28 @@ export class SpaceXSession {
                             // Handle event or error
                             if (resolved.errors && resolved.errors.length > 0) {
                                 cancelContext(opContext);
-                                await handler({ type: 'errors', errors: [...resolved.errors!] });
-                                await handler({ type: 'completed' });
+                                handler({ type: 'errors', errors: [...resolved.errors!] });
+                                handler({ type: 'completed' });
                                 break;
                             } else {
-                                await handler({ type: 'data', data: resolved.data });
+                                handler({ type: 'data', data: resolved.data });
                             }
                         }
 
                         if (!isContextCancelled(opContext)) {
                             cancelContext(opContext);
-                            await handler({ type: 'completed' });
+                            handler({ type: 'completed' });
                         }
                     } else {
                         // Weird branch. Probabbly just to handle errors.
                         if (!isContextCancelled(opContext)) {
                             cancelContext(opContext);
                             if (eventStream.errors && eventStream.errors.length > 0) {
-                                await handler({ type: 'errors', errors: [...eventStream.errors!] });
-                                await handler({ type: 'completed' });
+                                handler({ type: 'errors', errors: [...eventStream.errors!] });
+                                handler({ type: 'completed' });
                             } else {
-                                await handler({ type: 'data', data: eventStream.data });
-                                await handler({ type: 'completed' });
+                                handler({ type: 'data', data: eventStream.data });
+                                handler({ type: 'completed' });
                             }
                         }
                     }
@@ -238,8 +237,8 @@ export class SpaceXSession {
                     return;
                 }
                 cancelContext(opContext);
-                await handler({ type: 'errors', errors: [e] });
-                await handler({ type: 'completed' });
+                handler({ type: 'errors', errors: [e] });
+                handler({ type: 'completed' });
             } finally {
                 // Cleanup
                 if (!isContextCancelled(opContext)) {
@@ -343,7 +342,7 @@ export class SpaceXSession {
                     return null;
                 }
                 return await tracer.trace(context, 'run', async (context2) => {
-                    return await handler(context2);
+                    return handler(context2);
                 });
             });
         });

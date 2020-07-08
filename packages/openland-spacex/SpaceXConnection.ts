@@ -70,11 +70,7 @@ export class SpaceXConnection {
         }
     }
 
-    sendData = async (id: string, payload: any) => {
-        return new Promise(resolve => {
-            this.send({ id, type: 'data', payload }, () => resolve());
-        });
-    }
+    sendData = (id: string, payload: any) => this.send({ id, type: 'data', payload });
 
     sendComplete = (id: string) => this.send({ id, type: 'complete', payload: null });
 
