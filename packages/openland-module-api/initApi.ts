@@ -21,7 +21,6 @@ import { TokenChecker } from '../openland-module-auth/authV2';
 import { parseCookies } from '../openland-utils/parseCookies';
 import { decode } from 'openland-utils/base64';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
-import { createFuckApolloWSServer } from '../openland-mtproto3';
 import * as url from 'url';
 import { buildConcurrencyPool } from './buildConcurrencyPool';
 import { withConcurrentcyPool } from 'openland-utils/ConcurrencyPool';
@@ -241,99 +240,6 @@ export async function initApi(isTest: boolean) {
             }
         }
         // const wsCtx = createNamedContext('ws-gql');
-        let fuckApolloWS = await createFuckApolloWSServer({
-            server: undefined, // httpServer ,
-            path: '/api',
-            executableSchema: Schema(),
-            queryCache: new InMemoryQueryCache(),
-            onAuth: async (params, req) => {
-                // const start = currentRunningTime();
-                try {
-                    if (!params || Object.keys(params).length === 0 && req.headers.cookie && req.headers.cookie.length > 0) {
-                        let cookies = parseCookies(req.headers.cookie || '');
-                        return await fetchWebSocketParameters({'x-openland-token': cookies['x-openland-token']}, null);
-                    }
-                    return await fetchWebSocketParameters(params, null);
-                } finally {
-                    // const delta = currentRunningTime() - start;
-                    // authMetric.add(authMetricCtx, delta);
-                }
-            },
-            context: async (params, operation, req) => {
-                let opId = uuid();
-                let ctx = buildWebSocketContext(
-                    params || {},
-                    req.headers['x-forwarded-for'] as string,
-                    req.headers['x-client-geo-latlong'] as string,
-                    req.headers['x-client-geo-location'] as string
-                );
-                ctx = withReadOnlyTransaction(ctx);
-                ctx = withLogPath(ctx, `query ${opId} ${operation.operationName || ''}`);
-                ctx = withGqlQueryId(ctx, opId);
-                ctx = withGqlTrace(ctx, `query ${opId} ${operation.operationName || ''}`);
-                return withConcurrentcyPool(ctx, buildConcurrencyPool(ctx));
-            },
-            subscriptionContext: async (params, operation, firstCtx, req) => {
-                let opId = firstCtx ? GqlQueryIdNamespace.get(firstCtx)! : uuid();
-                let ctx = buildWebSocketContext(
-                    params || {},
-                    req.headers['x-forwarded-for'] as string,
-                    req.headers['x-client-geo-latlong'] as string,
-                    req.headers['x-client-geo-location'] as string,
-                );
-                ctx = withReadOnlyTransaction(ctx);
-                ctx = withLogPath(ctx, `subscription ${opId} ${operation.operationName || ''}`);
-                ctx = withGqlQueryId(ctx, opId);
-                ctx = withGqlTrace(ctx, `subscription ${opId} ${operation.operationName || ''}`);
-                ctx = withLifetime(ctx);
-                return withConcurrentcyPool(ctx, buildConcurrencyPool(ctx));
-            },
-            onOperation: async (ctx, operation) => {
-                // if (!isTest) {
-                //     let opId = GqlQueryIdNamespace.get(ctx) || 'unknown query';
-                //     if (AuthContext.get(ctx).uid) {
-                //         logger.log(wsCtx, `GraphQL ${opId} [#${AuthContext.get(ctx).uid}]: ${JSON.stringify(operation)}`);
-                //     } else {
-                //         logger.log(wsCtx, `GraphQL ${opId} [#ANON]: ${JSON.stringify(operation)}`);
-                //     }
-                // }
-            },
-            onOperationFinish: (ctx, operation, duration) => {
-                // let trace = gqlTraceNamespace.get(ctx);
-                // if (trace) {
-                //     trace.onRequestFinish();
-                //     await saveTrace(trace.getTrace());
-                // }
-            },
-            onEventResolveFinish: async (ctx, operation, duration) => {
-                let trace = gqlTraceNamespace.get(ctx);
-                if (trace) {
-                    trace.onRequestFinish();
-                    await saveTrace(trace.getTrace());
-                }
-            },
-            formatResponse: (value, operation, ctx) => {
-                let auth = AuthContext.get(ctx);
-                let uid = auth.uid;
-                let oid = auth.oid;
-
-                let queryInfo: QueryInfo = {
-                    uid,
-                    oid,
-                    transport: 'ws',
-                    query: JSON.stringify(operation)
-                };
-
-                let errors: any[] | undefined;
-                if (value.errors) {
-                    errors = value.errors && value.errors.map((e: any) => formatError(e, queryInfo));
-                }
-                return ({
-                    ...value,
-                    errors: errors,
-                });
-            }
-        });
         let vostok = initVostokApiServer({
             server: undefined, // httpServer ,
             path: '/api',
@@ -481,14 +387,6 @@ export async function initApi(isTest: boolean) {
 
         EventBus.subscribe('auth_token_revoke', (data: { tokens: { uuid: string, salt: string }[] }) => {
             for (let token of data.tokens) {
-                for (let entry of fuckApolloWS.sessions.entries()) {
-                    let [, session] = entry;
-                    if (session.authParams && session.authParams.tid && session.authParams.tid === token.uuid) {
-                        session.close();
-                        session.stopAllOperations();
-                    }
-                }
-
                 for (let entry of vostok.sessions.sessions.entries()) {
                     let [, session] = entry;
                     if (session.authParams && session.authParams.tid && session.authParams.tid === token.uuid) {

@@ -63,14 +63,18 @@ export class SpaceXConnection {
 
     sendKeepAlive = () => this.send({ type: 'ka' });
 
-    send = (data: any) => {
+    send = (data: any, cb?: () => void) => {
         if (this.socket) {
             Metrics.WebSocketPacketsOut.inc();
-            this.socket.send(JSON.stringify(data));
+            this.socket.send(JSON.stringify(data), cb);
         }
     }
 
-    sendData = (id: string, payload: any) => this.send({ id, type: 'data', payload });
+    sendData = async (id: string, payload: any) => {
+        return new Promise(resolve => {
+            this.send({ id, type: 'data', payload }, () => resolve());
+        });
+    }
 
     sendComplete = (id: string) => this.send({ id, type: 'complete', payload: null });
 
