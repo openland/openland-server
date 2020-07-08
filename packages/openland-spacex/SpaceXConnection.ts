@@ -63,10 +63,10 @@ export class SpaceXConnection {
 
     sendKeepAlive = () => this.send({ type: 'ka' });
 
-    send = (data: any, cb?: () => void) => {
+    send = (data: any) => {
         if (this.socket) {
             Metrics.WebSocketPacketsOut.inc();
-            this.socket.send(JSON.stringify(data), cb);
+            this.socket.send(JSON.stringify(data));
         }
     }
 

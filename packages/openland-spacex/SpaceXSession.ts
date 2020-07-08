@@ -174,6 +174,7 @@ export class SpaceXSession {
                         if (isContextCancelled(opContext)) {
                             return;
                         }
+
                         // Iterate all events
                         for await (let event of eventStream) {
 
@@ -323,7 +324,7 @@ export class SpaceXSession {
     /**
      * Executes handler whitin tracer and concurrency pool
      * @param opts context, operation type and operation
-     * @param handler 
+     * @param handler
      */
     private async _guard<T>(opts: {
         ctx: Context,
@@ -342,7 +343,7 @@ export class SpaceXSession {
                     return null;
                 }
                 return await tracer.trace(context, 'run', async (context2) => {
-                    return handler(context2);
+                    return await handler(context2);
                 });
             });
         });
