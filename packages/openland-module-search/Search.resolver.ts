@@ -348,7 +348,7 @@ export const Resolver: GQLResolver = {
         chatMembersSearch: withAccount(async (ctx, args, uid, oid) => {
             let cid = IDs.Conversation.parse(args.cid);
             await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, cid);
-            let members = (await Store.RoomParticipant.active.findAll(ctx, cid)).map(m => m.uid);
+            let members = await Modules.Messaging.room.findConversationMembers(ctx, cid);
 
             let query = args.query || '';
             let clauses: any[] = [];
@@ -411,8 +411,7 @@ export const Resolver: GQLResolver = {
             let from = args.after ? IDs.MentionSearchCursor.parse(args.after) : 0;
 
             await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, cid);
-            let members = (await Store.RoomParticipant.active.findAll(ctx, cid)).map(m => m.uid);
-
+            let members = await Modules.Messaging.room.findConversationMembers(ctx, cid);
             let query = args.query || '';
             query = query.trim();
 
