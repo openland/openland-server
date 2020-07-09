@@ -8,7 +8,7 @@ import { singletonWorker } from '@openland/foundationdb-singleton';
 import { container } from '../openland-modules/Modules.container';
 import { StreamProps } from '@openland/foundationdb-entity';
 
-export function presenceLogReader<T>(version: number, batchSize: number, handler: (items: { date: number, uid: number }[], first: boolean, ctx: Context) => Promise<void>, args?: { delay: number }) {
+export function presenceLogReader<T>(version: number, batchSize: number, handler: (items: { date: number, uid: number, platform: number }[], first: boolean, ctx: Context) => Promise<void>, args?: { delay: number }) {
     let repo = container.get<PresenceLogRepository>('PresenceLogRepository');
     singletonWorker({ name: 'presence_log_reader', version, delay: args && args.delay, db: Store.storage.db }, async (root) => {
         let existing = await inTx(root, async (ctx) => await Store.ReaderState.findById(ctx, 'presence_log_reader'));
@@ -57,11 +57,18 @@ export function presenceLogReader<T>(version: number, batchSize: number, handler
 
 @injectable()
 export class PresenceLogRepository {
-    logOnline(ctx: Context, uid: number) {
+    logOnline(ctx: Context, uid: number, platform: 'undefined' | 'web' | 'ios' | 'android' | 'desktop') {
+        let platformToCode = {
+            undefined: 0,
+            web: 1,
+            ios: 2,
+            android: 3,
+            desktop: 4
+        };
         let now = Date.now();
         Store.PresenceLogDirectory
             .withKeyEncoding(encoders.tuple)
-            .set(ctx, [now - now % (60 * 1000), uid], Buffer.from([]));
+            .set(ctx, [now - now % (60 * 1000), uid, platformToCode[platform]], Buffer.from([]));
 
     }
 
@@ -74,6 +81,6 @@ export class PresenceLogRepository {
                 limit: opts?.batchSize
             });
 
-        return values.map(a => ({ date: a.key[0] as number, uid: a.key[1] as number, cursor: tupleToCursor(a.key) }));
+        return values.map(a => ({ date: a.key[0] as number, uid: a.key[1] as number, platform: a.key[2] as number, cursor: tupleToCursor(a.key) }));
     }
 }

@@ -181,7 +181,8 @@ function startOrgUsersExport(client: DatabaseClient) {
 
 const presencesModern = table('presences_modern', schema({
     date: date(),
-    uid: integer()
+    uid: integer(),
+    platform: integer('UInt8') // 0 - undefined, 1 - web, 2 - ios, 3 - android, 4 - desktop
 }), { partition: 'toYYYYMM(date)', orderBy: '(date, uid)', primaryKey: '(date, uid)' });
 function startModernPresenceExport(client: DatabaseClient) {
     presenceLogReader(1, 1000, async (src, first, ctx) => {

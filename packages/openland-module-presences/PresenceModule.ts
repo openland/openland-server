@@ -23,6 +23,22 @@ export interface OnlineEvent {
     lastSeen: number;
 }
 
+function detectPlatform(platform: string): 'undefined' | 'web' | 'android' | 'ios' | 'desktop' {
+    if (platform.startsWith('web')) {
+        return 'web';
+    }
+    if (platform.startsWith('android')) {
+        return 'android';
+    }
+    if (platform.startsWith('ios')) {
+        return 'ios';
+    }
+    if (platform.startsWith('desktop')) {
+        return 'desktop';
+    }
+    return 'undefined';
+}
+
 @injectable()
 export class PresenceModule {
     @lazyInject('PresenceLogRepository')
@@ -90,7 +106,7 @@ export class PresenceModule {
                 await online.flush(ctx);
             }
 
-            this.logging.logOnline(ctx, uid);
+            this.logging.logOnline(ctx, uid, detectPlatform(platform));
             Events.PresenceEvent.event(ctx, { uid, platform, online: true });
             // this.onlines.set(uid, { lastSeen: expires, active: (online ? online.active : active) || false });
             let event = {
