@@ -267,6 +267,13 @@ migrations.push({
     }
 });
 
+migrations.push({
+    name: '14-platform-to-modern-presences',
+    command: async (ctx: Context, client: DatabaseClient)  => {
+        await client.query(ctx, `ALTER TABLE ${client.dbName}.presences_modern ADD COLUMN platform UInt8`);
+    }
+});
+
 const logger = createLogger('clickhouse');
 
 export async function createClient(ctx: Context) {
