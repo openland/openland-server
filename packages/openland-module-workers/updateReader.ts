@@ -3,7 +3,9 @@ import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { singletonWorker } from '@openland/foundationdb-singleton';
 import { Stream } from '@openland/foundationdb-entity';
+import { createLogger } from '@openland/log';
 
+let logger = createLogger('update-reader');
 export function updateReader<T>(name: string, version: number, stream: Stream<T>, handler: (items: T[], first: boolean, ctx: Context) => Promise<number | void>, args?: { delay: number }) {
     singletonWorker({ name: 'update_reader_' + name, version, delay: args && args.delay, db: Store.storage.db }, async (root) => {
         let existing = await inTx(root, async (ctx) => await Store.ReaderState.findById(ctx, name));
@@ -40,6 +42,7 @@ export function updateReader<T>(name: string, version: number, stream: Stream<T>
 
                 if (estimate) {
                     Store.ReaderEstimate.byId(name).set(ctx, estimate);
+                    logger.log(ctx, name + ' estimate: ' + estimate);
                 }
             });
         }
