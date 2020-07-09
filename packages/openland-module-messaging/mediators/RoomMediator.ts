@@ -78,7 +78,7 @@ export class RoomMediator {
 
             // Check Room
             let conv = await Store.ConversationRoom.findById(ctx, cid);
-            if (!conv) {
+            if (!conv || conv.isDeleted) {
                 throw new NotFoundError();
             }
 
@@ -143,7 +143,7 @@ export class RoomMediator {
     async inviteToRoom(parent: Context, cid: number, uid: number, invites: number[]) {
         return await inTx(parent, async (ctx) => {
             let conv = await Store.ConversationRoom.findById(ctx, cid);
-            if (!conv) {
+            if (!conv || conv.isDeleted) {
                 throw new NotFoundError();
             }
 

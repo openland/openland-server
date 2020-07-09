@@ -934,6 +934,13 @@ export class RoomRepository {
             }
 
             //
+            // No one can see deleted chat
+            //
+            if (conversation.isDeleted) {
+                throw new AccessDeniedError();
+            }
+
+            //
             //  User can see secret chat only if he is a member
             //
             if (conversation.kind === 'group') {
