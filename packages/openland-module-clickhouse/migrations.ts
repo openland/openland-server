@@ -274,6 +274,13 @@ migrations.push({
     }
 });
 
+migrations.push({
+    name: '14-clear-modern-presences',
+    command: async (ctx: Context, client: DatabaseClient)  => {
+        await client.query(ctx, `DROP TABLE ${client.dbName}.presences_modern`);
+    }
+});
+
 const logger = createLogger('clickhouse');
 
 export async function createClient(ctx: Context) {

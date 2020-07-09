@@ -2438,6 +2438,9 @@ export default declareSchema(() => {
         field('cursor', string());
         field('version', optional(integer()));
     });
+    atomicInt('ReaderEstimate', () => {
+        primaryKey('id', string());
+    });
 
     entity('SuperAdmin', () => {
         primaryKey('id', integer());

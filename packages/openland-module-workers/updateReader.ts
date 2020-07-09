@@ -4,7 +4,7 @@ import { Context } from '@openland/context';
 import { singletonWorker } from '@openland/foundationdb-singleton';
 import { Stream } from '@openland/foundationdb-entity';
 
-export function updateReader<T>(name: string, version: number, stream: Stream<T>, handler: (items: T[], first: boolean, ctx: Context) => Promise<void>, args?: { delay: number }) {
+export function updateReader<T>(name: string, version: number, stream: Stream<T>, handler: (items: T[], first: boolean, ctx: Context) => Promise<number | void>, args?: { delay: number }) {
     singletonWorker({ name: 'update_reader_' + name, version, delay: args && args.delay, db: Store.storage.db }, async (root) => {
         let existing = await inTx(root, async (ctx) => await Store.ReaderState.findById(ctx, name));
         let first = false;
@@ -22,9 +22,8 @@ export function updateReader<T>(name: string, version: number, stream: Stream<T>
 
         let res = await inTx(root, async ctx => await stream.next(ctx));
         if (res.length > 0) {
-
             // Handling elements
-            await handler(res, first, root);
+            let estimate = await handler(res, first, root);
 
             // Commit offset
             await inTx(root, async (ctx) => {
@@ -37,6 +36,10 @@ export function updateReader<T>(name: string, version: number, stream: Stream<T>
                     }
                 } else if (!latest) {
                     await Store.ReaderState.create(ctx, name, { cursor: stream.cursor!, version: version });
+                }
+
+                if (estimate) {
+                    Store.ReaderEstimate.byId(name).set(ctx, estimate);
                 }
             });
         }

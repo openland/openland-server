@@ -84,5 +84,10 @@ export const Metrics = {
             return state.brokenRecordsCount || 0;
         }
         return 0;
-    })
+    }),
+
+    // Service
+    ModernPresenceIndexEstimate: Factory.createPersistedGauge('modern_presence_index_estimate', 'Modern presence reindex estimate', async ctx => {
+        return await Store.ReaderEstimate.byId('reader-presences-old').get(ctx);
+    }),
 };

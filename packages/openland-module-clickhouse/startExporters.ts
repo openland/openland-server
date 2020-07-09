@@ -7,14 +7,16 @@ import { HyperLog, HyperLogEvent } from '../openland-module-db/store';
 import { container } from '../openland-modules/Modules.container';
 import DatabaseClient from './DatabaseClient';
 import { table, TableSpace } from './TableSpace';
+// @ts-ignore
 import { boolean, date, integer, schema } from './schema';
+// @ts-ignore
 import { presenceLogReader } from '../openland-module-presences/PresenceLogRepository';
 
 function startPresenceExport(client: DatabaseClient) {
     updateReader('ch-exporter-reader', 3, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
         let presences = src.filter((v) => v.type === 'presence' && v.body.online === true);
         if (presences.length > 0) {
-            await client.insert(ctx, 'presences', ['time', 'eid', 'uid', 'platform'], src.map((v) => [Math.round(v.date / 1000), v.id, v.body.uid, v.body.platform]));
+            await client.insert(ctx, 'presences', ['time', 'eid', 'uid', 'platform'], presences.map((v) => [Math.round(v.date / 1000), v.id, v.body.uid, v.body.platform]));
         }
     });
 }
@@ -179,16 +181,16 @@ function startOrgUsersExport(client: DatabaseClient) {
     });
 }
 
-const presencesModern = table('presences_modern', schema({
-    date: date(),
-    uid: integer(),
-    platform: integer('UInt8') // 0 - undefined, 1 - web, 2 - ios, 3 - android, 4 - desktop
-}), { partition: 'toYYYYMM(date)', orderBy: '(date, uid)', primaryKey: '(date, uid)' });
-function startModernPresenceExport(client: DatabaseClient) {
-    presenceLogReader(1, 1000, async (src, first, ctx) => {
-        await presencesModern.insert(ctx, client, src);
-    });
-}
+// const presencesModern = table('presences_modern', schema({
+//     date: date(),
+//     uid: integer(),
+//     platform: integer('UInt8') // 0 - undefined, 1 - web, 2 - ios, 3 - android, 4 - desktop
+// }), { partition: 'toYYYYMM(date)', orderBy: '(date, uid)', primaryKey: '(date, uid)' });
+// function startModernPresenceExport(client: DatabaseClient) {
+//     presenceLogReader(1, 1000, async (src, first, ctx) => {
+//         await presencesModern.insert(ctx, client, src);
+//     });
+// }
 
 export function startExporters(parent: Context) {
     // tslint:disable-next-line:no-floating-promises
@@ -202,6 +204,6 @@ export function startExporters(parent: Context) {
         startAnalyticsExport(client);
         startHyperlogExport(client);
         startOrgUsersExport(client);
-        startModernPresenceExport(client);
+        // startModernPresenceExport(client);
     })();
 }

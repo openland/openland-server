@@ -1362,6 +1362,42 @@ export class RoomActiveMembersPrevWeekCounterFactory extends AtomicIntegerFactor
     }
 }
 
+export class ReaderEstimateFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('readerEstimate');
+        return new ReaderEstimateFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(id: string) {
+        return this._findById([id]);
+    }
+
+    get(ctx: Context, id: string) {
+        return this._get(ctx, [id]);
+    }
+
+    set(ctx: Context, id: string, value: number) {
+        return this._set(ctx, [id], value);
+    }
+
+    add(ctx: Context, id: string, value: number) {
+        return this._add(ctx, [id], value);
+    }
+
+    increment(ctx: Context, id: string) {
+        return this._increment(ctx, [id]);
+    }
+
+    decrement(ctx: Context, id: string) {
+        return this._decrement(ctx, [id]);
+    }
+}
+
 export class LastAuthEmailSentTimeFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -21538,6 +21574,7 @@ export interface Store extends BaseStore {
     readonly StatsRecords: StatsRecordsFactory;
     readonly RoomMessagesCounter: RoomMessagesCounterFactory;
     readonly RoomActiveMembersPrevWeekCounter: RoomActiveMembersPrevWeekCounterFactory;
+    readonly ReaderEstimate: ReaderEstimateFactory;
     readonly LastAuthEmailSentTime: LastAuthEmailSentTimeFactory;
     readonly AuthEmailsSentCount: AuthEmailsSentCountFactory;
     readonly PhonebookJoinMessageSentForPhone: PhonebookJoinMessageSentForPhoneFactory;
@@ -21770,6 +21807,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let StatsRecordsPromise = StatsRecordsFactory.open(storage);
     let RoomMessagesCounterPromise = RoomMessagesCounterFactory.open(storage);
     let RoomActiveMembersPrevWeekCounterPromise = RoomActiveMembersPrevWeekCounterFactory.open(storage);
+    let ReaderEstimatePromise = ReaderEstimateFactory.open(storage);
     let LastAuthEmailSentTimePromise = LastAuthEmailSentTimeFactory.open(storage);
     let AuthEmailsSentCountPromise = AuthEmailsSentCountFactory.open(storage);
     let PhonebookJoinMessageSentForPhonePromise = PhonebookJoinMessageSentForPhoneFactory.open(storage);
@@ -21970,6 +22008,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         StatsRecords: await StatsRecordsPromise,
         RoomMessagesCounter: await RoomMessagesCounterPromise,
         RoomActiveMembersPrevWeekCounter: await RoomActiveMembersPrevWeekCounterPromise,
+        ReaderEstimate: await ReaderEstimatePromise,
         LastAuthEmailSentTime: await LastAuthEmailSentTimePromise,
         AuthEmailsSentCount: await AuthEmailsSentCountPromise,
         PhonebookJoinMessageSentForPhone: await PhonebookJoinMessageSentForPhonePromise,

@@ -57,7 +57,7 @@ export function presenceLogReader<T>(version: number, batchSize: number, handler
 
 @injectable()
 export class PresenceLogRepository {
-    logOnline(ctx: Context, uid: number, platform: 'undefined' | 'web' | 'ios' | 'android' | 'desktop') {
+    logOnline(ctx: Context, date: number, uid: number, platform: 'undefined' | 'web' | 'ios' | 'android' | 'desktop') {
         let platformToCode = {
             undefined: 0,
             web: 1,
@@ -65,10 +65,9 @@ export class PresenceLogRepository {
             android: 3,
             desktop: 4
         };
-        let now = Date.now();
         Store.PresenceLogDirectory
             .withKeyEncoding(encoders.tuple)
-            .set(ctx, [now - now % (60 * 1000), uid, platformToCode[platform]], Buffer.from([]));
+            .set(ctx, [date - date % (60 * 1000), uid, platformToCode[platform]], Buffer.from([]));
 
     }
 
