@@ -4,16 +4,16 @@ import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testE
 import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 import { container } from 'openland-modules/Modules.container';
-import { PresenceModule } from './PresenceModule';
 import { UsersModule } from '../openland-module-users/UsersModule';
 import { SuperModule } from '../openland-module-super/SuperModule';
 import { createNamedContext } from '@openland/context';
 import { loadUsersModule } from '../openland-module-users/UsersModule.container';
+import { loadPresenceModule } from './PresenceModule.container';
 
 describe('PresenceModule', () => {
     beforeAll(async () => {
         await testEnvironmentStart('presence');
-        container.bind(PresenceModule).toSelf().inSingletonScope();
+        loadPresenceModule();
         container.bind(UsersModule).toSelf().inSingletonScope();
         loadUsersModule();
         container.bind(SuperModule).toSelf().inSingletonScope();
