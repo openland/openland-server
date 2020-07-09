@@ -125,7 +125,10 @@ async function handleMessage(params: SpaceXServerParams, socket: WebSocket, req:
 }
 
 async function handleConnection(params: SpaceXServerParams, socket: WebSocket, req: http.IncomingMessage) {
-    let connection = new SpaceXConnection(socket);
+    let connection = new SpaceXConnection(socket, () => {
+        SpaceXConnections.delete(connection.id);
+    });
+    SpaceXConnections.set(connection.id, connection);
 
     socket.on('message', async data => {
         try {

@@ -2,7 +2,6 @@ import { randomKey } from '../openland-utils/random';
 import WebSocket from 'ws';
 import { SpaceXSession } from './SpaceXSession';
 import { Metrics } from '../openland-module-monitoring/Metrics';
-import { SpaceXConnections } from './spaceXServer';
 import { Concurrency } from '../openland-server/concurrency';
 import uuid from 'uuid';
 import { PingPong } from './PingPong';
@@ -20,10 +19,11 @@ export class SpaceXConnection {
     private authWaiters: (() => void)[] = [];
     public lastRequestTime: number = Date.now();
     public operationBucket = Concurrency.Operation.get(this.id);
+    private onClose: () => void = () => 0;
 
-    constructor(socket: WebSocket) {
+    constructor(socket: WebSocket, onClose: () => void) {
         this.socket = socket;
-        SpaceXConnections.set(this.id, this);
+        this.onClose = onClose;
         Metrics.WebSocketConnections.inc();
     }
 
@@ -97,8 +97,8 @@ export class SpaceXConnection {
         this.socket = null;
         this.operations = {};
         this.session?.close();
-        SpaceXConnections.delete(this.id);
         Metrics.WebSocketConnections.dec();
+        this.onClose();
     }
 
     waitAuth = async () => {
