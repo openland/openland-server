@@ -72,7 +72,7 @@ export class PresenceModule {
                         this.logging.logOnline(ctx, v.date, v.body.uid, detectPlatform(v.body.platform));
                         maxDate = Math.max(v.date, maxDate);
                     }
-                   return Date.now() - maxDate;
+                   return Math.round((Date.now() - maxDate) / 1000);
                 }
                 return;
             });
