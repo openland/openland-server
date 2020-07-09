@@ -40,6 +40,8 @@ export function createPushWorker(repo: PushRepository) {
         for (let i = 0; i < 40; i++) {
             queue.addWorker(async (args, parent) => {
                 return tracer.trace(withReadOnlyTransaction(parent), 'sorting', async (ctx) => {
+                    let works: Promise<any>[] = [];
+
                     let conversationId = args.conversationId ? IDs.Conversation.serialize(args.conversationId) : undefined;
                     let deepLink = args.deepLink;
                     if (args.desktop) {
@@ -48,18 +50,18 @@ export function createPushWorker(repo: PushRepository) {
                         //
                         let webTokens = await repo.getUserWebPushTokens(ctx, args.uid);
                         for (let wp of webTokens) {
-                            await Modules.Push.webWorker.pushWork(ctx, {
+                            works.push(Modules.Push.webWorker.pushWork(ctx, {
                                 uid: args.uid,
                                 tokenId: wp.id,
                                 title: args.title,
                                 body: args.body,
                                 picture: args.picture ? args.picture : undefined,
-                            });
+                            }));
                         }
 
                         let safariTokens = await repo.getUserSafariPushTokens(ctx, args.uid);
                         for (let t of safariTokens) {
-                            await Modules.Push.appleWorker.pushWork(ctx, {
+                            works.push(Modules.Push.appleWorker.pushWork(ctx, {
                                 uid: args.uid,
                                 tokenId: t.id,
                                 contentAvailable: true,
@@ -73,7 +75,7 @@ export function createPushWorker(repo: PushRepository) {
                                     ['id']: args.conversationId ? doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString() : undefined,
                                     ...(args.picture ? { ['picture']: args.picture! } : {}),
                                 },
-                            });
+                            }));
                         }
                     }
                     if (args.mobile) {
@@ -89,7 +91,7 @@ export function createPushWorker(repo: PushRepository) {
                         let iosTokens = await repo.getUserApplePushTokens(ctx, args.uid);
                         for (let t of iosTokens) {
                             if (args.silent) {
-                                await Modules.Push.appleWorker.pushWork(ctx, {
+                                works.push(Modules.Push.appleWorker.pushWork(ctx, {
                                     uid: args.uid,
                                     tokenId: t.id,
                                     contentAvailable: true,
@@ -99,9 +101,9 @@ export function createPushWorker(repo: PushRepository) {
                                         deepLink,
                                         ['id']: args.conversationId ? doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString() : undefined,
                                     },
-                                });
+                                }));
                             } else {
-                                await Modules.Push.appleWorker.pushWork(ctx, {
+                                works.push(Modules.Push.appleWorker.pushWork(ctx, {
                                     uid: args.uid,
                                     tokenId: t.id,
                                     sound: args.mobileAlert ? 'default' : undefined,
@@ -119,7 +121,7 @@ export function createPushWorker(repo: PushRepository) {
                                         ['id']: args.conversationId ? doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString() : undefined,
                                         ...(args.picture ? { ['picture']: args.picture! } : {}),
                                     },
-                                });
+                                }));
                             }
                         }
 
@@ -130,18 +132,18 @@ export function createPushWorker(repo: PushRepository) {
                         let androidTokens = await repo.getUserAndroidPushTokens(ctx, args.uid);
                         for (let token of androidTokens) {
                             if (args.silent) {
-                                await Modules.Push.androidWorker.pushWork(ctx, {
+                                works.push(Modules.Push.androidWorker.pushWork(ctx, {
                                     uid: args.uid,
                                     isData: true,
                                     data: {
                                         ['unread']: unread.toString(),
                                     },
                                     tokenId: token.token
-                                });
+                                }));
 
                                 continue;
                             }
-                            await Modules.Push.androidWorker.pushWork(ctx, {
+                            works.push(Modules.Push.androidWorker.pushWork(ctx, {
                                 uid: args.uid,
                                 tokenId: token.id,
                                 collapseKey: conversationId,
@@ -162,10 +164,11 @@ export function createPushWorker(repo: PushRepository) {
                                     ...(args.conversationId ? { conversationId } as any : {}),
                                     ...(args.conversationId ? { ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString() } : {}),
                                 },
-                            });
+                            }));
                         }
                     }
 
+                    await Promise.all(works);
                 });
             });
         }
