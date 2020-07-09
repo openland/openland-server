@@ -130,6 +130,15 @@ async function handleConnection(params: SpaceXServerParams, socket: WebSocket, r
     });
     SpaceXConnections.set(connection.id, connection);
 
+    //
+    // Close connection by timeout if there was no auth yet
+    //
+    setTimeout(() => {
+        if (connection.isConnected() && connection.state !== 'connected') {
+            connection.close();
+        }
+    }, 60 * 1000);
+
     socket.on('message', async data => {
         try {
             await handleMessage(params, socket, req, connection, JSON.parse(data.toString()));
