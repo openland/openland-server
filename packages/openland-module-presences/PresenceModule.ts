@@ -12,6 +12,8 @@ import { Context, createNamedContext } from '@openland/context';
 import { getTransaction } from '@openland/foundationdb';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { registerPresenceService } from './service/registerPresenceService';
+import { PresenceLogRepository } from './PresenceLogRepository';
+import { lazyInject } from 'openland-modules/Modules.container';
 
 export interface OnlineEvent {
     userId: number;
@@ -23,6 +25,9 @@ export interface OnlineEvent {
 
 @injectable()
 export class PresenceModule {
+    @lazyInject('PresenceLogRepository')
+    private readonly logging!: PresenceLogRepository;
+
     private onlines = new Map<number, { lastSeen: number, active: boolean, timer?: Timer }>();
     private localSub = new Pubsub<OnlineEvent>(false);
     private rootCtx = createNamedContext('presence');
@@ -85,6 +90,7 @@ export class PresenceModule {
                 await online.flush(ctx);
             }
 
+            this.logging.logOnline(ctx, uid);
             Events.PresenceEvent.event(ctx, { uid, platform, online: true });
             // this.onlines.set(uid, { lastSeen: expires, active: (online ? online.active : active) || false });
             let event = {
