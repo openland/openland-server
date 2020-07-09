@@ -158,11 +158,7 @@ export async function createSpaceXServer(params: SpaceXServerParams) {
     asyncRun(async () => {
         while (working) {
             for (let [, connection] of SpaceXConnections.entries()) {
-                if (
-                    connection.isConnected() &&
-                    connection.state !== 'connected' &&
-                    (Date.now() - connection.createdAt) > 1000 * 60
-                ) {
+                if (!connection.isConnected() && (Date.now() - connection.createdAt) > 1000 * 60) {
                     connection.close();
                 }
             }
