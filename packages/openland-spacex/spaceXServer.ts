@@ -146,6 +146,7 @@ async function handleConnection(params: SpaceXServerParams, socket: WebSocket, r
 }
 
 export async function createSpaceXServer(params: SpaceXServerParams) {
+    let working = true;
     const ws = new WebSocket.Server(params.server ? { server: params.server, path: params.path } : { noServer: true });
     ws.on('connection', async (socket, req) => {
         await handleConnection(params, socket, req);
@@ -155,16 +156,18 @@ export async function createSpaceXServer(params: SpaceXServerParams) {
     // Close connections by timeout if there was no auth yet
     //
     asyncRun(async () => {
-        for (let [, connection] of SpaceXConnections.entries()) {
-            if (
-                connection.isConnected() &&
-                connection.state !== 'connected' &&
-                (Date.now() - connection.createdAt) > 1000 * 60
-            ) {
-                connection.close();
+        while (working) {
+            for (let [, connection] of SpaceXConnections.entries()) {
+                if (
+                    connection.isConnected() &&
+                    connection.state !== 'connected' &&
+                    (Date.now() - connection.createdAt) > 1000 * 60
+                ) {
+                    connection.close();
+                }
             }
+            await delay(1000);
         }
-        await delay(1000 * 30);
     });
 
     EventBus.subscribe('auth_token_revoke', (data: { tokens: { uuid: string, salt: string }[] }) => {
@@ -180,7 +183,10 @@ export async function createSpaceXServer(params: SpaceXServerParams) {
 
     Shutdown.registerWork({
         name: 'spacex-server',
-        shutdown: async () => ws.close()
+        shutdown: async () => {
+            working = false;
+            ws.close();
+        }
     });
     return { ws, connections: SpaceXConnections };
 }
