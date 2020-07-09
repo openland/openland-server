@@ -130,7 +130,7 @@ async function initZapierInternal(app: Express) {
                     return;
                 }
                 let membership = await Store.RoomParticipant.findById(ctx, chatId, config!.BotId);
-                if (membership && membership.status === 'joined' && membership.invitedBy === uid) {
+                if (membership && membership.status === 'joined') {
                     await Modules.Messaging.sendMessage(ctx, chatId, config!.BotId, messageOptions);
                 } else {
                     res.status(400).json({errors: [{message: 'Zapier bot has no permissions to write to this chat.'}]});
