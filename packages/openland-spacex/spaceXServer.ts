@@ -166,7 +166,7 @@ export async function createSpaceXServer(params: SpaceXServerParams) {
                     connection.close();
                 }
             }
-            await delay(1000);
+            await delay(1000 * 60);
         }
     });
 
