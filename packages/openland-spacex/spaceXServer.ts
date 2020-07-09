@@ -151,6 +151,22 @@ export async function createSpaceXServer(params: SpaceXServerParams) {
         await handleConnection(params, socket, req);
     });
 
+    //
+    // Close connections by timeout if there was no auth yet
+    //
+    asyncRun(async () => {
+        for (let [, connection] of SpaceXConnections.entries()) {
+            if (
+                connection.isConnected() &&
+                connection.state !== 'connected' &&
+                (Date.now() - connection.createdAt) > 1000 * 60
+            ) {
+                connection.close();
+            }
+        }
+        await delay(1000 * 30);
+    });
+
     EventBus.subscribe('auth_token_revoke', (data: { tokens: { uuid: string, salt: string }[] }) => {
         for (let token of data.tokens) {
             for (let entry of SpaceXConnections.entries()) {

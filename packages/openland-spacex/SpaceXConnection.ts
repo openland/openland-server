@@ -10,6 +10,7 @@ export class SpaceXConnection {
     readonly id = randomKey();
     public protocolVersion = 1;
     private socket:  WebSocket | null;
+    public createdAt = Date.now();
     public state: 'init' | 'connecting' | 'connected' = 'init';
     public pinger: PingPong | null = null;
     public authParams: any;
