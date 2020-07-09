@@ -37,7 +37,7 @@ const tracer = createTracer('push');
 export function createPushWorker(repo: PushRepository) {
     let queue = new WorkQueue<Push>('push_sender');
     if (serverRoleEnabled('workers')) {
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 40; i++) {
             queue.addWorker(async (args, parent) => {
                 return tracer.trace(withReadOnlyTransaction(parent), 'sorting', async (ctx) => {
                     let conversationId = args.conversationId ? IDs.Conversation.serialize(args.conversationId) : undefined;
