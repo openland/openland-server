@@ -25,6 +25,10 @@ export interface OnlineEvent {
 }
 
 function detectPlatform(platform: string): 'undefined' | 'web' | 'android' | 'ios' | 'desktop' {
+    if (!platform) {
+        return 'undefined';
+    }
+
     if (platform.startsWith('web')) {
         return 'web';
     }
