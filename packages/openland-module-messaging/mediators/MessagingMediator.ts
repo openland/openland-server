@@ -55,6 +55,9 @@ export class MessagingMediator {
             if (!skipAccessCheck) {
                 await this.room.checkAccess(ctx, uid, cid);
                 let conv = await Store.Conversation.findById(ctx, cid);
+                if (!conv || conv.deleted) {
+                    throw new AccessDeniedError();
+                }
                 if (conv && conv.archived) {
                     throw new AccessDeniedError();
                 }
