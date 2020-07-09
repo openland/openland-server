@@ -1,6 +1,6 @@
 import Twilio from 'twilio';
-import loggers from '../openland-module-hyperlog/loggers';
 import { Context } from '@openland/context';
+import { Events } from '../openland-module-hyperlog/Events';
 
 const OUT_NUMBER = '+14152134985';
 
@@ -14,7 +14,7 @@ class SmsServiceImpl implements ISmsService {
     async sendSms(ctx: Context, to: string, body: string) {
         await this.twillioApi.messages.create({ body, to, from: OUT_NUMBER});
 
-        loggers.SmsSentEvent.event(ctx, { phone: to });
+        Events.SmsSentEvent.event(ctx, { phone: to });
         return true;
     }
 }
