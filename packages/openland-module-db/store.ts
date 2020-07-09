@@ -21692,6 +21692,7 @@ export interface Store extends BaseStore {
     readonly UserWalletUpdates: UserWalletUpdates;
     readonly StripeEventStore: StripeEventStore;
     readonly HyperLogStore: HyperLogStore;
+    readonly PresenceLogDirectory: Subspace;
     readonly UserDialogIndexDirectory: Subspace;
     readonly UserCountersIndexDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
@@ -21914,6 +21915,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let DiscussionHubPromise = DiscussionHubFactory.open(storage);
     let DiscussionPromise = DiscussionFactory.open(storage);
     let DiscussionDraftPromise = DiscussionDraftFactory.open(storage);
+    let PresenceLogDirectoryPromise = storage.resolveCustomDirectory('presenceLog');
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
     let UserCountersIndexDirectoryPromise = storage.resolveCustomDirectory('userCountersIndex');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
@@ -22113,6 +22115,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         DiscussionHub: await DiscussionHubPromise,
         Discussion: await DiscussionPromise,
         DiscussionDraft: await DiscussionDraftPromise,
+        PresenceLogDirectory: await PresenceLogDirectoryPromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,
         UserCountersIndexDirectory: await UserCountersIndexDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,

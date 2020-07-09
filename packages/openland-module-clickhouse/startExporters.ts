@@ -7,7 +7,8 @@ import { HyperLog, HyperLogEvent } from '../openland-module-db/store';
 import { container } from '../openland-modules/Modules.container';
 import DatabaseClient from './DatabaseClient';
 import { table, TableSpace } from './TableSpace';
-import { boolean, integer, schema } from './schema';
+import { boolean, date, integer, schema } from './schema';
+import { presenceLogReader } from '../openland-module-presences/PresenceLogRepository';
 
 function startPresenceExport(client: DatabaseClient) {
     updateReader('ch-exporter-reader', 3, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
@@ -178,6 +179,16 @@ function startOrgUsersExport(client: DatabaseClient) {
     });
 }
 
+const presencesModern = table('presences_modern', schema({
+    date: date(),
+    uid: integer()
+}), { partition: 'toYYYYMM(date)', orderBy: '(date, uid)', primaryKey: '(date, uid)' });
+function startModernPresenceExport(client: DatabaseClient) {
+    presenceLogReader(1, 1000, async (src, first, ctx) => {
+        await presencesModern.insert(ctx, client, src);
+    });
+}
+
 export function startExporters(parent: Context) {
     // tslint:disable-next-line:no-floating-promises
     (async () => {
@@ -190,5 +201,6 @@ export function startExporters(parent: Context) {
         startAnalyticsExport(client);
         startHyperlogExport(client);
         startOrgUsersExport(client);
+        startModernPresenceExport(client);
     })();
 }

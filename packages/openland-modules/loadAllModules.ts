@@ -79,6 +79,7 @@ import { ClickHouseModule } from '../openland-module-clickhouse/ClickHouseModule
 import { createClient } from '../openland-module-clickhouse/migrations';
 import { broker } from 'openland-server/moleculer';
 import { Shutdown } from 'openland-utils/Shutdown';
+import { loadPresenceModule } from '../openland-module-presences/PresenceModule.container';
 
 const logger = createLogger('starting');
 
@@ -144,6 +145,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadCommentsModule();
     loadNotificationCenterModule();
     loadOrganizationModule();
+    loadPresenceModule();
 
     container.bind(PubsubModule).toSelf().inSingletonScope();
     container.bind(ApiModule).toSelf().inSingletonScope();
@@ -153,7 +155,6 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind(AuthModule).toSelf().inSingletonScope();
     container.bind(WorkerModule).toSelf().inSingletonScope();
     container.bind(PushModule).toSelf().inSingletonScope();
-    container.bind(PresenceModule).toSelf().inSingletonScope();
     container.bind('EmailModule').to(EmailModuleImpl).inSingletonScope();
     container.bind(UsersModule).toSelf().inSingletonScope();
     container.bind(FeaturesModule).toSelf().inSingletonScope();

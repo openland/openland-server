@@ -250,6 +250,7 @@ export default declareSchema(() => {
         field('active', optional(boolean()));
         rangeIndex('user', ['uid', 'lastSeen']);
     });
+    customDirectory('PresenceLog');
 
     //
     // Conversations
