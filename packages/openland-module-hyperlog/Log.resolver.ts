@@ -3,10 +3,8 @@ import { inTx } from '@openland/foundationdb';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { withAny } from 'openland-module-api/Resolvers';
 import { Context } from '@openland/context';
-import { uuid } from '../openland-utils/uuid';
 import { UserError } from '../openland-errors/UserError';
 import { createLogger } from '@openland/log';
-import { Config } from 'openland-config/Config';
 
 export interface InternalTrackEvent {
     id: string;
@@ -23,17 +21,17 @@ export interface InternalTrackEvent {
 }
 
 const log = createLogger('track');
-const isProd = Config.environment === 'production';
+// const isProd = Config.environment === 'production';
 
 export function trackServerEvent(ctx: Context, event: { name: string, uid?: number, args?: any }) {
-    Events.TrackEvent.event(ctx, {
-        id: uuid(),
-        platform: 'WEB',
-        did: 'server',
-        time: Date.now(),
-        isProd,
-        ...event
-    });
+    // Events.TrackEvent.event(ctx, {
+    //     id: uuid(),
+    //     platform: 'WEB',
+    //     did: 'server',
+    //     time: Date.now(),
+    //     isProd,
+    //     ...event
+    // });
 }
 
 export const Resolver: GQLResolver = {
