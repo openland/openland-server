@@ -2503,6 +2503,12 @@ export default declareSchema(() => {
 
         allowDelete();
     });
+    entity('HyperLogType', () => {
+        primaryKey('name', string());
+        field('count', integer());
+
+        rangeIndex('name', ['name']);
+    });
 
     eventStore('HyperLogStore', () => {
         //

@@ -18127,6 +18127,91 @@ export class HyperLogFactory extends EntityFactory<HyperLogShape, HyperLog> {
     }
 }
 
+export interface HyperLogTypeShape {
+    name: string;
+    count: number;
+}
+
+export interface HyperLogTypeCreateShape {
+    count: number;
+}
+
+export class HyperLogType extends Entity<HyperLogTypeShape> {
+    get name(): string { return this._rawValue.name; }
+    get count(): number { return this._rawValue.count; }
+    set count(value: number) {
+        let normalized = this.descriptor.codec.fields.count.normalize(value);
+        if (this._rawValue.count !== normalized) {
+            this._rawValue.count = normalized;
+            this._updatedValues.count = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class HyperLogTypeFactory extends EntityFactory<HyperLogTypeShape, HyperLogType> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('hyperLogType');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'name', storageKey: 'name', type: { type: 'range', fields: [{ name: 'name', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('hyperLogType', 'name'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'name', type: 'string' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'count', type: { type: 'integer' }, secure: false });
+        let codec = c.struct({
+            name: c.string,
+            count: c.integer,
+        });
+        let descriptor: EntityDescriptor<HyperLogTypeShape> = {
+            name: 'HyperLogType',
+            storageKey: 'hyperLogType',
+            allowDelete: false,
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new HyperLogTypeFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<HyperLogTypeShape>) {
+        super(descriptor);
+    }
+
+    readonly name = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    create(ctx: Context, name: string, src: HyperLogTypeCreateShape): Promise<HyperLogType> {
+        return this._create(ctx, [name], this.descriptor.codec.normalize({ name, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, name: string, src: HyperLogTypeCreateShape): HyperLogType {
+        return this._create_UNSAFE(ctx, [name], this.descriptor.codec.normalize({ name, ...src }));
+    }
+
+    findById(ctx: Context, name: string): Promise<HyperLogType | null> {
+        return this._findById(ctx, [name]);
+    }
+
+    watch(ctx: Context, name: string): Watch {
+        return this._watch(ctx, [name]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<HyperLogTypeShape>): HyperLogType {
+        return new HyperLogType([value.name], value, this.descriptor, this._flush, this._delete, ctx);
+    }
+}
+
 export interface TaskShape {
     taskType: string;
     uid: string;
@@ -21708,6 +21793,7 @@ export interface Store extends BaseStore {
     readonly FeatureFlag: FeatureFlagFactory;
     readonly OrganizationFeatures: OrganizationFeaturesFactory;
     readonly HyperLog: HyperLogFactory;
+    readonly HyperLogType: HyperLogTypeFactory;
     readonly Task: TaskFactory;
     readonly DelayedTask: DelayedTaskFactory;
     readonly ServiceThrottle: ServiceThrottleFactory;
@@ -21941,6 +22027,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let FeatureFlagPromise = FeatureFlagFactory.open(storage);
     let OrganizationFeaturesPromise = OrganizationFeaturesFactory.open(storage);
     let HyperLogPromise = HyperLogFactory.open(storage);
+    let HyperLogTypePromise = HyperLogTypeFactory.open(storage);
     let TaskPromise = TaskFactory.open(storage);
     let DelayedTaskPromise = DelayedTaskFactory.open(storage);
     let ServiceThrottlePromise = ServiceThrottleFactory.open(storage);
@@ -22142,6 +22229,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         FeatureFlag: await FeatureFlagPromise,
         OrganizationFeatures: await OrganizationFeaturesPromise,
         HyperLog: await HyperLogPromise,
+        HyperLogType: await HyperLogTypePromise,
         Task: await TaskPromise,
         DelayedTask: await DelayedTaskPromise,
         ServiceThrottle: await ServiceThrottlePromise,

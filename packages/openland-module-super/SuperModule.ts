@@ -65,7 +65,27 @@ export class SuperModule {
         // createEntitiesCounter('Task', 1, Store.Task, 5000);
         // createEntitiesCounter('Message', 1, Store.Message, 5000);
 
-        createEntityCleaner<HyperLog>('HyperLog', 1, Store.HyperLog, 4000, (log) => log.date < 1562864071515 || log.type === 'track' || log.type === 'task_completed' ||  log.type === 'task_scheduled');
+        createEntityCleaner<HyperLog>('HyperLog', 1, Store.HyperLog, 4000,
+            (log) => log.date < 1562864071515 || log.type === 'track' || log.type === 'task_completed' || log.type === 'task_scheduled',
+            async (ctx, logs) => {
+            let byType = new Map<string, number>();
+            for (let log of logs) {
+                let prev = byType.get(log.type);
+                if (!prev) {
+                    byType.set(log.type, 1);
+                } else {
+                    byType.set(log.type, prev + 1);
+                }
+            }
+            for (let [type, count] of byType.entries()) {
+                let stat = await Store.HyperLogType.findById(ctx, type);
+                if (!stat) {
+                    await Store.HyperLogType.create(ctx, type, { count });
+                } else {
+                    stat.count += count;
+                }
+            }
+        });
         createEntityCleaner<Task>('Task', 5, Store.Task, 4000, (task) => task.taskStatus === 'completed');
     }
 }

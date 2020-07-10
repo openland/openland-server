@@ -1,38 +1,19 @@
 import { Entity, EntityFactory } from '@openland/foundationdb-entity';
-import { singletonWorker } from '@openland/foundationdb-singleton';
 import { Store } from './FDB';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
+import { directoryReader } from '../openland-module-workers/directoryReader';
 
 type DeletableEntity = Entity<any> & { delete(ctx: Context): void };
 const log = createLogger('entity-cleaner');
 
-export function createEntityCleaner<T extends DeletableEntity>(name: string, version: number, entity: EntityFactory<any, any>, batchSize: number, condition: (val: T) => boolean) {
-    singletonWorker({ name: 'entities_cleaner' + name, version, delay: 50, db: Store.storage.db }, async (root) => {
+export function createEntityCleaner<T extends DeletableEntity>(name: string, version: number, entity: EntityFactory<any, any>, batchSize: number, condition: (val: T) => boolean, handleDecoded?: (ctx: Context, val: T[]) => Promise<void>) {
+    directoryReader('entities_cleaner' + name, version, entity.descriptor.subspace, batchSize, async (data, first, root) => {
         let existing = await inTx(root, async (ctx) => await Store.EntityCleanerState.findById(ctx, name));
-        let first = false;
-        let after: undefined|any[] = undefined;
-
-        if (existing) {
-            if (existing.version === null || existing.version < version) {
-                after = undefined;
-                first = true;
-            } else {
-                after = existing.lastId;
-            }
-        } else {
-            after = undefined;
-            first = true;
-        }
-
-        // log.warn(root, 'Cleaner cursor: ' + JSON.stringify(after));
 
         await inTx(root, async ctx => {
             let deletedDelta = 0;
-
-            // TODO: move this to Entity layer
-            let data = await entity.descriptor.subspace.range(ctx, [], {limit: batchSize, after});
             let res: T[] = [];
 
             // wtf imported TupleItem is not assignable
@@ -50,8 +31,14 @@ export function createEntityCleaner<T extends DeletableEntity>(name: string, ver
             if (res.length === 0 || brokenRecords.length === 0) {
                 return;
             }
-            after = data[data.length - 1].key;
 
+            try {
+                if (handleDecoded) {
+                    await handleDecoded(ctx, res);
+                }
+            } catch {
+                log.warn(ctx, `Entity cleaner (${name}): handler failed`);
+            }
             for (let item of res) {
                 if (condition(item)) {
                     await item.delete(ctx);
@@ -79,7 +66,6 @@ export function createEntityCleaner<T extends DeletableEntity>(name: string, ver
             let latest = await Store.EntityCleanerState.findById(ctx, name);
             if (existing && latest) {
                 if (existing.metadata.versionCode === latest.metadata.versionCode) {
-                    latest.lastId = after;
                     latest.version = version;
 
                     if (!latest.brokenRecordsCount) {
@@ -95,7 +81,7 @@ export function createEntityCleaner<T extends DeletableEntity>(name: string, ver
                     }
                 }
             } else if (!latest) {
-                await Store.EntityCleanerState.create(ctx, name, { lastId: after, version: version, deletedCount: deletedDelta, brokenRecordsCount: 0 });
+                await Store.EntityCleanerState.create(ctx, name, { version: version, deletedCount: deletedDelta, brokenRecordsCount: 0 });
             }
         });
     });
