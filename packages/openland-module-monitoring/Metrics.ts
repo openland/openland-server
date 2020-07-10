@@ -85,6 +85,13 @@ export const Metrics = {
         }
         return 0;
     }),
+    HyperLogDeletionProgress: Factory.createPersistedGauge('tasks_deletion', 'Completed tasks deletion progress', async ctx => {
+        let state = await Store.EntityCleanerState.findById(ctx, 'HyperLog');
+        if (state) {
+            return state.deletedCount;
+        }
+        return 0;
+    }),
 
     // Service
     ModernPresenceIndexEstimate: Factory.createPersistedGauge('modern_presence_index_estimate', 'Modern presence reindex estimate', async ctx => {
