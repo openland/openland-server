@@ -217,7 +217,7 @@ export class DeliveryMediator {
 
                 // Deliver messages
                 if (members.length > 0) {
-                    let batches = batch(members, 20);
+                    let batches = batch(members, 100);
                     let tasks = batches.map(b => this.queueUserMultiple.pushWork(ctx, {
                         messageId: mid,
                         uids: b,

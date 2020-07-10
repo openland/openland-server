@@ -265,8 +265,8 @@ export class UserOnboardingModule {
             messageParts.push({ type: 'rich_attach', attach: { keyboard: t.keyboard } });
         }
         // report to super admin chat
-        let reportMessageParts = [`${user.email} [${t.type}]\n`, ...messageParts];
-        await Modules.Messaging.sendMessage(ctx, reportChatId, billyId, buildMessage(...reportMessageParts));
+        // let reportMessageParts = [`${user.email} [${t.type}]\n`, ...messageParts];
+        // await Modules.Messaging.sendMessage(ctx, reportChatId, billyId, buildMessage(...reportMessageParts));
 
         let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, billyId, uid);
         let message = buildMessage(...messageParts);
