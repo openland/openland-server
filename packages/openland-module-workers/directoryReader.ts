@@ -5,7 +5,7 @@ import { Context } from '@openland/context';
 import { cursorToTuple, tupleToCursor } from '@openland/foundationdb-entity/lib/indexes/utils';
 
 export function directoryReader(name: string, version: number, subspace: Subspace<TupleItem[], any>, batchSize: number, handler: (items: { key: TupleItem[], value: any }[], first: boolean, ctx: Context) => Promise<number | void>, args?: { delay: number }) {
-    singletonWorker({ name:  name, version, delay: args && args.delay, db: Store.storage.db }, async (root) => {
+    singletonWorker({ name: name, version, delay: args && args.delay, db: Store.storage.db }, async (root) => {
         let existing = await inTx(root, async (ctx) => await Store.ReaderState.findById(ctx, name));
         let first = false;
         let cursor: TupleItem[] | undefined = undefined;
@@ -35,7 +35,7 @@ export function directoryReader(name: string, version: number, subspace: Subspac
 
             // Commit offset
             await inTx(root, async (ctx) => {
-                let latest = await Store.ReaderState.findById(ctx, 'presence_log_reader');
+                let latest = await Store.ReaderState.findById(ctx, name);
                 if (existing && latest) {
                     // Update if not changed
                     if (existing.metadata.versionCode === latest.metadata.versionCode) {
@@ -43,7 +43,7 @@ export function directoryReader(name: string, version: number, subspace: Subspac
                         latest.version = version;
                     }
                 } else if (!latest) {
-                    await Store.ReaderState.create(ctx, 'presence_log_reader', { cursor: tupleToCursor(cursor!), version: version });
+                    await Store.ReaderState.create(ctx, name, { cursor: tupleToCursor(cursor!), version: version });
                 }
             });
         }
