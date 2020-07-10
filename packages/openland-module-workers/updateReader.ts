@@ -42,7 +42,7 @@ export function updateReader<T>(name: string, version: number, stream: Stream<T>
 
                 if (estimate) {
                     Store.ReaderEstimate.byId(name).set(ctx, estimate);
-                    logger.log(ctx, name + ' estimate: ' + estimate);
+                    logger.debug(ctx, name + ' estimate: ' + estimate);
                 }
             });
         }
