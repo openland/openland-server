@@ -1075,7 +1075,7 @@ export const Resolver: GQLResolver = {
         debugSendPush: withPermission('super-admin', async (parent, args) => {
             await inTx(parent, async (ctx) => {
                 let uid = IDs.User.parse(args.id);
-                await Modules.Push.pushWork(ctx, {
+                await Modules.Push.pushWork(ctx, [{
                     uid,
                     body: args.message,
                     title: 'test',
@@ -1088,7 +1088,7 @@ export const Resolver: GQLResolver = {
                     mobileIncludeText: true,
                     picture: null,
                     silent: null
-                });
+                }]);
             });
             return true;
         }),

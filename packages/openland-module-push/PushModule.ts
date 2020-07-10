@@ -1,5 +1,5 @@
 import { Config } from 'openland-config/Config';
-import { createPushWorker } from './workers/PushWorker';
+import { createPushWorkerParallel } from './workers/PushWorker';
 import { Store } from 'openland-module-db/FDB';
 import { PushRepository } from './repositories/PushRepository';
 import { createAppleWorker } from './workers/AppleWorker';
@@ -16,7 +16,7 @@ export class PushModule {
     readonly appleWorker = createAppleWorker(this.repository);
     readonly androidWorker = createAndroidWorker(this.repository);
     readonly webWorker = createWebWorker(this.repository);
-    readonly worker = createPushWorker(this.repository);
+    readonly worker = createPushWorkerParallel(this.repository);
 
     start = async () => {
         if (Config.pushWeb) {
@@ -49,7 +49,7 @@ export class PushModule {
     }
 
     async sendCounterPush(ctx: Context, uid: number) {
-        return this.worker.pushWork(ctx, {
+        return this.worker.pushWork(ctx, [{
             uid: uid,
             counter: 0,
             conversationId: null,
@@ -62,10 +62,10 @@ export class PushModule {
             body: '',
             mobileAlert: false,
             mobileIncludeText: false
-        });
+        }]);
     }
 
-    async pushWork(ctx: Context, push: Push) {
+    async pushWork(ctx: Context, push: Push[]) {
         await this.worker.pushWork(ctx, push);
     }
 }
