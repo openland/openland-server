@@ -241,7 +241,6 @@ export function startPushNotificationWorker() {
         }
         log.log(parent, 'found', unreadUsers.length, 'users');
 
-        let pushesToSend: Push[] = [];
         let batches = batch(unreadUsers, 10);
 
         for (let b of batches) {
@@ -249,16 +248,13 @@ export function startPushNotificationWorker() {
                 await trace.trace(rootCtx, 'handle_batch', async (root) => {
                     await inTx(root, async ctx => {
                         let res = await Promise.all(b.map(uid => handleUser(ctx, uid)));
-                        pushesToSend.push(...res.flat());
+                        await Modules.Push.pushWork(ctx, res.flat());
                     });
                 });
             } catch (e) {
                 log.log(rootCtx, 'push_error', e);
             }
         }
-
-        let outBatches = batch(pushesToSend, 50);
-        await Promise.all(outBatches.map(pushes => inTx(rootCtx, async ctx => Modules.Push.pushWork(ctx, pushes))));
 
         await inTx(parent, async ctx => {
             Events.MessageNotificationsHandled.event(ctx, { usersCount: unreadUsers.length, duration: Date.now() - startTime });
