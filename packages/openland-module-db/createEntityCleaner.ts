@@ -28,12 +28,12 @@ export function createEntityCleaner<T extends DeletableEntity>(name: string, ver
                 }
             }
 
-            if (res.length === 0 || brokenRecords.length === 0) {
+            if (res.length === 0 && brokenRecords.length === 0) {
                 return;
             }
 
             try {
-                if (handleDecoded) {
+                if (handleDecoded && res.length > 0) {
                     await handleDecoded(ctx, res);
                 }
             } catch {
