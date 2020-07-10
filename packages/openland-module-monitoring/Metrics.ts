@@ -85,7 +85,7 @@ export const Metrics = {
         }
         return 0;
     }),
-    HyperLogDeletionProgress: Factory.createPersistedGauge('tasks_deletion', 'Completed tasks deletion progress', async ctx => {
+    HyperLogDeletionProgress: Factory.createPersistedGauge('hyperlog_deletion', 'Completed tasks deletion progress', async ctx => {
         let state = await Store.EntityCleanerState.findById(ctx, 'HyperLog');
         if (state) {
             return state.deletedCount;
