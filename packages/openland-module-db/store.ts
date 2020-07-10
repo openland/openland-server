@@ -18022,6 +18022,10 @@ export class HyperLog extends Entity<HyperLogShape> {
             this.invalidate();
         }
     }
+
+    delete(ctx: Context) {
+        return this._delete(ctx);
+    }
 }
 
 export class HyperLogFactory extends EntityFactory<HyperLogShape, HyperLog> {
@@ -18047,7 +18051,7 @@ export class HyperLogFactory extends EntityFactory<HyperLogShape, HyperLog> {
         let descriptor: EntityDescriptor<HyperLogShape> = {
             name: 'HyperLog',
             storageKey: 'hyperLog',
-            allowDelete: false,
+            allowDelete: true,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new HyperLogFactory(descriptor);

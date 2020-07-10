@@ -7,7 +7,7 @@ import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { EnvironmentVariablesRepository, EnvVarValueType } from './repositories/EnvironmentVariablesRepository';
 import { createEntityCleaner } from '../openland-module-db/createEntityCleaner';
-import { Task } from '../openland-module-db/store';
+import { HyperLog, Task } from '../openland-module-db/store';
 
 @injectable()
 export class SuperModule {
@@ -65,6 +65,7 @@ export class SuperModule {
         // createEntitiesCounter('Task', 1, Store.Task, 5000);
         // createEntitiesCounter('Message', 1, Store.Message, 5000);
 
+        createEntityCleaner<HyperLog>('HyperLog', 1, Store.HyperLog, 4000, (log) => log.date < 1562864071515 || log.type === 'track' || log.type === 'task_completed' ||  log.type === 'task_scheduled');
         createEntityCleaner<Task>('Task', 5, Store.Task, 4000, (task) => task.taskStatus === 'completed');
     }
 }

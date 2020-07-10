@@ -2500,6 +2500,8 @@ export default declareSchema(() => {
         rangeIndex('created', ['createdAt']);
         rangeIndex('userEvents', ['createdAt']).withCondition((src) => src.type === 'track');
         rangeIndex('onlineChangeEvents', ['createdAt']).withCondition((src) => src.type === 'online_status');
+
+        allowDelete();
     });
 
     eventStore('HyperLogStore', () => {
