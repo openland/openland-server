@@ -11,34 +11,11 @@ import { UserProfile } from 'openland-module-db/store';
 import * as Case from 'change-case';
 
 type DelayedEvents = 'activated20h' | 'activated30m';
-type Template = 'welcome' | 'completeChatNavigator' | 'writeFirstMessage' | 'installApps' | 'inviteFriends';
+type Template = 'welcome' | 'writeFirstMessage' | 'installApps' | 'inviteFriends';
 const templates: { [T in Template]: (user: UserProfile) => { type: string, message: MessagePart[], keyboard?: MessageKeyboard, isSevice?: boolean } } = {
     welcome: (user: UserProfile) => ({
         type: 'wellcome',
         message: ['Welcome to Openland! \n' + 'Our bot will share with you some great tips and announcements from Openland team'], isSevice: true
-    }),
-    completeChatNavigator: (user: UserProfile) => ({
-        type: 'gotoDiscover',
-        message: [
-            'Ready to explore Openland? Let\'s find the most useful chats based on your interests!', {
-                type: 'file_attach', attach: {
-                    type: 'file_attachment',
-                    fileId: '67223184-2a68-4b9b-920d-389bb67eae75',
-                    filePreview: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABUOEBIQDRUSERIYFhUZHzQiHx0dH0AuMCY0TENQT0tDSUhUXnlmVFlyWkhJaY9qcnyAh4iHUWWUn5ODnXmEh4L/2wBDARYYGB8cHz4iIj6CVklWgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoL/wAARCAAGABQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDqzHIXJ80hSegp8nCdfrRRQJ7EBJz/AJFFFFaGZ//Z',
-                    fileMetadata: {
-                        isStored: true,
-                        isImage: true,
-                        imageWidth: 500,
-                        imageHeight: 160,
-                        imageFormat: 'PNG',
-                        mimeType: 'image/png',
-                        name: '5x5tFY9.png',
-                        size: 16810
-                    }
-                }
-            }
-        ],
-        keyboard: { buttons: [[{ title: 'Discover chats', url: '/onboarding_discover', style: 'DEFAULT' }]] }
     }),
     writeFirstMessage: (user: UserProfile) => ({
         type: 'sendFirstMessage',
@@ -134,7 +111,6 @@ export class UserOnboardingModule {
 
     onUserActivatedByAdmin = async (ctx: Context, uid: number) => {
         await this.onFirstEntrance(ctx, uid);
-        await this.sendToDiscoverIfNeeded(ctx, uid);
         await q.pushWork(ctx, { uid, type: 'activated30m' }, Date.now() + 1000 * 60 * 30);
     }
 
@@ -145,9 +121,7 @@ export class UserOnboardingModule {
 
     onDiscoverSkipped = async (ctx: Context, uid: number) => {
         await this.onFirstEntrance(ctx, uid);
-        await this.sendToDiscoverIfNeeded(ctx, uid);
         await q.pushWork(ctx, { uid, type: 'activated30m' }, Date.now() + 1000 * 60 * 30);
-
     }
 
     onFirstEntrance = async (ctx: Context, uid: number) => {
@@ -191,17 +165,6 @@ export class UserOnboardingModule {
         if (!state.wellcomeSent) {
             await this.sendMessage(ctx, uid, 'welcome');
             state.wellcomeSent = true;
-        }
-    }
-
-    // Discover
-    private sendToDiscoverIfNeeded = async (ctx: Context, uid: number) => {
-        if (!await this.isDiscoverCompletedWithJoin(ctx, uid)) {
-            let state = await this.getOnboardingState(ctx, uid);
-            if (!state.askCompleteDeiscoverSent) {
-                await this.sendMessage(ctx, uid, 'completeChatNavigator');
-                state.askCompleteDeiscoverSent = true;
-            }
         }
     }
 
@@ -275,19 +238,6 @@ export class UserOnboardingModule {
         }
         await Modules.Messaging.sendMessage(ctx, privateChat.id, billyId, message);
         await Modules.Metrics.onBillyBotMessageRecieved(ctx, uid, Case.snakeCase(template));
-    }
-
-    private isDiscoverCompletedWithJoin = async (ctx: Context, uid: number) => {
-        let chatIds = await Modules.Discover.suggestedChats(ctx, uid);
-        let completedDiscoverWithJoin = false;
-        let userDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
-        for (let cid of chatIds) {
-            if (userDialogs.find(d => d.cid === cid)) {
-                completedDiscoverWithJoin = true;
-                break;
-            }
-        }
-        return completedDiscoverWithJoin;
     }
 
     private userDidSendMessageToGroups = async (ctx: Context, uid: number) => {
