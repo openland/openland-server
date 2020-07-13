@@ -7,10 +7,9 @@ import { HyperLog, HyperLogEvent } from '../openland-module-db/store';
 import { container } from '../openland-modules/Modules.container';
 import DatabaseClient from './DatabaseClient';
 import { table, TableSpace } from './TableSpace';
-// @ts-ignore
 import { boolean, date, integer, schema } from './schema';
-// @ts-ignore
-import { presenceLogReader } from '../openland-module-presences/PresenceLogRepository';
+import { subspaceReader } from '../openland-module-workers/subspaceReader';
+import { encoders } from '@openland/foundationdb';
 
 function startPresenceExport(client: DatabaseClient) {
     updateReader('ch-exporter-reader', 3, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
@@ -181,16 +180,18 @@ function startOrgUsersExport(client: DatabaseClient) {
     });
 }
 
-// const presencesModern = table('presences_modern', schema({
-//     date: date(),
-//     uid: integer(),
-//     platform: integer('UInt8') // 0 - undefined, 1 - web, 2 - ios, 3 - android, 4 - desktop
-// }), { partition: 'toYYYYMM(date)', orderBy: '(date, uid)', primaryKey: '(date, uid)' });
-// function startModernPresenceExport(client: DatabaseClient) {
-//     presenceLogReader(1, 1000, async (src, first, ctx) => {
-//         await presencesModern.insert(ctx, client, src);
-//     });
-// }
+const presencesModern = table('presences_modern', schema({
+    date: date(),
+    uid: integer(),
+    platform: integer('UInt8') // 0 - undefined, 1 - web, 2 - ios, 3 - android, 4 - desktop
+}), { partition: 'toYYYYMM(date)', orderBy: '(date, uid)', primaryKey: '(date, uid)' });
+function startModernPresenceExport(client: DatabaseClient) {
+    subspaceReader<Buffer>('presence_log_reader', 2, 1000, Store.PresenceLogDirectory.withKeyEncoding(encoders.tuple), async (values, first, ctx) => {
+        let src = values.map(a => ({ date: a.key[0] as number, uid: a.key[1] as number, platform: a.key[2] as number || 0 }));
+        await presencesModern.insert(ctx, client, src);
+        return Math.round((Date.now() - src[src.length - 1].date) / 1000);
+    });
+}
 
 export function startExporters(parent: Context) {
     // tslint:disable-next-line:no-floating-promises
@@ -204,6 +205,6 @@ export function startExporters(parent: Context) {
         startAnalyticsExport(client);
         startHyperlogExport(client);
         startOrgUsersExport(client);
-        // startModernPresenceExport(client);
+        startModernPresenceExport(client);
     })();
 }

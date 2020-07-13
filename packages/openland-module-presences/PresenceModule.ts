@@ -14,7 +14,6 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { registerPresenceService } from './service/registerPresenceService';
 import { PresenceLogRepository } from './PresenceLogRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
-import { updateReader } from '../openland-module-workers/updateReader';
 
 export interface OnlineEvent {
     userId: number;
@@ -67,19 +66,6 @@ export class PresenceModule {
 
         if (serverRoleEnabled('workers')) {
             registerPresenceService();
-
-            updateReader('reader-presences-old', 1, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
-                let presences = src.filter((v) => v.type === 'presence' && v.body.online === true);
-                if (presences.length > 0) {
-                    let maxDate = presences[0].date;
-                    for (let v of presences) {
-                        this.logging.logOnline(ctx, v.date, v.body.uid, detectPlatform(v.body.platform));
-                        maxDate = Math.max(v.date, maxDate);
-                    }
-                   return Math.round((Date.now() - maxDate) / 1000);
-                }
-                return;
-            });
         }
     }
 
@@ -125,7 +111,7 @@ export class PresenceModule {
             }
 
             this.logging.logOnline(ctx, Date.now(), uid, detectPlatform(platform));
-            Events.PresenceEvent.event(ctx, { uid, platform, online: true });
+            // Events.PresenceEvent.event(ctx, { uid, platform, online: true });
             // this.onlines.set(uid, { lastSeen: expires, active: (online ? online.active : active) || false });
             let event = {
                 userId: uid,
