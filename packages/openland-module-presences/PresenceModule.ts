@@ -111,7 +111,7 @@ export class PresenceModule {
             }
 
             this.logging.logOnline(ctx, Date.now(), uid, detectPlatform(platform));
-            // Events.PresenceEvent.event(ctx, { uid, platform, online: true });
+            Events.PresenceEvent.event(ctx, { uid, platform, online: true });
             // this.onlines.set(uid, { lastSeen: expires, active: (online ? online.active : active) || false });
             let event = {
                 userId: uid,
