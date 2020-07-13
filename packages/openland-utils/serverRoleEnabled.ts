@@ -5,7 +5,8 @@ export const SUPPORTED_ROLES = [
     'workers',
     'admin',
     'delivery',
-    'calls'
+    'calls',
+    'events'
 ];
 
 const DEFAULT_SERVER_ROLES = [
@@ -13,7 +14,8 @@ const DEFAULT_SERVER_ROLES = [
     'workers',
     'admin',
     'delivery',
-    'calls'
+    'calls',
+    'events'
 ];
 
 const ENABLED_SERVER_ROLES = (process.env.SERVER_ROLES && process.env.SERVER_ROLES.length > 0) ? process.env.SERVER_ROLES.split(',') : DEFAULT_SERVER_ROLES;

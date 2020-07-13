@@ -8,7 +8,7 @@ import { LockLayer } from '@openland/foundationdb-locks';
 import { SingletonWorkerLayer } from '@openland/foundationdb-singleton';
 import { BusLayer, NoOpBus } from '@openland/foundationdb-bus';
 import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
-import { NatsBusProvider } from '../openland-module-pubsub/NatsBusProvider';
+import { NatsBusEngine } from '../openland-module-pubsub/NatsBusEngine';
 import { container } from '../openland-modules/Modules.container';
 import { Config } from 'openland-config/Config';
 
@@ -28,7 +28,7 @@ function createLayers(test: boolean) {
         new RandomLayer(),
         new LockLayer(),
         new SingletonWorkerLayer(),
-        new BusLayer(natsBounded ? new NatsBusProvider(container.get('NATS')) : new NoOpBus())
+        new BusLayer(natsBounded ? new NatsBusEngine(container.get('NATS')) : new NoOpBus())
     ];
     if (serverRoleEnabled('admin') && !test) {
         layers.push(new MigrationsLayer(migrations));

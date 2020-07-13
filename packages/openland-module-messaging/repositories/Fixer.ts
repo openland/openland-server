@@ -34,7 +34,7 @@ export class FixerRepository {
 
                     let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, a.cid);
                     if (readMessageId !== 0) {
-                        let total = Math.max(0, (await Store.Message.chat.query(ctx, a.cid, { after: readMessageId })).items.filter((v) => v.uid !== uid).length);
+                        let total = Math.max(0, (await Store.Message.chat.query(ctx, a.cid, {after: readMessageId})).items.filter((v) => v.uid !== uid).length);
                         totalUnread += total;
                         logger.debug(ctx, '[' + uid + '] Fix counter in chat #' + a.cid + ', existing: ' + (await counter.get(ctx) || 0) + ', updated: ' + total);
                         counter.set(ctx, total);
@@ -58,38 +58,38 @@ export class FixerRepository {
     }
 
     async fixForUserModern(uid: number) {
-        const fixForDialog = async (ctx: Context, cid: number) => {
-            let conv = (await Store.Conversation.findById(ctx, cid))!;
-            let counter = Store.UserDialogCounter.byId(uid, cid);
-            if (!conv) {
-                counter.set(ctx, 0);
-                return;
-            }
-            if (conv.kind === 'room') {
-                let pat = await Store.RoomParticipant.findById(ctx, cid, uid);
-                if (!pat || pat.status !== 'joined') {
+        const fixForDialog = async (parent: Context, cid: number) => {
+            return inTx(parent, async ctx => {
+                let conv = (await Store.Conversation.findById(ctx, cid))!;
+                let counter = Store.UserDialogCounter.byId(uid, cid);
+                if (!conv) {
                     counter.set(ctx, 0);
                     return;
                 }
-            }
-            let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, cid);
-            if (readMessageId !== 0) {
-                let total = Math.max(0, (await Store.Message.chat.query(ctx, cid, {after: readMessageId})).items.filter((v) => v.uid !== uid).length);
-                logger.debug(ctx, '[' + uid + '] Fix counter in chat #' + cid + ', existing: ' + (await counter.get(ctx) || 0) + ', updated: ' + total);
-                counter.set(ctx, total);
-            } else {
-                let total = Math.max(0, (await Store.Message.chat.findAll(ctx, cid)).filter((v) => v.uid !== uid).length);
-                logger.debug(ctx, '[' + uid + '] fix counter in chat #' + cid + ', existing: ' + (await counter.get(ctx) || 0) + ', updated: ' + total);
-                counter.set(ctx, total);
-            }
+                if (conv.kind === 'room') {
+                    let pat = await Store.RoomParticipant.findById(ctx, cid, uid);
+                    if (!pat || pat.status !== 'joined') {
+                        counter.set(ctx, 0);
+                        return;
+                    }
+                }
+                let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, cid);
+                if (readMessageId !== 0) {
+                    let total = Math.max(0, (await Store.Message.chat.query(ctx, cid, {after: readMessageId, limit: 10000})).items.filter((v) => v.uid !== uid).length);
+                    logger.debug(ctx, '[' + uid + '] Fix counter in chat #' + cid + ', existing: ' + (await counter.get(ctx) || 0) + ', updated: ' + total);
+                    counter.set(ctx, total);
+                } else {
+                    let total = Math.max(0, (await Store.Message.chat.query(ctx, cid, { limit: 10000 })).items.filter((v) => v.uid !== uid).length);
+                    logger.debug(ctx, '[' + uid + '] fix counter in chat #' + cid + ', existing: ' + (await counter.get(ctx) || 0) + ', updated: ' + total);
+                    counter.set(ctx, total);
+                }
+            });
         };
 
         try {
-            await inTx(rootCtx, async ctx => {
-                logger.debug(rootCtx, '[' + uid + '] fixing counters for #' + uid);
-                let all = await Modules.Messaging.findUserDialogs(ctx, uid);
-                await Promise.all(all.map(c => fixForDialog(ctx, c.cid)));
-            });
+            logger.debug(rootCtx, '[' + uid + '] fixing counters for #' + uid);
+            let dialogs = await inTx(rootCtx, async ctx => await Modules.Messaging.findUserDialogs(ctx, uid));
+            await Promise.all(dialogs.map(c => fixForDialog(rootCtx, c.cid)));
             return true;
         } catch (e) {
             logger.warn(rootCtx, 'counter_fix_error', e);

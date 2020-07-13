@@ -1,13 +1,14 @@
-import { BusProvider, BusSubcription } from '@openland/foundationdb-bus';
+import { EventBusEngine, EventBusEngineSubcription } from './EventBusEngine';
 import { Client, Subscription } from 'ts-nats';
 import { asyncRun } from '../openland-mtproto3/utils';
 
-type TopicSubscription = {
-    ncSubscription?: Subscription,
-    listeners: ((data: any) => void)[]
-};
+interface TopicSubscription {
+    canceled: boolean;
+    ncSubscription?: Subscription;
+    listeners: ((data: any) => void)[];
+}
 
-export class NatsBusProvider implements BusProvider {
+export class NatsBusEngine implements EventBusEngine {
     private nc: Client;
     private rootTopic = 'event_bus';
     private subscriptions = new Map<string, TopicSubscription>();
@@ -20,23 +21,32 @@ export class NatsBusProvider implements BusProvider {
         this.nc.publish(this.rootTopic + '.' + topic, { payload: data });
     }
 
-    subscribe(topic: string, receiver: (data: any) => void): BusSubcription {
-        let subscription = this.getSubscription(topic);
-        subscription.listeners.push(receiver);
+    subscribe(topic: string, receiver: (data: any) => void): EventBusEngineSubcription {
+        let existing = this.subscriptions.get(topic);
+        if (existing) {
+            existing.listeners.push(receiver);
+        } else {
+            this.createNewSubscription(topic, receiver);
+        }
 
+        let canceled = false;
         return {
             cancel: () => {
-                this.unSubscribe(topic, receiver);
+                if (canceled) {
+                    return;
+                }
+                canceled = true;
+                this.unsubscribe(topic, receiver);
             }
         };
     }
 
-    private getSubscription(topic: string) {
+    private createNewSubscription(topic: string, receiver: (data: any) => void) {
         if (this.subscriptions.has(topic)) {
             return this.subscriptions.get(topic)!;
         }
 
-        let subscription: TopicSubscription = { listeners: [] };
+        let subscription: TopicSubscription = { listeners: [receiver], canceled: false };
         this.subscriptions.set(topic, subscription);
 
         asyncRun(async () => {
@@ -51,7 +61,7 @@ export class NatsBusProvider implements BusProvider {
             });
 
             // in case of race condition
-            if (subscription.ncSubscription) {
+            if (subscription.canceled) {
                 ncSubscription.unsubscribe();
             } else {
                 subscription.ncSubscription = ncSubscription;
@@ -61,7 +71,7 @@ export class NatsBusProvider implements BusProvider {
         return subscription;
     }
 
-    private unSubscribe(topic: string, receiver: (data: any) => void) {
+    private unsubscribe(topic: string, receiver: (data: any) => void) {
         let sub = this.subscriptions.get(topic);
         if (!sub) {
             throw new Error('Pubsub inconsistency');
@@ -76,6 +86,7 @@ export class NatsBusProvider implements BusProvider {
         }
 
         if (sub.listeners.length === 0) {
+            sub.canceled = true;
             sub.ncSubscription?.unsubscribe();
             this.subscriptions.delete(topic);
         }
