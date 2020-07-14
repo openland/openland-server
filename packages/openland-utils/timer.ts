@@ -43,6 +43,19 @@ export function debouncer(ms: number) {
 }
 
 export function debounce(ms: number, func: (...args: any[]) => any) {
+    let timer: NodeJS.Timeout | null = null;
+    return (...args: any[]) => {
+        if (timer) {
+            clearTimeout(timer);
+        }
+        timer = setTimeout(() => {
+            func(args);
+            timer = null;
+        }, ms);
+    };
+}
+
+export function throttle(ms: number, func: (...args: any[]) => any) {
     let lock = false;
 
     return (...args2: any[]) => {
