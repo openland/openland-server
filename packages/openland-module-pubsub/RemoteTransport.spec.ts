@@ -177,3 +177,9 @@
 //         remoteTrasport1.stop();
 //     });
 // });
+
+describe('RemoteTransport', () => {
+    it('mock', () => {
+        //
+    });
+});
