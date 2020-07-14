@@ -383,7 +383,7 @@ export const Resolver: GQLResolver = {
             let total = (hits.hits.total as any).value;
 
             // Fetch profiles
-            let users = (await Promise.all(uids.map((v) => Store.User.findById(ctx, v)))).filter(u => u);
+            let users = (await Promise.all(uids.map((v) => Store.RoomParticipant.findById(ctx, cid, v)))).filter(isDefined);
 
             return {
                 edges: users.map((p, i) => {

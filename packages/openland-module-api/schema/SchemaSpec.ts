@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '316329014eb8b94ade0866f6c6f29ed2';
+export const GQL_SPEC_VERSION = '82c104588448516cfe92fbff64c8213d';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4188,7 +4188,7 @@ export namespace GQL {
         featuredGroups: Nullable<SharedRoom[]>;
         featuredCommunities: Nullable<Organization[]>;
         messagesSearch: MessageConnection;
-        chatMembersSearch: UserConnection;
+        chatMembersSearch: RoomMemberConnection;
         chatMentionSearch: GlobalSearchConnection;
         messages: ModernMessage[];
         gammaMessages: Nullable<GammaMessagesBatch>;
@@ -5886,6 +5886,18 @@ export namespace GQL {
     export interface RoomMemberMembershipArgs { }
     export interface RoomMemberInvitedByArgs { }
     export interface RoomMemberCanKickArgs { }
+    export interface RoomMemberEdge {
+        node: RoomMember;
+        cursor: string;
+    }
+    export interface RoomMemberEdgeNodeArgs { }
+    export interface RoomMemberEdgeCursorArgs { }
+    export interface RoomMemberConnection {
+        edges: RoomMemberEdge[];
+        pageInfo: PageInfo;
+    }
+    export interface RoomMemberConnectionEdgesArgs { }
+    export interface RoomMemberConnectionPageInfoArgs { }
     export interface RoomUserNotificaionSettings {
         id: string;
         mute: Nullable<boolean>;
@@ -9440,7 +9452,7 @@ export interface GQLResolver {
             featuredGroups: Nullable<GQLRoots.SharedRoomRoot[]>,
             featuredCommunities: Nullable<GQLRoots.OrganizationRoot[]>,
             messagesSearch: GQLRoots.MessageConnectionRoot,
-            chatMembersSearch: GQLRoots.UserConnectionRoot,
+            chatMembersSearch: GQLRoots.RoomMemberConnectionRoot,
             chatMentionSearch: GQLRoots.GlobalSearchConnectionRoot,
             messages: GQLRoots.ModernMessageRoot[],
             gammaMessages: Nullable<GQLRoots.GammaMessagesBatchRoot>,
@@ -10884,6 +10896,29 @@ export interface GQLResolver {
             membership: GQL.RoomMemberMembershipArgs,
             invitedBy: GQL.RoomMemberInvitedByArgs,
             canKick: GQL.RoomMemberCanKickArgs,
+        }
+    >;
+    RoomMemberEdge?: ComplexTypedResolver<
+        GQL.RoomMemberEdge,
+        GQLRoots.RoomMemberEdgeRoot,
+        {
+            node: GQLRoots.RoomMemberRoot,
+        },
+        {
+            node: GQL.RoomMemberEdgeNodeArgs,
+            cursor: GQL.RoomMemberEdgeCursorArgs,
+        }
+    >;
+    RoomMemberConnection?: ComplexTypedResolver<
+        GQL.RoomMemberConnection,
+        GQLRoots.RoomMemberConnectionRoot,
+        {
+            edges: GQLRoots.RoomMemberEdgeRoot[],
+            pageInfo: GQLRoots.PageInfoRoot,
+        },
+        {
+            edges: GQL.RoomMemberConnectionEdgesArgs,
+            pageInfo: GQL.RoomMemberConnectionPageInfoArgs,
         }
     >;
     RoomUserNotificaionSettings?: ComplexTypedResolver<

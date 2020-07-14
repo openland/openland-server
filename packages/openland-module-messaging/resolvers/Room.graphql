@@ -139,6 +139,16 @@ type RoomMember {
     canKick: Boolean!
 }
 
+type RoomMemberEdge {
+    node: RoomMember!
+    cursor: String!
+}
+
+type RoomMemberConnection {
+    edges: [RoomMemberEdge!]!
+    pageInfo: PageInfo!
+}
+
 type RoomUserNotificaionSettings {
     id: ID!
     mute: Boolean

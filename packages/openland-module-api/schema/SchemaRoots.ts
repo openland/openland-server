@@ -384,6 +384,14 @@ export namespace GQLRoots {
         status: SharedRoomMembershipStatusRoot,
         invitedBy: number
     };
+    export type RoomMemberEdgeRoot = {
+        node: RoomMemberRoot,
+        cursor: string
+    };
+    export type RoomMemberConnectionRoot = {
+        edges: RoomMemberEdgeRoot[],
+        pageInfo: PageInfoRoot,
+    };
     export type RoomMessageRoot = Message;
     export type RoomUserNotificaionSettingsRoot = any;
     export type RoomInviteRoot = ChannelInvitation | ChannelLink;
