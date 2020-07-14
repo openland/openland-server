@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'bc87add1cee8cb03b9f857f5ed8a622b';
+export const GQL_SPEC_VERSION = '316329014eb8b94ade0866f6c6f29ed2';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -5345,6 +5345,7 @@ export namespace GQL {
         senderBadge: Nullable<UserBadge>;
         edited: boolean;
         reactions: ModernMessageReaction[];
+        reactionCounters: ReactionCounter[];
         isMentioned: boolean;
         source: Nullable<MessageSource>;
         hidden: boolean;
@@ -5364,6 +5365,7 @@ export namespace GQL {
     export interface GeneralMessageSenderBadgeArgs { }
     export interface GeneralMessageEditedArgs { }
     export interface GeneralMessageReactionsArgs { }
+    export interface GeneralMessageReactionCountersArgs { }
     export interface GeneralMessageIsMentionedArgs { }
     export interface GeneralMessageSourceArgs { }
     export interface GeneralMessageHiddenArgs { }
@@ -5386,6 +5388,7 @@ export namespace GQL {
         message: Nullable<string>;
         spans: MessageSpan[];
         reactions: ModernMessageReaction[];
+        reactionCounters: ReactionCounter[];
         fallback: string;
         quotedMessages: ModernMessage[];
         commentsCount: number;
@@ -5403,6 +5406,7 @@ export namespace GQL {
     export interface StickerMessageMessageArgs { }
     export interface StickerMessageSpansArgs { }
     export interface StickerMessageReactionsArgs { }
+    export interface StickerMessageReactionCountersArgs { }
     export interface StickerMessageFallbackArgs { }
     export interface StickerMessageQuotedMessagesArgs { }
     export interface StickerMessageCommentsCountArgs { }
@@ -5554,6 +5558,12 @@ export namespace GQL {
     }
     export interface ModernMessageReactionUserArgs { }
     export interface ModernMessageReactionReactionArgs { }
+    export interface ReactionCounter {
+        reaction: MessageReactionType;
+        count: number;
+    }
+    export interface ReactionCounterReactionArgs { }
+    export interface ReactionCounterCountArgs { }
     export interface MessageSpan {
         offset: number;
         length: number;
@@ -10272,6 +10282,7 @@ export interface GQLResolver {
             sender: GQLRoots.UserRoot,
             senderBadge: Nullable<GQLRoots.UserBadgeRoot>,
             reactions: GQLRoots.ModernMessageReactionRoot[],
+            reactionCounters: GQLRoots.ReactionCounterRoot[],
             source: Nullable<GQLRoots.MessageSourceRoot>,
             spans: GQLRoots.MessageSpanRoot[],
             attachments: GQLRoots.ModernMessageAttachmentRoot[],
@@ -10286,6 +10297,7 @@ export interface GQLResolver {
             senderBadge: GQL.GeneralMessageSenderBadgeArgs,
             edited: GQL.GeneralMessageEditedArgs,
             reactions: GQL.GeneralMessageReactionsArgs,
+            reactionCounters: GQL.GeneralMessageReactionCountersArgs,
             isMentioned: GQL.GeneralMessageIsMentionedArgs,
             source: GQL.GeneralMessageSourceArgs,
             hidden: GQL.GeneralMessageHiddenArgs,
@@ -10308,6 +10320,7 @@ export interface GQLResolver {
             source: Nullable<GQLRoots.MessageSourceRoot>,
             spans: GQLRoots.MessageSpanRoot[],
             reactions: GQLRoots.ModernMessageReactionRoot[],
+            reactionCounters: GQLRoots.ReactionCounterRoot[],
             quotedMessages: GQLRoots.ModernMessageRoot[],
             sticker: GQLRoots.StickerRoot,
             overrideAvatar: Nullable<GQLRoots.ImageRefRoot>,
@@ -10323,6 +10336,7 @@ export interface GQLResolver {
             message: GQL.StickerMessageMessageArgs,
             spans: GQL.StickerMessageSpansArgs,
             reactions: GQL.StickerMessageReactionsArgs,
+            reactionCounters: GQL.StickerMessageReactionCountersArgs,
             fallback: GQL.StickerMessageFallbackArgs,
             quotedMessages: GQL.StickerMessageQuotedMessagesArgs,
             commentsCount: GQL.StickerMessageCommentsCountArgs,
@@ -10500,6 +10514,16 @@ export interface GQLResolver {
         {
             user: GQL.ModernMessageReactionUserArgs,
             reaction: GQL.ModernMessageReactionReactionArgs,
+        }
+    >;
+    ReactionCounter?: ComplexTypedResolver<
+        GQL.ReactionCounter,
+        GQLRoots.ReactionCounterRoot,
+        {
+        },
+        {
+            reaction: GQL.ReactionCounterReactionArgs,
+            count: GQL.ReactionCounterCountArgs,
         }
     >;
     MessageSpan?: InterfaceTypeResolver<GQLRoots.MessageSpanRoot, 'MessageSpanUserMention' | 'MessageSpanMultiUserMention' | 'MessageSpanRoomMention' | 'MessageSpanOrganizationMention' | 'MessageSpanLink' | 'MessageSpanBold' | 'MessageSpanItalic' | 'MessageSpanIrony' | 'MessageSpanInlineCode' | 'MessageSpanCodeBlock' | 'MessageSpanInsane' | 'MessageSpanLoud' | 'MessageSpanRotating' | 'MessageSpanDate' | 'MessageSpanAllMention' | 'MessageSpanHashTag'>;
