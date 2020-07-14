@@ -80,6 +80,8 @@ import { createClient } from '../openland-module-clickhouse/migrations';
 import { broker } from 'openland-server/moleculer';
 import { Shutdown } from 'openland-utils/Shutdown';
 import { loadPresenceModule } from '../openland-module-presences/PresenceModule.container';
+import { loadContactsModule } from '../openland-module-contacts/ContactsModule.container';
+import { ContactsModule } from '../openland-module-contacts/ContactsModule';
 
 const logger = createLogger('starting');
 
@@ -188,6 +190,8 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadDiscussionsModule();
     container.bind(PhonebookModule).toSelf().inSingletonScope();
     container.bind(ClickHouseModule).toSelf().inSingletonScope();
+    loadContactsModule();
+    container.bind(ContactsModule).toSelf().inSingletonScope();
 
     logger.log(ctx, 'Modules loaded');
 }
@@ -276,6 +280,8 @@ export async function startAllModules(ctx: Context) {
     await container.get(DiscussionsModule).start();
     logger.log(ctx, 'Starting module: ClickHouse');
     await container.get(ClickHouseModule).start();
+    logger.log(ctx, 'Starting module: Contacts');
+    await container.get(ContactsModule).start();
 
     // Enable API after all modules started
     logger.log(ctx, 'Starting module: API');

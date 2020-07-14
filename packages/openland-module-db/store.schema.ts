@@ -74,6 +74,7 @@ export const Spans = array(union({
 }));
 
 import { discussionsStore } from '../openland-module-discussions/Discussions.store';
+import { contactsStore } from '../openland-module-contacts/Contacts.store';
 
 export default declareSchema(() => {
 
@@ -2685,4 +2686,5 @@ export default declareSchema(() => {
     });
 
     discussionsStore();
+    contactsStore();
 });

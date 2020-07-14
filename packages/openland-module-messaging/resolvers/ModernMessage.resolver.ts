@@ -568,6 +568,15 @@ export const Resolver: GQLResolver = {
         senderBadge: (src, args, ctx) => src instanceof RichMessage ? null : src.deleted ? null : getMessageSenderBadge(ctx, src),
         edited: src => src.edited || false,
         reactions: src => src.reactions || [],
+        reactionCounters: src => {
+            let counts = new Map<MessageReactionTypeRoot, number>();
+            src.reactions?.forEach(r => {
+                if (REACTIONS.includes(r.reaction)) {
+                    counts.set(r.reaction as MessageReactionTypeRoot, (counts.get(r.reaction as MessageReactionTypeRoot) || 0) + 1);
+                }
+            });
+            return [...counts.entries()].map(e => ({ reaction: e[0], count: e[1] }));
+        },
         isMentioned: async (src, args, ctx) => {
             if (src instanceof Message) {
                 return hasMention(src, ctx.auth.uid!);
@@ -811,6 +820,15 @@ export const Resolver: GQLResolver = {
         },
         senderBadge: (src, args, ctx) => src.deleted ? null : getMessageSenderBadge(ctx, src),
         reactions: src => src.reactions || [],
+        reactionCounters: src => {
+            let counts = new Map<MessageReactionTypeRoot, number>();
+            src.reactions?.forEach(r => {
+                if (REACTIONS.includes(r.reaction)) {
+                    counts.set(r.reaction as MessageReactionTypeRoot, (counts.get(r.reaction as MessageReactionTypeRoot) || 0) + 1);
+                }
+            });
+            return [...counts.entries()].map(e => ({ reaction: e[0], count: e[1] }));
+        },
         source: (src, args, ctx) => src,
         sticker: (src) => src.stickerId!,
         hidden: (src, args, ctx) => isMessageHiddenForUser(src, ctx.auth.uid!),
@@ -889,6 +907,10 @@ export const Resolver: GQLResolver = {
             }
             return 'LIKE';
         },
+    },
+    ReactionCounter: {
+        reaction: src => src.reaction,
+        count: src => src.count
     },
 
     //

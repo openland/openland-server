@@ -82,7 +82,7 @@ import {
     ConferenceEndStream,
     DiscussionHub,
     Discussion,
-    DiscussionDraft, UserDialogCallStateChangedEvent,
+    DiscussionDraft, UserDialogCallStateChangedEvent, Contact,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -384,6 +384,14 @@ export namespace GQLRoots {
         status: SharedRoomMembershipStatusRoot,
         invitedBy: number
     };
+    export type RoomMemberEdgeRoot = {
+        node: RoomMemberRoot,
+        cursor: string
+    };
+    export type RoomMemberConnectionRoot = {
+        edges: RoomMemberEdgeRoot[],
+        pageInfo: PageInfoRoot,
+    };
     export type RoomMessageRoot = Message;
     export type RoomUserNotificaionSettingsRoot = any;
     export type RoomInviteRoot = ChannelInvitation | ChannelLink;
@@ -428,6 +436,7 @@ export namespace GQLRoots {
     export type MessageKeyboardRoot = { buttons: (MessageButton & { id: string })[][] };
     export type ModernMessageButtonRoot = any;
     export type ModernMessageReactionRoot = { userId: number, reaction: string };
+    export type ReactionCounterRoot = { reaction: MessageReactionTypeRoot, count: number };
     export type MessageSpanUserMentionRoot = UserMentionSpan;
     export type MessageSpanMultiUserMentionRoot = MultiUserMentionSpan;
     export type MessageSpanRoomMentionRoot = RoomMentionSpan;
@@ -738,4 +747,10 @@ export namespace GQLRoots {
     // Sessions
     //
     export type SessionRoot = { token: AuthToken, presence?: Presence };
+
+    //
+    // Contacts
+    //
+    export type ContactRoot = Contact;
+    export type ContactConnectionRoot = { items: ContactRoot[], cursor: string|null };
 }

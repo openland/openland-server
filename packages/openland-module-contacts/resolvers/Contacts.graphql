@@ -1,0 +1,23 @@
+type Contact {
+    id: ID!
+    user: User!
+}
+
+type ContactConnection {
+    items: [Contact!]!
+    cursor: String
+}
+
+extend type Query {
+    myContacts(first: Int!, after: String): ContactConnection!
+    myContactsSearch(query: String, first: Int!, after: String, page: Int): UserConnection!
+}
+
+extend type Mutation {
+    addToContacts(userId: ID!): Boolean!
+    removeFromContacts(userId: ID!): Boolean!
+}
+
+extend type User {
+    inContacts: Boolean!
+}

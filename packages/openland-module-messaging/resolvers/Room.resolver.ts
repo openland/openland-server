@@ -482,7 +482,7 @@ export const Resolver: GQLResolver = {
             }
             return res;
         }),
-        /* method only for external augmentation (metatags) */
+        // method only for external augmentation (metatags)
         roomSocialImage: async (src, args, ctx) => {
             let cid = IDs.Conversation.parse(args.roomId);
             let room = await Store.ConversationRoom.findById(ctx, cid);

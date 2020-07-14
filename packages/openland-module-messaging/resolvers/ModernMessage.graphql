@@ -67,6 +67,7 @@ type GeneralMessage implements ModernMessage {
     senderBadge: UserBadge
     edited: Boolean!
     reactions: [ModernMessageReaction!]!
+    reactionCounters: [ReactionCounter!]!
     isMentioned: Boolean!
     source: MessageSource
     hidden: Boolean!
@@ -106,6 +107,7 @@ type StickerMessage implements ModernMessage {
     message: String
     spans: [MessageSpan!]!
     reactions: [ModernMessageReaction!]!
+    reactionCounters: [ReactionCounter!]!
     fallback: String!
     quotedMessages: [ModernMessage!]!
     commentsCount: Int!
@@ -289,6 +291,11 @@ enum MessageReactionType {
 type ModernMessageReaction {
     user: User!,
     reaction: MessageReactionType!
+}
+
+type ReactionCounter {
+    reaction: MessageReactionType!
+    count: Int!
 }
 
 #

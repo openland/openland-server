@@ -20290,6 +20290,95 @@ export class DiscussionDraftFactory extends EntityFactory<DiscussionDraftShape, 
     }
 }
 
+export interface ContactShape {
+    uid: number;
+    contactUid: number;
+    state: 'active' | 'deleted';
+}
+
+export interface ContactCreateShape {
+    state: 'active' | 'deleted';
+}
+
+export class Contact extends Entity<ContactShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get contactUid(): number { return this._rawValue.contactUid; }
+    get state(): 'active' | 'deleted' { return this._rawValue.state; }
+    set state(value: 'active' | 'deleted') {
+        let normalized = this.descriptor.codec.fields.state.normalize(value);
+        if (this._rawValue.state !== normalized) {
+            this._rawValue.state = normalized;
+            this._updatedValues.state = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class ContactFactory extends EntityFactory<ContactShape, Contact> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('contact');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('contact', 'user'), condition: (item) => item.state === 'active' });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        primaryKeys.push({ name: 'contactUid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'state', type: { type: 'enum', values: ['active', 'deleted'] }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            contactUid: c.integer,
+            state: c.enum('active', 'deleted'),
+        });
+        let descriptor: EntityDescriptor<ContactShape> = {
+            name: 'Contact',
+            storageKey: 'contact',
+            allowDelete: false,
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new ContactFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<ContactShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    create(ctx: Context, uid: number, contactUid: number, src: ContactCreateShape): Promise<Contact> {
+        return this._create(ctx, [uid, contactUid], this.descriptor.codec.normalize({ uid, contactUid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, contactUid: number, src: ContactCreateShape): Contact {
+        return this._create_UNSAFE(ctx, [uid, contactUid], this.descriptor.codec.normalize({ uid, contactUid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number, contactUid: number): Promise<Contact | null> {
+        return this._findById(ctx, [uid, contactUid]);
+    }
+
+    watch(ctx: Context, uid: number, contactUid: number): Watch {
+        return this._watch(ctx, [uid, contactUid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ContactShape>): Contact {
+        return new Contact([value.uid, value.contactUid], value, this.descriptor, this._flush, this._delete, ctx);
+    }
+}
+
 const chatUpdatedEventCodec = c.struct({
     cid: c.integer,
     uid: c.integer,
@@ -21810,6 +21899,7 @@ export interface Store extends BaseStore {
     readonly DiscussionHub: DiscussionHubFactory;
     readonly Discussion: DiscussionFactory;
     readonly DiscussionDraft: DiscussionDraftFactory;
+    readonly Contact: ContactFactory;
     readonly ConversationEventStore: ConversationEventStore;
     readonly DialogIndexEventStore: DialogIndexEventStore;
     readonly UserDialogEventStore: UserDialogEventStore;
@@ -22044,6 +22134,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let DiscussionHubPromise = DiscussionHubFactory.open(storage);
     let DiscussionPromise = DiscussionFactory.open(storage);
     let DiscussionDraftPromise = DiscussionDraftFactory.open(storage);
+    let ContactPromise = ContactFactory.open(storage);
     let PresenceLogDirectoryPromise = storage.resolveCustomDirectory('presenceLog');
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
     let UserCountersIndexDirectoryPromise = storage.resolveCustomDirectory('userCountersIndex');
@@ -22246,6 +22337,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         DiscussionHub: await DiscussionHubPromise,
         Discussion: await DiscussionPromise,
         DiscussionDraft: await DiscussionDraftPromise,
+        Contact: await ContactPromise,
         PresenceLogDirectory: await PresenceLogDirectoryPromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,
         UserCountersIndexDirectory: await UserCountersIndexDirectoryPromise,
