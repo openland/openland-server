@@ -82,7 +82,7 @@ import {
     ConferenceEndStream,
     DiscussionHub,
     Discussion,
-    DiscussionDraft, UserDialogCallStateChangedEvent,
+    DiscussionDraft, UserDialogCallStateChangedEvent, Contact,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -747,4 +747,10 @@ export namespace GQLRoots {
     // Sessions
     //
     export type SessionRoot = { token: AuthToken, presence?: Presence };
+
+    //
+    // Contacts
+    //
+    export type ContactRoot = Contact;
+    export type ContactConnectionRoot = { items: ContactRoot[], cursor: string|null };
 }

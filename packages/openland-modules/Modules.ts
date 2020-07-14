@@ -43,6 +43,7 @@ import { PowerupsModule } from '../openland-module-powerups/PowerupsModule';
 import { PermissionsModule } from '../openland-module-permissions/PermissionsModule';
 import { PhonebookModule } from '../openland-module-phonebook/PhonebookModule';
 import { ClickHouseModule } from '../openland-module-clickhouse/ClickHouseModule';
+import { ContactsModule } from '../openland-module-contacts/ContactsModule';
 
 class ModulesImpl {
 
@@ -177,6 +178,9 @@ class ModulesImpl {
     }
     get NATS() {
         return container.get<Client>('NATS');
+    }
+    get Contacts() {
+        return container.get(ContactsModule);
     }
 }
 

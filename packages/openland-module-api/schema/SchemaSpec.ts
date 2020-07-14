@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '82c104588448516cfe92fbff64c8213d';
+export const GQL_SPEC_VERSION = '51b1b58e7f02523418dfecc8eb4026da';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1803,6 +1803,18 @@ export namespace GQL {
     export interface LocalMediaStateSendVideoArgs { }
     export interface LocalMediaStateSendAudioArgs { }
     export interface LocalMediaStateSendScreencastArgs { }
+    export interface Contact {
+        id: string;
+        user: User;
+    }
+    export interface ContactIdArgs { }
+    export interface ContactUserArgs { }
+    export interface ContactConnection {
+        items: Contact[];
+        cursor: Nullable<string>;
+    }
+    export interface ContactConnectionItemsArgs { }
+    export interface ContactConnectionCursorArgs { }
     export interface DialogUpdateSingle {
         seq: number;
         state: string;
@@ -2307,6 +2319,8 @@ export namespace GQL {
         mediaStreamAnswer: ConferenceMedia;
         mediaStreamCandidate: ConferenceMedia;
         mediaStreamFailed: ConferenceMedia;
+        addToContacts: boolean;
+        removeFromContacts: boolean;
         setEnvVar: boolean;
         setEnvVarString: boolean;
         setEnvVarNumber: boolean;
@@ -3085,6 +3099,12 @@ export namespace GQL {
     export interface MutationMediaStreamFailedArgs {
         id: string;
         peerId: string;
+    }
+    export interface MutationAddToContactsArgs {
+        userId: string;
+    }
+    export interface MutationRemoveFromContactsArgs {
+        userId: string;
     }
     export interface MutationSetEnvVarArgs {
         name: string;
@@ -4117,6 +4137,8 @@ export namespace GQL {
         comments: CommentsPeer;
         conference: Conference;
         conferenceMedia: ConferenceMedia;
+        myContacts: ContactConnection;
+        myContactsSearch: UserConnection;
         dialogsState: DialogUpdateState;
         envVars: Nullable<EnvVar[]>;
         envVar: Nullable<EnvVar>;
@@ -4399,6 +4421,16 @@ export namespace GQL {
     export interface QueryConferenceMediaArgs {
         id: string;
         peerId: string;
+    }
+    export interface QueryMyContactsArgs {
+        first: number;
+        after: OptionalNullable<string>;
+    }
+    export interface QueryMyContactsSearchArgs {
+        query: OptionalNullable<string>;
+        first: number;
+        after: OptionalNullable<string>;
+        page: OptionalNullable<number>;
     }
     export interface QueryDialogsStateArgs { }
     export interface QueryEnvVarsArgs { }
@@ -5018,6 +5050,7 @@ export namespace GQL {
         organizations: Organization[];
         primaryOrganization: Nullable<Organization>;
         alphaPrimaryOrganization: Nullable<Organization>;
+        inContacts: boolean;
         badges: UserBadge[];
         primaryBadge: Nullable<UserBadge>;
         shortname: Nullable<string>;
@@ -5055,6 +5088,7 @@ export namespace GQL {
     export interface UserOrganizationsArgs { }
     export interface UserPrimaryOrganizationArgs { }
     export interface UserAlphaPrimaryOrganizationArgs { }
+    export interface UserInContactsArgs { }
     export interface UserBadgesArgs { }
     export interface UserPrimaryBadgeArgs { }
     export interface UserShortnameArgs { }
@@ -7941,6 +7975,28 @@ export interface GQLResolver {
             sendScreencast: GQL.LocalMediaStateSendScreencastArgs,
         }
     >;
+    Contact?: ComplexTypedResolver<
+        GQL.Contact,
+        GQLRoots.ContactRoot,
+        {
+            user: GQLRoots.UserRoot,
+        },
+        {
+            id: GQL.ContactIdArgs,
+            user: GQL.ContactUserArgs,
+        }
+    >;
+    ContactConnection?: ComplexTypedResolver<
+        GQL.ContactConnection,
+        GQLRoots.ContactConnectionRoot,
+        {
+            items: GQLRoots.ContactRoot[],
+        },
+        {
+            items: GQL.ContactConnectionItemsArgs,
+            cursor: GQL.ContactConnectionCursorArgs,
+        }
+    >;
     DialogUpdateSingle?: ComplexTypedResolver<
         GQL.DialogUpdateSingle,
         GQLRoots.DialogUpdateSingleRoot,
@@ -8691,6 +8747,8 @@ export interface GQLResolver {
             mediaStreamAnswer: GQL.MutationMediaStreamAnswerArgs,
             mediaStreamCandidate: GQL.MutationMediaStreamCandidateArgs,
             mediaStreamFailed: GQL.MutationMediaStreamFailedArgs,
+            addToContacts: GQL.MutationAddToContactsArgs,
+            removeFromContacts: GQL.MutationRemoveFromContactsArgs,
             setEnvVar: GQL.MutationSetEnvVarArgs,
             setEnvVarString: GQL.MutationSetEnvVarStringArgs,
             setEnvVarNumber: GQL.MutationSetEnvVarNumberArgs,
@@ -9386,6 +9444,8 @@ export interface GQLResolver {
             comments: GQLRoots.CommentsPeerRoot,
             conference: GQLRoots.ConferenceRoot,
             conferenceMedia: GQLRoots.ConferenceMediaRoot,
+            myContacts: GQLRoots.ContactConnectionRoot,
+            myContactsSearch: GQLRoots.UserConnectionRoot,
             dialogsState: GQLRoots.DialogUpdateStateRoot,
             envVars: Nullable<GQLRoots.EnvVarRoot[]>,
             envVar: Nullable<GQLRoots.EnvVarRoot>,
@@ -9553,6 +9613,8 @@ export interface GQLResolver {
             comments: GQL.QueryCommentsArgs,
             conference: GQL.QueryConferenceArgs,
             conferenceMedia: GQL.QueryConferenceMediaArgs,
+            myContacts: GQL.QueryMyContactsArgs,
+            myContactsSearch: GQL.QueryMyContactsSearchArgs,
             dialogsState: GQL.QueryDialogsStateArgs,
             envVars: GQL.QueryEnvVarsArgs,
             envVar: GQL.QueryEnvVarArgs,
@@ -9934,6 +9996,7 @@ export interface GQLResolver {
             organizations: GQL.UserOrganizationsArgs,
             primaryOrganization: GQL.UserPrimaryOrganizationArgs,
             alphaPrimaryOrganization: GQL.UserAlphaPrimaryOrganizationArgs,
+            inContacts: GQL.UserInContactsArgs,
             badges: GQL.UserBadgesArgs,
             primaryBadge: GQL.UserPrimaryBadgeArgs,
             shortname: GQL.UserShortnameArgs,
