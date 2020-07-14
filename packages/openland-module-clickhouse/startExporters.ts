@@ -186,7 +186,7 @@ const presencesModern = table('presences_modern', schema({
     platform: integer('UInt8') // 0 - undefined, 1 - web, 2 - ios, 3 - android, 4 - desktop
 }), { partition: 'toYYYYMM(date)', orderBy: '(date, uid)', primaryKey: '(date, uid)' });
 function startModernPresenceExport(client: DatabaseClient) {
-    subspaceReader<Buffer>('presence_log_reader', 2, 1000, Store.PresenceLogDirectory.withKeyEncoding(encoders.tuple), async (values, first, ctx) => {
+    subspaceReader<Buffer>('presence_log_reader', 3, 1000, Store.PresenceLogDirectory.withKeyEncoding(encoders.tuple), async (values, first, ctx) => {
         let src = values.map(a => ({ date: a.key[0] as number, uid: a.key[1] as number, platform: a.key[2] as number || 0 }));
         await presencesModern.insert(ctx, client, src);
         return Math.round((Date.now() - src[src.length - 1].date) / 1000);
