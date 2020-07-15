@@ -170,7 +170,7 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
 export function createPushWorker(repo: PushRepository) {
     let queue = new WorkQueue<Push>('push_sender');
     if (serverRoleEnabled('workers')) {
-        for (let i = 0; i < 40; i++) {
+        for (let i = 0; i < 100; i++) {
             queue.addWorker(async (args, parent) => {
                 return tracer.trace(withReadOnlyTransaction(parent), 'sorting', async (ctx) => {
                     await handlePush(ctx, repo, args);

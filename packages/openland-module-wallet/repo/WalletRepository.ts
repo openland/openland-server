@@ -42,7 +42,7 @@ export class WalletRepository {
             this.store.UserWalletUpdates.post(ctx, uid, WalletLockedChanged.create({ isLocked, failingPaymentsCount }));
             if (oldState !== isLocked) {
                 if (isLocked) {
-                    await Modules.Push.pushWork(ctx, [{
+                    await Modules.Push.pushWork(ctx, {
                         uid: uid,
                         counter: null,
                         conversationId: null,
@@ -55,7 +55,7 @@ export class WalletRepository {
                         body: 'A payment for some of your recent purchases or subscriptions has recently failed. Please update your payment method to keep your paid group memberships.',
                         mobileAlert: true,
                         mobileIncludeText: true
-                    }]);
+                    });
 
                     await Emails.sendGenericEmail(ctx, uid, {
                         title: 'Transaction failed',

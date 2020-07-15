@@ -1,5 +1,6 @@
 import { Store } from 'openland-module-db/FDB';
 import { MetricFactory } from './MetricFactory';
+import { Modules } from '../openland-modules/Modules';
 
 export const Factory = new MetricFactory();
 
@@ -100,5 +101,7 @@ export const Metrics = {
     }),
 
     // Push
-    UnreadUsers: Factory.createMachineGauge('unread_users', 'Unread users count')
+    UnreadUsers: Factory.createPersistedGauge('unread_users', 'Unread users count', async (ctx) => {
+        return (await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push')).length;
+    })
 };

@@ -1,4 +1,3 @@
-import { Events } from 'openland-module-hyperlog/Events';
 import { inTx } from '@openland/foundationdb';
 import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
@@ -11,9 +10,6 @@ import { Context, createNamedContext } from '@openland/context';
 import { eventsFind } from '../../openland-module-db/eventsFind';
 import { UserDialogMessageReceivedEvent, UserSettings } from '../../openland-module-db/store';
 import { batch } from '../../openland-utils/batch';
-import { createTracer } from '../../openland-log/createTracer';
-import { Push } from '../../openland-module-push/workers/types';
-import { Metrics } from '../../openland-module-monitoring/Metrics';
 
 // const Delays = {
 //     'none': 10 * 1000,
@@ -23,7 +19,6 @@ import { Metrics } from '../../openland-module-monitoring/Metrics';
 
 const log = createLogger('push');
 const rootCtx = createNamedContext('push');
-const trace = createTracer('delivery');
 
 export const shouldIgnoreUser = (ctx: Context, user: {
     lastSeen: 'online' | 'never_online' | number,
@@ -69,8 +64,7 @@ export const shouldIgnoreUser = (ctx: Context, user: {
     return false;
 };
 
-const handleMessage = async (parent: Context, uid: number, unreadCounter: number, settings: UserSettings, event: UserDialogMessageReceivedEvent) =>
-    trace.trace(parent, 'handle_message', async (ctx: Context) => {
+const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, settings: UserSettings, event: UserDialogMessageReceivedEvent) => {
     log.log(ctx, 'handle message', event.mid);
 
     let [
@@ -166,11 +160,11 @@ const handleMessage = async (parent: Context, uid: number, unreadCounter: number
     }
 
     log.debug(ctx, 'new_push', JSON.stringify(push));
-    // await Modules.Push.pushWork(ctx, push);
-    return push;
-});
+    await Modules.Push.pushWork(ctx, push);
+    return true;
+};
 
-const handleUser = async (parent: Context, uid: number) => trace.trace(parent, 'handle_user', async (root) => {
+const handleUser = async (root: Context, uid: number) =>  {
     let ctx = withLogPath(root, 'user ' + uid);
 
     // Loading user's settings and state
@@ -197,21 +191,22 @@ const handleUser = async (parent: Context, uid: number) => trace.trace(parent, '
         await Modules.Push.sendCounterPush(ctx, uid);
         Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
         state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
-        return [];
+        return;
     }
 
     let [updates, unreadCounter] = await Promise.all([
-        eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: state.lastPushCursor || '' }),
+        eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: state.lastPushCursor || '', limit: 25 }),
         Modules.Messaging.fetchUserGlobalCounter(ctx, uid)
     ]);
 
-    let messages = updates.items.filter(e => e.event instanceof UserDialogMessageReceivedEvent).map(e => e.event as UserDialogMessageReceivedEvent);
-    log.log(ctx, messages.length, 'messages found');
+    let messages = updates.items
+        .filter(e => e.event instanceof UserDialogMessageReceivedEvent)
+        .map(e => e.event as UserDialogMessageReceivedEvent);
 
+    log.log(ctx, messages.length, 'messages found');
     // Handling unread messages
     let res = await Promise.all(messages.map(m => handleMessage(ctx, uid, unreadCounter, settings, m)));
-    let pushes: Push[] = res.filter(r => r !== false) as Push[];
-    let hasPush = res.some(v => v !== false);
+    let hasPush = res.some(v => v === true);
 
     // Save state
     if (hasPush) {
@@ -222,44 +217,56 @@ const handleUser = async (parent: Context, uid: number) => trace.trace(parent, '
     }
 
     state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
-    Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
-    return pushes;
-});
+    if (!updates.haveMore) {
+        Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+    }
+};
 
-export function startPushNotificationWorker() {
+async function handleUsersSlice(parent: Context, fromUid: number, toUid: number) {
+    let unreadUsers = await inTx(parent, async (ctx) => await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push'));
+    unreadUsers = unreadUsers.filter(uid => (uid >= fromUid) && (uid <= toUid));
+
+    if (unreadUsers.length > 0) {
+        log.debug(parent, 'unread users: ' + unreadUsers.length, JSON.stringify(unreadUsers));
+    } else {
+        return;
+    }
+    log.log(parent, 'found', unreadUsers.length, 'users');
+
+    let batches = batch(unreadUsers.slice(0, 1000), 20);
+
+    for (let b of batches) {
+        try {
+            await inTx(rootCtx, async ctx => {
+                await Promise.all(b.map(uid => handleUser(ctx, uid)));
+            });
+        } catch (e) {
+            log.log(rootCtx, 'push_error', e);
+        }
+    }
+}
+
+function createWorker(fromUid: number, toUid: number) {
     singletonWorker({
-        name: 'push_notifications',
-        delay: 3000,
+        name: `push_notifications_${fromUid}_${toUid}`,
+        delay: 1000,
         startDelay: 3000,
         db: Store.storage.db
     }, async (parent) => {
-        let startTime = Date.now();
-        let unreadUsers = await inTx(parent, async (ctx) => await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push'));
-        Metrics.UnreadUsers.set(unreadUsers.length);
-        if (unreadUsers.length > 0) {
-            log.debug(parent, 'unread users: ' + unreadUsers.length, JSON.stringify(unreadUsers));
-        } else {
-            return;
-        }
-        log.log(parent, 'found', unreadUsers.length, 'users');
-
-        let batches = batch(unreadUsers, 10);
-
-        for (let b of batches) {
-            try {
-                await trace.trace(rootCtx, 'handle_batch', async (root) => {
-                    await inTx(root, async ctx => {
-                        let res = await Promise.all(b.map(uid => handleUser(ctx, uid)));
-                        await Modules.Push.pushWork(ctx, res.flat());
-                    });
-                });
-            } catch (e) {
-                log.log(rootCtx, 'push_error', e);
-            }
-        }
-
-        await inTx(parent, async ctx => {
-            Events.MessageNotificationsHandled.event(ctx, { usersCount: unreadUsers.length, duration: Date.now() - startTime });
-        });
+        await handleUsersSlice(parent, fromUid, toUid);
     });
+}
+
+// 25k users
+
+const TOTAL_USERS = 25000;
+const USERS_PER_WORKER = 2000;
+
+export function startPushNotificationWorker() {
+    for (let i = 0; i <= TOTAL_USERS; i += USERS_PER_WORKER) {
+        let fromUid = i;
+        let toUid = i + USERS_PER_WORKER - 1;
+
+        createWorker(fromUid, toUid);
+    }
 }
