@@ -83,7 +83,7 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
     }
 
     // Ignore old messages in case of some lags on our side
-    if (Date.now() - message.metadata.createdAt > 1000 * 60 * 60) {
+    if (Date.now() - message.metadata.createdAt > 1000 * 60 * 60 * 24) {
         return false;
     }
 
