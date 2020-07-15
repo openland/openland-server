@@ -12,7 +12,6 @@ import { eventsFind } from '../../openland-module-db/eventsFind';
 import { UserDialogMessageReceivedEvent, UserSettings } from '../../openland-module-db/store';
 import { batch } from '../../openland-utils/batch';
 import { createTracer } from '../../openland-log/createTracer';
-import { Push } from '../../openland-module-push/workers/types';
 
 // const Delays = {
 //     'none': 10 * 1000,
@@ -165,8 +164,8 @@ const handleMessage = async (parent: Context, uid: number, unreadCounter: number
     }
 
     log.debug(ctx, 'new_push', JSON.stringify(push));
-    // await Modules.Push.pushWork(ctx, push);
-    return push;
+    await Modules.Push.pushWork(ctx, push);
+    return true;
 });
 
 const handleUser = async (parent: Context, uid: number) => trace.trace(parent, 'handle_user', async (root) => {
@@ -196,7 +195,7 @@ const handleUser = async (parent: Context, uid: number) => trace.trace(parent, '
         await Modules.Push.sendCounterPush(ctx, uid);
         Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
         state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
-        return [];
+        return;
     }
 
     let [updates, unreadCounter] = await Promise.all([
@@ -209,8 +208,7 @@ const handleUser = async (parent: Context, uid: number) => trace.trace(parent, '
 
     // Handling unread messages
     let res = await Promise.all(messages.map(m => handleMessage(ctx, uid, unreadCounter, settings, m)));
-    let pushes: Push[] = res.filter(r => r !== false) as Push[];
-    let hasPush = res.some(v => v !== false);
+    let hasPush = res.some(v => v === true);
 
     // Save state
     if (hasPush) {
@@ -222,7 +220,6 @@ const handleUser = async (parent: Context, uid: number) => trace.trace(parent, '
 
     state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
     Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
-    return pushes;
 });
 
 export function startPushNotificationWorker() {
@@ -241,14 +238,13 @@ export function startPushNotificationWorker() {
         }
         log.log(parent, 'found', unreadUsers.length, 'users');
 
-        let batches = batch(unreadUsers, 1);
+        let batches = batch(unreadUsers, 10);
 
         for (let b of batches) {
             try {
                 await trace.trace(rootCtx, 'handle_batch', async (root) => {
                     await inTx(root, async ctx => {
-                        let res = await Promise.all(b.map(uid => handleUser(ctx, uid)));
-                        await Modules.Push.pushWork(ctx, res.flat());
+                        await Promise.all(b.map(uid => handleUser(ctx, uid)));
                     });
                 });
             } catch (e) {

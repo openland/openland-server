@@ -197,7 +197,7 @@ export function startPushNotificationWorker() {
                         };
 
                         log.debug(ctx, 'new_push', JSON.stringify(push));
-                        await Modules.Push.worker.pushWork(ctx, [push]);
+                        await Modules.Push.worker.pushWork(ctx, push);
                     }
 
                     // Save state
