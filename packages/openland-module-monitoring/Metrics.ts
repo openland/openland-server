@@ -98,4 +98,7 @@ export const Metrics = {
     ModernPresenceEstimate: Factory.createPersistedGauge('modern_presence_estimate', 'Modern presence reindex estimate', async ctx => {
         return await Store.ReaderEstimate.byId('presence_log_reader').get(ctx);
     }),
+
+    // Push
+    UnreadUsers: Factory.createMachineGauge('unread_users', 'Unread users count')
 };

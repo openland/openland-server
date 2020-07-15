@@ -13,6 +13,7 @@ import { UserDialogMessageReceivedEvent, UserSettings } from '../../openland-mod
 import { batch } from '../../openland-utils/batch';
 import { createTracer } from '../../openland-log/createTracer';
 import { Push } from '../../openland-module-push/workers/types';
+import { Metrics } from '../../openland-module-monitoring/Metrics';
 
 // const Delays = {
 //     'none': 10 * 1000,
@@ -234,6 +235,7 @@ export function startPushNotificationWorker() {
     }, async (parent) => {
         let startTime = Date.now();
         let unreadUsers = await inTx(parent, async (ctx) => await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push'));
+        Metrics.UnreadUsers.set(unreadUsers.length);
         if (unreadUsers.length > 0) {
             log.debug(parent, 'unread users: ' + unreadUsers.length, JSON.stringify(unreadUsers));
         } else {
