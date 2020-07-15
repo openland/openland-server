@@ -238,7 +238,7 @@ export function startPushNotificationWorker() {
         }
         log.log(parent, 'found', unreadUsers.length, 'users');
 
-        let batches = batch(unreadUsers, 10);
+        let batches = batch(unreadUsers.slice(0, 1000), 10);
 
         for (let b of batches) {
             try {
