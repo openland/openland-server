@@ -92,9 +92,10 @@ export const Metrics = {
         }
         return 0;
     }),
-
-    // Service
     ModernPresenceIndexEstimate: Factory.createPersistedGauge('modern_presence_index_estimate', 'Modern presence reindex estimate', async ctx => {
         return await Store.ReaderEstimate.byId('reader-presences-old').get(ctx);
+    }),
+    ModernPresenceEstimate: Factory.createPersistedGauge('modern_presence_estimate', 'Modern presence reindex estimate', async ctx => {
+        return await Store.ReaderEstimate.byId('presence_log_reader').get(ctx);
     }),
 };

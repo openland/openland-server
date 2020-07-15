@@ -1,14 +1,27 @@
 import uuid from 'uuid/v4';
 import { Subscription, Client } from 'ts-nats';
 import { asyncRun } from 'openland-mtproto3/utils';
+import { debounce } from '../openland-utils/timer';
+import EventEmitter from 'events';
 
-export class RemoteTransport {
+//
+// TODO: Make Transport, Tunnel and separate Connections:
+// Transport is managing ONE subscription for machine and notifying tunnels about new messages
+// > transport should create tunnel if it recieves conn_neg event
+//
+// Tunnel is managing keep-alive events (watchdog) and counts how many connections are referenced
+// > if references count becomes 0 it should stop sending keep alives
+//
+// Connection is managing acks, nacks and sends messages through tunnel, it is like frontend for our transport
+// > connection should hold received and sent messages and count seq
+//
+// Connection is managing acks and nacks because it could fail some messages if there are many connections in tunnel
+//
+export class RemoteTransport extends EventEmitter {
     readonly id = uuid();
 
-    onMessage: ((body: any) => void) | undefined;
-    onClosed: (() => void) | undefined;
-
     private readonly keepAlive: number;
+    private readonly timeout: number;
     private readonly client: Client;
     private subscription: Subscription | null = null;
     private status: 'init' | 'started' | 'connected' | 'stopped' = 'init';
@@ -19,12 +32,15 @@ export class RemoteTransport {
 
     private sentSeq: number = -1;
     private keepAliveTimer: NodeJS.Timer | null = null;
-    private timeoutTimer: NodeJS.Timer | null = null;
+    private kickWatchDog: (() => void) | null = null;
     private remoteId: string | null = null;
     private sent = new Map<number, any>();
 
-    constructor(opts: { client: Client, keepAlive: number }) {
+    constructor(opts: { client: Client, keepAlive: number, timeout?: number }) {
+        super();
+
         this.keepAlive = opts.keepAlive;
+        this.timeout = opts.timeout || 5000;
         this.client = opts.client;
     }
 
@@ -33,18 +49,21 @@ export class RemoteTransport {
             throw Error('Already started');
         }
         this.status = 'started';
+        this.kickWatchDog = debounce(this.timeout, () => {
+            if (this.status === 'stopped') {
+                return;
+            }
+            this.notifyOnClosed();
+
+            this.stop();
+        });
+
         this.subscription = await this.client.subscribe(`streams.${this.id}`, (_, msg) => {
             if (!msg.data) {
                 return;
             }
-
-            // Reset timeout
-            this.timeoutTimer = setTimeout(() => {
-                if (this.onClosed) {
-                    this.onClosed();
-                }
-                this.stop();
-            }, 5000);
+            // kick watch dog
+            this.kickWatchDog!();
 
             if (msg.data.type === 'msg') {
                 let body = msg.data.body as any;
@@ -63,9 +82,12 @@ export class RemoteTransport {
                     }
                 }
             } else if (msg.data.type === 'ka') {
-                if (this.remoteId) {
-                    let seq = msg.data.seq as number;
-                    this.onReceivedSeq(seq);
+                // do nothing, used only for kicking watchdog
+            } else if (msg.data.type === 'ack') {
+                let seq = msg.data.seq as number;
+                let body = this.sent.get(seq);
+                if (body) {
+                    this.sent.delete(seq);
                 }
             } else if (msg.data.type === 'nack') {
                 let seq = msg.data.seq as number;
@@ -73,6 +95,10 @@ export class RemoteTransport {
                 if (body) {
                     this.client.publish(msg.reply!, { body, seq });
                 }
+            } else if (msg.data.type === 'stop') {
+                this.remoteId = null;
+                this.notifyOnClosed();
+                this.stop();
             }
         });
     }
@@ -105,9 +131,7 @@ export class RemoteTransport {
                         }
                         if (this.receivedSeq + 1 === seq) {
                             // Still not moved: Do abort
-                            if (this.onClosed) {
-                                this.onClosed();
-                            }
+                            this.notifyOnClosed();
                             this.stop();
                         }
                     }
@@ -124,16 +148,18 @@ export class RemoteTransport {
         this.startRetryTimerIfNeeded();
     }
 
-    private onReceived = (body: any) => {
-        if (this.onMessage) {
-            this.onMessage(body);
-        }
+    private onReceived = (seq: number, body: any) => {
+        this.notifyOnMessage(body);
+        this.client.publish(`streams.${this.remoteId}`, {
+            type: 'ack',
+            seq: seq
+        });
     }
 
     private handleMessage = (seq: number, body: any) => {
         if (this.receivedProcessedSeq + 1 === seq) {
             this.receivedProcessedSeq++;
-            this.onReceived(body);
+            this.onReceived(seq, body);
             this.flushIfNeeded();
             this.onAllPendingProcessed();
         } else if (this.receivedProcessedSeq + 1 < seq) {
@@ -148,12 +174,15 @@ export class RemoteTransport {
         while (this.received.has(this.receivedProcessedSeq + 1)) {
             let value = this.received.get(this.receivedProcessedSeq + 1)!;
             this.receivedProcessedSeq++;
-            this.onReceived(value);
+            this.onReceived(this.receivedProcessedSeq, value);
         }
     }
 
     connect(remoteId: string) {
-        if (this.status !== 'started') {
+        if (this.status === 'init' || this.status === 'stopped') {
+            throw Error('Not started');
+        }
+        if (this.status === 'connected') {
             throw Error('Already connected');
         }
         this.status = 'connected';
@@ -161,9 +190,8 @@ export class RemoteTransport {
 
         // Keep Alive
         this.keepAliveTimer = setInterval(() => {
-            this.client.publish(`streams.${remoteId}`, {
+            this.client.publish(`streams.${this.remoteId}`, {
                 type: 'ka',
-                seq: this.sentSeq
             });
         }, this.keepAlive);
 
@@ -178,13 +206,8 @@ export class RemoteTransport {
         // Handle retry timer
         this.onAllPendingProcessed();
 
-        // Timeout
-        this.timeoutTimer = setTimeout(() => {
-            if (this.onClosed) {
-                this.onClosed();
-            }
-            this.stop();
-        }, 5000);
+        // Kick keep-alive watchdog
+        this.kickWatchDog!();
     }
 
     send(body: any) {
@@ -224,9 +247,23 @@ export class RemoteTransport {
             clearTimeout(this.retryTimer);
             this.retryTimer = null;
         }
-        if (this.timeoutTimer) {
-            clearTimeout(this.timeoutTimer);
-            this.timeoutTimer = null;
-        }
+        this.removeAllListeners('closed');
+        this.removeAllListeners('message');
+    }
+
+    //
+    // Subscriptions
+    //
+    private notifyOnMessage(body: any) {
+        this.emit('message', body);
+    }
+    private notifyOnClosed() {
+        this.emit('closed');
+    }
+    onMessage(handler: (body: any) => void) {
+        this.on('message', handler);
+    }
+    onClosed(handler: () => void) {
+        this.on('closed', handler);
     }
 }
