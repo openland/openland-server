@@ -82,11 +82,6 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
         return false;
     }
 
-    // Ignore old messages in case of some lags on our side
-    if (Date.now() - message.metadata.createdAt > 1000 * 60 * 60 * 24) {
-        return false;
-    }
-
     // Ignore current user
     if (message.uid === uid) {
         log.debug(ctx, 'Ignore current user');
