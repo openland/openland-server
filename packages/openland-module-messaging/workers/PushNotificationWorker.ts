@@ -254,7 +254,7 @@ async function handleUsersSlice(parent: Context, fromUid: number, toUid: number)
 
 function createWorker(fromUid: number, toUid: number) {
     singletonWorker({
-        name: 'push_notifications',
+        name: `push_notifications_${fromUid}_${toUid}`,
         delay: 1000,
         startDelay: 3000,
         db: Store.storage.db
