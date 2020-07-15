@@ -228,31 +228,51 @@ const handleUser = async (root: Context, uid: number) =>  {
     }
 };
 
-export function startPushNotificationWorker() {
+async function handleUsersSlice(parent: Context, fromUid: number, toUid: number) {
+    let unreadUsers = await inTx(parent, async (ctx) => await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push'));
+    unreadUsers = unreadUsers.filter(uid => uid >= fromUid && uid <= toUid);
+
+    if (unreadUsers.length > 0) {
+        log.debug(parent, 'unread users: ' + unreadUsers.length, JSON.stringify(unreadUsers));
+    } else {
+        return;
+    }
+    log.log(parent, 'found', unreadUsers.length, 'users');
+
+    let batches = batch(unreadUsers.slice(0, 1000), 20);
+
+    for (let b of batches) {
+        try {
+            await inTx(rootCtx, async ctx => {
+                await Promise.all(b.map(uid => handleUser(ctx, uid)));
+            });
+        } catch (e) {
+            log.log(rootCtx, 'push_error', e);
+        }
+    }
+}
+
+function createWorker(fromUid: number, toUid: number) {
     singletonWorker({
         name: 'push_notifications',
-        delay: 3000,
+        delay: 1000,
         startDelay: 3000,
         db: Store.storage.db
     }, async (parent) => {
-        let unreadUsers = await inTx(parent, async (ctx) => await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push'));
-        if (unreadUsers.length > 0) {
-            log.debug(parent, 'unread users: ' + unreadUsers.length, JSON.stringify(unreadUsers));
-        } else {
-            return;
-        }
-        log.log(parent, 'found', unreadUsers.length, 'users');
-
-        let batches = batch(unreadUsers.slice(0, 1000), 20);
-
-        for (let b of batches) {
-            try {
-                await inTx(rootCtx, async ctx => {
-                    await Promise.all(b.map(uid => handleUser(ctx, uid)));
-                });
-            } catch (e) {
-                log.log(rootCtx, 'push_error', e);
-            }
-        }
+        await handleUsersSlice(parent, fromUid, toUid);
     });
+}
+
+// 25k users
+
+const TOTAL_USERS = 25000;
+const USERS_PER_WORKER = 2000;
+
+export function startPushNotificationWorker() {
+    for (let i = 0; i <= TOTAL_USERS; i += USERS_PER_WORKER) {
+        let fromUid = i;
+        let toUid = i + USERS_PER_WORKER - 1;
+
+        createWorker(fromUid, toUid);
+    }
 }
