@@ -187,7 +187,7 @@ export function createPushWorkerParallel(repo: PushRepository) {
         return queue;
     }
 
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 1000; i++) {
         queue.addWorker(async (args, parent) => {
             return tracer.trace(withReadOnlyTransaction(parent), 'sorting', async (ctx) => {
                 await Promise.all(args.map(p => handlePush(ctx, repo, p)));
