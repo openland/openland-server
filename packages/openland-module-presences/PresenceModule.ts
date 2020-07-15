@@ -89,7 +89,7 @@ export class PresenceModule {
                 ex.active = active;
                 await ex.flush(ctx);
             } else {
-                await Store.Presence.create(ctx, uid, tid, { lastSeen: Date.now(), lastSeenTimeout: timeout, platform, active });
+                ex = await Store.Presence.create(ctx, uid, tid, { lastSeen: Date.now(), lastSeenTimeout: timeout, platform, active });
             }
 
             let online = await Store.Online.findById(ctx, uid);
@@ -109,9 +109,9 @@ export class PresenceModule {
                 online.activeExpires = expires;
                 await online.flush(ctx);
             }
-
-            this.logging.logOnline(ctx, Date.now(), uid, detectPlatform(platform));
-            Events.PresenceEvent.event(ctx, { uid, platform, online: true });
+            if (ex.active) {
+                this.logging.logOnline(ctx, Date.now(), uid, detectPlatform(platform));
+            }
             // this.onlines.set(uid, { lastSeen: expires, active: (online ? online.active : active) || false });
             let event = {
                 userId: uid,
