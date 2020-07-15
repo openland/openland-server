@@ -206,8 +206,7 @@ const handleUser = async (root: Context, uid: number) =>  {
 
     let messages = updates.items
         .filter(e => e.event instanceof UserDialogMessageReceivedEvent)
-        .map(e => e.event as UserDialogMessageReceivedEvent)
-        .filter(e => e.uid !== uid);
+        .map(e => e.event as UserDialogMessageReceivedEvent);
 
     log.log(ctx, messages.length, 'messages found');
     // Handling unread messages
@@ -230,7 +229,7 @@ const handleUser = async (root: Context, uid: number) =>  {
 
 async function handleUsersSlice(parent: Context, fromUid: number, toUid: number) {
     let unreadUsers = await inTx(parent, async (ctx) => await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push'));
-    unreadUsers = unreadUsers.filter(uid => uid >= fromUid && uid <= toUid);
+    unreadUsers = unreadUsers.filter(uid => (uid >= fromUid) && (uid <= toUid));
 
     if (unreadUsers.length > 0) {
         log.debug(parent, 'unread users: ' + unreadUsers.length, JSON.stringify(unreadUsers));
