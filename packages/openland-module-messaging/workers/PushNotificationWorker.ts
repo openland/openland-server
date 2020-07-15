@@ -199,7 +199,7 @@ const handleUser = async (parent: Context, uid: number) => trace.trace(parent, '
     }
 
     let [updates, unreadCounter] = await Promise.all([
-        eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: state.lastPushCursor || '' }),
+        eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: state.lastPushCursor || '', limit: 25 }),
         Modules.Messaging.fetchUserGlobalCounter(ctx, uid)
     ]);
 
@@ -219,7 +219,9 @@ const handleUser = async (parent: Context, uid: number) => trace.trace(parent, '
     }
 
     state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
-    Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+    if (!updates.haveMore) {
+        Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
+    }
 });
 
 export function startPushNotificationWorker() {
