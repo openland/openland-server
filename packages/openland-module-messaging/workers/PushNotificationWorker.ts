@@ -1,4 +1,3 @@
-import { Events } from 'openland-module-hyperlog/Events';
 import { inTx } from '@openland/foundationdb';
 import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
@@ -231,7 +230,6 @@ export function startPushNotificationWorker() {
         startDelay: 3000,
         db: Store.storage.db
     }, async (parent) => {
-        let startTime = Date.now();
         let unreadUsers = await inTx(parent, async (ctx) => await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push'));
         if (unreadUsers.length > 0) {
             log.debug(parent, 'unread users: ' + unreadUsers.length, JSON.stringify(unreadUsers));
@@ -253,9 +251,5 @@ export function startPushNotificationWorker() {
                 log.log(rootCtx, 'push_error', e);
             }
         }
-
-        await inTx(parent, async ctx => {
-            Events.MessageNotificationsHandled.event(ctx, { usersCount: unreadUsers.length, duration: Date.now() - startTime });
-        });
     });
 }
