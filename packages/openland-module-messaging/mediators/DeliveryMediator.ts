@@ -35,7 +35,7 @@ export class DeliveryMediator {
 
     start = () => {
         if (serverRoleEnabled('delivery')) {
-            for (let i = 0; i < 25; i++) {
+            for (let i = 0; i < 100; i++) {
                 this.queue.addWorker(async (item, parent) => {
                     // const start = currentRunningTime();
                     if (item.action === 'new' || item.action === undefined) {
@@ -50,7 +50,7 @@ export class DeliveryMediator {
                     // deliveryInitialMetric.add(parent, currentRunningTime() - start);
                 });
             }
-            for (let i = 0; i < 25; i++) {
+            for (let i = 0; i < 100; i++) {
                 this.queueUserMultiple.addWorker(async (item, parent) => {
                     // const start = currentRunningTime();
                     await tracer.trace(parent, 'deliver-multiple', async (ctx2) => {
