@@ -516,7 +516,7 @@ export class RoomMediator {
                 throw new Error('User is not member of a room');
             }
 
-            let canChangeRole = p.role === 'admin' || p.role === 'owner';
+            let canChangeRole = await Modules.Messaging.room.userHaveAdminPermissionsInRoom(ctx, uid, cid);
 
             if (!canChangeRole) {
                 throw new AccessDeniedError();
