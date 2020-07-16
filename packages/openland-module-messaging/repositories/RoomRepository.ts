@@ -438,12 +438,13 @@ export class RoomRepository {
             let prevOrg = room.oid;
 
             room.oid = toOrg;
+            room.kind = 'public';
             await room.flush(ctx);
 
             // Reindex
             await Modules.Orgs.markForUndexing(ctx, toOrg);
             if (prevOrg) {
-                await Modules.Orgs.markForUndexing(ctx, toOrg);
+                await Modules.Orgs.markForUndexing(ctx, prevOrg);
             }
             let profile = await Store.RoomProfile.findById(ctx, cid);
             profile!.invalidate();
