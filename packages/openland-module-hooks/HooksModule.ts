@@ -231,18 +231,27 @@ export class HooksModule {
 
         await Modules.Feed.onAutoSubscriptionPeerNewMember(ctx, uid, 'room', cid);
 
+        // TODO: make feature
+        let autoSubscribe = async (cids: number[]) => {
+            for (let c of cids) {
+                let conv = await Store.ConversationRoom.findById(ctx, c);
+                if (!conv) {
+                    continue;
+                }
+                await Modules.Messaging.room.joinRoom(ctx, c, uid);
+            }
+        };
         /*
          * Hack for mesto.community
          */
         if (cid === 88912) {
             let mestoDefaultChatIds = [88914, 88910, 88908, 89740, 91565, 99729, 89805, 111097];
-            for (let mestoCid of mestoDefaultChatIds) {
-                let conv = await Store.ConversationRoom.findById(ctx, mestoCid);
-                if (!conv) {
-                    continue;
-                }
-                await Modules.Messaging.room.joinRoom(ctx, mestoCid, uid);
-            }
+            await autoSubscribe(mestoDefaultChatIds);
+        }
+
+        if (cid === 97587) {
+            let superNextDefaultChatIds = [213793, 213797];
+            await autoSubscribe(superNextDefaultChatIds);
         }
     }
 
