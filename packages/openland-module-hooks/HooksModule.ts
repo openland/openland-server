@@ -249,8 +249,8 @@ export class HooksModule {
             await autoSubscribe(mestoDefaultChatIds);
         }
 
-        if (cid === 97587) {
-            let superNextDefaultChatIds = [213793, 213797];
+        if (cid === 213797) {
+            let superNextDefaultChatIds = [213793, 97587];
             await autoSubscribe(superNextDefaultChatIds);
         }
     }
