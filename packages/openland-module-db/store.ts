@@ -20323,7 +20323,7 @@ export class ContactFactory extends EntityFactory<ContactShape, Contact> {
     static async open(storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory('contact');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('contact', 'user'), condition: (item) => item.state === 'active' });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('contact', 'user'), condition: (item) => item.state === 'active' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
         primaryKeys.push({ name: 'contactUid', type: 'integer' });
