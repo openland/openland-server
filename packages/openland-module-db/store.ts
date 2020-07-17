@@ -20312,6 +20312,10 @@ export class Contact extends Entity<ContactShape> {
             this.invalidate();
         }
     }
+
+    delete(ctx: Context) {
+        return this._delete(ctx);
+    }
 }
 
 export class ContactFactory extends EntityFactory<ContactShape, Contact> {
@@ -20333,7 +20337,7 @@ export class ContactFactory extends EntityFactory<ContactShape, Contact> {
         let descriptor: EntityDescriptor<ContactShape> = {
             name: 'Contact',
             storageKey: 'contact',
-            allowDelete: false,
+            allowDelete: true,
             subspace, codec, secondaryIndexes, storage, primaryKeys, fields
         };
         return new ContactFactory(descriptor);

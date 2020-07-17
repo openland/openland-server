@@ -1758,7 +1758,16 @@ export const Resolver: GQLResolver = {
                 return 'ok';
             });
             return true;
-        })
+        }),
+        debugDeleteAllContacts: withPermission('super-admin', async (parent, args) => {
+            await inTx(parent, async ctx => {
+                let contacts = await Store.Contact.findAll(ctx);
+                for (let c of contacts) {
+                    await c.delete(ctx);
+                }
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {

@@ -1,4 +1,12 @@
-import { entity, enumString, field, integer, primaryKey, rangeIndex } from '@openland/foundationdb-compiler';
+import {
+    allowDelete,
+    entity,
+    enumString,
+    field,
+    integer,
+    primaryKey,
+    rangeIndex
+} from '@openland/foundationdb-compiler';
 
 export function contactsStore() {
     entity('Contact', () => {
@@ -7,5 +15,7 @@ export function contactsStore() {
         field('state', enumString('active', 'deleted'));
 
         rangeIndex('user', ['uid', 'updatedAt']).withCondition((item) => item.state === 'active');
+
+        allowDelete();
     });
 }
