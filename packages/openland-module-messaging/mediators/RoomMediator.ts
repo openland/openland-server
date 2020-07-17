@@ -506,17 +506,12 @@ export class RoomMediator {
 
     async updateMemberRole(parent: Context, cid: number, uid: number, updatedUid: number, role: 'admin' | 'owner' | 'member') {
         return await inTx(parent, async (ctx) => {
-            let p = await Store.RoomParticipant.findById(ctx, cid, uid);
-            if (!p || p.status !== 'joined') {
-                throw new Error('User is not member of a room');
-            }
-
             let p2 = await Store.RoomParticipant.findById(ctx, cid, updatedUid);
             if (!p2 || p2.status !== 'joined') {
                 throw new Error('User is not member of a room');
             }
 
-            let canChangeRole = p.role === 'admin' || p.role === 'owner';
+            let canChangeRole = await Modules.Messaging.room.userHaveAdminPermissionsInRoom(ctx, uid, cid);
 
             if (!canChangeRole) {
                 throw new AccessDeniedError();
