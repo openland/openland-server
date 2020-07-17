@@ -6,16 +6,11 @@ import { Context } from '@openland/context';
 const tracer = createTracer('user-search');
 // const log = createLogger('user-search');
 
-type UserSearchQueryOptions = { uid?: number, byName?: boolean, uids?: number[] };
+type UserSearchQueryOptions = { uid?: number, byName?: boolean, uids?: number[], hashtags?: string[] };
 type UserSearchOptions = UserSearchQueryOptions & { limit?: number, after?: string, page?: number };
-let hashtagRegex = /#[\w]+/g;
 export class UserSearch {
     async buildUsersQuery(ctx: Context, query: string, options?: UserSearchQueryOptions) {
         let normalized = query.trim();
-        let hashtags = normalized.match(hashtagRegex);
-        if (hashtags) {
-            normalized = normalized.replace(hashtagRegex, '');
-        }
 
         let shouldClauses = [];
         if (normalized.length > 0) {
@@ -24,8 +19,8 @@ export class UserSearch {
                 { match_phrase_prefix: { shortName: query } }
                 );
         }
-        if (hashtags) {
-            shouldClauses.push({ match_phrase: { about: { query: hashtags.join(' '), boost: 0.7 } } });
+        if (options?.hashtags) {
+            shouldClauses.push({ match_phrase: { about: { query: options.hashtags.join(' '), boost: 0.7 } } });
         }
 
         let mainQuery: any = {
@@ -108,7 +103,7 @@ export class UserSearch {
                 return {
                     uids,
                     total: (hits.hits.total as any).value,
-                    hits
+                    hits: hits.hits
                 };
             });
         });
