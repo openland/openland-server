@@ -14,7 +14,7 @@ export function contactsStore() {
         primaryKey('contactUid', integer());
         field('state', enumString('active', 'deleted'));
 
-        rangeIndex('user', ['uid', 'updatedAt']).withCondition((item) => item.state === 'active');
+        rangeIndex('user', ['uid', 'createdAt']).withCondition((item) => item.state === 'active');
 
         allowDelete();
     });
