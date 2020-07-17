@@ -63,6 +63,15 @@ export const Resolver: GQLResolver = {
             }
 
             let searchPromises: Promise<{ hits: { hits: any[] } }>[] = [];
+
+            if (query.length > 0 || hashtags) {
+                //
+                // Users
+                //
+                let usersHitsPromise = Modules.Users.searchForUsers(ctx, query, {byName: false, limit: 10, uid, hashtags: hashtags || undefined });
+                searchPromises.push(usersHitsPromise);
+            }
+
             if (query.length > 0 && !hashtags) {
                 //
                 // Organizations
@@ -169,14 +178,6 @@ export const Resolver: GQLResolver = {
                     },
                 });
                 searchPromises.push(orgRoomHitsPromise);
-            }
-
-            if (query.length > 0 || hashtags) {
-                //
-                // Users
-                //
-                let usersHitsPromise = Modules.Users.searchForUsers(ctx, query, {byName: false, limit: 10, uid, hashtags: hashtags || undefined });
-                searchPromises.push(usersHitsPromise);
             }
 
             let searchResults = await Promise.all(searchPromises);
