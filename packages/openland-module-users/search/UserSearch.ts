@@ -8,9 +8,25 @@ const tracer = createTracer('user-search');
 
 type UserSearchQueryOptions = { uid?: number, byName?: boolean, uids?: number[] };
 type UserSearchOptions = UserSearchQueryOptions & { limit?: number, after?: string, page?: number };
+let hashtagRegex = /#[\w]+/g;
 export class UserSearch {
     async buildUsersQuery(ctx: Context, query: string, options?: UserSearchQueryOptions) {
         let normalized = query.trim();
+        let hashtags = normalized.match(hashtagRegex);
+        if (hashtags) {
+            normalized = normalized.replace(hashtagRegex, '');
+        }
+
+        let shouldClauses = [];
+        if (normalized.length > 0) {
+            shouldClauses.push(
+                { match_phrase_prefix: options && options.byName ? { name: query } : { search: query } },
+                { match_phrase_prefix: { shortName: query } }
+                );
+        }
+        if (hashtags) {
+            shouldClauses.push({ match_phrase: { about: { query: hashtags.join(' '), boost: 0.7 } } });
+        }
 
         let mainQuery: any = {
             bool: {
@@ -19,11 +35,7 @@ export class UserSearch {
                     { match: { status: 'activated' } },
                     {
                         bool: {
-                            should: normalized.length > 0 ? [
-                                { match_phrase_prefix: options && options.byName ? { name: query } : { search: query } },
-                                { match_phrase_prefix: { shortName: query } },
-                                // { match: { about: { query, boost: 0.7 } } },
-                            ] : []
+                            should: shouldClauses
                         }
                     }
                 ]

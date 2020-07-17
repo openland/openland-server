@@ -3,10 +3,12 @@ import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexe
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from '@openland/foundationdb';
 
+let hashtagRegex = /#[\w]+/g;
+
 export function userProfileIndexer() {
     declareSearchIndexer({
         name: 'user-profile-index',
-        version: 18,
+        version: 19,
         index: 'user_profile',
         stream: Store.UserIndexingQueue.updated.stream({ batchSize: 50 })
     }).withProperties({
@@ -103,6 +105,14 @@ export function userProfileIndexer() {
                 }
             }
 
+            let about = '';
+            if (profile.about) {
+                let m = profile.about.match(hashtagRegex);
+                if (m) {
+                    about = m.join(' ');
+                }
+            }
+
             return {
                 id: item.id!!,
                 doc: {
@@ -112,7 +122,7 @@ export function userProfileIndexer() {
                     shortName: shortName ? shortName.shortname : undefined,
                     userId: item.id,
                     search: searchData.join(' '),
-                    about: profile.about || '',
+                    about: about,
                     primaryOrganization: profile.primaryOrganization || undefined,
                     organizations: orgs,
                     ivitedBy: user ? (user.invitedBy || undefined) : undefined,
