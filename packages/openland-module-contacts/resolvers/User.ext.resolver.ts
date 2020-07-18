@@ -1,10 +1,10 @@
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Store } from '../../openland-module-db/FDB';
-import { withUser } from '../../openland-module-users/User.resolver';
+import { withProfile } from '../../openland-module-users/User.resolver';
 
 export const Resolver: GQLResolver = {
     User: {
-        inContacts: withUser(async (ctx, src) => {
+        inContacts: withProfile(async (ctx, src) => {
             if (!ctx.auth.uid) {
                 return false;
             }
