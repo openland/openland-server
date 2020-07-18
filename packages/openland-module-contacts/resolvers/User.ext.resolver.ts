@@ -8,7 +8,7 @@ export const Resolver: GQLResolver = {
             if (!ctx.auth.uid) {
                 return false;
             }
-            let contact =  await Store.Contact.findById(ctx, ctx.auth.uid, src.id);
+            let contact = await Store.Contact.findById(ctx, ctx.auth.uid, src.id);
             if (contact && contact.state === 'active') {
                 return true;
             }
