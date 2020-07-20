@@ -15,6 +15,8 @@ import { createIteratorFromObservable } from '../openland-utils/asyncIterator';
 import { createRemoteStream } from '../openland-module-pubsub/createRemoteStream';
 const cache = new CacheRepository<{ at: number }>('user_installed_apps');
 
+const SUBSCRPTION_SHARDING_ENABLED = false;
+
 export const Resolver: GQLResolver = {
     OnlineEvent: {
         userId: (src: OnlineEvent) => IDs.User.serialize(src.userId),
@@ -132,9 +134,13 @@ export const Resolver: GQLResolver = {
                 let conversationIds = args.conversations.map(c => IDs.Conversation.parse(c));
 
                 let observables = await Promise.all(conversationIds.map(cid => {
-                    return createRemoteStream<{ uid: number, chatId: number }, OnlineEvent>('presence.chatPresenceStream', {
-                        chatId: cid, uid: ctx.auth.uid!
-                    });
+                    if (SUBSCRPTION_SHARDING_ENABLED) {
+                        return createRemoteStream<{ uid: number, chatId: number }, OnlineEvent>('presence.chatPresenceStream', {
+                            chatId: cid, uid: ctx.auth.uid!
+                        });
+                    } else {
+                        return Modules.Presence.createChatPresenceStream(ctx.auth.uid!, cid);
+                    }
                 }));
                 let observable = merge(observables);
                 return createIteratorFromObservable(observable, (err) => {
@@ -170,10 +176,11 @@ export const Resolver: GQLResolver = {
                 if (!ctx.auth.uid) {
                     throw new AccessDeniedError();
                 }
+                let cid = IDs.Conversation.parse(args.chatId);
 
-                let observable = await createRemoteStream<{ uid: number, chatId: number }, { onlinesCount: number }>('presence.chatOnlineCountStream', {
-                    chatId: IDs.Conversation.parse(args.chatId), uid: ctx.auth.uid
-                });
+                let observable = SUBSCRPTION_SHARDING_ENABLED ? (await createRemoteStream<{ uid: number, chatId: number }, { onlineMembers: number }>('presence.chatOnlineCountStream', {
+                    chatId: cid, uid: ctx.auth.uid
+                })) : (await Modules.Presence.createChatOnlineCountStream(ctx.auth.uid, cid));
 
                 return createIteratorFromObservable(observable, (err) => {
                     throw err;
