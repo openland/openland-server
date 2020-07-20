@@ -111,11 +111,13 @@ export class OrganizationRepository {
             } else if (ex) {
                 ex.status = 'joined';
                 await this.incrementOrganizationMembersCount(ctx, oid);
+                await Modules.Users.markForUndexing(ctx, uid);
                 return true;
             } else {
                 await Store.OrganizationMember.create(ctx, oid, uid, { status: 'joined', role: 'member', invitedBy: by });
                 await this.incrementOrganizationMembersCount(ctx, oid);
                 await Modules.Hooks.onOrgJoin(ctx, oid, uid);
+                await Modules.Users.markForUndexing(ctx, uid);
                 return true;
             }
         });
@@ -139,6 +141,7 @@ export class OrganizationRepository {
             existing.role = 'member'; // Downgrade membership
             await existing.flush(ctx);
             await this.decrementOrganizationMembersCount(ctx, oid);
+            await Modules.Users.markForUndexing(ctx, uid);
             return true;
         });
     }

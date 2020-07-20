@@ -40,6 +40,22 @@ input InviteRequest {
     lastName: String
 }
 
+type JoinedOrganizationMember {
+    user: User!
+    role: OrganizationMemberRole!
+    joinedAt: String!
+}
+
+type JoinedOrganizationMemberEdge {
+    node: JoinedOrganizationMember!
+    cursor: String!
+}
+
+type JoinedOrganizationMembersConnection {
+    edges: [JoinedOrganizationMemberEdge!]!
+    pageInfo: PageInfo!
+}
+
 extend type Query {
     alphaOrganizationMembers(orgId: ID!, first: Int, after: ID): [OrganizationMember!]!
     alphaOrganizationInviteLink(organizationId: ID): Invite

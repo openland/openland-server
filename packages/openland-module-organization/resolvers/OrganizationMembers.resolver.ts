@@ -7,14 +7,31 @@ import { validate, defined, emailValidator } from 'openland-utils/NewInputValida
 import { Modules } from 'openland-modules/Modules';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { resolveOrganizationJoinedMembers, resolveRoleInOrganization } from './utils/resolveOrganizationJoinedMembers';
-import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
+import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Store } from 'openland-module-db/FDB';
+import OrganizationMemberRoleValues = GQL.OrganizationMemberRoleValues;
 
 export const Resolver: GQLResolver = {
     OrganizationMember: {
         __resolveType(src: any) {
             return src._type;
         }
+    },
+    JoinedOrganizationMember: {
+        user: src => src.uid,
+        role: async (src, _, ctx) => {
+            let role: OrganizationMemberRoleValues;
+            let org = (await Store.Organization.findById(ctx, src.oid))!;
+            if (org.ownerId === src.uid) {
+                role = 'OWNER';
+            } else if (src.role === 'admin') {
+                role = 'ADMIN';
+            } else {
+                role = 'MEMBER';
+            }
+            return role;
+        },
+        joinedAt: src => src.metadata.createdAt.toString(10)
     },
     Query: {
         alphaOrganizationMembers: withAccount(async (ctx, args, uid, orgId) => {

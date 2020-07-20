@@ -82,7 +82,7 @@ import {
     ConferenceEndStream,
     DiscussionHub,
     Discussion,
-    DiscussionDraft, UserDialogCallStateChangedEvent, Contact,
+    DiscussionDraft, UserDialogCallStateChangedEvent, Contact, OrganizationMember,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -331,6 +331,12 @@ export namespace GQLRoots {
 
     export type OrganizationMemberRoleRoot = OrganizationMemberRoleValues;
     export type OrganizationMemberRoot = any;
+    export type JoinedOrganizationMemberRoot = OrganizationMember;
+    export type JoinedOrganizationMemberEdgeRoot = { node: JoinedOrganizationMemberRoot, cursor: string };
+    export type JoinedOrganizationMembersConnectionRoot = {
+        edges: JoinedOrganizationMemberEdgeRoot[],
+        pageInfo: PageInfoRoot,
+    };
     export type OrganizationIvitedMemberRoot = any;
     export type OrganizationJoinedMemberRoot = any;
     export type SuperAccountRoot = Organization;

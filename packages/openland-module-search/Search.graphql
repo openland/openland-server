@@ -35,4 +35,5 @@ extend type Query {
     messagesSearch(query: String!, sort: String, first: Int!, after: String): MessageConnection!
     chatMembersSearch(cid: ID!, query: String, first: Int!, after: String, page: Int): RoomMemberConnection!
     chatMentionSearch(cid: ID!, query: String, first: Int!, after: String): GlobalSearchConnection!
+    orgMembersSearch(orgId: ID!, query: String, first: Int!, after: String, page: Int): JoinedOrganizationMembersConnection!
 }

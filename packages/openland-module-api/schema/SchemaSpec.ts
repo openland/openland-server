@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'f16909c64b7e319f716398f162666b2d';
+export const GQL_SPEC_VERSION = 'e9723ee07c42884fb11295d86821e832';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1217,6 +1217,26 @@ export namespace GQL {
         firstName: Nullable<string>;
         lastName: Nullable<string>;
     }
+    export interface JoinedOrganizationMember {
+        user: User;
+        role: OrganizationMemberRole;
+        joinedAt: string;
+    }
+    export interface JoinedOrganizationMemberUserArgs { }
+    export interface JoinedOrganizationMemberRoleArgs { }
+    export interface JoinedOrganizationMemberJoinedAtArgs { }
+    export interface JoinedOrganizationMemberEdge {
+        node: JoinedOrganizationMember;
+        cursor: string;
+    }
+    export interface JoinedOrganizationMemberEdgeNodeArgs { }
+    export interface JoinedOrganizationMemberEdgeCursorArgs { }
+    export interface JoinedOrganizationMembersConnection {
+        edges: JoinedOrganizationMemberEdge[];
+        pageInfo: PageInfo;
+    }
+    export interface JoinedOrganizationMembersConnectionEdgesArgs { }
+    export interface JoinedOrganizationMembersConnectionPageInfoArgs { }
     export type PermissionScopeValues = 'GLOBAL' | 'CHAT';
     export type PermissionScope = GQLRoots.PermissionScopeRoot;
     export type PermissionAppTypeValues = 'POWERUP';
@@ -4214,6 +4234,7 @@ export namespace GQL {
         messagesSearch: MessageConnection;
         chatMembersSearch: RoomMemberConnection;
         chatMentionSearch: GlobalSearchConnection;
+        orgMembersSearch: JoinedOrganizationMembersConnection;
         messages: ModernMessage[];
         gammaMessages: Nullable<GammaMessagesBatch>;
         message: Nullable<ModernMessage>;
@@ -4667,6 +4688,13 @@ export namespace GQL {
         query: OptionalNullable<string>;
         first: number;
         after: OptionalNullable<string>;
+    }
+    export interface QueryOrgMembersSearchArgs {
+        orgId: string;
+        query: OptionalNullable<string>;
+        first: number;
+        after: OptionalNullable<string>;
+        page: OptionalNullable<number>;
     }
     export interface QueryMessagesArgs {
         chatId: string;
@@ -7305,6 +7333,41 @@ export interface GQLResolver {
             joinedAt: GQL.OrganizationRequestedMemberJoinedAtArgs,
         }
     >;
+    JoinedOrganizationMember?: ComplexTypedResolver<
+        GQL.JoinedOrganizationMember,
+        GQLRoots.JoinedOrganizationMemberRoot,
+        {
+            user: GQLRoots.UserRoot,
+        },
+        {
+            user: GQL.JoinedOrganizationMemberUserArgs,
+            role: GQL.JoinedOrganizationMemberRoleArgs,
+            joinedAt: GQL.JoinedOrganizationMemberJoinedAtArgs,
+        }
+    >;
+    JoinedOrganizationMemberEdge?: ComplexTypedResolver<
+        GQL.JoinedOrganizationMemberEdge,
+        GQLRoots.JoinedOrganizationMemberEdgeRoot,
+        {
+            node: GQLRoots.JoinedOrganizationMemberRoot,
+        },
+        {
+            node: GQL.JoinedOrganizationMemberEdgeNodeArgs,
+            cursor: GQL.JoinedOrganizationMemberEdgeCursorArgs,
+        }
+    >;
+    JoinedOrganizationMembersConnection?: ComplexTypedResolver<
+        GQL.JoinedOrganizationMembersConnection,
+        GQLRoots.JoinedOrganizationMembersConnectionRoot,
+        {
+            edges: GQLRoots.JoinedOrganizationMemberEdgeRoot[],
+            pageInfo: GQLRoots.PageInfoRoot,
+        },
+        {
+            edges: GQL.JoinedOrganizationMembersConnectionEdgesArgs,
+            pageInfo: GQL.JoinedOrganizationMembersConnectionPageInfoArgs,
+        }
+    >;
     PermissionScope?: EnumTypeResolver<'GLOBAL' | 'CHAT', GQLRoots.PermissionScopeRoot>;
     PermissionAppType?: EnumTypeResolver<'POWERUP', GQLRoots.PermissionAppTypeRoot>;
     PermissionGroup?: ComplexTypedResolver<
@@ -9517,6 +9580,7 @@ export interface GQLResolver {
             messagesSearch: GQLRoots.MessageConnectionRoot,
             chatMembersSearch: GQLRoots.RoomMemberConnectionRoot,
             chatMentionSearch: GQLRoots.GlobalSearchConnectionRoot,
+            orgMembersSearch: GQLRoots.JoinedOrganizationMembersConnectionRoot,
             messages: GQLRoots.ModernMessageRoot[],
             gammaMessages: Nullable<GQLRoots.GammaMessagesBatchRoot>,
             message: Nullable<GQLRoots.ModernMessageRoot>,
@@ -9691,6 +9755,7 @@ export interface GQLResolver {
             messagesSearch: GQL.QueryMessagesSearchArgs,
             chatMembersSearch: GQL.QueryChatMembersSearchArgs,
             chatMentionSearch: GQL.QueryChatMentionSearchArgs,
+            orgMembersSearch: GQL.QueryOrgMembersSearchArgs,
             messages: GQL.QueryMessagesArgs,
             gammaMessages: GQL.QueryGammaMessagesArgs,
             message: GQL.QueryMessageArgs,

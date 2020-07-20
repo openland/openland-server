@@ -15,7 +15,7 @@ export async function resolveRoleInOrganization(ctx: Context, oid: number, membe
     }
 }
 
-async function resolveRolesInOrganization(ctx: Context, oid: number, members: OrganizationMember[]): Promise<string[]> {
+export async function resolveRolesInOrganization(ctx: Context, oid: number, members: OrganizationMember[]): Promise<string[]> {
     let org = (await Store.Organization.findById(ctx, oid))!;
     let roles: string[] = [];
 
