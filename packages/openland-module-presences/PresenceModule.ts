@@ -14,6 +14,7 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { registerPresenceService } from './service/registerPresenceService';
 import { PresenceLogRepository } from './PresenceLogRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
+import { Observable, Subscriber } from 'rxjs';
 
 export interface OnlineEvent {
     userId: number;
@@ -49,7 +50,7 @@ export class PresenceModule {
     private readonly logging!: PresenceLogRepository;
 
     private onlines = new Map<number, { lastSeen: number, active: boolean, timer?: Timer }>();
-    private localSub = new Pubsub<OnlineEvent>(false);
+    public localSub = new Pubsub<OnlineEvent>(false);
     private rootCtx = createNamedContext('presence');
 
     start = async () => {
@@ -199,36 +200,35 @@ export class PresenceModule {
     }
 
     public async createPresenceStream(uid: number, users: number[]): Promise<AsyncIterable<OnlineEvent>> {
-
         users = Array.from(new Set(users)); // remove duplicates
 
-        let subscriptions: PubsubSubcription[] = [];
-        let iterator = createIterator<OnlineEvent>(() => subscriptions.forEach(s => s.cancel()));
+            let subscriptions: PubsubSubcription[] = [];
+            let iterator = createIterator<OnlineEvent>(() => subscriptions.forEach(s => s.cancel()));
 
-        // Send initial state
-        await inTx(this.rootCtx, async (ctx) => {
-            for (let userId of users) {
-                if (userId === await Modules.Users.getSupportUserId(ctx)) {
-                    iterator.push({
-                        userId,
-                        timeout: 0,
-                        online: true,
-                        active: true,
-                        lastSeen: Date.now() + 5000
-                    });
+            // Send initial state
+            await inTx(this.rootCtx, async (ctx) => {
+                for (let userId of users) {
+                    if (userId === await Modules.Users.getSupportUserId(ctx)) {
+                        iterator.push({
+                            userId,
+                            timeout: 0,
+                            online: true,
+                            active: true,
+                            lastSeen: Date.now() + 5000
+                        });
+                    }
+                    if (this.onlines.get(userId)) {
+                        let online = this.onlines.get(userId)!;
+                        let isOnline = (online.lastSeen > Date.now());
+                        iterator.push({
+                            userId,
+                            timeout: isOnline ? 5000 : 0,
+                            online: isOnline,
+                            active: false,
+                            lastSeen: Date.now() + (isOnline ? 5000 : 0)
+                        });
+                    }
                 }
-                if (this.onlines.get(userId)) {
-                    let online = this.onlines.get(userId)!;
-                    let isOnline = (online.lastSeen > Date.now());
-                    iterator.push({
-                        userId,
-                        timeout: isOnline ? 5000 : 0,
-                        online: isOnline,
-                        active: false,
-                        lastSeen: Date.now() + (isOnline ? 5000 : 0)
-                    });
-                }
-            }
         });
 
         for (let userId of users) {
@@ -238,7 +238,7 @@ export class PresenceModule {
         return iterator;
     }
 
-    public async createChatPresenceStream(uid: number, chatId: number): Promise<AsyncIterable<OnlineEvent>> {
+    public async createChatPresenceStream(uid: number, chatId: number): Promise<Observable<OnlineEvent>> {
         let ctx = withReadOnlyTransaction(this.rootCtx);
         await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
         let members = await perf('presence_members', async () => (await Modules.Messaging.room.findConversationMembers(ctx, chatId)));
@@ -247,37 +247,52 @@ export class PresenceModule {
         let leaveSub: PubsubSubcription;
         let subscriptions = new Map<number, PubsubSubcription>();
 
-        let iterator = createIterator<OnlineEvent>(() => {
-            subscriptions.forEach(s => s.cancel());
-            joinSub.cancel();
-            leaveSub.cancel();
-        });
+        let subscribers: Subscriber<OnlineEvent>[] = [];
+        let push = (e: OnlineEvent) => {
+            subscribers.forEach((a) => a.next(e));
+        };
+        let complete = () => {
+            subscribers.filter(a => !a.closed);
+            if (subscribers.length === 0) {
+                subscriptions.forEach(s => s.cancel());
+                joinSub.cancel();
+                leaveSub.cancel();
+            }
+        };
 
         joinSub = EventBus.subscribe(`chat_join_${chatId}`, async (ev: { uid: number, cid: number }) => {
-            let online = await Store.Online.findById(withReadOnlyTransaction(this.rootCtx), ev.uid);
-            iterator.push({ userId: ev.uid, timeout: 0, online: online && online.lastSeen > Date.now() || false, active: (online && online.active || false), lastSeen: (online && online.lastSeen || Date.now()) });
-            subscriptions.set(ev.uid, await this.localSub.subscribe(uid.toString(10), iterator.push));
+            let online = await Store.Online.findById(withReadOnlyTransaction(ctx), ev.uid);
+            push({
+                userId: ev.uid,
+                timeout: 0,
+                online: online && online.lastSeen > Date.now() || false,
+                active: (online && online.active || false),
+                lastSeen: (online && online.lastSeen || Date.now())
+            });
+            subscriptions.set(ev.uid, await Modules.Presence.localSub.subscribe(uid.toString(10), push));
         });
         leaveSub = EventBus.subscribe(`chat_leave_${chatId}`, (ev: { uid: number, cid: number }) => {
-            iterator.push({ userId: ev.uid, timeout: 0, online: false, active: false, lastSeen: Date.now() });
+            push({ userId: ev.uid, timeout: 0, online: false, active: false, lastSeen: Date.now() });
             subscriptions.get(ev.uid)!.cancel();
         });
 
         for (let member of members) {
-            subscriptions.set(member, await this.localSub.subscribe(member.toString(10), iterator.push));
+            subscriptions.set(member, await Modules.Presence.localSub.subscribe(member.toString(10), push));
         }
 
-        return iterator;
+        return new Observable((subscriber) => {
+            subscribers.push(subscriber);
+            subscriber.add(complete);
+        });
     }
 
-    public async * createChatOnlineCountStream(uid: number, chatId: number): AsyncIterable<{ onlineMembers: number }> {
+    public async createChatOnlineCountStream(uid: number, chatId: number): Promise<Observable<{ onlineMembers: number }>> {
         let ctx = withReadOnlyTransaction(this.rootCtx);
         await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
         let members = (await Modules.Messaging.room.findConversationMembers(ctx, chatId));
         let stream = await this.createChatPresenceStream(uid, chatId);
         let onlineMembers = new Set<number>();
         let prevValue = 0;
-
         let membersOnline = await Promise.all(members.map(m => Store.Online.findById(ctx, m)));
         for (let online of membersOnline) {
             if (online && online.lastSeen > Date.now()) {
@@ -285,21 +300,20 @@ export class PresenceModule {
             }
         }
 
-        // send initial state
-        yield { onlineMembers: onlineMembers.size };
-        prevValue = onlineMembers.size;
-
-        for await (let event of stream) {
-            if (event.online) {
-                onlineMembers.add(event.userId);
-            } else {
-                onlineMembers.delete(event.userId);
-            }
-            if (prevValue !== onlineMembers.size) {
-                yield { onlineMembers: onlineMembers.size };
-                prevValue = onlineMembers.size;
-            }
-        }
+        return new Observable<{onlineMembers: number}>((sub) => {
+            sub.next({ onlineMembers: onlineMembers.size });
+            stream.subscribe((event) => {
+                if (event.online) {
+                    onlineMembers.add(event.userId);
+                } else {
+                    onlineMembers.delete(event.userId);
+                }
+                if (prevValue !== onlineMembers.size) {
+                    sub.next({ onlineMembers: onlineMembers.size });
+                    prevValue = onlineMembers.size;
+                }
+            });
+        });
     }
 
     private async handleOnlineChange(event: OnlineEvent) {

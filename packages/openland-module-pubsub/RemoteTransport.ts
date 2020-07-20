@@ -17,6 +17,8 @@ import EventEmitter from 'events';
 //
 // Connection is managing acks and nacks because it could fail some messages if there are many connections in tunnel
 //
+
+type TransportClosedEvent = { reason: 'error', error: string } | { reason: 'signal' };
 export class RemoteTransport extends EventEmitter {
     readonly id = uuid();
 
@@ -53,7 +55,7 @@ export class RemoteTransport extends EventEmitter {
             if (this.status === 'stopped') {
                 return;
             }
-            this.notifyOnClosed();
+            this.notifyOnClosed({ reason: 'error', error: 'Connection died' });
 
             this.stop();
         });
@@ -97,7 +99,7 @@ export class RemoteTransport extends EventEmitter {
                 }
             } else if (msg.data.type === 'stop') {
                 this.remoteId = null;
-                this.notifyOnClosed();
+                this.notifyOnClosed({ reason: 'signal' });
                 this.stop();
             }
         });
@@ -131,7 +133,7 @@ export class RemoteTransport extends EventEmitter {
                         }
                         if (this.receivedSeq + 1 === seq) {
                             // Still not moved: Do abort
-                            this.notifyOnClosed();
+                            this.notifyOnClosed({ reason: 'error', error: 'Unnable to recieve message' });
                             this.stop();
                         }
                     }
@@ -257,13 +259,13 @@ export class RemoteTransport extends EventEmitter {
     private notifyOnMessage(body: any) {
         this.emit('message', body);
     }
-    private notifyOnClosed() {
-        this.emit('closed');
+    private notifyOnClosed(reason: TransportClosedEvent) {
+        this.emit('closed', reason);
     }
     onMessage(handler: (body: any) => void) {
         this.on('message', handler);
     }
-    onClosed(handler: () => void) {
+    onClosed(handler: (body: TransportClosedEvent) => void) {
         this.on('closed', handler);
     }
 }

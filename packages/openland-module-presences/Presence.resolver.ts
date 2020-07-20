@@ -10,7 +10,9 @@ import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import { Store } from '../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
-// import { createIterator } from '../openland-utils/asyncIterator';
+import { merge } from 'rxjs';
+import { createIterator } from '../openland-utils/asyncIterator';
+import { createRemoteStream } from '../openland-module-pubsub/createRemoteStream';
 
 const cache = new CacheRepository<{ at: number }>('user_installed_apps');
 
@@ -130,21 +132,19 @@ export const Resolver: GQLResolver = {
                 }
                 let conversationIds = args.conversations.map(c => IDs.Conversation.parse(c));
 
-                if (!ctx.auth.uid) {
-                    throw Error('Not logged in');
-                }
-
-                let uids: number[] = [];
-
-                for (let chatId of conversationIds) {
-                    uids.push(...await Modules.Messaging.room.findConversationMembers(ctx, chatId));
-                }
-
-                return Modules.Presence.createPresenceStream(ctx.auth.uid, uids);
-
-                // return createIterator(() => {
-                //     // do nothing
-                // });
+                let observables = await Promise.all(conversationIds.map(cid => {
+                    return createRemoteStream<{ uid: number, chatId: number }, OnlineEvent>('presence.chatPresenceStream', {
+                        chatId: cid, uid: ctx.auth.uid!
+                    });
+                }));
+                let observable = merge(observables);
+                let iterator = createIterator(() => {
+                    // do nothing
+                });
+                observable.subscribe((val) => {
+                    iterator.push(val);
+                });
+                return iterator;
             }
         },
         alphaSubscribeOnline: {
@@ -165,10 +165,6 @@ export const Resolver: GQLResolver = {
                 }).map(c => IDs.User.parse(c));
 
                 return Modules.Presence.createPresenceStream(ctx.auth.uid!, userIds);
-
-                // return createIterator(() => {
-                //     // do nothing
-                // });
             }
         },
         chatOnlinesCount: {
@@ -179,10 +175,17 @@ export const Resolver: GQLResolver = {
                 if (!ctx.auth.uid) {
                     throw new AccessDeniedError();
                 }
-                // return createIterator(() => {
-                //     // do nothing
-                // });
-                return Modules.Presence.createChatOnlineCountStream(ctx.auth.uid, IDs.Conversation.parse(args.chatId));
+                let iterator = createIterator(() => {
+                    // do nothing
+                });
+                let observable = await createRemoteStream<{ uid: number, chatId: number }, { onlinesCount: number }>(
+                    'presence.chatOnlineCountStream', {
+                        chatId: IDs.Conversation.parse(args.chatId),
+                        uid: ctx.auth.uid
+                    });
+
+                observable.subscribe((next) => iterator.push(next));
+                return iterator;
             }
         }
     }
