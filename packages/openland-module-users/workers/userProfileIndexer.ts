@@ -8,7 +8,7 @@ let hashtagRegex = /#[\w]+/g;
 export function userProfileIndexer() {
     declareSearchIndexer({
         name: 'user-profile-index',
-        version: 19,
+        version: 20,
         index: 'user_profile',
         stream: Store.UserIndexingQueue.updated.stream({ batchSize: 50 })
     }).withProperties({
@@ -66,7 +66,7 @@ export function userProfileIndexer() {
             filter: {
                 hashtag_as_alphanum: {
                     type: 'word_delimiter',
-                    type_table: ['# => ALPHANUM', '@ => ALPHANUM']
+                    type_table: ['# => ALPHANUM', '@ => ALPHANUM', '_ => ALPHANUM']
                 }
             },
             analyzer: {
