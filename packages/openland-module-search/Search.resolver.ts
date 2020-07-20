@@ -12,7 +12,6 @@ import { IDs } from '../openland-module-api/IDs';
 import { isDefined } from '../openland-utils/misc';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { ErrorText } from '../openland-errors/ErrorText';
-import { resolveRolesInOrganization } from '../openland-module-organization/resolvers/utils/resolveOrganizationJoinedMembers';
 
 const log = createLogger('search-resolver');
 let hashtagRegex = /#[\w]+/g;
