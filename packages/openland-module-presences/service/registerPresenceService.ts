@@ -6,7 +6,6 @@ import { Modules } from '../../openland-modules/Modules';
 
 let rootCtx = createNamedContext('presence');
 export function registerPresenceService() {
-    // TODO: Implement
     broker.createService({
         name: 'presence',
         actions: {

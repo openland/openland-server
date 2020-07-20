@@ -169,7 +169,7 @@ const orgUsers = table('org_users', schema({
     primaryKey: '(oid, uid)'
 });
 function startOrgUsersExport(client: DatabaseClient) {
-    subspaceReader<OrganizationMemberShape>('clickhouse_org_users_reader', 1, 1000, Store.OrganizationMember.descriptor.subspace, async (values, first, ctx) => {
+    subspaceReader<OrganizationMemberShape>('clickhouse-org_users_reader', 1, 1000, Store.OrganizationMember.descriptor.subspace, async (values, first, ctx) => {
         await orgUsers.insert(ctx, client, values.filter(a => a.value.status === 'joined').map(a => ({
             uid: a.value.uid,
             oid: a.value.oid,
