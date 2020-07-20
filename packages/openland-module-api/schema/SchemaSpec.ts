@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'f16909c64b7e319f716398f162666b2d';
+export const GQL_SPEC_VERSION = 'd8028a3e3d8f469ee4daeb7d74aea401';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2351,9 +2351,9 @@ export namespace GQL {
         deleteNotification: boolean;
         notificationCenterMarkSeqRead: boolean;
         debugCreateNotification: boolean;
-        createOrganization: Organization;
         updateOrganizationProfile: OrganizationProfile;
         deleteOrganization: boolean;
+        createOrganization: Organization;
         postDraftCreate: PostDraft;
         postDraftUpdate: PostDraft;
         postDraftPublish: Post;
@@ -3228,15 +3228,15 @@ export namespace GQL {
         uid: string;
         text: string;
     }
-    export interface MutationCreateOrganizationArgs {
-        input: CreateOrganizationInput;
-    }
     export interface MutationUpdateOrganizationProfileArgs {
         input: UpdateOrganizationProfileInput;
         id: OptionalNullable<string>;
     }
     export interface MutationDeleteOrganizationArgs {
         id: string;
+    }
+    export interface MutationCreateOrganizationArgs {
+        input: CreateOrganizationInput;
     }
     export interface MutationPostDraftCreateArgs {
         input: PostInput;
@@ -8494,8 +8494,8 @@ export interface GQLResolver {
             stickerPackUpdate: GQLRoots.StickerPackRoot,
             stickerPackAddSticker: GQLRoots.StickerRoot,
             readNotification: GQLRoots.NotificationCenterRoot,
-            createOrganization: GQLRoots.OrganizationRoot,
             updateOrganizationProfile: GQLRoots.OrganizationProfileRoot,
+            createOrganization: GQLRoots.OrganizationRoot,
             postDraftCreate: GQLRoots.PostDraftRoot,
             postDraftUpdate: GQLRoots.PostDraftRoot,
             postDraftPublish: GQLRoots.PostRoot,
@@ -8781,9 +8781,9 @@ export interface GQLResolver {
             deleteNotification: GQL.MutationDeleteNotificationArgs,
             notificationCenterMarkSeqRead: GQL.MutationNotificationCenterMarkSeqReadArgs,
             debugCreateNotification: GQL.MutationDebugCreateNotificationArgs,
-            createOrganization: GQL.MutationCreateOrganizationArgs,
             updateOrganizationProfile: GQL.MutationUpdateOrganizationProfileArgs,
             deleteOrganization: GQL.MutationDeleteOrganizationArgs,
+            createOrganization: GQL.MutationCreateOrganizationArgs,
             postDraftCreate: GQL.MutationPostDraftCreateArgs,
             postDraftUpdate: GQL.MutationPostDraftUpdateArgs,
             postDraftPublish: GQL.MutationPostDraftPublishArgs,

@@ -52,7 +52,3 @@ extend type Query {
     organization(id: ID!): Organization!
     organizationPublicRooms(id: ID!, first: Int!, after: ID): SharedRoomConnection!
 }
-
-extend type Mutation {
-    createOrganization(input: CreateOrganizationInput!): Organization!
-}

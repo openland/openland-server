@@ -155,6 +155,10 @@ export const Resolver: GQLResolver = {
         }),
         deleteOrganization: withAccount(async (parent, args, uid, oid) => {
             return Modules.Orgs.deleteOrganization(parent, uid, IDs.Organization.parse(args.id));
-        })
+        }),
+        createOrganization: withUser(async (ctx, args, uid) => {
+            log.log(ctx, 'createOrganization', args.input);
+            return await Modules.Orgs.createOrganization(ctx, uid, args.input);
+        }),
     }
 };
