@@ -1,0 +1,18 @@
+type ContactsUpdateContainer {
+    updates: [ContactsUpdate!]!
+    state: String!
+}
+
+union ContactsUpdate = ContactAdded | ContactRemoved
+
+type ContactAdded {
+    contact: Contact!
+}
+
+type ContactRemoved {
+    contact: Contact!
+}
+
+extend type Subscription {
+    myContactsUpdates(fromState: String): ContactsUpdateContainer!
+}

@@ -82,7 +82,12 @@ import {
     ConferenceEndStream,
     DiscussionHub,
     Discussion,
-    DiscussionDraft, UserDialogCallStateChangedEvent, Contact, OrganizationMember,
+    DiscussionDraft,
+    UserDialogCallStateChangedEvent,
+    Contact,
+    OrganizationMember,
+    ContactAddedEvent,
+    ContactRemovedEvent,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -759,4 +764,8 @@ export namespace GQLRoots {
     //
     export type ContactRoot = Contact;
     export type ContactConnectionRoot = { items: ContactRoot[], cursor: string|null };
+    export type ContactsUpdateContainerRoot = LiveStreamItem<BaseEvent>;
+    export type ContactsUpdateRoot = BaseEvent;
+    export type ContactAddedRoot = ContactAddedEvent;
+    export type ContactRemovedRoot = ContactRemovedEvent;
 }

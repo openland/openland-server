@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'e9723ee07c42884fb11295d86821e832';
+export const GQL_SPEC_VERSION = '0d9f36743b9fb66aa4e149f6927814b5';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1835,6 +1835,21 @@ export namespace GQL {
     }
     export interface ContactConnectionItemsArgs { }
     export interface ContactConnectionCursorArgs { }
+    export interface ContactsUpdateContainer {
+        updates: ContactsUpdate[];
+        state: string;
+    }
+    export interface ContactsUpdateContainerUpdatesArgs { }
+    export interface ContactsUpdateContainerStateArgs { }
+    export type ContactsUpdate = ContactAdded | ContactRemoved;
+    export interface ContactAdded {
+        contact: Contact;
+    }
+    export interface ContactAddedContactArgs { }
+    export interface ContactRemoved {
+        contact: Contact;
+    }
+    export interface ContactRemovedContactArgs { }
     export interface DialogUpdateSingle {
         seq: number;
         state: string;
@@ -4845,6 +4860,7 @@ export namespace GQL {
         commentUpdates: Nullable<CommentUpdateContainer>;
         conferenceWatch: Conference;
         conferenceMediaWatch: ConferenceMedia;
+        myContactsUpdates: ContactsUpdateContainer;
         dialogsUpdates: DialogUpdateContainer;
         homeFeedUpdates: FeedUpdateContainer;
         shouldShareLocationUpdates: boolean;
@@ -4911,6 +4927,9 @@ export namespace GQL {
     export interface SubscriptionConferenceMediaWatchArgs {
         id: string;
         peerId: string;
+    }
+    export interface SubscriptionMyContactsUpdatesArgs {
+        fromState: OptionalNullable<string>;
     }
     export interface SubscriptionDialogsUpdatesArgs {
         fromState: OptionalNullable<string>;
@@ -8062,6 +8081,38 @@ export interface GQLResolver {
             cursor: GQL.ContactConnectionCursorArgs,
         }
     >;
+    ContactsUpdateContainer?: ComplexTypedResolver<
+        GQL.ContactsUpdateContainer,
+        GQLRoots.ContactsUpdateContainerRoot,
+        {
+            updates: GQLRoots.ContactsUpdateRoot[],
+        },
+        {
+            updates: GQL.ContactsUpdateContainerUpdatesArgs,
+            state: GQL.ContactsUpdateContainerStateArgs,
+        }
+    >;
+    ContactsUpdate?: UnionTypeResolver<GQLRoots.ContactsUpdateRoot, 'ContactAdded' | 'ContactRemoved'>;
+    ContactAdded?: ComplexTypedResolver<
+        GQL.ContactAdded,
+        GQLRoots.ContactAddedRoot,
+        {
+            contact: GQLRoots.ContactRoot,
+        },
+        {
+            contact: GQL.ContactAddedContactArgs,
+        }
+    >;
+    ContactRemoved?: ComplexTypedResolver<
+        GQL.ContactRemoved,
+        GQLRoots.ContactRemovedRoot,
+        {
+            contact: GQLRoots.ContactRoot,
+        },
+        {
+            contact: GQL.ContactRemovedContactArgs,
+        }
+    >;
     DialogUpdateSingle?: ComplexTypedResolver<
         GQL.DialogUpdateSingle,
         GQLRoots.DialogUpdateSingleRoot,
@@ -9834,6 +9885,7 @@ export interface GQLResolver {
             commentUpdates: Nullable<GQLRoots.CommentUpdateContainerRoot>,
             conferenceWatch: GQLRoots.ConferenceRoot,
             conferenceMediaWatch: GQLRoots.ConferenceMediaRoot,
+            myContactsUpdates: GQLRoots.ContactsUpdateContainerRoot,
             dialogsUpdates: GQLRoots.DialogUpdateContainerRoot,
             homeFeedUpdates: GQLRoots.FeedUpdateContainerRoot,
             notificationCenterUpdates: Nullable<GQLRoots.NotificationCenterUpdateContainerRoot>,
@@ -9864,6 +9916,7 @@ export interface GQLResolver {
             commentUpdates: GQL.SubscriptionCommentUpdatesArgs,
             conferenceWatch: GQL.SubscriptionConferenceWatchArgs,
             conferenceMediaWatch: GQL.SubscriptionConferenceMediaWatchArgs,
+            myContactsUpdates: GQL.SubscriptionMyContactsUpdatesArgs,
             dialogsUpdates: GQL.SubscriptionDialogsUpdatesArgs,
             homeFeedUpdates: GQL.SubscriptionHomeFeedUpdatesArgs,
             shouldShareLocationUpdates: GQL.SubscriptionShouldShareLocationUpdatesArgs,
