@@ -8,7 +8,7 @@ let hashtagRegex = /#[\w]+/g;
 export function userProfileIndexer() {
     declareSearchIndexer({
         name: 'user-profile-index',
-        version: 21,
+        version: 20,
         index: 'user_profile',
         stream: Store.UserIndexingQueue.updated.stream({ batchSize: 50 })
     }).withProperties({
@@ -16,7 +16,7 @@ export function userProfileIndexer() {
             type: 'keyword'
         },
         organizations: {
-            type: 'integer'
+            type: 'keyword'
         },
         firstName: {
             type: 'text'
@@ -66,7 +66,7 @@ export function userProfileIndexer() {
             filter: {
                 hashtag_as_alphanum: {
                     type: 'word_delimiter',
-                    type_table: ['# => ALPHANUM', '@ => ALPHANUM']
+                    type_table: ['# => ALPHANUM', '@ => ALPHANUM', '_ => ALPHANUM']
                 }
             },
             analyzer: {
@@ -81,7 +81,6 @@ export function userProfileIndexer() {
     })
         .start(async (item, parent) => {
         return await inTx(parent, async (ctx) => {
-            console.log(11111);
             let profile = (await Store.UserProfile.findById(ctx, item.id));
 
             if (!profile) {
@@ -90,6 +89,7 @@ export function userProfileIndexer() {
 
             let shortName = await Modules.Shortnames.findShortnameByOwner(ctx, 'user', item.id);
             let orgs = await Modules.Orgs.findUserOrganizations(ctx, item.id);
+
             let searchData: (string | undefined | null)[] = [];
             searchData.push(profile.firstName);
             searchData.push(profile.lastName);

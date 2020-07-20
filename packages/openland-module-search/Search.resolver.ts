@@ -77,25 +77,6 @@ export const Resolver: GQLResolver = {
 
             if (query.length > 0 && !hashtags) {
                 //
-                // Organizations
-                //
-                let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
-                let orgsHitsPromise = Modules.Search.elastic.client.search({
-                    index: 'organization', type: 'organization', size: 10, body: {
-                        query: {
-                            function_score: {
-                                query: {bool: {must: [{match_phrase_prefix: {name: query}}]}},
-                                functions: userOrgs.map(_oid => ({
-                                    filter: {match: {_id: _oid}}, weight: 2,
-                                })),
-                                boost_mode: 'multiply',
-                            },
-                        },
-                    },
-                });
-                searchPromises.push(orgsHitsPromise);
-
-                //
                 // User dialog rooms
                 //
 
@@ -181,6 +162,25 @@ export const Resolver: GQLResolver = {
                     },
                 });
                 searchPromises.push(orgRoomHitsPromise);
+
+                //
+                // Organizations
+                //
+                let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
+                let orgsHitsPromise = Modules.Search.elastic.client.search({
+                    index: 'organization', type: 'organization', size: 10, body: {
+                        query: {
+                            function_score: {
+                                query: {bool: {must: [{match_phrase_prefix: {name: query}}]}},
+                                functions: userOrgs.map(_oid => ({
+                                    filter: {match: {_id: _oid}}, weight: 2,
+                                })),
+                                boost_mode: 'multiply',
+                            },
+                        },
+                    },
+                });
+                searchPromises.push(orgsHitsPromise);
             }
 
             let searchResults = await Promise.all(searchPromises);

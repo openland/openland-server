@@ -3,7 +3,7 @@ import { Store } from 'openland-module-db/FDB';
 import { updateReader } from 'openland-module-workers/updateReader';
 import { createNamedContext } from '@openland/context';
 import { forever, delay } from 'openland-utils/timer';
-import { HyperLog, HyperLogEvent } from '../openland-module-db/store';
+import { HyperLog, HyperLogEvent, OrganizationMemberShape } from '../openland-module-db/store';
 import { container } from '../openland-modules/Modules.container';
 import DatabaseClient from './DatabaseClient';
 import { table, TableSpace } from './TableSpace';
@@ -169,11 +169,10 @@ const orgUsers = table('org_users', schema({
     primaryKey: '(oid, uid)'
 });
 function startOrgUsersExport(client: DatabaseClient) {
-    // Now only for mesto ¯\_(ツ)_/¯
-    updateReader('clickhouse-org-users-exporter-joined', 1, Store.OrganizationMember.organization.stream('joined', 11954, { batchSize: 100 }), async (src, first, ctx) => {
-        await orgUsers.insert(ctx, client, src.map(a => ({
-            uid: a.uid,
-            oid: a.oid,
+    subspaceReader<OrganizationMemberShape>('clickhouse-org_users_reader', 1, 1000, Store.OrganizationMember.descriptor.subspace, async (values, first, ctx) => {
+        await orgUsers.insert(ctx, client, values.filter(a => a.value.status === 'joined').map(a => ({
+            uid: a.value.uid,
+            oid: a.value.oid,
             deleted: false,
             sign: 1,
         })));

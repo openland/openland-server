@@ -68,4 +68,5 @@ extend type Query {
 extend type Mutation {
     updateOrganizationProfile(input: UpdateOrganizationProfileInput!, id: ID): OrganizationProfile!
     deleteOrganization(id: ID!): Boolean!
+    createOrganization(input: CreateOrganizationInput!): Organization!
 }

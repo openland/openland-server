@@ -9,9 +9,6 @@ import { resolveOrganizationJoinedMembers, resolveOrganizationJoinedAdminMembers
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Organization } from 'openland-module-db/store';
 import { isDefined } from '../../openland-utils/misc';
-import { createLogger } from '@openland/log';
-
-const log = createLogger('organization_resolver');
 
 const resolveOrganizationRooms = async (src: Organization, args: {}, ctx: Context) => {
     let haveAccess = src.kind === 'community' ? true : (ctx.auth.uid && ctx.auth.oid && await Modules.Orgs.isUserMember(ctx, ctx.auth.uid, src.id));
@@ -159,11 +156,5 @@ export const Resolver: GQLResolver = {
                 cursor: haveMore ? IDs.Conversation.serialize(roomsFull[roomsFull.length - 1]!.room.id) : null
             };
         })
-    },
-    Mutation: {
-        createOrganization: withUser(async (ctx, args, uid) => {
-            log.log(ctx, 'createOrganization', args.input);
-            return await Modules.Orgs.createOrganization(ctx, uid, args.input);
-        }),
     }
 };
