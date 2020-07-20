@@ -8,7 +8,7 @@ let hashtagRegex = /#[\w]+/g;
 export function userProfileIndexer() {
     declareSearchIndexer({
         name: 'user-profile-index',
-        version: 20,
+        version: 22,
         index: 'user_profile',
         stream: Store.UserIndexingQueue.updated.stream({ batchSize: 50 })
     }).withProperties({
