@@ -11,9 +11,8 @@ import { Metrics } from 'openland-module-monitoring/Metrics';
 import { Store } from '../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { merge } from 'rxjs';
-import { createIterator } from '../openland-utils/asyncIterator';
+import { createIteratorFromObservable } from '../openland-utils/asyncIterator';
 import { createRemoteStream } from '../openland-module-pubsub/createRemoteStream';
-
 const cache = new CacheRepository<{ at: number }>('user_installed_apps');
 
 export const Resolver: GQLResolver = {
@@ -138,13 +137,9 @@ export const Resolver: GQLResolver = {
                     });
                 }));
                 let observable = merge(observables);
-                let iterator = createIterator(() => {
-                    // do nothing
+                return createIteratorFromObservable(observable, (err) => {
+                    throw err;
                 });
-                observable.subscribe((val) => {
-                    iterator.push(val);
-                });
-                return iterator;
             }
         },
         alphaSubscribeOnline: {
@@ -175,17 +170,14 @@ export const Resolver: GQLResolver = {
                 if (!ctx.auth.uid) {
                     throw new AccessDeniedError();
                 }
-                let iterator = createIterator(() => {
-                    // do nothing
-                });
-                let observable = await createRemoteStream<{ uid: number, chatId: number }, { onlinesCount: number }>(
-                    'presence.chatOnlineCountStream', {
-                        chatId: IDs.Conversation.parse(args.chatId),
-                        uid: ctx.auth.uid
-                    });
 
-                observable.subscribe((next) => iterator.push(next));
-                return iterator;
+                let observable = await createRemoteStream<{ uid: number, chatId: number }, { onlinesCount: number }>('presence.chatOnlineCountStream', {
+                    chatId: IDs.Conversation.parse(args.chatId), uid: ctx.auth.uid
+                });
+
+                return createIteratorFromObservable(observable, (err) => {
+                    throw err;
+                });
             }
         }
     }
