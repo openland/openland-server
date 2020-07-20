@@ -96,6 +96,7 @@ export const IDs = {
     Session: IdsFactory.createStringId('Session'),
 
     Contact: IdsFactory.createId('Contact'),
-    ContactCursor: IdsFactory.createStringId('ContactCursor')
+    ContactCursor: IdsFactory.createStringId('ContactCursor'),
+    ContactsUpdatesCursor: IdsFactory.createStringId('ContactsUpdatesCursor'),
 
 };

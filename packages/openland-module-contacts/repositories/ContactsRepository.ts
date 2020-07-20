@@ -2,6 +2,7 @@ import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
 import { Store } from '../../openland-module-db/FDB';
+import { ContactAddedEvent, ContactRemovedEvent } from '../../openland-module-db/store';
 
 @injectable()
 export class ContactsRepository {
@@ -11,8 +12,10 @@ export class ContactsRepository {
             if (existing) {
                 existing.state = 'active';
                 await existing.flush(ctx);
+                await Store.UserContactsEventStore.post(ctx, uid, ContactAddedEvent.create({ uid, contactUid: contactId }));
                 return existing;
             } else {
+                await Store.UserContactsEventStore.post(ctx, uid, ContactAddedEvent.create({ uid, contactUid: contactId }));
                 return await Store.Contact.create(ctx, uid, contactId, { state: 'active' });
             }
         });
@@ -26,6 +29,7 @@ export class ContactsRepository {
             }
             existing.state = 'deleted';
             await existing.flush(ctx);
+            await Store.UserContactsEventStore.post(ctx, uid, ContactRemovedEvent.create({ uid, contactUid: contactId }));
             return true;
         });
     }

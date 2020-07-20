@@ -9,8 +9,10 @@ const rootCtx = createNamedContext('init');
 
 type SearchFieldType = 'integer' | 'keyword' | 'text' | 'boolean' | 'date' | 'long';
 
+type MaybeArray<T> = T | T[];
+
 type ToType<T extends SearchFieldType> =
-    T extends 'integer' ? number :
+    T extends 'integer' ? MaybeArray<number> :
     T extends 'keyword' ? any :
     T extends 'text' ? string :
     T extends 'boolean' ? boolean :

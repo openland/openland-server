@@ -21402,6 +21402,70 @@ export class HyperLogUserEvent extends BaseEvent {
     get body(): any { return this.raw.body; }
 }
 
+const contactAddedEventCodec = c.struct({
+    uid: c.integer,
+    contactUid: c.integer,
+});
+
+interface ContactAddedEventShape {
+    uid: number;
+    contactUid: number;
+}
+
+export class ContactAddedEvent extends BaseEvent {
+
+    static create(data: ContactAddedEventShape) {
+        return new ContactAddedEvent(contactAddedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new ContactAddedEvent(contactAddedEventCodec.decode(data));
+    }
+
+    static encode(event: ContactAddedEvent) {
+        return contactAddedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('contactAddedEvent', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get contactUid(): number { return this.raw.contactUid; }
+}
+
+const contactRemovedEventCodec = c.struct({
+    uid: c.integer,
+    contactUid: c.integer,
+});
+
+interface ContactRemovedEventShape {
+    uid: number;
+    contactUid: number;
+}
+
+export class ContactRemovedEvent extends BaseEvent {
+
+    static create(data: ContactRemovedEventShape) {
+        return new ContactRemovedEvent(contactRemovedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new ContactRemovedEvent(contactRemovedEventCodec.decode(data));
+    }
+
+    static encode(event: ContactRemovedEvent) {
+        return contactRemovedEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('contactRemovedEvent', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get contactUid(): number { return this.raw.contactUid; }
+}
+
 export class ConversationEventStore extends EventStore {
 
     static async open(storage: EntityStorage, factory: EventFactory) {
@@ -21717,6 +21781,41 @@ export class HyperLogStore extends EventStore {
     }
 }
 
+export class UserContactsEventStore extends EventStore {
+
+    static async open(storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory('userContactsEventStore');
+        const descriptor = {
+            name: 'UserContactsEventStore',
+            storageKey: 'userContactsEventStore',
+            subspace,
+            storage,
+            factory
+        };
+        return new UserContactsEventStore(descriptor);
+    }
+
+    private constructor(descriptor: EventStoreDescriptor) {
+        super(descriptor);
+    }
+
+    post(ctx: Context, uid: number, event: BaseEvent) {
+        this._post(ctx, [uid], event);
+    }
+
+    async findAll(ctx: Context, uid: number) {
+        return this._findAll(ctx, [uid]);
+    }
+
+    createStream(uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createStream([uid], opts);
+    }
+
+    createLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createLiveStream(ctx, [uid], opts);
+    }
+}
+
 export interface Store extends BaseStore {
     readonly ConversationLastSeq: ConversationLastSeqFactory;
     readonly RoomParticipantsVersion: RoomParticipantsVersionFactory;
@@ -21913,6 +22012,7 @@ export interface Store extends BaseStore {
     readonly UserWalletUpdates: UserWalletUpdates;
     readonly StripeEventStore: StripeEventStore;
     readonly HyperLogStore: HyperLogStore;
+    readonly UserContactsEventStore: UserContactsEventStore;
     readonly PresenceLogDirectory: Subspace;
     readonly UserDialogIndexDirectory: Subspace;
     readonly UserCountersIndexDirectory: Subspace;
@@ -21953,6 +22053,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('stripeEventCreated', StripeEventCreated.encode as any, StripeEventCreated.decode);
     eventFactory.registerEventType('hyperLogEvent', HyperLogEvent.encode as any, HyperLogEvent.decode);
     eventFactory.registerEventType('hyperLogUserEvent', HyperLogUserEvent.encode as any, HyperLogUserEvent.decode);
+    eventFactory.registerEventType('contactAddedEvent', ContactAddedEvent.encode as any, ContactAddedEvent.decode);
+    eventFactory.registerEventType('contactRemovedEvent', ContactRemovedEvent.encode as any, ContactRemovedEvent.decode);
     let ConversationLastSeqPromise = ConversationLastSeqFactory.open(storage);
     let RoomParticipantsVersionPromise = RoomParticipantsVersionFactory.open(storage);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
@@ -22153,6 +22255,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserWalletUpdatesPromise = UserWalletUpdates.open(storage, eventFactory);
     let StripeEventStorePromise = StripeEventStore.open(storage, eventFactory);
     let HyperLogStorePromise = HyperLogStore.open(storage, eventFactory);
+    let UserContactsEventStorePromise = UserContactsEventStore.open(storage, eventFactory);
     return {
         storage,
         eventFactory,
@@ -22356,5 +22459,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserWalletUpdates: await UserWalletUpdatesPromise,
         StripeEventStore: await StripeEventStorePromise,
         HyperLogStore: await HyperLogStorePromise,
+        UserContactsEventStore: await UserContactsEventStorePromise,
     };
 }

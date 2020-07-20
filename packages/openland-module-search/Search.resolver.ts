@@ -10,6 +10,8 @@ import { createLogger } from '@openland/log';
 import { User, Organization, Conversation } from 'openland-module-db/store';
 import { IDs } from '../openland-module-api/IDs';
 import { isDefined } from '../openland-utils/misc';
+import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
+import { ErrorText } from '../openland-errors/ErrorText';
 
 const log = createLogger('search-resolver');
 let hashtagRegex = /#[\w]+/g;
@@ -638,6 +640,66 @@ export const Resolver: GQLResolver = {
                 localItems,
                 cursor: (from + args.first >= (hits.hits.total as any).value) ? undefined : IDs.MentionSearchCursor.serialize(from + hits.hits.hits.length),
             };
-        })
+        }),
+        orgMembersSearch: withAccount(async (ctx, args, uid, oid) => {
+            let orgId = IDs.Organization.parse(args.orgId);
+            let isMember = await Modules.Orgs.isUserMember(ctx, uid, orgId);
+            if (!isMember) {
+                throw new AccessDeniedError(ErrorText.permissionDenied);
+            }
+
+            let query = args.query || '';
+            let clauses: any[] = [];
+            clauses.push({term: {organizations: orgId}});
+            clauses.push({
+                bool: {
+                    should: query.trim().length > 0 ? [
+                        {match_phrase_prefix: {name: {query, max_expansions: 1000}}},
+                        {match_phrase_prefix: {shortName: {query, max_expansions: 1000}}}
+                    ] : []
+                }
+            });
+
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'user_profile',
+                type: 'user_profile',
+                size: args.first || 20,
+                body: {
+                    query: {bool: {must: clauses}},
+                },
+                from: args && args.after ? parseInt(args.after, 10) : (args && args.page ? ((args.page - 1) * (args && args.first ? args.first : 20)) : 0),
+            });
+
+            let offset = 0;
+            if (args.after) {
+                offset = parseInt(args.after, 10);
+            } else if (args.page) {
+                offset = (args.page - 1) * args.first;
+            }
+
+            let uids = hits.hits.hits.map((v) => parseInt(v._id, 10));
+            let total = (hits.hits.total as any).value;
+
+            // Fetch profiles
+            let users = (await Promise.all(uids.map(async (v) => Store.OrganizationMember.findById(ctx, orgId, v)))).filter(isDefined);
+
+            return {
+                edges: users.map((p, i) => {
+                    return {
+                        node: p,
+                        cursor: (i + 1 + offset).toString()
+                    };
+                }),
+                pageInfo: {
+                    hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
+                    hasPreviousPage: false,
+
+                    itemsCount: total,
+                    pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
+                    currentPage: Math.floor(offset / args.first) + 1,
+                    openEnded: true
+                },
+            };
+        }),
     },
 };
