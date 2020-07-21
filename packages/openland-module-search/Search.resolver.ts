@@ -40,12 +40,8 @@ export const Resolver: GQLResolver = {
     Query: {
         alphaGlobalSearch: withAccount(async (ctx, args, uid, oid) => {
             let query = args.query.trim();
-            let hashtags = query.match(hashtagRegex);
-            if (hashtags) {
-                query = query.replace(hashtagRegex, '');
-            }
 
-            if (query.length === 0 && !hashtags) {
+            if (query.length === 0) {
                 let allDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
                 allDialogs = allDialogs.filter((a) => !!a.date);
                 allDialogs = allDialogs.sort((a, b) => b.date - a.date).slice(0, 25);
@@ -64,126 +60,136 @@ export const Resolver: GQLResolver = {
                 }))).filter(isDefined);
             }
 
-            let searchPromises: Promise<{ hits: { hits: any[] } }>[] = [];
-
-            if (query.length > 0 || hashtags) {
-                //
-                // Users
-                //
-                let usersHitsPromise = Modules.Users.searchForUsers(ctx, query, {byName: false, limit: 10, uid, hashtags: hashtags || undefined });
-                searchPromises.push(usersHitsPromise);
+            // Return only users if hashtag
+            if (query.match(hashtagRegex)) {
+                let hashtags = query.match(hashtagRegex);
+                query = query.replace(hashtagRegex, '');
+                let hits = await Modules.Users.searchForUsers(ctx, query, {byName: false, limit: 10, uid, hashtags: hashtags || undefined });
+                return (await Promise.all(hits.hits.hits.map(hit => Store.User.findById(ctx, parseInt(hit._id, 10))))).filter(isDefined);
             }
 
-            if (query.length > 0 && !hashtags) {
-                //
-                // User dialog rooms
-                //
+            //
+            // Organizations
+            //
+            let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
+            let orgsHitsPromise = Modules.Search.elastic.client.search({
+                index: 'organization', type: 'organization', size: 10, body: {
+                    query: {
+                        function_score: {
+                            query: {bool: {must: [{match_phrase_prefix: {name: query}}]}},
+                            functions: userOrgs.map(_oid => ({
+                                filter: {match: {_id: _oid}}, weight: 2,
+                            })),
+                            boost_mode: 'multiply',
+                        },
+                    },
+                },
+            });
 
-                let [topPrivateDialogs, topGroupDialogs] = await Promise.all([
-                    Store.UserEdge.forwardWeight.query(ctx, uid, {limit: 300, reverse: true}),
-                    Store.UserGroupEdge.user.query(ctx, uid, {limit: 300, reverse: true})
-                ]);
-                // Boost top dialogs
-                let privateDialogsFilter = topPrivateDialogs.items.map(dialog => ({
-                    filter: {match: {uid2: dialog.uid2}},
-                    weight: dialog.weight || 1
-                }));
-                let groupDialogsFilter = topGroupDialogs.items.map(dialog => ({
-                    filter: {match: {cid: dialog.cid}},
-                    weight: dialog.weight || 1
-                }));
+            //
+            // Users
+            //
+            let usersHitsPromise = Modules.Users.searchForUsers(ctx, query, {byName: false, limit: 10, uid});
 
-                let localDialogsHitsPromise = Modules.Search.elastic.client.search({
-                    index: 'dialog', type: 'dialog', size: 10, body: {
-                        query: {
-                            function_score: {
-                                query: {
-                                    bool: {
-                                        must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), ...[{term: {uid: uid}}, {term: {visible: true}}]],
-                                    },
+            //
+            // User dialog rooms
+            //
+
+            let [topPrivateDialogs, topGroupDialogs] = await Promise.all([
+                Store.UserEdge.forwardWeight.query(ctx, uid, {limit: 300, reverse: true}),
+                Store.UserGroupEdge.user.query(ctx, uid, {limit: 300, reverse: true})
+            ]);
+            // Boost top dialogs
+            let privateDialogsFilter = topPrivateDialogs.items.map(dialog => ({
+                filter: {match: {uid2: dialog.uid2}},
+                weight: dialog.weight || 1
+            }));
+            let groupDialogsFilter = topGroupDialogs.items.map(dialog => ({
+                filter: {match: {cid: dialog.cid}},
+                weight: dialog.weight || 1
+            }));
+
+            let localDialogsHitsPromise = Modules.Search.elastic.client.search({
+                index: 'dialog', type: 'dialog', size: 10, body: {
+                    query: {
+                        function_score: {
+                            query: {
+                                bool: {
+                                    must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), ...[{term: {uid: uid}}, {term: {visible: true}}]],
                                 },
-                                functions: [...privateDialogsFilter, ...groupDialogsFilter],
-                                boost_mode: 'multiply'
-                            }
+                            },
+                            functions: [...privateDialogsFilter, ...groupDialogsFilter],
+                            boost_mode: 'multiply'
+                        }
+                    }
+                },
+            });
+
+            //
+            // Global rooms
+            //
+            let globalRoomHitsPromise = Modules.Search.elastic.client.search({
+                index: 'room', type: 'room', size: 10, body: {
+                    sort: [{membersCount: {'order': 'desc'}}],
+                    query: {
+                        function_score: {
+                            query: {
+                                bool: {
+                                    must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), {term: {listed: true}}]
+                                }
+                            },
+                            functions: groupDialogsFilter,
+                            boost_mode: 'multiply'
                         }
                     },
-                });
-                searchPromises.push(localDialogsHitsPromise);
+                },
+            });
 
-                //
-                // Global rooms
-                //
-                let globalRoomHitsPromise = Modules.Search.elastic.client.search({
-                    index: 'room', type: 'room', size: 10, body: {
-                        sort: [{membersCount: {'order': 'desc'}}],
-                        query: {
-                            function_score: {
-                                query: {
-                                    bool: {
-                                        must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), {term: {listed: true}}]
-                                    }
-                                },
-                                functions: groupDialogsFilter,
-                                boost_mode: 'multiply'
-                            }
-                        },
-                    },
-                });
-                searchPromises.push(globalRoomHitsPromise);
-
-                //
-                // Organization rooms
-                //
-                let organizations = await Store.OrganizationMember.user.findAll(ctx, 'joined', uid);
-                let orgChatFilters = organizations.map(e => ({term: {oid: e.oid}}));
-                let orgRoomHitsPromise = Modules.Search.elastic.client.search({
-                    index: 'room', type: 'room', size: 10, body: {
-                        sort: [{membersCount: {'order': 'desc'}}],
-                        query: {
-                            function_score: {
-                                query: {
-                                    bool: {
-                                        must: [
-                                            ...(query.length ? [{match_phrase_prefix: {title: query}}] : []),
-                                            {term: {listed: false}},
-                                            {
-                                                bool: {
-                                                    should: orgChatFilters
-                                                }
+            //
+            // Organization rooms
+            //
+            let organizations = await Store.OrganizationMember.user.findAll(ctx, 'joined', uid);
+            let orgChatFilters = organizations.map(e => ({term: {oid: e.oid}}));
+            let orgRoomHitsPromise = Modules.Search.elastic.client.search({
+                index: 'room', type: 'room', size: 10, body: {
+                    sort: [{membersCount: {'order': 'desc'}}],
+                    query: {
+                        function_score: {
+                            query: {
+                                bool: {
+                                    must: [
+                                        ...(query.length ? [{match_phrase_prefix: {title: query}}] : []),
+                                        {term: {listed: false}},
+                                        {
+                                            bool: {
+                                                should: orgChatFilters
                                             }
-                                        ],
-                                    },
+                                        }
+                                    ],
                                 },
-                                functions: groupDialogsFilter,
-                                boost_mode: 'multiply'
-                            }
-                        },
-                    },
-                });
-                searchPromises.push(orgRoomHitsPromise);
-
-                //
-                // Organizations
-                //
-                let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
-                let orgsHitsPromise = Modules.Search.elastic.client.search({
-                    index: 'organization', type: 'organization', size: 10, body: {
-                        query: {
-                            function_score: {
-                                query: {bool: {must: [{match_phrase_prefix: {name: query}}]}},
-                                functions: userOrgs.map(_oid => ({
-                                    filter: {match: {_id: _oid}}, weight: 2,
-                                })),
-                                boost_mode: 'multiply',
                             },
-                        },
+                            functions: groupDialogsFilter,
+                            boost_mode: 'multiply'
+                        }
                     },
-                });
-                searchPromises.push(orgsHitsPromise);
-            }
+                },
+            });
 
-            let searchResults = await Promise.all(searchPromises);
-            let allHits = searchResults.reduce<any[]>((curr, a) => [...curr, ...a.hits.hits], []);
+            let [
+                usersHits,
+                localDialogsHits,
+                globalRoomHits,
+                orgRoomHits,
+                orgsHits
+            ] = await Promise.all([
+                usersHitsPromise,
+                localDialogsHitsPromise,
+                globalRoomHitsPromise,
+                orgRoomHitsPromise,
+                orgsHitsPromise
+            ]);
+
+            let allHits = [...localDialogsHits.hits.hits, ...usersHits.hits.hits, ...orgRoomHits.hits.hits, ...globalRoomHits.hits.hits, ...orgsHits.hits.hits];
 
             let dataPromises = allHits.map(hit => {
                 if (hit._type === 'user_profile') {
