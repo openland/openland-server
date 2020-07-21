@@ -1,6 +1,6 @@
 import { Modules } from '../openland-modules/Modules';
 import { Context, createNamedContext } from '@openland/context';
-import { inTx } from '@openland/foundationdb';
+import { inTx, Subspace, TupleItem } from '@openland/foundationdb';
 import { createLogger } from '@openland/log';
 import { EntityFactory } from '@openland/foundationdb-entity';
 
@@ -47,5 +47,32 @@ export function debugTaskForAll(entity: EntityFactory<any, any>, uid: number, na
             });
         }
         return 'done, total: ' + i;
+    });
+}
+
+export function debugTaskForAllBatched<T>(subspace: Subspace<TupleItem[], T>, uid: number, name: string, batchSize: number, handler: (ctx: Context, items: { key: TupleItem[], value: T }[], log: (str: string) => Promise<void>) => Promise<void>) {
+    debugTask(uid, name, async (log) => {
+        let cursor: TupleItem[] | undefined = undefined;
+        let next = async () => {
+            let data = await inTx(rootCtx, async ctx => await subspace.range(ctx, [], { after: cursor, limit: batchSize }));
+            if (data.length > 0) {
+                cursor = data[data.length - 1].key;
+            }
+            return data;
+        };
+
+        let res: { key: TupleItem[], value: T }[] = [];
+        let total = 0;
+        do {
+            res = await next();
+            total += res.length;
+
+            await inTx(rootCtx, async ctx => {
+                await handler(ctx, res, log);
+            });
+            await log('done: ' + total);
+        } while (res.length > 0);
+
+        return 'done, total: ' + total;
     });
 }

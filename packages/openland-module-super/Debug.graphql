@@ -190,6 +190,7 @@ extend type Mutation {
     debugInviteMembersFromChat(cid: ID!, dest: ID!): Boolean!
     debugDeleteAllContacts: Boolean!
     debugChangeGlobalCounterTypeForAll: Boolean!
+    debugReindexOrganizationMembers: Boolean!
 }
 
 extend type Subscription {
