@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'ef4fe40c6c1a1016d624c075def27433';
+export const GQL_SPEC_VERSION = '5954d625f3fd7bdf3e38da650e9f10ff';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4123,6 +4123,7 @@ export namespace GQL {
         appInviteFromUser: string;
         appInviteInfo: Nullable<AppInvite>;
         alphaResolveInvite: Nullable<ResolveInviteEntry>;
+        phonebookWasExported: boolean;
         channels: Channel[];
         channel: Nullable<Channel>;
         debugParseID: DebugID;
@@ -4327,6 +4328,7 @@ export namespace GQL {
     export interface QueryAlphaResolveInviteArgs {
         key: string;
     }
+    export interface QueryPhonebookWasExportedArgs { }
     export interface QueryChannelsArgs { }
     export interface QueryChannelArgs {
         id: string;
@@ -9695,6 +9697,7 @@ export interface GQLResolver {
             appInviteFromUser: GQL.QueryAppInviteFromUserArgs,
             appInviteInfo: GQL.QueryAppInviteInfoArgs,
             alphaResolveInvite: GQL.QueryAlphaResolveInviteArgs,
+            phonebookWasExported: GQL.QueryPhonebookWasExportedArgs,
             channels: GQL.QueryChannelsArgs,
             channel: GQL.QueryChannelArgs,
             debugParseID: GQL.QueryDebugParseIDArgs,

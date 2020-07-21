@@ -2646,9 +2646,11 @@ export default declareSchema(() => {
         rangeIndex('user', ['uid', 'id']);
         rangeIndex('updated', ['updatedAt']);
     });
-
     atomicBool('PhonebookJoinMessageSentForPhone', () => {
         primaryKey('phone', string());
+    });
+    atomicBool('PhonebookUserImportedContacts', () => {
+        primaryKey('uid', integer());
     });
 
     //

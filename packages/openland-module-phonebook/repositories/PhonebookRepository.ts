@@ -21,6 +21,7 @@ export class PhonebookRepository {
             throw new UserError(`Can't save more than 500 records in one call`);
         }
         return await inTx(parent, async ctx => {
+            await Store.PhonebookUserImportedContacts.set(ctx, uid, true);
             let storedRecords = await Store.PhonebookItem.user.findAll(ctx, uid);
 
             for (let record of records) {

@@ -1498,6 +1498,34 @@ export class PhonebookJoinMessageSentForPhoneFactory extends AtomicBooleanFactor
     }
 }
 
+export class PhonebookUserImportedContactsFactory extends AtomicBooleanFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('phonebookUserImportedContacts');
+        return new PhonebookUserImportedContactsFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: boolean) {
+        return this._set(ctx, [uid], value);
+    }
+
+    invert(ctx: Context, uid: number) {
+        return this._invert(ctx, [uid]);
+    }
+}
+
 export interface UserShape {
     id: number;
     authId: string;
@@ -21859,6 +21887,7 @@ export interface Store extends BaseStore {
     readonly LastAuthEmailSentTime: LastAuthEmailSentTimeFactory;
     readonly AuthEmailsSentCount: AuthEmailsSentCountFactory;
     readonly PhonebookJoinMessageSentForPhone: PhonebookJoinMessageSentForPhoneFactory;
+    readonly PhonebookUserImportedContacts: PhonebookUserImportedContactsFactory;
     readonly User: UserFactory;
     readonly UserProfile: UserProfileFactory;
     readonly UserProfilePrefil: UserProfilePrefilFactory;
@@ -22097,6 +22126,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let LastAuthEmailSentTimePromise = LastAuthEmailSentTimeFactory.open(storage);
     let AuthEmailsSentCountPromise = AuthEmailsSentCountFactory.open(storage);
     let PhonebookJoinMessageSentForPhonePromise = PhonebookJoinMessageSentForPhoneFactory.open(storage);
+    let PhonebookUserImportedContactsPromise = PhonebookUserImportedContactsFactory.open(storage);
     let UserPromise = UserFactory.open(storage);
     let UserProfilePromise = UserProfileFactory.open(storage);
     let UserProfilePrefilPromise = UserProfilePrefilFactory.open(storage);
@@ -22301,6 +22331,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         LastAuthEmailSentTime: await LastAuthEmailSentTimePromise,
         AuthEmailsSentCount: await AuthEmailsSentCountPromise,
         PhonebookJoinMessageSentForPhone: await PhonebookJoinMessageSentForPhonePromise,
+        PhonebookUserImportedContacts: await PhonebookUserImportedContactsPromise,
         User: await UserPromise,
         UserProfile: await UserProfilePromise,
         UserProfilePrefil: await UserProfilePrefilPromise,
