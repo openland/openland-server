@@ -2911,6 +2911,8 @@ export class OrganizationMemberFactory extends EntityFactory<OrganizationMemberS
         secondaryIndexes.push({ name: 'ids', storageKey: 'ids', type: { type: 'unique', fields: [{ name: 'oid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationMember', 'ids'), condition: undefined });
         secondaryIndexes.push({ name: 'organization', storageKey: 'organization', type: { type: 'range', fields: [{ name: 'status', type: 'string' }, { name: 'oid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationMember', 'organization'), condition: undefined });
         secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'status', type: 'string' }, { name: 'uid', type: 'integer' }, { name: 'oid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationMember', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationMember', 'updated'), condition: undefined });
+        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationMember', 'created'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'oid', type: 'integer' });
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -2977,6 +2979,36 @@ export class OrganizationMemberFactory extends EntityFactory<OrganizationMemberS
         },
         liveStream: (ctx: Context, status: 'requested' | 'joined' | 'left', uid: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [status, uid], opts);
+        },
+    });
+
+    readonly updated = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[3], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[3], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[3], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[3], [], opts);
+        },
+    });
+
+    readonly created = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[4], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[4], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[4], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[4], [], opts);
         },
     });
 

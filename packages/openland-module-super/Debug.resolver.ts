@@ -1,10 +1,6 @@
 import { Config } from 'openland-config/Config';
 import {
-    Organization,
-    Message,
-    Comment,
-    DialogNeedReindexEvent,
-    OrganizationProfile,
+    Organization, Message, Comment, DialogNeedReindexEvent, OrganizationProfile, OrganizationMemberShape,
 } from './../openland-module-db/store';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from '../openland-module-api/Resolvers';
@@ -17,7 +13,7 @@ import { inTx, encoders } from '@openland/foundationdb';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { ddMMYYYYFormat, delay } from '../openland-utils/timer';
 import { randomInt, randomKey } from '../openland-utils/random';
-import { debugTask, debugTaskForAll } from '../openland-utils/debugTask';
+import { debugTask, debugTaskForAll, debugTaskForAllBatched } from '../openland-utils/debugTask';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { NotFoundError } from '../openland-errors/NotFoundError';
@@ -1786,6 +1782,16 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
+        debugReindexOrganizationMembers: withPermission('super-admin', async (parent) => {
+            debugTaskForAllBatched<OrganizationMemberShape>(Store.OrganizationMember.descriptor.subspace, parent.auth.uid!, 'debugReindexOrganizationMembers', 100, async (ctx, items, log) => {
+                for (let item of items) {
+                    let entity = await Store.OrganizationMember.findById(ctx, item.value.oid, item.value.uid);
+                    entity!.invalidate();
+                    await entity!.flush(ctx);
+                }
+            });
+            return true;
+        })
     },
     Subscription: {
         debugEvents: {

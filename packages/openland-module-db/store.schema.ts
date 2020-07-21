@@ -224,6 +224,8 @@ export default declareSchema(() => {
         uniqueIndex('ids', ['oid', 'uid']);
         rangeIndex('organization', ['status', 'oid', 'uid']);
         rangeIndex('user', ['status', 'uid', 'oid']);
+        rangeIndex('updated', ['updatedAt']);
+        rangeIndex('created', ['createdAt']);
     });
 
     entity('OrganizationIndexingQueue', () => {

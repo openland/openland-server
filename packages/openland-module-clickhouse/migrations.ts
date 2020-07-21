@@ -295,6 +295,13 @@ migrations.push({
     }
 });
 
+migrations.push({
+    name: '17-clear-org-users',
+    command: async (ctx: Context, client: DatabaseClient)  => {
+        await client.query(ctx, `DROP TABLE ${client.dbName}.org_users`);
+    }
+});
+
 const logger = createLogger('clickhouse');
 
 export async function createClient(ctx: Context) {
