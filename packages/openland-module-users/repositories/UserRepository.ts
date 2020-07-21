@@ -239,7 +239,7 @@ export class UserRepository {
                     notificationsDelay: 'none',
                     commentNotifications: null,
                     commentNotificationsDelivery: null,
-                    globalCounterType: null,
+                    globalCounterType: 'unread_chats',
                     desktop: allPlatformEnabled,
                     mobile: allPlatformEnabled,
                     privacy: {
