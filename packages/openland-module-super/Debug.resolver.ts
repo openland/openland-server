@@ -1768,6 +1768,24 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
+        debugChangeGlobalCounterTypeForAll: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcUsers2WayDirectChatsCounter', async (ctx, uid, log) => {
+                let settings = await Store.UserSettings.findById(ctx, uid);
+                if (!settings) {
+                    return;
+                }
+                if (!settings.globalCounterType) {
+                    settings.globalCounterType = 'unread_chats';
+                } else if (settings.globalCounterType === 'unread_messages') {
+                    settings.globalCounterType = 'unread_chats';
+                } else if (settings.globalCounterType === 'unread_messages_no_muted') {
+                    settings.globalCounterType = 'unread_chats_no_muted';
+                }
+
+                await settings.flush(ctx);
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {
