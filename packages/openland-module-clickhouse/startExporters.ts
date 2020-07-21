@@ -169,7 +169,7 @@ const orgUsers = table('org_users', schema({
     primaryKey: '(oid, uid)'
 });
 function startOrgUsersExport(client: DatabaseClient) {
-    updateReader('clickhouse-org-users', 1, Store.OrganizationMember.created.stream({ batchSize: 200 }), async (values, first, ctx) => {
+    updateReader('clickhouse-org-users', 2, Store.OrganizationMember.created.stream({ batchSize: 200 }), async (values, first, ctx) => {
         await orgUsers.insert(ctx, client, values.filter(a => a.status === 'joined').map(a => ({
             uid: a.uid,
             oid: a.oid,
