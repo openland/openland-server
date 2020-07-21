@@ -248,10 +248,13 @@ export class HooksModule {
             let mestoDefaultChatIds = [88914, 88910, 88908, 89740, 91565, 99729, 89805, 111097];
             await autoSubscribe(mestoDefaultChatIds);
         }
-
         if (cid === 213797) {
             let superNextDefaultChatIds = [213793, 97587];
             await autoSubscribe(superNextDefaultChatIds);
+        }
+        if (cid === 220362) {
+            let horizonDefaultChatIds = [220493, 220489];
+            await autoSubscribe(horizonDefaultChatIds);
         }
     }
 
