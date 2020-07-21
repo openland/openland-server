@@ -447,7 +447,7 @@ export namespace GQLRoots {
     export type MessageKeyboardRoot = { buttons: (MessageButton & { id: string })[][] };
     export type ModernMessageButtonRoot = any;
     export type ModernMessageReactionRoot = { userId: number, reaction: string };
-    export type ReactionCounterRoot = { reaction: MessageReactionTypeRoot, count: number };
+    export type ReactionCounterRoot = { reaction: MessageReactionTypeRoot, count: number, setByMe: boolean };
     export type MessageSpanUserMentionRoot = UserMentionSpan;
     export type MessageSpanMultiUserMentionRoot = MultiUserMentionSpan;
     export type MessageSpanRoomMentionRoot = RoomMentionSpan;

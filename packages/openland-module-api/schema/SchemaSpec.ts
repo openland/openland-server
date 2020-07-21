@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '01928267d2125b0d15ebf30b9edfe03c';
+export const GQL_SPEC_VERSION = 'd505f7a3d6faa8894e51024a04ef8701';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -5650,9 +5650,11 @@ export namespace GQL {
     export interface ReactionCounter {
         reaction: MessageReactionType;
         count: number;
+        setByMe: boolean;
     }
     export interface ReactionCounterReactionArgs { }
     export interface ReactionCounterCountArgs { }
+    export interface ReactionCounterSetByMeArgs { }
     export interface MessageSpan {
         offset: number;
         length: number;
@@ -10737,6 +10739,7 @@ export interface GQLResolver {
         {
             reaction: GQL.ReactionCounterReactionArgs,
             count: GQL.ReactionCounterCountArgs,
+            setByMe: GQL.ReactionCounterSetByMeArgs,
         }
     >;
     MessageSpan?: InterfaceTypeResolver<GQLRoots.MessageSpanRoot, 'MessageSpanUserMention' | 'MessageSpanMultiUserMention' | 'MessageSpanRoomMention' | 'MessageSpanOrganizationMention' | 'MessageSpanLink' | 'MessageSpanBold' | 'MessageSpanItalic' | 'MessageSpanIrony' | 'MessageSpanInlineCode' | 'MessageSpanCodeBlock' | 'MessageSpanInsane' | 'MessageSpanLoud' | 'MessageSpanRotating' | 'MessageSpanDate' | 'MessageSpanAllMention' | 'MessageSpanHashTag'>;

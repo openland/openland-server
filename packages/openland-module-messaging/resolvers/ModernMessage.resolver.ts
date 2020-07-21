@@ -34,6 +34,7 @@ import { isDefined } from '../../openland-utils/misc';
 import MessageReactionTypeRoot = GQLRoots.MessageReactionTypeRoot;
 import { RangeQueryOptions } from '@openland/foundationdb-entity';
 import MentionInput = GQL.MentionInput;
+import GeneralMessageRoot = GQLRoots.GeneralMessageRoot;
 
 export function hasMention(message: Message | RichMessage, uid: number) {
     if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
@@ -420,6 +421,21 @@ async function fetchMessages(ctx: Context, cid: number, forUid: number, opts: Ra
     return messages;
 }
 
+function resolveReactionCounters(src: GeneralMessageRoot, args: any, ctx: Context) {
+    let counts = new Map<MessageReactionTypeRoot, number>();
+    let setByUser = new Set<MessageReactionTypeRoot>();
+
+    src.reactions?.forEach(r => {
+        if (REACTIONS.includes(r.reaction)) {
+            counts.set(r.reaction as MessageReactionTypeRoot, (counts.get(r.reaction as MessageReactionTypeRoot) || 0) + 1);
+            if (r.userId === ctx.auth.uid) {
+                setByUser.add(r.reaction as MessageReactionTypeRoot);
+            }
+        }
+    });
+    return [...counts.entries()].map(e => ({ reaction: e[0], count: e[1], setByMe: setByUser.has(e[0]) }));
+}
+
 export const Resolver: GQLResolver = {
     ModernMessage: {
         __resolveType(src: ModernMessageRoot) {
@@ -568,15 +584,7 @@ export const Resolver: GQLResolver = {
         senderBadge: (src, args, ctx) => src instanceof RichMessage ? null : src.deleted ? null : getMessageSenderBadge(ctx, src),
         edited: src => src.edited || false,
         reactions: src => src.reactions || [],
-        reactionCounters: src => {
-            let counts = new Map<MessageReactionTypeRoot, number>();
-            src.reactions?.forEach(r => {
-                if (REACTIONS.includes(r.reaction)) {
-                    counts.set(r.reaction as MessageReactionTypeRoot, (counts.get(r.reaction as MessageReactionTypeRoot) || 0) + 1);
-                }
-            });
-            return [...counts.entries()].map(e => ({ reaction: e[0], count: e[1] }));
-        },
+        reactionCounters: resolveReactionCounters,
         isMentioned: async (src, args, ctx) => {
             if (src instanceof Message) {
                 return hasMention(src, ctx.auth.uid!);
@@ -820,15 +828,7 @@ export const Resolver: GQLResolver = {
         },
         senderBadge: (src, args, ctx) => src.deleted ? null : getMessageSenderBadge(ctx, src),
         reactions: src => src.reactions || [],
-        reactionCounters: src => {
-            let counts = new Map<MessageReactionTypeRoot, number>();
-            src.reactions?.forEach(r => {
-                if (REACTIONS.includes(r.reaction)) {
-                    counts.set(r.reaction as MessageReactionTypeRoot, (counts.get(r.reaction as MessageReactionTypeRoot) || 0) + 1);
-                }
-            });
-            return [...counts.entries()].map(e => ({ reaction: e[0], count: e[1] }));
-        },
+        reactionCounters: resolveReactionCounters,
         source: (src, args, ctx) => src,
         sticker: (src) => src.stickerId!,
         hidden: (src, args, ctx) => isMessageHiddenForUser(src, ctx.auth.uid!),

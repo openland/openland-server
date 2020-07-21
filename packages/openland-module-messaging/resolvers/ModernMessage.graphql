@@ -296,6 +296,7 @@ type ModernMessageReaction {
 type ReactionCounter {
     reaction: MessageReactionType!
     count: Int!
+    setByMe: Boolean!
 }
 
 #
