@@ -6,6 +6,7 @@ import { ContactAddedEvent, ContactRemovedEvent } from '../../openland-module-db
 import { Store } from '../../openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
+import { withUser } from '../../openland-module-api/Resolvers';
 
 export const Resolver: GQLResolver = {
     ContactsUpdateContainer: {
@@ -29,7 +30,18 @@ export const Resolver: GQLResolver = {
     ContactRemoved: {
         contact: async (src, _, ctx) => (await Store.Contact.findById(ctx, src.uid, src.contactUid))!
     },
+    ContactsState: {
+        state: src => src.state
+    },
 
+    Query: {
+        myContactsState: withUser(async (ctx, args, uid) => {
+            let tail = await Store.UserContactsEventStore.createStream(uid, { batchSize: 1 }).tail(ctx) || '';
+            return {
+                state: IDs.ContactsUpdatesCursor.serialize(tail)
+            };
+        })
+    },
     Subscription: {
         myContactsUpdates: {
             resolve: (msg: any) => msg,

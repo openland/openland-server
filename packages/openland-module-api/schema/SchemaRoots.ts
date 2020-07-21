@@ -768,4 +768,5 @@ export namespace GQLRoots {
     export type ContactsUpdateRoot = BaseEvent;
     export type ContactAddedRoot = ContactAddedEvent;
     export type ContactRemovedRoot = ContactRemovedEvent;
+    export type ContactsStateRoot = { state: string };
 }

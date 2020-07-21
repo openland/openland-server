@@ -13,6 +13,14 @@ type ContactRemoved {
     contact: Contact!
 }
 
+type ContactsState {
+    state: String!
+}
+
+extend type Query {
+    myContactsState: ContactsState!
+}
+
 extend type Subscription {
-    myContactsUpdates(fromState: String): ContactsUpdateContainer!
+    myContactsUpdates(fromState: String!): ContactsUpdateContainer!
 }

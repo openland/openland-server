@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '361ff8f24f060488a7138269af8bf2d9';
+export const GQL_SPEC_VERSION = '01928267d2125b0d15ebf30b9edfe03c';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1850,6 +1850,10 @@ export namespace GQL {
         contact: Contact;
     }
     export interface ContactRemovedContactArgs { }
+    export interface ContactsState {
+        state: string;
+    }
+    export interface ContactsStateStateArgs { }
     export interface DialogUpdateSingle {
         seq: number;
         state: string;
@@ -4176,6 +4180,7 @@ export namespace GQL {
         conferenceMedia: ConferenceMedia;
         myContacts: ContactConnection;
         myContactsSearch: UserConnection;
+        myContactsState: ContactsState;
         dialogsState: DialogUpdateState;
         envVars: Nullable<EnvVar[]>;
         envVar: Nullable<EnvVar>;
@@ -4470,6 +4475,7 @@ export namespace GQL {
         after: OptionalNullable<string>;
         page: OptionalNullable<number>;
     }
+    export interface QueryMyContactsStateArgs { }
     export interface QueryDialogsStateArgs { }
     export interface QueryEnvVarsArgs { }
     export interface QueryEnvVarArgs {
@@ -4929,7 +4935,7 @@ export namespace GQL {
         peerId: string;
     }
     export interface SubscriptionMyContactsUpdatesArgs {
-        fromState: OptionalNullable<string>;
+        fromState: string;
     }
     export interface SubscriptionDialogsUpdatesArgs {
         fromState: OptionalNullable<string>;
@@ -8113,6 +8119,15 @@ export interface GQLResolver {
             contact: GQL.ContactRemovedContactArgs,
         }
     >;
+    ContactsState?: ComplexTypedResolver<
+        GQL.ContactsState,
+        GQLRoots.ContactsStateRoot,
+        {
+        },
+        {
+            state: GQL.ContactsStateStateArgs,
+        }
+    >;
     DialogUpdateSingle?: ComplexTypedResolver<
         GQL.DialogUpdateSingle,
         GQLRoots.DialogUpdateSingleRoot,
@@ -9563,6 +9578,7 @@ export interface GQLResolver {
             conferenceMedia: GQLRoots.ConferenceMediaRoot,
             myContacts: GQLRoots.ContactConnectionRoot,
             myContactsSearch: GQLRoots.UserConnectionRoot,
+            myContactsState: GQLRoots.ContactsStateRoot,
             dialogsState: GQLRoots.DialogUpdateStateRoot,
             envVars: Nullable<GQLRoots.EnvVarRoot[]>,
             envVar: Nullable<GQLRoots.EnvVarRoot>,
@@ -9733,6 +9749,7 @@ export interface GQLResolver {
             conferenceMedia: GQL.QueryConferenceMediaArgs,
             myContacts: GQL.QueryMyContactsArgs,
             myContactsSearch: GQL.QueryMyContactsSearchArgs,
+            myContactsState: GQL.QueryMyContactsStateArgs,
             dialogsState: GQL.QueryDialogsStateArgs,
             envVars: GQL.QueryEnvVarsArgs,
             envVar: GQL.QueryEnvVarArgs,
