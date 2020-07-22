@@ -27,6 +27,7 @@ import { findEntitiesCount } from '../openland-module-db/findEntitiesCount';
 import { asyncRun } from '../openland-mtproto3/utils';
 import { container } from '../openland-modules/Modules.container';
 import { batch } from '../openland-utils/batch';
+import { UserError } from '../openland-errors/UserError';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -1791,7 +1792,17 @@ export const Resolver: GQLResolver = {
                 }
             });
             return true;
-        })
+        }),
+        debugDeleteTask: withPermission('super-admin', async (parent, args) => {
+            return inTx(parent, async ctx => {
+                let task = await Store.Task.findById(ctx, args.taskType, args.id);
+                if (!task) {
+                    throw new UserError('Task not found');
+                }
+                await task.delete(ctx);
+                return true;
+            });
+        }),
     },
     Subscription: {
         debugEvents: {
