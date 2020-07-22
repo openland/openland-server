@@ -27,6 +27,7 @@ const log = createLogger('delivery');
 export class DeliveryMediator {
     private readonly queue = new WorkQueue<{ messageId: number, action?: 'new' | 'update' | 'delete' }>('conversation_message_delivery');
     private readonly queueUserMultiple = new WorkQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }>('conversation_message_delivery_user_multiple');
+    private readonly deliverCallStateChangedQueue = new WorkQueue<{ cid: number, hasActiveCall: boolean }>('deliver-call-state-changed');
 
     @lazyInject('DeliveryRepository') private readonly repo!: DeliveryRepository;
     @lazyInject('CountersMediator') private readonly counters!: CountersMediator;
@@ -73,6 +74,14 @@ export class DeliveryMediator {
                     // deliveryMetric.add(parent, currentRunningTime() - start);
                 });
             }
+            this.deliverCallStateChangedQueue.addWorker(async (item, parent) => {
+                await inTx(parent, async ctx => {
+                    let members = await Modules.Messaging.room.findConversationMembers(ctx, item.cid);
+                    for (let m of members) {
+                        await this.repo.deliverCallStateChangedToUser(ctx, m, item.cid, item.hasActiveCall);
+                    }
+                });
+            });
         }
     }
 
@@ -211,10 +220,7 @@ export class DeliveryMediator {
 
     onCallStateChanged = async (parent: Context, cid: number, hasActiveCall: boolean) => {
         await inTx(parent, async ctx => {
-            let members = await this.room.findConversationMembers(ctx, cid);
-            for (let m of members) {
-                await this.repo.deliverCallStateChangedToUser(ctx, m, cid, hasActiveCall);
-            }
+            await this.deliverCallStateChangedQueue.pushWork(ctx, { cid, hasActiveCall });
         });
     }
 
