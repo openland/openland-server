@@ -222,7 +222,7 @@ export const Resolver: GQLResolver = {
                 }
             });
 
-            if ('saved messages'.startsWith(query)) {
+            if ('saved messages'.startsWith(query.toLowerCase())) {
                 dataPromises.unshift(Store.User.findById(ctx, uid));
             }
             let data = (await Promise.all(dataPromises as Promise<User | Organization | Conversation>[])).filter(isDefined);
