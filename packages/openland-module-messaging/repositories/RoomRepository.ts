@@ -1248,7 +1248,6 @@ export class RoomRepository {
             }
 
             await Modules.Hooks.onRoomJoin(ctx, cid, uid, by);
-            console.log('onRoomJoin', uid, cid);
             await this.delivery.onDialogGotAccess(ctx, uid, cid);
         });
     }

@@ -199,7 +199,6 @@ export class DeliveryMediator {
 
     onDialogGotAccess = async (parent: Context, uid: number, cid: number) => {
         await inTx(parent, async (ctx) => {
-            console.log('onDialogGotAccess', uid, cid);
             await this.repo.deliverDialogGotAccessToUser(ctx, uid, cid);
         });
     }
