@@ -233,7 +233,7 @@ async function handleUsersSlice(parent: Context, fromUid: number, toUid: number)
     }
     log.log(parent, 'found', unreadUsers.length, 'users');
 
-    let batches = batch(unreadUsers.slice(0, 1000), 20);
+    let batches = batch(unreadUsers.slice(0, 1000), 10);
 
     for (let b of batches) {
         try {
@@ -259,7 +259,7 @@ function createWorker(fromUid: number, toUid: number) {
 
 // 25k users
 
-const TOTAL_USERS = 25000;
+const TOTAL_USERS = 30000;
 const USERS_PER_WORKER = 2000;
 
 export function startPushNotificationWorker() {
