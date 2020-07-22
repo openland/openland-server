@@ -43,7 +43,13 @@ export const Resolver: GQLResolver = {
 
             if (query.length === 0) {
                 let allDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
-                allDialogs = allDialogs.filter((a) => !!a.date);
+                let savedMessages = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, uid);
+
+                // filter chat with me
+                allDialogs = allDialogs.filter((a) => !!a.date && a.cid !== savedMessages.id);
+                // add chat with me to top
+                allDialogs.unshift({ cid: savedMessages.id, date: Date.now() });
+
                 allDialogs = allDialogs.sort((a, b) => b.date - a.date).slice(0, 25);
 
                 return (await Promise.all(allDialogs.map(async a => {
