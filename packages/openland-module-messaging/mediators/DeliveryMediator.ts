@@ -188,6 +188,19 @@ export class DeliveryMediator {
         });
     }
 
+    onDialogGotAccess = async (parent: Context, uid: number, cid: number) => {
+        await inTx(parent, async (ctx) => {
+            console.log('onDialogGotAccess', uid, cid);
+            await this.repo.deliverDialogGotAccessToUser(ctx, uid, cid);
+        });
+    }
+
+    onDialogLostAccess = async (parent: Context, uid: number, cid: number) => {
+        await inTx(parent, async (ctx) => {
+            await this.repo.deliverDialogGotAccessToUser(ctx, uid, cid);
+        });
+    }
+
     onGlobalCounterTypeChanged = async (parent: Context, uid: number) => {
         // Send new counter
         await inTx(parent, async (ctx) => {

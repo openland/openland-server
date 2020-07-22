@@ -87,7 +87,7 @@ import {
     Contact,
     OrganizationMember,
     ContactAddedEvent,
-    ContactRemovedEvent,
+    ContactRemovedEvent, UserDialogGotAccessEvent, UserDialogLostAccessEvent,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -517,6 +517,8 @@ export namespace GQLRoots {
     export type DialogPhotoUpdatedRoot = UserDialogPhotoUpdatedEvent;
     export type DialogMuteChangedRoot = UserDialogMuteChangedEvent;
     export type DialogBumpRoot = UserDialogBumpEvent;
+    export type DialogGotAccessRoot = UserDialogGotAccessEvent;
+    export type DialogLostAccessRoot = UserDialogLostAccessEvent;
     export type DialogMentionedChangedRoot = any;
     export type DialogPeerUpdatedRoot = UserDialogPeerUpdatedEvent;
     export type DialogCallStateChangedRoot = UserDialogCallStateChangedEvent;

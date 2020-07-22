@@ -20,6 +20,7 @@ import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { User, ConversationRoom } from 'openland-module-db/store';
 import { smartSlice } from '../../openland-utils/string';
 import { createWelcomeMessageWorker } from '../workers/welcomeMessageWorker';
+import { DeliveryMediator } from '../mediators/DeliveryMediator';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -42,6 +43,9 @@ export type WelcomeMessageT = {
 export class RoomRepository {
     // @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
     @lazyInject('ChatMetricsRepository') private readonly metrics!: ChatMetricsRepository;
+
+    @lazyInject('DeliveryMediator')
+    private readonly delivery!: DeliveryMediator;
 
     public readonly welcomeMessageWorker = createWelcomeMessageWorker();
     private membersCache = new ExpiringCache<number[]>({ timeout: 15 * 60 * 1000 });
@@ -87,7 +91,7 @@ export class RoomRepository {
                     invitedBy: uid,
                     status: 'joined'
                 });
-                await this.onRoomJoin(ctx, id, uid, uid);
+                await this.onRoomJoin(ctx, id, m, uid);
             }
 
             return conv;
@@ -1244,6 +1248,8 @@ export class RoomRepository {
             }
 
             await Modules.Hooks.onRoomJoin(ctx, cid, uid, by);
+            console.log('onRoomJoin', uid, cid);
+            await this.delivery.onDialogGotAccess(ctx, uid, cid);
         });
     }
 
@@ -1263,6 +1269,8 @@ export class RoomRepository {
             }
 
             await Modules.Hooks.onRoomLeave(ctx, cid, uid, wasKicked);
+
+            await this.delivery.onDialogLostAccess(ctx, uid, cid);
         });
     }
 

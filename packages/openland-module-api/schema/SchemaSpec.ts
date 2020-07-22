@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'fad4b48d843677399f7745a6c0b3cfe2';
+export const GQL_SPEC_VERSION = '7fa3241d40c180739f006344d2cfbde5';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1873,7 +1873,7 @@ export namespace GQL {
     export interface DialogUpdateBatchSeqArgs { }
     export interface DialogUpdateBatchStateArgs { }
     export type DialogUpdateContainer = DialogUpdateSingle | DialogUpdateBatch;
-    export type DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted | DialogPhotoUpdated | DialogMuteChanged | DialogMentionedChanged | DialogBump | DialogPeerUpdated | DialogCallStateChanged;
+    export type DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted | DialogPhotoUpdated | DialogMuteChanged | DialogMentionedChanged | DialogBump | DialogPeerUpdated | DialogCallStateChanged | DialogGotAccess | DialogLostAccess;
     export interface SilentMessageInfo {
         mobile: boolean;
         desktop: boolean;
@@ -1984,6 +1984,14 @@ export namespace GQL {
     export interface DialogBumpTopMessageArgs { }
     export interface DialogBumpHaveMentionArgs { }
     export interface DialogBumpMembershipArgs { }
+    export interface DialogGotAccess {
+        cid: string;
+    }
+    export interface DialogGotAccessCidArgs { }
+    export interface DialogLostAccess {
+        cid: string;
+    }
+    export interface DialogLostAccessCidArgs { }
     export interface DialogMuteChanged {
         cid: string;
         mute: boolean;
@@ -8167,7 +8175,7 @@ export interface GQLResolver {
         }
     >;
     DialogUpdateContainer?: UnionTypeResolver<GQLRoots.DialogUpdateContainerRoot, 'DialogUpdateSingle' | 'DialogUpdateBatch'>;
-    DialogUpdate?: UnionTypeResolver<GQLRoots.DialogUpdateRoot, 'DialogMessageReceived' | 'DialogMessageUpdated' | 'DialogMessageDeleted' | 'DialogMessageRead' | 'DialogTitleUpdated' | 'DialogDeleted' | 'DialogPhotoUpdated' | 'DialogMuteChanged' | 'DialogMentionedChanged' | 'DialogBump' | 'DialogPeerUpdated' | 'DialogCallStateChanged'>;
+    DialogUpdate?: UnionTypeResolver<GQLRoots.DialogUpdateRoot, 'DialogMessageReceived' | 'DialogMessageUpdated' | 'DialogMessageDeleted' | 'DialogMessageRead' | 'DialogTitleUpdated' | 'DialogDeleted' | 'DialogPhotoUpdated' | 'DialogMuteChanged' | 'DialogMentionedChanged' | 'DialogBump' | 'DialogPeerUpdated' | 'DialogCallStateChanged' | 'DialogGotAccess' | 'DialogLostAccess'>;
     SilentMessageInfo?: ComplexTypedResolver<
         GQL.SilentMessageInfo,
         GQLRoots.SilentMessageInfoRoot,
@@ -8305,6 +8313,24 @@ export interface GQLResolver {
             topMessage: GQL.DialogBumpTopMessageArgs,
             haveMention: GQL.DialogBumpHaveMentionArgs,
             membership: GQL.DialogBumpMembershipArgs,
+        }
+    >;
+    DialogGotAccess?: ComplexTypedResolver<
+        GQL.DialogGotAccess,
+        GQLRoots.DialogGotAccessRoot,
+        {
+        },
+        {
+            cid: GQL.DialogGotAccessCidArgs,
+        }
+    >;
+    DialogLostAccess?: ComplexTypedResolver<
+        GQL.DialogLostAccess,
+        GQLRoots.DialogLostAccessRoot,
+        {
+        },
+        {
+            cid: GQL.DialogLostAccessCidArgs,
         }
     >;
     DialogMuteChanged?: ComplexTypedResolver<

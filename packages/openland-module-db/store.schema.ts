@@ -919,6 +919,14 @@ export default declareSchema(() => {
         field('cid', integer());
         field('hasActiveCall', boolean());
     });
+    event('UserDialogGotAccessEvent', () => {
+        field('uid', integer());
+        field('cid', integer());
+    });
+    event('UserDialogLostAccessEvent', () => {
+        field('uid', integer());
+        field('cid', integer());
+    });
     eventStore('UserDialogEventStore', () => {
         primaryKey('uid', integer());
     });

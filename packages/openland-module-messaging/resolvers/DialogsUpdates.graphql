@@ -13,7 +13,21 @@ type DialogUpdateBatch {
 
 union DialogUpdateContainer = DialogUpdateSingle | DialogUpdateBatch
 
-union DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted | DialogPhotoUpdated | DialogMuteChanged | DialogMentionedChanged | DialogBump | DialogPeerUpdated | DialogCallStateChanged
+union DialogUpdate =
+    | DialogMessageReceived
+    | DialogMessageUpdated
+    | DialogMessageDeleted
+    | DialogMessageRead
+    | DialogTitleUpdated
+    | DialogDeleted
+    | DialogPhotoUpdated
+    | DialogMuteChanged
+    | DialogMentionedChanged
+    | DialogBump
+    | DialogPeerUpdated
+    | DialogCallStateChanged
+    | DialogGotAccess
+    | DialogLostAccess
 
 type SilentMessageInfo {
     mobile: Boolean!
@@ -88,6 +102,14 @@ type DialogBump {
     topMessage: ModernMessage
     haveMention: Boolean!
     membership: SharedRoomMembershipStatus!
+}
+
+type DialogGotAccess {
+    cid: ID!
+}
+
+type DialogLostAccess {
+    cid: ID!
 }
 
 type DialogMuteChanged {

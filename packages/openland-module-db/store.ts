@@ -20988,6 +20988,70 @@ export class UserDialogCallStateChangedEvent extends BaseEvent {
     get hasActiveCall(): boolean { return this.raw.hasActiveCall; }
 }
 
+const userDialogGotAccessEventCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+});
+
+interface UserDialogGotAccessEventShape {
+    uid: number;
+    cid: number;
+}
+
+export class UserDialogGotAccessEvent extends BaseEvent {
+
+    static create(data: UserDialogGotAccessEventShape) {
+        return new UserDialogGotAccessEvent(userDialogGotAccessEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UserDialogGotAccessEvent(userDialogGotAccessEventCodec.decode(data));
+    }
+
+    static encode(event: UserDialogGotAccessEvent) {
+        return userDialogGotAccessEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('userDialogGotAccessEvent', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+}
+
+const userDialogLostAccessEventCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+});
+
+interface UserDialogLostAccessEventShape {
+    uid: number;
+    cid: number;
+}
+
+export class UserDialogLostAccessEvent extends BaseEvent {
+
+    static create(data: UserDialogLostAccessEventShape) {
+        return new UserDialogLostAccessEvent(userDialogLostAccessEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UserDialogLostAccessEvent(userDialogLostAccessEventCodec.decode(data));
+    }
+
+    static encode(event: UserDialogLostAccessEvent) {
+        return userDialogLostAccessEventCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('userDialogLostAccessEvent', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+}
+
 const feedItemReceivedEventCodec = c.struct({
     subscriberId: c.optional(c.integer),
     itemId: c.integer,
@@ -22099,6 +22163,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('userDialogMuteChangedEvent', UserDialogMuteChangedEvent.encode as any, UserDialogMuteChangedEvent.decode);
     eventFactory.registerEventType('userDialogPeerUpdatedEvent', UserDialogPeerUpdatedEvent.encode as any, UserDialogPeerUpdatedEvent.decode);
     eventFactory.registerEventType('userDialogCallStateChangedEvent', UserDialogCallStateChangedEvent.encode as any, UserDialogCallStateChangedEvent.decode);
+    eventFactory.registerEventType('userDialogGotAccessEvent', UserDialogGotAccessEvent.encode as any, UserDialogGotAccessEvent.decode);
+    eventFactory.registerEventType('userDialogLostAccessEvent', UserDialogLostAccessEvent.encode as any, UserDialogLostAccessEvent.decode);
     eventFactory.registerEventType('feedItemReceivedEvent', FeedItemReceivedEvent.encode as any, FeedItemReceivedEvent.decode);
     eventFactory.registerEventType('feedItemUpdatedEvent', FeedItemUpdatedEvent.encode as any, FeedItemUpdatedEvent.decode);
     eventFactory.registerEventType('feedItemDeletedEvent', FeedItemDeletedEvent.encode as any, FeedItemDeletedEvent.decode);

@@ -8,7 +8,7 @@ import { ChatMetricsRepository } from './ChatMetricsRepository';
 import {
     Message,
     UserDialogBumpEvent, UserDialogCallStateChangedEvent,
-    UserDialogDeletedEvent,
+    UserDialogDeletedEvent, UserDialogGotAccessEvent, UserDialogLostAccessEvent,
     UserDialogMessageDeletedEvent,
     UserDialogMessageReadEvent,
     UserDialogMessageReceivedEvent,
@@ -186,6 +186,26 @@ export class DeliveryRepository {
         await inTx(parent, async (ctx) => {
             // Persist Event
             Store.UserDialogEventStore.post(ctx, uid, UserDialogPeerUpdatedEvent.create({
+                uid,
+                cid,
+            }));
+        });
+    }
+
+    async deliverDialogGotAccessToUser(parent: Context, uid: number, cid: number) {
+        await inTx(parent, async (ctx) => {
+            // Persist Event
+            Store.UserDialogEventStore.post(ctx, uid, UserDialogGotAccessEvent.create({
+                uid,
+                cid,
+            }));
+        });
+    }
+
+    async deliverDialogLostAccessToUser(parent: Context, uid: number, cid: number) {
+        await inTx(parent, async (ctx) => {
+            // Persist Event
+            Store.UserDialogEventStore.post(ctx, uid, UserDialogLostAccessEvent.create({
                 uid,
                 cid,
             }));

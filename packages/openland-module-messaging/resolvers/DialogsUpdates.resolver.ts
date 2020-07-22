@@ -4,7 +4,7 @@ import { IDs } from 'openland-module-api/IDs';
 import { Store } from 'openland-module-db/FDB';
 import {
     UserDialogBumpEvent, UserDialogCallStateChangedEvent,
-    UserDialogDeletedEvent,
+    UserDialogDeletedEvent, UserDialogGotAccessEvent, UserDialogLostAccessEvent,
     UserDialogMessageDeletedEvent,
     UserDialogMessageReadEvent,
     UserDialogMessageReceivedEvent,
@@ -71,6 +71,10 @@ export const Resolver: GQLResolver = {
                 return 'DialogPeerUpdated';
             } else if (obj instanceof UserDialogCallStateChangedEvent) {
                 return 'DialogCallStateChanged';
+            } else if (obj instanceof UserDialogGotAccessEvent) {
+                return 'DialogGotAccess';
+            } else if (obj instanceof UserDialogLostAccessEvent) {
+                return 'DialogLostAccess';
             }
             throw Error('Unknown dialog update type: ' + obj.type);
         }
@@ -149,6 +153,12 @@ export const Resolver: GQLResolver = {
     },
     DialogCallStateChanged: {
         hasActiveCall: src => src.hasActiveCall,
+        cid: src => IDs.Conversation.serialize(src.cid),
+    },
+    DialogGotAccess: {
+        cid: src => IDs.Conversation.serialize(src.cid),
+    },
+    DialogLostAccess: {
         cid: src => IDs.Conversation.serialize(src.cid),
     },
     // deprecated
