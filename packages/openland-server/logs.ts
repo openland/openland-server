@@ -37,6 +37,9 @@ export const logger = isProduction ? getPino() : winston.createLogger({
 function formatMessage(ctx: Context, name: string, message: string) {
     if (isProduction) {
         let v = LogPathContext.get(ctx);
+        if (message.length > 2048) {
+            message = message.slice(2048) + '...';
+        }
         return ContextName.get(ctx) + ' | ' + [...v, name].join(' ➾ ') + ': ' + message;
     } else {
         return name + ': ' + message;
