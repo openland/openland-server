@@ -182,7 +182,7 @@ export function createPushWorker(repo: PushRepository) {
 }
 
 export function createPushWorkerParallel(repo: PushRepository) {
-    let queue = new WorkQueue<Push[]>('push_sender');
+    let queue = new WorkQueue<Push[]>('push_sender_parallel');
     if (!serverRoleEnabled('workers')) {
         return queue;
     }

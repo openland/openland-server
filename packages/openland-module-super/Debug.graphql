@@ -191,6 +191,7 @@ extend type Mutation {
     debugDeleteAllContacts: Boolean!
     debugChangeGlobalCounterTypeForAll: Boolean!
     debugReindexOrganizationMembers: Boolean!
+    debugDeleteTask(taskType: String!, id: String!): Boolean!
 }
 
 extend type Subscription {
