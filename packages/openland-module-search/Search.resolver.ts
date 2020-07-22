@@ -222,6 +222,9 @@ export const Resolver: GQLResolver = {
                 }
             });
 
+            if ('saved messages'.startsWith(query)) {
+                dataPromises.unshift(Store.User.findById(ctx, uid));
+            }
             let data = (await Promise.all(dataPromises as Promise<User | Organization | Conversation>[])).filter(isDefined);
 
             let rooms = new Set<number>();
