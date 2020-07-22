@@ -37,9 +37,6 @@ export const logger = isProduction ? getPino() : winston.createLogger({
 function formatMessage(ctx: Context, name: string, message: string) {
     if (isProduction) {
         let v = LogPathContext.get(ctx);
-        if (message.length > 512) {
-            message = message.slice(512) + '...';
-        }
         return ContextName.get(ctx) + ' | ' + [...v, name].join(' ➾ ') + ': ' + message;
     } else {
         return name + ': ' + message;
@@ -60,6 +57,9 @@ function formatMessage(ctx: Context, name: string, message: string) {
 
 setLogProvider({
     log: (ctx, service, level, message) => {
+        if (message.length > 512) {
+            message = message.slice(0, 512) + '...';
+        }
         let obj: any;
         if (isProduction) {
             obj = {
