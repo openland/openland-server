@@ -1,13 +1,23 @@
-import { Store } from './../../openland-module-db/FDB';
+import { Store } from '../../openland-module-db/FDB';
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
 import { RoomRepository } from './RoomRepository';
 import { createNamedContext } from '@openland/context';
+import { DeliveryMediator } from '../mediators/DeliveryMediator';
+jest.mock('../mediators/DeliveryMediator', () => ({
+    DeliveryMediator: jest.fn(() => {
+        return {
+            onDialogGotAccess: jest.fn(),
+            onDialogLostAccess: jest.fn()
+        };
+    })
+}));
 
 describe('RoomRepository', () => {
     beforeAll(async () => {
         await testEnvironmentStart('room-repo');
         container.bind('RoomRepository').to(RoomRepository).inSingletonScope();
+        container.bind('DeliveryMediator').toConstantValue(new DeliveryMediator());
     });
     afterAll( async () => {
       await  testEnvironmentEnd();
