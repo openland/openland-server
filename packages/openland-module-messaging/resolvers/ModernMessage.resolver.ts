@@ -1340,6 +1340,9 @@ export const Resolver: GQLResolver = {
                 videos: (videos.hits.total as any).value
             };
         }),
+        haveAccessToChat: withUser(async (ctx, args, uid) => {
+            return await Modules.Messaging.room.canUserSeeChat(ctx, uid, IDs.Conversation.parse(args.chatId))
+        })
     },
 
     Mutation: {

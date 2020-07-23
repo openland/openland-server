@@ -158,6 +158,7 @@ extend type Query {
     lastReadedMessage(chatId: ID!): ModernMessage
     chatSharedMedia(chatId: ID!, mediaTypes: [SharedMediaType!]!, first: Int!, after: ID, before: ID, around: ID): SharedMediaConnection!
     chatSharedMediaCounters(chatId: ID!): SharedMediaCounters!
+    haveAccessToChat(chatId: ID!): Boolean!
 }
 
 extend type Mutation {
