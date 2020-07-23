@@ -1341,7 +1341,7 @@ export const Resolver: GQLResolver = {
             };
         }),
         haveAccessToChat: withUser(async (ctx, args, uid) => {
-            return await Modules.Messaging.room.canUserSeeChat(ctx, uid, IDs.Conversation.parse(args.chatId))
+            return await Modules.Messaging.room.canUserSeeChat(ctx, uid, IDs.Conversation.parse(args.chatId));
         })
     },
 
