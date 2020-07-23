@@ -4,6 +4,7 @@ import { inTx } from '@openland/foundationdb';
 import { UserError } from '../../openland-errors/UserError';
 import { Store } from '../../openland-module-db/FDB';
 import { resolveSequenceNumber } from '../../openland-module-db/resolveSequenceNumber';
+import { Modules } from '../../openland-modules/Modules';
 
 export type PhonebookRecordInput = {
     firstName: string;
@@ -28,6 +29,12 @@ export class PhonebookRepository {
                 for (let phone of record.phones) {
                     if (!phoneRegexp.test(phone.trim())) {
                         throw new UserError('Invalid phone ' + phone);
+                    }
+                }
+                for (let phone of record.phones) {
+                    let existingUser = await Store.User.fromPhone.find(ctx, phone);
+                    if (existingUser) {
+                        await Modules.Contacts.addContact(ctx, uid, existingUser.id);
                     }
                 }
 
