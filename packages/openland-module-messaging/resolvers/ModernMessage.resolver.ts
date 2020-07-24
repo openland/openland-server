@@ -1205,6 +1205,71 @@ export const Resolver: GQLResolver = {
                 messages,
             };
         }),
+        modernMessages: withUser(async (ctx, args, uid) => {
+            let roomId = IDs.Conversation.parse(args.chatId);
+            if (
+                !(await Modules.Messaging.room.canUserSeeChat(ctx, uid, roomId)) ||
+                !args.first ||
+                args.first <= 0
+            ) {
+                return {
+                    haveMoreForward: false,
+                    haveMoreBackward: false,
+                    messages: [],
+                };
+            }
+
+            let aroundId = args.around ? IDs.ConversationMessage.parse(args.around) : null;
+
+            let beforeId = aroundId || (args.before ? IDs.ConversationMessage.parse(args.before) : null);
+            let afterId = aroundId || (args.after ? IDs.ConversationMessage.parse(args.after) : null);
+
+            let haveMoreForward: boolean | undefined;
+            let haveMoreBackward: boolean | undefined;
+            let messages: Message[] = [];
+
+            if (beforeId || afterId) {
+                let before: Message[] = [];
+                let after: Message[] = [];
+
+                if (beforeId && await Store.Message.findById(ctx, beforeId)) {
+                    let beforeQuery = (await fetchMessages(ctx, roomId, uid, {
+                        after: beforeId,
+                        limit: args.first!,
+                        reverse: true
+                    }));
+                    before = beforeQuery.items;
+                    haveMoreBackward = beforeQuery.haveMore;
+                }
+                if (afterId && await Store.Message.findById(ctx, afterId)) {
+                    let afterQuery = (await fetchMessages(ctx, roomId, uid, {
+                        after: afterId,
+                        limit: args.first!
+                    }));
+                    after = afterQuery.items.reverse();
+                    haveMoreForward = afterQuery.haveMore;
+                }
+                let aroundMessage: Message | undefined | null;
+                if (aroundId) {
+                    aroundMessage = await Store.Message.findById(ctx, aroundId);
+                    if (aroundMessage && aroundMessage.hiddenForUids?.includes(uid)) {
+                        aroundMessage = null;
+                    }
+                }
+                messages = [...after, ...(aroundMessage && !aroundMessage.deleted) ? [aroundMessage] : [], ...before];
+            } else {
+                haveMoreForward = false;
+                let beforeQuery = (await fetchMessages(ctx, roomId, uid, {limit: args.first!, reverse: true}));
+                messages = beforeQuery.items;
+                haveMoreBackward = beforeQuery.haveMore;
+            }
+
+            return {
+                haveMoreForward,
+                haveMoreBackward,
+                messages,
+            };
+        }),
 
         message: withUser(async (ctx, args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
