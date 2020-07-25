@@ -479,6 +479,7 @@ export namespace GQLRoots {
     export type SilentMessageInfoRoot = { mobile: boolean, desktop: boolean };
     export type ShowNotificationMessageInfoRoot = { mobile: boolean, desktop: boolean };
     export type GammaMessagesBatchRoot = { haveMoreForward?: boolean, haveMoreBackward?: boolean, messages: Message[] };
+    export type ModernMessagesBatchRoot = { haveMoreForward: boolean, haveMoreBackward: boolean, messages: Message[] };
     export type MentionPeerRoot = UserProfile | ConversationRoom | Organization;
     export type MessageWithMentionRoot = FeedEvent | Message;
     export type SharedMediaCountersRoot = GQL.SharedMediaCounters;

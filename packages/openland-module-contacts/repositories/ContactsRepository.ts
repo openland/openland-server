@@ -9,7 +9,9 @@ export class ContactsRepository {
     async addContact(parent: Context, uid: number, contactId: number) {
         return await inTx(parent, async ctx => {
             let existing = await Store.Contact.findById(ctx, uid, contactId);
-            if (existing) {
+            if (existing && existing.state === 'active') {
+                return existing;
+            } else if (existing && existing.state !== 'active') {
                 existing.state = 'active';
                 await existing.flush(ctx);
                 await Store.UserContactsEventStore.post(ctx, uid, ContactAddedEvent.create({ uid, contactUid: contactId }));
@@ -25,6 +27,9 @@ export class ContactsRepository {
         return await inTx(parent, async ctx => {
             let existing = await Store.Contact.findById(ctx, uid, contactId);
             if (!existing) {
+                return false;
+            }
+            if (existing.state === 'deleted') {
                 return false;
             }
             existing.state = 'deleted';
