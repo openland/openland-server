@@ -104,6 +104,16 @@ export const Resolver: GQLResolver = {
         photo: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null, true),
         photoRef: withProfile((ctx, src, profile) => profile && profile.picture, true),
         about: withProfile((ctx, src, profile) => profile ? profile.about : null, true),
+        badge: withProfile(async (ctx, src, profile) => {
+            if (!profile) {
+                return null;
+            }
+            let org = profile.primaryOrganization ? await Store.OrganizationProfile.findById(ctx, profile.primaryOrganization) : null;
+            return org ? {
+                type: 'organization',
+                text: org.name
+            } : null;
+        }),
 
         email: withUser(async (ctx, src, authorized) => {
             if (!authorized) {

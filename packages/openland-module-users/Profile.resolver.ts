@@ -7,8 +7,17 @@ import { Sanitizer } from 'openland-utils/Sanitizer';
 import { withUser } from 'openland-module-api/Resolvers';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
+import ProfileBadgeRoot = GQLRoots.ProfileBadgeRoot;
 
 export const Resolver: GQLResolver = {
+    ProfileBadge: {
+        type: root => root.type,
+        text: root => root.text,
+    },
+    ProfileBadgeType: {
+        ORGANIZATION: 'organization'
+    },
     Profile: {
         id: (src) => IDs.Profile.serialize(src.id!!),
         firstName: (src) => src.firstName,
@@ -25,6 +34,13 @@ export const Resolver: GQLResolver = {
         facebook: (src) => src.facebook,
         primaryBadge: (src, args, ctx) => src.primaryBadge ? Store.UserBadge.findById(ctx, src.primaryBadge) : null,
         authEmail: async (src, args, ctx) => (await Store.User.findById(ctx, src.id))!.email,
+        badge: async (src, args, ctx): Promise<ProfileBadgeRoot | null> => {
+            let org = src.primaryOrganization ? await Store.OrganizationProfile.findById(ctx, src.primaryOrganization) : null;
+            return org ? {
+                type: 'organization',
+                text: org.name
+            } : null;
+        },
 
         alphaRole: (src) => src.role,
         alphaLocations: (src) => src.locations,

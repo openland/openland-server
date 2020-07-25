@@ -1,3 +1,11 @@
+enum ProfileBadgeType {
+    ORGANIZATION
+}
+
+type ProfileBadge {
+    type: ProfileBadgeType!
+    text: String!
+}
 
 type Profile {
     id: ID!
@@ -14,6 +22,7 @@ type Profile {
     twitter: String
     facebook: String
     authEmail: String
+    badge: ProfileBadge
 
     # Deprecated
     alphaLinkedin: String

@@ -17,6 +17,7 @@ type User {
     twitter: String
     facebook: String
     audienceSize: Int!
+    badge: ProfileBadge
 
     # TODO: Refactor
     channelsJoined: [ChannelConversation!]! @disabled

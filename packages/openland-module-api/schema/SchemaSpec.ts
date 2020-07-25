@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '7fa3241d40c180739f006344d2cfbde5';
+export const GQL_SPEC_VERSION = 'f95331e07f525eca7750e32d3b0cb09a';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -393,113 +393,6 @@ export namespace GQL {
         longDescription: Nullable<string>;
         socialImageRef: Nullable<ImageRefInput>;
     }
-    export interface Profile {
-        id: string;
-        firstName: Nullable<string>;
-        lastName: Nullable<string>;
-        photoRef: Nullable<ImageRef>;
-        phone: Nullable<string>;
-        email: Nullable<string>;
-        website: Nullable<string>;
-        about: Nullable<string>;
-        location: Nullable<string>;
-        linkedin: Nullable<string>;
-        instagram: Nullable<string>;
-        twitter: Nullable<string>;
-        facebook: Nullable<string>;
-        authEmail: Nullable<string>;
-        alphaLinkedin: Nullable<string>;
-        alphaTwitter: Nullable<string>;
-        alphaJoinedAt: Nullable<string>;
-        alphaInvitedBy: Nullable<User>;
-        alphaRole: Nullable<string>;
-        alphaLocations: Nullable<string[]>;
-        primaryOrganization: Nullable<Organization>;
-        alphaPrimaryOrganizationId: Nullable<string>;
-        alphaPrimaryOrganization: Nullable<Organization>;
-        primaryBadge: Nullable<UserBadge>;
-        shortname: Nullable<string>;
-    }
-    export interface ProfileIdArgs { }
-    export interface ProfileFirstNameArgs { }
-    export interface ProfileLastNameArgs { }
-    export interface ProfilePhotoRefArgs { }
-    export interface ProfilePhoneArgs { }
-    export interface ProfileEmailArgs { }
-    export interface ProfileWebsiteArgs { }
-    export interface ProfileAboutArgs { }
-    export interface ProfileLocationArgs { }
-    export interface ProfileLinkedinArgs { }
-    export interface ProfileInstagramArgs { }
-    export interface ProfileTwitterArgs { }
-    export interface ProfileFacebookArgs { }
-    export interface ProfileAuthEmailArgs { }
-    export interface ProfileAlphaLinkedinArgs { }
-    export interface ProfileAlphaTwitterArgs { }
-    export interface ProfileAlphaJoinedAtArgs { }
-    export interface ProfileAlphaInvitedByArgs { }
-    export interface ProfileAlphaRoleArgs { }
-    export interface ProfileAlphaLocationsArgs { }
-    export interface ProfilePrimaryOrganizationArgs { }
-    export interface ProfileAlphaPrimaryOrganizationIdArgs { }
-    export interface ProfileAlphaPrimaryOrganizationArgs { }
-    export interface ProfilePrimaryBadgeArgs { }
-    export interface ProfileShortnameArgs { }
-    export interface ProfileInput {
-        firstName: Nullable<string>;
-        lastName: Nullable<string>;
-        photoRef: Nullable<ImageRefInput>;
-        phone: Nullable<string>;
-        email: Nullable<string>;
-        website: Nullable<string>;
-        about: Nullable<string>;
-        location: Nullable<string>;
-        linkedin: Nullable<string>;
-        instagram: Nullable<string>;
-        twitter: Nullable<string>;
-        facebook: Nullable<string>;
-        primaryOrganization: Nullable<string>;
-    }
-    export interface UpdateProfileInput {
-        firstName: Nullable<string>;
-        lastName: Nullable<string>;
-        photoRef: Nullable<ImageRefInput>;
-        phone: Nullable<string>;
-        email: Nullable<string>;
-        website: Nullable<string>;
-        about: Nullable<string>;
-        location: Nullable<string>;
-        linkedin: Nullable<string>;
-        instagram: Nullable<string>;
-        twitter: Nullable<string>;
-        facebook: Nullable<string>;
-        primaryOrganization: Nullable<string>;
-        alphaRole: Nullable<string>;
-        alphaLocations: Nullable<string[]>;
-        alphaLinkedin: Nullable<string>;
-        alphaTwitter: Nullable<string>;
-        alphaPrimaryOrganizationId: Nullable<string>;
-    }
-    export interface CreateProfileInput {
-        firstName: string;
-        lastName: Nullable<string>;
-        photoRef: Nullable<ImageRefInput>;
-        phone: Nullable<string>;
-        email: Nullable<string>;
-        about: Nullable<string>;
-        location: Nullable<string>;
-        website: Nullable<string>;
-        linkedin: Nullable<string>;
-        twitter: Nullable<string>;
-        facebook: Nullable<string>;
-        primaryOrganization: Nullable<string>;
-    }
-    export interface AlphaSignupData {
-        user: Nullable<User>;
-        organization: Nullable<Organization>;
-    }
-    export interface AlphaSignupDataUserArgs { }
-    export interface AlphaSignupDataOrganizationArgs { }
     export interface CreditCard {
         id: string;
         pmid: string;
@@ -1293,6 +1186,123 @@ export namespace GQL {
     }
     export interface IsAppInstalledResponseInstalledArgs { }
     export interface IsAppInstalledResponseInstalledAtArgs { }
+    export type ProfileBadgeTypeValues = 'ORGANIZATION';
+    export type ProfileBadgeType = GQLRoots.ProfileBadgeTypeRoot;
+    export interface ProfileBadge {
+        type: ProfileBadgeType;
+        text: string;
+    }
+    export interface ProfileBadgeTypeArgs { }
+    export interface ProfileBadgeTextArgs { }
+    export interface Profile {
+        id: string;
+        firstName: Nullable<string>;
+        lastName: Nullable<string>;
+        photoRef: Nullable<ImageRef>;
+        phone: Nullable<string>;
+        email: Nullable<string>;
+        website: Nullable<string>;
+        about: Nullable<string>;
+        location: Nullable<string>;
+        linkedin: Nullable<string>;
+        instagram: Nullable<string>;
+        twitter: Nullable<string>;
+        facebook: Nullable<string>;
+        authEmail: Nullable<string>;
+        badge: Nullable<ProfileBadge>;
+        alphaLinkedin: Nullable<string>;
+        alphaTwitter: Nullable<string>;
+        alphaJoinedAt: Nullable<string>;
+        alphaInvitedBy: Nullable<User>;
+        alphaRole: Nullable<string>;
+        alphaLocations: Nullable<string[]>;
+        primaryOrganization: Nullable<Organization>;
+        alphaPrimaryOrganizationId: Nullable<string>;
+        alphaPrimaryOrganization: Nullable<Organization>;
+        primaryBadge: Nullable<UserBadge>;
+        shortname: Nullable<string>;
+    }
+    export interface ProfileIdArgs { }
+    export interface ProfileFirstNameArgs { }
+    export interface ProfileLastNameArgs { }
+    export interface ProfilePhotoRefArgs { }
+    export interface ProfilePhoneArgs { }
+    export interface ProfileEmailArgs { }
+    export interface ProfileWebsiteArgs { }
+    export interface ProfileAboutArgs { }
+    export interface ProfileLocationArgs { }
+    export interface ProfileLinkedinArgs { }
+    export interface ProfileInstagramArgs { }
+    export interface ProfileTwitterArgs { }
+    export interface ProfileFacebookArgs { }
+    export interface ProfileAuthEmailArgs { }
+    export interface ProfileBadgeArgs { }
+    export interface ProfileAlphaLinkedinArgs { }
+    export interface ProfileAlphaTwitterArgs { }
+    export interface ProfileAlphaJoinedAtArgs { }
+    export interface ProfileAlphaInvitedByArgs { }
+    export interface ProfileAlphaRoleArgs { }
+    export interface ProfileAlphaLocationsArgs { }
+    export interface ProfilePrimaryOrganizationArgs { }
+    export interface ProfileAlphaPrimaryOrganizationIdArgs { }
+    export interface ProfileAlphaPrimaryOrganizationArgs { }
+    export interface ProfilePrimaryBadgeArgs { }
+    export interface ProfileShortnameArgs { }
+    export interface ProfileInput {
+        firstName: Nullable<string>;
+        lastName: Nullable<string>;
+        photoRef: Nullable<ImageRefInput>;
+        phone: Nullable<string>;
+        email: Nullable<string>;
+        website: Nullable<string>;
+        about: Nullable<string>;
+        location: Nullable<string>;
+        linkedin: Nullable<string>;
+        instagram: Nullable<string>;
+        twitter: Nullable<string>;
+        facebook: Nullable<string>;
+        primaryOrganization: Nullable<string>;
+    }
+    export interface UpdateProfileInput {
+        firstName: Nullable<string>;
+        lastName: Nullable<string>;
+        photoRef: Nullable<ImageRefInput>;
+        phone: Nullable<string>;
+        email: Nullable<string>;
+        website: Nullable<string>;
+        about: Nullable<string>;
+        location: Nullable<string>;
+        linkedin: Nullable<string>;
+        instagram: Nullable<string>;
+        twitter: Nullable<string>;
+        facebook: Nullable<string>;
+        primaryOrganization: Nullable<string>;
+        alphaRole: Nullable<string>;
+        alphaLocations: Nullable<string[]>;
+        alphaLinkedin: Nullable<string>;
+        alphaTwitter: Nullable<string>;
+        alphaPrimaryOrganizationId: Nullable<string>;
+    }
+    export interface CreateProfileInput {
+        firstName: string;
+        lastName: Nullable<string>;
+        photoRef: Nullable<ImageRefInput>;
+        phone: Nullable<string>;
+        email: Nullable<string>;
+        about: Nullable<string>;
+        location: Nullable<string>;
+        website: Nullable<string>;
+        linkedin: Nullable<string>;
+        twitter: Nullable<string>;
+        facebook: Nullable<string>;
+        primaryOrganization: Nullable<string>;
+    }
+    export interface AlphaSignupData {
+        user: Nullable<User>;
+        organization: Nullable<Organization>;
+    }
+    export interface AlphaSignupDataUserArgs { }
+    export interface AlphaSignupDataOrganizationArgs { }
     export type SuperAccountStateValues = 'PENDING' | 'ACTIVATED' | 'SUSPENDED' | 'DELETED';
     export type SuperAccountState = GQLRoots.SuperAccountStateRoot;
     export interface SuperAccount {
@@ -2184,11 +2194,6 @@ export namespace GQL {
         alphaChatCopyGroup: GroupChatUpdateResponse;
         alphaChatLeave: ConversationUpdateResponse;
         alphaUpdateConversationSettings: ConversationSettings;
-        profileCreate: Profile;
-        profileUpdate: Profile;
-        createProfile: Profile;
-        updateProfile: Profile;
-        alphaCreateUserProfileAndOrganization: AlphaSignupData;
         cardCreateSetupIntent: CardSetupIntent;
         cardCommitSetupIntent: CreditCard;
         cardRemove: CreditCard;
@@ -2314,6 +2319,11 @@ export namespace GQL {
         alphaReportActive: string;
         alphaSetDesktopInstalled: boolean;
         alphaSetMobileInstalled: boolean;
+        profileCreate: Profile;
+        profileUpdate: Profile;
+        createProfile: Profile;
+        updateProfile: Profile;
+        alphaCreateUserProfileAndOrganization: AlphaSignupData;
         superAccountAdd: SuperAccount;
         superAccountRename: SuperAccount;
         superAccountActivate: SuperAccount;
@@ -2598,26 +2608,6 @@ export namespace GQL {
     export interface MutationAlphaUpdateConversationSettingsArgs {
         settings: UpdateConversationSettingsInput;
         conversationId: string;
-    }
-    export interface MutationProfileCreateArgs {
-        input: ProfileInput;
-        inviteKey: OptionalNullable<string>;
-    }
-    export interface MutationProfileUpdateArgs {
-        input: ProfileInput;
-        uid: OptionalNullable<string>;
-        inviteKey: OptionalNullable<string>;
-    }
-    export interface MutationCreateProfileArgs {
-        input: CreateProfileInput;
-    }
-    export interface MutationUpdateProfileArgs {
-        input: UpdateProfileInput;
-        uid: OptionalNullable<string>;
-    }
-    export interface MutationAlphaCreateUserProfileAndOrganizationArgs {
-        user: ProfileInput;
-        organization: CreateOrganizationInput;
     }
     export interface MutationCardCreateSetupIntentArgs {
         retryKey: string;
@@ -2933,6 +2923,26 @@ export namespace GQL {
     }
     export interface MutationAlphaSetMobileInstalledArgs {
         at: Date;
+    }
+    export interface MutationProfileCreateArgs {
+        input: ProfileInput;
+        inviteKey: OptionalNullable<string>;
+    }
+    export interface MutationProfileUpdateArgs {
+        input: ProfileInput;
+        uid: OptionalNullable<string>;
+        inviteKey: OptionalNullable<string>;
+    }
+    export interface MutationCreateProfileArgs {
+        input: CreateProfileInput;
+    }
+    export interface MutationUpdateProfileArgs {
+        input: UpdateProfileInput;
+        uid: OptionalNullable<string>;
+    }
+    export interface MutationAlphaCreateUserProfileAndOrganizationArgs {
+        user: ProfileInput;
+        organization: CreateOrganizationInput;
     }
     export interface MutationSuperAccountAddArgs {
         title: string;
@@ -4126,7 +4136,6 @@ export namespace GQL {
         alphaChatsSearchForCompose: ComposeSearchResult[];
         alphaChatSearch: Nullable<Conversation>;
         alphaGroupConversationMembers: GroupConversationMember[];
-        myProfile: Nullable<Profile>;
         myCards: CreditCard[];
         myWallet: WalletAccount;
         transactionsPending: WalletTransaction[];
@@ -4171,6 +4180,7 @@ export namespace GQL {
         waitingPermissionRequests: PermissionRequest[];
         isDesktopInstalled: IsAppInstalledResponse;
         isMobileInstalled: IsAppInstalledResponse;
+        myProfile: Nullable<Profile>;
         superAccounts: SuperAccount[];
         superAccount: SuperAccount;
         superAdmins: SuperAdmin[];
@@ -4320,7 +4330,6 @@ export namespace GQL {
     export interface QueryAlphaGroupConversationMembersArgs {
         conversationId: string;
     }
-    export interface QueryMyProfileArgs { }
     export interface QueryMyCardsArgs { }
     export interface QueryMyWalletArgs { }
     export interface QueryTransactionsPendingArgs { }
@@ -4415,6 +4424,7 @@ export namespace GQL {
     export interface QueryWaitingPermissionRequestsArgs { }
     export interface QueryIsDesktopInstalledArgs { }
     export interface QueryIsMobileInstalledArgs { }
+    export interface QueryMyProfileArgs { }
     export interface QuerySuperAccountsArgs { }
     export interface QuerySuperAccountArgs {
         id: string;
@@ -5109,6 +5119,7 @@ export namespace GQL {
         twitter: Nullable<string>;
         facebook: Nullable<string>;
         audienceSize: number;
+        badge: Nullable<ProfileBadge>;
         channelsJoined: ChannelConversation[];
         photoRef: Nullable<ImageRef>;
         picture: Nullable<string>;
@@ -5147,6 +5158,7 @@ export namespace GQL {
     export interface UserTwitterArgs { }
     export interface UserFacebookArgs { }
     export interface UserAudienceSizeArgs { }
+    export interface UserBadgeArgs { }
     export interface UserChannelsJoinedArgs { }
     export interface UserPhotoRefArgs { }
     export interface UserPictureArgs { }
@@ -6515,56 +6527,6 @@ export interface GQLResolver {
             blockedBy: GQL.ConversationBlockedUserBlockedByArgs,
         }
     >;
-    Profile?: ComplexTypedResolver<
-        GQL.Profile,
-        GQLRoots.ProfileRoot,
-        {
-            photoRef: Nullable<GQLRoots.ImageRefRoot>,
-            alphaInvitedBy: Nullable<GQLRoots.UserRoot>,
-            primaryOrganization: Nullable<GQLRoots.OrganizationRoot>,
-            alphaPrimaryOrganization: Nullable<GQLRoots.OrganizationRoot>,
-            primaryBadge: Nullable<GQLRoots.UserBadgeRoot>,
-        },
-        {
-            id: GQL.ProfileIdArgs,
-            firstName: GQL.ProfileFirstNameArgs,
-            lastName: GQL.ProfileLastNameArgs,
-            photoRef: GQL.ProfilePhotoRefArgs,
-            phone: GQL.ProfilePhoneArgs,
-            email: GQL.ProfileEmailArgs,
-            website: GQL.ProfileWebsiteArgs,
-            about: GQL.ProfileAboutArgs,
-            location: GQL.ProfileLocationArgs,
-            linkedin: GQL.ProfileLinkedinArgs,
-            instagram: GQL.ProfileInstagramArgs,
-            twitter: GQL.ProfileTwitterArgs,
-            facebook: GQL.ProfileFacebookArgs,
-            authEmail: GQL.ProfileAuthEmailArgs,
-            alphaLinkedin: GQL.ProfileAlphaLinkedinArgs,
-            alphaTwitter: GQL.ProfileAlphaTwitterArgs,
-            alphaJoinedAt: GQL.ProfileAlphaJoinedAtArgs,
-            alphaInvitedBy: GQL.ProfileAlphaInvitedByArgs,
-            alphaRole: GQL.ProfileAlphaRoleArgs,
-            alphaLocations: GQL.ProfileAlphaLocationsArgs,
-            primaryOrganization: GQL.ProfilePrimaryOrganizationArgs,
-            alphaPrimaryOrganizationId: GQL.ProfileAlphaPrimaryOrganizationIdArgs,
-            alphaPrimaryOrganization: GQL.ProfileAlphaPrimaryOrganizationArgs,
-            primaryBadge: GQL.ProfilePrimaryBadgeArgs,
-            shortname: GQL.ProfileShortnameArgs,
-        }
-    >;
-    AlphaSignupData?: ComplexTypedResolver<
-        GQL.AlphaSignupData,
-        GQLRoots.AlphaSignupDataRoot,
-        {
-            user: Nullable<GQLRoots.UserRoot>,
-            organization: Nullable<GQLRoots.OrganizationRoot>,
-        },
-        {
-            user: GQL.AlphaSignupDataUserArgs,
-            organization: GQL.AlphaSignupDataOrganizationArgs,
-        }
-    >;
     CreditCard?: ComplexTypedResolver<
         GQL.CreditCard,
         GQLRoots.CreditCardRoot,
@@ -7480,6 +7442,69 @@ export interface GQLResolver {
         {
             installed: GQL.IsAppInstalledResponseInstalledArgs,
             installedAt: GQL.IsAppInstalledResponseInstalledAtArgs,
+        }
+    >;
+    ProfileBadgeType?: EnumTypeResolver<'ORGANIZATION', GQLRoots.ProfileBadgeTypeRoot>;
+    ProfileBadge?: ComplexTypedResolver<
+        GQL.ProfileBadge,
+        GQLRoots.ProfileBadgeRoot,
+        {
+        },
+        {
+            type: GQL.ProfileBadgeTypeArgs,
+            text: GQL.ProfileBadgeTextArgs,
+        }
+    >;
+    Profile?: ComplexTypedResolver<
+        GQL.Profile,
+        GQLRoots.ProfileRoot,
+        {
+            photoRef: Nullable<GQLRoots.ImageRefRoot>,
+            badge: Nullable<GQLRoots.ProfileBadgeRoot>,
+            alphaInvitedBy: Nullable<GQLRoots.UserRoot>,
+            primaryOrganization: Nullable<GQLRoots.OrganizationRoot>,
+            alphaPrimaryOrganization: Nullable<GQLRoots.OrganizationRoot>,
+            primaryBadge: Nullable<GQLRoots.UserBadgeRoot>,
+        },
+        {
+            id: GQL.ProfileIdArgs,
+            firstName: GQL.ProfileFirstNameArgs,
+            lastName: GQL.ProfileLastNameArgs,
+            photoRef: GQL.ProfilePhotoRefArgs,
+            phone: GQL.ProfilePhoneArgs,
+            email: GQL.ProfileEmailArgs,
+            website: GQL.ProfileWebsiteArgs,
+            about: GQL.ProfileAboutArgs,
+            location: GQL.ProfileLocationArgs,
+            linkedin: GQL.ProfileLinkedinArgs,
+            instagram: GQL.ProfileInstagramArgs,
+            twitter: GQL.ProfileTwitterArgs,
+            facebook: GQL.ProfileFacebookArgs,
+            authEmail: GQL.ProfileAuthEmailArgs,
+            badge: GQL.ProfileBadgeArgs,
+            alphaLinkedin: GQL.ProfileAlphaLinkedinArgs,
+            alphaTwitter: GQL.ProfileAlphaTwitterArgs,
+            alphaJoinedAt: GQL.ProfileAlphaJoinedAtArgs,
+            alphaInvitedBy: GQL.ProfileAlphaInvitedByArgs,
+            alphaRole: GQL.ProfileAlphaRoleArgs,
+            alphaLocations: GQL.ProfileAlphaLocationsArgs,
+            primaryOrganization: GQL.ProfilePrimaryOrganizationArgs,
+            alphaPrimaryOrganizationId: GQL.ProfileAlphaPrimaryOrganizationIdArgs,
+            alphaPrimaryOrganization: GQL.ProfileAlphaPrimaryOrganizationArgs,
+            primaryBadge: GQL.ProfilePrimaryBadgeArgs,
+            shortname: GQL.ProfileShortnameArgs,
+        }
+    >;
+    AlphaSignupData?: ComplexTypedResolver<
+        GQL.AlphaSignupData,
+        GQLRoots.AlphaSignupDataRoot,
+        {
+            user: Nullable<GQLRoots.UserRoot>,
+            organization: Nullable<GQLRoots.OrganizationRoot>,
+        },
+        {
+            user: GQL.AlphaSignupDataUserArgs,
+            organization: GQL.AlphaSignupDataOrganizationArgs,
         }
     >;
     SuperAccountState?: EnumTypeResolver<'PENDING' | 'ACTIVATED' | 'SUSPENDED' | 'DELETED', GQLRoots.SuperAccountStateRoot>;
@@ -8594,11 +8619,6 @@ export interface GQLResolver {
             alphaChatCopyGroup: GQLRoots.GroupChatUpdateResponseRoot,
             alphaChatLeave: GQLRoots.ConversationUpdateResponseRoot,
             alphaUpdateConversationSettings: GQLRoots.ConversationSettingsRoot,
-            profileCreate: GQLRoots.ProfileRoot,
-            profileUpdate: GQLRoots.ProfileRoot,
-            createProfile: GQLRoots.ProfileRoot,
-            updateProfile: GQLRoots.ProfileRoot,
-            alphaCreateUserProfileAndOrganization: GQLRoots.AlphaSignupDataRoot,
             cardCreateSetupIntent: GQLRoots.CardSetupIntentRoot,
             cardCommitSetupIntent: GQLRoots.CreditCardRoot,
             cardRemove: GQLRoots.CreditCardRoot,
@@ -8624,6 +8644,11 @@ export interface GQLResolver {
             alphaOrganizationMemberAdd: GQLRoots.OrganizationJoinedMemberRoot[],
             alphaOrganizationRefreshInviteLink: GQLRoots.InviteRoot,
             alphaOrganizationCreatePublicInvite: GQLRoots.InviteRoot,
+            profileCreate: GQLRoots.ProfileRoot,
+            profileUpdate: GQLRoots.ProfileRoot,
+            createProfile: GQLRoots.ProfileRoot,
+            updateProfile: GQLRoots.ProfileRoot,
+            alphaCreateUserProfileAndOrganization: GQLRoots.AlphaSignupDataRoot,
             superAccountAdd: GQLRoots.SuperAccountRoot,
             superAccountRename: GQLRoots.SuperAccountRoot,
             superAccountActivate: GQLRoots.SuperAccountRoot,
@@ -8735,11 +8760,6 @@ export interface GQLResolver {
             alphaChatCopyGroup: GQL.MutationAlphaChatCopyGroupArgs,
             alphaChatLeave: GQL.MutationAlphaChatLeaveArgs,
             alphaUpdateConversationSettings: GQL.MutationAlphaUpdateConversationSettingsArgs,
-            profileCreate: GQL.MutationProfileCreateArgs,
-            profileUpdate: GQL.MutationProfileUpdateArgs,
-            createProfile: GQL.MutationCreateProfileArgs,
-            updateProfile: GQL.MutationUpdateProfileArgs,
-            alphaCreateUserProfileAndOrganization: GQL.MutationAlphaCreateUserProfileAndOrganizationArgs,
             cardCreateSetupIntent: GQL.MutationCardCreateSetupIntentArgs,
             cardCommitSetupIntent: GQL.MutationCardCommitSetupIntentArgs,
             cardRemove: GQL.MutationCardRemoveArgs,
@@ -8865,6 +8885,11 @@ export interface GQLResolver {
             alphaReportActive: GQL.MutationAlphaReportActiveArgs,
             alphaSetDesktopInstalled: GQL.MutationAlphaSetDesktopInstalledArgs,
             alphaSetMobileInstalled: GQL.MutationAlphaSetMobileInstalledArgs,
+            profileCreate: GQL.MutationProfileCreateArgs,
+            profileUpdate: GQL.MutationProfileUpdateArgs,
+            createProfile: GQL.MutationCreateProfileArgs,
+            updateProfile: GQL.MutationUpdateProfileArgs,
+            alphaCreateUserProfileAndOrganization: GQL.MutationAlphaCreateUserProfileAndOrganizationArgs,
             superAccountAdd: GQL.MutationSuperAccountAddArgs,
             superAccountRename: GQL.MutationSuperAccountRenameArgs,
             superAccountActivate: GQL.MutationSuperAccountActivateArgs,
@@ -9562,7 +9587,6 @@ export interface GQLResolver {
             alphaChatsSearchForCompose: GQLRoots.ComposeSearchResultRoot[],
             alphaChatSearch: Nullable<GQLRoots.ConversationRoot>,
             alphaGroupConversationMembers: GQLRoots.GroupConversationMemberRoot[],
-            myProfile: Nullable<GQLRoots.ProfileRoot>,
             myCards: GQLRoots.CreditCardRoot[],
             myWallet: GQLRoots.WalletAccountRoot,
             transactionsPending: GQLRoots.WalletTransactionRoot[],
@@ -9595,6 +9619,7 @@ export interface GQLResolver {
             waitingPermissionRequests: GQLRoots.PermissionRequestRoot[],
             isDesktopInstalled: GQLRoots.IsAppInstalledResponseRoot,
             isMobileInstalled: GQLRoots.IsAppInstalledResponseRoot,
+            myProfile: Nullable<GQLRoots.ProfileRoot>,
             superAccounts: GQLRoots.SuperAccountRoot[],
             superAccount: GQLRoots.SuperAccountRoot,
             superAdmins: GQLRoots.SuperAdminRoot[],
@@ -9720,7 +9745,6 @@ export interface GQLResolver {
             alphaChatsSearchForCompose: GQL.QueryAlphaChatsSearchForComposeArgs,
             alphaChatSearch: GQL.QueryAlphaChatSearchArgs,
             alphaGroupConversationMembers: GQL.QueryAlphaGroupConversationMembersArgs,
-            myProfile: GQL.QueryMyProfileArgs,
             myCards: GQL.QueryMyCardsArgs,
             myWallet: GQL.QueryMyWalletArgs,
             transactionsPending: GQL.QueryTransactionsPendingArgs,
@@ -9765,6 +9789,7 @@ export interface GQLResolver {
             waitingPermissionRequests: GQL.QueryWaitingPermissionRequestsArgs,
             isDesktopInstalled: GQL.QueryIsDesktopInstalledArgs,
             isMobileInstalled: GQL.QueryIsMobileInstalledArgs,
+            myProfile: GQL.QueryMyProfileArgs,
             superAccounts: GQL.QuerySuperAccountsArgs,
             superAccount: GQL.QuerySuperAccountArgs,
             superAdmins: GQL.QuerySuperAdminsArgs,
@@ -10133,6 +10158,7 @@ export interface GQLResolver {
         GQL.User,
         GQLRoots.UserRoot,
         {
+            badge: Nullable<GQLRoots.ProfileBadgeRoot>,
             channelsJoined: GQLRoots.ChannelConversationRoot[],
             photoRef: Nullable<GQLRoots.ImageRefRoot>,
             pictureRef: Nullable<GQLRoots.ImageRefRoot>,
@@ -10162,6 +10188,7 @@ export interface GQLResolver {
             twitter: GQL.UserTwitterArgs,
             facebook: GQL.UserFacebookArgs,
             audienceSize: GQL.UserAudienceSizeArgs,
+            badge: GQL.UserBadgeArgs,
             channelsJoined: GQL.UserChannelsJoinedArgs,
             photoRef: GQL.UserPhotoRefArgs,
             picture: GQL.UserPictureArgs,
