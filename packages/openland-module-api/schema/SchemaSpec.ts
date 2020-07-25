@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'f95331e07f525eca7750e32d3b0cb09a';
+export const GQL_SPEC_VERSION = 'a9fdc70503389373b7d2319a2a3e6e22';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4285,10 +4285,12 @@ export namespace GQL {
         orgMembersSearch: JoinedOrganizationMembersConnection;
         messages: ModernMessage[];
         gammaMessages: Nullable<GammaMessagesBatch>;
+        modernMessages: Nullable<GammaMessagesBatch>;
         message: Nullable<ModernMessage>;
         lastReadedMessage: Nullable<ModernMessage>;
         chatSharedMedia: SharedMediaConnection;
         chatSharedMediaCounters: SharedMediaCounters;
+        haveAccessToChat: boolean;
         room: Nullable<Room>;
         rooms: Room[];
         roomSuper: Nullable<RoomSuper>;
@@ -4758,6 +4760,13 @@ export namespace GQL {
         after: OptionalNullable<string>;
         around: OptionalNullable<string>;
     }
+    export interface QueryModernMessagesArgs {
+        chatId: string;
+        first: number;
+        before: OptionalNullable<string>;
+        after: OptionalNullable<string>;
+        around: OptionalNullable<string>;
+    }
     export interface QueryMessageArgs {
         messageId: string;
     }
@@ -4773,6 +4782,9 @@ export namespace GQL {
         around: OptionalNullable<string>;
     }
     export interface QueryChatSharedMediaCountersArgs {
+        chatId: string;
+    }
+    export interface QueryHaveAccessToChatArgs {
         chatId: string;
     }
     export interface QueryRoomArgs {
@@ -5541,6 +5553,14 @@ export namespace GQL {
     export interface GammaMessagesBatchMessagesArgs { }
     export interface GammaMessagesBatchHaveMoreForwardArgs { }
     export interface GammaMessagesBatchHaveMoreBackwardArgs { }
+    export interface ModernMessagesBatch {
+        messages: ModernMessage[];
+        haveMoreForward: boolean;
+        haveMoreBackward: boolean;
+    }
+    export interface ModernMessagesBatchMessagesArgs { }
+    export interface ModernMessagesBatchHaveMoreForwardArgs { }
+    export interface ModernMessagesBatchHaveMoreBackwardArgs { }
     export type SharedMediaTypeValues = 'LINK' | 'IMAGE' | 'DOCUMENT' | 'VIDEO';
     export type SharedMediaType = GQLRoots.SharedMediaTypeRoot;
     export interface SharedMediaCounters {
@@ -9717,6 +9737,7 @@ export interface GQLResolver {
             orgMembersSearch: GQLRoots.JoinedOrganizationMembersConnectionRoot,
             messages: GQLRoots.ModernMessageRoot[],
             gammaMessages: Nullable<GQLRoots.GammaMessagesBatchRoot>,
+            modernMessages: Nullable<GQLRoots.GammaMessagesBatchRoot>,
             message: Nullable<GQLRoots.ModernMessageRoot>,
             lastReadedMessage: Nullable<GQLRoots.ModernMessageRoot>,
             chatSharedMedia: GQLRoots.SharedMediaConnectionRoot,
@@ -9894,10 +9915,12 @@ export interface GQLResolver {
             orgMembersSearch: GQL.QueryOrgMembersSearchArgs,
             messages: GQL.QueryMessagesArgs,
             gammaMessages: GQL.QueryGammaMessagesArgs,
+            modernMessages: GQL.QueryModernMessagesArgs,
             message: GQL.QueryMessageArgs,
             lastReadedMessage: GQL.QueryLastReadedMessageArgs,
             chatSharedMedia: GQL.QueryChatSharedMediaArgs,
             chatSharedMediaCounters: GQL.QueryChatSharedMediaCountersArgs,
+            haveAccessToChat: GQL.QueryHaveAccessToChatArgs,
             room: GQL.QueryRoomArgs,
             rooms: GQL.QueryRoomsArgs,
             roomSuper: GQL.QueryRoomSuperArgs,
@@ -10638,6 +10661,18 @@ export interface GQLResolver {
             messages: GQL.GammaMessagesBatchMessagesArgs,
             haveMoreForward: GQL.GammaMessagesBatchHaveMoreForwardArgs,
             haveMoreBackward: GQL.GammaMessagesBatchHaveMoreBackwardArgs,
+        }
+    >;
+    ModernMessagesBatch?: ComplexTypedResolver<
+        GQL.ModernMessagesBatch,
+        GQLRoots.ModernMessagesBatchRoot,
+        {
+            messages: GQLRoots.ModernMessageRoot[],
+        },
+        {
+            messages: GQL.ModernMessagesBatchMessagesArgs,
+            haveMoreForward: GQL.ModernMessagesBatchHaveMoreForwardArgs,
+            haveMoreBackward: GQL.ModernMessagesBatchHaveMoreBackwardArgs,
         }
     >;
     SharedMediaType?: EnumTypeResolver<'LINK' | 'IMAGE' | 'DOCUMENT' | 'VIDEO', GQLRoots.SharedMediaTypeRoot>;
