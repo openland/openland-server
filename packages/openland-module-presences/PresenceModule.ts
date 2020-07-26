@@ -243,8 +243,8 @@ export class PresenceModule {
         await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
         let members = await perf('presence_members', async () => (await Modules.Messaging.room.findConversationMembers(ctx, chatId)));
 
-        let joinSub: PubsubSubcription;
-        let leaveSub: PubsubSubcription;
+        let joinSub: PubsubSubcription | undefined;
+        let leaveSub: PubsubSubcription | undefined;
         let subscriptions = new Map<number, PubsubSubcription>();
 
         let subscribers: Subscriber<OnlineEvent>[] = [];
@@ -255,8 +255,8 @@ export class PresenceModule {
             subscribers.filter(a => !a.closed);
             if (subscribers.length === 0) {
                 subscriptions.forEach(s => s.cancel());
-                joinSub.cancel();
-                leaveSub.cancel();
+                joinSub?.cancel();
+                leaveSub?.cancel();
             }
         };
 
