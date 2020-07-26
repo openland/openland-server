@@ -7,6 +7,12 @@ import TypingTypeRoot = GQLRoots.TypingTypeRoot;
 import { registerTypingsService } from './service/registerTypingsService';
 import { broker } from 'openland-server/moleculer';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { asyncRun } from '../openland-mtproto3/utils';
+import { createLogger } from '@openland/log';
+import { createNamedContext } from '@openland/context';
+
+const log = createLogger('typings');
+const ctx = createNamedContext('typings');
 
 @injectable()
 export class TypingsModule {
@@ -20,12 +26,18 @@ export class TypingsModule {
     }
 
     public async setTyping(uid: number, conversationId: number, type: TypingTypeRoot) {
-        // tslint:disable-next-line:no-floating-promises
-        broker.call('typings.send', {
-            uid: uid,
-            cid: conversationId,
-            type: type
-        });
+        try {
+            asyncRun(async () => {
+                // tslint:disable-next-line:no-floating-promises
+                broker.call('typings.send', {
+                    uid: uid,
+                    cid: conversationId,
+                    type: type
+                });
+            });
+        } catch (e) {
+            log.error(ctx, e);
+        }
     }
 
     public async createTypingStream(uid: number, conversationId?: number) {
