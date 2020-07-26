@@ -311,6 +311,8 @@ export namespace GQLRoots {
     export type DialogRoot = { cid: number };
     export type DialogKindRoot = DialogKindValues;
     export type DialogsConnectionRoot = any;
+    export type ProfileBadgeTypeRoot = 'organization';
+    export type ProfileBadgeRoot = { type: ProfileBadgeTypeRoot, text: string };
 
     //
     // Settings
