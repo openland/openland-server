@@ -75,6 +75,7 @@ export const Spans = array(union({
 
 import { discussionsStore } from '../openland-module-discussions/Discussions.store';
 import { contactsStore } from '../openland-module-contacts/Contacts.store';
+import { phoneBookStore } from '../openland-module-phonebook/Phonebook.store';
 
 export default declareSchema(() => {
 
@@ -2644,26 +2645,6 @@ export default declareSchema(() => {
     });
 
     //
-    //  Phonebook
-    //
-    entity('PhonebookItem', () => {
-        primaryKey('id', integer());
-        field('uid', integer());
-        field('firstName', string());
-        field('lastName', optional(string()));
-        field('info', optional(string()));
-        field('phones', array(string()));
-        rangeIndex('user', ['uid', 'id']);
-        rangeIndex('updated', ['updatedAt']);
-    });
-    atomicBool('PhonebookJoinMessageSentForPhone', () => {
-        primaryKey('phone', string());
-    });
-    atomicBool('PhonebookUserImportedContacts', () => {
-        primaryKey('uid', integer());
-    });
-
-    //
     // Discover 2.0
     //
     entity('EditorsChoiceChatsCollection', () => {
@@ -2699,4 +2680,5 @@ export default declareSchema(() => {
 
     discussionsStore();
     contactsStore();
+    phoneBookStore();
 });
