@@ -257,8 +257,6 @@ function createWorker(fromUid: number, toUid: number) {
     });
 }
 
-// 25k users
-
 const TOTAL_USERS = 30000;
 const USERS_PER_WORKER = 2000;
 

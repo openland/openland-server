@@ -26,11 +26,10 @@ export class PhonebookRepository {
             let storedRecords = await Store.PhonebookItem.user.findAll(ctx, uid);
 
             for (let record of records) {
-                for (let phone of record.phones) {
-                    if (!phoneRegexp.test(phone.trim())) {
-                        throw new UserError('Invalid phone ' + phone);
-                    }
+                if (record.phones.some(p => !phoneRegexp.test(p.trim()))) {
+                    continue;
                 }
+
                 for (let phone of record.phones) {
                     let existingUser = await Store.User.fromPhone.find(ctx, phone);
                     if (existingUser) {
