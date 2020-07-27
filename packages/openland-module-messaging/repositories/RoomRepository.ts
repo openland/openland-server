@@ -1244,7 +1244,7 @@ export class RoomRepository {
             const welcomeMessage = await this.resolveConversationWelcomeMessage(ctx, cid);
             if (welcomeMessage && welcomeMessage.isOn && welcomeMessage.sender) {
                 // Send welcome message after 60s
-                await this.welcomeMessageWorker.pushWork(ctx, { uid, cid }, Date.now() + 1000 * 60);
+                await this.welcomeMessageWorker.pushWork(ctx, { uid, cid }, Date.now() + 1000 * 40);
             }
 
             await Modules.Hooks.onRoomJoin(ctx, cid, uid, by);
