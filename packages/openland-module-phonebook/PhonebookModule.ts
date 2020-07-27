@@ -3,7 +3,7 @@ import { Context } from '@openland/context';
 import { PhonebookRecordInput, PhonebookRepository } from './repositories/PhonebookRepository';
 import { lazyInject } from '../openland-modules/Modules.container';
 import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
-import { phonebookIndexer } from './workers/phonebookIndexer';
+// import { phonebookIndexer } from './workers/phonebookIndexer';
 // import {
 //     addPhonebookJoinMessagesWorker,
 //     createPhonebookJoinMessagesWorker
@@ -19,7 +19,7 @@ export class PhonebookModule {
 
     public start = async () => {
         if (serverRoleEnabled('workers')) {
-            phonebookIndexer();
+            // phonebookIndexer();
         }
         if (serverRoleEnabled('workers')) {
             // addPhonebookJoinMessagesWorker(this.messagesWorker);

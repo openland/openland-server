@@ -1,5 +1,5 @@
 import {
-    array, atomicBool,
+    array, atomicBool, customDirectory,
     entity,
     field,
     integer,
@@ -10,6 +10,7 @@ import {
 } from '@openland/foundationdb-compiler';
 
 export function phoneBookStore() {
+    // Deprecated
     entity('PhonebookItem', () => {
         primaryKey('id', integer());
         field('uid', integer());
@@ -20,6 +21,10 @@ export function phoneBookStore() {
         rangeIndex('user', ['uid', 'id']);
         rangeIndex('updated', ['updatedAt']);
     });
+
+    // [uid, phone] -> { firstName: string, lastName?: string, phone: string }
+    customDirectory('ImportedPhone');
+
     atomicBool('PhonebookJoinMessageSentForPhone', () => {
         primaryKey('phone', string());
     });

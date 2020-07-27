@@ -19383,159 +19383,6 @@ export class EntityCleanerStateFactory extends EntityFactory<EntityCleanerStateS
     }
 }
 
-export interface PhonebookItemShape {
-    id: number;
-    uid: number;
-    firstName: string;
-    lastName: string | null;
-    info: string | null;
-    phones: (string)[];
-}
-
-export interface PhonebookItemCreateShape {
-    uid: number;
-    firstName: string;
-    lastName?: string | null | undefined;
-    info?: string | null | undefined;
-    phones: (string)[];
-}
-
-export class PhonebookItem extends Entity<PhonebookItemShape> {
-    get id(): number { return this._rawValue.id; }
-    get uid(): number { return this._rawValue.uid; }
-    set uid(value: number) {
-        let normalized = this.descriptor.codec.fields.uid.normalize(value);
-        if (this._rawValue.uid !== normalized) {
-            this._rawValue.uid = normalized;
-            this._updatedValues.uid = normalized;
-            this.invalidate();
-        }
-    }
-    get firstName(): string { return this._rawValue.firstName; }
-    set firstName(value: string) {
-        let normalized = this.descriptor.codec.fields.firstName.normalize(value);
-        if (this._rawValue.firstName !== normalized) {
-            this._rawValue.firstName = normalized;
-            this._updatedValues.firstName = normalized;
-            this.invalidate();
-        }
-    }
-    get lastName(): string | null { return this._rawValue.lastName; }
-    set lastName(value: string | null) {
-        let normalized = this.descriptor.codec.fields.lastName.normalize(value);
-        if (this._rawValue.lastName !== normalized) {
-            this._rawValue.lastName = normalized;
-            this._updatedValues.lastName = normalized;
-            this.invalidate();
-        }
-    }
-    get info(): string | null { return this._rawValue.info; }
-    set info(value: string | null) {
-        let normalized = this.descriptor.codec.fields.info.normalize(value);
-        if (this._rawValue.info !== normalized) {
-            this._rawValue.info = normalized;
-            this._updatedValues.info = normalized;
-            this.invalidate();
-        }
-    }
-    get phones(): (string)[] { return this._rawValue.phones; }
-    set phones(value: (string)[]) {
-        let normalized = this.descriptor.codec.fields.phones.normalize(value);
-        if (this._rawValue.phones !== normalized) {
-            this._rawValue.phones = normalized;
-            this._updatedValues.phones = normalized;
-            this.invalidate();
-        }
-    }
-}
-
-export class PhonebookItemFactory extends EntityFactory<PhonebookItemShape, PhonebookItem> {
-
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('phonebookItem');
-        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('phonebookItem', 'user'), condition: undefined });
-        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('phonebookItem', 'updated'), condition: undefined });
-        let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'id', type: 'integer' });
-        let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'firstName', type: { type: 'string' }, secure: false });
-        fields.push({ name: 'lastName', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'info', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'phones', type: { type: 'array', inner: { type: 'string' } }, secure: false });
-        let codec = c.struct({
-            id: c.integer,
-            uid: c.integer,
-            firstName: c.string,
-            lastName: c.optional(c.string),
-            info: c.optional(c.string),
-            phones: c.array(c.string),
-        });
-        let descriptor: EntityDescriptor<PhonebookItemShape> = {
-            name: 'PhonebookItem',
-            storageKey: 'phonebookItem',
-            allowDelete: false,
-            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
-        };
-        return new PhonebookItemFactory(descriptor);
-    }
-
-    private constructor(descriptor: EntityDescriptor<PhonebookItemShape>) {
-        super(descriptor);
-    }
-
-    readonly user = Object.freeze({
-        findAll: async (ctx: Context, uid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
-        },
-        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (uid: number, opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
-        },
-        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
-        },
-    });
-
-    readonly updated = Object.freeze({
-        findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
-        },
-        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
-        },
-        liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
-        },
-    });
-
-    create(ctx: Context, id: number, src: PhonebookItemCreateShape): Promise<PhonebookItem> {
-        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
-    }
-
-    create_UNSAFE(ctx: Context, id: number, src: PhonebookItemCreateShape): PhonebookItem {
-        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
-    }
-
-    findById(ctx: Context, id: number): Promise<PhonebookItem | null> {
-        return this._findById(ctx, [id]);
-    }
-
-    watch(ctx: Context, id: number): Watch {
-        return this._watch(ctx, [id]);
-    }
-
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PhonebookItemShape>): PhonebookItem {
-        return new PhonebookItem([value.id], value, this.descriptor, this._flush, this._delete, ctx);
-    }
-}
-
 export interface EditorsChoiceChatsCollectionShape {
     id: number;
     createdBy: number;
@@ -20440,6 +20287,159 @@ export class ContactFactory extends EntityFactory<ContactShape, Contact> {
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ContactShape>): Contact {
         return new Contact([value.uid, value.contactUid], value, this.descriptor, this._flush, this._delete, ctx);
+    }
+}
+
+export interface PhonebookItemShape {
+    id: number;
+    uid: number;
+    firstName: string;
+    lastName: string | null;
+    info: string | null;
+    phones: (string)[];
+}
+
+export interface PhonebookItemCreateShape {
+    uid: number;
+    firstName: string;
+    lastName?: string | null | undefined;
+    info?: string | null | undefined;
+    phones: (string)[];
+}
+
+export class PhonebookItem extends Entity<PhonebookItemShape> {
+    get id(): number { return this._rawValue.id; }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get firstName(): string { return this._rawValue.firstName; }
+    set firstName(value: string) {
+        let normalized = this.descriptor.codec.fields.firstName.normalize(value);
+        if (this._rawValue.firstName !== normalized) {
+            this._rawValue.firstName = normalized;
+            this._updatedValues.firstName = normalized;
+            this.invalidate();
+        }
+    }
+    get lastName(): string | null { return this._rawValue.lastName; }
+    set lastName(value: string | null) {
+        let normalized = this.descriptor.codec.fields.lastName.normalize(value);
+        if (this._rawValue.lastName !== normalized) {
+            this._rawValue.lastName = normalized;
+            this._updatedValues.lastName = normalized;
+            this.invalidate();
+        }
+    }
+    get info(): string | null { return this._rawValue.info; }
+    set info(value: string | null) {
+        let normalized = this.descriptor.codec.fields.info.normalize(value);
+        if (this._rawValue.info !== normalized) {
+            this._rawValue.info = normalized;
+            this._updatedValues.info = normalized;
+            this.invalidate();
+        }
+    }
+    get phones(): (string)[] { return this._rawValue.phones; }
+    set phones(value: (string)[]) {
+        let normalized = this.descriptor.codec.fields.phones.normalize(value);
+        if (this._rawValue.phones !== normalized) {
+            this._rawValue.phones = normalized;
+            this._updatedValues.phones = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class PhonebookItemFactory extends EntityFactory<PhonebookItemShape, PhonebookItem> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('phonebookItem');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('phonebookItem', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('phonebookItem', 'updated'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'firstName', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'lastName', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'info', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'phones', type: { type: 'array', inner: { type: 'string' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            uid: c.integer,
+            firstName: c.string,
+            lastName: c.optional(c.string),
+            info: c.optional(c.string),
+            phones: c.array(c.string),
+        });
+        let descriptor: EntityDescriptor<PhonebookItemShape> = {
+            name: 'PhonebookItem',
+            storageKey: 'phonebookItem',
+            allowDelete: false,
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new PhonebookItemFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<PhonebookItemShape>) {
+        super(descriptor);
+    }
+
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
+        },
+    });
+
+    readonly updated = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: PhonebookItemCreateShape): Promise<PhonebookItem> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: PhonebookItemCreateShape): PhonebookItem {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<PhonebookItem | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PhonebookItemShape>): PhonebookItem {
+        return new PhonebookItem([value.id], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -22120,7 +22120,6 @@ export interface Store extends BaseStore {
     readonly EntityCounterState: EntityCounterStateFactory;
     readonly GqlTrace: GqlTraceFactory;
     readonly EntityCleanerState: EntityCleanerStateFactory;
-    readonly PhonebookItem: PhonebookItemFactory;
     readonly EditorsChoiceChatsCollection: EditorsChoiceChatsCollectionFactory;
     readonly EditorsChoiceChat: EditorsChoiceChatFactory;
     readonly ClickHouseMigrations: ClickHouseMigrationsFactory;
@@ -22128,6 +22127,7 @@ export interface Store extends BaseStore {
     readonly Discussion: DiscussionFactory;
     readonly DiscussionDraft: DiscussionDraftFactory;
     readonly Contact: ContactFactory;
+    readonly PhonebookItem: PhonebookItemFactory;
     readonly ConversationEventStore: ConversationEventStore;
     readonly DialogIndexEventStore: DialogIndexEventStore;
     readonly UserDialogEventStore: UserDialogEventStore;
@@ -22143,6 +22143,7 @@ export interface Store extends BaseStore {
     readonly UserCountersIndexDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
+    readonly ImportedPhoneDirectory: Subspace;
 }
 
 export async function openStore(storage: EntityStorage): Promise<Store> {
@@ -22361,7 +22362,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let EntityCounterStatePromise = EntityCounterStateFactory.open(storage);
     let GqlTracePromise = GqlTraceFactory.open(storage);
     let EntityCleanerStatePromise = EntityCleanerStateFactory.open(storage);
-    let PhonebookItemPromise = PhonebookItemFactory.open(storage);
     let EditorsChoiceChatsCollectionPromise = EditorsChoiceChatsCollectionFactory.open(storage);
     let EditorsChoiceChatPromise = EditorsChoiceChatFactory.open(storage);
     let ClickHouseMigrationsPromise = ClickHouseMigrationsFactory.open(storage);
@@ -22369,11 +22369,13 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let DiscussionPromise = DiscussionFactory.open(storage);
     let DiscussionDraftPromise = DiscussionDraftFactory.open(storage);
     let ContactPromise = ContactFactory.open(storage);
+    let PhonebookItemPromise = PhonebookItemFactory.open(storage);
     let PresenceLogDirectoryPromise = storage.resolveCustomDirectory('presenceLog');
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
     let UserCountersIndexDirectoryPromise = storage.resolveCustomDirectory('userCountersIndex');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
+    let ImportedPhoneDirectoryPromise = storage.resolveCustomDirectory('importedPhone');
     let ConversationEventStorePromise = ConversationEventStore.open(storage, eventFactory);
     let DialogIndexEventStorePromise = DialogIndexEventStore.open(storage, eventFactory);
     let UserDialogEventStorePromise = UserDialogEventStore.open(storage, eventFactory);
@@ -22566,7 +22568,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         EntityCounterState: await EntityCounterStatePromise,
         GqlTrace: await GqlTracePromise,
         EntityCleanerState: await EntityCleanerStatePromise,
-        PhonebookItem: await PhonebookItemPromise,
         EditorsChoiceChatsCollection: await EditorsChoiceChatsCollectionPromise,
         EditorsChoiceChat: await EditorsChoiceChatPromise,
         ClickHouseMigrations: await ClickHouseMigrationsPromise,
@@ -22574,11 +22575,13 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         Discussion: await DiscussionPromise,
         DiscussionDraft: await DiscussionDraftPromise,
         Contact: await ContactPromise,
+        PhonebookItem: await PhonebookItemPromise,
         PresenceLogDirectory: await PresenceLogDirectoryPromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,
         UserCountersIndexDirectory: await UserCountersIndexDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
+        ImportedPhoneDirectory: await ImportedPhoneDirectoryPromise,
         ConversationEventStore: await ConversationEventStorePromise,
         DialogIndexEventStore: await DialogIndexEventStorePromise,
         UserDialogEventStore: await UserDialogEventStorePromise,
