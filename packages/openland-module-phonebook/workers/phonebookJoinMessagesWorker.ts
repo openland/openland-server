@@ -3,12 +3,12 @@ import { inTx } from '@openland/foundationdb';
 import { Modules } from '../../openland-modules/Modules';
 import { WorkQueue } from '../../openland-module-workers/WorkQueue';
 
-export function createPhonebookJoinMessagesWorker() {
+export function createPhoneBookJoinMessagesWorker() {
     let worker = new WorkQueue<{ uid: number }>('phonebook_join_message');
     return worker;
 }
 
-export function addPhonebookJoinMessagesWorker(worker: WorkQueue<{ uid: number }>) {
+export function addPhoneBookJoinMessagesWorker(worker: WorkQueue<{ uid: number }>) {
     worker.addWorker(async (item, parent) => {
         return await inTx(parent, async (ctx) => {
             let user = await Store.User.findById(ctx, item.uid);

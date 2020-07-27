@@ -5,8 +5,8 @@ import { lazyInject } from '../openland-modules/Modules.container';
 import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
 import { inTx } from '@openland/foundationdb';
 import {
-    addPhonebookJoinMessagesWorker,
-    createPhonebookJoinMessagesWorker
+    addPhoneBookJoinMessagesWorker,
+    createPhoneBookJoinMessagesWorker
 } from './workers/phonebookJoinMessagesWorker';
 
 @injectable()
@@ -14,13 +14,13 @@ export class PhonebookModule {
     @lazyInject(PhonebookRepository)
     public readonly repo!: PhonebookRepository;
 
-    private messagesWorker = createPhonebookJoinMessagesWorker();
+    private messagesWorker = createPhoneBookJoinMessagesWorker();
 
     public start = async () => {
         await this.repo.start();
 
         if (serverRoleEnabled('workers')) {
-            addPhonebookJoinMessagesWorker(this.messagesWorker);
+            addPhoneBookJoinMessagesWorker(this.messagesWorker);
         }
     }
 

@@ -5,8 +5,8 @@ import { UserError } from '../../openland-errors/UserError';
 import { Store } from '../../openland-module-db/FDB';
 import { batch } from '../../openland-utils/batch';
 import {
-    addPhonebookContactsImportWorker,
-    createPhonebookContactsImportWorker
+    addPhoneBookContactsImportWorker,
+    createPhoneBookContactsImportWorker
 } from '../workers/phonebookContactsImportWorker';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 
@@ -23,11 +23,11 @@ export type PhoneRecord = { phone: string, firstName: string, lastName?: string 
 
 @injectable()
 export class PhonebookRepository {
-    private importWorker = createPhonebookContactsImportWorker();
+    private importWorker = createPhoneBookContactsImportWorker();
 
     start = async () => {
         if (serverRoleEnabled('workers')) {
-            addPhonebookContactsImportWorker(this.importWorker);
+            addPhoneBookContactsImportWorker(this.importWorker);
         }
     }
 
@@ -39,8 +39,8 @@ export class PhonebookRepository {
 
             await Store.PhonebookUserImportedContacts.set(ctx, uid, true);
 
-            let userToPhonedirectory = this.getUserToPhoneDirectory();
-            let phoneToUserdirectory = this.getPhoneToUserDirectory();
+            let userToPhoneDirectory = this.getUserToPhoneDirectory();
+            let phoneToUserDirectory = this.getPhoneToUserDirectory();
 
             let phonesToExport = records
                 .map(r => r.phones.map(phone => ({ phone, firstName: r.firstName, lastName: r.lastName || undefined })))
@@ -49,8 +49,8 @@ export class PhonebookRepository {
 
             // Save records
             await Promise.all(phonesToExport.map(async phone => {
-                await userToPhonedirectory.set(ctx, [uid, phone.phone], phone);
-                await phoneToUserdirectory.set(ctx, [phone.phone, uid], phone);
+                await userToPhoneDirectory.set(ctx, [uid, phone.phone], phone);
+                await phoneToUserDirectory.set(ctx, [phone.phone, uid], phone);
             }));
 
             // Create tasks for import
