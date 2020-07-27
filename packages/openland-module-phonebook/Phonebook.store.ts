@@ -24,6 +24,8 @@ export function phoneBookStore() {
 
     // [uid, phone] -> { firstName: string, lastName?: string, phone: string }
     customDirectory('ImportedPhone');
+    // [phone, uid] -> { firstName: string, lastName?: string, phone: string }
+    customDirectory('PhoneImportedByUser');
 
     atomicBool('PhonebookJoinMessageSentForPhone', () => {
         primaryKey('phone', string());

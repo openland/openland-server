@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
-import { PhonebookRecordInput, PhonebookRepository } from './repositories/PhonebookRepository';
+import { PhonebookRecordInput, PhonebookRepository, PhoneRecord } from './repositories/PhonebookRepository';
 import { lazyInject } from '../openland-modules/Modules.container';
 import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
 // import { phonebookIndexer } from './workers/phonebookIndexer';
@@ -18,6 +18,8 @@ export class PhonebookModule {
     // private messagesWorker = createPhonebookJoinMessagesWorker();
 
     public start = async () => {
+        await this.repo.start();
+
         if (serverRoleEnabled('workers')) {
             // phonebookIndexer();
         }
@@ -40,5 +42,13 @@ export class PhonebookModule {
         await inTx(parent, async ctx => {
             // await this.messagesWorker.pushWork(ctx, { uid });
         });
+    }
+
+    async getUserRecords(parent: Context, uid: number): Promise<PhoneRecord[]> {
+        return this.repo.getUserRecords(parent, uid);
+    }
+
+    async getUsersImportedPhone(parent: Context, phone: string): Promise<number[]> {
+        return this.repo.getUsersImportedPhone(parent, phone);
     }
 }

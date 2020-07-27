@@ -22144,6 +22144,7 @@ export interface Store extends BaseStore {
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
     readonly ImportedPhoneDirectory: Subspace;
+    readonly PhoneImportedByUserDirectory: Subspace;
 }
 
 export async function openStore(storage: EntityStorage): Promise<Store> {
@@ -22376,6 +22377,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
     let ImportedPhoneDirectoryPromise = storage.resolveCustomDirectory('importedPhone');
+    let PhoneImportedByUserDirectoryPromise = storage.resolveCustomDirectory('phoneImportedByUser');
     let ConversationEventStorePromise = ConversationEventStore.open(storage, eventFactory);
     let DialogIndexEventStorePromise = DialogIndexEventStore.open(storage, eventFactory);
     let UserDialogEventStorePromise = UserDialogEventStore.open(storage, eventFactory);
@@ -22582,6 +22584,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
         ImportedPhoneDirectory: await ImportedPhoneDirectoryPromise,
+        PhoneImportedByUserDirectory: await PhoneImportedByUserDirectoryPromise,
         ConversationEventStore: await ConversationEventStorePromise,
         DialogIndexEventStore: await DialogIndexEventStorePromise,
         UserDialogEventStore: await UserDialogEventStorePromise,
