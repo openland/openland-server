@@ -160,7 +160,7 @@ type SharedMediaConnection {
 extend type Query {
     messages(chatId: ID!, first: Int!, before: ID): [ModernMessage!]!
     gammaMessages(chatId: ID!, first: Int!, before: ID, after: ID, around: ID): GammaMessagesBatch
-    modernMessages(chatId: ID!, first: Int!, before: ID, after: ID, around: ID): GammaMessagesBatch
+    modernMessages(chatId: ID!, first: Int!, before: ID, after: ID): ModernMessagesBatch!
     message(messageId: ID!): ModernMessage
     lastReadedMessage(chatId: ID!): ModernMessage
     chatSharedMedia(chatId: ID!, mediaTypes: [SharedMediaType!]!, first: Int!, after: ID, before: ID, around: ID): SharedMediaConnection!

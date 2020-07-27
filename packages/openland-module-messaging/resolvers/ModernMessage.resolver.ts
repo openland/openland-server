@@ -1219,13 +1219,11 @@ export const Resolver: GQLResolver = {
                 };
             }
 
-            let aroundId = args.around ? IDs.ConversationMessage.parse(args.around) : null;
+            let beforeId = args.before ? IDs.ConversationMessage.parse(args.before) : null;
+            let afterId = args.after ? IDs.ConversationMessage.parse(args.after) : null;
 
-            let beforeId = aroundId || (args.before ? IDs.ConversationMessage.parse(args.before) : null);
-            let afterId = aroundId || (args.after ? IDs.ConversationMessage.parse(args.after) : null);
-
-            let haveMoreForward: boolean | undefined;
-            let haveMoreBackward: boolean | undefined;
+            let haveMoreForward: boolean = false;
+            let haveMoreBackward: boolean = false;
             let messages: Message[] = [];
 
             if (beforeId || afterId) {
@@ -1240,6 +1238,7 @@ export const Resolver: GQLResolver = {
                     }));
                     before = beforeQuery.items;
                     haveMoreBackward = beforeQuery.haveMore;
+                    haveMoreForward = true;
                 }
                 if (afterId && await Store.Message.findById(ctx, afterId)) {
                     let afterQuery = (await fetchMessages(ctx, roomId, uid, {
@@ -1248,15 +1247,9 @@ export const Resolver: GQLResolver = {
                     }));
                     after = afterQuery.items.reverse();
                     haveMoreForward = afterQuery.haveMore;
+                    haveMoreBackward = true;
                 }
-                let aroundMessage: Message | undefined | null;
-                if (aroundId) {
-                    aroundMessage = await Store.Message.findById(ctx, aroundId);
-                    if (aroundMessage && aroundMessage.hiddenForUids?.includes(uid)) {
-                        aroundMessage = null;
-                    }
-                }
-                messages = [...after, ...(aroundMessage && !aroundMessage.deleted) ? [aroundMessage] : [], ...before];
+                messages = [...after, ...before];
             } else {
                 haveMoreForward = false;
                 let beforeQuery = (await fetchMessages(ctx, roomId, uid, {limit: args.first!, reverse: true}));

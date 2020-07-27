@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'a9fdc70503389373b7d2319a2a3e6e22';
+export const GQL_SPEC_VERSION = 'de8bda34f962591e7fe7861205e20846';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4285,7 +4285,7 @@ export namespace GQL {
         orgMembersSearch: JoinedOrganizationMembersConnection;
         messages: ModernMessage[];
         gammaMessages: Nullable<GammaMessagesBatch>;
-        modernMessages: Nullable<GammaMessagesBatch>;
+        modernMessages: ModernMessagesBatch;
         message: Nullable<ModernMessage>;
         lastReadedMessage: Nullable<ModernMessage>;
         chatSharedMedia: SharedMediaConnection;
@@ -4765,7 +4765,6 @@ export namespace GQL {
         first: number;
         before: OptionalNullable<string>;
         after: OptionalNullable<string>;
-        around: OptionalNullable<string>;
     }
     export interface QueryMessageArgs {
         messageId: string;
@@ -9737,7 +9736,7 @@ export interface GQLResolver {
             orgMembersSearch: GQLRoots.JoinedOrganizationMembersConnectionRoot,
             messages: GQLRoots.ModernMessageRoot[],
             gammaMessages: Nullable<GQLRoots.GammaMessagesBatchRoot>,
-            modernMessages: Nullable<GQLRoots.GammaMessagesBatchRoot>,
+            modernMessages: GQLRoots.ModernMessagesBatchRoot,
             message: Nullable<GQLRoots.ModernMessageRoot>,
             lastReadedMessage: Nullable<GQLRoots.ModernMessageRoot>,
             chatSharedMedia: GQLRoots.SharedMediaConnectionRoot,
