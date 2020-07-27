@@ -26,21 +26,10 @@ export function addPhonebookJoinMessagesWorker(worker: WorkQueue<{ uid: number }
                 return;
             }
 
-            let hits = await Modules.Search.elastic.client.search({
-                index: 'phonebook',
-                type: 'phonebook',
-                body: {
-                    query: {
-                        bool: {
-                            must: [{ match_phrase_prefix: { phones: user.phone } }]
-                        }
-                    },
-                },
-            });
+            let usersImportedPhone = await Modules.Phonebook.getUsersImportedPhone(ctx, user.phone);
 
             let sentUsers = new Set<number>();
-            for (let hit of hits.hits.hits) {
-                let uid = (hit._source as any).uid;
+            for (let uid of usersImportedPhone) {
                 if (uid === item.uid) {
                     continue;
                 }
