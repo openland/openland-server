@@ -1249,6 +1249,7 @@ export class RoomRepository {
 
             await Modules.Hooks.onRoomJoin(ctx, cid, uid, by);
             await this.delivery.onDialogGotAccess(ctx, uid, cid);
+            await Modules.Users.markForUndexing(ctx, uid);
         });
     }
 
@@ -1268,8 +1269,8 @@ export class RoomRepository {
             }
 
             await Modules.Hooks.onRoomLeave(ctx, cid, uid, wasKicked);
-
             await this.delivery.onDialogLostAccess(ctx, uid, cid);
+            await Modules.Users.markForUndexing(ctx, uid);
         });
     }
 

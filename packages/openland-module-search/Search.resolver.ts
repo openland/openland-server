@@ -368,11 +368,10 @@ export const Resolver: GQLResolver = {
         chatMembersSearch: withAccount(async (ctx, args, uid, oid) => {
             let cid = IDs.Conversation.parse(args.cid);
             await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, cid);
-            let members = await Modules.Messaging.room.findConversationMembers(ctx, cid);
 
             let query = args.query || '';
             let clauses: any[] = [];
-            clauses.push({terms: {userId: members}});
+            clauses.push({term: {chats: cid}});
             clauses.push({
                 bool: {
                     should: query.trim().length > 0 ? [
