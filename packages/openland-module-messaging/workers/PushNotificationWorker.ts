@@ -19,6 +19,7 @@ import { batch } from '../../openland-utils/batch';
 
 const log = createLogger('push');
 const rootCtx = createNamedContext('push');
+const DEBUG = false;
 
 export const shouldIgnoreUser = (ctx: Context, user: {
     lastSeen: 'online' | 'never_online' | number,
@@ -30,13 +31,13 @@ export const shouldIgnoreUser = (ctx: Context, user: {
     desktopNotifications: 'all' | 'direct' | 'none'
 }) => {
     if (user.lastSeen === 'never_online') {
-        log.debug(ctx, 'skip never-online');
+        DEBUG && log.debug(ctx, 'skip never-online');
         return true;
     }
 
     // Ignore active users
     if (user.isActive) {
-        log.debug(ctx, 'skip active');
+        DEBUG && log.debug(ctx, 'skip active');
         return true;
     }
 
@@ -49,7 +50,7 @@ export const shouldIgnoreUser = (ctx: Context, user: {
 
     // Ignore user's with disabled notifications
     if (user.mobileNotifications === 'none' && user.desktopNotifications === 'none') {
-        log.debug(ctx, 'ignore user\'s with disabled notifications');
+        DEBUG && log.debug(ctx, 'ignore user\'s with disabled notifications');
         return true;
     }
 
@@ -57,7 +58,7 @@ export const shouldIgnoreUser = (ctx: Context, user: {
     if (user.lastPushCursor && user.eventsTail) {
         let comp = Buffer.compare(Buffer.from(user.lastPushCursor, 'base64'), Buffer.from(user.eventsTail, 'base64'));
         if (comp === 0) {
-            log.debug(ctx, 'ignore already processed updates');
+            DEBUG && log.debug(ctx, 'ignore already processed updates');
             return true;
         }
     }
@@ -65,7 +66,7 @@ export const shouldIgnoreUser = (ctx: Context, user: {
 };
 
 const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, settings: UserSettings, event: UserDialogMessageReceivedEvent) => {
-    log.log(ctx, 'handle message', event.mid);
+    DEBUG && log.log(ctx, 'handle message', event.mid);
 
     let [
         message,
@@ -78,32 +79,32 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
     ]);
 
     if (!message) {
-        log.debug(ctx, 'Message not found');
+        DEBUG && log.debug(ctx, 'Message not found');
         return false;
     }
 
     // Ignore current user
     if (message.uid === uid) {
-        log.debug(ctx, 'Ignore current user');
+        DEBUG && log.debug(ctx, 'Ignore current user');
         return false;
     }
 
-    log.debug(ctx, 'readMessageId', readMessageId);
+    DEBUG && log.debug(ctx, 'readMessageId', readMessageId);
     // Ignore read messages
     if (readMessageId && (readMessageId >= message.id)) {
-        log.debug(ctx, 'Ignore read messages');
+        DEBUG && log.debug(ctx, 'Ignore read messages');
         return false;
     }
 
     if (!conversation) {
-        log.debug(ctx, 'Conversation not found');
+        DEBUG && log.debug(ctx, 'Conversation not found');
         return false;
     }
 
     let sender = await Modules.Users.profileById(ctx, message.uid);
 
     if (!sender) {
-        log.debug(ctx, 'Sender not found');
+        DEBUG && log.debug(ctx, 'Sender not found');
         return false;
     }
 
@@ -112,7 +113,7 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
     let sendDesktop = messageSettings.desktop.showNotification;
 
     if (!sendMobile && !sendDesktop) {
-        log.debug(ctx, 'Ignore disabled pushes');
+        DEBUG && log.debug(ctx, 'Ignore disabled pushes');
         return false;
     }
 
@@ -159,7 +160,7 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
         Modules.Hooks.onDesktopPushSent(ctx, uid);
     }
 
-    log.debug(ctx, 'new_push', JSON.stringify(push));
+    DEBUG && log.debug(ctx, 'new_push', JSON.stringify(push));
     await Modules.Push.pushWork(ctx, push);
     return true;
 };
@@ -187,7 +188,7 @@ const handleUser = async (root: Context, uid: number) =>  {
     };
 
     if (shouldIgnoreUser(ctx, user)) {
-        log.debug(ctx, 'ignored');
+        DEBUG && log.debug(ctx, 'ignored');
         await Modules.Push.sendCounterPush(ctx, uid);
         Modules.Messaging.needNotificationDelivery.resetNeedNotificationDelivery(ctx, 'push', uid);
         state.lastPushCursor = await Store.UserDialogEventStore.createStream(uid, { batchSize: 1 }).tail(ctx);
@@ -203,7 +204,7 @@ const handleUser = async (root: Context, uid: number) =>  {
         .filter(e => e.event instanceof UserDialogMessageReceivedEvent)
         .map(e => e.event as UserDialogMessageReceivedEvent);
 
-    log.log(ctx, messages.length, 'messages found');
+    DEBUG && log.log(ctx, messages.length, 'messages found');
     // Handling unread messages
     let res = await Promise.all(messages.map(m => handleMessage(ctx, uid, unreadCounter, settings, m)));
     let hasPush = res.some(v => v === true);
@@ -212,7 +213,7 @@ const handleUser = async (root: Context, uid: number) =>  {
     if (hasPush) {
         state.lastPushNotification = Date.now();
     } else {
-        log.debug(ctx, 'send counter');
+        DEBUG && log.debug(ctx, 'send counter');
         await Modules.Push.sendCounterPush(ctx, uid);
     }
 
