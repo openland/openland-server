@@ -11,7 +11,7 @@ import {
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 
 export type PhonebookRecordInput = {
-    firstName: string;
+    firstName: string|null;
     lastName: string|null;
     info: string|null;
     phones: string[];
@@ -43,6 +43,7 @@ export class PhonebookRepository {
             let phoneToUserDirectory = this.getPhoneToUserDirectory();
 
             let phonesToExport = records
+                .filter(r => r.firstName)
                 .map(r => r.phones.map(phone => ({ phone, firstName: r.firstName, lastName: r.lastName || undefined })))
                 .flat()
                 .filter(phone => phoneRegexp.test(phone.phone));

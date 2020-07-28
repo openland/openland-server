@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'de8bda34f962591e7fe7861205e20846';
+export const GQL_SPEC_VERSION = '7efc9c795f6736e862cdd4aacec9c05f';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -702,7 +702,7 @@ export namespace GQL {
     export interface MessageQuotedArgs { }
     export interface MessageAlphaReactionsArgs { }
     export interface PhonebookRecordInput {
-        firstName: string;
+        firstName: Nullable<string>;
         lastName: Nullable<string>;
         info: Nullable<string>;
         phones: string[];

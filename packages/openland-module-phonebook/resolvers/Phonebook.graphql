@@ -6,7 +6,7 @@
 #}
 #
 input PhonebookRecordInput {
-    firstName: String!
+    firstName: String
     lastName: String
     info: String
     phones: [String!]!
