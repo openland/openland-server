@@ -7,6 +7,7 @@ import { DeliveryMediator } from '../mediators/DeliveryMediator';
 import { UserRepository } from '../../openland-module-users/repositories/UserRepository';
 import { AudienceCounterRepository } from '../../openland-module-users/repositories/AudienceCounterRepository';
 import { UsersModule } from '../../openland-module-users/UsersModule';
+import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
 jest.mock('../mediators/DeliveryMediator', () => ({
     DeliveryMediator: jest.fn(() => {
         return {
@@ -22,6 +23,7 @@ describe('RoomRepository', () => {
         container.bind('RoomRepository').to(RoomRepository).inSingletonScope();
         container.bind('DeliveryMediator').toConstantValue(new DeliveryMediator());
         container.bind(UsersModule).toSelf().inSingletonScope();
+        loadUsersModule();
         container.bind('UserRepository').to(UserRepository);
         container.bind('AudienceCounterRepository').to(AudienceCounterRepository);
     });
