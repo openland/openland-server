@@ -255,6 +255,14 @@ export const Resolver: GQLResolver = {
             });
             return JSON.stringify(hits.hits.hits);
         }),
+        debugMentionSearch: withPermission('super-admin', async (ctx, args) => {
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'user_profile,room,organization',
+                size: args.first,
+                body: JSON.parse(args.query),
+            });
+            return JSON.stringify(hits.hits.hits);
+        }),
     },
     Mutation: {
         debugSendSMS: withPermission('super-admin', async (ctx, args) => {

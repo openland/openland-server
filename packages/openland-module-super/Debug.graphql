@@ -98,6 +98,7 @@ extend type Query {
     debugEntitiesCounter(name: String!): Int!
     debugEntitiesCleanerProgress(name: String!): Int!
     debugUserSearch(query: String!): String!
+    debugMentionSearch(query: String!, first: Int!): String!
 }
 
 enum SuperNotificationType {
