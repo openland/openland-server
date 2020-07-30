@@ -824,8 +824,8 @@ export const Resolver: GQLResolver = {
                 {term: {status: 'activated'}},
                 {term: {chats: cid}},
                 EsCondition.or([
-                    {match_phrase_prefix: {name: {query: queryStr, max_expansions: 100000}}},
-                    {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: 100000}}}
+                    {match_phrase_prefix: {name: {query: queryStr, max_expansions: 1000}}},
+                    {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: 1000}}}
                 ])
             ]));
 
@@ -835,8 +835,8 @@ export const Resolver: GQLResolver = {
                     query: EsCondition.and([
                         {match: {_type: 'user_profile'}},
                         EsCondition.or([
-                            {match_phrase_prefix: {name: {query: queryStr, max_expansions: 100000}}},
-                            {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: 100000}}}
+                            {match_phrase_prefix: {name: {query: queryStr, max_expansions: 1000}}},
+                            {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: 1000}}}
                         ])
                     ]),
                     functions: [
