@@ -45,6 +45,11 @@ async function extractMentionSearchValues(ctx: Context, cid: number, hits: any[]
     }));
 }
 
+const EsCondition = {
+    or: (terms: any[]) => ({ bool: {should: terms} }),
+    and: (terms: any[]) => ({ bool: {must: terms} })
+};
+
 export const Resolver: GQLResolver = {
     GlobalSearchEntry: {
         __resolveType(obj: any) {
@@ -814,42 +819,26 @@ export const Resolver: GQLResolver = {
             let clauses: any[] = [];
 
             // Users from same chat
-            clauses.push({
-                bool: {
-                    must: [
-                        {match: {_type: 'user_profile'}},
-                        {term: {status: 'activated'}},
-                        {term: {chats: cid}},
-                        {
-                            bool: {
-                                should: [
-                                    {match_phrase_prefix: {name: {query: queryStr, max_expansions: 100000}}},
-                                    {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: 100000}}}
-                                ]
-                            }
-                        }
-                    ]
-                }
-            });
+            clauses.push(EsCondition.and([
+                {match: {_type: 'user_profile'}},
+                {term: {status: 'activated'}},
+                {term: {chats: cid}},
+                EsCondition.or([
+                    {match_phrase_prefix: {name: {query: queryStr, max_expansions: 100000}}},
+                    {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: 100000}}}
+                ])
+            ]));
 
             // Other users
             clauses.push({
                 function_score: {
-                    query: {
-                        bool: {
-                            must: [
-                                {match: {_type: 'user_profile'}},
-                                {
-                                    bool: {
-                                        should: [
-                                            {match_phrase_prefix: {name: {query: queryStr, max_expansions: 100000}}},
-                                            {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: 100000}}}
-                                        ]
-                                    }
-                                }
-                            ]
-                        }
-                    },
+                    query: EsCondition.and([
+                        {match: {_type: 'user_profile'}},
+                        EsCondition.or([
+                            {match_phrase_prefix: {name: {query: queryStr, max_expansions: 100000}}},
+                            {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: 100000}}}
+                        ])
+                    ]),
                     functions: [
                         ...(userOrgs.map(oid => ({
                             filter: {match: {organizations: oid}},
@@ -866,49 +855,33 @@ export const Resolver: GQLResolver = {
 
             // Rooms from same org
             if (roomOid) {
-                clauses.push({
-                    bool: {
-                        must: [
-                            {match: {_type: 'room'}},
-                            {match_phrase_prefix: {title: queryStr}},
-                            {match: {oid: roomOid}}
-                        ],
-                    }
-                });
+                clauses.push(EsCondition.and([
+                    {match: {_type: 'room'}},
+                    {match_phrase_prefix: {title: queryStr}},
+                    {match: {oid: roomOid}}
+                ]));
             }
 
             // Public rooms
-            clauses.push({
-                bool: {
-                    must: [
-                        {match: {_type: 'room'}},
-                        {match_phrase_prefix: {title: queryStr}},
-                        {match: {listed: true}}
-                    ],
-                }
-            });
+            clauses.push(EsCondition.and([
+                {match: {_type: 'room'}},
+                {match_phrase_prefix: {title: queryStr}},
+                {match: {listed: true}}
+            ]));
 
             // User orgs
-            clauses.push({
-                bool: {
-                    must: [
-                        {match: {_type: 'organization'}},
-                        {match_phrase_prefix: {name: queryStr}},
-                        {terms: {_id: userOrgs}}
-                    ],
-                }
-            });
+            clauses.push(EsCondition.and([
+                {match: {_type: 'organization'}},
+                {match_phrase_prefix: {name: queryStr}},
+                {terms: {_id: userOrgs}}
+            ]));
 
             // Public orgs
-            clauses.push({
-                bool: {
-                    must: [
-                        {match: {_type: 'organization'}},
-                        {match_phrase_prefix: {name: queryStr}},
-                        {term: {listed: true}}
-                    ],
-                }
-            });
+            clauses.push(EsCondition.and([
+                {match: {_type: 'organization'}},
+                {match_phrase_prefix: {name: queryStr}},
+                {term: {listed: true}}
+            ]));
 
             let hits = await Modules.Search.elastic.client.search({
                 index: 'user_profile,room,organization',
