@@ -899,7 +899,7 @@ export const Resolver: GQLResolver = {
                 index: 'user_profile,room,organization',
                 from,
                 size: args.first,
-                body: EsCondition.and(clauses)
+                body: { query: EsCondition.and(clauses) }
             });
 
             return {
