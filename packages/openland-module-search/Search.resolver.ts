@@ -46,8 +46,9 @@ async function extractMentionSearchValues(ctx: Context, cid: number, hits: any[]
 }
 
 const EsCondition = {
-    or: (terms: any[]) => ({ bool: {should: terms} }),
-    and: (terms: any[]) => ({ bool: {must: terms} })
+    or: (terms: any[]) => ({bool: {should: terms}}),
+    and: (terms: any[]) => ({bool: {must: terms}}),
+    fn: (query: any, functions: any) => ({function_score: {query, functions, boost_mode: 'multiply'}})
 };
 
 export const Resolver: GQLResolver = {
@@ -793,15 +794,11 @@ export const Resolver: GQLResolver = {
                     from,
                     size: args.first,
                     body: {
-                        query: {
-                            bool: {
-                                must: [
-                                    {match: {_type: 'user_profile'}},
-                                    {term: {status: 'activated'}},
-                                    {term: {chats: cid}}
-                                ]
-                            }
-                        }
+                        query: EsCondition.and([
+                            {match: {_type: 'user_profile'}},
+                            {term: {status: 'activated'}},
+                            {term: {chats: cid}}
+                        ])
                     },
                 });
                 return {
@@ -814,10 +811,18 @@ export const Resolver: GQLResolver = {
             let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
             let room = await Store.ConversationRoom.findById(ctx, cid);
             let roomOid: null | number = room ? room.oid : null;
-            let topDialogs = await Store.UserEdge.forwardWeight.query(ctx, uid, {limit: 300, reverse: true});
+            let [topPrivateDialogs, topGroupDialogs] = await Promise.all([
+                Store.UserEdge.forwardWeight.query(ctx, uid, {limit: 300, reverse: true}),
+                Store.UserGroupEdge.user.query(ctx, uid, {limit: 300, reverse: true})
+            ]);
             const maxExpansions = 1000;
 
             let clauses: any[] = [];
+
+            const topChatsFunctions = topGroupDialogs.items.map(d => ({
+                filter: {match: {_id: d.cid}},
+                weight: d.weight || 1
+            }));
 
             // Users from same chat
             clauses.push(EsCondition.and([
@@ -845,7 +850,7 @@ export const Resolver: GQLResolver = {
                             filter: {match: {organizations: oid}},
                             weight: 2
                         }))),
-                        ...(topDialogs.items.map(d => ({
+                        ...(topPrivateDialogs.items.map(d => ({
                             filter: {match: {userId: d.uid2}},
                             weight: d.weight || 1
                         })))
@@ -856,19 +861,25 @@ export const Resolver: GQLResolver = {
 
             // Rooms from same org
             if (roomOid) {
-                clauses.push(EsCondition.and([
-                    {match: {_type: 'room'}},
-                    {match_phrase_prefix: {title: queryStr}},
-                    {match: {oid: roomOid}}
-                ]));
+                clauses.push(EsCondition.fn(
+                    EsCondition.and([
+                        {match: {_type: 'room'}},
+                        {match_phrase_prefix: {title: queryStr}},
+                        {match: {oid: roomOid}}
+                    ]),
+                    topChatsFunctions
+                ));
             }
 
             // Public rooms
-            clauses.push(EsCondition.and([
-                {match: {_type: 'room'}},
-                {match_phrase_prefix: {title: queryStr}},
-                {match: {listed: true}}
-            ]));
+            clauses.push(EsCondition.fn(
+                EsCondition.and([
+                    {match: {_type: 'room'}},
+                    {match_phrase_prefix: {title: queryStr}},
+                    {match: {listed: true}}
+                ]),
+                topChatsFunctions
+            ));
 
             // User orgs
             clauses.push(EsCondition.and([
