@@ -815,6 +815,7 @@ export const Resolver: GQLResolver = {
             let room = await Store.ConversationRoom.findById(ctx, cid);
             let roomOid: null | number = room ? room.oid : null;
             let topDialogs = await Store.UserEdge.forwardWeight.query(ctx, uid, {limit: 300, reverse: true});
+            const maxExpansions = 1000;
 
             let clauses: any[] = [];
 
@@ -824,8 +825,8 @@ export const Resolver: GQLResolver = {
                 {term: {status: 'activated'}},
                 {term: {chats: cid}},
                 EsCondition.or([
-                    {match_phrase_prefix: {name: {query: queryStr, max_expansions: 1000}}},
-                    {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: 1000}}}
+                    {match_phrase_prefix: {name: {query: queryStr, max_expansions: maxExpansions}}},
+                    {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: maxExpansions}}}
                 ])
             ]));
 
@@ -835,8 +836,8 @@ export const Resolver: GQLResolver = {
                     query: EsCondition.and([
                         {match: {_type: 'user_profile'}},
                         EsCondition.or([
-                            {match_phrase_prefix: {name: {query: queryStr, max_expansions: 1000}}},
-                            {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: 1000}}}
+                            {match_phrase_prefix: {name: {query: queryStr, max_expansions: maxExpansions}}},
+                            {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: maxExpansions}}}
                         ])
                     ]),
                     functions: [
@@ -887,13 +888,7 @@ export const Resolver: GQLResolver = {
                 index: 'user_profile,room,organization',
                 from,
                 size: args.first,
-                body: {
-                    query: {
-                        bool: {
-                            should: clauses
-                        }
-                    }
-                }
+                body: EsCondition.and(clauses)
             });
 
             return {
