@@ -27,6 +27,26 @@ type GlobalSearchConnection {
     cursor: String
 }
 
+type MentionSearchUser {
+    user: User!
+    fromSameChat: Boolean!
+}
+
+type MentionSearchOrganization {
+    organization: Organization!
+}
+
+type MentionSearchSharedRoom {
+    room: SharedRoom!
+}
+
+union MentionSearchEntry = MentionSearchUser | MentionSearchSharedRoom | MentionSearchOrganization
+
+type MentionSearchConnection {
+    items: [MentionSearchEntry!]!
+    cursor: String
+}
+
 extend type Query {
     alphaGlobalSearch(query: String!, kinds: [GlobalSearchEntryKind!]): [GlobalSearchEntry!]!
     featuredGroups: [SharedRoom!]
@@ -36,4 +56,5 @@ extend type Query {
     chatMembersSearch(cid: ID!, query: String, first: Int!, after: String, page: Int): RoomMemberConnection!
     chatMentionSearch(cid: ID!, query: String, first: Int!, after: String): GlobalSearchConnection!
     orgMembersSearch(orgId: ID!, query: String, first: Int!, after: String, page: Int): JoinedOrganizationMembersConnection!
+    betaChatMentionSearch(cid: ID!, query: String, first: Int!, after: String): MentionSearchConnection!
 }

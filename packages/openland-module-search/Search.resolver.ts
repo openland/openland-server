@@ -5,16 +5,45 @@ import { Store } from '../openland-module-db/FDB';
 import { Message } from '../openland-module-db/store';
 import { buildElasticQuery, QueryParser } from '../openland-utils/QueryParser';
 import { inTx } from '@openland/foundationdb';
-import { createNamedContext } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { User, Organization, Conversation } from 'openland-module-db/store';
 import { IDs } from '../openland-module-api/IDs';
 import { isDefined } from '../openland-utils/misc';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { ErrorText } from '../openland-errors/ErrorText';
+import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
+import MentionSearchEntryRoot = GQLRoots.MentionSearchEntryRoot;
 
 const log = createLogger('search-resolver');
 let hashtagRegex = /#[\w]+/g;
+
+async function extractMentionSearchValues(ctx: Context, cid: number, hits: any[]): Promise<MentionSearchEntryRoot[]> {
+    const fetchId = (hit: any) => parseInt(hit._id, 10);
+
+    return await Promise.all(hits.map(async hit => {
+        if (hit._type === 'user_profile') {
+            return {
+                type: 'user',
+                user: (await Store.User.findById(ctx, fetchId(hit)))!,
+                fromSameChat: hit._source.chats.includes(cid)
+            } as MentionSearchEntryRoot;
+        }
+        if (hit._type === 'room') {
+            return {
+                type: 'room',
+                room: (await Store.Conversation.findById(ctx, fetchId(hit)))!
+            } as MentionSearchEntryRoot;
+        }
+        if (hit._type === 'organization') {
+            return {
+                type: 'org',
+                organization: (await Store.Organization.findById(ctx, fetchId(hit)))!
+            } as MentionSearchEntryRoot;
+        }
+        throw new Error('Unknown mention search hit type: ' + hit._type);
+    }));
+}
 
 export const Resolver: GQLResolver = {
     GlobalSearchEntry: {
@@ -37,6 +66,34 @@ export const Resolver: GQLResolver = {
     MessageWithChat: {
         message: src => src.message, chat: src => src.chat,
     },
+    MentionSearchUser: {
+        user: src => src.user,
+        fromSameChat: src => src.fromSameChat
+    },
+    MentionSearchOrganization: {
+        organization: src => src.organization,
+    },
+    MentionSearchSharedRoom: {
+        room: src => src.room
+    },
+    MentionSearchEntry: {
+        __resolveType(obj: MentionSearchEntryRoot) {
+            if (obj.type === 'user') {
+                return 'MentionSearchUser';
+            } else if (obj.type === 'org') {
+                return 'MentionSearchOrganization';
+            } else if (obj.type === 'room') {
+                return 'MentionSearchSharedRoom';
+            } else {
+                throw new Error('Unknown MentionSearchEntry type: ' + obj);
+            }
+        }
+    },
+    MentionSearchConnection: {
+        items: src => src.items,
+        cursor: src => src.cursor,
+    },
+
     Query: {
         alphaGlobalSearch: withAccount(async (ctx, args, uid, oid) => {
             let query = args.query.trim();
@@ -48,7 +105,7 @@ export const Resolver: GQLResolver = {
                 // filter chat with me
                 allDialogs = allDialogs.filter((a) => !!a.date && a.cid !== savedMessages.id);
                 // add chat with me to top
-                allDialogs.unshift({ cid: savedMessages.id, date: Date.now() });
+                allDialogs.unshift({cid: savedMessages.id, date: Date.now()});
 
                 allDialogs = allDialogs.sort((a, b) => b.date - a.date).slice(0, 25);
 
@@ -70,7 +127,12 @@ export const Resolver: GQLResolver = {
             if (query.match(hashtagRegex)) {
                 let hashtags = query.match(hashtagRegex);
                 query = query.replace(hashtagRegex, '');
-                let hits = await Modules.Users.searchForUsers(ctx, query, {byName: false, limit: 10, uid, hashtags: hashtags || undefined });
+                let hits = await Modules.Users.searchForUsers(ctx, query, {
+                    byName: false,
+                    limit: 10,
+                    uid,
+                    hashtags: hashtags || undefined
+                });
                 return (await Promise.all(hits.hits.hits.map(hit => Store.User.findById(ctx, parseInt(hit._id, 10))))).filter(isDefined);
             }
 
@@ -308,7 +370,7 @@ export const Resolver: GQLResolver = {
                 let parsed = parser.parseQuery(args.query);
                 let elasticQuery = buildElasticQuery(parsed);
                 clauses.push(elasticQuery);
-                clauses.push({ term: { deleted: false } });
+                clauses.push({term: {deleted: false}});
 
                 if (args.sort) {
                     sort = parser.parseSort(args.sort);
@@ -557,15 +619,15 @@ export const Resolver: GQLResolver = {
 
             let functions: any[] = [
                 {
-                    filter: { match: { _type: 'user_profile' } },
+                    filter: {match: {_type: 'user_profile'}},
                     weight: 3
                 },
                 {
-                    filter: { match: { _type: 'room' } },
+                    filter: {match: {_type: 'room'}},
                     weight: 2
                 },
                 {
-                    filter: { match: { _type: 'organization' } },
+                    filter: {match: {_type: 'organization'}},
                     weight: 1
                 }
             ];
@@ -715,5 +777,156 @@ export const Resolver: GQLResolver = {
                 },
             };
         }),
+        betaChatMentionSearch: withAccount(async (ctx, args, uid) => {
+            let from = args.after ? IDs.MentionSearchCursor.parse(args.after) : 0;
+            let cid = IDs.Conversation.parse(args.cid);
+
+            if (!args.query || args.query.trim().length === 0) {
+                // Users from same chat
+                let hitsLocal = await Modules.Search.elastic.client.search({
+                    index: 'user_profile',
+                    from,
+                    size: args.first,
+                    body: {
+                        query: {
+                            bool: {
+                                must: [
+                                    {match: {_type: 'user_profile'}},
+                                    {term: {status: 'activated'}},
+                                    {term: {chats: cid}}
+                                ]
+                            }
+                        }
+                    },
+                });
+                return {
+                    items: await extractMentionSearchValues(ctx, cid, hitsLocal.hits.hits),
+                    cursor: (from + args.first >= (hitsLocal.hits.total as any).value) ? null : IDs.MentionSearchCursor.serialize(from + hitsLocal.hits.hits.length),
+                };
+            }
+
+            let queryStr = args.query.trim();
+            let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
+            let room = await Store.ConversationRoom.findById(ctx, cid);
+            let roomOid: null | number = room ? room.oid : null;
+            let topDialogs = await Store.UserEdge.forwardWeight.query(ctx, uid, {limit: 300, reverse: true});
+
+            let clauses: any[] = [];
+
+            // Users from same chat
+            clauses.push({
+                bool: {
+                    must: [
+                        {match: {_type: 'user_profile'}},
+                        {term: {status: 'activated'}},
+                        {term: {chats: cid}},
+                        {
+                            bool: {
+                                should: [
+                                    {match_phrase_prefix: {name: {query: queryStr, max_expansions: 100000}}},
+                                    {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: 100000}}}
+                                ]
+                            }
+                        }
+                    ]
+                }
+            });
+
+            // Other users
+            clauses.push({
+                function_score: {
+                    query: {
+                        bool: {
+                            must: [
+                                {match: {_type: 'user_profile'}},
+                                {
+                                    bool: {
+                                        should: [
+                                            {match_phrase_prefix: {name: {query: queryStr, max_expansions: 100000}}},
+                                            {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: 100000}}}
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    functions: [
+                        ...(userOrgs.map(oid => ({
+                            filter: {match: {organizations: oid}},
+                            weight: 2
+                        }))),
+                        ...(topDialogs.items.map(d => ({
+                            filter: {match: {userId: d.uid2}},
+                            weight: d.weight || 1
+                        })))
+                    ],
+                    boost_mode: 'multiply'
+                }
+            });
+
+            // Rooms from same org
+            if (roomOid) {
+                clauses.push({
+                    bool: {
+                        must: [
+                            {match: {_type: 'room'}},
+                            {match_phrase_prefix: {title: queryStr}},
+                            {match: {oid: roomOid}}
+                        ],
+                    }
+                });
+            }
+
+            // Public rooms
+            clauses.push({
+                bool: {
+                    must: [
+                        {match: {_type: 'room'}},
+                        {match_phrase_prefix: {title: queryStr}},
+                        {match: {listed: true}}
+                    ],
+                }
+            });
+
+            // User orgs
+            clauses.push({
+                bool: {
+                    must: [
+                        {match: {_type: 'organization'}},
+                        {match_phrase_prefix: {name: queryStr}},
+                        {terms: {_id: userOrgs}}
+                    ],
+                }
+            });
+
+            // Public orgs
+            clauses.push({
+                bool: {
+                    must: [
+                        {match: {_type: 'organization'}},
+                        {match_phrase_prefix: {name: queryStr}},
+                        {term: {listed: true}}
+                    ],
+                }
+            });
+
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'user_profile,room,organization',
+                from,
+                size: args.first,
+                body: {
+                    query: {
+                        bool: {
+                            should: clauses
+                        }
+                    }
+                }
+            });
+
+            return {
+                items: await extractMentionSearchValues(ctx, cid, hits.hits.hits),
+                cursor: (from + args.first >= (hits.hits.total as any).value) ? null : IDs.MentionSearchCursor.serialize(from + hits.hits.hits.length),
+            };
+        })
     },
 };

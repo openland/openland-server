@@ -537,6 +537,11 @@ export namespace GQLRoots {
     export type MessageWithChatRoot = { message: Message, chat: RoomRoot };
     export type GlobalSearchConnectionRoot = { globalItems: GlobalSearchEntryRoot[], localItems: User[], cursor?: string };
     export type GlobalSearchEntryKindRoot = GlobalSearchEntryKindValues;
+    export type MentionSearchUserRoot = { type: 'user', user: User, fromSameChat: boolean };
+    export type MentionSearchOrganizationRoot = { type: 'org', organization: Organization };
+    export type MentionSearchSharedRoomRoot = { type: 'room', room: Conversation };
+    export type MentionSearchEntryRoot = MentionSearchUserRoot | MentionSearchOrganizationRoot | MentionSearchSharedRoomRoot;
+    export type MentionSearchConnectionRoot = { items: MentionSearchEntryRoot[], cursor: string|null };
 
     //
     //  Debug

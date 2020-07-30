@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '8263773ed1f2b12bd5edb18c8b704cfb';
+export const GQL_SPEC_VERSION = '35a4e3ecccad4e5f01e92f46af0ea069';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4285,6 +4285,7 @@ export namespace GQL {
         chatMembersSearch: RoomMemberConnection;
         chatMentionSearch: GlobalSearchConnection;
         orgMembersSearch: JoinedOrganizationMembersConnection;
+        betaChatMentionSearch: MentionSearchConnection;
         messages: ModernMessage[];
         gammaMessages: Nullable<GammaMessagesBatch>;
         modernMessages: ModernMessagesBatch;
@@ -4756,6 +4757,12 @@ export namespace GQL {
         first: number;
         after: OptionalNullable<string>;
         page: OptionalNullable<number>;
+    }
+    export interface QueryBetaChatMentionSearchArgs {
+        cid: string;
+        query: OptionalNullable<string>;
+        first: number;
+        after: OptionalNullable<string>;
     }
     export interface QueryMessagesArgs {
         chatId: string;
@@ -5416,6 +5423,27 @@ export namespace GQL {
     export interface GlobalSearchConnectionGlobalItemsArgs { }
     export interface GlobalSearchConnectionLocalItemsArgs { }
     export interface GlobalSearchConnectionCursorArgs { }
+    export interface MentionSearchUser {
+        user: User;
+        fromSameChat: boolean;
+    }
+    export interface MentionSearchUserUserArgs { }
+    export interface MentionSearchUserFromSameChatArgs { }
+    export interface MentionSearchOrganization {
+        organization: Organization;
+    }
+    export interface MentionSearchOrganizationOrganizationArgs { }
+    export interface MentionSearchSharedRoom {
+        room: SharedRoom;
+    }
+    export interface MentionSearchSharedRoomRoomArgs { }
+    export type MentionSearchEntry = MentionSearchUser | MentionSearchSharedRoom | MentionSearchOrganization;
+    export interface MentionSearchConnection {
+        items: MentionSearchEntry[];
+        cursor: Nullable<string>;
+    }
+    export interface MentionSearchConnectionItemsArgs { }
+    export interface MentionSearchConnectionCursorArgs { }
     export type MessageSource = MessageSourceChat | MessageSourceComment;
     export interface MessageSourceChat {
         chat: Room;
@@ -9744,6 +9772,7 @@ export interface GQLResolver {
             chatMembersSearch: GQLRoots.RoomMemberConnectionRoot,
             chatMentionSearch: GQLRoots.GlobalSearchConnectionRoot,
             orgMembersSearch: GQLRoots.JoinedOrganizationMembersConnectionRoot,
+            betaChatMentionSearch: GQLRoots.MentionSearchConnectionRoot,
             messages: GQLRoots.ModernMessageRoot[],
             gammaMessages: Nullable<GQLRoots.GammaMessagesBatchRoot>,
             modernMessages: GQLRoots.ModernMessagesBatchRoot,
@@ -9924,6 +9953,7 @@ export interface GQLResolver {
             chatMembersSearch: GQL.QueryChatMembersSearchArgs,
             chatMentionSearch: GQL.QueryChatMentionSearchArgs,
             orgMembersSearch: GQL.QueryOrgMembersSearchArgs,
+            betaChatMentionSearch: GQL.QueryBetaChatMentionSearchArgs,
             messages: GQL.QueryMessagesArgs,
             gammaMessages: GQL.QueryGammaMessagesArgs,
             modernMessages: GQL.QueryModernMessagesArgs,
@@ -10540,6 +10570,49 @@ export interface GQLResolver {
             globalItems: GQL.GlobalSearchConnectionGlobalItemsArgs,
             localItems: GQL.GlobalSearchConnectionLocalItemsArgs,
             cursor: GQL.GlobalSearchConnectionCursorArgs,
+        }
+    >;
+    MentionSearchUser?: ComplexTypedResolver<
+        GQL.MentionSearchUser,
+        GQLRoots.MentionSearchUserRoot,
+        {
+            user: GQLRoots.UserRoot,
+        },
+        {
+            user: GQL.MentionSearchUserUserArgs,
+            fromSameChat: GQL.MentionSearchUserFromSameChatArgs,
+        }
+    >;
+    MentionSearchOrganization?: ComplexTypedResolver<
+        GQL.MentionSearchOrganization,
+        GQLRoots.MentionSearchOrganizationRoot,
+        {
+            organization: GQLRoots.OrganizationRoot,
+        },
+        {
+            organization: GQL.MentionSearchOrganizationOrganizationArgs,
+        }
+    >;
+    MentionSearchSharedRoom?: ComplexTypedResolver<
+        GQL.MentionSearchSharedRoom,
+        GQLRoots.MentionSearchSharedRoomRoot,
+        {
+            room: GQLRoots.SharedRoomRoot,
+        },
+        {
+            room: GQL.MentionSearchSharedRoomRoomArgs,
+        }
+    >;
+    MentionSearchEntry?: UnionTypeResolver<GQLRoots.MentionSearchEntryRoot, 'MentionSearchUser' | 'MentionSearchSharedRoom' | 'MentionSearchOrganization'>;
+    MentionSearchConnection?: ComplexTypedResolver<
+        GQL.MentionSearchConnection,
+        GQLRoots.MentionSearchConnectionRoot,
+        {
+            items: GQLRoots.MentionSearchEntryRoot[],
+        },
+        {
+            items: GQL.MentionSearchConnectionItemsArgs,
+            cursor: GQL.MentionSearchConnectionCursorArgs,
         }
     >;
     MessageSource?: UnionTypeResolver<GQLRoots.MessageSourceRoot, 'MessageSourceChat' | 'MessageSourceComment'>;
