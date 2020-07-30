@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '98cf06dc2fc8cd4ba30516b44da54e90';
+export const GQL_SPEC_VERSION = '8263773ed1f2b12bd5edb18c8b704cfb';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4205,6 +4205,7 @@ export namespace GQL {
         feedItemComments: CommentsPeer;
         postComments: CommentsPeer;
         comments: CommentsPeer;
+        commentEntry: Nullable<CommentEntry>;
         conference: Conference;
         conferenceMedia: ConferenceMedia;
         myContacts: ContactConnection;
@@ -4493,6 +4494,9 @@ export namespace GQL {
     }
     export interface QueryCommentsArgs {
         peerId: string;
+    }
+    export interface QueryCommentEntryArgs {
+        entryId: string;
     }
     export interface QueryConferenceArgs {
         id: string;
@@ -9665,6 +9669,7 @@ export interface GQLResolver {
             feedItemComments: GQLRoots.CommentsPeerRoot,
             postComments: GQLRoots.CommentsPeerRoot,
             comments: GQLRoots.CommentsPeerRoot,
+            commentEntry: Nullable<GQLRoots.CommentEntryRoot>,
             conference: GQLRoots.ConferenceRoot,
             conferenceMedia: GQLRoots.ConferenceMediaRoot,
             myContacts: GQLRoots.ContactConnectionRoot,
@@ -9839,6 +9844,7 @@ export interface GQLResolver {
             feedItemComments: GQL.QueryFeedItemCommentsArgs,
             postComments: GQL.QueryPostCommentsArgs,
             comments: GQL.QueryCommentsArgs,
+            commentEntry: GQL.QueryCommentEntryArgs,
             conference: GQL.QueryConferenceArgs,
             conferenceMedia: GQL.QueryConferenceMediaArgs,
             myContacts: GQL.QueryMyContactsArgs,

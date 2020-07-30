@@ -333,5 +333,13 @@ export const Resolver: GQLResolver = {
                 peerId: peerId,
             };
         }),
+        commentEntry: withUser(async (ctx, args, uid) => {
+            let commentId = IDs.CommentEntry.parse(args.entryId);
+            let comment = await Store.Comment.findById(ctx, commentId);
+            if (comment && comment.visible && !comment.deleted) {
+                return comment;
+            }
+            return null;
+        }),
     },
 };

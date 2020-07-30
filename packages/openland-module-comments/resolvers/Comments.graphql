@@ -45,6 +45,7 @@ extend type Query {
     feedItemComments(feedItemId: ID!): CommentsPeer!
     postComments(postId: ID!): CommentsPeer!
     comments(peerId: ID!): CommentsPeer!
+    commentEntry(entryId: ID!): CommentEntry
 }
 
 extend type Mutation {
