@@ -1092,7 +1092,9 @@ export const Resolver: GQLResolver = {
                     mobileAlert: true,
                     mobileIncludeText: true,
                     picture: null,
-                    silent: null
+                    silent: null,
+                    messageId: null,
+                    commentId: null
                 });
             });
             return true;

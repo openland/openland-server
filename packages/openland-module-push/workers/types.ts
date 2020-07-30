@@ -11,6 +11,8 @@ export type Push = {
     mobileAlert: boolean;
     mobileIncludeText: boolean;
     silent: boolean | null;
+    messageId: string | null;
+    commentId: string | null;
 };
 
 export type ApplePushTask = {

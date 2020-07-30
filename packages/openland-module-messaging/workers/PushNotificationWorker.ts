@@ -151,6 +151,8 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
         mobileAlert: messageSettings.mobile.sound,
         mobileIncludeText: settings.mobile ? settings.mobile.notificationPreview === 'name_text' : true,
         silent: null,
+        messageId: null,
+        commentId: null
     };
 
     if (sendMobile) {

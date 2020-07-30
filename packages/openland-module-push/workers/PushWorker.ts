@@ -31,6 +31,8 @@ type Push = {
     mobileAlert: boolean;
     mobileIncludeText: boolean;
     silent: boolean | null;
+    messageId: string | null;
+    commentId: string | null;
 };
 
 const tracer = createTracer('push');
@@ -70,6 +72,8 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
                     deepLink,
                     ['id']: push.conversationId ? doSimpleHash(IDs.Conversation.serialize(push.conversationId)).toString() : undefined,
                     ...(push.picture ? { ['picture']: push.picture! } : {}),
+                    messageId: push.messageId,
+                    commentId: push.commentId
                 },
             }));
         }
@@ -96,6 +100,8 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
                         conversationId,
                         deepLink,
                         ['id']: push.conversationId ? doSimpleHash(IDs.Conversation.serialize(push.conversationId)).toString() : undefined,
+                        messageId: push.messageId,
+                        commentId: push.commentId
                     },
                 }));
             } else {
@@ -116,6 +122,8 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
                         ['message']: mobileBody,
                         ['id']: push.conversationId ? doSimpleHash(IDs.Conversation.serialize(push.conversationId)).toString() : undefined,
                         ...(push.picture ? { ['picture']: push.picture! } : {}),
+                        messageId: push.messageId,
+                        commentId: push.commentId
                     },
                 }));
             }
@@ -133,6 +141,8 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
                     isData: true,
                     data: {
                         ['unread']: unread.toString(),
+                        ...(push.messageId ? { messageId: push.messageId } : {}),
+                        ...(push.commentId ? { commentId: push.commentId } : {}),
                     },
                     tokenId: token.token
                 }));
@@ -159,6 +169,8 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
                     ...(push.deepLink ? { deepLink } as any : {}),
                     ...(push.conversationId ? { conversationId } as any : {}),
                     ...(push.conversationId ? { ['id']: doSimpleHash(IDs.Conversation.serialize(push.conversationId)).toString() } : {}),
+                    ...(push.messageId ? { messageId: push.messageId } : {}),
+                    ...(push.commentId ? { commentId: push.commentId } : {}),
                 },
             }));
         }

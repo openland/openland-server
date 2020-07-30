@@ -54,7 +54,9 @@ export class WalletRepository {
                         title: 'Transaction failed',
                         body: 'A payment for some of your recent purchases or subscriptions has recently failed. Please update your payment method to keep your paid group memberships.',
                         mobileAlert: true,
-                        mobileIncludeText: true
+                        mobileIncludeText: true,
+                        messageId: null,
+                        commentId: null
                     });
 
                     await Emails.sendGenericEmail(ctx, uid, {

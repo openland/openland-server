@@ -7,6 +7,8 @@ import { singletonWorker } from '@openland/foundationdb-singleton';
 import { delay } from '@openland/foundationdb/lib/utils';
 import { batch } from '../../openland-utils/batch';
 import { plural } from '../../openland-utils/string';
+import { IDs } from '../../openland-module-api/IDs';
+import { Push } from '../../openland-module-push/workers/types';
 
 const Delays = {
     'none': 10 * 1000,
@@ -181,7 +183,7 @@ export function startPushNotificationWorker() {
                         }
 
                         let deprecatedMobileAlert = (settings.mobileAlert !== undefined && settings.mobileAlert !== null) ? settings.mobileAlert : true;
-                        let push = {
+                        let push: Push = {
                             uid: uid,
                             title: title,
                             body: pushBody,
@@ -193,8 +195,19 @@ export function startPushNotificationWorker() {
                             desktop: sendDesktop,
                             mobileAlert: settings.mobile ? settings.mobile.comments.sound : deprecatedMobileAlert,
                             mobileIncludeText: settings.mobile ? settings.mobile.notificationPreview === 'name_text' : true,
-                            silent: null
+                            silent: null,
+                            messageId: null,
+                            commentId: null,
                         };
+
+                        let commentContent = notification.content?.find(c => c.type === 'new_comment');
+                        if (commentContent && commentContent.type === 'new_comment') {
+                            let comment = (await Store.Comment.findById(ctx, commentContent.commentId))!;
+                            if (comment.peerType === 'message') {
+                                push.messageId = IDs.ConversationMessage.serialize(comment.peerId);
+                                push.commentId = IDs.Comment.serialize(comment.id);
+                            }
+                        }
 
                         log.debug(ctx, 'new_push', JSON.stringify(push));
                         await Modules.Push.worker.pushWork(ctx, push);

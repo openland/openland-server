@@ -61,7 +61,9 @@ export class PushModule {
             title: '',
             body: '',
             mobileAlert: false,
-            mobileIncludeText: false
+            mobileIncludeText: false,
+            messageId: null,
+            commentId: null
         });
     }
 
