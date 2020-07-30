@@ -45,10 +45,10 @@ async function extractMentionSearchValues(ctx: Context, cid: number, hits: any[]
     }));
 }
 
-const EsCondition = {
+const Es = {
     or: (terms: any[]) => ({bool: {should: terms}}),
     and: (terms: any[]) => ({bool: {must: terms}}),
-    fn: (query: any, functions: any) => ({function_score: {query, functions, boost_mode: 'multiply'}})
+    fn: (query: any, functions: any) => ({function_score: {query, functions, boost_mode: 'multiply'}}),
 };
 
 export const Resolver: GQLResolver = {
@@ -794,7 +794,7 @@ export const Resolver: GQLResolver = {
                     from,
                     size: args.first,
                     body: {
-                        query: EsCondition.and([
+                        query: Es.and([
                             {match: {_type: 'user_profile'}},
                             {term: {status: 'activated'}},
                             {term: {chats: cid}}
@@ -824,45 +824,43 @@ export const Resolver: GQLResolver = {
                 weight: d.weight || 1
             }));
 
+            const topPrivateChatsFunctions = topPrivateDialogs.items.map(d => ({
+                filter: {match: {userId: d.uid2}},
+                weight: d.weight || 1
+            }));
+
+            const userOrgsFunctions = userOrgs.map(oid => ({
+                filter: {match: {organizations: oid}},
+                weight: 2
+            }));
+
             // Users from same chat
-            clauses.push(EsCondition.and([
+            clauses.push(Es.and([
                 {match: {_type: 'user_profile'}},
                 {term: {status: 'activated'}},
                 {term: {chats: cid}},
-                EsCondition.or([
+                Es.or([
                     {match_phrase_prefix: {name: {query: queryStr, max_expansions: maxExpansions}}},
                     {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: maxExpansions}}}
                 ])
             ]));
 
             // Other users
-            clauses.push({
-                function_score: {
-                    query: EsCondition.and([
-                        {match: {_type: 'user_profile'}},
-                        EsCondition.or([
-                            {match_phrase_prefix: {name: {query: queryStr, max_expansions: maxExpansions}}},
-                            {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: maxExpansions}}}
-                        ])
-                    ]),
-                    functions: [
-                        ...(userOrgs.map(oid => ({
-                            filter: {match: {organizations: oid}},
-                            weight: 2
-                        }))),
-                        ...(topPrivateDialogs.items.map(d => ({
-                            filter: {match: {userId: d.uid2}},
-                            weight: d.weight || 1
-                        })))
-                    ],
-                    boost_mode: 'multiply'
-                }
-            });
+            clauses.push(Es.fn(
+                Es.and([
+                    {match: {_type: 'user_profile'}},
+                    Es.or([
+                        {match_phrase_prefix: {name: {query: queryStr, max_expansions: maxExpansions}}},
+                        {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: maxExpansions}}}
+                    ])
+                ]),
+                [...userOrgsFunctions, ...topPrivateChatsFunctions]
+            ));
 
             // Rooms from same org
             if (roomOid) {
-                clauses.push(EsCondition.fn(
-                    EsCondition.and([
+                clauses.push(Es.fn(
+                    Es.and([
                         {match: {_type: 'room'}},
                         {match_phrase_prefix: {title: queryStr}},
                         {match: {oid: roomOid}}
@@ -872,8 +870,8 @@ export const Resolver: GQLResolver = {
             }
 
             // Public rooms
-            clauses.push(EsCondition.fn(
-                EsCondition.and([
+            clauses.push(Es.fn(
+                Es.and([
                     {match: {_type: 'room'}},
                     {match_phrase_prefix: {title: queryStr}},
                     {match: {listed: true}}
@@ -882,14 +880,14 @@ export const Resolver: GQLResolver = {
             ));
 
             // User orgs
-            clauses.push(EsCondition.and([
+            clauses.push(Es.and([
                 {match: {_type: 'organization'}},
                 {match_phrase_prefix: {name: queryStr}},
                 {terms: {_id: userOrgs}}
             ]));
 
             // Public orgs
-            clauses.push(EsCondition.and([
+            clauses.push(Es.and([
                 {match: {_type: 'organization'}},
                 {match_phrase_prefix: {name: queryStr}},
                 {term: {listed: true}}
@@ -899,7 +897,7 @@ export const Resolver: GQLResolver = {
                 index: 'user_profile,room,organization',
                 from,
                 size: args.first,
-                body: { query: EsCondition.or(clauses) }
+                body: { query: Es.or(clauses) }
             });
 
             return {
