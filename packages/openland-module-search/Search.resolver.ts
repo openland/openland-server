@@ -49,6 +49,7 @@ const Es = {
     or: (terms: any[]) => ({bool: {should: terms}}),
     and: (terms: any[]) => ({bool: {must: terms}}),
     fn: (query: any, functions: any) => ({function_score: {query, functions, boost_mode: 'multiply'}}),
+    scriptScore: (query: any, script: string) => ({function_score: {query, script_score: {script: {source: script}}}})
 };
 
 export const Resolver: GQLResolver = {
@@ -870,13 +871,16 @@ export const Resolver: GQLResolver = {
             }
 
             // Public rooms
-            clauses.push(Es.fn(
-                Es.and([
-                    {match: {_type: 'room'}},
-                    {match_phrase_prefix: {title: queryStr}},
-                    {match: {listed: true}}
-                ]),
-                topChatsFunctions
+            clauses.push(Es.scriptScore(
+                Es.fn(
+                    Es.and([
+                        {match: {_type: 'room'}},
+                        {match_phrase_prefix: {title: queryStr}},
+                        {match: {listed: true}}
+                    ]),
+                    topChatsFunctions
+                ),
+                `doc['membersCount'].value`
             ));
 
             // User orgs
@@ -897,7 +901,7 @@ export const Resolver: GQLResolver = {
                 index: 'user_profile,room,organization',
                 from,
                 size: args.first,
-                body: { query: Es.or(clauses) }
+                body: {query: Es.or(clauses)}
             });
 
             return {
