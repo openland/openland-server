@@ -343,6 +343,7 @@ export default declareSchema(() => {
         uniqueIndex('requests', ['cid', 'uid']).withCondition((src) => src.status === 'requested');
         uniqueIndex('userActive', ['uid', 'cid']).withCondition((src) => src.status === 'joined');
     });
+    customDirectory('RoomParticipantsActive');
     atomicInt('RoomParticipantsVersion', () => {
         primaryKey('cid', integer());
     });

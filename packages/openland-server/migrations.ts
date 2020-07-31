@@ -530,4 +530,29 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '123-reindex-members',
+    migration: async (parent) => {
+        let dir = Store.RoomParticipantsActiveDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.boolean);
+        let data = await inTx(parent, ctx => Store.RoomParticipant.findAll(ctx));
+        for (let cursor = 0; cursor < data.length; cursor += 100) {
+            let batch = data.slice(cursor, cursor + 100);
+            await inTx(parent, async ctx => {
+                for (let key of batch) {
+                    let item = (await Store.RoomParticipant.findById(ctx, key.cid, key.uid))!;
+                    if (item) {
+                        if (item.status === 'joined') {
+                            dir.set(ctx, [key.cid, key.uid], false);
+                        } else {
+                            dir.clear(ctx, [key.cid, key.uid]);
+                        }
+                    }
+                }
+            });
+        }
+    }
+});
+
 export default migrations;

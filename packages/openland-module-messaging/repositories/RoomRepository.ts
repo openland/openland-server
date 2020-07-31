@@ -3,7 +3,7 @@ import { ExpiringCache } from './../../openland-utils/ExpiringCache';
 import { RoomParticipantCreateShape, Message, ChatUpdatedEvent } from './../../openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
 import { EventBus } from './../../openland-module-pubsub/EventBus';
-import { inTx } from '@openland/foundationdb';
+import { inTx, encoders } from '@openland/foundationdb';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { buildBaseImageUrl, imageRefEquals } from 'openland-module-media/ImageRef';
 import { IDs } from 'openland-module-api/IDs';
@@ -113,6 +113,7 @@ export class RoomRepository {
                     p.status = 'joined';
                     p.invitedBy = by;
                     Store.RoomParticipantsVersion.increment(ctx, cid);
+                    this.setParticipant(ctx, cid, uid, true);
                     await this.incrementRoomActiveMembers(ctx, cid);
                     await this.onRoomJoin(ctx, cid, uid, by);
                     return true;
@@ -124,6 +125,7 @@ export class RoomRepository {
                     role: 'member'
                 });
                 Store.RoomParticipantsVersion.increment(ctx, cid);
+                this.setParticipant(ctx, cid, uid, true);
                 await this.onRoomJoin(ctx, cid, uid, by);
                 return true;
             }
@@ -142,6 +144,7 @@ export class RoomRepository {
             }
             participant.status = 'kicked';
             Store.RoomParticipantsVersion.increment(ctx, cid);
+            this.setParticipant(ctx, cid, uid, false);
             await this.decrementRoomActiveMembers(ctx, cid);
             await this.onRoomLeave(ctx, cid, uid, true);
             return true;
@@ -160,6 +163,7 @@ export class RoomRepository {
             }
             participant.status = 'kicked';
             Store.RoomParticipantsVersion.increment(ctx, cid);
+            this.setParticipant(ctx, cid, uid, false);
             return true;
         });
     }
@@ -176,6 +180,7 @@ export class RoomRepository {
             }
             p.status = 'left';
             Store.RoomParticipantsVersion.increment(ctx, cid);
+            this.setParticipant(ctx, cid, uid, false);
             await this.decrementRoomActiveMembers(ctx, cid);
             await this.onRoomLeave(ctx, cid, uid, false);
             return true;
@@ -196,6 +201,7 @@ export class RoomRepository {
                     p.invitedBy = uid;
                     p.status = targetStatus;
                     Store.RoomParticipantsVersion.increment(ctx, cid);
+                    this.setParticipant(ctx, cid, uid, true);
                     if (targetStatus === 'joined') {
                         await this.incrementRoomActiveMembers(ctx, cid);
                         await this.onRoomJoin(ctx, cid, uid, uid);
@@ -209,6 +215,7 @@ export class RoomRepository {
                     invitedBy: uid
                 });
                 Store.RoomParticipantsVersion.increment(ctx, cid);
+                this.setParticipant(ctx, cid, uid, true);
                 await this.onRoomJoin(ctx, cid, uid, uid);
                 return true;
             }
@@ -499,6 +506,21 @@ export class RoomRepository {
 
             return true;
         });
+    }
+
+    //
+    // Members
+    //
+
+    setParticipant(ctx: Context, cid: number, uid: number, isMember: boolean) {
+        let dir = Store.RoomParticipantsActiveDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.boolean);
+        if (isMember) {
+            dir.set(ctx, [cid, uid], false);
+        } else {
+            dir.clear(ctx, [cid, uid]);
+        }
     }
 
     //

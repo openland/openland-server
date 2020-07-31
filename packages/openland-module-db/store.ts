@@ -22139,6 +22139,7 @@ export interface Store extends BaseStore {
     readonly HyperLogStore: HyperLogStore;
     readonly UserContactsEventStore: UserContactsEventStore;
     readonly PresenceLogDirectory: Subspace;
+    readonly RoomParticipantsActiveDirectory: Subspace;
     readonly UserDialogIndexDirectory: Subspace;
     readonly UserCountersIndexDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
@@ -22372,6 +22373,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ContactPromise = ContactFactory.open(storage);
     let PhonebookItemPromise = PhonebookItemFactory.open(storage);
     let PresenceLogDirectoryPromise = storage.resolveCustomDirectory('presenceLog');
+    let RoomParticipantsActiveDirectoryPromise = storage.resolveCustomDirectory('roomParticipantsActive');
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
     let UserCountersIndexDirectoryPromise = storage.resolveCustomDirectory('userCountersIndex');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
@@ -22579,6 +22581,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         Contact: await ContactPromise,
         PhonebookItem: await PhonebookItemPromise,
         PresenceLogDirectory: await PresenceLogDirectoryPromise,
+        RoomParticipantsActiveDirectory: await RoomParticipantsActiveDirectoryPromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,
         UserCountersIndexDirectory: await UserCountersIndexDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
