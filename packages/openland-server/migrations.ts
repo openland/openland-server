@@ -531,7 +531,7 @@ migrations.push({
 });
 
 migrations.push({
-    key: '123-reindex-members',
+    key: '124-reindex-members',
     migration: async (parent) => {
         let dir = Store.RoomParticipantsActiveDirectory
             .withKeyEncoding(encoders.tuple)
