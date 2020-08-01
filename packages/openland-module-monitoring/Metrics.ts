@@ -36,6 +36,12 @@ export const Metrics = {
     SpaceXWritesPerSubscriptionResolve: Factory.createSummary('spacex_writes_subscription_resolve', 'Summary of read operations per subscription resolve', DEFAULT_QUANTILES),
     SpaceXWritesPerMutation: Factory.createSummary('spacex_writes_mutation', 'Summary of read operations per mutation', DEFAULT_QUANTILES),
 
+    //
+    // EventBus
+    //
+    EventsSent: Factory.createFrequencyGauge('events_sent', 'Frequency of a sent events to event bus'),
+    EventsReceived: Factory.createFrequencyGauge('events_received', 'Frequency of a sent events to event bus'),
+
     // NodeJS
     EventLoopLag: Factory.createTaggedSummary('nodejs_event_loop_lag', 'Summary of event loop lags', DEFAULT_QUANTILES),
 

@@ -1,6 +1,7 @@
 import { EventBusEngine, EventBusEngineSubcription } from './EventBusEngine';
 import { Client, Subscription } from 'ts-nats';
 import { asyncRun } from '../openland-mtproto3/utils';
+import { Metrics } from 'openland-module-monitoring/Metrics';
 
 interface TopicSubscription {
     canceled: boolean;
@@ -19,6 +20,7 @@ export class NatsBusEngine implements EventBusEngine {
 
     publish(topic: string, data: any): void {
         this.nc.publish(this.rootTopic + '.' + topic, { payload: data });
+        Metrics.EventsSent.inc();
     }
 
     subscribe(topic: string, receiver: (data: any) => void): EventBusEngineSubcription {
@@ -51,6 +53,8 @@ export class NatsBusEngine implements EventBusEngine {
 
         asyncRun(async () => {
             let ncSubscription = await this.nc.subscribe(this.rootTopic + '.' + topic, (err, msg) => {
+                Metrics.EventsReceived.inc();
+
                 if (err) {
                     return;
                 }
