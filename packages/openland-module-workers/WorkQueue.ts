@@ -214,9 +214,5 @@ export class WorkQueue<ARGS> {
         };
 
         Shutdown.registerWork({ name: this.taskType, shutdown });
-
-        return {
-            shutdown
-        };
     }
 }

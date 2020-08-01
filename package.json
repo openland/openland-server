@@ -182,6 +182,7 @@
     "@types/geoip-lite": "^1.1.31"
   },
   "_moduleAliases": {
+    "async_hooks": "build/openland-server/empty.js",
     "foundation-orm": "build/foundation-orm",
     "openland-server": "build/openland-server",
     "openland-server-tests": "build/openland-server-testss",
