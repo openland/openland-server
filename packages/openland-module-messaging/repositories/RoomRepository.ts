@@ -523,6 +523,14 @@ export class RoomRepository {
         }
     }
 
+    private async getParticipants(ctx: Context, cid: number) {
+        let dir = Store.RoomParticipantsActiveDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.boolean);
+        let items = await dir.range(ctx, [cid]);
+        return items.map((v) => v.key[v.key.length - 1] as number);
+    }
+
     //
     // Editorial
     //
@@ -682,7 +690,7 @@ export class RoomRepository {
             if (cached) {
                 return cached;
             }
-            let loaded = (await Store.RoomParticipant.active.findAll(ctx, cid)).map((v) => v.uid);
+            let loaded = await this.getParticipants(ctx, cid);
             this.membersCache.save(`${cid}_${version}`, loaded);
             return loaded;
         } else if (conv.kind === 'organization') {
