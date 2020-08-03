@@ -707,6 +707,15 @@ export class RoomRepository {
         }
     }
 
+    async isSuperGroup(ctx: Context, cid: number): Promise<boolean> {
+        let conv = await Store.Conversation.findById(ctx, cid);
+        if (conv && conv.kind === 'room') {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     async resolveConversationTitle(ctx: Context, conversationId: number, uid: number): Promise<string> {
         let conv = await Store.Conversation.findById(ctx, conversationId);
 

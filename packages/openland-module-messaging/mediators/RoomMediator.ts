@@ -45,6 +45,10 @@ export class RoomMediator {
         return conv.kind === 'public';
     }
 
+    async isSuperGroup(ctx: Context, cid: number) {
+        return await this.repo.isSuperGroup(ctx, cid);
+    }
+
     async createRoom(parent: Context, kind: 'public' | 'group', oid: number | undefined, uid: number, members: number[], profile: RoomProfileInput, message?: string, listed?: boolean, channel?: boolean, price?: number, interval?: 'week' | 'month') {
         return await inTx(parent, async (ctx) => {
             if (oid) {
@@ -707,7 +711,7 @@ export class RoomMediator {
             if (uids.length === 2) {
                 let name1 = await Modules.Users.getUserFullName(parent, uids[0]);
                 let name2 = await Modules.Users.getUserFullName(parent, uids[1]);
-                return buildMessage(userMention(name1, uids[0]), ' and ', userMention(name2, uids[1]),  ' joined the\u00A0group');
+                return buildMessage(userMention(name1, uids[0]), ' and ', userMention(name2, uids[1]), ' joined the\u00A0group');
             } else {
                 let name = await Modules.Users.getUserFullName(parent, uids[0]);
 

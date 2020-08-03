@@ -1,4 +1,4 @@
-import { inTx, getTransaction } from '@openland/foundationdb';
+import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { createTracer } from 'openland-log/createTracer';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
@@ -32,8 +32,6 @@ export class DeliveryMediator {
     private readonly newQueueUserMultiple = new TransWorkerQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }>('message-delivery-batch', Store.MessageDeliveryBatchDirectory);
 
     // Obsolete
-    private readonly queue = new WorkQueue<{ messageId: number, action?: 'new' | 'update' | 'delete' }>('conversation_message_delivery');
-    private readonly queueUserMultiple = new WorkQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }>('conversation_message_delivery_user_multiple');
     private readonly deliverCallStateChangedQueue = new WorkQueue<{ cid: number, hasActiveCall: boolean }>('deliver-call-state-changed');
 
     @lazyInject('DeliveryRepository') private readonly repo!: DeliveryRepository;
@@ -44,24 +42,7 @@ export class DeliveryMediator {
     start = () => {
         if (serverRoleEnabled('delivery')) {
 
-            // Old Fan Out Delivery
-            for (let i = 0; i < 100; i++) {
-                this.queue.addWorker(async (item, parent) => {
-                    // const start = currentRunningTime();
-                    if (item.action === 'new' || item.action === undefined) {
-                        await this.fanOutDelivery(parent, item.messageId, 'new');
-                    } else if (item.action === 'delete') {
-                        await this.fanOutDelivery(parent, item.messageId, 'delete');
-                    } else if (item.action === 'update') {
-                        await this.fanOutDelivery(parent, item.messageId, 'update');
-                    } else {
-                        throw Error('Unknown action: ' + item.action);
-                    }
-                    // deliveryInitialMetric.add(parent, currentRunningTime() - start);
-                });
-            }
-
-            // New Fan Out Delivery
+            // Fan Out Delivery
             this.newQeue.addWorkers(100, async (ctx, item) => {
                 if (item.action === 'new' || item.action === undefined) {
                     await this.fanOutDelivery(ctx, item.messageId, 'new');
@@ -74,30 +55,7 @@ export class DeliveryMediator {
                 }
             });
 
-            for (let i = 0; i < 100; i++) {
-                this.queueUserMultiple.addWorker(async (item, parent) => {
-                    // const start = currentRunningTime();
-                    await tracer.trace(parent, 'deliver-multiple', async (ctx2) => {
-                        await inTx(ctx2, async (ctx) => {
-                            // Speed up retry loop for lower latency
-                            getTransaction(ctx).setOptions({ max_retry_delay: 10 });
-
-                            let message = (await Store.Message.findById(ctx, item.messageId))!;
-                            if (item.action === 'new' || item.action === undefined) {
-                                await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
-                            } else if (item.action === 'delete') {
-                                await Promise.all(item.uids.map((uid) => this.deliverMessageDeleteToUser(ctx, uid, message)));
-                            } else if (item.action === 'update') {
-                                await Promise.all(item.uids.map((uid) => this.deliverMessageUpdateToUser(ctx, uid, message)));
-                            } else {
-                                throw Error('Unknown action: ' + item.action);
-                            }
-                        });
-                    });
-                    // deliveryMetric.add(parent, currentRunningTime() - start);
-                });
-            }
-
+            // User Delivery
             this.newQueueUserMultiple.addWorkers(1000, async (ctx, item) => {
                 let message = (await Store.Message.findById(ctx, item.messageId))!;
                 if (item.action === 'new' || item.action === undefined) {
@@ -127,15 +85,27 @@ export class DeliveryMediator {
     //
 
     onNewMessage = async (ctx: Context, message: Message) => {
-        this.newQeue.pushWork(ctx, { messageId: message.id, action: 'new' });
+        if (await this.room.isSuperGroup(ctx, message.cid)) {
+            this.newQeue.pushWork(ctx, { messageId: message.id, action: 'new' });
+        } else {
+            await this.fanOutDelivery(ctx, message.id, 'new');
+        }
     }
 
     onUpdateMessage = async (ctx: Context, message: Message) => {
-        this.newQeue.pushWork(ctx, { messageId: message.id, action: 'update' });
+        if (await this.room.isSuperGroup(ctx, message.cid)) {
+            this.newQeue.pushWork(ctx, { messageId: message.id, action: 'update' });
+        } else {
+            await this.fanOutDelivery(ctx, message.id, 'update');
+        }
     }
 
     onDeleteMessage = async (ctx: Context, message: Message) => {
-        this.newQeue.pushWork(ctx, { messageId: message.id, action: 'delete' });
+        if (await this.room.isSuperGroup(ctx, message.cid)) {
+            this.newQeue.pushWork(ctx, { messageId: message.id, action: 'delete' });
+        } else {
+            await this.fanOutDelivery(ctx, message.id, 'delete');
+        }
     }
 
     onRoomRead = async (parent: Context, uid: number, mid: number) => {
