@@ -6,6 +6,8 @@ import { getTransaction, inTx, Subspace, TupleItem, encoders } from '@openland/f
 import { Context, createNamedContext } from '@openland/context';
 import { uuid } from 'openland-utils/uuid';
 import { Metrics } from 'openland-module-monitoring/Metrics';
+import { singletonWorker } from '@openland/foundationdb-singleton';
+import { Store } from '../openland-module-db/FDB';
 
 function shuffle<T>(a: T[]) {
     for (let i = a.length - 1; i > 0; i--) {
@@ -78,7 +80,22 @@ export class TransWorkerQueue<ARGS> {
         });
     }
 
+    registerTaskScheduler = () => {
+        let rootCtx = createNamedContext('work_scheduler_' + this.taskType);
+        singletonWorker({ db: Store.storage.db, name: 'trans_work_scheduler_' + this.taskType, delay: 1000 }, async () => {
+            await inTx(rootCtx, async (ctx) => {
+                let locks = await this.locksDirectory.range(ctx, [], { limit: 1000 });
+                locks = locks.filter(a => a.value.timeout < Date.now());
+                let failingIds = locks.map(a => a.key[0] as string);
+
+                await Promise.all(failingIds.map(a => this.idsPendingDirectory.set(ctx, [a], true)));
+            });
+        });
+    }
+
     addWorkers = (parallel: number, handler: (ctx: Context, item: ARGS) => Promise<void>) => {
+        this.registerTaskScheduler();
+
         let working = true;
 
         // Task Awaiting
