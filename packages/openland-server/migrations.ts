@@ -556,7 +556,7 @@ migrations.push({
 });
 
 migrations.push({
-    key: '127-workers-counters',
+    key: '128-workers-counters',
     migration: async (parent) => {
 
         let tasks = [Store.MessageDeliveryBatchDirectory, Store.MessageDeliveryDirectory];

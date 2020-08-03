@@ -73,7 +73,7 @@ export class WorkQueue<ARGS> {
         let workLoop = foreverBreakable(root, async () => {
             // let start = currentRunningTime();
             let task = await inTx(root, async (ctx) => {
-                getTransaction(ctx).setOptions({ causal_read_risky: true, priority_system_immediate: true });
+                getTransaction(ctx).setOptions({ causal_read_risky: true, priority_batch: true });
 
                 let pend = [
                     ...(await Store.Task.pending.query(ctx, this.taskType, { limit: 100 })).items,
@@ -94,8 +94,7 @@ export class WorkQueue<ARGS> {
             let shouldExecute = task && await inTx(root, async (ctx) => {
                 getTransaction(ctx).setOptions({
                     causal_read_risky: true,
-                    priority_system_immediate: true,
-                    retry_limit: 10
+                    priority_batch: true
                 });
 
                 let tsk = await Store.Task.findById(ctx, task!.res.taskType, task!.res.uid);

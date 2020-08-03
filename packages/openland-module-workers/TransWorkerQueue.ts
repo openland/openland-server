@@ -116,6 +116,8 @@ export class TransWorkerQueue<ARGS> {
 
             // Read batch of tasks
             let tasks = await inTx(root, async (ctx) => {
+                getTransaction(ctx).setOptions({ causal_read_risky: true, priority_batch: true });
+                
                 return (await this.idsDirectory.range(ctx, [], { limit: tasksLimit })).map((v) => v.key[v.key.length - 1] as string);
             });
 
@@ -135,6 +137,8 @@ export class TransWorkerQueue<ARGS> {
                     try {
                         // Execute task
                         await inTx(rootExec, async (ctx) => {
+                            getTransaction(ctx).setOptions({ causal_read_risky: true, priority_batch: true });
+
                             Metrics.WorkerAttemptFrequence.inc(this.taskType);
 
                             let args = (await this.argsDirectory.get(ctx, [taskId])) as ARGS;
