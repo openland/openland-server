@@ -22140,6 +22140,8 @@ export interface Store extends BaseStore {
     readonly UserContactsEventStore: UserContactsEventStore;
     readonly PresenceLogDirectory: Subspace;
     readonly RoomParticipantsActiveDirectory: Subspace;
+    readonly MessageDeliveryDirectory: Subspace;
+    readonly MessageDeliveryBatchDirectory: Subspace;
     readonly UserDialogIndexDirectory: Subspace;
     readonly UserCountersIndexDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
@@ -22374,6 +22376,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let PhonebookItemPromise = PhonebookItemFactory.open(storage);
     let PresenceLogDirectoryPromise = storage.resolveCustomDirectory('presenceLog');
     let RoomParticipantsActiveDirectoryPromise = storage.resolveCustomDirectory('roomParticipantsActive');
+    let MessageDeliveryDirectoryPromise = storage.resolveCustomDirectory('messageDelivery');
+    let MessageDeliveryBatchDirectoryPromise = storage.resolveCustomDirectory('messageDeliveryBatch');
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
     let UserCountersIndexDirectoryPromise = storage.resolveCustomDirectory('userCountersIndex');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
@@ -22582,6 +22586,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         PhonebookItem: await PhonebookItemPromise,
         PresenceLogDirectory: await PresenceLogDirectoryPromise,
         RoomParticipantsActiveDirectory: await RoomParticipantsActiveDirectoryPromise,
+        MessageDeliveryDirectory: await MessageDeliveryDirectoryPromise,
+        MessageDeliveryBatchDirectory: await MessageDeliveryBatchDirectoryPromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,
         UserCountersIndexDirectory: await UserCountersIndexDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,

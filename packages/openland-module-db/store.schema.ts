@@ -347,6 +347,8 @@ export default declareSchema(() => {
     atomicInt('RoomParticipantsVersion', () => {
         primaryKey('cid', integer());
     });
+    customDirectory('MessageDelivery');
+    customDirectory('MessageDeliveryBatch');
     entity('Message', () => {
         primaryKey('id', integer());
         field('cid', integer());
