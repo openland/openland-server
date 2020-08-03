@@ -126,12 +126,9 @@ export class TransWorkerQueue<ARGS> {
                 
                 return (await this.idsDirectory.range(ctx, [], { limit: tasksLimit })).map((v) => v.key[v.key.length - 1] as string);
             });
-            console.log('got', tasks.length);
 
             // Filter already processing tasks
             tasks = tasks.filter((v) => !activeTasks.has(v));
-
-            // console.log('TASKS', JSON.stringify(tasks));
 
             // Shuffle tasks
             tasks = shuffle(tasks);
@@ -140,8 +137,6 @@ export class TransWorkerQueue<ARGS> {
             for (let i = 0; i < tasks.length && i < workersToAllocate; i++) {
                 let taskId = tasks[i];
                 activeTasks.add(taskId);
-                // console.log('starting', taskId);
-
 
                 // tslint:disable-next-line:no-floating-promises
                 (async () => {
@@ -150,14 +145,12 @@ export class TransWorkerQueue<ARGS> {
                         let shouldExecute = await inTx(rootExec, async ctx => {
                             let args = (await this.argsDirectory.get(ctx, [taskId])) as ARGS;
                             if (!args) {
-                                // console.log('skip no args', taskId);
                                 return false;
                             }
                             const doLock = () => this.locksDirectory.set(ctx, [taskId], { seed: lockSeed, timeout: Date.now() + 15000 });
 
                             let lock = await this.locksDirectory.get(ctx, [taskId]);
                             if (lock) {
-                                // console.log('LOCK', taskId, lock);
                                 if (lock.seed === lockSeed) {
                                     doLock();
                                     return true;
@@ -201,10 +194,8 @@ export class TransWorkerQueue<ARGS> {
                     } catch (e) {
                         log.error(rootExec, e);
                     } finally {
-
                         // Reduce active tasks count
                         activeTasks.delete(taskId);
-                        // console.log('done', taskId);
                         workerReady();
                     }
                 })();
