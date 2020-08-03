@@ -579,4 +579,30 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '129-workers',
+    migration: async (parent) => {
+
+        let tasks = [Store.MessageDeliveryBatchDirectory, Store.MessageDeliveryDirectory];
+
+        for (let dir of tasks) {
+            await inTx(parent, async ctx => {
+                let ids = dir
+                    .withKeyEncoding(encoders.tuple)
+                    .withValueEncoding(encoders.boolean)
+                    .subspace([0]);
+
+                let idsPending = dir
+                    .withKeyEncoding(encoders.tuple)
+                    .withValueEncoding(encoders.boolean)
+                    .subspace([4]);
+
+                let taskIds = (await ids.range(ctx, [])).map((v) => v.key[v.key.length - 1] as string);
+
+                taskIds.forEach(id => idsPending.set(ctx, [id], true));
+            });
+        }
+    }
+});
+
 export default migrations;
