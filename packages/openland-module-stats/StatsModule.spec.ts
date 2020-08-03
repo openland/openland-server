@@ -143,7 +143,7 @@ describe('StatsModule', () => {
         // console.dir(JSON.stringify({ unreadByUser1, unreadByUser2 }, null, 2));
 
         expect(unreadByUser1).toEqual({
-            unreadMessagesCount: 15,
+            unreadMessagesCount: 21,
             unreadMoreGroupsCount: 0,
             groups: [
                 {
