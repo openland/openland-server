@@ -140,13 +140,14 @@ export class TransWorkerQueue<ARGS> {
                             let args = (await this.argsDirectory.get(ctx, [taskId])) as ARGS;
                             this.argsDirectory.clear(ctx, [taskId]);
                             this.idsDirectory.clear(ctx, [taskId]);
-                            this.countersDirectory.add(ctx, [METRIC_ACTIVE], -1);
 
                             if (!args) {
                                 return;
                             }
-
+                            
                             await handler(ctx, args);
+
+                            this.countersDirectory.add(ctx, [METRIC_ACTIVE], -1);
 
                             getTransaction(ctx).afterCommit(() => {
                                 Metrics.WorkerSuccessFrequence.inc(this.taskType);
