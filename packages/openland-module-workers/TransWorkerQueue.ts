@@ -116,9 +116,10 @@ export class TransWorkerQueue<ARGS> {
                         // Execute task
                         await inTx(rootExec, async (ctx) => {
                             let args = (await this.argsDirectory.get(ctx, [taskId])) as ARGS;
+                            this.argsDirectory.clear(ctx, [taskId]);
+                            this.idsDirectory.clear(ctx, [taskId]);
+                            
                             if (!args) {
-                                this.argsDirectory.clear(ctx, [taskId]);
-                                this.idsDirectory.clear(ctx, [taskId]);
                                 return;
                             }
 
