@@ -556,7 +556,7 @@ migrations.push({
 });
 
 migrations.push({
-    key: '125-workers-counters',
+    key: '126-workers-counters',
     migration: async (parent) => {
 
         let tasks = [Store.MessageDeliveryBatchDirectory, Store.MessageDeliveryDirectory];
@@ -568,7 +568,7 @@ migrations.push({
                 .subspace([2]);
             let ids = dir
                 .withKeyEncoding(encoders.tuple)
-                .withValueEncoding(encoders.int32LE)
+                .withValueEncoding(encoders.boolean)
                 .subspace([0]);
 
             await inTx(parent, async (ctx) => {
