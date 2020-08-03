@@ -37,10 +37,19 @@ export const Metrics = {
     SpaceXWritesPerMutation: Factory.createSummary('spacex_writes_mutation', 'Summary of read operations per mutation', DEFAULT_QUANTILES),
 
     //
-    // Delivery
+    // Workers
     //
+    
     WorkerAttemptFrequence: Factory.createTaggedFrequencyGauge('worker_attempts', 'Frequency of delivery attempts'),
     WorkerSuccessFrequence: Factory.createTaggedFrequencyGauge('worker_success', 'Frequency of delivery success'),
+
+    //
+    // Delivery
+    //
+
+    DeliveryActive: Factory.createPersistedGauge('delivery_active', 'How many delivety tasks are active', async (ctx) => {
+        return await Modules.Messaging.delivery.newQueueUserMultiple.getActive(ctx);
+    }),
 
     //
     // EventBus

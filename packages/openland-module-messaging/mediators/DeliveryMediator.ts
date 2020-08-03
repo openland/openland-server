@@ -28,8 +28,8 @@ const log = createLogger('delivery');
 export class DeliveryMediator {
 
     // New Queue
-    private readonly newQeue = new TransWorkerQueue<{ messageId: number, action?: 'new' | 'update' | 'delete' }>('message-delivery', Store.MessageDeliveryDirectory);
-    private readonly newQueueUserMultiple = new TransWorkerQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }>('message-delivery-batch', Store.MessageDeliveryBatchDirectory);
+    readonly newQeue = new TransWorkerQueue<{ messageId: number, action?: 'new' | 'update' | 'delete' }>('message-delivery', Store.MessageDeliveryDirectory);
+    readonly newQueueUserMultiple = new TransWorkerQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }>('message-delivery-batch', Store.MessageDeliveryBatchDirectory);
 
     // Obsolete
     private readonly deliverCallStateChangedQueue = new WorkQueue<{ cid: number, hasActiveCall: boolean }>('deliver-call-state-changed');

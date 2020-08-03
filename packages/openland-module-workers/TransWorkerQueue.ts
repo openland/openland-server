@@ -17,11 +17,15 @@ function shuffle<T>(a: T[]) {
 
 const log = createLogger('worker');
 
+const METRIC_PUSHED = 0;
+const METRIC_ACTIVE = 1;
+
 export class TransWorkerQueue<ARGS> {
     private taskType: string;
     private pubSubTopic: string;
     private argsDirectory: Subspace<TupleItem[], any>;
     private idsDirectory: Subspace<TupleItem[], boolean>;
+    private countersDirectory: Subspace<TupleItem[], number>;
 
     constructor(taskType: string, directory: Subspace<Buffer, Buffer>) {
         this.taskType = taskType;
@@ -34,12 +38,27 @@ export class TransWorkerQueue<ARGS> {
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean)
             .subspace([0]);
+
+        this.countersDirectory = directory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.int32LE)
+            .subspace([2]);
+    }
+
+    async getTotal(ctx: Context) {
+        return (await this.countersDirectory.get(ctx, [METRIC_PUSHED])) || 0;
+    }
+
+    async getActive(ctx: Context) {
+        return (await this.countersDirectory.get(ctx, [METRIC_ACTIVE])) || 0;
     }
 
     pushWork = (ctx: Context, work: ARGS) => {
         let id = uuid();
         this.idsDirectory.set(ctx, [id], false);
         this.argsDirectory.set(ctx, [id], work);
+        this.countersDirectory.add(ctx, [METRIC_PUSHED], 1);
+        this.countersDirectory.add(ctx, [METRIC_ACTIVE], 1);
         getTransaction(ctx).afterCommit(() => {
             EventBus.publish(this.pubSubTopic, {});
         });
@@ -121,6 +140,7 @@ export class TransWorkerQueue<ARGS> {
                             let args = (await this.argsDirectory.get(ctx, [taskId])) as ARGS;
                             this.argsDirectory.clear(ctx, [taskId]);
                             this.idsDirectory.clear(ctx, [taskId]);
+                            this.countersDirectory.add(ctx, [METRIC_ACTIVE], -1);
 
                             if (!args) {
                                 return;
@@ -130,7 +150,7 @@ export class TransWorkerQueue<ARGS> {
 
                             getTransaction(ctx).afterCommit(() => {
                                 Metrics.WorkerSuccessFrequence.inc(this.taskType);
-                            })
+                            });
                         });
                     } catch (e) {
                         log.error(rootExec, e);

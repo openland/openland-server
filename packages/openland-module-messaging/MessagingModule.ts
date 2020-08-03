@@ -30,7 +30,7 @@ export class MessagingModule {
     readonly search: RoomSearch = new RoomSearch();
     readonly fixer: FixerRepository;
     readonly needNotificationDelivery: NeedNotificationDeliveryRepository;
-    private readonly delivery: DeliveryMediator;
+    readonly delivery: DeliveryMediator;
     private readonly messaging: MessagingMediator;
     private readonly augmentation: AugmentationMediator;
     private readonly userState: UserStateRepository;
