@@ -42,6 +42,9 @@ export const Metrics = {
     EventsSent: Factory.createFrequencyGauge('events_sent', 'Frequency of a sent events to event bus'),
     EventsReceived: Factory.createFrequencyGauge('events_received', 'Frequency of a sent events to event bus'),
 
+    EventsTaggedSent: Factory.createTaggedFrequencyGauge('events_sent_tagged', 'Frequency of a sent events to event bus tagged by prefix'),
+    EventsTaggedReceived: Factory.createTaggedFrequencyGauge('events_received_tagged', 'Frequency of a sent events to event bus tagged by prefix'),
+
     // NodeJS
     EventLoopLag: Factory.createTaggedSummary('nodejs_event_loop_lag', 'Summary of event loop lags', DEFAULT_QUANTILES),
 
