@@ -100,7 +100,7 @@ export class TransWorkerQueue<ARGS> {
             });
 
             // Filter already processing tasks
-            tasks = tasks.filter((v) => !activeTasks.has(v))
+            tasks = tasks.filter((v) => !activeTasks.has(v));
 
             // Shuffle tasks
             tasks = shuffle(tasks);
@@ -113,8 +113,6 @@ export class TransWorkerQueue<ARGS> {
                 // tslint:disable-next-line:no-floating-promises
                 (async () => {
                     try {
-                        console.log('task:' + taskId);
-
                         // Execute task
                         await inTx(rootExec, async (ctx) => {
                             let args = (await this.argsDirectory.get(ctx, [taskId])) as ARGS;
