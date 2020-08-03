@@ -112,7 +112,7 @@ export class TransWorkerQueue<ARGS> {
             if (workersToAllocate === 0) {
                 return;
             }
-            let tasksLimit = Math.max(Math.min(10000, workersToAllocate * 1000), 1000);
+            let tasksLimit = Math.max(Math.min(10000, workersToAllocate * 1000), 10000);
 
             // Read batch of tasks
             let tasks = await inTx(root, async (ctx) => {
