@@ -1,6 +1,12 @@
 import { Config } from 'openland-config/Config';
 import {
-    Organization, Message, Comment, DialogNeedReindexEvent, OrganizationProfile, OrganizationMemberShape,
+    Organization,
+    Message,
+    Comment,
+    DialogNeedReindexEvent,
+    OrganizationProfile,
+    OrganizationMemberShape,
+    UserDialogCallStateChangedEvent,
 } from './../openland-module-db/store';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from '../openland-module-api/Resolvers';
@@ -1812,6 +1818,20 @@ export const Resolver: GQLResolver = {
                 await task.delete(ctx);
                 return true;
             });
+        }),
+        debugDeliverCallStateEventsForAll: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAll(Store.ConferenceRoom, parent.auth.uid!, 'debugDeliverCallStateEventsForAll', async (ctx, cid, log) => {
+                let conference = (await Store.ConferenceRoom.findById(ctx, cid))!;
+                let members = await Modules.Messaging.room.findConversationMembers(ctx, cid);
+                for (let m of members) {
+                    Store.UserDialogEventStore.post(ctx, m, UserDialogCallStateChangedEvent.create({
+                        uid: m,
+                        cid,
+                        hasActiveCall: conference.active
+                    }));
+                }
+            });
+            return true;
         }),
     },
     Subscription: {
