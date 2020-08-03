@@ -1,4 +1,4 @@
-import { inTx } from '@openland/foundationdb';
+import { getTransaction, inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { createTracer } from 'openland-log/createTracer';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
@@ -18,6 +18,7 @@ import { Store } from 'openland-module-db/FDB';
 // import { createMetric } from 'openland-module-monitoring/Metric';
 import { createLogger } from '@openland/log';
 import { TransWorkerQueue } from 'openland-module-workers/TransWorkerQueue';
+import { Metrics } from '../../openland-module-monitoring/Metrics';
 
 const tracer = createTracer('message-delivery');
 // const deliveryInitialMetric = createMetric('delivery-fan-out', 'average');
@@ -57,6 +58,8 @@ export class DeliveryMediator {
 
             // User Delivery
             this.newQueueUserMultiple.addWorkers(1000, async (ctx, item) => {
+                Metrics.DeliveryAttemptFrequence.inc(item.action || 'unknown');
+
                 let message = (await Store.Message.findById(ctx, item.messageId))!;
                 if (item.action === 'new' || item.action === undefined) {
                     await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
@@ -67,6 +70,10 @@ export class DeliveryMediator {
                 } else {
                     throw Error('Unknown action: ' + item.action);
                 }
+
+                getTransaction(ctx).afterCommit(() => {
+                   Metrics.DeliverySuccessFrequence.inc(item.action || 'unknown');
+                });
             });
 
             this.deliverCallStateChangedQueue.addWorker(async (item, parent) => {

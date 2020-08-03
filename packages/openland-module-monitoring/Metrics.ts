@@ -59,6 +59,8 @@ export const Metrics = {
     DeliveryFanOutTotal: Factory.createPersistedGauge('delivery_total_fan_out', 'How many delivety fan out tasks are created', async (ctx) => {
         return await Modules.Messaging.delivery.newQeue.getTotal(ctx);
     }),
+    DeliveryAttemptFrequence: Factory.createTaggedFrequencyGauge('delivery_attempts', 'Frequency of delivery attempts'),
+    DeliverySuccessFrequence: Factory.createTaggedFrequencyGauge('delivery_success', 'Frequency of delivery success'),
 
     //
     // EventBus
