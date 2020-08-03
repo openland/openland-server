@@ -27,6 +27,7 @@ export class TransWorkerQueue<ARGS> {
     private idsDirectory: Subspace<TupleItem[], boolean>;
     private countersDirectory: Subspace<TupleItem[], number>;
     private locksDirectory: Subspace<TupleItem[], { seed: string, timeout: number }>;
+    private idsPendingDirectory: Subspace<TupleItem[], boolean>;
 
     constructor(taskType: string, directory: Subspace<Buffer, Buffer>) {
         this.taskType = taskType;
@@ -35,6 +36,7 @@ export class TransWorkerQueue<ARGS> {
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.json)
             .subspace([1]);
+
         this.idsDirectory = directory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean)
@@ -49,6 +51,11 @@ export class TransWorkerQueue<ARGS> {
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.json)
             .subspace([3]);
+
+        this.idsPendingDirectory = directory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.boolean)
+            .subspace([4]);
     }
 
     async getTotal(ctx: Context) {
@@ -65,6 +72,7 @@ export class TransWorkerQueue<ARGS> {
         this.argsDirectory.set(ctx, [id], work);
         this.countersDirectory.add(ctx, [METRIC_PUSHED], 1);
         this.countersDirectory.add(ctx, [METRIC_ACTIVE], 1);
+        this.idsPendingDirectory.set(ctx, [id], true);
         getTransaction(ctx).afterCommit(() => {
             EventBus.publish(this.pubSubTopic, {});
         });
@@ -124,7 +132,7 @@ export class TransWorkerQueue<ARGS> {
             let tasks = await inTx(root, async (ctx) => {
                 getTransaction(ctx).setOptions({ causal_read_risky: true, priority_batch: true });
                 
-                return (await this.idsDirectory.range(ctx, [], { limit: tasksLimit })).map((v) => v.key[v.key.length - 1] as string);
+                return (await this.idsPendingDirectory.range(ctx, [], { limit: tasksLimit })).map((v) => v.key[v.key.length - 1] as string);
             });
 
             // Filter already processing tasks
@@ -145,9 +153,16 @@ export class TransWorkerQueue<ARGS> {
                         let shouldExecute = await inTx(rootExec, async ctx => {
                             let args = (await this.argsDirectory.get(ctx, [taskId])) as ARGS;
                             if (!args) {
+                                this.argsDirectory.clear(ctx, [taskId]);
+                                this.idsDirectory.clear(ctx, [taskId]);
+                                this.locksDirectory.clear(ctx, [taskId]);
+                                this.idsPendingDirectory.clear(ctx, [taskId]);
                                 return false;
                             }
-                            const doLock = () => this.locksDirectory.set(ctx, [taskId], { seed: lockSeed, timeout: Date.now() + 15000 });
+                            const doLock = () => {
+                                this.locksDirectory.set(ctx, [taskId], { seed: lockSeed, timeout: Date.now() + 15000 });
+                                this.idsPendingDirectory.clear(ctx, [taskId]);
+                            };
 
                             let lock = await this.locksDirectory.get(ctx, [taskId]);
                             if (lock) {
@@ -165,7 +180,6 @@ export class TransWorkerQueue<ARGS> {
                             return true;
                         });
                         if (!shouldExecute) {
-                            // console.log('skip');
                             return;
                         }
                         // Execute task
@@ -178,6 +192,7 @@ export class TransWorkerQueue<ARGS> {
                             this.argsDirectory.clear(ctx, [taskId]);
                             this.idsDirectory.clear(ctx, [taskId]);
                             this.locksDirectory.clear(ctx, [taskId]);
+                            this.idsPendingDirectory.clear(ctx, [taskId]);
 
                             if (!args) {
                                 return;
