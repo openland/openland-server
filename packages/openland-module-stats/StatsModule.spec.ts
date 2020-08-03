@@ -150,7 +150,7 @@ describe('StatsModule', () => {
                     serializedId: expect.any(String),
                     previewImage: expect.any(String),
                     title: expect.stringContaining('User Name'),
-                    unreadCount: 6,
+                    unreadCount: 12,
                     convKind: 'private'
                 },
                 //

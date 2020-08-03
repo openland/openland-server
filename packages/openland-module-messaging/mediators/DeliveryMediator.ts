@@ -57,24 +57,26 @@ export class DeliveryMediator {
             });
 
             // User Delivery
-            this.newQueueUserMultiple.addWorkers(1000, async (ctx, item) => {
-                Metrics.DeliveryAttemptFrequence.inc(item.action || 'unknown');
+            for (let i = 0; i <= 10; i++) {
+                this.newQueueUserMultiple.addWorkers(1000, async (ctx, item) => {
+                    Metrics.DeliveryAttemptFrequence.inc(item.action || 'unknown');
 
-                let message = (await Store.Message.findById(ctx, item.messageId))!;
-                if (item.action === 'new' || item.action === undefined) {
-                    await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
-                } else if (item.action === 'delete') {
-                    await Promise.all(item.uids.map((uid) => this.deliverMessageDeleteToUser(ctx, uid, message)));
-                } else if (item.action === 'update') {
-                    await Promise.all(item.uids.map((uid) => this.deliverMessageUpdateToUser(ctx, uid, message)));
-                } else {
-                    throw Error('Unknown action: ' + item.action);
-                }
+                    let message = (await Store.Message.findById(ctx, item.messageId))!;
+                    if (item.action === 'new' || item.action === undefined) {
+                        await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
+                    } else if (item.action === 'delete') {
+                        await Promise.all(item.uids.map((uid) => this.deliverMessageDeleteToUser(ctx, uid, message)));
+                    } else if (item.action === 'update') {
+                        await Promise.all(item.uids.map((uid) => this.deliverMessageUpdateToUser(ctx, uid, message)));
+                    } else {
+                        throw Error('Unknown action: ' + item.action);
+                    }
 
-                getTransaction(ctx).afterCommit(() => {
-                   Metrics.DeliverySuccessFrequence.inc(item.action || 'unknown');
+                    getTransaction(ctx).afterCommit(() => {
+                        Metrics.DeliverySuccessFrequence.inc(item.action || 'unknown');
+                    });
                 });
-            });
+            }
 
             this.deliverCallStateChangedQueue.addWorker(async (item, parent) => {
                 await inTx(parent, async ctx => {
