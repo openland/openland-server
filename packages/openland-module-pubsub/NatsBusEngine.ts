@@ -9,6 +9,15 @@ interface TopicSubscription {
     listeners: ((data: any) => void)[];
 }
 
+function extractTopicTag(src: string) {
+    let index = src.indexOf(',');
+    if (index >= 0) {
+        return src.slice(0, index);
+    } else {
+        return src;
+    }
+}
+
 export class NatsBusEngine implements EventBusEngine {
     private nc: Client;
     private rootTopic = 'event_bus';
@@ -21,6 +30,7 @@ export class NatsBusEngine implements EventBusEngine {
     publish(topic: string, data: any): void {
         this.nc.publish(this.rootTopic + '.' + topic, { payload: data });
         Metrics.EventsSent.inc();
+        Metrics.EventsTaggedSent.inc(extractTopicTag(topic));
     }
 
     subscribe(topic: string, receiver: (data: any) => void): EventBusEngineSubcription {
@@ -54,6 +64,7 @@ export class NatsBusEngine implements EventBusEngine {
         asyncRun(async () => {
             let ncSubscription = await this.nc.subscribe(this.rootTopic + '.' + topic, (err, msg) => {
                 Metrics.EventsReceived.inc();
+                Metrics.EventsTaggedReceived.inc(extractTopicTag(topic));
 
                 if (err) {
                     return;
