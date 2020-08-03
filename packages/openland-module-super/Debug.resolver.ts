@@ -1827,7 +1827,7 @@ export const Resolver: GQLResolver = {
                     Store.UserDialogEventStore.post(ctx, m, UserDialogCallStateChangedEvent.create({
                         uid: m,
                         cid,
-                        hasActiveCall: conference.active
+                        hasActiveCall: conference.active || false
                     }));
                 }
             });
