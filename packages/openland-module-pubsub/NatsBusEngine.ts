@@ -10,7 +10,7 @@ interface TopicSubscription {
 }
 
 function extractTopicTag(src: string) {
-    let index = src.indexOf(',');
+    let index = src.indexOf('.');
     if (index >= 0) {
         return src.slice(0, index);
     }
