@@ -109,7 +109,7 @@ export class DeliveryMediator {
                 } else {
                     throw Error('Unknown action: ' + item.action);
                 }
-            })
+            });
 
             this.deliverCallStateChangedQueue.addWorker(async (item, parent) => {
                 await inTx(parent, async ctx => {
