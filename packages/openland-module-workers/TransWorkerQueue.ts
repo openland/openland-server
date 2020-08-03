@@ -26,6 +26,7 @@ export class TransWorkerQueue<ARGS> {
     private argsDirectory: Subspace<TupleItem[], any>;
     private idsDirectory: Subspace<TupleItem[], boolean>;
     private countersDirectory: Subspace<TupleItem[], number>;
+    private locksDirectory: Subspace<TupleItem[], { seed: string, timeout: number }>;
 
     constructor(taskType: string, directory: Subspace<Buffer, Buffer>) {
         this.taskType = taskType;
@@ -43,6 +44,11 @@ export class TransWorkerQueue<ARGS> {
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.int32LE)
             .subspace([2]);
+
+        this.locksDirectory = directory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.json)
+            .subspace([3]);
     }
 
     async getTotal(ctx: Context) {
@@ -134,7 +140,33 @@ export class TransWorkerQueue<ARGS> {
 
                 // tslint:disable-next-line:no-floating-promises
                 (async () => {
+                    const lockSeed = uuid();
                     try {
+                        let shouldExecute = await inTx(rootExec, async ctx => {
+                            let args = (await this.argsDirectory.get(ctx, [taskId])) as ARGS;
+                            if (!args) {
+                                return false;
+                            }
+                            const doLock = () => this.locksDirectory.set(ctx, [taskId], { seed: lockSeed, timeout: Date.now() + 15000 });
+
+                            let lock = await this.locksDirectory.get(ctx, [taskId]);
+                            if (lock) {
+                                if (lock.seed === lockSeed) {
+                                    doLock();
+                                    return true;
+                                } else if (Date.now() > lock.timeout) {
+                                    doLock();
+                                    return true;
+                                } else {
+                                    return false;
+                                }
+                            }
+                            doLock();
+                            return true;
+                        });
+                        if (!shouldExecute) {
+                            return;
+                        }
                         // Execute task
                         await inTx(rootExec, async (ctx) => {
                             getTransaction(ctx).setOptions({ causal_read_risky: true, priority_batch: true });
@@ -144,11 +176,12 @@ export class TransWorkerQueue<ARGS> {
                             let args = (await this.argsDirectory.get(ctx, [taskId])) as ARGS;
                             this.argsDirectory.clear(ctx, [taskId]);
                             this.idsDirectory.clear(ctx, [taskId]);
+                            this.locksDirectory.clear(ctx, [taskId]);
 
                             if (!args) {
                                 return;
                             }
-                            
+
                             await handler(ctx, args);
 
                             this.countersDirectory.add(ctx, [METRIC_ACTIVE], -1);
@@ -165,7 +198,6 @@ export class TransWorkerQueue<ARGS> {
                         activeTasks.delete(taskId);
                         workerReady();
                     }
-
                 })();
             }
 
