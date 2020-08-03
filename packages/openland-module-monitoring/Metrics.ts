@@ -37,6 +37,12 @@ export const Metrics = {
     SpaceXWritesPerMutation: Factory.createSummary('spacex_writes_mutation', 'Summary of read operations per mutation', DEFAULT_QUANTILES),
 
     //
+    // Delivery
+    //
+    WorkerAttemptFrequence: Factory.createTaggedFrequencyGauge('worker_attempts', 'Frequency of delivery attempts'),
+    WorkerSuccessFrequence: Factory.createTaggedFrequencyGauge('worker_success', 'Frequency of delivery success'),
+
+    //
     // EventBus
     //
     EventsSent: Factory.createFrequencyGauge('events_sent', 'Frequency of a sent events to event bus'),

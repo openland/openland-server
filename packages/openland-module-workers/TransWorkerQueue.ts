@@ -5,6 +5,7 @@ import { EventBus } from 'openland-module-pubsub/EventBus';
 import { getTransaction, inTx, Subspace, TupleItem, encoders } from '@openland/foundationdb';
 import { Context, createNamedContext } from '@openland/context';
 import { uuid } from 'openland-utils/uuid';
+import { Metrics } from 'openland-module-monitoring/Metrics';
 
 function shuffle<T>(a: T[]) {
     for (let i = a.length - 1; i > 0; i--) {
@@ -115,15 +116,21 @@ export class TransWorkerQueue<ARGS> {
                     try {
                         // Execute task
                         await inTx(rootExec, async (ctx) => {
+                            Metrics.WorkerAttemptFrequence.inc(this.taskType);
+
                             let args = (await this.argsDirectory.get(ctx, [taskId])) as ARGS;
                             this.argsDirectory.clear(ctx, [taskId]);
                             this.idsDirectory.clear(ctx, [taskId]);
-                            
+
                             if (!args) {
                                 return;
                             }
 
                             await handler(ctx, args);
+
+                            getTransaction(ctx).afterCommit(() => {
+                                Metrics.WorkerSuccessFrequence.inc(this.taskType);
+                            })
                         });
                     } catch (e) {
                         log.error(rootExec, e);
