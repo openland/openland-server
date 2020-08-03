@@ -62,7 +62,6 @@ export class TransWorkerQueue<ARGS> {
         };
 
         // Worker Awaiting
-        let activeTasks = 0;
         let workerAwaiter: (() => void) | undefined;
         let workerReady = () => {
             if (workerAwaiter) {
@@ -70,8 +69,9 @@ export class TransWorkerQueue<ARGS> {
                 workerAwaiter = undefined;
             }
         };
+        let activeTasks = new Set<string>();
         let awaitWorker = async () => {
-            if (activeTasks < parallel) {
+            if (activeTasks.size < parallel) {
                 return;
             }
             let w = delayBreakable(15000);
@@ -88,7 +88,7 @@ export class TransWorkerQueue<ARGS> {
             await awaitWorker();
 
             // Resolve desired tasks limit
-            let workersToAllocate = Math.max(parallel - activeTasks, 0);
+            let workersToAllocate = Math.max(parallel - activeTasks.size, 0);
             if (workersToAllocate === 0) {
                 return;
             }
@@ -99,24 +99,30 @@ export class TransWorkerQueue<ARGS> {
                 return (await this.idsDirectory.range(ctx, [], { limit: tasksLimit })).map((v) => v.key[v.key.length - 1] as string);
             });
 
+            // Filter already processing tasks
+            tasks = tasks.filter((v) => !activeTasks.has(v))
+
             // Shuffle tasks
             tasks = shuffle(tasks);
 
             // Start workers
             for (let i = 0; i < tasks.length && i < workersToAllocate; i++) {
-                activeTasks++;
-                let taskId = tasks[0];
+                let taskId = tasks[i];
+                activeTasks.add(taskId);
 
                 // tslint:disable-next-line:no-floating-promises
                 (async () => {
                     try {
+                        console.log('task:' + taskId);
+
                         // Execute task
                         await inTx(rootExec, async (ctx) => {
                             let args = (await this.argsDirectory.get(ctx, [taskId])) as ARGS;
                             if (!args) {
+                                this.argsDirectory.clear(ctx, [taskId]);
+                                this.idsDirectory.clear(ctx, [taskId]);
                                 return;
                             }
-                            this.argsDirectory.clear(ctx, [taskId]);
 
                             await handler(ctx, args);
                         });
@@ -125,7 +131,7 @@ export class TransWorkerQueue<ARGS> {
                     } finally {
 
                         // Reduce active tasks count
-                        activeTasks--;
+                        activeTasks.delete(taskId);
                         workerReady();
                     }
 
