@@ -95,7 +95,8 @@ export class DeliveryMediator {
         if (await this.room.isSuperGroup(ctx, message.cid)) {
             this.newQeue.pushWork(ctx, { messageId: message.id, action: 'new' });
         } else {
-            await this.fanOutDelivery(ctx, message.id, 'new');
+            let members = await this.room.findConversationMembers(ctx, message.cid);
+            await Promise.all(members.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
         }
     }
 
@@ -103,7 +104,8 @@ export class DeliveryMediator {
         if (await this.room.isSuperGroup(ctx, message.cid)) {
             this.newQeue.pushWork(ctx, { messageId: message.id, action: 'update' });
         } else {
-            await this.fanOutDelivery(ctx, message.id, 'update');
+            let members = await this.room.findConversationMembers(ctx, message.cid);
+            await Promise.all(members.map((uid) => this.deliverMessageUpdateToUser(ctx, uid, message)));
         }
     }
 
@@ -111,7 +113,8 @@ export class DeliveryMediator {
         if (await this.room.isSuperGroup(ctx, message.cid)) {
             this.newQeue.pushWork(ctx, { messageId: message.id, action: 'delete' });
         } else {
-            await this.fanOutDelivery(ctx, message.id, 'delete');
+            let members = await this.room.findConversationMembers(ctx, message.cid);
+            await Promise.all(members.map((uid) => this.deliverMessageDeleteToUser(ctx, uid, message)));
         }
     }
 
