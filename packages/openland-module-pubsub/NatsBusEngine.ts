@@ -13,9 +13,19 @@ function extractTopicTag(src: string) {
     let index = src.indexOf(',');
     if (index >= 0) {
         return src.slice(0, index);
-    } else {
-        return src;
     }
+
+    index = src.indexOf('_');
+    if (index >= 0) {
+        return src.slice(0, index);
+    }
+
+    index = src.indexOf('-');
+    if (index >= 0) {
+        return src.slice(0, index);
+    }
+
+    return src;
 }
 
 export class NatsBusEngine implements EventBusEngine {

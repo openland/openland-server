@@ -29,7 +29,7 @@ export function registerTypingsService(xPubSub: Pubsub<TypingEvent>) {
                     });
 
                     let allPosts = members.map(async (v) => {
-                        await xPubSub.publish(`TYPING_${v}`, {
+                        await xPubSub.publish(`typing.${v}`, {
                             forUserId: v,
                             userId: uid,
                             conversationId: cid,

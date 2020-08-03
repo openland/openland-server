@@ -46,7 +46,7 @@ export class TypingsModule {
 
         let iterator = createIterator<TypingEvent>(() => sub ? sub.cancel() : {});
 
-        sub = await this.xPubSub.subscribe(`TYPING_${uid}`, ev => {
+        sub = await this.xPubSub.subscribe(`typing.${uid}`, ev => {
             if (conversationId && ev.conversationId !== conversationId) {
                 return;
             }
