@@ -93,10 +93,11 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
         let client = await connect({
             payload: Payload.JSON,
             servers: Config.nats ? Config.nats.endpoints : undefined,
-            pingInterval: 5000,
+            pingInterval: 15000,
+            timeout: 10000,
             reconnectTimeWait: 1000,
             maxReconnectAttempts: -1,
-            noRandomize: true
+            yieldTime: 100
         });
         container.bind('NATS').toConstantValue(client);
         logger.log(ctx, 'NATS connected');
