@@ -1,4 +1,4 @@
-import { Table } from './Table';
+import { Table, TableEngineConfig } from './Table';
 import { Schema } from './schema';
 
 class TableSpaceImpl {
@@ -35,7 +35,7 @@ class TableSpaceImpl {
 
 export const TableSpace = new TableSpaceImpl();
 
-export const table = <T>(name: string, schema: Schema<T>, config: Table<any>['engineConfig']) => {
+export const table = <T>(name: string, schema: Schema<T>, config: TableEngineConfig) => {
     const t = new Table(name, schema, config);
     TableSpace.add(t);
     return t;

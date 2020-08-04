@@ -6,7 +6,7 @@ import { ColumnDefinition } from './ClickHouseClient';
 import { schema } from './schema/SchemaBuilder';
 import { createLogger } from '@openland/log';
 
-type TableEngineConfig = {
+export type TableEngineConfig = {
     engine?: string,
     partition: string;
     orderBy: string;
