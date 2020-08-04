@@ -1,5 +1,5 @@
 import { InternalTrackEvent } from './Log.resolver';
-import { createHyperlogger, createModernHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
+import { createHyperlogger, createModernHyperlogger } from './createHyperlogEvent';
 import { integer, nullable, string, union } from '../openland-module-clickhouse/schema';
 
 export const Events = {

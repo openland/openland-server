@@ -1,4 +1,3 @@
-import { Events } from 'openland-module-hyperlog/Events';
 import { Store } from './../openland-module-db/FDB';
 import { inTx, withReadOnlyTransaction } from '@openland/foundationdb';
 import Timer = NodeJS.Timer;
@@ -134,7 +133,6 @@ export class PresenceModule {
                 online.lastSeen = Date.now();
                 online.active = false;
             }
-            Events.PresenceEvent.event(ctx, { uid, platform: null, online: false });
             // this.onlines.set(uid, { lastSeen: Date.now(), active: false });
             let event = {
                 userId: uid,
