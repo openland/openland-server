@@ -269,6 +269,23 @@ export const Resolver: GQLResolver = {
             });
             return JSON.stringify(hits.hits.hits);
         }),
+        debugMentionSearchGetUserData: withPermission('super-admin', async (ctx, args) => {
+            let cid = IDs.Conversation.parse(args.cid);
+            let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, ctx.auth.uid!);
+            let room = await Store.ConversationRoom.findById(ctx, cid);
+            let roomOid: null | number = room ? room.oid : null;
+            let [topPrivateDialogs, topGroupDialogs] = await Promise.all([
+                Store.UserEdge.forwardWeight.query(ctx, ctx.auth.uid!, {limit: 300, reverse: true}),
+                Store.UserGroupEdge.user.query(ctx, ctx.auth.uid!, {limit: 300, reverse: true})
+            ]);
+            return JSON.stringify({
+                topPrivateDialogs: topPrivateDialogs.items.map(d => ({ uid1: d.uid1, uid2: d.uid2, weight: d.weight })),
+                topGroupDialogs: topGroupDialogs.items.map(d => ({ cid: d.cid, weight: d.weight })),
+                userOrgs,
+                roomOid,
+                cid
+            });
+        }),
     },
     Mutation: {
         debugSendSMS: withPermission('super-admin', async (ctx, args) => {
