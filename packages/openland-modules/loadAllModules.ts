@@ -50,7 +50,7 @@ import { NotificationCenterModule } from '../openland-module-notification-center
 import { loadNotificationCenterModule } from '../openland-module-notification-center/NotificationCenterModule.container';
 import { openDatabase } from 'openland-server/foundationdb';
 import { MetricsModule } from '../openland-module-metrics/MetricsModule';
-import { currentTime } from 'openland-utils/timer';
+import { backoff, currentTime } from 'openland-utils/timer';
 import { createLogger } from '@openland/log';
 import { EntityStorage } from '@openland/foundationdb-entity';
 import { openStore } from 'openland-module-db/store';
@@ -76,12 +76,13 @@ import { loadPhonebookModule } from '../openland-module-phonebook/PhonebookModul
 import { connect, Payload } from 'ts-nats';
 import { loadDiscussionsModule } from 'openland-module-discussions/Discussions.container';
 import { ClickHouseModule } from '../openland-module-clickhouse/ClickHouseModule';
-import { createClient } from '../openland-module-clickhouse/migrations';
+import { createClient } from '../openland-module-clickhouse/createClient';
 import { broker } from 'openland-server/moleculer';
 import { Shutdown } from 'openland-utils/Shutdown';
 import { loadPresenceModule } from '../openland-module-presences/PresenceModule.container';
 import { loadContactsModule } from '../openland-module-contacts/ContactsModule.container';
 import { ContactsModule } from '../openland-module-contacts/ContactsModule';
+import { asyncRun } from '../openland-spacex/utils/asyncRun';
 
 const logger = createLogger('starting');
 
@@ -132,9 +133,13 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
             .toConstantValue(store);
 
         // Load clickhouse
-        let chClient = await createClient(ctx);
-        container.bind('ClickHouse').toConstantValue(chClient);
-        logger.log(ctx, 'ClickHouse connected');
+        asyncRun(async () => {
+            await backoff(ctx, async () => {
+                let chClient = await createClient(ctx);
+                container.bind('ClickHouse').toConstantValue(chClient);
+                logger.log(ctx, 'ClickHouse connected');
+            });
+        });
     }
 
     logger.log(ctx, 'Loading modules...');

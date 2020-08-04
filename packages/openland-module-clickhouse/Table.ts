@@ -45,10 +45,10 @@ export class Table<T> {
         return this.#schema;
     }
     get engine() {
-        return this.#engineConfig.engine;
+        return this.#engineConfig.engine || 'MergeTree()';
     }
     get engineConfig() {
-        return this.#engineConfig;
+        return { ...this.#engineConfig, engine: this.engine };
     }
 
     public async init(ctx: Context, client: DatabaseClient) {
