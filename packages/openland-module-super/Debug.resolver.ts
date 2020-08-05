@@ -1721,7 +1721,7 @@ export const Resolver: GQLResolver = {
                             await log('Proceed ' + total + ' messages');
                         }
                     } while (count === limit && count > 0);
-                    await log('Done ' + total + ' messages')
+                    await log('Done ' + total + ' messages');
                 } catch (e) {
                     return `failed ${e.message}`;
                 }
