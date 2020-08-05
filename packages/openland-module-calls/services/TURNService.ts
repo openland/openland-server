@@ -15,7 +15,7 @@ export async function resolveTurnServices(ctx: Context) {
         .filter((v) => v.appData && typeof v.appData.ip === 'string');
 
     // Resolve twillio turn servers if workers are missing or twillio is enforced
-    if (twillioApi && Config.environment === 'production' && !useCustomTurns || workers.length === 0) {
+    if (twillioApi && Config.environment === 'production' && (!useCustomTurns || workers.length === 0)) {
         let now = Date.now();
         if (iceServers) {
             if (now < iceServerExpire!) {
@@ -31,6 +31,11 @@ export async function resolveTurnServices(ctx: Context) {
         }));
         iceServerExpire = now + ((parseInt(res.ttl, 10)) * 1000 / 2);
         return iceServers;
+    }
+
+    // What if workers are empty
+    if (workers.length === 0) {
+        return [];
     }
 
     // Resolve Location
