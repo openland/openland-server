@@ -29,7 +29,7 @@ export class QueueStorage {
             return {
                 id,
                 subspace: tasksDirectory
-            }
+            };
         });
         return new QueueStorage(name, resolved.id, resolved.subspace, storage);
     }

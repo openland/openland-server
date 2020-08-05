@@ -1,4 +1,4 @@
-import { extension } from "@openland/foundationdb-compiler";
+import { extension } from '@openland/foundationdb-compiler';
 
 export function taskQueue(name: string) {
     extension(name, 'com.openland.tasks', {
