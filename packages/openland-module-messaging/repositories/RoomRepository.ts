@@ -734,6 +734,9 @@ export class RoomRepository {
                 throw Error('Inconsistent Private Conversation resolver');
             }
             let profile = (await Store.UserProfile.findById(ctx, _uid))!;
+            if (!profile) {
+                return 'DELETED';
+            }
             return [profile.firstName, profile.lastName].filter((v) => !!v).join(' ');
         } else if (conv.kind === 'organization') {
             let o = await Store.ConversationOrganization.findById(ctx, conv.id);
