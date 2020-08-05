@@ -48,7 +48,7 @@ async function extractMentionSearchValues(ctx: Context, cid: number, hits: any[]
 const Es = {
     or: (terms: any[]) => ({bool: {should: terms}}),
     and: (terms: any[]) => ({bool: {must: terms}}),
-    fn: (query: any, functions: any) => ({function_score: {query, functions, boost_mode: 'multiply'}}),
+    fn: (query: any, functions: any, extra: any = {}) => ({function_score: {query, functions, boost_mode: 'multiply', ...extra}}),
     scriptScore: (query: any, script: string) => ({function_score: {query, script_score: {script: {source: script}}}})
 };
 
@@ -836,15 +836,19 @@ export const Resolver: GQLResolver = {
             }));
 
             // Users from same chat
-            clauses.push(Es.and([
-                {match: {_type: 'user_profile'}},
-                {term: {status: 'activated'}},
-                {term: {chats: cid}},
-                Es.or([
-                    {match_phrase_prefix: {name: {query: queryStr, max_expansions: maxExpansions}}},
-                    {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: maxExpansions}}}
-                ])
-            ]));
+            clauses.push(Es.fn(
+                Es.and([
+                    {match: {_type: 'user_profile'}},
+                    {term: {status: 'activated'}},
+                    {term: {chats: cid}},
+                    Es.or([
+                        {match_phrase_prefix: {name: {query: queryStr, max_expansions: maxExpansions}}},
+                        {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: maxExpansions}}}
+                    ])
+                ]),
+                [],
+                { boost: 1000000 }
+            ));
 
             // Other users
             clauses.push(Es.fn(
