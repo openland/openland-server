@@ -9,6 +9,8 @@ import { EntityStorage, EventStore, EventStoreDescriptor, EventFactory, BaseStor
 import { AtomicIntegerFactory, AtomicBooleanFactory } from '@openland/foundationdb-entity';
 // @ts-ignore
 import { Entity, EntityFactory, EntityDescriptor, SecondaryIndexDescriptor, ShapeWithMetadata, PrimaryKeyDescriptor, FieldDescriptor, StreamProps } from '@openland/foundationdb-entity';
+// @ts-ignore
+import { QueueStorage } from 'openland-module-workers/QueueStorage'
 
 export class ConversationLastSeqFactory extends AtomicIntegerFactory {
 
@@ -22161,6 +22163,8 @@ export interface Store extends BaseStore {
     readonly NeedNotificationFlagDirectory: Subspace;
     readonly ImportedPhoneDirectory: Subspace;
     readonly PhoneImportedByUserDirectory: Subspace;
+    readonly MessageDeliveryMembersQueue: QueueStorage;
+    readonly MessageDeliveryUserQueue: QueueStorage;
 }
 
 export async function openStore(storage: EntityStorage): Promise<Store> {
@@ -22407,6 +22411,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let StripeEventStorePromise = StripeEventStore.open(storage, eventFactory);
     let HyperLogStorePromise = HyperLogStore.open(storage, eventFactory);
     let UserContactsEventStorePromise = UserContactsEventStore.open(storage, eventFactory);
+    let MessageDeliveryMembersQueuePromise = QueueStorage.open('MessageDeliveryMembers', storage);
+    let MessageDeliveryUserQueuePromise = QueueStorage.open('MessageDeliveryUser', storage);
     return {
         storage,
         eventFactory,
@@ -22617,5 +22623,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         StripeEventStore: await StripeEventStorePromise,
         HyperLogStore: await HyperLogStorePromise,
         UserContactsEventStore: await UserContactsEventStorePromise,
+        MessageDeliveryMembersQueue: await MessageDeliveryMembersQueuePromise,
+        MessageDeliveryUserQueue: await MessageDeliveryUserQueuePromise,
     };
 }

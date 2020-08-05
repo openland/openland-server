@@ -19,8 +19,9 @@ import {
     union,
     event,
     float, allowDelete,
+    eventStore
 } from '@openland/foundationdb-compiler';
-import { eventStore } from '@openland/foundationdb-compiler/lib/builder';
+import { taskQueue } from '../openland-module-workers/compiler';
 
 //
 // Shared declarations
@@ -347,8 +348,13 @@ export default declareSchema(() => {
     atomicInt('RoomParticipantsVersion', () => {
         primaryKey('cid', integer());
     });
+
     customDirectory('MessageDelivery');
     customDirectory('MessageDeliveryBatch');
+
+    taskQueue('MessageDeliveryMembers');
+    taskQueue('MessageDeliveryUser');
+
     entity('Message', () => {
         primaryKey('id', integer());
         field('cid', integer());
