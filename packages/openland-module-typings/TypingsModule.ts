@@ -20,7 +20,7 @@ export class TypingsModule {
     private xPubSub = new Pubsub<TypingEvent>();
 
     start = async () => {
-        if (serverRoleEnabled('workers')) {
+        if (serverRoleEnabled('events')) {
             registerTypingsService(this.xPubSub);
         }
     }

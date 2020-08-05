@@ -54,7 +54,7 @@ export function createModernHyperlogger<T extends SchemaShape>(
         {
             primaryKey: 'id',
             partition: partition || 'toYYYYMM(date)',
-            orderBy: orderBy || '(id, date)'
+            orderBy: orderBy || '(id, date)',
         }
     );
 
