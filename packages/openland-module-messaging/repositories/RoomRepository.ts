@@ -778,6 +778,9 @@ export class RoomRepository {
                 throw Error('Inconsistent Private Conversation resolver');
             }
             let profile = (await Store.UserProfile.findById(ctx, _uid))!;
+            if (!profile) {
+                return 'ph://' + doSimpleHash(IDs.User.serialize(_uid)) % 6;
+            }
             let res = buildBaseImageUrl(profile.picture);
             if (res) {
                 return res;
