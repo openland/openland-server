@@ -84,6 +84,7 @@
     "faker": "^4.1.0",
     "firebase-admin": "^8.10.0",
     "form-data": "^2.3.2",
+    "foundationdb": "1.0.0",
     "fp-ts": "^2.6.1",
     "geoip-lite": "^1.4.1",
     "globby": "^9.2.0",
