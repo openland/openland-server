@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '1e466f98b7f29affddd440271c17aae4';
+export const GQL_SPEC_VERSION = '7c0cb352c92b9408bfc1855fab706110';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4785,8 +4785,8 @@ export namespace GQL {
     export interface QueryModernMessagesArgs {
         chatId: string;
         first: number;
-        before: OptionalNullable<string>;
-        after: OptionalNullable<string>;
+        before: OptionalNullable<number>;
+        after: OptionalNullable<number>;
     }
     export interface QueryMessageArgs {
         messageId: string;

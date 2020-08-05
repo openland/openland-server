@@ -402,7 +402,35 @@ async function fetchMessages(ctx: Context, cid: number, forUid: number, opts: Ra
     messages.items = messages.items.filter(m => !m.hiddenForUids?.includes(forUid));
 
     while (messages.items.length < (opts.limit || 0) && messages.haveMore) {
-        let more = await Store.Message.chat.query(ctx, cid, { ...opts, after, limit: 1 });
+        let more = await Store.Message.chat.query(ctx, cid, {...opts, after, limit: 1});
+        if (more.items.length === 0) {
+            messages.haveMore = false;
+            return messages;
+        }
+        after = more.items[more.items.length - 1].id;
+
+        let filtered = more.items.filter(m => !m.hiddenForUids?.includes(forUid));
+        messages.items.push(...filtered);
+        messages.haveMore = more.haveMore;
+        messages.cursor = more.cursor;
+    }
+    if (opts.limit) {
+        messages.items = messages.items.slice(0, opts.limit);
+    }
+
+    return messages;
+}
+
+async function fetchMessagesFromSeq(ctx: Context, cid: number, forUid: number, opts: RangeQueryOptions<number>) {
+    let messages = await Store.Message.chatSeq.query(ctx, cid, opts);
+    if (messages.items.length === 0) {
+        return messages;
+    }
+    let after = messages.items[messages.items.length - 1].id;
+    messages.items = messages.items.filter(m => !m.hiddenForUids?.includes(forUid));
+
+    while (messages.items.length < (opts.limit || 0) && messages.haveMore) {
+        let more = await Store.Message.chatSeq.query(ctx, cid, {...opts, after, limit: 1});
         if (more.items.length === 0) {
             messages.haveMore = false;
             return messages;
@@ -433,7 +461,7 @@ function resolveReactionCounters(src: GeneralMessageRoot, args: any, ctx: Contex
             }
         }
     });
-    return [...counts.entries()].map(e => ({ reaction: e[0], count: e[1], setByMe: setByUser.has(e[0]) }));
+    return [...counts.entries()].map(e => ({reaction: e[0], count: e[1], setByMe: setByUser.has(e[0])}));
 }
 
 export const Resolver: GQLResolver = {
@@ -1084,13 +1112,13 @@ export const Resolver: GQLResolver = {
                 }
             }
 
-            return { buttons: src.attachment.keyboard.buttons as (MessageButton & { id: string })[][] };
+            return {buttons: src.attachment.keyboard.buttons as (MessageButton & { id: string })[][]};
         },
     },
     MessageAttachmentPurchase: {
-      id: src => IDs.MessageAttachment.serialize('kek'),
-      fallback: src => 'Donation attachment',
-      purchase: async (src, _, ctx) => (await Store.WalletPurchase.findById(ctx, src.attachment.pid))!,
+        id: src => IDs.MessageAttachment.serialize('kek'),
+        fallback: src => 'Donation attachment',
+        purchase: async (src, _, ctx) => (await Store.WalletPurchase.findById(ctx, src.attachment.pid))!,
     },
     MentionPeer: {
         __resolveType(obj: MentionPeerRoot) {
@@ -1133,7 +1161,7 @@ export const Resolver: GQLResolver = {
                     reverse: true
                 })).items;
             }
-            return(await fetchMessages(ctx, roomId, uid, {limit: args.first!, reverse: true})).items;
+            return (await fetchMessages(ctx, roomId, uid, {limit: args.first!, reverse: true})).items;
         }),
 
         gammaMessages: withUser(async (ctx, args, uid) => {
@@ -1212,27 +1240,23 @@ export const Resolver: GQLResolver = {
                 !args.first ||
                 args.first <= 0
             ) {
-                return {
-                    haveMoreForward: false,
-                    haveMoreBackward: false,
-                    messages: [],
-                };
+                return {haveMoreForward: false, haveMoreBackward: false, messages: []};
             }
 
-            let beforeId = args.before ? IDs.ConversationMessage.parse(args.before) : null;
-            let afterId = args.after ? IDs.ConversationMessage.parse(args.after) : null;
+            let beforeSeq = args.before || null;
+            let afterSeq = args.after || null;
 
             let haveMoreForward: boolean = false;
             let haveMoreBackward: boolean = false;
             let messages: Message[] = [];
 
-            if (beforeId || afterId) {
+            if (beforeSeq || afterSeq) {
                 let before: Message[] = [];
                 let after: Message[] = [];
 
-                if (beforeId && await Store.Message.findById(ctx, beforeId)) {
-                    let beforeQuery = (await fetchMessages(ctx, roomId, uid, {
-                        after: beforeId,
+                if (beforeSeq && await Store.Message.fromSeq.find(ctx, roomId, beforeSeq)) {
+                    let beforeQuery = (await fetchMessagesFromSeq(ctx, roomId, uid, {
+                        after: beforeSeq,
                         limit: args.first!,
                         reverse: true
                     }));
@@ -1240,9 +1264,9 @@ export const Resolver: GQLResolver = {
                     haveMoreBackward = beforeQuery.haveMore;
                     haveMoreForward = true;
                 }
-                if (afterId && await Store.Message.findById(ctx, afterId)) {
-                    let afterQuery = (await fetchMessages(ctx, roomId, uid, {
-                        after: afterId,
+                if (afterSeq && await Store.Message.fromSeq.find(ctx, roomId, afterSeq)) {
+                    let afterQuery = (await fetchMessagesFromSeq(ctx, roomId, uid, {
+                        after: afterSeq,
                         limit: args.first!
                     }));
                     after = afterQuery.items.reverse();
@@ -1321,7 +1345,10 @@ export const Resolver: GQLResolver = {
             let leftHaveMore = false;
             let rightHaveMore = false;
             if (leftSize) {
-                let left = await Promise.all(args.mediaTypes.map(a => mediaTypeToIndex[a].query(ctx, chatId, { after: cursor, limit: leftSize })));
+                let left = await Promise.all(args.mediaTypes.map(a => mediaTypeToIndex[a].query(ctx, chatId, {
+                    after: cursor,
+                    limit: leftSize
+                })));
                 let results: Message[] = [];
                 for (let part of left) {
                     results = results.concat(part.items);
@@ -1337,7 +1364,11 @@ export const Resolver: GQLResolver = {
                 messages.push(centerElement!);
             }
             if (rightSize) {
-                let right = await Promise.all(args.mediaTypes.map(a => mediaTypeToIndex[a].query(ctx, chatId, { after: cursor, limit: rightSize, reverse: true })));
+                let right = await Promise.all(args.mediaTypes.map(a => mediaTypeToIndex[a].query(ctx, chatId, {
+                    after: cursor,
+                    limit: rightSize,
+                    reverse: true
+                })));
                 let results: Message[] = [];
                 for (let part of right) {
                     results = results.concat(part.items);

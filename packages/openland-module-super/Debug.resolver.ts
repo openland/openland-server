@@ -1705,8 +1705,9 @@ export const Resolver: GQLResolver = {
                 let count = 0;
                 let limit = 100;
                 let total = 0;
+
                 try {
-                    let stream = Store.Message.updated.stream({batchSize: limit});
+                    let stream = Store.Message.created.stream({batchSize: limit});
                     do {
                         await inTx(parent, async ctx => {
                             let messages = await stream.next(ctx);
@@ -1720,9 +1721,11 @@ export const Resolver: GQLResolver = {
                             await log('Proceed ' + total + ' messages');
                         }
                     } while (count === limit && count > 0);
+                    await log('Done ' + total + ' messages')
                 } catch (e) {
                     return `failed ${e.message}`;
                 }
+
                 return 'ok';
             });
             return true;
