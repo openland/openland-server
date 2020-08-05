@@ -10,7 +10,7 @@ import { AtomicIntegerFactory, AtomicBooleanFactory } from '@openland/foundation
 // @ts-ignore
 import { Entity, EntityFactory, EntityDescriptor, SecondaryIndexDescriptor, ShapeWithMetadata, PrimaryKeyDescriptor, FieldDescriptor, StreamProps } from '@openland/foundationdb-entity';
 // @ts-ignore
-import { QueueStorage } from 'openland-module-workers/QueueStorage'
+import { QueueStorage } from 'openland-module-workers/QueueStorage';
 
 export class ConversationLastSeqFactory extends AtomicIntegerFactory {
 
