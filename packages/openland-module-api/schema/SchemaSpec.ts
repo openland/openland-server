@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '2bb2cdb93c172677b4c5ea367e3ed2c4';
+export const GQL_SPEC_VERSION = '1e466f98b7f29affddd440271c17aae4';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4171,6 +4171,7 @@ export namespace GQL {
         debugEntitiesCleanerProgress: number;
         debugUserSearch: string;
         debugMentionSearch: string;
+        debugMentionSearchGetUserData: string;
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
@@ -4409,6 +4410,9 @@ export namespace GQL {
     export interface QueryDebugMentionSearchArgs {
         query: string;
         first: number;
+    }
+    export interface QueryDebugMentionSearchGetUserDataArgs {
+        cid: string;
     }
     export interface QueryDialogsArgs {
         first: number;
@@ -9840,6 +9844,7 @@ export interface GQLResolver {
             debugEntitiesCleanerProgress: GQL.QueryDebugEntitiesCleanerProgressArgs,
             debugUserSearch: GQL.QueryDebugUserSearchArgs,
             debugMentionSearch: GQL.QueryDebugMentionSearchArgs,
+            debugMentionSearchGetUserData: GQL.QueryDebugMentionSearchGetUserDataArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
             authPoints: GQL.QueryAuthPointsArgs,

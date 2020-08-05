@@ -88,7 +88,7 @@ export class TransWorkerQueue<ARGS> {
                 locks = locks.filter(a => a.value.timeout < Date.now());
                 let failingIds = locks.map(a => a.key[0] as string);
 
-                await Promise.all(failingIds.map(a => this.idsPendingDirectory.set(ctx, [a], true)));
+                failingIds.forEach(a => this.idsPendingDirectory.set(ctx, [a], true));
             });
         });
     }
