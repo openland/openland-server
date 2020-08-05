@@ -1,4 +1,4 @@
-type ServerRole = 'api' | 'workers' | 'admin' | 'delivery' | 'calls';
+type ServerRole = 'api' | 'workers' | 'admin' | 'delivery' | 'calls' | 'events';
 
 export const SUPPORTED_ROLES = [
     'api',
