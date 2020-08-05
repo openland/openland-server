@@ -9,6 +9,7 @@ import {
     createPhoneBookContactsImportWorker
 } from '../workers/phonebookContactsImportWorker';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
+import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 
 export type PhonebookRecordInput = {
     firstName: string|null;
@@ -33,6 +34,11 @@ export class PhonebookRepository {
 
     async addRecords(parent: Context, uid: number, records: PhonebookRecordInput[]) {
         return await inTx(parent, async ctx => {
+            let profile = await Store.UserProfile.findById(ctx, uid);
+            if (!profile) {
+                throw new AccessDeniedError();
+            }
+
             if (records.length > 100) {
                 throw new UserError(`Can't save more than 100 records in one call`);
             }
