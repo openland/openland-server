@@ -80,7 +80,7 @@ export function createEmailWorker() {
         });
     }
 
-    let beterQueue = new BetterWorkerQueue<EmailTask>(Store.EmailSenderQueue, { maxAttempts: 3, type: 'external' });
+    let beterQueue = new BetterWorkerQueue<EmailTask>(Store.EmailSendQueue, { maxAttempts: 3, type: 'external' });
     if (serverRoleEnabled('workers')) {
         beterQueue.addWorkers(100, async (ctx, args) => {
             await sendMessage(ctx, args);

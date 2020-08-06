@@ -22164,9 +22164,9 @@ export interface Store extends BaseStore {
     readonly NeedNotificationFlagDirectory: Subspace;
     readonly ImportedPhoneDirectory: Subspace;
     readonly PhoneImportedByUserDirectory: Subspace;
-    readonly MessageDeliveryMembersQueue: QueueStorage;
-    readonly MessageDeliveryUserQueue: QueueStorage;
-    readonly EmailSenderQueue: QueueStorage;
+    readonly DeliveryFanOutQueue: QueueStorage;
+    readonly DeliveryUserBatchQueue: QueueStorage;
+    readonly EmailSendQueue: QueueStorage;
 }
 
 export async function openStore(storage: EntityStorage): Promise<Store> {
@@ -22414,9 +22414,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let StripeEventStorePromise = StripeEventStore.open(storage, eventFactory);
     let HyperLogStorePromise = HyperLogStore.open(storage, eventFactory);
     let UserContactsEventStorePromise = UserContactsEventStore.open(storage, eventFactory);
-    let MessageDeliveryMembersQueuePromise = QueueStorage.open('MessageDeliveryMembers', storage);
-    let MessageDeliveryUserQueuePromise = QueueStorage.open('MessageDeliveryUser', storage);
-    let EmailSenderQueuePromise = QueueStorage.open('EmailSender', storage);
+    let DeliveryFanOutQueuePromise = QueueStorage.open('DeliveryFanOut', storage);
+    let DeliveryUserBatchQueuePromise = QueueStorage.open('DeliveryUserBatch', storage);
+    let EmailSendQueuePromise = QueueStorage.open('EmailSend', storage);
     return {
         storage,
         eventFactory,
@@ -22628,8 +22628,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         StripeEventStore: await StripeEventStorePromise,
         HyperLogStore: await HyperLogStorePromise,
         UserContactsEventStore: await UserContactsEventStorePromise,
-        MessageDeliveryMembersQueue: await MessageDeliveryMembersQueuePromise,
-        MessageDeliveryUserQueue: await MessageDeliveryUserQueuePromise,
-        EmailSenderQueue: await EmailSenderQueuePromise,
+        DeliveryFanOutQueue: await DeliveryFanOutQueuePromise,
+        DeliveryUserBatchQueue: await DeliveryUserBatchQueuePromise,
+        EmailSendQueue: await EmailSendQueuePromise,
     };
 }

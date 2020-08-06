@@ -352,8 +352,8 @@ export default declareSchema(() => {
     customDirectory('MessageDelivery');
     customDirectory('MessageDeliveryBatch');
 
-    taskQueue('MessageDeliveryMembers');
-    taskQueue('MessageDeliveryUser');
+    taskQueue('DeliveryFanOut');
+    taskQueue('DeliveryUserBatch');
 
     entity('Message', () => {
         primaryKey('id', integer());
@@ -1902,7 +1902,7 @@ export default declareSchema(() => {
     // Email
     //
 
-    taskQueue('EmailSender');
+    taskQueue('EmailSend');
 
     //
     // Apps

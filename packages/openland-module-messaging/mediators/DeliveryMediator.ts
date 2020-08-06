@@ -33,11 +33,11 @@ export class DeliveryMediator {
     readonly newQeue = new TransWorkerQueue<{ messageId: number, action?: 'new' | 'update' | 'delete' }>('message-delivery', Store.MessageDeliveryDirectory);
     readonly newQueueUserMultiple = new TransWorkerQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }>('message-delivery-batch', Store.MessageDeliveryBatchDirectory);
     
-    readonly queueFanOut = new BetterWorkerQueue<{ messageId: number, action?: 'new' | 'update' | 'delete' }>(Store.MessageDeliveryUserQueue /* Queue names have been mixed accidentally */, {
+    readonly queueFanOut = new BetterWorkerQueue<{ messageId: number, action?: 'new' | 'update' | 'delete' }>(Store.DeliveryFanOutQueue, {
         maxAttempts: 'infinite',
         type: 'transactional'
     });
-    readonly queueUserMultipe = new BetterWorkerQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }>(Store.MessageDeliveryMembersQueue /* Queue names have been mixed accidentally */, {
+    readonly queueUserMultipe = new BetterWorkerQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }>(Store.DeliveryUserBatchQueue, {
         maxAttempts: 'infinite',
         type: 'transactional'
     });

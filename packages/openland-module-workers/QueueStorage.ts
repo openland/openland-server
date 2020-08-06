@@ -16,7 +16,7 @@ export class QueueStorage {
             let existing = await registryDirectory.get(ctx, [name]);
             if (!existing) {
                 let lastCounter = (await registryDirectory.get(ctx, [])) || 0;
-                let newValue = lastCounter++;
+                let newValue = ++lastCounter;
                 registryDirectory.set(ctx, [], newValue);
                 registryDirectory.set(ctx, [name], newValue);
                 id = newValue;
