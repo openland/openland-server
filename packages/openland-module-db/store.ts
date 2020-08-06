@@ -22159,6 +22159,7 @@ export interface Store extends BaseStore {
     readonly MessageDeliveryBatchDirectory: Subspace;
     readonly UserDialogIndexDirectory: Subspace;
     readonly UserCountersIndexDirectory: Subspace;
+    readonly UserDialogMuteSettingDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
     readonly ImportedPhoneDirectory: Subspace;
@@ -22397,6 +22398,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let MessageDeliveryBatchDirectoryPromise = storage.resolveCustomDirectory('messageDeliveryBatch');
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
     let UserCountersIndexDirectoryPromise = storage.resolveCustomDirectory('userCountersIndex');
+    let UserDialogMuteSettingDirectoryPromise = storage.resolveCustomDirectory('userDialogMuteSetting');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
     let ImportedPhoneDirectoryPromise = storage.resolveCustomDirectory('importedPhone');
@@ -22609,6 +22611,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         MessageDeliveryBatchDirectory: await MessageDeliveryBatchDirectoryPromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,
         UserCountersIndexDirectory: await UserCountersIndexDirectoryPromise,
+        UserDialogMuteSettingDirectory: await UserDialogMuteSettingDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
         ImportedPhoneDirectory: await ImportedPhoneDirectoryPromise,

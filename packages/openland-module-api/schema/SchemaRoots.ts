@@ -17,7 +17,6 @@ import {
     UserNotificationCenter,
     NotificationCenterEvent,
     UserDialogEvent,
-    UserDialogSettings,
     Conversation,
     ConversationRoom,
     CommentEvent,
@@ -257,7 +256,7 @@ export namespace GQLRoots {
     export type DialogUpdateStateRoot = GQL.DialogUpdateState;
     export type DialogDeletedRoot = UserDialogEvent;
 
-    export type ConversationSettingsRoot = UserDialogSettings;
+    export type ConversationSettingsRoot = { cid: number, mute: boolean };
     export type ConversationRoot = Conversation;
     export type AnonymousConversationRoot = Conversation;
     export type SharedConversationRoot = Conversation;
@@ -406,7 +405,7 @@ export namespace GQLRoots {
         pageInfo: PageInfoRoot,
     };
     export type RoomMessageRoot = Message;
-    export type RoomUserNotificaionSettingsRoot = any;
+    export type RoomUserNotificaionSettingsRoot = { cid: number, mute: boolean };
     export type RoomInviteRoot = ChannelInvitation | ChannelLink;
     export type OrganizationRequestedMemberRoot = any;
 

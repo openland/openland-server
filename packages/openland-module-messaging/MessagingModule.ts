@@ -187,6 +187,10 @@ export class MessagingModule {
         return await this.userState.isChatMuted(ctx, uid, cid);
     }
 
+    async setChatMuted(ctx: Context, uid: number, cid: number, mute: boolean) {
+        return await this.userState.setChatMuted(ctx, uid, cid, mute);
+    }
+
     async onGlobalCounterTypeChanged(parent: Context, uid: number) {
         return await this.delivery.onGlobalCounterTypeChanged(parent, uid);
     }

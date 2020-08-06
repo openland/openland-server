@@ -1,5 +1,5 @@
 import { UserDialogEvent } from 'openland-module-db/store';
-import { encoders, inTx } from '@openland/foundationdb';
+import { encoders, inTx, Subspace, TupleItem } from '@openland/foundationdb';
 import { injectable, inject } from 'inversify';
 import { Context } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
@@ -10,18 +10,24 @@ import { Modules } from '../../openland-modules/Modules';
 @injectable()
 export class UserStateRepository {
     private readonly metrics: ChatMetricsRepository;
+    private readonly muteDirectory: Subspace<TupleItem[], boolean>;
 
     constructor(@inject('ChatMetricsRepository') metrics: ChatMetricsRepository) {
         this.metrics = metrics;
+
+        this.muteDirectory = Store.UserDialogMuteSettingDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.boolean);
     }
 
     async getRoomSettings(parent: Context, uid: number, cid: number) {
         return await inTx(parent, async (ctx) => {
             let res = await Store.UserDialogSettings.findById(parent, uid, cid);
             if (res) {
-                return res;
+                return { cid, mute: res.mute };
             }
-            return await Store.UserDialogSettings.create(ctx, uid, cid, {mute: false});
+            await Store.UserDialogSettings.create(ctx, uid, cid, {mute: false});
+            return { cid, mute: false };
         });
     }
 
@@ -31,6 +37,24 @@ export class UserStateRepository {
             return false;
         }
         return res.mute;
+    }
+
+    async setChatMuted(parent: Context, uid: number, cid: number, mute: boolean) {
+        return await inTx(parent, async ctx => {
+            if (mute) {
+                this.muteDirectory.set(ctx, [uid, cid], true);
+            } else {
+                this.muteDirectory.clear(ctx, [uid, cid]);
+            }
+
+            // Update old settings
+            let res = await Store.UserDialogSettings.findById(parent, uid, cid);
+            if (res) {
+                res.mute = mute;
+            } else {
+                await Store.UserDialogSettings.create(ctx, uid, cid, {mute});
+            }
+        });
     }
 
     // Deprecated
@@ -190,5 +214,4 @@ export class UserStateRepository {
             return all.reduce((acc, val) => acc + val.value as number, 0);
         }
     }
-
 }

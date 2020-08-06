@@ -863,6 +863,8 @@ export default declareSchema(() => {
         field('mute', boolean());
     });
 
+    customDirectory('UserDialogMuteSetting');
+
     entity('UserDialogEvent', () => {
         primaryKey('uid', integer());
         primaryKey('seq', integer());

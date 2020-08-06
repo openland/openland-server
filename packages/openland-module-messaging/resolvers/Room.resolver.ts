@@ -1,6 +1,5 @@
 import { Context } from '@openland/context';
 import {
-    UserDialogSettings,
     Conversation,
     RoomProfile,
     RoomParticipant
@@ -374,8 +373,8 @@ export const Resolver: GQLResolver = {
     },
 
     RoomUserNotificaionSettings: {
-        id: (src: UserDialogSettings) => IDs.ConversationSettings.serialize(src.cid),
-        mute: (src: UserDialogSettings) => src.mute
+        id: src => IDs.ConversationSettings.serialize(src.cid),
+        mute: src => src.mute
     },
 
     RoomSuper: {
@@ -875,7 +874,7 @@ export const Resolver: GQLResolver = {
                 let settings = await Modules.Messaging.getRoomSettings(ctx, uid, cid);
                 if (args.settings.mute !== undefined && args.settings.mute !== null) {
                     if (settings.mute !== args.settings.mute) {
-                        settings.mute = args.settings.mute;
+                        await Modules.Messaging.setChatMuted(ctx, uid, cid, args.settings.mute);
                         await Modules.Messaging.room.onDialogMuteChanged(ctx, uid, cid, args.settings.mute);
                         await Modules.Hooks.onDialogMuteChanged(ctx, uid, cid, args.settings.mute);
                     }

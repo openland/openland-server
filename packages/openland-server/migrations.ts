@@ -3,6 +3,7 @@ import { Store } from 'openland-module-db/FDB';
 import { inTx, encoders } from '@openland/foundationdb';
 import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 import uuid from 'uuid';
+import { batch as batchFn } from '../openland-utils/batch';
 
 let migrations: MigrationDefinition[] = [];
 
@@ -624,6 +625,28 @@ migrations.push({
             await inTx(parent, async (ctx) => {
                 let range = await ids.range(ctx, []);
                 counters.set(ctx, [1], range.length);
+            });
+        }
+    }
+});
+
+migrations.push({
+    key: '131-migrate-chat-mute',
+    migration: async (parent) => {
+        let muteDirectory = Store.UserDialogMuteSettingDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.boolean);
+
+        let settings = await inTx(parent, async ctx => Store.UserDialogSettings.findAll(ctx));
+        let batches = batchFn(settings, 100);
+
+        for (let b of batches) {
+            await inTx(parent, async ctx => {
+                for (let s of b) {
+                    if (s.mute) {
+                        muteDirectory.set(ctx, [s.uid, s.cid], true);
+                    }
+                }
             });
         }
     }

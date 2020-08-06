@@ -23,7 +23,7 @@ import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { MessageAttachmentInput, MessageSpan } from '../MessageInput';
 import { prepareLegacyMentionsInput } from './ModernMessage.resolver';
 import { createLogger } from '@openland/log';
-import { User, Organization, UserDialogSettings, Conversation } from 'openland-module-db/store';
+import { User, Organization, Conversation } from 'openland-module-db/store';
 import { isDefined } from '../../openland-utils/misc';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import MessageTypeRoot = GQLRoots.MessageTypeRoot;
@@ -402,9 +402,9 @@ export const Resolver: GQLResolver = {
     },
 
     ConversationSettings: {
-        id: (src: UserDialogSettings) => IDs.ConversationSettings.serialize(src.cid),
-        mute: (src: UserDialogSettings) => src.mute,
-        mobileNotifications: (src: UserDialogSettings) => 'all' as any
+        id: src => IDs.ConversationSettings.serialize(src.cid),
+        mute: src => src.mute,
+        mobileNotifications: src => 'all' as any
     },
 
     Query: {
@@ -719,7 +719,7 @@ export const Resolver: GQLResolver = {
             return await inTx(parent, async (ctx) => {
                 let settings = await Modules.Messaging.getRoomSettings(ctx, uid, cid);
                 if (args.settings.mute !== undefined && args.settings.mute !== null) {
-                    settings.mute = args.settings.mute;
+                    await Modules.Messaging.setChatMuted(ctx, uid, cid, args.settings.mute);
                 }
                 return settings;
             });
