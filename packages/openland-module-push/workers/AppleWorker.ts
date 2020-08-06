@@ -1,5 +1,4 @@
 import { Context } from '@openland/context';
-import { Events } from 'openland-module-hyperlog/Events';
 import APN from 'apn';
 import { Config } from 'openland-config/Config';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
@@ -77,15 +76,9 @@ export function createAppleWorker(repo: PushRepository) {
                                 await inTx(root, async (ctx) => {
                                     let t = (await repo.getAppleToken(ctx, task.tokenId))!;
                                     await handleFail(t);
-                                    Events.ApnsPushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, reason: reason!, disabled: !t.enabled });
                                 });
                             }
-                        } else {
-                            await inTx(root, async (ctx) => {
-                                Events.ApnsPushSent.event(ctx, { uid: token!.uid, tokenId: token!.id });
-                            });
                         }
-
                         return;
                     } catch (e) {
                         log.warn(root, 'ios_push exception', e);
@@ -97,7 +90,6 @@ export function createAppleWorker(repo: PushRepository) {
                     await inTx(root, async (ctx) => {
                         let t = (await repo.getAppleToken(ctx, task.tokenId))!;
                         await handleFail(t);
-                        Events.ApnsPushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, reason: 'Unable to find team for bundleId: ' + token!.bundleId, disabled: !t.enabled });
                     });
                     return;
                 }

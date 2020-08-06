@@ -1,5 +1,4 @@
 import { Context } from '@openland/context';
-import { Events } from 'openland-module-hyperlog/Events';
 import { Config } from 'openland-config/Config';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { FirebasePushTask } from './types';
@@ -67,11 +66,6 @@ export function createAndroidWorker(repo: PushRepository) {
                             await inTx(root, async (ctx) => {
                                 let t = (await repo.getAndroidToken(ctx, task.tokenId))!;
                                 await handleFail(t);
-                                Events.FirebasePushFailed.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, error: res, disabled: !t.enabled });
-                            });
-                        } else {
-                            await inTx(root, async (ctx) => {
-                                Events.FirebasePushSent.event(ctx, { uid: token.uid, tokenId: token.id });
                             });
                         }
                         return;
@@ -83,7 +77,6 @@ export function createAndroidWorker(repo: PushRepository) {
                     await inTx(root, async (ctx) => {
                         let t = (await repo.getAndroidToken(ctx, task.tokenId))!;
                         await handleFail(t);
-                        Events.FirebasePushFailed.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, error: 'package not found', disabled: !t.enabled });
                     });
                     return;
                 }
