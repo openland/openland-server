@@ -8,6 +8,9 @@ const DEFAULT_QUANTILES = [0.01, 0.05, 0.5, 0.9, 0.95, 0.99, 0.999];
 
 export const Metrics = {
 
+    // FDB
+    FDBErrors: Factory.createTaggedFrequencyGauge('fdb_errors', 'Frequence of various errors'),
+
     // SpaceX
     WebSocketConnections: Factory.createMachineGauge('connections', 'Active WebSocket connections'),
     WebSocketPacketsIn: Factory.createFrequencyGauge('ws_in_hz', 'WebSocket incoming packets frequency'),

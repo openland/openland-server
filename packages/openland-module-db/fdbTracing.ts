@@ -56,6 +56,9 @@ export function setupFdbTracing() {
                 Metrics.SpaceXRetry.inc();
             }
         },
+        onFDBError: (ctx, error) => {
+            Metrics.FDBErrors.inc(error.code + '');
+        },
         onNewEphemeralTx: (ctx) => {
             if (isWithinSpaceX(ctx)) {
                 Metrics.SpaceXEphemeralTransactions.inc();
