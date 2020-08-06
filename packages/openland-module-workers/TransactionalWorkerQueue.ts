@@ -122,7 +122,7 @@ export class TransactionalWorkerQueue<ARGS> {
             }
 
             // Resolve desired tasks limit
-            let workersToAllocate = Math.max(parallel - activeTasks, 0);
+            let workersToAllocate = Math.min(Math.max(parallel - activeTasks, 0), 20);
             if (workersToAllocate === 0) {
                 return;
             }
