@@ -60,6 +60,10 @@ export class QueueStorage {
         return this.repo.getTotal(ctx, this.kind);
     }
 
+    getCompleted = (ctx: Context) => {
+        return this.repo.getCompleted(ctx, this.kind);
+    }
+
     pushWork = (ctx: Context, args: any, maxAttempts: number | 'infinite') => {
         this.repo.pushWork(ctx, this.kind, args, maxAttempts);
     }

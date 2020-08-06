@@ -39,9 +39,11 @@ export const Metrics = {
     //
     // Workers
     //
-    
+
     WorkerAttemptFrequence: Factory.createTaggedFrequencyGauge('worker_attempts', 'Frequency of delivery attempts'),
     WorkerSuccessFrequence: Factory.createTaggedFrequencyGauge('worker_success', 'Frequency of delivery success'),
+    WorkerAcquire: Factory.createTaggedSummary('delivery_acquire', 'Summary of acquire duration', DEFAULT_QUANTILES),
+    WorkerExecute: Factory.createTaggedSummary('delivery_execute', 'Summary of execute duration', DEFAULT_QUANTILES),
 
     //
     // Delivery
@@ -53,6 +55,10 @@ export const Metrics = {
     DeliveryTotal: Factory.createPersistedGauge('delivery_total', 'How many delivety tasks are created', async (ctx) => {
         return await Modules.Messaging.delivery.betterUserQueue.getTotal(ctx);
     }),
+    DeliveryCompleted: Factory.createPersistedGauge('delivery_completed', 'How many delivety tasks are completed', async (ctx) => {
+        return await Modules.Messaging.delivery.betterUserQueue.getCompleted(ctx);
+    }),
+
     DeliveryFanOutActive: Factory.createPersistedGauge('delivery_active_fan_out', 'How many delivety fan out tasks are active', async (ctx) => {
         return await Modules.Messaging.delivery.newQeue.getActive(ctx);
     }),

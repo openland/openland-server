@@ -1,11 +1,12 @@
 import uuid from 'uuid/v4';
 import { createLogger } from '@openland/log';
-import { delayBreakable, foreverBreakable } from 'openland-utils/timer';
+import { delayBreakable, foreverBreakable, currentRunningTime } from 'openland-utils/timer';
 import { Shutdown } from 'openland-utils/Shutdown';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { getTransaction, inTx, TransactionCache } from '@openland/foundationdb';
 import { Context, createNamedContext } from '@openland/context';
 import { QueueStorage } from './QueueStorage';
+import { Metrics } from 'openland-module-monitoring/Metrics';
 
 const log = createLogger('worker');
 
@@ -32,6 +33,10 @@ export class TransactionalWorkerQueue<ARGS> {
 
     async getActive(ctx: Context) {
         return this.queue.getActive(ctx);
+    }
+
+    async getCompleted(ctx: Context) {
+        return this.queue.getCompleted(ctx);
     }
 
     pushWork = (ctx: Context, work: ARGS) => {
@@ -123,9 +128,11 @@ export class TransactionalWorkerQueue<ARGS> {
             }
 
             // Acquiring tasks
+            let start = currentRunningTime();
             let tasks = await inTx(root, async (ctx) => {
                 return await this.queue.acquireWork(ctx, workersToAllocate, seed, 10000);
             });
+            Metrics.WorkerAcquire.report(this.queue.name, currentRunningTime() - start);
 
             // Await tasks if needed
             if (tasks.length === 0) {
@@ -143,6 +150,7 @@ export class TransactionalWorkerQueue<ARGS> {
                 // tslint:disable-next-line:no-floating-promises
                 (async () => {
                     try {
+                        let startEx = currentRunningTime();
                         await inTx(rootExec, async ctx => {
 
                             // Getting task arguments and checking lock
@@ -157,6 +165,7 @@ export class TransactionalWorkerQueue<ARGS> {
                             // Perform work
                             await handler(ctx, args);
                         });
+                        Metrics.WorkerExecute.report(this.queue.name, currentRunningTime() - startEx);
                     } catch (e) {
                         log.error(rootExec, e);
                     } finally {

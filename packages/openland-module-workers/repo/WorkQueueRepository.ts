@@ -12,6 +12,7 @@ const ZERO = Buffer.alloc(0);
 const STATS_TOTAL = 0;
 const STATS_ACTIVE = 1;
 const STATS_FAILURES = 2;
+const STATS_COMPLETED = 3;
 
 const workIndexCache = new TransactionCache<number>('work-queue-cache');
 
@@ -49,6 +50,10 @@ export class WorkQueueRepository {
 
     getActive = async (ctx: Context, kind: number) => {
         return (await this.statsSubspace.get(ctx, [STATS_ACTIVE, kind])) || 0;
+    }
+
+    getCompleted = async (ctx: Context, kind: number) => {
+        return (await this.statsSubspace.get(ctx, [STATS_COMPLETED, kind])) || 0;
     }
 
     getFailures = async (ctx: Context, kind: number) => {
@@ -273,5 +278,6 @@ export class WorkQueueRepository {
 
         // Update counter
         this.statsSubspace.add(ctx, [STATS_ACTIVE, kind], -1);
+        this.statsSubspace.add(ctx, [STATS_COMPLETED, kind], 1);
     }
 }
