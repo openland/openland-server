@@ -1,5 +1,7 @@
-import { ModernScheduller } from './src/TaskScheduler';
+import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { ModernScheduller } from './scheduling/TaskScheduler';
 import { injectable } from 'inversify';
+import { startScheduler } from './scheduling/startScheduler';
 
 @injectable()
 export class WorkerModule {
@@ -7,5 +9,8 @@ export class WorkerModule {
 
     start = async () => {
         this.scheduler.start();
+        if (serverRoleEnabled('admin')) {
+            startScheduler();
+        }
     }
 }

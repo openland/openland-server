@@ -1,3 +1,4 @@
+import { TransactionalWorkerQueue } from './../../openland-module-workers/TransactionalWorkerQueue';
 import { getTransaction, inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { createTracer } from 'openland-log/createTracer';
@@ -31,6 +32,7 @@ export class DeliveryMediator {
     // New Queue
     readonly newQeue = new TransWorkerQueue<{ messageId: number, action?: 'new' | 'update' | 'delete' }>('message-delivery', Store.MessageDeliveryDirectory);
     readonly newQueueUserMultiple = new TransWorkerQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }>('message-delivery-batch', Store.MessageDeliveryBatchDirectory);
+    readonly betterUserQueue = new TransactionalWorkerQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }>(Store.MessageDeliveryMembersQueue, 'infinite');
 
     // Obsolete
     private readonly deliverCallStateChangedQueue = new WorkQueue<{ cid: number, hasActiveCall: boolean }>('deliver-call-state-changed');
@@ -58,6 +60,26 @@ export class DeliveryMediator {
 
             // User Delivery
             this.newQueueUserMultiple.addWorkers(1000, async (ctx, item) => {
+                Metrics.DeliveryAttemptFrequence.inc(item.action || 'unknown');
+
+                let message = (await Store.Message.findById(ctx, item.messageId))!;
+                if (item.action === 'new' || item.action === undefined) {
+                    await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
+                } else if (item.action === 'delete') {
+                    await Promise.all(item.uids.map((uid) => this.deliverMessageDeleteToUser(ctx, uid, message)));
+                } else if (item.action === 'update') {
+                    await Promise.all(item.uids.map((uid) => this.deliverMessageUpdateToUser(ctx, uid, message)));
+                } else {
+                    throw Error('Unknown action: ' + item.action);
+                }
+
+                getTransaction(ctx).afterCommit(() => {
+                    Metrics.DeliverySuccessFrequence.inc(item.action || 'unknown');
+                });
+            });
+
+            // Better worker
+            this.betterUserQueue.addWorkers(1000, async (ctx, item) => {
                 Metrics.DeliveryAttemptFrequence.inc(item.action || 'unknown');
 
                 let message = (await Store.Message.findById(ctx, item.messageId))!;

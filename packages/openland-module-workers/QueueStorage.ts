@@ -1,6 +1,10 @@
-import { createNamedContext } from '@openland/context';
+import { EventBus } from 'openland-module-pubsub/EventBus';
+import { createNamedContext, Context } from '@openland/context';
 import { EntityStorage } from '@openland/foundationdb-entity';
-import { inTx, encoders, Subspace } from '@openland/foundationdb';
+import { inTx, encoders, Subspace, TransactionCache, getTransaction, Database } from '@openland/foundationdb';
+import { WorkQueueRepository } from './repo/WorkQueueRepository';
+
+const hadNotification = new TransactionCache<boolean>('work-queue-notification');
 
 export class QueueStorage {
 
@@ -31,18 +35,70 @@ export class QueueStorage {
                 subspace: tasksDirectory
             };
         });
-        return new QueueStorage(name, resolved.id, resolved.subspace, storage);
+        return new QueueStorage(name, resolved.id, resolved.subspace);
     }
 
     readonly name: string;
-    readonly id: number;
-    readonly subspace: Subspace;
-    readonly storage: EntityStorage;
+    readonly kind: number;
+    readonly db: Database;
 
-    private constructor(name: string, id: number, subspace: Subspace, storage: EntityStorage) {
+    private readonly repo: WorkQueueRepository;
+    private readonly eventBusTag: string;
+
+    constructor(name: string, kind: number, subspace: Subspace) {
         this.name = name;
-        this.id = id;
-        this.subspace = subspace;
-        this.storage = storage;
+        this.kind = kind;
+        this.db = subspace.db;
+        this.repo = new WorkQueueRepository(subspace);
+        this.eventBusTag = 'queue-' + kind;
+    }
+
+    getActive = (ctx: Context) => {
+        return this.repo.getActive(ctx, this.kind);
+    }
+
+    getFailures = (ctx: Context) => {
+        return this.repo.getFailures(ctx, this.kind);
+    }
+
+    getTotal = (ctx: Context) => {
+        return this.repo.getTotal(ctx, this.kind);
+    }
+
+    pushWork = (ctx: Context, args: any, maxAttempts: number | 'infinite') => {
+        this.repo.pushWork(ctx, this.kind, args, maxAttempts);
+        let wasNotified = hadNotification.get(ctx, this.name) || false;
+        if (!wasNotified) {
+            hadNotification.set(ctx, this.name, true);
+
+            // Request version stamp
+            let versionStamp = getTransaction(ctx)
+                .rawTransaction(this.repo.subspace.db)
+                .getVersionstamp();
+
+            // Send event after transaction
+            getTransaction(ctx).afterCommit(() => {
+                // tslint:disable-next-line:no-floating-promises
+                versionStamp.promise.then((vt) => {
+                    EventBus.publish(this.eventBusTag, { vs: vt.toString('hex') });
+                });
+            });
+        }
+    }
+
+    acquireWork = async (ctx: Context, limit: number, lock: Buffer, timeout: number) => {
+        return await this.repo.acquireWork(ctx, this.kind, limit, lock, Date.now() + timeout);
+    }
+
+    refreshLock = async (ctx: Context, id: Buffer, lock: Buffer, timeout: number) => {
+        return await this.repo.refreshLock(ctx, id, lock, Date.now() + timeout);
+    }
+
+    resolveTask = async (ctx: Context, id: Buffer, lock: Buffer) => {
+        return await this.repo.resolveTask(ctx, id, lock);
+    }
+
+    completeWork = async (ctx: Context, id: Buffer) => {
+        await this.repo.completeWork(ctx, id);
     }
 }
