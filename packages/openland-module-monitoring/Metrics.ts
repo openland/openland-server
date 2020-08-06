@@ -48,10 +48,10 @@ export const Metrics = {
     //
 
     DeliveryActive: Factory.createPersistedGauge('delivery_active', 'How many delivety tasks are active', async (ctx) => {
-        return await Modules.Messaging.delivery.newQueueUserMultiple.getActive(ctx);
+        return await Modules.Messaging.delivery.betterUserQueue.getActive(ctx);
     }),
     DeliveryTotal: Factory.createPersistedGauge('delivery_total', 'How many delivety tasks are created', async (ctx) => {
-        return await Modules.Messaging.delivery.newQueueUserMultiple.getTotal(ctx);
+        return await Modules.Messaging.delivery.betterUserQueue.getTotal(ctx);
     }),
     DeliveryFanOutActive: Factory.createPersistedGauge('delivery_active_fan_out', 'How many delivety fan out tasks are active', async (ctx) => {
         return await Modules.Messaging.delivery.newQeue.getActive(ctx);

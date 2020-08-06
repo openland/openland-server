@@ -1,10 +1,7 @@
-import { EventBus } from 'openland-module-pubsub/EventBus';
 import { createNamedContext, Context } from '@openland/context';
 import { EntityStorage } from '@openland/foundationdb-entity';
-import { inTx, encoders, Subspace, TransactionCache, getTransaction, Database } from '@openland/foundationdb';
+import { inTx, encoders, Subspace, Database } from '@openland/foundationdb';
 import { WorkQueueRepository } from './repo/WorkQueueRepository';
-
-const hadNotification = new TransactionCache<boolean>('work-queue-notification');
 
 export class QueueStorage {
 
@@ -43,14 +40,12 @@ export class QueueStorage {
     readonly db: Database;
 
     private readonly repo: WorkQueueRepository;
-    private readonly eventBusTag: string;
 
     constructor(name: string, kind: number, subspace: Subspace) {
         this.name = name;
         this.kind = kind;
         this.db = subspace.db;
         this.repo = new WorkQueueRepository(subspace);
-        this.eventBusTag = 'queue-' + kind;
     }
 
     getActive = (ctx: Context) => {
@@ -67,23 +62,6 @@ export class QueueStorage {
 
     pushWork = (ctx: Context, args: any, maxAttempts: number | 'infinite') => {
         this.repo.pushWork(ctx, this.kind, args, maxAttempts);
-        let wasNotified = hadNotification.get(ctx, this.name) || false;
-        if (!wasNotified) {
-            hadNotification.set(ctx, this.name, true);
-
-            // Request version stamp
-            let versionStamp = getTransaction(ctx)
-                .rawTransaction(this.repo.subspace.db)
-                .getVersionstamp();
-
-            // Send event after transaction
-            getTransaction(ctx).afterCommit(() => {
-                // tslint:disable-next-line:no-floating-promises
-                versionStamp.promise.then((vt) => {
-                    EventBus.publish(this.eventBusTag, { vs: vt.toString('hex') });
-                });
-            });
-        }
     }
 
     acquireWork = async (ctx: Context, limit: number, lock: Buffer, timeout: number) => {

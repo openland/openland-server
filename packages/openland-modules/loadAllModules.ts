@@ -83,8 +83,6 @@ import { loadPresenceModule } from '../openland-module-presences/PresenceModule.
 import { loadContactsModule } from '../openland-module-contacts/ContactsModule.container';
 import { ContactsModule } from '../openland-module-contacts/ContactsModule';
 import { asyncRun } from '../openland-spacex/utils/asyncRun';
-import * as fdb from 'foundationdb';
-import { inTx } from '@openland/foundationdb';
 
 const logger = createLogger('starting');
 
@@ -133,24 +131,6 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
         let store = await openStore(storage);
         container.bind<Store>('Store')
             .toConstantValue(store);
-
-        // Check directories
-        async function listAll(path: string[]) {
-            let names = (await fdb.directory.listAll(db.rawDB, path)).map((v) => v.toString());
-            for (let n of names) {
-                let dst = (await fdb.directory.open(db.rawDB, [...path, n])).getSubspace().prefix.toString('hex');
-                let dst2 = (await inTx(ctx, async (tx) => {
-                    return await db.directories.open(tx, [...path, n]);
-                })).prefix.toString('hex');
-                if (dst !== dst2) {
-                    throw Error('Inconsistent directories: ' + dst + ' / ' + dst2 + ' for ' + [...path, n].join('/'));
-                }
-                logger.log(ctx, 'Found directory: ' + [...path, n].join('/') + ' -> ' + dst);
-
-                await listAll([...path, n]);
-            }
-        }
-        await listAll([]);
 
         // Load clickhouse
         asyncRun(async () => {

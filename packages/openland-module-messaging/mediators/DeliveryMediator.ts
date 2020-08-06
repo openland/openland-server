@@ -276,7 +276,7 @@ export class DeliveryMediator {
                 if (members.length > 0) {
                     let batches = batch(members, 100);
                     for (let b of batches) {
-                        this.newQueueUserMultiple.pushWork(ctx, {
+                        this.betterUserQueue.pushWork(ctx, {
                             messageId: mid,
                             uids: b,
                             action
