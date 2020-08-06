@@ -1,4 +1,4 @@
-import { TransactionalWorkerQueue } from './../../openland-module-workers/TransactionalWorkerQueue';
+import { BetterWorkerQueue } from './../../openland-module-workers/BetterWorkerQueue';
 import { getTransaction, inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { createTracer } from 'openland-log/createTracer';
@@ -32,7 +32,15 @@ export class DeliveryMediator {
     // New Queue
     readonly newQeue = new TransWorkerQueue<{ messageId: number, action?: 'new' | 'update' | 'delete' }>('message-delivery', Store.MessageDeliveryDirectory);
     readonly newQueueUserMultiple = new TransWorkerQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }>('message-delivery-batch', Store.MessageDeliveryBatchDirectory);
-    readonly betterUserQueue = new TransactionalWorkerQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }>(Store.MessageDeliveryMembersQueue, 'infinite');
+    
+    readonly queueFanOut = new BetterWorkerQueue<{ messageId: number, action?: 'new' | 'update' | 'delete' }>(Store.MessageDeliveryUserQueue /* Queue names have been mixed accidentally */, {
+        maxAttempts: 'infinite',
+        type: 'transactional'
+    });
+    readonly queueUserMultipe = new BetterWorkerQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }>(Store.MessageDeliveryMembersQueue /* Queue names have been mixed accidentally */, {
+        maxAttempts: 'infinite',
+        type: 'transactional'
+    });
 
     // Obsolete
     private readonly deliverCallStateChangedQueue = new WorkQueue<{ cid: number, hasActiveCall: boolean }>('deliver-call-state-changed');
@@ -45,7 +53,7 @@ export class DeliveryMediator {
     start = () => {
         if (serverRoleEnabled('delivery')) {
 
-            // Fan Out Delivery
+            // Deprecated
             this.newQeue.addWorkers(100, async (ctx, item) => {
                 if (item.action === 'new' || item.action === undefined) {
                     await this.fanOutDelivery(ctx, item.messageId, 'new');
@@ -57,8 +65,6 @@ export class DeliveryMediator {
                     throw Error('Unknown action: ' + item.action);
                 }
             });
-
-            // User Delivery
             this.newQueueUserMultiple.addWorkers(1000, async (ctx, item) => {
                 Metrics.DeliveryAttemptFrequence.inc(item.action || 'unknown');
 
@@ -79,7 +85,7 @@ export class DeliveryMediator {
             });
 
             // Better worker
-            this.betterUserQueue.addWorkers(1000, async (ctx, item) => {
+            this.queueUserMultipe.addWorkers(1000, async (ctx, item) => {
                 Metrics.DeliveryAttemptFrequence.inc(item.action || 'unknown');
 
                 let message = (await Store.Message.findById(ctx, item.messageId))!;
@@ -96,6 +102,17 @@ export class DeliveryMediator {
                 getTransaction(ctx).afterCommit(() => {
                     Metrics.DeliverySuccessFrequence.inc(item.action || 'unknown');
                 });
+            });
+            this.queueFanOut.addWorkers(100, async (ctx, item) => {
+                if (item.action === 'new' || item.action === undefined) {
+                    await this.fanOutDelivery(ctx, item.messageId, 'new');
+                } else if (item.action === 'delete') {
+                    await this.fanOutDelivery(ctx, item.messageId, 'delete');
+                } else if (item.action === 'update') {
+                    await this.fanOutDelivery(ctx, item.messageId, 'update');
+                } else {
+                    throw Error('Unknown action: ' + item.action);
+                }
             });
 
             this.deliverCallStateChangedQueue.addWorker(async (item, parent) => {
@@ -115,7 +132,7 @@ export class DeliveryMediator {
 
     onNewMessage = async (ctx: Context, message: Message) => {
         if (await this.room.isSuperGroup(ctx, message.cid)) {
-            this.newQeue.pushWork(ctx, { messageId: message.id, action: 'new' });
+            this.queueFanOut.pushWork(ctx, { messageId: message.id, action: 'new' });
         } else {
             let members = await this.room.findConversationMembers(ctx, message.cid);
             await Promise.all(members.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
@@ -124,7 +141,7 @@ export class DeliveryMediator {
 
     onUpdateMessage = async (ctx: Context, message: Message) => {
         if (await this.room.isSuperGroup(ctx, message.cid)) {
-            this.newQeue.pushWork(ctx, { messageId: message.id, action: 'update' });
+            this.queueFanOut.pushWork(ctx, { messageId: message.id, action: 'update' });
         } else {
             let members = await this.room.findConversationMembers(ctx, message.cid);
             await Promise.all(members.map((uid) => this.deliverMessageUpdateToUser(ctx, uid, message)));
@@ -133,7 +150,7 @@ export class DeliveryMediator {
 
     onDeleteMessage = async (ctx: Context, message: Message) => {
         if (await this.room.isSuperGroup(ctx, message.cid)) {
-            this.newQeue.pushWork(ctx, { messageId: message.id, action: 'delete' });
+            this.queueFanOut.pushWork(ctx, { messageId: message.id, action: 'delete' });
         } else {
             let members = await this.room.findConversationMembers(ctx, message.cid);
             await Promise.all(members.map((uid) => this.deliverMessageDeleteToUser(ctx, uid, message)));
@@ -276,7 +293,7 @@ export class DeliveryMediator {
                 if (members.length > 0) {
                     let batches = batch(members, 20);
                     for (let b of batches) {
-                        this.betterUserQueue.pushWork(ctx, {
+                        this.queueUserMultipe.pushWork(ctx, {
                             messageId: mid,
                             uids: b,
                             action

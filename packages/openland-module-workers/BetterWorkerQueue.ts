@@ -12,14 +12,16 @@ const log = createLogger('worker');
 
 const hadNotification = new TransactionCache<boolean>('work-queue-notification');
 
-export class TransactionalWorkerQueue<ARGS> {
-    private queue: QueueStorage;
-    private maxAttempts: number | 'infinite';
-    private topic: string;
+export class BetterWorkerQueue<ARGS> {
+    private readonly queue: QueueStorage;
+    private readonly maxAttempts: number | 'infinite';
+    private readonly topic: string;
+    private readonly type: 'transactional' | 'external';
 
-    constructor(queue: QueueStorage, maxAttempts: number | 'infinite') {
+    constructor(queue: QueueStorage, settings: { maxAttempts: number | 'infinite', type: 'transactional' | 'external' }) {
         this.queue = queue;
-        this.maxAttempts = maxAttempts;
+        this.maxAttempts = settings.maxAttempts;
+        this.type = settings.type;
         this.topic = 'queue-' + queue.name;
     }
 
@@ -130,7 +132,7 @@ export class TransactionalWorkerQueue<ARGS> {
             // Acquiring tasks
             let start = currentRunningTime();
             let tasks = await inTx(root, async (ctx) => {
-                return await this.queue.acquireWork(ctx, workersToAllocate, seed, 10000);
+                return await this.queue.acquireWork(ctx, workersToAllocate, seed, this.type === 'transactional' ? 10000 : 15000 /* Bigger initial timeout for non-transactional workers */);
             });
             Metrics.WorkerAcquire.report(this.queue.name, currentRunningTime() - start);
 
@@ -149,26 +151,15 @@ export class TransactionalWorkerQueue<ARGS> {
 
                 // tslint:disable-next-line:no-floating-promises
                 (async () => {
+                    let startEx = currentRunningTime();
                     try {
-                        let startEx = currentRunningTime();
-                        await inTx(rootExec, async ctx => {
-
-                            // Getting task arguments and checking lock
-                            let args = await this.queue.resolveTask(ctx, taskId, seed);
-                            if (!args) {
-                                return;
-                            }
-
-                            // Mark work as completed
-                            await this.queue.completeWork(ctx, taskId);
-
-                            // Perform work
-                            await handler(ctx, args);
-                        });
-                        Metrics.WorkerExecute.report(this.queue.name, currentRunningTime() - startEx);
+                        await this.doWork(rootExec, taskId, seed, handler);
                     } catch (e) {
                         log.error(rootExec, e);
                     } finally {
+                        // Report execution time
+                        Metrics.WorkerExecute.report(this.queue.name, currentRunningTime() - startEx);
+
                         // Reduce active tasks count
                         activeTasks--;
                         workerReady();
@@ -212,5 +203,74 @@ export class TransactionalWorkerQueue<ARGS> {
         };
 
         Shutdown.registerWork({ name: this.queue.name, shutdown });
+    }
+
+    private doWork = async (parent: Context, id: Buffer, seed: Buffer, handler: (ctx: Context, item: ARGS) => Promise<void>) => {
+        if (this.type === 'transactional') {
+            await this.doWorkTransactional(parent, id, seed, handler);
+        } else if (this.type === 'external') {
+            await this.doWorkExternal(parent, id, seed, handler);
+        } else {
+            throw Error('Unsupported type: ' + this.type);
+        }
+    }
+
+    private doWorkTransactional = async (parent: Context, id: Buffer, seed: Buffer, handler: (ctx: Context, item: ARGS) => Promise<void>) => {
+        await inTx(parent, async ctx => {
+
+            // Getting task arguments and checking lock
+            let args = await this.queue.resolveTask(ctx, id, seed);
+            if (!args) {
+                return;
+            }
+
+            // Mark work as completed
+            await this.queue.completeWork(ctx, id);
+
+            // Perform work
+            await handler(ctx, args);
+        });
+    }
+
+    private doWorkExternal = async (parent: Context, id: Buffer, seed: Buffer, handler: (ctx: Context, item: ARGS) => Promise<void>) => {
+        // Getting task arguments and checking lock
+        let args = await inTx(parent, async ctx => {
+            return await this.queue.resolveTask(ctx, id, seed);
+        });
+        if (!args) {
+            return;
+        }
+
+        // Refresh loop
+        let breakDelay: (() => void) | undefined;
+        let lockLoop = foreverBreakable(parent, async () => {
+            let d = delayBreakable(10000);
+            breakDelay = d.resolver;
+            await d.promise;
+            await inTx(parent, async ctx => {
+                await this.queue.refreshLock(ctx, id, seed, 15000);
+            });
+        });
+        const stopLocking = async () => {
+            if (breakDelay) {
+                breakDelay();
+            }
+            await lockLoop.stop();
+        };
+
+        try {
+            // Execute task
+            await handler(parent, args);
+
+            // Commit work
+            await inTx(parent, async (ctx) => {
+                await this.queue.completeWork(ctx, id);
+            });
+        } catch (e) {
+            // Just log error and rely on existing timeout as retry time
+            log.warn(parent, e);
+        } finally {
+            await stopLocking();
+        }
     }
 }

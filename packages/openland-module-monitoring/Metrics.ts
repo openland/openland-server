@@ -53,20 +53,20 @@ export const Metrics = {
     //
 
     DeliveryActive: Factory.createPersistedGauge('delivery_active', 'How many delivety tasks are active', async (ctx) => {
-        return await Modules.Messaging.delivery.betterUserQueue.getActive(ctx);
+        return await Modules.Messaging.delivery.queueUserMultipe.getActive(ctx);
     }),
     DeliveryTotal: Factory.createPersistedGauge('delivery_total', 'How many delivety tasks are created', async (ctx) => {
-        return await Modules.Messaging.delivery.betterUserQueue.getTotal(ctx);
+        return await Modules.Messaging.delivery.queueUserMultipe.getTotal(ctx);
     }),
     DeliveryCompleted: Factory.createPersistedGauge('delivery_completed', 'How many delivety tasks are completed', async (ctx) => {
-        return await Modules.Messaging.delivery.betterUserQueue.getCompleted(ctx);
+        return await Modules.Messaging.delivery.queueUserMultipe.getCompleted(ctx);
     }),
 
     DeliveryFanOutActive: Factory.createPersistedGauge('delivery_active_fan_out', 'How many delivety fan out tasks are active', async (ctx) => {
-        return await Modules.Messaging.delivery.newQeue.getActive(ctx);
+        return await Modules.Messaging.delivery.queueFanOut.getActive(ctx);
     }),
     DeliveryFanOutTotal: Factory.createPersistedGauge('delivery_total_fan_out', 'How many delivety fan out tasks are created', async (ctx) => {
-        return await Modules.Messaging.delivery.newQeue.getTotal(ctx);
+        return await Modules.Messaging.delivery.queueFanOut.getTotal(ctx);
     }),
     DeliveryAttemptFrequence: Factory.createTaggedFrequencyGauge('delivery_attempts', 'Frequency of delivery attempts'),
     DeliverySuccessFrequence: Factory.createTaggedFrequencyGauge('delivery_success', 'Frequency of delivery success'),
