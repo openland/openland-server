@@ -195,6 +195,7 @@ extend type Mutation {
     debugReindexOrganizationMembers: Boolean!
     debugDeleteTask(taskType: String!, id: String!): Boolean!
     debugDeliverCallStateEventsForAll: Boolean!
+    debugMigrateMuteSettings: Boolean!
 }
 
 extend type Subscription {

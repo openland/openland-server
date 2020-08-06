@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '7c0cb352c92b9408bfc1855fab706110';
+export const GQL_SPEC_VERSION = '38f762323ded70ebb1bc7c57c2af0894';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2292,6 +2292,7 @@ export namespace GQL {
         debugReindexOrganizationMembers: boolean;
         debugDeleteTask: boolean;
         debugDeliverCallStateEventsForAll: boolean;
+        debugMigrateMuteSettings: boolean;
         settingsUpdate: Settings;
         sendEmailPairCode: string;
         pairEmail: boolean;
@@ -2819,6 +2820,7 @@ export namespace GQL {
         id: string;
     }
     export interface MutationDebugDeliverCallStateEventsForAllArgs { }
+    export interface MutationDebugMigrateMuteSettingsArgs { }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
         uid: OptionalNullable<string>;
@@ -8920,6 +8922,7 @@ export interface GQLResolver {
             debugReindexOrganizationMembers: GQL.MutationDebugReindexOrganizationMembersArgs,
             debugDeleteTask: GQL.MutationDebugDeleteTaskArgs,
             debugDeliverCallStateEventsForAll: GQL.MutationDebugDeliverCallStateEventsForAllArgs,
+            debugMigrateMuteSettings: GQL.MutationDebugMigrateMuteSettingsArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailPairCode: GQL.MutationSendEmailPairCodeArgs,
             pairEmail: GQL.MutationPairEmailArgs,

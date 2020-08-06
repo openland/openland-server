@@ -1853,6 +1853,22 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
+        debugMigrateMuteSettings: withPermission('super-admin', async (parent, args) => {
+            let muteDirectory = Store.UserDialogMuteSettingDirectory
+                .withKeyEncoding(encoders.tuple)
+                .withValueEncoding(encoders.boolean);
+
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugMigrateMuteSettings', async (ctx, uid, log) => {
+                let userDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
+                await Promise.all(userDialogs.map(async d => {
+                    let settings = await Store.UserDialogSettings.findById(ctx, uid, d.cid);
+                    if (settings?.mute) {
+                        muteDirectory.set(ctx, [uid, d.cid], true);
+                    }
+                }));
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {
