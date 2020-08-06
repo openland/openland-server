@@ -70,7 +70,7 @@ const loadUserState = async (ctx: Context, uid: number) => {
 export const Emails = {
     async sendWelcomeEmail(ctx: Context, uid: number) {
         let user = await loadUserState(ctx, uid);
-        await Modules.Email.enqueueEmail(ctx, {
+        Modules.Email.enqueueEmail(ctx, {
             subject: 'Welcome to Openland!',
             templateId: TEMPLATE_WELCOME,
             to: user.email,
@@ -101,7 +101,7 @@ export const Emails = {
 
             text += '.';
 
-            await Modules.Email.enqueueEmail(ctx, {
+            Modules.Email.enqueueEmail(ctx, {
                 subject: 'You’ve got new messages',
                 templateId: TEMPLATE_UNREAD_MESSAGES,
                 to: user.email,
@@ -114,7 +114,7 @@ export const Emails = {
             let senderId = messages[0].uid;
             let userProfile = await Modules.Users.profileById(ctx, senderId);
 
-            await Modules.Email.enqueueEmail(ctx, {
+            Modules.Email.enqueueEmail(ctx, {
                 subject: 'You’ve got a new message',
                 templateId: TEMPLATE_UNREAD_MESSAGE,
                 to: user.email,
@@ -144,7 +144,7 @@ export const Emails = {
 
             for (let m of members) {
                 let user = await loadUserState(ctx, m);
-                await Modules.Email.enqueueEmail(ctx, {
+                Modules.Email.enqueueEmail(ctx, {
                     subject: 'Organization account activated',
                     templateId: TEMPLATE_ACTIVATEED,
                     to: user.email,
@@ -173,7 +173,7 @@ export const Emails = {
 
             for (let m of members) {
                 let user = await loadUserState(ctx, m);
-                await Modules.Email.enqueueEmail(ctx, {
+                Modules.Email.enqueueEmail(ctx, {
                     subject: 'Organization account deactivated',
                     templateId: TEMPLATE_DEACTIVATED,
                     to: user.email,
@@ -196,7 +196,7 @@ export const Emails = {
             let orgProfile = (await Store.OrganizationProfile.findById(ctx, oid))!;
             let user = await loadUserState(ctx, uid);
 
-            await Modules.Email.enqueueEmail(ctx, {
+            Modules.Email.enqueueEmail(ctx, {
                 subject: `You were removed from ${orgProfile.name!}`,
                 templateId: TEMPLATE_MEMBER_REMOVED,
                 to: user.email,
@@ -226,7 +226,7 @@ export const Emails = {
 
             let orgProfile = (await Store.OrganizationProfile.findById(ctx, oid))!;
 
-            await Modules.Email.enqueueEmail(ctx, {
+            Modules.Email.enqueueEmail(ctx, {
                 subject: `Your role at ${orgProfile.name!} was updated`,
                 templateId: TEMPLATE_MEMBERSHIP_LEVEL_CHANGED,
                 to: user.email,
@@ -262,7 +262,7 @@ export const Emails = {
             let orgProfile = (await Store.OrganizationProfile.findById(ctx, oid))!;
             let avatar = await genAvatar(ctx, invite.uid);
 
-            await Modules.Email.enqueueEmail(ctx, {
+            Modules.Email.enqueueEmail(ctx, {
                 subject: `Join ${orgProfile.name!} at Openland`,
                 templateId: TEMPLATE_INVITE,
                 to: invite.email,
@@ -308,7 +308,7 @@ export const Emails = {
                 }
                 let user = await loadUserState(ctx, member);
 
-                await Modules.Email.enqueueEmail(ctx, {
+                Modules.Email.enqueueEmail(ctx, {
                     subject: 'Invitation accepted',
                     templateId: TEMPLATE_MEMBER_JOINED,
                     to: user.email,
@@ -324,8 +324,8 @@ export const Emails = {
             }
         });
     },
-    async sendDebugEmail(ctx: Context, email: string, text: string) {
-        await Modules.Email.enqueueEmail(ctx, {
+    sendDebugEmail(ctx: Context, email: string, text: string) {
+        Modules.Email.enqueueEmail(ctx, {
             subject: 'Debug email',
             templateId: TEMPLATE_INVITE,
             to: email,
@@ -337,9 +337,9 @@ export const Emails = {
             }
         });
     },
-    async sendActivationCodeEmail(ctx: Context, email: string, code: string, existingAccount: boolean) {
+    sendActivationCodeEmail(ctx: Context, email: string, code: string, existingAccount: boolean) {
         // TODO: use new templates after frontend release
-        await Modules.Email.enqueueEmail(ctx, {
+        Modules.Email.enqueueEmail(ctx, {
             subject: `Activation code: ` + code,
             templateId: existingAccount ? TEMPLATE_SIGIN_CODE : TEMPLATE_SIGNUP_CODE,
             // templateId: existingAccount ? TEMPLATE_SIGIN_CODE_MAGIC_BUTTON : TEMPLATE_SIGNUP_CODE_MAGIC_BUTTON,
@@ -360,7 +360,7 @@ export const Emails = {
         let org = userProfile!.primaryOrganization ? await Store.OrganizationProfile.findById(ctx, userProfile!.primaryOrganization!) : null;
         let domain = Config.environment ? 'https://openland.com/joinChannel/' : 'http://localhost:3000/joinChannel/';
 
-        await Modules.Email.enqueueEmail(ctx, {
+        Modules.Email.enqueueEmail(ctx, {
             subject: `Join ${roomTitle} room at Openland`,
             templateId: room!.kind === 'public' ? TEMPLATE_ROOM_INVITE : TEMPLATE_PRIVATE_ROOM_INVITE,
             to: email,
@@ -388,7 +388,7 @@ export const Emails = {
         let userProfile = await Modules.Users.profileById(ctx, uid);
         let userName = userProfile!.firstName + ' ' + (userProfile!.lastName ? userProfile!.lastName : '');
 
-        await Modules.Email.enqueueEmail(ctx, {
+        Modules.Email.enqueueEmail(ctx, {
             subject: `${userName} has accepted your invitation`,
             templateId: TEMPLATE_ROOM_INVITE_ACCEPTED,
             to: inviteCreator!.email!,
@@ -425,7 +425,7 @@ export const Emails = {
 
             text += '.';
 
-            await Modules.Email.enqueueEmail(ctx, {
+            Modules.Email.enqueueEmail(ctx, {
                 subject: 'You’ve got new messages',
                 templateId: TEMPLATE_UNREAD_COMMENTS,
                 to: user.email,
@@ -438,7 +438,7 @@ export const Emails = {
             let senderId = comments[0].uid;
             let userProfile = await Modules.Users.profileById(ctx, senderId);
 
-            await Modules.Email.enqueueEmail(ctx, {
+            Modules.Email.enqueueEmail(ctx, {
                 subject: 'You’ve got a new message',
                 templateId: TEMPLATE_UNREAD_COMMENT,
                 to: user.email,
@@ -574,7 +574,7 @@ export const Emails = {
 
         // console.dir(JSON.stringify({ weeklyDigestTemplateData }, null, 2));
 
-        await Modules.Email.enqueueEmail(ctx, {
+        Modules.Email.enqueueEmail(ctx, {
             subject,
             templateId: TEMPLATE_WEEKLY_DIGEST,
             to: user.email,
@@ -585,7 +585,7 @@ export const Emails = {
 
     async sendGenericEmail(ctx: Context, uid: number, args: { title: string, text: string, link: string, buttonText: string }) {
         let user = await loadUserState(ctx, uid);
-        await Modules.Email.enqueueEmail(ctx, {
+        Modules.Email.enqueueEmail(ctx, {
             subject: args.title,
             templateId: TEMPLATE_GENERIC,
             to: user.email,
@@ -593,8 +593,8 @@ export const Emails = {
         });
     },
 
-    async sendGenericEmailTo(ctx: Context, to: string, args: { title: string, text: string, link: string, buttonText: string }) {
-        await Modules.Email.enqueueEmail(ctx, {
+    sendGenericEmailTo(ctx: Context, to: string, args: { title: string, text: string, link: string, buttonText: string }) {
+        Modules.Email.enqueueEmail(ctx, {
             subject: args.title,
             templateId: TEMPLATE_GENERIC,
             to,

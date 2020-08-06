@@ -27,7 +27,7 @@ export const ChannelInviteEmails = {
 
         let domain = Config.environment === 'production' ? 'https://openland.com/joinChannel/' : 'http://localhost:3000/joinChannel/';
 
-        await Modules.Email.enqueueEmail(ctx, {
+        Modules.Email.enqueueEmail(ctx, {
             subject: `Join ${channel.title} at Openland`,
             templateId: TEMPLATE_INVITE,
             to: invite.email,

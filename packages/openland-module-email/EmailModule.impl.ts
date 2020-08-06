@@ -11,7 +11,7 @@ export class EmailModuleImpl {
         // Nothing to do
     }
 
-    enqueueEmail = async (ctx: Context, args: EmailTask) => {
-        await this.worker.pushWork(ctx, args);
+    enqueueEmail = (ctx: Context, args: EmailTask) => {
+        this.worker.pushWork(ctx, args);
     }
 }

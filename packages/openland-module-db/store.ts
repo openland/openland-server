@@ -22166,6 +22166,7 @@ export interface Store extends BaseStore {
     readonly PhoneImportedByUserDirectory: Subspace;
     readonly MessageDeliveryMembersQueue: QueueStorage;
     readonly MessageDeliveryUserQueue: QueueStorage;
+    readonly EmailSenderQueue: QueueStorage;
 }
 
 export async function openStore(storage: EntityStorage): Promise<Store> {
@@ -22415,6 +22416,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserContactsEventStorePromise = UserContactsEventStore.open(storage, eventFactory);
     let MessageDeliveryMembersQueuePromise = QueueStorage.open('MessageDeliveryMembers', storage);
     let MessageDeliveryUserQueuePromise = QueueStorage.open('MessageDeliveryUser', storage);
+    let EmailSenderQueuePromise = QueueStorage.open('EmailSender', storage);
     return {
         storage,
         eventFactory,
@@ -22628,5 +22630,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserContactsEventStore: await UserContactsEventStorePromise,
         MessageDeliveryMembersQueue: await MessageDeliveryMembersQueuePromise,
         MessageDeliveryUserQueue: await MessageDeliveryUserQueuePromise,
+        EmailSenderQueue: await EmailSenderQueuePromise,
     };
 }

@@ -1899,6 +1899,12 @@ export default declareSchema(() => {
     });
 
     //
+    // Email
+    //
+
+    taskQueue('EmailSender');
+
+    //
     // Apps
     //
 
