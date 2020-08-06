@@ -2,7 +2,6 @@ import { BetterWorkerQueue } from './../../openland-module-workers/BetterWorkerQ
 import { getTransaction, inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { createTracer } from 'openland-log/createTracer';
-import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { DeliveryRepository } from 'openland-module-messaging/repositories/DeliveryRepository';
 import { Message } from 'openland-module-db/store';
@@ -18,7 +17,6 @@ import { Store } from 'openland-module-db/FDB';
 // import { currentRunningTime } from 'openland-utils/timer';
 // import { createMetric } from 'openland-module-monitoring/Metric';
 import { createLogger } from '@openland/log';
-import { TransWorkerQueue } from 'openland-module-workers/TransWorkerQueue';
 import { Metrics } from '../../openland-module-monitoring/Metrics';
 
 const tracer = createTracer('message-delivery');
@@ -29,21 +27,14 @@ const log = createLogger('delivery');
 @injectable()
 export class DeliveryMediator {
 
-    // New Queue
-    readonly newQeue = new TransWorkerQueue<{ messageId: number, action?: 'new' | 'update' | 'delete' }>('message-delivery', Store.MessageDeliveryDirectory);
-    readonly newQueueUserMultiple = new TransWorkerQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }>('message-delivery-batch', Store.MessageDeliveryBatchDirectory);
-    
-    readonly queueFanOut = new BetterWorkerQueue<{ messageId: number, action?: 'new' | 'update' | 'delete' }>(Store.DeliveryFanOutQueue, {
+    readonly queueFanOut = new BetterWorkerQueue<{ messageId: number, cid: number, action?: 'new' | 'update' | 'delete' | 'call-active' | 'call-inactive' }>(Store.DeliveryFanOutQueue, {
         maxAttempts: 'infinite',
         type: 'transactional'
     });
-    readonly queueUserMultipe = new BetterWorkerQueue<{ messageId: number, uids: number[], action?: 'new' | 'update' | 'delete' }>(Store.DeliveryUserBatchQueue, {
+    readonly queueUserMultipe = new BetterWorkerQueue<{ messageId: number, cid: number, uids: number[], action?: 'new' | 'update' | 'delete' | 'call-active' | 'call-inactive' }>(Store.DeliveryUserBatchQueue, {
         maxAttempts: 'infinite',
         type: 'transactional'
     });
-
-    // Obsolete
-    private readonly deliverCallStateChangedQueue = new WorkQueue<{ cid: number, hasActiveCall: boolean }>('deliver-call-state-changed');
 
     @lazyInject('DeliveryRepository') private readonly repo!: DeliveryRepository;
     @lazyInject('CountersMediator') private readonly counters!: CountersMediator;
@@ -52,39 +43,6 @@ export class DeliveryMediator {
 
     start = () => {
         if (serverRoleEnabled('delivery')) {
-
-            // Deprecated
-            this.newQeue.addWorkers(100, async (ctx, item) => {
-                if (item.action === 'new' || item.action === undefined) {
-                    await this.fanOutDelivery(ctx, item.messageId, 'new');
-                } else if (item.action === 'delete') {
-                    await this.fanOutDelivery(ctx, item.messageId, 'delete');
-                } else if (item.action === 'update') {
-                    await this.fanOutDelivery(ctx, item.messageId, 'update');
-                } else {
-                    throw Error('Unknown action: ' + item.action);
-                }
-            });
-            this.newQueueUserMultiple.addWorkers(1000, async (ctx, item) => {
-                Metrics.DeliveryAttemptFrequence.inc(item.action || 'unknown');
-
-                let message = (await Store.Message.findById(ctx, item.messageId))!;
-                if (item.action === 'new' || item.action === undefined) {
-                    await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
-                } else if (item.action === 'delete') {
-                    await Promise.all(item.uids.map((uid) => this.deliverMessageDeleteToUser(ctx, uid, message)));
-                } else if (item.action === 'update') {
-                    await Promise.all(item.uids.map((uid) => this.deliverMessageUpdateToUser(ctx, uid, message)));
-                } else {
-                    throw Error('Unknown action: ' + item.action);
-                }
-
-                getTransaction(ctx).afterCommit(() => {
-                    Metrics.DeliverySuccessFrequence.inc(item.action || 'unknown');
-                });
-            });
-
-            // Better worker
             this.queueUserMultipe.addWorkers(1000, async (ctx, item) => {
                 Metrics.DeliveryAttemptFrequence.inc(item.action || 'unknown');
 
@@ -95,6 +53,14 @@ export class DeliveryMediator {
                     await Promise.all(item.uids.map((uid) => this.deliverMessageDeleteToUser(ctx, uid, message)));
                 } else if (item.action === 'update') {
                     await Promise.all(item.uids.map((uid) => this.deliverMessageUpdateToUser(ctx, uid, message)));
+                } else if (item.action === 'call-active') {
+                    for (let uid of item.uids) {
+                        this.repo.deliverCallStateChangedToUser(ctx, uid, message.cid, true);
+                    }
+                } else if (item.action === 'call-inactive') {
+                    for (let uid of item.uids) {
+                        this.repo.deliverCallStateChangedToUser(ctx, uid, message.cid, false);
+                    }
                 } else {
                     throw Error('Unknown action: ' + item.action);
                 }
@@ -105,23 +71,18 @@ export class DeliveryMediator {
             });
             this.queueFanOut.addWorkers(100, async (ctx, item) => {
                 if (item.action === 'new' || item.action === undefined) {
-                    await this.fanOutDelivery(ctx, item.messageId, 'new');
+                    await this.fanOutDelivery(ctx, item.messageId, item.cid, 'new');
                 } else if (item.action === 'delete') {
-                    await this.fanOutDelivery(ctx, item.messageId, 'delete');
+                    await this.fanOutDelivery(ctx, item.messageId, item.cid, 'delete');
                 } else if (item.action === 'update') {
-                    await this.fanOutDelivery(ctx, item.messageId, 'update');
+                    await this.fanOutDelivery(ctx, item.messageId, item.cid, 'update');
+                } else if (item.action === 'call-active') {
+                    await this.fanOutDelivery(ctx, item.messageId, item.cid, 'call-active');
+                } else if (item.action === 'call-inactive') {
+                    await this.fanOutDelivery(ctx, item.messageId, item.cid, 'call-inactive');
                 } else {
                     throw Error('Unknown action: ' + item.action);
                 }
-            });
-
-            this.deliverCallStateChangedQueue.addWorker(async (item, parent) => {
-                await inTx(parent, async ctx => {
-                    let members = await Modules.Messaging.room.findConversationMembers(ctx, item.cid);
-                    for (let m of members) {
-                        await this.repo.deliverCallStateChangedToUser(ctx, m, item.cid, item.hasActiveCall);
-                    }
-                });
             });
         }
     }
@@ -132,7 +93,7 @@ export class DeliveryMediator {
 
     onNewMessage = async (ctx: Context, message: Message) => {
         if (await this.room.isSuperGroup(ctx, message.cid)) {
-            this.queueFanOut.pushWork(ctx, { messageId: message.id, action: 'new' });
+            this.queueFanOut.pushWork(ctx, { messageId: message.id, cid: message.cid, action: 'new' });
         } else {
             let members = await this.room.findConversationMembers(ctx, message.cid);
             await Promise.all(members.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
@@ -141,7 +102,7 @@ export class DeliveryMediator {
 
     onUpdateMessage = async (ctx: Context, message: Message) => {
         if (await this.room.isSuperGroup(ctx, message.cid)) {
-            this.queueFanOut.pushWork(ctx, { messageId: message.id, action: 'update' });
+            this.queueFanOut.pushWork(ctx, { messageId: message.id, cid: message.cid, action: 'update' });
         } else {
             let members = await this.room.findConversationMembers(ctx, message.cid);
             await Promise.all(members.map((uid) => this.deliverMessageUpdateToUser(ctx, uid, message)));
@@ -150,7 +111,7 @@ export class DeliveryMediator {
 
     onDeleteMessage = async (ctx: Context, message: Message) => {
         if (await this.room.isSuperGroup(ctx, message.cid)) {
-            this.queueFanOut.pushWork(ctx, { messageId: message.id, action: 'delete' });
+            this.queueFanOut.pushWork(ctx, { messageId: message.id, cid: message.cid, action: 'delete' });
         } else {
             let members = await this.room.findConversationMembers(ctx, message.cid);
             await Promise.all(members.map((uid) => this.deliverMessageDeleteToUser(ctx, uid, message)));
@@ -269,13 +230,17 @@ export class DeliveryMediator {
         // Send new counter
         await inTx(parent, async (ctx) => {
             await this.repo.deliverGlobalCounterToUser(ctx, uid);
-            await this.needNotification.setNeedNotificationDelivery(ctx, uid);
+            this.needNotification.setNeedNotificationDelivery(ctx, uid);
         });
     }
 
     onCallStateChanged = async (parent: Context, cid: number, hasActiveCall: boolean) => {
         await inTx(parent, async ctx => {
-            await this.deliverCallStateChangedQueue.pushWork(ctx, { cid, hasActiveCall });
+            if (hasActiveCall) {
+                this.queueFanOut.pushWork(ctx, { messageId: 0, cid, action: 'call-active' });
+            } else {
+                this.queueFanOut.pushWork(ctx, { messageId: 0, cid, action: 'call-inactive' });
+            }
         });
     }
 
@@ -283,28 +248,20 @@ export class DeliveryMediator {
     // Deliver action to every member of the conversation
     //
 
-    private async fanOutDelivery(parent: Context, mid: number, action: 'new' | 'update' | 'delete') {
+    private async fanOutDelivery(parent: Context, mid: number, cid: number, action: 'new' | 'update' | 'delete' | 'call-active' | 'call-inactive') {
         await tracer.trace(parent, 'fanOutDelivery:' + action, async (tctx) => {
             await inTx(tctx, async (ctx) => {
-                let message = (await Store.Message.findById(ctx, mid))!;
-                let members = await this.room.findConversationMembers(ctx, message.cid);
-
-                // Deliver messages
+                let members = await this.room.findConversationMembers(ctx, cid);
                 if (members.length > 0) {
                     let batches = batch(members, 20);
                     for (let b of batches) {
                         this.queueUserMultipe.pushWork(ctx, {
                             messageId: mid,
+                            cid: cid,
                             uids: b,
                             action
                         });
                     }
-                    // let tasks = batches.map(b => this.queueUserMultiple.pushWork(ctx, {
-                    //     messageId: mid,
-                    //     uids: b,
-                    //     action
-                    // }));
-                    // await Promise.all(tasks);
                 }
             });
         });

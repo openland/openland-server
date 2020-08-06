@@ -212,7 +212,7 @@ export class DeliveryRepository {
         });
     }
 
-    async deliverCallStateChangedToUser(ctx: Context, uid: number, cid: number, hasActiveCall: boolean) {
+    deliverCallStateChangedToUser(ctx: Context, uid: number, cid: number, hasActiveCall: boolean) {
         Store.UserDialogEventStore.post(ctx, uid, UserDialogCallStateChangedEvent.create({
             uid,
             cid,
