@@ -7,6 +7,8 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { Texts } from '../../openland-module-messaging/texts';
 import { withReadOnlyTransaction } from '@openland/foundationdb';
 import { Context } from '@openland/context';
+import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
+import { Store } from 'openland-module-db/FDB';
 
 export function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -38,7 +40,6 @@ type Push = {
 const tracer = createTracer('push');
 
 async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
-    let works: Promise<any>[] = [];
 
     let conversationId = push.conversationId ? IDs.Conversation.serialize(push.conversationId) : undefined;
     let deepLink = push.deepLink;
@@ -48,18 +49,18 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
         //
         let webTokens = await repo.getUserWebPushTokens(ctx, push.uid);
         for (let wp of webTokens) {
-            works.push(Modules.Push.webWorker.pushWork(ctx, {
+            Modules.Push.webWorker.pushWork(ctx, {
                 uid: push.uid,
                 tokenId: wp.id,
                 title: push.title,
                 body: push.body,
                 picture: push.picture ? push.picture : undefined,
-            }));
+            });
         }
 
         let safariTokens = await repo.getUserSafariPushTokens(ctx, push.uid);
         for (let t of safariTokens) {
-            works.push(Modules.Push.appleWorker.pushWork(ctx, {
+            Modules.Push.appleWorker.pushWork(ctx, {
                 uid: push.uid,
                 tokenId: t.id,
                 contentAvailable: true,
@@ -75,7 +76,7 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
                     messageId: push.messageId,
                     commentId: push.commentId
                 },
-            }));
+            });
         }
     }
     if (push.mobile) {
@@ -91,7 +92,7 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
         let iosTokens = await repo.getUserApplePushTokens(ctx, push.uid);
         for (let t of iosTokens) {
             if (push.silent) {
-                works.push(Modules.Push.appleWorker.pushWork(ctx, {
+                Modules.Push.appleWorker.pushWork(ctx, {
                     uid: push.uid,
                     tokenId: t.id,
                     contentAvailable: true,
@@ -103,9 +104,9 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
                         messageId: push.messageId,
                         commentId: push.commentId
                     },
-                }));
+                });
             } else {
-                works.push(Modules.Push.appleWorker.pushWork(ctx, {
+                Modules.Push.appleWorker.pushWork(ctx, {
                     uid: push.uid,
                     tokenId: t.id,
                     sound: push.mobileAlert ? 'default' : undefined,
@@ -125,7 +126,7 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
                         messageId: push.messageId,
                         commentId: push.commentId
                     },
-                }));
+                });
             }
         }
 
@@ -136,7 +137,7 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
         let androidTokens = await repo.getUserAndroidPushTokens(ctx, push.uid);
         for (let token of androidTokens) {
             if (push.silent) {
-                works.push(Modules.Push.androidWorker.pushWork(ctx, {
+                Modules.Push.androidWorker.pushWork(ctx, {
                     uid: push.uid,
                     isData: true,
                     data: {
@@ -145,11 +146,11 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
                         ...(push.commentId ? { commentId: push.commentId } : {}),
                     },
                     tokenId: token.token
-                }));
+                });
 
                 continue;
             }
-            works.push(Modules.Push.androidWorker.pushWork(ctx, {
+            Modules.Push.androidWorker.pushWork(ctx, {
                 uid: push.uid,
                 tokenId: token.id,
                 collapseKey: conversationId,
@@ -172,16 +173,17 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
                     ...(push.messageId ? { messageId: push.messageId } : {}),
                     ...(push.commentId ? { commentId: push.commentId } : {}),
                 },
-            }));
+            });
         }
     }
-
-    await Promise.all(works);
 }
 
 export function createPushWorker(repo: PushRepository) {
     let queue = new WorkQueue<Push>('push_sender');
+    let betterQueue = new BetterWorkerQueue<Push>(Store.PushDeliveryQueue, { type: 'transactional', maxAttempts: 3 });
+
     if (serverRoleEnabled('workers')) {
+        // Obsolete
         for (let i = 0; i < 100; i++) {
             queue.addWorker(async (args, parent) => {
                 return tracer.trace(withReadOnlyTransaction(parent), 'sorting', async (ctx) => {
@@ -189,23 +191,11 @@ export function createPushWorker(repo: PushRepository) {
                 });
             });
         }
-    }
-    return queue;
-}
 
-export function createPushWorkerParallel(repo: PushRepository) {
-    let queue = new WorkQueue<Push[]>('push_sender_parallel');
-    if (!serverRoleEnabled('workers')) {
-        return queue;
-    }
-
-    for (let i = 0; i < 1000; i++) {
-        queue.addWorker(async (args, parent) => {
-            return tracer.trace(withReadOnlyTransaction(parent), 'sorting', async (ctx) => {
-                await Promise.all(args.map(p => handlePush(ctx, repo, p)));
-            });
+        // New
+        betterQueue.addWorkers(1000, async (parent, args) => {
+            await handlePush(parent, repo, args);
         });
     }
-
-    return queue;
+    return betterQueue;
 }

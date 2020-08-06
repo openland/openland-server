@@ -1837,6 +1837,8 @@ export default declareSchema(() => {
     // Push
     //
 
+    taskQueue('PushDelivery');
+
     entity('PushFirebase', () => {
         primaryKey('id', string());
         field('uid', integer());
@@ -1852,6 +1854,8 @@ export default declareSchema(() => {
         rangeIndex('user', ['uid', 'id']);
         uniqueIndex('token', ['token']).withCondition(src => src.enabled);
     });
+
+    taskQueue('PushFirebaseDelivery');
 
     entity('PushApple', () => {
         primaryKey('id', string());
@@ -1869,20 +1873,6 @@ export default declareSchema(() => {
         uniqueIndex('token', ['token']).withCondition(src => src.enabled);
     });
 
-    entity('PushWeb', () => {
-        primaryKey('id', string());
-        field('uid', integer());
-        field('tid', string());
-        field('endpoint', string()).secure();
-        field('enabled', boolean());
-        field('failures', optional(integer()));
-        field('failedFirstAt', optional(integer()));
-        field('failedLastAt', optional(integer()));
-        field('disabledAt', optional(integer()));
-        rangeIndex('user', ['uid', 'id']);
-        uniqueIndex('endpoint', ['endpoint']).withCondition(src => src.enabled);
-    });
-
     entity('PushSafari', () => {
         primaryKey('id', string());
         field('uid', integer());
@@ -1897,6 +1887,24 @@ export default declareSchema(() => {
         rangeIndex('user', ['uid', 'id']);
         uniqueIndex('token', ['token']).withCondition(src => src.enabled);
     });
+
+    taskQueue('PushAppleDelivery');
+
+    entity('PushWeb', () => {
+        primaryKey('id', string());
+        field('uid', integer());
+        field('tid', string());
+        field('endpoint', string()).secure();
+        field('enabled', boolean());
+        field('failures', optional(integer()));
+        field('failedFirstAt', optional(integer()));
+        field('failedLastAt', optional(integer()));
+        field('disabledAt', optional(integer()));
+        rangeIndex('user', ['uid', 'id']);
+        uniqueIndex('endpoint', ['endpoint']).withCondition(src => src.enabled);
+    });
+
+    taskQueue('PushWebDelivery');
 
     //
     // Email

@@ -52,7 +52,7 @@ export const Resolver: GQLResolver = {
             let uid = IDs.User.parse(args.uid);
             let androidTokens = await Modules.Push.repository.getUserAndroidPushTokens(ctx, uid);
             for (let token of androidTokens) {
-                await Modules.Push.androidWorker.pushWork(ctx, {
+                Modules.Push.androidWorker.pushWork(ctx, {
                     uid: uid,
                     tokenId: token.id,
                     isData: true,
@@ -69,7 +69,7 @@ export const Resolver: GQLResolver = {
             let uid = IDs.User.parse(args.uid);
             let androidTokens = await Modules.Push.repository.getUserApplePushTokens(ctx, uid);
             for (let token of androidTokens) {
-                await Modules.Push.appleWorker.pushWork(ctx, {
+                Modules.Push.appleWorker.pushWork(ctx, {
                     uid: uid,
                     tokenId: token.id,
                     payload: {
