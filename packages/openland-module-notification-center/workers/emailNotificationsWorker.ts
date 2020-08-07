@@ -25,7 +25,7 @@ export function startEmailNotificationWorker() {
         startDelay: 3000
     }, async (parent) => {
         let needDelivery = Modules.NotificationCenter.needDelivery;
-        let unreadUsers = await inTx(parent, async (ctx) => await needDelivery.findAllUsersWithNotifications(ctx, 'email'));
+        let unreadUsers = await inTx(parent, async (ctx) => await needDelivery.findAllUsersWithNotifications(ctx, 'email', 2000));
         if (unreadUsers.length > 0) {
             log.debug(parent, 'unread users: ' + unreadUsers.length);
         } else {
@@ -35,7 +35,7 @@ export function startEmailNotificationWorker() {
         let now = Date.now();
         log.log(parent, 'found', unreadUsers.length, 'users');
 
-        let batches = batch(unreadUsers, 10);
+        let batches = batch(unreadUsers, 50);
 
         for (let b of batches) {
             await inTx(parent, async (ctx) => {

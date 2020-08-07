@@ -23,11 +23,11 @@ export class NeedDeliveryRepository {
             .clear(ctx, [kind, uid]);
     }
 
-    findAllUsersWithNotifications = async (ctx: Context, kind: 'email' | 'push') => {
+    findAllUsersWithNotifications = async (ctx: Context, kind: 'email' | 'push', limit: number | undefined = undefined) => {
         return (await Store.NotificationCenterNeedDeliveryFlagDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean)
-            .range(ctx, [kind]))
+            .snapshotRange(ctx, [kind], { limit: limit }))
             .map((v) => v.key[1] as number);
     }
 }
