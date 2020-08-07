@@ -300,8 +300,8 @@ export class DistributedCollector {
         }
 
         // Persisted gauges
-        for (let gauge of this.#persistedGauges.values()) {
-            await inTx(ctx, async (tx) => {
+        await inTx(ctx, async (tx) => {
+            for (let gauge of this.#persistedGauges.values()) {
                 let resolved: number;
                 try {
                     resolved = await gauge.query(tx);
@@ -313,12 +313,14 @@ export class DistributedCollector {
                 res.push('# HELP ' + gauge.name + ' ' + gauge.description);
                 res.push('# TYPE ' + gauge.name + ' gauge');
                 res.push(gauge.name + ' ' + resolved);
-            });
-        }
+
+            }
+        });
 
         // Persisted tagged
-        for (let gauge of this.#persistedTaggedGauges.values()) {
-            await inTx(ctx, async (tx) => {
+        await inTx(ctx, async (tx) => {
+            for (let gauge of this.#persistedTaggedGauges.values()) {
+
                 let resolved: { tag: string, value: number }[];
                 try {
                     resolved = await gauge.query(tx);
@@ -332,8 +334,8 @@ export class DistributedCollector {
                 for (let r of resolved) {
                     res.push(gauge.name + `{tag='${r.tag}'} ` + r.value);
                 }
-            });
-        }
+            }
+        });
 
         return res.join('\n');
     }

@@ -2,7 +2,6 @@ import { Context } from '@openland/context';
 import { Config } from 'openland-config/Config';
 import WebPush from 'web-push';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
-import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { WebPushTask } from './types';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { handleFail } from './util/handleFail';
@@ -40,18 +39,6 @@ export function createWebWorker(repo: PushRepository) {
             return;
         }
     };
-
-    // Obsolete worker
-    let queue = new WorkQueue<WebPushTask>('push_sender_web');
-    if (Config.pushWeb) {
-        if (serverRoleEnabled('workers')) {
-            for (let i = 0; i < 10; i++) {
-                queue.addWorker(async (task, root) => {
-                    await deliverWebPush(root, task);
-                });
-            }
-        }
-    }
 
     // Better worker
     let betterQueue = new BetterWorkerQueue<WebPushTask>(Store.PushWebDeliveryQueue, { maxAttempts: 3, type: 'external' });

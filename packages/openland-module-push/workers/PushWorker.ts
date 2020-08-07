@@ -1,11 +1,8 @@
 import { IDs } from 'openland-module-api/IDs';
-import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
 import { Modules } from 'openland-modules/Modules';
-import { createTracer } from 'openland-log/createTracer';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { Texts } from '../../openland-module-messaging/texts';
-import { withReadOnlyTransaction } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { Store } from 'openland-module-db/FDB';
@@ -36,8 +33,6 @@ type Push = {
     messageId: string | null;
     commentId: string | null;
 };
-
-const tracer = createTracer('push');
 
 async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
 
@@ -179,19 +174,9 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
 }
 
 export function createPushWorker(repo: PushRepository) {
-    let queue = new WorkQueue<Push>('push_sender');
     let betterQueue = new BetterWorkerQueue<Push>(Store.PushDeliveryQueue, { type: 'transactional', maxAttempts: 3 });
 
     if (serverRoleEnabled('workers')) {
-        // Obsolete
-        for (let i = 0; i < 100; i++) {
-            queue.addWorker(async (args, parent) => {
-                return tracer.trace(withReadOnlyTransaction(parent), 'sorting', async (ctx) => {
-                    await handlePush(ctx, repo, args);
-                });
-            });
-        }
-
         // New
         betterQueue.addWorkers(1000, async (parent, args) => {
             await handlePush(parent, repo, args);

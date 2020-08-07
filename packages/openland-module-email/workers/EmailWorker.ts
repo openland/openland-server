@@ -1,6 +1,5 @@
 import { Context } from '@openland/context';
 import SendGrid from '@sendgrid/mail';
-import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { EmailTask } from 'openland-module-email/EmailTask';
 import { createLogger } from '@openland/log';
@@ -71,14 +70,6 @@ export function createEmailWorker() {
 
     // Configure sendgrid
     SendGrid.setApiKey(SENDGRID_KEY);
-
-    // Old queue
-    let queue = new WorkQueue<EmailTask>('emailSender');
-    if (serverRoleEnabled('workers')) {
-        queue.addWorker(async (args, ctx) => {
-            await sendMessage(ctx, args);
-        });
-    }
 
     let beterQueue = new BetterWorkerQueue<EmailTask>(Store.EmailSendQueue, { maxAttempts: 3, type: 'external' });
     if (serverRoleEnabled('workers')) {

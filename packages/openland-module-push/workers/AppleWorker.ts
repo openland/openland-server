@@ -1,7 +1,6 @@
 import { Context } from '@openland/context';
 import APN from 'apn';
 import { Config } from 'openland-config/Config';
-import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { ApplePushTask } from './types';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
@@ -15,7 +14,6 @@ let providers = new Map<boolean, Map<string, APN.Provider>>();
 const log = createLogger('apns');
 
 export function createAppleWorker(repo: PushRepository) {
-    let queue = new WorkQueue<ApplePushTask>('push_sender_apns');
     let betterQueue = new BetterWorkerQueue<ApplePushTask>(Store.PushAppleDeliveryQueue, { type: 'external', maxAttempts: 3 });
     if (Config.pushApple) {
         if (serverRoleEnabled('workers')) {
@@ -94,12 +92,6 @@ export function createAppleWorker(repo: PushRepository) {
                     return;
                 }
             };
-
-            for (let i = 0; i < 10; i++) {
-                queue.addWorker(async (task, root) => {
-                    await handlePush(task, root);
-                });
-            }
 
             betterQueue.addWorkers(1000, async (root, task) => {
                 await handlePush(task, root);

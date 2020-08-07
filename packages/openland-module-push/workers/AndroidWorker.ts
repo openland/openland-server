@@ -1,6 +1,5 @@
 import { Context } from '@openland/context';
 import { Config } from 'openland-config/Config';
-import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { FirebasePushTask } from './types';
 import * as Friebase from 'firebase-admin';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
@@ -14,7 +13,6 @@ import { Store } from 'openland-module-db/FDB';
 const log = createLogger('firebase');
 
 export function createAndroidWorker(repo: PushRepository) {
-    let queue = new WorkQueue<FirebasePushTask>('push_sender_firebase');
     let betterQueue = new BetterWorkerQueue<FirebasePushTask>(Store.PushFirebaseDeliveryQueue, { type: 'external', maxAttempts: 3 });
     if (Config.pushGoogle) {
         if (serverRoleEnabled('workers')) {
@@ -82,11 +80,6 @@ export function createAndroidWorker(repo: PushRepository) {
                 }
             };
 
-            for (let i = 0; i < 10; i++) {
-                queue.addWorker(async (task, root) => {
-                    await handlePush(root, task);
-                });
-            }
             betterQueue.addWorkers(1000, async (root, task) => {
                 await handlePush(root, task);
             });
