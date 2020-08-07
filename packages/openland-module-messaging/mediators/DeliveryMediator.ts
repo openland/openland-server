@@ -39,20 +39,22 @@ export class DeliveryMediator {
     start = () => {
         if (serverRoleEnabled('delivery')) {
             this.queueUserMultipe.addWorkers(1000, async (ctx, item) => {
-                let message = (await Store.Message.findById(ctx, item.messageId))!;
                 if (item.action === 'new' || item.action === undefined) {
+                    let message = (await Store.Message.findById(ctx, item.messageId))!;
                     await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
                 } else if (item.action === 'delete') {
+                    let message = (await Store.Message.findById(ctx, item.messageId))!;
                     await Promise.all(item.uids.map((uid) => this.deliverMessageDeleteToUser(ctx, uid, message)));
                 } else if (item.action === 'update') {
+                    let message = (await Store.Message.findById(ctx, item.messageId))!;
                     await Promise.all(item.uids.map((uid) => this.deliverMessageUpdateToUser(ctx, uid, message)));
                 } else if (item.action === 'call-active') {
                     for (let uid of item.uids) {
-                        this.repo.deliverCallStateChangedToUser(ctx, uid, message.cid, true);
+                        this.repo.deliverCallStateChangedToUser(ctx, uid, item.cid, true);
                     }
                 } else if (item.action === 'call-inactive') {
                     for (let uid of item.uids) {
-                        this.repo.deliverCallStateChangedToUser(ctx, uid, message.cid, false);
+                        this.repo.deliverCallStateChangedToUser(ctx, uid, item.cid, false);
                     }
                 } else {
                     throw Error('Unknown action: ' + item.action);
