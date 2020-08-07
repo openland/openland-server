@@ -17,6 +17,7 @@ import { setTracingTag } from '../openland-log/setTracingTag';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import { isWithinSpaceX } from 'openland-spacex/SpaceXContext';
 import { counterNamespace } from './FDBCounterContext';
+import { ContextName } from '@openland/context';
 // import { Context, ContextName } from '@openland/context';
 // import { LogPathContext } from '@openland/log';
 
@@ -58,6 +59,9 @@ export function setupFdbTracing() {
         },
         onFDBError: (ctx, error) => {
             Metrics.FDBErrors.inc(error.code + '');
+            if (error.code === 1007) {
+                Metrics.FDBTooOldErrors.inc(ContextName.get(ctx));
+            }
         },
         onNewEphemeralTx: (ctx) => {
             if (isWithinSpaceX(ctx)) {
