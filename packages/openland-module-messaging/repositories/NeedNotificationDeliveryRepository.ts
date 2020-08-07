@@ -34,7 +34,7 @@ export class NeedNotificationDeliveryRepository {
         return (await Store.NeedNotificationFlagDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean)
-            .range(ctx, [kind]))
+            .snapshotRange(ctx, [kind], { limit: 5000 }))
             .map((v) => v.key[1] as number);
     }
 }
