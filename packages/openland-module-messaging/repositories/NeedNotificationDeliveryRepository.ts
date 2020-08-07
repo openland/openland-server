@@ -30,11 +30,11 @@ export class NeedNotificationDeliveryRepository {
             .clear(ctx, [kind]);
     }
 
-    findAllUsersWithNotifications = async (ctx: Context, kind: 'email' | 'push') => {
+    findAllUsersWithNotifications = async (ctx: Context, kind: 'email' | 'push', limit: number | undefined = undefined) => {
         return (await Store.NeedNotificationFlagDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean)
-            .range(ctx, [kind]))
+            .snapshotRange(ctx, [kind], { limit }))
             .map((v) => v.key[1] as number);
     }
 }
