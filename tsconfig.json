@@ -108,6 +108,9 @@
       "openland-module-monitoring": [
         "openland-module-monitoring"
       ],
+      "openland-module-events": [
+        "openland-module-events"
+      ],
       "openland-module-video": [
         "openland-module-video"
       ],
