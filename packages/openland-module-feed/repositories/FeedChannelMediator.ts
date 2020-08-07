@@ -1,3 +1,4 @@
+import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { injectable } from 'inversify';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { FeedChannelInput, FeedChannelRepository, FeedChannelUpdateInput } from './FeedChannelRepository';
@@ -10,7 +11,6 @@ import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { UserError } from '../../openland-errors/UserError';
 import { Store } from '../../openland-module-db/FDB';
 import { fetchNextDBSeq } from '../../openland-utils/dbSeq';
-import { WorkQueue } from '../../openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { Modules } from '../../openland-modules/Modules';
 import { batch } from '../../openland-utils/batch';
@@ -23,30 +23,27 @@ export default class FeedChannelMediator {
     @lazyInject('FeedRepository')
     private readonly feedRepo!: FeedRepository;
 
-    private readonly autoSubscriptionQueue = new WorkQueue<{ channelId: number, peerType: 'room' | 'organization', peerId: number }>('feed_channel_auto_subscription');
-    private readonly autoSubscriptionQueueMultiple = new WorkQueue<{ channelId: number, uids: number[] }>('feed_channel_auto_subscription_multiple');
+    private readonly autoSubscriptionQueue = new BetterWorkerQueue<{ channelId: number, peerType: 'room' | 'organization', peerId: number }>(Store.FeedAutoSubscriptionQueue, { type: 'transactional', maxAttempts: 'infinite' });
+    private readonly autoSubscriptionQueueMultiple = new BetterWorkerQueue<{ channelId: number, uids: number[] }>(Store.FeedAutoSubscriptionMultipleQueue, { type: 'transactional', maxAttempts: 'infinite' });
 
     start = () => {
         if (serverRoleEnabled('delivery')) {
-            for (let i = 0; i < 10; i++) {
-                this.autoSubscriptionQueue.addWorker(async (item, parent) => {
-                    await this.fanOutSubscription(parent, item.channelId, item.peerType, item.peerId);
-                });
-            }
-            for (let i = 0; i < 10; i++) {
-                this.autoSubscriptionQueueMultiple.addWorker(async (item, parent) => {
-                    await inTx(parent, async ctx => {
-                        let topic = await this.feedRepo.resolveTopic(ctx, 'channel-' + item.channelId);
-                        for (let uid of item.uids) {
-                            let subscriber = await this.feedRepo.resolveSubscriber(ctx, 'user-' + uid);
-                            let subscription = await Store.FeedSubscription.findById(ctx, subscriber.id, topic.id);
-                            if (!subscription) {
-                                await this.subscribeChannel(ctx, uid, item.channelId);
-                            }
+            this.autoSubscriptionQueue.addWorkers(100, async (parent, item) => {
+                await this.fanOutSubscription(parent, item.channelId, item.peerType, item.peerId);
+            });
+
+            this.autoSubscriptionQueueMultiple.addWorkers(100, async (parent, item) => {
+                await inTx(parent, async ctx => {
+                    let topic = await this.feedRepo.resolveTopic(ctx, 'channel-' + item.channelId);
+                    for (let uid of item.uids) {
+                        let subscriber = await this.feedRepo.resolveSubscriber(ctx, 'user-' + uid);
+                        let subscription = await Store.FeedSubscription.findById(ctx, subscriber.id, topic.id);
+                        if (!subscription) {
+                            await this.subscribeChannel(ctx, uid, item.channelId);
                         }
-                    });
+                    }
                 });
-            }
+            });
         }
     }
 
@@ -185,7 +182,7 @@ export default class FeedChannelMediator {
                 }
             }
             if (await this.repo.createAutoSubscription(parent, uid, channelId, peerType, peerId)) {
-                await this.autoSubscriptionQueue.pushWork(ctx, {channelId, peerType, peerId});
+                await this.autoSubscriptionQueue.pushWork(ctx, { channelId, peerType, peerId });
             }
         });
     }

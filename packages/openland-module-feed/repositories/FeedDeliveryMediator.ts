@@ -1,5 +1,5 @@
+import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { injectable } from 'inversify';
-import { WorkQueue } from '../../openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { getTransaction, inTx } from '@openland/foundationdb';
 import { Store } from '../../openland-module-db/FDB';
@@ -14,43 +14,39 @@ import { batch } from '../../openland-utils/batch';
 
 @injectable()
 export class FeedDeliveryMediator {
-    private readonly queue = new WorkQueue<{ itemId: number, action?: 'new' | 'update' | 'delete' }>('feed_item_delivery');
-    private readonly queueUserMultiple = new WorkQueue<{ itemId: number, subscriberIds: number[], action?: 'new' | 'update' | 'delete' }>('feed_item_delivery_user_multiple');
+    private readonly queue = new BetterWorkerQueue<{ itemId: number, action?: 'new' | 'update' | 'delete' }>(Store.FeedDeliveryQueue, { type: 'transactional', maxAttempts: 'infinite' });
+    private readonly queueUserMultiple = new BetterWorkerQueue<{ itemId: number, subscriberIds: number[], action?: 'new' | 'update' | 'delete' }>(Store.FeedDeliveryMultipleQueue, { type: 'transactional', maxAttempts: 'infinite' });
 
     start = () => {
         if (serverRoleEnabled('delivery')) {
-            for (let i = 0; i < 25; i++) {
-                this.queue.addWorker(async (item, parent) => {
+            this.queue.addWorkers(100, async (parent, item) => {
+                if (item.action === 'new' || item.action === undefined) {
+                    await this.fanOutDelivery(parent, item.itemId, 'new');
+                } else if (item.action === 'delete') {
+                    await this.fanOutDelivery(parent, item.itemId, 'delete');
+                } else if (item.action === 'update') {
+                    await this.fanOutDelivery(parent, item.itemId, 'update');
+                } else {
+                    throw Error('Unknown action: ' + item.action);
+                }
+            });
+            this.queueUserMultiple.addWorkers(100, async (parent, item) => {
+                await inTx(parent, async (ctx) => {
+                    // Speed up retry loop for lower latency
+                    getTransaction(ctx).setOptions({ max_retry_delay: 10 });
+
+                    let event = (await Store.FeedEvent.findById(ctx, item.itemId))!;
                     if (item.action === 'new' || item.action === undefined) {
-                        await this.fanOutDelivery(parent, item.itemId, 'new');
+                        await Promise.all(item.subscriberIds.map((sid) => this.deliverItemToUser(ctx, sid, event)));
                     } else if (item.action === 'delete') {
-                        await this.fanOutDelivery(parent, item.itemId, 'delete');
+                        await Promise.all(item.subscriberIds.map((sid) => this.deliverItemDeletedToUser(ctx, sid, event)));
                     } else if (item.action === 'update') {
-                        await this.fanOutDelivery(parent, item.itemId, 'update');
+                        await Promise.all(item.subscriberIds.map((sid) => this.deliverItemUpdatedToUser(ctx, sid, event)));
                     } else {
                         throw Error('Unknown action: ' + item.action);
                     }
                 });
-            }
-            for (let i = 0; i < 25; i++) {
-                this.queueUserMultiple.addWorker(async (item, parent) => {
-                    await inTx(parent, async (ctx) => {
-                        // Speed up retry loop for lower latency
-                        getTransaction(ctx).setOptions({ max_retry_delay: 10 });
-
-                        let event = (await Store.FeedEvent.findById(ctx, item.itemId))!;
-                        if (item.action === 'new' || item.action === undefined) {
-                            await Promise.all(item.subscriberIds.map((sid) => this.deliverItemToUser(ctx, sid, event)));
-                        } else if (item.action === 'delete') {
-                            await Promise.all(item.subscriberIds.map((sid) => this.deliverItemDeletedToUser(ctx, sid, event)));
-                        } else if (item.action === 'update') {
-                            await Promise.all(item.subscriberIds.map((sid) => this.deliverItemUpdatedToUser(ctx, sid, event)));
-                        } else {
-                            throw Error('Unknown action: ' + item.action);
-                        }
-                    });
-                });
-            }
+            });
         }
     }
 
@@ -62,19 +58,19 @@ export class FeedDeliveryMediator {
 
     onItemUpdated = async (root: Context, item: FeedEvent) => {
         await inTx(root, async ctx => {
-            await this.queue.pushWork(ctx, {itemId: item.id, action: 'update'});
+            await this.queue.pushWork(ctx, { itemId: item.id, action: 'update' });
         });
     }
 
     onItemDeleted = async (root: Context, item: FeedEvent) => {
         await inTx(root, async ctx => {
-            await this.queue.pushWork(ctx, {itemId: item.id, action: 'delete'});
+            await this.queue.pushWork(ctx, { itemId: item.id, action: 'delete' });
         });
     }
 
     onFeedRebuildNeeded = async (root: Context, subscriberId: number) => {
         await inTx(root, async ctx => {
-            await Store.FeedEventStore.post(ctx, subscriberId, FeedRebuildEvent.create({subscriberId}));
+            Store.FeedEventStore.post(ctx, subscriberId, FeedRebuildEvent.create({ subscriberId }));
         });
     }
 
@@ -96,14 +92,14 @@ export class FeedDeliveryMediator {
     }
 
     private deliverItemToUser = async (ctx: Context, sid: number, item: FeedEvent) => {
-        await Store.FeedEventStore.post(ctx, sid, FeedItemReceivedEvent.create({ subscriberId: sid, itemId: item.id }));
+        Store.FeedEventStore.post(ctx, sid, FeedItemReceivedEvent.create({ subscriberId: sid, itemId: item.id }));
     }
 
     private deliverItemUpdatedToUser = async (ctx: Context, sid: number, item: FeedEvent) => {
-        await Store.FeedEventStore.post(ctx, sid, FeedItemUpdatedEvent.create({ subscriberId: sid, itemId: item.id }));
+        Store.FeedEventStore.post(ctx, sid, FeedItemUpdatedEvent.create({ subscriberId: sid, itemId: item.id }));
     }
 
     private deliverItemDeletedToUser = async (ctx: Context, sid: number, item: FeedEvent) => {
-        await Store.FeedEventStore.post(ctx, sid, FeedItemDeletedEvent.create({ subscriberId: sid, itemId: item.id }));
+        Store.FeedEventStore.post(ctx, sid, FeedItemDeletedEvent.create({ subscriberId: sid, itemId: item.id }));
     }
 }

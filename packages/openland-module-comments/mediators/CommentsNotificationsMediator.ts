@@ -4,20 +4,21 @@ import { CommentsNotificationsRepository } from '../repositories/CommentsNotific
 import { Context } from '@openland/context';
 import { CommentPeerType } from '../repositories/CommentsRepository';
 import { Comment } from '../../openland-module-db/store';
-import { WorkQueue } from '../../openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { MessageSpan } from '../../openland-module-messaging/MessageInput';
+import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
+import { Store } from 'openland-module-db/FDB';
 
 @injectable()
 export class CommentsNotificationsMediator {
     @lazyInject('CommentsNotificationsRepository')
     private readonly repo!: CommentsNotificationsRepository;
 
-    private readonly queue = new WorkQueue<{ commentId: number }>('comments_notifications_delivery');
+    private readonly queue = new BetterWorkerQueue<{ commentId: number }>(Store.CommentNotificationDeliveryQueue, { type: 'transactional', maxAttempts: 'infinite' });
 
     start = () => {
         if (serverRoleEnabled('workers')) {
-            this.queue.addWorker(async (item, parent) => {
+            this.queue.addWorkers(100, async (parent, item) => {
                 await this.repo.onNewComment(parent, item.commentId);
             });
         }

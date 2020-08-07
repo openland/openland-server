@@ -87,13 +87,13 @@ const templates: { [T in Template]: (user: UserProfile) => { type: string, messa
         keyboard: { buttons: [[{ title: 'Install apps', url: '/onboarding_apps', style: 'DEFAULT' }]] }
     }),
 };
-const q = new WorkQueue<{ uid: number, type: DelayedEvents }>('onboarding-delayed');
 @injectable()
 export class UserOnboardingModule {
-
+    private readonly q = new WorkQueue<{ uid: number, type: DelayedEvents }>('onboarding-delayed');
+    
     start = async () => {
         if (serverRoleEnabled('workers')) {
-            q.addWorker((item, rootCtx) => {
+            this.q.addWorker((item, rootCtx) => {
                 return inTx(rootCtx, async (ctx) => {
                     await this.onTimeoutFired(ctx, item.type, item.uid);
                 });
@@ -111,7 +111,7 @@ export class UserOnboardingModule {
 
     onUserActivatedByAdmin = async (ctx: Context, uid: number) => {
         await this.onFirstEntrance(ctx, uid);
-        await q.pushWork(ctx, { uid, type: 'activated30m' }, Date.now() + 1000 * 60 * 30);
+        await this.q.pushWork(ctx, { uid, type: 'activated30m' }, Date.now() + 1000 * 60 * 30);
     }
 
     onDiscoverCompleted = async (ctx: Context, uid: number) => {
@@ -121,12 +121,12 @@ export class UserOnboardingModule {
 
     onDiscoverSkipped = async (ctx: Context, uid: number) => {
         await this.onFirstEntrance(ctx, uid);
-        await q.pushWork(ctx, { uid, type: 'activated30m' }, Date.now() + 1000 * 60 * 30);
+        await this.q.pushWork(ctx, { uid, type: 'activated30m' }, Date.now() + 1000 * 60 * 30);
     }
 
     onFirstEntrance = async (ctx: Context, uid: number) => {
         await this.sendWelcome(ctx, uid);
-        await q.pushWork(ctx, { uid, type: 'activated20h' }, Date.now() + 1000 * 60 * 60 * 20);
+        await this.q.pushWork(ctx, { uid, type: 'activated20h' }, Date.now() + 1000 * 60 * 60 * 20);
     }
 
     onTimeoutFired = async (ctx: Context, type: DelayedEvents, uid: number) => {

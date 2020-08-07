@@ -1,19 +1,19 @@
 import { injectable } from 'inversify';
-import { WorkQueue } from '../../openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { Context } from '@openland/context';
 import { FeedEvent, RichMessage } from '../../openland-module-db/store';
 import { Store } from '../../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { Modules } from 'openland-modules/Modules';
+import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 
 @injectable()
 export class FeedMentionNotificationsMediator {
-    private readonly queue = new WorkQueue<{ tid: number, messageId: number }>('feed_item_mention_notifications_task');
+    private readonly queue = new BetterWorkerQueue<{ tid: number, messageId: number }>(Store.FeedMentionNotificationQueue, { type: 'transactional', maxAttempts: 'infinite' });
 
     start = async () => {
         if (serverRoleEnabled('workers')) {
-            this.queue.addWorker(async (item, root) => {
+            this.queue.addWorkers(100, async (root, item) => {
                 return await inTx(root, async ctx => {
                     let message = await Store.RichMessage.findById(ctx, item.messageId);
                     if (!message || !message.spans) {
@@ -96,15 +96,15 @@ export class FeedMentionNotificationsMediator {
         }
     }
 
-    onNewItem = async (ctx: Context, event: FeedEvent, message: RichMessage) => {
+    onNewItem = (ctx: Context, event: FeedEvent, message: RichMessage) => {
         if (this.haveMentions(message)) {
-            await this.queue.pushWork(ctx, { messageId: message.id, tid: event.tid });
+            this.queue.pushWork(ctx, { messageId: message.id, tid: event.tid });
         }
     }
 
-    onItemUpdated = async (ctx: Context, event: FeedEvent, message: RichMessage) => {
+    onItemUpdated = (ctx: Context, event: FeedEvent, message: RichMessage) => {
         if (this.haveMentions(message)) {
-            await this.queue.pushWork(ctx, { messageId: message.id, tid: event.tid });
+            this.queue.pushWork(ctx, { messageId: message.id, tid: event.tid });
         }
     }
 

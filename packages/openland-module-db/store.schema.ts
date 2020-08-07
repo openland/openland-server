@@ -578,6 +578,7 @@ export default declareSchema(() => {
     //
 
     taskQueue('CommentAugmentation');
+    taskQueue('CommentNotificationDelivery');
     entity('Comment', () => {
         primaryKey('id', integer());
         field('peerId', integer());
@@ -666,6 +667,7 @@ export default declareSchema(() => {
     // Rich message
     //
     taskQueue('MessageAugmentation');
+    taskQueue('MessageMentionNotification');
     entity('RichMessage', () => {
         primaryKey('id', integer());
         field('uid', integer());
@@ -1514,6 +1516,12 @@ export default declareSchema(() => {
     //
     // Feed
     //
+
+    taskQueue('FeedAutoSubscription');
+    taskQueue('FeedAutoSubscriptionMultiple');
+    taskQueue('FeedDelivery');
+    taskQueue('FeedDeliveryMultiple');
+    taskQueue('FeedMentionNotification');
 
     entity('FeedSubscriber', () => {
         primaryKey('id', integer());

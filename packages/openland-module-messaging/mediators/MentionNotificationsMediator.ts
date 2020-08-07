@@ -1,19 +1,19 @@
 import { injectable } from 'inversify';
-import { WorkQueue } from '../../openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
 import { Context } from '@openland/context';
 import { Message } from '../../openland-module-db/store';
 import { Store } from '../../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { Modules } from 'openland-modules/Modules';
+import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 
 @injectable()
 export class MentionNotificationsMediator {
-    private readonly queue = new WorkQueue<{ messageId: number }>('conversation_message_mention_notifications_task');
+    private readonly queue = new BetterWorkerQueue<{ messageId: number }>(Store.MessageMentionNotificationQueue, { type: 'transactional', maxAttempts: 'infinite' });
 
     start = async () => {
         if (serverRoleEnabled('workers')) {
-            this.queue.addWorker(async (item, root) => {
+            this.queue.addWorkers(100, async (root, item) => {
                 return await inTx(root, async ctx => {
 
                     let message = await Store.Message.findById(ctx, item.messageId);
@@ -95,13 +95,13 @@ export class MentionNotificationsMediator {
 
     onNewMessage = async (ctx: Context, message: Message) => {
         if (this.haveMentions(message)) {
-            await this.queue.pushWork(ctx, {messageId: message.id});
+            this.queue.pushWork(ctx, { messageId: message.id });
         }
     }
 
     onMessageUpdated = async (ctx: Context, message: Message) => {
         if (this.haveMentions(message)) {
-            await this.queue.pushWork(ctx, {messageId: message.id});
+            this.queue.pushWork(ctx, { messageId: message.id });
         }
     }
 

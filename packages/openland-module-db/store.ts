@@ -22167,7 +22167,9 @@ export interface Store extends BaseStore {
     readonly DeliveryFanOutQueue: QueueStorage;
     readonly DeliveryUserBatchQueue: QueueStorage;
     readonly CommentAugmentationQueue: QueueStorage;
+    readonly CommentNotificationDeliveryQueue: QueueStorage;
     readonly MessageAugmentationQueue: QueueStorage;
+    readonly MessageMentionNotificationQueue: QueueStorage;
     readonly KitchenRouterCreateQueue: QueueStorage;
     readonly KitchenRouterDeleteQueue: QueueStorage;
     readonly KitchenTransportCreateQueue: QueueStorage;
@@ -22178,6 +22180,11 @@ export interface Store extends BaseStore {
     readonly KitchenConsumerCreateQueue: QueueStorage;
     readonly KitchenConsumerUnpauseQueue: QueueStorage;
     readonly KitchenConsumerDeleteQueue: QueueStorage;
+    readonly FeedAutoSubscriptionQueue: QueueStorage;
+    readonly FeedAutoSubscriptionMultipleQueue: QueueStorage;
+    readonly FeedDeliveryQueue: QueueStorage;
+    readonly FeedDeliveryMultipleQueue: QueueStorage;
+    readonly FeedMentionNotificationQueue: QueueStorage;
     readonly PushDeliveryQueue: QueueStorage;
     readonly PushFirebaseDeliveryQueue: QueueStorage;
     readonly PushAppleDeliveryQueue: QueueStorage;
@@ -22433,7 +22440,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let DeliveryFanOutQueuePromise = QueueStorage.open('DeliveryFanOut', storage);
     let DeliveryUserBatchQueuePromise = QueueStorage.open('DeliveryUserBatch', storage);
     let CommentAugmentationQueuePromise = QueueStorage.open('CommentAugmentation', storage);
+    let CommentNotificationDeliveryQueuePromise = QueueStorage.open('CommentNotificationDelivery', storage);
     let MessageAugmentationQueuePromise = QueueStorage.open('MessageAugmentation', storage);
+    let MessageMentionNotificationQueuePromise = QueueStorage.open('MessageMentionNotification', storage);
     let KitchenRouterCreateQueuePromise = QueueStorage.open('KitchenRouterCreate', storage);
     let KitchenRouterDeleteQueuePromise = QueueStorage.open('KitchenRouterDelete', storage);
     let KitchenTransportCreateQueuePromise = QueueStorage.open('KitchenTransportCreate', storage);
@@ -22444,6 +22453,11 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let KitchenConsumerCreateQueuePromise = QueueStorage.open('KitchenConsumerCreate', storage);
     let KitchenConsumerUnpauseQueuePromise = QueueStorage.open('KitchenConsumerUnpause', storage);
     let KitchenConsumerDeleteQueuePromise = QueueStorage.open('KitchenConsumerDelete', storage);
+    let FeedAutoSubscriptionQueuePromise = QueueStorage.open('FeedAutoSubscription', storage);
+    let FeedAutoSubscriptionMultipleQueuePromise = QueueStorage.open('FeedAutoSubscriptionMultiple', storage);
+    let FeedDeliveryQueuePromise = QueueStorage.open('FeedDelivery', storage);
+    let FeedDeliveryMultipleQueuePromise = QueueStorage.open('FeedDeliveryMultiple', storage);
+    let FeedMentionNotificationQueuePromise = QueueStorage.open('FeedMentionNotification', storage);
     let PushDeliveryQueuePromise = QueueStorage.open('PushDelivery', storage);
     let PushFirebaseDeliveryQueuePromise = QueueStorage.open('PushFirebaseDelivery', storage);
     let PushAppleDeliveryQueuePromise = QueueStorage.open('PushAppleDelivery', storage);
@@ -22663,7 +22677,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         DeliveryFanOutQueue: await DeliveryFanOutQueuePromise,
         DeliveryUserBatchQueue: await DeliveryUserBatchQueuePromise,
         CommentAugmentationQueue: await CommentAugmentationQueuePromise,
+        CommentNotificationDeliveryQueue: await CommentNotificationDeliveryQueuePromise,
         MessageAugmentationQueue: await MessageAugmentationQueuePromise,
+        MessageMentionNotificationQueue: await MessageMentionNotificationQueuePromise,
         KitchenRouterCreateQueue: await KitchenRouterCreateQueuePromise,
         KitchenRouterDeleteQueue: await KitchenRouterDeleteQueuePromise,
         KitchenTransportCreateQueue: await KitchenTransportCreateQueuePromise,
@@ -22674,6 +22690,11 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         KitchenConsumerCreateQueue: await KitchenConsumerCreateQueuePromise,
         KitchenConsumerUnpauseQueue: await KitchenConsumerUnpauseQueuePromise,
         KitchenConsumerDeleteQueue: await KitchenConsumerDeleteQueuePromise,
+        FeedAutoSubscriptionQueue: await FeedAutoSubscriptionQueuePromise,
+        FeedAutoSubscriptionMultipleQueue: await FeedAutoSubscriptionMultipleQueuePromise,
+        FeedDeliveryQueue: await FeedDeliveryQueuePromise,
+        FeedDeliveryMultipleQueue: await FeedDeliveryMultipleQueuePromise,
+        FeedMentionNotificationQueue: await FeedMentionNotificationQueuePromise,
         PushDeliveryQueue: await PushDeliveryQueuePromise,
         PushFirebaseDeliveryQueue: await PushFirebaseDeliveryQueuePromise,
         PushAppleDeliveryQueue: await PushAppleDeliveryQueuePromise,
