@@ -4,7 +4,7 @@ import { inTx } from '@openland/foundationdb';
 import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 
 export function declareConsumerDeleteWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
-    repo.consumerDeleteQueue.addWorker(async (args, parent) => {
+    repo.consumerDeleteQueue.addWorkers(100, async (parent, args) => {
         let r = await inTx(parent, async (ctx) => {
             let cr = await Store.KitchenConsumer.findById(ctx, args.id);
             if (!cr) {

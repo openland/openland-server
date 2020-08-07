@@ -1348,6 +1348,20 @@ export default declareSchema(() => {
     });
 
     //
+    // Kitchen Queue
+    //
+    taskQueue('KitchenRouterCreate');
+    taskQueue('KitchenRouterDelete');
+    taskQueue('KitchenTransportCreate');
+    taskQueue('KitchenTransportConnect');
+    taskQueue('KitchenTransportDelete');
+    taskQueue('KitchenProducerCreate');
+    taskQueue('KitchenProducerDelete');
+    taskQueue('KitchenConsumerCreate');
+    taskQueue('KitchenConsumerUnpause');
+    taskQueue('KitchenConsumerDelete');
+
+    //
     // Experience
     //
 

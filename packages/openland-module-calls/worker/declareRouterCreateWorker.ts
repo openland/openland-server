@@ -7,7 +7,7 @@ import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 const logger = createLogger('mediakitchen');
 
 export function declareRouterCreateWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
-    repo.routerCreateQueue.addWorker(async (args, parent) => {
+    repo.routerCreateQueue.addWorkers(100, async (parent, args) => {
 
         // Assign Worker
         let router = await inTx(parent, async (ctx) => {

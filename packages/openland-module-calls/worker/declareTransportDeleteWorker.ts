@@ -4,7 +4,7 @@ import { MediaKitchenService } from '../kitchen/MediaKitchenService';
 import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 
 export function declareTransportDeleteWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
-    repo.transportDeleteQueue.addWorker(async (args, parent) => {
+    repo.transportDeleteQueue.addWorkers(100, async (parent, args) => {
         let r = await inTx(parent, async (ctx) => {
             let ts = await Store.KitchenTransport.findById(ctx, args.id);
             if (!ts) {

@@ -5,7 +5,7 @@ import { MediaKitchenService } from '../kitchen/MediaKitchenService';
 
 export function declareRouterDeleteWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
     repo.
-        routerDeleteQueue.addWorker(async (args, parent) => {
+        routerDeleteQueue.addWorkers(10, async (parent, args) => {
             let router = await inTx(parent, async (ctx) => {
                 let r = await Store.KitchenRouter.findById(ctx, args.id);
                 if (!r) {

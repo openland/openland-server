@@ -6,12 +6,12 @@ import { createLogger } from '@openland/log';
 import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
-import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { injectable } from 'inversify';
 import { Worker } from 'mediakitchen';
 import uuid from 'uuid/v4';
 import { convertRtpCapabilitiesToStore, convertRtpParamsToStore } from 'openland-module-calls/kitchen/convert';
 import { pickClosest } from 'openland-utils/geo';
+import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 
 const logger = createLogger('mediakitchen');
 
@@ -19,22 +19,22 @@ const logger = createLogger('mediakitchen');
 export class MediaKitchenRepository {
 
     // Router tasks
-    readonly routerCreateQueue = new WorkQueue<{ id: string, ip: string | undefined }>('kitchen-router-create', -1);
-    readonly routerDeleteQueue = new WorkQueue<{ id: string }>('kitchen-router-delete', -1);
+    readonly routerCreateQueue = new BetterWorkerQueue<{ id: string, ip: string | undefined }>(Store.KitchenRouterCreateQueue, { maxAttempts: 'infinite', type: 'external' });
+    readonly routerDeleteQueue = new BetterWorkerQueue<{ id: string }>(Store.KitchenRouterDeleteQueue, { maxAttempts: 'infinite', type: 'external' });
 
     // Transport tasks
-    readonly transportCreateQueue = new WorkQueue<{ id: string }>('kitchen-transport-create', -1);
-    readonly transportConnectQueue = new WorkQueue<{ id: string }>('kitchen-transport-connect', -1);
-    readonly transportDeleteQueue = new WorkQueue<{ id: string }>('kitchen-transport-delete', -1);
+    readonly transportCreateQueue = new BetterWorkerQueue<{ id: string }>(Store.KitchenTransportCreateQueue, { maxAttempts: 'infinite', type: 'external' });
+    readonly transportConnectQueue = new BetterWorkerQueue<{ id: string }>(Store.KitchenTransportConnectQueue, { maxAttempts: 'infinite', type: 'external' });
+    readonly transportDeleteQueue = new BetterWorkerQueue<{ id: string }>(Store.KitchenTransportDeleteQueue, { maxAttempts: 'infinite', type: 'external' });
 
     // Producer tasks
-    readonly producerCreateQueue = new WorkQueue<{ id: string }>('kitchen-producer-create', -1);
-    readonly producerDeleteQueue = new WorkQueue<{ id: string }>('kitchen-producer-delete', -1);
+    readonly producerCreateQueue = new BetterWorkerQueue<{ id: string }>(Store.KitchenProducerCreateQueue, { maxAttempts: 'infinite', type: 'external' });
+    readonly producerDeleteQueue = new BetterWorkerQueue<{ id: string }>(Store.KitchenProducerDeleteQueue, { maxAttempts: 'infinite', type: 'external' });
 
     // Consumer tasks
-    readonly consumerCreateQueue = new WorkQueue<{ id: string }>('kitchen-consumer-create', -1);
-    readonly consumerUnpauseQueue = new WorkQueue<{ id: string }>('kitchen-consumer-unpause', -1);
-    readonly consumerDeleteQueue = new WorkQueue<{ id: string }>('kitchen-consumer-delete', -1);
+    readonly consumerCreateQueue = new BetterWorkerQueue<{ id: string }>(Store.KitchenConsumerCreateQueue, { maxAttempts: 'infinite', type: 'external' });
+    readonly consumerUnpauseQueue = new BetterWorkerQueue<{ id: string }>(Store.KitchenConsumerUnpauseQueue, { maxAttempts: 'infinite', type: 'external' });
+    readonly consumerDeleteQueue = new BetterWorkerQueue<{ id: string }>(Store.KitchenConsumerDeleteQueue, { maxAttempts: 'infinite', type: 'external' });
 
     @lazyInject('CallSchedulerKitchen')
     readonly scheduler!: CallSchedulerKitchen;
@@ -164,7 +164,7 @@ export class MediaKitchenRepository {
                 state: 'creating'
             });
             await this.onRouterCreating(ctx, id);
-            await this.routerCreateQueue.pushWork(ctx, { id, ip });
+            this.routerCreateQueue.pushWork(ctx, { id, ip });
             return id;
         });
     }
@@ -181,7 +181,7 @@ export class MediaKitchenRepository {
             router.state = 'deleting';
             await router.flush(ctx);
             await this.onRouterRemoving(ctx, id);
-            await this.routerDeleteQueue.pushWork(ctx, { id });
+            this.routerDeleteQueue.pushWork(ctx, { id });
         });
     }
 
@@ -204,7 +204,7 @@ export class MediaKitchenRepository {
             });
             await this.onTransportCreating(ctx, id);
             if (router.state !== 'creating') {
-                await this.transportCreateQueue.pushWork(ctx, { id });
+                this.transportCreateQueue.pushWork(ctx, { id });
             } else {
                 logger.log(ctx, 'Not scheduling transport creation: ' + id);
             }
@@ -226,7 +226,7 @@ export class MediaKitchenRepository {
             // Connect Transport if created
             if (transport.state === 'created') {
                 transport.state = 'connecting';
-                await this.transportConnectQueue.pushWork(ctx, { id: transportId });
+                this.transportConnectQueue.pushWork(ctx, { id: transportId });
             }
 
             await transport.flush(ctx);
@@ -245,7 +245,7 @@ export class MediaKitchenRepository {
             transport.state = 'deleting';
             await transport.flush(ctx);
             await this.onTransportRemoving(ctx, transportId);
-            await this.transportDeleteQueue.pushWork(ctx, { id: transportId });
+            this.transportDeleteQueue.pushWork(ctx, { id: transportId });
         });
     }
 
@@ -280,7 +280,7 @@ export class MediaKitchenRepository {
             });
             await this.onProducerCreating(ctx, transport.id, id);
             if (transport.state !== 'creating') {
-                await this.producerCreateQueue.pushWork(ctx, { id });
+                this.producerCreateQueue.pushWork(ctx, { id });
             }
             return id;
         });
@@ -297,7 +297,7 @@ export class MediaKitchenRepository {
             }
             producer.state = 'deleting';
             await this.onProducerRemoving(ctx, producer.transportId, producerId);
-            await this.producerDeleteQueue.pushWork(ctx, { id: producerId });
+            this.producerDeleteQueue.pushWork(ctx, { id: producerId });
         });
     }
 
@@ -339,7 +339,7 @@ export class MediaKitchenRepository {
             });
             await this.onConsumerCreating(ctx, transportId, id);
             if (producer.state !== 'creating' && transport.state !== 'creating') {
-                await this.consumerCreateQueue.pushWork(ctx, { id });
+                this.consumerCreateQueue.pushWork(ctx, { id });
             }
             return id;
         });
@@ -357,7 +357,7 @@ export class MediaKitchenRepository {
             if (consumer.state === 'deleted' || consumer.state === 'deleting') {
                 return;
             }
-            await this.consumerUnpauseQueue.pushWork(ctx, { id: consumerId });
+            this.consumerUnpauseQueue.pushWork(ctx, { id: consumerId });
         });
     }
 
@@ -371,7 +371,7 @@ export class MediaKitchenRepository {
                 return;
             }
             await this.onConsumerRemoving(ctx, consumer.transportId, consumerId);
-            await this.consumerDeleteQueue.pushWork(ctx, { id: consumerId });
+            this.consumerDeleteQueue.pushWork(ctx, { id: consumerId });
         });
     }
 
@@ -395,7 +395,7 @@ export class MediaKitchenRepository {
                 logger.log(ctx, 'Transport: ' + t.id);
                 if (t.state === 'creating') {
                     logger.log(ctx, 'Scheduling transport creation: ' + t.id);
-                    await this.transportCreateQueue.pushWork(ctx, { id: t.id });
+                    this.transportCreateQueue.pushWork(ctx, { id: t.id });
                 }
             }
         });
@@ -452,14 +452,14 @@ export class MediaKitchenRepository {
             // Connect if already have client parameters
             if (transport.clientParameters) {
                 transport.state = 'connecting';
-                await this.transportConnectQueue.pushWork(ctx, { id });
+                this.transportConnectQueue.pushWork(ctx, { id });
             }
 
             // Create producers
             let producers = await Store.KitchenProducer.transportActive.findAll(ctx, id);
             for (let p of producers) {
                 if (p.state === 'creating') {
-                    await this.producerCreateQueue.pushWork(ctx, { id: p.id });
+                    this.producerCreateQueue.pushWork(ctx, { id: p.id });
                 }
             }
 
@@ -469,7 +469,7 @@ export class MediaKitchenRepository {
                 if (p.state === 'creating') {
                     let producer = (await Store.KitchenProducer.findById(ctx, p.producerId))!;
                     if (producer.state === 'created') {
-                        await this.consumerCreateQueue.pushWork(ctx, { id: p.id });
+                        this.consumerCreateQueue.pushWork(ctx, { id: p.id });
                     }
                 }
             }

@@ -22166,6 +22166,16 @@ export interface Store extends BaseStore {
     readonly PhoneImportedByUserDirectory: Subspace;
     readonly DeliveryFanOutQueue: QueueStorage;
     readonly DeliveryUserBatchQueue: QueueStorage;
+    readonly KitchenRouterCreateQueue: QueueStorage;
+    readonly KitchenRouterDeleteQueue: QueueStorage;
+    readonly KitchenTransportCreateQueue: QueueStorage;
+    readonly KitchenTransportConnectQueue: QueueStorage;
+    readonly KitchenTransportDeleteQueue: QueueStorage;
+    readonly KitchenProducerCreateQueue: QueueStorage;
+    readonly KitchenProducerDeleteQueue: QueueStorage;
+    readonly KitchenConsumerCreateQueue: QueueStorage;
+    readonly KitchenConsumerUnpauseQueue: QueueStorage;
+    readonly KitchenConsumerDeleteQueue: QueueStorage;
     readonly PushDeliveryQueue: QueueStorage;
     readonly PushFirebaseDeliveryQueue: QueueStorage;
     readonly PushAppleDeliveryQueue: QueueStorage;
@@ -22420,6 +22430,16 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserContactsEventStorePromise = UserContactsEventStore.open(storage, eventFactory);
     let DeliveryFanOutQueuePromise = QueueStorage.open('DeliveryFanOut', storage);
     let DeliveryUserBatchQueuePromise = QueueStorage.open('DeliveryUserBatch', storage);
+    let KitchenRouterCreateQueuePromise = QueueStorage.open('KitchenRouterCreate', storage);
+    let KitchenRouterDeleteQueuePromise = QueueStorage.open('KitchenRouterDelete', storage);
+    let KitchenTransportCreateQueuePromise = QueueStorage.open('KitchenTransportCreate', storage);
+    let KitchenTransportConnectQueuePromise = QueueStorage.open('KitchenTransportConnect', storage);
+    let KitchenTransportDeleteQueuePromise = QueueStorage.open('KitchenTransportDelete', storage);
+    let KitchenProducerCreateQueuePromise = QueueStorage.open('KitchenProducerCreate', storage);
+    let KitchenProducerDeleteQueuePromise = QueueStorage.open('KitchenProducerDelete', storage);
+    let KitchenConsumerCreateQueuePromise = QueueStorage.open('KitchenConsumerCreate', storage);
+    let KitchenConsumerUnpauseQueuePromise = QueueStorage.open('KitchenConsumerUnpause', storage);
+    let KitchenConsumerDeleteQueuePromise = QueueStorage.open('KitchenConsumerDelete', storage);
     let PushDeliveryQueuePromise = QueueStorage.open('PushDelivery', storage);
     let PushFirebaseDeliveryQueuePromise = QueueStorage.open('PushFirebaseDelivery', storage);
     let PushAppleDeliveryQueuePromise = QueueStorage.open('PushAppleDelivery', storage);
@@ -22638,6 +22658,16 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserContactsEventStore: await UserContactsEventStorePromise,
         DeliveryFanOutQueue: await DeliveryFanOutQueuePromise,
         DeliveryUserBatchQueue: await DeliveryUserBatchQueuePromise,
+        KitchenRouterCreateQueue: await KitchenRouterCreateQueuePromise,
+        KitchenRouterDeleteQueue: await KitchenRouterDeleteQueuePromise,
+        KitchenTransportCreateQueue: await KitchenTransportCreateQueuePromise,
+        KitchenTransportConnectQueue: await KitchenTransportConnectQueuePromise,
+        KitchenTransportDeleteQueue: await KitchenTransportDeleteQueuePromise,
+        KitchenProducerCreateQueue: await KitchenProducerCreateQueuePromise,
+        KitchenProducerDeleteQueue: await KitchenProducerDeleteQueuePromise,
+        KitchenConsumerCreateQueue: await KitchenConsumerCreateQueuePromise,
+        KitchenConsumerUnpauseQueue: await KitchenConsumerUnpauseQueuePromise,
+        KitchenConsumerDeleteQueue: await KitchenConsumerDeleteQueuePromise,
         PushDeliveryQueue: await PushDeliveryQueuePromise,
         PushFirebaseDeliveryQueue: await PushFirebaseDeliveryQueuePromise,
         PushAppleDeliveryQueue: await PushAppleDeliveryQueuePromise,

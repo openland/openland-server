@@ -5,7 +5,7 @@ import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 import { convertRtpParamsToStore } from 'openland-module-calls/kitchen/convert';
 
 export function declareConsumerCreateWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
-    repo.consumerCreateQueue.addWorker(async (args, parent) => {
+    repo.consumerCreateQueue.addWorkers(100, async (parent, args) => {
         let r = await inTx(parent, async (ctx) => {
             let cr = await Store.KitchenConsumer.findById(ctx, args.id);
             if (!cr) {

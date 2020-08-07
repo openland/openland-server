@@ -4,7 +4,7 @@ import { inTx } from '@openland/foundationdb';
 import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 
 export function declareConsumerUnpauseWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
-    repo.consumerUnpauseQueue.addWorker(async (args, parent) => {
+    repo.consumerUnpauseQueue.addWorkers(100, async (parent, args) => {
         let r = await inTx(parent, async (ctx) => {
             let cr = await Store.KitchenConsumer.findById(ctx, args.id);
             if (!cr) {
