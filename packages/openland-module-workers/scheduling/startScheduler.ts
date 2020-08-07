@@ -22,7 +22,7 @@ export function startScheduler() {
                     return null;
                 }
                 return await inTx(root, async (ctx) => {
-                    return await WorkQueueRepository.open(root, Store.storage.db);
+                    return await WorkQueueRepository.open(ctx, Store.storage.db);
                 });
             });
             if (stopped) {
