@@ -85,7 +85,7 @@ const handleUser = async (ctx: Context, uid: number) => {
     // ].sort(Buffer.compare);
     // let after = cursors[cursors.length - 1].toString('base64');
     let after = state.lastEmailCursor || '';
-    let updates = await eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: after });
+    let updates = await eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: after, limit: 25 });
     let messages = updates.items.filter(e => e.event instanceof UserDialogMessageReceivedEvent).map(e => e.event as UserDialogMessageReceivedEvent);
 
     let hasNonMuted = false;
