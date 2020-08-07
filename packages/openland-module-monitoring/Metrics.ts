@@ -45,8 +45,8 @@ export const Metrics = {
 
     WorkerAttemptFrequence: Factory.createTaggedFrequencyGauge('worker_attempts', 'Frequency of delivery attempts'),
     WorkerSuccessFrequence: Factory.createTaggedFrequencyGauge('worker_success', 'Frequency of delivery success'),
-    WorkerAcquire: Factory.createTaggedSummary('delivery_acquire', 'Summary of acquire duration', DEFAULT_QUANTILES),
-    WorkerExecute: Factory.createTaggedSummary('delivery_execute', 'Summary of execute duration', DEFAULT_QUANTILES),
+    WorkerAcquire: Factory.createTaggedSummary('worker_acquire', 'Summary of acquire duration', DEFAULT_QUANTILES),
+    WorkerExecute: Factory.createTaggedSummary('worker_execute', 'Summary of execute duration', DEFAULT_QUANTILES),
 
     //
     // Delivery
@@ -61,6 +61,9 @@ export const Metrics = {
     DeliveryCompleted: Factory.createPersistedGauge('delivery_completed', 'How many delivety tasks are completed', async (ctx) => {
         return await Modules.Messaging.delivery.queueUserMultipe.getCompleted(ctx);
     }),
+    DeliveryPending: Factory.createPersistedGauge('delivery_pending', 'How many delivety tasks are pending', async (ctx) => {
+        return (await Modules.Messaging.delivery.queueUserMultipe.getTotal(ctx)) - (await Modules.Messaging.delivery.queueUserMultipe.getCompleted(ctx));
+    }),
 
     DeliveryFanOutActive: Factory.createPersistedGauge('delivery_active_fan_out', 'How many delivety fan out tasks are active', async (ctx) => {
         return await Modules.Messaging.delivery.queueFanOut.getActive(ctx);
@@ -68,8 +71,6 @@ export const Metrics = {
     DeliveryFanOutTotal: Factory.createPersistedGauge('delivery_total_fan_out', 'How many delivety fan out tasks are created', async (ctx) => {
         return await Modules.Messaging.delivery.queueFanOut.getTotal(ctx);
     }),
-    DeliveryAttemptFrequence: Factory.createTaggedFrequencyGauge('delivery_attempts', 'Frequency of delivery attempts'),
-    DeliverySuccessFrequence: Factory.createTaggedFrequencyGauge('delivery_success', 'Frequency of delivery success'),
 
     //
     // EventBus

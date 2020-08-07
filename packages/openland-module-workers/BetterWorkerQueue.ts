@@ -153,7 +153,9 @@ export class BetterWorkerQueue<ARGS> {
                 (async () => {
                     let startEx = currentRunningTime();
                     try {
+                        Metrics.WorkerAttemptFrequence.inc(this.queue.name);
                         await this.doWork(rootExec, taskId, seed, handler);
+                        Metrics.WorkerSuccessFrequence.inc(this.queue.name);
                     } catch (e) {
                         log.error(rootExec, e);
                     } finally {
