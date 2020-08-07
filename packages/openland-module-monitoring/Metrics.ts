@@ -11,6 +11,7 @@ export const Metrics = {
 
     // FDB
     FDBErrors: Factory.createTaggedFrequencyGauge('fdb_errors', 'Frequence of various errors'),
+    FDBTooOldErrors: Factory.createTaggedFrequencyGauge('fdb_too_old', 'Frequence of too old transaction errors'),
 
     // SpaceX
     WebSocketConnections: Factory.createMachineGauge('connections', 'Active WebSocket connections'),
