@@ -332,7 +332,7 @@ export class DistributedCollector {
                 res.push('# HELP ' + gauge.name + ' ' + gauge.description);
                 res.push('# TYPE ' + gauge.name + ' gauge');
                 for (let r of resolved) {
-                    res.push(gauge.name + `{tag='${r.tag}'} ` + r.value);
+                    res.push(gauge.name + `{tag="${r.tag}"} ` + r.value);
                 }
             }
         });
