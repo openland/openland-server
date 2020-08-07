@@ -154,7 +154,7 @@ const handleUser = async (ctx: Context, uid: number) => {
 
 export function startEmailNotificationWorker() {
     singletonWorker({ name: 'email_notifications', delay: 60 * 1000, startDelay: 3000, db: Store.storage.db }, async (parent) => {
-        let unreadUsers = await inTx(parent, async (ctx) => await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'email'));
+        let unreadUsers = await inTx(parent, async (ctx) => await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'email', 5000));
         if (unreadUsers.length > 0) {
             log.debug(parent, 'unread users: ' + unreadUsers.length);
         } else {
