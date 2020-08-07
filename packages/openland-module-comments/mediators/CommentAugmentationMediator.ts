@@ -1,5 +1,4 @@
 import { Comment } from './../../openland-module-db/store';
-import { WorkQueue } from '../../openland-module-workers/WorkQueue';
 import { injectable } from 'inversify';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { serverRoleEnabled } from '../../openland-utils/serverRoleEnabled';
@@ -10,12 +9,13 @@ import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstanc
 import { Context } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 import * as URL from 'url';
+import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 
 const linkifyInstance = createLinkifyInstance();
 
 @injectable()
 export class CommentAugmentationMediator {
-    private readonly queue = new WorkQueue<{ commentId: number }>('comment_augmentation_task');
+    private readonly queue = new BetterWorkerQueue<{ commentId: number }>(Store.CommentAugmentationQueue, { type: 'external', maxAttempts: 3 });
 
     @lazyInject('CommentsRepository') private readonly comments!: CommentsRepository;
 
@@ -29,7 +29,7 @@ export class CommentAugmentationMediator {
 
         if (serverRoleEnabled('workers')) {
             let service = createUrlInfoService();
-            this.queue.addWorker(async (item, ctx) => {
+            this.queue.addWorkers(100, async (ctx, item) => {
                 let message = await Store.Comment.findById(ctx, item.commentId);
 
                 if (!message || !message.text) {
@@ -124,6 +124,6 @@ export class CommentAugmentationMediator {
 
         return urls
             .filter(u => u.url.startsWith('http:') || u.url.startsWith('https:'))
-            .map(u => ({...u, url: URL.parse(u.url).href!}));
+            .map(u => ({ ...u, url: URL.parse(u.url).href! }));
     }
 }

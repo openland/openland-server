@@ -22166,6 +22166,8 @@ export interface Store extends BaseStore {
     readonly PhoneImportedByUserDirectory: Subspace;
     readonly DeliveryFanOutQueue: QueueStorage;
     readonly DeliveryUserBatchQueue: QueueStorage;
+    readonly CommentAugmentationQueue: QueueStorage;
+    readonly MessageAugmentationQueue: QueueStorage;
     readonly KitchenRouterCreateQueue: QueueStorage;
     readonly KitchenRouterDeleteQueue: QueueStorage;
     readonly KitchenTransportCreateQueue: QueueStorage;
@@ -22430,6 +22432,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserContactsEventStorePromise = UserContactsEventStore.open(storage, eventFactory);
     let DeliveryFanOutQueuePromise = QueueStorage.open('DeliveryFanOut', storage);
     let DeliveryUserBatchQueuePromise = QueueStorage.open('DeliveryUserBatch', storage);
+    let CommentAugmentationQueuePromise = QueueStorage.open('CommentAugmentation', storage);
+    let MessageAugmentationQueuePromise = QueueStorage.open('MessageAugmentation', storage);
     let KitchenRouterCreateQueuePromise = QueueStorage.open('KitchenRouterCreate', storage);
     let KitchenRouterDeleteQueuePromise = QueueStorage.open('KitchenRouterDelete', storage);
     let KitchenTransportCreateQueuePromise = QueueStorage.open('KitchenTransportCreate', storage);
@@ -22658,6 +22662,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserContactsEventStore: await UserContactsEventStorePromise,
         DeliveryFanOutQueue: await DeliveryFanOutQueuePromise,
         DeliveryUserBatchQueue: await DeliveryUserBatchQueuePromise,
+        CommentAugmentationQueue: await CommentAugmentationQueuePromise,
+        MessageAugmentationQueue: await MessageAugmentationQueuePromise,
         KitchenRouterCreateQueue: await KitchenRouterCreateQueuePromise,
         KitchenRouterDeleteQueue: await KitchenRouterDeleteQueuePromise,
         KitchenTransportCreateQueue: await KitchenTransportCreateQueuePromise,

@@ -577,6 +577,7 @@ export default declareSchema(() => {
     // Comments
     //
 
+    taskQueue('CommentAugmentation');
     entity('Comment', () => {
         primaryKey('id', integer());
         field('peerId', integer());
@@ -664,7 +665,7 @@ export default declareSchema(() => {
     //
     // Rich message
     //
-
+    taskQueue('MessageAugmentation');
     entity('RichMessage', () => {
         primaryKey('id', integer());
         field('uid', integer());

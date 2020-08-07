@@ -143,7 +143,7 @@ export class MessagingMediator {
 
             if (!msg.ignoreAugmentation) {
                 // Augment
-                await this.augmentation.onNewMessage(ctx, res.message);
+                this.augmentation.onNewMessage(ctx, res.message);
             }
 
             // Cancel typings
@@ -227,7 +227,7 @@ export class MessagingMediator {
 
             if (!newMessage.ignoreAugmentation) {
                 // Augment
-                await this.augmentation.onMessageUpdated(ctx, message);
+                this.augmentation.onMessageUpdated(ctx, message);
             }
 
             return res;

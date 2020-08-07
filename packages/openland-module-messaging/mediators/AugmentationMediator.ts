@@ -1,5 +1,4 @@
 import { injectable } from 'inversify';
-import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { createUrlInfoService } from 'openland-module-messaging/workers/UrlInfoService';
 import { MessagingRepository } from 'openland-module-messaging/repositories/MessagingRepository';
@@ -11,12 +10,13 @@ import { Store } from 'openland-module-db/FDB';
 import { Message } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import * as URL from 'url';
+import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 
 const linkifyInstance = createLinkifyInstance();
 
 @injectable()
 export class AugmentationMediator {
-    private readonly queue = new WorkQueue<{ messageId: number }>('conversation_message_task');
+    private readonly queue = new BetterWorkerQueue<{ messageId: number }>(Store.MessageAugmentationQueue, { type: 'external', maxAttempts: 3 });
 
     @lazyInject('MessagingRepository') private readonly messaging!: MessagingRepository;
 
@@ -30,7 +30,7 @@ export class AugmentationMediator {
 
         if (serverRoleEnabled('workers')) {
             let service = createUrlInfoService();
-            this.queue.addWorker(async (item, root) => {
+            this.queue.addWorkers(100, async (root, item) => {
                 let message = await inTx(root, async ctx => await Store.Message.findById(ctx, item.messageId));
 
                 if (!message || !message.text) {
@@ -116,15 +116,15 @@ export class AugmentationMediator {
         }
     }
 
-    onNewMessage = async (ctx: Context, message: Message) => {
+    onNewMessage = (ctx: Context, message: Message) => {
         if (this.resolveLinks(message).length > 0) {
-            await this.queue.pushWork(ctx, { messageId: message.id });
+            this.queue.pushWork(ctx, { messageId: message.id });
         }
     }
 
-    onMessageUpdated = async (ctx: Context, message: Message) => {
+    onMessageUpdated = (ctx: Context, message: Message) => {
         if (this.resolveLinks(message).length > 0) {
-            await this.queue.pushWork(ctx, { messageId: message.id });
+            this.queue.pushWork(ctx, { messageId: message.id });
         }
     }
 
@@ -140,6 +140,6 @@ export class AugmentationMediator {
 
         return urls
             .filter(u => u.url.startsWith('http:') || u.url.startsWith('https:'))
-            .map(u => ({...u, url: URL.parse(u.url).href!}));
+            .map(u => ({ ...u, url: URL.parse(u.url).href! }));
     }
 }
