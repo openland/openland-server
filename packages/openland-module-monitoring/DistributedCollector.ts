@@ -1,3 +1,4 @@
+import { PersistedTaggedGauge } from './PersistedTaggedGauge';
 import { DistributedTaggedGauge } from './DistributedTaggedGauge';
 import { DistributedTaggedSummary } from './DistributedTaggedSummary';
 import { DistributedSummary } from './DistributedSummary';
@@ -220,6 +221,7 @@ export class DistributedCollector {
     #summaryCollectors = new Map<string, SummaryCollector>();
     #summaryTaggedCollectors = new Map<string, SummaryTaggedCollector>();
     #persistedGauges = new Map<string, PersistedGauge>();
+    #persistedTaggedGauges = new Map<string, PersistedTaggedGauge>();
 
     constructor(factory: MetricFactory) {
         this.#factory = factory;
@@ -240,6 +242,9 @@ export class DistributedCollector {
         }
         for (let persisted of metrics.persistedGauges) {
             this.#persistedGauges.set(persisted.name, persisted);
+        }
+        for (let persisted of metrics.persistedTaggedGauges) {
+            this.#persistedTaggedGauges.set(persisted.name, persisted);
         }
     }
 
@@ -295,23 +300,41 @@ export class DistributedCollector {
         }
 
         // Persisted gauges
-        if (this.#persistedGauges.size > 0) {
+        for (let gauge of this.#persistedGauges.values()) {
             await inTx(ctx, async (tx) => {
-                for (let gauge of this.#persistedGauges.values()) {
-                    let resolved: number;
-                    try {
-                        resolved = await gauge.query(tx);
-                    } catch (e) {
-                        logger.warn(ctx, 'Unable to receive gauge value for ' + gauge.name + '. Skipping reporting.');
-                        logger.warn(ctx, e);
-                        continue;
-                    }
-                    res.push('# HELP ' + gauge.name + ' ' + gauge.description);
-                    res.push('# TYPE ' + gauge.name + ' gauge');
-                    res.push(gauge.name + ' ' + resolved);
+                let resolved: number;
+                try {
+                    resolved = await gauge.query(tx);
+                } catch (e) {
+                    logger.warn(ctx, 'Unable to receive gauge value for ' + gauge.name + '. Skipping reporting.');
+                    logger.warn(ctx, e);
+                    return;
+                }
+                res.push('# HELP ' + gauge.name + ' ' + gauge.description);
+                res.push('# TYPE ' + gauge.name + ' gauge');
+                res.push(gauge.name + ' ' + resolved);
+            });
+        }
+
+        // Persisted tagged
+        for (let gauge of this.#persistedTaggedGauges.values()) {
+            await inTx(ctx, async (tx) => {
+                let resolved: { tag: string, value: number }[];
+                try {
+                    resolved = await gauge.query(tx);
+                } catch (e) {
+                    logger.warn(ctx, 'Unable to receive gauge value for ' + gauge.name + '. Skipping reporting.');
+                    logger.warn(ctx, e);
+                    return;
+                }
+                res.push('# HELP ' + gauge.name + ' ' + gauge.description);
+                res.push('# TYPE ' + gauge.name + ' gauge');
+                for (let r of resolved) {
+                    res.push(gauge.name + `{tag='${r.tag}'} ` + r.value);
                 }
             });
         }
+
         return res.join('\n');
     }
 

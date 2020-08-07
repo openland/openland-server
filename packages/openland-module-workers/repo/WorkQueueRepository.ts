@@ -1,6 +1,6 @@
 import uuid from 'uuid/v4';
 import { Context } from '@openland/context';
-import { Subspace, encoders, getTransaction, TransactionCache, TupleItem } from '@openland/foundationdb';
+import { Subspace, encoders, getTransaction, TransactionCache, TupleItem, Database, inTx } from '@openland/foundationdb';
 
 const PREFIX_PENDING = Buffer.from([0x01]);
 const PREFIX_ACTIVE = Buffer.from([0x02]);
@@ -18,7 +18,18 @@ const workIndexCache = new TransactionCache<number>('work-queue-cache');
 
 export class WorkQueueRepository {
 
-    readonly subspace: Subspace;
+    static async open(parent: Context, db: Database) {
+        let dirs = await inTx(parent, async (ctx) => {
+            let registryDirectory = (await db.directories.createOrOpen(ctx, ['com.openland.tasks', 'registry']));
+            let tasksDirectory = (await db.directories.createOrOpen(ctx, ['com.openland.tasks', 'tasks']));
+            return { registryDirectory, tasksDirectory };
+        });
+        return new WorkQueueRepository(db, dirs.tasksDirectory, dirs.registryDirectory);
+    }
+
+    readonly db: Database;
+    private readonly tasksSubspace: Subspace;
+    private readonly registrySubspace: Subspace<TupleItem[], number>;
     private readonly argumentsSubspace: Subspace;
     private readonly pendingSubspace: Subspace;
     private readonly activeSubspace: Subspace;
@@ -26,19 +37,23 @@ export class WorkQueueRepository {
     private readonly failuresSubspace: Subspace;
     private readonly statsSubspace: Subspace<TupleItem[], number>;
 
-    constructor(subspace: Subspace) {
-        this.subspace = subspace;
-        this.pendingSubspace = this.subspace
+    constructor(db: Database, tasksSubspace: Subspace, registrySubspace: Subspace) {
+        this.db = db;
+        this.tasksSubspace = tasksSubspace;
+        this.registrySubspace = registrySubspace
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.int32LE);
+        this.pendingSubspace = this.tasksSubspace
             .subspace(encoders.tuple.pack([PREFIX_PENDING]));
-        this.activeSubspace = this.subspace
+        this.activeSubspace = this.tasksSubspace
             .subspace(encoders.tuple.pack([PREFIX_ACTIVE]));
-        this.timeoutSubspace = this.subspace
+        this.timeoutSubspace = this.tasksSubspace
             .subspace(encoders.tuple.pack([PREFIX_TIMEOUTS]));
-        this.argumentsSubspace = this.subspace
+        this.argumentsSubspace = this.tasksSubspace
             .subspace(encoders.tuple.pack([PREFIX_ARGUMENTS]));
-        this.failuresSubspace = this.subspace
+        this.failuresSubspace = this.tasksSubspace
             .subspace(encoders.tuple.pack([PREFIX_FAILURES]));
-        this.statsSubspace = this.subspace
+        this.statsSubspace = this.tasksSubspace
             .subspace(encoders.tuple.pack([PREFIX_STATS]))
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.int32LE);
@@ -58,6 +73,35 @@ export class WorkQueueRepository {
 
     getFailures = async (ctx: Context, kind: number) => {
         return (await this.statsSubspace.get(ctx, [STATS_FAILURES, kind])) || 0;
+    }
+
+    resolveQueueId = async (parent: Context, name: string) => {
+        return await inTx(parent, async (ctx) => {
+            let id: number;
+            let existing = await this.registrySubspace.get(ctx, [name]);
+            if (!existing) {
+                let lastCounter = (await this.registrySubspace.get(ctx, [])) || 0;
+                let newValue = ++lastCounter;
+                this.registrySubspace.set(ctx, [], newValue);
+                this.registrySubspace.set(ctx, [name], newValue);
+                id = newValue;
+            } else {
+                id = existing;
+            }
+            return id;
+        });
+    }
+
+    listQueues = async (ctx: Context) => {
+        let allItems = await this.registrySubspace.range(ctx, []);
+        let res: { name: string, id: number }[] = [];
+        for (let q of allItems) {
+            if (q.key.length === 0 || q.value === 0) {
+                continue;
+            }
+            res.push({ name: q.key[0] as string, id: q.value });
+        }
+        return res;
     }
 
     pushWork = (ctx: Context, kind: number, args: any, maxAttempts: number | 'infinite') => {
@@ -103,7 +147,7 @@ export class WorkQueueRepository {
 
         let res: Buffer[] = [];
 
-        let tx = getTransaction(ctx).rawTransaction(this.subspace.db);
+        let tx = getTransaction(ctx).rawTransaction(this.tasksSubspace.db);
 
         // Read required number of work items
         let read = await this.pendingSubspace.snapshotRange(ctx, encoders.tuple.pack([kind]), { limit: limit });
@@ -190,7 +234,7 @@ export class WorkQueueRepository {
     }
 
     rescheduleTasks = async (ctx: Context, now: number) => {
-        let tx = getTransaction(ctx).rawTransaction(this.subspace.db);
+        let tx = getTransaction(ctx).rawTransaction(this.tasksSubspace.db);
         let expired = await this.timeoutSubspace.snapshotRange(ctx, ZERO, { limit: 100, after: encoders.tuple.pack([now]), reverse: true });
 
         for (let exp of expired) {

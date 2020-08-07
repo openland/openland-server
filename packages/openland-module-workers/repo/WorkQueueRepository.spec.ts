@@ -6,8 +6,7 @@ describe('WorkQueueRepository', () => {
     it('should schedule work', async () => {
         let root = createNamedContext('test');
         let db = await Database.openTest();
-        let directory = await db.directories.createOrOpen(root, ['tasks']);
-        let repo = new WorkQueueRepository(directory);
+        let repo = await WorkQueueRepository.open(root, db);
 
         // Create taks
         await inTx(root, async (ctx) => {

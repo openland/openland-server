@@ -1,3 +1,4 @@
+import { PersistedTaggedGauge } from './PersistedTaggedGauge';
 import { DistributedTaggedMachineGauge } from './DistributedTaggedMachineGauge';
 import { DistributedTaggedGauge } from './DistributedTaggedGauge';
 import { DistributedTaggedSummary } from './DistributedTaggedSummary';
@@ -15,6 +16,7 @@ export class MetricFactory {
     #gauges = new Map<string, DistributedGauge>();
     #gaugesTagged = new Map<string, DistributedTaggedGauge>();
     #persistedGauges = new Map<string, PersistedGauge>();
+    #persistedTaggedGauges = new Map<string, PersistedTaggedGauge>();
     #summaries = new Map<string, DistributedSummary>();
     #summariesTagged = new Map<string, DistributedTaggedSummary>();
 
@@ -29,6 +31,7 @@ export class MetricFactory {
             gauges: [...this.#gauges.values()],
             gaugesTagged: [...this.#gaugesTagged.values()],
             persistedGauges: [...this.#persistedGauges.values()],
+            persistedTaggedGauges: [...this.#persistedTaggedGauges.values()],
             summaries: [...this.#summaries.values()],
             summariesTagged: [...this.#summariesTagged.values()]
         };
@@ -83,6 +86,13 @@ export class MetricFactory {
         return res;
     }
 
+    createPersistedTaggedGauge = (name: string, description: string, query: (ctx: Context) => Promise<{ tag: string, value: number }[]>) => {
+        this.#checkName(name);
+        let res = new PersistedTaggedGauge(name, description, query);
+        this.#persistedTaggedGauges.set(name, res);
+        return res;
+    }
+
     createSummary = (name: string, description: string, quantiles: number[]) => {
         this.#checkName(name);
         let res = new DistributedSummary(name, description, quantiles);
@@ -113,7 +123,7 @@ export class MetricFactory {
     }
 
     #checkName = (name: string) => {
-        if (this.#gauges.has(name) || this.#persistedGauges.has(name) || this.#summaries.has(name) || this.#summariesTagged.has(name) || this.#gaugesTagged.has(name)) {
+        if (this.#gauges.has(name) || this.#persistedGauges.has(name) || this.#persistedTaggedGauges.has(name) || this.#summaries.has(name) || this.#summariesTagged.has(name) || this.#gaugesTagged.has(name)) {
             throw Error('Name already used');
         }
     }

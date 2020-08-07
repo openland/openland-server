@@ -17,30 +17,27 @@ export function startScheduler() {
         try {
 
             // Load directory
-            let directory = await backoff(root, async () => {
+            let repo = await backoff(root, async () => {
                 if (stopped) {
                     return null;
                 }
                 return await inTx(root, async (ctx) => {
-                    return (await Store.storage.db.directories.createOrOpen(ctx, ['com.openland.tasks', 'tasks']));
+                    return await WorkQueueRepository.open(root, Store.storage.db);
                 });
             });
             if (stopped) {
                 return;
             }
-            if (!directory) {
+            if (!repo) {
                 return;
             }
-
-            // Create repo
-            let repo = new WorkQueueRepository(directory);
 
             // Refresh loop
             while (!stopped) {
                 await delay(1000);
                 await backoff(root, async () => {
                     await inTx(root, async (ctx) => {
-                        await repo.rescheduleTasks(ctx, Date.now());
+                        await repo!.rescheduleTasks(ctx, Date.now());
                     });
                 });
             }

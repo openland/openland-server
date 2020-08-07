@@ -1,3 +1,4 @@
+import { WorkQueueRepository } from './../openland-module-workers/repo/WorkQueueRepository';
 import { Store } from 'openland-module-db/FDB';
 import { MetricFactory } from './MetricFactory';
 import { Modules } from '../openland-modules/Modules';
@@ -47,29 +48,50 @@ export const Metrics = {
     WorkerSuccessFrequence: Factory.createTaggedFrequencyGauge('worker_success', 'Frequency of delivery success'),
     WorkerAcquire: Factory.createTaggedSummary('worker_acquire', 'Summary of acquire duration', DEFAULT_QUANTILES),
     WorkerExecute: Factory.createTaggedSummary('worker_execute', 'Summary of execute duration', DEFAULT_QUANTILES),
-
-    //
-    // Delivery
-    //
-
-    DeliveryActive: Factory.createPersistedGauge('delivery_active', 'How many delivety tasks are active', async (ctx) => {
-        return await Modules.Messaging.delivery.queueUserMultipe.getActive(ctx);
+    WorkerTotal: Factory.createPersistedTaggedGauge('worker_total', 'Total tasks per kind', async (ctx) => {
+        let repo = await WorkQueueRepository.open(ctx, Store.storage.db);
+        let queues = await repo.listQueues(ctx);
+        let res: { tag: string, value: number }[] = [];
+        for (let w of queues) {
+            res.push({ tag: w.name, value: await repo.getTotal(ctx, w.id) });
+        }
+        return res;
     }),
-    DeliveryTotal: Factory.createPersistedGauge('delivery_total', 'How many delivety tasks are created', async (ctx) => {
-        return await Modules.Messaging.delivery.queueUserMultipe.getTotal(ctx);
+    WorkerCompleted: Factory.createPersistedTaggedGauge('worker_completed', 'Completed tasks per kind', async (ctx) => {
+        let repo = await WorkQueueRepository.open(ctx, Store.storage.db);
+        let queues = await repo.listQueues(ctx);
+        let res: { tag: string, value: number }[] = [];
+        for (let w of queues) {
+            res.push({ tag: w.name, value: await repo.getCompleted(ctx, w.id) });
+        }
+        return res;
     }),
-    DeliveryCompleted: Factory.createPersistedGauge('delivery_completed', 'How many delivety tasks are completed', async (ctx) => {
-        return await Modules.Messaging.delivery.queueUserMultipe.getCompleted(ctx);
+    WorkerFailures: Factory.createPersistedTaggedGauge('worker_failures', 'Failed tasks per kind', async (ctx) => {
+        let repo = await WorkQueueRepository.open(ctx, Store.storage.db);
+        let queues = await repo.listQueues(ctx);
+        let res: { tag: string, value: number }[] = [];
+        for (let w of queues) {
+            res.push({ tag: w.name, value: await repo.getFailures(ctx, w.id) });
+        }
+        return res;
     }),
-    DeliveryPending: Factory.createPersistedGauge('delivery_pending', 'How many delivety tasks are pending', async (ctx) => {
-        return (await Modules.Messaging.delivery.queueUserMultipe.getTotal(ctx)) - (await Modules.Messaging.delivery.queueUserMultipe.getCompleted(ctx));
+    WorkerActive: Factory.createPersistedTaggedGauge('worker_active', 'Active tasks per kind', async (ctx) => {
+        let repo = await WorkQueueRepository.open(ctx, Store.storage.db);
+        let queues = await repo.listQueues(ctx);
+        let res: { tag: string, value: number }[] = [];
+        for (let w of queues) {
+            res.push({ tag: w.name, value: await repo.getActive(ctx, w.id) });
+        }
+        return res;
     }),
-
-    DeliveryFanOutActive: Factory.createPersistedGauge('delivery_active_fan_out', 'How many delivety fan out tasks are active', async (ctx) => {
-        return await Modules.Messaging.delivery.queueFanOut.getActive(ctx);
-    }),
-    DeliveryFanOutTotal: Factory.createPersistedGauge('delivery_total_fan_out', 'How many delivety fan out tasks are created', async (ctx) => {
-        return await Modules.Messaging.delivery.queueFanOut.getTotal(ctx);
+    WorkerPending: Factory.createPersistedTaggedGauge('worker_pending', 'Pending tasks per kind', async (ctx) => {
+        let repo = await WorkQueueRepository.open(ctx, Store.storage.db);
+        let queues = await repo.listQueues(ctx);
+        let res: { tag: string, value: number }[] = [];
+        for (let w of queues) {
+            res.push({ tag: w.name, value: (await repo.getTotal(ctx, w.id)) - (await repo.getCompleted(ctx, w.id)) });
+        }
+        return res;
     }),
 
     //
