@@ -446,6 +446,9 @@ export class EventsStorage {
             this.feedsDirectory.addReadConflictKey(ctx, jumboKey);
             this.feedsDirectory.set(ctx, jumboKey, ZERO);
 
+            // Mark subscribers count as read conflict
+            this.feedsDirectory.addReadConflictKey(ctx, encoders.tuple.pack([id, FEED_SETTINGS, FEED_SETTINGS_SUBSCRIBERS_COUNT]));
+
             // Upgrade subscribers
             for (let subscriber of settings.subscribers) {
                 this.subscribersDirectory.set(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_SUBSCRIPTIONS, id, SUBSCRIBERS_SUBSCRIPTIONS_JUMBO]), ZERO);
