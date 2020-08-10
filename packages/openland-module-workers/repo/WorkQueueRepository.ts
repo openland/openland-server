@@ -8,11 +8,13 @@ const PREFIX_TIMEOUTS = Buffer.from([0x03]);
 const PREFIX_ARGUMENTS = Buffer.from([0x04]);
 const PREFIX_FAILURES = Buffer.from([0x05]);
 const PREFIX_STATS = Buffer.from([0x06]);
+const PREFIX_PENDING_DELAYED = Buffer.from([0x07]);
 const ZERO = Buffer.alloc(0);
 const STATS_TOTAL = 0;
 const STATS_ACTIVE = 1;
 const STATS_FAILURES = 2;
 const STATS_COMPLETED = 3;
+const STATS_SCHEDULED = 4;
 
 const workIndexCache = new TransactionCache<number>('work-queue-cache');
 
@@ -32,6 +34,7 @@ export class WorkQueueRepository {
     private readonly registrySubspace: Subspace<TupleItem[], number>;
     private readonly argumentsSubspace: Subspace;
     private readonly pendingSubspace: Subspace;
+    private readonly pendingDelayedSubspace: Subspace;
     private readonly activeSubspace: Subspace;
     private readonly timeoutSubspace: Subspace;
     private readonly failuresSubspace: Subspace;
@@ -57,6 +60,8 @@ export class WorkQueueRepository {
             .subspace(encoders.tuple.pack([PREFIX_STATS]))
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.int32LE);
+        this.pendingDelayedSubspace = this.tasksSubspace
+            .subspace(encoders.tuple.pack([PREFIX_PENDING_DELAYED]));
     }
 
     getTotal = async (ctx: Context, kind: number) => {
@@ -73,6 +78,10 @@ export class WorkQueueRepository {
 
     getFailures = async (ctx: Context, kind: number) => {
         return (await this.statsSubspace.get(ctx, [STATS_FAILURES, kind])) || 0;
+    }
+
+    getScheduled = async (ctx: Context, kind: number) => {
+        return (await this.statsSubspace.get(ctx, [STATS_SCHEDULED, kind])) || 0;
     }
 
     resolveQueueId = async (parent: Context, name: string) => {
@@ -104,7 +113,7 @@ export class WorkQueueRepository {
         return res;
     }
 
-    pushWork = (ctx: Context, kind: number, args: any, maxAttempts: number | 'infinite') => {
+    pushWork = (ctx: Context, kind: number, args: any, maxAttempts: number | 'infinite', startAt?: number) => {
 
         // Generate ID
         let id = Buffer.alloc(16);
@@ -117,8 +126,15 @@ export class WorkQueueRepository {
         // Pack arguments
         let argsBuff = encoders.json.pack(args);
 
-        // Save to pending list
-        this.pendingSubspace.setVersionstampedKey(ctx, encoders.tuple.pack([kind]), id, encoders.tuple.pack([ex]));
+        if (!startAt) {
+            // Save to pending list
+            this.pendingSubspace.setVersionstampedKey(ctx, encoders.tuple.pack([kind]), id, encoders.tuple.pack([ex]));
+        } else {
+            this.pendingDelayedSubspace.set(ctx, encoders.tuple.pack([startAt, id]), encoders.tuple.pack([kind]));
+
+            // Update counter
+            this.statsSubspace.add(ctx, [STATS_SCHEDULED, kind], 1);
+        }
 
         // Save arguments
         this.argumentsSubspace.set(ctx, id, argsBuff);
@@ -293,7 +309,27 @@ export class WorkQueueRepository {
             }
         }
 
-        return expired.length > 0;
+        let pendingDelayed = await this.pendingDelayedSubspace.snapshotRange(ctx, ZERO, { limit: 100, after: encoders.tuple.pack([now]), reverse: true });
+        for (let pend of pendingDelayed) {
+            let key = encoders.tuple.unpack(pend.key);
+            let id = key[1] as Buffer;
+            let kind = encoders.tuple.unpack(pend.value)[0] as number;
+
+            // Remove from delayed
+            this.pendingDelayedSubspace.clear(ctx, pend.key);
+
+            // Update counter
+            this.statsSubspace.add(ctx, [STATS_SCHEDULED, kind], -1);
+
+            // Add to pending
+            // Index of work item in the transaction
+            let ex = (workIndexCache.get(ctx, 'key') || 0) + 1;
+            workIndexCache.set(ctx, 'key', ex);
+
+            this.pendingSubspace.setVersionstampedKey(ctx, encoders.tuple.pack([kind]), id, encoders.tuple.pack([ex]));
+        }
+
+        return expired.length > 0 || pendingDelayed.length > 0;
     }
 
     completeWork = async (ctx: Context, id: Buffer) => {

@@ -46,8 +46,12 @@ export class QueueStorage {
         return this.repo.getCompleted(ctx, this.kind);
     }
 
-    pushWork = (ctx: Context, args: any, maxAttempts: number | 'infinite') => {
-        this.repo.pushWork(ctx, this.kind, args, maxAttempts);
+    getScheduled = (ctx: Context) => {
+        return this.repo.getScheduled(ctx, this.kind);
+    }
+
+    pushWork = (ctx: Context, args: any, maxAttempts: number | 'infinite', startAt?: number) => {
+        this.repo.pushWork(ctx, this.kind, args, maxAttempts, startAt);
     }
 
     acquireWork = async (ctx: Context, limit: number, lock: Buffer, timeout: number) => {
