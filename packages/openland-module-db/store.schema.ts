@@ -2656,6 +2656,12 @@ export default declareSchema(() => {
     });
 
     //
+    // Sharding
+    //
+
+    customDirectory('ShardingData');
+
+    //
     //  Debug
     //
 

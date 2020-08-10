@@ -1,6 +1,6 @@
 import { createNamedContext, Context } from '@openland/context';
 import { inTx, Subspace, Database, encoders, TransactionCache, getTransaction, assertNoTransaction, inTxLeaky } from '@openland/foundationdb';
-import { randomId } from './utils/randomId';
+import { randomId } from '../openland-utils/randomId';
 
 const feedIndexCache = new TransactionCache<number>('feed-index-cache');
 

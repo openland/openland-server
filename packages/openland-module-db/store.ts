@@ -22162,6 +22162,7 @@ export interface Store extends BaseStore {
     readonly UserDialogMuteSettingDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
+    readonly ShardingDataDirectory: Subspace;
     readonly ImportedPhoneDirectory: Subspace;
     readonly PhoneImportedByUserDirectory: Subspace;
     readonly DeliveryFanOutQueue: QueueStorage;
@@ -22425,6 +22426,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserDialogMuteSettingDirectoryPromise = storage.resolveCustomDirectory('userDialogMuteSetting');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
+    let ShardingDataDirectoryPromise = storage.resolveCustomDirectory('shardingData');
     let ImportedPhoneDirectoryPromise = storage.resolveCustomDirectory('importedPhone');
     let PhoneImportedByUserDirectoryPromise = storage.resolveCustomDirectory('phoneImportedByUser');
     let ConversationEventStorePromise = ConversationEventStore.open(storage, eventFactory);
@@ -22662,6 +22664,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserDialogMuteSettingDirectory: await UserDialogMuteSettingDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
+        ShardingDataDirectory: await ShardingDataDirectoryPromise,
         ImportedPhoneDirectory: await ImportedPhoneDirectoryPromise,
         PhoneImportedByUserDirectory: await PhoneImportedByUserDirectoryPromise,
         ConversationEventStore: await ConversationEventStorePromise,

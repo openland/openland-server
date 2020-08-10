@@ -1,0 +1,70 @@
+# #
+# # Update Containers
+# #
+
+# type SequenceUpdateSingle {
+#     state: ID!
+#     seq: Int!
+#     update: SequenceUpdate!
+# }
+
+# type SequenceUpdateCombined {
+#     state: ID!
+#     start: Int!
+#     end: Int!
+#     updates: [SequenceUpdate!]!
+# }
+
+# #
+# # Updates
+# #
+
+# union SequenceUpdate = 
+#     | UpdateNewMessage 
+#     | UpdateMessageChanged
+#     | UpdateMessageDeleted
+#     | UpdateChatRead
+#     | UpdateChatGotAccess
+#     | UpdateChatLostAccess
+
+# #
+# # Chat State
+# #
+
+# type UpdateChatGotAccess {
+#     cid: ID!
+# }
+
+# type UpdateChatLostAccess {
+#     cid: ID!
+# }
+
+# type UpdateChatRead {
+#     cid: ID!
+#     date: String!
+# }
+
+# #
+# # Chat Messages
+# #
+
+# type UpdateNewMessage {
+#     seq: Int!
+#     cid: ID!
+    
+#     message: ModernMessage!
+# }
+
+# type UpdateMessageChanged {
+#     seq: Int!
+#     cid: ID!
+    
+#     message: ModernMessage!
+# }
+
+# type UpdateMessageDeleted {
+#     seq: Int!
+#     cid: ID!
+
+#     id: ID!
+# }
