@@ -1425,14 +1425,19 @@ export const Resolver: GQLResolver = {
                 let count = 0;
                 let limit = 100;
                 let total = 0;
+                let seenChats = new Set<number>();
                 try {
-                    let stream = Store.Message.updated.stream({batchSize: limit});
+                    let stream = Store.Message.created.stream({batchSize: limit});
                     do {
                         await inTx(parent, async ctx => {
                             let messages = await stream.next(ctx);
                             for (let message of messages) {
-                                message.seq = message.id;
-                                Store.ConversationLastSeq.byId(message.cid).set(ctx, message.seq);
+                                if (!seenChats.has(message.cid)) {
+                                    await Store.ConversationLastSeq.byId(message.cid).set(ctx, 0);
+                                    seenChats.add(message.cid);
+                                }
+                                Store.ConversationLastSeq.byId(message.cid).increment(ctx);
+                                message.seq = await Store.ConversationLastSeq.byId(message.cid).get(ctx);
                             }
                             count = messages.length;
                             total += messages.length;
