@@ -38,10 +38,12 @@ export class UserServiceManager {
     private keepAlive = new Map<number, number>();
 
     enableKeepAlive = (uid: number) => {
+        log.log(root, 'Enable keepalive for user #' + uid);
         this.reportKeepAlive(uid);
         let ex = this.keepAlive.get(uid) || 0;
         this.keepAlive.set(uid, ex + 1);
         return () => {
+            log.log(root, 'Disable keepalive for user #' + uid);
             let vc = this.keepAlive.get(uid);
             if (vc !== undefined) {
                 if (vc <= 1) {
@@ -62,12 +64,12 @@ export class UserServiceManager {
     private reportKeepAlive = (uid: number) => {
         let ringSize = this.ringSize;
         if (ringSize === null) {
-            log.log(root, 'Unable to report keep alive for user #' + uid);
+            log.log(root, 'Unable to report keepalive for user #' + uid);
             return;
         }
         let shard = getShardId(uid, ringSize);
         EventBus.publish('users.shard.' + shard + '.keep-alive', { uid });
-        log.log(root, 'Report keep alive for user #' + uid + ' -> ' + shard);
+        log.log(root, 'Report keepalive for user #' + uid + ' -> ' + shard);
     }
 
     //
