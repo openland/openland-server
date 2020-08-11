@@ -3,6 +3,8 @@ import { Subspace, encoders, inTxLeaky } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { randomKey } from 'openland-utils/random';
 
+const ZERO = Buffer.alloc(0);
+
 export type ID = string;
 
 export enum ShardState {
@@ -18,6 +20,7 @@ export class ShardingRepository {
     private readonly directory: Subspace;
     private readonly registry: Subspace;
     private readonly shards: Subspace;
+    private readonly shardVersions: Subspace;
 
     constructor(directory: Subspace) {
         this.directory = directory;
@@ -27,11 +30,20 @@ export class ShardingRepository {
             .subspace(encoders.tuple.pack([0]));
         this.shards = this.directory
             .subspace(encoders.tuple.pack([2]));
+        this.shardVersions = this.directory
+            .subspace(encoders.tuple.pack([3]));
     }
 
     //
     // Sharding
     //
+
+    async watchAllocations(parent: Context, shardRegion: ID) {
+        return await inTxLeaky(parent, async (ctx) => {
+            let watch = this.shardVersions.watch(ctx, encoders.tuple.pack([shardRegion]));
+            return watch;
+        });
+    }
 
     async getAllocations(parent: Context, shardRegion: ID) {
         return await inTxLeaky(parent, async (ctx) => {
@@ -101,8 +113,11 @@ export class ShardingRepository {
             if (!existing) {
                 return;
             }
-            this.removeAllocation(ctx, region, shard, node);
-            await this.scheduleShards(ctx, region);
+            let tuple = encoders.tuple.unpack(existing);
+            if (tuple[0] === ShardState.REMOVING) {
+                this.removeAllocation(ctx, region, shard, node);
+                await this.scheduleShards(ctx, region);
+            }
         });
     }
 
@@ -249,18 +264,26 @@ export class ShardingRepository {
 
     private removeAllocation(ctx: Context, region: string, shard: number, node: string) {
         this.shards.clear(ctx, encoders.tuple.pack([region, shard, node]));
+        this.markAllocationsChanged(ctx, region);
     }
 
     private markAllocationAsRemoving(ctx: Context, region: string, shard: number, node: string) {
         this.shards.set(ctx, encoders.tuple.pack([region, shard, node]), encoders.tuple.pack([ShardState.REMOVING]));
+        this.markAllocationsChanged(ctx, region);
     }
 
     private markAllocationAsAllocating(ctx: Context, region: string, shard: number, node: string) {
         this.shards.set(ctx, encoders.tuple.pack([region, shard, node]), encoders.tuple.pack([ShardState.ALLOCATING]));
+        this.markAllocationsChanged(ctx, region);
     }
 
     private markAllocationAsActive(ctx: Context, region: string, shard: number, node: string) {
         this.shards.set(ctx, encoders.tuple.pack([region, shard, node]), encoders.tuple.pack([ShardState.ACTIVE]));
+        this.markAllocationsChanged(ctx, region);
+    }
+
+    private markAllocationsChanged(ctx: Context, region: string) {
+        this.shardVersions.setVersionstampedValue(ctx, encoders.tuple.pack([region]), ZERO);
     }
 
     //
@@ -318,7 +341,7 @@ export class ShardingRepository {
 
     async registerNode(parent: Context, nodeId: ID, shardId: ID): Promise<NodeState> {
         return await inTxLeaky(parent, async (ctx) => {
-            let res = await this.nodes.registerNode(ctx, nodeId, shardId, Date.now() + 10000);
+            let res = await this.nodes.registerNode(ctx, nodeId, shardId, Date.now() + 15000);
             await this.scheduleShards(ctx, shardId);
             return res;
         });
@@ -326,7 +349,7 @@ export class ShardingRepository {
 
     async registerNodeLeaving(parent: Context, nodeId: ID, shardId: ID): Promise<NodeState> {
         return await inTxLeaky(parent, async (ctx) => {
-            let res = await this.nodes.registerNodeLeaving(ctx, nodeId, shardId, Date.now() + 10000);
+            let res = await this.nodes.registerNodeLeaving(ctx, nodeId, shardId, Date.now() + 15000);
             await this.scheduleShards(ctx, shardId);
             return res;
         });

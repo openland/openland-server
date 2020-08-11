@@ -25,6 +25,12 @@ export async function delay(ms: number) {
     });
 }
 
+export async function delayRandomized(from: number, to: number) {
+    return new Promise(resolve => {
+        setTimeout(resolve, Math.floor(from + Math.random() * (to - from)));
+    });
+}
+
 export function debouncer(ms: number) {
     let locks: Map<number, boolean> = new Map();
 

@@ -111,6 +111,9 @@
       "openland-module-events": [
         "openland-module-events"
       ],
+      "openland-module-sharding": [
+        "openland-module-sharding"
+      ],
       "openland-module-video": [
         "openland-module-video"
       ],

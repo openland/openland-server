@@ -72,6 +72,8 @@ module.exports = {
         'openland-module-discussions': '<rootDir>/packages/openland-module-discussions',
         'openland-module-events/(.*)': '<rootDir>/packages/openland-module-events/$1',
         'openland-module-events': '<rootDir>/packages/openland-module-events',
+        'openland-module-sharding/(.*)': '<rootDir>/packages/openland-module-sharding/$1',
+        'openland-module-sharding': '<rootDir>/packages/openland-module-sharding',
         'openland-repositories/(.*)': '<rootDir>/packages/openland-repositories/$1',
         'openland-repositories': '<rootDir>/packages/openland-repositories',
         'openland-mtproto3/(.*)': '<rootDir>/packages/openland-mtproto3/$1',
