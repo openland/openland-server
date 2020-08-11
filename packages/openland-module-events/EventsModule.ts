@@ -17,14 +17,15 @@ export class EventsModule {
 
     start = async () => {
         this.userSharding.start();
-        if (serverRoleEnabled('workers')) {
-            asyncRun(async () => {
-                log.debug(root, 'Loading sharding info...');
-                let shardInfo = await this.userSharding.getShardingInfo();
-                log.debug(root, 'Sharding info loaded...');
-                this.userService.initSharding(shardInfo.ringSize);
+
+        asyncRun(async () => {
+            log.debug(root, 'Loading sharding info...');
+            let shardInfo = await this.userSharding.getShardingInfo();
+            log.debug(root, 'Sharding info loaded...');
+            this.userService.initSharding(shardInfo.ringSize);
+            if (serverRoleEnabled('events')) {
                 this.userSharding.startShard(this.userService.createShard);
-            });
-        }
+            }
+        });
     }
 }
