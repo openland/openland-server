@@ -421,33 +421,33 @@ async function fetchMessages(ctx: Context, cid: number, forUid: number, opts: Ra
     return messages;
 }
 
-async function fetchMessagesFromSeq(ctx: Context, cid: number, forUid: number, opts: RangeQueryOptions<number>) {
-    let messages = await Store.Message.chatSeq.query(ctx, cid, opts);
-    if (messages.items.length === 0) {
-        return messages;
-    }
-    let after = messages.items[messages.items.length - 1].id;
-    messages.items = messages.items.filter(m => !m.hiddenForUids?.includes(forUid));
-
-    while (messages.items.length < (opts.limit || 0) && messages.haveMore) {
-        let more = await Store.Message.chatSeq.query(ctx, cid, {...opts, after, limit: 1});
-        if (more.items.length === 0) {
-            messages.haveMore = false;
-            return messages;
-        }
-        after = more.items[more.items.length - 1].id;
-
-        let filtered = more.items.filter(m => !m.hiddenForUids?.includes(forUid));
-        messages.items.push(...filtered);
-        messages.haveMore = more.haveMore;
-        messages.cursor = more.cursor;
-    }
-    if (opts.limit) {
-        messages.items = messages.items.slice(0, opts.limit);
-    }
-
-    return messages;
-}
+// async function fetchMessagesFromSeq(ctx: Context, cid: number, forUid: number, opts: RangeQueryOptions<number>) {
+//     let messages = await Store.Message.chatSeq.query(ctx, cid, opts);
+//     if (messages.items.length === 0) {
+//         return messages;
+//     }
+//     let after = messages.items[messages.items.length - 1].id;
+//     messages.items = messages.items.filter(m => !m.hiddenForUids?.includes(forUid));
+//
+//     while (messages.items.length < (opts.limit || 0) && messages.haveMore) {
+//         let more = await Store.Message.chatSeq.query(ctx, cid, {...opts, after, limit: 1});
+//         if (more.items.length === 0) {
+//             messages.haveMore = false;
+//             return messages;
+//         }
+//         after = more.items[more.items.length - 1].id;
+//
+//         let filtered = more.items.filter(m => !m.hiddenForUids?.includes(forUid));
+//         messages.items.push(...filtered);
+//         messages.haveMore = more.haveMore;
+//         messages.cursor = more.cursor;
+//     }
+//     if (opts.limit) {
+//         messages.items = messages.items.slice(0, opts.limit);
+//     }
+//
+//     return messages;
+// }
 
 function resolveReactionCounters(src: GeneralMessageRoot, args: any, ctx: Context) {
     let counts = new Map<MessageReactionTypeRoot, number>();
@@ -1233,60 +1233,60 @@ export const Resolver: GQLResolver = {
                 messages,
             };
         }),
-        modernMessages: withUser(async (ctx, args, uid) => {
-            let roomId = IDs.Conversation.parse(args.chatId);
-            if (
-                !(await Modules.Messaging.room.canUserSeeChat(ctx, uid, roomId)) ||
-                !args.first ||
-                args.first <= 0
-            ) {
-                return {haveMoreForward: false, haveMoreBackward: false, messages: []};
-            }
-
-            let beforeSeq = args.before || null;
-            let afterSeq = args.after || null;
-
-            let haveMoreForward: boolean = false;
-            let haveMoreBackward: boolean = false;
-            let messages: Message[] = [];
-
-            if (beforeSeq || afterSeq) {
-                let before: Message[] = [];
-                let after: Message[] = [];
-
-                if (beforeSeq && await Store.Message.fromSeq.find(ctx, roomId, beforeSeq)) {
-                    let beforeQuery = (await fetchMessagesFromSeq(ctx, roomId, uid, {
-                        after: beforeSeq,
-                        limit: args.first!,
-                        reverse: true
-                    }));
-                    before = beforeQuery.items;
-                    haveMoreBackward = beforeQuery.haveMore;
-                    haveMoreForward = true;
-                }
-                if (afterSeq && await Store.Message.fromSeq.find(ctx, roomId, afterSeq)) {
-                    let afterQuery = (await fetchMessagesFromSeq(ctx, roomId, uid, {
-                        after: afterSeq,
-                        limit: args.first!
-                    }));
-                    after = afterQuery.items.reverse();
-                    haveMoreForward = afterQuery.haveMore;
-                    haveMoreBackward = true;
-                }
-                messages = [...after, ...before];
-            } else {
-                haveMoreForward = false;
-                let beforeQuery = (await fetchMessages(ctx, roomId, uid, {limit: args.first!, reverse: true}));
-                messages = beforeQuery.items;
-                haveMoreBackward = beforeQuery.haveMore;
-            }
-
-            return {
-                haveMoreForward,
-                haveMoreBackward,
-                messages,
-            };
-        }),
+        // modernMessages: withUser(async (ctx, args, uid) => {
+        //     let roomId = IDs.Conversation.parse(args.chatId);
+        //     if (
+        //         !(await Modules.Messaging.room.canUserSeeChat(ctx, uid, roomId)) ||
+        //         !args.first ||
+        //         args.first <= 0
+        //     ) {
+        //         return {haveMoreForward: false, haveMoreBackward: false, messages: []};
+        //     }
+        //
+        //     let beforeSeq = args.before || null;
+        //     let afterSeq = args.after || null;
+        //
+        //     let haveMoreForward: boolean = false;
+        //     let haveMoreBackward: boolean = false;
+        //     let messages: Message[] = [];
+        //
+        //     if (beforeSeq || afterSeq) {
+        //         let before: Message[] = [];
+        //         let after: Message[] = [];
+        //
+        //         if (beforeSeq && await Store.Message.fromSeq.find(ctx, roomId, beforeSeq)) {
+        //             let beforeQuery = (await fetchMessagesFromSeq(ctx, roomId, uid, {
+        //                 after: beforeSeq,
+        //                 limit: args.first!,
+        //                 reverse: true
+        //             }));
+        //             before = beforeQuery.items;
+        //             haveMoreBackward = beforeQuery.haveMore;
+        //             haveMoreForward = true;
+        //         }
+        //         if (afterSeq && await Store.Message.fromSeq.find(ctx, roomId, afterSeq)) {
+        //             let afterQuery = (await fetchMessagesFromSeq(ctx, roomId, uid, {
+        //                 after: afterSeq,
+        //                 limit: args.first!
+        //             }));
+        //             after = afterQuery.items.reverse();
+        //             haveMoreForward = afterQuery.haveMore;
+        //             haveMoreBackward = true;
+        //         }
+        //         messages = [...after, ...before];
+        //     } else {
+        //         haveMoreForward = false;
+        //         let beforeQuery = (await fetchMessages(ctx, roomId, uid, {limit: args.first!, reverse: true}));
+        //         messages = beforeQuery.items;
+        //         haveMoreBackward = beforeQuery.haveMore;
+        //     }
+        //
+        //     return {
+        //         haveMoreForward,
+        //         haveMoreBackward,
+        //         messages,
+        //     };
+        // }),
 
         message: withUser(async (ctx, args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
