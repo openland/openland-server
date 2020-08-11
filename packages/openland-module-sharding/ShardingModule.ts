@@ -35,6 +35,10 @@ export class ShardingModule {
         return this.repo.getAllocations(parent, shardRegion);
     }
 
+    getShardRegions(parent: Context) {
+        return this.repo.getShardRegions(parent);
+    }
+
     getOrCreateShardRegion(parent: Context, name: string, defaultRingSize: number) {
         return this.repo.getOrCreateShardRegion(parent, name, defaultRingSize);
     }

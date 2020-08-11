@@ -2,6 +2,7 @@ import { WorkQueueRepository } from './../openland-module-workers/repo/WorkQueue
 import { Store } from 'openland-module-db/FDB';
 import { MetricFactory } from './MetricFactory';
 import { Modules } from '../openland-modules/Modules';
+import { ShardState } from 'openland-module-sharding/repo/ShardingRepository';
 
 export const Factory = new MetricFactory();
 
@@ -40,6 +41,74 @@ export const Metrics = {
     SpaceXWritesPerSubscription: Factory.createSummary('spacex_writes_subscription', 'Summary of read operations per subscription', DEFAULT_QUANTILES),
     SpaceXWritesPerSubscriptionResolve: Factory.createSummary('spacex_writes_subscription_resolve', 'Summary of read operations per subscription resolve', DEFAULT_QUANTILES),
     SpaceXWritesPerMutation: Factory.createSummary('spacex_writes_mutation', 'Summary of read operations per mutation', DEFAULT_QUANTILES),
+
+    //
+    // Sharding
+    //
+    ShardingTotal: Factory.createPersistedTaggedGauge('sharding_total', 'Number of shards', async (ctx) => {
+        let regions = await Modules.Sharding.getShardRegions(ctx);
+        let res: { tag: string, value: number }[] = [];
+        for (let r of regions) {
+            let allocations = await Modules.Sharding.getAllocations(ctx, r.id);
+            let active = 0;
+            for (let shard of allocations) {
+                active += shard.length;
+            }
+            res.push({ tag: r.name, value: active });
+        }
+        return res;
+    }),
+    ShardingActive: Factory.createPersistedTaggedGauge('sharding_active', 'Number of active shards', async (ctx) => {
+        let regions = await Modules.Sharding.getShardRegions(ctx);
+        let res: { tag: string, value: number }[] = [];
+        for (let r of regions) {
+            let allocations = await Modules.Sharding.getAllocations(ctx, r.id);
+            let active = 0;
+            for (let shard of allocations) {
+                for (let allocation of shard) {
+                    if (allocation.status === ShardState.ACTIVE) {
+                        active++;
+                    }
+                }
+            }
+            res.push({ tag: r.name, value: active });
+        }
+        return res;
+    }),
+    ShardingRemoving: Factory.createPersistedTaggedGauge('sharding_removing', 'Number of removed shards', async (ctx) => {
+        let regions = await Modules.Sharding.getShardRegions(ctx);
+        let res: { tag: string, value: number }[] = [];
+        for (let r of regions) {
+            let allocations = await Modules.Sharding.getAllocations(ctx, r.id);
+            let active = 0;
+            for (let shard of allocations) {
+                for (let allocation of shard) {
+                    if (allocation.status === ShardState.REMOVING) {
+                        active++;
+                    }
+                }
+            }
+            res.push({ tag: r.name, value: active });
+        }
+        return res;
+    }),
+    ShardingPending: Factory.createPersistedTaggedGauge('sharding_pending', 'Number of pending shards', async (ctx) => {
+        let regions = await Modules.Sharding.getShardRegions(ctx);
+        let res: { tag: string, value: number }[] = [];
+        for (let r of regions) {
+            let allocations = await Modules.Sharding.getAllocations(ctx, r.id);
+            let active = 0;
+            for (let shard of allocations) {
+                for (let allocation of shard) {
+                    if (allocation.status === ShardState.ALLOCATING) {
+                        active++;
+                    }
+                }
+            }
+            res.push({ tag: r.name, value: active });
+        }
+        return res;
+    }),
 
     //
     // Workers
