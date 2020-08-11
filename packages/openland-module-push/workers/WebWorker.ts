@@ -6,11 +6,11 @@ import { WebPushTask } from './types';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { handleFail } from './util/handleFail';
 import { inTx } from '@openland/foundationdb';
-import { createLogger } from '@openland/log';
+// import { createLogger } from '@openland/log';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { Store } from 'openland-module-db/FDB';
 
-const log = createLogger('web-push');
+// const log = createLogger('web-push');
 
 export function createWebWorker(repo: PushRepository) {
 
@@ -21,13 +21,13 @@ export function createWebWorker(repo: PushRepository) {
         }
 
         try {
-            let res = await WebPush.sendNotification(JSON.parse(token.endpoint), JSON.stringify({
+            await WebPush.sendNotification(JSON.parse(token.endpoint), JSON.stringify({
                 title: task.title,
                 body: task.body,
                 picture: task.picture,
                 ...task.extras
             }));
-            log.log(root, 'web_push', token.uid, JSON.stringify({ statusCode: res.statusCode, body: res.body }));
+            // log.log(root, 'web_push', token.uid, JSON.stringify({ statusCode: res.statusCode, body: res.body }));
         } catch (e) {
             if (e.statusCode === 410) {
                 await inTx(root, async (ctx) => {
@@ -35,7 +35,7 @@ export function createWebWorker(repo: PushRepository) {
                     await handleFail(t);
                 });
             }
-            log.log(root, 'web_push failed', token.uid, JSON.stringify({ statusCode: e.statusCode, body: e.body }));
+            // log.log(root, 'web_push failed', token.uid, JSON.stringify({ statusCode: e.statusCode, body: e.body }));
             return;
         }
     };
