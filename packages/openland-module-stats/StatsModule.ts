@@ -2,13 +2,6 @@ import { Events } from 'openland-module-hyperlog/Events';
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { Store } from '../openland-module-db/FDB';
-import { createWeeklyEngagementReportWorker } from './workers/WeeklyEngagementReportWorker';
-import { createWeeklyOnboardingReportWorker } from './workers/WeeklyOnboardingReportWorker';
-import { createDailyOnboardingReportWorker } from './workers/DailyOnboardingReportWorker';
-import { createDailyEngagementReportWorker } from './workers/DailyEngagementReportWorker';
-import { createWeeklyUserLeaderboardWorker } from './workers/WeeklyUserLeaderboardWorker';
-import { createWeeklyRoomLeaderboardWorker } from './workers/WeeklyRoomLeaderboardWorker';
-import { createWeeklyRoomByMessagesLeaderboardWorker } from './workers/WeeklyRoomByMessagesLeaderboardWorker';
 import { Modules } from '../openland-modules/Modules';
 import { Message, RoomProfile } from '../openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
@@ -17,22 +10,19 @@ import { User } from '../openland-module-db/store';
 import { groupBy } from 'openland-utils/groupBy';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { EmailSpan } from 'openland-module-email/EmailSpans';
-import { createDailyPaidLeaderboardWorker } from './workers/DailyPaidLeaderboardWorker';
-import { createWeeklyPaidLeaderboardWorker } from './workers/WeeklyPaidLeaderboardWorker';
-import { createWeeklyRoomScreenViewsLeaderboardWorker } from './workers/WeeklyRoomScreenViewsWorker';
 
 @injectable()
 export class StatsModule {
-    public readonly weeklyEngagementQueue = createWeeklyEngagementReportWorker();
-    public readonly weeklyOnboardingQueue = createWeeklyOnboardingReportWorker();
-    public readonly dailyOnboardingQueue = createDailyOnboardingReportWorker();
-    public readonly dailyEngagementQueue = createDailyEngagementReportWorker();
-    public readonly weeklyUserLeaderboardQueue = createWeeklyUserLeaderboardWorker();
-    public readonly weeklyRoomLeaderboardQueue = createWeeklyRoomLeaderboardWorker();
-    public readonly weeklyRoomByMessagesLeaderboardQueue = createWeeklyRoomByMessagesLeaderboardWorker();
-    public readonly dailyPaidLeaderboardQueue = createDailyPaidLeaderboardWorker();
-    public readonly weeklyPaidLeaderboardQueue = createWeeklyPaidLeaderboardWorker();
-    public readonly weeklyRoomViewsQueue = createWeeklyRoomScreenViewsLeaderboardWorker();
+    // public readonly weeklyEngagementQueue = createWeeklyEngagementReportWorker();
+    // public readonly weeklyOnboardingQueue = createWeeklyOnboardingReportWorker();
+    // public readonly dailyOnboardingQueue = createDailyOnboardingReportWorker();
+    // public readonly dailyEngagementQueue = createDailyEngagementReportWorker();
+    // public readonly weeklyUserLeaderboardQueue = createWeeklyUserLeaderboardWorker();
+    // public readonly weeklyRoomLeaderboardQueue = createWeeklyRoomLeaderboardWorker();
+    // public readonly weeklyRoomByMessagesLeaderboardQueue = createWeeklyRoomByMessagesLeaderboardWorker();
+    // public readonly dailyPaidLeaderboardQueue = createDailyPaidLeaderboardWorker();
+    // public readonly weeklyPaidLeaderboardQueue = createWeeklyPaidLeaderboardWorker();
+    // public readonly weeklyRoomViewsQueue = createWeeklyRoomScreenViewsLeaderboardWorker();
 
     start = async () => {
         // no op
