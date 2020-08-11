@@ -186,6 +186,7 @@ export class ShardRegion {
             this.shardRegionId = shardRegionId;
             this.ringSize = ringSize;
             this.allocations = allocations;
+            this.loadedFuture.resolve();
         } else {
             this.allocations = allocations;
             if (this.activeRegionManager) {
