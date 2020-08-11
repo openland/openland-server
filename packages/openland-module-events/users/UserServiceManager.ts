@@ -6,7 +6,7 @@ import { createLogger } from '@openland/log';
 import { createNamedContext } from '@openland/context';
 
 const root = createNamedContext('user-service');
-const log = createLogger('service');
+const log = createLogger('user-service');
 
 export class UserServiceShard {
     private shard: number;
@@ -87,6 +87,7 @@ export class UserServiceManager {
     }
 
     initSharding = (ringSize: number) => {
+        log.log(root, 'Initing sharding with ring size ' + ringSize);
         this.ringSize = ringSize;
         this.reportKeepAlives();
         setInterval(this.reportKeepAlives, 5 * 1000);
