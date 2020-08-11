@@ -12,7 +12,7 @@ export class EventsModule {
 
     start = async () => {
         this.userSharding.start();
-        if (serverRoleEnabled('events')) {
+        if (serverRoleEnabled('workers')) {
             asyncRun(async () => {
                 let shardInfo = await this.userSharding.getShardingInfo();
                 this.userService.initSharding(shardInfo.ringSize);
