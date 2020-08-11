@@ -211,6 +211,7 @@ export class ShardRegion {
 
         // tslint:disable-next-line:no-floating-promises
         (async () => {
+            await this.loadedFuture.promise;
             try {
                 while (true) {
 
