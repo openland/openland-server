@@ -1,4 +1,4 @@
-import os from 'os';
+import uuid from 'uuid/v4';
 import { DistributedTaggedGauge } from './DistributedTaggedGauge';
 
 /**
@@ -8,31 +8,35 @@ import { DistributedTaggedGauge } from './DistributedTaggedGauge';
  */
 export class DistributedTaggedMachineGauge {
     readonly name: string;
-    readonly #hostname = os.hostname();
+    readonly #id = uuid();
     readonly #gauge: DistributedTaggedGauge;
-    #value: number = 0;
+    #values = new Map<string, number>();
 
     constructor(name: string, gauge: DistributedTaggedGauge) {
         this.name = name;
         this.#gauge = gauge;
     }
 
-    set = (value: number) => {
-        this.#value = value;
+    set = (tag: string, value: number) => {
+        this.#values.set(tag, value);
     }
 
-    inc = () => {
-        this.#value++;
+    inc = (tag: string) => {
+        let ex = this.#values.get(tag) || 0;
+        this.#values.set(tag, ex + 1);
     }
 
-    dec = () => {
-        this.#value--;
+    dec = (tag: string) => {
+        let ex = this.#values.get(tag) || 0;
+        this.#values.set(tag, ex - 1);
     }
 
     // @private
     start = () => {
         setInterval(() => {
-            this.#gauge.add(this.#hostname, this.#value, this.#hostname, 10000);
+            for (let e of this.#values) {
+                this.#gauge.add(e[0], e[1], this.#id, 10000);
+            }
         }, 5000);
     }
 }

@@ -1,3 +1,4 @@
+import os from 'os';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import { createLogger } from '@openland/log';
 import { createNamedContext } from '@openland/context';
@@ -9,6 +10,7 @@ import { ShardState } from './../repo/ShardingRepository';
 import { ShardFactory } from '../ShardFactory';
 
 const log = createLogger('sharding');
+const hostname = os.hostname();
 
 export class ShardRegionManager {
     readonly name: string;
@@ -60,7 +62,7 @@ export class ShardRegionManager {
 
                             // Update shard counter (have to be after successful unregistration)
                             this.activeShardsCount--;
-                            Metrics.ShardingNodes.dec();
+                            Metrics.ShardingNodes.dec(hostname);
 
                             // Logging
                             log.log(ctx, 'Shard ' + shard + ' removed for ' + this.name);
@@ -88,7 +90,7 @@ export class ShardRegionManager {
 
                         // Update shard counter (better to increment counter before registration)
                         this.activeShardsCount++;
-                        Metrics.ShardingNodes.inc();
+                        Metrics.ShardingNodes.inc(hostname);
 
                         // Register shard
                         log.log(ctx, 'Registering shard ' + shard + ' for ' + this.name);
