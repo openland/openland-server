@@ -21,6 +21,7 @@ import { User, ConversationRoom } from 'openland-module-db/store';
 import { smartSlice } from '../../openland-utils/string';
 import { createWelcomeMessageWorker } from '../workers/welcomeMessageWorker';
 import { DeliveryMediator } from '../mediators/DeliveryMediator';
+import { UserChatsRepository } from './UserChatsRepository';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -49,6 +50,8 @@ export class RoomRepository {
 
     public readonly welcomeMessageWorker = createWelcomeMessageWorker();
     private membersCache = new ExpiringCache<number[]>({ timeout: 15 * 60 * 1000 });
+
+    readonly userChats = new UserChatsRepository();
 
     async createRoom(parent: Context, kind: 'public' | 'group', oid: number | undefined, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean, channel?: boolean, price?: number, interval?: 'week' | 'month') {
         return await inTx(parent, async (ctx) => {
@@ -518,9 +521,12 @@ export class RoomRepository {
         let dir = Store.RoomParticipantsActiveDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean);
+
         if (isMember) {
             dir.set(ctx, [cid, uid], false);
+            this.userChats.addChat(ctx, uid, cid);
         } else {
+            this.userChats.removeChat(ctx, uid, cid);
             dir.clear(ctx, [cid, uid]);
         }
     }

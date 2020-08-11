@@ -34,6 +34,7 @@ import { asyncRun } from '../openland-mtproto3/utils';
 import { container } from '../openland-modules/Modules.container';
 import { batch } from '../openland-utils/batch';
 import { UserError } from '../openland-errors/UserError';
+import { UserChatsRepository } from '../openland-module-messaging/repositories/UserChatsRepository';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -1864,6 +1865,20 @@ export const Resolver: GQLResolver = {
                     let settings = await Store.UserDialogSettings.findById(ctx, uid, d.cid);
                     if (settings?.mute) {
                         muteDirectory.set(ctx, [uid, d.cid], true);
+                    }
+                }));
+            });
+            return true;
+        }),
+        debugMigrateUserChatsList: withPermission('super-admin', async (parent, args) => {
+            let repo = new UserChatsRepository();
+
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugMigrateUserChatsList', async (ctx, uid, log) => {
+                let userDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
+                await Promise.all(userDialogs.map(async d => {
+                    let room = await Store.ConversationRoom.findById(ctx, d.cid);
+                    if (room) {
+                        repo.addChat(ctx, uid, d.cid);
                     }
                 }));
             });
