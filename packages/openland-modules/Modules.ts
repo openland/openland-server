@@ -1,3 +1,5 @@
+import { EventsModule } from './../openland-module-events/EventsModule';
+import { ShardingModule } from './../openland-module-sharding/ShardingModule';
 import { Client } from 'ts-nats';
 import { DiscussionsModule } from './../openland-module-discussions/DiscussionsModule';
 import { WalletModule } from '../openland-module-wallet/WalletModule';
@@ -61,6 +63,9 @@ class ModulesImpl {
     }
     get Workers() {
         return container.get(WorkerModule);
+    }
+    get Sharding() {
+        return container.get(ShardingModule);
     }
     get Push() {
         return container.get(PushModule);
@@ -181,6 +186,9 @@ class ModulesImpl {
     }
     get Contacts() {
         return container.get(ContactsModule);
+    }
+    get Events() {
+        return container.get(EventsModule);
     }
 }
 

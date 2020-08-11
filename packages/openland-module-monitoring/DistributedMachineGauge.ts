@@ -15,7 +15,6 @@ export class DistributedMachineGauge {
     constructor(name: string, gauge: DistributedGauge) {
         this.name = name;
         this.#gauge = gauge;
-        Object.freeze(this);
     }
 
     set = (value: number) => {

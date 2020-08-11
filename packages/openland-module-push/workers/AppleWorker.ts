@@ -6,12 +6,12 @@ import { PushRepository } from 'openland-module-push/repositories/PushRepository
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { handleFail } from './util/handleFail';
 import { inTx } from '@openland/foundationdb';
-import { createLogger } from '@openland/log';
+// import { createLogger } from '@openland/log';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { Store } from 'openland-module-db/FDB';
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();
-const log = createLogger('apns');
+// const log = createLogger('apns');
 
 export function createAppleWorker(repo: PushRepository) {
     let betterQueue = new BetterWorkerQueue<ApplePushTask>(Store.PushAppleDeliveryQueue, { type: 'external', maxAttempts: 3 });
@@ -79,8 +79,8 @@ export function createAppleWorker(repo: PushRepository) {
                         }
                         return;
                     } catch (e) {
-                        log.warn(root, 'ios_push exception', e);
-                        log.log(root, 'ios_push failed', token.uid);
+                        // log.warn(root, 'ios_push exception', e);
+                        // log.log(root, 'ios_push failed', token.uid);
                         return;
                     }
 

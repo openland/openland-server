@@ -34,6 +34,7 @@ import { asyncRun } from '../openland-mtproto3/utils';
 import { container } from '../openland-modules/Modules.container';
 import { batch } from '../openland-utils/batch';
 import { UserError } from '../openland-errors/UserError';
+import { UserChatsRepository } from '../openland-module-messaging/repositories/UserChatsRepository';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -996,34 +997,6 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
-        debugQueueDailyEngagementReport: withPermission('super-admin', async (parent) => {
-            await inTx(parent, async (ctx) => {
-                await Modules.Stats.dailyEngagementQueue.pushImmediateWork(ctx);
-            });
-
-            return true;
-        }),
-        debugQueueDailyOnboardingReport: withPermission('super-admin', async (parent) => {
-            await inTx(parent, async (ctx) => {
-                await Modules.Stats.dailyOnboardingQueue.pushImmediateWork(ctx);
-            });
-
-            return true;
-        }),
-        debugQueueWeeklyOnboardingReport: withPermission('super-admin', async (parent) => {
-            await inTx(parent, async (ctx) => {
-                await Modules.Stats.weeklyOnboardingQueue.pushImmediateWork(ctx);
-            });
-
-            return true;
-        }),
-        debugQueueWeeklyEngagementReport: withPermission('super-admin', async (parent) => {
-            await inTx(parent, async (ctx) => {
-                await Modules.Stats.weeklyEngagementQueue.pushImmediateWork(ctx);
-            });
-
-            return true;
-        }),
         debugCreateBigChat: withPermission('super-admin', async (parent, args) => {
             return inTx(parent, async ctx => {
                 const randKey = () => (Math.random() * Math.pow(2, 55)).toString(16);
@@ -1077,27 +1050,6 @@ export const Resolver: GQLResolver = {
                 }
                 return 'done';
             });
-            return true;
-        }),
-        debugQueueWeeklyUserLeaderboard: withPermission('super-admin', async (parent) => {
-            await inTx(parent, async (ctx) => {
-                await Modules.Stats.weeklyUserLeaderboardQueue.pushImmediateWork(ctx);
-            });
-
-            return true;
-        }),
-        debugQueueWeeklyRoomLeaderboard: withPermission('super-admin', async (parent) => {
-            await inTx(parent, async (ctx) => {
-                await Modules.Stats.weeklyRoomLeaderboardQueue.pushImmediateWork(ctx);
-            });
-
-            return true;
-        }),
-        debugQueueWeeklyRoomByMessagesLeaderboard: withPermission('super-admin', async (parent) => {
-            await inTx(parent, async (ctx) => {
-                await Modules.Stats.weeklyRoomByMessagesLeaderboardQueue.pushImmediateWork(ctx);
-            });
-
             return true;
         }),
         debugSendPush: withPermission('super-admin', async (parent, args) => {
@@ -1515,20 +1467,69 @@ export const Resolver: GQLResolver = {
 
             return true;
         }),
-        debugQueueDailyPaidLeaderboard: withPermission('super-admin', async (parent) => {
-            await inTx(parent, async (ctx) => {
-                await Modules.Stats.dailyPaidLeaderboardQueue.pushImmediateWork(ctx);
-            });
-
-            return true;
-        }),
-        debugQueueWeeklyPaidLeaderboard: withPermission('super-admin', async (parent) => {
-            await inTx(parent, async (ctx) => {
-                await Modules.Stats.weeklyPaidLeaderboardQueue.pushImmediateWork(ctx);
-            });
-
-            return true;
-        }),
+        // debugQueueDailyPaidLeaderboard: withPermission('super-admin', async (parent) => {
+        //     await inTx(parent, async (ctx) => {
+        //         await Modules.Stats.dailyPaidLeaderboardQueue.pushImmediateWork(ctx);
+        //     });
+        //
+        //     return true;
+        // }),
+        // debugQueueWeeklyPaidLeaderboard: withPermission('super-admin', async (parent) => {
+        //     await inTx(parent, async (ctx) => {
+        //         await Modules.Stats.weeklyPaidLeaderboardQueue.pushImmediateWork(ctx);
+        //     });
+        //
+        //     return true;
+        // }),
+        // debugQueueWeeklyUserLeaderboard: withPermission('super-admin', async (parent) => {
+        //     await inTx(parent, async (ctx) => {
+        //         await Modules.Stats.weeklyUserLeaderboardQueue.pushImmediateWork(ctx);
+        //     });
+        //
+        //     return true;
+        // }),
+        // debugQueueWeeklyRoomLeaderboard: withPermission('super-admin', async (parent) => {
+        //     await inTx(parent, async (ctx) => {
+        //         await Modules.Stats.weeklyRoomLeaderboardQueue.pushImmediateWork(ctx);
+        //     });
+        //
+        //     return true;
+        // }),
+        // debugQueueWeeklyRoomByMessagesLeaderboard: withPermission('super-admin', async (parent) => {
+        //     await inTx(parent, async (ctx) => {
+        //         await Modules.Stats.weeklyRoomByMessagesLeaderboardQueue.pushImmediateWork(ctx);
+        //     });
+        //
+        //     return true;
+        // }),
+        // debugQueueDailyEngagementReport: withPermission('super-admin', async (parent) => {
+        //     await inTx(parent, async (ctx) => {
+        //         await Modules.Stats.dailyEngagementQueue.pushImmediateWork(ctx);
+        //     });
+        //
+        //     return true;
+        // }),
+        // debugQueueDailyOnboardingReport: withPermission('super-admin', async (parent) => {
+        //     await inTx(parent, async (ctx) => {
+        //         await Modules.Stats.dailyOnboardingQueue.pushImmediateWork(ctx);
+        //     });
+        //
+        //     return true;
+        // }),
+        // debugQueueWeeklyOnboardingReport: withPermission('super-admin', async (parent) => {
+        //     await inTx(parent, async (ctx) => {
+        //         await Modules.Stats.weeklyOnboardingQueue.pushImmediateWork(ctx);
+        //     });
+        //
+        //     return true;
+        // }),
+        // debugQueueWeeklyEngagementReport: withPermission('super-admin', async (parent) => {
+        //     await inTx(parent, async (ctx) => {
+        //         await Modules.Stats.weeklyEngagementQueue.pushImmediateWork(ctx);
+        //     });
+        //
+        //     return true;
+        // }),
         debugSendHiddenMessage: withPermission('super-admin', async (parent, args) => {
             return await inTx(parent, async (ctx) => {
                 let dialog = await Modules.Messaging.room.resolvePrivateChat(ctx, parent.auth.uid!, IDs.User.parse(args.uid));
@@ -1869,6 +1870,20 @@ export const Resolver: GQLResolver = {
                     let settings = await Store.UserDialogSettings.findById(ctx, uid, d.cid);
                     if (settings?.mute) {
                         muteDirectory.set(ctx, [uid, d.cid], true);
+                    }
+                }));
+            });
+            return true;
+        }),
+        debugMigrateUserChatsList: withPermission('super-admin', async (parent, args) => {
+            let repo = new UserChatsRepository();
+
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugMigrateUserChatsList', async (ctx, uid, log) => {
+                let userDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
+                await Promise.all(userDialogs.map(async d => {
+                    let room = await Store.ConversationRoom.findById(ctx, d.cid);
+                    if (room) {
+                        repo.addChat(ctx, uid, d.cid);
                     }
                 }));
             });

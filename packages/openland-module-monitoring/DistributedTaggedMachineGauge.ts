@@ -1,5 +1,5 @@
-import { DistributedTaggedGauge } from './DistributedTaggedGauge';
 import uuid from 'uuid/v4';
+import { DistributedTaggedGauge } from './DistributedTaggedGauge';
 
 /**
  * Same as DistributedGauge, but scope is limited for single process.
@@ -15,7 +15,6 @@ export class DistributedTaggedMachineGauge {
     constructor(name: string, gauge: DistributedTaggedGauge) {
         this.name = name;
         this.#gauge = gauge;
-        Object.freeze(this);
     }
 
     set = (tag: string, value: number) => {

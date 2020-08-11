@@ -6,11 +6,11 @@ import { PushRepository } from 'openland-module-push/repositories/PushRepository
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { handleFail } from './util/handleFail';
 import { inTx } from '@openland/foundationdb';
-import { createLogger } from '@openland/log';
+// import { createLogger } from '@openland/log';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { Store } from 'openland-module-db/FDB';
 
-const log = createLogger('firebase');
+// const log = createLogger('firebase');
 
 export function createAndroidWorker(repo: PushRepository) {
     let betterQueue = new BetterWorkerQueue<FirebasePushTask>(Store.PushFirebaseDeliveryQueue, { type: 'external', maxAttempts: 3 });
@@ -59,7 +59,7 @@ export function createAndroidWorker(repo: PushRepository) {
                             });
                         }
 
-                        log.log(root, 'android_push', token.uid, res);
+                        // log.log(root, 'android_push', token.uid, res);
                         if (res.includes('messaging/invalid-registration-token') || res.includes('messaging/registration-token-not-registered')) {
                             await inTx(root, async (ctx) => {
                                 let t = (await repo.getAndroidToken(ctx, task.tokenId))!;
@@ -68,7 +68,7 @@ export function createAndroidWorker(repo: PushRepository) {
                         }
                         return;
                     } catch (e) {
-                        log.log(root, 'android_push failed', token.uid);
+                        // log.log(root, 'android_push failed', token.uid);
                         return;
                     }
                 } else {

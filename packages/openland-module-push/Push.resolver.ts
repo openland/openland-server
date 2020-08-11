@@ -2,11 +2,11 @@ import { Config } from 'openland-config/Config';
 import { Context } from '@openland/context';
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
-import { createLogger } from '@openland/log';
+// import { createLogger } from '@openland/log';
 import { withPermission } from '../openland-module-api/Resolvers';
 import { IDs } from '../openland-module-api/IDs';
 
-const pushLog = createLogger('push');
+// const pushLog = createLogger('push');
 
 export const Resolver: GQLResolver = {
     Query: {
@@ -26,7 +26,7 @@ export const Resolver: GQLResolver = {
             if (!ctx.auth.uid || !ctx.auth.tid) {
                 throw Error('Unable to register push for non-registered user');
             }
-            pushLog.log(ctx, 'Received push token: ' + JSON.stringify(args.endpoint));
+            // pushLog.log(ctx, 'Received push token: ' + JSON.stringify(args.endpoint));
             if (args.type === 'IOS') {
                 let parsed = JSON.parse(args.endpoint);
                 await Modules.Push.registerPushApple(ctx, ctx.auth.uid!, ctx.auth.tid!, parsed.token, parsed.bundleId, parsed.sandbox);

@@ -41,10 +41,18 @@ export class BetterWorkerQueue<ARGS> {
         return this.queue.getCompleted(ctx);
     }
 
-    pushWork = (ctx: Context, work: ARGS) => {
-        this.queue.pushWork(ctx, work, this.maxAttempts);
+    async getScheduled(ctx: Context) {
+        return this.queue.getScheduled(ctx);
+    }
 
-        let wasNotified = hadNotification.get(ctx, this.queue.name) || false;
+    getName() {
+        return this.queue.name;
+    }
+
+    pushWork = (ctx: Context, work: ARGS, startAt?: number) => {
+        this.queue.pushWork(ctx, work, this.maxAttempts, startAt);
+
+        let wasNotified = startAt || hadNotification.get(ctx, this.queue.name) || false;
         if (!wasNotified) {
             hadNotification.set(ctx, this.queue.name, true);
 

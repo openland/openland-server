@@ -703,6 +703,14 @@ export class RoomMediator {
         return await this.repo.userAvailableRooms(ctx, uid, limit || 1000, isChannel, after);
     }
 
+    async getUserChats(ctx: Context, uid: number) {
+        return this.repo.userChats.getChats(ctx, uid);
+    }
+
+    async getUserChatsVersion(ctx: Context, uid: number) {
+        return this.repo.userChats.getVersion(ctx, uid);
+    }
+
     private async roomJoinMessageText(parent: Context, room: ConversationRoom, uids: number[], invitedBy: number | null, isUpdate: boolean = false) {
         // let emojies = ['🖖', '🖐️', '✋', '🙌', '👏', '👋'];
         // let emoji = emojies[Math.floor(Math.random() * emojies.length)] + ' ';

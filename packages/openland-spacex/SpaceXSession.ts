@@ -1,3 +1,4 @@
+import { Modules } from 'openland-modules/Modules';
 import { SpaceXContext } from './SpaceXContext';
 import { currentRunningTime } from 'openland-utils/timer';
 import { withReadOnlyTransaction, withoutTransaction } from '@openland/foundationdb';
@@ -51,6 +52,7 @@ export class SpaceXSession {
     private readonly concurrencyPool: ConcurrencyPool;
     private closed = false;
     private activeOperations = new Map<string, () => void>();
+    private keepAlive: (() => void) | null = null;
 
     constructor(params: SpaceXSessionParams) {
         this.descriptor = params.descriptor;
@@ -75,6 +77,10 @@ export class SpaceXSession {
             if (Config.environment === 'debug') {
                 logger.log(spaceXCtx, 'Session started');
             }
+        }
+
+        if (params.descriptor.type === 'authenticated') {
+            this.keepAlive = Modules.Events.userService.enableKeepAlive(params.descriptor.uid);
         }
     }
 
@@ -261,6 +267,10 @@ export class SpaceXSession {
         this.closed = true;
         activeSessions.delete(this.uuid);
         Metrics.SpaceXSessions.dec();
+        if (this.keepAlive) {
+            this.keepAlive();
+            this.keepAlive = null;
+        }
         if (this.descriptor.type === 'authenticated') {
             Metrics.SpaceXSessionsAuthenticated.dec();
         } else if (this.descriptor.type === 'anonymnous') {

@@ -1,3 +1,4 @@
+import { ShardingModule } from './../openland-module-sharding/ShardingModule';
 import 'reflect-metadata';
 import { DiscussionsModule } from './../openland-module-discussions/DiscussionsModule';
 import { Config } from 'openland-config/Config';
@@ -83,6 +84,7 @@ import { loadPresenceModule } from '../openland-module-presences/PresenceModule.
 import { loadContactsModule } from '../openland-module-contacts/ContactsModule.container';
 import { ContactsModule } from '../openland-module-contacts/ContactsModule';
 import { asyncRun } from '../openland-spacex/utils/asyncRun';
+import { EventsModule } from 'openland-module-events/EventsModule';
 
 const logger = createLogger('starting');
 
@@ -162,6 +164,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind(MediaModule).toSelf().inSingletonScope();
     container.bind(AuthModule).toSelf().inSingletonScope();
     container.bind(WorkerModule).toSelf().inSingletonScope();
+    container.bind(ShardingModule).toSelf().inSingletonScope();
     container.bind(PushModule).toSelf().inSingletonScope();
     container.bind('EmailModule').to(EmailModuleImpl).inSingletonScope();
     container.bind(UsersModule).toSelf().inSingletonScope();
@@ -198,6 +201,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind(ClickHouseModule).toSelf().inSingletonScope();
     loadContactsModule();
     container.bind(ContactsModule).toSelf().inSingletonScope();
+    container.bind(EventsModule).toSelf().inSingletonScope();
 
     logger.log(ctx, 'Modules loaded');
 }
@@ -211,6 +215,8 @@ export async function startAllModules(ctx: Context) {
     await container.get(MediaModule).start();
     logger.log(ctx, 'Starting module: Worker');
     await container.get(WorkerModule).start();
+    logger.log(ctx, 'Starting module: Sharding');
+    await container.get(ShardingModule).start();
     logger.log(ctx, 'Starting module: Push');
     await container.get(PushModule).start();
     logger.log(ctx, 'Starting module: Presence');
@@ -288,6 +294,8 @@ export async function startAllModules(ctx: Context) {
     await container.get(ClickHouseModule).start();
     logger.log(ctx, 'Starting module: Contacts');
     await container.get(ContactsModule).start();
+    logger.log(ctx, 'Starting module: Events');
+    await container.get(EventsModule).start();
 
     // Enable API after all modules started
     logger.log(ctx, 'Starting module: API');
