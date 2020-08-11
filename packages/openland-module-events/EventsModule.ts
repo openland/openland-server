@@ -11,8 +11,8 @@ export class EventsModule {
     readonly userService = new UserServiceManager();
 
     start = async () => {
+        this.userSharding.start();
         if (serverRoleEnabled('events')) {
-            this.userSharding.start();
             asyncRun(async () => {
                 let shardInfo = await this.userSharding.getShardingInfo();
                 this.userService.initSharding(shardInfo.ringSize);

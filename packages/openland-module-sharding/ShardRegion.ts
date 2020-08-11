@@ -80,6 +80,7 @@ export class ShardRegion {
         (async () => {
             try {
                 // Resolve shard region
+                log.log(root, 'Loading shard region information for ' + this.regionName);
                 let region = await backoff(root, async () => {
                     if (completed) {
                         return null;
