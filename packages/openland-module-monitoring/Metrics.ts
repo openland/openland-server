@@ -45,6 +45,7 @@ export const Metrics = {
     //
     // Sharding
     //
+    ShardingNodes: Factory.createTaggedMachineGauge('sharding_nodes', 'Shards per node'),
     ShardingTotal: Factory.createPersistedTaggedGauge('sharding_total', 'Number of shards', async (ctx) => {
         let regions = await Modules.Sharding.getShardRegions(ctx);
         let res: { tag: string, value: number }[] = [];
