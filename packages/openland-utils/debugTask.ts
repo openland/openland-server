@@ -67,10 +67,14 @@ export function debugTaskForAllBatched<T>(subspace: Subspace<TupleItem[], T>, ui
             res = await next();
             total += res.length;
 
-            await inTx(rootCtx, async ctx => {
-                await handler(ctx, res, log);
-            });
-            await log('done: ' + total);
+            try {
+                await inTx(rootCtx, async ctx => {
+                    await handler(ctx, res, log);
+                });
+                await log('done: ' + total);
+            } catch (e) {
+                await log('error: ' + e);
+            }
         } while (res.length > 0);
 
         return 'done, total: ' + total;
