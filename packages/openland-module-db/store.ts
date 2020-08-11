@@ -4691,7 +4691,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chat'), condition: (src) => !src.deleted });
         secondaryIndexes.push({ name: 'chatSeq', storageKey: 'chatSeq', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'seq', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chatSeq'), condition: (src) => !src.deleted });
-        secondaryIndexes.push({ name: 'fromSeq', storageKey: 'fromSeq', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'seq', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'fromSeq'), condition: undefined });
+        secondaryIndexes.push({ name: 'fromSeq', storageKey: 'fromSeq', type: { type: 'unique', fields: [{ name: 'cid', type: 'integer' }, { name: 'seq', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'fromSeq'), condition: undefined });
         secondaryIndexes.push({ name: 'hasImageAttachment', storageKey: 'hasImageAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasImageAttachment'), condition: (item) => {
             if (item.deleted) {
                 return false;
@@ -4896,17 +4896,14 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
     });
 
     readonly fromSeq = Object.freeze({
+        find: async (ctx: Context, cid: number, seq: number | null) => {
+            return this._findFromUniqueIndex(ctx, [cid, seq], this.descriptor.secondaryIndexes[2]);
+        },
         findAll: async (ctx: Context, cid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [cid])).items;
         },
         query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number | null>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[2], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (cid: number, opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[2], [cid], opts);
-        },
-        liveStream: (ctx: Context, cid: number, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [cid], opts);
         },
     });
 
