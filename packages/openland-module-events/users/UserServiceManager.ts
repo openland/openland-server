@@ -2,6 +2,11 @@ import { KeepAliveService } from './KeepAliveService';
 import { EventBus, EventBusSubcription } from 'openland-module-pubsub/EventBus';
 import { getShardId } from 'openland-module-sharding/getShardId';
 import { UserService } from './UserService';
+import { createLogger } from '@openland/log';
+import { createNamedContext } from '@openland/context';
+
+const root = createNamedContext('user-service');
+const log = createLogger('service');
 
 export class UserServiceShard {
     private shard: number;
@@ -65,6 +70,7 @@ export class UserServiceManager {
         }
         let shard = getShardId(uid, ringSize);
         EventBus.publish('users.shard.' + shard + '.keep-alive', { uid });
+        log.log(root, 'Report keep alive for user #' + uid + ' -> ' + shard);
     }
 
     //
