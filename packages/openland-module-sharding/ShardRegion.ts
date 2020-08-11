@@ -7,9 +7,9 @@ import { backoff, delayRandomized } from 'openland-utils/timer';
 import { inTx, Watch } from '@openland/foundationdb';
 import { createNamedContext } from '@openland/context';
 import { Modules } from 'openland-modules/Modules';
-import { murmurhash } from 'openland-utils/murmurhash';
 import { randomKey } from 'openland-utils/random';
 import { NodeState } from './repo/NodeRepository';
+import { getShardId } from './getShardId';
 import { ShardFactory } from './ShardFactory';
 
 const log = createLogger('sharding');
@@ -41,7 +41,7 @@ export class ShardRegion {
      */
     async getShard(key: string) {
         await this.loadedFuture.promise;
-        return murmurhash(key) % this.ringSize;
+        return getShardId(key, this.ringSize);
     }
 
     /**
@@ -54,15 +54,21 @@ export class ShardRegion {
     }
 
     /**
-     * Start shard region and sync allocations
-     * @param allocateShard allocate shard in this process
+     * Get sharding info
      */
-    start = (factory: ShardFactory | null = null) => {
+    async getShardingInfo() {
+        await this.loadedFuture.promise;
+        return { ringSize: this.ringSize, regionName: this.regionName };
+    }
+
+    /**
+     * Start shard region and sync allocations
+     */
+    start = () => {
         if (this.started) {
             return;
         }
         this.started = true;
-        this.factory = factory;
 
         let root = createNamedContext('sharding-' + this.regionName);
 
@@ -105,11 +111,6 @@ export class ShardRegion {
 
                 // Handle loaded
                 await this.onLoaded(region.id, region.ringSize, initialAllocations);
-
-                // Start allocator
-                if (this.factory) {
-                    this.allocator();
-                }
 
                 // Refresh loop
                 while (!completed) {
@@ -163,6 +164,16 @@ export class ShardRegion {
                 await completedFuture.promise;
             }
         });
+    }
+
+    startShard = (factory: ShardFactory) => {
+        if (this.factory) {
+            throw Error('Shard already started');
+        }
+        this.factory = factory;
+
+        // Start allocator
+        this.allocator();
     }
 
     //

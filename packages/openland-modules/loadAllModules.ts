@@ -84,6 +84,7 @@ import { loadPresenceModule } from '../openland-module-presences/PresenceModule.
 import { loadContactsModule } from '../openland-module-contacts/ContactsModule.container';
 import { ContactsModule } from '../openland-module-contacts/ContactsModule';
 import { asyncRun } from '../openland-spacex/utils/asyncRun';
+import { EventsModule } from 'openland-module-events/EventsModule';
 
 const logger = createLogger('starting');
 
@@ -200,6 +201,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind(ClickHouseModule).toSelf().inSingletonScope();
     loadContactsModule();
     container.bind(ContactsModule).toSelf().inSingletonScope();
+    container.bind(EventsModule).toSelf().inSingletonScope();
 
     logger.log(ctx, 'Modules loaded');
 }
@@ -292,6 +294,8 @@ export async function startAllModules(ctx: Context) {
     await container.get(ClickHouseModule).start();
     logger.log(ctx, 'Starting module: Contacts');
     await container.get(ContactsModule).start();
+    logger.log(ctx, 'Starting module: Events');
+    await container.get(EventsModule).start();
 
     // Enable API after all modules started
     logger.log(ctx, 'Starting module: API');

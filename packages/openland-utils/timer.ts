@@ -203,3 +203,8 @@ export const ddMMYYYYFormat = (date: Date) =>
     ('00' + date.getHours()).slice(-2) + ':' +
     ('00' + date.getMinutes()).slice(-2) + ':' +
     ('00' + date.getSeconds()).slice(-2);
+
+export const asyncRun = (handler: () => Promise<any>) => {
+    // tslint:disable-next-line:no-floating-promises
+    handler();
+};

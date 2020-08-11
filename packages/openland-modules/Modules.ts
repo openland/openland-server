@@ -1,3 +1,4 @@
+import { EventsModule } from './../openland-module-events/EventsModule';
 import { ShardingModule } from './../openland-module-sharding/ShardingModule';
 import { Client } from 'ts-nats';
 import { DiscussionsModule } from './../openland-module-discussions/DiscussionsModule';
@@ -185,6 +186,9 @@ class ModulesImpl {
     }
     get Contacts() {
         return container.get(ContactsModule);
+    }
+    get Events() {
+        return container.get(EventsModule);
     }
 }
 

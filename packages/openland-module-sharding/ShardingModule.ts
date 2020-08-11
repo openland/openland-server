@@ -18,12 +18,7 @@ export class ShardingModule {
             startShardingScheduler(this.repo);
 
             // Start test shard
-            this.testShard.start(async () => {
-                // Create shard
-                return async () => {
-                    // Destroy shard
-                };
-            });
+            this.testShard.start();
         }
     }
 
