@@ -10,7 +10,7 @@ export class UserServiceShard {
 
     constructor(shard: number) {
         this.shard = shard;
-        this.services = new KeepAliveService(15 * 60 * 1000, (uid) => new UserService(uid));
+        this.services = new KeepAliveService(60 * 1000, (uid) => new UserService(uid));
     }
 
     async init() {
@@ -33,7 +33,7 @@ export class UserServiceManager {
     private keepAlive = new Map<number, number>();
 
     constructor() {
-        setInterval(this.reportKeepAlives, 60 * 1000);
+        setInterval(this.reportKeepAlives, 5 * 1000);
     }
 
     enableKeepAlive = (uid: number) => {
