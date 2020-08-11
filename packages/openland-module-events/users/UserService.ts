@@ -1,17 +1,21 @@
-import os from 'os';
+import { createLogger } from '@openland/log';
+import { createNamedContext } from '@openland/context';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 
-const hostname = os.hostname();
+const root = createNamedContext('user-service');
+const log = createLogger('service');
 
 export class UserService {
     readonly uid: number;
 
     constructor(uid: number) {
         this.uid = uid;
-        Metrics.UserServices.inc(hostname);
+        Metrics.UserActiveServices.inc();
+        log.log(root, 'Start service for user ' + uid);
     }
 
     async stop() {
-        Metrics.UserServices.dec(hostname);
+        Metrics.UserActiveServices.dec();
+        log.log(root, 'Stop service for user ' + this.uid);
     }
 }
