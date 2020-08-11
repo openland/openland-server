@@ -37,6 +37,7 @@ export class UserServiceManager {
     }
 
     enableKeepAlive = (uid: number) => {
+        this.reportKeepAlive(uid);
         let ex = this.keepAlive.get(uid) || 0;
         this.keepAlive.set(uid, ex + 1);
         return () => {
