@@ -997,34 +997,6 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
-        debugQueueDailyEngagementReport: withPermission('super-admin', async (parent) => {
-            await inTx(parent, async (ctx) => {
-                await Modules.Stats.dailyEngagementQueue.pushImmediateWork(ctx);
-            });
-
-            return true;
-        }),
-        debugQueueDailyOnboardingReport: withPermission('super-admin', async (parent) => {
-            await inTx(parent, async (ctx) => {
-                await Modules.Stats.dailyOnboardingQueue.pushImmediateWork(ctx);
-            });
-
-            return true;
-        }),
-        debugQueueWeeklyOnboardingReport: withPermission('super-admin', async (parent) => {
-            await inTx(parent, async (ctx) => {
-                await Modules.Stats.weeklyOnboardingQueue.pushImmediateWork(ctx);
-            });
-
-            return true;
-        }),
-        debugQueueWeeklyEngagementReport: withPermission('super-admin', async (parent) => {
-            await inTx(parent, async (ctx) => {
-                await Modules.Stats.weeklyEngagementQueue.pushImmediateWork(ctx);
-            });
-
-            return true;
-        }),
         debugCreateBigChat: withPermission('super-admin', async (parent, args) => {
             return inTx(parent, async ctx => {
                 const randKey = () => (Math.random() * Math.pow(2, 55)).toString(16);
@@ -1078,27 +1050,6 @@ export const Resolver: GQLResolver = {
                 }
                 return 'done';
             });
-            return true;
-        }),
-        debugQueueWeeklyUserLeaderboard: withPermission('super-admin', async (parent) => {
-            await inTx(parent, async (ctx) => {
-                await Modules.Stats.weeklyUserLeaderboardQueue.pushImmediateWork(ctx);
-            });
-
-            return true;
-        }),
-        debugQueueWeeklyRoomLeaderboard: withPermission('super-admin', async (parent) => {
-            await inTx(parent, async (ctx) => {
-                await Modules.Stats.weeklyRoomLeaderboardQueue.pushImmediateWork(ctx);
-            });
-
-            return true;
-        }),
-        debugQueueWeeklyRoomByMessagesLeaderboard: withPermission('super-admin', async (parent) => {
-            await inTx(parent, async (ctx) => {
-                await Modules.Stats.weeklyRoomByMessagesLeaderboardQueue.pushImmediateWork(ctx);
-            });
-
             return true;
         }),
         debugSendPush: withPermission('super-admin', async (parent, args) => {
@@ -1426,14 +1377,19 @@ export const Resolver: GQLResolver = {
                 let count = 0;
                 let limit = 100;
                 let total = 0;
+                let seenChats = new Set<number>();
                 try {
-                    let stream = Store.Message.updated.stream({batchSize: limit});
+                    let stream = Store.Message.created.stream({batchSize: limit});
                     do {
                         await inTx(parent, async ctx => {
                             let messages = await stream.next(ctx);
                             for (let message of messages) {
-                                message.seq = message.id;
-                                Store.ConversationLastSeq.byId(message.cid).set(ctx, message.seq);
+                                if (!seenChats.has(message.cid)) {
+                                    await Store.ConversationLastSeq.byId(message.cid).set(ctx, 0);
+                                    seenChats.add(message.cid);
+                                }
+                                Store.ConversationLastSeq.byId(message.cid).increment(ctx);
+                                message.seq = await Store.ConversationLastSeq.byId(message.cid).get(ctx);
                             }
                             count = messages.length;
                             total += messages.length;
@@ -1511,20 +1467,69 @@ export const Resolver: GQLResolver = {
 
             return true;
         }),
-        debugQueueDailyPaidLeaderboard: withPermission('super-admin', async (parent) => {
-            await inTx(parent, async (ctx) => {
-                await Modules.Stats.dailyPaidLeaderboardQueue.pushImmediateWork(ctx);
-            });
-
-            return true;
-        }),
-        debugQueueWeeklyPaidLeaderboard: withPermission('super-admin', async (parent) => {
-            await inTx(parent, async (ctx) => {
-                await Modules.Stats.weeklyPaidLeaderboardQueue.pushImmediateWork(ctx);
-            });
-
-            return true;
-        }),
+        // debugQueueDailyPaidLeaderboard: withPermission('super-admin', async (parent) => {
+        //     await inTx(parent, async (ctx) => {
+        //         await Modules.Stats.dailyPaidLeaderboardQueue.pushImmediateWork(ctx);
+        //     });
+        //
+        //     return true;
+        // }),
+        // debugQueueWeeklyPaidLeaderboard: withPermission('super-admin', async (parent) => {
+        //     await inTx(parent, async (ctx) => {
+        //         await Modules.Stats.weeklyPaidLeaderboardQueue.pushImmediateWork(ctx);
+        //     });
+        //
+        //     return true;
+        // }),
+        // debugQueueWeeklyUserLeaderboard: withPermission('super-admin', async (parent) => {
+        //     await inTx(parent, async (ctx) => {
+        //         await Modules.Stats.weeklyUserLeaderboardQueue.pushImmediateWork(ctx);
+        //     });
+        //
+        //     return true;
+        // }),
+        // debugQueueWeeklyRoomLeaderboard: withPermission('super-admin', async (parent) => {
+        //     await inTx(parent, async (ctx) => {
+        //         await Modules.Stats.weeklyRoomLeaderboardQueue.pushImmediateWork(ctx);
+        //     });
+        //
+        //     return true;
+        // }),
+        // debugQueueWeeklyRoomByMessagesLeaderboard: withPermission('super-admin', async (parent) => {
+        //     await inTx(parent, async (ctx) => {
+        //         await Modules.Stats.weeklyRoomByMessagesLeaderboardQueue.pushImmediateWork(ctx);
+        //     });
+        //
+        //     return true;
+        // }),
+        // debugQueueDailyEngagementReport: withPermission('super-admin', async (parent) => {
+        //     await inTx(parent, async (ctx) => {
+        //         await Modules.Stats.dailyEngagementQueue.pushImmediateWork(ctx);
+        //     });
+        //
+        //     return true;
+        // }),
+        // debugQueueDailyOnboardingReport: withPermission('super-admin', async (parent) => {
+        //     await inTx(parent, async (ctx) => {
+        //         await Modules.Stats.dailyOnboardingQueue.pushImmediateWork(ctx);
+        //     });
+        //
+        //     return true;
+        // }),
+        // debugQueueWeeklyOnboardingReport: withPermission('super-admin', async (parent) => {
+        //     await inTx(parent, async (ctx) => {
+        //         await Modules.Stats.weeklyOnboardingQueue.pushImmediateWork(ctx);
+        //     });
+        //
+        //     return true;
+        // }),
+        // debugQueueWeeklyEngagementReport: withPermission('super-admin', async (parent) => {
+        //     await inTx(parent, async (ctx) => {
+        //         await Modules.Stats.weeklyEngagementQueue.pushImmediateWork(ctx);
+        //     });
+        //
+        //     return true;
+        // }),
         debugSendHiddenMessage: withPermission('super-admin', async (parent, args) => {
             return await inTx(parent, async (ctx) => {
                 let dialog = await Modules.Messaging.room.resolvePrivateChat(ctx, parent.auth.uid!, IDs.User.parse(args.uid));

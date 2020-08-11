@@ -1,8 +1,8 @@
-import { WorkQueue } from './WorkQueue';
 import { Context, createNamedContext } from '@openland/context';
 import { JsonMap } from '../openland-utils/json';
-import { Store } from '../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
+import { BetterWorkerQueue } from './BetterWorkerQueue';
+import { QueueStorage } from './QueueStorage';
 
 export enum WeekDay {
     Sunday = 0,
@@ -14,27 +14,29 @@ export enum WeekDay {
     Saturday = 6,
 }
 
-type Config =
+type IntervalConfig =
     { interval: 'every-week', time: { minutes: number, hours: number, weekDay: WeekDay, } }
     | { interval: 'every-day', time: { minutes: number, hours: number } }
     | { interval: 'every-hour', time: { minutes: number } };
 
-export class ScheduledQueue<RES extends JsonMap> {
-    private readonly queue: WorkQueue<{ scheduled: boolean }>;
+type Config = IntervalConfig & { maxAttempts?: number };
 
-    constructor(private readonly taskType: string, private readonly conf: Config) {
-        this.queue = new WorkQueue(taskType);
+export class ScheduledQueue<RES extends JsonMap> {
+    private readonly queue: BetterWorkerQueue<{}>;
+    constructor(storage: QueueStorage, private readonly conf: Config) {
+        this.queue = new BetterWorkerQueue<{}>(storage, {
+            maxAttempts: conf.maxAttempts || 5,
+            type: 'external'
+        });
     }
 
     addWorker = (handler: (ctx: Context) => void | Promise<void>) => {
-        this.queue.addWorker(async (args, ctx) => {
+        this.queue.addWorkers(1, async (ctx) => {
             await handler(ctx);
-            if (args.scheduled) {
-                await this.ensureNextScheduled(ctx);
-            }
+            await this.ensureNextScheduled(ctx);
         });
 
-        let root = createNamedContext('scheduler-' + this.taskType);
+        let root = createNamedContext('scheduler-' + this.queue.getName());
         // tslint:disable-next-line:no-floating-promises
         (async () => {
             await inTx(root, async (ctx) => {
@@ -44,7 +46,7 @@ export class ScheduledQueue<RES extends JsonMap> {
     }
 
     pushImmediateWork = async (ctx: Context) => {
-        await this.queue.pushWork(ctx, { scheduled: false });
+        await this.queue.pushWork(ctx, {});
     }
 
     private getNext = () => {
@@ -87,11 +89,11 @@ export class ScheduledQueue<RES extends JsonMap> {
     }
 
     private ensureNextScheduled = async (ctx: Context) => {
-        let pending = await Store.Task.delayedPending.findAll(ctx, this.taskType);
-        if (pending.length > 0) {
+        let scheduled = await this.queue.getScheduled(ctx);
+        if (scheduled > 0) {
             return;
         }
 
-        await this.queue.pushWork(ctx, { scheduled: true }, this.getNext());
+        await this.queue.pushWork(ctx, {}, this.getNext());
     }
 }
