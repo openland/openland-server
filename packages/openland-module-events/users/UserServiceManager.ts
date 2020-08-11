@@ -37,10 +37,6 @@ export class UserServiceManager {
     private shard = new Map<number, UserServiceShard>();
     private keepAlive = new Map<number, number>();
 
-    constructor() {
-        setInterval(this.reportKeepAlives, 5 * 1000);
-    }
-
     enableKeepAlive = (uid: number) => {
         this.reportKeepAlive(uid);
         let ex = this.keepAlive.get(uid) || 0;
@@ -66,6 +62,7 @@ export class UserServiceManager {
     private reportKeepAlive = (uid: number) => {
         let ringSize = this.ringSize;
         if (ringSize === null) {
+            log.log(root, 'Unable to report keep alive for user #' + uid);
             return;
         }
         let shard = getShardId(uid, ringSize);
@@ -89,5 +86,7 @@ export class UserServiceManager {
 
     initSharding = (ringSize: number) => {
         this.ringSize = ringSize;
+        this.reportKeepAlives();
+        setInterval(this.reportKeepAlives, 5 * 1000);
     }
 }
