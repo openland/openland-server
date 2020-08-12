@@ -69,7 +69,7 @@ export class UserServiceManager {
         }
         let shard = getShardId(uid, ringSize);
         EventBus.publish('users.shard.' + shard + '.keep-alive', { uid });
-        log.log(root, 'Report keepalive for user #' + uid + ' -> ' + shard);
+        log.debug(root, 'Report keepalive for user #' + uid + ' -> ' + shard);
     }
 
     //

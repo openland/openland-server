@@ -6,7 +6,7 @@ import {
     DialogNeedReindexEvent,
     OrganizationProfile,
     OrganizationMemberShape,
-    UserDialogCallStateChangedEvent,
+    UserDialogCallStateChangedEvent, MessageShape,
 } from './../openland-module-db/store';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from '../openland-module-api/Resolvers';
@@ -1707,32 +1707,11 @@ export const Resolver: GQLResolver = {
             return true;
         }),
         debugInvalidateAllMessages: withPermission('super-admin', async (parent) => {
-            debugTask(parent.auth.uid!, 'debugInvalidateAllMessages', async (log) => {
-                let count = 0;
-                let limit = 100;
-                let total = 0;
-
-                try {
-                    let stream = Store.Message.created.stream({batchSize: limit});
-                    do {
-                        await inTx(parent, async ctx => {
-                            let messages = await stream.next(ctx);
-                            for (let message of messages) {
-                                message.invalidate();
-                            }
-                            count = messages.length;
-                            total += messages.length;
-                        });
-                        if (total % 10000 === 0) {
-                            await log('Proceed ' + total + ' messages');
-                        }
-                    } while (count === limit && count > 0);
-                    await log('Done ' + total + ' messages');
-                } catch (e) {
-                    return `failed ${e.message}`;
+            debugTaskForAllBatched<MessageShape>(Store.Message.descriptor.subspace, parent.auth.uid!, 'debugInvalidateAllMessages',  500, async (ctx, messages) => {
+                for (let msg of messages) {
+                    let message = await Store.Message.findById(ctx, msg.value.id);
+                    message!.invalidate();
                 }
-
-                return 'ok';
             });
             return true;
         }),
