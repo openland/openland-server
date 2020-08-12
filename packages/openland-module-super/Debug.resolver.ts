@@ -15,11 +15,11 @@ import { Store } from '../openland-module-db/FDB';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
 import { createUrlInfoService } from '../openland-module-messaging/workers/UrlInfoService';
-import { inTx, encoders } from '@openland/foundationdb';
+import { inTx, encoders, TupleItem } from '@openland/foundationdb';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { ddMMYYYYFormat, delay } from '../openland-utils/timer';
 import { randomInt, randomKey } from '../openland-utils/random';
-import { debugTask, debugTaskForAll, debugTaskForAllBatched } from '../openland-utils/debugTask';
+import { debugSubspaceIterator, debugTask, debugTaskForAll, debugTaskForAllBatched } from '../openland-utils/debugTask';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { NotFoundError } from '../openland-errors/NotFoundError';
@@ -1707,11 +1707,29 @@ export const Resolver: GQLResolver = {
             return true;
         }),
         debugInvalidateAllMessages: withPermission('super-admin', async (parent) => {
-            debugTaskForAllBatched<MessageShape>(Store.Message.descriptor.subspace, parent.auth.uid!, 'debugInvalidateAllMessages',  500, async (ctx, messages) => {
-                for (let msg of messages) {
-                    let message = await Store.Message.findById(ctx, msg.value.id);
-                    message!.invalidate();
-                }
+            debugSubspaceIterator<MessageShape>(Store.Message.descriptor.subspace, parent.auth.uid!, 'debugInvalidateAllMessages', async (next, log) => {
+                let res: { key: TupleItem[], value: MessageShape }[] = [];
+                let total = 0;
+                do {
+                    res = await next(parent, 99);
+                    total += res.length;
+
+                    try {
+                        await inTx(parent, async ctx => {
+                            for (let msg of res) {
+                                let message = await Store.Message.findById(ctx, msg.value.id);
+                                message!.invalidate();
+                            }
+                        });
+                        if (total % 9900 === 0) {
+                            await log('done: ' + total);
+                        }
+                    } catch (e) {
+                        await log('error: ' + e);
+                    }
+                } while (res.length > 0);
+
+                return 'done, total: ' + total;
             });
             return true;
         }),
@@ -1805,12 +1823,14 @@ export const Resolver: GQLResolver = {
             return true;
         }),
         debugReindexOrganizationMembers: withPermission('super-admin', async (parent) => {
-            debugTaskForAllBatched<OrganizationMemberShape>(Store.OrganizationMember.descriptor.subspace, parent.auth.uid!, 'debugReindexOrganizationMembers', 100, async (ctx, items, log) => {
-                for (let item of items) {
-                    let entity = await Store.OrganizationMember.findById(ctx, item.value.oid, item.value.uid);
-                    entity!.invalidate();
-                    await entity!.flush(ctx);
-                }
+            debugTaskForAllBatched<OrganizationMemberShape>(Store.OrganizationMember.descriptor.subspace, parent.auth.uid!, 'debugReindexOrganizationMembers', 100, async (items) => {
+                await inTx(parent, async ctx => {
+                    for (let item of items) {
+                        let entity = await Store.OrganizationMember.findById(ctx, item.value.oid, item.value.uid);
+                        entity!.invalidate();
+                        await entity!.flush(ctx);
+                    }
+                });
             });
             return true;
         }),
