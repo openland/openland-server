@@ -41,7 +41,7 @@ const loadUserState = async (ctx: Context, uid: number) => {
     let profile = await Modules.Users.profileById(ctx, uid);
     if (profile) {
         return {
-            email: user.email!!,
+            email: user.email,
             args: {
                 'userWelcome': 'Hi, ' + profile.firstName,
                 'userName': [profile.firstName, profile.lastName].filter((v) => v).join(' '),
@@ -54,7 +54,7 @@ const loadUserState = async (ctx: Context, uid: number) => {
         };
     } else {
         return {
-            email: user.email!!,
+            email: user.email,
             args: {
                 'userWelcome': 'Hi',
                 'userName': '',
@@ -70,6 +70,9 @@ const loadUserState = async (ctx: Context, uid: number) => {
 export const Emails = {
     async sendWelcomeEmail(ctx: Context, uid: number) {
         let user = await loadUserState(ctx, uid);
+        if (!user.email) {
+            return;
+        }
         Modules.Email.enqueueEmail(ctx, {
             subject: 'Welcome to Openland!',
             templateId: TEMPLATE_WELCOME,
@@ -79,6 +82,9 @@ export const Emails = {
     },
     async sendUnreadMessages(ctx: Context, uid: number, messages: Message[]) {
         let user = await loadUserState(ctx, uid);
+        if (!user.email) {
+            return;
+        }
 
         if (messages.length > 1) {
 
@@ -144,6 +150,9 @@ export const Emails = {
 
             for (let m of members) {
                 let user = await loadUserState(ctx, m);
+                if (!user.email) {
+                    continue;
+                }
                 Modules.Email.enqueueEmail(ctx, {
                     subject: 'Organization account activated',
                     templateId: TEMPLATE_ACTIVATEED,
@@ -173,6 +182,9 @@ export const Emails = {
 
             for (let m of members) {
                 let user = await loadUserState(ctx, m);
+                if (!user.email) {
+                    continue;
+                }
                 Modules.Email.enqueueEmail(ctx, {
                     subject: 'Organization account deactivated',
                     templateId: TEMPLATE_DEACTIVATED,
@@ -195,7 +207,9 @@ export const Emails = {
 
             let orgProfile = (await Store.OrganizationProfile.findById(ctx, oid))!;
             let user = await loadUserState(ctx, uid);
-
+            if (!user.email) {
+                return;
+            }
             Modules.Email.enqueueEmail(ctx, {
                 subject: `You were removed from ${orgProfile.name!}`,
                 templateId: TEMPLATE_MEMBER_REMOVED,
@@ -223,7 +237,9 @@ export const Emails = {
             let levelName = member.role === 'admin' ? 'admin' : 'member';
 
             let user = await loadUserState(ctx, uid);
-
+            if (!user.email) {
+                return;
+            }
             let orgProfile = (await Store.OrganizationProfile.findById(ctx, oid))!;
 
             Modules.Email.enqueueEmail(ctx, {
@@ -307,7 +323,9 @@ export const Emails = {
                     continue;
                 }
                 let user = await loadUserState(ctx, member);
-
+                if (!user.email) {
+                    continue;
+                }
                 Modules.Email.enqueueEmail(ctx, {
                     subject: 'Invitation accepted',
                     templateId: TEMPLATE_MEMBER_JOINED,
@@ -403,6 +421,9 @@ export const Emails = {
     },
     async sendUnreadComments(ctx: Context, uid: number, comments: Comment[]) {
         let user = await loadUserState(ctx, uid);
+        if (!user.email) {
+            return;
+        }
 
         if (comments.length > 1) {
 
@@ -453,6 +474,9 @@ export const Emails = {
 
     async sendWeeklyDigestEmail(ctx: Context, uid: number) {
         const user = await loadUserState(ctx, uid);
+        if (!user.email) {
+            return;
+        }
 
         const cid = Config.environment === 'production'
             // openland news
@@ -585,6 +609,10 @@ export const Emails = {
 
     async sendGenericEmail(ctx: Context, uid: number, args: { title: string, text: string, link: string, buttonText: string }) {
         let user = await loadUserState(ctx, uid);
+        if (!user.email) {
+            return;
+        }
+
         Modules.Email.enqueueEmail(ctx, {
             subject: args.title,
             templateId: TEMPLATE_GENERIC,
