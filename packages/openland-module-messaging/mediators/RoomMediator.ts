@@ -564,6 +564,9 @@ export class RoomMediator {
                     await this.delivery.onDialogDelete(ctx, member, cid);
                 }
 
+                // Free shortname
+                await Modules.Shortnames.freeShortName(ctx, 'room', cid);
+
                 //
                 // No one will receive this message, but it will cause active subscribes to receive ChatLostAccess
                 //

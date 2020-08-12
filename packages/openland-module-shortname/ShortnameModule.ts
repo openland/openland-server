@@ -22,6 +22,10 @@ export class ShortnameModule {
         return this.repo.setShortName(parent, shortname, ownerType, ownerId, uid);
     }
 
+    async freeShortName(parent: Context, ownerType: OwnerType, ownerId: number) {
+        return this.repo.freeShortName(parent, ownerType, ownerId);
+    }
+
     start = async () => {
         // Nothing to do
     }

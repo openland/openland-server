@@ -15,6 +15,9 @@ const resolveOrganizationRooms = async (src: Organization, args: {}, ctx: Contex
     if (!haveAccess) {
         return [];
     }
+    if (src.status === 'deleted') {
+        return [];
+    }
 
     let rooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, src.id);
     let roomsFull = await Promise.all(rooms.map(async room => {
@@ -37,15 +40,15 @@ export const Resolver: GQLResolver = {
         isMine: (src: Organization, args: {}, ctx: Context) => ctx.auth.uid ? Modules.Orgs.isUserMember(ctx, ctx.auth.uid!, src.id) : false,
         isDeleted: (src: Organization) => src.status === 'deleted',
 
-        name: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.name,
-        photo: async (src: Organization, args: {}, ctx: Context) => buildBaseImageUrl(((await Store.OrganizationProfile.findById(ctx, src.id)))!.photo),
+        name: async (src: Organization, args: {}, ctx: Context) => src.status === 'deleted' ? 'DELETED' : ((await Store.OrganizationProfile.findById(ctx, src.id)))!.name,
+        photo: async (src: Organization, args: {}, ctx: Context) => src.status === 'deleted' ? null : buildBaseImageUrl(((await Store.OrganizationProfile.findById(ctx, src.id)))!.photo),
 
-        website: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.website,
-        about: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.about,
-        twitter: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.twitter,
-        facebook: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.facebook,
-        linkedin: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.linkedin,
-        instagram: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.instagram,
+        website: async (src: Organization, args: {}, ctx: Context) => src.status === 'deleted' ? null : ((await Store.OrganizationProfile.findById(ctx, src.id)))!.website,
+        about: async (src: Organization, args: {}, ctx: Context) => src.status === 'deleted' ? null : ((await Store.OrganizationProfile.findById(ctx, src.id)))!.about,
+        twitter: async (src: Organization, args: {}, ctx: Context) => src.status === 'deleted' ? null : ((await Store.OrganizationProfile.findById(ctx, src.id)))!.twitter,
+        facebook: async (src: Organization, args: {}, ctx: Context) => src.status === 'deleted' ? null : ((await Store.OrganizationProfile.findById(ctx, src.id)))!.facebook,
+        linkedin: async (src: Organization, args: {}, ctx: Context) => src.status === 'deleted' ? null : ((await Store.OrganizationProfile.findById(ctx, src.id)))!.linkedin,
+        instagram: async (src: Organization, args: {}, ctx: Context) => src.status === 'deleted' ? null : ((await Store.OrganizationProfile.findById(ctx, src.id)))!.instagram,
 
         betaIsOwner: (src: Organization, args: {}, ctx: Context) => ctx.auth.uid ? Modules.Orgs.isUserOwner(ctx, ctx.auth.uid!, src.id) : false,
         betaIsAdmin: (src: Organization, args: {}, ctx: Context) => ctx.auth.uid ? Modules.Orgs.isUserAdmin(ctx, ctx.auth.uid!, src.id) : false,
@@ -55,26 +58,32 @@ export const Resolver: GQLResolver = {
         superAccountId: (src: Organization) => IDs.SuperAccount.serialize(src.id),
         alphaIsOwner: (src: Organization, args: {}, ctx: Context) => ctx.auth.uid ? Modules.Orgs.isUserAdmin(ctx, ctx.auth.uid!, src.id) : false,
         alphaOrganizationMembers: async (src, args, ctx) => {
+            if (src.status === 'deleted') {
+                return [];
+            }
             return await resolveOrganizationJoinedMembers(ctx, {
                 afterMemberId: args.after ? IDs.User.parse(args.after) : undefined,
                 first: args.first
             }, src.id);
         },
         alphaOrganizationAdminMembers: async (src, args, ctx) => {
+            if (src.status === 'deleted') {
+                return [];
+            }
             return await resolveOrganizationJoinedAdminMembers(ctx, {
                 afterMemberId: args.after ? IDs.User.parse(args.after) : undefined,
                 first: args.first
             }, src.id);
         },
-        alphaOrganizationMemberRequests: async (src: Organization, args: {}, ctx: Context) => await resolveOrganizationMembersWithStatus(ctx, src.id, 'requested'),
-        alphaFeatured: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationEditorial.findById(ctx, src.id)))!.featured,
+        alphaOrganizationMemberRequests: async (src: Organization, args: {}, ctx: Context) => src.status === 'deleted' ? [] : await resolveOrganizationMembersWithStatus(ctx, src.id, 'requested'),
+        alphaFeatured: async (src: Organization, args: {}, ctx: Context) => src.status === 'deleted' ? false : ((await Store.OrganizationEditorial.findById(ctx, src.id)))!.featured,
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
         alphaIsPrivate: (src: Organization) => src.private || false,
 
         betaPublicRooms: resolveOrganizationRooms,
-        betaPublicRoomsCount: async (src, args, ctx) => (await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, src.id)).length,
+        betaPublicRoomsCount: async (src, args, ctx) => src.status === 'deleted' ? 0 : (await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, src.id)).length,
         status: async (src: Organization) => src.status,
-        membersCount: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id))!.joinedMembersCount || 0),
+        membersCount: async (src: Organization, args: {}, ctx: Context) => src.status === 'deleted' ? 0 : ((await Store.OrganizationProfile.findById(ctx, src.id))!.joinedMembersCount || 0),
         personal: async (src: Organization) => src.personal || false,
     },
     Query: {
@@ -107,8 +116,24 @@ export const Resolver: GQLResolver = {
             }
 
             let res = await Store.Organization.findById(ctx, orgId);
-            if (!res || res.status === 'deleted') {
+            if (!res) {
                 throw new NotFoundError('Unable to find organization');
+            }
+            return res;
+        }),
+        betaOrganization: withAny(async (ctx, args) => {
+            let shortname = await Modules.Shortnames.findShortname(ctx, args.id);
+            let orgId: number;
+
+            if (shortname && shortname.enabled && shortname.ownerType === 'org') {
+                orgId = shortname.ownerId;
+            } else {
+                orgId = IDs.Organization.parse(args.id);
+            }
+
+            let res = await Store.Organization.findById(ctx, orgId);
+            if (!res || res.status === 'deleted') {
+                return null;
             }
             return res;
         }),

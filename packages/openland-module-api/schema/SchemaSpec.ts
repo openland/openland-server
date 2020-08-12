@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '98202e87a03041f10666b701d585d4cb';
+export const GQL_SPEC_VERSION = '01e9e751e6963d73702a8288ee97f0ea';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2294,6 +2294,7 @@ export namespace GQL {
         debugDeliverCallStateEventsForAll: boolean;
         debugMigrateMuteSettings: boolean;
         debugMigrateUserChatsList: boolean;
+        debugFreeUnusedShortnames: boolean;
         settingsUpdate: Settings;
         sendEmailPairCode: string;
         pairEmail: boolean;
@@ -2823,6 +2824,7 @@ export namespace GQL {
     export interface MutationDebugDeliverCallStateEventsForAllArgs { }
     export interface MutationDebugMigrateMuteSettingsArgs { }
     export interface MutationDebugMigrateUserChatsListArgs { }
+    export interface MutationDebugFreeUnusedShortnamesArgs { }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
         uid: OptionalNullable<string>;
@@ -4236,6 +4238,7 @@ export namespace GQL {
         myOrganizations: Organization[];
         myCommunities: Organization[];
         organization: Organization;
+        betaOrganization: Nullable<Organization>;
         organizationPublicRooms: SharedRoomConnection;
         myOrganizationProfile: OrganizationProfile;
         organizationProfile: OrganizationProfile;
@@ -4554,6 +4557,9 @@ export namespace GQL {
     export interface QueryMyOrganizationsArgs { }
     export interface QueryMyCommunitiesArgs { }
     export interface QueryOrganizationArgs {
+        id: string;
+    }
+    export interface QueryBetaOrganizationArgs {
         id: string;
     }
     export interface QueryOrganizationPublicRoomsArgs {
@@ -8919,6 +8925,7 @@ export interface GQLResolver {
             debugDeliverCallStateEventsForAll: GQL.MutationDebugDeliverCallStateEventsForAllArgs,
             debugMigrateMuteSettings: GQL.MutationDebugMigrateMuteSettingsArgs,
             debugMigrateUserChatsList: GQL.MutationDebugMigrateUserChatsListArgs,
+            debugFreeUnusedShortnames: GQL.MutationDebugFreeUnusedShortnamesArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailPairCode: GQL.MutationSendEmailPairCodeArgs,
             pairEmail: GQL.MutationPairEmailArgs,
@@ -9726,6 +9733,7 @@ export interface GQLResolver {
             myOrganizations: GQLRoots.OrganizationRoot[],
             myCommunities: GQLRoots.OrganizationRoot[],
             organization: GQLRoots.OrganizationRoot,
+            betaOrganization: Nullable<GQLRoots.OrganizationRoot>,
             organizationPublicRooms: GQLRoots.SharedRoomConnectionRoot,
             myOrganizationProfile: GQLRoots.OrganizationProfileRoot,
             organizationProfile: GQLRoots.OrganizationProfileRoot,
@@ -9904,6 +9912,7 @@ export interface GQLResolver {
             myOrganizations: GQL.QueryMyOrganizationsArgs,
             myCommunities: GQL.QueryMyCommunitiesArgs,
             organization: GQL.QueryOrganizationArgs,
+            betaOrganization: GQL.QueryBetaOrganizationArgs,
             organizationPublicRooms: GQL.QueryOrganizationPublicRoomsArgs,
             myOrganizationProfile: GQL.QueryMyOrganizationProfileArgs,
             organizationProfile: GQL.QueryOrganizationProfileArgs,

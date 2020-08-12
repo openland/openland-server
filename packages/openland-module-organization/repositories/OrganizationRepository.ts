@@ -211,6 +211,8 @@ export class OrganizationRepository {
 
             await this.markForUndexing(ctx, oid);
 
+            await Modules.Shortnames.freeShortName(ctx, 'org', oid);
+
             return true;
         });
     }
