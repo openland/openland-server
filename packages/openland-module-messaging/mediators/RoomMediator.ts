@@ -662,6 +662,10 @@ export class RoomMediator {
         return await this.repo.setListed(ctx, cid, listed);
     }
 
+    async setupAutosubscribe(ctx: Context, cid: number, childRooms: number[]) {
+        return await this.repo.setupAutosubscribe(ctx, cid, childRooms);
+    }
+
     async roomMembersCount(ctx: Context, conversationId: number, status?: string): Promise<number> {
         return await this.repo.roomMembersCount(ctx, conversationId, status);
     }

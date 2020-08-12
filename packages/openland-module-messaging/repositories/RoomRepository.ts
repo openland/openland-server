@@ -569,6 +569,22 @@ export class RoomRepository {
         });
     }
 
+    async setupAutosubscribe(parent: Context, cid: number, childIds: number[]) {
+        return await inTx(parent, async (ctx) => {
+            let room = await Store.ConversationRoom.findById(ctx, cid);
+            if (!room) {
+                throw new AccessDeniedError();
+            }
+            for (let id of childIds) {
+                if (!await Store.ConversationRoom.findById(ctx, id)) {
+                    throw new NotFoundError();
+                }
+            }
+            room.autosubscribeRooms = childIds;
+            return (await Store.Conversation.findById(ctx, cid))!;
+        });
+    }
+
     //
     // Queries
     //
@@ -1299,6 +1315,16 @@ export class RoomRepository {
             if (welcomeMessage && welcomeMessage.isOn && welcomeMessage.sender) {
                 // Send welcome message after 60s
                 await this.welcomeMessageWorker.pushWork(ctx, { uid, cid }, Date.now() + 1000 * 40);
+            }
+
+            if (room.autosubscribeRooms) {
+                for (let c of room.autosubscribeRooms) {
+                    let conv = await Store.ConversationRoom.findById(ctx, c);
+                    if (!conv) {
+                        continue;
+                    }
+                    await Modules.Messaging.room.joinRoom(ctx, c, uid);
+                }
             }
 
             await Modules.Hooks.onRoomJoin(ctx, cid, uid, by);

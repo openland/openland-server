@@ -3638,6 +3638,7 @@ export interface ConversationRoomShape {
     isChannel: boolean | null;
     isPremium: boolean | null;
     isDeleted: boolean | null;
+    autosubscribeRooms: (number)[] | null;
 }
 
 export interface ConversationRoomCreateShape {
@@ -3649,6 +3650,7 @@ export interface ConversationRoomCreateShape {
     isChannel?: boolean | null | undefined;
     isPremium?: boolean | null | undefined;
     isDeleted?: boolean | null | undefined;
+    autosubscribeRooms?: (number)[] | null | undefined;
 }
 
 export class ConversationRoom extends Entity<ConversationRoomShape> {
@@ -3725,6 +3727,15 @@ export class ConversationRoom extends Entity<ConversationRoomShape> {
             this.invalidate();
         }
     }
+    get autosubscribeRooms(): (number)[] | null { return this._rawValue.autosubscribeRooms; }
+    set autosubscribeRooms(value: (number)[] | null) {
+        let normalized = this.descriptor.codec.fields.autosubscribeRooms.normalize(value);
+        if (this._rawValue.autosubscribeRooms !== normalized) {
+            this._rawValue.autosubscribeRooms = normalized;
+            this._updatedValues.autosubscribeRooms = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape, ConversationRoom> {
@@ -3745,6 +3756,7 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
         fields.push({ name: 'isChannel', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'isPremium', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'isDeleted', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'autosubscribeRooms', type: { type: 'optional', inner: { type: 'array', inner: { type: 'integer' } } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             kind: c.enum('organization', 'internal', 'public', 'group'),
@@ -3755,6 +3767,7 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
             isChannel: c.optional(c.boolean),
             isPremium: c.optional(c.boolean),
             isDeleted: c.optional(c.boolean),
+            autosubscribeRooms: c.optional(c.array(c.integer)),
         });
         let descriptor: EntityDescriptor<ConversationRoomShape> = {
             name: 'ConversationRoom',

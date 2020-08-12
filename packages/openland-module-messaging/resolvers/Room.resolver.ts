@@ -893,6 +893,9 @@ export const Resolver: GQLResolver = {
         betaRoomAlterListed: withPermission('super-admin', async (ctx, args) => {
             return await Modules.Messaging.room.setListed(ctx, IDs.Conversation.parse(args.roomId), args.listed);
         }),
+        betaRoomSetupAutosubscribe: withPermission('super-admin', async (ctx, args) => {
+           return await Modules.Messaging.room.setupAutosubscribe(ctx, IDs.Conversation.parse(args.roomId), args.childRoomIds.map(a => IDs.Conversation.parse(a)));
+        }),
 
         updateWelcomeMessage: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.roomId);
