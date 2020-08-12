@@ -5,7 +5,7 @@ import { Database, inTx } from '@openland/foundationdb';
 describe('EventsStorage', () => {
     it('posting should work', async () => {
         let root = createNamedContext('test');
-        let db = await Database.openTest();
+        let db = await Database.openTest({ name: 'event-storage-posting', layers: [] });
         const zero = Buffer.alloc(0);
 
         for (let jumbo of [false, true]) {
@@ -89,7 +89,7 @@ describe('EventsStorage', () => {
 
     it('simple paging should work', async () => {
         let root = createNamedContext('test');
-        let db = await Database.openTest();
+        let db = await Database.openTest({ name: 'event-storage-paging', layers: [] });
         const zero = Buffer.alloc(0);
 
         for (let jumbo of [false, true]) {
@@ -175,7 +175,7 @@ describe('EventsStorage', () => {
 
     it('upgrade should work', async () => {
         let root = createNamedContext('test');
-        let db = await Database.openTest();
+        let db = await Database.openTest({ name: 'event-storage-upgrade', layers: [] });
 
         let storage = await EventsStorage.open(db);
 

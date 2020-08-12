@@ -1,4 +1,4 @@
-import { KeepAliveService } from './KeepAliveService';
+import { KeepAliveService } from '../utils/KeepAliveService';
 import { EventBus, EventBusSubcription } from 'openland-module-pubsub/EventBus';
 import { getShardId } from 'openland-module-sharding/getShardId';
 import { UserService } from './UserService';
