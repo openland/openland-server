@@ -44,6 +44,11 @@ export function createEmailWorker() {
                 }
             }
 
+            if (!args.to || (args.to || '').trim().length === 0) {
+                log.warn(ctx, 'empty email receiver', args);
+                return;
+            }
+
             try {
                 let res = await SendGrid.send({
                     to: args.to,
