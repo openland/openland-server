@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '2a6104a5cb61b51be661b9c84935e316';
+export const GQL_SPEC_VERSION = 'd0bdff1124df1793275180628a415be9';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2294,7 +2294,6 @@ export namespace GQL {
         debugDeliverCallStateEventsForAll: boolean;
         debugMigrateMuteSettings: boolean;
         debugMigrateUserChatsList: boolean;
-        debugFreeUnusedShortnames: boolean;
         settingsUpdate: Settings;
         sendEmailPairCode: string;
         pairEmail: boolean;
@@ -2507,6 +2506,7 @@ export namespace GQL {
         betaRoomsInviteUser: Room[];
         betaRoomAlterFeatured: RoomSuper;
         betaRoomAlterListed: RoomSuper;
+        betaRoomSetupAutosubscribe: RoomSuper;
         updateWelcomeMessage: boolean;
         alphaSetUserShortName: Nullable<string>;
         alphaSetOrgShortName: Nullable<string>;
@@ -2824,7 +2824,6 @@ export namespace GQL {
     export interface MutationDebugDeliverCallStateEventsForAllArgs { }
     export interface MutationDebugMigrateMuteSettingsArgs { }
     export interface MutationDebugMigrateUserChatsListArgs { }
-    export interface MutationDebugFreeUnusedShortnamesArgs { }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
         uid: OptionalNullable<string>;
@@ -3667,6 +3666,10 @@ export namespace GQL {
         roomId: string;
         listed: boolean;
     }
+    export interface MutationBetaRoomSetupAutosubscribeArgs {
+        roomId: string;
+        childRoomIds: string[];
+    }
     export interface MutationUpdateWelcomeMessageArgs {
         roomId: string;
         welcomeMessageIsOn: boolean;
@@ -4238,7 +4241,6 @@ export namespace GQL {
         myOrganizations: Organization[];
         myCommunities: Organization[];
         organization: Organization;
-        betaOrganization: Nullable<Organization>;
         organizationPublicRooms: SharedRoomConnection;
         myOrganizationProfile: OrganizationProfile;
         organizationProfile: OrganizationProfile;
@@ -4557,9 +4559,6 @@ export namespace GQL {
     export interface QueryMyOrganizationsArgs { }
     export interface QueryMyCommunitiesArgs { }
     export interface QueryOrganizationArgs {
-        id: string;
-    }
-    export interface QueryBetaOrganizationArgs {
         id: string;
     }
     export interface QueryOrganizationPublicRoomsArgs {
@@ -6000,10 +5999,12 @@ export namespace GQL {
         id: string;
         featured: boolean;
         listed: boolean;
+        autosubscribeRooms: Room[];
     }
     export interface RoomSuperIdArgs { }
     export interface RoomSuperFeaturedArgs { }
     export interface RoomSuperListedArgs { }
+    export interface RoomSuperAutosubscribeRoomsArgs { }
     export interface RoomUpdateInput {
         title: Nullable<string>;
         photoRef: Nullable<ImageRefInput>;
@@ -8808,6 +8809,7 @@ export interface GQLResolver {
             betaRoomsInviteUser: GQLRoots.RoomRoot[],
             betaRoomAlterFeatured: GQLRoots.RoomSuperRoot,
             betaRoomAlterListed: GQLRoots.RoomSuperRoot,
+            betaRoomSetupAutosubscribe: GQLRoots.RoomSuperRoot,
         },
         {
             lifecheck: GQL.MutationLifecheckArgs,
@@ -8932,7 +8934,6 @@ export interface GQLResolver {
             debugDeliverCallStateEventsForAll: GQL.MutationDebugDeliverCallStateEventsForAllArgs,
             debugMigrateMuteSettings: GQL.MutationDebugMigrateMuteSettingsArgs,
             debugMigrateUserChatsList: GQL.MutationDebugMigrateUserChatsListArgs,
-            debugFreeUnusedShortnames: GQL.MutationDebugFreeUnusedShortnamesArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailPairCode: GQL.MutationSendEmailPairCodeArgs,
             pairEmail: GQL.MutationPairEmailArgs,
@@ -9145,6 +9146,7 @@ export interface GQLResolver {
             betaRoomsInviteUser: GQL.MutationBetaRoomsInviteUserArgs,
             betaRoomAlterFeatured: GQL.MutationBetaRoomAlterFeaturedArgs,
             betaRoomAlterListed: GQL.MutationBetaRoomAlterListedArgs,
+            betaRoomSetupAutosubscribe: GQL.MutationBetaRoomSetupAutosubscribeArgs,
             updateWelcomeMessage: GQL.MutationUpdateWelcomeMessageArgs,
             alphaSetUserShortName: GQL.MutationAlphaSetUserShortNameArgs,
             alphaSetOrgShortName: GQL.MutationAlphaSetOrgShortNameArgs,
@@ -9740,7 +9742,6 @@ export interface GQLResolver {
             myOrganizations: GQLRoots.OrganizationRoot[],
             myCommunities: GQLRoots.OrganizationRoot[],
             organization: GQLRoots.OrganizationRoot,
-            betaOrganization: Nullable<GQLRoots.OrganizationRoot>,
             organizationPublicRooms: GQLRoots.SharedRoomConnectionRoot,
             myOrganizationProfile: GQLRoots.OrganizationProfileRoot,
             organizationProfile: GQLRoots.OrganizationProfileRoot,
@@ -9919,7 +9920,6 @@ export interface GQLResolver {
             myOrganizations: GQL.QueryMyOrganizationsArgs,
             myCommunities: GQL.QueryMyCommunitiesArgs,
             organization: GQL.QueryOrganizationArgs,
-            betaOrganization: GQL.QueryBetaOrganizationArgs,
             organizationPublicRooms: GQL.QueryOrganizationPublicRoomsArgs,
             myOrganizationProfile: GQL.QueryMyOrganizationProfileArgs,
             organizationProfile: GQL.QueryOrganizationProfileArgs,
@@ -11227,11 +11227,13 @@ export interface GQLResolver {
         GQL.RoomSuper,
         GQLRoots.RoomSuperRoot,
         {
+            autosubscribeRooms: GQLRoots.RoomRoot[],
         },
         {
             id: GQL.RoomSuperIdArgs,
             featured: GQL.RoomSuperFeaturedArgs,
             listed: GQL.RoomSuperListedArgs,
+            autosubscribeRooms: GQL.RoomSuperAutosubscribeRoomsArgs,
         }
     >;
     UserMention?: ComplexTypedResolver<

@@ -55,11 +55,6 @@ async function context(src: express.Request): Promise<Context> {
             }
         }
 
-        if (uid === 315) {
-            // send me a message via super bot
-            await Modules.Messaging.sendMessage(ctx, 43815, 2498, { message: 'Headers: ' + JSON.stringify(src.rawHeaders) });
-        }
-
         // Auth Context
         res = AuthContext.set(res, { tid, uid, oid });
         if (uid && tid) {

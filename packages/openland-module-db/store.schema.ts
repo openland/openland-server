@@ -295,6 +295,7 @@ export default declareSchema(() => {
         field('isChannel', optional(boolean()));
         field('isPremium', optional(boolean()));
         field('isDeleted', optional(boolean()));
+        field('autosubscribeRooms', optional(array(integer())));
         rangeIndex('organization', ['oid'])
             .withCondition((v) => (v.kind === 'public' || v.kind === 'internal') && !v.isDeleted);
         uniqueIndex('organizationPublicRooms', ['oid', 'id'])
