@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '31baeb7aa88f9a7c3ac446a7f19a14db';
+export const GQL_SPEC_VERSION = '76981c9a5a69343cbfad92859c053a32';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4243,7 +4243,6 @@ export namespace GQL {
         myOrganizations: Organization[];
         myCommunities: Organization[];
         organization: Organization;
-        betaOrganization: Nullable<Organization>;
         organizationPublicRooms: SharedRoomConnection;
         myOrganizationProfile: OrganizationProfile;
         organizationProfile: OrganizationProfile;
@@ -4562,9 +4561,6 @@ export namespace GQL {
     export interface QueryMyOrganizationsArgs { }
     export interface QueryMyCommunitiesArgs { }
     export interface QueryOrganizationArgs {
-        id: string;
-    }
-    export interface QueryBetaOrganizationArgs {
         id: string;
     }
     export interface QueryOrganizationPublicRoomsArgs {
@@ -9749,7 +9745,6 @@ export interface GQLResolver {
             myOrganizations: GQLRoots.OrganizationRoot[],
             myCommunities: GQLRoots.OrganizationRoot[],
             organization: GQLRoots.OrganizationRoot,
-            betaOrganization: Nullable<GQLRoots.OrganizationRoot>,
             organizationPublicRooms: GQLRoots.SharedRoomConnectionRoot,
             myOrganizationProfile: GQLRoots.OrganizationProfileRoot,
             organizationProfile: GQLRoots.OrganizationProfileRoot,
@@ -9928,7 +9923,6 @@ export interface GQLResolver {
             myOrganizations: GQL.QueryMyOrganizationsArgs,
             myCommunities: GQL.QueryMyCommunitiesArgs,
             organization: GQL.QueryOrganizationArgs,
-            betaOrganization: GQL.QueryBetaOrganizationArgs,
             organizationPublicRooms: GQL.QueryOrganizationPublicRoomsArgs,
             myOrganizationProfile: GQL.QueryMyOrganizationProfileArgs,
             organizationProfile: GQL.QueryOrganizationProfileArgs,

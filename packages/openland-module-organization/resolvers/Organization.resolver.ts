@@ -121,22 +121,6 @@ export const Resolver: GQLResolver = {
             }
             return res;
         }),
-        betaOrganization: withAny(async (ctx, args) => {
-            let shortname = await Modules.Shortnames.findShortname(ctx, args.id);
-            let orgId: number;
-
-            if (shortname && shortname.enabled && shortname.ownerType === 'org') {
-                orgId = shortname.ownerId;
-            } else {
-                orgId = IDs.Organization.parse(args.id);
-            }
-
-            let res = await Store.Organization.findById(ctx, orgId);
-            if (!res || res.status === 'deleted') {
-                return null;
-            }
-            return res;
-        }),
         organizationPublicRooms: withUser(async (ctx, args, uid) => {
             let orgId = IDs.Organization.parse(args.id);
             let org = await Store.Organization.findById(ctx, orgId);
