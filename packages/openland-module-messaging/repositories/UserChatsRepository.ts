@@ -33,11 +33,15 @@ export class UserChatsRepository {
         this.versionSubspace.add(ctx, [uid], 1);
     }
 
-    async getChats(ctx: Context, uid: number) {
-        return (await this.chatsSubspace.range(ctx, [uid])).map(v => v.key[1]);
+    async getGroups(ctx: Context, uid: number) {
+        return (await this.chatsSubspace.range(ctx, [uid])).map(v => v.key[1] as number);
     }
 
     async getVersion(ctx: Context, uid: number) {
         return await this.versionSubspace.get(ctx, [uid]) || 0;
+    }
+
+    async watchVersion(ctx: Context, uid: number) {
+        return this.versionSubspace.watch(ctx, [uid]);
     }
 }

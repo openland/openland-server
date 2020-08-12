@@ -1,57 +1,39 @@
+import { Modules } from 'openland-modules/Modules';
+import { EventBusSubcription, EventBus } from 'openland-module-pubsub/EventBus';
 import { createIterator } from 'openland-utils/asyncIterator';
 import { TypingEvent } from './TypingEvent';
-import { PubsubSubcription, Pubsub } from 'openland-module-pubsub/pubsub';
 import { injectable } from 'inversify';
 import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
 import TypingTypeRoot = GQLRoots.TypingTypeRoot;
-import { registerTypingsService } from './service/registerTypingsService';
-import { broker } from 'openland-server/moleculer';
-import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
-import { asyncRun } from '../openland-mtproto3/utils';
-import { createLogger } from '@openland/log';
-import { createNamedContext } from '@openland/context';
-
-const log = createLogger('typings');
-const ctx = createNamedContext('typings');
+import { Context } from '@openland/context';
 
 @injectable()
 export class TypingsModule {
 
-    private xPubSub = new Pubsub<TypingEvent>();
-
     start = async () => {
-        if (serverRoleEnabled('events')) {
-            registerTypingsService(this.xPubSub);
+        // Nothing to do
+    }
+
+    public async setTyping(parent: Context, uid: number, cid: number, type: TypingTypeRoot) {
+        let privateUid = await Modules.Messaging.room.isPrivate(parent, cid, uid);
+        if (privateUid !== false) {
+            EventBus.publish('user.' + privateUid + '.typings', { cid, uid, type });
+        } else {
+            EventBus.publish('group.' + cid + '.typings', { cid, uid, type });
         }
     }
 
-    public async setTyping(uid: number, conversationId: number, type: TypingTypeRoot) {
-        try {
-            asyncRun(async () => {
-                // tslint:disable-next-line:no-floating-promises
-                broker.call('typings.send', {
-                    uid: uid,
-                    cid: conversationId,
-                    type: type
-                });
-            });
-        } catch (e) {
-            log.error(ctx, e);
-        }
-    }
-
-    public async createTypingStream(uid: number, conversationId?: number) {
-
-        let sub: PubsubSubcription | undefined;
-
+    public createTypingStream(forUser: number) {
+        let sub: EventBusSubcription | undefined;
         let iterator = createIterator<TypingEvent>(() => sub ? sub.cancel() : {});
-
-        sub = await this.xPubSub.subscribe(`typing.${uid}`, ev => {
-            if (conversationId && ev.conversationId !== conversationId) {
+        sub = EventBus.subscribe('user.' + forUser + '.typings', (ev) => {
+            let cid = ev.cid as number;
+            let uid = ev.uid as number;
+            let type = ev.type as TypingTypeRoot;
+            if (uid === forUser) {
                 return;
             }
-
-            iterator.push(ev);
+            iterator.push({ cid, uid, type });
         });
 
         return iterator;

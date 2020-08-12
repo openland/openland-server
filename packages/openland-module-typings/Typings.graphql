@@ -17,16 +17,8 @@ enum TypingType {
 extend type Mutation {
     typingSend(conversationId: ID!, type: TypingType!): String!
     typingCancel(conversationId: ID!): String!
-
-    # Deprecated
-    alphaSetTyping(conversationId: ID!, type: String): String!
 }
 
 extend type Subscription {
     typings: TypingEvent!
-    conversationTypings(conversationId: ID!): TypingEvent!
-
-    # Deprecated
-    alphaSubscribeTypings: TypingEvent!
-    alphaSubscribeChatTypings(conversationId: ID!): TypingEvent!
 }
