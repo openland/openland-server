@@ -489,7 +489,7 @@ export const Resolver: GQLResolver = {
         roomSocialImage: async (src, args, ctx) => {
             let cid = IDs.Conversation.parse(args.roomId);
             let room = await Store.ConversationRoom.findById(ctx, cid);
-            if (!room || room.kind !== 'public') {
+            if (!room) {
                 return null;
             }
             let image = await Modules.Messaging.getSocialImage(ctx, cid);
