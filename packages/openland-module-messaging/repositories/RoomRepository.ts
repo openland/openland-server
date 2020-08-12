@@ -22,6 +22,7 @@ import { smartSlice } from '../../openland-utils/string';
 import { createWelcomeMessageWorker } from '../workers/welcomeMessageWorker';
 import { DeliveryMediator } from '../mediators/DeliveryMediator';
 import { UserChatsRepository } from './UserChatsRepository';
+import { FastCountersRepository } from './FastCountersRepository';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -47,6 +48,9 @@ export class RoomRepository {
 
     @lazyInject('DeliveryMediator')
     private readonly delivery!: DeliveryMediator;
+
+    @lazyInject('FastCountersRepository')
+    readonly fastCounters!: FastCountersRepository;
 
     public readonly welcomeMessageWorker = createWelcomeMessageWorker();
     private membersCache = new ExpiringCache<number[]>({ timeout: 15 * 60 * 1000 });
@@ -84,7 +88,7 @@ export class RoomRepository {
                 invitedBy: uid,
                 status: 'joined'
             });
-            this.setParticipant(ctx, id, uid, true);
+            await this.setParticipant(ctx, id, uid, true);
             await this.onRoomJoin(ctx, id, uid, uid);
             for (let m of [...new Set(members)]) {
                 if (m === uid) {
@@ -95,7 +99,7 @@ export class RoomRepository {
                     invitedBy: uid,
                     status: 'joined'
                 });
-                this.setParticipant(ctx, id, m, true);
+                await this.setParticipant(ctx, id, m, true);
                 await this.onRoomJoin(ctx, id, m, uid);
             }
 
@@ -118,7 +122,7 @@ export class RoomRepository {
                     p.status = 'joined';
                     p.invitedBy = by;
                     Store.RoomParticipantsVersion.increment(ctx, cid);
-                    this.setParticipant(ctx, cid, uid, true);
+                    await this.setParticipant(ctx, cid, uid, true);
                     await this.incrementRoomActiveMembers(ctx, cid);
                     await this.onRoomJoin(ctx, cid, uid, by);
                     return true;
@@ -130,7 +134,7 @@ export class RoomRepository {
                     role: 'member'
                 });
                 Store.RoomParticipantsVersion.increment(ctx, cid);
-                this.setParticipant(ctx, cid, uid, true);
+                await this.setParticipant(ctx, cid, uid, true);
                 await this.onRoomJoin(ctx, cid, uid, by);
                 return true;
             }
@@ -149,7 +153,7 @@ export class RoomRepository {
             }
             participant.status = 'kicked';
             Store.RoomParticipantsVersion.increment(ctx, cid);
-            this.setParticipant(ctx, cid, uid, false);
+            await this.setParticipant(ctx, cid, uid, false);
             await this.decrementRoomActiveMembers(ctx, cid);
             await this.onRoomLeave(ctx, cid, uid, true);
             return true;
@@ -168,7 +172,7 @@ export class RoomRepository {
             }
             participant.status = 'kicked';
             Store.RoomParticipantsVersion.increment(ctx, cid);
-            this.setParticipant(ctx, cid, uid, false);
+            await this.setParticipant(ctx, cid, uid, false);
             return true;
         });
     }
@@ -185,7 +189,7 @@ export class RoomRepository {
             }
             p.status = 'left';
             Store.RoomParticipantsVersion.increment(ctx, cid);
-            this.setParticipant(ctx, cid, uid, false);
+            await this.setParticipant(ctx, cid, uid, false);
             await this.decrementRoomActiveMembers(ctx, cid);
             await this.onRoomLeave(ctx, cid, uid, false);
             return true;
@@ -206,7 +210,7 @@ export class RoomRepository {
                     p.invitedBy = uid;
                     p.status = targetStatus;
                     Store.RoomParticipantsVersion.increment(ctx, cid);
-                    this.setParticipant(ctx, cid, uid, true);
+                    await this.setParticipant(ctx, cid, uid, true);
                     if (targetStatus === 'joined') {
                         await this.incrementRoomActiveMembers(ctx, cid);
                         await this.onRoomJoin(ctx, cid, uid, uid);
@@ -220,7 +224,7 @@ export class RoomRepository {
                     invitedBy: uid
                 });
                 Store.RoomParticipantsVersion.increment(ctx, cid);
-                this.setParticipant(ctx, cid, uid, true);
+                await this.setParticipant(ctx, cid, uid, true);
                 await this.onRoomJoin(ctx, cid, uid, uid);
                 return true;
             }
@@ -517,7 +521,7 @@ export class RoomRepository {
     // Members
     //
 
-    setParticipant(ctx: Context, cid: number, uid: number, isMember: boolean) {
+    async setParticipant(ctx: Context, cid: number, uid: number, isMember: boolean) {
         let dir = Store.RoomParticipantsActiveDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean);
@@ -525,8 +529,10 @@ export class RoomRepository {
         if (isMember) {
             dir.set(ctx, [cid, uid], false);
             this.userChats.addChat(ctx, uid, cid);
+            await this.fastCounters.onAddDialog(ctx, uid, cid);
         } else {
             this.userChats.removeChat(ctx, uid, cid);
+            this.fastCounters.onRemoveDialog(ctx, uid, cid);
             dir.clear(ctx, [cid, uid]);
         }
     }
@@ -634,6 +640,8 @@ export class RoomRepository {
                 });
                 this.metrics.onChatCreated(ctx, uid1);
                 this.metrics.onChatCreated(ctx, uid2);
+                this.fastCounters.onAddDialog(ctx, uid1, conv.id);
+                this.fastCounters.onAddDialog(ctx, uid2, conv.id);
                 await conv.flush(ctx);
             }
             return (await Store.Conversation.findById(ctx, conv.id))!;

@@ -17,6 +17,7 @@ import * as Chrono from 'chrono-node';
 import { Store } from 'openland-module-db/FDB';
 import { MentionNotificationsMediator } from './MentionNotificationsMediator';
 import { DonationsMediator } from './DonationsMediator';
+import { FastCountersRepository } from '../repositories/FastCountersRepository';
 
 const trace = createTracer('messaging');
 const linkifyInstance = createLinkifyInstance();
@@ -36,6 +37,8 @@ export class MessagingMediator {
     private readonly room!: RoomMediator;
     @lazyInject('DonationsMediator')
     private readonly donations!: DonationsMediator;
+    @lazyInject('FastCountersRepository')
+    readonly fastCounters!: FastCountersRepository;
 
     sendMessage = async (parent: Context, uid: number, cid: number, message: MessageInput, skipAccessCheck?: boolean) => {
         return trace.trace(parent, 'sendMessage', async (ctx2) => await inTx(ctx2, async (ctx) => {
@@ -133,6 +136,20 @@ export class MessagingMediator {
             // Delivery
             await this.delivery.onNewMessage(ctx, res.message);
 
+            // Fast mentions
+            if (res.message.seq) {
+                let mentions: (number|'all')[] = [];
+                for (let span of res.message.spans || []) {
+                    if (span.type === 'user_mention') {
+                        mentions.push(span.user);
+                    } else if (span.type === 'all_mention') {
+                        mentions.push('all');
+                    }
+                }
+                await this.fastCounters.onMessageCreated(ctx, cid, res.message.seq, mentions);
+                await this.fastCounters.onMessageRead(ctx, uid, cid, res.message.seq);
+            }
+
             // Mentions
             await this.mentionNotifications.onNewMessage(ctx, res.message);
 
@@ -219,6 +236,19 @@ export class MessagingMediator {
             // Delivery
             await this.delivery.onUpdateMessage(ctx, message);
 
+            // Fast counters
+            if (message.seq) {
+                let mentions: (number|'all')[] = [];
+                for (let span of message.spans || []) {
+                    if (span.type === 'user_mention') {
+                        mentions.push(span.user);
+                    } else if (span.type === 'all_mention') {
+                        mentions.push('all');
+                    }
+                }
+                await this.fastCounters.onMessageEdited(ctx, message.cid, message.seq, mentions);
+            }
+
             // Mentions
             await this.mentionNotifications.onMessageUpdated(ctx, message);
 
@@ -275,6 +305,11 @@ export class MessagingMediator {
             message = (await Store.Message.findById(ctx, mid))!;
             await this.delivery.onDeleteMessage(ctx, message);
 
+            // Fast counters
+            if (message.seq) {
+                await this.fastCounters.onMessageDeleted(ctx, message.cid, message.seq);
+            }
+
             // cancel payment if it is not success/canceled
             await this.donations.onDeleteMessage(ctx, message);
 
@@ -303,6 +338,11 @@ export class MessagingMediator {
                 throw Error('Invalid request');
             }
             await this.delivery.onRoomRead(ctx, uid, mid);
+
+            // Fast counters
+            if (msg.seq) {
+                this.fastCounters.onMessageRead(ctx, uid, cid, msg.seq);
+            }
         });
     }
 
