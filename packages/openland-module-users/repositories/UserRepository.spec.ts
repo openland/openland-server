@@ -5,6 +5,8 @@ import { Store } from 'openland-module-db/FDB';
 import { createNamedContext } from '@openland/context';
 import { AuthModule } from '../../openland-module-auth/AuthModule';
 import { TokenRepository } from '../../openland-module-auth/repositories/TokenRepository';
+import { ShortnameModule } from '../../openland-module-shortname/ShortnameModule';
+import { loadShortnameModule } from '../../openland-module-shortname/ShortnameModule.container';
 
 describe('UserRepository', () => {
     beforeAll(async () => {
@@ -12,6 +14,8 @@ describe('UserRepository', () => {
         container.bind('TokenRepository').to(TokenRepository);
         container.bind(AuthModule).to(AuthModule);
         container.bind('UserRepository').to(UserRepository).inSingletonScope();
+        container.bind(ShortnameModule).toSelf().inSingletonScope();
+        loadShortnameModule();
     });
     afterAll( async () => {
       await  testEnvironmentEnd();
