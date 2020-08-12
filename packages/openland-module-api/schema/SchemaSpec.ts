@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '47ac64fc21e5c9763c0789bef3dbbc93';
+export const GQL_SPEC_VERSION = 'd0bdff1124df1793275180628a415be9';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2506,6 +2506,7 @@ export namespace GQL {
         betaRoomsInviteUser: Room[];
         betaRoomAlterFeatured: RoomSuper;
         betaRoomAlterListed: RoomSuper;
+        betaRoomSetupAutosubscribe: RoomSuper;
         updateWelcomeMessage: boolean;
         alphaSetUserShortName: Nullable<string>;
         alphaSetOrgShortName: Nullable<string>;
@@ -3664,6 +3665,10 @@ export namespace GQL {
     export interface MutationBetaRoomAlterListedArgs {
         roomId: string;
         listed: boolean;
+    }
+    export interface MutationBetaRoomSetupAutosubscribeArgs {
+        roomId: string;
+        childRoomIds: string[];
     }
     export interface MutationUpdateWelcomeMessageArgs {
         roomId: string;
@@ -5994,10 +5999,12 @@ export namespace GQL {
         id: string;
         featured: boolean;
         listed: boolean;
+        autosubscribeRooms: Room[];
     }
     export interface RoomSuperIdArgs { }
     export interface RoomSuperFeaturedArgs { }
     export interface RoomSuperListedArgs { }
+    export interface RoomSuperAutosubscribeRoomsArgs { }
     export interface RoomUpdateInput {
         title: Nullable<string>;
         photoRef: Nullable<ImageRefInput>;
@@ -8802,6 +8809,7 @@ export interface GQLResolver {
             betaRoomsInviteUser: GQLRoots.RoomRoot[],
             betaRoomAlterFeatured: GQLRoots.RoomSuperRoot,
             betaRoomAlterListed: GQLRoots.RoomSuperRoot,
+            betaRoomSetupAutosubscribe: GQLRoots.RoomSuperRoot,
         },
         {
             lifecheck: GQL.MutationLifecheckArgs,
@@ -9138,6 +9146,7 @@ export interface GQLResolver {
             betaRoomsInviteUser: GQL.MutationBetaRoomsInviteUserArgs,
             betaRoomAlterFeatured: GQL.MutationBetaRoomAlterFeaturedArgs,
             betaRoomAlterListed: GQL.MutationBetaRoomAlterListedArgs,
+            betaRoomSetupAutosubscribe: GQL.MutationBetaRoomSetupAutosubscribeArgs,
             updateWelcomeMessage: GQL.MutationUpdateWelcomeMessageArgs,
             alphaSetUserShortName: GQL.MutationAlphaSetUserShortNameArgs,
             alphaSetOrgShortName: GQL.MutationAlphaSetOrgShortNameArgs,
@@ -11218,11 +11227,13 @@ export interface GQLResolver {
         GQL.RoomSuper,
         GQLRoots.RoomSuperRoot,
         {
+            autosubscribeRooms: GQLRoots.RoomRoot[],
         },
         {
             id: GQL.RoomSuperIdArgs,
             featured: GQL.RoomSuperFeaturedArgs,
             listed: GQL.RoomSuperListedArgs,
+            autosubscribeRooms: GQL.RoomSuperAutosubscribeRoomsArgs,
         }
     >;
     UserMention?: ComplexTypedResolver<

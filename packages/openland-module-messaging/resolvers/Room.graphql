@@ -84,6 +84,7 @@ type RoomSuper {
     id: ID!
     featured: Boolean!
     listed: Boolean!
+    autosubscribeRooms: [Room!]!
 }
 
 input RoomUpdateInput {

@@ -387,6 +387,10 @@ export const Resolver: GQLResolver = {
             let room = await Store.ConversationRoom.findById(ctx, id);
             return !!(room && room.listed);
         }),
+        autosubscribeRooms: withConverationId(async (ctx, id) => {
+            let room = await Store.ConversationRoom.findById(ctx, id);
+            return room!.autosubscribeRooms || [];
+        }),
     },
 
     MessageAttachment: {
