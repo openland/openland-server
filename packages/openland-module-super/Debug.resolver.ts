@@ -6,7 +6,7 @@ import {
     DialogNeedReindexEvent,
     OrganizationProfile,
     OrganizationMemberShape,
-    UserDialogCallStateChangedEvent, MessageShape,
+    UserDialogCallStateChangedEvent, MessageShape, ShortnameReservationShape,
 } from './../openland-module-db/store';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from '../openland-module-api/Resolvers';
@@ -1865,6 +1865,34 @@ export const Resolver: GQLResolver = {
                         repo.addChat(ctx, uid, d.cid);
                     }
                 }));
+            });
+            return true;
+        }),
+        debugFreeUnusedShortnames: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAllBatched<ShortnameReservationShape>(Store.ShortnameReservation.descriptor.subspace, parent.auth.uid!, 'debugFreeUnusedShortnames', 500, async (ctx, items, log) => {
+                for (let item of items) {
+                    let reservation = await Store.ShortnameReservation.fromOwner.find(ctx, item.value.ownerType, item.value.ownerId);
+                    if (!reservation) {
+                        continue;
+                    }
+
+                    if (reservation.ownerType === 'user') {
+                        let user = await Store.User.findById(ctx, reservation.ownerId);
+                        if (!user || user.status === 'deleted') {
+                            reservation.enabled = false;
+                        }
+                    } else if (reservation.ownerType === 'org') {
+                        let org = await Store.Organization.findById(ctx, reservation.ownerId);
+                        if (!org || org.status === 'deleted') {
+                            reservation.enabled = false;
+                        }
+                    } else if (reservation.ownerType === 'room') {
+                        let room = await Store.ConversationRoom.findById(ctx, reservation.ownerId);
+                        if (!room || room.isDeleted) {
+                            reservation.enabled = false;
+                        }
+                    }
+                }
             });
             return true;
         }),
