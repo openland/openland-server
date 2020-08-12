@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '76981c9a5a69343cbfad92859c053a32';
+export const GQL_SPEC_VERSION = '86f5f8dd8c063c8312ae389ab64f59c1';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2440,7 +2440,6 @@ export namespace GQL {
         queueWeeklyRoomScreenViewsLeaderboard: boolean;
         typingSend: string;
         typingCancel: string;
-        alphaSetTyping: string;
         reportContent: Nullable<boolean>;
         deleteMyAccount: boolean;
         superBadgeCreateToRoom: UserBadge;
@@ -3380,10 +3379,6 @@ export namespace GQL {
     }
     export interface MutationTypingCancelArgs {
         conversationId: string;
-    }
-    export interface MutationAlphaSetTypingArgs {
-        conversationId: string;
-        type: OptionalNullable<string>;
     }
     export interface MutationReportContentArgs {
         contentId: string;
@@ -4945,9 +4940,6 @@ export namespace GQL {
         shouldShareLocationUpdates: boolean;
         notificationCenterUpdates: Nullable<NotificationCenterUpdateContainer>;
         typings: TypingEvent;
-        conversationTypings: TypingEvent;
-        alphaSubscribeTypings: TypingEvent;
-        alphaSubscribeChatTypings: TypingEvent;
     }
     export interface SubscriptionLifecheckArgs { }
     export interface SubscriptionWalletUpdatesArgs {
@@ -5021,13 +5013,6 @@ export namespace GQL {
         fromState: OptionalNullable<string>;
     }
     export interface SubscriptionTypingsArgs { }
-    export interface SubscriptionConversationTypingsArgs {
-        conversationId: string;
-    }
-    export interface SubscriptionAlphaSubscribeTypingsArgs { }
-    export interface SubscriptionAlphaSubscribeChatTypingsArgs {
-        conversationId: string;
-    }
     export interface Tag {
         id: string;
         title: string;
@@ -9082,7 +9067,6 @@ export interface GQLResolver {
             queueWeeklyRoomScreenViewsLeaderboard: GQL.MutationQueueWeeklyRoomScreenViewsLeaderboardArgs,
             typingSend: GQL.MutationTypingSendArgs,
             typingCancel: GQL.MutationTypingCancelArgs,
-            alphaSetTyping: GQL.MutationAlphaSetTypingArgs,
             reportContent: GQL.MutationReportContentArgs,
             deleteMyAccount: GQL.MutationDeleteMyAccountArgs,
             superBadgeCreateToRoom: GQL.MutationSuperBadgeCreateToRoomArgs,
@@ -10065,9 +10049,6 @@ export interface GQLResolver {
             homeFeedUpdates: GQLRoots.FeedUpdateContainerRoot,
             notificationCenterUpdates: Nullable<GQLRoots.NotificationCenterUpdateContainerRoot>,
             typings: GQLRoots.TypingEventRoot,
-            conversationTypings: GQLRoots.TypingEventRoot,
-            alphaSubscribeTypings: GQLRoots.TypingEventRoot,
-            alphaSubscribeChatTypings: GQLRoots.TypingEventRoot,
         },
         {
             lifecheck: GQL.SubscriptionLifecheckArgs,
@@ -10097,9 +10078,6 @@ export interface GQLResolver {
             shouldShareLocationUpdates: GQL.SubscriptionShouldShareLocationUpdatesArgs,
             notificationCenterUpdates: GQL.SubscriptionNotificationCenterUpdatesArgs,
             typings: GQL.SubscriptionTypingsArgs,
-            conversationTypings: GQL.SubscriptionConversationTypingsArgs,
-            alphaSubscribeTypings: GQL.SubscriptionAlphaSubscribeTypingsArgs,
-            alphaSubscribeChatTypings: GQL.SubscriptionAlphaSubscribeChatTypingsArgs,
         }
     >;
     Tag?: ComplexTypedResolver<
