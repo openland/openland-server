@@ -32,6 +32,10 @@ export class RoomMediator {
         return await this.repo.isActiveMember(ctx, uid, cid);
     }
 
+    isPrivate(ctx: Context, cid: number, uid: number) {
+        return this.repo.isPrivate(ctx, cid, uid);
+    }
+
     async isPublicRoom(ctx: Context, cid: number) {
         let conv = await Store.ConversationRoom.findById(ctx, cid);
         if (!conv) {
@@ -707,12 +711,16 @@ export class RoomMediator {
         return await this.repo.userAvailableRooms(ctx, uid, limit || 1000, isChannel, after);
     }
 
-    async getUserChats(ctx: Context, uid: number) {
-        return this.repo.userChats.getChats(ctx, uid);
+    async getUserGroups(ctx: Context, uid: number) {
+        return this.repo.userChats.getGroups(ctx, uid);
     }
 
-    async getUserChatsVersion(ctx: Context, uid: number) {
+    async getUserGroupsVersion(ctx: Context, uid: number) {
         return this.repo.userChats.getVersion(ctx, uid);
+    }
+
+    watchUserGroups(ctx: Context, uid: number) {
+        return this.repo.userChats.watchVersion(ctx, uid);
     }
 
     private async roomJoinMessageText(parent: Context, room: ConversationRoom, uids: number[], invitedBy: number | null, isUpdate: boolean = false) {

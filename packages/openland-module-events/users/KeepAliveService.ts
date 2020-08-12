@@ -18,7 +18,7 @@ export class KeepAliveService<K, V extends { stop(): Promise<void> | void }> {
             return;
         }
         
-        // tslint:disable-next-line:no-floating-promises        
+        // tslint:disable-next-line:no-floating-promises   
         this.lock.inLock(async () => {
 
             // Clear timer
