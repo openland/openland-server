@@ -18,9 +18,22 @@ import { Store } from 'openland-module-db/FDB';
 import { MentionNotificationsMediator } from './MentionNotificationsMediator';
 import { DonationsMediator } from './DonationsMediator';
 import { FastCountersRepository } from '../repositories/FastCountersRepository';
+import { Message } from '../../openland-module-db/store';
 
 const trace = createTracer('messaging');
 const linkifyInstance = createLinkifyInstance();
+
+function fetchMessageMentions(message: Message) {
+    let mentions: (number|'all')[] = [];
+    for (let span of message.spans || []) {
+        if (span.type === 'user_mention') {
+            mentions.push(span.user);
+        } else if (span.type === 'all_mention') {
+            mentions.push('all');
+        }
+    }
+    return mentions;
+}
 
 @injectable()
 export class MessagingMediator {
@@ -146,8 +159,7 @@ export class MessagingMediator {
                         mentions.push('all');
                     }
                 }
-                await this.fastCounters.onMessageCreated(ctx, cid, res.message.seq, mentions);
-                await this.fastCounters.onMessageRead(ctx, uid, cid, res.message.seq);
+                await this.fastCounters.onMessageCreated(ctx, uid, cid, res.message.seq, mentions);
             }
 
             // Mentions
@@ -198,6 +210,8 @@ export class MessagingMediator {
 
             // Permissions
             let message = (await Store.Message.findById(ctx, mid!))!;
+            let oldMentions = fetchMessageMentions(message);
+
             if (message.uid !== uid) {
                 if (await Modules.Super.superRole(ctx, uid) !== 'super-admin') {
                     throw new AccessDeniedError();
@@ -238,15 +252,8 @@ export class MessagingMediator {
 
             // Fast counters
             if (message.seq) {
-                let mentions: (number|'all')[] = [];
-                for (let span of message.spans || []) {
-                    if (span.type === 'user_mention') {
-                        mentions.push(span.user);
-                    } else if (span.type === 'all_mention') {
-                        mentions.push('all');
-                    }
-                }
-                await this.fastCounters.onMessageEdited(ctx, message.cid, message.seq, mentions);
+                let newMentions = fetchMessageMentions(message);
+                await this.fastCounters.onMessageEdited(ctx, message.cid, message.seq, oldMentions, newMentions);
             }
 
             // Mentions
@@ -307,7 +314,7 @@ export class MessagingMediator {
 
             // Fast counters
             if (message.seq) {
-                await this.fastCounters.onMessageDeleted(ctx, message.cid, message.seq);
+                await this.fastCounters.onMessageDeleted(ctx, message.cid, message.seq, fetchMessageMentions(message));
             }
 
             // cancel payment if it is not success/canceled

@@ -97,11 +97,11 @@ describe('FastCountersRepository', () => {
             await repo.onAddDialog(ctx, uid, cid);
             await Store.ConversationLastSeq.byId(cid).set(ctx, 100);
 
-            await repo.onMessageDeleted(ctx, cid, 1);
-            await repo.onMessageDeleted(ctx, cid, 2);
-            await repo.onMessageDeleted(ctx, cid, 3);
-            await repo.onMessageDeleted(ctx, cid, 4);
-            await repo.onMessageDeleted(ctx, cid, 5);
+            await repo.onMessageDeleted(ctx, cid, 1, []);
+            await repo.onMessageDeleted(ctx, cid, 2, []);
+            await repo.onMessageDeleted(ctx, cid, 3, []);
+            await repo.onMessageDeleted(ctx, cid, 4, []);
+            await repo.onMessageDeleted(ctx, cid, 5, []);
 
             let counters = await repo.fetchUserCounters(ctx, uid);
             expect(counters.length).toBe(1);
@@ -127,7 +127,7 @@ describe('FastCountersRepository', () => {
             await repo.onAddDialog(ctx, uid, cid);
             await Store.ConversationLastSeq.byId(cid).set(ctx, 100);
 
-            await repo.onMessageCreated(ctx, cid, 1, [uid]);
+            await repo.onMessageCreated(ctx, 10, cid, 1, [uid]);
 
             let counters = await repo.fetchUserCounters(ctx, uid);
             expect(counters.length).toBe(1);
@@ -136,7 +136,7 @@ describe('FastCountersRepository', () => {
         });
     });
 
-    it('should deletion of mention', async () => {
+    it('should handle deletion of mention', async () => {
         let repo = container.get<FastCountersRepository>('FastCountersRepository');
         await inTx(parentCtx, async ctx => {
             let uid = 7;
@@ -145,14 +145,14 @@ describe('FastCountersRepository', () => {
             await repo.onAddDialog(ctx, uid, cid);
             await Store.ConversationLastSeq.byId(cid).set(ctx, 100);
 
-            await repo.onMessageCreated(ctx, cid, 1, [uid]);
+            await repo.onMessageCreated(ctx, 10, cid, 1, [uid]);
 
             let counters = await repo.fetchUserCounters(ctx, uid);
             expect(counters.length).toBe(1);
             expect(counters[0].haveMention).toBe(true);
             expect(counters[0].unreadCounter).toBe(100);
 
-            await repo.onMessageDeleted(ctx, cid, 1);
+            await repo.onMessageDeleted(ctx, cid, 1, [uid]);
 
             counters = await repo.fetchUserCounters(ctx, uid);
             expect(counters.length).toBe(1);
@@ -161,7 +161,7 @@ describe('FastCountersRepository', () => {
         });
     });
 
-    it('should deletion of mention after message edit', async () => {
+    it('should handle deletion of mention after message edit', async () => {
         let repo = container.get<FastCountersRepository>('FastCountersRepository');
         await inTx(parentCtx, async ctx => {
             let uid = 8;
@@ -170,14 +170,14 @@ describe('FastCountersRepository', () => {
             await repo.onAddDialog(ctx, uid, cid);
             await Store.ConversationLastSeq.byId(cid).set(ctx, 100);
 
-            await repo.onMessageCreated(ctx, cid, 1, [uid]);
+            await repo.onMessageCreated(ctx, 10, cid, 1, [uid]);
 
             let counters = await repo.fetchUserCounters(ctx, uid);
             expect(counters.length).toBe(1);
             expect(counters[0].haveMention).toBe(true);
             expect(counters[0].unreadCounter).toBe(100);
 
-            await repo.onMessageEdited(ctx, cid, 1, []);
+            await repo.onMessageEdited(ctx, cid, 1, [uid], []);
 
             counters = await repo.fetchUserCounters(ctx, uid);
             expect(counters.length).toBe(1);
@@ -186,7 +186,7 @@ describe('FastCountersRepository', () => {
         });
     });
 
-    it('should creation of mention after message edit', async () => {
+    it('should handle creation of mention after message edit', async () => {
         let repo = container.get<FastCountersRepository>('FastCountersRepository');
         await inTx(parentCtx, async ctx => {
             let uid = 9;
@@ -195,14 +195,14 @@ describe('FastCountersRepository', () => {
             await repo.onAddDialog(ctx, uid, cid);
             await Store.ConversationLastSeq.byId(cid).set(ctx, 100);
 
-            await repo.onMessageCreated(ctx, cid, 1, []);
+            await repo.onMessageCreated(ctx, 10, cid, 1, []);
 
             let counters = await repo.fetchUserCounters(ctx, uid);
             expect(counters.length).toBe(1);
             expect(counters[0].haveMention).toBe(false);
             expect(counters[0].unreadCounter).toBe(100);
 
-            await repo.onMessageEdited(ctx, cid, 1, [uid]);
+            await repo.onMessageEdited(ctx, cid, 1, [], [uid]);
 
             counters = await repo.fetchUserCounters(ctx, uid);
             expect(counters.length).toBe(1);

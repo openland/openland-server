@@ -2,149 +2,91 @@ import { injectable } from 'inversify';
 import { encoders, Subspace, TupleItem } from '@openland/foundationdb';
 import { Store } from '../../openland-module-db/FDB';
 import { Context } from '@openland/context';
-import { packUInt32Vector, unpackUInt32Vector } from '../../openland-utils/binary';
 import { createLogger } from '@openland/log';
+import { BucketCountingDirectory } from '../utils/BucketCountingDirectory';
 
-const PREFIX_USER_READ_SEQS = 1;
-const PREFIX_COUNTERS = 2;
-
-const PREFIX_DELETED_SEQS = 1;
-const PREFIX_MENTIONS = 2;
+const PREFIX_DELETED_SEQS = 0;
+const PREFIX_USER_MENTIONS = 1;
+const PREFIX_ALL_MENTIONS = 2;
+const PREFIX_USER_READ_SEQS = 3;
 
 const BUCKET_SIZE = 1000;
-
-const ALL_MENTION = 0;
-
-const INT32_BYTES = 32 / 8;
-const MENTION_RECORD_MAGIC = 0xFFFFFFFF;
-
-function packMentionsBucket(values: { seq: number, mentionedUsers: number[] }[]) {
-    let mentionsCount = values.reduce((acc, cur) => acc + cur.mentionedUsers.length, 0);
-
-    let buff = Buffer.alloc(INT32_BYTES + (mentionsCount * INT32_BYTES) + (values.length * INT32_BYTES * 3));
-
-    let offset = 0;
-
-    buff.writeUInt32LE(values.length, offset);
-    offset += INT32_BYTES;
-
-    for (let value of values) {
-        buff.writeUInt32LE(MENTION_RECORD_MAGIC, offset);
-        offset += INT32_BYTES;
-        buff.writeUInt32LE(value.seq, offset);
-        offset += INT32_BYTES;
-        buff.writeUInt32LE(value.mentionedUsers.length, offset);
-        offset += INT32_BYTES;
-        for (let uid of value.mentionedUsers) {
-            buff.writeUInt32LE(uid, offset);
-            offset += INT32_BYTES;
-        }
-    }
-
-    return buff;
-}
-
-function unpackMentionsBucket(buffer: Buffer) {
-    let values = [];
-    let offset = 0;
-
-    let recordsCount = buffer.readUInt32LE(offset);
-    offset += INT32_BYTES;
-
-    for (let i = 0; i < recordsCount; i++) {
-        let magic = buffer.readUInt32LE(offset);
-        offset += INT32_BYTES;
-        if (magic !== MENTION_RECORD_MAGIC) {
-            throw new Error('Invalid magic');
-        }
-        let seq = buffer.readUInt32LE(offset);
-        offset += INT32_BYTES;
-        let uidsCount = buffer.readUInt32LE(offset);
-        offset += INT32_BYTES;
-        let uids = [];
-        for (let j = 0; j < uidsCount; j++) {
-            let uid = buffer.readUInt32LE(offset);
-            offset += INT32_BYTES;
-            uids.push(uid);
-        }
-        values.push({ seq, mentionedUsers: uids });
-    }
-    return values;
-}
 
 const log = createLogger('fast_counters');
 
 @injectable()
 export class FastCountersRepository {
     private directory = Store.FastCountersDirectory;
+
+    private deletedSeqs: BucketCountingDirectory;
+    private userMentions: BucketCountingDirectory;
+    private allMentions: BucketCountingDirectory;
     private userReadSeqSubspace: Subspace<TupleItem[], number>;
-    private countersSubspace: Subspace<TupleItem[], Buffer>;
 
     constructor() {
+        this.deletedSeqs = new BucketCountingDirectory(
+            this.directory.subspace(encoders.tuple.pack([PREFIX_DELETED_SEQS])),
+            BUCKET_SIZE
+        );
+
+        this.userMentions = new BucketCountingDirectory(
+            this.directory.subspace(encoders.tuple.pack([PREFIX_USER_MENTIONS])),
+            BUCKET_SIZE
+        );
+
+        this.allMentions = new BucketCountingDirectory(
+            this.directory.subspace(encoders.tuple.pack([PREFIX_ALL_MENTIONS])),
+            BUCKET_SIZE
+        );
+
         this.userReadSeqSubspace = this.directory
             .subspace(encoders.tuple.pack([PREFIX_USER_READ_SEQS]))
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.int32LE);
-
-        this.countersSubspace = this.directory
-            .subspace(encoders.tuple.pack([PREFIX_COUNTERS]))
-            .withKeyEncoding(encoders.tuple);
     }
 
-    onMessageCreated = async (ctx: Context, cid: number, seq: number, mentionedUsers: (number|'all')[]) => {
+    onMessageCreated = async (ctx: Context, uid: number, cid: number, seq: number, mentionedUsers: (number|'all')[]) => {
+        // Reset sender counter
+        this.onMessageRead(ctx, uid, cid, seq);
+
         if (mentionedUsers.length === 0) {
             return;
         }
-        let bucketNo = Math.ceil(seq / BUCKET_SIZE);
-        let value = await this.countersSubspace.get(ctx, [cid, bucketNo, PREFIX_MENTIONS]);
-        let records = value ? unpackMentionsBucket(value) : [];
-        if (records.find(r => r.seq === seq)) {
-            return;
-        }
-        records.push({ seq, mentionedUsers: mentionedUsers.map(v => v === 'all' ? ALL_MENTION : v ) });
-        this.countersSubspace.set(ctx, [cid, bucketNo, PREFIX_MENTIONS], packMentionsBucket(records));
+        await Promise.all(mentionedUsers.map(async m => {
+            if (m === 'all') {
+                await this.allMentions.add(ctx, [cid], seq);
+            } else {
+                await this.userMentions.add(ctx, [m, cid], seq);
+            }
+        }));
     }
 
-    onMessageDeleted = async (ctx: Context, cid: number, seq: number) => {
-        let bucketNo = Math.ceil(seq / BUCKET_SIZE);
-        let [deletedSeqsBucket, mentionsBucket] = await Promise.all([
-            this.countersSubspace.get(ctx, [cid, bucketNo, PREFIX_DELETED_SEQS]),
-            this.countersSubspace.get(ctx, [cid, bucketNo, PREFIX_MENTIONS])
-        ]);
-
-        let deletedSeqs = deletedSeqsBucket ? unpackUInt32Vector(deletedSeqsBucket) : [];
-        if (!deletedSeqs.includes(seq)) {
-            deletedSeqs.push(seq);
-            this.countersSubspace.set(ctx, [cid, bucketNo, PREFIX_DELETED_SEQS], packUInt32Vector(deletedSeqs));
-        }
-        let mentions = mentionsBucket ? unpackMentionsBucket(mentionsBucket) : [];
-        if (mentions.find(record => record.seq === seq)) {
-            mentions = mentions.filter(record => record.seq !== seq);
-            this.countersSubspace.set(ctx, [cid, bucketNo, PREFIX_MENTIONS], packMentionsBucket(mentions));
-        }
+    onMessageDeleted = async (ctx: Context, cid: number, seq: number, mentionedUsers: (number|'all')[]) => {
+        await this.deletedSeqs.add(ctx, [cid], seq);
+        await Promise.all(mentionedUsers.map(async m => {
+            if (m === 'all') {
+                await this.allMentions.remove(ctx, [cid], seq);
+            } else {
+                await this.userMentions.remove(ctx, [m, cid], seq);
+            }
+        }));
     }
 
-    onMessageEdited = async (ctx: Context, cid: number, seq: number, mentionedUsers: (number|'all')[]) => {
-        let bucketNo = Math.ceil(seq / BUCKET_SIZE);
-        let value = await this.countersSubspace.get(ctx, [cid, bucketNo, PREFIX_MENTIONS]);
-        let records = value ? unpackMentionsBucket(value) : [];
-        let existing = records.find(r => r.seq === seq);
-
-        if (existing) {
-            if (mentionedUsers.length === 0) {
-                records = records.filter(r => r.seq !== seq);
+    onMessageEdited = async (ctx: Context, cid: number, seq: number, oldMentions: (number|'all')[], newMentions: (number|'all')[]) => {
+        await Promise.all(oldMentions.map(async m => {
+            if (m === 'all') {
+                await this.allMentions.remove(ctx, [cid], seq);
             } else {
-                existing.mentionedUsers = mentionedUsers.map(v => v === 'all' ? ALL_MENTION : v );
+                await this.userMentions.remove(ctx, [m, cid], seq);
             }
-            this.countersSubspace.set(ctx, [cid, bucketNo, PREFIX_MENTIONS], packMentionsBucket(records));
-        } else {
-            if (mentionedUsers.length === 0) {
-                return;
+        }));
+        await Promise.all(newMentions.map(async m => {
+            if (m === 'all') {
+                await this.allMentions.add(ctx, [cid], seq);
             } else {
-                records.push({ seq, mentionedUsers: mentionedUsers.map(v => v === 'all' ? ALL_MENTION : v ) });
-                this.countersSubspace.set(ctx, [cid, bucketNo, PREFIX_MENTIONS], packMentionsBucket(records));
+                await this.userMentions.add(ctx, [m, cid], seq);
             }
-        }
+        }));
     }
 
     onMessageRead = (ctx: Context, uid: number, cid: number, toSeq: number) => {
@@ -167,7 +109,6 @@ export class FastCountersRepository {
             let cid = readValue.key[readValue.key.length - 1] as number;
             let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
             let lastReadSeq = readValue.value || 0;
-            let bucketNo = Math.ceil(lastReadSeq / BUCKET_SIZE);
 
             if (lastReadSeq > chatLastSeq) {
                 log.warn(ctx, `lastReadSeq > chatLastSeq, cid: ${cid}, uid: ${uid}`);
@@ -179,25 +120,25 @@ export class FastCountersRepository {
                 return { cid, unreadCounter: 0, haveMention: false };
             }
 
-            let buckets = await this.countersSubspace.snapshotRange(ctx, [cid], { after: [cid, bucketNo - 1] });
-            let deletedSeqs = buckets
-                .filter(b => b.key[2] === PREFIX_DELETED_SEQS)
-                .map(v => unpackUInt32Vector(v.value).filter(seq => seq > lastReadSeq))
-                .flat();
+            let deletedSeqsCount = await this.deletedSeqs.count(ctx, [cid], { from: lastReadSeq });
 
-            let unreadCounter = chatLastSeq - lastReadSeq - deletedSeqs.length;
+            let unreadCounter = chatLastSeq - lastReadSeq - deletedSeqsCount;
 
             if (unreadCounter < 0) {
                 unreadCounter = 0;
                 log.warn(ctx, `negative unread counter, cid: ${cid}, uid: ${uid}`);
             }
 
-            let mentions = buckets
-                .filter(b => b.key[2] === PREFIX_MENTIONS)
-                .map(v => unpackMentionsBucket(v.value).filter(r => r.seq > lastReadSeq))
-                .flat();
+            if (unreadCounter === 0) {
+                return { cid, unreadCounter: 0, haveMention: false };
+            }
 
-            let haveMention = mentions.some(r => r.mentionedUsers.includes(uid) || r.mentionedUsers.includes(ALL_MENTION));
+            let [mentionsCount, allMentionsCount] = await Promise.all([
+                this.userMentions.count(ctx, [uid, cid], { from: lastReadSeq }),
+                this.allMentions.count(ctx, [cid], { from: lastReadSeq })
+            ]);
+
+            let haveMention = mentionsCount > 0 || allMentionsCount > 0;
 
             return { cid, unreadCounter, haveMention };
         }));
