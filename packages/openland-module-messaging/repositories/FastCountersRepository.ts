@@ -21,7 +21,7 @@ export class FastCountersRepository {
     private deletedSeqs: BucketCountingDirectory;
     private userMentions: BucketCountingDirectory;
     private allMentions: BucketCountingDirectory;
-    private userReadSeqSubspace: Subspace<TupleItem[], number>;
+    private userReadSeqsSubspace: Subspace<TupleItem[], number>;
 
     constructor() {
         this.deletedSeqs = new BucketCountingDirectory(
@@ -39,7 +39,7 @@ export class FastCountersRepository {
             BUCKET_SIZE
         );
 
-        this.userReadSeqSubspace = this.directory
+        this.userReadSeqsSubspace = this.directory
             .subspace(encoders.tuple.pack([PREFIX_USER_READ_SEQS]))
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.int32LE);
@@ -93,20 +93,20 @@ export class FastCountersRepository {
     }
 
     onMessageRead = (ctx: Context, uid: number, cid: number, toSeq: number) => {
-        this.userReadSeqSubspace.set(ctx, [uid, cid], toSeq);
+        this.userReadSeqsSubspace.set(ctx, [uid, cid], toSeq);
     }
 
     onAddDialog = async (ctx: Context, uid: number, cid: number) => {
         let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
-        this.userReadSeqSubspace.set(ctx, [uid, cid], chatLastSeq);
+        this.userReadSeqsSubspace.set(ctx, [uid, cid], chatLastSeq);
     }
 
     onRemoveDialog = (ctx: Context, uid: number, cid: number) => {
-        this.userReadSeqSubspace.clear(ctx, [uid, cid]);
+        this.userReadSeqsSubspace.clear(ctx, [uid, cid]);
     }
 
     fetchUserCounters = async (ctx: Context, uid: number, includeAllMention = true) => {
-        let userReadSeqs = await this.userReadSeqSubspace.snapshotRange(ctx, [uid]);
+        let userReadSeqs = await this.userReadSeqsSubspace.snapshotRange(ctx, [uid]);
 
         let counters = await Promise.all(userReadSeqs.map(async (readValue) => {
             let cid = readValue.key[readValue.key.length - 1] as number;
