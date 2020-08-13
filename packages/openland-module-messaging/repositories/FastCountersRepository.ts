@@ -73,14 +73,17 @@ export class FastCountersRepository {
     }
 
     onMessageEdited = async (ctx: Context, cid: number, seq: number, oldMentions: (number|'all')[], newMentions: (number|'all')[]) => {
-        await Promise.all(oldMentions.map(async m => {
+        let removed = oldMentions.filter(x => !newMentions.includes(x));
+        let added = newMentions.filter(x => !oldMentions.includes(x));
+
+        await Promise.all(removed.map(async m => {
             if (m === 'all') {
                 await this.allMentions.remove(ctx, [cid], seq);
             } else {
                 await this.userMentions.remove(ctx, [m, cid], seq);
             }
         }));
-        await Promise.all(newMentions.map(async m => {
+        await Promise.all(added.map(async m => {
             if (m === 'all') {
                 await this.allMentions.add(ctx, [cid], seq);
             } else {
