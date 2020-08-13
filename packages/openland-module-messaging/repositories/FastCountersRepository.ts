@@ -105,7 +105,7 @@ export class FastCountersRepository {
         this.userReadSeqSubspace.clear(ctx, [uid, cid]);
     }
 
-    fetchUserCounters = async (ctx: Context, uid: number) => {
+    fetchUserCounters = async (ctx: Context, uid: number, includeAllMention = true) => {
         let userReadSeqs = await this.userReadSeqSubspace.snapshotRange(ctx, [uid]);
 
         let counters = await Promise.all(userReadSeqs.map(async (readValue) => {
@@ -141,7 +141,7 @@ export class FastCountersRepository {
                 this.allMentions.count(ctx, [cid], { from: lastReadSeq })
             ]);
 
-            let haveMention = mentionsCount > 0 || allMentionsCount > 0;
+            let haveMention = mentionsCount > 0 || (includeAllMention && allMentionsCount > 0);
 
             return { cid, unreadCounter, haveMention };
         }));
