@@ -52,22 +52,25 @@ export class FastCountersRepository {
         if (mentionedUsers.length === 0) {
             return;
         }
-        await Promise.all(mentionedUsers.map(async m => {
+        await Promise.all(mentionedUsers.map(m => {
             if (m === 'all') {
-                await this.allMentions.add(ctx, [cid], seq);
+                return this.allMentions.add(ctx, [cid], seq);
             } else {
-                await this.userMentions.add(ctx, [m, cid], seq);
+                return this.userMentions.add(ctx, [m, cid], seq);
             }
         }));
     }
 
     onMessageDeleted = async (ctx: Context, cid: number, seq: number, mentionedUsers: (number|'all')[]) => {
         await this.deletedSeqs.add(ctx, [cid], seq);
-        await Promise.all(mentionedUsers.map(async m => {
+        if (mentionedUsers.length === 0) {
+            return;
+        }
+        await Promise.all(mentionedUsers.map(m => {
             if (m === 'all') {
-                await this.allMentions.remove(ctx, [cid], seq);
+                return this.allMentions.remove(ctx, [cid], seq);
             } else {
-                await this.userMentions.remove(ctx, [m, cid], seq);
+                return this.userMentions.remove(ctx, [m, cid], seq);
             }
         }));
     }
@@ -76,18 +79,18 @@ export class FastCountersRepository {
         let removed = oldMentions.filter(x => !newMentions.includes(x));
         let added = newMentions.filter(x => !oldMentions.includes(x));
 
-        await Promise.all(removed.map(async m => {
+        await Promise.all(removed.map(m => {
             if (m === 'all') {
-                await this.allMentions.remove(ctx, [cid], seq);
+                return this.allMentions.remove(ctx, [cid], seq);
             } else {
-                await this.userMentions.remove(ctx, [m, cid], seq);
+                return this.userMentions.remove(ctx, [m, cid], seq);
             }
         }));
-        await Promise.all(added.map(async m => {
+        await Promise.all(added.map(m => {
             if (m === 'all') {
-                await this.allMentions.add(ctx, [cid], seq);
+                return this.allMentions.add(ctx, [cid], seq);
             } else {
-                await this.userMentions.add(ctx, [m, cid], seq);
+                return this.userMentions.add(ctx, [m, cid], seq);
             }
         }));
     }
