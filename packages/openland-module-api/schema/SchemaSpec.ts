@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5c2db59de55eba0770072aa2956ce815';
+export const GQL_SPEC_VERSION = 'bfce21d3b4fc9385cb250ba3c7e114fb';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2294,6 +2294,8 @@ export namespace GQL {
         debugDeliverCallStateEventsForAll: boolean;
         debugMigrateMuteSettings: boolean;
         debugMigrateUserChatsList: boolean;
+        debugFreeUnusedShortnames: boolean;
+        debugFreeShortname: boolean;
         settingsUpdate: Settings;
         sendEmailPairCode: string;
         pairEmail: boolean;
@@ -2439,7 +2441,6 @@ export namespace GQL {
         queueWeeklyRoomScreenViewsLeaderboard: boolean;
         typingSend: string;
         typingCancel: string;
-        alphaSetTyping: string;
         reportContent: Nullable<boolean>;
         deleteMyAccount: boolean;
         superBadgeCreateToRoom: UserBadge;
@@ -2824,6 +2825,10 @@ export namespace GQL {
     export interface MutationDebugDeliverCallStateEventsForAllArgs { }
     export interface MutationDebugMigrateMuteSettingsArgs { }
     export interface MutationDebugMigrateUserChatsListArgs { }
+    export interface MutationDebugFreeUnusedShortnamesArgs { }
+    export interface MutationDebugFreeShortnameArgs {
+        shortname: string;
+    }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
         uid: OptionalNullable<string>;
@@ -3378,10 +3383,6 @@ export namespace GQL {
     }
     export interface MutationTypingCancelArgs {
         conversationId: string;
-    }
-    export interface MutationAlphaSetTypingArgs {
-        conversationId: string;
-        type: OptionalNullable<string>;
     }
     export interface MutationReportContentArgs {
         contentId: string;
@@ -4948,9 +4949,6 @@ export namespace GQL {
         shouldShareLocationUpdates: boolean;
         notificationCenterUpdates: Nullable<NotificationCenterUpdateContainer>;
         typings: TypingEvent;
-        conversationTypings: TypingEvent;
-        alphaSubscribeTypings: TypingEvent;
-        alphaSubscribeChatTypings: TypingEvent;
     }
     export interface SubscriptionLifecheckArgs { }
     export interface SubscriptionWalletUpdatesArgs {
@@ -5024,13 +5022,6 @@ export namespace GQL {
         fromState: OptionalNullable<string>;
     }
     export interface SubscriptionTypingsArgs { }
-    export interface SubscriptionConversationTypingsArgs {
-        conversationId: string;
-    }
-    export interface SubscriptionAlphaSubscribeTypingsArgs { }
-    export interface SubscriptionAlphaSubscribeChatTypingsArgs {
-        conversationId: string;
-    }
     export interface Tag {
         id: string;
         title: string;
@@ -8939,6 +8930,8 @@ export interface GQLResolver {
             debugDeliverCallStateEventsForAll: GQL.MutationDebugDeliverCallStateEventsForAllArgs,
             debugMigrateMuteSettings: GQL.MutationDebugMigrateMuteSettingsArgs,
             debugMigrateUserChatsList: GQL.MutationDebugMigrateUserChatsListArgs,
+            debugFreeUnusedShortnames: GQL.MutationDebugFreeUnusedShortnamesArgs,
+            debugFreeShortname: GQL.MutationDebugFreeShortnameArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailPairCode: GQL.MutationSendEmailPairCodeArgs,
             pairEmail: GQL.MutationPairEmailArgs,
@@ -9084,7 +9077,6 @@ export interface GQLResolver {
             queueWeeklyRoomScreenViewsLeaderboard: GQL.MutationQueueWeeklyRoomScreenViewsLeaderboardArgs,
             typingSend: GQL.MutationTypingSendArgs,
             typingCancel: GQL.MutationTypingCancelArgs,
-            alphaSetTyping: GQL.MutationAlphaSetTypingArgs,
             reportContent: GQL.MutationReportContentArgs,
             deleteMyAccount: GQL.MutationDeleteMyAccountArgs,
             superBadgeCreateToRoom: GQL.MutationSuperBadgeCreateToRoomArgs,
@@ -10069,9 +10061,6 @@ export interface GQLResolver {
             homeFeedUpdates: GQLRoots.FeedUpdateContainerRoot,
             notificationCenterUpdates: Nullable<GQLRoots.NotificationCenterUpdateContainerRoot>,
             typings: GQLRoots.TypingEventRoot,
-            conversationTypings: GQLRoots.TypingEventRoot,
-            alphaSubscribeTypings: GQLRoots.TypingEventRoot,
-            alphaSubscribeChatTypings: GQLRoots.TypingEventRoot,
         },
         {
             lifecheck: GQL.SubscriptionLifecheckArgs,
@@ -10101,9 +10090,6 @@ export interface GQLResolver {
             shouldShareLocationUpdates: GQL.SubscriptionShouldShareLocationUpdatesArgs,
             notificationCenterUpdates: GQL.SubscriptionNotificationCenterUpdatesArgs,
             typings: GQL.SubscriptionTypingsArgs,
-            conversationTypings: GQL.SubscriptionConversationTypingsArgs,
-            alphaSubscribeTypings: GQL.SubscriptionAlphaSubscribeTypingsArgs,
-            alphaSubscribeChatTypings: GQL.SubscriptionAlphaSubscribeChatTypingsArgs,
         }
     >;
     Tag?: ComplexTypedResolver<
