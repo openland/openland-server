@@ -1889,11 +1889,15 @@ export const Resolver: GQLResolver = {
             return true;
         }),
         debugFreeUnusedShortnames: withPermission('super-admin', async (parent, args) => {
-            debugTaskForAllBatched<ShortnameReservationShape>(Store.ShortnameReservation.descriptor.subspace, parent.auth.uid!, 'debugFreeUnusedShortnames', 500, async (items) => {
+            debugTaskForAllBatched<ShortnameReservationShape>(Store.ShortnameReservation.descriptor.subspace, parent.auth.uid!, 'debugFreeUnusedShortnames', 10, async (items) => {
                 await inTx(parent, async ctx => {
                     for (let item of items) {
-                        let reservation = await Store.ShortnameReservation.fromOwner.find(ctx, item.value.ownerType, item.value.ownerId);
+                        let reservation = await Store.ShortnameReservation.findById(ctx, item.value.shortname);
                         if (!reservation) {
+                            continue;
+                        }
+                        if (!reservation.enabled) {
+                            await reservation.flush(ctx);
                             continue;
                         }
 
@@ -1913,6 +1917,8 @@ export const Resolver: GQLResolver = {
                                 reservation.enabled = false;
                             }
                         }
+
+                        await reservation.flush(ctx);
                     }
                 });
             });
