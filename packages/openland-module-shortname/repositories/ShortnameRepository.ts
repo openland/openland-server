@@ -109,6 +109,18 @@ export class ShortnameRepository {
         });
     }
 
+    async freeShortName(parent: Context, ownerType: OwnerType, ownerId: number) {
+        return await inTx(parent, async ctx => {
+            let existing = await Store.ShortnameReservation.fromOwner.find(ctx, ownerType, ownerId);
+            if (!existing || !existing.enabled) {
+                return true;
+            }
+            existing.enabled = false;
+            await existing.flush(ctx);
+            return true;
+        });
+    }
+
     private async normalizeShortname(parent: Context, shortname: string, ownerType: OwnerType, uid: number) {
         return await inTx(parent, async (ctx) => {
             let role = await Modules.Super.superRole(ctx, uid);

@@ -9,6 +9,8 @@ import { Modules } from '../../openland-modules/Modules';
 import { Context, createNamedContext } from '@openland/context';
 import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
 import { Store } from 'openland-module-db/FDB';
+import { ShortnameModule } from '../../openland-module-shortname/ShortnameModule';
+import { loadShortnameModule } from '../../openland-module-shortname/ShortnameModule.container';
 
 describe('OrganizationRepository', () => {
     async function createUser(ctx: Context, index: number) {
@@ -22,6 +24,8 @@ describe('OrganizationRepository', () => {
         container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
         container.bind('DBModule').to(DBModule).inSingletonScope();
         container.bind(UsersModule).toSelf().inSingletonScope();
+        container.bind(ShortnameModule).toSelf().inSingletonScope();
+        loadShortnameModule();
         loadUsersModule();
     });
     afterAll( async () => {

@@ -698,6 +698,24 @@ export class RoomRepository {
         return null;
     }
 
+    async isPrivate(ctx: Context, cid: number, uid: number): Promise<number | false> {
+        let conv = await Store.Conversation.findById(ctx, cid);
+        if (!conv) {
+            return false;
+        }
+        if (conv.kind !== 'private') {
+            return false;
+        }
+        let p = (await Store.ConversationPrivate.findById(ctx, cid))!;
+        if (p.uid1 === uid) {
+            return p.uid2;
+        }
+        if (p.uid2 === uid) {
+            return p.uid1;
+        }
+        return false;
+    }
+
     async findConversationMembers(ctx: Context, cid: number): Promise<number[]> {
         let conv = await Store.Conversation.findById(ctx, cid);
         if (!conv) {

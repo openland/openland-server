@@ -6,7 +6,7 @@ import {
     DialogNeedReindexEvent,
     OrganizationProfile,
     OrganizationMemberShape,
-    UserDialogCallStateChangedEvent, MessageShape,
+    UserDialogCallStateChangedEvent, MessageShape, ShortnameReservationShape,
 } from './../openland-module-db/store';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from '../openland-module-api/Resolvers';
@@ -280,8 +280,8 @@ export const Resolver: GQLResolver = {
                 Store.UserGroupEdge.user.query(ctx, ctx.auth.uid!, {limit: 300, reverse: true})
             ]);
             return JSON.stringify({
-                topPrivateDialogs: topPrivateDialogs.items.map(d => ({ uid1: d.uid1, uid2: d.uid2, weight: d.weight })),
-                topGroupDialogs: topGroupDialogs.items.map(d => ({ cid: d.cid, weight: d.weight })),
+                topPrivateDialogs: topPrivateDialogs.items.map(d => ({uid1: d.uid1, uid2: d.uid2, weight: d.weight})),
+                topGroupDialogs: topGroupDialogs.items.map(d => ({cid: d.cid, weight: d.weight})),
                 userOrgs,
                 roomOid,
                 cid
@@ -1887,6 +1887,56 @@ export const Resolver: GQLResolver = {
                 }));
             });
             return true;
+        }),
+        debugFreeUnusedShortnames: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAllBatched<ShortnameReservationShape>(Store.ShortnameReservation.descriptor.subspace, parent.auth.uid!, 'debugFreeUnusedShortnames', 10, async (items) => {
+                await inTx(parent, async ctx => {
+                    for (let item of items) {
+                        let reservation = await Store.ShortnameReservation.findById(ctx, item.value.shortname);
+                        if (!reservation) {
+                            continue;
+                        }
+                        if (!reservation.enabled) {
+                            await reservation.flush(ctx);
+                            continue;
+                        }
+
+                        if (reservation.ownerType === 'user') {
+                            let user = await Store.User.findById(ctx, reservation.ownerId);
+                            if (!user || user.status === 'deleted') {
+                                reservation.enabled = false;
+                            }
+                        } else if (reservation.ownerType === 'org') {
+                            let org = await Store.Organization.findById(ctx, reservation.ownerId);
+                            if (!org || org.status === 'deleted') {
+                                reservation.enabled = false;
+                            }
+                        } else if (reservation.ownerType === 'room') {
+                            let room = await Store.ConversationRoom.findById(ctx, reservation.ownerId);
+                            if (!room || room.isDeleted) {
+                                reservation.enabled = false;
+                            }
+                        }
+
+                        await reservation.flush(ctx);
+                    }
+                });
+            });
+            return true;
+        }),
+        debugFreeShortname: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async ctx => {
+                let reservation = await Store.ShortnameReservation.findById(ctx, args.shortname);
+                if (!reservation) {
+                    return false;
+                }
+                if (!reservation.enabled) {
+                    return false;
+                }
+                reservation.enabled = false;
+                await reservation.flush(ctx);
+                return true;
+            });
         }),
     },
     Subscription: {
