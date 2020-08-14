@@ -9,4 +9,5 @@ export interface OrganizatinProfileInput {
     about?: string | null | undefined;
     isCommunity?: boolean | null | undefined;
     isPrivate?: boolean | null | undefined;
+    membersCanInvite?: boolean | null | undefined;
 }

@@ -36,7 +36,7 @@ export const Resolver: GQLResolver = {
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
         alphaIsPrivate: (src: Organization) => src.private || false,
 
-        betaMembersCanInvite: (src: Organization) => src.membersCanInvite || false,
+        betaMembersCanInvite: (src: Organization) => src.membersCanInvite || true,
     },
     Query: {
         myOrganizationProfile: async (_: any, args: {}, ctx: Context) => {
