@@ -13,18 +13,24 @@ const log = createLogger('user-service');
 export class EventsModule {
 
     readonly userSharding = new ShardRegion('users', 128);
+    readonly groupSharding = new ShardRegion('groups', 128);
     readonly userService = new UserServiceManager();
+    readonly groupService = new UserServiceManager();
 
     start = async () => {
         this.userSharding.start();
+        this.groupSharding.start();
 
         asyncRun(async () => {
             log.debug(root, 'Loading sharding info...');
-            let shardInfo = await this.userSharding.getShardingInfo();
+            let usersSharding = await this.userSharding.getShardingInfo();
+            let groupsSharding = await this.groupSharding.getShardingInfo();
             log.debug(root, 'Sharding info loaded...');
-            this.userService.initSharding(shardInfo.ringSize);
+            this.userService.initSharding(usersSharding.ringSize);
+            this.groupService.initSharding(groupsSharding.ringSize);
             if (serverRoleEnabled('events')) {
                 this.userSharding.startShard(this.userService.createShard);
+                this.groupSharding.startShard(this.groupService.createShard);
             }
         });
     }

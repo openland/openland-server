@@ -18,6 +18,7 @@ export const Metrics = {
     // Actors
     //
     UserActiveServices: Factory.createMachineGauge('user_active_services', 'Active user services'),
+    GroupActiveServices: Factory.createMachineGauge('group_active_services', 'Active group services'),
 
     // SpaceX
     WebSocketConnections: Factory.createMachineGauge('connections', 'Active WebSocket connections'),
