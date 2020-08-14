@@ -189,6 +189,7 @@ export default declareSchema(() => {
         field('editorial', boolean());
         field('private', optional(boolean()));
         field('personal', optional(boolean()));
+        field('membersCanInvite', optional(boolean()));
         rangeIndex('community', []).withCondition((src) => src.kind === 'community' && src.status === 'activated');
     });
 

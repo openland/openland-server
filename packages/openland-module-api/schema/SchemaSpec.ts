@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'd0bdff1124df1793275180628a415be9';
+export const GQL_SPEC_VERSION = '5c2db59de55eba0770072aa2956ce815';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3848,6 +3848,7 @@ export namespace GQL {
         alphaFeatured: boolean;
         alphaIsCommunity: boolean;
         alphaIsPrivate: boolean;
+        betaMembersCanInvite: boolean;
         betaPublicRooms: SharedRoom[];
         betaPublicRoomsCount: number;
         status: string;
@@ -3886,6 +3887,7 @@ export namespace GQL {
     export interface OrganizationAlphaFeaturedArgs { }
     export interface OrganizationAlphaIsCommunityArgs { }
     export interface OrganizationAlphaIsPrivateArgs { }
+    export interface OrganizationBetaMembersCanInviteArgs { }
     export interface OrganizationBetaPublicRoomsArgs { }
     export interface OrganizationBetaPublicRoomsCountArgs { }
     export interface OrganizationStatusArgs { }
@@ -3911,6 +3913,7 @@ export namespace GQL {
         alphaFeatured: boolean;
         alphaIsCommunity: boolean;
         alphaIsPrivate: boolean;
+        betaMembersCanInvite: boolean;
         shortname: Nullable<string>;
     }
     export interface OrganizationProfileIdArgs { }
@@ -3930,6 +3933,7 @@ export namespace GQL {
     export interface OrganizationProfileAlphaFeaturedArgs { }
     export interface OrganizationProfileAlphaIsCommunityArgs { }
     export interface OrganizationProfileAlphaIsPrivateArgs { }
+    export interface OrganizationProfileBetaMembersCanInviteArgs { }
     export interface OrganizationProfileShortnameArgs { }
     export interface CreateOrganizationInput {
         id: Nullable<string>;
@@ -3957,6 +3961,7 @@ export namespace GQL {
         alphaEditorial: Nullable<boolean>;
         alphaFeatured: Nullable<boolean>;
         alphaIsPrivate: Nullable<boolean>;
+        betaMembersCanInvite: Nullable<boolean>;
     }
     export interface ContactPersonInput {
         name: string;
@@ -9391,6 +9396,7 @@ export interface GQLResolver {
             alphaFeatured: GQL.OrganizationAlphaFeaturedArgs,
             alphaIsCommunity: GQL.OrganizationAlphaIsCommunityArgs,
             alphaIsPrivate: GQL.OrganizationAlphaIsPrivateArgs,
+            betaMembersCanInvite: GQL.OrganizationBetaMembersCanInviteArgs,
             betaPublicRooms: GQL.OrganizationBetaPublicRoomsArgs,
             betaPublicRoomsCount: GQL.OrganizationBetaPublicRoomsCountArgs,
             status: GQL.OrganizationStatusArgs,
@@ -9425,6 +9431,7 @@ export interface GQLResolver {
             alphaFeatured: GQL.OrganizationProfileAlphaFeaturedArgs,
             alphaIsCommunity: GQL.OrganizationProfileAlphaIsCommunityArgs,
             alphaIsPrivate: GQL.OrganizationProfileAlphaIsPrivateArgs,
+            betaMembersCanInvite: GQL.OrganizationProfileBetaMembersCanInviteArgs,
             shortname: GQL.OrganizationProfileShortnameArgs,
         }
     >;

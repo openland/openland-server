@@ -76,6 +76,7 @@ export const Resolver: GQLResolver = {
         status: async (src: Organization) => src.status,
         membersCount: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id))!.joinedMembersCount || 0),
         personal: async (src: Organization) => src.personal || false,
+        betaMembersCanInvite: async (src: Organization) => src.membersCanInvite || false,
     },
     Query: {
         myOrganizations: async (_: any, args: {}, ctx: Context) => {
