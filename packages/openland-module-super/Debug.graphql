@@ -198,6 +198,7 @@ extend type Mutation {
     debugMigrateMuteSettings: Boolean!
     debugMigrateUserChatsList: Boolean!
     debugFreeUnusedShortnames: Boolean!
+    debugFreeShortname(shortname: String!): Boolean!
 }
 
 extend type Subscription {

@@ -280,8 +280,8 @@ export const Resolver: GQLResolver = {
                 Store.UserGroupEdge.user.query(ctx, ctx.auth.uid!, {limit: 300, reverse: true})
             ]);
             return JSON.stringify({
-                topPrivateDialogs: topPrivateDialogs.items.map(d => ({ uid1: d.uid1, uid2: d.uid2, weight: d.weight })),
-                topGroupDialogs: topGroupDialogs.items.map(d => ({ cid: d.cid, weight: d.weight })),
+                topPrivateDialogs: topPrivateDialogs.items.map(d => ({uid1: d.uid1, uid2: d.uid2, weight: d.weight})),
+                topGroupDialogs: topGroupDialogs.items.map(d => ({cid: d.cid, weight: d.weight})),
                 userOrgs,
                 roomOid,
                 cid
@@ -1923,6 +1923,20 @@ export const Resolver: GQLResolver = {
                 });
             });
             return true;
+        }),
+        debugFreeShortname: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async ctx => {
+                let reservation = await Store.ShortnameReservation.findById(ctx, args.shortname);
+                if (!reservation) {
+                    return false;
+                }
+                if (!reservation.enabled) {
+                    return false;
+                }
+                reservation.enabled = false;
+                await reservation.flush(ctx);
+                return true;
+            });
         }),
     },
     Subscription: {
