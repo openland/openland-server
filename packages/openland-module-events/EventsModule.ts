@@ -5,6 +5,7 @@ import { UserServiceManager } from './users/UserServiceManager';
 import { ShardRegion } from 'openland-module-sharding/ShardRegion';
 import { injectable } from 'inversify';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { GroupServiceManager } from './groups/GroupServiceManager';
 
 const root = createNamedContext('user-service');
 const log = createLogger('user-service');
@@ -15,7 +16,7 @@ export class EventsModule {
     readonly userSharding = new ShardRegion('users', 128);
     readonly groupSharding = new ShardRegion('groups', 128);
     readonly userService = new UserServiceManager();
-    readonly groupService = new UserServiceManager();
+    readonly groupService = new GroupServiceManager();
 
     start = async () => {
         this.userSharding.start();
