@@ -8,8 +8,6 @@ import { Modules } from '../openland-modules/Modules';
 import { EventBus } from '../openland-module-pubsub/EventBus';
 import { Context, createNamedContext } from '@openland/context';
 import { getTransaction } from '@openland/foundationdb';
-import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
-import { registerPresenceService } from './service/registerPresenceService';
 import { PresenceLogRepository } from './PresenceLogRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
 
@@ -61,10 +59,6 @@ export class PresenceModule {
         EventBus.subscribe(`online_change`, async (event: OnlineEvent) => {
             await this.handleOnlineChange(event);
         });
-
-        if (serverRoleEnabled('workers')) {
-            registerPresenceService();
-        }
     }
 
     public async setOnline(parent: Context, uid: number, tid: string, timeout: number, platform: string, active: boolean) {
@@ -121,6 +115,7 @@ export class PresenceModule {
             await this.handleOnlineChange(event);
             getTransaction(ctx).afterCommit(() => {
                 EventBus.publish(`online_change`, event);
+                EventBus.publish(`presences.users.${uid}`, { timeout });
             });
         });
     }
@@ -143,6 +138,7 @@ export class PresenceModule {
             await this.handleOnlineChange(event);
             getTransaction(ctx).afterCommit(() => {
                 EventBus.publish(`online_change`, event);
+                EventBus.publish(`presences.users.${uid}`, { timeout: 0 });
             });
         });
     }
@@ -235,7 +231,7 @@ export class PresenceModule {
         return iterator;
     }
 
-    public async createChatPresenceStream(uid: number, chatId: number): Promise<AsyncIterable<OnlineEvent>> {
+    private async createChatPresenceStream(uid: number, chatId: number): Promise<AsyncIterable<OnlineEvent>> {
         let ctx = withReadOnlyTransaction(this.rootCtx);
         await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
         let members = await Modules.Messaging.room.findConversationMembers(ctx, chatId);
