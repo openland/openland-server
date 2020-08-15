@@ -1,6 +1,5 @@
 import { createLogger } from '@openland/log';
 import { createNamedContext } from '@openland/context';
-import { asyncRun } from 'openland-utils/timer';
 import { UserServiceManager } from './users/UserServiceManager';
 import { ShardRegion } from 'openland-module-sharding/ShardRegion';
 import { injectable } from 'inversify';
@@ -22,17 +21,15 @@ export class EventsModule {
         this.userSharding.start();
         this.groupSharding.start();
 
-        asyncRun(async () => {
-            log.debug(root, 'Loading sharding info...');
-            let usersSharding = await this.userSharding.getShardingInfo();
-            let groupsSharding = await this.groupSharding.getShardingInfo();
-            log.debug(root, 'Sharding info loaded...');
-            this.userService.initSharding(usersSharding.ringSize);
-            this.groupService.initSharding(groupsSharding.ringSize);
-            if (serverRoleEnabled('events')) {
-                this.userSharding.startShard(this.userService.createShard);
-                this.groupSharding.startShard(this.groupService.createShard);
-            }
-        });
+        log.debug(root, 'Loading sharding info...');
+        let usersSharding = await this.userSharding.getShardingInfo();
+        let groupsSharding = await this.groupSharding.getShardingInfo();
+        log.debug(root, 'Sharding info loaded...');
+        this.userService.initSharding(usersSharding.ringSize);
+        this.groupService.initSharding(groupsSharding.ringSize);
+        if (serverRoleEnabled('events')) {
+            this.userSharding.startShard(this.userService.createShard);
+            this.groupSharding.startShard(this.groupService.createShard);
+        }
     }
 }

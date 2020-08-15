@@ -23,6 +23,10 @@ export class GroupService {
         await this.presencesService.start();
     }
 
+    get online() {
+        return this.presencesService.getOnline();
+    }
+
     async stop() {
         await this.lock.inLock(async () => {
 

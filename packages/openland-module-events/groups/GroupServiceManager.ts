@@ -1,11 +1,14 @@
+import { asyncRun } from 'openland-utils/timer';
 import { KeepAliveService } from './../utils/KeepAliveService';
 import { EventBus, EventBusSubcription } from 'openland-module-pubsub/EventBus';
 import { GroupService } from './GroupService';
 import { getShardId } from 'openland-module-sharding/getShardId';
+import { NATS, NatsSubscription } from 'openland-module-pubsub/NATS';
 
 export class GroupServiceShard {
     private shard: number;
     private subscription!: EventBusSubcription;
+    private getOnlineSubscription!: NatsSubscription;
     private services: KeepAliveService<number, GroupService>;
 
     constructor(shard: number) {
@@ -18,10 +21,24 @@ export class GroupServiceShard {
             let uid = src.uid as number;
             this.services.keepAlive(uid);
         });
+        this.getOnlineSubscription = NATS.subscribe(`groups.shard.${this.shard}.get-online`, (e) => {
+            asyncRun(async () => {
+                let cid = e.data.cid as number;
+                let res = await this.services.getService(cid);
+                if (!res) {
+                    return;
+                }
+                let online = res.online;
+                if (e.reply) {
+                    NATS.post(e.reply, { online });
+                }
+            });
+        });
     }
 
     async stop() {
         this.subscription.cancel();
+        this.getOnlineSubscription.cancel();
         await this.services.close();
     }
 }
@@ -47,6 +64,18 @@ export class GroupServiceManager {
                 this.keepAlive.set(uid, vc - 1);
             }
         };
+    }
+
+    getOnline = async (cid: number) => {
+        if (this.ringSize === null) {
+            throw Error('Ring is not inited');
+        }
+        let shard = getShardId(cid, this.ringSize);
+        try {
+            return await NATS.request(`groups.shard.${shard}.get-online`, 5000);
+        } catch (e) {
+            return 0;
+        }
     }
 
     private reportKeepAlives = () => {

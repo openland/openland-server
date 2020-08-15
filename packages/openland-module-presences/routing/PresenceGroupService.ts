@@ -39,7 +39,16 @@ export class PresenceGroupService {
                 }
             }, timeout);
         });
-        this.notifyOnlineStatus();
+
+        // Send initial timeout after 5 seconds since group will probabbly gather all 
+        // presences by this point
+        setTimeout(() => {
+            this.notifyOnlineStatus();
+        }, 5000);
+    }
+
+    getOnline() {
+        return this.online;
     }
 
     private notifyOnlineStatus = () => {
