@@ -37,19 +37,19 @@ export class UserServiceManager {
     private shard = new Map<number, UserServiceShard>();
     private keepAlive = new Map<number, number>();
 
-    enableKeepAlive = (uid: number) => {
+    enableKeepAlive = (gis: number) => {
         // log.log(root, 'Enable keepalive for user #' + uid);
-        this.reportKeepAlive(uid);
-        let ex = this.keepAlive.get(uid) || 0;
-        this.keepAlive.set(uid, ex + 1);
+        this.reportKeepAlive(gis);
+        let ex = this.keepAlive.get(gis) || 0;
+        this.keepAlive.set(gis, ex + 1);
         return () => {
             // log.log(root, 'Disable keepalive for user #' + uid);
-            let vc = this.keepAlive.get(uid);
+            let vc = this.keepAlive.get(gis);
             if (vc !== undefined) {
                 if (vc <= 1) {
-                    this.keepAlive.delete(uid);
+                    this.keepAlive.delete(gis);
                 }
-                this.keepAlive.set(uid, vc - 1);
+                this.keepAlive.set(gis, vc - 1);
             }
         };
     }
