@@ -18,8 +18,8 @@ export class GroupServiceShard {
 
     async init() {
         this.subscription = EventBus.subscribe('groups.shard.' + this.shard + '.keep-alive', (src) => {
-            let uid = src.uid as number;
-            this.services.keepAlive(uid);
+            let cid = src.cid as number;
+            this.services.keepAlive(cid);
         });
         this.getOnlineSubscription = NATS.subscribe(`groups.shard.${this.shard}.get-online`, (e) => {
             asyncRun(async () => {
@@ -72,27 +72,28 @@ export class GroupServiceManager {
         }
         let shard = getShardId(cid, this.ringSize);
         try {
-            return await NATS.request(`groups.shard.${shard}.get-online`, 5000);
+            let res = await NATS.request(`groups.shard.${shard}.get-online`, 5000, { cid });
+            return res.online || 0;
         } catch (e) {
             return 0;
         }
     }
 
     private reportKeepAlives = () => {
-        let uids = [...this.keepAlive.keys()];
-        for (let u of uids) {
+        let cids = [...this.keepAlive.keys()];
+        for (let u of cids) {
             this.reportKeepAlive(u);
         }
     }
 
-    private reportKeepAlive = (uid: number) => {
+    private reportKeepAlive = (cid: number) => {
         let ringSize = this.ringSize;
         if (ringSize === null) {
             // log.log(root, 'Unable to report keepalive for user #' + uid);
             return;
         }
-        let shard = getShardId(uid, ringSize);
-        EventBus.publish('groups.shard.' + shard + '.keep-alive', { uid });
+        let shard = getShardId(cid, ringSize);
+        EventBus.publish('groups.shard.' + shard + '.keep-alive', { cid });
         // log.debug(root, 'Report keepalive for user #' + uid + ' -> ' + shard);
     }
 

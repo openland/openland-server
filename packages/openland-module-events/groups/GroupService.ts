@@ -16,7 +16,7 @@ export class GroupService {
         this.lock.inLock(this.start);
     }
 
-    private async start() {
+    private start = async () => {
         Metrics.GroupActiveServices.inc();
 
         // Start services
@@ -27,7 +27,7 @@ export class GroupService {
         return this.presencesService.getOnline();
     }
 
-    async stop() {
+    stop = async () => {
         await this.lock.inLock(async () => {
 
             // Stop services
