@@ -120,33 +120,6 @@ export const Resolver: GQLResolver = {
         }),
     },
     Subscription: {
-        alphaSubscribeChatOnline: {
-            resolve: async (msg: any) => {
-                return msg;
-            },
-            subscribe: async (_, args, ctx) => {
-                if (!ctx.auth.uid) {
-                    throw new AccessDeniedError();
-                }
-                let conversationIds = args.conversations.map(c => IDs.Conversation.parse(c));
-
-                if (!ctx.auth.uid) {
-                    throw Error('Not logged in');
-                }
-
-                let uids: number[] = [];
-
-                for (let chatId of conversationIds) {
-                    uids.push(...await Modules.Messaging.room.findConversationMembers(ctx, chatId));
-                }
-
-                return Modules.Presence.createPresenceStream(ctx.auth.uid, uids);
-
-                // return createIterator(() => {
-                //     // do nothing
-                // });
-            }
-        },
         alphaSubscribeOnline: {
             resolve: async (msg: any) => {
                 return msg;

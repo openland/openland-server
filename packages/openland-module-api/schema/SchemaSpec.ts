@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'bfce21d3b4fc9385cb250ba3c7e114fb';
+export const GQL_SPEC_VERSION = '0e37c8e4784c7bf2a31c6a0ec4c12412';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4933,7 +4933,6 @@ export namespace GQL {
         alphaConferenceMediaWatch: ConferenceMedia;
         permissionsUpdates: PermissionRequest;
         waitingPermissionRequestsUpdates: PermissionRequest;
-        alphaSubscribeChatOnline: OnlineEvent;
         alphaSubscribeOnline: OnlineEvent;
         chatOnlinesCount: ChatOnlineEvent;
         chatLocationUpdates: UserLocation;
@@ -4975,9 +4974,6 @@ export namespace GQL {
     }
     export interface SubscriptionPermissionsUpdatesArgs { }
     export interface SubscriptionWaitingPermissionRequestsUpdatesArgs { }
-    export interface SubscriptionAlphaSubscribeChatOnlineArgs {
-        conversations: string[];
-    }
     export interface SubscriptionAlphaSubscribeOnlineArgs {
         users: string[];
     }
@@ -10046,7 +10042,6 @@ export interface GQLResolver {
             alphaConferenceMediaWatch: GQLRoots.ConferenceMediaRoot,
             permissionsUpdates: GQLRoots.PermissionRequestRoot,
             waitingPermissionRequestsUpdates: GQLRoots.PermissionRequestRoot,
-            alphaSubscribeChatOnline: GQLRoots.OnlineEventRoot,
             alphaSubscribeOnline: GQLRoots.OnlineEventRoot,
             chatOnlinesCount: GQLRoots.ChatOnlineEventRoot,
             chatLocationUpdates: GQLRoots.UserLocationRoot,
@@ -10074,7 +10069,6 @@ export interface GQLResolver {
             alphaConferenceMediaWatch: GQL.SubscriptionAlphaConferenceMediaWatchArgs,
             permissionsUpdates: GQL.SubscriptionPermissionsUpdatesArgs,
             waitingPermissionRequestsUpdates: GQL.SubscriptionWaitingPermissionRequestsUpdatesArgs,
-            alphaSubscribeChatOnline: GQL.SubscriptionAlphaSubscribeChatOnlineArgs,
             alphaSubscribeOnline: GQL.SubscriptionAlphaSubscribeOnlineArgs,
             chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs,
             chatLocationUpdates: GQL.SubscriptionChatLocationUpdatesArgs,

@@ -39,8 +39,6 @@ extend type Query {
 }
 
 extend type Subscription {
-    alphaSubscribeChatOnline(conversations: [ID!]!): OnlineEvent!
     alphaSubscribeOnline(users: [ID!]!): OnlineEvent!
-
     chatOnlinesCount(chatId: ID!): ChatOnlineEvent!
 }
