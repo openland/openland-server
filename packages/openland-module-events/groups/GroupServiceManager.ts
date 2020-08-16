@@ -1,9 +1,14 @@
+import { createLogger } from '@openland/log';
+import { createNamedContext } from '@openland/context';
 import { asyncRun } from 'openland-utils/timer';
 import { KeepAliveService } from './../utils/KeepAliveService';
 import { EventBus, EventBusSubcription } from 'openland-module-pubsub/EventBus';
 import { GroupService } from './GroupService';
 import { getShardId } from 'openland-module-sharding/getShardId';
 import { NATS, NatsSubscription } from 'openland-module-pubsub/NATS';
+
+const root = createNamedContext('group-service');
+const log = createLogger('online');
 
 export class GroupServiceShard {
     private shard: number;
@@ -75,6 +80,7 @@ export class GroupServiceManager {
             let res = await NATS.request(`groups.shard.${shard}.get-online`, 5000, { cid });
             return res.online || 0;
         } catch (e) {
+            log.warn(root, e);
             return 0;
         }
     }
