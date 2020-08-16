@@ -1,9 +1,12 @@
+import { createLogger } from '@openland/log';
+import { createNamedContext } from '@openland/context';
 import { asyncRun } from 'openland-utils/timer';
 import { Subscription } from 'ts-nats';
 import { Modules } from 'openland-modules/Modules';
 
 export type NatsCallback = (e: { data: any, replyTo?: string }) => void;
-
+const ctx = createNamedContext('eventbus');
+const logger = createLogger('nats');
 export interface NatsSubscription {
     cancel(): void;
 }
@@ -16,6 +19,10 @@ class NatsImpl {
 
         asyncRun(async () => {
             let subs = await Modules.NATS.subscribe(topic, (e, msg) => {
+                if (e) {
+                    logger.warn(ctx, e);
+                    return;
+                }
                 if (canceled) {
                     return;
                 }
