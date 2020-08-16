@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0e37c8e4784c7bf2a31c6a0ec4c12412';
+export const GQL_SPEC_VERSION = 'a9b90f93d074702704c329e90d8defe5';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1180,12 +1180,6 @@ export namespace GQL {
         onlineMembers: number;
     }
     export interface ChatOnlineEventOnlineMembersArgs { }
-    export interface IsAppInstalledResponse {
-        installed: boolean;
-        installedAt: Nullable<Date>;
-    }
-    export interface IsAppInstalledResponseInstalledArgs { }
-    export interface IsAppInstalledResponseInstalledAtArgs { }
     export type ProfileBadgeTypeValues = 'ORGANIZATION';
     export type ProfileBadgeType = GQLRoots.ProfileBadgeTypeRoot;
     export interface ProfileBadge {
@@ -2320,10 +2314,6 @@ export namespace GQL {
         alphaOrganizationRemoveMember: string;
         alphaOrganizationDeletePublicInvite: string;
         presenceReportOnline: string;
-        presenceReportOffline: string;
-        alphaReportActive: string;
-        alphaSetDesktopInstalled: boolean;
-        alphaSetMobileInstalled: boolean;
         profileCreate: Profile;
         profileUpdate: Profile;
         createProfile: Profile;
@@ -2922,19 +2912,6 @@ export namespace GQL {
         timeout: number;
         platform: OptionalNullable<string>;
         active: OptionalNullable<boolean>;
-    }
-    export interface MutationPresenceReportOfflineArgs {
-        platform: OptionalNullable<Platform>;
-    }
-    export interface MutationAlphaReportActiveArgs {
-        timeout: number;
-        platform: OptionalNullable<Platform>;
-    }
-    export interface MutationAlphaSetDesktopInstalledArgs {
-        at: Date;
-    }
-    export interface MutationAlphaSetMobileInstalledArgs {
-        at: Date;
     }
     export interface MutationProfileCreateArgs {
         input: ProfileInput;
@@ -4197,8 +4174,6 @@ export namespace GQL {
         alphaOrganizationPublicInvite: Nullable<Invite>;
         permissionGroups: PermissionGroup[];
         waitingPermissionRequests: PermissionRequest[];
-        isDesktopInstalled: IsAppInstalledResponse;
-        isMobileInstalled: IsAppInstalledResponse;
         myProfile: Nullable<Profile>;
         superAccounts: SuperAccount[];
         superAccount: SuperAccount;
@@ -4452,8 +4427,6 @@ export namespace GQL {
     }
     export interface QueryPermissionGroupsArgs { }
     export interface QueryWaitingPermissionRequestsArgs { }
-    export interface QueryIsDesktopInstalledArgs { }
-    export interface QueryIsMobileInstalledArgs { }
     export interface QueryMyProfileArgs { }
     export interface QuerySuperAccountsArgs { }
     export interface QuerySuperAccountArgs {
@@ -7499,16 +7472,6 @@ export interface GQLResolver {
             onlineMembers: GQL.ChatOnlineEventOnlineMembersArgs,
         }
     >;
-    IsAppInstalledResponse?: ComplexTypedResolver<
-        GQL.IsAppInstalledResponse,
-        GQLRoots.IsAppInstalledResponseRoot,
-        {
-        },
-        {
-            installed: GQL.IsAppInstalledResponseInstalledArgs,
-            installedAt: GQL.IsAppInstalledResponseInstalledAtArgs,
-        }
-    >;
     ProfileBadgeType?: EnumTypeResolver<'ORGANIZATION', GQLRoots.ProfileBadgeTypeRoot>;
     ProfileBadge?: ComplexTypedResolver<
         GQL.ProfileBadge,
@@ -8952,10 +8915,6 @@ export interface GQLResolver {
             alphaOrganizationRemoveMember: GQL.MutationAlphaOrganizationRemoveMemberArgs,
             alphaOrganizationDeletePublicInvite: GQL.MutationAlphaOrganizationDeletePublicInviteArgs,
             presenceReportOnline: GQL.MutationPresenceReportOnlineArgs,
-            presenceReportOffline: GQL.MutationPresenceReportOfflineArgs,
-            alphaReportActive: GQL.MutationAlphaReportActiveArgs,
-            alphaSetDesktopInstalled: GQL.MutationAlphaSetDesktopInstalledArgs,
-            alphaSetMobileInstalled: GQL.MutationAlphaSetMobileInstalledArgs,
             profileCreate: GQL.MutationProfileCreateArgs,
             profileUpdate: GQL.MutationProfileUpdateArgs,
             createProfile: GQL.MutationCreateProfileArgs,
@@ -9690,8 +9649,6 @@ export interface GQLResolver {
             alphaOrganizationPublicInvite: Nullable<GQLRoots.InviteRoot>,
             permissionGroups: GQLRoots.PermissionGroupRoot[],
             waitingPermissionRequests: GQLRoots.PermissionRequestRoot[],
-            isDesktopInstalled: GQLRoots.IsAppInstalledResponseRoot,
-            isMobileInstalled: GQLRoots.IsAppInstalledResponseRoot,
             myProfile: Nullable<GQLRoots.ProfileRoot>,
             superAccounts: GQLRoots.SuperAccountRoot[],
             superAccount: GQLRoots.SuperAccountRoot,
@@ -9865,8 +9822,6 @@ export interface GQLResolver {
             alphaOrganizationPublicInvite: GQL.QueryAlphaOrganizationPublicInviteArgs,
             permissionGroups: GQL.QueryPermissionGroupsArgs,
             waitingPermissionRequests: GQL.QueryWaitingPermissionRequestsArgs,
-            isDesktopInstalled: GQL.QueryIsDesktopInstalledArgs,
-            isMobileInstalled: GQL.QueryIsMobileInstalledArgs,
             myProfile: GQL.QueryMyProfileArgs,
             superAccounts: GQL.QuerySuperAccountsArgs,
             superAccount: GQL.QuerySuperAccountArgs,

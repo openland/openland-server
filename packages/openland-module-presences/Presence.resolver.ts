@@ -1,18 +1,12 @@
-import { Context } from '@openland/context';
 import { Modules } from 'openland-modules/Modules';
-import { withAccount, withAny } from 'openland-module-api/Resolvers';
 import { IDs } from 'openland-module-api/IDs';
 import { OnlineEvent } from './PresenceModule';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
-import { CacheRepository } from '../openland-module-cache/CacheRepository';
 import { UserError } from '../openland-errors/UserError';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import { Store } from '../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
-// import { createIterator } from '../openland-utils/asyncIterator';
-
-const cache = new CacheRepository<{ at: number }>('user_installed_apps');
 
 export const Resolver: GQLResolver = {
     OnlineEvent: {
@@ -24,10 +18,6 @@ export const Resolver: GQLResolver = {
 
         type: (src: OnlineEvent) => src.online ? 'online' : 'offline',
         user: (src: OnlineEvent) => src.userId,
-    },
-    IsAppInstalledResponse: {
-        installed: src => src.installed,
-        installedAt: src => src.installedAt
     },
     Mutation: {
         presenceReportOnline: async (_, args, parent) => {
@@ -68,56 +58,7 @@ export const Resolver: GQLResolver = {
 
                 return 'ok';
             });
-        },
-        presenceReportOffline: withAny(async (ctx, args) => {
-            await Modules.Presence.setOffline(ctx, ctx.auth.uid!);
-            return 'ok';
-        }),
-
-        // TODO: Move to Push Module
-        alphaReportActive: async (_: any, args, ctx: Context) => {
-            if (!ctx.auth.uid) {
-                throw Error('Not authorized');
-            }
-            if (args.timeout <= 0) {
-                throw Error('Invalid input');
-            }
-            if (args.timeout > 5000) {
-                throw Error('Invalid input');
-            }
-
-            // FIXME
-            // let token = await DB.UserToken.findById(context.tid);
-            // token!.lastIp = context.ip;
-            // await token!.save();
-
-            // await Repos.Users.markUserActive(context.uid, args.timeout, context.tid!!, args.platform);
-            return 'ok';
-        },
-        alphaSetDesktopInstalled: withAccount(async (parent, args, uid) => {
-            await cache.write(parent, `${uid}_desktop`, { at: args.at.getTime() });
-            return true;
-        }),
-        alphaSetMobileInstalled: withAccount(async (parent, args, uid) => {
-            await cache.write(parent, `${uid}_mobile`, { at: args.at.getTime() });
-            return true;
-        }),
-    },
-    Query: {
-        isDesktopInstalled: withAccount(async (parent, args, uid) => {
-            let val = await cache.read(parent, `${uid}_desktop`);
-            if (!val) {
-                return { installed: false };
-            }
-            return { installed: true, installedAt: val.at.toString() };
-        }),
-        isMobileInstalled: withAccount(async (parent, args, uid) => {
-            let val = await cache.read(parent, `${uid}_mobile`);
-            if (!val) {
-                return { installed: false };
-            }
-            return { installed: true, installedAt: val.at.toString() };
-        }),
+        }
     },
     Subscription: {
         alphaSubscribeOnline: {
@@ -128,20 +69,8 @@ export const Resolver: GQLResolver = {
                 if (!ctx.auth.uid) {
                     throw new AccessDeniedError();
                 }
-                let userIds = args.users.filter(c => {
-                    try {
-                        IDs.User.parse(c);
-                        return true;
-                    } catch {
-                        return false;
-                    }
-                }).map(c => IDs.User.parse(c));
-
+                let userIds = args.users.map(c => IDs.User.parse(c));
                 return Modules.Presence.createPresenceStream(ctx.auth.uid!, userIds);
-
-                // return createIterator(() => {
-                //     // do nothing
-                // });
             }
         },
         chatOnlinesCount: {
@@ -152,9 +81,6 @@ export const Resolver: GQLResolver = {
                 if (!ctx.auth.uid) {
                     throw new AccessDeniedError();
                 }
-                // return createIterator(() => {
-                //     // do nothing
-                // });
                 return Modules.Presence.createChatOnlineCountStream(ctx.auth.uid, IDs.Conversation.parse(args.chatId));
             }
         }
