@@ -52,7 +52,7 @@ export class PresenceGroupService {
     }
 
     private notifyOnlineStatus = () => {
-        if (!this.stopped) {
+        if (this.stopped) {
             return;
         }
         EventBus.publish(`presences.group.${this.group.cid}`, { online: this.online });
