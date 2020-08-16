@@ -29,6 +29,10 @@ export class KeepAliveService<K, V extends { stop(): Promise<void> | void }> {
             let service: V;
             if (!this.services.has(key)) {
                 service = await this.factory(key);
+                if (this.closed) {
+                    service.stop();
+                    return null;
+                }
                 this.services.set(key, service);
             } else {
                 service = this.services.get(key)!;
@@ -54,6 +58,9 @@ export class KeepAliveService<K, V extends { stop(): Promise<void> | void }> {
 
         // tslint:disable-next-line:no-floating-promises   
         this.lock.inLock(async () => {
+            if (this.closed) {
+                return;
+            }
 
             // Clear timer
             let timer = this.keepAliveTimers.get(key);
@@ -64,6 +71,10 @@ export class KeepAliveService<K, V extends { stop(): Promise<void> | void }> {
             // Create instance
             if (!this.services.has(key)) {
                 let s = await this.factory(key);
+                if (this.closed) {
+                    s.stop();
+                    return;
+                }
                 this.services.set(key, s);
             }
 

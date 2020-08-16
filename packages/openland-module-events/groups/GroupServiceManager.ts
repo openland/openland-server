@@ -65,8 +65,9 @@ export class GroupServiceManager {
             if (vc !== undefined) {
                 if (vc <= 1) {
                     this.keepAlive.delete(uid);
+                } else {
+                    this.keepAlive.set(uid, vc - 1);
                 }
-                this.keepAlive.set(uid, vc - 1);
             }
         };
     }
