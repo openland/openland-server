@@ -273,6 +273,8 @@ export class RoomMediator {
         }
         if (existingMembership.invitedBy === uid) {
             canKick = true;
+        } else if (existingMembership.role === 'owner' || existingMembership.role === 'admin') {
+            canKick = true;
         } else if (conv.oid && await Modules.Orgs.isUserOwner(ctx, uid, conv.oid)) {
             canKick = true;
         } else if (conv.ownerId === uid && (conv.oid ? !await Modules.Orgs.isUserOwner(ctx, kickedUid, conv.oid) : true)) {
