@@ -254,34 +254,33 @@ export class RoomMediator {
         });
     }
 
-    async canKickFromRoom(ctx: Context, cid: number, uid: number, kickedUid: number) {
-        let canKick = false;
-
+    async canKickFromRoom(ctx: Context, cid: number, uid: number, uidToKick: number) {
         let conv = await Store.ConversationRoom.findById(ctx, cid);
         if (!conv) {
             return false;
         }
 
-        let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
-        let existingMembership = await this.repo.findMembershipStatus(ctx, kickedUid, cid);
+        let existingMembership = await this.repo.findMembershipStatus(ctx, uidToKick, cid);
         if (!existingMembership || existingMembership.status !== 'joined') {
             return false;
         }
 
-        if (isSuperAdmin) {
-            canKick = true;
-        }
-        if (existingMembership.invitedBy === uid) {
-            canKick = true;
-        } else if (conv.oid && await Modules.Orgs.isUserOwner(ctx, uid, conv.oid)) {
-            canKick = true;
-        } else if (conv.ownerId === uid && (conv.oid ? !await Modules.Orgs.isUserOwner(ctx, kickedUid, conv.oid) : true)) {
-            canKick = true;
-        } else if (conv.oid && await Modules.Orgs.isUserAdmin(ctx, uid, conv.oid) && !await Modules.Orgs.isUserOwner(ctx, kickedUid, conv.oid) && conv.ownerId !== kickedUid) {
-            canKick = true;
+        // No one can kick room owner
+        if (conv.ownerId === uidToKick) {
+            return false;
         }
 
-        return canKick;
+        // No one can kick room org owner
+        if (conv.oid && await Modules.Orgs.isUserOwner(ctx, uidToKick, conv.oid)) {
+            return false;
+        }
+
+        // Inviter can kick
+        if (existingMembership.invitedBy === uid) {
+            return true;
+        }
+
+        return await this.repo.userHaveAdminPermissionsInChat(ctx, conv, uid);
     }
 
     async declineJoinRoomRequest(parent: Context, cid: number, by: number, requestedUid: number) {
