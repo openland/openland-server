@@ -18,6 +18,7 @@ export const Metrics = {
     // Actors
     //
     UserActiveServices: Factory.createMachineGauge('user_active_services', 'Active user services'),
+    GroupActiveServices: Factory.createMachineGauge('group_active_services', 'Active group services'),
 
     // SpaceX
     WebSocketConnections: Factory.createMachineGauge('connections', 'Active WebSocket connections'),
@@ -181,6 +182,10 @@ export const Metrics = {
 
     // NodeJS
     EventLoopLag: Factory.createTaggedSummary('nodejs_event_loop_lag', 'Summary of event loop lags', DEFAULT_QUANTILES),
+    MemoryRss: Factory.createTaggedGauge('nodejs_memory_rss', 'Usage of a memory'),
+    MemoryExternal: Factory.createTaggedGauge('nodejs_memory_external', 'Usage of an external memory'),
+    MemoryHeapTotal: Factory.createTaggedGauge('nodejs_memory_heap_total', 'Total size of a heap'),
+    MemoryHeapUsed: Factory.createTaggedGauge('nodejs_memory_heap_used', 'Used size of a heap'),
 
     // Hyperlog
     HyperLogSent: Factory.createFrequencyGauge('hyperlog_writes', 'Frequence of writes to a hyperlog'),

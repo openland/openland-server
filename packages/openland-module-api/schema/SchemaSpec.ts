@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'a50540a0193826d5f625ff435bb8e08f';
+export const GQL_SPEC_VERSION = 'a9b90f93d074702704c329e90d8defe5';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1180,12 +1180,6 @@ export namespace GQL {
         onlineMembers: number;
     }
     export interface ChatOnlineEventOnlineMembersArgs { }
-    export interface IsAppInstalledResponse {
-        installed: boolean;
-        installedAt: Nullable<Date>;
-    }
-    export interface IsAppInstalledResponseInstalledArgs { }
-    export interface IsAppInstalledResponseInstalledAtArgs { }
     export type ProfileBadgeTypeValues = 'ORGANIZATION';
     export type ProfileBadgeType = GQLRoots.ProfileBadgeTypeRoot;
     export interface ProfileBadge {
@@ -2320,10 +2314,6 @@ export namespace GQL {
         alphaOrganizationRemoveMember: string;
         alphaOrganizationDeletePublicInvite: string;
         presenceReportOnline: string;
-        presenceReportOffline: string;
-        alphaReportActive: string;
-        alphaSetDesktopInstalled: boolean;
-        alphaSetMobileInstalled: boolean;
         profileCreate: Profile;
         profileUpdate: Profile;
         createProfile: Profile;
@@ -2922,19 +2912,6 @@ export namespace GQL {
         timeout: number;
         platform: OptionalNullable<string>;
         active: OptionalNullable<boolean>;
-    }
-    export interface MutationPresenceReportOfflineArgs {
-        platform: OptionalNullable<Platform>;
-    }
-    export interface MutationAlphaReportActiveArgs {
-        timeout: number;
-        platform: OptionalNullable<Platform>;
-    }
-    export interface MutationAlphaSetDesktopInstalledArgs {
-        at: Date;
-    }
-    export interface MutationAlphaSetMobileInstalledArgs {
-        at: Date;
     }
     export interface MutationProfileCreateArgs {
         input: ProfileInput;
@@ -3849,6 +3826,7 @@ export namespace GQL {
         alphaFeatured: boolean;
         alphaIsCommunity: boolean;
         alphaIsPrivate: boolean;
+        betaMembersCanInvite: boolean;
         betaPublicRooms: SharedRoom[];
         betaPublicRoomsCount: number;
         status: string;
@@ -3887,6 +3865,7 @@ export namespace GQL {
     export interface OrganizationAlphaFeaturedArgs { }
     export interface OrganizationAlphaIsCommunityArgs { }
     export interface OrganizationAlphaIsPrivateArgs { }
+    export interface OrganizationBetaMembersCanInviteArgs { }
     export interface OrganizationBetaPublicRoomsArgs { }
     export interface OrganizationBetaPublicRoomsCountArgs { }
     export interface OrganizationStatusArgs { }
@@ -3912,6 +3891,7 @@ export namespace GQL {
         alphaFeatured: boolean;
         alphaIsCommunity: boolean;
         alphaIsPrivate: boolean;
+        betaMembersCanInvite: boolean;
         shortname: Nullable<string>;
     }
     export interface OrganizationProfileIdArgs { }
@@ -3931,6 +3911,7 @@ export namespace GQL {
     export interface OrganizationProfileAlphaFeaturedArgs { }
     export interface OrganizationProfileAlphaIsCommunityArgs { }
     export interface OrganizationProfileAlphaIsPrivateArgs { }
+    export interface OrganizationProfileBetaMembersCanInviteArgs { }
     export interface OrganizationProfileShortnameArgs { }
     export interface CreateOrganizationInput {
         id: Nullable<string>;
@@ -3958,6 +3939,7 @@ export namespace GQL {
         alphaEditorial: Nullable<boolean>;
         alphaFeatured: Nullable<boolean>;
         alphaIsPrivate: Nullable<boolean>;
+        betaMembersCanInvite: Nullable<boolean>;
     }
     export interface ContactPersonInput {
         name: string;
@@ -4192,8 +4174,6 @@ export namespace GQL {
         alphaOrganizationPublicInvite: Nullable<Invite>;
         permissionGroups: PermissionGroup[];
         waitingPermissionRequests: PermissionRequest[];
-        isDesktopInstalled: IsAppInstalledResponse;
-        isMobileInstalled: IsAppInstalledResponse;
         myProfile: Nullable<Profile>;
         superAccounts: SuperAccount[];
         superAccount: SuperAccount;
@@ -4447,8 +4427,6 @@ export namespace GQL {
     }
     export interface QueryPermissionGroupsArgs { }
     export interface QueryWaitingPermissionRequestsArgs { }
-    export interface QueryIsDesktopInstalledArgs { }
-    export interface QueryIsMobileInstalledArgs { }
     export interface QueryMyProfileArgs { }
     export interface QuerySuperAccountsArgs { }
     export interface QuerySuperAccountArgs {
@@ -4928,7 +4906,6 @@ export namespace GQL {
         alphaConferenceMediaWatch: ConferenceMedia;
         permissionsUpdates: PermissionRequest;
         waitingPermissionRequestsUpdates: PermissionRequest;
-        alphaSubscribeChatOnline: OnlineEvent;
         alphaSubscribeOnline: OnlineEvent;
         chatOnlinesCount: ChatOnlineEvent;
         chatLocationUpdates: UserLocation;
@@ -4970,9 +4947,6 @@ export namespace GQL {
     }
     export interface SubscriptionPermissionsUpdatesArgs { }
     export interface SubscriptionWaitingPermissionRequestsUpdatesArgs { }
-    export interface SubscriptionAlphaSubscribeChatOnlineArgs {
-        conversations: string[];
-    }
     export interface SubscriptionAlphaSubscribeOnlineArgs {
         users: string[];
     }
@@ -7498,16 +7472,6 @@ export interface GQLResolver {
             onlineMembers: GQL.ChatOnlineEventOnlineMembersArgs,
         }
     >;
-    IsAppInstalledResponse?: ComplexTypedResolver<
-        GQL.IsAppInstalledResponse,
-        GQLRoots.IsAppInstalledResponseRoot,
-        {
-        },
-        {
-            installed: GQL.IsAppInstalledResponseInstalledArgs,
-            installedAt: GQL.IsAppInstalledResponseInstalledAtArgs,
-        }
-    >;
     ProfileBadgeType?: EnumTypeResolver<'ORGANIZATION', GQLRoots.ProfileBadgeTypeRoot>;
     ProfileBadge?: ComplexTypedResolver<
         GQL.ProfileBadge,
@@ -8951,10 +8915,6 @@ export interface GQLResolver {
             alphaOrganizationRemoveMember: GQL.MutationAlphaOrganizationRemoveMemberArgs,
             alphaOrganizationDeletePublicInvite: GQL.MutationAlphaOrganizationDeletePublicInviteArgs,
             presenceReportOnline: GQL.MutationPresenceReportOnlineArgs,
-            presenceReportOffline: GQL.MutationPresenceReportOfflineArgs,
-            alphaReportActive: GQL.MutationAlphaReportActiveArgs,
-            alphaSetDesktopInstalled: GQL.MutationAlphaSetDesktopInstalledArgs,
-            alphaSetMobileInstalled: GQL.MutationAlphaSetMobileInstalledArgs,
             profileCreate: GQL.MutationProfileCreateArgs,
             profileUpdate: GQL.MutationProfileUpdateArgs,
             createProfile: GQL.MutationCreateProfileArgs,
@@ -9383,6 +9343,7 @@ export interface GQLResolver {
             alphaFeatured: GQL.OrganizationAlphaFeaturedArgs,
             alphaIsCommunity: GQL.OrganizationAlphaIsCommunityArgs,
             alphaIsPrivate: GQL.OrganizationAlphaIsPrivateArgs,
+            betaMembersCanInvite: GQL.OrganizationBetaMembersCanInviteArgs,
             betaPublicRooms: GQL.OrganizationBetaPublicRoomsArgs,
             betaPublicRoomsCount: GQL.OrganizationBetaPublicRoomsCountArgs,
             status: GQL.OrganizationStatusArgs,
@@ -9417,6 +9378,7 @@ export interface GQLResolver {
             alphaFeatured: GQL.OrganizationProfileAlphaFeaturedArgs,
             alphaIsCommunity: GQL.OrganizationProfileAlphaIsCommunityArgs,
             alphaIsPrivate: GQL.OrganizationProfileAlphaIsPrivateArgs,
+            betaMembersCanInvite: GQL.OrganizationProfileBetaMembersCanInviteArgs,
             shortname: GQL.OrganizationProfileShortnameArgs,
         }
     >;
@@ -9687,8 +9649,6 @@ export interface GQLResolver {
             alphaOrganizationPublicInvite: Nullable<GQLRoots.InviteRoot>,
             permissionGroups: GQLRoots.PermissionGroupRoot[],
             waitingPermissionRequests: GQLRoots.PermissionRequestRoot[],
-            isDesktopInstalled: GQLRoots.IsAppInstalledResponseRoot,
-            isMobileInstalled: GQLRoots.IsAppInstalledResponseRoot,
             myProfile: Nullable<GQLRoots.ProfileRoot>,
             superAccounts: GQLRoots.SuperAccountRoot[],
             superAccount: GQLRoots.SuperAccountRoot,
@@ -9862,8 +9822,6 @@ export interface GQLResolver {
             alphaOrganizationPublicInvite: GQL.QueryAlphaOrganizationPublicInviteArgs,
             permissionGroups: GQL.QueryPermissionGroupsArgs,
             waitingPermissionRequests: GQL.QueryWaitingPermissionRequestsArgs,
-            isDesktopInstalled: GQL.QueryIsDesktopInstalledArgs,
-            isMobileInstalled: GQL.QueryIsMobileInstalledArgs,
             myProfile: GQL.QueryMyProfileArgs,
             superAccounts: GQL.QuerySuperAccountsArgs,
             superAccount: GQL.QuerySuperAccountArgs,
@@ -10039,7 +9997,6 @@ export interface GQLResolver {
             alphaConferenceMediaWatch: GQLRoots.ConferenceMediaRoot,
             permissionsUpdates: GQLRoots.PermissionRequestRoot,
             waitingPermissionRequestsUpdates: GQLRoots.PermissionRequestRoot,
-            alphaSubscribeChatOnline: GQLRoots.OnlineEventRoot,
             alphaSubscribeOnline: GQLRoots.OnlineEventRoot,
             chatOnlinesCount: GQLRoots.ChatOnlineEventRoot,
             chatLocationUpdates: GQLRoots.UserLocationRoot,
@@ -10067,7 +10024,6 @@ export interface GQLResolver {
             alphaConferenceMediaWatch: GQL.SubscriptionAlphaConferenceMediaWatchArgs,
             permissionsUpdates: GQL.SubscriptionPermissionsUpdatesArgs,
             waitingPermissionRequestsUpdates: GQL.SubscriptionWaitingPermissionRequestsUpdatesArgs,
-            alphaSubscribeChatOnline: GQL.SubscriptionAlphaSubscribeChatOnlineArgs,
             alphaSubscribeOnline: GQL.SubscriptionAlphaSubscribeOnlineArgs,
             chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs,
             chatLocationUpdates: GQL.SubscriptionChatLocationUpdatesArgs,

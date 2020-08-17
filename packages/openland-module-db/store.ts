@@ -2465,6 +2465,7 @@ export interface OrganizationShape {
     editorial: boolean;
     private: boolean | null;
     personal: boolean | null;
+    membersCanInvite: boolean | null;
 }
 
 export interface OrganizationCreateShape {
@@ -2474,6 +2475,7 @@ export interface OrganizationCreateShape {
     editorial: boolean;
     private?: boolean | null | undefined;
     personal?: boolean | null | undefined;
+    membersCanInvite?: boolean | null | undefined;
 }
 
 export class Organization extends Entity<OrganizationShape> {
@@ -2532,6 +2534,15 @@ export class Organization extends Entity<OrganizationShape> {
             this.invalidate();
         }
     }
+    get membersCanInvite(): boolean | null { return this._rawValue.membersCanInvite; }
+    set membersCanInvite(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.membersCanInvite.normalize(value);
+        if (this._rawValue.membersCanInvite !== normalized) {
+            this._rawValue.membersCanInvite = normalized;
+            this._updatedValues.membersCanInvite = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class OrganizationFactory extends EntityFactory<OrganizationShape, Organization> {
@@ -2549,6 +2560,7 @@ export class OrganizationFactory extends EntityFactory<OrganizationShape, Organi
         fields.push({ name: 'editorial', type: { type: 'boolean' }, secure: false });
         fields.push({ name: 'private', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'personal', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'membersCanInvite', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             ownerId: c.integer,
@@ -2557,6 +2569,7 @@ export class OrganizationFactory extends EntityFactory<OrganizationShape, Organi
             editorial: c.boolean,
             private: c.optional(c.boolean),
             personal: c.optional(c.boolean),
+            membersCanInvite: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<OrganizationShape> = {
             name: 'Organization',

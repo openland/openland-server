@@ -1,3 +1,5 @@
+import { PresenceUserService } from './../../openland-module-presences/routing/PresenceUserService';
+import { GroupServiceProxy } from './GroupServiceProxy';
 import { Modules } from 'openland-modules/Modules';
 import { inTx, Watch } from '@openland/foundationdb';
 import { TypingService } from './../../openland-module-typings/TypingService';
@@ -12,6 +14,8 @@ export class UserService {
     readonly lock = new AsyncLock();
     private canceled = false;
     private readonly serviceTyping: TypingService;
+    private readonly serviceGroups: GroupServiceProxy;
+    private readonly servicePresences: PresenceUserService;
     private groupsWatch: Watch | null = null;
     private activeGroups: number[] = [];
 
@@ -20,6 +24,8 @@ export class UserService {
         Metrics.UserActiveServices.inc();
 
         this.serviceTyping = new TypingService(this);
+        this.serviceGroups = new GroupServiceProxy(this);
+        this.servicePresences = new PresenceUserService(this);
 
         // tslint:disable-next-line:no-floating-promises
         this.lock.inLock(this.start);
@@ -75,6 +81,8 @@ export class UserService {
 
         // Start services
         await this.serviceTyping.start();
+        await this.serviceGroups.start();
+        await this.servicePresences.start();
     }
 
     private onGroupsChanged = (groups: number[]) => {
@@ -82,6 +90,7 @@ export class UserService {
 
         // Update services
         this.serviceTyping.onGroupsChanged(groups);
+        this.serviceGroups.onGroupsChanged(groups);
     }
 
     async stop() {
@@ -97,6 +106,8 @@ export class UserService {
 
             // Stop services
             await this.serviceTyping.stop();
+            await this.serviceGroups.stop();
+            await this.servicePresences.stop();
 
             // Update metrics
             Metrics.UserActiveServices.dec();

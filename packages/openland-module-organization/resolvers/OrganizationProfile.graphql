@@ -18,6 +18,8 @@ type OrganizationProfile {
     alphaFeatured: Boolean!
     alphaIsCommunity: Boolean!
     alphaIsPrivate: Boolean!
+
+    betaMembersCanInvite: Boolean!
 }
 
 input CreateOrganizationInput {
@@ -49,6 +51,8 @@ input UpdateOrganizationProfileInput {
     alphaEditorial: Boolean
     alphaFeatured: Boolean
     alphaIsPrivate: Boolean
+
+    betaMembersCanInvite: Boolean
 }
 
 input ContactPersonInput {
