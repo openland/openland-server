@@ -81,7 +81,10 @@ export const Resolver: GQLResolver = {
                 if (!ctx.auth.uid) {
                     throw new AccessDeniedError();
                 }
-                return Modules.Presence.createChatOnlineCountStream(ctx.auth.uid, IDs.Conversation.parse(args.chatId));
+                
+                let cid = IDs.Conversation.parse(args.chatId);
+                await Modules.Messaging.room.checkAccess(ctx, ctx.auth.uid, cid);
+                return Modules.Presence.groups.createPresenceStream(cid);
             }
         }
     }
