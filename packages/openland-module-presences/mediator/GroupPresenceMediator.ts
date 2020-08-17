@@ -16,15 +16,16 @@ type GroupSubscription = {
     count: number | null,
     subscription: EventBusSubcription | null,
     iterators: PushableIterator<{ onlineMembers: number }>[],
+    resolvers: ((value: number) => void)[],
     timer: NodeJS.Timer | null
 };
 
 export class GroupPresenceMediator {
 
-    private readonly activeGroupListeners = new Map<number, GroupSubscription>();
+    private readonly activeGroupSubscriptions = new Map<number, GroupSubscription>();
 
     private getOrCreateSubscription(cid: number): GroupSubscription {
-        let active = this.activeGroupListeners.get(cid);
+        let active = this.activeGroupSubscriptions.get(cid);
         if (active) {
             return active;
         }
@@ -34,7 +35,8 @@ export class GroupPresenceMediator {
             count: null,
             subscription: null,
             timer: null,
-            iterators: []
+            iterators: [],
+            resolvers: []
         };
 
         // Create subscription
@@ -47,6 +49,10 @@ export class GroupPresenceMediator {
             for (let i of state.iterators) {
                 i.push({ onlineMembers: online });
             }
+            for (let r of state.resolvers) {
+                r(online);
+            }
+            state.resolvers = [];
         });
 
         // Load initial value
@@ -64,6 +70,10 @@ export class GroupPresenceMediator {
                 for (let i of state.iterators) {
                     i.push({ onlineMembers: online });
                 }
+                for (let r of state.resolvers) {
+                    r(online);
+                }
+                state.resolvers = [];
             });
         });
 
@@ -73,19 +83,19 @@ export class GroupPresenceMediator {
         }, TIMEOUT);
 
         // Save state
-        this.activeGroupListeners.set(cid, state);
+        this.activeGroupSubscriptions.set(cid, state);
         Metrics.GroupPresenceSubscriptions.inc(hostname);
 
         return state;
     }
 
     private cleanupSubscription(cid: number) {
-        let active = this.activeGroupListeners.get(cid);
+        let active = this.activeGroupSubscriptions.get(cid);
         if (active) {
 
             // Check if we could cleanup subscription
-            if (active.iterators.length > 0) {
-                throw Error('Unable to perform cleanup: some iterators are outstanding');
+            if (active.iterators.length > 0 || active.resolvers.length > 0) {
+                throw Error('Unable to perform cleanup: some iterators or ressolvers are outstanding');
             }
 
             // Mark as completed
@@ -98,12 +108,12 @@ export class GroupPresenceMediator {
             }
 
             // Remove from active collection
-            this.activeGroupListeners.delete(cid);
+            this.activeGroupSubscriptions.delete(cid);
             Metrics.GroupPresenceSubscriptions.dec(hostname);
         }
     }
 
-    public createPresenceStream(cid: number): AsyncIterable<{ onlineMembers: number }> {
+    createPresenceStream(cid: number): AsyncIterable<{ onlineMembers: number }> {
 
         let subscription = this.getOrCreateSubscription(cid);
         let iterator = createIterator<{ onlineMembers: number }>();
@@ -120,7 +130,7 @@ export class GroupPresenceMediator {
             let existing = subscription.iterators.findIndex((v) => v === iterator);
             if (existing >= 0) {
                 subscription.iterators.splice(existing, 1);
-                if (subscription.iterators.length === 0) {
+                if (subscription.iterators.length === 0 && subscription.resolvers.length === 0) {
                     subscription.timer = setTimeout(() => {
                         this.cleanupSubscription(cid);
                     }, TIMEOUT);
@@ -134,5 +144,19 @@ export class GroupPresenceMediator {
         }
 
         return iterator;
+    }
+
+    async getOnline(cid: number) {
+        let subscription = this.getOrCreateSubscription(cid);
+        if (subscription.count !== null) {
+            return subscription.count;
+        }
+        return await new Promise<number>((resolve) => {
+            if (subscription.timer) {
+                clearTimeout(subscription.timer);
+                subscription.timer = null;
+            }
+            subscription.resolvers.push(resolve);
+        });
     }
 }

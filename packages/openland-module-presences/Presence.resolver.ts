@@ -10,14 +10,10 @@ import { inTx } from '@openland/foundationdb';
 
 export const Resolver: GQLResolver = {
     OnlineEvent: {
-        userId: (src: OnlineEvent) => IDs.User.serialize(src.userId),
-        timeout: (src: OnlineEvent) => src.timeout,
-        online: (src: OnlineEvent) => src.online,
-        active: (src: OnlineEvent) => src.active,
-        lastSeen: (src: OnlineEvent) => src.lastSeen.toString(10),
-
-        type: (src: OnlineEvent) => src.online ? 'online' : 'offline',
         user: (src: OnlineEvent) => src.userId,
+
+        // Not used
+        timeout: (src: OnlineEvent) => 0,
     },
     Mutation: {
         presenceReportOnline: async (_, args, parent) => {
@@ -81,7 +77,7 @@ export const Resolver: GQLResolver = {
                 if (!ctx.auth.uid) {
                     throw new AccessDeniedError();
                 }
-                
+
                 let cid = IDs.Conversation.parse(args.chatId);
                 await Modules.Messaging.room.checkAccess(ctx, ctx.auth.uid, cid);
                 return Modules.Presence.groups.createPresenceStream(cid);
