@@ -101,6 +101,10 @@ const handleUser = async (ctx: Context, uid: number) => {
             continue;
         }
 
+        if (message.deleted) {
+            continue;
+        }
+
         // disable email notificaitons for channels and public chats
         let conversation = (await Store.Conversation.findById(ctx, message.cid))!;
         if (conversation.kind === 'room') {
