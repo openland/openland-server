@@ -16,7 +16,10 @@ export class PresenceGroupService {
     async start() {
         this.subscription = EventBus.subscribe(`presences.groups-notify.${this.group.cid}`, (data) => {
             let uid = data.uid as number;
-            let timeout = data.timeout as number;
+            let timeout = (data.timeout as number) - Date.now();
+            if (timeout <= 0) {
+                return;
+            }
 
             if (this.users.has(uid)) {
                 let ex = this.users.get(uid)!;
