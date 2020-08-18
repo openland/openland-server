@@ -1,5 +1,6 @@
 import { EventBus, EventBusSubcription } from 'openland-module-pubsub/EventBus';
 import { GroupService } from 'openland-module-events/groups/GroupService';
+import { throttle } from 'openland-utils/timer';
 
 export class PresenceGroupService {
     private group: GroupService;
@@ -51,12 +52,12 @@ export class PresenceGroupService {
         return this.online;
     }
 
-    private notifyOnlineStatus = () => {
+    private notifyOnlineStatus = throttle(2000, () => {
         if (this.stopped) {
             return;
         }
         EventBus.publish(`presences.group.${this.group.cid}`, { online: this.online });
-    }
+    });
 
     async stop() {
         this.stopped = true;

@@ -5,6 +5,14 @@ import { encoders } from '@openland/foundationdb';
 
 const ZERO = Buffer.from([]);
 
+const PLATFORM_ID = {
+    undefined: 0,
+    web: 1,
+    ios: 2,
+    android: 3,
+    desktop: 4
+};
+
 @injectable()
 export class PresenceLogRepository {
 
@@ -12,14 +20,7 @@ export class PresenceLogRepository {
         .withKeyEncoding(encoders.tuple);
 
     logOnline(ctx: Context, date: number, uid: number, platform: 'undefined' | 'web' | 'ios' | 'android' | 'desktop') {
-        let platformToCode = {
-            undefined: 0,
-            web: 1,
-            ios: 2,
-            android: 3,
-            desktop: 4
-        };
         this.directory
-            .set(ctx, [date - date % (60 * 1000), uid, platformToCode[platform]], ZERO);
+            .set(ctx, [date - date % (60 * 1000), uid, PLATFORM_ID[platform]], ZERO);
     }
 }

@@ -46,7 +46,7 @@ export class PresenceModule {
     private readonly logging!: PresenceLogRepository;
 
     readonly groups: GroupPresenceMediator = new GroupPresenceMediator();
-    
+
     private onlines = new Map<number, { lastSeen: number, active: boolean, timer?: Timer }>();
     private localSub = new Pubsub<OnlineEvent>(false);
     private rootCtx = createNamedContext('presence');
@@ -118,30 +118,7 @@ export class PresenceModule {
             await this.handleOnlineChange(event);
             getTransaction(ctx).afterCommit(() => {
                 EventBus.publish(`online_change`, event);
-                EventBus.publish(`presences.users.${uid}`, { timeout });
-            });
-        });
-    }
-
-    public async setOffline(parent: Context, uid: number) {
-        await inTx(parent, async (ctx) => {
-            let online = await Store.Online.findById(ctx, uid);
-            if (online) {
-                online.lastSeen = Date.now();
-                online.active = false;
-            }
-            // this.onlines.set(uid, { lastSeen: Date.now(), active: false });
-            let event = {
-                userId: uid,
-                timeout: 0,
-                online: false,
-                active: false,
-                lastSeen: Date.now()
-            };
-            await this.handleOnlineChange(event);
-            getTransaction(ctx).afterCommit(() => {
-                EventBus.publish(`online_change`, event);
-                EventBus.publish(`presences.users.${uid}`, { timeout: 0 });
+                EventBus.publish(`presences.users-notify.${uid}`, { timeout, active: (online ? online.active : active) || false, tid });
             });
         });
     }

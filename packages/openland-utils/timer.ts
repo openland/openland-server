@@ -61,19 +61,26 @@ export function debounce(ms: number, func: (...args: any[]) => any) {
     };
 }
 
-export function throttle(ms: number, func: (...args: any[]) => any) {
+export function throttle<T extends any[]>(ms: number, func: (...args: T) => void) {
     let lock = false;
+    let lastArgs: T | null = null;
 
-    return (...args2: any[]) => {
+    return (...args2: T) => {
         if (lock) {
+            lastArgs = args2;
             return;
         }
 
         lock = true;
+        lastArgs = null;
         setTimeout(() => {
             lock = false;
+            if (lastArgs) {
+                func(...lastArgs);
+                lastArgs = null;
+            }
         }, ms);
-        return func(...args2);
+        func(...args2);
     };
 }
 
