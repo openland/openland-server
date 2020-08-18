@@ -5,6 +5,9 @@ const SUBSPACE_LAST_SEEN = 0;
 const SUBSPACE_LAST_SEEN_TIMEOUT = 2;
 const SUBSPACE_ACTIVE = 1;
 const SUBSPACE_ACTIVE_TIMEOUT = 3;
+const SUBSPACE_TOKEN = 4;
+const SUBSPACE_TOKEN_LATEST = 5;
+const ZERO = Buffer.from([]);
 
 export class PresenceRepository {
 
@@ -14,19 +17,100 @@ export class PresenceRepository {
         this.directory = directory;
     }
 
-    async setOnline(ctx: Context, uid: number, lastSeen: number, expires: number, active: boolean) {
+    async setOnline(ctx: Context, uid: number, tid: string, now: number, expires: number, active: boolean) {
 
+        //
         // Convert to seconds
-        let clampedLastSeen = Math.floor(lastSeen / 1000);
+        // NOTE: We use seconds instead of common milliseconds to being able use int32LE encoder that
+        //       is very useful as atomic counter
+        //
+        let clampedLastSeen = Math.floor(now / 1000);
         let clampedExpires = Math.floor(expires / 1000);
 
-        // Update user online
+        //
+        // Update last seen
+        // NODE: Last seen can only be advanced and can't be decreased
+        //
         if (active) {
             this.directory.max(ctx, encoders.tuple.pack([uid, SUBSPACE_ACTIVE]), encoders.int32LE.pack(clampedLastSeen));
-            this.directory.max(ctx, encoders.tuple.pack([uid, SUBSPACE_ACTIVE_TIMEOUT]), encoders.int32LE.pack(clampedExpires));
         }
         this.directory.max(ctx, encoders.tuple.pack([uid, SUBSPACE_LAST_SEEN]), encoders.int32LE.pack(clampedLastSeen));
-        this.directory.max(ctx, encoders.tuple.pack([uid, SUBSPACE_LAST_SEEN_TIMEOUT]), encoders.int32LE.pack(clampedExpires));
+
+        //
+        // Persist token information
+        // 
+        let ex = await this.directory.get(ctx, encoders.tuple.pack([uid, SUBSPACE_TOKEN, tid]));
+        if (ex) {
+            let token = encoders.json.unpack(ex);
+            let existingExpires = token.expires as number;
+            this.directory.clear(ctx, encoders.tuple.pack([uid, SUBSPACE_TOKEN_LATEST, existingExpires, tid]));
+        }
+        this.directory.set(ctx, encoders.tuple.pack([uid, SUBSPACE_TOKEN, tid]), encoders.json.pack({ expires: clampedExpires, lastSeen: clampedLastSeen, active }));
+        this.directory.set(ctx, encoders.tuple.pack([uid, SUBSPACE_TOKEN_LATEST, clampedExpires, tid]), ZERO);
+
+        // Recalculate timeouts
+        await this.recalculateTimeouts(ctx, uid, now);
+    }
+
+    async setOffline(ctx: Context, uid: number, tid: string, now: number) {
+        await this.setOnline(ctx, uid, tid, now, now, false);
+    }
+
+    private async recalculateTimeouts(ctx: Context, uid: number, now: number) {
+
+        // Resolve actual timeout
+        let activeTimeout: number | null = null;
+        let lastSeenTimeout: number | null = null;
+        let tokens = await this.getRecentTokens(ctx, uid, now);
+        for (let tid of tokens) {
+            let ex = await this.directory.get(ctx, encoders.tuple.pack([uid, SUBSPACE_TOKEN, tid]));
+            if (ex) {
+                let token = encoders.json.unpack(ex);
+                let active = token.active as boolean;
+                let expires = token.expires as number;
+                if (active) {
+                    if (activeTimeout === null || activeTimeout < expires) {
+                        activeTimeout = expires;
+                    }
+                }
+                if (lastSeenTimeout === null || lastSeenTimeout < expires) {
+                    lastSeenTimeout = expires;
+                }
+            }
+        }
+
+        // Update timeouts
+        if (activeTimeout === null) {
+            this.directory.clear(ctx, encoders.tuple.pack([uid, SUBSPACE_ACTIVE_TIMEOUT]));
+        } else {
+            this.directory.set(ctx, encoders.tuple.pack([uid, SUBSPACE_ACTIVE_TIMEOUT]), encoders.int32LE.pack(activeTimeout));
+        }
+        if (lastSeenTimeout === null) {
+            this.directory.clear(ctx, encoders.tuple.pack([uid, SUBSPACE_LAST_SEEN_TIMEOUT]));
+        } else {
+            this.directory.set(ctx, encoders.tuple.pack([uid, SUBSPACE_LAST_SEEN_TIMEOUT]), encoders.int32LE.pack(lastSeenTimeout));
+        }
+    }
+
+    async getRecentTokens(ctx: Context, uid: number, now: number) {
+        let nowClamped = Math.floor(now / 1000);
+        let tokens = await this.directory.range(ctx, encoders.tuple.pack([uid, SUBSPACE_TOKEN_LATEST]), { after: encoders.tuple.pack([uid, SUBSPACE_TOKEN_LATEST, nowClamped]) });
+        let res: string[] = [];
+        for (let t of tokens) {
+            let tuple = encoders.tuple.unpack(t.key);
+            let tid = tuple[tuple.length - 1] as string;
+            res.push(tid);
+        }
+        return res;
+    }
+
+    async getTokenLastSeen(ctx: Context, uid: number, tid: string) {
+        let ex = await this.directory.get(ctx, encoders.tuple.pack([uid, SUBSPACE_TOKEN, tid]));
+        if (!ex) {
+            return null;
+        }
+        let token = encoders.json.unpack(ex);
+        return token.lastSeen as number;
     }
 
     async getOnline(ctx: Context, uid: number) {
@@ -56,6 +140,7 @@ export class PresenceRepository {
         if (lastActiveTimeoutRaw) {
             lastActiveTimeout = encoders.int32LE.unpack(lastActiveTimeoutRaw) * 1000;
         }
+
         if (lastSeen && (!lastSeenTimeout || lastSeenTimeout < lastSeen)) {
             lastSeenTimeout = lastSeen;
         }

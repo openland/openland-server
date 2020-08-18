@@ -653,7 +653,7 @@ migrations.push({
 // });
 
 migrations.push({
-    key: '132-migrate-presence',
+    key: '134-migrate-presence',
     migration: async (parent) => {
         let data = await inTx(parent, ctx => Store.User.findAll(ctx));
         for (let cursor = 0; cursor < data.length; cursor += 100) {
@@ -662,7 +662,7 @@ migrations.push({
                 for (let key of batch) {
                     for (let presence of await Store.Presence.user.findAll(ctx, key.id)) {
                         if (presence.lastSeen > 0) {
-                            await Modules.Presence.users.repo.setOnline(ctx, key.id, presence.lastSeen, presence.lastSeen, !!presence.active);
+                            await Modules.Presence.users.repo.setOnline(ctx, key.id, presence.tid, presence.lastSeen, presence.lastSeenTimeout, !!presence.active);
                         }
                     }
                 }

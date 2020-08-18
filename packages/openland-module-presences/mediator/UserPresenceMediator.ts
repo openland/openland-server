@@ -3,23 +3,21 @@ import { PresenceRepository } from './../repo/PresenceRepository';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 
-export const LAST_SEEN_TIMEOUT = 15000;
-export const LAST_SEEN_RESOLVE_TIMEOUT = 10000;
-
 export class UserPresenceMediator {
 
-    readonly repo: PresenceRepository = new PresenceRepository(Store.UserPresenceDirectory);
+    readonly repo: PresenceRepository = new PresenceRepository(Store.UserOnlineDirectory);
 
-    async setOnline(parent: Context, uid: number, tid: string, platform: string, active: boolean) {
+    async setOnline(parent: Context, uid: number, tid: string, platform: string, active: boolean, timeout: number) {
         await inTx(parent, async (ctx) => {
             let now = Date.now();
-            await this.repo.setOnline(ctx, uid, now, now + LAST_SEEN_RESOLVE_TIMEOUT, active);
+            await this.repo.setOnline(ctx, uid, tid, now, now + timeout, active);
         });
     }
 
     async setOffline(parent: Context, uid: number, tid: string) {
         await inTx(parent, async (ctx) => {
-            // TODO: Implement
+            let now = Date.now();
+            await this.repo.setOffline(ctx, uid, tid, now);
         });
     }
 

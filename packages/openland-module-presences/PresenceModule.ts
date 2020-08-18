@@ -103,7 +103,7 @@ export class PresenceModule {
             }
 
             // Update online state
-            await this.users.setOnline(ctx, uid, tid, platform, active);
+            await this.users.setOnline(ctx, uid, tid, platform, active, timeout);
 
             // Log online
             if (ex.active) {

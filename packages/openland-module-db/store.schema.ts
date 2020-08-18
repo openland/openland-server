@@ -258,7 +258,8 @@ export default declareSchema(() => {
     });
     
     customDirectory('PresenceLog');
-    customDirectory('UserPresence');
+    customDirectory('UserPresence'); // Obsolete
+    customDirectory('UserOnline');
 
     //
     // Conversations
