@@ -7,9 +7,9 @@ import { User } from 'openland-module-db/store';
 export const Resolver: GQLResolver = {
     User: {
         online: withUser(async (ctx: Context, src: User) => {
-            return await Modules.Presence.getLastSeen(ctx, src.id) === 'online';
+            return await Modules.Presence.getStatus(ctx, src.id) === 'online';
         }, true),
-        lastSeen: withUser((ctx, src: User) => Modules.Presence.getLastSeen(ctx, src.id), true),
+        lastSeen: withUser((ctx, src: User) => Modules.Presence.getStatus(ctx, src.id), true),
         active: withUser((ctx, src: User) => Modules.Presence.isActive(ctx, src.id), true),
     }
 };

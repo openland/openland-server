@@ -103,7 +103,7 @@ export class PresenceModule {
             }
 
             // Update online state
-            await this.users.setOnline(ctx, uid, tid, timeout, platform, active);
+            await this.users.setOnline(ctx, uid, tid, platform, active);
 
             // Log online
             if (ex.active) {
@@ -126,8 +126,8 @@ export class PresenceModule {
         });
     }
 
-    getLastSeen(ctx: Context, uid: number): Promise<'online' | 'never_online' | number> {
-        return this.users.getLastSeen(ctx, uid);
+    getStatus(ctx: Context, uid: number): Promise<'online' | 'never_online' | number> {
+        return this.users.getStatus(ctx, uid);
     }
 
     isActive(ctx: Context, uid: number): Promise<boolean> {

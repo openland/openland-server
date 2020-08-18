@@ -4,28 +4,35 @@ import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 
 export const LAST_SEEN_TIMEOUT = 15000;
-export const LAST_SEEN_RESOLVE_IMEOUT = 10000;
+export const LAST_SEEN_RESOLVE_TIMEOUT = 10000;
 
 export class UserPresenceMediator {
 
     readonly repo: PresenceRepository = new PresenceRepository(Store.UserPresenceDirectory);
 
-    async setOnline(parent: Context, uid: number, tid: string, timeout: number, platform: string, active: boolean) {
+    async setOnline(parent: Context, uid: number, tid: string, platform: string, active: boolean) {
         await inTx(parent, async (ctx) => {
-            return this.repo.setOnline(ctx, uid, Date.now(), active);
+            let now = Date.now();
+            await this.repo.setOnline(ctx, uid, now, now + LAST_SEEN_RESOLVE_TIMEOUT, active);
         });
     }
 
-    async getLastSeen(ctx: Context, uid: number): Promise<'online' | 'never_online' | number> {
+    async setOffline(parent: Context, uid: number, tid: string) {
+        await inTx(parent, async (ctx) => {
+            // TODO: Implement
+        });
+    }
+
+    async getStatus(ctx: Context, uid: number): Promise<'online' | 'never_online' | number> {
         let now = Date.now();
         let online = (await this.repo.getOnline(ctx, uid)).lastSeen;
         if (!online) {
             return 'never_online';
         }
-        if (now < online + LAST_SEEN_RESOLVE_IMEOUT) {
+        if (online.timeout < now) {
             return 'online';
         }
-        return online;
+        return online.date;
     }
 
     async isActive(ctx: Context, uid: number): Promise<boolean> {
@@ -34,7 +41,7 @@ export class UserPresenceMediator {
         if (!online) {
             return false;
         }
-        if (now < online + LAST_SEEN_RESOLVE_IMEOUT) {
+        if (online.timeout < now) {
             return true;
         }
         return false;

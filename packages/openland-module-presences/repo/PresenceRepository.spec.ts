@@ -20,31 +20,31 @@ describe('PresenceRepository', () => {
         // Initial
         let expires = now + 5000;
         await inTx(root, async (ctx) => {
-            repo.setOnline(ctx, 1, expires, true);
+            await repo.setOnline(ctx, 1, now, expires, true);
         });
 
         // The one that expires earlier
         let expires2 = now + 4000;
         await inTx(root, async (ctx) => {
-            repo.setOnline(ctx, 1, expires2, true);
+            await repo.setOnline(ctx, 1, now, expires2, true);
         });
 
         // Check state
         online = await inTx(root, async (ctx) => {
             return await repo.getOnline(ctx, 1);
         });
-        expect(online.lastActive).toBe(expires);
-        expect(online.lastSeen).toBe(expires);
+        expect(online.lastActive!.timeout).toBe(expires);
+        expect(online.lastSeen!.timeout).toBe(expires);
 
         // Extension
         let expires3 = now + 6000;
         await inTx(root, async (ctx) => {
-            repo.setOnline(ctx, 1,  expires3, false);
+            await repo.setOnline(ctx, 1, now, expires3, false);
         });
         online = await inTx(root, async (ctx) => {
             return await repo.getOnline(ctx, 1);
         });
-        expect(online.lastActive).toBe(expires);
-        expect(online.lastSeen).toBe(expires3);
+        expect(online.lastActive!.timeout).toBe(expires);
+        expect(online.lastSeen!.timeout).toBe(expires3);
     });
 });

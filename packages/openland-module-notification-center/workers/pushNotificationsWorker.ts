@@ -48,7 +48,7 @@ export function startPushNotificationWorker() {
 
                     let now = Date.now();
 
-                    let lastSeen = await Modules.Presence.getLastSeen(ctx, uid);
+                    let lastSeen = await Modules.Presence.getStatus(ctx, uid);
                     let isActive = await Modules.Presence.isActive(ctx, uid);
 
                     // Ignore never-online users
