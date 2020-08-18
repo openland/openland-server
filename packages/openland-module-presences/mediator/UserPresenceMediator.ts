@@ -37,7 +37,7 @@ export class UserPresenceMediator {
 
     async isActive(ctx: Context, uid: number): Promise<boolean> {
         let now = Date.now();
-        let online = (await this.repo.getOnline(ctx, uid)).lastSeen;
+        let online = (await this.repo.getOnline(ctx, uid)).lastActive;
         if (!online) {
             return false;
         }
