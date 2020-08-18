@@ -662,7 +662,7 @@ migrations.push({
                 for (let key of batch) {
                     for (let presence of await Store.Presence.user.findAll(ctx, key.id)) {
                         if (presence.lastSeen > 0) {
-                            Modules.Presence.users.repo.setOnline(ctx, key.id, presence.lastSeen, !!presence.active);
+                            await Modules.Presence.users.repo.setOnline(ctx, key.id, presence.lastSeen, presence.lastSeen, !!presence.active);
                         }
                     }
                 }
