@@ -71,6 +71,17 @@ export class CommentsNotificationsRepository {
                     // ignore self comment
                     continue;
                 }
+
+                if (comment.peerType === 'message') {
+                    let message = (await Store.Message.findById(ctx, comment.peerId))!;
+                    let isPublicChat = await Modules.Messaging.room.isPublicRoom(ctx, message.cid);
+                    let isMember = await Modules.Messaging.room.isRoomMember(ctx, subscription.uid, message.cid);
+
+                    if (!isPublicChat && !isMember) {
+                        continue;
+                    }
+                }
+
                 let settings = await Modules.Users.getUserSettings(ctx, subscription.uid);
                 let areNotificationsDisabled = !settings.commentNotifications || settings.commentNotifications === 'none';
                 if (settings.mobile && settings.desktop) {
