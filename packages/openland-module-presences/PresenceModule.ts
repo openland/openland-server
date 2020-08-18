@@ -107,7 +107,7 @@ export class PresenceModule {
             }
 
             // Update online state
-            this.repo.setOnline(ctx, uid, Date.now() + timeout, active);
+            this.repo.setOnline(ctx, uid, Date.now(), active);
 
             // Log online
             if (ex.active) {
