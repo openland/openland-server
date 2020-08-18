@@ -1,3 +1,4 @@
+import { PresenceRepository } from './repo/PresenceRepository';
 import { GroupPresenceMediator } from './mediator/GroupPresenceMediator';
 import { Store } from './../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
@@ -44,7 +45,7 @@ function detectPlatform(platform: string): 'undefined' | 'web' | 'android' | 'io
 export class PresenceModule {
     @lazyInject('PresenceLogRepository')
     private readonly logging!: PresenceLogRepository;
-
+    readonly repo: PresenceRepository = new PresenceRepository(Store.UserPresenceDirectory);
     readonly groups: GroupPresenceMediator = new GroupPresenceMediator();
 
     private onlines = new Map<number, { lastSeen: number, active: boolean, timer?: Timer }>();
@@ -104,10 +105,16 @@ export class PresenceModule {
                 online.activeExpires = expires;
                 await online.flush(ctx);
             }
+
+            // Update online state
+            this.repo.setOnline(ctx, uid, Date.now() + timeout, active);
+
+            // Log online
             if (ex.active) {
                 this.logging.logOnline(ctx, Date.now(), uid, detectPlatform(platform));
             }
-            // this.onlines.set(uid, { lastSeen: expires, active: (online ? online.active : active) || false });
+
+            // Notify
             let event = {
                 userId: uid,
                 timeout,

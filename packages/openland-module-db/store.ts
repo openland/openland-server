@@ -22183,6 +22183,7 @@ export interface Store extends BaseStore {
     readonly HyperLogStore: HyperLogStore;
     readonly UserContactsEventStore: UserContactsEventStore;
     readonly PresenceLogDirectory: Subspace;
+    readonly UserPresenceDirectory: Subspace;
     readonly RoomParticipantsActiveDirectory: Subspace;
     readonly UserChatsActiveDirectory: Subspace;
     readonly MessageDeliveryDirectory: Subspace;
@@ -22448,6 +22449,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ContactPromise = ContactFactory.open(storage);
     let PhonebookItemPromise = PhonebookItemFactory.open(storage);
     let PresenceLogDirectoryPromise = storage.resolveCustomDirectory('presenceLog');
+    let UserPresenceDirectoryPromise = storage.resolveCustomDirectory('userPresence');
     let RoomParticipantsActiveDirectoryPromise = storage.resolveCustomDirectory('roomParticipantsActive');
     let UserChatsActiveDirectoryPromise = storage.resolveCustomDirectory('userChatsActive');
     let MessageDeliveryDirectoryPromise = storage.resolveCustomDirectory('messageDelivery');
@@ -22687,6 +22689,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         Contact: await ContactPromise,
         PhonebookItem: await PhonebookItemPromise,
         PresenceLogDirectory: await PresenceLogDirectoryPromise,
+        UserPresenceDirectory: await UserPresenceDirectoryPromise,
         RoomParticipantsActiveDirectory: await RoomParticipantsActiveDirectoryPromise,
         UserChatsActiveDirectory: await UserChatsActiveDirectoryPromise,
         MessageDeliveryDirectory: await MessageDeliveryDirectoryPromise,

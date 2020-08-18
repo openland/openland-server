@@ -1,3 +1,4 @@
+import { Modules } from 'openland-modules/Modules';
 import { MigrationDefinition } from '@openland/foundationdb-migrations/lib/MigrationDefinition';
 import { Store } from 'openland-module-db/FDB';
 import { inTx, encoders } from '@openland/foundationdb';
@@ -650,5 +651,24 @@ migrations.push({
 //         }
 //     }
 // });
+
+migrations.push({
+    key: '132-migrate-presence',
+    migration: async (parent) => {
+        let data = await inTx(parent, ctx => Store.User.findAll(ctx));
+        for (let cursor = 0; cursor < data.length; cursor += 100) {
+            let batch = data.slice(cursor, cursor + 100);
+            await inTx(parent, async ctx => {
+                for (let key of batch) {
+                    for (let presence of await Store.Presence.user.findAll(ctx, key.id)) {
+                        if (presence.lastSeen > 0) {
+                            Modules.Presence.repo.setOnline(ctx, key.id, presence.lastSeen, !!presence.active);
+                        }
+                    }
+                }
+            });
+        }
+    }
+});
 
 export default migrations;
