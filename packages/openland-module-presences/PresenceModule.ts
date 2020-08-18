@@ -1,4 +1,4 @@
-import { UserPresenceMediator, LAST_SEEN_TIMEOUT } from './mediator/UserPresenceMediator';
+import { UserPresenceMediator } from './mediator/UserPresenceMediator';
 import { GroupPresenceMediator } from './mediator/GroupPresenceMediator';
 import { Store } from './../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
@@ -126,12 +126,52 @@ export class PresenceModule {
         });
     }
 
-    getStatus(ctx: Context, uid: number): Promise<'online' | 'never_online' | number> {
-        return this.users.getStatus(ctx, uid);
+    async getStatus(ctx: Context, uid: number): Promise<'online' | 'never_online' | number> {
+        let value: { lastSeen: number, active: boolean | null } | null | undefined;
+        if (this.onlines.has(uid)) {
+            value = this.onlines.get(uid);
+        } else {
+            value = await Store.Online.findById(ctx, uid);
+            if (value) {
+                this.onlines.set(uid, { lastSeen: value.lastSeen, active: value.active || false });
+            } else {
+                this.onlines.set(uid, { lastSeen: 0, active: false });
+            }
+        }
+        if (value) {
+            if (value.lastSeen === 0) {
+                return 'never_online';
+            } else if (value.lastSeen > Date.now()) {
+                return 'online';
+            } else {
+                return value.lastSeen;
+            }
+        } else {
+            return 'never_online';
+        }
     }
 
-    isActive(ctx: Context, uid: number): Promise<boolean> {
-        return this.users.isActive(ctx, uid);
+    async isActive(ctx: Context, uid: number): Promise<boolean> {
+        let value: { lastSeen: number, active: boolean | null } | null | undefined;
+        if (this.onlines.has(uid)) {
+            value = this.onlines.get(uid);
+        } else {
+            value = await Store.Online.findById(ctx, uid);
+            if (value) {
+                this.onlines.set(uid, { lastSeen: value.lastSeen, active: value.active || false });
+            } else {
+                this.onlines.set(uid, { lastSeen: 0, active: false });
+            }
+        }
+        if (value) {
+            if (value.lastSeen > Date.now()) {
+                return value.active || false;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 
     async createPresenceStream(uid: number, users: number[]): Promise<AsyncIterable<OnlineEvent>> {
@@ -194,7 +234,7 @@ export class PresenceModule {
                     active: false,
                     lastSeen: Date.now()
                 });
-            }, LAST_SEEN_TIMEOUT);
+            }, event.timeout);
             this.onlines.set(event.userId, { lastSeen: event.lastSeen, active: event.active, timer });
         } else {
             this.onlines.set(event.userId, { lastSeen: event.lastSeen, active: event.active });
