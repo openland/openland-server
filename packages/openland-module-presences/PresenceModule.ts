@@ -1,4 +1,4 @@
-import { PresenceRepository } from './repo/PresenceRepository';
+import { UserPresenceMediator, LAST_SEEN_TIMEOUT } from './mediator/UserPresenceMediator';
 import { GroupPresenceMediator } from './mediator/GroupPresenceMediator';
 import { Store } from './../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
@@ -45,8 +45,8 @@ function detectPlatform(platform: string): 'undefined' | 'web' | 'android' | 'io
 export class PresenceModule {
     @lazyInject('PresenceLogRepository')
     private readonly logging!: PresenceLogRepository;
-    readonly repo: PresenceRepository = new PresenceRepository(Store.UserPresenceDirectory);
     readonly groups: GroupPresenceMediator = new GroupPresenceMediator();
+    readonly users: UserPresenceMediator = new UserPresenceMediator();
 
     private onlines = new Map<number, { lastSeen: number, active: boolean, timer?: Timer }>();
     private localSub = new Pubsub<OnlineEvent>(false);
@@ -65,18 +65,16 @@ export class PresenceModule {
         });
     }
 
-    public async setOnline(parent: Context, uid: number, tid: string, timeout: number, platform: string, active: boolean) {
+    async setOnline(parent: Context, uid: number, tid: string, timeout: number, platform: string, active: boolean) {
         const isMobile = (p: string) => (p.startsWith('android') || p.startsWith('ios'));
         await inTx(parent, async (ctx) => {
             let expires = Date.now() + timeout;
             let userPresences = await Store.Presence.user.findAll(ctx, uid);
-
             let hasMobilePresence = !!userPresences
                 .find((e) => isMobile(e.platform));
             if (!hasMobilePresence && isMobile(platform)) {
                 await Modules.Hooks.onNewMobileUser(ctx, uid);
             }
-
             let ex = await Store.Presence.findById(ctx, uid, tid);
             if (ex) {
                 ex.lastSeen = Date.now();
@@ -87,9 +85,7 @@ export class PresenceModule {
             } else {
                 ex = await Store.Presence.create(ctx, uid, tid, { lastSeen: Date.now(), lastSeenTimeout: timeout, platform, active });
             }
-
             let online = await Store.Online.findById(ctx, uid);
-
             if (!online) {
                 await Store.Online.create(ctx, uid, { lastSeen: expires, active, activeExpires: null });
             } else if (online.lastSeen < expires) {
@@ -107,7 +103,7 @@ export class PresenceModule {
             }
 
             // Update online state
-            this.repo.setOnline(ctx, uid, Date.now(), active);
+            await this.users.setOnline(ctx, uid, tid, timeout, platform, active);
 
             // Log online
             if (ex.active) {
@@ -130,55 +126,15 @@ export class PresenceModule {
         });
     }
 
-    public async getLastSeen(ctx: Context, uid: number): Promise<'online' | 'never_online' | number> {
-        let value: { lastSeen: number, active: boolean | null } | null | undefined;
-        if (this.onlines.has(uid)) {
-            value = this.onlines.get(uid);
-        } else {
-            value = await Store.Online.findById(ctx, uid);
-            if (value) {
-                this.onlines.set(uid, { lastSeen: value.lastSeen, active: value.active || false });
-            } else {
-                this.onlines.set(uid, { lastSeen: 0, active: false });
-            }
-        }
-        if (value) {
-            if (value.lastSeen === 0) {
-                return 'never_online';
-            } else if (value.lastSeen > Date.now()) {
-                return 'online';
-            } else {
-                return value.lastSeen;
-            }
-        } else {
-            return 'never_online';
-        }
+    getLastSeen(ctx: Context, uid: number): Promise<'online' | 'never_online' | number> {
+        return this.users.getLastSeen(ctx, uid);
     }
 
-    public async isActive(ctx: Context, uid: number): Promise<boolean> {
-        let value: { lastSeen: number, active: boolean | null } | null | undefined;
-        if (this.onlines.has(uid)) {
-            value = this.onlines.get(uid);
-        } else {
-            value = await Store.Online.findById(ctx, uid);
-            if (value) {
-                this.onlines.set(uid, { lastSeen: value.lastSeen, active: value.active || false });
-            } else {
-                this.onlines.set(uid, { lastSeen: 0, active: false });
-            }
-        }
-        if (value) {
-            if (value.lastSeen > Date.now()) {
-                return value.active || false;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
+    isActive(ctx: Context, uid: number): Promise<boolean> {
+        return this.users.isActive(ctx, uid);
     }
 
-    public async createPresenceStream(uid: number, users: number[]): Promise<AsyncIterable<OnlineEvent>> {
+    async createPresenceStream(uid: number, users: number[]): Promise<AsyncIterable<OnlineEvent>> {
 
         users = Array.from(new Set(users)); // remove duplicates
 
@@ -238,7 +194,7 @@ export class PresenceModule {
                     active: false,
                     lastSeen: Date.now()
                 });
-            }, event.timeout);
+            }, LAST_SEEN_TIMEOUT);
             this.onlines.set(event.userId, { lastSeen: event.lastSeen, active: event.active, timer });
         } else {
             this.onlines.set(event.userId, { lastSeen: event.lastSeen, active: event.active });
