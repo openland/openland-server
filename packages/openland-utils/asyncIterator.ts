@@ -1,9 +1,15 @@
 import { Observable } from 'rxjs';
 
-export type PushableIterator<T> = AsyncIterable<T> & { push(data: T): void, complete(): void };
-export function createIterator<T>(onExit: () => void): PushableIterator<T> {
+export type PushableIterator<T> = AsyncIterable<T> & {
+    onExit: (() => void) | undefined,
+    push(data: T): void,
+    complete(): void
+};
+
+export function createIterator<T>(onExit?: () => void): PushableIterator<T> {
     let events: (T | null)[] = [];
     let resolvers: any[] = [];
+    let callback: (() => void) | undefined = onExit;
 
     const getValue = () => {
         return new Promise<IteratorResult<T>>((resolve => {
@@ -24,11 +30,19 @@ export function createIterator<T>(onExit: () => void): PushableIterator<T> {
     let onReturn = () => {
         events = [];
         resolvers = [];
-        onExit();
+        if (callback) {
+            callback();
+        }
         return Promise.resolve({ value: undefined, done: true } as any);
     };
 
     return {
+        set onExit(v: (() => void) | undefined) {
+            callback = v;
+        },
+        get onExit() {
+            return callback;
+        },
         [Symbol.asyncIterator]() {
             return {
                 next(): Promise<IteratorResult<T>> {
@@ -67,7 +81,7 @@ export function createIteratorFromObservable<T>(observable: Observable<T>, onErr
     let iterator = createIterator<T>(() => {
         // do nothing
     });
-     observable.subscribe({
+    observable.subscribe({
         next: (value) => {
             iterator.push(value);
         },
@@ -79,5 +93,5 @@ export function createIteratorFromObservable<T>(observable: Observable<T>, onErr
             iterator.complete();
         }
     });
-     return iterator;
+    return iterator;
 }

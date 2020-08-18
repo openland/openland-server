@@ -10,15 +10,21 @@ const DEFAULT_QUANTILES = [0.01, 0.05, 0.5, 0.9, 0.95, 0.99, 0.999];
 
 export const Metrics = {
 
-    // FDB
-    FDBErrors: Factory.createTaggedFrequencyGauge('fdb_errors', 'Frequence of various errors'),
-    FDBTooOldErrors: Factory.createTaggedFrequencyGauge('fdb_too_old', 'Frequence of too old transaction errors'),
+    //
+    // Aplication
+    //
 
-    //
-    // Actors
-    //
     UserActiveServices: Factory.createMachineGauge('user_active_services', 'Active user services'),
     GroupActiveServices: Factory.createMachineGauge('group_active_services', 'Active group services'),
+
+    GroupPresenceSubscriptions: Factory.createTaggedMachineGauge('presences_group_subscriptions', 'Number of group presence subscriptions per machine'),
+
+    //
+    // FDB
+    //
+
+    FDBErrors: Factory.createTaggedFrequencyGauge('fdb_errors', 'Frequence of various errors'),
+    FDBTooOldErrors: Factory.createTaggedFrequencyGauge('fdb_too_old', 'Frequence of too old transaction errors'),
 
     // SpaceX
     WebSocketConnections: Factory.createMachineGauge('connections', 'Active WebSocket connections'),

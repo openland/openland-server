@@ -147,7 +147,6 @@ export namespace GQLRoots {
     import NotificationPreviewValues = GQL.NotificationPreviewValues;
     import OauthScopeValues = GQL.OauthScopeValues;
     import OrganizationMemberRoleValues = GQL.OrganizationMemberRoleValues;
-    import PlatformValues = GQL.PlatformValues;
     import SuperAdminRoleValues = GQL.SuperAdminRoleValues;
     import EventPlatformValues = GQL.EventPlatformValues;
     import TaskStatusValues = GQL.TaskStatusValues;
@@ -598,7 +597,6 @@ export namespace GQLRoots {
     export type OnlineEventRoot = any;
     export type ChatOnlineEventRoot = any;
     export type IsAppInstalledResponseRoot = { installed: boolean, installedAt?: string };
-    export type PlatformRoot = PlatformValues;
 
     //
     // Stats

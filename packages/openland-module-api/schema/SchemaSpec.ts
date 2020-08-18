@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'a9b90f93d074702704c329e90d8defe5';
+export const GQL_SPEC_VERSION = '83d7a33d14a5eedca582186227162004';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1158,28 +1158,6 @@ export namespace GQL {
     export interface PermissionRequestPowerupArgs { }
     export interface PermissionRequestScopeArgs { }
     export interface PermissionRequestChatArgs { }
-    export type PlatformValues = 'WEB' | 'IOS' | 'ANDROID';
-    export type Platform = GQLRoots.PlatformRoot;
-    export interface OnlineEvent {
-        userId: string;
-        timeout: number;
-        online: boolean;
-        active: boolean;
-        lastSeen: string;
-        type: string;
-        user: User;
-    }
-    export interface OnlineEventUserIdArgs { }
-    export interface OnlineEventTimeoutArgs { }
-    export interface OnlineEventOnlineArgs { }
-    export interface OnlineEventActiveArgs { }
-    export interface OnlineEventLastSeenArgs { }
-    export interface OnlineEventTypeArgs { }
-    export interface OnlineEventUserArgs { }
-    export interface ChatOnlineEvent {
-        onlineMembers: number;
-    }
-    export interface ChatOnlineEventOnlineMembersArgs { }
     export type ProfileBadgeTypeValues = 'ORGANIZATION';
     export type ProfileBadgeType = GQLRoots.ProfileBadgeTypeRoot;
     export interface ProfileBadge {
@@ -2313,7 +2291,6 @@ export namespace GQL {
         alphaOrganizationCreatePublicInvite: Invite;
         alphaOrganizationRemoveMember: string;
         alphaOrganizationDeletePublicInvite: string;
-        presenceReportOnline: string;
         profileCreate: Profile;
         profileUpdate: Profile;
         createProfile: Profile;
@@ -2406,6 +2383,7 @@ export namespace GQL {
         deleteNotification: boolean;
         notificationCenterMarkSeqRead: boolean;
         debugCreateNotification: boolean;
+        presenceReportOnline: string;
         updateOrganizationProfile: OrganizationProfile;
         deleteOrganization: boolean;
         createOrganization: Organization;
@@ -2908,11 +2886,6 @@ export namespace GQL {
     export interface MutationAlphaOrganizationDeletePublicInviteArgs {
         organizationId: OptionalNullable<string>;
     }
-    export interface MutationPresenceReportOnlineArgs {
-        timeout: number;
-        platform: OptionalNullable<string>;
-        active: OptionalNullable<boolean>;
-    }
     export interface MutationProfileCreateArgs {
         input: ProfileInput;
         inviteKey: OptionalNullable<string>;
@@ -3282,6 +3255,11 @@ export namespace GQL {
     export interface MutationDebugCreateNotificationArgs {
         uid: string;
         text: string;
+    }
+    export interface MutationPresenceReportOnlineArgs {
+        timeout: number;
+        platform: OptionalNullable<string>;
+        active: OptionalNullable<boolean>;
     }
     export interface MutationUpdateOrganizationProfileArgs {
         input: UpdateOrganizationProfileInput;
@@ -3783,6 +3761,16 @@ export namespace GQL {
     export interface NotificationContentUpdatedCenterArgs { }
     export interface NotificationContentUpdatedContentArgs { }
     export type NotificationCenterUpdateContainer = NotificationCenterUpdateSingle | NotificationCenterUpdateBatch;
+    export interface OnlineEvent {
+        user: User;
+        timeout: number;
+    }
+    export interface OnlineEventUserArgs { }
+    export interface OnlineEventTimeoutArgs { }
+    export interface ChatOnlineEvent {
+        onlineMembers: number;
+    }
+    export interface ChatOnlineEventOnlineMembersArgs { }
     export interface OrganizationContact {
         name: string;
         photo: Nullable<string>;
@@ -4906,8 +4894,6 @@ export namespace GQL {
         alphaConferenceMediaWatch: ConferenceMedia;
         permissionsUpdates: PermissionRequest;
         waitingPermissionRequestsUpdates: PermissionRequest;
-        alphaSubscribeOnline: OnlineEvent;
-        chatOnlinesCount: ChatOnlineEvent;
         chatLocationUpdates: UserLocation;
         userEventBus: UserEventBusMessage;
         globalEventBus: UserEventBusMessage;
@@ -4920,6 +4906,8 @@ export namespace GQL {
         homeFeedUpdates: FeedUpdateContainer;
         shouldShareLocationUpdates: boolean;
         notificationCenterUpdates: Nullable<NotificationCenterUpdateContainer>;
+        alphaSubscribeOnline: OnlineEvent;
+        chatOnlinesCount: ChatOnlineEvent;
         typings: TypingEvent;
     }
     export interface SubscriptionLifecheckArgs { }
@@ -4947,12 +4935,6 @@ export namespace GQL {
     }
     export interface SubscriptionPermissionsUpdatesArgs { }
     export interface SubscriptionWaitingPermissionRequestsUpdatesArgs { }
-    export interface SubscriptionAlphaSubscribeOnlineArgs {
-        users: string[];
-    }
-    export interface SubscriptionChatOnlinesCountArgs {
-        chatId: string;
-    }
     export interface SubscriptionChatLocationUpdatesArgs {
         id: string;
     }
@@ -4989,6 +4971,12 @@ export namespace GQL {
     export interface SubscriptionShouldShareLocationUpdatesArgs { }
     export interface SubscriptionNotificationCenterUpdatesArgs {
         fromState: OptionalNullable<string>;
+    }
+    export interface SubscriptionAlphaSubscribeOnlineArgs {
+        users: string[];
+    }
+    export interface SubscriptionChatOnlinesCountArgs {
+        chatId: string;
     }
     export interface SubscriptionTypingsArgs { }
     export interface Tag {
@@ -7446,32 +7434,6 @@ export interface GQLResolver {
             chat: GQL.PermissionRequestChatArgs,
         }
     >;
-    Platform?: EnumTypeResolver<'WEB' | 'IOS' | 'ANDROID', GQLRoots.PlatformRoot>;
-    OnlineEvent?: ComplexTypedResolver<
-        GQL.OnlineEvent,
-        GQLRoots.OnlineEventRoot,
-        {
-            user: GQLRoots.UserRoot,
-        },
-        {
-            userId: GQL.OnlineEventUserIdArgs,
-            timeout: GQL.OnlineEventTimeoutArgs,
-            online: GQL.OnlineEventOnlineArgs,
-            active: GQL.OnlineEventActiveArgs,
-            lastSeen: GQL.OnlineEventLastSeenArgs,
-            type: GQL.OnlineEventTypeArgs,
-            user: GQL.OnlineEventUserArgs,
-        }
-    >;
-    ChatOnlineEvent?: ComplexTypedResolver<
-        GQL.ChatOnlineEvent,
-        GQLRoots.ChatOnlineEventRoot,
-        {
-        },
-        {
-            onlineMembers: GQL.ChatOnlineEventOnlineMembersArgs,
-        }
-    >;
     ProfileBadgeType?: EnumTypeResolver<'ORGANIZATION', GQLRoots.ProfileBadgeTypeRoot>;
     ProfileBadge?: ComplexTypedResolver<
         GQL.ProfileBadge,
@@ -8914,7 +8876,6 @@ export interface GQLResolver {
             alphaOrganizationCreatePublicInvite: GQL.MutationAlphaOrganizationCreatePublicInviteArgs,
             alphaOrganizationRemoveMember: GQL.MutationAlphaOrganizationRemoveMemberArgs,
             alphaOrganizationDeletePublicInvite: GQL.MutationAlphaOrganizationDeletePublicInviteArgs,
-            presenceReportOnline: GQL.MutationPresenceReportOnlineArgs,
             profileCreate: GQL.MutationProfileCreateArgs,
             profileUpdate: GQL.MutationProfileUpdateArgs,
             createProfile: GQL.MutationCreateProfileArgs,
@@ -9007,6 +8968,7 @@ export interface GQLResolver {
             deleteNotification: GQL.MutationDeleteNotificationArgs,
             notificationCenterMarkSeqRead: GQL.MutationNotificationCenterMarkSeqReadArgs,
             debugCreateNotification: GQL.MutationDebugCreateNotificationArgs,
+            presenceReportOnline: GQL.MutationPresenceReportOnlineArgs,
             updateOrganizationProfile: GQL.MutationUpdateOrganizationProfileArgs,
             deleteOrganization: GQL.MutationDeleteOrganizationArgs,
             createOrganization: GQL.MutationCreateOrganizationArgs,
@@ -9291,6 +9253,26 @@ export interface GQLResolver {
         }
     >;
     NotificationCenterUpdateContainer?: UnionTypeResolver<GQLRoots.NotificationCenterUpdateContainerRoot, 'NotificationCenterUpdateSingle' | 'NotificationCenterUpdateBatch'>;
+    OnlineEvent?: ComplexTypedResolver<
+        GQL.OnlineEvent,
+        GQLRoots.OnlineEventRoot,
+        {
+            user: GQLRoots.UserRoot,
+        },
+        {
+            user: GQL.OnlineEventUserArgs,
+            timeout: GQL.OnlineEventTimeoutArgs,
+        }
+    >;
+    ChatOnlineEvent?: ComplexTypedResolver<
+        GQL.ChatOnlineEvent,
+        GQLRoots.ChatOnlineEventRoot,
+        {
+        },
+        {
+            onlineMembers: GQL.ChatOnlineEventOnlineMembersArgs,
+        }
+    >;
     OrganizationContact?: ComplexTypedResolver<
         GQL.OrganizationContact,
         GQLRoots.OrganizationContactRoot,
@@ -9997,8 +9979,6 @@ export interface GQLResolver {
             alphaConferenceMediaWatch: GQLRoots.ConferenceMediaRoot,
             permissionsUpdates: GQLRoots.PermissionRequestRoot,
             waitingPermissionRequestsUpdates: GQLRoots.PermissionRequestRoot,
-            alphaSubscribeOnline: GQLRoots.OnlineEventRoot,
-            chatOnlinesCount: GQLRoots.ChatOnlineEventRoot,
             chatLocationUpdates: GQLRoots.UserLocationRoot,
             userEventBus: GQLRoots.UserEventBusMessageRoot,
             globalEventBus: GQLRoots.UserEventBusMessageRoot,
@@ -10010,6 +9990,8 @@ export interface GQLResolver {
             dialogsUpdates: GQLRoots.DialogUpdateContainerRoot,
             homeFeedUpdates: GQLRoots.FeedUpdateContainerRoot,
             notificationCenterUpdates: Nullable<GQLRoots.NotificationCenterUpdateContainerRoot>,
+            alphaSubscribeOnline: GQLRoots.OnlineEventRoot,
+            chatOnlinesCount: GQLRoots.ChatOnlineEventRoot,
             typings: GQLRoots.TypingEventRoot,
         },
         {
@@ -10024,8 +10006,6 @@ export interface GQLResolver {
             alphaConferenceMediaWatch: GQL.SubscriptionAlphaConferenceMediaWatchArgs,
             permissionsUpdates: GQL.SubscriptionPermissionsUpdatesArgs,
             waitingPermissionRequestsUpdates: GQL.SubscriptionWaitingPermissionRequestsUpdatesArgs,
-            alphaSubscribeOnline: GQL.SubscriptionAlphaSubscribeOnlineArgs,
-            chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs,
             chatLocationUpdates: GQL.SubscriptionChatLocationUpdatesArgs,
             userEventBus: GQL.SubscriptionUserEventBusArgs,
             globalEventBus: GQL.SubscriptionGlobalEventBusArgs,
@@ -10038,6 +10018,8 @@ export interface GQLResolver {
             homeFeedUpdates: GQL.SubscriptionHomeFeedUpdatesArgs,
             shouldShareLocationUpdates: GQL.SubscriptionShouldShareLocationUpdatesArgs,
             notificationCenterUpdates: GQL.SubscriptionNotificationCenterUpdatesArgs,
+            alphaSubscribeOnline: GQL.SubscriptionAlphaSubscribeOnlineArgs,
+            chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs,
             typings: GQL.SubscriptionTypingsArgs,
         }
     >;

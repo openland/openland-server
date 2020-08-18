@@ -10,9 +10,11 @@ export class PresenceUserService {
     }
 
     async start() {
-        this.subscription = EventBus.subscribe(`presences.users.${this.user.uid}`, (data) => {
-            let groups = this.user.getActiveGroups();
+        this.subscription = EventBus.subscribe(`presences.users-notify.${this.user.uid}`, (data) => {
             let timeout = data.timeout as number;
+            // let active = data.active as string;
+            // let tid = data.tid as string;
+            let groups = this.user.getActiveGroups();
             for (let g of groups) {
                 EventBus.publish(`presences.groups-notify.${g}`, { uid: this.user.uid, timeout: timeout });
             }
