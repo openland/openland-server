@@ -576,7 +576,8 @@ export class RoomRepository {
                 throw new AccessDeniedError();
             }
             for (let id of childIds) {
-                if (!await Store.ConversationRoom.findById(ctx, id)) {
+                let child = await Store.ConversationRoom.findById(ctx, id);
+                if (!child || child.isDeleted) {
                     throw new NotFoundError();
                 }
             }
@@ -1338,7 +1339,7 @@ export class RoomRepository {
             if (room.autosubscribeRooms) {
                 for (let c of room.autosubscribeRooms) {
                     let conv = await Store.ConversationRoom.findById(ctx, c);
-                    if (!conv) {
+                    if (!conv || conv.isDeleted) {
                         continue;
                     }
                     await Modules.Messaging.room.joinRoom(ctx, c, uid);

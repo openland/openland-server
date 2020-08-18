@@ -235,7 +235,7 @@ export class HooksModule {
         let autoSubscribe = async (cids: number[]) => {
             for (let c of cids) {
                 let conv = await Store.ConversationRoom.findById(ctx, c);
-                if (!conv) {
+                if (!conv || conv.isDeleted) {
                     continue;
                 }
                 await Modules.Messaging.room.joinRoom(ctx, c, uid);
