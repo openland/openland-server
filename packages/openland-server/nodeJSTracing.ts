@@ -17,6 +17,16 @@ function measureEventLoopLag(): Promise<number> {
 }
 
 export function setupNodeJSTracing() {
+
+    let hostname = os.hostname();
+    let memoryTimer = setInterval(() => {
+        let memoryUsage = process.memoryUsage();
+        Metrics.MemoryHeapUsed.add(hostname, memoryUsage.heapUsed, hostname, 5000);
+        Metrics.MemoryHeapTotal.add(hostname, memoryUsage.heapTotal, hostname, 5000);
+        Metrics.MemoryRss.add(hostname, memoryUsage.rss, hostname, 5000);
+        Metrics.MemoryExternal.add(hostname, memoryUsage.external, hostname, 5000);
+    }, 1000);
+
     let timer = setInterval(async () => {
         let lag = (await measureEventLoopLag()) / 1000000;
         Metrics.EventLoopLag.report(os.hostname(), lag);
@@ -24,6 +34,9 @@ export function setupNodeJSTracing() {
 
     Shutdown.registerWork({
         name: 'node-js-tracing',
-        shutdown: async () => clearInterval(timer)
+        shutdown: async () => {
+            clearInterval(timer);
+            clearInterval(memoryTimer);
+        }
     });
 }
