@@ -8,6 +8,8 @@ import { Store } from '../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { UserOnlineStatus } from './mediator/UserPresenceMediator';
 
+const isMobile = (p: string) => (p.startsWith('android') || p.startsWith('ios'));
+
 export const Resolver: GQLResolver = {
     OnlineEvent: {
         user: (src: UserOnlineStatus) => src.uid,
@@ -18,6 +20,7 @@ export const Resolver: GQLResolver = {
     Mutation: {
         presenceReportOnline: async (_, args, parent) => {
             return await inTx(parent, async (ctx) => {
+                // Resolve parameters
                 if (!ctx.auth.uid) {
                     throw new UserError('Not authorized');
                 }
@@ -28,13 +31,30 @@ export const Resolver: GQLResolver = {
                     throw new UserError('Invalid input');
                 }
                 let active = (args.active !== undefined && args.active !== null) ? args.active! : true;
+                let platform = args.platform || 'unknown';
 
-                await Modules.Presence.setOnline(ctx, ctx.auth.uid, ctx.auth.tid!, args.timeout, args.platform || 'unknown', active);
-                if (ctx.req.ip) {
-                    let token = await Store.AuthToken.findById(ctx, ctx.auth.tid!);
-                    token!.lastIp = ctx.req.ip;
+                // Handle presence
+                let userPresences = await Store.Presence.user.findAll(ctx, ctx.auth.uid);
+                let hasMobilePresence = !!userPresences
+                    .find((e) => isMobile(e.platform));
+                if (!hasMobilePresence && isMobile(platform)) {
+                    await Modules.Hooks.onNewMobileUser(ctx, ctx.auth.uid);
+                }
+                if (hasMobilePresence) {
+                    Modules.Presence.logging.setMobile(ctx, ctx.auth.uid);
                 }
 
+                // Update account online status
+                await Modules.Presence.setOnline(ctx, ctx.auth.uid, ctx.auth.tid!, args.timeout, platform, active);
+
+                // Update Token
+                if (ctx.req.ip) {
+                    let token = (await Store.AuthToken.findById(ctx, ctx.auth.tid!))!;
+                    token.lastIp = ctx.req.ip;
+                    token.platform = platform;
+                }
+
+                // Monitoring
                 if (active) {
                     Metrics.Online.add(1, 'uid-' + ctx.auth.uid!, args.timeout);
                     if (args.platform) {

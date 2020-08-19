@@ -256,8 +256,9 @@ export default declareSchema(() => {
         field('active', optional(boolean()));
         rangeIndex('user', ['uid', 'lastSeen']);
     });
-    
+
     customDirectory('PresenceLog');
+    customDirectory('PresenceMobileInstalled');
     customDirectory('UserPresence'); // Obsolete
     customDirectory('UserOnline');
 
@@ -2520,6 +2521,7 @@ export default declareSchema(() => {
         field('salt', string());
         field('uid', integer());
         field('lastIp', string());
+        field('platform', optional(string()));
         field('enabled', optional(boolean()));
         uniqueIndex('salt', ['salt']);
         rangeIndex('user', ['uid', 'uuid'])

@@ -17641,6 +17641,7 @@ export interface AuthTokenShape {
     salt: string;
     uid: number;
     lastIp: string;
+    platform: string | null;
     enabled: boolean | null;
 }
 
@@ -17648,6 +17649,7 @@ export interface AuthTokenCreateShape {
     salt: string;
     uid: number;
     lastIp: string;
+    platform?: string | null | undefined;
     enabled?: boolean | null | undefined;
 }
 
@@ -17680,6 +17682,15 @@ export class AuthToken extends Entity<AuthTokenShape> {
             this.invalidate();
         }
     }
+    get platform(): string | null { return this._rawValue.platform; }
+    set platform(value: string | null) {
+        let normalized = this.descriptor.codec.fields.platform.normalize(value);
+        if (this._rawValue.platform !== normalized) {
+            this._rawValue.platform = normalized;
+            this._updatedValues.platform = normalized;
+            this.invalidate();
+        }
+    }
     get enabled(): boolean | null { return this._rawValue.enabled; }
     set enabled(value: boolean | null) {
         let normalized = this.descriptor.codec.fields.enabled.normalize(value);
@@ -17704,12 +17715,14 @@ export class AuthTokenFactory extends EntityFactory<AuthTokenShape, AuthToken> {
         fields.push({ name: 'salt', type: { type: 'string' }, secure: false });
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'lastIp', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'platform', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'enabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             uuid: c.string,
             salt: c.string,
             uid: c.integer,
             lastIp: c.string,
+            platform: c.optional(c.string),
             enabled: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<AuthTokenShape> = {
@@ -22183,6 +22196,7 @@ export interface Store extends BaseStore {
     readonly HyperLogStore: HyperLogStore;
     readonly UserContactsEventStore: UserContactsEventStore;
     readonly PresenceLogDirectory: Subspace;
+    readonly PresenceMobileInstalledDirectory: Subspace;
     readonly UserPresenceDirectory: Subspace;
     readonly UserOnlineDirectory: Subspace;
     readonly RoomParticipantsActiveDirectory: Subspace;
@@ -22450,6 +22464,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ContactPromise = ContactFactory.open(storage);
     let PhonebookItemPromise = PhonebookItemFactory.open(storage);
     let PresenceLogDirectoryPromise = storage.resolveCustomDirectory('presenceLog');
+    let PresenceMobileInstalledDirectoryPromise = storage.resolveCustomDirectory('presenceMobileInstalled');
     let UserPresenceDirectoryPromise = storage.resolveCustomDirectory('userPresence');
     let UserOnlineDirectoryPromise = storage.resolveCustomDirectory('userOnline');
     let RoomParticipantsActiveDirectoryPromise = storage.resolveCustomDirectory('roomParticipantsActive');
@@ -22691,6 +22706,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         Contact: await ContactPromise,
         PhonebookItem: await PhonebookItemPromise,
         PresenceLogDirectory: await PresenceLogDirectoryPromise,
+        PresenceMobileInstalledDirectory: await PresenceMobileInstalledDirectoryPromise,
         UserPresenceDirectory: await UserPresenceDirectoryPromise,
         UserOnlineDirectory: await UserOnlineDirectoryPromise,
         RoomParticipantsActiveDirectory: await RoomParticipantsActiveDirectoryPromise,

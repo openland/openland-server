@@ -3,7 +3,6 @@ import { GroupPresenceMediator } from './mediator/GroupPresenceMediator';
 import { Store } from './../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
-import { Modules } from '../openland-modules/Modules';
 import { Context } from '@openland/context';
 import { PresenceLogRepository } from './repo/PresenceLogRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
@@ -28,12 +27,10 @@ function detectPlatform(platform: string): 'undefined' | 'web' | 'android' | 'io
     return 'undefined';
 }
 
-const isMobile = (p: string) => (p.startsWith('android') || p.startsWith('ios'));
-
 @injectable()
 export class PresenceModule {
     @lazyInject('PresenceLogRepository')
-    private readonly logging!: PresenceLogRepository;
+    readonly logging!: PresenceLogRepository;
     readonly groups: GroupPresenceMediator = new GroupPresenceMediator();
     readonly users: UserPresenceMediator = new UserPresenceMediator();
 
@@ -43,14 +40,6 @@ export class PresenceModule {
 
     async setOnline(parent: Context, uid: number, tid: string, timeout: number, platform: string, active: boolean) {
         await inTx(parent, async (ctx) => {
-
-            // TODO: Remove
-            let userPresences = await Store.Presence.user.findAll(ctx, uid);
-            let hasMobilePresence = !!userPresences
-                .find((e) => isMobile(e.platform));
-            if (!hasMobilePresence && isMobile(platform)) {
-                await Modules.Hooks.onNewMobileUser(ctx, uid);
-            }
 
             // Update presence
             let ex = await Store.Presence.findById(ctx, uid, tid);
