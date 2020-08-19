@@ -74,6 +74,12 @@ export class UserPresenceMediator {
                     r(status);
                 }
                 state.resolvers = [];
+
+                if (!state.timer && state.iterators.length === 0 && state.resolvers.length === 0) {
+                    state.timer = setTimeout(() => {
+                        this.cleanupSubscription(uid);
+                    }, TIMEOUT);
+                }
             }
         };
 

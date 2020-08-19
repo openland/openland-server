@@ -53,6 +53,12 @@ export class GroupPresenceMediator {
                 r(online);
             }
             state.resolvers = [];
+
+            if (!state.timer && state.iterators.length === 0 && state.resolvers.length === 0) {
+                state.timer = setTimeout(() => {
+                    this.cleanupSubscription(cid);
+                }, TIMEOUT);
+            }
         });
 
         // Load initial value
@@ -74,6 +80,12 @@ export class GroupPresenceMediator {
                     r(online);
                 }
                 state.resolvers = [];
+                
+                if (!state.timer && state.iterators.length === 0 && state.resolvers.length === 0) {
+                    state.timer = setTimeout(() => {
+                        this.cleanupSubscription(cid);
+                    }, TIMEOUT);
+                }
             });
         });
 
