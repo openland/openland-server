@@ -7,7 +7,7 @@ import { PresenceRepository, PresenceType } from './../repo/PresenceRepository';
 import { inTx, getTransaction } from '@openland/foundationdb';
 import { Context, createNamedContext } from '@openland/context';
 import { EventBus, EventBusSubcription } from 'openland-module-pubsub/EventBus';
-import { PushableIterator } from 'openland-utils/asyncIterator';
+import { PushableIterator, createIterator } from 'openland-utils/asyncIterator';
 
 const rootCtx = createNamedContext('presence');
 const TIMEOUT = 60 * 1000;
@@ -32,6 +32,7 @@ function convertOnlineStatus(src: PresenceType, uid: number): UserOnlineStatus {
 
 type UserSubscription = {
     completed: boolean,
+    uid: number,
     state: PresenceType | null,
     lastSeenTimer: NodeJS.Timer | null,
     lastActiveTimer: NodeJS.Timer | null,
@@ -55,6 +56,7 @@ export class UserPresenceMediator {
 
         let state: UserSubscription = {
             completed: false,
+            uid,
             state: null,
             subscription: null,
             timer: null,
@@ -186,6 +188,45 @@ export class UserPresenceMediator {
             this.activeUserSubscriptions.delete(uid);
             Metrics.UserPresenceSubscriptions.dec(hostname);
         }
+    }
+
+    createPresenceStream(uids: number[]): AsyncIterable<UserOnlineStatus> {
+        let subscriptions = uids.map((u) => this.getOrCreateSubscription(u));
+        let iterator = createIterator<UserOnlineStatus>();
+
+        // Register
+        for (let s of subscriptions) {
+            if (s.timer) {
+                clearTimeout(s.timer);
+                s.timer = null;
+            }
+            s.iterators.push(iterator);
+        }
+
+        // Unregister
+        iterator.onExit = () => {
+            for (let s of subscriptions) {
+                let existing = s.iterators.findIndex((v) => v === iterator);
+                if (existing >= 0) {
+                    s.iterators.splice(existing, 1);
+                    if (s.iterators.length === 0 && s.resolvers.length === 0) {
+                        s.timer = setTimeout(() => {
+                            this.cleanupSubscription(s.uid);
+                        }, TIMEOUT);
+                    }
+                }
+            }
+        };
+
+        // Push initial value
+        for (let s of subscriptions) {
+            let state = s.state;
+            if (state) {
+                iterator.push(convertOnlineStatus(state, s.uid));
+            }
+        }
+
+        return iterator;
     }
 
     async getStatus(uid: number): Promise<UserOnlineStatus> {

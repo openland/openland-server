@@ -3,23 +3,11 @@ import { GroupPresenceMediator } from './mediator/GroupPresenceMediator';
 import { Store } from './../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import Timer = NodeJS.Timer;
-import { createIterator } from '../openland-utils/asyncIterator';
-import { Pubsub, PubsubSubcription } from '../openland-module-pubsub/pubsub';
 import { injectable } from 'inversify';
 import { Modules } from '../openland-modules/Modules';
-import { EventBus } from '../openland-module-pubsub/EventBus';
 import { Context, createNamedContext } from '@openland/context';
-import { getTransaction } from '@openland/foundationdb';
 import { PresenceLogRepository } from './repo/PresenceLogRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
-
-export interface OnlineEvent {
-    userId: number;
-    timeout: number;
-    online: boolean;
-    active: boolean;
-    lastSeen: number;
-}
 
 function detectPlatform(platform: string): 'undefined' | 'web' | 'android' | 'ios' | 'desktop' {
     if (!platform) {
@@ -49,7 +37,6 @@ export class PresenceModule {
     readonly users: UserPresenceMediator = new UserPresenceMediator();
 
     private onlines = new Map<number, { lastSeen: number, active: boolean, timer?: Timer }>();
-    private localSub = new Pubsub<OnlineEvent>(false);
     private rootCtx = createNamedContext('presence');
 
     start = async () => {
@@ -60,9 +47,6 @@ export class PresenceModule {
                 this.onlines.set(supportId, { lastSeen: new Date('2077-11-25T12:00:00.000Z').getTime(), active: true });
             }
         })();
-        EventBus.subscribe(`online_change`, async (event: OnlineEvent) => {
-            await this.handleOnlineChange(event);
-        });
     }
 
     async setOnline(parent: Context, uid: number, tid: string, timeout: number, platform: string, active: boolean) {
@@ -109,19 +93,6 @@ export class PresenceModule {
             if (ex.active) {
                 this.logging.logOnline(ctx, Date.now(), uid, detectPlatform(platform));
             }
-
-            // Notify
-            let event = {
-                userId: uid,
-                timeout,
-                online: true,
-                active: (online ? online.active : active) || false,
-                lastSeen: expires
-            };
-            await this.handleOnlineChange(event);
-            getTransaction(ctx).afterCommit(() => {
-                EventBus.publish(`online_change`, event);
-            });
         });
     }
 
@@ -138,76 +109,5 @@ export class PresenceModule {
 
     isActive(uid: number): Promise<boolean> {
         return this.users.isActive(uid);
-    }
-
-    async createPresenceStream(uid: number, users: number[]): Promise<AsyncIterable<OnlineEvent>> {
-
-        users = Array.from(new Set(users)); // remove duplicates
-
-        let subscriptions: PubsubSubcription[] = [];
-        let iterator = createIterator<OnlineEvent>(() => subscriptions.forEach(s => s.cancel()));
-
-        // Send initial state
-        await inTx(this.rootCtx, async (ctx) => {
-            for (let userId of users) {
-                if (userId === await Modules.Users.getSupportUserId(ctx)) {
-                    iterator.push({
-                        userId,
-                        timeout: 0,
-                        online: true,
-                        active: true,
-                        lastSeen: Date.now() + 5000
-                    });
-                }
-                if (this.onlines.get(userId)) {
-                    let online = this.onlines.get(userId)!;
-                    let isOnline = (online.lastSeen > Date.now());
-                    iterator.push({
-                        userId,
-                        timeout: isOnline ? 5000 : 0,
-                        online: isOnline,
-                        active: false,
-                        lastSeen: Date.now() + (isOnline ? 5000 : 0)
-                    });
-                }
-            }
-        });
-
-        for (let userId of users) {
-            subscriptions.push(await this.localSub.subscribe(userId.toString(10), iterator.push));
-        }
-
-        return iterator;
-    }
-
-    private async handleOnlineChange(event: OnlineEvent) {
-        let prev = this.onlines.get(event.userId);
-        if (prev && prev.lastSeen === event.lastSeen) {
-            return;
-        }
-
-        let isChanged = event.online ? (!prev || !(prev.lastSeen > Date.now())) : (prev && (prev.lastSeen > Date.now()));
-        if (prev && prev.timer) {
-            clearTimeout(prev.timer);
-        }
-
-        if (event.online) {
-            let timer = setTimeout(async () => {
-                await this.localSub.publish(event.userId.toString(10), {
-                    userId: event.userId,
-                    timeout: 0,
-                    online: false,
-                    active: false,
-                    lastSeen: Date.now()
-                });
-            }, event.timeout);
-            this.onlines.set(event.userId, { lastSeen: event.lastSeen, active: event.active, timer });
-        } else {
-            this.onlines.set(event.userId, { lastSeen: event.lastSeen, active: event.active });
-        }
-
-        if (isChanged) {
-            await this.localSub.publish(event.userId.toString(10), event);
-        }
     }
 }

@@ -1,19 +1,19 @@
 import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
-import { OnlineEvent } from './PresenceModule';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { UserError } from '../openland-errors/UserError';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import { Store } from '../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
+import { UserOnlineStatus } from './mediator/UserPresenceMediator';
 
 export const Resolver: GQLResolver = {
     OnlineEvent: {
-        user: (src: OnlineEvent) => src.userId,
+        user: (src: UserOnlineStatus) => src.uid,
 
         // Not used
-        timeout: (src: OnlineEvent) => 0,
+        timeout: (src: UserOnlineStatus) => 0,
     },
     Mutation: {
         presenceReportOnline: async (_, args, parent) => {
@@ -66,7 +66,7 @@ export const Resolver: GQLResolver = {
                     throw new AccessDeniedError();
                 }
                 let userIds = args.users.map(c => IDs.User.parse(c));
-                return Modules.Presence.createPresenceStream(ctx.auth.uid!, userIds);
+                return Modules.Presence.users.createPresenceStream(userIds);
             }
         },
         chatOnlinesCount: {
