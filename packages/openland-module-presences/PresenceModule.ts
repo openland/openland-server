@@ -2,10 +2,9 @@ import { UserPresenceMediator } from './mediator/UserPresenceMediator';
 import { GroupPresenceMediator } from './mediator/GroupPresenceMediator';
 import { Store } from './../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
-import Timer = NodeJS.Timer;
 import { injectable } from 'inversify';
 import { Modules } from '../openland-modules/Modules';
-import { Context, createNamedContext } from '@openland/context';
+import { Context } from '@openland/context';
 import { PresenceLogRepository } from './repo/PresenceLogRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
 
@@ -29,6 +28,8 @@ function detectPlatform(platform: string): 'undefined' | 'web' | 'android' | 'io
     return 'undefined';
 }
 
+const isMobile = (p: string) => (p.startsWith('android') || p.startsWith('ios'));
+
 @injectable()
 export class PresenceModule {
     @lazyInject('PresenceLogRepository')
@@ -36,29 +37,22 @@ export class PresenceModule {
     readonly groups: GroupPresenceMediator = new GroupPresenceMediator();
     readonly users: UserPresenceMediator = new UserPresenceMediator();
 
-    private onlines = new Map<number, { lastSeen: number, active: boolean, timer?: Timer }>();
-    private rootCtx = createNamedContext('presence');
-
     start = async () => {
-        // tslint:disable-next-line:no-floating-promises
-        (async () => {
-            let supportId = await Modules.Users.getSupportUserId(this.rootCtx);
-            if (supportId) {
-                this.onlines.set(supportId, { lastSeen: new Date('2077-11-25T12:00:00.000Z').getTime(), active: true });
-            }
-        })();
+        // Nothing to do
     }
 
     async setOnline(parent: Context, uid: number, tid: string, timeout: number, platform: string, active: boolean) {
-        const isMobile = (p: string) => (p.startsWith('android') || p.startsWith('ios'));
         await inTx(parent, async (ctx) => {
-            let expires = Date.now() + timeout;
+
+            // TODO: Remove
             let userPresences = await Store.Presence.user.findAll(ctx, uid);
             let hasMobilePresence = !!userPresences
                 .find((e) => isMobile(e.platform));
             if (!hasMobilePresence && isMobile(platform)) {
                 await Modules.Hooks.onNewMobileUser(ctx, uid);
             }
+
+            // Update presence
             let ex = await Store.Presence.findById(ctx, uid, tid);
             if (ex) {
                 ex.lastSeen = Date.now();
@@ -68,22 +62,6 @@ export class PresenceModule {
                 await ex.flush(ctx);
             } else {
                 ex = await Store.Presence.create(ctx, uid, tid, { lastSeen: Date.now(), lastSeenTimeout: timeout, platform, active });
-            }
-            let online = await Store.Online.findById(ctx, uid);
-            if (!online) {
-                await Store.Online.create(ctx, uid, { lastSeen: expires, active, activeExpires: null });
-            } else if (online.lastSeen < expires) {
-
-                let haveActivePresence = userPresences.find(p => (p.active || false) && (p.lastSeen + p.lastSeenTimeout) > Date.now());
-
-                if (haveActivePresence) {
-                    online.active = true;
-                } else {
-                    online.active = active;
-                }
-                online.lastSeen = expires;
-                online.activeExpires = expires;
-                await online.flush(ctx);
             }
 
             // Update online state
