@@ -9,6 +9,8 @@ const SUBSPACE_TOKEN = 4;
 const SUBSPACE_TOKEN_LATEST = 5;
 const ZERO = Buffer.from([]);
 
+export type PresenceType = { lastSeen: { date: number, timeout: number } | null, lastActive: { date: number, timeout: number } | null };
+
 export class PresenceRepository {
 
     readonly directory: Subspace;
@@ -113,7 +115,7 @@ export class PresenceRepository {
         return token.lastSeen as number;
     }
 
-    async getOnline(ctx: Context, uid: number) {
+    async getOnline(ctx: Context, uid: number): Promise<PresenceType> {
         let lastSeenPromise = this.directory.get(ctx, encoders.tuple.pack([uid, SUBSPACE_LAST_SEEN]));
         let lastSeenTimeoutPromise = this.directory.get(ctx, encoders.tuple.pack([uid, SUBSPACE_LAST_SEEN_TIMEOUT]));
         let lastActivePromise = this.directory.get(ctx, encoders.tuple.pack([uid, SUBSPACE_ACTIVE]));

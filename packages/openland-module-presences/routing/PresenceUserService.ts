@@ -34,6 +34,9 @@ export class PresenceUserService {
             let readVersiion = await getTransaction(ctx).getReadVersion();
             return { online: onlineData, readVersiion };
         });
+
+        EventBus.publish(`presences.user.${this.user.uid}`, online.online);
+
         if (!online.online.lastSeen) {
             return;
         }

@@ -25,8 +25,8 @@ const handleUser = async (ctx: Context, uid: number) => {
 
     let now = Date.now();
     let state = await Modules.Messaging.getUserNotificationState(ctx, uid);
-    let lastSeen = await Modules.Presence.getStatus(ctx, uid);
-    let isActive = await Modules.Presence.isActive(ctx, uid);
+    let lastSeen = await Modules.Presence.getStatus(uid);
+    let isActive = await Modules.Presence.isActive(uid);
     let tag = 'email_notifications ' + uid;
 
     // Ignore active users

@@ -107,6 +107,12 @@ export class GroupPresenceMediator {
                 active.subscription = null;
             }
 
+            // Clear timers
+            if (active.timer) {
+                clearTimeout(active.timer);
+                active.timer = null;
+            }
+
             // Remove from active collection
             this.activeGroupSubscriptions.delete(cid);
             Metrics.GroupPresenceSubscriptions.dec(hostname);

@@ -174,8 +174,8 @@ const handleUser = async (root: Context, uid: number) =>  {
     let [settings, state, lastSeen, isActive] = await Promise.all([
         Modules.Users.getUserSettings(ctx, uid),
         Modules.Messaging.getUserNotificationState(ctx, uid),
-        Modules.Presence.getStatus(ctx, uid),
-        Modules.Presence.isActive(ctx, uid)
+        Modules.Presence.getStatus(uid),
+        Modules.Presence.isActive(uid)
     ]);
 
     const user = {

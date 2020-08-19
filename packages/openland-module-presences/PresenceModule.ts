@@ -103,7 +103,7 @@ export class PresenceModule {
             }
 
             // Update online state
-            await this.users.setOnline(ctx, uid, tid, platform, active, timeout);
+            await this.users.setOnline(ctx, uid, tid, active, timeout);
 
             // Log online
             if (ex.active) {
@@ -121,57 +121,23 @@ export class PresenceModule {
             await this.handleOnlineChange(event);
             getTransaction(ctx).afterCommit(() => {
                 EventBus.publish(`online_change`, event);
-                EventBus.publish(`presences.users-notify.${uid}`, { timeout, active: (online ? online.active : active) || false, tid });
             });
         });
     }
 
-    async getStatus(ctx: Context, uid: number): Promise<'online' | 'never_online' | number> {
-        let value: { lastSeen: number, active: boolean | null } | null | undefined;
-        if (this.onlines.has(uid)) {
-            value = this.onlines.get(uid);
-        } else {
-            value = await Store.Online.findById(ctx, uid);
-            if (value) {
-                this.onlines.set(uid, { lastSeen: value.lastSeen, active: value.active || false });
-            } else {
-                this.onlines.set(uid, { lastSeen: 0, active: false });
-            }
-        }
-        if (value) {
-            if (value.lastSeen === 0) {
-                return 'never_online';
-            } else if (value.lastSeen > Date.now()) {
-                return 'online';
-            } else {
-                return value.lastSeen;
-            }
+    async getStatus(uid: number): Promise<'online' | 'never_online' | number> {
+        let status = await this.users.getStatus(uid);
+        if (status.type === 'online') {
+            return 'online';
+        } else if (status.type === 'last-seen') {
+            return status.lastseen;
         } else {
             return 'never_online';
         }
     }
 
-    async isActive(ctx: Context, uid: number): Promise<boolean> {
-        let value: { lastSeen: number, active: boolean | null } | null | undefined;
-        if (this.onlines.has(uid)) {
-            value = this.onlines.get(uid);
-        } else {
-            value = await Store.Online.findById(ctx, uid);
-            if (value) {
-                this.onlines.set(uid, { lastSeen: value.lastSeen, active: value.active || false });
-            } else {
-                this.onlines.set(uid, { lastSeen: 0, active: false });
-            }
-        }
-        if (value) {
-            if (value.lastSeen > Date.now()) {
-                return value.active || false;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
+    isActive(uid: number): Promise<boolean> {
+        return this.users.isActive(uid);
     }
 
     async createPresenceStream(uid: number, users: number[]): Promise<AsyncIterable<OnlineEvent>> {

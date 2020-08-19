@@ -18,6 +18,7 @@ export const Metrics = {
     GroupActiveServices: Factory.createMachineGauge('group_active_services', 'Active group services'),
 
     GroupPresenceSubscriptions: Factory.createTaggedMachineGauge('presences_group_subscriptions', 'Number of group presence subscriptions per machine'),
+    UserPresenceSubscriptions: Factory.createTaggedMachineGauge('presences_user_subscriptions', 'Number of user presence subscriptions per machine'),
 
     //
     // FDB
