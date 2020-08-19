@@ -34,14 +34,9 @@ export const Resolver: GQLResolver = {
                 let platform = args.platform || 'unknown';
 
                 // Handle presence
-                let userPresences = await Store.Presence.user.findAll(ctx, ctx.auth.uid);
-                let hasMobilePresence = !!userPresences
-                    .find((e) => isMobile(e.platform));
-                if (!hasMobilePresence && isMobile(platform)) {
-                    await Modules.Hooks.onNewMobileUser(ctx, ctx.auth.uid);
-                }
-                if (hasMobilePresence) {
+                if (!(await Modules.Presence.logging.hasMobile(ctx, ctx.auth.uid)) && isMobile(platform)) {
                     Modules.Presence.logging.setMobile(ctx, ctx.auth.uid);
+                    await Modules.Hooks.onNewMobileUser(ctx, ctx.auth.uid);
                 }
 
                 // Update account online status

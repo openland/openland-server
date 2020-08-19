@@ -1,6 +1,5 @@
 import { UserPresenceMediator } from './mediator/UserPresenceMediator';
 import { GroupPresenceMediator } from './mediator/GroupPresenceMediator';
-import { Store } from './../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
@@ -41,23 +40,11 @@ export class PresenceModule {
     async setOnline(parent: Context, uid: number, tid: string, timeout: number, platform: string, active: boolean) {
         await inTx(parent, async (ctx) => {
 
-            // Update presence
-            let ex = await Store.Presence.findById(ctx, uid, tid);
-            if (ex) {
-                ex.lastSeen = Date.now();
-                ex.lastSeenTimeout = timeout;
-                ex.platform = platform;
-                ex.active = active;
-                await ex.flush(ctx);
-            } else {
-                ex = await Store.Presence.create(ctx, uid, tid, { lastSeen: Date.now(), lastSeenTimeout: timeout, platform, active });
-            }
-
             // Update online state
             await this.users.setOnline(ctx, uid, tid, active, timeout);
 
             // Log online
-            if (ex.active) {
+            if (active) {
                 this.logging.logOnline(ctx, Date.now(), uid, detectPlatform(platform));
             }
         });
