@@ -10,8 +10,8 @@ export const Resolver: GQLResolver = {
         lastIp: root => root.token.lastIp,
         lastLocation: root => geoIP(root.token.lastIp).location_name,
         lastSeen: root => root.presence?.lastSeen || null,
-        online: root => root.presence ? root.presence.lastSeen + root.presence.lastSeenTimeout > Date.now() : null,
-        platform: root => root.presence?.platform || null,
+        online: root => root.presence ? Date.now() < root.presence.expires : false,
+        platform: root => root.token.platform || null,
         current: (root, _, ctx) => root.token.uuid === ctx.auth.tid!,
     },
     Query: {
@@ -23,7 +23,7 @@ export const Resolver: GQLResolver = {
         terminateSession: withActivatedUser(async (ctx, args, uid) => {
             let tid = IDs.Session.parse(args.id);
             await Modules.Auth.sessions.terminateSession(ctx, uid, tid);
-           return true;
+            return true;
         }),
         terminateAllSessionsExcept: withActivatedUser(async (ctx, args, uid) => {
             let tid = IDs.Session.parse(args.id);

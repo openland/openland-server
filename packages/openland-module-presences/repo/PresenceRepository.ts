@@ -112,7 +112,7 @@ export class PresenceRepository {
             return null;
         }
         let token = encoders.json.unpack(ex);
-        return token.lastSeen as number;
+        return { lastSeen: (token.lastSeen as number) * 1000, expires: (token.expires as number) * 1000 };
     }
 
     async getOnline(ctx: Context, uid: number): Promise<PresenceType> {
