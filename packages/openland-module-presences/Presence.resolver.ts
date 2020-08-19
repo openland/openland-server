@@ -36,19 +36,19 @@ export const Resolver: GQLResolver = {
                 }
 
                 if (active) {
-                    Metrics.Online.add(1, 'uid-' + ctx.auth.uid!, 5000);
+                    Metrics.Online.add(1, 'uid-' + ctx.auth.uid!, args.timeout);
                     if (args.platform) {
                         if (args.platform.startsWith('web')) {
-                            Metrics.OnlineWeb.add(1, 'uid-' + ctx.auth.uid!, 5000);
+                            Metrics.OnlineWeb.add(1, 'uid-' + ctx.auth.uid!, args.timeout);
                         } else if (args.platform.startsWith('android')) {
-                            Metrics.OnlineAndroid.add(1, 'uid-' + ctx.auth.uid!, 5000);
+                            Metrics.OnlineAndroid.add(1, 'uid-' + ctx.auth.uid!, args.timeout);
                         } else if (args.platform.startsWith('ios')) {
-                            Metrics.OnlineIOS.add(1, 'uid-' + ctx.auth.uid!, 5000);
+                            Metrics.OnlineIOS.add(1, 'uid-' + ctx.auth.uid!, args.timeout);
                         } else {
-                            Metrics.OnlineUnknown.add(1, 'uid-' + ctx.auth.uid!, 5000);
+                            Metrics.OnlineUnknown.add(1, 'uid-' + ctx.auth.uid!, args.timeout);
                         }
                     } else {
-                        Metrics.OnlineUnknown.add(1, 'uid-' + ctx.auth.uid!, 5000);
+                        Metrics.OnlineUnknown.add(1, 'uid-' + ctx.auth.uid!, args.timeout);
                     }
                 }
 
