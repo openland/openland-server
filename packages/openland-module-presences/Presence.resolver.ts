@@ -24,7 +24,7 @@ export const Resolver: GQLResolver = {
                 if (args.timeout <= 0) {
                     throw new UserError('Invalid input');
                 }
-                if (args.timeout > 5000) {
+                if (args.timeout > 60 * 1000) {
                     throw new UserError('Invalid input');
                 }
                 let active = (args.active !== undefined && args.active !== null) ? args.active! : true;
@@ -51,6 +51,17 @@ export const Resolver: GQLResolver = {
                         Metrics.OnlineUnknown.add(1, 'uid-' + ctx.auth.uid!, 5000);
                     }
                 }
+
+                return 'ok';
+            });
+        },
+        presenceReportOffline: async (_, args, parent) => {
+            return await inTx(parent, async (ctx) => {
+                if (!ctx.auth.uid) {
+                    throw new UserError('Not authorized');
+                }
+
+                await Modules.Presence.setOffline(ctx, ctx.auth.uid, ctx.auth.tid!);
 
                 return 'ok';
             });

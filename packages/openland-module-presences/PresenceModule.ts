@@ -74,6 +74,12 @@ export class PresenceModule {
         });
     }
 
+    async setOffline(parent: Context, uid: number, tid: string) {
+        await inTx(parent, async (ctx) => {
+            await this.users.setOffline(ctx, uid, tid);
+        });
+    }
+
     async getStatus(uid: number): Promise<'online' | 'never_online' | number> {
         let status = await this.users.getStatus(uid);
         if (status.type === 'online') {

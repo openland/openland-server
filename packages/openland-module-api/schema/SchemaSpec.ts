@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '83d7a33d14a5eedca582186227162004';
+export const GQL_SPEC_VERSION = '18ea7a62c539cbdb61ed33cdc50f6675';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2384,6 +2384,7 @@ export namespace GQL {
         notificationCenterMarkSeqRead: boolean;
         debugCreateNotification: boolean;
         presenceReportOnline: string;
+        presenceReportOffline: string;
         updateOrganizationProfile: OrganizationProfile;
         deleteOrganization: boolean;
         createOrganization: Organization;
@@ -3261,6 +3262,7 @@ export namespace GQL {
         platform: OptionalNullable<string>;
         active: OptionalNullable<boolean>;
     }
+    export interface MutationPresenceReportOfflineArgs { }
     export interface MutationUpdateOrganizationProfileArgs {
         input: UpdateOrganizationProfileInput;
         id: OptionalNullable<string>;
@@ -8969,6 +8971,7 @@ export interface GQLResolver {
             notificationCenterMarkSeqRead: GQL.MutationNotificationCenterMarkSeqReadArgs,
             debugCreateNotification: GQL.MutationDebugCreateNotificationArgs,
             presenceReportOnline: GQL.MutationPresenceReportOnlineArgs,
+            presenceReportOffline: GQL.MutationPresenceReportOfflineArgs,
             updateOrganizationProfile: GQL.MutationUpdateOrganizationProfileArgs,
             deleteOrganization: GQL.MutationDeleteOrganizationArgs,
             createOrganization: GQL.MutationCreateOrganizationArgs,
