@@ -27,13 +27,6 @@ import { withConcurrentcyPool } from 'openland-utils/ConcurrencyPool';
 import { createNamedContext } from '@openland/context';
 import { createLogger, withLogPath } from '@openland/log';
 import { withReadOnlyTransaction, inTx } from '@openland/foundationdb';
-import {
-    GqlQueryIdNamespace,
-    GqlTrace,
-    gqlTraceNamespace,
-    withGqlQueryId,
-    withGqlTrace
-} from '../openland-graphql/gqlTracer';
 // import { AuthContext } from '../openland-module-auth/AuthContext';
 import { uuid } from '../openland-utils/uuid';
 // import { createMetric } from '../openland-module-monitoring/Metric';
@@ -143,7 +136,7 @@ export async function initApi(isTest: boolean) {
             if (data.result === 'passed') {
                 let text = `${data.commit.author_name} ${data.event === 'deploy' ? 'deployed' : 'build'} :tada: - ${data.commit.message} to ${data.project_name}`;
 
-                await Modules.Messaging.sendMessage(ctx, chatId, botId, {message: text});
+                await Modules.Messaging.sendMessage(ctx, chatId, botId, { message: text });
             }
         });
     }));
@@ -162,7 +155,7 @@ export async function initApi(isTest: boolean) {
             let data = req.body;
 
             let text = data.title + '\n' + data.message + (data.imageUrl ? '\n' + data.imageUrl : '') + (data.state === 'ok' ? '\nОтпустило кажется' : '');
-            await Modules.Messaging.sendMessage(ctx, chatId, botId, {message: text});
+            await Modules.Messaging.sendMessage(ctx, chatId, botId, { message: text });
         });
     }));
 
@@ -228,17 +221,9 @@ export async function initApi(isTest: boolean) {
         // Starting server
         const httpServer = http.createServer(app);
 
-        Server.applyMiddleware({app, path: '/graphql'});
-        Server.applyMiddleware({app, path: '/api'});
+        Server.applyMiddleware({ app, path: '/graphql' });
+        Server.applyMiddleware({ app, path: '/api' });
 
-        async function saveTrace(trace: GqlTrace) {
-            if (trace.duration >= 1500) {
-                // await inTx(rootCtx, async _ctx => {
-                //     let id = await fetchNextDBSeq(_ctx, 'gql-trace');
-                //     await Store.GqlTrace.create(_ctx, id, { traceData: trace });
-                // });
-            }
-        }
         // const wsCtx = createNamedContext('ws-gql');
         let vostok = initVostokApiServer({
             server: undefined, // httpServer ,
@@ -246,24 +231,20 @@ export async function initApi(isTest: boolean) {
             executableSchema: Schema(),
             queryCache: new InMemoryQueryCache(),
             onAuth: async (token) => {
-                return await fetchWebSocketParameters({'x-openland-token': token}, null);
+                return await fetchWebSocketParameters({ 'x-openland-token': token }, null);
             },
             context: async (params, operation) => {
                 let opId = uuid();
                 let ctx = buildWebSocketContext(params || {});
                 ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `query ${opId} ${operation.operationName || ''}`);
-                ctx = withGqlQueryId(ctx, opId);
-                ctx = withGqlTrace(ctx, `query ${opId} ${operation.operationName || ''}`);
                 return ctx;
             },
             subscriptionContext: async (params, operation, firstCtx) => {
-                let opId = firstCtx ? GqlQueryIdNamespace.get(firstCtx)! : uuid();
+                let opId = uuid();
                 let ctx = buildWebSocketContext(params || {});
                 ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `subscription ${opId} ${operation.operationName || ''}`);
-                ctx = withGqlQueryId(ctx, opId);
-                ctx = withGqlTrace(ctx, `subscription ${opId} ${operation.operationName || ''}`);
                 ctx = withLifetime(ctx);
                 return ctx;
             },
@@ -301,7 +282,7 @@ export async function initApi(isTest: boolean) {
                 try {
                     if (!params || Object.keys(params).length === 0 && req.headers.cookie && req.headers.cookie.length > 0) {
                         let cookies = parseCookies(req.headers.cookie || '');
-                        return await fetchWebSocketParameters({'x-openland-token': cookies['x-openland-token']}, null);
+                        return await fetchWebSocketParameters({ 'x-openland-token': cookies['x-openland-token'] }, null);
                     }
                     return await fetchWebSocketParameters(params, null);
                 } finally {
@@ -319,8 +300,6 @@ export async function initApi(isTest: boolean) {
                 );
                 ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `query ${opId} ${operation.name || ''}`);
-                ctx = withGqlQueryId(ctx, opId);
-                ctx = withGqlTrace(ctx, `query ${opId} ${operation.name || ''}`);
                 return withConcurrentcyPool(ctx, buildConcurrencyPool(ctx));
             },
             subscriptionContext: async (params, operation, req) => {
@@ -333,8 +312,6 @@ export async function initApi(isTest: boolean) {
                 );
                 ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `subscription ${operation.name || ''}`);
-                // ctx = withGqlQueryId(ctx, opId);
-                ctx = withGqlTrace(ctx, `subscription ${operation.name || ''}`);
                 ctx = withLifetime(ctx);
                 return withConcurrentcyPool(ctx, buildConcurrencyPool(ctx));
             },
@@ -356,11 +333,7 @@ export async function initApi(isTest: boolean) {
                 // }
             },
             onEventResolveFinish: async (ctx, operation, duration) => {
-                let trace = gqlTraceNamespace.get(ctx);
-                if (trace) {
-                    trace.onRequestFinish();
-                    await saveTrace(trace.getTrace());
-                }
+                // Nothing to do
             },
             formatResponse: (value, operation, ctx) => {
                 let auth = AuthContext.get(ctx);
