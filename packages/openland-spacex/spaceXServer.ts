@@ -1,3 +1,4 @@
+import { SpaceXOperationResolver } from './SpaceXOperationResolver';
 import WebSocket from 'ws';
 import { GQlServerOperation, SpaceXServerParams } from './spaceXServerParams';
 import { Shutdown } from '../openland-utils/Shutdown';
@@ -12,12 +13,12 @@ import {
     StopMessageCodec
 } from './types';
 import { SpaceXSession, SpaceXSessionDescriptor } from './SpaceXSession';
-import { parse } from 'graphql';
 import { PingPong } from './PingPong';
 import { delay } from '../openland-utils/timer';
 import { asyncRun } from './utils/asyncRun';
 import { EventBus } from '../openland-module-pubsub/EventBus';
 
+const operationResolver = new SpaceXOperationResolver();
 export const SpaceXConnections = new Map<string, SpaceXConnection>();
 
 async function handleAuth(params: SpaceXServerParams, req: http.IncomingMessage, connection: SpaceXConnection, message: unknown) {
@@ -81,7 +82,7 @@ async function handleOperation(params: SpaceXServerParams, req: http.IncomingMes
     }
     await params.onOperation(ctx, operation);
     let opStartTime = Date.now();
-    let query = parse(operation.query);
+    let query = await operationResolver.resolve(operation.query);
     let op = connection.session.operation(ctx, { document: query, variables: operation.variables, operationName: operation.name }, (res) => {
         if (res.type === 'data') {
             connection.sendData(id, params.formatResponse({ data: res.data }, operation, ctx));
