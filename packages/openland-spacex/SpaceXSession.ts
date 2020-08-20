@@ -260,6 +260,14 @@ export class SpaceXSession {
         };
     }
 
+    stopOperation(id: string) {
+        let op = this.activeOperations.get(id);
+        if (op) {
+            op();
+            this.activeOperations.delete(id);
+        }
+    }
+
     close() {
         if (this.closed) {
             return;

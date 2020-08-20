@@ -77,13 +77,12 @@ async function handleOperation(params: SpaceXServerParams, req: http.IncomingMes
         // handle error
         connection.sendRateLimitError(id);
         connection.sendComplete(id);
-        connection.stopOperation(id);
         return;
     }
     await params.onOperation(ctx, operation);
     let opStartTime = Date.now();
     let query = await operationResolver.resolve(operation.query);
-    let op = connection.session.operation(ctx, { document: query, variables: operation.variables, operationName: operation.name }, (res) => {
+    connection.session.operation(ctx, { document: query, variables: operation.variables, operationName: operation.name }, (res) => {
         if (res.type === 'data') {
             connection.sendData(id, params.formatResponse({ data: res.data }, operation, ctx));
         } else if (res.type === 'errors') {
@@ -93,7 +92,6 @@ async function handleOperation(params: SpaceXServerParams, req: http.IncomingMes
             params.onOperationFinish(ctx, operation, Date.now() - opStartTime);
         }
     });
-    connection.addOperation(id, () => op.cancel());
 }
 
 async function handleMessage(params: SpaceXServerParams, socket: WebSocket, req: http.IncomingMessage, connection: SpaceXConnection, message: unknown) {
@@ -110,7 +108,7 @@ async function handleMessage(params: SpaceXServerParams, socket: WebSocket, req:
 
         let stopOp = decode(StopMessageCodec, message);
         if (stopOp) {
-            connection.stopOperation(stopOp.id);
+            connection.session.stopOperation(stopOp.id);
         }
 
         let ping = decode(PingMessageCodec, message);
