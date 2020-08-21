@@ -1,6 +1,6 @@
 import { EventsStorage } from './EventsStorage';
 import { createNamedContext } from '@openland/context';
-import { Database, inTx } from '@openland/foundationdb';
+import { Database, inTx, encoders } from '@openland/foundationdb';
 
 describe('EventsStorage', () => {
     it('posting should work', async () => {
@@ -266,5 +266,53 @@ describe('EventsStorage', () => {
         expect(state[0].id).toMatchObject(feed);
         expect(state[0].jumbo).toBe(true);
         expect(state[0].latest).toBe(null);
+    });
+
+    it('repeatKey should collapse updates', async () => {
+        let root = createNamedContext('test');
+        let db = await Database.openTest({ name: 'event-storage-repeat-key', layers: [] });
+        let storage = new EventsStorage(db.allKeys, true);
+
+        let ids = await inTx(root, async (ctx) => {
+            let feed = (await storage.createFeed(ctx)).id;
+            let subscriber = await storage.createSubscriber(ctx);
+            await storage.subscribe(ctx, subscriber, feed);
+            return { feed, subscriber };
+        });
+        let state = await storage.getState(root, ids.subscriber);
+
+        // Create initial
+        function createEvent(id: number) {
+            return encoders.int32BE.pack(id);
+        }
+        let [event1, event2] = await inTx(root, async (ctx) => {
+            let ev1 = await storage.post(ctx, ids.feed, createEvent(0), { repeatKey: Buffer.from('repeat-key-0') });
+            let ev2 = await storage.post(ctx, ids.feed, createEvent(1), { repeatKey:  Buffer.from('repeat-key-1') });
+            return [ev1, ev2];
+        });
+        let difference = await storage.getDifference(root, ids.subscriber, { state: state, batchSize: 10, limit: 10 });
+        expect(difference.events.length).toBe(2);
+        expect(difference.partial.length).toBe(0);
+        expect(difference.events[0].body).toMatchObject(createEvent(0));
+        expect(difference.events[0].seq).toBe(event1.seq);
+        expect(difference.events[1].body).toMatchObject(createEvent(1));
+        expect(difference.events[1].seq).toBe(event2.seq);
+
+        // Update with collapse key and without
+        let [event3, event4] = await inTx(root, async (ctx) => {
+            let ev3 = await storage.post(ctx, ids.feed, createEvent(2), { repeatKey:  Buffer.from('repeat-key-0') });
+            let ev4 = await storage.post(ctx, ids.feed, createEvent(3));
+            return [ev3, ev4];
+        });
+
+        difference = await storage.getDifference(root, ids.subscriber, { state: state, batchSize: 10, limit: 10 });
+        expect(difference.events.length).toBe(3);
+        expect(difference.partial.length).toBe(0);
+        expect(difference.events[0].body).toMatchObject(createEvent(1));
+        expect(difference.events[0].seq).toBe(event2.seq);
+        expect(difference.events[1].body).toMatchObject(createEvent(2));
+        expect(difference.events[1].seq).toBe(event3.seq);
+        expect(difference.events[2].body).toMatchObject(createEvent(3));
+        expect(difference.events[2].seq).toBe(event4.seq);
     });
 });

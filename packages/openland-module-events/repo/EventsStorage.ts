@@ -23,6 +23,7 @@ const REGISTRY_SUBSCRIBERS = 1;
 
 const FEED_STREAM = 0;
 const FEED_LATEST = 1;
+const FEED_REPEAT = 3;
 const FEED_SETTINGS = 2;
 const FEED_SETTINGS_SEQ = 0;
 const FEED_SETTINGS_SUBSCRIBERS_COUNT = 1;
@@ -523,8 +524,11 @@ export class EventsStorage {
         };
     }
 
-    async post(parent: Context, feed: Buffer, event: Buffer) {
+    async post(parent: Context, feed: Buffer, event: Buffer, opts?: { repeatKey?: Buffer }) {
         checkId(feed);
+
+        // Resolve repeat key
+        let repeatKey: Buffer | undefined = opts && opts.repeatKey ? opts.repeatKey : undefined;
 
         //
         // Note about read conflicts
@@ -553,6 +557,20 @@ export class EventsStorage {
 
             // Put latest event versionstamp
             this.feedsDirectory.setVersionstampedValue(ctx, encoders.tuple.pack([feed, FEED_LATEST]), ZERO, index);
+
+            // Handle repeat key
+            if (repeatKey) {
+                let repeatRef = encoders.tuple.pack([feed, FEED_REPEAT, repeatKey]);
+
+                // Clear previous event if exists
+                let prevPost = await this.feedsDirectory.get(ctx, repeatRef);
+                if (prevPost) {
+                    this.feedsDirectory.clear(ctx, Buffer.concat([encoders.tuple.pack([feed, FEED_STREAM]), prevPost]));
+                }
+
+                // Save repeat key reference to current event
+                this.feedsDirectory.setVersionstampedValue(ctx, repeatRef, ZERO, index);
+            }
 
             // Delivery of non jumbo feeds
             this.feedsDirectory.addReadConflictKey(ctx, encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_JUMBO]));
