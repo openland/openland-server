@@ -2,6 +2,10 @@ import { EventsStorage } from './EventsStorage';
 import { createNamedContext } from '@openland/context';
 import { Database, inTx, encoders } from '@openland/foundationdb';
 
+function createEvent(id: number) {
+    return encoders.int32BE.pack(id);
+}
+
 describe('EventsStorage', () => {
     it('posting should work', async () => {
         let root = createNamedContext('test');
@@ -94,6 +98,76 @@ describe('EventsStorage', () => {
         }
     });
 
+    it('loading feed updates should work', async () => {
+        let root = createNamedContext('test');
+        let db = await Database.openTest({ name: 'event-storage-feed-updates', layers: [] });
+        let storage = new EventsStorage(db.allKeys, true);
+
+        let ids = await inTx(root, async (ctx) => {
+            let feed = (await storage.createFeed(ctx)).id;
+            let subscriber = await storage.createSubscriber(ctx);
+            await storage.subscribe(ctx, subscriber, feed);
+            return { feed, subscriber };
+        });
+        let state = await storage.getState(root, ids.subscriber);
+
+        // Post events
+        await storage.post(root, ids.feed, createEvent(0));
+        await storage.post(root, ids.feed, createEvent(1));
+        await storage.post(root, ids.feed, createEvent(2));
+        await storage.post(root, ids.feed, createEvent(3));
+        await storage.post(root, ids.feed, createEvent(4));
+        await storage.post(root, ids.feed, createEvent(5));
+        await storage.post(root, ids.feed, createEvent(6));
+        await storage.post(root, ids.feed, createEvent(7));
+        await storage.post(root, ids.feed, createEvent(8));
+        await storage.post(root, ids.feed, createEvent(9));
+
+        // Read only-latest
+        let updates = await storage.getFeedUpdates(root, ids.feed, { after: state, limit: 3, mode: 'only-latest' });
+        expect(updates.hasMore).toBe(true);
+        expect(updates.updates.length).toBe(3);
+        expect(updates.updates[0].body).toMatchObject(createEvent(7));
+        expect(updates.updates[1].body).toMatchObject(createEvent(8));
+        expect(updates.updates[2].body).toMatchObject(createEvent(9));
+
+        updates = await storage.getFeedUpdates(root, ids.feed, { after: state, limit: 15, mode: 'only-latest' });
+        expect(updates.hasMore).toBe(false);
+        expect(updates.updates.length).toBe(10);
+        expect(updates.updates[0].body).toMatchObject(createEvent(0));
+        expect(updates.updates[1].body).toMatchObject(createEvent(1));
+        expect(updates.updates[2].body).toMatchObject(createEvent(2));
+        expect(updates.updates[3].body).toMatchObject(createEvent(3));
+        expect(updates.updates[4].body).toMatchObject(createEvent(4));
+        expect(updates.updates[5].body).toMatchObject(createEvent(5));
+        expect(updates.updates[6].body).toMatchObject(createEvent(6));
+        expect(updates.updates[7].body).toMatchObject(createEvent(7));
+        expect(updates.updates[8].body).toMatchObject(createEvent(8));
+        expect(updates.updates[9].body).toMatchObject(createEvent(9));
+
+        // Read forward
+        updates = await storage.getFeedUpdates(root, ids.feed, { after: state, limit: 3, mode: 'forward' });
+        expect(updates.hasMore).toBe(true);
+        expect(updates.updates.length).toBe(3);
+        expect(updates.updates[0].body).toMatchObject(createEvent(0));
+        expect(updates.updates[1].body).toMatchObject(createEvent(1));
+        expect(updates.updates[2].body).toMatchObject(createEvent(2));
+
+        updates = await storage.getFeedUpdates(root, ids.feed, { after: state, limit: 15, mode: 'forward' });
+        expect(updates.hasMore).toBe(false);
+        expect(updates.updates.length).toBe(10);
+        expect(updates.updates[0].body).toMatchObject(createEvent(0));
+        expect(updates.updates[1].body).toMatchObject(createEvent(1));
+        expect(updates.updates[2].body).toMatchObject(createEvent(2));
+        expect(updates.updates[3].body).toMatchObject(createEvent(3));
+        expect(updates.updates[4].body).toMatchObject(createEvent(4));
+        expect(updates.updates[5].body).toMatchObject(createEvent(5));
+        expect(updates.updates[6].body).toMatchObject(createEvent(6));
+        expect(updates.updates[7].body).toMatchObject(createEvent(7));
+        expect(updates.updates[8].body).toMatchObject(createEvent(8));
+        expect(updates.updates[9].body).toMatchObject(createEvent(9));
+    });
+
     it('simple paging should work', async () => {
         let root = createNamedContext('test');
         let db = await Database.openTest({ name: 'event-storage-paging', layers: [] });
@@ -177,6 +251,58 @@ describe('EventsStorage', () => {
                 expect(e.seq).toBe(seq);
                 seq++;
             }
+        }
+    });
+
+    it('strict paging should work', async () => {
+        let root = createNamedContext('test');
+        let db = await Database.openTest({ name: 'event-storage-paging-strict', layers: [] });
+        const zero = Buffer.alloc(0);
+
+        for (let jumbo of [false, true]) {
+
+            let storage = new EventsStorage(db.allKeys, true);
+            await inTx(root, async (ctx) => {
+                db.allKeys.clearPrefixed(ctx, zero);
+            });
+
+            // Create feed and subscriber
+            let ids = await inTx(root, async (ctx) => {
+                let feed = (await storage.createFeed(ctx)).id;
+                if (jumbo) {
+                    await storage.upgradeFeed(ctx, feed);
+                }
+                let subscriber = await storage.createSubscriber(ctx);
+                await storage.subscribe(ctx, subscriber, feed, { strict: true });
+                return { feed, subscriber };
+            });
+
+            // Get current state
+            let state = await storage.getState(root, ids.subscriber);
+
+            // Post 100 events
+            await inTx(root, async (ctx) => {
+                for (let i = 0; i < 100; i++) {
+                    await storage.post(ctx, ids.feed, zero);
+                }
+            });
+
+            // Simple partial diff
+            let diff = await storage.getDifference(root, ids.subscriber, { state: state, batchSize: 20, limit: 10 });
+            expect(diff.completed).toBe(false);
+            expect(diff.partial.length).toBe(1);
+            expect(Buffer.compare(diff.partial[0], ids.feed)).toBe(0);
+            expect(diff.events.length).toBe(10);
+            expect(diff.events[0].seq).toBe(2);
+            expect(diff.events[1].seq).toBe(3);
+            expect(diff.events[2].seq).toBe(4);
+            expect(diff.events[3].seq).toBe(5);
+            expect(diff.events[4].seq).toBe(6);
+            expect(diff.events[5].seq).toBe(7);
+            expect(diff.events[6].seq).toBe(8);
+            expect(diff.events[7].seq).toBe(9);
+            expect(diff.events[8].seq).toBe(10);
+            expect(diff.events[9].seq).toBe(11);
         }
     });
 
@@ -310,9 +436,6 @@ describe('EventsStorage', () => {
         let state = await storage.getState(root, ids.subscriber);
 
         // Create initial
-        function createEvent(id: number) {
-            return encoders.int32BE.pack(id);
-        }
         let [event1, event2] = await inTx(root, async (ctx) => {
             let ev1 = await storage.post(ctx, ids.feed, createEvent(0), { repeatKey: Buffer.from('repeat-key-0') });
             let ev2 = await storage.post(ctx, ids.feed, createEvent(1), { repeatKey: Buffer.from('repeat-key-1') });
