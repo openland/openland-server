@@ -5,12 +5,14 @@
 require('module-alias/register');
 
 import yargs from 'yargs';
+import { openTestDatabase } from '../openland-server/foundationdb';
 import { createNamedContext } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 import { loadAllModules } from 'openland-modules/loadAllModules';
-import { inTx } from '@openland/foundationdb';
+import { encoders, inTx } from '@openland/foundationdb';
 import TestDataFactory from '../openland-server-tests/TestDataFactory';
 import { Shutdown } from '../openland-utils/Shutdown';
+import { randomInt } from '../openland-utils/random';
 // import { openDatabase } from './utils/openDatabase';
 // import { diagnose, calculateCount, removeOldIndexes, diagAll, deleteInvalid } from 'openland-cli/diagnose';
 
@@ -116,6 +118,87 @@ yargs
             await Shutdown.shutdown();
             process.exit();
         },
+    )
+    .command('benchmark-counting-directory', '', y => {
+        return y;
+    }, async args => {
+        let parent = createNamedContext('console');
+
+        let db = await openTestDatabase();
+
+        let plainSubspace = db.allKeys.subspace(Buffer.from([0]))
+            .withKeyEncoding(encoders.tuple);
+        let blockSubspace = db.allKeys.subspace(Buffer.from([1]))
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.json);
+
+        // generate fake plain data
+        for (let i = 0; i < 10; i++) {
+            await inTx(parent, async ctx => {
+                for (let j = 0; j < 1000; j++) {
+                    plainSubspace.set(ctx, [i * 1000 + j], Buffer.from([]));
+                }
+            });
+        }
+        // generate fake block data
+        for (let i = 0; i < 100; i++) {
+            await inTx(parent, async ctx => {
+                let data: number[] = [];
+                for (let j = 0; j < 100; j++) {
+                    data.push(i * 100 + j);
+                }
+                console.log(i * 100);
+                blockSubspace.set(ctx, [i * 100], {
+                    data
+                });
+            });
+        }
+
+        console.log('seed done');
+
+        // generate random ranges
+        let randomRanges: [number, number][] = [];
+        for (let i = 0; i < 100; i++) {
+            let first = randomInt(1, 10000);
+            let second = randomInt(1, 10000);
+            randomRanges.push([Math.min(first, second), Math.max(first, second)]);
+            console.log([Math.min(first, second), Math.max(first, second)]);
+        }
+
+        console.log('ranges generated');
+
+        // benchmark plain simple range
+        console.time('plain-range');
+        for (let [from, to] of randomRanges) {
+            await inTx(parent, async (ctx) => {
+                await plainSubspace.range(ctx, [], { after: [from], before: [to] });
+            });
+        }
+        console.timeEnd('plain-range');
+
+        // benchmark plain snapshot range
+        console.time('plain-snapshot');
+        for (let [from, to] of randomRanges) {
+            await inTx(parent, async (ctx) => {
+                await plainSubspace.snapshotRange(ctx, [], { after: [from - 1], before: [to + 1] });
+            });
+        }
+        console.timeEnd('plain-snapshot');
+
+        // benchmark block snapshot range
+        console.time('block');
+        for (let [from, to] of randomRanges) {
+            await inTx(parent, async (ctx) => {
+                let firstBlock = await blockSubspace.snapshotRange(ctx, [], { after: [from + 1], limit: 1, reverse: true });
+                await blockSubspace.snapshotRange(ctx, [], { after: [(firstBlock[0].key[0] as number) - 1], before: [(to - to % 100) + 100 + 1] });
+                // console.log(to - from + ' ' + allBlocks.reduce((b, a) => a.value.data.length + b, 0));
+            });
+        }
+        console.timeEnd('block');
+
+        await Shutdown.shutdown();
+        process.exit();
+    }
     )
     .demandCommand()
     .help()

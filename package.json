@@ -177,7 +177,7 @@
     "model:test": "./node_modules/.bin/ts-node ./packages/foundation-orm/tests/createTestSchema.ts",
     "benchmark": "NODE_ENV=production ./node_modules/.bin/ts-node ./packages/openland-benchmarks/index.ts",
     "benchmark:parallel": "./node_modules/.bin/concurrently \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\"",
-    "cli": "./node_modules/.bin/ts-node ./packages/openland-cli/index.ts",
+    "cli": ". ./scripts/set_testing_config.sh && ./node_modules/.bin/ts-node ./packages/openland-cli/index.ts",
     "ch:gen": ". ./scripts/set_dev_config.sh && ./node_modules/.bin/ts-node packages/openland-module-clickhouse/generateMigrations.ts"
   },
   "devDependencies": {
