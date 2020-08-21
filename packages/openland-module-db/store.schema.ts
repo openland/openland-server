@@ -2476,6 +2476,41 @@ export default declareSchema(() => {
     });
 
     //
+    // Events
+    //
+
+    customDirectory('EventStorage');
+    customDirectory('UserEventSequence');
+    event('UpdateChatRead', () => {
+        field('uid', integer());
+        field('cid', integer());
+        field('seq', integer());
+    });
+    event('UpdateChatMessage', () => {
+        field('uid', integer());
+        field('cid', integer());
+        field('mid', integer());
+    });
+    event('UpdateChatMessageUpdated', () => {
+        field('uid', integer());
+        field('cid', integer());
+        field('mid', integer());
+    });
+    event('UpdateChatMessageDeleted', () => {
+        field('uid', integer());
+        field('cid', integer());
+        field('mid', integer());
+    });
+    event('UpdateChatLostAccess', () => {
+        field('uid', integer());
+        field('cid', integer());
+    });
+    event('UpdateChatGotAccess', () => {
+        field('uid', integer());
+        field('cid', integer());
+    });
+
+    //
     // System
     //
 

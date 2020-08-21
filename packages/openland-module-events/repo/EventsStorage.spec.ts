@@ -13,7 +13,7 @@ describe('EventsStorage', () => {
                 db.allKeys.clearPrefixed(ctx, zero);
             });
 
-            let storage = await EventsStorage.open(db);
+            let storage = new EventsStorage(db.allKeys, true);
 
             // Create feed and subscriber
             let ids = await inTx(root, async (ctx) => {
@@ -32,7 +32,7 @@ describe('EventsStorage', () => {
             let state = await storage.getState(root, ids.subscriber1);
 
             // Get subscriber state
-            let subscriberState1 = await storage.getSubscriberInternalState(root, ids.subscriber1);
+            let subscriberState1 = await storage.getSubscriberSubscriptions(root, ids.subscriber1);
 
             // Create a post
             let postId = await (await inTx(root, async (ctx) => {
@@ -48,7 +48,7 @@ describe('EventsStorage', () => {
             })).promise;
 
             // Get subscriber state
-            let subscriberState2 = await storage.getSubscriberInternalState(root, ids.subscriber1);
+            let subscriberState2 = await storage.getSubscriberSubscriptions(root, ids.subscriber1);
 
             // Check id values
             expect(state.length).toBe(12);
@@ -94,7 +94,7 @@ describe('EventsStorage', () => {
 
         for (let jumbo of [false, true]) {
 
-            let storage = await EventsStorage.open(db);
+            let storage = new EventsStorage(db.allKeys, true);
             await inTx(root, async (ctx) => {
                 db.allKeys.clearPrefixed(ctx, zero);
             });
@@ -177,7 +177,7 @@ describe('EventsStorage', () => {
         let root = createNamedContext('test');
         let db = await Database.openTest({ name: 'event-storage-upgrade', layers: [] });
 
-        let storage = await EventsStorage.open(db);
+        let storage = new EventsStorage(db.allKeys, true);
 
         //
         // Create Feed and Subscriber, Upgrade and then subscribe
@@ -192,7 +192,7 @@ describe('EventsStorage', () => {
         });
 
         // Initial state must be empty
-        let state = await storage.getSubscriberInternalState(root, subscriber);
+        let state = await storage.getSubscriberSubscriptions(root, subscriber);
         expect(state.length).toBe(0);
 
         // Upgrade feed
@@ -206,7 +206,7 @@ describe('EventsStorage', () => {
         });
 
         // State must be correct
-        state = await storage.getSubscriberInternalState(root, subscriber);
+        state = await storage.getSubscriberSubscriptions(root, subscriber);
         expect(state.length).toBe(1);
         expect(state[0].id).toMatchObject(feed);
         expect(state[0].jumbo).toBe(true);
@@ -232,7 +232,7 @@ describe('EventsStorage', () => {
         });
 
         // State must be correct
-        state = await storage.getSubscriberInternalState(root, subscriber);
+        state = await storage.getSubscriberSubscriptions(root, subscriber);
         expect(state.length).toBe(1);
         expect(state[0].id).toMatchObject(feed);
         expect(state[0].jumbo).toBe(true);
@@ -261,7 +261,7 @@ describe('EventsStorage', () => {
         });
 
         // State must be correct
-        state = await storage.getSubscriberInternalState(root, subscriber);
+        state = await storage.getSubscriberSubscriptions(root, subscriber);
         expect(state.length).toBe(1);
         expect(state[0].id).toMatchObject(feed);
         expect(state[0].jumbo).toBe(true);
