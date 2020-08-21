@@ -476,7 +476,7 @@ export default declareSchema(() => {
 
         rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
         rangeIndex('chatSeq', ['cid', 'seq']).withCondition((src) => !src.deleted);
-        rangeIndex('fromSeq', ['cid', 'seq']);
+        // rangeIndex('fromSeq', ['cid', 'seq']);
         rangeIndex('hasImageAttachment', ['cid', 'id']).withCondition((item) => {
             if (item.deleted) {
                 return false;
