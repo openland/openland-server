@@ -84,6 +84,13 @@ describe('EventsStorage', () => {
             expect(diff.events.length).toBe(0);
             expect(diff.partial.length).toBe(0);
             expect(diff.completed).toBe(true);
+
+            // Unsubscribe
+            await inTx(root, async (ctx) => {
+                await storage.unsubscribe(ctx, ids.subscriber1, ids.feed);
+            });
+            let subsState = await storage.getSubscriberSubscriptions(root, ids.subscriber1);
+            expect(subsState.length).toBe(0);
         }
     });
 
@@ -212,6 +219,13 @@ describe('EventsStorage', () => {
         expect(state[0].jumbo).toBe(true);
         expect(state[0].latest).toBe(null);
 
+        // Unsubscribe
+        await inTx(root, async (ctx) => {
+            await storage.unsubscribe(ctx, subscriber, feed);
+        });
+        state = await storage.getSubscriberSubscriptions(root, subscriber);
+        expect(state.length).toBe(0);
+
         //
         // Create Feed and Upgrade in the same transaction, then subscribe
         //
@@ -237,6 +251,13 @@ describe('EventsStorage', () => {
         expect(state[0].id).toMatchObject(feed);
         expect(state[0].jumbo).toBe(true);
         expect(state[0].latest).toBe(null);
+
+        // Unsubscribe
+        await inTx(root, async (ctx) => {
+            await storage.unsubscribe(ctx, subscriber, feed);
+        });
+        state = await storage.getSubscriberSubscriptions(root, subscriber);
+        expect(state.length).toBe(0);
 
         //
         // Create Feed, Subscribe and then upgrade
@@ -266,6 +287,13 @@ describe('EventsStorage', () => {
         expect(state[0].id).toMatchObject(feed);
         expect(state[0].jumbo).toBe(true);
         expect(state[0].latest).toBe(null);
+
+        // Unsubscribe
+        await inTx(root, async (ctx) => {
+            await storage.unsubscribe(ctx, subscriber, feed);
+        });
+        state = await storage.getSubscriberSubscriptions(root, subscriber);
+        expect(state.length).toBe(0);
     });
 
     it('repeatKey should collapse updates', async () => {
@@ -287,7 +315,7 @@ describe('EventsStorage', () => {
         }
         let [event1, event2] = await inTx(root, async (ctx) => {
             let ev1 = await storage.post(ctx, ids.feed, createEvent(0), { repeatKey: Buffer.from('repeat-key-0') });
-            let ev2 = await storage.post(ctx, ids.feed, createEvent(1), { repeatKey:  Buffer.from('repeat-key-1') });
+            let ev2 = await storage.post(ctx, ids.feed, createEvent(1), { repeatKey: Buffer.from('repeat-key-1') });
             return [ev1, ev2];
         });
         let difference = await storage.getDifference(root, ids.subscriber, { state: state, batchSize: 10, limit: 10 });
@@ -300,7 +328,7 @@ describe('EventsStorage', () => {
 
         // Update with collapse key and without
         let [event3, event4] = await inTx(root, async (ctx) => {
-            let ev3 = await storage.post(ctx, ids.feed, createEvent(2), { repeatKey:  Buffer.from('repeat-key-0') });
+            let ev3 = await storage.post(ctx, ids.feed, createEvent(2), { repeatKey: Buffer.from('repeat-key-0') });
             let ev4 = await storage.post(ctx, ids.feed, createEvent(3));
             return [ev3, ev4];
         });
