@@ -83,7 +83,7 @@ export class CommentsNotificationsRepository {
                 }
 
                 let settings = await Modules.Users.getUserSettings(ctx, subscription.uid);
-                let areNotificationsDisabled = !settings.commentNotifications || settings.commentNotifications === 'none';
+                let areNotificationsDisabled = false;
                 if (settings.mobile && settings.desktop) {
                     areNotificationsDisabled = !settings.mobile.comments.showNotification && !settings.desktop.comments.showNotification;
                 }
@@ -96,32 +96,7 @@ export class CommentsNotificationsRepository {
                     continue;
                 }
 
-                let sendNotification = false;
-
-                if (settings.mobile && settings.desktop) {
-                    sendNotification = settings.mobile.comments.showNotification || settings.desktop.comments.showNotification;
-                } else {
-                    if (settings.commentNotifications === 'all') {
-                        sendNotification = true;
-                    } else if (settings.commentNotifications === 'direct') {
-                        if (comment.parentCommentId) {
-                            let parentComment = await Store.Comment.findById(ctx, comment.parentCommentId);
-                            if (parentComment && parentComment.uid === subscription.uid) {
-                                sendNotification = true;
-                            }
-                        }
-                        if (comment.peerType === 'message') {
-                            let message = await Store.Message.findById(ctx, comment.peerId);
-                            if (message && message.uid === subscription.uid) {
-                                sendNotification = true;
-                            }
-                        }
-                    }
-                }
-
-                if (sendNotification) {
-                    await Modules.NotificationCenter.sendNotification(ctx, subscription.uid, { content: [{ type: 'new_comment', commentId: comment.id }] });
-                }
+                await Modules.NotificationCenter.sendNotification(ctx, subscription.uid, { content: [{ type: 'new_comment', commentId: comment.id }] });
             }
         });
     }

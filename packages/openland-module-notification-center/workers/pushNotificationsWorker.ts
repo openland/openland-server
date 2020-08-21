@@ -60,16 +60,6 @@ function shouldIgnoreUser(ctx: Context, user: User) {
             DEBUG && log.debug(ctx, 'ignore user\'s with disabled notifications');
             return true;
         }
-    } else {
-        if (settings.mobileNotifications === 'none' && settings.desktopNotifications === 'none') {
-            DEBUG && log.debug(ctx, 'ignore user\'s with disabled notifications');
-            return true;
-        }
-
-        if (!settings.commentNotificationsDelivery || settings.commentNotificationsDelivery === 'none') {
-            DEBUG && log.debug(ctx, 'ignore user\'s with disabled notifications');
-            return true;
-        }
     }
 
     // Ignore already processed updates
