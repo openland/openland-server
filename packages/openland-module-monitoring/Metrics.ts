@@ -258,5 +258,8 @@ export const Metrics = {
     // Push
     UnreadUsers: Factory.createPersistedGauge('unread_users', 'Unread users count', async (ctx) => {
         return (await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push')).length;
-    })
+    }),
+    NotificationCenterUnreadUsers: Factory.createPersistedGauge('notification_center_unread_users', 'Unread users count', async (ctx) => {
+        return (await Modules.NotificationCenter.needDelivery.findAllUsersWithNotifications(ctx, 'push')).length;
+    }),
 };
