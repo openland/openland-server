@@ -101,7 +101,7 @@ async function handleUser(ctx: Context, uid: number) {
     // Scanning updates
     let afterSec = Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq ? state.readSeq : 0, state.lastPushSeq || 0);
 
-    let remainingUpdates = (await Store.NotificationCenterEvent.notificationCenter.query(ctx, state.ncid, {after: afterSec})).items;
+    let remainingUpdates = (await Store.NotificationCenterEvent.notificationCenter.query(ctx, state.ncid, {after: afterSec, limit: 25})).items;
     let notifications = remainingUpdates.filter((v) => v.kind === 'notification_received');
 
     // Handling unread messages
