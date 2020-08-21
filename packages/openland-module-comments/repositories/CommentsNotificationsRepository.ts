@@ -76,8 +76,12 @@ export class CommentsNotificationsRepository {
                     let message = (await Store.Message.findById(ctx, comment.peerId))!;
                     let isPublicChat = await Modules.Messaging.room.isPublicRoom(ctx, message.cid);
                     let isMember = await Modules.Messaging.room.isRoomMember(ctx, subscription.uid, message.cid);
+                    let conv = await Store.Conversation.findById(ctx, message.cid);
+                    if (!conv) {
+                        continue;
+                    }
 
-                    if (!isPublicChat && !isMember) {
+                    if (conv.kind === 'room' && !isPublicChat && !isMember) {
                         continue;
                     }
                 }
