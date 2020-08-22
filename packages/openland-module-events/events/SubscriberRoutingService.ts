@@ -16,9 +16,9 @@ export class SubscriberRoutingService {
 
     async start() {
         let initial = await inTx(root, async (ctx) => {
-            let subscriptions = await Modules.Events.storage.getSubscriberSubscriptions(ctx, this.subscriber);
-            let version = await Modules.Events.storage.getSubscriberVersion(ctx, this.subscriber);
-            let watch = await Modules.Events.storage.watchSubscriberVersion(ctx, this.subscriber);
+            let subscriptions = await Modules.Events.mediator.storage.getSubscriberSubscriptions(ctx, this.subscriber);
+            let version = await Modules.Events.mediator.storage.getSubscriberVersion(ctx, this.subscriber);
+            let watch = await Modules.Events.mediator.storage.watchSubscriberVersion(ctx, this.subscriber);
             return { subscriptions, version, watch };
         });
 

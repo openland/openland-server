@@ -1,3 +1,4 @@
+import { Store } from 'openland-module-db/FDB';
 import { encoders } from '@openland/foundationdb';
 import {
     UpdateChatRead,
@@ -20,6 +21,19 @@ export type Event =
     | UpdateChatGotAccess
     | UpdateChatLostAccess
     ;
+
+//
+// Serialization
+//
+
+export function serializeEvent(event: Event) {
+    return Buffer.from(JSON.stringify(Store.eventFactory.encode(event)), 'utf-8');
+}
+
+export function parseEvent(src: Buffer): Event {
+    let json = src.toString('utf-8');
+    return Store.eventFactory.decode(JSON.parse(json)) as Event;
+}
 
 //
 // Repeat Key Resolving

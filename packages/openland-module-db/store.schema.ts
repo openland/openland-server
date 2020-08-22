@@ -2480,7 +2480,9 @@ export default declareSchema(() => {
     //
 
     customDirectory('EventStorage');
-    customDirectory('UserEventSequence');
+    customDirectory('EventRegistrations');
+    customDirectory('EventUserSeq');
+
     event('UpdateChatRead', () => {
         field('uid', integer());
         field('cid', integer());

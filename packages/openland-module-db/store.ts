@@ -22397,7 +22397,8 @@ export interface Store extends BaseStore {
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
     readonly EventStorageDirectory: Subspace;
-    readonly UserEventSequenceDirectory: Subspace;
+    readonly EventRegistrationsDirectory: Subspace;
+    readonly EventUserSeqDirectory: Subspace;
     readonly ShardingDataDirectory: Subspace;
     readonly ImportedPhoneDirectory: Subspace;
     readonly PhoneImportedByUserDirectory: Subspace;
@@ -22673,7 +22674,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
     let EventStorageDirectoryPromise = storage.resolveCustomDirectory('eventStorage');
-    let UserEventSequenceDirectoryPromise = storage.resolveCustomDirectory('userEventSequence');
+    let EventRegistrationsDirectoryPromise = storage.resolveCustomDirectory('eventRegistrations');
+    let EventUserSeqDirectoryPromise = storage.resolveCustomDirectory('eventUserSeq');
     let ShardingDataDirectoryPromise = storage.resolveCustomDirectory('shardingData');
     let ImportedPhoneDirectoryPromise = storage.resolveCustomDirectory('importedPhone');
     let PhoneImportedByUserDirectoryPromise = storage.resolveCustomDirectory('phoneImportedByUser');
@@ -22917,7 +22919,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
         EventStorageDirectory: await EventStorageDirectoryPromise,
-        UserEventSequenceDirectory: await UserEventSequenceDirectoryPromise,
+        EventRegistrationsDirectory: await EventRegistrationsDirectoryPromise,
+        EventUserSeqDirectory: await EventUserSeqDirectoryPromise,
         ShardingDataDirectory: await ShardingDataDirectoryPromise,
         ImportedPhoneDirectory: await ImportedPhoneDirectoryPromise,
         PhoneImportedByUserDirectory: await PhoneImportedByUserDirectoryPromise,

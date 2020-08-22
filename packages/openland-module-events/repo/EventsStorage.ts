@@ -1,7 +1,6 @@
 import { Context } from '@openland/context';
 import { inTx, Subspace, encoders, TransactionCache, getTransaction, assertNoTransaction, inTxLeaky } from '@openland/foundationdb';
 import { randomId } from 'openland-utils/randomId';
-import { EventBus } from 'openland-module-pubsub/EventBus';
 
 const feedIndexCache = new TransactionCache<number>('feed-index-cache');
 
@@ -75,21 +74,15 @@ function checkState(src: Buffer) {
     }
 }
 
-function serialize(src: Buffer) {
-    return src.toString('hex');
-}
-
 export type RawEvent = { id: Buffer, seq: number, type: 'event' | 'start', body: Buffer | null };
 
 export class EventsStorage {
 
-    private readonly testing: boolean;
     private readonly feedsDirectory: Subspace;
     private readonly subscribersDirectory: Subspace;
     private readonly registryDirectory: Subspace;
 
-    constructor(directory: Subspace, testing: boolean = false) {
-        this.testing = testing;
+    constructor(directory: Subspace) {
         this.feedsDirectory = directory.subspace(encoders.tuple.pack([0]));
         this.subscribersDirectory = directory.subspace(encoders.tuple.pack([1]));
         this.registryDirectory = directory.subspace(encoders.tuple.pack([2]));
@@ -617,23 +610,6 @@ export class EventsStorage {
                         index
                     );
                 }
-            }
-
-            // Notify
-            if (!this.testing) {
-                let resolveId = this.resolvePostId(ctx, index);
-                getTransaction(ctx).afterCommit(async () => {
-                    let postIdRaw = await resolveId.promise;
-                    let feedId = serialize(feed);
-                    let postId = serialize(postIdRaw);
-                    EventBus.publish(`events.feed.${feedId}`, { seq, feedId, postId });
-                    if (!settings.jumbo) {
-                        for (let s of settings.subscribers) {
-                            let subscriber = serialize(s);
-                            EventBus.publish(`events.subscriber.${subscriber}`, { seq, feedId, postId });
-                        }
-                    }
-                });
             }
 
             return {
