@@ -12,6 +12,14 @@ export class HooksModuleMock {
         // Nothing to do
     }
 
+    onUserCreated = async (ctx: Context, uid: number) => {
+        // Nothing to do
+    }
+
+    onUserDeleted = async (ctx: Context, uid: number) => {
+        // Nothing to do
+    }
+
     onUserProfileUpdated = async (uid: number) => {
         // Nothing to do
     }
