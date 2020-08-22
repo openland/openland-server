@@ -17,7 +17,7 @@ describe('EventsStorage', () => {
                 db.allKeys.clearPrefixed(ctx, zero);
             });
 
-            let storage = new EventsStorage(db.allKeys, true);
+            let storage = new EventsStorage(db.allKeys);
 
             // Create feed and subscriber
             let ids = await inTx(root, async (ctx) => {
@@ -101,7 +101,7 @@ describe('EventsStorage', () => {
     it('loading feed updates should work', async () => {
         let root = createNamedContext('test');
         let db = await Database.openTest({ name: 'event-storage-feed-updates', layers: [] });
-        let storage = new EventsStorage(db.allKeys, true);
+        let storage = new EventsStorage(db.allKeys);
 
         let ids = await inTx(root, async (ctx) => {
             let feed = (await storage.createFeed(ctx)).id;
@@ -175,7 +175,7 @@ describe('EventsStorage', () => {
 
         for (let jumbo of [false, true]) {
 
-            let storage = new EventsStorage(db.allKeys, true);
+            let storage = new EventsStorage(db.allKeys);
             await inTx(root, async (ctx) => {
                 db.allKeys.clearPrefixed(ctx, zero);
             });
@@ -261,7 +261,7 @@ describe('EventsStorage', () => {
 
         for (let jumbo of [false, true]) {
 
-            let storage = new EventsStorage(db.allKeys, true);
+            let storage = new EventsStorage(db.allKeys);
             await inTx(root, async (ctx) => {
                 db.allKeys.clearPrefixed(ctx, zero);
             });
@@ -310,7 +310,7 @@ describe('EventsStorage', () => {
         let root = createNamedContext('test');
         let db = await Database.openTest({ name: 'event-storage-upgrade', layers: [] });
 
-        let storage = new EventsStorage(db.allKeys, true);
+        let storage = new EventsStorage(db.allKeys);
 
         //
         // Create Feed and Subscriber, Upgrade and then subscribe
@@ -425,7 +425,7 @@ describe('EventsStorage', () => {
     it('repeatKey should collapse updates', async () => {
         let root = createNamedContext('test');
         let db = await Database.openTest({ name: 'event-storage-repeat-key', layers: [] });
-        let storage = new EventsStorage(db.allKeys, true);
+        let storage = new EventsStorage(db.allKeys);
 
         let ids = await inTx(root, async (ctx) => {
             let feed = (await storage.createFeed(ctx)).id;
