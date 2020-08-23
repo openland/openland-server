@@ -512,4 +512,27 @@ describe('EventsStorage', () => {
         expect(difference.events[2].body).toMatchObject(createEvent(3));
         expect(difference.events[2].seq).toBe(event4.seq);
     });
+
+    it('should be able to post multiple events to the same feed in the same transaction', async () => {
+        let root = createNamedContext('test');
+        let db = await Database.openTest({ name: 'event-storage-post-multiple', layers: [] });
+        let storage = new EventsStorage(db.allKeys);
+
+        // Initial
+        let feed = await inTx(root, async (ctx) => {
+            return (await storage.createFeed(ctx)).id;
+        });
+
+        // Simple post
+        await inTx(root, async (ctx) => {
+            await storage.post(ctx, feed, createEvent(0));
+            await storage.post(ctx, feed, createEvent(1));
+        });
+
+        // Simple repeat key
+        await inTx(root, async (ctx) => {
+            await storage.post(ctx, feed, createEvent(2), { repeatKey: Buffer.from('repeat-key-0') });
+            await storage.post(ctx, feed, createEvent(3), { repeatKey: Buffer.from('repeat-key-0') });
+        });
+    });
 });

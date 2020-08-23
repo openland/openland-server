@@ -3,6 +3,12 @@ import { inTx, Subspace, encoders, TransactionCache, getTransaction, assertNoTra
 import { randomId } from 'openland-utils/randomId';
 
 const feedIndexCache = new TransactionCache<number>('feed-index-cache');
+const feedDeliveryCache = new TransactionCache<{
+    previous: Buffer | null,
+    removedRepeatKeys: Set<string>,
+    subscribers: Buffer[],
+    index: Buffer
+}>('feed-delivery');
 
 //
 // Registry is a simple collection of existing ids and there are nothing 
@@ -580,6 +586,9 @@ export class EventsStorage {
     async post(parent: Context, feed: Buffer, event: Buffer, opts?: { repeatKey?: Buffer }) {
         checkId(feed);
 
+        // Calculate feed key
+        let feedKey = feed.toString('hex');
+
         // Resolve repeat key
         let repeatKey: Buffer | undefined = opts && opts.repeatKey ? opts.repeatKey : undefined;
 
@@ -596,30 +605,47 @@ export class EventsStorage {
 
             // Read feed settings
             let settings = await this.readFeedSettingsSnapshot(ctx, feed);
+            this.feedsDirectory.addReadConflictKey(ctx, encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_SEQ]));
+            this.feedsDirectory.addReadConflictKey(ctx, encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_JUMBO]));
 
             // Resolve counter
             let seq = settings.counter + 1;
-            let seqKey = encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_SEQ]);
-            this.feedsDirectory.addReadConflictKey(ctx, seqKey);
-            this.feedsDirectory.set(ctx, seqKey, encoders.int32BE.pack(seq));
+            this.feedsDirectory.set(ctx, encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_SEQ]), encoders.int32BE.pack(seq));
 
             // Put event to feed
             let index = this.resolveIndex(ctx);
             let body = encoders.tuple.pack([seq, 1 /* Body Type: Event */, event]);
             this.feedsDirectory.setVersionstampedKey(ctx, encoders.tuple.pack([feed, FEED_STREAM]), body, index);
 
-            // Put latest event versionstamp
-            // await this.feedsDirectory.get(ctx, encoders.tuple.pack([feed, FEED_LATEST]));
+            // Read delivery
+            let delivery = feedDeliveryCache.get(ctx, feedKey)!;
+            let isFirstDelivery = false;
+            if (!delivery) {
+                isFirstDelivery = true;
+                let latest = await this.feedsDirectory.get(ctx, encoders.tuple.pack([feed, FEED_LATEST]));
+                delivery = { previous: latest, removedRepeatKeys: new Set(), subscribers: settings.jumbo ? [] : settings.subscribers, index: index };
+                feedDeliveryCache.set(ctx, feedKey, delivery);
+            } else {
+                delivery.subscribers = settings.jumbo ? [] : settings.subscribers;
+                delivery.index = index;
+            }
+
+            // Persist new one
             this.feedsDirectory.setVersionstampedValue(ctx, encoders.tuple.pack([feed, FEED_LATEST]), ZERO, index);
 
             // Handle repeat key
             if (repeatKey) {
+                let repeatStringKey = repeatKey.toString('hex');
                 let repeatRef = encoders.tuple.pack([feed, FEED_REPEAT, repeatKey]);
 
                 // Clear previous event if exists
-                let prevPost = await this.feedsDirectory.get(ctx, repeatRef);
-                if (prevPost) {
-                    this.feedsDirectory.clear(ctx, Buffer.concat([encoders.tuple.pack([feed, FEED_STREAM]), prevPost]));
+                if (!delivery.removedRepeatKeys.has(repeatStringKey)) {
+                    delivery.removedRepeatKeys.add(repeatStringKey);
+
+                    let prevPost = await this.feedsDirectory.get(ctx, repeatRef);
+                    if (prevPost) {
+                        this.feedsDirectory.clear(ctx, Buffer.concat([encoders.tuple.pack([feed, FEED_STREAM]), prevPost]));
+                    }
                 }
 
                 // Save repeat key reference to current event
@@ -627,33 +653,36 @@ export class EventsStorage {
             }
 
             // Delivery of non jumbo feeds
-            this.feedsDirectory.addReadConflictKey(ctx, encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_JUMBO]));
             let subscribers: (Buffer[]) | null = null;
             if (!settings.jumbo) {
                 subscribers = settings.subscribers;
-                for (let s of settings.subscribers) {
 
-                    // Update local delivery time
-                    let subscriberKey = encoders.tuple.pack([s, SUBSCRIBERS_SUBSCRIPTIONS, feed, SUBSCRIBERS_SUBSCRIPTIONS_LATEST]);
-                    this.subscribersDirectory.setVersionstampedValue(
-                        ctx,
-                        subscriberKey,
-                        ZERO,
-                        index
-                    );
+                // Add delivery callback
+                if (isFirstDelivery) {
+                    getTransaction(ctx).beforeCommit((commit) => {
+                        for (let s of delivery.subscribers) {
+                            let subscriberKey = encoders.tuple.pack([s, SUBSCRIBERS_SUBSCRIPTIONS, feed, SUBSCRIBERS_SUBSCRIPTIONS_LATEST]);
+                            this.subscribersDirectory.setVersionstampedValue(
+                                commit,
+                                subscriberKey,
+                                ZERO,
+                                delivery.index
+                            );
 
-                    // Update local delivery seq
-                    let subscriberSeqKey = encoders.tuple.pack([s, SUBSCRIBERS_SUBSCRIPTIONS, feed, SUBSCRIBERS_SUBSCRIPTIONS_LATEST_SEQ]);
-                    this.subscribersDirectory.set(ctx, subscriberSeqKey, encoders.int32LE.pack(seq));
+                            // Update local delivery seq
+                            let subscriberSeqKey = encoders.tuple.pack([s, SUBSCRIBERS_SUBSCRIPTIONS, feed, SUBSCRIBERS_SUBSCRIPTIONS_LATEST_SEQ]);
+                            this.subscribersDirectory.set(commit, subscriberSeqKey, encoders.int32LE.pack(seq));
 
-                    // Update global delivery time
-                    let subscriberLatestKey = encoders.tuple.pack([s, SUBSCRIBERS_LATEST]);
-                    this.subscribersDirectory.setVersionstampedValue(
-                        ctx,
-                        subscriberLatestKey,
-                        ZERO,
-                        index
-                    );
+                            // Update global delivery time
+                            let subscriberLatestKey = encoders.tuple.pack([s, SUBSCRIBERS_LATEST]);
+                            this.subscribersDirectory.setVersionstampedValue(
+                                commit,
+                                subscriberLatestKey,
+                                ZERO,
+                                delivery.index
+                            );
+                        }
+                    });
                 }
             }
 
