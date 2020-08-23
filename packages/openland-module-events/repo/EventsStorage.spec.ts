@@ -519,20 +519,76 @@ describe('EventsStorage', () => {
         let storage = new EventsStorage(db.allKeys);
 
         // Initial
-        let feed = await inTx(root, async (ctx) => {
-            return (await storage.createFeed(ctx)).id;
+        let ids = await inTx(root, async (ctx) => {
+            let feed = (await storage.createFeed(ctx)).id;
+            let subscriber = await storage.createSubscriber(ctx);
+            await storage.subscribe(ctx, subscriber, feed);
+            return { feed, subscriber };
         });
 
         // Simple post
         await inTx(root, async (ctx) => {
-            await storage.post(ctx, feed, createEvent(0));
-            await storage.post(ctx, feed, createEvent(1));
+            await storage.post(ctx, ids.feed, createEvent(0));
+            await storage.post(ctx, ids.feed, createEvent(1));
         });
 
         // Simple repeat key
         await inTx(root, async (ctx) => {
-            await storage.post(ctx, feed, createEvent(2), { repeatKey: Buffer.from('repeat-key-0') });
-            await storage.post(ctx, feed, createEvent(3), { repeatKey: Buffer.from('repeat-key-0') });
+            await storage.post(ctx, ids.feed, createEvent(2), { repeatKey: Buffer.from('repeat-key-0') });
+            await storage.post(ctx, ids.feed, createEvent(3), { repeatKey: Buffer.from('repeat-key-0') });
         });
+    });
+
+    it('should detect changed feeds', async () => {
+        let root = createNamedContext('test');
+        let db = await Database.openTest({ name: 'event-storage-detect-changes', layers: [] });
+        let storage = new EventsStorage(db.allKeys);
+
+        // Prepare
+        let ids = await inTx(root, async (ctx) => {
+            let feed1 = (await storage.createFeed(ctx)).id;
+            let feed2 = (await storage.createFeed(ctx)).id;
+            let feed3 = (await storage.createFeed(ctx)).id;
+            let subscriber = await storage.createSubscriber(ctx);
+            await storage.subscribe(ctx, subscriber, feed1);
+            await storage.subscribe(ctx, subscriber, feed2);
+            await storage.subscribe(ctx, subscriber, feed3);
+            return { feed1, feed2, feed3, subscriber };
+        });
+        let state = await storage.getState(root, ids.subscriber);
+
+        // Initial
+        let changed = await storage.getUpdatedFeeds(root, ids.subscriber, state);
+        expect(changed.length).toBe(0);
+
+        // Post single update
+        await storage.post(root, ids.feed1, createEvent(0));
+        changed = await storage.getUpdatedFeeds(root, ids.subscriber, state);
+        expect(changed.length).toBe(1);
+        expect(changed[0]).toMatchObject(ids.feed1);
+
+        let newState = await storage.getState(root, ids.subscriber);
+        changed = await storage.getUpdatedFeeds(root, ids.subscriber, newState);
+        expect(changed.length).toBe(0);
+
+        // Post second update to the same feed
+        await storage.post(root, ids.feed1, createEvent(0));
+        changed = await storage.getUpdatedFeeds(root, ids.subscriber, state);
+        expect(changed.length).toBe(1);
+        expect(changed[0]).toMatchObject(ids.feed1);
+        changed = await storage.getUpdatedFeeds(root, ids.subscriber, newState);
+        expect(changed.length).toBe(1);
+        expect(changed[0]).toMatchObject(ids.feed1);
+
+        // Post updates to second feed
+        await inTx(root, async (ctx) => {
+            await storage.post(ctx, ids.feed2, createEvent(10));
+            await storage.post(ctx, ids.feed2, createEvent(11));
+        });
+
+        changed = await storage.getUpdatedFeeds(root, ids.subscriber, state);
+        expect(changed.length).toBe(2);
+        expect(changed[0]).toMatchObject(ids.feed1);
+        expect(changed[1]).toMatchObject(ids.feed2);
     });
 });
