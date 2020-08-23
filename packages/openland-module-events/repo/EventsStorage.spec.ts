@@ -208,11 +208,11 @@ describe('EventsStorage', () => {
             let state = await storage.getState(root, ids.subscriber);
 
             // Post 100 events
-            await inTx(root, async (ctx) => {
-                for (let i = 0; i < 100; i++) {
+            for (let i = 0; i < 100; i++) {
+                await inTx(root, async (ctx) => {
                     await storage.post(ctx, ids.feed, zero);
-                }
-            });
+                });
+            }
 
             // Simple partial diff
             let diff = await storage.getDifference(root, ids.subscriber, { state: state, batchSize: 10, limit: 10 });
@@ -294,11 +294,11 @@ describe('EventsStorage', () => {
             let state = await storage.getState(root, ids.subscriber);
 
             // Post 100 events
-            await inTx(root, async (ctx) => {
-                for (let i = 0; i < 100; i++) {
+            for (let i = 0; i < 100; i++) {
+                await inTx(root, async (ctx) => {
                     await storage.post(ctx, ids.feed, zero);
-                }
-            });
+                });
+            }
 
             // Simple partial diff
             let diff = await storage.getDifference(root, ids.subscriber, { state: state, batchSize: 20, limit: 10 });
@@ -480,10 +480,11 @@ describe('EventsStorage', () => {
         let state = await storage.getState(root, ids.subscriber);
 
         // Create initial
-        let [event1, event2] = await inTx(root, async (ctx) => {
-            let ev1 = await storage.post(ctx, ids.feed, createEvent(0), { repeatKey: Buffer.from('repeat-key-0') });
-            let ev2 = await storage.post(ctx, ids.feed, createEvent(1), { repeatKey: Buffer.from('repeat-key-1') });
-            return [ev1, ev2];
+        let event1 = await inTx(root, async (ctx) => {
+            return await storage.post(ctx, ids.feed, createEvent(0), { repeatKey: Buffer.from('repeat-key-0') });
+        });
+        let event2 = await inTx(root, async (ctx) => {
+            return await storage.post(ctx, ids.feed, createEvent(1), { repeatKey: Buffer.from('repeat-key-1') });
         });
         let difference = await storage.getDifference(root, ids.subscriber, { state: state, batchSize: 10, limit: 10 });
         expect(difference.events.length).toBe(2);
@@ -494,10 +495,11 @@ describe('EventsStorage', () => {
         expect(difference.events[1].seq).toBe(event2.seq);
 
         // Update with collapse key and without
-        let [event3, event4] = await inTx(root, async (ctx) => {
-            let ev3 = await storage.post(ctx, ids.feed, createEvent(2), { repeatKey: Buffer.from('repeat-key-0') });
-            let ev4 = await storage.post(ctx, ids.feed, createEvent(3));
-            return [ev3, ev4];
+        let event3 = await inTx(root, async (ctx) => {
+            return await storage.post(ctx, ids.feed, createEvent(2), { repeatKey: Buffer.from('repeat-key-0') });
+        });
+        let event4 = await inTx(root, async (ctx) => {
+            return await storage.post(ctx, ids.feed, createEvent(3));
         });
 
         difference = await storage.getDifference(root, ids.subscriber, { state: state, batchSize: 10, limit: 10 });

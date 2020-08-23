@@ -77,6 +77,8 @@ function checkState(src: Buffer) {
     }
 }
 
+// const feedPostingCache = new TransactionCache<{ txCleared: boolean }>('event-storage-feed');
+
 export type RawEvent = { id: Buffer, seq: number, type: 'event' | 'start', body: Buffer | null };
 
 export class EventsStorage {
@@ -607,6 +609,7 @@ export class EventsStorage {
             this.feedsDirectory.setVersionstampedKey(ctx, encoders.tuple.pack([feed, FEED_STREAM]), body, index);
 
             // Put latest event versionstamp
+            // await this.feedsDirectory.get(ctx, encoders.tuple.pack([feed, FEED_LATEST]));
             this.feedsDirectory.setVersionstampedValue(ctx, encoders.tuple.pack([feed, FEED_LATEST]), ZERO, index);
 
             // Handle repeat key
