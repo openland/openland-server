@@ -32,11 +32,24 @@ describe('EventsStorage', () => {
                 return { feed, subscriber1, subscriber2 };
             });
 
+            // Check jumbo subscriptions
+            let subscriberJumbo1 = await storage.getSubscriberJumboSubscriptions(root, ids.subscriber1);
+            let subscriberJumbo2 = await storage.getSubscriberJumboSubscriptions(root, ids.subscriber2);
+            if (jumbo) {
+                expect(subscriberJumbo1.length).toBe(1);
+                expect(subscriberJumbo2.length).toBe(1);
+                expect(subscriberJumbo1[0]).toMatchObject(ids.feed);
+                expect(subscriberJumbo2[0]).toMatchObject(ids.feed);
+            } else {
+                expect(subscriberJumbo1.length).toBe(0);
+                expect(subscriberJumbo2.length).toBe(0);
+            }
+
             // Get current state
             let state = await storage.getState(root, ids.subscriber1);
 
             // Get subscriber state
-            let subscriberState1 = await storage.getSubscriberSubscriptions(root, ids.subscriber1);
+            let subscriberState1 = await storage.getSubscriberState(root, ids.subscriber1);
 
             // Create a post
             let postId = await (await inTx(root, async (ctx) => {
@@ -52,7 +65,7 @@ describe('EventsStorage', () => {
             })).promise;
 
             // Get subscriber state
-            let subscriberState2 = await storage.getSubscriberSubscriptions(root, ids.subscriber1);
+            let subscriberState2 = await storage.getSubscriberState(root, ids.subscriber1);
 
             // Check id values
             expect(state.length).toBe(12);
@@ -93,7 +106,7 @@ describe('EventsStorage', () => {
             await inTx(root, async (ctx) => {
                 await storage.unsubscribe(ctx, ids.subscriber1, ids.feed);
             });
-            let subsState = await storage.getSubscriberSubscriptions(root, ids.subscriber1);
+            let subsState = await storage.getSubscriberState(root, ids.subscriber1);
             expect(subsState.length).toBe(0);
         }
     });
@@ -325,8 +338,12 @@ describe('EventsStorage', () => {
         });
 
         // Initial state must be empty
-        let state = await storage.getSubscriberSubscriptions(root, subscriber);
+        let state = await storage.getSubscriberState(root, subscriber);
         expect(state.length).toBe(0);
+
+        // Check jumbo subscriptions
+        let subscriberJumbo = await storage.getSubscriberJumboSubscriptions(root, subscriber);
+        expect(subscriberJumbo.length).toBe(0);
 
         // Upgrade feed
         await inTx(root, async (ctx) => {
@@ -339,18 +356,27 @@ describe('EventsStorage', () => {
         });
 
         // State must be correct
-        state = await storage.getSubscriberSubscriptions(root, subscriber);
+        state = await storage.getSubscriberState(root, subscriber);
         expect(state.length).toBe(1);
         expect(state[0].id).toMatchObject(feed);
         expect(state[0].jumbo).toBe(true);
         expect(state[0].latest).toBe(null);
 
+        // Check jumbo subscriptions
+        subscriberJumbo = await storage.getSubscriberJumboSubscriptions(root, subscriber);
+        expect(subscriberJumbo.length).toBe(1);
+        expect(subscriberJumbo[0]).toMatchObject(feed);
+
         // Unsubscribe
         await inTx(root, async (ctx) => {
             await storage.unsubscribe(ctx, subscriber, feed);
         });
-        state = await storage.getSubscriberSubscriptions(root, subscriber);
+        state = await storage.getSubscriberState(root, subscriber);
         expect(state.length).toBe(0);
+
+        // Check jumbo subscriptions
+        subscriberJumbo = await storage.getSubscriberJumboSubscriptions(root, subscriber);
+        expect(subscriberJumbo.length).toBe(0);
 
         //
         // Create Feed and Upgrade in the same transaction, then subscribe
@@ -372,18 +398,27 @@ describe('EventsStorage', () => {
         });
 
         // State must be correct
-        state = await storage.getSubscriberSubscriptions(root, subscriber);
+        state = await storage.getSubscriberState(root, subscriber);
         expect(state.length).toBe(1);
         expect(state[0].id).toMatchObject(feed);
         expect(state[0].jumbo).toBe(true);
         expect(state[0].latest).toBe(null);
 
+        // Check jumbo subscriptions
+        subscriberJumbo = await storage.getSubscriberJumboSubscriptions(root, subscriber);
+        expect(subscriberJumbo.length).toBe(1);
+        expect(subscriberJumbo[0]).toMatchObject(feed);
+
         // Unsubscribe
         await inTx(root, async (ctx) => {
             await storage.unsubscribe(ctx, subscriber, feed);
         });
-        state = await storage.getSubscriberSubscriptions(root, subscriber);
+        state = await storage.getSubscriberState(root, subscriber);
         expect(state.length).toBe(0);
+
+        // Check jumbo subscriptions
+        subscriberJumbo = await storage.getSubscriberJumboSubscriptions(root, subscriber);
+        expect(subscriberJumbo.length).toBe(0);
 
         //
         // Create Feed, Subscribe and then upgrade
@@ -408,18 +443,27 @@ describe('EventsStorage', () => {
         });
 
         // State must be correct
-        state = await storage.getSubscriberSubscriptions(root, subscriber);
+        state = await storage.getSubscriberState(root, subscriber);
         expect(state.length).toBe(1);
         expect(state[0].id).toMatchObject(feed);
         expect(state[0].jumbo).toBe(true);
         expect(state[0].latest).toBe(null);
 
+        // Check jumbo subscriptions
+        subscriberJumbo = await storage.getSubscriberJumboSubscriptions(root, subscriber);
+        expect(subscriberJumbo.length).toBe(1);
+        expect(subscriberJumbo[0]).toMatchObject(feed);
+
         // Unsubscribe
         await inTx(root, async (ctx) => {
             await storage.unsubscribe(ctx, subscriber, feed);
         });
-        state = await storage.getSubscriberSubscriptions(root, subscriber);
+        state = await storage.getSubscriberState(root, subscriber);
         expect(state.length).toBe(0);
+
+        // Check jumbo subscriptions
+        subscriberJumbo = await storage.getSubscriberJumboSubscriptions(root, subscriber);
+        expect(subscriberJumbo.length).toBe(0);
     });
 
     it('repeatKey should collapse updates', async () => {
