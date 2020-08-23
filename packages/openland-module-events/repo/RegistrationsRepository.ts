@@ -41,7 +41,7 @@ export class RegistrationsRepository {
 
             // Create common feed if needed
             if (!common) {
-                common = (await this.storage.createFeed(ctx)).id;
+                common = (await this.storage.createFeed(ctx));
                 this.directory.set(ctx, encoders.tuple.pack([SUBSPACE_USER, uid, USER_COMMON]), common);
                 this.directory.set(ctx, encoders.tuple.pack([SUBSPACE_FEED, common]), encoders.tuple.pack([FEED_COMMON, uid]));
                 await this.storage.subscribe(ctx, subscriber, common, { strict: true });
@@ -55,7 +55,7 @@ export class RegistrationsRepository {
         return await inTxLeaky(parent, async (ctx) => {
             let existing = await this.directory.get(ctx, encoders.tuple.pack([SUBSPACE_GROUP, cid, GROUP_FEED]));
             if (!existing) {
-                existing = (await this.storage.createFeed(ctx)).id;
+                existing = (await this.storage.createFeed(ctx));
                 this.directory.set(ctx, encoders.tuple.pack([SUBSPACE_GROUP, cid, GROUP_FEED]), existing);
                 this.directory.set(ctx, encoders.tuple.pack([SUBSPACE_FEED, existing]), encoders.tuple.pack([FEED_GROUP, cid]));
                 return existing;
