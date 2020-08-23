@@ -421,14 +421,10 @@ export class EventsStorage {
                 if (opts.mode === 'only-latest') {
                     if (type === 1 /* Type: Event */) {
                         updates.unshift({ id, seq, body, type: 'event' });
-                    } else {
-                        updates.unshift({ id, seq, body, type: 'start' });
                     }
                 } else {
                     if (type === 1 /* Type: Event */) {
                         updates.push({ id, seq, body, type: 'event' });
-                    } else {
-                        updates.push({ id, seq, body, type: 'start' });
                     }
                 }
             }
@@ -563,19 +559,10 @@ export class EventsStorage {
                 this.registryDirectory.addReadConflictKey(ctx, key);
                 this.registryDirectory.set(ctx, key, ZERO);
 
-                // Write create event
-                let index = this.resolveIndex(ctx);
-                let seq = 1;
-                let body = encoders.tuple.pack([seq, 0 /* Body Type: Start */, ZERO]);
-                this.feedsDirectory.setVersionstampedKey(ctx, encoders.tuple.pack([id, FEED_STREAM]), body, index);
+                // Write initial seq = 0
+                this.feedsDirectory.set(ctx, encoders.tuple.pack([id, FEED_SETTINGS, FEED_SETTINGS_SEQ]), encoders.int32BE.pack(0));
 
-                // Write initial seq
-                this.feedsDirectory.set(ctx, encoders.tuple.pack([id, FEED_SETTINGS, FEED_SETTINGS_SEQ]), encoders.int32BE.pack(seq));
-
-                // Write latest event time
-                // this.feedsDirectory.setVersionstampedValue(ctx, encoders.tuple.pack([id, FEED_LATEST]), ZERO, index);
-
-                return { id, seq, index };
+                return id;
             }
         });
     }
