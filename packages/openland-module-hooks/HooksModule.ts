@@ -162,6 +162,14 @@ export class HooksModule {
         await Modules.Messaging.sendMessage(ctx, privateChat.id, hook.appId, { message, ignoreAugmentation: true });
     }
 
+    onUserCreated = async (ctx: Context, uid: number) => {
+        await Modules.Events.onUserCreated(ctx, uid);
+    }
+
+    onUserDeleted = async (ctx: Context, uid: number) => {
+        await Modules.Events.onUserDeleted(ctx, uid);
+    }
+
     onUserActivated = async (ctx: Context, uid: number) => {
         await Modules.Metrics.onUserActivated(ctx, uid);
         await Modules.Phonebook.onNewUser(ctx, uid);

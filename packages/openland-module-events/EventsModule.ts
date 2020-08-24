@@ -1,5 +1,6 @@
+import { EventMediator } from './mediators/EventMediator';
 import { createLogger } from '@openland/log';
-import { createNamedContext } from '@openland/context';
+import { createNamedContext, Context } from '@openland/context';
 import { UserServiceManager } from './users/UserServiceManager';
 import { ShardRegion } from 'openland-module-sharding/ShardRegion';
 import { injectable } from 'inversify';
@@ -12,6 +13,7 @@ const log = createLogger('user-service');
 @injectable()
 export class EventsModule {
 
+    readonly mediator: EventMediator = new EventMediator();
     readonly userSharding = new ShardRegion('users', 128);
     readonly groupSharding = new ShardRegion('groups', 128);
     readonly userService = new UserServiceManager();
@@ -31,5 +33,17 @@ export class EventsModule {
             this.userSharding.startShard(this.userService.createShard);
             this.groupSharding.startShard(this.groupService.createShard);
         }
+    }
+
+    //
+    // Handling
+    //
+
+    onUserCreated = async (ctx: Context, uid: number) => {
+        // TODO: Handle
+    }
+
+    onUserDeleted = async (ctx: Context, uid: number) => {
+        // TODO: Handle
     }
 }

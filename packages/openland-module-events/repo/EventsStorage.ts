@@ -1,8 +1,14 @@
-import { createNamedContext, Context } from '@openland/context';
-import { inTx, Subspace, Database, encoders, TransactionCache, getTransaction, assertNoTransaction, inTxLeaky } from '@openland/foundationdb';
+import { Context } from '@openland/context';
+import { inTx, Subspace, encoders, TransactionCache, getTransaction, assertNoTransaction, inTxLeaky } from '@openland/foundationdb';
 import { randomId } from 'openland-utils/randomId';
 
 const feedIndexCache = new TransactionCache<number>('feed-index-cache');
+const feedDeliveryCache = new TransactionCache<{
+    previous: Buffer | null,
+    removedRepeatKeys: Set<string>,
+    subscribers: Buffer[],
+    index: Buffer
+}>('feed-delivery');
 
 //
 // Registry is a simple collection of existing ids and there are nothing 
@@ -22,6 +28,7 @@ const REGISTRY_SUBSCRIBERS = 1;
 
 const FEED_STREAM = 0;
 const FEED_LATEST = 1;
+const FEED_REPEAT = 3;
 const FEED_SETTINGS = 2;
 const FEED_SETTINGS_SEQ = 0;
 const FEED_SETTINGS_SUBSCRIBERS_COUNT = 1;
@@ -40,16 +47,22 @@ const FEED_SETTINGS_JUMBO = 3;
 //
 
 const SUBSCRIBERS_VT = 1;
+const SUBSCRIBERS_VERSION = 3;
+const SUBSCRIBERS_LATEST = 5;
+const SUBSCRIBERS_JUMBO = 4;
+const SUBSCRIBERS_UPDATES = 6;
 const SUBSCRIBERS_SUBSCRIPTIONS = 2;
 const SUBSCRIBERS_SUBSCRIPTIONS_JOIN = 0;
 const SUBSCRIBERS_SUBSCRIPTIONS_LATEST = 1;
+const SUBSCRIBERS_SUBSCRIPTIONS_LATEST_SEQ = 4;
 const SUBSCRIBERS_SUBSCRIPTIONS_JUMBO = 2;
+const SUBSCRIBERS_SUBSCRIPTIONS_STRICT = 3;
 
 const ZERO = Buffer.alloc(0);
 // const ONE = Buffer.alloc(1);
 
 const PLUS_ONE = encoders.int32LE.pack(1);
-// const MINUS_ONE = encoders.int32LE.pack(-1);
+const MINUS_ONE = encoders.int32LE.pack(-1);
 
 export type ID = Buffer;
 
@@ -71,34 +84,20 @@ function checkState(src: Buffer) {
     }
 }
 
+// const feedPostingCache = new TransactionCache<{ txCleared: boolean }>('event-storage-feed');
+
 export type RawEvent = { id: Buffer, seq: number, type: 'event' | 'start', body: Buffer | null };
 
 export class EventsStorage {
 
-    static async open(db: Database) {
-        let resolved = await inTx(createNamedContext('entity'), async (ctx) => {
-            let feedsDirectory = (await db.directories.createOrOpen(ctx,
-                ['com.openland.events', 'feeds']
-            ));
-            let subscribersDirectory = (await db.directories.createOrOpen(ctx,
-                ['com.openland.events', 'subscribers']
-            ));
-            let registryDirectory = (await db.directories.createOrOpen(ctx,
-                ['com.openland.events', 'registry']
-            ));
-            return { feedsDirectory, subscribersDirectory, registryDirectory };
-        });
-        return new EventsStorage(resolved.feedsDirectory, resolved.subscribersDirectory, resolved.registryDirectory);
-    }
+    private readonly feedsDirectory: Subspace;
+    private readonly subscribersDirectory: Subspace;
+    private readonly registryDirectory: Subspace;
 
-    readonly feedsDirectory: Subspace;
-    readonly subscribersDirectory: Subspace;
-    readonly registryDirectory: Subspace;
-
-    private constructor(feedsDirectory: Subspace, subscribersDirectory: Subspace, registryDirectory: Subspace) {
-        this.feedsDirectory = feedsDirectory;
-        this.subscribersDirectory = subscribersDirectory;
-        this.registryDirectory = registryDirectory;
+    constructor(directory: Subspace) {
+        this.feedsDirectory = directory.subspace(encoders.tuple.pack([0]));
+        this.subscribersDirectory = directory.subspace(encoders.tuple.pack([1]));
+        this.registryDirectory = directory.subspace(encoders.tuple.pack([2]));
     }
 
     //
@@ -126,9 +125,12 @@ export class EventsStorage {
         });
     }
 
-    async subscribe(parent: Context, subscriber: ID, feed: ID) {
+    async subscribe(parent: Context, subscriber: ID, feed: ID, opts?: { strict?: boolean }) {
         checkId(subscriber);
         checkId(feed);
+
+        // Resolve strict parameter
+        let strict = opts && opts.strict ? opts.strict : false;
 
         await inTxLeaky(parent, async (ctx: Context) => {
 
@@ -137,7 +139,11 @@ export class EventsStorage {
 
             // Make jumbo frame as read conflict
             this.feedsDirectory.addReadConflictKey(ctx, encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_JUMBO]));
+
             // Make latest time as read conflict
+            // NOTE: We are marking latest as conflict to generate conflict if there will be subscribe and posting at the same time
+            //       since subscriber list will be changed and delivery could be broken.
+            //       We are doing read conflict key on subscribe side instead of posting side to make posting as non-conflict as possible.
             this.feedsDirectory.addReadConflictKey(ctx, encoders.tuple.pack([feed, FEED_LATEST]));
 
             //
@@ -145,18 +151,24 @@ export class EventsStorage {
             // 
 
             // Check if subscription exists
-            let subscriberKey = encoders.tuple.pack([subscriber, SUBSCRIBERS_SUBSCRIPTIONS, feed, SUBSCRIBERS_SUBSCRIPTIONS_JOIN]);
-            if (await this.subscribersDirectory.exists(ctx, subscriberKey)) {
+            let subscriberJoinKey = encoders.tuple.pack([subscriber, SUBSCRIBERS_SUBSCRIPTIONS, feed, SUBSCRIBERS_SUBSCRIPTIONS_JOIN]);
+            if (await this.subscribersDirectory.exists(ctx, subscriberJoinKey)) {
                 throw Error('Already subscribed');
             }
 
             // Save a join time
             let index = this.resolveIndex(ctx); // Resolving event index to save point in time of subscription start
-            this.subscribersDirectory.setVersionstampedValue(ctx, subscriberKey, ZERO, index);
+            this.subscribersDirectory.setVersionstampedValue(ctx, subscriberJoinKey, ZERO, index);
 
             // Save jumbo flag
             if (isJumbo) {
                 this.subscribersDirectory.set(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_SUBSCRIPTIONS, feed, SUBSCRIBERS_SUBSCRIPTIONS_JUMBO]), ZERO);
+                this.subscribersDirectory.set(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_JUMBO, feed]), ZERO);
+            }
+
+            // Save strict flag
+            if (strict) {
+                this.subscribersDirectory.set(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_SUBSCRIPTIONS, feed, SUBSCRIBERS_SUBSCRIPTIONS_STRICT]), ZERO);
             }
 
             //
@@ -170,33 +182,108 @@ export class EventsStorage {
             if (!isJumbo) {
                 this.feedsDirectory.add(ctx, encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_SUBSCRIBERS, subscriber]), ZERO);
             }
+
+            //
+            // Increase subscriber version
+            //
+
+            this.subscribersDirectory.add(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_VERSION]), PLUS_ONE);
         });
     }
 
-    // async unsubscribe(ctx: Context, subscriber: EID, feed: EID) {
-    //     let subscriberKey = encoders.tuple.pack([subscriber.kind, subscriber.id, SUBSPACE_SUBSCRIPTION, feed.kind, feed.id]);
-    //     let ex = await this.directory.get(ctx, subscriberKey);
-    //     if (ex === null) {
-    //         throw Error('Already unsubscribed');
-    //     }
-    //     this.directory.clear(ctx, subscriberKey);
+    async unsubscribe(parent: Context, subscriber: ID, feed: ID) {
+        checkId(subscriber);
+        checkId(feed);
 
-    //     // Add subscriber to feed
-    //     let settings = await this.readFeedSettings(ctx, feed);
+        await inTxLeaky(parent, async (ctx: Context) => {
 
-    //     // Mark jumbo flag as read conflict key
-    //     this.directory.addReadConflictKey(ctx, encoders.tuple.pack([feed.kind, feed.id, SUBSPACE_SETTINGS, SETTINGS_JUMBO]));
+            // Read jumbo flag of a feed
+            let isJumbo = await this.feedsDirectory.exists(ctx, encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_JUMBO]));
 
-    //     // Clear subscribers
-    //     if (!settings.jumbo) {
-    //         this.directory.clear(ctx, encoders.tuple.pack([feed.kind, feed.id, SUBSPACE_SETTINGS, SETTINGS_SUBSCRIBERS, subscriber.kind, subscriber.id]));
-    //     }
+            // Make jumbo frame as read conflict
+            this.feedsDirectory.addReadConflictKey(ctx, encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_JUMBO]));
 
-    //     // Decrese subscribers count
-    //     this.directory.add(ctx, encoders.tuple.pack([feed.kind, feed.id, SUBSPACE_SETTINGS, SETTINGS_SUBSCRIBERS_COUNT]), MINUS_ONE);
-    // }
+            //
+            // Remove feed from subscriber
+            //
 
-    async getSubscriberInternalState(parent: Context, subscriber: ID) {
+            let subscriberKey = encoders.tuple.pack([subscriber, SUBSCRIBERS_SUBSCRIPTIONS, feed, SUBSCRIBERS_SUBSCRIPTIONS_JOIN]);
+            if (!(await this.subscribersDirectory.exists(ctx, subscriberKey))) {
+                throw Error('Already unsubscribed');
+            }
+            this.subscribersDirectory.clear(ctx, subscriberKey);
+            if (!isJumbo) {
+                this.subscribersDirectory.clear(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_SUBSCRIPTIONS, feed, SUBSCRIBERS_SUBSCRIPTIONS_LATEST]));
+                let latest = await this.feedsDirectory.get(ctx, encoders.tuple.pack([feed, FEED_LATEST]));
+                if (latest) {
+                    this.subscribersDirectory.clear(ctx, Buffer.concat([encoders.tuple.pack([subscriber, SUBSCRIBERS_UPDATES]), latest]));
+                }
+            } else {
+                this.subscribersDirectory.clear(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_SUBSCRIPTIONS, feed, SUBSCRIBERS_SUBSCRIPTIONS_JUMBO]));
+                this.subscribersDirectory.clear(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_JUMBO, feed]));
+            }
+
+            //
+            // Remove from feed
+            //
+
+            // Decrease subscribers count
+            this.feedsDirectory.add(ctx, encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_SUBSCRIBERS_COUNT]), MINUS_ONE);
+
+            // Remove from feed if not jumbo feed
+            if (!isJumbo) {
+                this.feedsDirectory.clear(ctx, encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_SUBSCRIBERS, subscriber]));
+            }
+
+            //
+            // Increase subscriber version
+            //
+
+            this.subscribersDirectory.add(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_VERSION]), PLUS_ONE);
+        });
+    }
+
+    //
+    // Subscription watching
+    //
+
+    async getSubscriberVersion(parent: Context, subscriber: ID) {
+        checkId(subscriber);
+        return await inTxLeaky(parent, async (ctx: Context) => {
+            let ex = await this.subscribersDirectory.get(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_VERSION]));
+            if (ex) {
+                return encoders.int32LE.unpack(ex);
+            } else {
+                return 0;
+            }
+        });
+    }
+
+    async watchSubscriberVersion(parent: Context, subscriber: ID) {
+        checkId(subscriber);
+        return await inTxLeaky(parent, async (ctx: Context) => {
+            return this.subscribersDirectory.watch(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_VERSION]));
+        });
+    }
+
+    async getSubscriberJumboSubscriptions(parent: Context, subscriber: ID) {
+        checkId(subscriber);
+
+        return await inTxLeaky(parent, async (ctx: Context) => {
+            let key = encoders.tuple.pack([subscriber, SUBSCRIBERS_JUMBO]);
+            let allJumbo = await this.subscribersDirectory.range(ctx, key);
+            let res: Buffer[] = [];
+            for (let j of allJumbo) {
+                let tuple = encoders.tuple.unpack(j.key);
+                let feed = tuple[tuple.length - 1] as Buffer;
+                checkId(feed);
+                res.push(feed);
+            }
+            return res;
+        });
+    }
+
+    async getSubscriberState(parent: Context, subscriber: ID) {
         checkId(subscriber);
 
         return await inTxLeaky(parent, async (ctx: Context) => {
@@ -206,14 +293,16 @@ export class EventsStorage {
             // Trying to be optimized here since this method could be called very often
             //
 
-            let res: { id: Buffer, joined: Buffer, latest: Buffer | null, jumbo: boolean }[] = [];
+            let res: { id: Buffer, joined: Buffer, latest: Buffer | null, latestSeq: number | null, jumbo: boolean, strict: boolean }[] = [];
             let currentKey: Buffer | null = null;
             let latest: Buffer | null = null;
+            let latestSeq: number | null = null;
             let joined: Buffer | null = null;
             let jumbo = false;
+            let strict = false;
             function flush() {
                 if (currentKey && joined) {
-                    res.push({ id: currentKey, joined, latest, jumbo });
+                    res.push({ id: currentKey, joined, latest, latestSeq, jumbo, strict });
                 }
                 currentKey = null;
                 joined = null;
@@ -233,8 +322,14 @@ export class EventsStorage {
                 if (tuple[3] === SUBSCRIBERS_SUBSCRIPTIONS_LATEST) {
                     latest = a.value;
                 }
+                if (tuple[3] === SUBSCRIBERS_SUBSCRIPTIONS_LATEST_SEQ) {
+                    latestSeq = encoders.int32LE.unpack(a.value);
+                }
                 if (tuple[3] === SUBSCRIBERS_SUBSCRIPTIONS_JUMBO) {
                     jumbo = true;
+                }
+                if (tuple[3] === SUBSCRIBERS_SUBSCRIPTIONS_STRICT) {
+                    strict = true;
                 }
             }
             flush();
@@ -271,6 +366,72 @@ export class EventsStorage {
         return await state.promise;
     }
 
+    async getUpdatedFeeds(parent: Context, subscriber: ID, after: Buffer) {
+        checkId(subscriber);
+        return await inTxLeaky(parent, async (ctx) => {
+            let res: Buffer[] = [];
+
+            // Classic feeds
+            let classicChanges = (await this.subscribersDirectory.range(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_UPDATES]), {
+                after: Buffer.concat([encoders.tuple.pack([subscriber, SUBSCRIBERS_UPDATES]), after])
+            })).map((v) => v.value);
+            res.push(...classicChanges);
+
+            // Jumbo feeds
+            let feedLatest = await Promise.all((await this.getSubscriberJumboSubscriptions(ctx, subscriber)).map(async (feed) => {
+                let [latest, join] = await Promise.all([
+                    this.feedsDirectory.get(ctx, encoders.tuple.pack([feed, FEED_LATEST])),
+                    this.subscribersDirectory.get(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_SUBSCRIPTIONS, SUBSCRIBERS_SUBSCRIPTIONS_JOIN]))
+                ]);
+                let realLatest: Buffer | null = null;
+                if (join && latest) {
+                    if (Buffer.compare(join, latest) < 0) {
+                        realLatest = join;
+                    }
+                }
+                return {
+                    feed,
+                    latest: realLatest
+                };
+            }));
+            for (let feed of feedLatest) {
+                if (feed.latest && Buffer.compare(feed.latest, after) > 0) {
+                    res.push(feed.latest);
+                }
+            }
+
+            return res;
+        });
+    }
+
+    async getFeedUpdates(parent: Context, feed: ID, opts: { mode: 'forward' | 'only-latest', limit: number, after: Buffer }) {
+        return await inTxLeaky(parent, async (ctx) => {
+            let cursor = Buffer.concat([encoders.tuple.pack([feed, FEED_STREAM]), opts.after]);
+            let read = opts.mode === 'forward'
+                ? await this.feedsDirectory.range(ctx, encoders.tuple.pack([feed, FEED_STREAM]), { after: cursor, reverse: false, limit: opts.limit + 1 })
+                : await this.feedsDirectory.range(ctx, encoders.tuple.pack([feed, FEED_STREAM]), { before: cursor, reverse: true, limit: opts.limit + 1 });
+            let updates: RawEvent[] = [];
+            for (let i = 0; i < Math.min(opts.limit, read.length); i++) {
+                let r = read[i];
+                let id = r.key.slice(r.key.length - 12);
+                let value = encoders.tuple.unpack(r.value);
+                let seq = value[0] as number;
+                let type = value[1] as number;
+                let body = value[2] as Buffer;
+                if (opts.mode === 'only-latest') {
+                    if (type === 1 /* Type: Event */) {
+                        updates.unshift({ id, seq, body, type: 'event' });
+                    }
+                } else {
+                    if (type === 1 /* Type: Event */) {
+                        updates.push({ id, seq, body, type: 'event' });
+                    }
+                }
+            }
+            return { updates, hasMore: read.length > opts.limit };
+        });
+    }
+
     async getDifference(parent: Context, subscriber: ID, args: { state: Buffer, batchSize: number, limit: number }): Promise<{ events: RawEvent[], partial: ID[], completed: boolean }> {
         checkId(subscriber);
         checkState(args.state);
@@ -278,10 +439,10 @@ export class EventsStorage {
         return await inTxLeaky(parent, async (ctx) => {
 
             // Fetch subscriptions
-            let subscriptions = await this.getSubscriberInternalState(ctx, subscriber);
+            let subscriptions = await this.getSubscriberState(ctx, subscriber);
 
             // Resolve required requests
-            let requests: { id: Buffer, cursor: Buffer, key: Buffer }[] = [];
+            let requests: { id: Buffer, after: Buffer, strict: boolean }[] = [];
             let pending: Promise<void>[] = [];
             for (let s of subscriptions) {
                 let feed = s.id;
@@ -305,8 +466,7 @@ export class EventsStorage {
                     }
 
                     // Put request
-                    let cursor = Buffer.concat([encoders.tuple.pack([feed, FEED_STREAM]), after]);
-                    requests.push({ id: s.id, cursor, key: encoders.tuple.pack([feed, FEED_STREAM]) });
+                    requests.push({ id: s.id, after, strict: s.strict });
                 } else {
                     pending.push((async () => {
                         // Resolve latest
@@ -319,8 +479,7 @@ export class EventsStorage {
                         }
 
                         // Add new request
-                        let cursor = Buffer.concat([encoders.tuple.pack([feed, FEED_STREAM]), after]);
-                        requests.push({ id: s.id, cursor, key: encoders.tuple.pack([feed, FEED_STREAM]) });
+                        requests.push({ id: s.id, after, strict: s.strict });
                     })());
                 }
             }
@@ -336,21 +495,8 @@ export class EventsStorage {
             // Fetch all feeds
             let feeds = await Promise.all(requests.map(
                 async (request) => {
-                    let read = await this.feedsDirectory.range(ctx, request.key, { before: request.cursor, reverse: true, limit: args.batchSize + 1 });
-                    let updates: RawEvent[] = [];
-                    for (let r of read) {
-                        let id = r.key.slice(r.key.length - 12);
-                        let value = encoders.tuple.unpack(r.value);
-                        let seq = value[0] as number;
-                        let type = value[1] as number;
-                        let body = value[2] as Buffer;
-                        if (type === 1 /* Type: Event */) {
-                            updates.push({ id, seq, body, type: 'event' });
-                        } else {
-                            updates.push({ id, seq, body, type: 'start' });
-                        }
-                    }
-                    return { updates, id: request.id };
+                    let read = await this.getFeedUpdates(ctx, request.id, { after: request.after, limit: args.batchSize, mode: request.strict ? 'forward' : 'only-latest' });
+                    return { updates: read.updates, hasMore: read.hasMore, id: request.id, strict: request.strict };
                 }
             ));
 
@@ -364,17 +510,18 @@ export class EventsStorage {
 
             // Merge all feeds
             for (let feed of feeds) {
-                if (feed.updates.length > args.batchSize) {
-                    // Mark feed as partial and ignore last update
+
+                // Mark feed as partial if needed
+                if (feed.hasMore) {
                     partial.push(feed.id);
-                    for (let i = 0; i < args.batchSize; i++) {
-                        events.unshift(feed.updates[i]);
+                    if (feed.strict) {
+                        completed = false;
                     }
-                } else {
-                    // Simply merge all events
-                    for (let event of feed.updates) {
-                        events.unshift(event);
-                    }
+                }
+
+                // Simply merge all events
+                for (let event of feed.updates) {
+                    events.unshift(event);
                 }
             }
 
@@ -412,19 +559,10 @@ export class EventsStorage {
                 this.registryDirectory.addReadConflictKey(ctx, key);
                 this.registryDirectory.set(ctx, key, ZERO);
 
-                // Write create event
-                let index = this.resolveIndex(ctx);
-                let seq = 1;
-                let body = encoders.tuple.pack([seq, 0 /* Body Type: Start */, ZERO]);
-                this.feedsDirectory.setVersionstampedKey(ctx, encoders.tuple.pack([id, FEED_STREAM]), body, index);
+                // Write initial seq = 0
+                this.feedsDirectory.set(ctx, encoders.tuple.pack([id, FEED_SETTINGS, FEED_SETTINGS_SEQ]), encoders.int32BE.pack(0));
 
-                // Write initial seq
-                this.feedsDirectory.set(ctx, encoders.tuple.pack([id, FEED_SETTINGS, FEED_SETTINGS_SEQ]), encoders.int32BE.pack(seq));
-
-                // Write latest event time
-                this.feedsDirectory.setVersionstampedValue(ctx, encoders.tuple.pack([id, FEED_LATEST]), ZERO, index);
-
-                return { id, seq, index };
+                return id;
             }
         });
     }
@@ -449,10 +587,17 @@ export class EventsStorage {
             // Mark subscribers count as read conflict
             this.feedsDirectory.addReadConflictKey(ctx, encoders.tuple.pack([id, FEED_SETTINGS, FEED_SETTINGS_SUBSCRIBERS_COUNT]));
 
+            let latest = await this.feedsDirectory.get(ctx, encoders.tuple.pack([id, FEED_LATEST]));
+
             // Upgrade subscribers
             for (let subscriber of settings.subscribers) {
                 this.subscribersDirectory.set(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_SUBSCRIPTIONS, id, SUBSCRIBERS_SUBSCRIPTIONS_JUMBO]), ZERO);
+                this.subscribersDirectory.set(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_JUMBO, id]), ZERO);
                 this.subscribersDirectory.clear(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_SUBSCRIPTIONS, id, SUBSCRIBERS_SUBSCRIPTIONS_LATEST]));
+                this.subscribersDirectory.add(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_VERSION]), PLUS_ONE);
+                if (latest) {
+                    this.subscribersDirectory.clear(ctx, Buffer.concat([encoders.tuple.pack([subscriber, SUBSCRIBERS_UPDATES]), latest]));
+                }
             }
 
             // Clear subscribers
@@ -464,7 +609,7 @@ export class EventsStorage {
     // Posting
     //
 
-    async resolvePostId(parent: Context, index: Buffer) {
+    resolvePostId(parent: Context, index: Buffer) {
         let vt = getTransaction(parent).rawTransaction(this.feedsDirectory.db).getVersionstamp();
         return {
             promise: (async () => {
@@ -473,8 +618,14 @@ export class EventsStorage {
         };
     }
 
-    async post(parent: Context, feed: Buffer, event: Buffer) {
+    async post(parent: Context, feed: Buffer, event: Buffer, opts?: { repeatKey?: Buffer }) {
         checkId(feed);
+
+        // Calculate feed key
+        let feedKey = feed.toString('hex');
+
+        // Resolve repeat key
+        let repeatKey: Buffer | undefined = opts && opts.repeatKey ? opts.repeatKey : undefined;
 
         //
         // Note about read conflicts
@@ -489,34 +640,90 @@ export class EventsStorage {
 
             // Read feed settings
             let settings = await this.readFeedSettingsSnapshot(ctx, feed);
+            this.feedsDirectory.addReadConflictKey(ctx, encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_SEQ]));
+            this.feedsDirectory.addReadConflictKey(ctx, encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_JUMBO]));
 
             // Resolve counter
             let seq = settings.counter + 1;
-            let seqKey = encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_SEQ]);
-            this.feedsDirectory.addReadConflictKey(ctx, seqKey);
-            this.feedsDirectory.set(ctx, seqKey, encoders.int32BE.pack(seq));
+            this.feedsDirectory.set(ctx, encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_SEQ]), encoders.int32BE.pack(seq));
 
             // Put event to feed
             let index = this.resolveIndex(ctx);
             let body = encoders.tuple.pack([seq, 1 /* Body Type: Event */, event]);
             this.feedsDirectory.setVersionstampedKey(ctx, encoders.tuple.pack([feed, FEED_STREAM]), body, index);
 
-            // Put latest event versionstamp
+            // Read delivery
+            let delivery = feedDeliveryCache.get(ctx, feedKey)!;
+            let isFirstDelivery = false;
+            if (!delivery) {
+                isFirstDelivery = true;
+                let latest = await this.feedsDirectory.get(ctx, encoders.tuple.pack([feed, FEED_LATEST]));
+                delivery = { previous: latest, removedRepeatKeys: new Set(), subscribers: settings.jumbo ? [] : settings.subscribers, index: index };
+                feedDeliveryCache.set(ctx, feedKey, delivery);
+            } else {
+                delivery.subscribers = settings.jumbo ? [] : settings.subscribers;
+                delivery.index = index;
+            }
+
+            // Persist new one
             this.feedsDirectory.setVersionstampedValue(ctx, encoders.tuple.pack([feed, FEED_LATEST]), ZERO, index);
 
+            // Handle repeat key
+            if (repeatKey) {
+                let repeatStringKey = repeatKey.toString('hex');
+                let repeatRef = encoders.tuple.pack([feed, FEED_REPEAT, repeatKey]);
+
+                // Clear previous event if exists
+                if (!delivery.removedRepeatKeys.has(repeatStringKey)) {
+                    delivery.removedRepeatKeys.add(repeatStringKey);
+
+                    let prevPost = await this.feedsDirectory.get(ctx, repeatRef);
+                    if (prevPost) {
+                        this.feedsDirectory.clear(ctx, Buffer.concat([encoders.tuple.pack([feed, FEED_STREAM]), prevPost]));
+                    }
+                }
+
+                // Save repeat key reference to current event
+                this.feedsDirectory.setVersionstampedValue(ctx, repeatRef, ZERO, index);
+            }
+
             // Delivery of non jumbo feeds
-            this.feedsDirectory.addReadConflictKey(ctx, encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_JUMBO]));
             let subscribers: (Buffer[]) | null = null;
             if (!settings.jumbo) {
                 subscribers = settings.subscribers;
-                for (let s of settings.subscribers) {
-                    let subscriberKey = encoders.tuple.pack([s, SUBSCRIBERS_SUBSCRIPTIONS, feed, SUBSCRIBERS_SUBSCRIPTIONS_LATEST]);
-                    this.subscribersDirectory.setVersionstampedValue(
-                        ctx,
-                        subscriberKey,
-                        ZERO,
-                        index
-                    );
+
+                // Add delivery callback
+                if (isFirstDelivery) {
+                    getTransaction(ctx).beforeCommit((commit) => {
+                        for (let s of delivery.subscribers) {
+                            let subscriberKey = encoders.tuple.pack([s, SUBSCRIBERS_SUBSCRIPTIONS, feed, SUBSCRIBERS_SUBSCRIPTIONS_LATEST]);
+                            this.subscribersDirectory.setVersionstampedValue(
+                                commit,
+                                subscriberKey,
+                                ZERO,
+                                delivery.index
+                            );
+
+                            // Update local delivery seq
+                            let subscriberSeqKey = encoders.tuple.pack([s, SUBSCRIBERS_SUBSCRIPTIONS, feed, SUBSCRIBERS_SUBSCRIPTIONS_LATEST_SEQ]);
+                            this.subscribersDirectory.set(commit, subscriberSeqKey, encoders.int32LE.pack(seq));
+
+                            // Update global delivery time
+                            let subscriberLatestKey = encoders.tuple.pack([s, SUBSCRIBERS_LATEST]);
+                            this.subscribersDirectory.setVersionstampedValue(
+                                commit,
+                                subscriberLatestKey,
+                                ZERO,
+                                delivery.index
+                            );
+
+                            // Update updated collection
+                            if (delivery.previous) {
+                                this.subscribersDirectory.clear(commit, Buffer.concat([encoders.tuple.pack([s, SUBSCRIBERS_UPDATES]), delivery.previous]));
+                            }
+                            this.subscribersDirectory.setVersionstampedKey(commit, encoders.tuple.pack([s, SUBSCRIBERS_UPDATES]), feed, delivery.index);
+                        }
+                    });
                 }
             }
 
@@ -555,7 +762,7 @@ export class EventsStorage {
             jumbo,
             subscribers,
             subscribersCount: count,
-            counter: seq,
+            counter: seq
         };
     }
 

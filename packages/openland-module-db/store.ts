@@ -21491,6 +21491,210 @@ export class StripeEventCreated extends BaseEvent {
     get eventDate(): number { return this.raw.eventDate; }
 }
 
+const updateChatReadCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+    seq: c.integer,
+});
+
+interface UpdateChatReadShape {
+    uid: number;
+    cid: number;
+    seq: number;
+}
+
+export class UpdateChatRead extends BaseEvent {
+
+    static create(data: UpdateChatReadShape) {
+        return new UpdateChatRead(updateChatReadCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateChatRead(updateChatReadCodec.decode(data));
+    }
+
+    static encode(event: UpdateChatRead) {
+        return updateChatReadCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('updateChatRead', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+    get seq(): number { return this.raw.seq; }
+}
+
+const updateChatMessageCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+    mid: c.integer,
+});
+
+interface UpdateChatMessageShape {
+    uid: number;
+    cid: number;
+    mid: number;
+}
+
+export class UpdateChatMessage extends BaseEvent {
+
+    static create(data: UpdateChatMessageShape) {
+        return new UpdateChatMessage(updateChatMessageCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateChatMessage(updateChatMessageCodec.decode(data));
+    }
+
+    static encode(event: UpdateChatMessage) {
+        return updateChatMessageCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('updateChatMessage', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+    get mid(): number { return this.raw.mid; }
+}
+
+const updateChatMessageUpdatedCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+    mid: c.integer,
+});
+
+interface UpdateChatMessageUpdatedShape {
+    uid: number;
+    cid: number;
+    mid: number;
+}
+
+export class UpdateChatMessageUpdated extends BaseEvent {
+
+    static create(data: UpdateChatMessageUpdatedShape) {
+        return new UpdateChatMessageUpdated(updateChatMessageUpdatedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateChatMessageUpdated(updateChatMessageUpdatedCodec.decode(data));
+    }
+
+    static encode(event: UpdateChatMessageUpdated) {
+        return updateChatMessageUpdatedCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('updateChatMessageUpdated', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+    get mid(): number { return this.raw.mid; }
+}
+
+const updateChatMessageDeletedCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+    mid: c.integer,
+});
+
+interface UpdateChatMessageDeletedShape {
+    uid: number;
+    cid: number;
+    mid: number;
+}
+
+export class UpdateChatMessageDeleted extends BaseEvent {
+
+    static create(data: UpdateChatMessageDeletedShape) {
+        return new UpdateChatMessageDeleted(updateChatMessageDeletedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateChatMessageDeleted(updateChatMessageDeletedCodec.decode(data));
+    }
+
+    static encode(event: UpdateChatMessageDeleted) {
+        return updateChatMessageDeletedCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('updateChatMessageDeleted', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+    get mid(): number { return this.raw.mid; }
+}
+
+const updateChatLostAccessCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+});
+
+interface UpdateChatLostAccessShape {
+    uid: number;
+    cid: number;
+}
+
+export class UpdateChatLostAccess extends BaseEvent {
+
+    static create(data: UpdateChatLostAccessShape) {
+        return new UpdateChatLostAccess(updateChatLostAccessCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateChatLostAccess(updateChatLostAccessCodec.decode(data));
+    }
+
+    static encode(event: UpdateChatLostAccess) {
+        return updateChatLostAccessCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('updateChatLostAccess', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+}
+
+const updateChatGotAccessCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+});
+
+interface UpdateChatGotAccessShape {
+    uid: number;
+    cid: number;
+}
+
+export class UpdateChatGotAccess extends BaseEvent {
+
+    static create(data: UpdateChatGotAccessShape) {
+        return new UpdateChatGotAccess(updateChatGotAccessCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateChatGotAccess(updateChatGotAccessCodec.decode(data));
+    }
+
+    static encode(event: UpdateChatGotAccess) {
+        return updateChatGotAccessCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('updateChatGotAccess', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+}
+
 const hyperLogEventCodec = c.struct({
     id: c.string,
     eventType: c.string,
@@ -22192,6 +22396,9 @@ export interface Store extends BaseStore {
     readonly UserDialogMuteSettingDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
+    readonly EventStorageDirectory: Subspace;
+    readonly EventRegistrationsDirectory: Subspace;
+    readonly EventUserSeqDirectory: Subspace;
     readonly ShardingDataDirectory: Subspace;
     readonly ImportedPhoneDirectory: Subspace;
     readonly PhoneImportedByUserDirectory: Subspace;
@@ -22256,6 +22463,12 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('walletBalanceChanged', WalletBalanceChanged.encode as any, WalletBalanceChanged.decode);
     eventFactory.registerEventType('walletLockedChanged', WalletLockedChanged.encode as any, WalletLockedChanged.decode);
     eventFactory.registerEventType('stripeEventCreated', StripeEventCreated.encode as any, StripeEventCreated.decode);
+    eventFactory.registerEventType('updateChatRead', UpdateChatRead.encode as any, UpdateChatRead.decode);
+    eventFactory.registerEventType('updateChatMessage', UpdateChatMessage.encode as any, UpdateChatMessage.decode);
+    eventFactory.registerEventType('updateChatMessageUpdated', UpdateChatMessageUpdated.encode as any, UpdateChatMessageUpdated.decode);
+    eventFactory.registerEventType('updateChatMessageDeleted', UpdateChatMessageDeleted.encode as any, UpdateChatMessageDeleted.decode);
+    eventFactory.registerEventType('updateChatLostAccess', UpdateChatLostAccess.encode as any, UpdateChatLostAccess.decode);
+    eventFactory.registerEventType('updateChatGotAccess', UpdateChatGotAccess.encode as any, UpdateChatGotAccess.decode);
     eventFactory.registerEventType('hyperLogEvent', HyperLogEvent.encode as any, HyperLogEvent.decode);
     eventFactory.registerEventType('hyperLogUserEvent', HyperLogUserEvent.encode as any, HyperLogUserEvent.decode);
     eventFactory.registerEventType('contactAddedEvent', ContactAddedEvent.encode as any, ContactAddedEvent.decode);
@@ -22460,6 +22673,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserDialogMuteSettingDirectoryPromise = storage.resolveCustomDirectory('userDialogMuteSetting');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
+    let EventStorageDirectoryPromise = storage.resolveCustomDirectory('eventStorage');
+    let EventRegistrationsDirectoryPromise = storage.resolveCustomDirectory('eventRegistrations');
+    let EventUserSeqDirectoryPromise = storage.resolveCustomDirectory('eventUserSeq');
     let ShardingDataDirectoryPromise = storage.resolveCustomDirectory('shardingData');
     let ImportedPhoneDirectoryPromise = storage.resolveCustomDirectory('importedPhone');
     let PhoneImportedByUserDirectoryPromise = storage.resolveCustomDirectory('phoneImportedByUser');
@@ -22702,6 +22918,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserDialogMuteSettingDirectory: await UserDialogMuteSettingDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
+        EventStorageDirectory: await EventStorageDirectoryPromise,
+        EventRegistrationsDirectory: await EventRegistrationsDirectoryPromise,
+        EventUserSeqDirectory: await EventUserSeqDirectoryPromise,
         ShardingDataDirectory: await ShardingDataDirectoryPromise,
         ImportedPhoneDirectory: await ImportedPhoneDirectoryPromise,
         PhoneImportedByUserDirectory: await PhoneImportedByUserDirectoryPromise,
