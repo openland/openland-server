@@ -91,11 +91,10 @@ async function handleNotification(ctx: Context, uid: number, settings: UserSetti
     if (notification.text) {
         pushBody += notification.text;
     }
+
     if (notification.content) {
         let commentNotification = notification.content.find(c => c.type === 'new_comment');
         if (commentNotification && commentNotification.type === 'new_comment') {
-            pushBody += 'New comment';
-
             let comment = await Store.Comment.findById(ctx, commentNotification.commentId);
             let message = await Store.Message.findById(ctx, comment!.peerId);
             let chat = await Store.Conversation.findById(ctx, message!.cid);
@@ -103,10 +102,11 @@ async function handleNotification(ctx: Context, uid: number, settings: UserSetti
             let userName = await Modules.Users.getUserFullName(ctx, comment!.uid);
 
             if (chat!.kind === 'private') {
-                pushBody = `${userName} commented: ${await fetchMessageFallback(comment!)}`;
+                title = 'New comment';
             } else {
-                pushBody = `${userName} commented in @${chatName}: ${await fetchMessageFallback(comment!)}`;
+                title = 'New comment in ' + chatName;
             }
+            pushBody = `${userName}: ${await fetchMessageFallback(comment!)}`;
         }
     }
 
