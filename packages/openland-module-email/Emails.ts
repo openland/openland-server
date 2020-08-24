@@ -117,16 +117,15 @@ export const Emails = {
                 }
             });
         } else if (messages.length === 1) {
-            let senderId = messages[0].uid;
-            let userProfile = await Modules.Users.profileById(ctx, senderId);
+            let chatName = await Modules.Messaging.room.resolveConversationTitle(ctx, messages[0].cid, uid);
 
             Modules.Email.enqueueEmail(ctx, {
                 subject: 'You’ve got a new message',
                 templateId: TEMPLATE_UNREAD_MESSAGE,
                 to: user.email,
                 args: {
-                    firstName: userProfile!.firstName,
-                    lastName: userProfile!.lastName || '',
+                    firstName: chatName,
+                    // lastName: userProfile!.lastName || '',
                     messageCount: `${messages.length}`,
                 }
             });
