@@ -201,27 +201,14 @@ export class OrganizationModule {
                     profile.primaryOrganization = await this.repo.findPrimaryOrganizationForUser(ctx, uid);
                     await profile.flush(ctx);
                 }
-                let userGroups = await Store.RoomParticipant.active.findAll(ctx, uid);
-                for (let group of userGroups) {
-                    let conv = await Store.Conversation.findById(ctx, group.cid);
-                    if (!conv) {
-                        continue;
+                let orgRooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, oid);
+                await Promise.all(orgRooms.map(room => {
+                    if (uid === by) {
+                        return Modules.Messaging.room.leaveRoom(ctx, room.id, uid);
+                    } else {
+                        return Modules.Messaging.room.kickFromRoom(ctx, room.id, by, uid);
                     }
-                    if (conv.kind === 'room') {
-                        let room = await Store.ConversationRoom.findById(ctx, conv.id);
-                        if (!room) {
-                            continue;
-                        }
-
-                        if (room.oid && room.oid === oid) {
-                            if (uid === by) {
-                                await Modules.Messaging.room.leaveRoom(ctx, room.id, uid);
-                            } else {
-                                await Modules.Messaging.room.kickFromRoom(ctx, room.id, by, uid);
-                            }
-                        }
-                    }
-                }
+                }));
                 await Emails.sendMemberRemovedEmail(ctx, oid, uid);
                 return true;
             }
