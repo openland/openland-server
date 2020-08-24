@@ -1431,7 +1431,31 @@ export const Resolver: GQLResolver = {
         }),
         haveAccessToChat: withUser(async (ctx, args, uid) => {
             return await Modules.Messaging.room.canUserSeeChat(ctx, uid, IDs.Conversation.parse(args.chatId));
-        })
+        }),
+        commonChatsWithUser: withUser(async (ctx, args, uid) => {
+            if (args.first <= 0) {
+                return {
+                    items: [],
+                    cursor: null,
+                    count: 0
+                };
+            }
+            let uid1Chats = await Modules.Messaging.room.getUserGroups(ctx, uid);
+            let uid2Chats = await Modules.Messaging.room.getUserGroups(ctx, IDs.User.parse(args.uid));
+
+            let commonChats = uid1Chats.filter(cid => uid2Chats.includes(cid));
+            let items = commonChats;
+
+            if (args.after) {
+                items = items.filter(cid => cid > IDs.Conversation.parse(args.after!));
+            }
+
+            return {
+                items: items.slice(0, args.first),
+                cursor: items.length > args.first ? IDs.Conversation.serialize(items[args.first - 1]) : null,
+                count: commonChats.length
+            };
+        }),
     },
 
     Mutation: {

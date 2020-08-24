@@ -488,6 +488,7 @@ export namespace GQLRoots {
     export type SharedRoomKindRoot = SharedRoomKindValues;
     export type SharedRoomMembershipStatusRoot = 'joined' | 'requested' | 'left' | 'kicked' | 'none';
     export type RoomMemberRoleRoot = RoomMemberRoleValues;
+    export type CommonChatsWithUserResponseRoot = { items: SharedRoomRoot[], cursor: string | null, count: number };
 
     //
     //  Chat updates

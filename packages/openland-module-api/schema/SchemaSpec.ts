@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '18ea7a62c539cbdb61ed33cdc50f6675';
+export const GQL_SPEC_VERSION = 'c7a0f8556de5e7d5727a48999d4008cb';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4277,6 +4277,7 @@ export namespace GQL {
         chatSharedMedia: SharedMediaConnection;
         chatSharedMediaCounters: SharedMediaCounters;
         haveAccessToChat: boolean;
+        commonChatsWithUser: CommonChatsWithUserResponse;
         room: Nullable<Room>;
         rooms: Room[];
         roomSuper: Nullable<RoomSuper>;
@@ -4785,6 +4786,11 @@ export namespace GQL {
     }
     export interface QueryHaveAccessToChatArgs {
         chatId: string;
+    }
+    export interface QueryCommonChatsWithUserArgs {
+        uid: string;
+        first: number;
+        after: OptionalNullable<string>;
     }
     export interface QueryRoomArgs {
         id: string;
@@ -5593,6 +5599,14 @@ export namespace GQL {
     }
     export interface SharedMediaConnectionEdgesArgs { }
     export interface SharedMediaConnectionPageInfoArgs { }
+    export interface CommonChatsWithUserResponse {
+        items: SharedRoom[];
+        cursor: Nullable<string>;
+        count: number;
+    }
+    export interface CommonChatsWithUserResponseItemsArgs { }
+    export interface CommonChatsWithUserResponseCursorArgs { }
+    export interface CommonChatsWithUserResponseCountArgs { }
     export interface ImageFallback {
         photo: string;
         text: string;
@@ -9739,6 +9753,7 @@ export interface GQLResolver {
             lastReadedMessage: Nullable<GQLRoots.ModernMessageRoot>,
             chatSharedMedia: GQLRoots.SharedMediaConnectionRoot,
             chatSharedMediaCounters: GQLRoots.SharedMediaCountersRoot,
+            commonChatsWithUser: GQLRoots.CommonChatsWithUserResponseRoot,
             room: Nullable<GQLRoots.RoomRoot>,
             rooms: GQLRoots.RoomRoot[],
             roomSuper: Nullable<GQLRoots.RoomSuperRoot>,
@@ -9920,6 +9935,7 @@ export interface GQLResolver {
             chatSharedMedia: GQL.QueryChatSharedMediaArgs,
             chatSharedMediaCounters: GQL.QueryChatSharedMediaCountersArgs,
             haveAccessToChat: GQL.QueryHaveAccessToChatArgs,
+            commonChatsWithUser: GQL.QueryCommonChatsWithUserArgs,
             room: GQL.QueryRoomArgs,
             rooms: GQL.QueryRoomsArgs,
             roomSuper: GQL.QueryRoomSuperArgs,
@@ -10744,6 +10760,18 @@ export interface GQLResolver {
         {
             edges: GQL.SharedMediaConnectionEdgesArgs,
             pageInfo: GQL.SharedMediaConnectionPageInfoArgs,
+        }
+    >;
+    CommonChatsWithUserResponse?: ComplexTypedResolver<
+        GQL.CommonChatsWithUserResponse,
+        GQLRoots.CommonChatsWithUserResponseRoot,
+        {
+            items: GQLRoots.SharedRoomRoot[],
+        },
+        {
+            items: GQL.CommonChatsWithUserResponseItemsArgs,
+            cursor: GQL.CommonChatsWithUserResponseCursorArgs,
+            count: GQL.CommonChatsWithUserResponseCountArgs,
         }
     >;
     ImageFallback?: ComplexTypedResolver<
