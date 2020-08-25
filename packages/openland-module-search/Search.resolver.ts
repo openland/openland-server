@@ -177,7 +177,16 @@ export const Resolver: GQLResolver = {
                     {term: {uid: uid}},
                     {term: {visible: true}}
                 ]),
-                [...userOrgsFunctions, ...topPrivateChatsFunctions]
+                [
+                    ...topPrivateDialogs.items.map(d => ({
+                        filter: {match: {uid2: d.uid2}},
+                        weight: d.weight || 1
+                    })),
+                    ...topGroupDialogs.items.map(d => ({
+                        filter: {match: {cid: d.cid}},
+                        weight: d.weight || 1
+                    })),
+                ]
             ));
 
             // Other users
