@@ -143,7 +143,7 @@ export const Resolver: GQLResolver = {
                 return (await Promise.all(hits.hits.hits.map(hit => Store.User.findById(ctx, parseInt(hit._id, 10))))).filter(isDefined);
             }
 
-            let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
+            // let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
             let [topPrivateDialogs, topGroupDialogs] = await Promise.all([
                 Store.UserEdge.forwardWeight.query(ctx, uid, {limit: 300, reverse: true}),
                 Store.UserGroupEdge.user.query(ctx, uid, {limit: 300, reverse: true})
@@ -151,18 +151,18 @@ export const Resolver: GQLResolver = {
 
             let clauses: any = [];
 
-            const topChatsFunctions = topGroupDialogs.items.map(d => ({
-                filter: {match: {_id: d.cid}},
-                weight: d.weight || 1
-            }));
-            const topPrivateChatsFunctions = topPrivateDialogs.items.map(d => ({
-                filter: {match: {userId: d.uid2}},
-                weight: d.weight || 1
-            }));
-            const userOrgsFunctions = userOrgs.map(oid => ({
-                filter: {match: {organizations: oid}},
-                weight: 2
-            }));
+            // const topChatsFunctions = topGroupDialogs.items.map(d => ({
+            //     filter: {match: {_id: d.cid}},
+            //     weight: d.weight || 1
+            // }));
+            // const topPrivateChatsFunctions = topPrivateDialogs.items.map(d => ({
+            //     filter: {match: {userId: d.uid2}},
+            //     weight: d.weight || 1
+            // }));
+            // const userOrgsFunctions = userOrgs.map(oid => ({
+            //     filter: {match: {organizations: oid}},
+            //     weight: 2
+            // }));
             const maxExpansions = 1000;
 
             // User dialogs
@@ -188,57 +188,57 @@ export const Resolver: GQLResolver = {
                 {boost: 10000}
             ));
 
-            // Other users
-            clauses.push(Es.fn(
-                Es.and([
-                    {match: {_type: 'user_profile'}},
-                    Es.or([
-                        {match_phrase_prefix: {name: {query, max_expansions: maxExpansions}}},
-                        {match_phrase_prefix: {shortName: {query, max_expansions: maxExpansions}}}
-                    ])
-                ]),
-                [...userOrgsFunctions, ...topPrivateChatsFunctions]
-            ));
-
-            // Rooms from user orgs
-            clauses.push(Es.scriptScore(
-                Es.fn(
-                    Es.and([
-                        {match: {_type: 'room'}},
-                        {match_phrase_prefix: {title: query}},
-                        {terms: {oid: userOrgs}}
-                    ]),
-                    topChatsFunctions
-                ),
-                `doc['membersCount'].value`
-            ));
-
-            // Public rooms
-            clauses.push(Es.scriptScore(
-                Es.fn(
-                    Es.and([
-                        {match: {_type: 'room'}},
-                        {match_phrase_prefix: {title: query}},
-                        {match: {listed: true}}
-                    ]),
-                    topChatsFunctions
-                ),
-                `doc['membersCount'].value`
-            ));
-
-            // User orgs
-            clauses.push(Es.and([
-                {match: {_type: 'organization'}},
-                {match_phrase_prefix: {name: query}},
-                {terms: {_id: userOrgs}}
-            ]));
-
-            // Public orgs
-            clauses.push(Es.and([
-                {match: {_type: 'organization'}},
-                {match_phrase_prefix: {name: query}},
-                {term: {listed: true}}
-            ]));
+            // // Other users
+            // clauses.push(Es.fn(
+            //     Es.and([
+            //         {match: {_type: 'user_profile'}},
+            //         Es.or([
+            //             {match_phrase_prefix: {name: {query, max_expansions: maxExpansions}}},
+            //             {match_phrase_prefix: {shortName: {query, max_expansions: maxExpansions}}}
+            //         ])
+            //     ]),
+            //     [...userOrgsFunctions, ...topPrivateChatsFunctions]
+            // ));
+            //
+            // // Rooms from user orgs
+            // clauses.push(Es.scriptScore(
+            //     Es.fn(
+            //         Es.and([
+            //             {match: {_type: 'room'}},
+            //             {match_phrase_prefix: {title: query}},
+            //             {terms: {oid: userOrgs}}
+            //         ]),
+            //         topChatsFunctions
+            //     ),
+            //     `doc['membersCount'].value`
+            // ));
+            //
+            // // Public rooms
+            // clauses.push(Es.scriptScore(
+            //     Es.fn(
+            //         Es.and([
+            //             {match: {_type: 'room'}},
+            //             {match_phrase_prefix: {title: query}},
+            //             {match: {listed: true}}
+            //         ]),
+            //         topChatsFunctions
+            //     ),
+            //     `doc['membersCount'].value`
+            // ));
+            //
+            // // User orgs
+            // clauses.push(Es.and([
+            //     {match: {_type: 'organization'}},
+            //     {match_phrase_prefix: {name: query}},
+            //     {terms: {_id: userOrgs}}
+            // ]));
+            //
+            // // Public orgs
+            // clauses.push(Es.and([
+            //     {match: {_type: 'organization'}},
+            //     {match_phrase_prefix: {name: query}},
+            //     {term: {listed: true}}
+            // ]));
 
             let allHits = await Modules.Search.elastic.client.search({
                 index: 'user_profile,room,organization,dialog',
