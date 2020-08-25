@@ -184,7 +184,8 @@ export const Resolver: GQLResolver = {
                         filter: {match: {cid: d.cid}},
                         weight: d.weight || 1
                     }))
-                ]
+                ],
+                {boost: 10000}
             ));
 
             // Other users
