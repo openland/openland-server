@@ -264,7 +264,7 @@ export const Resolver: GQLResolver = {
         }),
         debugMentionSearch: withPermission('super-admin', async (ctx, args) => {
             let hits = await Modules.Search.elastic.client.search({
-                index: 'user_profile,room,organization',
+                index: 'user_profile,room,organization,dialog',
                 size: args.first,
                 body: JSON.parse(args.query),
             });
