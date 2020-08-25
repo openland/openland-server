@@ -155,7 +155,6 @@ export const Resolver: GQLResolver = {
                 filter: {match: {_id: d.cid}},
                 weight: d.weight || 1
             }));
-
             const topPrivateChatsFunctions = topPrivateDialogs.items.map(d => ({
                 filter: {match: {userId: d.uid2}},
                 weight: d.weight || 1
@@ -172,7 +171,6 @@ export const Resolver: GQLResolver = {
                     {match: {_type: 'dialog'}},
                     Es.or([
                         {match_phrase_prefix: {title: {query, max_expansions: maxExpansions}}},
-                        {match_phrase_prefix: {shortName: {query, max_expansions: maxExpansions}}}
                     ]),
                     {term: {uid: uid}},
                     {term: {visible: true}}
@@ -185,7 +183,7 @@ export const Resolver: GQLResolver = {
                     ...topGroupDialogs.items.map(d => ({
                         filter: {match: {cid: d.cid}},
                         weight: d.weight || 1
-                    })),
+                    }))
                 ]
             ));
 
