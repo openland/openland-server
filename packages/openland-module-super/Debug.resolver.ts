@@ -1945,13 +1945,7 @@ export const Resolver: GQLResolver = {
                     let orgRooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, oid);
 
                     await Promise.all(orgRooms.map(async room => {
-                        await Promise.all(members.map(async member => {
-                            let isMember = await Modules.Messaging.hasActiveDialog(ctx, member.uid, room.id);
-                            if (!isMember) {
-                                return;
-                            }
-                            await Modules.Messaging.room.leaveRoom(ctx, room.id, member.uid);
-                        }));
+                        await Promise.all(members.map(member => Modules.Messaging.room.leaveRoom(ctx, room.id, member.uid)));
                     }));
                 } catch (e) {
                     await log(e);
