@@ -157,6 +157,12 @@ type SharedMediaConnection {
     pageInfo: PageInfo!
 }
 
+type CommonChatsWithUserResponse {
+    items: [SharedRoom!]!
+    cursor: String
+    count: Int!
+}
+
 extend type Query {
     messages(chatId: ID!, first: Int!, before: ID): [ModernMessage!]!
     gammaMessages(chatId: ID!, first: Int!, before: ID, after: ID, around: ID): GammaMessagesBatch
@@ -166,6 +172,7 @@ extend type Query {
     chatSharedMedia(chatId: ID!, mediaTypes: [SharedMediaType!]!, first: Int!, after: ID, before: ID, around: ID): SharedMediaConnection!
     chatSharedMediaCounters(chatId: ID!): SharedMediaCounters!
     haveAccessToChat(chatId: ID!): Boolean!
+    commonChatsWithUser(uid: ID!, first: Int!, after: ID): CommonChatsWithUserResponse!
 }
 
 extend type Mutation {
