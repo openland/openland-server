@@ -57,11 +57,11 @@ function formatMessage(ctx: Context, name: string, message: string) {
 
 setLogProvider({
     log: (ctx, service, level, message) => {
-        if (message.length > 512) {
-            message = message.slice(0, 512) + '...';
-        }
         let obj: any;
         if (isProduction) {
+            if (message.length > 512) {
+                message = message.slice(0, 512) + '...';
+            }
             obj = {
                 app: {
                     ...LogMetaContext.get(ctx),
