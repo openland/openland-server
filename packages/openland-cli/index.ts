@@ -2,6 +2,8 @@
 // tslint:disable:no-console
 // Register Modules
 
+import { keySelector } from 'foundationdb';
+
 require('module-alias/register');
 
 import yargs from 'yargs';
@@ -9,10 +11,11 @@ import { openTestDatabase } from '../openland-server/foundationdb';
 import { createNamedContext } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 import { loadAllModules } from 'openland-modules/loadAllModules';
-import { encoders, inTx } from '@openland/foundationdb';
+import { encoders, getTransaction, inTx } from '@openland/foundationdb';
 import TestDataFactory from '../openland-server-tests/TestDataFactory';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { randomInt } from '../openland-utils/random';
+
 // import { openDatabase } from './utils/openDatabase';
 // import { diagnose, calculateCount, removeOldIndexes, diagAll, deleteInvalid } from 'openland-cli/diagnose';
 
@@ -148,7 +151,7 @@ yargs
                     data.push(i * 100 + j);
                 }
                 console.log(i * 100);
-                blockSubspace.set(ctx, [i * 100], {
+                blockSubspace.set(ctx, [i * 100 + 99], {
                     data
                 });
             });
@@ -189,9 +192,19 @@ yargs
         console.time('block');
         for (let [from, to] of randomRanges) {
             await inTx(parent, async (ctx) => {
-                let firstBlock = await blockSubspace.snapshotRange(ctx, [], { after: [from + 1], limit: 1, reverse: true });
+                let firstBlock = await blockSubspace.snapshotRange(ctx, [], { after: [from], limit: 1 });
                 await blockSubspace.snapshotRange(ctx, [], { after: [(firstBlock[0].key[0] as number) - 1], before: [(to - to % 100) + 100 + 1] });
                 // console.log(to - from + ' ' + allBlocks.reduce((b, a) => a.value.data.length + b, 0));
+            });
+        }
+        console.timeEnd('block');
+
+        console.time('block raw');
+        for (let [from, to] of randomRanges) {
+            await inTx(parent, async (ctx) => {
+                let firstKey = await getTransaction(ctx).rawTransaction(db).getKey(keySelector.firstGreaterOrEqual(encoders.tuple.pack([blockSubspace.prefix, from])));
+                let allBlocks = await blockSubspace.snapshotRange(ctx, [], { after: firstKey ? encoders.tuple.unpack(firstKey) : [], before: [(to - to % 100) + 200] });
+                console.log(to - from + ' ' + allBlocks.reduce((b, a) => a.value.data.length + b, 0));
             });
         }
         console.timeEnd('block');

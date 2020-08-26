@@ -25,7 +25,8 @@ let devTeamEmails = [
     'steve+kite@openland.com',
     'steve+k@openland.com',
     'bot@openland.com',
-    'danila@openland.com'
+    'danila@openland.com',
+    'krigga7@gmail.com'
 ];
 
 const log = createLogger('sendgrid');
