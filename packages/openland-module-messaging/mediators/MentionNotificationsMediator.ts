@@ -94,13 +94,13 @@ export class MentionNotificationsMediator {
     }
 
     onNewMessage = async (ctx: Context, message: Message) => {
-        if (this.haveMentions(message)) {
+        if (this.haveMentions(message) && !message.isService) {
             this.queue.pushWork(ctx, { messageId: message.id });
         }
     }
 
     onMessageUpdated = async (ctx: Context, message: Message) => {
-        if (this.haveMentions(message)) {
+        if (this.haveMentions(message) && !message.isService) {
             this.queue.pushWork(ctx, { messageId: message.id });
         }
     }
