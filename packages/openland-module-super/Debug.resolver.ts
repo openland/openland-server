@@ -1940,22 +1940,26 @@ export const Resolver: GQLResolver = {
         }),
         debugRemoveKickedUsersFromOrgChats: withPermission('super-admin', async (parent, args) => {
             debugTaskForAll(Store.Organization, parent.auth.uid!, 'debugRemoveKickedUsersFromOrgChats', async (ctx, oid, log) => {
-                let members = await Store.OrganizationMember.organization.findAll(ctx, 'left', oid);
-                let orgRooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, oid);
+                try {
+                    let members = await Store.OrganizationMember.organization.findAll(ctx, 'left', oid);
+                    let orgRooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, oid);
 
-                await Promise.all(orgRooms.map(async room => {
-                    await Promise.all(members.map(async member => {
-                        let isMember = await Modules.Messaging.hasActiveDialog(ctx, member.uid, room.id);
-                        if (!isMember) {
-                            return;
-                        }
-                        if (member.uid === member.invitedBy) {
-                            await Modules.Messaging.room.leaveRoom(ctx, room.id, member.uid);
-                        } else {
-                            await Modules.Messaging.room.kickFromRoom(ctx, room.id, member.invitedBy || room.ownerId!,  member.uid);
-                        }
+                    await Promise.all(orgRooms.map(async room => {
+                        await Promise.all(members.map(async member => {
+                            let isMember = await Modules.Messaging.hasActiveDialog(ctx, member.uid, room.id);
+                            if (!isMember) {
+                                return;
+                            }
+                            if (member.uid === member.invitedBy) {
+                                await Modules.Messaging.room.leaveRoom(ctx, room.id, member.uid);
+                            } else {
+                                await Modules.Messaging.room.kickFromRoom(ctx, room.id, member.invitedBy || room.ownerId!,  member.uid);
+                            }
+                        }));
                     }));
-                }));
+                } catch (e) {
+                    await log(e);
+                }
             });
             return true;
         }),
