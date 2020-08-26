@@ -1950,11 +1950,7 @@ export const Resolver: GQLResolver = {
                             if (!isMember) {
                                 return;
                             }
-                            if (member.uid === member.invitedBy) {
-                                await Modules.Messaging.room.leaveRoom(ctx, room.id, member.uid);
-                            } else {
-                                await Modules.Messaging.room.kickFromRoom(ctx, room.id, member.invitedBy || room.ownerId!,  member.uid);
-                            }
+                            await Modules.Messaging.room.leaveRoom(ctx, room.id, member.uid);
                         }));
                     }));
                 } catch (e) {
