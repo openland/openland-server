@@ -19,6 +19,9 @@ export class SpaceXConnection {
     private authWaiters: (() => void)[] = [];
     public lastRequestTime: number = Date.now();
     public operationBucket = Concurrency.Operation.get(this.id);
+    // Maps protocol operation ids to SpaceXSession ids
+    readonly sessionOperationIds = new Map<string, string>();
+
     private onClose: () => void = () => 0;
 
     constructor(socket: WebSocket, onClose: () => void) {
