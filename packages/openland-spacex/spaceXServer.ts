@@ -91,6 +91,10 @@ async function handleOperation(params: SpaceXServerParams, req: http.IncomingMes
             connection.sendComplete(id);
             params.onOperationFinish(ctx, operation, Date.now() - opStartTime);
             connection.sessionOperationIds.delete(id);
+        } else if (res.type === 'aborted') {
+            connection.sendComplete(id);
+            params.onOperationFinish(ctx, operation, Date.now() - opStartTime);
+            connection.sessionOperationIds.delete(id);
         }
     });
     connection.sessionOperationIds.set(id, opId);
