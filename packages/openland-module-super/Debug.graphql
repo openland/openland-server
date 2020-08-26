@@ -199,6 +199,7 @@ extend type Mutation {
     debugMigrateUserChatsList: Boolean!
     debugFreeUnusedShortnames: Boolean!
     debugFreeShortname(shortname: String!): Boolean!
+    debugRemoveKickedUsersFromOrgChats: Boolean!
 }
 
 extend type Subscription {
