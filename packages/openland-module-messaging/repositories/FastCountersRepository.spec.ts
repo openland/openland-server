@@ -90,10 +90,10 @@ describe('FastCountersRepository', () => {
 
     it('should handle deleted messages', async () => {
         let repo = container.get<FastCountersRepository>('FastCountersRepository');
-        await inTx(parentCtx, async ctx => {
-            let uid = 5;
-            let cid = 4;
+        let uid = 5;
+        let cid = 4;
 
+        await inTx(parentCtx, async ctx => {
             await repo.onAddDialog(ctx, uid, cid);
             await Store.ConversationLastSeq.byId(cid).set(ctx, 100);
 
@@ -107,15 +107,15 @@ describe('FastCountersRepository', () => {
             expect(counters.length).toBe(1);
             expect(counters[0].haveMention).toBe(false);
             expect(counters[0].unreadCounter).toBe(95);
-
-            // jump to other bucket
-            await Store.ConversationLastSeq.byId(cid).set(ctx, 3000);
-
-            counters = await repo.fetchUserCounters(ctx, uid);
-            expect(counters.length).toBe(1);
-            expect(counters[0].haveMention).toBe(false);
-            expect(counters[0].unreadCounter).toBe(2995);
         });
+
+        // jump to other bucket
+        await inTx(parentCtx, async ctx => await Store.ConversationLastSeq.byId(cid).set(ctx, 3000));
+
+        let _counters = await inTx(parentCtx, async _ctx => await repo.fetchUserCounters(_ctx, uid));
+        expect(_counters.length).toBe(1);
+        expect(_counters[0].haveMention).toBe(false);
+        expect(_counters[0].unreadCounter).toBe(2995);
     });
 
     it('should handle user mention', async () => {

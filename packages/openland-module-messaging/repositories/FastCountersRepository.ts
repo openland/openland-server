@@ -55,6 +55,7 @@ export class FastCountersRepository {
     }
 
     onMessageCreated = async (ctx: Context, uid: number, cid: number, seq: number, mentionedUsers: (number|'all')[], hiddenForUsers: number[]) => {
+        countersCache.delete(ctx, 'counters');
         // Reset sender counter
         this.onMessageRead(ctx, uid, cid, seq);
 
@@ -73,6 +74,7 @@ export class FastCountersRepository {
     }
 
     onMessageDeleted = async (ctx: Context, cid: number, seq: number, mentionedUsers: (number|'all')[]) => {
+        countersCache.delete(ctx, 'counters');
         await this.deletedSeqs.add(ctx, [cid], seq);
         if (mentionedUsers.length === 0) {
             return;
@@ -87,6 +89,7 @@ export class FastCountersRepository {
     }
 
     onMessageEdited = async (ctx: Context, cid: number, seq: number, oldMentions: (number|'all')[], newMentions: (number|'all')[]) => {
+        countersCache.delete(ctx, 'counters');
         let removed = oldMentions.filter(x => !newMentions.includes(x));
         let added = newMentions.filter(x => !oldMentions.includes(x));
 
@@ -107,15 +110,18 @@ export class FastCountersRepository {
     }
 
     onMessageRead = (ctx: Context, uid: number, cid: number, toSeq: number) => {
+        countersCache.delete(ctx, 'counters');
         this.userReadSeqsSubspace.set(ctx, [uid, cid], toSeq);
     }
 
     onAddDialog = async (ctx: Context, uid: number, cid: number) => {
+        countersCache.delete(ctx, 'counters');
         let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
         this.userReadSeqsSubspace.set(ctx, [uid, cid], chatLastSeq);
     }
 
     onRemoveDialog = (ctx: Context, uid: number, cid: number) => {
+        countersCache.delete(ctx, 'counters');
         this.userReadSeqsSubspace.clear(ctx, [uid, cid]);
     }
 
