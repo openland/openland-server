@@ -64,7 +64,7 @@ export class RegistrationsRepository {
         });
     }
 
-    getFeedSource = async (parent: Context, feed: Buffer) => {
+    getFeedSource = async (parent: Context, feed: Buffer): Promise<{ type: 'group', cid: number } | { type: 'common', uid: number } | null> => {
         return await inTxLeaky(parent, async (ctx) => {
             let existing = await this.directory.get(ctx, encoders.tuple.pack([SUBSPACE_FEED, feed]));
             if (!existing) {

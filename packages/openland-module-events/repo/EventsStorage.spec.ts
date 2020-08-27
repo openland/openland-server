@@ -61,8 +61,8 @@ describe('EventsStorage', () => {
                 } else {
                     expect(posted.subscribers).toBeNull();
                 }
-                return storage.resolvePostId(ctx, posted.index);
-            })).promise;
+                return posted;
+            })).id;
 
             // Get subscriber state
             let subscriberState2 = await storage.getSubscriberState(root, ids.subscriber1);
@@ -588,5 +588,31 @@ describe('EventsStorage', () => {
         expect(changed.length).toBe(2);
         expect(changed[0]).toMatchObject(ids.feed1);
         expect(changed[1]).toMatchObject(ids.feed2);
+    });
+
+    it('feed changes should respect join and leave time', async () => {
+        let root = createNamedContext('test');
+        let db = await Database.openTest({ name: 'event-storage-respect-join', layers: [] });
+        let storage = new EventsStorage(db.allKeys);
+
+        let feed = await storage.createFeed(root);
+        let subscriber = await storage.createSubscriber(root);
+        let state = await storage.getState(root, subscriber);
+
+        // Not available if subscriber is not subscribed
+        expect(await storage.isUpdateAvailableToSubscriber(root, { feed, subscriber, id: state })).toBe(false);
+
+        // Subscribe
+        await storage.subscribe(root, subscriber, feed);
+        let state2 = await storage.getState(root, subscriber);
+        expect(await storage.isUpdateAvailableToSubscriber(root, { feed, subscriber, id: state })).toBe(false);
+        expect(await storage.isUpdateAvailableToSubscriber(root, { feed, subscriber, id: state2 })).toBe(true);
+
+        // Unsubscribe
+        await storage.unsubscribe(root, subscriber, feed);
+        let state3 = await storage.getState(root, subscriber);
+        expect(await storage.isUpdateAvailableToSubscriber(root, { feed, subscriber, id: state })).toBe(false);
+        expect(await storage.isUpdateAvailableToSubscriber(root, { feed, subscriber, id: state2 })).toBe(true);
+        expect(await storage.isUpdateAvailableToSubscriber(root, { feed, subscriber, id: state3 })).toBe(false);
     });
 });

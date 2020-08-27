@@ -51,6 +51,7 @@ const SUBSCRIBERS_VERSION = 3;
 const SUBSCRIBERS_LATEST = 5;
 const SUBSCRIBERS_JUMBO = 4;
 const SUBSCRIBERS_UPDATES = 6;
+const SUBSCRIBERS_HISTORY = 7;
 const SUBSCRIBERS_SUBSCRIPTIONS = 2;
 const SUBSCRIBERS_SUBSCRIPTIONS_JOIN = 0;
 const SUBSCRIBERS_SUBSCRIPTIONS_LATEST = 1;
@@ -86,7 +87,7 @@ function checkState(src: Buffer) {
 
 // const feedPostingCache = new TransactionCache<{ txCleared: boolean }>('event-storage-feed');
 
-export type RawEvent = { id: Buffer, seq: number, type: 'event' | 'start', body: Buffer | null };
+export type RawEvent = { id: Buffer, seq: number, body: Buffer | null };
 
 export class EventsStorage {
 
@@ -160,6 +161,9 @@ export class EventsStorage {
             let index = this.resolveIndex(ctx); // Resolving event index to save point in time of subscription start
             this.subscribersDirectory.setVersionstampedValue(ctx, subscriberJoinKey, ZERO, index);
 
+            // Save join event
+            this.subscribersDirectory.setVersionstampedKey(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_HISTORY, feed]), encoders.boolean.pack(true), index);
+
             // Save jumbo flag
             if (isJumbo) {
                 this.subscribersDirectory.set(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_SUBSCRIPTIONS, feed, SUBSCRIBERS_SUBSCRIPTIONS_JUMBO]), ZERO);
@@ -202,6 +206,10 @@ export class EventsStorage {
 
             // Make jumbo frame as read conflict
             this.feedsDirectory.addReadConflictKey(ctx, encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_JUMBO]));
+
+            // Save leave event
+            let index = this.resolveIndex(ctx); // Resolving event index to save point in time of subscription stop
+            this.subscribersDirectory.setVersionstampedKey(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_HISTORY, feed]), encoders.boolean.pack(false), index);
 
             //
             // Remove feed from subscriber
@@ -366,6 +374,27 @@ export class EventsStorage {
         return await state.promise;
     }
 
+    async getStateTransactional(parent: Context, subscriber: ID) {
+        checkId(subscriber);
+        return await inTx(parent, async (ctx) => {
+
+            // Resolving event index
+            let index = this.resolveIndex(ctx);
+
+            // Versionstamp
+            let versionStamp = getTransaction(ctx).rawTransaction(this.subscribersDirectory.db).getVersionstamp();
+
+            // Perform dump write to being able resolve versionstamp
+            this.subscribersDirectory.add(ctx, encoders.tuple.pack([subscriber, SUBSCRIBERS_VT]), PLUS_ONE);
+
+            return {
+                promise: (async () => {
+                    return Buffer.concat([await versionStamp.promise, index]);
+                })()
+            };
+        });
+    }
+
     async getUpdatedFeeds(parent: Context, subscriber: ID, after: Buffer) {
         checkId(subscriber);
         return await inTxLeaky(parent, async (ctx) => {
@@ -401,34 +430,6 @@ export class EventsStorage {
             }
 
             return res;
-        });
-    }
-
-    async getFeedUpdates(parent: Context, feed: ID, opts: { mode: 'forward' | 'only-latest', limit: number, after: Buffer }) {
-        return await inTxLeaky(parent, async (ctx) => {
-            let cursor = Buffer.concat([encoders.tuple.pack([feed, FEED_STREAM]), opts.after]);
-            let read = opts.mode === 'forward'
-                ? await this.feedsDirectory.range(ctx, encoders.tuple.pack([feed, FEED_STREAM]), { after: cursor, reverse: false, limit: opts.limit + 1 })
-                : await this.feedsDirectory.range(ctx, encoders.tuple.pack([feed, FEED_STREAM]), { before: cursor, reverse: true, limit: opts.limit + 1 });
-            let updates: RawEvent[] = [];
-            for (let i = 0; i < Math.min(opts.limit, read.length); i++) {
-                let r = read[i];
-                let id = r.key.slice(r.key.length - 12);
-                let value = encoders.tuple.unpack(r.value);
-                let seq = value[0] as number;
-                let type = value[1] as number;
-                let body = value[2] as Buffer;
-                if (opts.mode === 'only-latest') {
-                    if (type === 1 /* Type: Event */) {
-                        updates.unshift({ id, seq, body, type: 'event' });
-                    }
-                } else {
-                    if (type === 1 /* Type: Event */) {
-                        updates.push({ id, seq, body, type: 'event' });
-                    }
-                }
-            }
-            return { updates, hasMore: read.length > opts.limit };
         });
     }
 
@@ -609,15 +610,6 @@ export class EventsStorage {
     // Posting
     //
 
-    resolvePostId(parent: Context, index: Buffer) {
-        let vt = getTransaction(parent).rawTransaction(this.feedsDirectory.db).getVersionstamp();
-        return {
-            promise: (async () => {
-                return Buffer.concat([await vt.promise, index]);
-            })()
-        };
-    }
-
     async post(parent: Context, feed: Buffer, event: Buffer, opts?: { repeatKey?: Buffer }) {
         checkId(feed);
 
@@ -727,11 +719,85 @@ export class EventsStorage {
                 }
             }
 
+            // Resolve id
+            let vt = getTransaction(ctx).rawTransaction(this.feedsDirectory.db).getVersionstamp();
+
             return {
                 seq,
                 index,
-                subscribers
+                subscribers,
+                id: (async () => {
+                    return Buffer.concat([await vt.promise, index]);
+                })()
             };
+        });
+    }
+
+    //
+    // Feed Updates
+    //
+
+    async getFeedUpdates(parent: Context, feed: ID, opts: { mode: 'forward' | 'only-latest', limit: number, after: Buffer }) {
+        return await inTxLeaky(parent, async (ctx) => {
+            let cursor = Buffer.concat([encoders.tuple.pack([feed, FEED_STREAM]), opts.after]);
+            let read = opts.mode === 'forward'
+                ? await this.feedsDirectory.range(ctx, encoders.tuple.pack([feed, FEED_STREAM]), { after: cursor, reverse: false, limit: opts.limit + 1 })
+                : await this.feedsDirectory.range(ctx, encoders.tuple.pack([feed, FEED_STREAM]), { before: cursor, reverse: true, limit: opts.limit + 1 });
+            let updates: RawEvent[] = [];
+            for (let i = 0; i < Math.min(opts.limit, read.length); i++) {
+                let r = read[i];
+                let id = r.key.slice(r.key.length - 12);
+                let value = encoders.tuple.unpack(r.value);
+                let seq = value[0] as number;
+                let type = value[1] as number;
+                let body = value[2] as Buffer;
+                if (opts.mode === 'only-latest') {
+                    if (type === 1 /* Type: Event */) {
+                        updates.unshift({ id, seq, body });
+                    }
+                } else {
+                    if (type === 1 /* Type: Event */) {
+                        updates.push({ id, seq, body });
+                    }
+                }
+            }
+            return { updates, hasMore: read.length > opts.limit };
+        });
+    }
+
+    // async getFeedUpdatesForSubscriber(parent: Context, feed: ID, subscriber: Buffer, opts: { mode: 'forward' | 'only-latest', limit: number, after: Buffer }) {
+    //     return await inTxLeaky(parent, async (ctx) => {
+    //         // let cursor = Buffer.concat([encoders.tuple.pack([feed, FEED_STREAM]), opts.after]);
+    //     });
+    // }
+
+    async isUpdateAvailableToSubscriber(parent: Context, args: { subscriber: Buffer, feed: ID, id: Buffer }) {
+        return await inTxLeaky(parent, async (ctx) => {
+            let cursor = Buffer.concat([encoders.tuple.pack([args.subscriber, SUBSCRIBERS_HISTORY, args.feed]), args.id]);
+            let historyEvent = await this.subscribersDirectory.range(ctx, encoders.tuple.pack([args.subscriber, SUBSCRIBERS_HISTORY, args.feed]), { after: cursor, limit: 1, reverse: true });
+            if (!historyEvent || historyEvent.length === 0) {
+                return false;
+            }
+            return encoders.boolean.unpack(historyEvent[0].value);
+        });
+    }
+
+    async getFeedSeq(parent: Context, feed: ID) {
+        checkId(feed);
+        return await inTxLeaky(parent, async (ctx) => {
+            let seq = 0;
+            let ex = await this.feedsDirectory.get(ctx, encoders.tuple.pack([feed, FEED_SETTINGS, FEED_SETTINGS_SEQ]));
+            if (ex) {
+                seq = encoders.int32BE.unpack(ex);
+            }
+            return seq;
+        });
+    }
+
+    async getFeedLatest(parent: Context, feed: ID) {
+        checkId(feed);
+        return await inTxLeaky(parent, async (ctx) => {
+            return await this.feedsDirectory.get(ctx, encoders.tuple.pack([feed, FEED_LATEST]));
         });
     }
 
