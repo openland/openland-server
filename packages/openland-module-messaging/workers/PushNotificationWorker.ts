@@ -88,6 +88,9 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
         DEBUG && log.debug(ctx, 'Ignore current user');
         return false;
     }
+    if (message.isMuted) {
+        return false;
+    }
 
     DEBUG && log.debug(ctx, 'readMessageId', readMessageId);
     // Ignore read messages
