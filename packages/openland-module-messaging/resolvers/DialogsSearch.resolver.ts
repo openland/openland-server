@@ -82,7 +82,7 @@ export const Resolver: GQLResolver = {
                     [] as any[]
                 );
 
-                return res.filter(isDefined).map(d => d!).map(r => ({ cid: r.id }));
+                return res.filter(isDefined).map(d => d!).map(r => ({ cid: r.id, counter: { unreadCounter: 0, haveMention: false } }));
             });
         }),
     }

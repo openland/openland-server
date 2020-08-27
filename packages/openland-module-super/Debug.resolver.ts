@@ -35,6 +35,7 @@ import { container } from '../openland-modules/Modules.container';
 import { batch } from '../openland-utils/batch';
 import { UserError } from '../openland-errors/UserError';
 import { UserChatsRepository } from '../openland-module-messaging/repositories/UserChatsRepository';
+import { FastCountersRepository } from '../openland-module-messaging/repositories/FastCountersRepository';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -108,11 +109,7 @@ export const Resolver: GQLResolver = {
         cursor: src => src.cursor || null
     },
     Query: {
-        lifecheck: async (src, args, ctx) => {
-            console.log(await Modules.Messaging.fetchUserCounters(ctx, ctx.auth.uid!));
-            // `i'm ok`
-            return 'ok';
-        },
+        lifecheck: () => `i'm ok`,
         debugParseID: withPermission('super-admin', async (ctx, args) => {
             let id = IdsFactory.resolve(args.id);
             return {
@@ -1954,6 +1951,71 @@ export const Resolver: GQLResolver = {
                 } catch (e) {
                     await log(e);
                 }
+            });
+            return true;
+        }),
+        debugMigrateToNewCounters: withPermission('super-admin', async (parent, args) => {
+            debugSubspaceIterator<MessageShape>(Store.Message.descriptor.subspace, parent.auth.uid!, 'debugMigrateToNewCounters', async (next, log) => {
+                let fastCounters = new FastCountersRepository();
+                let res: { key: TupleItem[], value: MessageShape }[] = [];
+                let total = 0;
+
+                const handleMessage = async (ctx: Context, id: number) => {
+                    let message = await Store.Message.findById(ctx, id);
+                    if (!message) {
+                        return;
+                    }
+                    let cid = message.cid;
+                    let seq = message.seq!;
+
+                    if (message.deleted) {
+                        await fastCounters.deletedSeqs.add(ctx, [cid], seq);
+                    }
+                    if (message.spans?.find(s => s.type === 'all_mention')) {
+                        await fastCounters.allMentions.add(ctx, [cid], seq);
+                    }
+
+                    let userMentions = message.spans?.filter(s => s.type === 'user_mention');
+                    if (userMentions && userMentions.length > 0) {
+                        await Promise.all(userMentions.map(async m => {
+                            if (m.type === 'user_mention') {
+                                await fastCounters.userMentions.add(ctx, [m.user, cid], seq);
+                            }
+                        }));
+                    }
+
+                    if (message.hiddenForUids) {
+                        await Promise.all(message.hiddenForUids.map(u => fastCounters.hiddenMessages.add(ctx, [u, cid], seq)));
+                    }
+                };
+
+                do {
+                    res = await next(parent, 99);
+                    total += res.length;
+
+                    try {
+                        await inTx(parent, async ctx => {
+                            await Promise.all(res.map(msg => handleMessage(ctx, msg.value.id)));
+                        });
+                        if (total % 9900 === 0) {
+                            await log('done: ' + total);
+                        }
+                    } catch (e) {
+                        await log('error: ' + e);
+                    }
+                } while (res.length > 0);
+
+                return 'done, total: ' + total;
+            });
+            return true;
+        }),
+        debugMigrateToNewLastRead: withPermission('super-admin', async (parent, args) => {
+            let fastCounters = new FastCountersRepository();
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugMigrateToNewLastRead', async (ctx, uid, log) => {
+                let userDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
+                await Promise.all(userDialogs.map(async d => {
+                    fastCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], await Store.UserDialogReadMessageId.get(ctx, uid, d.cid));
+                }));
             });
             return true;
         }),

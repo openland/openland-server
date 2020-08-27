@@ -19,11 +19,11 @@ const log = createLogger('fast_counters');
 export class FastCountersRepository {
     private directory = Store.FastCountersDirectory;
 
-    private deletedSeqs: BucketCountingDirectory;
-    private userMentions: BucketCountingDirectory;
-    private allMentions: BucketCountingDirectory;
-    private hiddenMessages: BucketCountingDirectory;
-    private userReadSeqsSubspace: Subspace<TupleItem[], number>;
+    readonly deletedSeqs: BucketCountingDirectory;
+    readonly userMentions: BucketCountingDirectory;
+    readonly allMentions: BucketCountingDirectory;
+    readonly hiddenMessages: BucketCountingDirectory;
+    readonly userReadSeqsSubspace: Subspace<TupleItem[], number>;
 
     constructor() {
         this.deletedSeqs = new BucketCountingDirectory(

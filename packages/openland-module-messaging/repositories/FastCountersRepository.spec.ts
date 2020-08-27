@@ -127,7 +127,7 @@ describe('FastCountersRepository', () => {
             await repo.onAddDialog(ctx, uid, cid);
             await Store.ConversationLastSeq.byId(cid).set(ctx, 100);
 
-            await repo.onMessageCreated(ctx, 10, cid, 1, [uid]);
+            await repo.onMessageCreated(ctx, 10, cid, 1, [uid], []);
 
             let counters = await repo.fetchUserCounters(ctx, uid);
             expect(counters.length).toBe(1);
@@ -145,7 +145,7 @@ describe('FastCountersRepository', () => {
             await repo.onAddDialog(ctx, uid, cid);
             await Store.ConversationLastSeq.byId(cid).set(ctx, 100);
 
-            await repo.onMessageCreated(ctx, 10, cid, 1, [uid]);
+            await repo.onMessageCreated(ctx, 10, cid, 1, [uid], []);
 
             let counters = await repo.fetchUserCounters(ctx, uid);
             expect(counters.length).toBe(1);
@@ -170,7 +170,7 @@ describe('FastCountersRepository', () => {
             await repo.onAddDialog(ctx, uid, cid);
             await Store.ConversationLastSeq.byId(cid).set(ctx, 100);
 
-            await repo.onMessageCreated(ctx, 10, cid, 1, [uid]);
+            await repo.onMessageCreated(ctx, 10, cid, 1, [uid], []);
 
             let counters = await repo.fetchUserCounters(ctx, uid);
             expect(counters.length).toBe(1);
@@ -195,7 +195,7 @@ describe('FastCountersRepository', () => {
             await repo.onAddDialog(ctx, uid, cid);
             await Store.ConversationLastSeq.byId(cid).set(ctx, 100);
 
-            await repo.onMessageCreated(ctx, 10, cid, 1, []);
+            await repo.onMessageCreated(ctx, 10, cid, 1, [], []);
 
             let counters = await repo.fetchUserCounters(ctx, uid);
             expect(counters.length).toBe(1);
