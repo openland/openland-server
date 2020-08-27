@@ -2017,7 +2017,17 @@ export const Resolver: GQLResolver = {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugMigrateToNewLastRead', async (ctx, uid, log) => {
                 let userDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
                 await Promise.all(userDialogs.map(async d => {
-                    fastCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], await Store.UserDialogReadMessageId.get(ctx, uid, d.cid));
+                    let messageId = await Store.UserDialogReadMessageId.get(ctx, uid, d.cid);
+                    if (messageId === 0) {
+                        fastCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], 0);
+                    } else {
+                        let message = await Store.Message.findById(ctx, messageId);
+                        if (!message) {
+                            fastCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], 0);
+                        } else {
+                            fastCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], message.seq!);
+                        }
+                    }
                 }));
             });
             return true;
