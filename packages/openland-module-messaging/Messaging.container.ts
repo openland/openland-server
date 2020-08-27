@@ -19,6 +19,7 @@ import { PremiumChatMediator } from './mediators/PremiumChatMediator';
 import { PremiumChatRepository } from './repositories/PremiumChatRepository';
 import { SocialImageRepository } from './repositories/SocialImageRepository';
 import { DonationsMediator } from './mediators/DonationsMediator';
+import { FastCountersRepository } from './repositories/FastCountersRepository';
 
 export function loadMessagingModule() {
     container.bind(MessagingModule).toSelf().inSingletonScope();
@@ -41,4 +42,5 @@ export function loadMessagingModule() {
     container.bind('MentionNotificationsMediator').to(MentionNotificationsMediator).inSingletonScope();
     container.bind('SocialImageRepository').to(SocialImageRepository).inSingletonScope();
     container.bind('DonationsMediator').to(DonationsMediator).inSingletonScope();
+    container.bind('FastCountersRepository').to(FastCountersRepository).inSingletonScope();
 }

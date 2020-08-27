@@ -7,6 +7,8 @@ import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { encoders } from '@openland/foundationdb';
 
+const USE_NEW_COUNTERS = false;
+
 export const Resolver: GQLResolver = {
     Dialog: {
         id: (src: { cid: number }) => IDs.Dialog.serialize(src.cid),
@@ -68,7 +70,10 @@ export const Resolver: GQLResolver = {
             return await Modules.Messaging.room.resolveConversationPhoto(ctx, src.cid, ctx.auth.uid!);
         },
 
-        unreadCount: async (src: { cid: number }, args: {}, ctx: Context) => {
+        unreadCount: async (src, args: {}, ctx: Context) => {
+            if (USE_NEW_COUNTERS) {
+                return src.counter.unreadCounter;
+            }
             return Store.UserDialogCounter.byId(ctx.auth.uid!, src.cid).get(ctx);
         },
 
@@ -76,18 +81,21 @@ export const Resolver: GQLResolver = {
         betaTopMessage: (src: { cid: number }, args: {}, ctx: Context) => Modules.Messaging.findTopMessage(ctx, src.cid, ctx.auth.uid!),
         alphaTopMessage: (src: { cid: number }, args: {}, ctx: Context) => Modules.Messaging.findTopMessage(ctx, src.cid, ctx.auth.uid!),
         isMuted: async (src: { cid: number }, _, ctx) => await Modules.Messaging.isChatMuted(ctx, ctx.auth.uid!, src.cid),
-        haveMention: async (src: { cid: number }, _, ctx) => {
+        haveMention: async (src, _, ctx) => {
+            if (USE_NEW_COUNTERS) {
+                return src.counter.haveMention;
+            }
             return await Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid).get(ctx);
         },
         hasActiveCall: async (src, _, ctx) => {
-          return !!(await Modules.Calls.repo.getOrCreateConference(ctx, src.cid)).active;
+            return !!(await Modules.Calls.repo.getOrCreateConference(ctx, src.cid)).active;
         },
         membership: async (src, args, ctx) => ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, src.cid) : 'none'
     },
     Query: {
         dialogs: withUser(async (ctx, args, uid) => {
             if (args.first <= 0) {
-                return [];
+                return { items: [], cursor: undefined };
             }
 
             let allDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
@@ -100,20 +108,24 @@ export const Resolver: GQLResolver = {
                 allDialogs = allDialogs.filter((v) => v.date! <= aft);
             }
 
-            if (allDialogs.length <= args.first) {
-                return {
-                    items: allDialogs,
-                    cursor: undefined,
-                    hasMore: false
-                };
-            } else {
-                let cursor = encoders.tuple.pack([allDialogs[args.first].date!]).toString('hex');
-                return {
-                    items: allDialogs.slice(0, args.first),
-                    cursor: cursor,
-                    hasMore: true
-                };
+            let cursor: string|undefined = undefined;
+            if (allDialogs.length > args.first) {
+                cursor = encoders.tuple.pack([allDialogs[args.first].date!]).toString('hex');
             }
+            allDialogs = allDialogs.slice(0, args.first);
+
+            let counters = await Modules.Messaging.fetchUserCountersForChats(ctx, uid, allDialogs.map(d => d.cid));
+            let items = allDialogs.map(dialog => {
+                let counter = counters.find(c => c.cid === dialog.cid) || {unreadCounter: 0, haveMention: false};
+                return {
+                    cid: dialog.cid,
+                    counter
+                };
+            });
+            return {
+                items,
+                cursor: cursor
+            };
         })
     }
 };

@@ -306,9 +306,9 @@ export namespace GQLRoots {
     export type AppInviteInfoRoot = any;
     export type InviteHistotyInfoRoot = any;
     export type ReactionRoot = any;
-    export type DialogRoot = { cid: number };
+    export type DialogRoot = { cid: number, counter: { unreadCounter: number, haveMention: boolean } };
     export type DialogKindRoot = DialogKindValues;
-    export type DialogsConnectionRoot = any;
+    export type DialogsConnectionRoot = { items: DialogRoot[], cursor: string|undefined };
     export type ProfileBadgeTypeRoot = 'organization';
     export type ProfileBadgeRoot = { type: ProfileBadgeTypeRoot, text: string };
 

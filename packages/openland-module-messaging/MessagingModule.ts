@@ -171,6 +171,14 @@ export class MessagingModule {
         return await this.userState.fetchUserGlobalCounter(parent, uid);
     }
 
+    async fetchUserCounters(parent: Context, uid: number) {
+        return this.messaging.fastCounters.fetchUserCounters(parent, uid);
+    }
+
+    async fetchUserCountersForChats(ctx: Context, uid: number, cids: number[], includeAllMention: boolean = true) {
+        return this.messaging.fastCounters.fetchUserCountersForChats(ctx, uid, cids, includeAllMention);
+    }
+
     //
     // Rooms
     //

@@ -100,6 +100,7 @@ extend type Query {
     debugUserSearch(query: String!): String!
     debugMentionSearch(query: String!, first: Int!, index: String!): String!
     debugMentionSearchGetUserData(cid: ID!): String!
+    debugGetCounters: String!
 }
 
 enum SuperNotificationType {
@@ -200,6 +201,8 @@ extend type Mutation {
     debugFreeUnusedShortnames: Boolean!
     debugFreeShortname(shortname: String!): Boolean!
     debugRemoveKickedUsersFromOrgChats: Boolean!
+    debugMigrateToNewCounters: Boolean!
+    debugMigrateToNewLastRead: Boolean!
 }
 
 extend type Subscription {

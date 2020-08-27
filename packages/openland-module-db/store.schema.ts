@@ -861,6 +861,8 @@ export default declareSchema(() => {
 
     customDirectory('UserCountersIndex');
 
+    customDirectory('FastCounters');
+
     entity('UserDialogHandledMessage', () => {
         primaryKey('uid', integer());
         primaryKey('cid', integer());
