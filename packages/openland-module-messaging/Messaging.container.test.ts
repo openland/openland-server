@@ -10,6 +10,7 @@ import { PushModule } from '../openland-module-push/PushModule';
 import { PushModuleMock } from '../openland-module-push/PushModule.mock';
 import { PresenceModule } from '../openland-module-presences/PresenceModule';
 import { SearchModule } from '../openland-module-search/SearchModule';
+import { FastCountersRepository } from './repositories/FastCountersRepository';
 
 export function loadMessagingTestModule() {
     loadMessagingModule();
@@ -21,5 +22,6 @@ export function loadMessagingTestModule() {
     container.bind(PresenceModule).toSelf().inSingletonScope();
     container.bind(DraftsModule).toSelf().inSingletonScope();
     container.bind(MetricsModule).toSelf().inSingletonScope();
+    container.bind(FastCountersRepository).toSelf().inSingletonScope();
     // container.bind(PushModule).toSelf().inSingletonScope();
 }
