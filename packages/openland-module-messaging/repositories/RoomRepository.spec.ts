@@ -21,8 +21,8 @@ describe('RoomRepository', () => {
         await testEnvironmentStart('room-repo');
         container.bind('RoomRepository').to(RoomRepository).inSingletonScope();
         container.bind('DeliveryMediator').toConstantValue(new DeliveryMediator());
+        container.bind('FastCountersRepository').to(FastCountersRepository).inSingletonScope();
         container.bind(UsersModule).toSelf().inSingletonScope();
-        container.bind(FastCountersRepository).toSelf().inSingletonScope();
         loadUsersModule();
     });
     afterAll( async () => {
