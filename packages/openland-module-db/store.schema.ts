@@ -189,6 +189,7 @@ export default declareSchema(() => {
         field('editorial', boolean());
         field('private', optional(boolean()));
         field('personal', optional(boolean()));
+        field('membersCanInvite', optional(boolean()));
         rangeIndex('community', []).withCondition((src) => src.kind === 'community' && src.status === 'activated');
     });
 
@@ -255,7 +256,11 @@ export default declareSchema(() => {
         field('active', optional(boolean()));
         rangeIndex('user', ['uid', 'lastSeen']);
     });
+
     customDirectory('PresenceLog');
+    customDirectory('PresenceMobileInstalled');
+    customDirectory('UserPresence'); // Obsolete
+    customDirectory('UserOnline');
 
     //
     // Conversations
@@ -295,6 +300,7 @@ export default declareSchema(() => {
         field('isChannel', optional(boolean()));
         field('isPremium', optional(boolean()));
         field('isDeleted', optional(boolean()));
+        field('autosubscribeRooms', optional(array(integer())));
         rangeIndex('organization', ['oid'])
             .withCondition((v) => (v.kind === 'public' || v.kind === 'internal') && !v.isDeleted);
         uniqueIndex('organizationPublicRooms', ['oid', 'id'])
@@ -470,7 +476,7 @@ export default declareSchema(() => {
 
         rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
         rangeIndex('chatSeq', ['cid', 'seq']).withCondition((src) => !src.deleted);
-        rangeIndex('fromSeq', ['cid', 'seq']);
+        // rangeIndex('fromSeq', ['cid', 'seq']);
         rangeIndex('hasImageAttachment', ['cid', 'id']).withCondition((item) => {
             if (item.deleted) {
                 return false;
@@ -2472,6 +2478,43 @@ export default declareSchema(() => {
     });
 
     //
+    // Events
+    //
+
+    customDirectory('EventStorage');
+    customDirectory('EventRegistrations');
+    customDirectory('EventUserSeq');
+
+    event('UpdateChatRead', () => {
+        field('uid', integer());
+        field('cid', integer());
+        field('seq', integer());
+    });
+    event('UpdateChatMessage', () => {
+        field('uid', integer());
+        field('cid', integer());
+        field('mid', integer());
+    });
+    event('UpdateChatMessageUpdated', () => {
+        field('uid', integer());
+        field('cid', integer());
+        field('mid', integer());
+    });
+    event('UpdateChatMessageDeleted', () => {
+        field('uid', integer());
+        field('cid', integer());
+        field('mid', integer());
+    });
+    event('UpdateChatLostAccess', () => {
+        field('uid', integer());
+        field('cid', integer());
+    });
+    event('UpdateChatGotAccess', () => {
+        field('uid', integer());
+        field('cid', integer());
+    });
+
+    //
     // System
     //
 
@@ -2517,6 +2560,7 @@ export default declareSchema(() => {
         field('salt', string());
         field('uid', integer());
         field('lastIp', string());
+        field('platform', optional(string()));
         field('enabled', optional(boolean()));
         uniqueIndex('salt', ['salt']);
         rangeIndex('user', ['uid', 'uuid'])

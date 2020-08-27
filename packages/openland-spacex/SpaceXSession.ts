@@ -37,6 +37,7 @@ export type OpResult = {
 };
 
 export type OpRef = {
+    id: string;
     cancel: () => void;
 };
 
@@ -256,8 +257,17 @@ export class SpaceXSession {
         })();
 
         return {
+            id,
             cancel: abort
         };
+    }
+
+    stopOperation(id: string) {
+        let op = this.activeOperations.get(id);
+        if (op) {
+            op();
+            this.activeOperations.delete(id);
+        }
     }
 
     close() {

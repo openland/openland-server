@@ -1,3 +1,4 @@
+import { Modules } from 'openland-modules/Modules';
 import { MigrationDefinition } from '@openland/foundationdb-migrations/lib/MigrationDefinition';
 import { Store } from 'openland-module-db/FDB';
 import { inTx, encoders } from '@openland/foundationdb';
@@ -650,5 +651,64 @@ migrations.push({
 //         }
 //     }
 // });
+
+migrations.push({
+    key: '134-migrate-presence',
+    migration: async (parent) => {
+        let data = await inTx(parent, ctx => Store.User.findAll(ctx));
+        for (let cursor = 0; cursor < data.length; cursor += 100) {
+            let batch = data.slice(cursor, cursor + 100);
+            await inTx(parent, async ctx => {
+                for (let key of batch) {
+                    for (let presence of await Store.Presence.user.findAll(ctx, key.id)) {
+                        if (presence.lastSeen > 0) {
+                            await Modules.Presence.users.repo.setOnline(ctx, key.id, presence.tid, presence.lastSeen, presence.lastSeenTimeout, !!presence.active);
+                        }
+                    }
+                }
+            });
+        }
+    }
+});
+
+migrations.push({
+    key: '135-migrate-mobile-flag',
+    migration: async (parent) => {
+        const isMobile = (p: string) => (p.startsWith('android') || p.startsWith('ios'));
+        let data = await inTx(parent, ctx => Store.User.findAll(ctx));
+        for (let cursor = 0; cursor < data.length; cursor += 100) {
+            let batch = data.slice(cursor, cursor + 100);
+            await inTx(parent, async ctx => {
+                for (let key of batch) {
+                    let hasMobilePresence = !!(await Store.Presence.user.findAll(ctx, key.id))
+                        .find((e) => isMobile(e.platform));
+                    if (hasMobilePresence) {
+                        Modules.Presence.logging.setMobile(ctx, key.id);
+                    }
+                }
+            });
+        }
+    }
+});
+
+migrations.push({
+    key: '136-migrate-platform',
+    migration: async (parent) => {
+        let data = await inTx(parent, ctx => Store.User.findAll(ctx));
+        for (let cursor = 0; cursor < data.length; cursor += 100) {
+            let batch = data.slice(cursor, cursor + 100);
+            await inTx(parent, async ctx => {
+                for (let key of batch) {
+                    for (let pres of await Store.Presence.user.findAll(ctx, key.id)) {
+                        let token = await Store.AuthToken.findById(ctx, pres.tid);
+                        if (token) {
+                            token.platform = pres.platform;
+                        }
+                    }
+                }
+            });
+        }
+    }
+});
 
 export default migrations;

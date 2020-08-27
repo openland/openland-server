@@ -2465,6 +2465,7 @@ export interface OrganizationShape {
     editorial: boolean;
     private: boolean | null;
     personal: boolean | null;
+    membersCanInvite: boolean | null;
 }
 
 export interface OrganizationCreateShape {
@@ -2474,6 +2475,7 @@ export interface OrganizationCreateShape {
     editorial: boolean;
     private?: boolean | null | undefined;
     personal?: boolean | null | undefined;
+    membersCanInvite?: boolean | null | undefined;
 }
 
 export class Organization extends Entity<OrganizationShape> {
@@ -2532,6 +2534,15 @@ export class Organization extends Entity<OrganizationShape> {
             this.invalidate();
         }
     }
+    get membersCanInvite(): boolean | null { return this._rawValue.membersCanInvite; }
+    set membersCanInvite(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.membersCanInvite.normalize(value);
+        if (this._rawValue.membersCanInvite !== normalized) {
+            this._rawValue.membersCanInvite = normalized;
+            this._updatedValues.membersCanInvite = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class OrganizationFactory extends EntityFactory<OrganizationShape, Organization> {
@@ -2549,6 +2560,7 @@ export class OrganizationFactory extends EntityFactory<OrganizationShape, Organi
         fields.push({ name: 'editorial', type: { type: 'boolean' }, secure: false });
         fields.push({ name: 'private', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'personal', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'membersCanInvite', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             ownerId: c.integer,
@@ -2557,6 +2569,7 @@ export class OrganizationFactory extends EntityFactory<OrganizationShape, Organi
             editorial: c.boolean,
             private: c.optional(c.boolean),
             personal: c.optional(c.boolean),
+            membersCanInvite: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<OrganizationShape> = {
             name: 'Organization',
@@ -3638,6 +3651,7 @@ export interface ConversationRoomShape {
     isChannel: boolean | null;
     isPremium: boolean | null;
     isDeleted: boolean | null;
+    autosubscribeRooms: (number)[] | null;
 }
 
 export interface ConversationRoomCreateShape {
@@ -3649,6 +3663,7 @@ export interface ConversationRoomCreateShape {
     isChannel?: boolean | null | undefined;
     isPremium?: boolean | null | undefined;
     isDeleted?: boolean | null | undefined;
+    autosubscribeRooms?: (number)[] | null | undefined;
 }
 
 export class ConversationRoom extends Entity<ConversationRoomShape> {
@@ -3725,6 +3740,15 @@ export class ConversationRoom extends Entity<ConversationRoomShape> {
             this.invalidate();
         }
     }
+    get autosubscribeRooms(): (number)[] | null { return this._rawValue.autosubscribeRooms; }
+    set autosubscribeRooms(value: (number)[] | null) {
+        let normalized = this.descriptor.codec.fields.autosubscribeRooms.normalize(value);
+        if (this._rawValue.autosubscribeRooms !== normalized) {
+            this._rawValue.autosubscribeRooms = normalized;
+            this._updatedValues.autosubscribeRooms = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape, ConversationRoom> {
@@ -3745,6 +3769,7 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
         fields.push({ name: 'isChannel', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'isPremium', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'isDeleted', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'autosubscribeRooms', type: { type: 'optional', inner: { type: 'array', inner: { type: 'integer' } } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             kind: c.enum('organization', 'internal', 'public', 'group'),
@@ -3755,6 +3780,7 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
             isChannel: c.optional(c.boolean),
             isPremium: c.optional(c.boolean),
             isDeleted: c.optional(c.boolean),
+            autosubscribeRooms: c.optional(c.array(c.integer)),
         });
         let descriptor: EntityDescriptor<ConversationRoomShape> = {
             name: 'ConversationRoom',
@@ -4691,7 +4717,6 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chat'), condition: (src) => !src.deleted });
         secondaryIndexes.push({ name: 'chatSeq', storageKey: 'chatSeq', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'seq', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chatSeq'), condition: (src) => !src.deleted });
-        secondaryIndexes.push({ name: 'fromSeq', storageKey: 'fromSeq', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'seq', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'fromSeq'), condition: undefined });
         secondaryIndexes.push({ name: 'hasImageAttachment', storageKey: 'hasImageAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasImageAttachment'), condition: (item) => {
             if (item.deleted) {
                 return false;
@@ -4895,11 +4920,11 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         },
     });
 
-    readonly fromSeq = Object.freeze({
+    readonly hasImageAttachment = Object.freeze({
         findAll: async (ctx: Context, cid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [cid])).items;
         },
-        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number | null>) => {
+        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[2], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (cid: number, opts?: StreamProps) => {
@@ -4910,7 +4935,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         },
     });
 
-    readonly hasImageAttachment = Object.freeze({
+    readonly hasLinkAttachment = Object.freeze({
         findAll: async (ctx: Context, cid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[3], [cid])).items;
         },
@@ -4925,7 +4950,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         },
     });
 
-    readonly hasLinkAttachment = Object.freeze({
+    readonly hasVideoAttachment = Object.freeze({
         findAll: async (ctx: Context, cid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[4], [cid])).items;
         },
@@ -4940,7 +4965,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         },
     });
 
-    readonly hasVideoAttachment = Object.freeze({
+    readonly hasDocumentAttachment = Object.freeze({
         findAll: async (ctx: Context, cid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[5], [cid])).items;
         },
@@ -4955,22 +4980,22 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         },
     });
 
-    readonly hasDocumentAttachment = Object.freeze({
-        findAll: async (ctx: Context, cid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[6], [cid])).items;
+    readonly updated = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[6], [])).items;
         },
-        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[6], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[6], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
-        stream: (cid: number, opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[6], [cid], opts);
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[6], [], opts);
         },
-        liveStream: (ctx: Context, cid: number, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[6], [cid], opts);
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[6], [], opts);
         },
     });
 
-    readonly updated = Object.freeze({
+    readonly created = Object.freeze({
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[7], [])).items;
         },
@@ -4985,30 +5010,15 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         },
     });
 
-    readonly created = Object.freeze({
-        findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[8], [])).items;
-        },
-        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[8], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[8], [], opts);
-        },
-        liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[8], [], opts);
-        },
-    });
-
     readonly repeat = Object.freeze({
         find: async (ctx: Context, uid: number, cid: number, repeatKey: string | null) => {
-            return this._findFromUniqueIndex(ctx, [uid, cid, repeatKey], this.descriptor.secondaryIndexes[9]);
+            return this._findFromUniqueIndex(ctx, [uid, cid, repeatKey], this.descriptor.secondaryIndexes[8]);
         },
         findAll: async (ctx: Context, uid: number, cid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[9], [uid, cid])).items;
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[8], [uid, cid])).items;
         },
         query: (ctx: Context, uid: number, cid: number, opts?: RangeQueryOptions<string | null>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[9], [uid, cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+            return this._query(ctx, this.descriptor.secondaryIndexes[8], [uid, cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
@@ -17615,6 +17625,7 @@ export interface AuthTokenShape {
     salt: string;
     uid: number;
     lastIp: string;
+    platform: string | null;
     enabled: boolean | null;
 }
 
@@ -17622,6 +17633,7 @@ export interface AuthTokenCreateShape {
     salt: string;
     uid: number;
     lastIp: string;
+    platform?: string | null | undefined;
     enabled?: boolean | null | undefined;
 }
 
@@ -17654,6 +17666,15 @@ export class AuthToken extends Entity<AuthTokenShape> {
             this.invalidate();
         }
     }
+    get platform(): string | null { return this._rawValue.platform; }
+    set platform(value: string | null) {
+        let normalized = this.descriptor.codec.fields.platform.normalize(value);
+        if (this._rawValue.platform !== normalized) {
+            this._rawValue.platform = normalized;
+            this._updatedValues.platform = normalized;
+            this.invalidate();
+        }
+    }
     get enabled(): boolean | null { return this._rawValue.enabled; }
     set enabled(value: boolean | null) {
         let normalized = this.descriptor.codec.fields.enabled.normalize(value);
@@ -17678,12 +17699,14 @@ export class AuthTokenFactory extends EntityFactory<AuthTokenShape, AuthToken> {
         fields.push({ name: 'salt', type: { type: 'string' }, secure: false });
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'lastIp', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'platform', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'enabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             uuid: c.string,
             salt: c.string,
             uid: c.integer,
             lastIp: c.string,
+            platform: c.optional(c.string),
             enabled: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<AuthTokenShape> = {
@@ -21468,6 +21491,210 @@ export class StripeEventCreated extends BaseEvent {
     get eventDate(): number { return this.raw.eventDate; }
 }
 
+const updateChatReadCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+    seq: c.integer,
+});
+
+interface UpdateChatReadShape {
+    uid: number;
+    cid: number;
+    seq: number;
+}
+
+export class UpdateChatRead extends BaseEvent {
+
+    static create(data: UpdateChatReadShape) {
+        return new UpdateChatRead(updateChatReadCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateChatRead(updateChatReadCodec.decode(data));
+    }
+
+    static encode(event: UpdateChatRead) {
+        return updateChatReadCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('updateChatRead', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+    get seq(): number { return this.raw.seq; }
+}
+
+const updateChatMessageCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+    mid: c.integer,
+});
+
+interface UpdateChatMessageShape {
+    uid: number;
+    cid: number;
+    mid: number;
+}
+
+export class UpdateChatMessage extends BaseEvent {
+
+    static create(data: UpdateChatMessageShape) {
+        return new UpdateChatMessage(updateChatMessageCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateChatMessage(updateChatMessageCodec.decode(data));
+    }
+
+    static encode(event: UpdateChatMessage) {
+        return updateChatMessageCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('updateChatMessage', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+    get mid(): number { return this.raw.mid; }
+}
+
+const updateChatMessageUpdatedCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+    mid: c.integer,
+});
+
+interface UpdateChatMessageUpdatedShape {
+    uid: number;
+    cid: number;
+    mid: number;
+}
+
+export class UpdateChatMessageUpdated extends BaseEvent {
+
+    static create(data: UpdateChatMessageUpdatedShape) {
+        return new UpdateChatMessageUpdated(updateChatMessageUpdatedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateChatMessageUpdated(updateChatMessageUpdatedCodec.decode(data));
+    }
+
+    static encode(event: UpdateChatMessageUpdated) {
+        return updateChatMessageUpdatedCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('updateChatMessageUpdated', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+    get mid(): number { return this.raw.mid; }
+}
+
+const updateChatMessageDeletedCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+    mid: c.integer,
+});
+
+interface UpdateChatMessageDeletedShape {
+    uid: number;
+    cid: number;
+    mid: number;
+}
+
+export class UpdateChatMessageDeleted extends BaseEvent {
+
+    static create(data: UpdateChatMessageDeletedShape) {
+        return new UpdateChatMessageDeleted(updateChatMessageDeletedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateChatMessageDeleted(updateChatMessageDeletedCodec.decode(data));
+    }
+
+    static encode(event: UpdateChatMessageDeleted) {
+        return updateChatMessageDeletedCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('updateChatMessageDeleted', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+    get mid(): number { return this.raw.mid; }
+}
+
+const updateChatLostAccessCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+});
+
+interface UpdateChatLostAccessShape {
+    uid: number;
+    cid: number;
+}
+
+export class UpdateChatLostAccess extends BaseEvent {
+
+    static create(data: UpdateChatLostAccessShape) {
+        return new UpdateChatLostAccess(updateChatLostAccessCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateChatLostAccess(updateChatLostAccessCodec.decode(data));
+    }
+
+    static encode(event: UpdateChatLostAccess) {
+        return updateChatLostAccessCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('updateChatLostAccess', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+}
+
+const updateChatGotAccessCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+});
+
+interface UpdateChatGotAccessShape {
+    uid: number;
+    cid: number;
+}
+
+export class UpdateChatGotAccess extends BaseEvent {
+
+    static create(data: UpdateChatGotAccessShape) {
+        return new UpdateChatGotAccess(updateChatGotAccessCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateChatGotAccess(updateChatGotAccessCodec.decode(data));
+    }
+
+    static encode(event: UpdateChatGotAccess) {
+        return updateChatGotAccessCodec.encode(event.raw);
+    }
+
+    private constructor(data: any) {
+        super('updateChatGotAccess', data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+}
+
 const hyperLogEventCodec = c.struct({
     id: c.string,
     eventType: c.string,
@@ -22157,6 +22384,9 @@ export interface Store extends BaseStore {
     readonly HyperLogStore: HyperLogStore;
     readonly UserContactsEventStore: UserContactsEventStore;
     readonly PresenceLogDirectory: Subspace;
+    readonly PresenceMobileInstalledDirectory: Subspace;
+    readonly UserPresenceDirectory: Subspace;
+    readonly UserOnlineDirectory: Subspace;
     readonly RoomParticipantsActiveDirectory: Subspace;
     readonly UserChatsActiveDirectory: Subspace;
     readonly MessageDeliveryDirectory: Subspace;
@@ -22167,6 +22397,9 @@ export interface Store extends BaseStore {
     readonly UserDialogMuteSettingDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
+    readonly EventStorageDirectory: Subspace;
+    readonly EventRegistrationsDirectory: Subspace;
+    readonly EventUserSeqDirectory: Subspace;
     readonly ShardingDataDirectory: Subspace;
     readonly ImportedPhoneDirectory: Subspace;
     readonly PhoneImportedByUserDirectory: Subspace;
@@ -22231,6 +22464,12 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('walletBalanceChanged', WalletBalanceChanged.encode as any, WalletBalanceChanged.decode);
     eventFactory.registerEventType('walletLockedChanged', WalletLockedChanged.encode as any, WalletLockedChanged.decode);
     eventFactory.registerEventType('stripeEventCreated', StripeEventCreated.encode as any, StripeEventCreated.decode);
+    eventFactory.registerEventType('updateChatRead', UpdateChatRead.encode as any, UpdateChatRead.decode);
+    eventFactory.registerEventType('updateChatMessage', UpdateChatMessage.encode as any, UpdateChatMessage.decode);
+    eventFactory.registerEventType('updateChatMessageUpdated', UpdateChatMessageUpdated.encode as any, UpdateChatMessageUpdated.decode);
+    eventFactory.registerEventType('updateChatMessageDeleted', UpdateChatMessageDeleted.encode as any, UpdateChatMessageDeleted.decode);
+    eventFactory.registerEventType('updateChatLostAccess', UpdateChatLostAccess.encode as any, UpdateChatLostAccess.decode);
+    eventFactory.registerEventType('updateChatGotAccess', UpdateChatGotAccess.encode as any, UpdateChatGotAccess.decode);
     eventFactory.registerEventType('hyperLogEvent', HyperLogEvent.encode as any, HyperLogEvent.decode);
     eventFactory.registerEventType('hyperLogUserEvent', HyperLogUserEvent.encode as any, HyperLogUserEvent.decode);
     eventFactory.registerEventType('contactAddedEvent', ContactAddedEvent.encode as any, ContactAddedEvent.decode);
@@ -22423,6 +22662,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ContactPromise = ContactFactory.open(storage);
     let PhonebookItemPromise = PhonebookItemFactory.open(storage);
     let PresenceLogDirectoryPromise = storage.resolveCustomDirectory('presenceLog');
+    let PresenceMobileInstalledDirectoryPromise = storage.resolveCustomDirectory('presenceMobileInstalled');
+    let UserPresenceDirectoryPromise = storage.resolveCustomDirectory('userPresence');
+    let UserOnlineDirectoryPromise = storage.resolveCustomDirectory('userOnline');
     let RoomParticipantsActiveDirectoryPromise = storage.resolveCustomDirectory('roomParticipantsActive');
     let UserChatsActiveDirectoryPromise = storage.resolveCustomDirectory('userChatsActive');
     let MessageDeliveryDirectoryPromise = storage.resolveCustomDirectory('messageDelivery');
@@ -22433,6 +22675,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserDialogMuteSettingDirectoryPromise = storage.resolveCustomDirectory('userDialogMuteSetting');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
+    let EventStorageDirectoryPromise = storage.resolveCustomDirectory('eventStorage');
+    let EventRegistrationsDirectoryPromise = storage.resolveCustomDirectory('eventRegistrations');
+    let EventUserSeqDirectoryPromise = storage.resolveCustomDirectory('eventUserSeq');
     let ShardingDataDirectoryPromise = storage.resolveCustomDirectory('shardingData');
     let ImportedPhoneDirectoryPromise = storage.resolveCustomDirectory('importedPhone');
     let PhoneImportedByUserDirectoryPromise = storage.resolveCustomDirectory('phoneImportedByUser');
@@ -22663,6 +22908,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         Contact: await ContactPromise,
         PhonebookItem: await PhonebookItemPromise,
         PresenceLogDirectory: await PresenceLogDirectoryPromise,
+        PresenceMobileInstalledDirectory: await PresenceMobileInstalledDirectoryPromise,
+        UserPresenceDirectory: await UserPresenceDirectoryPromise,
+        UserOnlineDirectory: await UserOnlineDirectoryPromise,
         RoomParticipantsActiveDirectory: await RoomParticipantsActiveDirectoryPromise,
         UserChatsActiveDirectory: await UserChatsActiveDirectoryPromise,
         MessageDeliveryDirectory: await MessageDeliveryDirectoryPromise,
@@ -22673,6 +22921,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserDialogMuteSettingDirectory: await UserDialogMuteSettingDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
+        EventStorageDirectory: await EventStorageDirectoryPromise,
+        EventRegistrationsDirectory: await EventRegistrationsDirectoryPromise,
+        EventUserSeqDirectory: await EventUserSeqDirectoryPromise,
         ShardingDataDirectory: await ShardingDataDirectoryPromise,
         ImportedPhoneDirectory: await ImportedPhoneDirectoryPromise,
         PhoneImportedByUserDirectory: await PhoneImportedByUserDirectoryPromise,

@@ -19,7 +19,6 @@ export class DistributedMachineGauge {
 
     set = (value: number) => {
         this.#value = value;
-        this.#gauge.add(this.#value, this.#id, 10000);
     }
 
     inc = () => {
@@ -34,6 +33,6 @@ export class DistributedMachineGauge {
     start = () => {
         setInterval(() => {
             this.#gauge.add(this.#value, this.#id, 10000);
-        }, 5000);
+        }, 1000);
     }
 }

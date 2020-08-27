@@ -50,10 +50,12 @@ export function debugTaskForAll(entity: EntityFactory<any, any>, uid: number, na
     });
 }
 
-export function debugTaskForAllBatched<T>(subspace: Subspace<TupleItem[], T>, uid: number, name: string, batchSize: number, handler: (ctx: Context, items: { key: TupleItem[], value: T }[], log: (str: string) => Promise<void>) => Promise<void>) {
+type SubspaceIteratorNext<T> = (parent: Context, batchSize: number) => Promise<{ key: TupleItem[], value: T }[]>;
+export function debugSubspaceIterator<T>(subspace: Subspace<TupleItem[], T>, uid: number, name: string, handler: (next: SubspaceIteratorNext<T>, log: (str: string) => Promise<void>) => Promise<string>) {
     debugTask(uid, name, async (log) => {
         let cursor: TupleItem[] | undefined = undefined;
-        let next = async () => {
+
+        let next = async (parent: Context, batchSize: number) => {
             let data = await inTx(rootCtx, async ctx => await subspace.range(ctx, [], { after: cursor, limit: batchSize }));
             if (data.length > 0) {
                 cursor = data[data.length - 1].key;
@@ -61,16 +63,21 @@ export function debugTaskForAllBatched<T>(subspace: Subspace<TupleItem[], T>, ui
             return data;
         };
 
+        return await handler(next, log);
+    });
+}
+
+export function debugTaskForAllBatched<T>(subspace: Subspace<TupleItem[], T>, uid: number, name: string, batchSize: number, handler: (items: { key: TupleItem[], value: T }[], log: (str: string) => Promise<void>) => Promise<void>) {
+    debugSubspaceIterator<T>(subspace, uid, name, async (next, log) => {
         let res: { key: TupleItem[], value: T }[] = [];
         let total = 0;
         do {
-            res = await next();
+            res = await next(rootCtx, batchSize);
             total += res.length;
 
             try {
-                await inTx(rootCtx, async ctx => {
-                    await handler(ctx, res, log);
-                });
+                await handler(res, log);
+
                 await log('done: ' + total);
             } catch (e) {
                 await log('error: ' + e);

@@ -41,8 +41,8 @@ export function startEmailNotificationWorker() {
             await inTx(parent, async (ctx) => {
                 for (let uid of b) {
                     let state = await Modules.NotificationCenter.getNotificationStateForUser(ctx, uid);
-                    let lastSeen = await Modules.Presence.getLastSeen(ctx, uid);
-                    let isActive = await Modules.Presence.isActive(ctx, uid);
+                    let lastSeen = await Modules.Presence.getStatus(uid);
+                    let isActive = await Modules.Presence.isActive(uid);
                     let tag = 'email_notifications ' + uid;
 
                     // Ignore active users

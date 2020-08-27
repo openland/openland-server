@@ -38,6 +38,7 @@ type Organization {
     alphaIsCommunity: Boolean!
     alphaIsPrivate: Boolean!
 
+    betaMembersCanInvite: Boolean!
     betaPublicRooms: [SharedRoom!]!
     betaPublicRoomsCount: Int!
     status: String!

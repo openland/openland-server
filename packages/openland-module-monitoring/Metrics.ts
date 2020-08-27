@@ -10,14 +10,22 @@ const DEFAULT_QUANTILES = [0.01, 0.05, 0.5, 0.9, 0.95, 0.99, 0.999];
 
 export const Metrics = {
 
-    // FDB
-    FDBErrors: Factory.createTaggedFrequencyGauge('fdb_errors', 'Frequence of various errors'),
-    FDBTooOldErrors: Factory.createTaggedFrequencyGauge('fdb_too_old', 'Frequence of too old transaction errors'),
+    //
+    // Aplication
+    //
+
+    UserActiveServices: Factory.createMachineGauge('user_active_services', 'Active user services'),
+    GroupActiveServices: Factory.createMachineGauge('group_active_services', 'Active group services'),
+
+    GroupPresenceSubscriptions: Factory.createTaggedMachineGauge('presences_group_subscriptions', 'Number of group presence subscriptions per machine'),
+    UserPresenceSubscriptions: Factory.createTaggedMachineGauge('presences_user_subscriptions', 'Number of user presence subscriptions per machine'),
 
     //
-    // Actors
+    // FDB
     //
-    UserActiveServices: Factory.createMachineGauge('user_active_services', 'Active user services'),
+
+    FDBErrors: Factory.createTaggedFrequencyGauge('fdb_errors', 'Frequence of various errors'),
+    FDBTooOldErrors: Factory.createTaggedFrequencyGauge('fdb_too_old', 'Frequence of too old transaction errors'),
 
     // SpaceX
     WebSocketConnections: Factory.createMachineGauge('connections', 'Active WebSocket connections'),
@@ -181,6 +189,10 @@ export const Metrics = {
 
     // NodeJS
     EventLoopLag: Factory.createTaggedSummary('nodejs_event_loop_lag', 'Summary of event loop lags', DEFAULT_QUANTILES),
+    MemoryRss: Factory.createTaggedGauge('nodejs_memory_rss', 'Usage of a memory'),
+    MemoryExternal: Factory.createTaggedGauge('nodejs_memory_external', 'Usage of an external memory'),
+    MemoryHeapTotal: Factory.createTaggedGauge('nodejs_memory_heap_total', 'Total size of a heap'),
+    MemoryHeapUsed: Factory.createTaggedGauge('nodejs_memory_heap_used', 'Used size of a heap'),
 
     // Hyperlog
     HyperLogSent: Factory.createFrequencyGauge('hyperlog_writes', 'Frequence of writes to a hyperlog'),
@@ -246,5 +258,8 @@ export const Metrics = {
     // Push
     UnreadUsers: Factory.createPersistedGauge('unread_users', 'Unread users count', async (ctx) => {
         return (await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push')).length;
-    })
+    }),
+    NotificationCenterUnreadUsers: Factory.createPersistedGauge('notification_center_unread_users', 'Unread users count', async (ctx) => {
+        return (await Modules.NotificationCenter.needDelivery.findAllUsersWithNotifications(ctx, 'push')).length;
+    }),
 };

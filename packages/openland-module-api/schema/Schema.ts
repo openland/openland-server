@@ -8,7 +8,6 @@ import { buildSchema } from 'openland-graphql/buildSchema';
 import { buildResolvers } from 'openland-graphql/buildResolvers';
 import { merge } from '../../openland-utils/merge';
 import { withLogPath } from '@openland/log';
-import { gqlTraceNamespace } from '../../openland-graphql/gqlTracer';
 
 export function fetchResolvePath(info: GraphQLResolveInfo) {
     let path: (string|number)[] = [];
@@ -62,15 +61,6 @@ export const Schema = (forTest: boolean = false) => {
             // } else if (type.name === 'Subscription') {
             //     name = 'Subscription:' + field.name;
             // }
-            let trace = gqlTraceNamespace.get(ctx);
-            if (trace) {
-                let t = trace.onResolve(info);
-                try {
-                    return await originalResolver(root, args, ctx2, info);
-                } finally {
-                    t();
-                }
-            }
             return await originalResolver(root, args, ctx2, info);
         }
     );

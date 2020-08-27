@@ -10,6 +10,8 @@ import { HooksModule } from 'openland-module-hooks/HooksModule';
 import { Store } from 'openland-module-db/FDB';
 import { Context, createNamedContext } from '@openland/context';
 import { loadUsersModule } from '../openland-module-users/UsersModule.container';
+import { ShortnameModule } from '../openland-module-shortname/ShortnameModule';
+import { loadShortnameModule } from '../openland-module-shortname/ShortnameModule.container';
 
 describe('OrganizationModule', () => {
     beforeAll(async () => {
@@ -21,6 +23,8 @@ describe('OrganizationModule', () => {
         loadUsersModule();
         container.bind(SuperModule).toSelf().inSingletonScope();
         container.bind(HooksModule).toSelf().inSingletonScope();
+        container.bind(ShortnameModule).toSelf().inSingletonScope();
+        loadShortnameModule();
         // console.log('loaded in ' + (Date.now() - start) + ' ms');
     }, 50000);
     afterAll(async () => {

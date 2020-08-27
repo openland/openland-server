@@ -78,7 +78,6 @@ import { connect, Payload } from 'ts-nats';
 import { loadDiscussionsModule } from 'openland-module-discussions/Discussions.container';
 import { ClickHouseModule } from '../openland-module-clickhouse/ClickHouseModule';
 import { createClient } from '../openland-module-clickhouse/createClient';
-import { broker } from 'openland-server/moleculer';
 import { Shutdown } from 'openland-utils/Shutdown';
 import { loadPresenceModule } from '../openland-module-presences/PresenceModule.container';
 import { loadContactsModule } from '../openland-module-contacts/ContactsModule.container';
@@ -103,18 +102,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
             yieldTime: 100
         });
         container.bind('NATS').toConstantValue(client);
-        logger.log(ctx, 'NATS connected');
-
-        // Load Broker
-        await broker.start();
-
-        // Nats + Broker shutdown
-        Shutdown.registerWork({
-            name: 'broker',
-            shutdown: async () => {
-                await broker.stop();
-            }
-        });
+        // NATS shutdown
         Shutdown.registerWork({
             name: 'nats',
             shutdown: async () => {
@@ -122,6 +110,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
                 client.close();
             }
         });
+        logger.log(ctx, 'NATS connected');
 
         // Load Database
         let start = currentTime();

@@ -84,6 +84,7 @@ type RoomSuper {
     id: ID!
     featured: Boolean!
     listed: Boolean!
+    autosubscribeRooms: [Room!]!
 }
 
 input RoomUpdateInput {
@@ -246,6 +247,7 @@ extend type Mutation {
     betaRoomsInviteUser(userId: ID!, roomIds: [ID!]!): [Room!]!
     betaRoomAlterFeatured(roomId: ID!, featured: Boolean!): RoomSuper!
     betaRoomAlterListed(roomId: ID!, listed: Boolean!): RoomSuper!
+    betaRoomSetupAutosubscribe(roomId: ID!, childRoomIds: [ID!]!): RoomSuper!
 
     updateWelcomeMessage(roomId: ID!, welcomeMessageIsOn: Boolean!, welcomeMessageSender: ID, welcomeMessageText: String): Boolean!
 }

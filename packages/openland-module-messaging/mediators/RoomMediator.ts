@@ -32,6 +32,10 @@ export class RoomMediator {
         return await this.repo.isActiveMember(ctx, uid, cid);
     }
 
+    isPrivate(ctx: Context, cid: number, uid: number) {
+        return this.repo.isPrivate(ctx, cid, uid);
+    }
+
     async isPublicRoom(ctx: Context, cid: number) {
         let conv = await Store.ConversationRoom.findById(ctx, cid);
         if (!conv) {
@@ -250,34 +254,33 @@ export class RoomMediator {
         });
     }
 
-    async canKickFromRoom(ctx: Context, cid: number, uid: number, kickedUid: number) {
-        let canKick = false;
-
+    async canKickFromRoom(ctx: Context, cid: number, uid: number, uidToKick: number) {
         let conv = await Store.ConversationRoom.findById(ctx, cid);
         if (!conv) {
             return false;
         }
 
-        let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
-        let existingMembership = await this.repo.findMembershipStatus(ctx, kickedUid, cid);
+        let existingMembership = await this.repo.findMembershipStatus(ctx, uidToKick, cid);
         if (!existingMembership || existingMembership.status !== 'joined') {
             return false;
         }
 
-        if (isSuperAdmin) {
-            canKick = true;
-        }
-        if (existingMembership.invitedBy === uid) {
-            canKick = true;
-        } else if (conv.oid && await Modules.Orgs.isUserOwner(ctx, uid, conv.oid)) {
-            canKick = true;
-        } else if (conv.ownerId === uid && (conv.oid ? !await Modules.Orgs.isUserOwner(ctx, kickedUid, conv.oid) : true)) {
-            canKick = true;
-        } else if (conv.oid && await Modules.Orgs.isUserAdmin(ctx, uid, conv.oid) && !await Modules.Orgs.isUserOwner(ctx, kickedUid, conv.oid) && conv.ownerId !== kickedUid) {
-            canKick = true;
+        // No one can kick room owner
+        if (conv.ownerId === uidToKick) {
+            return false;
         }
 
-        return canKick;
+        // No one can kick room org owner
+        if (conv.oid && await Modules.Orgs.isUserOwner(ctx, uidToKick, conv.oid)) {
+            return false;
+        }
+
+        // Inviter can kick
+        if (existingMembership.invitedBy === uid) {
+            return true;
+        }
+
+        return await this.repo.userHaveAdminPermissionsInChat(ctx, conv, uid);
     }
 
     async declineJoinRoomRequest(parent: Context, cid: number, by: number, requestedUid: number) {
@@ -560,6 +563,9 @@ export class RoomMediator {
                     await this.delivery.onDialogDelete(ctx, member, cid);
                 }
 
+                // Free shortname
+                await Modules.Shortnames.freeShortName(ctx, 'room', cid);
+
                 //
                 // No one will receive this message, but it will cause active subscribes to receive ChatLostAccess
                 //
@@ -662,6 +668,10 @@ export class RoomMediator {
         return await this.repo.setListed(ctx, cid, listed);
     }
 
+    async setupAutosubscribe(ctx: Context, cid: number, childRooms: number[]) {
+        return await this.repo.setupAutosubscribe(ctx, cid, childRooms);
+    }
+
     async roomMembersCount(ctx: Context, conversationId: number, status?: string): Promise<number> {
         return await this.repo.roomMembersCount(ctx, conversationId, status);
     }
@@ -703,12 +713,16 @@ export class RoomMediator {
         return await this.repo.userAvailableRooms(ctx, uid, limit || 1000, isChannel, after);
     }
 
-    async getUserChats(ctx: Context, uid: number) {
-        return this.repo.userChats.getChats(ctx, uid);
+    async getUserGroups(ctx: Context, uid: number) {
+        return this.repo.userChats.getGroups(ctx, uid);
     }
 
-    async getUserChatsVersion(ctx: Context, uid: number) {
+    async getUserGroupsVersion(ctx: Context, uid: number) {
         return this.repo.userChats.getVersion(ctx, uid);
+    }
+
+    watchUserGroups(ctx: Context, uid: number) {
+        return this.repo.userChats.watchVersion(ctx, uid);
     }
 
     private async roomJoinMessageText(parent: Context, room: ConversationRoom, uids: number[], invitedBy: number | null, isUpdate: boolean = false) {

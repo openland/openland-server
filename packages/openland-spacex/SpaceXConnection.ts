@@ -14,37 +14,20 @@ export class SpaceXConnection {
     public state: 'init' | 'connecting' | 'connected' = 'init';
     public pinger: PingPong | null = null;
     public authParams: any;
-    public operations: { [operationId: string]: { destroy(): void } } = {};
     public session!: SpaceXSession;
     private closed = false;
     private authWaiters: (() => void)[] = [];
     public lastRequestTime: number = Date.now();
     public operationBucket = Concurrency.Operation.get(this.id);
+    // Maps protocol operation ids to SpaceXSession ids
+    readonly sessionOperationIds = new Map<string, string>();
+
     private onClose: () => void = () => 0;
 
     constructor(socket: WebSocket, onClose: () => void) {
         this.socket = socket;
         this.onClose = onClose;
         Metrics.WebSocketConnections.inc();
-    }
-
-    addOperation = (id: string, destroy: () => void) => {
-        this.stopOperation(id);
-        this.operations[id] = { destroy };
-    }
-
-    stopOperation = (id: string) => {
-        if (this.operations[id]) {
-            this.operations[id].destroy();
-            delete this.operations[id];
-        }
-    }
-
-    stopAllOperations = () => {
-        for (let operationId in this.operations) {
-            this.operations[operationId].destroy();
-            delete this.operations[operationId];
-        }
     }
 
     setConnecting = () => {
@@ -90,13 +73,11 @@ export class SpaceXConnection {
         }
         this.closed = true;
         this.pinger?.terminate();
-        this.stopAllOperations();
         this.socket?.close();
         this.socket?.removeAllListeners('message');
         this.socket?.removeAllListeners('close');
         this.socket?.removeAllListeners('error');
         this.socket = null;
-        this.operations = {};
         this.session?.close();
         Metrics.WebSocketConnections.dec();
         this.onClose();

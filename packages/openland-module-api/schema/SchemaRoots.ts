@@ -147,7 +147,6 @@ export namespace GQLRoots {
     import NotificationPreviewValues = GQL.NotificationPreviewValues;
     import OauthScopeValues = GQL.OauthScopeValues;
     import OrganizationMemberRoleValues = GQL.OrganizationMemberRoleValues;
-    import PlatformValues = GQL.PlatformValues;
     import SuperAdminRoleValues = GQL.SuperAdminRoleValues;
     import EventPlatformValues = GQL.EventPlatformValues;
     import TaskStatusValues = GQL.TaskStatusValues;
@@ -489,6 +488,7 @@ export namespace GQLRoots {
     export type SharedRoomKindRoot = SharedRoomKindValues;
     export type SharedRoomMembershipStatusRoot = 'joined' | 'requested' | 'left' | 'kicked' | 'none';
     export type RoomMemberRoleRoot = RoomMemberRoleValues;
+    export type CommonChatsWithUserResponseRoot = { items: SharedRoomRoot[], cursor: string | null, count: number };
 
     //
     //  Chat updates
@@ -540,7 +540,7 @@ export namespace GQLRoots {
     export type MentionSearchOrganizationRoot = { type: 'org', organization: Organization };
     export type MentionSearchSharedRoomRoot = { type: 'room', room: Conversation };
     export type MentionSearchEntryRoot = MentionSearchUserRoot | MentionSearchOrganizationRoot | MentionSearchSharedRoomRoot;
-    export type MentionSearchConnectionRoot = { items: MentionSearchEntryRoot[], cursor: string|null };
+    export type MentionSearchConnectionRoot = { items: MentionSearchEntryRoot[], cursor: string | null };
 
     //
     //  Debug
@@ -598,7 +598,6 @@ export namespace GQLRoots {
     export type OnlineEventRoot = any;
     export type ChatOnlineEventRoot = any;
     export type IsAppInstalledResponseRoot = { installed: boolean, installedAt?: string };
-    export type PlatformRoot = PlatformValues;
 
     //
     // Stats
@@ -748,8 +747,8 @@ export namespace GQLRoots {
     export type ChannelTypeRoot = 'system' | 'personal' | 'public' | 'secret';
     export type PostRoot = Discussion;
     export type PostDraftRoot = DiscussionDraft;
-    export type PostConnectionRoot = { items: PostRoot[], cursor: string|null };
-    export type PostDraftConnectionRoot = { items: DiscussionDraft[], cursor: string|null };
+    export type PostConnectionRoot = { items: PostRoot[], cursor: string | null };
+    export type PostDraftConnectionRoot = { items: DiscussionDraft[], cursor: string | null };
     export type ParagraphRoot = PostContent;
     export type ImageParagraphRoot = ImageParagraph;
     export type TextParagraphRoot = TextParagraph;
@@ -766,13 +765,13 @@ export namespace GQLRoots {
     //
     // Sessions
     //
-    export type SessionRoot = { token: AuthToken, presence?: Presence };
+    export type SessionRoot = { token: AuthToken, presence: { lastSeen: number, expires: number } | null };
 
     //
     // Contacts
     //
     export type ContactRoot = Contact;
-    export type ContactConnectionRoot = { items: ContactRoot[], cursor: string|null };
+    export type ContactConnectionRoot = { items: ContactRoot[], cursor: string | null };
     export type ContactsUpdateContainerRoot = LiveStreamItem<BaseEvent>;
     export type ContactsUpdateRoot = BaseEvent;
     export type ContactAddedRoot = ContactAddedEvent;

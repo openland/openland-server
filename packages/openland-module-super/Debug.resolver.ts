@@ -6,7 +6,7 @@ import {
     DialogNeedReindexEvent,
     OrganizationProfile,
     OrganizationMemberShape,
-    UserDialogCallStateChangedEvent, MessageShape,
+    UserDialogCallStateChangedEvent, MessageShape, ShortnameReservationShape,
 } from './../openland-module-db/store';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from '../openland-module-api/Resolvers';
@@ -15,11 +15,11 @@ import { Store } from '../openland-module-db/FDB';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
 import { createUrlInfoService } from '../openland-module-messaging/workers/UrlInfoService';
-import { inTx, encoders } from '@openland/foundationdb';
+import { inTx, encoders, TupleItem } from '@openland/foundationdb';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { ddMMYYYYFormat, delay } from '../openland-utils/timer';
 import { randomInt, randomKey } from '../openland-utils/random';
-import { debugTask, debugTaskForAll, debugTaskForAllBatched } from '../openland-utils/debugTask';
+import { debugSubspaceIterator, debugTask, debugTaskForAll, debugTaskForAllBatched } from '../openland-utils/debugTask';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { NotFoundError } from '../openland-errors/NotFoundError';
@@ -264,7 +264,7 @@ export const Resolver: GQLResolver = {
         }),
         debugMentionSearch: withPermission('super-admin', async (ctx, args) => {
             let hits = await Modules.Search.elastic.client.search({
-                index: 'user_profile,room,organization',
+                index: args.index.replace('message', ''),
                 size: args.first,
                 body: JSON.parse(args.query),
             });
@@ -280,8 +280,8 @@ export const Resolver: GQLResolver = {
                 Store.UserGroupEdge.user.query(ctx, ctx.auth.uid!, {limit: 300, reverse: true})
             ]);
             return JSON.stringify({
-                topPrivateDialogs: topPrivateDialogs.items.map(d => ({ uid1: d.uid1, uid2: d.uid2, weight: d.weight })),
-                topGroupDialogs: topGroupDialogs.items.map(d => ({ cid: d.cid, weight: d.weight })),
+                topPrivateDialogs: topPrivateDialogs.items.map(d => ({uid1: d.uid1, uid2: d.uid2, weight: d.weight})),
+                topGroupDialogs: topGroupDialogs.items.map(d => ({cid: d.cid, weight: d.weight})),
                 userOrgs,
                 roomOid,
                 cid
@@ -1707,11 +1707,29 @@ export const Resolver: GQLResolver = {
             return true;
         }),
         debugInvalidateAllMessages: withPermission('super-admin', async (parent) => {
-            debugTaskForAllBatched<MessageShape>(Store.Message.descriptor.subspace, parent.auth.uid!, 'debugInvalidateAllMessages',  500, async (ctx, messages) => {
-                for (let msg of messages) {
-                    let message = await Store.Message.findById(ctx, msg.value.id);
-                    message!.invalidate();
-                }
+            debugSubspaceIterator<MessageShape>(Store.Message.descriptor.subspace, parent.auth.uid!, 'debugInvalidateAllMessages', async (next, log) => {
+                let res: { key: TupleItem[], value: MessageShape }[] = [];
+                let total = 0;
+                do {
+                    res = await next(parent, 99);
+                    total += res.length;
+
+                    try {
+                        await inTx(parent, async ctx => {
+                            for (let msg of res) {
+                                let message = await Store.Message.findById(ctx, msg.value.id);
+                                message!.invalidate();
+                            }
+                        });
+                        if (total % 9900 === 0) {
+                            await log('done: ' + total);
+                        }
+                    } catch (e) {
+                        await log('error: ' + e);
+                    }
+                } while (res.length > 0);
+
+                return 'done, total: ' + total;
             });
             return true;
         }),
@@ -1805,12 +1823,14 @@ export const Resolver: GQLResolver = {
             return true;
         }),
         debugReindexOrganizationMembers: withPermission('super-admin', async (parent) => {
-            debugTaskForAllBatched<OrganizationMemberShape>(Store.OrganizationMember.descriptor.subspace, parent.auth.uid!, 'debugReindexOrganizationMembers', 100, async (ctx, items, log) => {
-                for (let item of items) {
-                    let entity = await Store.OrganizationMember.findById(ctx, item.value.oid, item.value.uid);
-                    entity!.invalidate();
-                    await entity!.flush(ctx);
-                }
+            debugTaskForAllBatched<OrganizationMemberShape>(Store.OrganizationMember.descriptor.subspace, parent.auth.uid!, 'debugReindexOrganizationMembers', 100, async (items) => {
+                await inTx(parent, async ctx => {
+                    for (let item of items) {
+                        let entity = await Store.OrganizationMember.findById(ctx, item.value.oid, item.value.uid);
+                        entity!.invalidate();
+                        await entity!.flush(ctx);
+                    }
+                });
             });
             return true;
         }),
@@ -1865,6 +1885,71 @@ export const Resolver: GQLResolver = {
                         repo.addChat(ctx, uid, d.cid);
                     }
                 }));
+            });
+            return true;
+        }),
+        debugFreeUnusedShortnames: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAllBatched<ShortnameReservationShape>(Store.ShortnameReservation.descriptor.subspace, parent.auth.uid!, 'debugFreeUnusedShortnames', 10, async (items) => {
+                await inTx(parent, async ctx => {
+                    for (let item of items) {
+                        let reservation = await Store.ShortnameReservation.findById(ctx, item.value.shortname);
+                        if (!reservation) {
+                            continue;
+                        }
+                        if (!reservation.enabled) {
+                            await reservation.flush(ctx);
+                            continue;
+                        }
+
+                        if (reservation.ownerType === 'user') {
+                            let user = await Store.User.findById(ctx, reservation.ownerId);
+                            if (!user || user.status === 'deleted') {
+                                reservation.enabled = false;
+                            }
+                        } else if (reservation.ownerType === 'org') {
+                            let org = await Store.Organization.findById(ctx, reservation.ownerId);
+                            if (!org || org.status === 'deleted') {
+                                reservation.enabled = false;
+                            }
+                        } else if (reservation.ownerType === 'room') {
+                            let room = await Store.ConversationRoom.findById(ctx, reservation.ownerId);
+                            if (!room || room.isDeleted) {
+                                reservation.enabled = false;
+                            }
+                        }
+
+                        await reservation.flush(ctx);
+                    }
+                });
+            });
+            return true;
+        }),
+        debugFreeShortname: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async ctx => {
+                let reservation = await Store.ShortnameReservation.findById(ctx, args.shortname);
+                if (!reservation) {
+                    return false;
+                }
+                if (!reservation.enabled) {
+                    return false;
+                }
+                reservation.enabled = false;
+                await reservation.flush(ctx);
+                return true;
+            });
+        }),
+        debugRemoveKickedUsersFromOrgChats: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAll(Store.Organization, parent.auth.uid!, 'debugRemoveKickedUsersFromOrgChats', async (ctx, oid, log) => {
+                try {
+                    let members = await Store.OrganizationMember.organization.findAll(ctx, 'left', oid);
+                    let orgRooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, oid);
+
+                    await Promise.all(orgRooms.map(async room => {
+                        await Promise.all(members.map(member => Modules.Messaging.room.leaveRoom(ctx, room.id, member.uid)));
+                    }));
+                } catch (e) {
+                    await log(e);
+                }
             });
             return true;
         }),

@@ -23,7 +23,7 @@ export class UsersModule {
     private readonly repo: UserRepository;
     private readonly audienceCounterRepo: AudienceCounterRepository;
     public readonly search = new UserSearch();
-    private deletedUserId: number|null = null;
+    private deletedUserId: number | null = null;
 
     constructor(
         @inject('UserRepository') userRepo: UserRepository,
@@ -46,8 +46,12 @@ export class UsersModule {
         }
     }
 
-    async createUser(ctx: Context, authInfo: AuthInfo) {
-        return this.repo.createUser(ctx, authInfo);
+    async createUser(parent: Context, authInfo: AuthInfo) {
+        return await inTx(parent, async (ctx) => {
+            let created = await this.repo.createUser(ctx, authInfo);
+            await Modules.Hooks.onUserCreated(ctx, created.id);
+            return created;
+        });
     }
 
     async activateUser(parent: Context, uid: number, sendEmail: boolean, invitedBy: number | null = null) {
@@ -63,7 +67,8 @@ export class UsersModule {
 
     async deleteUser(parent: Context, uid: number) {
         await inTx(parent, async (ctx) => {
-            return await this.repo.deleteUser(ctx, uid);
+            await this.repo.deleteUser(ctx, uid);
+            await Modules.Hooks.onUserDeleted(ctx, uid);
         });
     }
 
@@ -88,7 +93,7 @@ export class UsersModule {
     }
 
     async userBindInvitedBy(ctx: Context, uid: number, inviteKey: string) {
-       return await this.repo.bindInvitedBy(ctx, uid, inviteKey);
+        return await this.repo.bindInvitedBy(ctx, uid, inviteKey);
     }
 
     async findProfilePrefill(ctx: Context, uid: number) {

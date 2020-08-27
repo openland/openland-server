@@ -47,7 +47,13 @@ export class SocialImageRepository {
             return cached.generated;
         }
 
-        let generated = await this.renderSocialImage(conv.title, buildBaseImageUrl(conv.image));
+        // truncate conv title
+        let title =  conv.title;
+        if (title.length > 20) {
+            title = title.slice(0, 17) + '...';
+        }
+
+        let generated = await this.renderSocialImage(title, buildBaseImageUrl(conv.image));
         if (!generated) {
             return null;
         }

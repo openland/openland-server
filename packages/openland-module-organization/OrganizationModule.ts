@@ -201,27 +201,18 @@ export class OrganizationModule {
                     profile.primaryOrganization = await this.repo.findPrimaryOrganizationForUser(ctx, uid);
                     await profile.flush(ctx);
                 }
-                let userGroups = await Store.RoomParticipant.active.findAll(ctx, uid);
-                for (let group of userGroups) {
-                    let conv = await Store.Conversation.findById(ctx, group.cid);
-                    if (!conv) {
-                        continue;
+                let orgRooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, oid);
+                await Promise.all(orgRooms.map(async room => {
+                    let isMember = await Modules.Messaging.hasActiveDialog(ctx, uid, room.id);
+                    if (!isMember) {
+                        return;
                     }
-                    if (conv.kind === 'room') {
-                        let room = await Store.ConversationRoom.findById(ctx, conv.id);
-                        if (!room) {
-                            continue;
-                        }
-
-                        if (room.oid && room.oid === oid) {
-                            if (uid === by) {
-                                await Modules.Messaging.room.leaveRoom(ctx, room.id, uid);
-                            } else {
-                                await Modules.Messaging.room.kickFromRoom(ctx, room.id, by, uid);
-                            }
-                        }
+                    if (uid === by) {
+                        await Modules.Messaging.room.leaveRoom(ctx, room.id, uid);
+                    } else {
+                        await Modules.Messaging.room.kickFromRoom(ctx, room.id, by, uid);
                     }
-                }
+                }));
                 await Emails.sendMemberRemovedEmail(ctx, oid, uid);
                 return true;
             }
@@ -245,9 +236,11 @@ export class OrganizationModule {
     async updateMemberRole(parent: Context, uid: number, oid: number, role: 'admin' | 'member', by: number) {
         return await inTx(parent, async (ctx) => {
             let isOwner = await this.isUserOwner(ctx, by, oid);
+            let isAdmin = await this.isUserAdmin(ctx, by, oid);
+
             let isSuperAdmin = (await Modules.Super.superRole(ctx, by)) === 'super-admin';
-            if (!isOwner && !isSuperAdmin) {
-                throw new AccessDeniedError('Only owners can change roles');
+            if (!isOwner && !isSuperAdmin && !isAdmin) {
+                throw new AccessDeniedError('Only admins can change roles');
             }
             if (await this.isUserOwner(ctx, uid, oid)) {
                 throw new AccessDeniedError('Owner role can\'t be changed');

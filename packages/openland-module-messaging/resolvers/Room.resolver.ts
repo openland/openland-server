@@ -387,6 +387,10 @@ export const Resolver: GQLResolver = {
             let room = await Store.ConversationRoom.findById(ctx, id);
             return !!(room && room.listed);
         }),
+        autosubscribeRooms: withConverationId(async (ctx, id) => {
+            let room = await Store.ConversationRoom.findById(ctx, id);
+            return room!.autosubscribeRooms || [];
+        }),
     },
 
     MessageAttachment: {
@@ -485,7 +489,7 @@ export const Resolver: GQLResolver = {
         roomSocialImage: async (src, args, ctx) => {
             let cid = IDs.Conversation.parse(args.roomId);
             let room = await Store.ConversationRoom.findById(ctx, cid);
-            if (!room || room.kind !== 'public') {
+            if (!room) {
                 return null;
             }
             let image = await Modules.Messaging.getSocialImage(ctx, cid);
@@ -892,6 +896,9 @@ export const Resolver: GQLResolver = {
 
         betaRoomAlterListed: withPermission('super-admin', async (ctx, args) => {
             return await Modules.Messaging.room.setListed(ctx, IDs.Conversation.parse(args.roomId), args.listed);
+        }),
+        betaRoomSetupAutosubscribe: withPermission('super-admin', async (ctx, args) => {
+           return await Modules.Messaging.room.setupAutosubscribe(ctx, IDs.Conversation.parse(args.roomId), args.childRoomIds.map(a => IDs.Conversation.parse(a)));
         }),
 
         updateWelcomeMessage: withUser(async (ctx, args, uid) => {

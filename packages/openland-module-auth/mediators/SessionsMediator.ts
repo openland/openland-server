@@ -3,9 +3,10 @@ import { TokenRepository } from '../repositories/TokenRepository';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { Store } from '../../openland-module-db/FDB';
-import { AuthToken, Presence } from '../../openland-module-db/store';
+import { AuthToken } from '../../openland-module-db/store';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
+import { Modules } from 'openland-modules/Modules';
 
 @injectable()
 export class SessionsMediator {
@@ -14,13 +15,13 @@ export class SessionsMediator {
 
     async findActiveSessions(ctx: Context, uid: number) {
         let tokens = await this.tokenRepo.findActiveUserTokens(ctx, uid);
-        let presences = await Store.Presence.user.findAll(ctx, uid);
+        // let presences = await Store.Presence.user.findAll(ctx, uid);
 
-        let sessions: { token: AuthToken, presence: Presence | undefined }[] = [];
+        let sessions: { token: AuthToken, presence: { lastSeen: number, expires: number } | null }[] = [];
         for (let token of tokens) {
             sessions.push({
                 token,
-                presence: presences.find(a => a.tid === token.uuid) || undefined,
+                presence: await Modules.Presence.users.repo.getTokenLastSeen(ctx, uid, token.uuid),
             });
         }
 

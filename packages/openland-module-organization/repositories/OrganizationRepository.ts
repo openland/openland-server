@@ -38,7 +38,8 @@ export class OrganizationRepository {
                 status: opts.status,
                 editorial: opts.editorial,
                 private: (input.isCommunity && input.isPrivate) ? true : false,
-                personal: input.personal ? input.personal : false
+                personal: input.personal ? input.personal : false,
+                membersCanInvite: input.membersCanInvite !== undefined ? input.membersCanInvite : true,
             });
 
             // Create organization profile
@@ -51,7 +52,7 @@ export class OrganizationRepository {
                 facebook: null,
                 linkedin: null,
                 instagram: null,
-                joinedMembersCount: null
+                joinedMembersCount: null,
             });
 
             // Create editorial data
@@ -210,6 +211,8 @@ export class OrganizationRepository {
             userProfile.primaryOrganization = userOrganizations.filter(o => o !== oid)[0];
 
             await this.markForUndexing(ctx, oid);
+
+            await Modules.Shortnames.freeShortName(ctx, 'org', oid);
 
             return true;
         });

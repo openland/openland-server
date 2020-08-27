@@ -35,6 +35,8 @@ export const Resolver: GQLResolver = {
         alphaFeatured: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationEditorial.findById(ctx, src.id)))!.featured,
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
         alphaIsPrivate: (src: Organization) => src.private || false,
+
+        betaMembersCanInvite: (src: Organization) => src.membersCanInvite === null ? true : src.membersCanInvite,
     },
     Query: {
         myOrganizationProfile: async (_: any, args: {}, ctx: Context) => {
@@ -131,6 +133,10 @@ export const Resolver: GQLResolver = {
 
                 if (args.input.alphaFeatured !== undefined && isSuper) {
                     editorial.featured = !!Sanitizer.sanitizeAny(args.input.alphaFeatured);
+                }
+
+                if (args.input.betaMembersCanInvite !== undefined) {
+                    existing.membersCanInvite = args.input.betaMembersCanInvite;
                 }
 
                 // Schedule indexing

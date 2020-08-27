@@ -207,9 +207,7 @@ export const Resolver: GQLResolver = {
         longDescription: src => '',
         pinnedMessage: src => null,
         membersOnline: async (src, _, ctx) => {
-            let members = await Modules.Messaging.room.findConversationMembers(ctx, src.id);
-            let onlines = await Promise.all(members.map(m => Modules.Presence.getLastSeen(ctx, m)));
-            return onlines.filter(s => s === 'online').length;
+            return Modules.Presence.groups.getOnline(src.id);
         },
         myRole: async (src, _, ctx) => {
             let member = await Modules.Messaging.room.findMembershipStatus(ctx, ctx.auth.uid!, src.id);

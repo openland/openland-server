@@ -116,6 +116,9 @@ export class UserRepository {
             let participates = await Store.RoomParticipant.userActive.findAll(ctx, uid);
             await Promise.all(participates.map(p => Modules.Messaging.room.leaveRoom(ctx, p.cid, uid)));
 
+            // Free shortname
+            await Modules.Shortnames.freeShortName(ctx, 'user', uid);
+
             return user;
         });
     }
@@ -237,8 +240,8 @@ export class UserRepository {
                     mobileAlert: true,
                     mobileIncludeText: true,
                     notificationsDelay: 'none',
-                    commentNotifications: null,
-                    commentNotificationsDelivery: null,
+                    commentNotifications: 'all',
+                    commentNotificationsDelivery: 'all',
                     globalCounterType: 'unread_chats',
                     desktop: allPlatformEnabled,
                     mobile: allPlatformEnabled,

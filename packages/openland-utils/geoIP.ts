@@ -1,5 +1,4 @@
 import { LatLong } from './geo';
-import * as geoip from 'geoip-lite';
 
 export type GeoIPResponse = {
     ip: string,
@@ -9,6 +8,7 @@ export type GeoIPResponse = {
 };
 
 export function geoIP(ip: string): GeoIPResponse {
+    let geoip = require('geoip-lite');
     let lookup = geoip.lookup(ip);
     if (!lookup) {
         return {
