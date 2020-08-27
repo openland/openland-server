@@ -1,5 +1,5 @@
 import { injectable } from 'inversify';
-import { encoders, Subspace, TupleItem } from '@openland/foundationdb';
+import { encoders, Subspace, TransactionCache, TupleItem } from '@openland/foundationdb';
 import { Store } from '../../openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
@@ -14,6 +14,8 @@ const PREFIX_HIDDEN_MESSAGES = 4;
 const BUCKET_SIZE = 1000;
 
 const log = createLogger('fast_counters');
+
+const countersCache = new TransactionCache<{ cid: number, unreadCounter: number, haveMention: boolean }[]>('chat-counters-cache');
 
 @injectable()
 export class FastCountersRepository {
@@ -118,6 +120,11 @@ export class FastCountersRepository {
     }
 
     fetchUserCounters = async (ctx: Context, uid: number, includeAllMention = true) => {
+        let cached = countersCache.get(ctx, 'counters');
+        if (cached) {
+            return cached;
+        }
+
         let userReadSeqs = await this.userReadSeqsSubspace.snapshotRange(ctx, [uid]);
 
         let counters = await Promise.all(userReadSeqs.map(async (readValue) => {
@@ -126,6 +133,7 @@ export class FastCountersRepository {
 
             return await this.fetchUserCounterForChat(ctx, uid, cid, lastReadSeq, includeAllMention);
         }));
+        countersCache.set(ctx, 'counters', counters);
 
         return counters;
     }
