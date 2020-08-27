@@ -9,6 +9,7 @@ const PREFIX_DELETED_SEQS = 0;
 const PREFIX_USER_MENTIONS = 1;
 const PREFIX_ALL_MENTIONS = 2;
 const PREFIX_USER_READ_SEQS = 3;
+const PREFIX_HIDDEN_MESSAGES = 4;
 
 const BUCKET_SIZE = 1000;
 
@@ -21,6 +22,7 @@ export class FastCountersRepository {
     private deletedSeqs: BucketCountingDirectory;
     private userMentions: BucketCountingDirectory;
     private allMentions: BucketCountingDirectory;
+    private hiddenMessages: BucketCountingDirectory;
     private userReadSeqsSubspace: Subspace<TupleItem[], number>;
 
     constructor() {
@@ -39,26 +41,33 @@ export class FastCountersRepository {
             BUCKET_SIZE
         );
 
+        this.hiddenMessages = new BucketCountingDirectory(
+            this.directory.subspace(encoders.tuple.pack([PREFIX_HIDDEN_MESSAGES])),
+            BUCKET_SIZE
+        );
+
         this.userReadSeqsSubspace = this.directory
             .subspace(encoders.tuple.pack([PREFIX_USER_READ_SEQS]))
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.int32LE);
     }
 
-    onMessageCreated = async (ctx: Context, uid: number, cid: number, seq: number, mentionedUsers: (number|'all')[]) => {
+    onMessageCreated = async (ctx: Context, uid: number, cid: number, seq: number, mentionedUsers: (number|'all')[], hiddenForUsers: number[]) => {
         // Reset sender counter
         this.onMessageRead(ctx, uid, cid, seq);
 
-        if (mentionedUsers.length === 0) {
-            return;
+        if (mentionedUsers.length > 0) {
+            await Promise.all(mentionedUsers.map(m => {
+                if (m === 'all') {
+                    return this.allMentions.add(ctx, [cid], seq);
+                } else {
+                    return this.userMentions.add(ctx, [m, cid], seq);
+                }
+            }));
         }
-        await Promise.all(mentionedUsers.map(m => {
-            if (m === 'all') {
-                return this.allMentions.add(ctx, [cid], seq);
-            } else {
-                return this.userMentions.add(ctx, [m, cid], seq);
-            }
-        }));
+        if (hiddenForUsers.length > 0) {
+            await Promise.all(hiddenForUsers.map(u => this.hiddenMessages.add(ctx, [u, cid], seq)));
+        }
     }
 
     onMessageDeleted = async (ctx: Context, cid: number, seq: number, mentionedUsers: (number|'all')[]) => {
@@ -126,9 +135,12 @@ export class FastCountersRepository {
                 return { cid, unreadCounter: 0, haveMention: false };
             }
 
-            let deletedSeqsCount = await this.deletedSeqs.count(ctx, [cid], { from: lastReadSeq });
+            let [deletedSeqsCount, hiddenMessagesCount] = await Promise.all([
+                this.deletedSeqs.count(ctx, [cid], { from: lastReadSeq }),
+                this.hiddenMessages.count(ctx, [uid, cid], { from: lastReadSeq })
+            ]);
 
-            let unreadCounter = chatLastSeq - lastReadSeq - deletedSeqsCount;
+            let unreadCounter = chatLastSeq - lastReadSeq - deletedSeqsCount - hiddenMessagesCount;
 
             if (unreadCounter < 0) {
                 unreadCounter = 0;

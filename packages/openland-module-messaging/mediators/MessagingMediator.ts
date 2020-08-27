@@ -159,7 +159,7 @@ export class MessagingMediator {
                         mentions.push('all');
                     }
                 }
-                await this.fastCounters.onMessageCreated(ctx, uid, cid, res.message.seq, mentions);
+                await this.fastCounters.onMessageCreated(ctx, uid, cid, res.message.seq, mentions, res.message.hiddenForUids || []);
             }
 
             // Mentions
