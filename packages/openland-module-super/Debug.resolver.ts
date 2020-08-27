@@ -108,7 +108,11 @@ export const Resolver: GQLResolver = {
         cursor: src => src.cursor || null
     },
     Query: {
-        lifecheck: () => `i'm ok`,
+        lifecheck: async (src, args, ctx) => {
+            console.log(await Modules.Messaging.fetchUserCounters(ctx, ctx.auth.uid!));
+            // `i'm ok`
+            return 'ok';
+        },
         debugParseID: withPermission('super-admin', async (ctx, args) => {
             let id = IdsFactory.resolve(args.id);
             return {

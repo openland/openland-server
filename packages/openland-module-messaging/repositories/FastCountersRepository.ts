@@ -122,45 +122,63 @@ export class FastCountersRepository {
 
         let counters = await Promise.all(userReadSeqs.map(async (readValue) => {
             let cid = readValue.key[readValue.key.length - 1] as number;
-            let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
             let lastReadSeq = readValue.value || 0;
 
-            if (lastReadSeq > chatLastSeq) {
-                log.warn(ctx, `lastReadSeq > chatLastSeq, cid: ${cid}, uid: ${uid}`);
-                this.onMessageRead(ctx, uid, cid, chatLastSeq);
-                lastReadSeq = chatLastSeq;
-            }
-
-            if (chatLastSeq === lastReadSeq) {
-                return { cid, unreadCounter: 0, haveMention: false };
-            }
-
-            let [deletedSeqsCount, hiddenMessagesCount] = await Promise.all([
-                this.deletedSeqs.count(ctx, [cid], { from: lastReadSeq }),
-                this.hiddenMessages.count(ctx, [uid, cid], { from: lastReadSeq })
-            ]);
-
-            let unreadCounter = chatLastSeq - lastReadSeq - deletedSeqsCount - hiddenMessagesCount;
-
-            if (unreadCounter < 0) {
-                unreadCounter = 0;
-                log.warn(ctx, `negative unread counter, cid: ${cid}, uid: ${uid}`);
-            }
-
-            if (unreadCounter === 0) {
-                return { cid, unreadCounter: 0, haveMention: false };
-            }
-
-            let [mentionsCount, allMentionsCount] = await Promise.all([
-                this.userMentions.count(ctx, [uid, cid], { from: lastReadSeq }),
-                this.allMentions.count(ctx, [cid], { from: lastReadSeq })
-            ]);
-
-            let haveMention = mentionsCount > 0 || (includeAllMention && allMentionsCount > 0);
-
-            return { cid, unreadCounter, haveMention };
+            return await this.fetchUserCounterForChat(ctx, uid, cid, lastReadSeq, includeAllMention);
         }));
 
         return counters;
+    }
+
+    fetchUserCountersForChats = async (ctx: Context, uid: number, cids: number[], includeAllMention = true) => {
+        let userReadSeqs = await this.userReadSeqsSubspace.snapshotRange(ctx, [uid]);
+
+        let counters = await Promise.all(cids.map(async (cid) => {
+            let lastReadSeqValue = userReadSeqs.find(v => v.key[v.key.length - 1] === cid);
+            let lastReadSeq = lastReadSeqValue ? lastReadSeqValue.value : 0;
+
+            return await this.fetchUserCounterForChat(ctx, uid, cid, lastReadSeq, includeAllMention);
+        }));
+
+        return counters;
+    }
+
+    private fetchUserCounterForChat = async (ctx: Context, uid: number, cid: number, lastReadSeq: number, includeAllMention = true) => {
+        let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
+
+        if (lastReadSeq > chatLastSeq) {
+            log.warn(ctx, `lastReadSeq > chatLastSeq, cid: ${cid}, uid: ${uid}`);
+            this.onMessageRead(ctx, uid, cid, chatLastSeq);
+            lastReadSeq = chatLastSeq;
+        }
+
+        if (chatLastSeq === lastReadSeq) {
+            return { cid, unreadCounter: 0, haveMention: false };
+        }
+
+        let [deletedSeqsCount, hiddenMessagesCount] = await Promise.all([
+            this.deletedSeqs.count(ctx, [cid], { from: lastReadSeq }),
+            this.hiddenMessages.count(ctx, [uid, cid], { from: lastReadSeq })
+        ]);
+
+        let unreadCounter = chatLastSeq - lastReadSeq - deletedSeqsCount - hiddenMessagesCount;
+
+        if (unreadCounter < 0) {
+            unreadCounter = 0;
+            log.warn(ctx, `negative unread counter, cid: ${cid}, uid: ${uid}`);
+        }
+
+        if (unreadCounter === 0) {
+            return { cid, unreadCounter: 0, haveMention: false };
+        }
+
+        let [mentionsCount, allMentionsCount] = await Promise.all([
+            this.userMentions.count(ctx, [uid, cid], { from: lastReadSeq }),
+            this.allMentions.count(ctx, [cid], { from: lastReadSeq })
+        ]);
+
+        let haveMention = mentionsCount > 0 || (includeAllMention && allMentionsCount > 0);
+
+        return { cid, unreadCounter, haveMention };
     }
 }
