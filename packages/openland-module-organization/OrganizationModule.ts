@@ -202,11 +202,15 @@ export class OrganizationModule {
                     await profile.flush(ctx);
                 }
                 let orgRooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, oid);
-                await Promise.all(orgRooms.map(room => {
+                await Promise.all(orgRooms.map(async room => {
+                    let isMember = await Modules.Messaging.hasActiveDialog(ctx, uid, room.id);
+                    if (!isMember) {
+                        return;
+                    }
                     if (uid === by) {
-                        return Modules.Messaging.room.leaveRoom(ctx, room.id, uid);
+                        await Modules.Messaging.room.leaveRoom(ctx, room.id, uid);
                     } else {
-                        return Modules.Messaging.room.kickFromRoom(ctx, room.id, by, uid);
+                        await Modules.Messaging.room.kickFromRoom(ctx, room.id, by, uid);
                     }
                 }));
                 await Emails.sendMemberRemovedEmail(ctx, oid, uid);

@@ -37,6 +37,7 @@ export type OpResult = {
 };
 
 export type OpRef = {
+    id: string;
     cancel: () => void;
 };
 
@@ -256,6 +257,7 @@ export class SpaceXSession {
         })();
 
         return {
+            id,
             cancel: abort
         };
     }

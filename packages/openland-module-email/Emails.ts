@@ -125,7 +125,7 @@ export const Emails = {
                 to: user.email,
                 args: {
                     firstName: chatName,
-                    // lastName: userProfile!.lastName || '',
+                    lastName: '',
                     messageCount: `${messages.length}`,
                 }
             });

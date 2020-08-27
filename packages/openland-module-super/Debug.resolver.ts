@@ -1938,6 +1938,21 @@ export const Resolver: GQLResolver = {
                 return true;
             });
         }),
+        debugRemoveKickedUsersFromOrgChats: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAll(Store.Organization, parent.auth.uid!, 'debugRemoveKickedUsersFromOrgChats', async (ctx, oid, log) => {
+                try {
+                    let members = await Store.OrganizationMember.organization.findAll(ctx, 'left', oid);
+                    let orgRooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, oid);
+
+                    await Promise.all(orgRooms.map(async room => {
+                        await Promise.all(members.map(member => Modules.Messaging.room.leaveRoom(ctx, room.id, member.uid)));
+                    }));
+                } catch (e) {
+                    await log(e);
+                }
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {
