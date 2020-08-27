@@ -657,8 +657,8 @@ export class RoomRepository {
                 });
                 this.metrics.onChatCreated(ctx, uid1);
                 this.metrics.onChatCreated(ctx, uid2);
-                this.fastCounters.onAddDialog(ctx, uid1, conv.id);
-                this.fastCounters.onAddDialog(ctx, uid2, conv.id);
+                await this.fastCounters.onAddDialog(ctx, uid1, conv.id);
+                await this.fastCounters.onAddDialog(ctx, uid2, conv.id);
                 await conv.flush(ctx);
             }
             return (await Store.Conversation.findById(ctx, conv.id))!;
