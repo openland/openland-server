@@ -288,6 +288,9 @@ export const Resolver: GQLResolver = {
                 cid
             });
         }),
+        debugGetCounters: withPermission('super-admin', async (ctx, args) => {
+            return JSON.stringify(await Modules.Messaging.fetchUserCounters(ctx, ctx.auth.uid!));
+        }),
     },
     Mutation: {
         debugSendSMS: withPermission('super-admin', async (ctx, args) => {
