@@ -18,6 +18,7 @@ type User {
     facebook: String
     audienceSize: Int!
     badge: ProfileBadge
+    joinDate: Date!
 
     # TODO: Refactor
     channelsJoined: [ChannelConversation!]! @disabled

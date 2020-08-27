@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'a1b1403af9b544a4c122f3c7f37a7cd5';
+export const GQL_SPEC_VERSION = '47cbe5848414e750135095b2ceda769c';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -5132,6 +5132,7 @@ export namespace GQL {
         facebook: Nullable<string>;
         audienceSize: number;
         badge: Nullable<ProfileBadge>;
+        joinDate: Date;
         channelsJoined: ChannelConversation[];
         photoRef: Nullable<ImageRef>;
         picture: Nullable<string>;
@@ -5171,6 +5172,7 @@ export namespace GQL {
     export interface UserFacebookArgs { }
     export interface UserAudienceSizeArgs { }
     export interface UserBadgeArgs { }
+    export interface UserJoinDateArgs { }
     export interface UserChannelsJoinedArgs { }
     export interface UserPhotoRefArgs { }
     export interface UserPictureArgs { }
@@ -10232,6 +10234,7 @@ export interface GQLResolver {
             facebook: GQL.UserFacebookArgs,
             audienceSize: GQL.UserAudienceSizeArgs,
             badge: GQL.UserBadgeArgs,
+            joinDate: GQL.UserJoinDateArgs,
             channelsJoined: GQL.UserChannelsJoinedArgs,
             photoRef: GQL.UserPhotoRefArgs,
             picture: GQL.UserPictureArgs,

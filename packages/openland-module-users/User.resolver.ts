@@ -170,6 +170,7 @@ export const Resolver: GQLResolver = {
         badges: withUser((ctx, src) => Store.UserBadge.user.findAll(ctx, src.id)),
         primaryBadge: withProfile((ctx, src, profile) => profile && profile.primaryBadge ? Store.UserBadge.findById(ctx, profile.primaryBadge) : null),
         audienceSize: withUser(async (ctx, src) => await Store.UserAudienceCounter.get(ctx, src.id), true),
+        joinDate: withUser(async (ctx, src) => src.metadata.createdAt, true),
 
         // Deprecated
         picture: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null, true),
