@@ -72,10 +72,10 @@ export class BucketCountingDirectory {
             let all = (await tx.getRangeAll(fromBuffer, toBuffer)).map(v => encoders.tuple.unpack(v[1])).flat();
 
             if (cursor.from !== null && cursor.from !== undefined) {
-                all = all.filter(id => id! >= cursor.from!);
+                all = all.filter(id => id! > cursor.from!);
             }
             if (cursor.to !== null && cursor.to !== undefined) {
-                all = all.filter(id => id! <= cursor.to!);
+                all = all.filter(id => id! < cursor.to!);
             }
 
             return all.length;
