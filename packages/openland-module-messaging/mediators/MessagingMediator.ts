@@ -151,7 +151,7 @@ export class MessagingMediator {
 
             // Fast mentions
             if (res.message.seq) {
-                await this.fastCounters.onMessageCreated(ctx, uid, cid, res.message.seq, fetchMessageMentions(res.message.mentions), res.message.hiddenForUids || []);
+                await this.fastCounters.onMessageCreated(ctx, uid, cid, res.message.seq, fetchMessageMentions(res.message), res.message.hiddenForUids || []);
             }
 
             // Mentions
