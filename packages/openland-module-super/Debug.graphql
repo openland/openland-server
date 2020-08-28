@@ -203,6 +203,7 @@ extend type Mutation {
     debugRemoveKickedUsersFromOrgChats: Boolean!
     debugMigrateToNewCounters: Boolean!
     debugMigrateToNewLastRead: Boolean!
+    debugFixReadSeqs: Boolean!
 }
 
 extend type Subscription {

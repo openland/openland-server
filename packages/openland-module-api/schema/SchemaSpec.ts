@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '47cbe5848414e750135095b2ceda769c';
+export const GQL_SPEC_VERSION = '16e9be0ee7650ecafba95f7c1988e36f';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2271,6 +2271,7 @@ export namespace GQL {
         debugRemoveKickedUsersFromOrgChats: boolean;
         debugMigrateToNewCounters: boolean;
         debugMigrateToNewLastRead: boolean;
+        debugFixReadSeqs: boolean;
         settingsUpdate: Settings;
         sendEmailPairCode: string;
         pairEmail: boolean;
@@ -2804,6 +2805,7 @@ export namespace GQL {
     export interface MutationDebugRemoveKickedUsersFromOrgChatsArgs { }
     export interface MutationDebugMigrateToNewCountersArgs { }
     export interface MutationDebugMigrateToNewLastReadArgs { }
+    export interface MutationDebugFixReadSeqsArgs { }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
         uid: OptionalNullable<string>;
@@ -8883,6 +8885,7 @@ export interface GQLResolver {
             debugRemoveKickedUsersFromOrgChats: GQL.MutationDebugRemoveKickedUsersFromOrgChatsArgs,
             debugMigrateToNewCounters: GQL.MutationDebugMigrateToNewCountersArgs,
             debugMigrateToNewLastRead: GQL.MutationDebugMigrateToNewLastReadArgs,
+            debugFixReadSeqs: GQL.MutationDebugFixReadSeqsArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailPairCode: GQL.MutationSendEmailPairCodeArgs,
             pairEmail: GQL.MutationPairEmailArgs,
