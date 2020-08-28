@@ -6,8 +6,7 @@ import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { encoders } from '@openland/foundationdb';
-
-const USE_NEW_COUNTERS = false;
+import { USE_NEW_COUNTERS } from '../MessagingModule';
 
 export const Resolver: GQLResolver = {
     Dialog: {

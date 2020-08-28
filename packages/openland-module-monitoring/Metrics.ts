@@ -262,4 +262,8 @@ export const Metrics = {
     NotificationCenterUnreadUsers: Factory.createPersistedGauge('notification_center_unread_users', 'Unread users count', async (ctx) => {
         return (await Modules.NotificationCenter.needDelivery.findAllUsersWithNotifications(ctx, 'push')).length;
     }),
+
+    // Counters
+    GlobalCounterResolveTime: Factory.createSummary('global_counter_resolve_time', 'Summary of global counter fetch time', DEFAULT_QUANTILES),
+    AllCountersResolveTime: Factory.createSummary('all_counters_resolve_time', 'Summary of all counters fetch time', DEFAULT_QUANTILES),
 };

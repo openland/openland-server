@@ -84,9 +84,9 @@ export const Resolver: GQLResolver = {
         message: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
         betaMessage: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
         alphaMessage: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
-        unread: async (src, args, ctx) => Store.UserDialogCounter.byId(ctx.auth.uid!, src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid).get(ctx),
+        unread: async (src, args, ctx) => Modules.Messaging.fetchUserUnreadInChat(ctx, src.uid, src.cid),
         globalUnread: async (src, args, ctx) => await Modules.Messaging.fetchUserGlobalCounter(ctx, ctx.auth.uid!),
-        haveMention: async (src, args, ctx) => Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid).get(ctx),
+        haveMention: async (src, args, ctx) => Modules.Messaging.fetchUserMentionedInChat(ctx, src.uid, src.cid),
         silent: async (src, args, ctx) => Modules.Messaging.isSilent(ctx, ctx.auth.uid!, src.mid!),
         showNotification: async (src, args, ctx) => Modules.Messaging.isShown(ctx, ctx.auth.uid!, src.mid!),
         membership: async (src, args, ctx) => ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, src.cid) : 'none'
@@ -96,7 +96,7 @@ export const Resolver: GQLResolver = {
         message: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
         betaMessage: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
         alphaMessage: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
-        haveMention: async (src, args, ctx) => Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid).get(ctx)
+        haveMention: async (src, args, ctx) => Modules.Messaging.fetchUserMentionedInChat(ctx, src.uid, src.cid)
     },
     DialogMessageDeleted: {
         cid: async (src, args, ctx) => IDs.Conversation.serialize(src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid),
@@ -109,16 +109,16 @@ export const Resolver: GQLResolver = {
         prevMessage: async (src, args, ctx) => {
             return await Modules.Messaging.findTopMessage(ctx, src.cid!, ctx.auth.uid!);
         },
-        unread: async (src, args, ctx) => Store.UserDialogCounter.byId(ctx.auth.uid!, src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid).get(ctx),
+        unread: async (src, args, ctx) => Modules.Messaging.fetchUserUnreadInChat(ctx, src.uid, src.cid),
         globalUnread: async (src, args, ctx) => await Modules.Messaging.fetchUserGlobalCounter(ctx, ctx.auth.uid!),
-        haveMention: async (src, args, ctx) => Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid).get(ctx)
+        haveMention: async (src, args, ctx) => Modules.Messaging.fetchUserMentionedInChat(ctx, src.uid, src.cid)
     },
     DialogMessageRead: {
         cid: (src) => IDs.Conversation.serialize(src.cid!),
         mid: (src) => src.mid ? IDs.Message.serialize(src.mid) : null,
-        unread: async (src, args, ctx) => Store.UserDialogCounter.byId(ctx.auth.uid!, src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid).get(ctx),
+        unread: async (src, args, ctx) => Modules.Messaging.fetchUserUnreadInChat(ctx, src.uid, src.cid),
         globalUnread: async (src, args, ctx) => await Modules.Messaging.fetchUserGlobalCounter(ctx, ctx.auth.uid!),
-        haveMention: async (src, args, ctx) => Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid).get(ctx)
+        haveMention: async (src, args, ctx) => Modules.Messaging.fetchUserMentionedInChat(ctx, src.uid, src.cid)
     },
     DialogTitleUpdated: {
         cid: (src) => IDs.Conversation.serialize(src.cid!),
@@ -135,11 +135,11 @@ export const Resolver: GQLResolver = {
     DialogBump: {
         cid: (src) => IDs.Conversation.serialize(src.cid!),
         globalUnread: async (src, args, ctx) => await Modules.Messaging.fetchUserGlobalCounter(ctx, ctx.auth.uid!),
-        unread: async (src, args, ctx) => Store.UserDialogCounter.byId(ctx.auth.uid!, src.cid).get(ctx),
+        unread: async (src, args, ctx) => Modules.Messaging.fetchUserUnreadInChat(ctx, src.uid, src.cid),
         topMessage: async (src, args, ctx) => {
             return (await Store.Message.chat.query(ctx, src.cid!, { limit: 1, reverse: true })).items[0];
         },
-        haveMention: async (src, args, ctx) => Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid).get(ctx),
+        haveMention: async (src, args, ctx) => Modules.Messaging.fetchUserMentionedInChat(ctx, src.uid, src.cid),
         membership: async (src, args, ctx) => ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, src.cid) : 'none'
     },
     DialogMuteChanged: {

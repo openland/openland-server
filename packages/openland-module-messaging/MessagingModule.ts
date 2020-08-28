@@ -21,6 +21,9 @@ import { hasMention } from './resolvers/ModernMessage.resolver';
 import { PremiumChatMediator } from './mediators/PremiumChatMediator';
 import { SocialImageRepository } from './repositories/SocialImageRepository';
 import { DonationsMediator } from './mediators/DonationsMediator';
+import { Modules } from '../openland-modules/Modules';
+
+export const USE_NEW_COUNTERS = true;
 
 @injectable()
 export class MessagingModule {
@@ -167,8 +170,27 @@ export class MessagingModule {
         return await this.userState.zipUpdatesInBatchesAfterModern(parent, uid, state);
     }
 
+    //
+    // Counters
+    //
     async fetchUserGlobalCounter(parent: Context, uid: number) {
-        return await this.userState.fetchUserGlobalCounter(parent, uid);
+        if (!USE_NEW_COUNTERS) {
+            return await this.userState.fetchUserGlobalCounter(parent, uid);
+        } else {
+            let settings = await Modules.Users.getUserSettings(parent, uid);
+            let counterType = settings.globalCounterType || 'unread_chats_no_muted';
+
+            if (counterType === 'unread_messages') {
+                return this.messaging.fastCounters.fetchUserGlobalCounter(parent, uid, false, false);
+            } else if (counterType === 'unread_chats') {
+                return this.messaging.fastCounters.fetchUserGlobalCounter(parent, uid, true, false);
+            } else if (counterType === 'unread_messages_no_muted') {
+                return this.messaging.fastCounters.fetchUserGlobalCounter(parent, uid, false, true);
+            } else if (counterType === 'unread_chats_no_muted') {
+                return this.messaging.fastCounters.fetchUserGlobalCounter(parent, uid, true, true);
+            }
+            return this.messaging.fastCounters.fetchUserGlobalCounter(parent, uid, true, true);
+        }
     }
 
     async fetchUserCounters(parent: Context, uid: number) {
@@ -177,6 +199,39 @@ export class MessagingModule {
 
     async fetchUserCountersForChats(ctx: Context, uid: number, cids: number[], includeAllMention: boolean = true) {
         return this.messaging.fastCounters.fetchUserCountersForChats(ctx, uid, cids, includeAllMention);
+    }
+
+    /**
+     * Fetches all counters & caches, call this only if you fetch global counter in same tx
+     * or if you call this for several chats in same tx
+     */
+    async fetchUserUnreadInChat(ctx: Context, uid: number, cid: number) {
+        if (!USE_NEW_COUNTERS) {
+            return await Store.UserDialogCounter.get(ctx, uid, cid);
+        }
+        let counters = await this.messaging.fastCounters.fetchUserCounters(ctx, uid);
+
+        let chatUnread = counters.find(c => c.cid === cid);
+        if (!chatUnread) {
+            return 0;
+        }
+        return chatUnread.unreadCounter;
+    }
+
+    /**
+     * Fetches all counters & caches, call this only if you fetch global counter in same tx
+     * or if you call this for several chats in same tx
+     */
+    async fetchUserMentionedInChat(ctx: Context, uid: number, cid: number) {
+        if (!USE_NEW_COUNTERS) {
+            return await Store.UserDialogHaveMention.get(ctx, uid, cid);
+        }
+        let counters = await this.messaging.fastCounters.fetchUserCounters(ctx, uid);
+        let chatUnread = counters.find(c => c.cid === cid);
+        if (!chatUnread) {
+            return false;
+        }
+        return chatUnread.haveMention;
     }
 
     //
@@ -261,7 +316,7 @@ export class MessagingModule {
 
         let userMentioned = hasMention(message, uid);
 
-        let { mobile, desktop } = settings;
+        let {mobile, desktop} = settings;
         let mobileSettings: { showNotification: boolean, sound: boolean } | null = null;
         let desktopSettings: { showNotification: boolean, sound: boolean } | null = null;
         if (conversation.kind === 'private') {
@@ -290,15 +345,15 @@ export class MessagingModule {
 
         let conversationSettings = await Store.UserDialogSettings.findById(ctx, uid, conversation.id);
         if (conversationSettings && conversationSettings.mute && !userMentioned) {
-            mobileSettings = { showNotification: false, sound: false };
-            desktopSettings = { showNotification: false, sound: false };
+            mobileSettings = {showNotification: false, sound: false};
+            desktopSettings = {showNotification: false, sound: false};
         }
 
         let isMuted = !mobileSettings.showNotification || !mobileSettings.sound ||
             !desktopSettings.sound || !desktopSettings.showNotification;
         if (isMuted && userMentioned) {
-            mobileSettings = { showNotification: true, sound: true };
-            desktopSettings = { showNotification: true, sound: true };
+            mobileSettings = {showNotification: true, sound: true};
+            desktopSettings = {showNotification: true, sound: true};
         }
 
         return {

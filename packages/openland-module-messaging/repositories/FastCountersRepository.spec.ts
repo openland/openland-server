@@ -97,11 +97,11 @@ describe('FastCountersRepository', () => {
             await repo.onAddDialog(ctx, uid, cid);
             await Store.ConversationLastSeq.byId(cid).set(ctx, 100);
 
-            await repo.onMessageDeleted(ctx, cid, 1, []);
-            await repo.onMessageDeleted(ctx, cid, 2, []);
-            await repo.onMessageDeleted(ctx, cid, 3, []);
-            await repo.onMessageDeleted(ctx, cid, 4, []);
-            await repo.onMessageDeleted(ctx, cid, 5, []);
+            await repo.onMessageDeleted(ctx, cid, 1, [], []);
+            await repo.onMessageDeleted(ctx, cid, 2, [], []);
+            await repo.onMessageDeleted(ctx, cid, 3, [], []);
+            await repo.onMessageDeleted(ctx, cid, 4, [], []);
+            await repo.onMessageDeleted(ctx, cid, 5, [], []);
 
             let counters = await repo.fetchUserCounters(ctx, uid);
             expect(counters.length).toBe(1);
@@ -152,7 +152,7 @@ describe('FastCountersRepository', () => {
             expect(counters[0].haveMention).toBe(true);
             expect(counters[0].unreadCounter).toBe(100);
 
-            await repo.onMessageDeleted(ctx, cid, 1, [uid]);
+            await repo.onMessageDeleted(ctx, cid, 1, [uid], []);
 
             counters = await repo.fetchUserCounters(ctx, uid);
             expect(counters.length).toBe(1);

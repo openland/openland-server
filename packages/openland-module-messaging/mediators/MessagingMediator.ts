@@ -17,8 +17,8 @@ import * as Chrono from 'chrono-node';
 import { Store } from 'openland-module-db/FDB';
 import { MentionNotificationsMediator } from './MentionNotificationsMediator';
 import { DonationsMediator } from './DonationsMediator';
-import { FastCountersRepository } from '../repositories/FastCountersRepository';
 import { Message } from '../../openland-module-db/store';
+import { FastCountersMediator } from './FastCountersMediator';
 
 const trace = createTracer('messaging');
 const linkifyInstance = createLinkifyInstance();
@@ -50,8 +50,8 @@ export class MessagingMediator {
     private readonly room!: RoomMediator;
     @lazyInject('DonationsMediator')
     private readonly donations!: DonationsMediator;
-    @lazyInject('FastCountersRepository')
-    readonly fastCounters!: FastCountersRepository;
+    @lazyInject('FastCountersMediator')
+    readonly fastCounters!: FastCountersMediator;
 
     sendMessage = async (parent: Context, uid: number, cid: number, message: MessageInput, skipAccessCheck?: boolean) => {
         return trace.trace(parent, 'sendMessage', async (ctx2) => await inTx(ctx2, async (ctx) => {
@@ -151,15 +151,7 @@ export class MessagingMediator {
 
             // Fast mentions
             if (res.message.seq) {
-                let mentions: (number|'all')[] = [];
-                for (let span of res.message.spans || []) {
-                    if (span.type === 'user_mention') {
-                        mentions.push(span.user);
-                    } else if (span.type === 'all_mention') {
-                        mentions.push('all');
-                    }
-                }
-                await this.fastCounters.onMessageCreated(ctx, uid, cid, res.message.seq, mentions, res.message.hiddenForUids || []);
+                await this.fastCounters.onMessageCreated(ctx, uid, cid, res.message.seq, fetchMessageMentions(res.message.mentions), res.message.hiddenForUids || []);
             }
 
             // Mentions
@@ -314,7 +306,7 @@ export class MessagingMediator {
 
             // Fast counters
             if (message.seq) {
-                await this.fastCounters.onMessageDeleted(ctx, message.cid, message.seq, fetchMessageMentions(message));
+                await this.fastCounters.onMessageDeleted(ctx, message.cid, message.seq, fetchMessageMentions(message), message.hiddenForUids || []);
             }
 
             // cancel payment if it is not success/canceled

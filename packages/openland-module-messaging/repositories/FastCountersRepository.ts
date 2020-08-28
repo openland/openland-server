@@ -1,5 +1,5 @@
 import { injectable } from 'inversify';
-import { encoders, Subspace, TransactionCache, TupleItem } from '@openland/foundationdb';
+import { encoders, getTransaction, Subspace, TransactionCache, TupleItem } from '@openland/foundationdb';
 import { Store } from '../../openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
@@ -16,6 +16,7 @@ const BUCKET_SIZE = 1000;
 const log = createLogger('fast_counters');
 
 const countersCache = new TransactionCache<{ cid: number, unreadCounter: number, haveMention: boolean }[]>('chat-counters-cache');
+const globalCounterCache = new TransactionCache<number>('global-counter-cache');
 
 @injectable()
 export class FastCountersRepository {
@@ -26,6 +27,10 @@ export class FastCountersRepository {
     readonly allMentions: BucketCountingDirectory;
     readonly hiddenMessages: BucketCountingDirectory;
     readonly userReadSeqsSubspace: Subspace<TupleItem[], number>;
+
+    private userMuteSettingsSubspace = Store.UserDialogMuteSettingDirectory
+        .withKeyEncoding(encoders.tuple)
+        .withValueEncoding(encoders.boolean);
 
     constructor() {
         this.deletedSeqs = new BucketCountingDirectory(
@@ -54,8 +59,9 @@ export class FastCountersRepository {
             .withValueEncoding(encoders.int32LE);
     }
 
-    onMessageCreated = async (ctx: Context, uid: number, cid: number, seq: number, mentionedUsers: (number|'all')[], hiddenForUsers: number[]) => {
+    onMessageCreated = async (ctx: Context, uid: number, cid: number, seq: number, mentionedUsers: (number | 'all')[], hiddenForUsers: number[]) => {
         countersCache.delete(ctx, 'counters');
+        globalCounterCache.delete(ctx, 'counter');
         // Reset sender counter
         this.onMessageRead(ctx, uid, cid, seq);
 
@@ -73,23 +79,27 @@ export class FastCountersRepository {
         }
     }
 
-    onMessageDeleted = async (ctx: Context, cid: number, seq: number, mentionedUsers: (number|'all')[]) => {
+    onMessageDeleted = async (ctx: Context, cid: number, seq: number, mentionedUsers: (number | 'all')[], hiddenForUsers: number[]) => {
         countersCache.delete(ctx, 'counters');
+        globalCounterCache.delete(ctx, 'counter');
         await this.deletedSeqs.add(ctx, [cid], seq);
-        if (mentionedUsers.length === 0) {
-            return;
+        if (mentionedUsers.length > 0) {
+            await Promise.all(mentionedUsers.map(m => {
+                if (m === 'all') {
+                    return this.allMentions.remove(ctx, [cid], seq);
+                } else {
+                    return this.userMentions.remove(ctx, [m, cid], seq);
+                }
+            }));
         }
-        await Promise.all(mentionedUsers.map(m => {
-            if (m === 'all') {
-                return this.allMentions.remove(ctx, [cid], seq);
-            } else {
-                return this.userMentions.remove(ctx, [m, cid], seq);
-            }
-        }));
+        if (hiddenForUsers.length > 0) {
+            await Promise.all(hiddenForUsers.map(u => this.hiddenMessages.remove(ctx, [u, cid], seq)));
+        }
     }
 
-    onMessageEdited = async (ctx: Context, cid: number, seq: number, oldMentions: (number|'all')[], newMentions: (number|'all')[]) => {
+    onMessageEdited = async (ctx: Context, cid: number, seq: number, oldMentions: (number | 'all')[], newMentions: (number | 'all')[]) => {
         countersCache.delete(ctx, 'counters');
+        globalCounterCache.delete(ctx, 'counter');
         let removed = oldMentions.filter(x => !newMentions.includes(x));
         let added = newMentions.filter(x => !oldMentions.includes(x));
 
@@ -111,23 +121,27 @@ export class FastCountersRepository {
 
     onMessageRead = (ctx: Context, uid: number, cid: number, toSeq: number) => {
         countersCache.delete(ctx, 'counters');
+        globalCounterCache.delete(ctx, 'counter');
         this.userReadSeqsSubspace.set(ctx, [uid, cid], toSeq);
     }
 
     onAddDialog = async (ctx: Context, uid: number, cid: number) => {
         countersCache.delete(ctx, 'counters');
+        globalCounterCache.delete(ctx, 'counter');
         let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
         this.userReadSeqsSubspace.set(ctx, [uid, cid], chatLastSeq);
     }
 
     onRemoveDialog = (ctx: Context, uid: number, cid: number) => {
         countersCache.delete(ctx, 'counters');
+        globalCounterCache.delete(ctx, 'counter');
         this.userReadSeqsSubspace.clear(ctx, [uid, cid]);
     }
 
     fetchUserCounters = async (ctx: Context, uid: number, includeAllMention = true) => {
         let cached = countersCache.get(ctx, 'counters');
         if (cached) {
+            log.log(ctx, `cached fetchUserCounters[${uid}]`, getTransaction(ctx).id);
             return cached;
         }
 
@@ -157,6 +171,29 @@ export class FastCountersRepository {
         return counters;
     }
 
+    fetchUserGlobalCounter = async (ctx: Context, uid: number, countChats: boolean, excludeMuted: boolean) => {
+        let cached = globalCounterCache.get(ctx, 'counter');
+        if (cached) {
+            return cached;
+        }
+        let counters = await this.fetchUserCounters(ctx, uid);
+
+        if (excludeMuted) {
+            let mutedChats = await this.userMuteSettingsSubspace.range(ctx, [uid]);
+            counters = counters.filter(c => !mutedChats.find(m => m.key[1] === c.cid));
+        }
+
+        let counter = 0;
+        if (countChats) {
+            counter = counters.filter(c => c.unreadCounter > 0).length;
+        } else {
+            counter = counters.reduce((acc, cur) => acc + cur.unreadCounter, 0);
+        }
+
+        globalCounterCache.set(ctx, 'counter', counter);
+        return counter;
+    }
+
     private fetchUserCounterForChat = async (ctx: Context, uid: number, cid: number, lastReadSeq: number, includeAllMention = true) => {
         let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
 
@@ -167,12 +204,12 @@ export class FastCountersRepository {
         }
 
         if (chatLastSeq === lastReadSeq) {
-            return { cid, unreadCounter: 0, haveMention: false };
+            return {cid, unreadCounter: 0, haveMention: false};
         }
 
         let [deletedSeqsCount, hiddenMessagesCount] = await Promise.all([
-            this.deletedSeqs.count(ctx, [cid], { from: lastReadSeq }),
-            this.hiddenMessages.count(ctx, [uid, cid], { from: lastReadSeq })
+            this.deletedSeqs.count(ctx, [cid], {from: lastReadSeq}),
+            this.hiddenMessages.count(ctx, [uid, cid], {from: lastReadSeq})
         ]);
 
         let unreadCounter = chatLastSeq - lastReadSeq - deletedSeqsCount - hiddenMessagesCount;
@@ -183,16 +220,16 @@ export class FastCountersRepository {
         }
 
         if (unreadCounter === 0) {
-            return { cid, unreadCounter: 0, haveMention: false };
+            return {cid, unreadCounter: 0, haveMention: false};
         }
 
         let [mentionsCount, allMentionsCount] = await Promise.all([
-            this.userMentions.count(ctx, [uid, cid], { from: lastReadSeq }),
-            this.allMentions.count(ctx, [cid], { from: lastReadSeq })
+            this.userMentions.count(ctx, [uid, cid], {from: lastReadSeq}),
+            this.allMentions.count(ctx, [cid], {from: lastReadSeq})
         ]);
 
         let haveMention = mentionsCount > 0 || (includeAllMention && allMentionsCount > 0);
 
-        return { cid, unreadCounter, haveMention };
+        return {cid, unreadCounter, haveMention};
     }
 }

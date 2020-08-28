@@ -11,6 +11,7 @@ import { PushModuleMock } from '../openland-module-push/PushModule.mock';
 import { PresenceModule } from '../openland-module-presences/PresenceModule';
 import { SearchModule } from '../openland-module-search/SearchModule';
 import { FastCountersRepository } from './repositories/FastCountersRepository';
+import { FastCountersMediator } from './mediators/FastCountersMediator';
 
 export function loadMessagingTestModule() {
     loadMessagingModule();
@@ -23,5 +24,6 @@ export function loadMessagingTestModule() {
     container.bind(DraftsModule).toSelf().inSingletonScope();
     container.bind(MetricsModule).toSelf().inSingletonScope();
     container.bind(FastCountersRepository).toSelf().inSingletonScope();
+    container.bind(FastCountersMediator).toSelf().inSingletonScope();
     // container.bind(PushModule).toSelf().inSingletonScope();
 }

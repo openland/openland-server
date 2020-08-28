@@ -22,7 +22,7 @@ import { smartSlice } from '../../openland-utils/string';
 import { createWelcomeMessageWorker } from '../workers/welcomeMessageWorker';
 import { DeliveryMediator } from '../mediators/DeliveryMediator';
 import { UserChatsRepository } from './UserChatsRepository';
-import { FastCountersRepository } from './FastCountersRepository';
+import { FastCountersMediator } from '../mediators/FastCountersMediator';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -49,8 +49,8 @@ export class RoomRepository {
     @lazyInject('DeliveryMediator')
     private readonly delivery!: DeliveryMediator;
 
-    @lazyInject('FastCountersRepository')
-    readonly fastCounters!: FastCountersRepository;
+    @lazyInject('FastCountersMediator')
+    readonly fastCounters!: FastCountersMediator;
 
     public readonly welcomeMessageWorker = createWelcomeMessageWorker();
     private membersCache = new ExpiringCache<number[]>({ timeout: 15 * 60 * 1000 });

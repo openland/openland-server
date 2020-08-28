@@ -154,7 +154,7 @@ export class StatsModule {
         const unreadMessagesCount = Math.max(await Store.UserCounter.byId(uid).get(ctx), 0);
         const withUnreadCount = await Promise.all(
             dialogs.map(async dialog => {
-                const unreadCount = await Store.UserDialogCounter.byId(uid, dialog.cid).get(ctx);
+                const unreadCount = await Modules.Messaging.fetchUserUnreadInChat(ctx, uid, dialog.cid);
                 const conv = (await Store.Conversation.findById(ctx, dialog.cid));
 
                 if (!conv) {
