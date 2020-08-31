@@ -1,5 +1,6 @@
 import { encoders, getTransaction, inTx, Subspace, TupleItem } from '@openland/foundationdb';
 import { Context } from '@openland/context';
+import { Metrics } from '../../openland-module-monitoring/Metrics';
 
 export class BucketCountingDirectory {
     private bucketSize: number;
@@ -50,6 +51,7 @@ export class BucketCountingDirectory {
 
     count = async (parent: Context, collectionPrefix: number[], cursor: { from?: number | null, to?: number | null }) => {
         return await inTx(parent, async (ctx) => {
+            let start = Date.now();
             // Resolve offsets
             let fromBuffer: Buffer;
             let toBuffer: Buffer;
@@ -69,15 +71,17 @@ export class BucketCountingDirectory {
 
             // Read all keys
             let tx = getTransaction(ctx).rawTransaction(this.directory.db);
-            let all = (await tx.getRangeAll(fromBuffer, toBuffer)).map(v => encoders.tuple.unpack(v[1])).flat();
+            let batches = await tx.getRangeAll(fromBuffer, toBuffer);
+            let all = batches.map(v => encoders.tuple.unpack(v[1])).flat();
 
+            Metrics.CountingDirectoryBatchesRead.report(batches.length);
             if (cursor.from !== null && cursor.from !== undefined) {
                 all = all.filter(id => id! >= cursor.from!);
             }
             if (cursor.to !== null && cursor.to !== undefined) {
                 all = all.filter(id => id! <= cursor.to!);
             }
-
+            Metrics.CountingDirectoryCountTime.report(Date.now() - start);
             return all.length;
         });
     }
