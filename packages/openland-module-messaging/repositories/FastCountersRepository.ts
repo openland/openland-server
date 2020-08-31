@@ -1,9 +1,10 @@
 import { injectable } from 'inversify';
-import { encoders, getTransaction, Subspace, TransactionCache, TupleItem } from '@openland/foundationdb';
+import { encoders, Subspace, TransactionCache, TupleItem } from '@openland/foundationdb';
 import { Store } from '../../openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { BucketCountingDirectory } from '../utils/BucketCountingDirectory';
+import { Metrics } from '../../openland-module-monitoring/Metrics';
 
 const PREFIX_DELETED_SEQS = 0;
 const PREFIX_USER_MENTIONS = 1;
@@ -141,10 +142,10 @@ export class FastCountersRepository {
     fetchUserCounters = async (ctx: Context, uid: number, includeAllMention = true) => {
         let cached = countersCache.get(ctx, 'counters');
         if (cached) {
-            log.log(ctx, `cached fetchUserCounters[${uid}]`, getTransaction(ctx).id);
             return cached;
         }
 
+        let start = Date.now();
         let userReadSeqs = await this.userReadSeqsSubspace.snapshotRange(ctx, [uid]);
 
         let counters = await Promise.all(userReadSeqs.map(async (readValue) => {
@@ -154,6 +155,7 @@ export class FastCountersRepository {
             return await this.fetchUserCounterForChat(ctx, uid, cid, lastReadSeq, includeAllMention);
         }));
         countersCache.set(ctx, 'counters', counters);
+        Metrics.AllCountersResolveTime.report(Date.now() - start);
 
         return counters;
     }
@@ -176,6 +178,8 @@ export class FastCountersRepository {
         if (cached) {
             return cached;
         }
+
+        let start = Date.now();
         let counters = await this.fetchUserCounters(ctx, uid);
 
         if (excludeMuted) {
@@ -191,6 +195,7 @@ export class FastCountersRepository {
         }
 
         globalCounterCache.set(ctx, 'counter', counter);
+        Metrics.GlobalCounterResolveTime.report(Date.now() - start);
         return counter;
     }
 

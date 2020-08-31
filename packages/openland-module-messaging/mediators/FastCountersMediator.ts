@@ -4,7 +4,6 @@ import { FastCountersRepository } from '../repositories/FastCountersRepository';
 import { TransactionCache } from '@openland/foundationdb';
 import { AsyncLock } from '../../openland-utils/timer';
 import { injectable } from 'inversify';
-import { Metrics } from '../../openland-module-monitoring/Metrics';
 
 const lockCache = new TransactionCache<AsyncLock>('counters-fetch-lock');
 
@@ -52,12 +51,7 @@ export class FastCountersMediator {
      */
     fetchUserCounters = async (ctx: Context, uid: number, includeAllMention = true) => {
         return await getLock(ctx, 'fetch-counters').inLock(async () => {
-            let start = Date.now();
-            try {
-                return this.repo.fetchUserCounters(ctx, uid, includeAllMention);
-            } finally {
-                Metrics.AllCountersResolveTime.report(Date.now() - start);
-            }
+            return this.repo.fetchUserCounters(ctx, uid, includeAllMention);
         });
     }
 
@@ -73,12 +67,7 @@ export class FastCountersMediator {
      */
     fetchUserGlobalCounter = async (ctx: Context, uid: number, countChats: boolean, excludeMuted: boolean) => {
         return await getLock(ctx, 'fetch-global-counter').inLock(async () => {
-            let start = Date.now();
-            try {
-                return this.repo.fetchUserGlobalCounter(ctx, uid, countChats, excludeMuted);
-            } finally {
-                Metrics.GlobalCounterResolveTime.report(Date.now() - start);
-            }
+            return this.repo.fetchUserGlobalCounter(ctx, uid, countChats, excludeMuted);
         });
     }
 }
