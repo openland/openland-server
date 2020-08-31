@@ -97,11 +97,17 @@ export class MessagingMediator {
                 };
             }
 
+            let room = await Store.RoomProfile.findById(ctx, cid);
+
             // Replace only-replies messages with original ones
             if (message.replyMessages) {
                 for (let i = message.replyMessages.length - 1; i >= 0; i--) {
                     let replyMessage = message.replyMessages[i];
                     let originalMessage = await Store.Message.findById(ctx, replyMessage);
+                    if (room && !(room.repliesEnabled === null || room.repliesEnabled) && originalMessage?.cid === cid) {
+                        message.replyMessages.splice(i, 1);
+                        continue;
+                    }
 
                     if (
                         originalMessage &&
