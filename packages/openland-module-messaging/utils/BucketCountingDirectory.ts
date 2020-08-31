@@ -71,8 +71,10 @@ export class BucketCountingDirectory {
 
             // Read all keys
             let tx = getTransaction(ctx).rawTransaction(this.directory.db);
-            let all = (await tx.getRangeAll(fromBuffer, toBuffer)).map(v => encoders.tuple.unpack(v[1])).flat();
+            let batches = await tx.getRangeAll(fromBuffer, toBuffer);
+            let all = batches.map(v => encoders.tuple.unpack(v[1])).flat();
 
+            Metrics.CountingDirectoryBatchesRead.report(batches.length);
             if (cursor.from !== null && cursor.from !== undefined) {
                 all = all.filter(id => id! >= cursor.from!);
             }
@@ -80,7 +82,6 @@ export class BucketCountingDirectory {
                 all = all.filter(id => id! <= cursor.to!);
             }
             Metrics.CountingDirectoryCountTime.report(Date.now() - start);
-            Metrics.CountingDirectoryCount.report(all.length);
             return all.length;
         });
     }
