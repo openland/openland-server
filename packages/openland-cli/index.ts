@@ -15,6 +15,7 @@ import { encoders, getTransaction, inTx } from '@openland/foundationdb';
 import TestDataFactory from '../openland-server-tests/TestDataFactory';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { randomInt } from '../openland-utils/random';
+import { BucketCountingDirectory } from '../openland-module-messaging/utils/BucketCountingDirectory';
 
 // import { openDatabase } from './utils/openDatabase';
 // import { diagnose, calculateCount, removeOldIndexes, diagAll, deleteInvalid } from 'openland-cli/diagnose';
@@ -125,93 +126,111 @@ yargs
     .command('benchmark-counting-directory', '', y => {
         return y;
     }, async args => {
-        let parent = createNamedContext('console');
+            let parent = createNamedContext('console');
 
-        let db = await openTestDatabase();
+            let db = await openTestDatabase();
 
-        let plainSubspace = db.allKeys.subspace(Buffer.from([0]))
-            .withKeyEncoding(encoders.tuple);
-        let blockSubspace = db.allKeys.subspace(Buffer.from([1]))
+            let plainSubspace = db.allKeys.subspace(Buffer.from([0]))
+                .withKeyEncoding(encoders.tuple);
+            let blockSubspace = db.allKeys.subspace(Buffer.from([1]))
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.json);
+            let countingDirectory = new BucketCountingDirectory(db.allKeys.subspace(Buffer.from([2])), 100);
 
-        // generate fake plain data
-        for (let i = 0; i < 10; i++) {
-            await inTx(parent, async ctx => {
-                for (let j = 0; j < 1000; j++) {
-                    plainSubspace.set(ctx, [i * 1000 + j], Buffer.from([]));
-                }
-            });
-        }
-        // generate fake block data
-        for (let i = 0; i < 100; i++) {
-            await inTx(parent, async ctx => {
-                let data: number[] = [];
-                for (let j = 0; j < 100; j++) {
-                    data.push(i * 100 + j);
-                }
-                console.log(i * 100);
-                blockSubspace.set(ctx, [i * 100 + 99], {
-                    data
+            // generate fake plain data
+            for (let i = 0; i < 10; i++) {
+                await inTx(parent, async ctx => {
+                    for (let j = 1; j < 1000; j++) {
+                        plainSubspace.set(ctx, [i * 1000 + j], Buffer.from([]));
+                        await countingDirectory.add(ctx, [], i * 1000 + j);
+                    }
                 });
-            });
+            }
+            // generate fake block data
+            for (let i = 0; i < 100; i++) {
+                await inTx(parent, async ctx => {
+                    let data: number[] = [];
+                    for (let j = 0; j < 100; j++) {
+                        data.push(i * 100 + j);
+                    }
+                    blockSubspace.set(ctx, [i * 100 + 99], {
+                        data
+                    });
+                });
+            }
+
+            console.log('seed done');
+
+            // generate random ranges
+            let randomRanges: [number, number][] = [];
+            for (let i = 0; i < 100; i++) {
+                let first = randomInt(1, 10000);
+                let second = randomInt(1, 10000);
+                randomRanges.push([Math.min(first, second), Math.max(first, second)]);
+                console.log([Math.min(first, second), Math.max(first, second)]);
+            }
+
+            console.log('ranges generated');
+
+            // benchmark plain simple range
+            console.time('plain-range');
+            for (let [from, to] of randomRanges) {
+                await inTx(parent, async (ctx) => {
+                    await plainSubspace.range(ctx, [], { after: [from], before: [to] });
+                });
+            }
+            console.timeEnd('plain-range');
+
+            // benchmark plain snapshot range
+            console.time('plain-snapshot');
+            for (let [from, to] of randomRanges) {
+                await inTx(parent, async (ctx) => {
+                    await plainSubspace.snapshotRange(ctx, [], { after: [from - 1], before: [to + 1] });
+                });
+            }
+            console.timeEnd('plain-snapshot');
+
+            // benchmark block snapshot range
+            console.time('block');
+            for (let [from, to] of randomRanges) {
+                await inTx(parent, async (ctx) => {
+                    let firstBlock = await blockSubspace.snapshotRange(ctx, [], { after: [from], limit: 1 });
+                    await blockSubspace.snapshotRange(ctx, [], {
+                        after: [(firstBlock[0].key[0] as number) - 1],
+                        before: [(to - to % 100) + 100 + 1]
+                    });
+                    // console.log(to - from + ' ' + allBlocks.reduce((b, a) => a.value.data.length + b, 0));
+                });
+            }
+            console.timeEnd('block');
+
+            console.time('block raw');
+            for (let [from, to] of randomRanges) {
+                await inTx(parent, async (ctx) => {
+                    let firstKey = await getTransaction(ctx).rawTransaction(db).getKey(keySelector.firstGreaterOrEqual(encoders.tuple.pack([blockSubspace.prefix, from])));
+                    let allBlocks = await blockSubspace.snapshotRange(ctx, [], {
+                        after: firstKey ? encoders.tuple.unpack(firstKey) : [],
+                        before: [(to - to % 100) + 200]
+                    });
+                    console.log(to - from + ' ' + allBlocks.reduce((b, a) => a.value.data.length + b, 0));
+                });
+            }
+            console.timeEnd('block raw');
+
+            console.time('directory');
+            for (let [from, to] of randomRanges) {
+                await inTx(parent, async (ctx) => {
+                    let count = await countingDirectory.count(ctx, [], { from, to });
+                    if (count !== to - from) {
+                        console.log(count, to - from);
+                    }
+                });
+            }
+            console.timeEnd('directory');
+
+            await Shutdown.shutdown();
+            process.exit();
         }
-
-        console.log('seed done');
-
-        // generate random ranges
-        let randomRanges: [number, number][] = [];
-        for (let i = 0; i < 100; i++) {
-            let first = randomInt(1, 10000);
-            let second = randomInt(1, 10000);
-            randomRanges.push([Math.min(first, second), Math.max(first, second)]);
-            console.log([Math.min(first, second), Math.max(first, second)]);
-        }
-
-        console.log('ranges generated');
-
-        // benchmark plain simple range
-        console.time('plain-range');
-        for (let [from, to] of randomRanges) {
-            await inTx(parent, async (ctx) => {
-                await plainSubspace.range(ctx, [], { after: [from], before: [to] });
-            });
-        }
-        console.timeEnd('plain-range');
-
-        // benchmark plain snapshot range
-        console.time('plain-snapshot');
-        for (let [from, to] of randomRanges) {
-            await inTx(parent, async (ctx) => {
-                await plainSubspace.snapshotRange(ctx, [], { after: [from - 1], before: [to + 1] });
-            });
-        }
-        console.timeEnd('plain-snapshot');
-
-        // benchmark block snapshot range
-        console.time('block');
-        for (let [from, to] of randomRanges) {
-            await inTx(parent, async (ctx) => {
-                let firstBlock = await blockSubspace.snapshotRange(ctx, [], { after: [from], limit: 1 });
-                await blockSubspace.snapshotRange(ctx, [], { after: [(firstBlock[0].key[0] as number) - 1], before: [(to - to % 100) + 100 + 1] });
-                // console.log(to - from + ' ' + allBlocks.reduce((b, a) => a.value.data.length + b, 0));
-            });
-        }
-        console.timeEnd('block');
-
-        console.time('block raw');
-        for (let [from, to] of randomRanges) {
-            await inTx(parent, async (ctx) => {
-                let firstKey = await getTransaction(ctx).rawTransaction(db).getKey(keySelector.firstGreaterOrEqual(encoders.tuple.pack([blockSubspace.prefix, from])));
-                let allBlocks = await blockSubspace.snapshotRange(ctx, [], { after: firstKey ? encoders.tuple.unpack(firstKey) : [], before: [(to - to % 100) + 200] });
-                console.log(to - from + ' ' + allBlocks.reduce((b, a) => a.value.data.length + b, 0));
-            });
-        }
-        console.timeEnd('block');
-
-        await Shutdown.shutdown();
-        process.exit();
-    }
     )
     .demandCommand()
     .help()
