@@ -107,7 +107,7 @@ export class PremiumChatMediator {
                         await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, uid, uids, true), false);
                         await this.messaging.bumpDialog(ctx, uid, cid);
                     } else {
-                        await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, uid, [uid]));
+                        await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, uid, [uid]), true);
                     }
                 } else {
                     await this.messaging.sendMessage(ctx, uid, cid, await this.roomLeaveMessage(ctx, uid), true);
