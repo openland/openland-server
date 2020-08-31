@@ -104,7 +104,7 @@ export class MessagingMediator {
                 for (let i = message.replyMessages.length - 1; i >= 0; i--) {
                     let replyMessage = message.replyMessages[i];
                     let originalMessage = await Store.Message.findById(ctx, replyMessage);
-                    if (room && !(room.repliesEnabled === null || room.repliesEnabled) && originalMessage?.cid === cid) {
+                    if (room && room.repliesDisabled && originalMessage?.cid === cid) {
                         message.replyMessages.splice(i, 1);
                         continue;
                     }

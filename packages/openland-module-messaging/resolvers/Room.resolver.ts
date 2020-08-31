@@ -280,10 +280,7 @@ export const Resolver: GQLResolver = {
         }), null),
         repliesEnabled: withConverationId(async (ctx, id) => {
             let room = await Store.RoomProfile.findById(ctx, id);
-            if (!room || room.repliesEnabled === null) {
-                return true;
-            }
-            return room.repliesEnabled;
+            return !room?.repliesDisabled;
         })
     },
     RoomMessage: {
