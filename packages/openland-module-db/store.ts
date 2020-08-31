@@ -4035,6 +4035,7 @@ export interface RoomProfileShape {
     welcomeMessageIsOn: boolean | null;
     welcomeMessageSender: number | null;
     welcomeMessageText: string | null;
+    repliesEnabled: boolean | null;
     activeMembersCount: number | null;
 }
 
@@ -4048,6 +4049,7 @@ export interface RoomProfileCreateShape {
     welcomeMessageIsOn?: boolean | null | undefined;
     welcomeMessageSender?: number | null | undefined;
     welcomeMessageText?: string | null | undefined;
+    repliesEnabled?: boolean | null | undefined;
     activeMembersCount?: number | null | undefined;
 }
 
@@ -4134,6 +4136,15 @@ export class RoomProfile extends Entity<RoomProfileShape> {
             this.invalidate();
         }
     }
+    get repliesEnabled(): boolean | null { return this._rawValue.repliesEnabled; }
+    set repliesEnabled(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.repliesEnabled.normalize(value);
+        if (this._rawValue.repliesEnabled !== normalized) {
+            this._rawValue.repliesEnabled = normalized;
+            this._updatedValues.repliesEnabled = normalized;
+            this.invalidate();
+        }
+    }
     get activeMembersCount(): number | null { return this._rawValue.activeMembersCount; }
     set activeMembersCount(value: number | null) {
         let normalized = this.descriptor.codec.fields.activeMembersCount.normalize(value);
@@ -4164,6 +4175,7 @@ export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProf
         fields.push({ name: 'welcomeMessageIsOn', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'welcomeMessageSender', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'welcomeMessageText', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'repliesEnabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'activeMembersCount', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
@@ -4176,6 +4188,7 @@ export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProf
             welcomeMessageIsOn: c.optional(c.boolean),
             welcomeMessageSender: c.optional(c.integer),
             welcomeMessageText: c.optional(c.string),
+            repliesEnabled: c.optional(c.boolean),
             activeMembersCount: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<RoomProfileShape> = {

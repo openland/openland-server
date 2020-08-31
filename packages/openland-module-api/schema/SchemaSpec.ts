@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '16e9be0ee7650ecafba95f7c1988e36f';
+export const GQL_SPEC_VERSION = '5ccafdd2e751e5196c0081c798b03a84';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -5930,6 +5930,7 @@ export namespace GQL {
         premiumPassIsActive: boolean;
         premiumSubscription: Nullable<WalletSubscription>;
         premiumSettings: Nullable<PremiumChatSettings>;
+        repliesEnabled: boolean;
         owner: Nullable<User>;
         linkedFeedChannels: FeedChannel[];
         shortname: Nullable<string>;
@@ -5966,6 +5967,7 @@ export namespace GQL {
     export interface SharedRoomPremiumPassIsActiveArgs { }
     export interface SharedRoomPremiumSubscriptionArgs { }
     export interface SharedRoomPremiumSettingsArgs { }
+    export interface SharedRoomRepliesEnabledArgs { }
     export interface SharedRoomOwnerArgs { }
     export interface SharedRoomLinkedFeedChannelsArgs { }
     export interface SharedRoomShortnameArgs { }
@@ -5993,6 +5995,7 @@ export namespace GQL {
         description: Nullable<string>;
         socialImageRef: Nullable<ImageRefInput>;
         kind: Nullable<SharedRoomKind>;
+        repliesEnabled: Nullable<boolean>;
     }
     export interface UserMention {
         user: User;
@@ -11181,6 +11184,7 @@ export interface GQLResolver {
             premiumPassIsActive: GQL.SharedRoomPremiumPassIsActiveArgs,
             premiumSubscription: GQL.SharedRoomPremiumSubscriptionArgs,
             premiumSettings: GQL.SharedRoomPremiumSettingsArgs,
+            repliesEnabled: GQL.SharedRoomRepliesEnabledArgs,
             owner: GQL.SharedRoomOwnerArgs,
             linkedFeedChannels: GQL.SharedRoomLinkedFeedChannelsArgs,
             shortname: GQL.SharedRoomShortnameArgs,

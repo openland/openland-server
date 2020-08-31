@@ -298,6 +298,10 @@ export class RoomRepository {
                 room!.kind = profile.kind!;
             }
 
+            if (profile.repliesEnabled !== undefined && profile.repliesEnabled !== null) {
+                conv.repliesEnabled = profile.repliesEnabled;
+            }
+
             await conv.flush(ctx);
 
             return { updatedTitle, updatedPhoto };

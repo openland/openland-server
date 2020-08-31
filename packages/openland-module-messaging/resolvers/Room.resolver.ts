@@ -278,6 +278,13 @@ export const Resolver: GQLResolver = {
             let room = await Store.ConversationRoom.findById(ctx, id);
             return room && room.ownerId;
         }), null),
+        repliesEnabled: withConverationId(async (ctx, id) => {
+            let room = await Store.RoomProfile.findById(ctx, id);
+            if (!room || room.repliesEnabled === null) {
+                return true;
+            }
+            return room.repliesEnabled;
+        })
     },
     RoomMessage: {
         id: (src) => {
@@ -739,7 +746,8 @@ export const Resolver: GQLResolver = {
                     description: args.input.description === undefined ? undefined : Sanitizer.sanitizeString(args.input.description),
                     image: args.input.photoRef === undefined ? undefined : imageRef,
                     socialImage: args.input.socialImageRef === undefined ? undefined : socialImageRef,
-                    kind: kind
+                    kind: kind,
+                    repliesEnabled: args.input.repliesEnabled,
                 });
             });
         }),
