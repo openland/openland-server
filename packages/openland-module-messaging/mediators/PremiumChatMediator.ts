@@ -11,6 +11,8 @@ import { buildMessage, userMention, usersMention, roomMention } from 'openland-u
 import { MessageInput } from 'openland-module-messaging/MessageInput';
 import { formatMoney } from 'openland-module-wallet/repo/utils/formatMoney';
 import { countCommission } from 'openland-module-wallet/repo/utils/countCommission';
+import { Emails } from '../../openland-module-email/Emails';
+import { IDs } from '../../openland-module-api/IDs';
 
 export const COMMISSION_PERCENTS = 10;
 @injectable()
@@ -205,6 +207,14 @@ export class PremiumChatMediator {
         let parts = await this.countCommission(ctx, amount, cid);
         await Modules.Wallet.wallet.incomeSuccess(ctx, txid, ownerId, parts.rest, { type: 'purchase', id: pid });
         await this.notifyOwner(ctx, ownerId, cid, uid, 'purchase', parts);
+
+        let roomProfile = await Store.RoomProfile.findById(ctx, cid);
+        await Emails.sendGenericEmail(ctx, uid, {
+            title: 'Paid chat access purchase confirmation',
+            text: `Congratulations! You\'ve bought access to ${roomProfile?.title}`,
+            buttonText: 'View',
+            link: `https://openland.com/${IDs.Conversation.serialize(cid)}`
+        });
     }
 
     onPurchaseFailing = async (ctx: Context, pid: string, uid: number, amount: number, cid: number) => {
