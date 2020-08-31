@@ -213,8 +213,8 @@ export class FastCountersRepository {
         }
 
         let [deletedSeqsCount, hiddenMessagesCount] = await Promise.all([
-            this.deletedSeqs.count(ctx, [cid], {from: lastReadSeq}),
-            this.hiddenMessages.count(ctx, [uid, cid], {from: lastReadSeq})
+            this.deletedSeqs.count(ctx, [cid], {from: lastReadSeq + 1}),
+            this.hiddenMessages.count(ctx, [uid, cid], {from: lastReadSeq + 1})
         ]);
 
         let unreadCounter = chatLastSeq - lastReadSeq - deletedSeqsCount - hiddenMessagesCount;
@@ -229,8 +229,8 @@ export class FastCountersRepository {
         }
 
         let [mentionsCount, allMentionsCount] = await Promise.all([
-            this.userMentions.count(ctx, [uid, cid], {from: lastReadSeq}),
-            this.allMentions.count(ctx, [cid], {from: lastReadSeq})
+            this.userMentions.count(ctx, [uid, cid], {from: lastReadSeq + 1}),
+            this.allMentions.count(ctx, [cid], {from: lastReadSeq + 1})
         ]);
 
         let haveMention = mentionsCount > 0 || (includeAllMention && allMentionsCount > 0);
