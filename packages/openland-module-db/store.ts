@@ -1800,6 +1800,7 @@ export interface UserProfileShape {
     primaryOrganization: number | null;
     primaryBadge: number | null;
     role: string | null;
+    birthDay: number | null;
 }
 
 export interface UserProfileCreateShape {
@@ -1819,6 +1820,7 @@ export interface UserProfileCreateShape {
     primaryOrganization?: number | null | undefined;
     primaryBadge?: number | null | undefined;
     role?: string | null | undefined;
+    birthDay?: number | null | undefined;
 }
 
 export class UserProfile extends Entity<UserProfileShape> {
@@ -1967,6 +1969,15 @@ export class UserProfile extends Entity<UserProfileShape> {
             this.invalidate();
         }
     }
+    get birthDay(): number | null { return this._rawValue.birthDay; }
+    set birthDay(value: number | null) {
+        let normalized = this.descriptor.codec.fields.birthDay.normalize(value);
+        if (this._rawValue.birthDay !== normalized) {
+            this._rawValue.birthDay = normalized;
+            this._updatedValues.birthDay = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProfile> {
@@ -1995,6 +2006,7 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
         fields.push({ name: 'primaryOrganization', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'primaryBadge', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'role', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'birthDay', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             firstName: c.string,
@@ -2013,6 +2025,7 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
             primaryOrganization: c.optional(c.integer),
             primaryBadge: c.optional(c.integer),
             role: c.optional(c.string),
+            birthDay: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<UserProfileShape> = {
             name: 'UserProfile',

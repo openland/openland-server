@@ -54,6 +54,7 @@ export const Resolver: GQLResolver = {
             }
             return null;
         },
+        birthDay: async (src, args, ctx) => src.birthDay,
     },
     Query: {
         myProfile: async (src, args, ctx) => {
@@ -150,6 +151,10 @@ export const Resolver: GQLResolver = {
                         profile.primaryOrganization = IDs.Organization.parse(args.input.primaryOrganization);
                     }
                 }
+                if (args.input.birthDay !== undefined) {
+                    profile.birthDay = args.input.birthDay!.getTime();
+                }
+
                 await Modules.Hooks.onUserProfileUpdated(ctx, profile.id);
                 await Modules.Users.markForUndexing(ctx, uid);
                 return profile;

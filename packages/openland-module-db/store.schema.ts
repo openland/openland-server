@@ -129,6 +129,7 @@ export default declareSchema(() => {
         field('primaryOrganization', optional(integer()));
         field('primaryBadge', optional(integer()));
         field('role', optional(string()));
+        field('birthDay', optional(integer()));
         rangeIndex('byUpdatedAt', ['updatedAt']);
         rangeIndex('created', ['createdAt']);
     });

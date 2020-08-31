@@ -19,6 +19,7 @@ type User {
     audienceSize: Int!
     badge: ProfileBadge
     joinDate: Date!
+    birthDay: Date
 
     # TODO: Refactor
     channelsJoined: [ChannelConversation!]! @disabled

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5ccafdd2e751e5196c0081c798b03a84';
+export const GQL_SPEC_VERSION = 'e414416d67b20516b7b3dafeadd0b1b2';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1182,6 +1182,7 @@ export namespace GQL {
         facebook: Nullable<string>;
         authEmail: Nullable<string>;
         badge: Nullable<ProfileBadge>;
+        birthDay: Nullable<Date>;
         alphaLinkedin: Nullable<string>;
         alphaTwitter: Nullable<string>;
         alphaJoinedAt: Nullable<string>;
@@ -1209,6 +1210,7 @@ export namespace GQL {
     export interface ProfileFacebookArgs { }
     export interface ProfileAuthEmailArgs { }
     export interface ProfileBadgeArgs { }
+    export interface ProfileBirthDayArgs { }
     export interface ProfileAlphaLinkedinArgs { }
     export interface ProfileAlphaTwitterArgs { }
     export interface ProfileAlphaJoinedAtArgs { }
@@ -1234,6 +1236,7 @@ export namespace GQL {
         twitter: Nullable<string>;
         facebook: Nullable<string>;
         primaryOrganization: Nullable<string>;
+        birthDay: Nullable<Date>;
     }
     export interface UpdateProfileInput {
         firstName: Nullable<string>;
@@ -5135,6 +5138,7 @@ export namespace GQL {
         audienceSize: number;
         badge: Nullable<ProfileBadge>;
         joinDate: Date;
+        birthDay: Nullable<Date>;
         channelsJoined: ChannelConversation[];
         photoRef: Nullable<ImageRef>;
         picture: Nullable<string>;
@@ -5175,6 +5179,7 @@ export namespace GQL {
     export interface UserAudienceSizeArgs { }
     export interface UserBadgeArgs { }
     export interface UserJoinDateArgs { }
+    export interface UserBirthDayArgs { }
     export interface UserChannelsJoinedArgs { }
     export interface UserPhotoRefArgs { }
     export interface UserPictureArgs { }
@@ -7504,6 +7509,7 @@ export interface GQLResolver {
             facebook: GQL.ProfileFacebookArgs,
             authEmail: GQL.ProfileAuthEmailArgs,
             badge: GQL.ProfileBadgeArgs,
+            birthDay: GQL.ProfileBirthDayArgs,
             alphaLinkedin: GQL.ProfileAlphaLinkedinArgs,
             alphaTwitter: GQL.ProfileAlphaTwitterArgs,
             alphaJoinedAt: GQL.ProfileAlphaJoinedAtArgs,
@@ -10241,6 +10247,7 @@ export interface GQLResolver {
             audienceSize: GQL.UserAudienceSizeArgs,
             badge: GQL.UserBadgeArgs,
             joinDate: GQL.UserJoinDateArgs,
+            birthDay: GQL.UserBirthDayArgs,
             channelsJoined: GQL.UserChannelsJoinedArgs,
             photoRef: GQL.UserPhotoRefArgs,
             picture: GQL.UserPictureArgs,
