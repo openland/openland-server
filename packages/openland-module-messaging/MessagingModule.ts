@@ -193,6 +193,14 @@ export class MessagingModule {
         }
     }
 
+    async fetchUserUnreadMessagesCount(parent: Context, uid: number) {
+        if (USE_NEW_COUNTERS) {
+            return await this.messaging.fastCounters.fetchUserGlobalCounter(parent, uid, false, false);
+        } else {
+            return await Store.UserCounter.get(parent, uid);
+        }
+    }
+
     async fetchUserCounters(parent: Context, uid: number) {
         return this.messaging.fastCounters.fetchUserCounters(parent, uid);
     }
