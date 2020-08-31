@@ -40,10 +40,9 @@ export const Resolver: GQLResolver = {
     NewCommentNotification: {
         peer: async (src, args, ctx) => {
             let comment = (await Store.Comment.findById(ctx, src.commentId))!;
-            let comments = await Store.Comment.peer.findAll(ctx, comment.peerType, comment.peerId);
 
             return {
-                comments: comments.filter(c => c.visible),
+                comments: [], // no need to fetch all comments here
                 peerType: comment.peerType,
                 peerId: comment.peerId
             };
