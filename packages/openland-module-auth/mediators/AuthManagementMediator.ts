@@ -105,7 +105,7 @@ export class AuthManagementMediator {
                     title: 'Your email was changed',
                     text: Texts.EmailChanged_Email({email: code.data.email}),
                     link: 'https://openland.com/mail/LOaDEWDj9zsVv999DDpJiEj05K',
-                    buttonText: 'contact support'
+                    buttonText: 'Contact support'
                 });
             }
             if (user.phone) {
@@ -194,7 +194,7 @@ export class AuthManagementMediator {
                     title: isChange ? 'Your phone was changed' : 'You have paired phone',
                     text: isChange ? Texts.PhoneChanged_Email({phone: code.data.phone}) : Texts.PhonePaired_Email({phone: code.data.phone}),
                     link: 'https://openland.com/mail/LOaDEWDj9zsVv999DDpJiEj05K',
-                    buttonText: 'contact support'
+                    buttonText: 'Сontact support'
                 });
             }
 
