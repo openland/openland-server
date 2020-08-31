@@ -80,6 +80,7 @@ export class BucketCountingDirectory {
                 all = all.filter(id => id! <= cursor.to!);
             }
             Metrics.CountingDirectoryCountTime.report(Date.now() - start);
+            Metrics.CountingDirectoryCount.report(all.length);
             return all.length;
         });
     }
