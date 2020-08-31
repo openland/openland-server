@@ -333,6 +333,7 @@ export default declareSchema(() => {
         field('welcomeMessageIsOn', optional(boolean()));
         field('welcomeMessageSender', optional(integer()));
         field('welcomeMessageText', optional(string()));
+        field('repliesDisabled', optional(boolean()));
 
         field('activeMembersCount', optional(integer()));
 

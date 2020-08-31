@@ -74,7 +74,8 @@ export class RoomRepository {
                 title: profile.title,
                 image: profile.image,
                 description: profile.description,
-                socialImage: profile.socialImage
+                socialImage: profile.socialImage,
+                repliesDisabled: !profile.repliesEnabled
             });
             if (price) {
                 await Store.PremiumChatSettings.create(ctx, id, {
@@ -296,6 +297,10 @@ export class RoomRepository {
                 }
                 let room = await Store.ConversationRoom.findById(ctx, cid);
                 room!.kind = profile.kind!;
+            }
+
+            if (profile.repliesEnabled !== undefined && profile.repliesEnabled !== null) {
+                conv.repliesDisabled = !profile.repliesEnabled;
             }
 
             await conv.flush(ctx);

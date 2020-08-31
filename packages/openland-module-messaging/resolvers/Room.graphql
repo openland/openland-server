@@ -70,6 +70,8 @@ type SharedRoom {
     premiumSubscription: WalletSubscription
     premiumSettings: PremiumChatSettings
 
+    repliesEnabled: Boolean!
+
     owner: User
 }
 
@@ -93,6 +95,7 @@ input RoomUpdateInput {
     description: String
     socialImageRef: ImageRefInput
     kind: SharedRoomKind
+    repliesEnabled: Boolean
 }
 
 type UserMention {
