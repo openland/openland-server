@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'e414416d67b20516b7b3dafeadd0b1b2';
+export const GQL_SPEC_VERSION = '1f69bf7290c8fc6ed28b7e0c294fcee3';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -5905,6 +5905,20 @@ export namespace GQL {
     export interface WelcomeMessageIsOnArgs { }
     export interface WelcomeMessageSenderArgs { }
     export interface WelcomeMessageMessageArgs { }
+    export type RoomCallsModeValues = 'STANDARD' | 'LINK' | 'DISABLED';
+    export type RoomCallsMode = GQLRoots.RoomCallsModeRoot;
+    export interface RoomCallSettings {
+        mode: RoomCallsMode;
+        callLink: Nullable<string>;
+    }
+    export interface RoomCallSettingsModeArgs { }
+    export interface RoomCallSettingsCallLinkArgs { }
+    export interface RoomServiceMessageSettings {
+        joinsMessageEnabled: boolean;
+        leavesMessageEnabled: boolean;
+    }
+    export interface RoomServiceMessageSettingsJoinsMessageEnabledArgs { }
+    export interface RoomServiceMessageSettingsLeavesMessageEnabledArgs { }
     export interface SharedRoom {
         id: string;
         kind: SharedRoomKind;
@@ -5936,6 +5950,8 @@ export namespace GQL {
         premiumSubscription: Nullable<WalletSubscription>;
         premiumSettings: Nullable<PremiumChatSettings>;
         repliesEnabled: boolean;
+        serviceMessageSettings: RoomServiceMessageSettings;
+        callSettings: RoomCallSettings;
         owner: Nullable<User>;
         linkedFeedChannels: FeedChannel[];
         shortname: Nullable<string>;
@@ -5973,6 +5989,8 @@ export namespace GQL {
     export interface SharedRoomPremiumSubscriptionArgs { }
     export interface SharedRoomPremiumSettingsArgs { }
     export interface SharedRoomRepliesEnabledArgs { }
+    export interface SharedRoomServiceMessageSettingsArgs { }
+    export interface SharedRoomCallSettingsArgs { }
     export interface SharedRoomOwnerArgs { }
     export interface SharedRoomLinkedFeedChannelsArgs { }
     export interface SharedRoomShortnameArgs { }
@@ -5994,6 +6012,13 @@ export namespace GQL {
     export interface RoomSuperFeaturedArgs { }
     export interface RoomSuperListedArgs { }
     export interface RoomSuperAutosubscribeRoomsArgs { }
+    export interface RoomCallSettingsInput {
+        mode: RoomCallsMode;
+    }
+    export interface RoomServiceMessageSettingsInput {
+        joinsMessageEnabled: boolean;
+        leavesMessageEnabled: boolean;
+    }
     export interface RoomUpdateInput {
         title: Nullable<string>;
         photoRef: Nullable<ImageRefInput>;
@@ -6001,6 +6026,8 @@ export namespace GQL {
         socialImageRef: Nullable<ImageRefInput>;
         kind: Nullable<SharedRoomKind>;
         repliesEnabled: Nullable<boolean>;
+        serviceMessageSettings: Nullable<RoomServiceMessageSettingsInput>;
+        callSettings: Nullable<RoomCallSettingsInput>;
     }
     export interface UserMention {
         user: User;
@@ -11143,6 +11170,27 @@ export interface GQLResolver {
             message: GQL.WelcomeMessageMessageArgs,
         }
     >;
+    RoomCallsMode?: EnumTypeResolver<'STANDARD' | 'LINK' | 'DISABLED', GQLRoots.RoomCallsModeRoot>;
+    RoomCallSettings?: ComplexTypedResolver<
+        GQL.RoomCallSettings,
+        GQLRoots.RoomCallSettingsRoot,
+        {
+        },
+        {
+            mode: GQL.RoomCallSettingsModeArgs,
+            callLink: GQL.RoomCallSettingsCallLinkArgs,
+        }
+    >;
+    RoomServiceMessageSettings?: ComplexTypedResolver<
+        GQL.RoomServiceMessageSettings,
+        GQLRoots.RoomServiceMessageSettingsRoot,
+        {
+        },
+        {
+            joinsMessageEnabled: GQL.RoomServiceMessageSettingsJoinsMessageEnabledArgs,
+            leavesMessageEnabled: GQL.RoomServiceMessageSettingsLeavesMessageEnabledArgs,
+        }
+    >;
     SharedRoom?: ComplexTypedResolver<
         GQL.SharedRoom,
         GQLRoots.SharedRoomRoot,
@@ -11158,6 +11206,8 @@ export interface GQLResolver {
             matchmaking: Nullable<GQLRoots.MatchmakingRoomRoot>,
             premiumSubscription: Nullable<GQLRoots.WalletSubscriptionRoot>,
             premiumSettings: Nullable<GQLRoots.PremiumChatSettingsRoot>,
+            serviceMessageSettings: GQLRoots.RoomServiceMessageSettingsRoot,
+            callSettings: GQLRoots.RoomCallSettingsRoot,
             owner: Nullable<GQLRoots.UserRoot>,
             linkedFeedChannels: GQLRoots.FeedChannelRoot[],
         },
@@ -11192,6 +11242,8 @@ export interface GQLResolver {
             premiumSubscription: GQL.SharedRoomPremiumSubscriptionArgs,
             premiumSettings: GQL.SharedRoomPremiumSettingsArgs,
             repliesEnabled: GQL.SharedRoomRepliesEnabledArgs,
+            serviceMessageSettings: GQL.SharedRoomServiceMessageSettingsArgs,
+            callSettings: GQL.SharedRoomCallSettingsArgs,
             owner: GQL.SharedRoomOwnerArgs,
             linkedFeedChannels: GQL.SharedRoomLinkedFeedChannelsArgs,
             shortname: GQL.SharedRoomShortnameArgs,

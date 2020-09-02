@@ -4049,6 +4049,10 @@ export interface RoomProfileShape {
     welcomeMessageSender: number | null;
     welcomeMessageText: string | null;
     repliesDisabled: boolean | null;
+    callsMode: 'standard' | 'link' | 'disabled' | null;
+    callLink: string | null;
+    joinsMessageDisabled: boolean | null;
+    leavesMessageDisabled: boolean | null;
     activeMembersCount: number | null;
 }
 
@@ -4063,6 +4067,10 @@ export interface RoomProfileCreateShape {
     welcomeMessageSender?: number | null | undefined;
     welcomeMessageText?: string | null | undefined;
     repliesDisabled?: boolean | null | undefined;
+    callsMode?: 'standard' | 'link' | 'disabled' | null | undefined;
+    callLink?: string | null | undefined;
+    joinsMessageDisabled?: boolean | null | undefined;
+    leavesMessageDisabled?: boolean | null | undefined;
     activeMembersCount?: number | null | undefined;
 }
 
@@ -4158,6 +4166,42 @@ export class RoomProfile extends Entity<RoomProfileShape> {
             this.invalidate();
         }
     }
+    get callsMode(): 'standard' | 'link' | 'disabled' | null { return this._rawValue.callsMode; }
+    set callsMode(value: 'standard' | 'link' | 'disabled' | null) {
+        let normalized = this.descriptor.codec.fields.callsMode.normalize(value);
+        if (this._rawValue.callsMode !== normalized) {
+            this._rawValue.callsMode = normalized;
+            this._updatedValues.callsMode = normalized;
+            this.invalidate();
+        }
+    }
+    get callLink(): string | null { return this._rawValue.callLink; }
+    set callLink(value: string | null) {
+        let normalized = this.descriptor.codec.fields.callLink.normalize(value);
+        if (this._rawValue.callLink !== normalized) {
+            this._rawValue.callLink = normalized;
+            this._updatedValues.callLink = normalized;
+            this.invalidate();
+        }
+    }
+    get joinsMessageDisabled(): boolean | null { return this._rawValue.joinsMessageDisabled; }
+    set joinsMessageDisabled(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.joinsMessageDisabled.normalize(value);
+        if (this._rawValue.joinsMessageDisabled !== normalized) {
+            this._rawValue.joinsMessageDisabled = normalized;
+            this._updatedValues.joinsMessageDisabled = normalized;
+            this.invalidate();
+        }
+    }
+    get leavesMessageDisabled(): boolean | null { return this._rawValue.leavesMessageDisabled; }
+    set leavesMessageDisabled(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.leavesMessageDisabled.normalize(value);
+        if (this._rawValue.leavesMessageDisabled !== normalized) {
+            this._rawValue.leavesMessageDisabled = normalized;
+            this._updatedValues.leavesMessageDisabled = normalized;
+            this.invalidate();
+        }
+    }
     get activeMembersCount(): number | null { return this._rawValue.activeMembersCount; }
     set activeMembersCount(value: number | null) {
         let normalized = this.descriptor.codec.fields.activeMembersCount.normalize(value);
@@ -4189,6 +4233,10 @@ export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProf
         fields.push({ name: 'welcomeMessageSender', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'welcomeMessageText', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'repliesDisabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'callsMode', type: { type: 'optional', inner: { type: 'enum', values: ['standard', 'link', 'disabled'] } }, secure: false });
+        fields.push({ name: 'callLink', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'joinsMessageDisabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'leavesMessageDisabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'activeMembersCount', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
@@ -4202,6 +4250,10 @@ export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProf
             welcomeMessageSender: c.optional(c.integer),
             welcomeMessageText: c.optional(c.string),
             repliesDisabled: c.optional(c.boolean),
+            callsMode: c.optional(c.enum('standard', 'link', 'disabled')),
+            callLink: c.optional(c.string),
+            joinsMessageDisabled: c.optional(c.boolean),
+            leavesMessageDisabled: c.optional(c.boolean),
             activeMembersCount: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<RoomProfileShape> = {

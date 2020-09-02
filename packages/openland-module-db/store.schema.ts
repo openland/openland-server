@@ -334,7 +334,17 @@ export default declareSchema(() => {
         field('welcomeMessageIsOn', optional(boolean()));
         field('welcomeMessageSender', optional(integer()));
         field('welcomeMessageText', optional(string()));
+
+        // common settings
         field('repliesDisabled', optional(boolean()));
+
+        // call settings
+        field('callsMode', optional(enumString('standard', 'link', 'disabled')));
+        field('callLink', optional(string()));
+
+        // service message settings
+        field('joinsMessageDisabled', optional(boolean()));
+        field('leavesMessageDisabled', optional(boolean()));
 
         field('activeMembersCount', optional(integer()));
 

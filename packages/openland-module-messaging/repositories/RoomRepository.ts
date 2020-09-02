@@ -303,6 +303,16 @@ export class RoomRepository {
                 conv.repliesDisabled = !profile.repliesEnabled;
             }
 
+            if (profile.callSettings) {
+                conv.callsMode = profile.callSettings.mode;
+                conv.callLink = profile.callSettings.callLink || null;
+            }
+
+            if (profile.serviceMessageSettings) {
+                conv.joinsMessageDisabled = !profile.serviceMessageSettings.joinsMessageEnabled;
+                conv.leavesMessageDisabled = !profile.serviceMessageSettings.leavesMessageEnabled;
+            }
+
             await conv.flush(ctx);
 
             return { updatedTitle, updatedPhoto };

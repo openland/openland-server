@@ -34,6 +34,22 @@ type WelcomeMessage {
     message: String
 }
 
+enum RoomCallsMode {
+    STANDARD,
+    LINK,
+    DISABLED
+}
+
+type RoomCallSettings {
+    mode: RoomCallsMode!
+    callLink: String
+}
+
+type RoomServiceMessageSettings {
+    joinsMessageEnabled: Boolean!
+    leavesMessageEnabled: Boolean!
+}
+
 type SharedRoom {
     id: ID!
     kind: SharedRoomKind!
@@ -71,6 +87,8 @@ type SharedRoom {
     premiumSettings: PremiumChatSettings
 
     repliesEnabled: Boolean!
+    serviceMessageSettings: RoomServiceMessageSettings!
+    callSettings: RoomCallSettings!
 
     owner: User
 }
@@ -89,6 +107,15 @@ type RoomSuper {
     autosubscribeRooms: [Room!]!
 }
 
+input RoomCallSettingsInput {
+    mode: RoomCallsMode!
+}
+
+input RoomServiceMessageSettingsInput {
+    joinsMessageEnabled: Boolean!
+    leavesMessageEnabled: Boolean!
+}
+
 input RoomUpdateInput {
     title: String
     photoRef: ImageRefInput
@@ -96,6 +123,8 @@ input RoomUpdateInput {
     socialImageRef: ImageRefInput
     kind: SharedRoomKind
     repliesEnabled: Boolean
+    serviceMessageSettings: RoomServiceMessageSettingsInput
+    callSettings: RoomCallSettingsInput
 }
 
 type UserMention {

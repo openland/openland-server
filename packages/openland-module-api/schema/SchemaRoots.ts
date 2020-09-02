@@ -388,6 +388,16 @@ export namespace GQLRoots {
     export type SharedRoomConnectionRoot = { items: SharedRoomRoot[], cursor: string | null };
     export type UserBadgeRoot = UserBadge;
 
+    export type RoomCallsModeRoot = 'standard' | 'link' | 'disabled';
+    export type RoomCallSettingsRoot = {
+        mode: RoomCallsModeRoot,
+        callLink: string | null
+    };
+    export type RoomServiceMessageSettingsRoot = {
+        joinsMessageEnabled: boolean,
+        leavesMessageEnabled: boolean
+    };
+
     export type RoomMemberRoot = RoomParticipant | {
         cid: number,
         uid: number,
