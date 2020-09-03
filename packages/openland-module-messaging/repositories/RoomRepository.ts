@@ -297,6 +297,7 @@ export class RoomRepository {
                 }
                 let room = await Store.ConversationRoom.findById(ctx, cid);
                 room!.kind = profile.kind!;
+                room!.listed = profile.kind === 'public' && room!.listed;
             }
 
             if (profile.repliesEnabled !== undefined && profile.repliesEnabled !== null) {
@@ -583,7 +584,7 @@ export class RoomRepository {
             if (!room) {
                 throw new AccessDeniedError();
             }
-            room.listed = listed;
+            room.listed = room.kind === 'public' && listed;
             let profile = await Store.RoomProfile.findById(ctx, cid);
             profile!.invalidate(); // Update profile for reindexing
             return (await Store.Conversation.findById(ctx, cid))!;
