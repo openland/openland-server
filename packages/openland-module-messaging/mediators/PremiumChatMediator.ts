@@ -13,6 +13,7 @@ import { formatMoney } from 'openland-module-wallet/repo/utils/formatMoney';
 import { countCommission } from 'openland-module-wallet/repo/utils/countCommission';
 import { Emails } from '../../openland-module-email/Emails';
 import { IDs } from '../../openland-module-api/IDs';
+import { SmsService } from '../../openland-utils/SmsService';
 
 export const COMMISSION_PERCENTS = 10;
 @injectable()
@@ -107,7 +108,7 @@ export class PremiumChatMediator {
                         await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, uid, uids, true), false);
                         await this.messaging.bumpDialog(ctx, uid, cid);
                     } else {
-                        await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, uid, [uid]));
+                        await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, uid, [uid]), true);
                     }
                 } else {
                     await this.messaging.sendMessage(ctx, uid, cid, await this.roomLeaveMessage(ctx, uid), true);
@@ -203,18 +204,26 @@ export class PremiumChatMediator {
      */
     onPurchaseSuccess = async (ctx: Context, pid: string, txid: string, cid: number, uid: number, amount: number) => {
         // TODO: grant full access here
-        let ownerId = (await Store.ConversationRoom.findById(ctx, cid))!.ownerId!;
+        let room = (await Store.ConversationRoom.findById(ctx, cid))!;
+        let ownerId = room.ownerId!;
         let parts = await this.countCommission(ctx, amount, cid);
         await Modules.Wallet.wallet.incomeSuccess(ctx, txid, ownerId, parts.rest, { type: 'purchase', id: pid });
         await this.notifyOwner(ctx, ownerId, cid, uid, 'purchase', parts);
 
         let roomProfile = await Store.RoomProfile.findById(ctx, cid);
-        await Emails.sendGenericEmail(ctx, uid, {
-            title: 'Paid chat access purchase confirmation',
-            text: `Congratulations! You\'ve bought access to ${roomProfile?.title}`,
-            buttonText: 'View',
-            link: `https://openland.com/${IDs.Conversation.serialize(cid)}`
-        });
+        let user = await Store.User.findById(ctx, uid);
+        if (user?.email) {
+            await Emails.sendGenericEmail(ctx, uid, {
+                title: `Purchase confirmation for ${roomProfile?.title}`,
+                text: `Congrats for joining 🎉 This ${room.isChannel ? 'channel' : 'group'} runs on Openland messenger.\n To participate in real time and never miss a message, install Openland app at <a href="https://openland.com">https://openland.com</a>`,
+                buttonText: `View ${room.isChannel ? 'channel' : 'group'}`,
+                link: `https://openland.com/${IDs.Conversation.serialize(cid)}`
+            });
+        }
+        if (user?.phone) {
+            let shortname = await Modules.Shortnames.findShortnameByOwner(ctx, 'room', cid);
+            await SmsService.sendSms(ctx, user.phone, `Congrats, you've joined ${roomProfile?.title} 🎉 Install Openland app at https://openland.com for full access and notifications. You can also visit it any time at https://openland.com/${shortname?.shortname || IDs.Conversation.serialize(cid)}`);
+        }
     }
 
     onPurchaseFailing = async (ctx: Context, pid: string, uid: number, amount: number, cid: number) => {

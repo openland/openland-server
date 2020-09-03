@@ -297,10 +297,21 @@ export class RoomRepository {
                 }
                 let room = await Store.ConversationRoom.findById(ctx, cid);
                 room!.kind = profile.kind!;
+                room!.listed = profile.kind === 'public' && room!.listed;
             }
 
             if (profile.repliesEnabled !== undefined && profile.repliesEnabled !== null) {
                 conv.repliesDisabled = !profile.repliesEnabled;
+            }
+
+            if (profile.callSettings) {
+                conv.callsMode = profile.callSettings.mode;
+                conv.callLink = profile.callSettings.callLink;
+            }
+
+            if (profile.serviceMessageSettings) {
+                conv.joinsMessageDisabled = !profile.serviceMessageSettings.joinsMessageEnabled;
+                conv.leavesMessageDisabled = !profile.serviceMessageSettings.leavesMessageEnabled;
             }
 
             await conv.flush(ctx);
@@ -573,7 +584,7 @@ export class RoomRepository {
             if (!room) {
                 throw new AccessDeniedError();
             }
-            room.listed = listed;
+            room.listed = room.kind === 'public' && listed;
             let profile = await Store.RoomProfile.findById(ctx, cid);
             profile!.invalidate(); // Update profile for reindexing
             return (await Store.Conversation.findById(ctx, cid))!;

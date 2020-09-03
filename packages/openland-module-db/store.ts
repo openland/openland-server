@@ -2640,6 +2640,8 @@ export interface OrganizationProfileShape {
     linkedin: string | null;
     instagram: string | null;
     website: string | null;
+    applyLink: string | null;
+    applyLinkEnabled: boolean | null;
     joinedMembersCount: number | null;
 }
 
@@ -2652,6 +2654,8 @@ export interface OrganizationProfileCreateShape {
     linkedin?: string | null | undefined;
     instagram?: string | null | undefined;
     website?: string | null | undefined;
+    applyLink?: string | null | undefined;
+    applyLinkEnabled?: boolean | null | undefined;
     joinedMembersCount?: number | null | undefined;
 }
 
@@ -2729,6 +2733,24 @@ export class OrganizationProfile extends Entity<OrganizationProfileShape> {
             this.invalidate();
         }
     }
+    get applyLink(): string | null { return this._rawValue.applyLink; }
+    set applyLink(value: string | null) {
+        let normalized = this.descriptor.codec.fields.applyLink.normalize(value);
+        if (this._rawValue.applyLink !== normalized) {
+            this._rawValue.applyLink = normalized;
+            this._updatedValues.applyLink = normalized;
+            this.invalidate();
+        }
+    }
+    get applyLinkEnabled(): boolean | null { return this._rawValue.applyLinkEnabled; }
+    set applyLinkEnabled(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.applyLinkEnabled.normalize(value);
+        if (this._rawValue.applyLinkEnabled !== normalized) {
+            this._rawValue.applyLinkEnabled = normalized;
+            this._updatedValues.applyLinkEnabled = normalized;
+            this.invalidate();
+        }
+    }
     get joinedMembersCount(): number | null { return this._rawValue.joinedMembersCount; }
     set joinedMembersCount(value: number | null) {
         let normalized = this.descriptor.codec.fields.joinedMembersCount.normalize(value);
@@ -2756,6 +2778,8 @@ export class OrganizationProfileFactory extends EntityFactory<OrganizationProfil
         fields.push({ name: 'linkedin', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'instagram', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'website', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'applyLink', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'applyLinkEnabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'joinedMembersCount', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
@@ -2767,6 +2791,8 @@ export class OrganizationProfileFactory extends EntityFactory<OrganizationProfil
             linkedin: c.optional(c.string),
             instagram: c.optional(c.string),
             website: c.optional(c.string),
+            applyLink: c.optional(c.string),
+            applyLinkEnabled: c.optional(c.boolean),
             joinedMembersCount: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<OrganizationProfileShape> = {
@@ -4049,6 +4075,10 @@ export interface RoomProfileShape {
     welcomeMessageSender: number | null;
     welcomeMessageText: string | null;
     repliesDisabled: boolean | null;
+    callsMode: 'standard' | 'link' | 'disabled' | null;
+    callLink: string | null;
+    joinsMessageDisabled: boolean | null;
+    leavesMessageDisabled: boolean | null;
     activeMembersCount: number | null;
 }
 
@@ -4063,6 +4093,10 @@ export interface RoomProfileCreateShape {
     welcomeMessageSender?: number | null | undefined;
     welcomeMessageText?: string | null | undefined;
     repliesDisabled?: boolean | null | undefined;
+    callsMode?: 'standard' | 'link' | 'disabled' | null | undefined;
+    callLink?: string | null | undefined;
+    joinsMessageDisabled?: boolean | null | undefined;
+    leavesMessageDisabled?: boolean | null | undefined;
     activeMembersCount?: number | null | undefined;
 }
 
@@ -4158,6 +4192,42 @@ export class RoomProfile extends Entity<RoomProfileShape> {
             this.invalidate();
         }
     }
+    get callsMode(): 'standard' | 'link' | 'disabled' | null { return this._rawValue.callsMode; }
+    set callsMode(value: 'standard' | 'link' | 'disabled' | null) {
+        let normalized = this.descriptor.codec.fields.callsMode.normalize(value);
+        if (this._rawValue.callsMode !== normalized) {
+            this._rawValue.callsMode = normalized;
+            this._updatedValues.callsMode = normalized;
+            this.invalidate();
+        }
+    }
+    get callLink(): string | null { return this._rawValue.callLink; }
+    set callLink(value: string | null) {
+        let normalized = this.descriptor.codec.fields.callLink.normalize(value);
+        if (this._rawValue.callLink !== normalized) {
+            this._rawValue.callLink = normalized;
+            this._updatedValues.callLink = normalized;
+            this.invalidate();
+        }
+    }
+    get joinsMessageDisabled(): boolean | null { return this._rawValue.joinsMessageDisabled; }
+    set joinsMessageDisabled(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.joinsMessageDisabled.normalize(value);
+        if (this._rawValue.joinsMessageDisabled !== normalized) {
+            this._rawValue.joinsMessageDisabled = normalized;
+            this._updatedValues.joinsMessageDisabled = normalized;
+            this.invalidate();
+        }
+    }
+    get leavesMessageDisabled(): boolean | null { return this._rawValue.leavesMessageDisabled; }
+    set leavesMessageDisabled(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.leavesMessageDisabled.normalize(value);
+        if (this._rawValue.leavesMessageDisabled !== normalized) {
+            this._rawValue.leavesMessageDisabled = normalized;
+            this._updatedValues.leavesMessageDisabled = normalized;
+            this.invalidate();
+        }
+    }
     get activeMembersCount(): number | null { return this._rawValue.activeMembersCount; }
     set activeMembersCount(value: number | null) {
         let normalized = this.descriptor.codec.fields.activeMembersCount.normalize(value);
@@ -4189,6 +4259,10 @@ export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProf
         fields.push({ name: 'welcomeMessageSender', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'welcomeMessageText', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'repliesDisabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'callsMode', type: { type: 'optional', inner: { type: 'enum', values: ['standard', 'link', 'disabled'] } }, secure: false });
+        fields.push({ name: 'callLink', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'joinsMessageDisabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'leavesMessageDisabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'activeMembersCount', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
@@ -4202,6 +4276,10 @@ export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProf
             welcomeMessageSender: c.optional(c.integer),
             welcomeMessageText: c.optional(c.string),
             repliesDisabled: c.optional(c.boolean),
+            callsMode: c.optional(c.enum('standard', 'link', 'disabled')),
+            callLink: c.optional(c.string),
+            joinsMessageDisabled: c.optional(c.boolean),
+            leavesMessageDisabled: c.optional(c.boolean),
             activeMembersCount: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<RoomProfileShape> = {

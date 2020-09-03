@@ -22,6 +22,10 @@ export class OrganizationRepository {
         );
 
         return await inTx(parent, async (ctx) => {
+            let isPrivate = (input.isCommunity && input.isPrivate) ? true : false;
+            if (!isPrivate && (input.applyLink || input.applyLinkEnabled)) {
+                throw new UserError(`Apply link cannot be enabled in public ${input.isCommunity ? 'community' : 'organization'}`);
+            }
 
             // Fetch Organization Number
             let seq = (await Store.Sequence.findById(ctx, 'org-id'));
@@ -37,7 +41,7 @@ export class OrganizationRepository {
                 ownerId: uid,
                 status: opts.status,
                 editorial: opts.editorial,
-                private: (input.isCommunity && input.isPrivate) ? true : false,
+                private: isPrivate,
                 personal: input.personal ? input.personal : false,
                 membersCanInvite: input.membersCanInvite !== undefined ? input.membersCanInvite : true,
             });
@@ -53,6 +57,8 @@ export class OrganizationRepository {
                 linkedin: null,
                 instagram: null,
                 joinedMembersCount: null,
+                applyLink: input.applyLink,
+                applyLinkEnabled: input.applyLinkEnabled,
             });
 
             // Create editorial data

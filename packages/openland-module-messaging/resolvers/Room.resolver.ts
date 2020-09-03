@@ -122,6 +122,19 @@ export const Resolver: GQLResolver = {
         KICKED: 'kicked',
         NONE: 'none',
     },
+    RoomCallsMode: {
+      DISABLED: 'disabled',
+      LINK: 'link',
+      STANDARD: 'standard'
+    },
+    RoomCallSettings: {
+        callLink: root => root.callLink,
+        mode: root => root.mode
+    },
+    RoomServiceMessageSettings: {
+        joinsMessageEnabled: root => root.joinsMessageEnabled,
+        leavesMessageEnabled: root => root.leavesMessageEnabled
+    },
     SharedRoom: {
         id: (src) => IDs.Conversation.serialize(typeof src === 'number' ? src : src.id),
         kind: withConverationId(async (ctx, id) => {
@@ -281,7 +294,21 @@ export const Resolver: GQLResolver = {
         repliesEnabled: withConverationId(async (ctx, id) => {
             let room = await Store.RoomProfile.findById(ctx, id);
             return !room?.repliesDisabled;
-        })
+        }),
+        callSettings: withConverationId(async (ctx, id) => {
+            let room = await Store.RoomProfile.findById(ctx, id);
+            return {
+                mode: room?.callsMode || 'standard',
+                callLink: room?.callLink || null,
+            };
+        }),
+        serviceMessageSettings: withConverationId(async (ctx, id) => {
+            let room = await Store.RoomProfile.findById(ctx, id);
+            return {
+                joinsMessageEnabled: !room?.joinsMessageDisabled,
+                leavesMessageEnabled: !room?.leavesMessageDisabled,
+            };
+        }),
     },
     RoomMessage: {
         id: (src) => {
@@ -745,6 +772,8 @@ export const Resolver: GQLResolver = {
                     socialImage: args.input.socialImageRef === undefined ? undefined : socialImageRef,
                     kind: kind,
                     repliesEnabled: args.input.repliesEnabled,
+                    callSettings: args.input.callSettings,
+                    serviceMessageSettings: args.input.serviceMessageSettings
                 });
             });
         }),

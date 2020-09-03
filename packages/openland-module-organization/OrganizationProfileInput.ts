@@ -10,4 +10,6 @@ export interface OrganizatinProfileInput {
     isCommunity?: boolean | null | undefined;
     isPrivate?: boolean | null | undefined;
     membersCanInvite?: boolean | null | undefined;
+    applyLink?: string | null;
+    applyLinkEnabled?: boolean | null;
 }
