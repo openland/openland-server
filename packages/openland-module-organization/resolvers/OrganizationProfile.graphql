@@ -19,6 +19,9 @@ type OrganizationProfile {
     alphaIsCommunity: Boolean!
     alphaIsPrivate: Boolean!
 
+    applyLink: String
+    applyLinkEnabled: Boolean!
+
     betaMembersCanInvite: Boolean!
 }
 
@@ -31,6 +34,8 @@ input CreateOrganizationInput {
     about: String
     isCommunity: Boolean
     isPrivate: Boolean
+    applyLink: String
+    applyLinkEnabled: Boolean
 }
 
 input UpdateOrganizationProfileInput {
@@ -51,6 +56,9 @@ input UpdateOrganizationProfileInput {
     alphaEditorial: Boolean
     alphaFeatured: Boolean
     alphaIsPrivate: Boolean
+
+    applyLink: String
+    applyLinkEnabled: Boolean
 
     betaMembersCanInvite: Boolean
 }

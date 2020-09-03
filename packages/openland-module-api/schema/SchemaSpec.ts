@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'b7fa1e6ff8563a633ceed20edb6ac3d8';
+export const GQL_SPEC_VERSION = '771d9ab53ee295b510e4c0f14c5ba295';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3892,6 +3892,8 @@ export namespace GQL {
         alphaFeatured: boolean;
         alphaIsCommunity: boolean;
         alphaIsPrivate: boolean;
+        applyLink: Nullable<string>;
+        applyLinkEnabled: boolean;
         betaMembersCanInvite: boolean;
         shortname: Nullable<string>;
     }
@@ -3912,6 +3914,8 @@ export namespace GQL {
     export interface OrganizationProfileAlphaFeaturedArgs { }
     export interface OrganizationProfileAlphaIsCommunityArgs { }
     export interface OrganizationProfileAlphaIsPrivateArgs { }
+    export interface OrganizationProfileApplyLinkArgs { }
+    export interface OrganizationProfileApplyLinkEnabledArgs { }
     export interface OrganizationProfileBetaMembersCanInviteArgs { }
     export interface OrganizationProfileShortnameArgs { }
     export interface CreateOrganizationInput {
@@ -3923,6 +3927,8 @@ export namespace GQL {
         about: Nullable<string>;
         isCommunity: Nullable<boolean>;
         isPrivate: Nullable<boolean>;
+        applyLink: Nullable<string>;
+        applyLinkEnabled: Nullable<boolean>;
     }
     export interface UpdateOrganizationProfileInput {
         name: Nullable<string>;
@@ -3940,6 +3946,8 @@ export namespace GQL {
         alphaEditorial: Nullable<boolean>;
         alphaFeatured: Nullable<boolean>;
         alphaIsPrivate: Nullable<boolean>;
+        applyLink: Nullable<string>;
+        applyLinkEnabled: Nullable<boolean>;
         betaMembersCanInvite: Nullable<boolean>;
     }
     export interface ContactPersonInput {
@@ -9431,6 +9439,8 @@ export interface GQLResolver {
             alphaFeatured: GQL.OrganizationProfileAlphaFeaturedArgs,
             alphaIsCommunity: GQL.OrganizationProfileAlphaIsCommunityArgs,
             alphaIsPrivate: GQL.OrganizationProfileAlphaIsPrivateArgs,
+            applyLink: GQL.OrganizationProfileApplyLinkArgs,
+            applyLinkEnabled: GQL.OrganizationProfileApplyLinkEnabledArgs,
             betaMembersCanInvite: GQL.OrganizationProfileBetaMembersCanInviteArgs,
             shortname: GQL.OrganizationProfileShortnameArgs,
         }

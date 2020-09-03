@@ -2640,6 +2640,8 @@ export interface OrganizationProfileShape {
     linkedin: string | null;
     instagram: string | null;
     website: string | null;
+    applyLink: string | null;
+    applyLinkEnabled: boolean | null;
     joinedMembersCount: number | null;
 }
 
@@ -2652,6 +2654,8 @@ export interface OrganizationProfileCreateShape {
     linkedin?: string | null | undefined;
     instagram?: string | null | undefined;
     website?: string | null | undefined;
+    applyLink?: string | null | undefined;
+    applyLinkEnabled?: boolean | null | undefined;
     joinedMembersCount?: number | null | undefined;
 }
 
@@ -2729,6 +2733,24 @@ export class OrganizationProfile extends Entity<OrganizationProfileShape> {
             this.invalidate();
         }
     }
+    get applyLink(): string | null { return this._rawValue.applyLink; }
+    set applyLink(value: string | null) {
+        let normalized = this.descriptor.codec.fields.applyLink.normalize(value);
+        if (this._rawValue.applyLink !== normalized) {
+            this._rawValue.applyLink = normalized;
+            this._updatedValues.applyLink = normalized;
+            this.invalidate();
+        }
+    }
+    get applyLinkEnabled(): boolean | null { return this._rawValue.applyLinkEnabled; }
+    set applyLinkEnabled(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.applyLinkEnabled.normalize(value);
+        if (this._rawValue.applyLinkEnabled !== normalized) {
+            this._rawValue.applyLinkEnabled = normalized;
+            this._updatedValues.applyLinkEnabled = normalized;
+            this.invalidate();
+        }
+    }
     get joinedMembersCount(): number | null { return this._rawValue.joinedMembersCount; }
     set joinedMembersCount(value: number | null) {
         let normalized = this.descriptor.codec.fields.joinedMembersCount.normalize(value);
@@ -2756,6 +2778,8 @@ export class OrganizationProfileFactory extends EntityFactory<OrganizationProfil
         fields.push({ name: 'linkedin', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'instagram', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'website', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'applyLink', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'applyLinkEnabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'joinedMembersCount', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
@@ -2767,6 +2791,8 @@ export class OrganizationProfileFactory extends EntityFactory<OrganizationProfil
             linkedin: c.optional(c.string),
             instagram: c.optional(c.string),
             website: c.optional(c.string),
+            applyLink: c.optional(c.string),
+            applyLinkEnabled: c.optional(c.boolean),
             joinedMembersCount: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<OrganizationProfileShape> = {

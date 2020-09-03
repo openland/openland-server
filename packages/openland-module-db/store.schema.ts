@@ -209,6 +209,9 @@ export default declareSchema(() => {
         field('instagram', optional(string()));
         field('website', optional(string()));
 
+        field('applyLink', optional(string()));
+        field('applyLinkEnabled', optional(boolean()));
+
         field('joinedMembersCount', optional(integer()));
     });
 
