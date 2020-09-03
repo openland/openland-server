@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '1f69bf7290c8fc6ed28b7e0c294fcee3';
+export const GQL_SPEC_VERSION = 'b7fa1e6ff8563a633ceed20edb6ac3d8';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -6014,6 +6014,7 @@ export namespace GQL {
     export interface RoomSuperAutosubscribeRoomsArgs { }
     export interface RoomCallSettingsInput {
         mode: RoomCallsMode;
+        callLink: Nullable<string>;
     }
     export interface RoomServiceMessageSettingsInput {
         joinsMessageEnabled: boolean;

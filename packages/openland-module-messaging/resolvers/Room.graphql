@@ -109,6 +109,7 @@ type RoomSuper {
 
 input RoomCallSettingsInput {
     mode: RoomCallsMode!
+    callLink: String
 }
 
 input RoomServiceMessageSettingsInput {

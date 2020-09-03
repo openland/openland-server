@@ -305,7 +305,7 @@ export class RoomRepository {
 
             if (profile.callSettings) {
                 conv.callsMode = profile.callSettings.mode;
-                conv.callLink = profile.callSettings.callLink || null;
+                conv.callLink = profile.callSettings.callLink;
             }
 
             if (profile.serviceMessageSettings) {

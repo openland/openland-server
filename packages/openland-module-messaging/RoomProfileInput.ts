@@ -1,6 +1,6 @@
 type CallSettings = {
     mode: 'standard' | 'disabled' | 'link',
-    callLink?: string
+    callLink: string | null
 };
 type ServiceMessageSettings = {
     joinsMessageEnabled: boolean,
