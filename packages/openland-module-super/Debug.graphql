@@ -204,6 +204,7 @@ extend type Mutation {
     debugMigrateToNewCounters: Boolean!
     debugMigrateToNewLastRead: Boolean!
     debugFixReadSeqs: Boolean!
+    debugExportUsers: Boolean!
 }
 
 extend type Subscription {

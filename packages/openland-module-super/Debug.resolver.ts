@@ -6,7 +6,7 @@ import {
     DialogNeedReindexEvent,
     OrganizationProfile,
     OrganizationMemberShape,
-    UserDialogCallStateChangedEvent, MessageShape, ShortnameReservationShape,
+    UserDialogCallStateChangedEvent, MessageShape, ShortnameReservationShape, UserShape,
 } from './../openland-module-db/store';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from '../openland-module-api/Resolvers';
@@ -36,6 +36,7 @@ import { batch } from '../openland-utils/batch';
 import { UserError } from '../openland-errors/UserError';
 import { UserChatsRepository } from '../openland-module-messaging/repositories/UserChatsRepository';
 import { FastCountersRepository } from '../openland-module-messaging/repositories/FastCountersRepository';
+import { MessageAttachmentFileInput } from '../openland-module-messaging/MessageInput';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -2046,6 +2047,50 @@ export const Resolver: GQLResolver = {
                         fastCounters.onMessageRead(ctx, uid, d.cid, chatLastSeq);
                     }
                 }));
+            });
+            return true;
+        }),
+        debugExportUsers: withPermission('super-admin', async (parent, args) => {
+            debugSubspaceIterator<UserShape>(Store.User.descriptor.subspace, parent.auth.uid!, 'debugExportUsers', async (next, log) => {
+                let res: { key: TupleItem[], value: UserShape }[] = [];
+                let total = 0;
+                let result: { name: string, id: string, twitter: string, instagram: string }[] = [];
+
+                do {
+                    res = await next(parent, 99);
+                    total += res.length;
+
+                    try {
+                        await inTx(parent, async ctx => {
+                            for (let user of res) {
+                                let profile = await Store.UserProfile.findById(ctx, user.value.id);
+                                if (!profile) {
+                                    continue;
+                                }
+                                result.push({
+                                    name: profile.firstName + ' ' + (profile.lastName || ''),
+                                    id: IDs.User.serialize(user.value.id),
+                                    twitter: profile.twitter || 'none',
+                                    instagram: profile.instagram || 'none'
+                                });
+                            }
+                        });
+                        if (total % 9900 === 0) {
+                            await log('done: ' + total);
+                        }
+                    } catch (e) {
+                        await log('error: ' + e);
+                    }
+                } while (res.length > 0);
+                await inTx(parent, async ctx => {
+                    let superNotificationsAppId = await Modules.Super.getEnvVar<number>(ctx, 'super-notifications-app-id');
+                    let conv = await Modules.Messaging.room.resolvePrivateChat(ctx, ctx.auth.uid!, superNotificationsAppId!);
+                    let {file} = await Modules.Media.upload(ctx, Buffer.from(JSON.stringify(result)), '.json');
+                    let fileMetadata = await Modules.Media.saveFile(ctx, file);
+                    let attachment = { type: 'file_attachment', fileId: file, fileMetadata } as MessageAttachmentFileInput;
+                    await Modules.Messaging.sendMessage(ctx, conv.id, superNotificationsAppId!, { attachments: [attachment] }, true);
+                });
+                return 'done, total: ' + total;
             });
             return true;
         }),

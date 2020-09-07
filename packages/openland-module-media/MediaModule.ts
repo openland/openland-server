@@ -75,7 +75,7 @@ export class MediaModule {
             await this.call(ctx, '/files/' + uuid + '/storage', 'PUT');
             fileInfo.isStored = true;
         }
-
+        console.log(fileInfo);
         return fileInfo;
     }
 
