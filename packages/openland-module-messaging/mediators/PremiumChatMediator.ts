@@ -212,17 +212,23 @@ export class PremiumChatMediator {
 
         let roomProfile = await Store.RoomProfile.findById(ctx, cid);
         let user = await Store.User.findById(ctx, uid);
+        if (!roomProfile) {
+            return;
+        }
+        let roomTitle = roomProfile.title;
+
         if (user?.email) {
             await Emails.sendGenericEmail(ctx, uid, {
-                title: `Purchase confirmation for ${roomProfile?.title}`,
-                text: `Congrats for joining 🎉 This ${room.isChannel ? 'channel' : 'group'} runs on Openland messenger.\n To participate in real time and never miss a message, install Openland app at <a href="https://openland.com">https://openland.com</a>`,
+                subject: `Purchase confirmation for ${roomTitle}`,
+                title: `Purchase confirmation `,
+                text: `Congrats for joining <strong>${roomTitle}</strong> 🎉<br>This ${room.isChannel ? 'channel' : 'group'} runs on Openland messenger.<br>For message notifications and realtime access, install Openland app at <a href="https://openland.com">https://openland.com</a>`,
                 buttonText: `View ${room.isChannel ? 'channel' : 'group'}`,
                 link: `https://openland.com/${IDs.Conversation.serialize(cid)}`
             });
         }
-        if (user?.phone) {
+        if (!user?.email && user?.phone) {
             let shortname = await Modules.Shortnames.findShortnameByOwner(ctx, 'room', cid);
-            await SmsService.sendSms(ctx, user.phone, `Congrats, you've joined ${roomProfile?.title} 🎉 Install Openland app at https://openland.com for full access and notifications. You can also visit it any time at https://openland.com/${shortname?.shortname || IDs.Conversation.serialize(cid)}`);
+            await SmsService.sendSms(ctx, user.phone, `Congrats, you've joined ${roomProfile?.title} 🎉 Install Openland app at https://openland.com for realtime access and message notifications. You can also visit the ${room.isChannel ? 'channel' : 'group'} any time at  https://openland.com/${shortname?.shortname || IDs.Conversation.serialize(cid)}`);
         }
     }
 

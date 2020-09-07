@@ -60,6 +60,7 @@ export class WalletRepository {
                     });
 
                     await Emails.sendGenericEmail(ctx, uid, {
+                        subject: 'Transaction failed',
                         title: 'Transaction failed',
                         text: 'A payment for some of your recent purchases or subscriptions has recently failed. Please update your payment method to keep your paid group memberships.',
                         link: 'https://openland.com/wallet',
