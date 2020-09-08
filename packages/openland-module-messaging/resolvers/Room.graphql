@@ -90,6 +90,8 @@ type SharedRoom {
     serviceMessageSettings: RoomServiceMessageSettings!
     callSettings: RoomCallSettings!
 
+    featured: Boolean!
+
     owner: User
 }
 

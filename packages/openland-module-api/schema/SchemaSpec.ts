@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'ec29bfa575415cf61c69ffefc3b53a24';
+export const GQL_SPEC_VERSION = 'ac7b3bf08313a94632b829511cc797bd';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -5962,6 +5962,7 @@ export namespace GQL {
         repliesEnabled: boolean;
         serviceMessageSettings: RoomServiceMessageSettings;
         callSettings: RoomCallSettings;
+        featured: boolean;
         owner: Nullable<User>;
         linkedFeedChannels: FeedChannel[];
         shortname: Nullable<string>;
@@ -6001,6 +6002,7 @@ export namespace GQL {
     export interface SharedRoomRepliesEnabledArgs { }
     export interface SharedRoomServiceMessageSettingsArgs { }
     export interface SharedRoomCallSettingsArgs { }
+    export interface SharedRoomFeaturedArgs { }
     export interface SharedRoomOwnerArgs { }
     export interface SharedRoomLinkedFeedChannelsArgs { }
     export interface SharedRoomShortnameArgs { }
@@ -11258,6 +11260,7 @@ export interface GQLResolver {
             repliesEnabled: GQL.SharedRoomRepliesEnabledArgs,
             serviceMessageSettings: GQL.SharedRoomServiceMessageSettingsArgs,
             callSettings: GQL.SharedRoomCallSettingsArgs,
+            featured: GQL.SharedRoomFeaturedArgs,
             owner: GQL.SharedRoomOwnerArgs,
             linkedFeedChannels: GQL.SharedRoomLinkedFeedChannelsArgs,
             shortname: GQL.SharedRoomShortnameArgs,

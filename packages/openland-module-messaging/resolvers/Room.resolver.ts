@@ -309,6 +309,10 @@ export const Resolver: GQLResolver = {
                 leavesMessageEnabled: !room?.leavesMessageDisabled,
             };
         }),
+        featured: withConverationId(async (ctx, id) => {
+            let room = await Store.ConversationRoom.findById(ctx, id);
+            return !!room?.featured;
+        })
     },
     RoomMessage: {
         id: (src) => {
