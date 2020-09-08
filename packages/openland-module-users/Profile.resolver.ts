@@ -169,7 +169,11 @@ export const Resolver: GQLResolver = {
         alphaCreateUserProfileAndOrganization: withUser(async (parent, args, uid) => {
             return await inTx(parent, async (ctx) => {
                 let userProfile = await Modules.Users.createUserProfile(ctx, uid, args.user);
-                let organization = await Modules.Orgs.createOrganization(ctx, uid, { ...args.organization, personal: false });
+                let organization = await Modules.Orgs.createOrganization(ctx, uid, {
+                    ...args.organization,
+                    personal: false,
+                    autosubscribeRooms: args.organization.autosubscribeRooms?.map(a => IDs.Conversation.parse(a))
+                });
 
                 return {
                     user: userProfile,
