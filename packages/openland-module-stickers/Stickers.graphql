@@ -12,6 +12,7 @@ type StickerPack {
     stickers: [Sticker!]!
     author: User!
     usesCount: Int!
+    added: Boolean!
     published: Boolean!
 }
 

@@ -59,6 +59,13 @@ export const Resolver: GQLResolver = {
             return await Store.Sticker.packActive.findAll(ctx, id);
         }),
         published: withStickerPack((ctx, pack) => pack.published),
+        added: withStickerPackId(async (ctx, id) => {
+            if (!ctx.auth.uid) {
+                return false;
+            }
+            let myStickers = await Modules.Stickers.getUserStickersState(ctx, ctx.auth.uid);
+            return myStickers.packIds.includes(id);
+        })
     },
     UserStickers: {
         favorites: root => root.favoriteIds,

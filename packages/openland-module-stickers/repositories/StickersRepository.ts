@@ -246,7 +246,7 @@ export class StickersRepository {
         return [];
     }
 
-    private getUserStickersState = async (parent: Context, uid: number) => {
+    getUserStickersState = async (parent: Context, uid: number) => {
         return inTx(parent,  async ctx => {
             let state = await Store.UserStickersState.findById(ctx, uid);
             if (!state) {

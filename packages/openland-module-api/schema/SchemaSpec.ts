@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'ac7b3bf08313a94632b829511cc797bd';
+export const GQL_SPEC_VERSION = '47639485b4899b07d939f15ccacd3179';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2091,6 +2091,7 @@ export namespace GQL {
         stickers: Sticker[];
         author: User;
         usesCount: number;
+        added: boolean;
         published: boolean;
     }
     export interface StickerPackIdArgs { }
@@ -2098,6 +2099,7 @@ export namespace GQL {
     export interface StickerPackStickersArgs { }
     export interface StickerPackAuthorArgs { }
     export interface StickerPackUsesCountArgs { }
+    export interface StickerPackAddedArgs { }
     export interface StickerPackPublishedArgs { }
     export interface UserStickers {
         packs: StickerPack[];
@@ -8615,6 +8617,7 @@ export interface GQLResolver {
             stickers: GQL.StickerPackStickersArgs,
             author: GQL.StickerPackAuthorArgs,
             usesCount: GQL.StickerPackUsesCountArgs,
+            added: GQL.StickerPackAddedArgs,
             published: GQL.StickerPackPublishedArgs,
         }
     >;
