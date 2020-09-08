@@ -26,6 +26,7 @@ export const IDs = {
     FolderItem: IdsFactory.createId('FolderItem'),
     Task: IdsFactory.createId('Task'),
     Conversation: IdsFactory.createId('Conversation'),
+    ConversationSuper: IdsFactory.createId('ConversationSuper'),
     ConversationSettings: IdsFactory.createId('ConversationSettings'),
     ConversationMessage: IdsFactory.createId('ConversationMessage'),
     NotificationCounter: IdsFactory.createId('NotificationCounter'),

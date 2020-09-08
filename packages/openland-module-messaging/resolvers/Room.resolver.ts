@@ -409,7 +409,7 @@ export const Resolver: GQLResolver = {
     },
 
     RoomSuper: {
-        id: (root: RoomRoot) => IDs.Conversation.serialize(typeof root === 'number' ? root : root.id),
+        id: (root: RoomRoot) => IDs.ConversationSuper.serialize(typeof root === 'number' ? root : root.id),
         featured: withConverationId(async (ctx, id) => {
             let room = await Store.ConversationRoom.findById(ctx, id);
             return !!(room && room.featured);
@@ -527,7 +527,7 @@ export const Resolver: GQLResolver = {
             return image ? buildBaseImageUrl(image) : null;
         },
         roomSuper: withPermission('super-admin', async (ctx, args) => {
-            return IdsFactory.resolve(args.id);
+            return IDs.Conversation.parse(args.id);
         }),
         roomMessages: withActivatedUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.roomId);
@@ -925,14 +925,14 @@ export const Resolver: GQLResolver = {
         // Admin tools
         //
         betaRoomAlterFeatured: withPermission('super-admin', async (ctx, args) => {
-            return await Modules.Messaging.room.setFeatured(ctx, IDs.Conversation.parse(args.roomId), args.featured);
+            return await Modules.Messaging.room.setFeatured(ctx, IDs.ConversationSuper.parse(args.roomId), args.featured);
         }),
 
         betaRoomAlterListed: withPermission('super-admin', async (ctx, args) => {
-            return await Modules.Messaging.room.setListed(ctx, IDs.Conversation.parse(args.roomId), args.listed);
+            return await Modules.Messaging.room.setListed(ctx, IDs.ConversationSuper.parse(args.roomId), args.listed);
         }),
         betaRoomSetupAutosubscribe: withPermission('super-admin', async (ctx, args) => {
-           return await Modules.Messaging.room.setupAutosubscribe(ctx, IDs.Conversation.parse(args.roomId), args.childRoomIds.map(a => IDs.Conversation.parse(a)));
+           return await Modules.Messaging.room.setupAutosubscribe(ctx, IDs.ConversationSuper.parse(args.roomId), args.childRoomIds.map(a => IDs.Conversation.parse(a)));
         }),
 
         updateWelcomeMessage: withUser(async (ctx, args, uid) => {

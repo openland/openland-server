@@ -421,7 +421,7 @@ export namespace GQLRoots {
     export type RoomConnectionRoot = any;
     export type RoomConnectionEdgeRoot = any;
 
-    export type RoomSuperRoot = any;
+    export type RoomSuperRoot = number | Conversation;
     export type MessageAttachmentRoot = GQL.MessageAttachment;
     export type MessageButtonRoot = GQL.MessageButton;
     export type MessageButtonStyleRoot = MessageButtonStyleValues;
