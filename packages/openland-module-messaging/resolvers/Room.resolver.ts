@@ -303,10 +303,9 @@ export const Resolver: GQLResolver = {
             };
         }),
         serviceMessageSettings: withConverationId(async (ctx, id) => {
-            let room = await Store.RoomProfile.findById(ctx, id);
             return {
-                joinsMessageEnabled: !room?.joinsMessageDisabled,
-                leavesMessageEnabled: !room?.leavesMessageDisabled,
+                joinsMessageEnabled: await Modules.Messaging.room.shouldSendLeaveMessage(ctx, id),
+                leavesMessageEnabled: await Modules.Messaging.room.shouldSendJoinMessage(ctx, id),
             };
         }),
         featured: withConverationId(async (ctx, id) => {

@@ -123,8 +123,7 @@ export class RoomMediator {
 
             // Join room
             if (await this.repo.joinRoom(ctx, cid, uid, request) && !request) {
-                let profile = await Store.RoomProfile.findById(ctx, cid);
-                let shouldSendJoinMessage = !conv.isChannel && !profile?.joinsMessageDisabled;
+                let shouldSendJoinMessage = await this.shouldSendJoinMessage(ctx, cid);
                 if (shouldSendJoinMessage) {
                     let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid, uid);
 
@@ -318,27 +317,7 @@ export class RoomMediator {
                 // Send message
                 let userName = await Modules.Users.getUserFullName(ctx, uid);
 
-                let conv = (await Store.ConversationRoom.findById(ctx, cid))!;
-                let profile = (await Store.RoomProfile.findById(ctx, cid))!;
-                let isChannel = !!(conv && conv.isChannel);
-                let shouldSendMessage = false;
-
-                if (isChannel || profile.leavesMessageDisabled) {
-                    shouldSendMessage = false;
-                } else {
-                    if (conv.kind === 'public' && conv.oid) {
-                        let org = await Store.Organization.findById(ctx, conv.oid);
-                        if (org!.kind === 'community') {
-                            shouldSendMessage = false;
-                        } else {
-                            shouldSendMessage = true;
-                        }
-                    } else {
-                        shouldSendMessage = true;
-                    }
-                }
-
-                if (shouldSendMessage) {
+                if (await this.shouldSendLeaveMessage(ctx, cid)) {
                     await this.messaging.sendMessage(ctx, uid, cid, {
                         ...buildMessage(userMention(userName, uid), ` left the\u00A0group`),
                         isService: true,
@@ -779,6 +758,42 @@ export class RoomMediator {
             room!.invalidate();
             await room!.flush(ctx);
         });
+    }
+
+    async shouldSendLeaveMessage(ctx: Context, cid: number) {
+        let conv = (await Store.ConversationRoom.findById(ctx, cid))!;
+        let profile = (await Store.RoomProfile.findById(ctx, cid))!;
+        let isChannel = !!(conv && conv.isChannel);
+
+        let shouldSendMessage: boolean;
+        if (profile.leavesMessageDisabled !== null) {
+            shouldSendMessage = !profile.leavesMessageDisabled;
+        } else if (isChannel) {
+            shouldSendMessage = false;
+        } else {
+            if (conv.kind === 'public' && conv.oid) {
+                let org = await Store.Organization.findById(ctx, conv.oid);
+                if (org!.kind === 'community') {
+                    shouldSendMessage = false;
+                } else {
+                    shouldSendMessage = true;
+                }
+            } else {
+                shouldSendMessage = true;
+            }
+        }
+
+        return shouldSendMessage;
+    }
+
+    async shouldSendJoinMessage(ctx: Context, cid: number) {
+        let conv = await Store.ConversationRoom.findById(ctx, cid);
+        let profile = (await Store.RoomProfile.findById(ctx, cid))!;
+
+        if (profile.joinsMessageDisabled !== null) {
+            return !profile.joinsMessageDisabled;
+        }
+        return !conv?.isChannel;
     }
 
     private async roomJoinMessage(parent: Context, room: ConversationRoom, uid: number, uids: number[], invitedBy: number | null, isUpdate: boolean = false): Promise<MessageInput> {
