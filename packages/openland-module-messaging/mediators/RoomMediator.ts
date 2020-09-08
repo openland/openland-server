@@ -123,7 +123,8 @@ export class RoomMediator {
 
             // Join room
             if (await this.repo.joinRoom(ctx, cid, uid, request) && !request) {
-                let shouldSendJoinMessage = !conv.isChannel;
+                let profile = await Store.RoomProfile.findById(ctx, cid);
+                let shouldSendJoinMessage = !conv.isChannel && !profile?.joinsMessageDisabled;
                 if (shouldSendJoinMessage) {
                     let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid, uid);
 
@@ -170,7 +171,8 @@ export class RoomMediator {
 
                 // Send message about joining the room
                 if (res.length > 0) {
-                    let shouldSendJoinMessage = !conv.isChannel;
+                    let profile = await Store.RoomProfile.findById(ctx, cid);
+                    let shouldSendJoinMessage = !conv.isChannel && !profile?.joinsMessageDisabled;
                     if (shouldSendJoinMessage) {
                         let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid, uid);
 
@@ -230,7 +232,8 @@ export class RoomMediator {
 
             // Kick from group
             if (await this.repo.kickFromRoom(ctx, cid, kickedUid)) {
-                if (!conv.isChannel) {
+                let profile = await Store.RoomProfile.findById(ctx, cid);
+                if (!conv.isChannel && !profile?.leavesMessageDisabled) {
                     // Send message
                     let cickerName = await Modules.Users.getUserFullName(parent, uid);
                     let cickedName = await Modules.Users.getUserFullName(parent, kickedUid);
@@ -316,10 +319,11 @@ export class RoomMediator {
                 let userName = await Modules.Users.getUserFullName(ctx, uid);
 
                 let conv = (await Store.ConversationRoom.findById(ctx, cid))!;
+                let profile = (await Store.RoomProfile.findById(ctx, cid))!;
                 let isChannel = !!(conv && conv.isChannel);
                 let shouldSendMessage = false;
 
-                if (isChannel) {
+                if (isChannel || profile.leavesMessageDisabled) {
                     shouldSendMessage = false;
                 } else {
                     if (conv.kind === 'public' && conv.oid) {
