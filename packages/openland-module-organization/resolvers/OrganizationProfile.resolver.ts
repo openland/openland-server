@@ -35,7 +35,7 @@ export const Resolver: GQLResolver = {
         alphaFeatured: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationEditorial.findById(ctx, src.id)))!.featured,
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
         alphaIsPrivate: (src: Organization) => src.private || false,
-        autosubscribeRooms: (src: Organization) => src.autosubscribeRooms?.map(a => IDs.Conversation.serialize(a)),
+        autosubscribeRooms: (src: Organization) => src.autosubscribeRooms?.map(a => IDs.Conversation.serialize(a)) || [],
 
         betaMembersCanInvite: (src: Organization) => src.membersCanInvite === null ? true : src.membersCanInvite,
 
