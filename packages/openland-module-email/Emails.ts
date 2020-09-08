@@ -606,14 +606,14 @@ export const Emails = {
 
     },
 
-    async sendGenericEmail(ctx: Context, uid: number, args: { title: string, text: string, link: string, buttonText: string }) {
+    async sendGenericEmail(ctx: Context, uid: number, args: { subject: string, title: string, text: string, link: string, buttonText: string }) {
         let user = await loadUserState(ctx, uid);
         if (!user.email) {
             return;
         }
 
         Modules.Email.enqueueEmail(ctx, {
-            subject: args.title,
+            subject: args.subject,
             templateId: TEMPLATE_GENERIC,
             to: user.email,
             args

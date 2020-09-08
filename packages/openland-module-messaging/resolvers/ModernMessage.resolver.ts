@@ -1066,7 +1066,15 @@ export const Resolver: GQLResolver = {
                     size: metadata.size,
                 };
             } else {
-                return null;
+                return {
+                    name: '',
+                    mimeType: '',
+                    isImage: false,
+                    imageWidth: 0,
+                    imageHeight: 0,
+                    imageFormat: 0,
+                    size: 0,
+                };
             }
         },
         filePreview: src => src.attachment.filePreview,
