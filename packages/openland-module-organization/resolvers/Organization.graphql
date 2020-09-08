@@ -27,6 +27,7 @@ type Organization {
     betaIsOwner: Boolean!
     betaIsAdmin: Boolean!
     betaIsPrimary: Boolean!
+    owner: User!
 
     ## Refactor?
     superAccountId: ID!

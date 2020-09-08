@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '47639485b4899b07d939f15ccacd3179';
+export const GQL_SPEC_VERSION = '644ed8d80f6574acefd93d8cb94b07b7';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3823,6 +3823,7 @@ export namespace GQL {
         betaIsOwner: boolean;
         betaIsAdmin: boolean;
         betaIsPrimary: boolean;
+        owner: User;
         superAccountId: string;
         alphaIsOwner: boolean;
         alphaOrganizationMembers: OrganizationJoinedMember[];
@@ -3856,6 +3857,7 @@ export namespace GQL {
     export interface OrganizationBetaIsOwnerArgs { }
     export interface OrganizationBetaIsAdminArgs { }
     export interface OrganizationBetaIsPrimaryArgs { }
+    export interface OrganizationOwnerArgs { }
     export interface OrganizationSuperAccountIdArgs { }
     export interface OrganizationAlphaIsOwnerArgs { }
     export interface OrganizationAlphaOrganizationMembersArgs {
@@ -9381,6 +9383,7 @@ export interface GQLResolver {
         GQL.Organization,
         GQLRoots.OrganizationRoot,
         {
+            owner: GQLRoots.UserRoot,
             alphaOrganizationMembers: GQLRoots.OrganizationJoinedMemberRoot[],
             alphaOrganizationAdminMembers: GQLRoots.OrganizationJoinedMemberRoot[],
             alphaOrganizationMemberRequests: GQLRoots.OrganizationRequestedMemberRoot[],
@@ -9404,6 +9407,7 @@ export interface GQLResolver {
             betaIsOwner: GQL.OrganizationBetaIsOwnerArgs,
             betaIsAdmin: GQL.OrganizationBetaIsAdminArgs,
             betaIsPrimary: GQL.OrganizationBetaIsPrimaryArgs,
+            owner: GQL.OrganizationOwnerArgs,
             superAccountId: GQL.OrganizationSuperAccountIdArgs,
             alphaIsOwner: GQL.OrganizationAlphaIsOwnerArgs,
             alphaOrganizationMembers: GQL.OrganizationAlphaOrganizationMembersArgs,
