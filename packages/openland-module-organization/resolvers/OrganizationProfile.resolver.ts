@@ -38,6 +38,9 @@ export const Resolver: GQLResolver = {
         autosubscribeRooms: (src: Organization) => src.autosubscribeRooms?.map(a => IDs.Conversation.serialize(a)),
 
         betaMembersCanInvite: (src: Organization) => src.membersCanInvite === null ? true : src.membersCanInvite,
+
+        applyLink: async (src, args, ctx) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.applyLink,
+        applyLinkEnabled: async (src, args, ctx) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.applyLinkEnabled || false,
     },
     Query: {
         myOrganizationProfile: async (_: any, args: {}, ctx: Context) => {
