@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5eaad15b28c6525dcdff81affd7ae13e';
+export const GQL_SPEC_VERSION = 'f2387e9ec4f021152f240745ad8acbd8';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1183,6 +1183,7 @@ export namespace GQL {
         authEmail: Nullable<string>;
         badge: Nullable<ProfileBadge>;
         birthDay: Nullable<Date>;
+        status: Nullable<string>;
         alphaLinkedin: Nullable<string>;
         alphaTwitter: Nullable<string>;
         alphaJoinedAt: Nullable<string>;
@@ -1211,6 +1212,7 @@ export namespace GQL {
     export interface ProfileAuthEmailArgs { }
     export interface ProfileBadgeArgs { }
     export interface ProfileBirthDayArgs { }
+    export interface ProfileStatusArgs { }
     export interface ProfileAlphaLinkedinArgs { }
     export interface ProfileAlphaTwitterArgs { }
     export interface ProfileAlphaJoinedAtArgs { }
@@ -1237,6 +1239,7 @@ export namespace GQL {
         facebook: Nullable<string>;
         primaryOrganization: Nullable<string>;
         birthDay: Nullable<Date>;
+        status: Nullable<string>;
     }
     export interface UpdateProfileInput {
         firstName: Nullable<string>;
@@ -2278,6 +2281,7 @@ export namespace GQL {
         debugMigrateToNewLastRead: boolean;
         debugFixReadSeqs: boolean;
         debugExportUsers: boolean;
+        debugMigrateUserStatus: boolean;
         settingsUpdate: Settings;
         sendEmailPairCode: string;
         pairEmail: boolean;
@@ -2813,6 +2817,7 @@ export namespace GQL {
     export interface MutationDebugMigrateToNewLastReadArgs { }
     export interface MutationDebugFixReadSeqsArgs { }
     export interface MutationDebugExportUsersArgs { }
+    export interface MutationDebugMigrateUserStatusArgs { }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
         uid: OptionalNullable<string>;
@@ -5157,6 +5162,7 @@ export namespace GQL {
         badge: Nullable<ProfileBadge>;
         joinDate: Date;
         birthDay: Nullable<Date>;
+        status: Nullable<string>;
         channelsJoined: ChannelConversation[];
         photoRef: Nullable<ImageRef>;
         picture: Nullable<string>;
@@ -5198,6 +5204,7 @@ export namespace GQL {
     export interface UserBadgeArgs { }
     export interface UserJoinDateArgs { }
     export interface UserBirthDayArgs { }
+    export interface UserStatusArgs { }
     export interface UserChannelsJoinedArgs { }
     export interface UserPhotoRefArgs { }
     export interface UserPictureArgs { }
@@ -7558,6 +7565,7 @@ export interface GQLResolver {
             authEmail: GQL.ProfileAuthEmailArgs,
             badge: GQL.ProfileBadgeArgs,
             birthDay: GQL.ProfileBirthDayArgs,
+            status: GQL.ProfileStatusArgs,
             alphaLinkedin: GQL.ProfileAlphaLinkedinArgs,
             alphaTwitter: GQL.ProfileAlphaTwitterArgs,
             alphaJoinedAt: GQL.ProfileAlphaJoinedAtArgs,
@@ -8945,6 +8953,7 @@ export interface GQLResolver {
             debugMigrateToNewLastRead: GQL.MutationDebugMigrateToNewLastReadArgs,
             debugFixReadSeqs: GQL.MutationDebugFixReadSeqsArgs,
             debugExportUsers: GQL.MutationDebugExportUsersArgs,
+            debugMigrateUserStatus: GQL.MutationDebugMigrateUserStatusArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailPairCode: GQL.MutationSendEmailPairCodeArgs,
             pairEmail: GQL.MutationPairEmailArgs,
@@ -10303,6 +10312,7 @@ export interface GQLResolver {
             badge: GQL.UserBadgeArgs,
             joinDate: GQL.UserJoinDateArgs,
             birthDay: GQL.UserBirthDayArgs,
+            status: GQL.UserStatusArgs,
             channelsJoined: GQL.UserChannelsJoinedArgs,
             photoRef: GQL.UserPhotoRefArgs,
             picture: GQL.UserPictureArgs,

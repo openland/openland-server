@@ -9,6 +9,7 @@ import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
 import ProfileBadgeRoot = GQLRoots.ProfileBadgeRoot;
+import { UserError } from '../openland-errors/UserError';
 
 export const Resolver: GQLResolver = {
     ProfileBadge: {
@@ -55,6 +56,7 @@ export const Resolver: GQLResolver = {
             return null;
         },
         birthDay: async (src, args, ctx) => src.birthDay,
+        status: src => src.status
     },
     Query: {
         myProfile: async (src, args, ctx) => {
@@ -152,7 +154,18 @@ export const Resolver: GQLResolver = {
                     }
                 }
                 if (args.input.birthDay !== undefined) {
-                    profile.birthDay = args.input.birthDay!.getTime();
+                    if (!args.input.birthDay) {
+                        profile.birthDay = null;
+                    } else {
+                        profile.birthDay = args.input.birthDay!.getTime();
+                    }
+                }
+                if (args.input.status !== undefined) {
+                    let status = Sanitizer.sanitizeString(args.input.status);
+                    if (status && status.length > 40) {
+                        throw new UserError(`Status is too long`);
+                    }
+                    profile.status = status;
                 }
 
                 await Modules.Hooks.onUserProfileUpdated(ctx, profile.id);

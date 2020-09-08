@@ -24,6 +24,7 @@ type Profile {
     authEmail: String
     badge: ProfileBadge
     birthDay: Date
+    status: String
 
     # Deprecated
     alphaLinkedin: String
@@ -49,6 +50,7 @@ input ProfileInput {
     facebook: String
     primaryOrganization: ID
     birthDay: Date
+    status: String
 }
 
 # Deprecated

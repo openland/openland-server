@@ -130,6 +130,7 @@ export default declareSchema(() => {
         field('primaryBadge', optional(integer()));
         field('role', optional(string()));
         field('birthDay', optional(integer()));
+        field('status', optional(string()));
         rangeIndex('byUpdatedAt', ['updatedAt']);
         rangeIndex('created', ['createdAt']);
     });

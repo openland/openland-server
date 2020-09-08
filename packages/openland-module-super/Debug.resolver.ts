@@ -2094,6 +2094,26 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
+        debugMigrateUserStatus: withPermission('super-admin', async (parent, args) => {
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugMigrateUserStatus', async (ctx, uid, log) => {
+                let profile = await Store.UserProfile.findById(ctx, uid);
+                if (!profile) {
+                    return;
+                }
+                if (!profile.primaryOrganization) {
+                    return;
+                }
+
+                let org = await Store.Organization.findById(ctx, profile.primaryOrganization);
+                if (!org || org.status === 'deleted') {
+                    return;
+                }
+
+                let orgProfile = (await Store.OrganizationProfile.findById(ctx, org.id))!;
+                profile.status = orgProfile.name.slice(0, 40);
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {
