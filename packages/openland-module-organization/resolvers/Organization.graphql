@@ -28,6 +28,8 @@ type Organization {
     betaIsAdmin: Boolean!
     betaIsPrimary: Boolean!
     owner: User!
+    applyLinkEnabled: Boolean!
+    applyLink: String
 
     ## Refactor?
     superAccountId: ID!

@@ -87,6 +87,8 @@ export const Resolver: GQLResolver = {
         personal: async (src: Organization) => src.personal || false,
         betaMembersCanInvite: async (src: Organization) => src.membersCanInvite === null ? true : src.membersCanInvite,
         owner: async (src: Organization) => src.ownerId,
+        applyLink: async (src, args, ctx) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.applyLink,
+        applyLinkEnabled: async (src, args, ctx) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.applyLinkEnabled || false,
     },
     Query: {
         myOrganizations: async (_: any, args: {}, ctx: Context) => {

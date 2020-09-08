@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5eaad15b28c6525dcdff81affd7ae13e';
+export const GQL_SPEC_VERSION = '0634ee9ffdc17e7fe88d2b8ad2eacdf3';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3824,6 +3824,8 @@ export namespace GQL {
         betaIsAdmin: boolean;
         betaIsPrimary: boolean;
         owner: User;
+        applyLinkEnabled: boolean;
+        applyLink: Nullable<string>;
         superAccountId: string;
         alphaIsOwner: boolean;
         alphaOrganizationMembers: OrganizationJoinedMember[];
@@ -3858,6 +3860,8 @@ export namespace GQL {
     export interface OrganizationBetaIsAdminArgs { }
     export interface OrganizationBetaIsPrimaryArgs { }
     export interface OrganizationOwnerArgs { }
+    export interface OrganizationApplyLinkEnabledArgs { }
+    export interface OrganizationApplyLinkArgs { }
     export interface OrganizationSuperAccountIdArgs { }
     export interface OrganizationAlphaIsOwnerArgs { }
     export interface OrganizationAlphaOrganizationMembersArgs {
@@ -9412,6 +9416,8 @@ export interface GQLResolver {
             betaIsAdmin: GQL.OrganizationBetaIsAdminArgs,
             betaIsPrimary: GQL.OrganizationBetaIsPrimaryArgs,
             owner: GQL.OrganizationOwnerArgs,
+            applyLinkEnabled: GQL.OrganizationApplyLinkEnabledArgs,
+            applyLink: GQL.OrganizationApplyLinkArgs,
             superAccountId: GQL.OrganizationSuperAccountIdArgs,
             alphaIsOwner: GQL.OrganizationAlphaIsOwnerArgs,
             alphaOrganizationMembers: GQL.OrganizationAlphaOrganizationMembersArgs,
