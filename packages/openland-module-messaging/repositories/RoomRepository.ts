@@ -1353,6 +1353,16 @@ export class RoomRepository {
                 if (org.kind === 'community') {
                     await Modules.Orgs.addUserToOrganization(ctx, uid, org.id, by, true);
                 }
+
+                if (org.autosubscribeRooms) {
+                    for (let c of org.autosubscribeRooms) {
+                        let conv = await Store.ConversationRoom.findById(ctx, c);
+                        if (!conv || conv.isDeleted) {
+                            continue;
+                        }
+                        await Modules.Messaging.room.joinRoom(ctx, c, uid);
+                    }
+                }
             }
             const welcomeMessage = await this.resolveConversationWelcomeMessage(ctx, cid);
             if (welcomeMessage && welcomeMessage.isOn && welcomeMessage.sender) {

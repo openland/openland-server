@@ -2479,6 +2479,7 @@ export interface OrganizationShape {
     private: boolean | null;
     personal: boolean | null;
     membersCanInvite: boolean | null;
+    autosubscribeRooms: (number)[] | null;
 }
 
 export interface OrganizationCreateShape {
@@ -2489,6 +2490,7 @@ export interface OrganizationCreateShape {
     private?: boolean | null | undefined;
     personal?: boolean | null | undefined;
     membersCanInvite?: boolean | null | undefined;
+    autosubscribeRooms?: (number)[] | null | undefined;
 }
 
 export class Organization extends Entity<OrganizationShape> {
@@ -2556,6 +2558,15 @@ export class Organization extends Entity<OrganizationShape> {
             this.invalidate();
         }
     }
+    get autosubscribeRooms(): (number)[] | null { return this._rawValue.autosubscribeRooms; }
+    set autosubscribeRooms(value: (number)[] | null) {
+        let normalized = this.descriptor.codec.fields.autosubscribeRooms.normalize(value);
+        if (this._rawValue.autosubscribeRooms !== normalized) {
+            this._rawValue.autosubscribeRooms = normalized;
+            this._updatedValues.autosubscribeRooms = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class OrganizationFactory extends EntityFactory<OrganizationShape, Organization> {
@@ -2574,6 +2585,7 @@ export class OrganizationFactory extends EntityFactory<OrganizationShape, Organi
         fields.push({ name: 'private', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'personal', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'membersCanInvite', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'autosubscribeRooms', type: { type: 'optional', inner: { type: 'array', inner: { type: 'integer' } } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             ownerId: c.integer,
@@ -2583,6 +2595,7 @@ export class OrganizationFactory extends EntityFactory<OrganizationShape, Organi
             private: c.optional(c.boolean),
             personal: c.optional(c.boolean),
             membersCanInvite: c.optional(c.boolean),
+            autosubscribeRooms: c.optional(c.array(c.integer)),
         });
         let descriptor: EntityDescriptor<OrganizationShape> = {
             name: 'Organization',

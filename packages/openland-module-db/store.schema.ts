@@ -191,6 +191,7 @@ export default declareSchema(() => {
         field('private', optional(boolean()));
         field('personal', optional(boolean()));
         field('membersCanInvite', optional(boolean()));
+        field('autosubscribeRooms', optional(array(integer())));
         rangeIndex('community', []).withCondition((src) => src.kind === 'community' && src.status === 'activated');
     });
 

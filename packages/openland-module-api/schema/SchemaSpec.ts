@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '644ed8d80f6574acefd93d8cb94b07b7';
+export const GQL_SPEC_VERSION = '5eaad15b28c6525dcdff81affd7ae13e';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3901,6 +3901,7 @@ export namespace GQL {
         applyLink: Nullable<string>;
         applyLinkEnabled: boolean;
         betaMembersCanInvite: boolean;
+        autosubscribeRooms: string[];
         shortname: Nullable<string>;
     }
     export interface OrganizationProfileIdArgs { }
@@ -3923,6 +3924,7 @@ export namespace GQL {
     export interface OrganizationProfileApplyLinkArgs { }
     export interface OrganizationProfileApplyLinkEnabledArgs { }
     export interface OrganizationProfileBetaMembersCanInviteArgs { }
+    export interface OrganizationProfileAutosubscribeRoomsArgs { }
     export interface OrganizationProfileShortnameArgs { }
     export interface CreateOrganizationInput {
         id: Nullable<string>;
@@ -3935,6 +3937,7 @@ export namespace GQL {
         isPrivate: Nullable<boolean>;
         applyLink: Nullable<string>;
         applyLinkEnabled: Nullable<boolean>;
+        autosubscribeRooms: Nullable<string[]>;
     }
     export interface UpdateOrganizationProfileInput {
         name: Nullable<string>;
@@ -3954,6 +3957,7 @@ export namespace GQL {
         alphaIsPrivate: Nullable<boolean>;
         applyLink: Nullable<string>;
         applyLinkEnabled: Nullable<boolean>;
+        autosubscribeRooms: Nullable<string[]>;
         betaMembersCanInvite: Nullable<boolean>;
     }
     export interface ContactPersonInput {
@@ -9454,6 +9458,7 @@ export interface GQLResolver {
             applyLink: GQL.OrganizationProfileApplyLinkArgs,
             applyLinkEnabled: GQL.OrganizationProfileApplyLinkEnabledArgs,
             betaMembersCanInvite: GQL.OrganizationProfileBetaMembersCanInviteArgs,
+            autosubscribeRooms: GQL.OrganizationProfileAutosubscribeRoomsArgs,
             shortname: GQL.OrganizationProfileShortnameArgs,
         }
     >;

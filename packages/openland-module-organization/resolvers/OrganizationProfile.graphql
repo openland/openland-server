@@ -23,6 +23,7 @@ type OrganizationProfile {
     applyLinkEnabled: Boolean!
 
     betaMembersCanInvite: Boolean!
+    autosubscribeRooms: [ID!]!
 }
 
 input CreateOrganizationInput {
@@ -36,6 +37,7 @@ input CreateOrganizationInput {
     isPrivate: Boolean
     applyLink: String
     applyLinkEnabled: Boolean
+    autosubscribeRooms: [ID!]
 }
 
 input UpdateOrganizationProfileInput {
@@ -59,6 +61,7 @@ input UpdateOrganizationProfileInput {
 
     applyLink: String
     applyLinkEnabled: Boolean
+    autosubscribeRooms: [ID!]
 
     betaMembersCanInvite: Boolean
 }

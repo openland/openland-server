@@ -12,4 +12,5 @@ export interface OrganizatinProfileInput {
     membersCanInvite?: boolean | null | undefined;
     applyLink?: string | null;
     applyLinkEnabled?: boolean | null;
+    autosubscribeRooms?: number[] | null;
 }

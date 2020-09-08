@@ -44,6 +44,7 @@ export class OrganizationRepository {
                 private: isPrivate,
                 personal: input.personal ? input.personal : false,
                 membersCanInvite: input.membersCanInvite !== undefined ? input.membersCanInvite : true,
+                autosubscribeRooms: input.autosubscribeRooms ? input.autosubscribeRooms : [],
             });
 
             // Create organization profile

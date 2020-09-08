@@ -35,6 +35,7 @@ export const Resolver: GQLResolver = {
         alphaFeatured: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationEditorial.findById(ctx, src.id)))!.featured,
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
         alphaIsPrivate: (src: Organization) => src.private || false,
+        autosubscribeRooms: (src: Organization) => src.autosubscribeRooms?.map(a => IDs.Conversation.serialize(a)),
 
         betaMembersCanInvite: (src: Organization) => src.membersCanInvite === null ? true : src.membersCanInvite,
     },
@@ -121,6 +122,14 @@ export const Resolver: GQLResolver = {
                     existing.private = args.input.alphaIsPrivate;
                 }
 
+                if (args.input.autosubscribeRooms !== undefined && args.input.autosubscribeRooms !== null) {
+                    existing.autosubscribeRooms = args.input.autosubscribeRooms.map(a => IDs.Conversation.parse(a));
+                }
+
+                if (args.input.betaMembersCanInvite !== undefined) {
+                    existing.membersCanInvite = args.input.betaMembersCanInvite;
+                }
+
                 let editorial = (await Store.OrganizationEditorial.findById(ctx, orgId))!;
 
                 if (args.input.alphaPublished !== undefined && isSuper) {
@@ -133,10 +142,6 @@ export const Resolver: GQLResolver = {
 
                 if (args.input.alphaFeatured !== undefined && isSuper) {
                     editorial.featured = !!Sanitizer.sanitizeAny(args.input.alphaFeatured);
-                }
-
-                if (args.input.betaMembersCanInvite !== undefined) {
-                    existing.membersCanInvite = args.input.betaMembersCanInvite;
                 }
 
                 // Schedule indexing
@@ -164,7 +169,10 @@ export const Resolver: GQLResolver = {
         }),
         createOrganization: withUser(async (ctx, args, uid) => {
             log.log(ctx, 'createOrganization', args.input);
-            return await Modules.Orgs.createOrganization(ctx, uid, args.input);
+            return await Modules.Orgs.createOrganization(ctx, uid, {
+                ...args.input,
+                autosubscribeRooms: args.input.autosubscribeRooms?.map(a => IDs.Conversation.parse(a))
+            });
         }),
     }
 };
