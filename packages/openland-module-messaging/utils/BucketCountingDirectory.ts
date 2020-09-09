@@ -49,40 +49,38 @@ export class BucketCountingDirectory {
         });
     }
 
-    count = async (parent: Context, collectionPrefix: number[], cursor: { from?: number | null, to?: number | null }) => {
-        return await inTx(parent, async (ctx) => {
-            let start = Date.now();
-            // Resolve offsets
-            let fromBuffer: Buffer;
-            let toBuffer: Buffer;
-            if (cursor.from !== null && cursor.from !== undefined) {
-                let bucketNo = Math.ceil(cursor.from / this.bucketSize);
-                fromBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack([...collectionPrefix, bucketNo])]);
-            } else {
-                fromBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack(collectionPrefix)]);
-            }
-            if (cursor.to !== null && cursor.to !== undefined) {
-                let bucketNo = Math.ceil(cursor.to / this.bucketSize);
-                toBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack([...collectionPrefix, bucketNo + 1])]);
-            } else {
-                collectionPrefix[collectionPrefix.length - 1]++;
-                toBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack(collectionPrefix)]);
-            }
+    count = async (ctx: Context, collectionPrefix: number[], cursor: { from?: number | null, to?: number | null }) => {
+        let start = Date.now();
+        // Resolve offsets
+        let fromBuffer: Buffer;
+        let toBuffer: Buffer;
+        if (cursor.from !== null && cursor.from !== undefined) {
+            let bucketNo = Math.ceil(cursor.from / this.bucketSize);
+            fromBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack([...collectionPrefix, bucketNo])]);
+        } else {
+            fromBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack(collectionPrefix)]);
+        }
+        if (cursor.to !== null && cursor.to !== undefined) {
+            let bucketNo = Math.ceil(cursor.to / this.bucketSize);
+            toBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack([...collectionPrefix, bucketNo + 1])]);
+        } else {
+            collectionPrefix[collectionPrefix.length - 1]++;
+            toBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack(collectionPrefix)]);
+        }
 
-            // Read all keys
-            let tx = getTransaction(ctx).rawTransaction(this.directory.db);
-            let batches = await tx.getRangeAll(fromBuffer, toBuffer);
-            let all = batches.map(v => encoders.tuple.unpack(v[1])).flat();
+        // Read all keys
+        let tx = getTransaction(ctx).rawTransaction(this.directory.db);
+        let batches = await tx.getRangeAll(fromBuffer, toBuffer);
+        let all = batches.map(v => encoders.tuple.unpack(v[1])).flat();
 
-            Metrics.CountingDirectoryBatchesRead.report(batches.length);
-            if (cursor.from !== null && cursor.from !== undefined) {
-                all = all.filter(id => id! >= cursor.from!);
-            }
-            if (cursor.to !== null && cursor.to !== undefined) {
-                all = all.filter(id => id! <= cursor.to!);
-            }
-            Metrics.CountingDirectoryCountTime.report(Date.now() - start);
-            return all.length;
-        });
+        Metrics.CountingDirectoryBatchesRead.report(batches.length);
+        if (cursor.from !== null && cursor.from !== undefined) {
+            all = all.filter(id => id! >= cursor.from!);
+        }
+        if (cursor.to !== null && cursor.to !== undefined) {
+            all = all.filter(id => id! <= cursor.to!);
+        }
+        Metrics.CountingDirectoryCountTime.report(Date.now() - start);
+        return all.length;
     }
 }
