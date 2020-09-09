@@ -255,6 +255,8 @@ export function createUrlInfoService() {
                     ownerType = 'user';
                 } else if (idInfo.type.typeId === IDs.Organization.typeId) {
                     ownerType = 'org';
+                } else if (idInfo.type.typeId === IDs.Conversation.typeId) {
+                    ownerType = 'room';
                 }
                 ownerId = idInfo.id as number;
             } catch {
@@ -293,6 +295,44 @@ export function createUrlInfoService() {
                     iconRef: null,
                     iconInfo: null,
                     photoFallback: makePhotoFallback(IDs.Organization.serialize(org!.id), org!.name || 'deleted'),
+                };
+            } else if (ownerType === 'room') {
+                let ctx = withReadOnlyTransaction(rootCtx);
+                let profile = await Store.RoomProfile.findById(ctx, ownerId);
+                let conv = await Store.ConversationRoom.findById(ctx, ownerId);
+                let premiumChatSettings = await Store.PremiumChatSettings.findById(ctx, ownerId);
+
+                if (!await Modules.Messaging.room.isPublicRoom(ctx, ownerId)) {
+                    return null;
+                }
+
+                if (!profile) {
+                    return null;
+                }
+                let membersCount = profile.activeMembersCount || 0;
+                let price = premiumChatSettings && formatMoneyWithInterval(premiumChatSettings.price, premiumChatSettings.interval);
+
+                return {
+                    url,
+                    title: profile!.title || null,
+                    subtitle: membersCount < 10 ? `New ${conv && conv.isChannel ? 'channel' : 'group'}` : (membersCount + ' members'),
+                    description: profile!.description || null,
+                    imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(ctx, profile!.image.uuid) : null,
+                    photo: profile!.image,
+                    photoPreview: profile!.image ? await Modules.Media.fetchLowResPreview(ctx, profile!.image.uuid) : null,
+                    hostname: null,
+                    iconRef: null,
+                    iconInfo: null,
+                    keyboard: {
+                        buttons: [[
+                            { title: price || 'Join chat', style: price ? 'PAY' : 'DEFAULT', url }
+                        ]]
+                    },
+                    photoFallback: makePhotoFallback(IDs.Conversation.serialize(profile.id), profile.title || 'deleted'),
+                    dynamic: true,
+                    socialImage: profile!.socialImage,
+                    socialImagePreview: profile!.socialImage ? await Modules.Media.fetchLowResPreview(ctx, profile!.socialImage.uuid) : null,
+                    socialImageInfo: profile!.socialImage ? await Modules.Media.fetchFileInfo(ctx, profile!.socialImage.uuid) : null
                 };
             } else {
                 return null;

@@ -172,6 +172,7 @@ export const Resolver: GQLResolver = {
         audienceSize: withUser(async (ctx, src) => await Store.UserAudienceCounter.get(ctx, src.id), true),
         joinDate: withUser(async (ctx, src) => src.metadata.createdAt, true),
         birthDay: withProfile(async (ctx, src, profile) => profile?.birthDay, true),
+        status: withProfile(async (ctx, src, profile) => profile?.status, true),
 
         // Deprecated
         picture: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null, true),

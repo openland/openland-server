@@ -1801,6 +1801,7 @@ export interface UserProfileShape {
     primaryBadge: number | null;
     role: string | null;
     birthDay: number | null;
+    status: string | null;
 }
 
 export interface UserProfileCreateShape {
@@ -1821,6 +1822,7 @@ export interface UserProfileCreateShape {
     primaryBadge?: number | null | undefined;
     role?: string | null | undefined;
     birthDay?: number | null | undefined;
+    status?: string | null | undefined;
 }
 
 export class UserProfile extends Entity<UserProfileShape> {
@@ -1978,6 +1980,15 @@ export class UserProfile extends Entity<UserProfileShape> {
             this.invalidate();
         }
     }
+    get status(): string | null { return this._rawValue.status; }
+    set status(value: string | null) {
+        let normalized = this.descriptor.codec.fields.status.normalize(value);
+        if (this._rawValue.status !== normalized) {
+            this._rawValue.status = normalized;
+            this._updatedValues.status = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProfile> {
@@ -2007,6 +2018,7 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
         fields.push({ name: 'primaryBadge', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'role', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'birthDay', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'status', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             firstName: c.string,
@@ -2026,6 +2038,7 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
             primaryBadge: c.optional(c.integer),
             role: c.optional(c.string),
             birthDay: c.optional(c.integer),
+            status: c.optional(c.string),
         });
         let descriptor: EntityDescriptor<UserProfileShape> = {
             name: 'UserProfile',
