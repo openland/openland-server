@@ -2125,10 +2125,10 @@ export const Resolver: GQLResolver = {
                 let extra = userReadSeqs.filter(cid => !dialogs.includes(cid));
 
                 if (missing.length > 0) {
-                    log(`[${uid}] missing: ${missing.length}`);
+                    await log(`[${uid}] missing: ${missing.length}`);
                 }
                 if (extra.length > 0) {
-                    log(`[${uid}] extra: ${extra.length}`);
+                    await log(`[${uid}] extra: ${extra.length}`);
                 }
 
                 for (let cid of missing) {
