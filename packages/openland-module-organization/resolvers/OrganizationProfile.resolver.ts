@@ -121,10 +121,15 @@ export const Resolver: GQLResolver = {
                 if (args.input.about !== undefined) {
                     profile.about = Sanitizer.sanitizeString(args.input.about);
                 }
+                if (args.input.applyLink !== null) {
+                    profile.applyLink = args.input.applyLink;
+                }
+                if (args.input.applyLinkEnabled !== null) {
+                    profile.applyLinkEnabled = args.input.applyLinkEnabled;
+                }
                 if (args.input.alphaIsPrivate !== undefined && (isMemberOwner || isSuper)) {
                     existing.private = args.input.alphaIsPrivate;
                 }
-
                 if (args.input.autosubscribeRooms !== undefined && args.input.autosubscribeRooms !== null) {
                     existing.autosubscribeRooms = args.input.autosubscribeRooms.map(a => IDs.Conversation.parse(a));
                 }
