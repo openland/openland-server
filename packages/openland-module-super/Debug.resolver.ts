@@ -2020,7 +2020,16 @@ export const Resolver: GQLResolver = {
             let fastCounters = new FastCountersRepository();
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugMigrateToNewLastRead', async (ctx, uid, log) => {
                 let userDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
+                fastCounters.userReadSeqsSubspace.clearPrefixed(ctx, [uid]);
+
                 await Promise.all(userDialogs.map(async d => {
+                    let oldUnread = await Store.UserDialogCounter.get(ctx, uid, d.cid);
+                    if (oldUnread === 0) {
+                        let chatLastSeq = await Store.ConversationLastSeq.get(ctx, d.cid);
+                        fastCounters.onMessageRead(ctx, uid, d.cid, chatLastSeq);
+                        return;
+                    }
+
                     let messageId = await Store.UserDialogReadMessageId.get(ctx, uid, d.cid);
                     if (messageId === 0) {
                         fastCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], 0);
