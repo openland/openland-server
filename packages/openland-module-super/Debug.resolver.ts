@@ -2114,6 +2114,33 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
+        debugFixFastCounters: withPermission('super-admin', async (parent, args) => {
+            let fastCounters = new FastCountersRepository();
+
+            debugTaskForAll(Store.User, parent.auth.uid!, 'debugMigrateUserStatus', async (ctx, uid, log) => {
+                let dialogs = (await Modules.Messaging.findUserDialogs(ctx, uid)).map(v => v.cid);
+                let userReadSeqs = (await fastCounters.userReadSeqsSubspace.snapshotRange(ctx, [uid])).map(val => val.key[val.key.length - 1] as number);
+
+                let missing = dialogs.filter(cid => !userReadSeqs.includes(cid));
+                let extra = userReadSeqs.filter(cid => !dialogs.includes(cid));
+
+                if (missing.length > 0) {
+                    log(`[${uid}] missing: ${missing.length}`);
+                }
+                if (extra.length > 0) {
+                    log(`[${uid}] extra: ${extra.length}`);
+                }
+
+                for (let cid of missing) {
+                    await fastCounters.onAddDialog(ctx, uid, cid);
+                }
+
+                for (let cid of extra) {
+                    fastCounters.onRemoveDialog(ctx, uid, cid);
+                }
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {

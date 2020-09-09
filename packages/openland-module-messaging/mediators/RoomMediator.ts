@@ -215,14 +215,14 @@ export class RoomMediator {
 
             // Permissions
             // TODO: Implement better
-            let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
-            if (!isSuperAdmin && !(await this.repo.isActiveMember(ctx, uid, cid))) {
-                throw new UserError('You are not member of a room');
-            }
-            let existingMembership = await this.repo.findMembershipStatus(ctx, kickedUid, cid);
-            if (!existingMembership || existingMembership.status !== 'joined') {
-                throw new UserError('User are not member of a room');
-            }
+            // let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
+            // if (!isSuperAdmin && !(await this.repo.isActiveMember(ctx, uid, cid))) {
+            //     throw new UserError('You are not member of a room');
+            // }
+            // let existingMembership = await this.repo.findMembershipStatus(ctx, kickedUid, cid);
+            // if (!existingMembership || existingMembership.status !== 'joined') {
+            //     throw new UserError('User are not member of a room');
+            // }
 
             let canKick = await this.canKickFromRoom(ctx, cid, uid, kickedUid);
             if (!canKick) {

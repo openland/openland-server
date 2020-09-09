@@ -206,6 +206,7 @@ extend type Mutation {
     debugFixReadSeqs: Boolean!
     debugExportUsers: Boolean!
     debugMigrateUserStatus: Boolean!
+    debugFixFastCounters: Boolean!
 }
 
 extend type Subscription {
