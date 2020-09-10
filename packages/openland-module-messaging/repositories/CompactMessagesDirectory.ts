@@ -1,4 +1,4 @@
-import { encoders, getTransaction, inTx, Subspace, TupleItem } from '@openland/foundationdb';
+import { encoders, inTx, Subspace, TupleItem } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { BufferReader, BufferWriter } from '../../openland-utils/buffer';
 
@@ -80,13 +80,9 @@ export class CompactMessagesDirectory {
     }
 
     get = async (parent: Context, cid: number, from: number) => {
-        let tx = getTransaction(parent).rawTransaction(this.directory.db);
-
         let bucketNo = Math.ceil(from / this.bucketSize);
-        let fromBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack([cid, bucketNo])]);
-        let toBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack([cid + 1])]);
-        let batches = await tx.getRangeAll(fromBuffer, toBuffer);
-        let all = batches.map(v => unpackBucket(v[1])).flat();
+        let batches = await this.directory.range(parent, [cid], { after: [cid, bucketNo - 1] });
+        let all = batches.map(v => unpackBucket(v.value)).flat();
 
         return all.filter(msg => msg.seq >= from);
     }
