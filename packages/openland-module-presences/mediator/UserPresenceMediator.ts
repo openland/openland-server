@@ -22,7 +22,7 @@ function convertOnlineStatus(src: PresenceType, uid: number): UserOnlineStatus {
         if (src.lastSeen.timeout < now) {
             res = { type: 'last-seen', lastseen: src.lastSeen.date, uid };
         } else {
-            res = { type: 'online', active: (src.lastActive && src.lastActive.timeout < now) ? true : false, timeout: src.lastSeen.timeout, uid };
+            res = { type: 'online', active: (src.lastActive && src.lastActive.timeout > now) || false, timeout: src.lastSeen.timeout, uid };
         }
     } else {
         res = { type: 'never-online', uid };
