@@ -21,6 +21,10 @@ import { SocialImageRepository } from './repositories/SocialImageRepository';
 import { DonationsMediator } from './mediators/DonationsMediator';
 import { FastCountersRepository } from './repositories/FastCountersRepository';
 import { FastCountersMediator } from './mediators/FastCountersMediator';
+import { PrecalculatedCounterProvider } from './counters/PrecalculatedCounterProvider';
+import { OnReadCounterProvider } from './counters/OnReadCounterProvider';
+import { ExperimentalCountersRepository } from './repositories/ExperimentalCountersRepository';
+import { ExperimentalCountersProvider } from './counters/ExperimentalCountersProvider';
 
 export function loadMessagingModule() {
     container.bind(MessagingModule).toSelf().inSingletonScope();
@@ -45,4 +49,8 @@ export function loadMessagingModule() {
     container.bind('DonationsMediator').to(DonationsMediator).inSingletonScope();
     container.bind('FastCountersRepository').to(FastCountersRepository).inSingletonScope();
     container.bind('FastCountersMediator').to(FastCountersMediator).inSingletonScope();
+    container.bind('PrecalculatedCounterProvider').to(PrecalculatedCounterProvider).inSingletonScope();
+    container.bind('OnReadCounterProvider').to(OnReadCounterProvider).inSingletonScope();
+    container.bind('ExperimentalCountersRepository').to(ExperimentalCountersRepository).inSingletonScope();
+    container.bind('ExperimentalCountersProvider').to(ExperimentalCountersProvider).inSingletonScope();
 }

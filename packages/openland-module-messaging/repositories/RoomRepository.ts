@@ -23,6 +23,7 @@ import { createWelcomeMessageWorker } from '../workers/welcomeMessageWorker';
 import { DeliveryMediator } from '../mediators/DeliveryMediator';
 import { UserChatsRepository } from './UserChatsRepository';
 import { FastCountersMediator } from '../mediators/FastCountersMediator';
+import { ExperimentalCountersRepository } from './ExperimentalCountersRepository';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -51,6 +52,9 @@ export class RoomRepository {
 
     @lazyInject('FastCountersMediator')
     readonly fastCounters!: FastCountersMediator;
+
+    @lazyInject('ExperimentalCountersRepository')
+    readonly experimentalCounters!: ExperimentalCountersRepository;
 
     public readonly welcomeMessageWorker = createWelcomeMessageWorker();
     private membersCache = new ExpiringCache<number[]>({ timeout: 15 * 60 * 1000 });
@@ -546,9 +550,11 @@ export class RoomRepository {
             dir.set(ctx, [cid, uid], false);
             this.userChats.addChat(ctx, uid, cid);
             await this.fastCounters.onAddDialog(ctx, uid, cid);
+            await this.experimentalCounters.onAddDialog(ctx, uid, cid);
         } else {
             this.userChats.removeChat(ctx, uid, cid);
             this.fastCounters.onRemoveDialog(ctx, uid, cid);
+            this.experimentalCounters.onRemoveDialog(ctx, uid, cid);
             dir.clear(ctx, [cid, uid]);
         }
     }
@@ -675,6 +681,8 @@ export class RoomRepository {
                 this.metrics.onChatCreated(ctx, uid2);
                 await this.fastCounters.onAddDialog(ctx, uid1, conv.id);
                 await this.fastCounters.onAddDialog(ctx, uid2, conv.id);
+                await this.experimentalCounters.onAddDialog(ctx, uid1, conv.id);
+                await this.experimentalCounters.onAddDialog(ctx, uid2, conv.id);
                 await conv.flush(ctx);
             }
             return (await Store.Conversation.findById(ctx, conv.id))!;

@@ -387,7 +387,7 @@ export const Resolver: GQLResolver = {
         },
         unreadCount: async (src: number | { uid: number, counter: number }, args: {}, ctx: Context) => {
             if (typeof src === 'number') {
-                return Modules.Messaging.fetchUserGlobalCounter(ctx, src);
+                return Modules.Messaging.counters.fetchUserGlobalCounter(ctx, src);
             } else {
                 return src.counter;
             }

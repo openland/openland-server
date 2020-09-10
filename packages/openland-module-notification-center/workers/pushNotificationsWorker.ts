@@ -116,7 +116,7 @@ async function handleNotification(ctx: Context, uid: number, settings: UserSetti
         title: title,
         body: pushBody,
         picture: null,
-        counter: await Modules.Messaging.fetchUserGlobalCounter(ctx, uid),
+        counter: await Modules.Messaging.counters.fetchUserGlobalCounter(ctx, uid),
         conversationId: null,
         deepLink: null,
         mobile: sendMobile,

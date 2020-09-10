@@ -202,7 +202,7 @@ const handleUser = async (root: Context, uid: number) =>  {
 
     let [updates, unreadCounter] = await Promise.all([
         eventsFind(ctx, Store.UserDialogEventStore, [uid], { afterCursor: state.lastPushCursor || '', limit: 25 }),
-        Modules.Messaging.fetchUserGlobalCounter(ctx, uid)
+        Modules.Messaging.counters.fetchUserGlobalCounter(ctx, uid)
     ]);
 
     let messages = updates.items

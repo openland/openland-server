@@ -879,6 +879,7 @@ export default declareSchema(() => {
     customDirectory('UserCountersIndex');
 
     customDirectory('FastCounters');
+    customDirectory('ExperimentalCounters');
 
     entity('UserDialogHandledMessage', () => {
         primaryKey('uid', integer());

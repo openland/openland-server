@@ -75,7 +75,7 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
         }
     }
     if (push.mobile) {
-        let unread = await Modules.Messaging.fetchUserGlobalCounter(ctx, push.uid);
+        let unread = await Modules.Messaging.counters.fetchUserGlobalCounter(ctx, push.uid);
         if (await Modules.Wallet.isLocked(ctx, push.uid)) {
             unread++;
         }
