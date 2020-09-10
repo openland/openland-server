@@ -293,6 +293,27 @@ export const Resolver: GQLResolver = {
         debugGetCounters: withPermission('super-admin', async (ctx, args) => {
             return JSON.stringify(await Modules.Messaging.counters.fetchUserCounters(ctx, ctx.auth.uid!));
         }),
+        debugExperimentalCounter: withPermission('super-admin', async (ctx, args) => {
+            let counters = new ExperimentalCountersRepository();
+            let cid = IDs.Conversation.parse(args.cid);
+            let uid = ctx.auth.uid!;
+
+            let userReadSeq = await counters.userReadSeqsSubspace.get(ctx, [uid, cid]);
+            let messages = await counters.messages.get(ctx, cid, userReadSeq! + 1);
+            let messagesFiltered = messages.filter(m => m.uid !== uid && !m.hiddenFor.includes(uid));
+            let unreadCounter = messages.length;
+            let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
+
+            return JSON.stringify({
+                cid,
+                uid,
+                chatLastSeq,
+                userReadSeq,
+                messages,
+                messagesFiltered,
+                unreadCounter
+            });
+        }),
     },
     Mutation: {
         debugSendSMS: withPermission('super-admin', async (ctx, args) => {

@@ -101,6 +101,7 @@ extend type Query {
     debugMentionSearch(query: String!, first: Int!, index: String!): String!
     debugMentionSearchGetUserData(cid: ID!): String!
     debugGetCounters: String!
+    debugExperimentalCounter(cid: ID!): String!
 }
 
 enum SuperNotificationType {
