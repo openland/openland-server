@@ -2234,6 +2234,50 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
+        debugFixCompactMessages: withPermission('super-admin', async (parent, args) => {
+            debugSubspaceIterator<MessageShape>(Store.Message.descriptor.subspace, parent.auth.uid!, 'debugFixCompactMessages', async (next, log) => {
+                let experimentalCounters = new ExperimentalCountersRepository();
+                let res: { key: TupleItem[], value: MessageShape }[] = [];
+                let total = 0;
+
+                const handleMessage = async (ctx: Context, id: number) => {
+                    let message = await Store.Message.findById(ctx, id);
+                    if (!message) {
+                        return;
+                    }
+                    let cid = message.cid;
+                    let seq = message.seq!;
+
+                    if (message.deleted) {
+                        return;
+                    }
+
+                    let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
+                    if (seq > chatLastSeq) {
+                        await experimentalCounters.messages.remove(ctx, cid, seq);
+                    }
+                };
+
+                do {
+                    res = await next(parent, 99);
+                    total += res.length;
+
+                    try {
+                        await inTx(parent, async ctx => {
+                            await Promise.all(res.map(msg => handleMessage(ctx, msg.value.id)));
+                        });
+                        if (total % 9900 === 0) {
+                            await log('done: ' + total);
+                        }
+                    } catch (e) {
+                        await log('error: ' + e);
+                    }
+                } while (res.length > 0);
+
+                return 'done, total: ' + total;
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {
