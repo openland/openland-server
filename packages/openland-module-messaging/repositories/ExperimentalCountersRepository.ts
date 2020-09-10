@@ -9,6 +9,8 @@ import { AsyncLock } from '../../openland-utils/timer';
 const PREFIX_COMACT_MESSAGES = 1;
 const PREFIX_USER_READ_SEQS = 2;
 
+const ALL_MENTION_UID = 0;
+
 const countersCache = new TransactionCache<{ cid: number, unreadCounter: number, haveMention: boolean }[]>('exp-chat-counters-cache');
 const globalCounterCache = new TransactionCache<number>('exp-global-counter-cache');
 
@@ -59,7 +61,7 @@ export class ExperimentalCountersRepository {
         await this.messages.add(ctx, cid, {
             uid,
             seq,
-            mentions: mentionedUsers.map(m => m === 'all' ? 0 : m),
+            mentions: mentionedUsers.map(m => m === 'all' ? ALL_MENTION_UID : m),
             hiddenFor: hiddenForUsers
         });
     }
@@ -75,7 +77,7 @@ export class ExperimentalCountersRepository {
         await this.messages.add(ctx, cid, {
             uid,
             seq,
-            mentions: mentionedUsers.map(m => m === 'all' ? 0 : m),
+            mentions: mentionedUsers.map(m => m === 'all' ? ALL_MENTION_UID : m),
             hiddenFor: hiddenForUsers
         });
     }
@@ -164,7 +166,7 @@ export class ExperimentalCountersRepository {
         messages = messages.filter(m => m.uid !== uid && !m.hiddenFor.includes(uid));
 
         let unreadCounter = messages.length;
-        let haveMention = messages.some(m => m.mentions.includes(0) || m.mentions.includes(uid));
+        let haveMention = messages.some(m => m.mentions.includes(ALL_MENTION_UID) || m.mentions.includes(uid));
 
         return {cid, unreadCounter, haveMention};
     }
