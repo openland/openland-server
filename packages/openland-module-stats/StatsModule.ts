@@ -151,10 +151,10 @@ export class StatsModule {
 
     getUnreadGroupsByUserId = async (ctx: Context, uid: number, first: number): Promise<UnreadGroups> => {
         const dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
-        const unreadMessagesCount = await Modules.Messaging.fetchUserUnreadMessagesCount(ctx, uid);
+        const unreadMessagesCount = await Modules.Messaging.counters.fetchUserUnreadMessagesCount(ctx, uid);
         const withUnreadCount = await Promise.all(
             dialogs.map(async dialog => {
-                const unreadCount = await Modules.Messaging.fetchUserUnreadInChat(ctx, uid, dialog.cid);
+                const unreadCount = await Modules.Messaging.counters.fetchUserUnreadInChat(ctx, uid, dialog.cid);
                 const conv = (await Store.Conversation.findById(ctx, dialog.cid));
 
                 if (!conv) {

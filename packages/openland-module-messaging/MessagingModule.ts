@@ -22,6 +22,8 @@ import { PremiumChatMediator } from './mediators/PremiumChatMediator';
 import { SocialImageRepository } from './repositories/SocialImageRepository';
 import { DonationsMediator } from './mediators/DonationsMediator';
 import { Modules } from '../openland-modules/Modules';
+import { CounterProvider } from './counters/CounterProvider';
+import { ExperimentalCountersProvider } from './counters/ExperimentalCountersProvider';
 
 export const USE_NEW_COUNTERS = true;
 
@@ -34,6 +36,7 @@ export class MessagingModule {
     readonly fixer: FixerRepository;
     readonly needNotificationDelivery: NeedNotificationDeliveryRepository;
     readonly delivery: DeliveryMediator;
+    readonly counters: CounterProvider = new ExperimentalCountersProvider();
     private readonly messaging: MessagingMediator;
     private readonly augmentation: AugmentationMediator;
     private readonly userState: UserStateRepository;

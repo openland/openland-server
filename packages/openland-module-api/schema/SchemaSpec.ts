@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '3097301a6c4f132f946a9f67a32fc008';
+export const GQL_SPEC_VERSION = 'dc16c233a003da019b588e0e599ad6de';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2282,6 +2282,9 @@ export namespace GQL {
         debugFixReadSeqs: boolean;
         debugExportUsers: boolean;
         debugMigrateUserStatus: boolean;
+        debugFixFastCounters: boolean;
+        debugMigrateToExperimentalCounters: boolean;
+        debugFixCompactMessages: boolean;
         settingsUpdate: Settings;
         sendEmailPairCode: string;
         pairEmail: boolean;
@@ -2818,6 +2821,9 @@ export namespace GQL {
     export interface MutationDebugFixReadSeqsArgs { }
     export interface MutationDebugExportUsersArgs { }
     export interface MutationDebugMigrateUserStatusArgs { }
+    export interface MutationDebugFixFastCountersArgs { }
+    export interface MutationDebugMigrateToExperimentalCountersArgs { }
+    export interface MutationDebugFixCompactMessagesArgs { }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
         uid: OptionalNullable<string>;
@@ -4193,6 +4199,7 @@ export namespace GQL {
         debugMentionSearch: string;
         debugMentionSearchGetUserData: string;
         debugGetCounters: string;
+        debugExperimentalCounter: string;
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
@@ -4436,6 +4443,9 @@ export namespace GQL {
         cid: string;
     }
     export interface QueryDebugGetCountersArgs { }
+    export interface QueryDebugExperimentalCounterArgs {
+        cid: string;
+    }
     export interface QueryDialogsArgs {
         first: number;
         after: OptionalNullable<string>;
@@ -8958,6 +8968,9 @@ export interface GQLResolver {
             debugFixReadSeqs: GQL.MutationDebugFixReadSeqsArgs,
             debugExportUsers: GQL.MutationDebugExportUsersArgs,
             debugMigrateUserStatus: GQL.MutationDebugMigrateUserStatusArgs,
+            debugFixFastCounters: GQL.MutationDebugFixFastCountersArgs,
+            debugMigrateToExperimentalCounters: GQL.MutationDebugMigrateToExperimentalCountersArgs,
+            debugFixCompactMessages: GQL.MutationDebugFixCompactMessagesArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailPairCode: GQL.MutationSendEmailPairCodeArgs,
             pairEmail: GQL.MutationPairEmailArgs,
@@ -9909,6 +9922,7 @@ export interface GQLResolver {
             debugMentionSearch: GQL.QueryDebugMentionSearchArgs,
             debugMentionSearchGetUserData: GQL.QueryDebugMentionSearchGetUserDataArgs,
             debugGetCounters: GQL.QueryDebugGetCountersArgs,
+            debugExperimentalCounter: GQL.QueryDebugExperimentalCounterArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
             authPoints: GQL.QueryAuthPointsArgs,

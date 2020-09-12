@@ -19,6 +19,7 @@ import { MentionNotificationsMediator } from './MentionNotificationsMediator';
 import { DonationsMediator } from './DonationsMediator';
 import { Message } from '../../openland-module-db/store';
 import { FastCountersMediator } from './FastCountersMediator';
+import { ExperimentalCountersRepository } from '../repositories/ExperimentalCountersRepository';
 
 const trace = createTracer('messaging');
 const linkifyInstance = createLinkifyInstance();
@@ -52,6 +53,8 @@ export class MessagingMediator {
     private readonly donations!: DonationsMediator;
     @lazyInject('FastCountersMediator')
     readonly fastCounters!: FastCountersMediator;
+    @lazyInject('ExperimentalCountersRepository')
+    readonly experimentalCounters!: ExperimentalCountersRepository;
 
     sendMessage = async (parent: Context, uid: number, cid: number, message: MessageInput, skipAccessCheck?: boolean) => {
         return trace.trace(parent, 'sendMessage', async (ctx2) => await inTx(ctx2, async (ctx) => {
@@ -158,6 +161,7 @@ export class MessagingMediator {
             // Fast mentions
             if (res.message.seq) {
                 await this.fastCounters.onMessageCreated(ctx, uid, cid, res.message.seq, fetchMessageMentions(res.message), res.message.hiddenForUids || []);
+                await this.experimentalCounters.onMessageCreated(ctx, uid, cid, res.message.seq, fetchMessageMentions(res.message), res.message.hiddenForUids || []);
             }
 
             // Mentions
@@ -252,6 +256,7 @@ export class MessagingMediator {
             if (message.seq) {
                 let newMentions = fetchMessageMentions(message);
                 await this.fastCounters.onMessageEdited(ctx, message.cid, message.seq, oldMentions, newMentions);
+                await this.experimentalCounters.onMessageEdited(ctx, message.cid, message.uid, message.seq, newMentions, message.hiddenForUids || []);
             }
 
             // Mentions
@@ -313,6 +318,7 @@ export class MessagingMediator {
             // Fast counters
             if (message.seq) {
                 await this.fastCounters.onMessageDeleted(ctx, message.cid, message.seq, fetchMessageMentions(message), message.hiddenForUids || []);
+                await this.experimentalCounters.onMessageDeleted(ctx, message.cid, message.seq);
             }
 
             // cancel payment if it is not success/canceled
@@ -347,6 +353,7 @@ export class MessagingMediator {
             // Fast counters
             if (msg.seq) {
                 this.fastCounters.onMessageRead(ctx, uid, cid, msg.seq);
+                this.experimentalCounters.onMessageRead(ctx, uid, cid, msg.seq);
             }
         });
     }

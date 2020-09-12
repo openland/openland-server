@@ -156,7 +156,6 @@ export class FastCountersRepository {
         }));
         countersCache.set(ctx, 'counters', counters);
         Metrics.AllCountersResolveTime.report(Date.now() - start);
-
         return counters;
     }
 

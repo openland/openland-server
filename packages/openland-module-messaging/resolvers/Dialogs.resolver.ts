@@ -113,7 +113,7 @@ export const Resolver: GQLResolver = {
             }
             allDialogs = allDialogs.slice(0, args.first);
 
-            let counters = await Modules.Messaging.fetchUserCountersForChats(ctx, uid, allDialogs.map(d => d.cid));
+            let counters = await Modules.Messaging.counters.fetchUserCountersForChats(ctx, uid, allDialogs.map(d => d.cid), true);
             let items = allDialogs.map(dialog => {
                 let counter = counters.find(c => c.cid === dialog.cid) || {unreadCounter: 0, haveMention: false};
                 return {
