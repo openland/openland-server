@@ -121,10 +121,10 @@ export const Resolver: GQLResolver = {
                 if (args.input.about !== undefined) {
                     profile.about = Sanitizer.sanitizeString(args.input.about);
                 }
-                if (args.input.applyLink !== null) {
+                if (args.input.applyLink !== undefined) {
                     profile.applyLink = args.input.applyLink;
                 }
-                if (args.input.applyLinkEnabled !== null) {
+                if (args.input.applyLinkEnabled !== undefined) {
                     profile.applyLinkEnabled = args.input.applyLinkEnabled;
                 }
                 if (args.input.alphaIsPrivate !== undefined && (isMemberOwner || isSuper)) {

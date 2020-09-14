@@ -304,8 +304,8 @@ export const Resolver: GQLResolver = {
         }),
         serviceMessageSettings: withConverationId(async (ctx, id) => {
             return {
-                joinsMessageEnabled: await Modules.Messaging.room.shouldSendLeaveMessage(ctx, id),
-                leavesMessageEnabled: await Modules.Messaging.room.shouldSendJoinMessage(ctx, id),
+                joinsMessageEnabled: await Modules.Messaging.room.shouldSendJoinMessage(ctx, id),
+                leavesMessageEnabled: await Modules.Messaging.room.shouldSendLeaveMessage(ctx, id),
             };
         }),
         featured: withConverationId(async (ctx, id) => {
