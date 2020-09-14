@@ -6,6 +6,7 @@ import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { Store } from 'openland-module-db/FDB';
 import { BaseEvent } from '@openland/foundationdb-entity';
 import { Modules } from '../../openland-modules/Modules';
+import { delay } from '../../openland-utils/timer';
 
 @injectable()
 export class UserStateRepository {
@@ -186,6 +187,7 @@ export class UserStateRepository {
             let res = await stream.next(parent);
             if (res.length > 0) {
                 yield  {items: this.zipUserDialogEventsModern(res as any), cursor: stream.cursor};
+                await delay(100);
             } else {
                 return;
             }
