@@ -247,6 +247,7 @@ export class RoomRepository {
 
             let updatedTitle = false;
             let updatedPhoto = false;
+            let kindChanged = false;
 
             if (profile.title) {
                 let res = profile.title.trim();
@@ -302,6 +303,8 @@ export class RoomRepository {
                 let room = await Store.ConversationRoom.findById(ctx, cid);
                 room!.kind = profile.kind!;
                 room!.listed = profile.kind === 'public' && room!.listed;
+
+                kindChanged = true;
             }
 
             if (profile.repliesEnabled !== undefined && profile.repliesEnabled !== null) {
@@ -320,7 +323,7 @@ export class RoomRepository {
 
             await conv.flush(ctx);
 
-            return { updatedTitle, updatedPhoto };
+            return { updatedTitle, updatedPhoto, kindChanged };
         });
     }
 
@@ -1258,13 +1261,6 @@ export class RoomRepository {
 
             return [...availableRooms];
         });
-    }
-
-    markConversationAsUpdated(ctx: Context, cid: number, uid: number) {
-        Store.ConversationEventStore.post(ctx, cid, ChatUpdatedEvent.create({
-            cid,
-            uid
-        }));
     }
 
     //

@@ -149,6 +149,15 @@ export class DeliveryMediator {
         });
     }
 
+    onDialogPeerUpdate = async (parent: Context, cid: number) => {
+        await inTx(parent, async (ctx) => {
+            let members = await this.room.findConversationMembers(ctx, cid);
+            for (let m of members) {
+                await this.repo.deliverDialogPeerUpdatedToUser(ctx, m, cid);
+            }
+        });
+    }
+
     onUserProfileUpdated = async (parent: Context, uid: number) => {
         return inTx(parent, async ctx => {
             let dialogs = [
