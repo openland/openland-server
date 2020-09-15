@@ -79,7 +79,7 @@ export class RoomRepository {
                 image: profile.image,
                 description: profile.description,
                 socialImage: profile.socialImage,
-                repliesDisabled: !profile.repliesEnabled
+                repliesDisabled: false
             });
             if (price) {
                 await Store.PremiumChatSettings.create(ctx, id, {
