@@ -12,6 +12,7 @@ type OrganizationProfile {
     instagram: String
     contacts: [OrganizationContact!]!
     location: String
+    socialImage: String
 
     alphaPublished: Boolean!
     alphaEditorial: Boolean!
@@ -32,6 +33,7 @@ input CreateOrganizationInput {
     website: String
     personal: Boolean!
     photoRef: ImageRefInput
+    socialImageRef: ImageRefInput
     about: String
     isCommunity: Boolean
     isPrivate: Boolean
@@ -53,6 +55,7 @@ input UpdateOrganizationProfileInput {
     instagram: String
     location: String
     contacts: [ContactPersonInput!]
+    socialImageRef: ImageRefInput
 
     alphaPublished: Boolean
     alphaEditorial: Boolean

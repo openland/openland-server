@@ -210,6 +210,7 @@ export default declareSchema(() => {
         field('linkedin', optional(string()));
         field('instagram', optional(string()));
         field('website', optional(string()));
+        field('socialImage', optional(ImageRef));
 
         field('applyLink', optional(string()));
         field('applyLinkEnabled', optional(boolean()));

@@ -6,6 +6,7 @@ export interface OrganizatinProfileInput {
     website?: string | null | undefined;
     personal?: boolean | null | undefined;
     photoRef?: ImageRef | null | undefined;
+    socialImageRef?: ImageRef | null | undefined;
     about?: string | null | undefined;
     isCommunity?: boolean | null | undefined;
     isPrivate?: boolean | null | undefined;

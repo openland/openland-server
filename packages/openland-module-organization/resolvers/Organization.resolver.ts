@@ -89,6 +89,10 @@ export const Resolver: GQLResolver = {
         owner: async (src: Organization) => src.ownerId,
         applyLink: async (src, args, ctx) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.applyLink,
         applyLinkEnabled: async (src, args, ctx) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.applyLinkEnabled || false,
+        socialImage: async (src, args, ctx) => {
+            let profile = await Store.OrganizationProfile.findById(ctx, src.id);
+            return profile ? buildBaseImageUrl(profile.socialImage) : null;
+        }
     },
     Query: {
         myOrganizations: async (_: any, args: {}, ctx: Context) => {

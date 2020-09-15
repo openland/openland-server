@@ -447,6 +447,14 @@ export class RoomMediator {
             if (res.updatedPhoto || res.updatedTitle) {
                 await this.socialImage.onRoomUpdated(ctx, cid);
             }
+            if (res.kindChanged) {
+                await this.delivery.onDialogPeerUpdate(parent, cid);
+                this.markConversationAsUpdated(ctx, cid, uid);
+            }
+            if (res.repliesUpdated) {
+                this.markConversationAsUpdated(ctx, cid, uid);
+            }
+            
             return (await Store.Conversation.findById(ctx, cid))!;
         });
     }
@@ -644,7 +652,13 @@ export class RoomMediator {
     }
 
     async setFeatured(ctx: Context, cid: number, featued: boolean) {
-        return await this.repo.setFeatured(ctx, cid, featued);
+        let conv = await this.repo.setFeatured(ctx, cid, featued);
+
+        // deliver updates
+        await this.delivery.onDialogPeerUpdate(ctx, cid);
+        await this.markConversationAsUpdated(ctx, cid, ctx.auth.uid!);
+
+        return conv;
     }
 
     async setListed(ctx: Context, cid: number, listed: boolean) {
