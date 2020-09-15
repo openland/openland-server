@@ -248,6 +248,7 @@ export class RoomRepository {
             let updatedTitle = false;
             let updatedPhoto = false;
             let kindChanged = false;
+            let repliesUpdated = false;
 
             if (profile.title) {
                 let res = profile.title.trim();
@@ -309,6 +310,8 @@ export class RoomRepository {
 
             if (profile.repliesEnabled !== undefined && profile.repliesEnabled !== null) {
                 conv.repliesDisabled = !profile.repliesEnabled;
+
+                repliesUpdated = true;
             }
 
             if (profile.callSettings) {
@@ -323,7 +326,7 @@ export class RoomRepository {
 
             await conv.flush(ctx);
 
-            return { updatedTitle, updatedPhoto, kindChanged };
+            return { updatedTitle, updatedPhoto, kindChanged, repliesUpdated };
         });
     }
 

@@ -447,10 +447,14 @@ export class RoomMediator {
             if (res.updatedPhoto || res.updatedTitle) {
                 await this.socialImage.onRoomUpdated(ctx, cid);
             }
-            if (res.kindChanged && !res.updatedTitle && !res.updatedPhoto) {
+            if (res.kindChanged) {
                 await this.delivery.onDialogPeerUpdate(parent, cid);
                 this.markConversationAsUpdated(ctx, cid, uid);
             }
+            if (res.repliesUpdated) {
+                this.markConversationAsUpdated(ctx, cid, uid);
+            }
+            
             return (await Store.Conversation.findById(ctx, cid))!;
         });
     }
