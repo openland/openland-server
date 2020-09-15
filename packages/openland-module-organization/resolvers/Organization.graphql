@@ -30,6 +30,7 @@ type Organization {
     owner: User!
     applyLinkEnabled: Boolean!
     applyLink: String
+    socialImage: String
 
     ## Refactor?
     superAccountId: ID!

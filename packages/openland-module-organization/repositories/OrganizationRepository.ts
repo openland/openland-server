@@ -52,6 +52,7 @@ export class OrganizationRepository {
                 name: Sanitizer.sanitizeString(input.name)!,
                 website: Sanitizer.sanitizeString(input.website),
                 photo: Sanitizer.sanitizeImageRef(input.photoRef),
+                socialImage: Sanitizer.sanitizeImageRef(input.socialImageRef),
                 about: Sanitizer.sanitizeString(input.about),
                 twitter: null,
                 facebook: null,

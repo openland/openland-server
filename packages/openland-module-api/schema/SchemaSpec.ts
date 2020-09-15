@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'dc16c233a003da019b588e0e599ad6de';
+export const GQL_SPEC_VERSION = '206a8f250effdcfa2b9a67dfc67ef51e';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3837,6 +3837,7 @@ export namespace GQL {
         owner: User;
         applyLinkEnabled: boolean;
         applyLink: Nullable<string>;
+        socialImage: Nullable<string>;
         superAccountId: string;
         alphaIsOwner: boolean;
         alphaOrganizationMembers: OrganizationJoinedMember[];
@@ -3873,6 +3874,7 @@ export namespace GQL {
     export interface OrganizationOwnerArgs { }
     export interface OrganizationApplyLinkEnabledArgs { }
     export interface OrganizationApplyLinkArgs { }
+    export interface OrganizationSocialImageArgs { }
     export interface OrganizationSuperAccountIdArgs { }
     export interface OrganizationAlphaIsOwnerArgs { }
     export interface OrganizationAlphaOrganizationMembersArgs {
@@ -3908,6 +3910,7 @@ export namespace GQL {
         instagram: Nullable<string>;
         contacts: OrganizationContact[];
         location: Nullable<string>;
+        socialImage: Nullable<string>;
         alphaPublished: boolean;
         alphaEditorial: boolean;
         alphaFeatured: boolean;
@@ -3931,6 +3934,7 @@ export namespace GQL {
     export interface OrganizationProfileInstagramArgs { }
     export interface OrganizationProfileContactsArgs { }
     export interface OrganizationProfileLocationArgs { }
+    export interface OrganizationProfileSocialImageArgs { }
     export interface OrganizationProfileAlphaPublishedArgs { }
     export interface OrganizationProfileAlphaEditorialArgs { }
     export interface OrganizationProfileAlphaFeaturedArgs { }
@@ -3947,6 +3951,7 @@ export namespace GQL {
         website: Nullable<string>;
         personal: boolean;
         photoRef: Nullable<ImageRefInput>;
+        socialImageRef: Nullable<ImageRefInput>;
         about: Nullable<string>;
         isCommunity: Nullable<boolean>;
         isPrivate: Nullable<boolean>;
@@ -3966,6 +3971,7 @@ export namespace GQL {
         instagram: Nullable<string>;
         location: Nullable<string>;
         contacts: Nullable<ContactPersonInput[]>;
+        socialImageRef: Nullable<ImageRefInput>;
         alphaPublished: Nullable<boolean>;
         alphaEditorial: Nullable<boolean>;
         alphaFeatured: Nullable<boolean>;
@@ -9440,6 +9446,7 @@ export interface GQLResolver {
             owner: GQL.OrganizationOwnerArgs,
             applyLinkEnabled: GQL.OrganizationApplyLinkEnabledArgs,
             applyLink: GQL.OrganizationApplyLinkArgs,
+            socialImage: GQL.OrganizationSocialImageArgs,
             superAccountId: GQL.OrganizationSuperAccountIdArgs,
             alphaIsOwner: GQL.OrganizationAlphaIsOwnerArgs,
             alphaOrganizationMembers: GQL.OrganizationAlphaOrganizationMembersArgs,
@@ -9478,6 +9485,7 @@ export interface GQLResolver {
             instagram: GQL.OrganizationProfileInstagramArgs,
             contacts: GQL.OrganizationProfileContactsArgs,
             location: GQL.OrganizationProfileLocationArgs,
+            socialImage: GQL.OrganizationProfileSocialImageArgs,
             alphaPublished: GQL.OrganizationProfileAlphaPublishedArgs,
             alphaEditorial: GQL.OrganizationProfileAlphaEditorialArgs,
             alphaFeatured: GQL.OrganizationProfileAlphaFeaturedArgs,

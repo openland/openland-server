@@ -13,6 +13,7 @@ import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Organization } from 'openland-module-db/store';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { createLogger } from '@openland/log';
+import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
 
 const log = createLogger('organization_profile_resolver');
 
@@ -29,6 +30,10 @@ export const Resolver: GQLResolver = {
         facebook: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.facebook,
         linkedin: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.linkedin,
         instagram: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationProfile.findById(ctx, src.id)))!.instagram,
+        socialImage: async (src: Organization, args, ctx) => {
+            let profile = await Store.OrganizationProfile.findById(ctx, src.id);
+            return profile?.socialImage ? buildBaseImageUrl(profile.socialImage) : null;
+        },
 
         alphaPublished: async (src: Organization, args: {}, ctx: Context) => ((await Store.OrganizationEditorial.findById(ctx, src.id)))!.listed,
         alphaEditorial: (src: Organization) => src.editorial,
@@ -104,6 +109,13 @@ export const Resolver: GQLResolver = {
                         await Modules.Media.saveFile(ctx, args.input.photoRef.uuid);
                     }
                     profile.photo = Sanitizer.sanitizeImageRef(args.input.photoRef);
+                }
+
+                if (args.input.socialImageRef !== undefined) {
+                    if (args.input.socialImageRef !== null) {
+                        await Modules.Media.saveFile(ctx, args.input.socialImageRef.uuid);
+                    }
+                    profile.socialImage = Sanitizer.sanitizeImageRef(args.input.socialImageRef);
                 }
 
                 if (args.input.twitter !== undefined) {
