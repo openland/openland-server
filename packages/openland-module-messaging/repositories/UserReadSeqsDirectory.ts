@@ -16,7 +16,7 @@ export class UserReadSeqsDirectory {
         });
     }
 
-    onRemoveDialog = (parent: Context, uid: number, cid: number) => {
+    onRemoveDialog = async (parent: Context, uid: number, cid: number) => {
         return inTx(parent, async ctx => {
             this.directory.clear(ctx, [uid, cid]);
         });

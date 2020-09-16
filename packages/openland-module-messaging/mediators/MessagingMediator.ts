@@ -406,7 +406,7 @@ export class MessagingMediator {
             if (msg.seq) {
                 this.fastCounters.onMessageRead(ctx, uid, cid, msg.seq);
                 this.experimentalCounters.onMessageRead(ctx, uid, cid, msg.seq);
-                this.userReadSeqs.updateReadSeq(ctx, uid, cid, msg.seq);
+                await this.userReadSeqs.updateReadSeq(ctx, uid, cid, msg.seq);
             }
         });
     }

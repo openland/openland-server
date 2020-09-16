@@ -2176,17 +2176,17 @@ export const Resolver: GQLResolver = {
                     if (messageId === 0) {
                         fastCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], 0);
                         experimentalCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], 0);
-                        userReadSeqsDirectory.updateReadSeq(ctx, uid, d.cid, 0);
+                        await userReadSeqsDirectory.updateReadSeq(ctx, uid, d.cid, 0);
                     } else {
                         let message = await Store.Message.findById(ctx, messageId);
                         if (!message) {
                             fastCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], 0);
                             experimentalCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], 0);
-                            userReadSeqsDirectory.updateReadSeq(ctx, uid, d.cid, 0);
+                            await userReadSeqsDirectory.updateReadSeq(ctx, uid, d.cid, 0);
                         } else {
                             fastCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], message.seq!);
                             experimentalCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], message.seq!);
-                            userReadSeqsDirectory.updateReadSeq(ctx, uid, d.cid, message.seq!);
+                            await userReadSeqsDirectory.updateReadSeq(ctx, uid, d.cid, message.seq!);
                         }
                     }
                 }));
@@ -2205,7 +2205,7 @@ export const Resolver: GQLResolver = {
                         let chatLastSeq = await Store.ConversationLastSeq.get(ctx, d.cid);
                         fastCounters.onMessageRead(ctx, uid, d.cid, chatLastSeq);
                         experimentalCounters.onMessageRead(ctx, uid, d.cid, chatLastSeq);
-                        userReadSeqsDirectory.updateReadSeq(ctx, uid, d.cid, chatLastSeq);
+                        await userReadSeqsDirectory.updateReadSeq(ctx, uid, d.cid, chatLastSeq);
                     }
                 }));
             });
