@@ -22538,6 +22538,8 @@ export interface Store extends BaseStore {
     readonly UserCountersIndexDirectory: Subspace;
     readonly FastCountersDirectory: Subspace;
     readonly ExperimentalCountersDirectory: Subspace;
+    readonly NewCountersDirectory: Subspace;
+    readonly UserReadSeqsDirectory: Subspace;
     readonly UserDialogMuteSettingDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
@@ -22817,6 +22819,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserCountersIndexDirectoryPromise = storage.resolveCustomDirectory('userCountersIndex');
     let FastCountersDirectoryPromise = storage.resolveCustomDirectory('fastCounters');
     let ExperimentalCountersDirectoryPromise = storage.resolveCustomDirectory('experimentalCounters');
+    let NewCountersDirectoryPromise = storage.resolveCustomDirectory('newCounters');
+    let UserReadSeqsDirectoryPromise = storage.resolveCustomDirectory('userReadSeqs');
     let UserDialogMuteSettingDirectoryPromise = storage.resolveCustomDirectory('userDialogMuteSetting');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
@@ -23064,6 +23068,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserCountersIndexDirectory: await UserCountersIndexDirectoryPromise,
         FastCountersDirectory: await FastCountersDirectoryPromise,
         ExperimentalCountersDirectory: await ExperimentalCountersDirectoryPromise,
+        NewCountersDirectory: await NewCountersDirectoryPromise,
+        UserReadSeqsDirectory: await UserReadSeqsDirectoryPromise,
         UserDialogMuteSettingDirectory: await UserDialogMuteSettingDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,

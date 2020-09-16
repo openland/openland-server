@@ -25,6 +25,8 @@ import { PrecalculatedCounterProvider } from './counters/PrecalculatedCounterPro
 import { OnReadCounterProvider } from './counters/OnReadCounterProvider';
 import { ExperimentalCountersRepository } from './repositories/ExperimentalCountersRepository';
 import { ExperimentalCountersProvider } from './counters/ExperimentalCountersProvider';
+import { UserReadSeqsDirectory } from './repositories/UserReadSeqsDirectory';
+import { NewCountersRepository } from './repositories/NewCountersRepository';
 
 export function loadMessagingModule() {
     container.bind(MessagingModule).toSelf().inSingletonScope();
@@ -53,4 +55,6 @@ export function loadMessagingModule() {
     container.bind('OnReadCounterProvider').to(OnReadCounterProvider).inSingletonScope();
     container.bind('ExperimentalCountersRepository').to(ExperimentalCountersRepository).inSingletonScope();
     container.bind('ExperimentalCountersProvider').to(ExperimentalCountersProvider).inSingletonScope();
+    container.bind('UserReadSeqsDirectory').to(UserReadSeqsDirectory).inSingletonScope();
+    container.bind('NewCountersRepository').to(NewCountersRepository).inSingletonScope();
 }

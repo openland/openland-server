@@ -9,6 +9,7 @@ import { loadUsersModule } from '../../openland-module-users/UsersModule.contain
 import { FastCountersRepository } from './FastCountersRepository';
 import { FastCountersMediator } from '../mediators/FastCountersMediator';
 import { ExperimentalCountersRepository } from './ExperimentalCountersRepository';
+import { UserReadSeqsDirectory } from './UserReadSeqsDirectory';
 jest.mock('../mediators/DeliveryMediator', () => ({
     DeliveryMediator: jest.fn(() => {
         return {
@@ -26,6 +27,7 @@ describe('RoomRepository', () => {
         container.bind('FastCountersRepository').to(FastCountersRepository).inSingletonScope();
         container.bind('FastCountersMediator').to(FastCountersMediator).inSingletonScope();
         container.bind('ExperimentalCountersRepository').to(ExperimentalCountersRepository).inSingletonScope();
+        container.bind('UserReadSeqsDirectory').to(UserReadSeqsDirectory).inSingletonScope();
         container.bind(UsersModule).toSelf().inSingletonScope();
         loadUsersModule();
     });
