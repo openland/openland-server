@@ -266,6 +266,7 @@ export const Metrics = {
     // Counters
     GlobalCounterResolveTime: Factory.createSummary('global_counter_resolve_time', 'Summary of global counter fetch time', DEFAULT_QUANTILES),
     AllCountersResolveTime: Factory.createSummary('all_counters_resolve_time', 'Summary of all counters fetch time', DEFAULT_QUANTILES),
+    AllCountersResolveChatsCount: Factory.createSummary('all_counters_resolve_chats_count', 'Summary of chats count when fetching all counters', DEFAULT_QUANTILES),
     CountingDirectoryCountTime: Factory.createSummary('counting_directory_count_time', 'Summary of counting directory count time', DEFAULT_QUANTILES),
     CountingDirectoryBatchesRead: Factory.createSummary('counting_directory_batches_read', 'Summary of counting directory batches read', DEFAULT_QUANTILES)
 };

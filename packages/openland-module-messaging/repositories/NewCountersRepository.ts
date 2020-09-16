@@ -93,6 +93,7 @@ export class NewCountersRepository {
             }));
             countersCache.set(ctx, 'counters', counters);
             Metrics.AllCountersResolveTime.report(Date.now() - start);
+            Metrics.AllCountersResolveChatsCount.report(userReadSeqs.length);
             return counters;
         });
     }
