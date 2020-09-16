@@ -36,6 +36,14 @@ function fetchMessageMentions(message: Message) {
     return mentions;
 }
 
+const BAD_WORDS = [
+    'https://t.me/siliconpravdachat',
+    't.me/siliconpravdachat',
+    'siliconpravdachat',
+    'silicon pravda',
+    'siliconpravda'
+];
+
 @injectable()
 export class MessagingMediator {
 
@@ -68,6 +76,20 @@ export class MessagingMediator {
             // Check for bad words. Useful for debug.
             if (message.message === 'fuck') {
                 throw Error('');
+            }
+
+            if (message.message) {
+                for (let word of BAD_WORDS) {
+                    let index: number = 0;
+                    while ((index = message.message.toLowerCase().indexOf(word, index)) !== -1) {
+                        message.message = message.message?.slice(0, index)
+                            + word.split(' ').map(a => new Array(a.length + 1).join('*')).join(' ')
+                            + message.message?.slice(index + word.length);
+                        if (index === 0) {
+                            index++;
+                        }
+                    }
+                }
             }
 
             // Permissions
