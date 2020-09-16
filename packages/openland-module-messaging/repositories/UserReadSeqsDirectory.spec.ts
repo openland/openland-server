@@ -39,10 +39,10 @@ describe('UserReadSeqsDirectory', () => {
 
         // Remove dialogs
         await inTx(root, async ctx => {
-            dir.onRemoveDialog(ctx, 1, 1);
-            dir.onRemoveDialog(ctx, 1, 2);
-            dir.onRemoveDialog(ctx, 1, 3);
-            dir.onRemoveDialog(ctx, 1, 4);
+            await dir.onRemoveDialog(ctx, 1, 1);
+            await dir.onRemoveDialog(ctx, 1, 2);
+            await dir.onRemoveDialog(ctx, 1, 3);
+            await dir.onRemoveDialog(ctx, 1, 4);
         });
 
         await inTx(root, async ctx => {

@@ -566,7 +566,7 @@ export class RoomRepository {
             this.userChats.removeChat(ctx, uid, cid);
             this.fastCounters.onRemoveDialog(ctx, uid, cid);
             this.experimentalCounters.onRemoveDialog(ctx, uid, cid);
-            this.userReadSeqs.onRemoveDialog(ctx, uid, cid);
+            await this.userReadSeqs.onRemoveDialog(ctx, uid, cid);
             dir.clear(ctx, [cid, uid]);
         }
     }
