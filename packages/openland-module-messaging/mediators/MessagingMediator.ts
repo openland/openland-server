@@ -46,6 +46,34 @@ const BAD_WORDS = [
     'siliconpravda'
 ];
 
+const CENSORED_WORDS = [
+    'fuck', 'faggot',
+    'motherfucker',
+    'bitch'
+];
+
+function censor(text: string) {
+    let res = text;
+    for (let word of BAD_WORDS) {
+        let index: number = -1;
+        while ((index = text.toLowerCase().indexOf(word, index + 1)) !== -1) {
+            res = res.slice(0, index)
+                + word.split(' ').map(a => new Array(a.length + 1).join('*')).join(' ')
+                + res.slice(index + word.length);
+        }
+    }
+
+    for (let word of CENSORED_WORDS) {
+        let index: number = -1;
+        while ((index = text.toLowerCase().indexOf(word, index + 1)) !== -1) {
+            res = res.slice(0, index)
+                + word.split(' ').map(a => a[0] + new Array(a.length - 1).join('*') + a[a.length - 1]).join(' ')
+                + res.slice(index + word.length);
+        }
+    }
+    return res;
+}
+
 @injectable()
 export class MessagingMediator {
 
@@ -85,17 +113,7 @@ export class MessagingMediator {
             }
 
             if (message.message) {
-                for (let word of BAD_WORDS) {
-                    let index: number = 0;
-                    while ((index = message.message.toLowerCase().indexOf(word, index)) !== -1) {
-                        message.message = message.message?.slice(0, index)
-                            + word.split(' ').map(a => new Array(a.length + 1).join('*')).join(' ')
-                            + message.message?.slice(index + word.length);
-                        if (index === 0) {
-                            index++;
-                        }
-                    }
-                }
+                message.message = censor(message.message);
             }
 
             // Permissions
@@ -253,6 +271,8 @@ export class MessagingMediator {
             let spans: MessageSpan[] | null = null;
 
             if (newMessage.message) {
+                newMessage.message = censor(newMessage.message);
+
                 spans = newMessage.spans ? [...newMessage.spans] : [];
 
                 //
