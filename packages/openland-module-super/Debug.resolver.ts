@@ -38,6 +38,8 @@ import { UserChatsRepository } from '../openland-module-messaging/repositories/U
 import { FastCountersRepository } from '../openland-module-messaging/repositories/FastCountersRepository';
 import { MessageAttachmentFileInput } from '../openland-module-messaging/MessageInput';
 import { ExperimentalCountersRepository } from '../openland-module-messaging/repositories/ExperimentalCountersRepository';
+import { UserReadSeqsDirectory } from '../openland-module-messaging/repositories/UserReadSeqsDirectory';
+import { NewCountersRepository } from '../openland-module-messaging/repositories/NewCountersRepository';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -2096,9 +2098,74 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
+        debugMigrateToNewerCounters: withPermission('super-admin', async (parent, args) => {
+            debugSubspaceIterator<MessageShape>(Store.Message.descriptor.subspace, parent.auth.uid!, 'debugMigrateToNewCounters', async (next, log) => {
+                let newCounters = new NewCountersRepository();
+                let res: { key: TupleItem[], value: MessageShape }[] = [];
+                let total = 0;
+
+                function fetchMessageMentions(message: Message) {
+                    let mentions: number[] = [];
+                    for (let span of message.spans || []) {
+                        if (span.type === 'user_mention') {
+                            mentions.push(span.user);
+                        } else if (span.type === 'all_mention') {
+                            mentions.push(0);
+                        }
+                    }
+                    return mentions;
+                }
+
+                const handleMessage = async (ctx: Context, id: number) => {
+                    let message = await Store.Message.findById(ctx, id);
+                    if (!message) {
+                        return;
+                    }
+                    let cid = message.cid;
+                    let seq = message.seq!;
+
+                    let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
+                    if (seq > chatLastSeq) {
+                        return;
+                    }
+
+                    if (message.deleted) {
+                        await newCounters.messages.onMessageDelete(ctx, cid, seq);
+                    } else {
+                        await newCounters.messages.onNewMessage(ctx, cid, {
+                            seq,
+                            uid: message.uid,
+                            mentions: fetchMessageMentions(message),
+                            hiddenFor: message.hiddenForUids || [],
+                            deleted: false,
+                        });
+                    }
+                };
+
+                do {
+                    res = await next(parent, 99);
+                    total += res.length;
+
+                    try {
+                        await inTx(parent, async ctx => {
+                            await Promise.all(res.map(msg => handleMessage(ctx, msg.value.id)));
+                        });
+                        if (total % 9900 === 0) {
+                            await log('done: ' + total);
+                        }
+                    } catch (e) {
+                        await log('error: ' + e);
+                    }
+                } while (res.length > 0);
+
+                return 'done, total: ' + total;
+            });
+            return true;
+        }),
         debugMigrateToNewLastRead: withPermission('super-admin', async (parent, args) => {
             let fastCounters = new FastCountersRepository();
             let experimentalCounters = new ExperimentalCountersRepository();
+            let userReadSeqsDirectory = new UserReadSeqsDirectory();
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugMigrateToNewLastRead', async (ctx, uid, log) => {
                 let userDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
                 fastCounters.userReadSeqsSubspace.clearPrefixed(ctx, [uid]);
@@ -2109,14 +2176,17 @@ export const Resolver: GQLResolver = {
                     if (messageId === 0) {
                         fastCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], 0);
                         experimentalCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], 0);
+                        userReadSeqsDirectory.updateReadSeq(ctx, uid, d.cid, 0);
                     } else {
                         let message = await Store.Message.findById(ctx, messageId);
                         if (!message) {
                             fastCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], 0);
                             experimentalCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], 0);
+                            userReadSeqsDirectory.updateReadSeq(ctx, uid, d.cid, 0);
                         } else {
                             fastCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], message.seq!);
                             experimentalCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], message.seq!);
+                            userReadSeqsDirectory.updateReadSeq(ctx, uid, d.cid, message.seq!);
                         }
                     }
                 }));
@@ -2126,6 +2196,7 @@ export const Resolver: GQLResolver = {
         debugFixReadSeqs: withPermission('super-admin', async (parent, args) => {
             let fastCounters = new FastCountersRepository();
             let experimentalCounters = new ExperimentalCountersRepository();
+            let userReadSeqsDirectory = new UserReadSeqsDirectory();
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugFixReadSeqs', async (ctx, uid, log) => {
                 let userDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
                 await Promise.all(userDialogs.map(async d => {
@@ -2134,6 +2205,7 @@ export const Resolver: GQLResolver = {
                         let chatLastSeq = await Store.ConversationLastSeq.get(ctx, d.cid);
                         fastCounters.onMessageRead(ctx, uid, d.cid, chatLastSeq);
                         experimentalCounters.onMessageRead(ctx, uid, d.cid, chatLastSeq);
+                        userReadSeqsDirectory.updateReadSeq(ctx, uid, d.cid, chatLastSeq);
                     }
                 }));
             });

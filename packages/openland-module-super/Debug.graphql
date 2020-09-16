@@ -210,6 +210,7 @@ extend type Mutation {
     debugFixFastCounters: Boolean!
     debugMigrateToExperimentalCounters: Boolean!
     debugFixCompactMessages: Boolean!
+    debugMigrateToNewerCounters: Boolean!
 }
 
 extend type Subscription {

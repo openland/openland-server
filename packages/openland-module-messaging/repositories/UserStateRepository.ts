@@ -182,7 +182,7 @@ export class UserStateRepository {
         if (!state) {
             return;
         }
-        let stream = await Store.UserDialogEventStore.createStream(uid, {batchSize: 1000, after: state});
+        let stream = await Store.UserDialogEventStore.createStream(uid, {batchSize: 100, after: state});
         while (true) {
             let res = await stream.next(parent);
             if (res.length > 0) {

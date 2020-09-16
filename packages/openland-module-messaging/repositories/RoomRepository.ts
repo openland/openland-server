@@ -24,6 +24,7 @@ import { DeliveryMediator } from '../mediators/DeliveryMediator';
 import { UserChatsRepository } from './UserChatsRepository';
 import { FastCountersMediator } from '../mediators/FastCountersMediator';
 import { ExperimentalCountersRepository } from './ExperimentalCountersRepository';
+import { UserReadSeqsDirectory } from './UserReadSeqsDirectory';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -56,6 +57,9 @@ export class RoomRepository {
     @lazyInject('ExperimentalCountersRepository')
     readonly experimentalCounters!: ExperimentalCountersRepository;
 
+    @lazyInject('UserReadSeqsDirectory')
+    readonly userReadSeqs!: UserReadSeqsDirectory;
+
     public readonly welcomeMessageWorker = createWelcomeMessageWorker();
     private membersCache = new ExpiringCache<number[]>({ timeout: 15 * 60 * 1000 });
 
@@ -79,7 +83,7 @@ export class RoomRepository {
                 image: profile.image,
                 description: profile.description,
                 socialImage: profile.socialImage,
-                repliesDisabled: !profile.repliesEnabled
+                repliesDisabled: false
             });
             if (price) {
                 await Store.PremiumChatSettings.create(ctx, id, {
@@ -557,10 +561,12 @@ export class RoomRepository {
             this.userChats.addChat(ctx, uid, cid);
             await this.fastCounters.onAddDialog(ctx, uid, cid);
             await this.experimentalCounters.onAddDialog(ctx, uid, cid);
+            await this.userReadSeqs.onAddDialog(ctx, uid, cid);
         } else {
             this.userChats.removeChat(ctx, uid, cid);
             this.fastCounters.onRemoveDialog(ctx, uid, cid);
             this.experimentalCounters.onRemoveDialog(ctx, uid, cid);
+            this.userReadSeqs.onRemoveDialog(ctx, uid, cid);
             dir.clear(ctx, [cid, uid]);
         }
     }
@@ -689,6 +695,8 @@ export class RoomRepository {
                 await this.fastCounters.onAddDialog(ctx, uid2, conv.id);
                 await this.experimentalCounters.onAddDialog(ctx, uid1, conv.id);
                 await this.experimentalCounters.onAddDialog(ctx, uid2, conv.id);
+                await this.userReadSeqs.onAddDialog(ctx, uid1, conv.id);
+                await this.userReadSeqs.onAddDialog(ctx, uid2, conv.id);
                 await conv.flush(ctx);
             }
             return (await Store.Conversation.findById(ctx, conv.id))!;
