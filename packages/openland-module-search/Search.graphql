@@ -52,7 +52,7 @@ extend type Query {
     featuredGroups: [SharedRoom!]
     featuredCommunities: [Organization!]
 
-    messagesSearch(query: String!, sort: String, first: Int!, after: String): MessageConnection!
+    messagesSearch(query: String!, sort: String, first: Int!, after: String, cid: ID): MessageConnection!
     chatMembersSearch(cid: ID!, query: String, first: Int!, after: String, page: Int): RoomMemberConnection!
     chatMentionSearch(cid: ID!, query: String, first: Int!, after: String): GlobalSearchConnection!
     orgMembersSearch(orgId: ID!, query: String, first: Int!, after: String, page: Int): JoinedOrganizationMembersConnection!

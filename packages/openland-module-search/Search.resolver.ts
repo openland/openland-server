@@ -345,6 +345,11 @@ export const Resolver: GQLResolver = {
 
         messagesSearch: withAccount(async (ctx, args, uid, oid) => {
             try {
+                let cid: number|null = null;
+                if (args.cid) {
+                    cid = IDs.Conversation.parse(args.cid);
+                    await Modules.Messaging.room.checkAccess(ctx, uid, cid);
+                }
                 let userDialogs = await inTx(createNamedContext('messagesSearch'), async ctx2 => await Modules.Messaging.findUserDialogs(ctx2, uid));
 
                 let clauses: any[] = [];
@@ -365,7 +370,11 @@ export const Resolver: GQLResolver = {
                     sort = parser.parseSort(args.sort);
                 }
 
-                clauses.push({terms: {cid: userDialogs.map(d => d.cid)}});
+                if (cid) {
+                    clauses.push({term: {cid }});
+                } else {
+                    clauses.push({terms: {cid: userDialogs.map(d => d.cid)}});
+                }
 
                 let hits = await Modules.Search.elastic.client.search({
                     index: 'message',
