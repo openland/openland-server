@@ -1,15 +1,17 @@
 import { injectable } from 'inversify';
-import { encoders, Subspace, TransactionCache, TupleItem } from '@openland/foundationdb';
+import { encoders, TransactionCache } from '@openland/foundationdb';
 import { Store } from '../../openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { BucketCountingDirectory } from '../utils/BucketCountingDirectory';
 import { Metrics } from '../../openland-module-monitoring/Metrics';
+import { lazyInject } from '../../openland-modules/Modules.container';
+import { UserReadSeqsDirectory } from './UserReadSeqsDirectory';
 
 const PREFIX_DELETED_SEQS = 0;
 const PREFIX_USER_MENTIONS = 1;
 const PREFIX_ALL_MENTIONS = 2;
-const PREFIX_USER_READ_SEQS = 3;
+// const PREFIX_USER_READ_SEQS = 3;
 const PREFIX_HIDDEN_MESSAGES = 4;
 
 const BUCKET_SIZE = 1000;
@@ -27,7 +29,10 @@ export class FastCountersRepository {
     readonly userMentions: BucketCountingDirectory;
     readonly allMentions: BucketCountingDirectory;
     readonly hiddenMessages: BucketCountingDirectory;
-    readonly userReadSeqsSubspace: Subspace<TupleItem[], number>;
+    // readonly userReadSeqsSubspace: Subspace<TupleItem[], number>;
+
+    @lazyInject('UserReadSeqsDirectory')
+    readonly userReadSeqs!: UserReadSeqsDirectory;
 
     private userMuteSettingsSubspace = Store.UserDialogMuteSettingDirectory
         .withKeyEncoding(encoders.tuple)
@@ -54,10 +59,10 @@ export class FastCountersRepository {
             BUCKET_SIZE
         );
 
-        this.userReadSeqsSubspace = this.directory
-            .subspace(encoders.tuple.pack([PREFIX_USER_READ_SEQS]))
-            .withKeyEncoding(encoders.tuple)
-            .withValueEncoding(encoders.int32LE);
+        // this.userReadSeqsSubspace = this.directory
+        //     .subspace(encoders.tuple.pack([PREFIX_USER_READ_SEQS]))
+        //     .withKeyEncoding(encoders.tuple)
+        //     .withValueEncoding(encoders.int32LE);
     }
 
     onMessageCreated = async (ctx: Context, uid: number, cid: number, seq: number, mentionedUsers: (number | 'all')[], hiddenForUsers: number[]) => {
@@ -123,20 +128,20 @@ export class FastCountersRepository {
     onMessageRead = (ctx: Context, uid: number, cid: number, toSeq: number) => {
         countersCache.delete(ctx, 'counters');
         globalCounterCache.delete(ctx, 'counter');
-        this.userReadSeqsSubspace.set(ctx, [uid, cid], toSeq);
+        // this.userReadSeqsSubspace.set(ctx, [uid, cid], toSeq);
     }
 
     onAddDialog = async (ctx: Context, uid: number, cid: number) => {
         countersCache.delete(ctx, 'counters');
         globalCounterCache.delete(ctx, 'counter');
-        let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
-        this.userReadSeqsSubspace.set(ctx, [uid, cid], chatLastSeq);
+        // let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
+        // this.userReadSeqsSubspace.set(ctx, [uid, cid], chatLastSeq);
     }
 
     onRemoveDialog = (ctx: Context, uid: number, cid: number) => {
         countersCache.delete(ctx, 'counters');
         globalCounterCache.delete(ctx, 'counter');
-        this.userReadSeqsSubspace.clear(ctx, [uid, cid]);
+        // this.userReadSeqsSubspace.clear(ctx, [uid, cid]);
     }
 
     fetchUserCounters = async (ctx: Context, uid: number, includeAllMention = true) => {
@@ -146,13 +151,10 @@ export class FastCountersRepository {
         }
 
         let start = Date.now();
-        let userReadSeqs = await this.userReadSeqsSubspace.snapshotRange(ctx, [uid]);
+        let userReadSeqs = await this.userReadSeqs.getUserReadSeqs(ctx, uid);
 
         let counters = await Promise.all(userReadSeqs.map(async (readValue) => {
-            let cid = readValue.key[readValue.key.length - 1] as number;
-            let lastReadSeq = readValue.value || 0;
-
-            return await this.fetchUserCounterForChat(ctx, uid, cid, lastReadSeq, includeAllMention);
+            return await this.fetchUserCounterForChat(ctx, uid, readValue.cid, readValue.seq, includeAllMention);
         }));
         countersCache.set(ctx, 'counters', counters);
         Metrics.AllCountersResolveTime.report(Date.now() - start);
@@ -160,11 +162,11 @@ export class FastCountersRepository {
     }
 
     fetchUserCountersForChats = async (ctx: Context, uid: number, cids: number[], includeAllMention = true) => {
-        let userReadSeqs = await this.userReadSeqsSubspace.snapshotRange(ctx, [uid]);
+        let userReadSeqs = await this.userReadSeqs.getUserReadSeqs(ctx, uid);
 
         let counters = await Promise.all(cids.map(async (cid) => {
-            let lastReadSeqValue = userReadSeqs.find(v => v.key[v.key.length - 1] === cid);
-            let lastReadSeq = lastReadSeqValue ? lastReadSeqValue.value : 0;
+            let lastReadSeqValue = userReadSeqs.find(v => v.cid === cid);
+            let lastReadSeq = lastReadSeqValue ? lastReadSeqValue.seq : 0;
 
             return await this.fetchUserCounterForChat(ctx, uid, cid, lastReadSeq, includeAllMention);
         }));
