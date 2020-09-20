@@ -1,5 +1,9 @@
 import { encoders } from '@openland/foundationdb';
 
+export function createEventt(seq: number, state: Buffer) {
+
+}
+
 export function createStateLost(seq: number, state: Buffer) {
     return encoders.tuple.pack([2, seq, state]).toString('hex');
 }

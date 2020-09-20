@@ -1,5 +1,5 @@
+import { EventsRepository } from './EventsRepository';
 import { Subspace, inTxLeaky, encoders } from '@openland/foundationdb';
-import { EventsStorage } from './EventsStorage';
 import { Context } from '@openland/context';
 
 const SUBSPACE_USER = 0;
@@ -17,11 +17,11 @@ const SUBSPACE_SUBSCRIBERS = 0;
 const SUBSCRIBER_USER = 0;
 
 export class RegistrationsRepository {
-    private readonly storage: EventsStorage;
+    private readonly repository: EventsRepository;
     private readonly directory: Subspace;
 
-    constructor(directory: Subspace, storage: EventsStorage) {
-        this.storage = storage;
+    constructor(directory: Subspace, repository: EventsRepository) {
+        this.repository = repository;
         this.directory = directory;
     }
 
@@ -34,17 +34,17 @@ export class RegistrationsRepository {
 
             // Create subscriber if needed
             if (!subscriber) {
-                subscriber = await this.storage.createSubscriber(ctx);
+                subscriber = await this.repository.createSubscriber(ctx);
                 this.directory.set(ctx, encoders.tuple.pack([SUBSPACE_USER, uid, USER_SUBSCRIBER]), subscriber);
                 this.directory.set(ctx, encoders.tuple.pack([SUBSPACE_SUBSCRIBERS, subscriber]), encoders.tuple.pack([SUBSCRIBER_USER, uid]));
             }
 
             // Create common feed if needed
             if (!common) {
-                common = (await this.storage.createFeed(ctx));
+                common = (await this.repository.createFeed(ctx));
                 this.directory.set(ctx, encoders.tuple.pack([SUBSPACE_USER, uid, USER_COMMON]), common);
                 this.directory.set(ctx, encoders.tuple.pack([SUBSPACE_FEED, common]), encoders.tuple.pack([FEED_COMMON, uid]));
-                await this.storage.subscribe(ctx, subscriber, common, { strict: true });
+                await this.repository.subscribe(ctx, { subscriber, feed: common, mode: 'direct-strict' });
             }
 
             return { subscriber, common };
@@ -55,7 +55,7 @@ export class RegistrationsRepository {
         return await inTxLeaky(parent, async (ctx) => {
             let existing = await this.directory.get(ctx, encoders.tuple.pack([SUBSPACE_GROUP, cid, GROUP_FEED]));
             if (!existing) {
-                existing = (await this.storage.createFeed(ctx));
+                existing = (await this.repository.createFeed(ctx));
                 this.directory.set(ctx, encoders.tuple.pack([SUBSPACE_GROUP, cid, GROUP_FEED]), existing);
                 this.directory.set(ctx, encoders.tuple.pack([SUBSPACE_FEED, existing]), encoders.tuple.pack([FEED_GROUP, cid]));
                 return existing;
@@ -104,11 +104,21 @@ export class RegistrationsRepository {
         });
     }
 
-    followGroup = async (parent: Context, args: { uid: number, cid: number }) => {
+    followGroup = async (parent: Context, args: { uid: number, cid: number, mode: 'direct' | 'async' }) => {
         await inTxLeaky(parent, async (ctx) => {
             let user = await this.getOrCreateUser(ctx, args.uid);
             let group = await this.getOrCreateGroup(ctx, args.cid);
-            await this.storage.subscribe(ctx, user.subscriber, group);
+            let state = await this.repository.getSubscriptionState(ctx, { subscriber: user.subscriber, feed: group });
+            if (!state) {
+                await this.repository.subscribe(ctx, { subscriber: user.subscriber, feed: group, mode: args.mode });
+            } else if (state !== args.mode) {
+                // Unsubscribe first
+                await this.repository.unsubscribe(ctx, { subscriber: user.subscriber, feed: group });
+                // Resubscribe in a different mode
+                await this.repository.subscribe(ctx, { subscriber: user.subscriber, feed: group, mode: args.mode });
+            } else {
+                // Ignore: already followed in correct mode
+            }
         });
     }
 
@@ -116,7 +126,7 @@ export class RegistrationsRepository {
         await inTxLeaky(parent, async (ctx) => {
             let user = await this.getOrCreateUser(ctx, args.uid);
             let group = await this.getOrCreateGroup(ctx, args.cid);
-            await this.storage.unsubscribe(ctx, user.subscriber, group);
+            await this.repository.unsubscribe(ctx, { subscriber: user.subscriber, feed: group });
         });
     }
 }

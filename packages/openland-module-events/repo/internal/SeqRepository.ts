@@ -22,6 +22,17 @@ export class SeqRepository {
         });
     }
 
+    async getCurrentSeq(parent: Context, subscriber: Buffer) {
+        return await inTxLeaky(parent, async (ctx) => {
+            let ex = await this.directory.get(ctx, encoders.tuple.pack([subscriber, SUBSPACE_SEQ]));
+            if (ex) {
+                return encoders.int32LE.unpack(ex);
+            } else {
+                return 0;
+            }
+        });
+    }
+
     async allocateBlock(parent: Context, subscriber: Buffer, blockSize: number) {
         return await inTxLeaky(parent, async (ctx) => {
             let key = encoders.tuple.pack([subscriber, SUBSPACE_SEQ]);
