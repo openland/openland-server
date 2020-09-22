@@ -86,7 +86,7 @@ describe('FastCountersRepository', () => {
             expect(counters[0].haveMention).toBe(false);
             expect(counters[0].unreadCounter).toBe(100);
 
-            readSeqsRepo.updateReadSeq(ctx, uid, cid, 100);
+            await readSeqsRepo.updateReadSeq(ctx, uid, cid, 100);
         });
         await inTx(parentCtx, async ctx => {
             let counters = await repo.fetchUserCounters(ctx, 4);
