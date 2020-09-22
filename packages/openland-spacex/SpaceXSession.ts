@@ -304,14 +304,14 @@ export class SpaceXSession {
             let start = currentRunningTime();
             let ctx = context;
             ctx = withCounters(ctx);
-            let res = await execute({
+            let res = await Concurrency.Resolve.run(async () => execute({
                 schema: this.schema,
                 document: opts.op.document,
                 operationName: opts.op.operationName,
                 variableValues: opts.op.variables,
                 contextValue: ctx,
                 rootValue: opts.rootValue
-            });
+            }));
             let duration = currentRunningTime() - start;
             let tag = opts.type + ' ' + (opts.op.operationName || 'Unknown');
             Metrics.SpaceXOperationTime.report(duration);
