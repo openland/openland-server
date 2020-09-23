@@ -25,6 +25,7 @@ import { UserChatsRepository } from './UserChatsRepository';
 import { FastCountersMediator } from '../mediators/FastCountersMediator';
 import { ExperimentalCountersRepository } from './ExperimentalCountersRepository';
 import { UserReadSeqsDirectory } from './UserReadSeqsDirectory';
+import { ChatsMembersListDirectory } from './ChatsMembersListDirectory';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -59,6 +60,9 @@ export class RoomRepository {
 
     @lazyInject('UserReadSeqsDirectory')
     readonly userReadSeqs!: UserReadSeqsDirectory;
+
+    @lazyInject('ChatsMembersListDirectory')
+    readonly chatMembers!: ChatsMembersListDirectory;
 
     public readonly welcomeMessageWorker = createWelcomeMessageWorker();
     private membersCache = new ExpiringCache<number[]>({ timeout: 15 * 60 * 1000 });
@@ -97,8 +101,11 @@ export class RoomRepository {
                 invitedBy: uid,
                 status: 'joined'
             });
-            await this.setParticipant(ctx, id, uid, true);
+            await this.setParticipant(ctx, id, uid, true, false);
             await this.onRoomJoin(ctx, id, uid, uid);
+            await this.incrementRoomActiveMembers(ctx, id);
+
+            let memberNo = 0;
             for (let m of [...new Set(members)]) {
                 if (m === uid) {
                     continue; // Just in case of bad input
@@ -108,8 +115,10 @@ export class RoomRepository {
                     invitedBy: uid,
                     status: 'joined'
                 });
-                await this.setParticipant(ctx, id, m, true);
+                await this.setParticipant(ctx, id, m, true, memberNo > 50);
                 await this.onRoomJoin(ctx, id, m, uid);
+                await this.incrementRoomActiveMembers(ctx, id);
+                memberNo++;
             }
 
             return conv;
@@ -122,6 +131,9 @@ export class RoomRepository {
             // Check if room exists
             await this.checkRoomExists(ctx, cid);
 
+            let activeMembersCount = await this.roomMembersCount(ctx, cid, 'joined');
+            let isAsyncMember = activeMembersCount >= 50;
+
             // Create or update room participant
             let p = await Store.RoomParticipant.findById(ctx, cid, uid);
             if (p) {
@@ -131,7 +143,7 @@ export class RoomRepository {
                     p.status = 'joined';
                     p.invitedBy = by;
                     Store.RoomParticipantsVersion.increment(ctx, cid);
-                    await this.setParticipant(ctx, cid, uid, true);
+                    await this.setParticipant(ctx, cid, uid, true, isAsyncMember);
                     await this.incrementRoomActiveMembers(ctx, cid);
                     await this.onRoomJoin(ctx, cid, uid, by);
                     return true;
@@ -143,7 +155,7 @@ export class RoomRepository {
                     role: 'member'
                 });
                 Store.RoomParticipantsVersion.increment(ctx, cid);
-                await this.setParticipant(ctx, cid, uid, true);
+                await this.setParticipant(ctx, cid, uid, true, isAsyncMember);
                 await this.onRoomJoin(ctx, cid, uid, by);
                 return true;
             }
@@ -162,7 +174,7 @@ export class RoomRepository {
             }
             participant.status = 'kicked';
             Store.RoomParticipantsVersion.increment(ctx, cid);
-            await this.setParticipant(ctx, cid, uid, false);
+            await this.setParticipant(ctx, cid, uid, false, false);
             await this.decrementRoomActiveMembers(ctx, cid);
             await this.onRoomLeave(ctx, cid, uid, true);
             return true;
@@ -181,7 +193,7 @@ export class RoomRepository {
             }
             participant.status = 'kicked';
             Store.RoomParticipantsVersion.increment(ctx, cid);
-            await this.setParticipant(ctx, cid, uid, false);
+            await this.setParticipant(ctx, cid, uid, false, false);
             return true;
         });
     }
@@ -198,7 +210,7 @@ export class RoomRepository {
             }
             p.status = 'left';
             Store.RoomParticipantsVersion.increment(ctx, cid);
-            await this.setParticipant(ctx, cid, uid, false);
+            await this.setParticipant(ctx, cid, uid, false, false);
             await this.decrementRoomActiveMembers(ctx, cid);
             await this.onRoomLeave(ctx, cid, uid, false);
             return true;
@@ -210,6 +222,9 @@ export class RoomRepository {
             // Check if room exists
             await this.checkRoomExists(ctx, cid);
 
+            let activeMembersCount = await this.roomMembersCount(ctx, cid, 'joined');
+            let isAsyncMember = activeMembersCount >= 50;
+
             let targetStatus: 'requested' | 'joined' = request ? 'requested' : 'joined';
             let p = await Store.RoomParticipant.findById(ctx, cid, uid);
             if (p) {
@@ -219,7 +234,7 @@ export class RoomRepository {
                     p.invitedBy = uid;
                     p.status = targetStatus;
                     Store.RoomParticipantsVersion.increment(ctx, cid);
-                    await this.setParticipant(ctx, cid, uid, true);
+                    await this.setParticipant(ctx, cid, uid, true, isAsyncMember);
                     if (targetStatus === 'joined') {
                         await this.incrementRoomActiveMembers(ctx, cid);
                         await this.onRoomJoin(ctx, cid, uid, uid);
@@ -233,7 +248,7 @@ export class RoomRepository {
                     invitedBy: uid
                 });
                 Store.RoomParticipantsVersion.increment(ctx, cid);
-                await this.setParticipant(ctx, cid, uid, true);
+                await this.setParticipant(ctx, cid, uid, true, isAsyncMember);
                 await this.onRoomJoin(ctx, cid, uid, uid);
                 return true;
             }
@@ -551,7 +566,7 @@ export class RoomRepository {
     // Members
     //
 
-    async setParticipant(ctx: Context, cid: number, uid: number, isMember: boolean) {
+    async setParticipant(ctx: Context, cid: number, uid: number, isMember: boolean, async: boolean) {
         let dir = Store.RoomParticipantsActiveDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean);
@@ -562,11 +577,13 @@ export class RoomRepository {
             await this.fastCounters.onAddDialog(ctx, uid, cid);
             await this.experimentalCounters.onAddDialog(ctx, uid, cid);
             await this.userReadSeqs.onAddDialog(ctx, uid, cid);
+            this.chatMembers.addMember(ctx, cid, uid, async);
         } else {
             this.userChats.removeChat(ctx, uid, cid);
             this.fastCounters.onRemoveDialog(ctx, uid, cid);
             this.experimentalCounters.onRemoveDialog(ctx, uid, cid);
             await this.userReadSeqs.onRemoveDialog(ctx, uid, cid);
+            this.chatMembers.removeMember(ctx, cid, uid);
             dir.clear(ctx, [cid, uid]);
         }
     }

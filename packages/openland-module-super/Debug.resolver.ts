@@ -39,7 +39,7 @@ import { FastCountersRepository } from '../openland-module-messaging/repositorie
 import { MessageAttachmentFileInput } from '../openland-module-messaging/MessageInput';
 import { ExperimentalCountersRepository } from '../openland-module-messaging/repositories/ExperimentalCountersRepository';
 import { UserReadSeqsDirectory } from '../openland-module-messaging/repositories/UserReadSeqsDirectory';
-import { NewCountersRepository } from '../openland-module-messaging/repositories/NewCountersRepository';
+import { AsyncCountersRepository } from '../openland-module-messaging/repositories/AsyncCountersRepository';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -2101,7 +2101,7 @@ export const Resolver: GQLResolver = {
         }),
         debugMigrateToNewerCounters: withPermission('super-admin', async (parent, args) => {
             debugSubspaceIterator<MessageShape>(Store.Message.descriptor.subspace, parent.auth.uid!, 'debugMigrateToNewCounters', async (next, log) => {
-                let newCounters = new NewCountersRepository();
+                let newCounters = new AsyncCountersRepository();
                 let res: { key: TupleItem[], value: MessageShape }[] = [];
                 let total = 0;
 
