@@ -19,7 +19,6 @@ import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
-import { batch } from '../../openland-utils/batch';
 
 export const Resolver: GQLResolver = {
     /*
@@ -198,18 +197,12 @@ export const Resolver: GQLResolver = {
                 if (isOldCursor) {
                     fromState = await Store.UserDialogEventStore.createStream(ctx.auth.uid!).head(ctx) || undefined;
                 }
-                let zipedEvents = await Modules.Messaging.zipUpdatesInBatchesAfterModern(ctx, ctx.auth.uid!, fromState);
+                let zipedGenerator = await Modules.Messaging.zipUpdatesInBatchesAfterModern(ctx, ctx.auth.uid!, fromState);
                 let subscribeAfter = fromState || null;
-
-                if (zipedEvents) {
-                    let eventBatches = batch(zipedEvents.items, 10);
-                    subscribeAfter = zipedEvents.cursor;
-
-                    for await (let b of eventBatches) {
-                        yield { items: b, cursor: zipedEvents.cursor };
-                    }
+                for await (let event of zipedGenerator) {
+                    subscribeAfter = event.cursor;
+                    yield event;
                 }
-
                 let stream = Store.UserDialogEventStore.createLiveStream(ctx, ctx.auth.uid!, { batchSize: 20, after: subscribeAfter || undefined });
                 for await (let event of stream) {
                     yield event;
