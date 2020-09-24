@@ -1,13 +1,15 @@
 import { injectable } from 'inversify';
 import { Store } from '../../openland-module-db/FDB';
 import { Context } from '@openland/context';
-import { encoders, Subspace, TransactionCache, TupleItem } from '@openland/foundationdb';
+import { encoders, TransactionCache } from '@openland/foundationdb';
 import { CompactMessagesDirectory } from './CompactMessagesDirectory';
 import { Metrics } from '../../openland-module-monitoring/Metrics';
 import { AsyncLock } from '../../openland-utils/timer';
+import { lazyInject } from '../../openland-modules/Modules.container';
+import { UserReadSeqsDirectory } from './UserReadSeqsDirectory';
 
 const PREFIX_COMACT_MESSAGES = 1;
-const PREFIX_USER_READ_SEQS = 2;
+// const PREFIX_USER_READ_SEQS = 2;
 
 const ALL_MENTION_UID = 0;
 
@@ -35,11 +37,14 @@ function getLock(ctx: Context, key: string) {
 export class ExperimentalCountersRepository {
     private directory = Store.ExperimentalCountersDirectory;
     readonly messages: CompactMessagesDirectory;
-    readonly userReadSeqsSubspace: Subspace<TupleItem[], number>;
+    // readonly userReadSeqsSubspace: Subspace<TupleItem[], number>;
 
     private userMuteSettingsSubspace = Store.UserDialogMuteSettingDirectory
         .withKeyEncoding(encoders.tuple)
         .withValueEncoding(encoders.boolean);
+
+    @lazyInject('UserReadSeqsDirectory')
+    readonly userReadSeqs!: UserReadSeqsDirectory;
 
     constructor() {
         this.messages = new CompactMessagesDirectory(
@@ -47,10 +52,10 @@ export class ExperimentalCountersRepository {
             1000
         );
 
-        this.userReadSeqsSubspace = this.directory
-            .subspace(encoders.tuple.pack([PREFIX_USER_READ_SEQS]))
-            .withKeyEncoding(encoders.tuple)
-            .withValueEncoding(encoders.int32LE);
+        // this.userReadSeqsSubspace = this.directory
+        //     .subspace(encoders.tuple.pack([PREFIX_USER_READ_SEQS]))
+        //     .withKeyEncoding(encoders.tuple)
+        //     .withValueEncoding(encoders.int32LE);
     }
 
     onMessageCreated = async (ctx: Context, uid: number, cid: number, seq: number, mentionedUsers: (number | 'all')[], hiddenForUsers: number[]) => {
@@ -84,18 +89,18 @@ export class ExperimentalCountersRepository {
 
     onAddDialog = async (ctx: Context, uid: number, cid: number) => {
         resetCache(ctx);
-        let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
-        this.userReadSeqsSubspace.set(ctx, [uid, cid], chatLastSeq);
+        // let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
+        // this.userReadSeqsSubspace.set(ctx, [uid, cid], chatLastSeq);
     }
 
     onRemoveDialog = (ctx: Context, uid: number, cid: number) => {
         resetCache(ctx);
-        this.userReadSeqsSubspace.clear(ctx, [uid, cid]);
+        // this.userReadSeqsSubspace.clear(ctx, [uid, cid]);
     }
 
     onMessageRead = (ctx: Context, uid: number, cid: number, toSeq: number) => {
         resetCache(ctx);
-        this.userReadSeqsSubspace.set(ctx, [uid, cid], toSeq);
+        // this.userReadSeqsSubspace.set(ctx, [uid, cid], toSeq);
     }
 
     fetchUserCounters = async (ctx: Context, uid: number, includeAllMention = true) => {
@@ -106,13 +111,10 @@ export class ExperimentalCountersRepository {
             }
 
             let start = Date.now();
-            let userReadSeqs = await this.userReadSeqsSubspace.snapshotRange(ctx, [uid]);
+            let userReadSeqs = await this.userReadSeqs.getUserReadSeqs(ctx, uid);
 
             let counters = await Promise.all(userReadSeqs.map(async (readValue) => {
-                let cid = readValue.key[readValue.key.length - 1] as number;
-                let lastReadSeq = readValue.value || 0;
-
-                return await this.fetchUserCounterForChat(ctx, uid, cid, lastReadSeq, includeAllMention);
+                return await this.fetchUserCounterForChat(ctx, uid, readValue.cid, readValue.seq, includeAllMention);
             }));
             countersCache.set(ctx, 'counters', counters);
             Metrics.AllCountersResolveTime.report(Date.now() - start);
@@ -121,11 +123,11 @@ export class ExperimentalCountersRepository {
     }
 
     fetchUserCountersForChats = async (ctx: Context, uid: number, cids: number[], includeAllMention = true) => {
-        let userReadSeqs = await this.userReadSeqsSubspace.snapshotRange(ctx, [uid]);
+        let userReadSeqs = await this.userReadSeqs.getUserReadSeqs(ctx, uid);
 
         let counters = await Promise.all(cids.map(async (cid) => {
-            let lastReadSeqValue = userReadSeqs.find(v => v.key[v.key.length - 1] === cid);
-            let lastReadSeq = lastReadSeqValue ? lastReadSeqValue.value : 0;
+            let lastReadSeqValue = userReadSeqs.find(v => v.cid === cid);
+            let lastReadSeq = lastReadSeqValue ? lastReadSeqValue.seq : 0;
 
             return await this.fetchUserCounterForChat(ctx, uid, cid, lastReadSeq, includeAllMention);
         }));

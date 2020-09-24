@@ -28,8 +28,16 @@ export class UserReadSeqsDirectory {
         });
     }
 
+    clearForUser = (ctx: Context, uid: number) => {
+        this.directory.clearPrefixed(ctx, [uid]);
+    }
+
     getUserReadSeqs = async (ctx: Context, uid: number) => {
         let userReadSeqs = await this.directory.snapshotRange(ctx, [uid]);
         return userReadSeqs.map(val => ({ cid: val.key[val.key.length - 1] as number, seq: val.value }));
+    }
+
+    getUserReadSeqForChat = async (ctx: Context, uid: number, cid: number) => {
+        return (await this.directory.get(ctx, [uid, cid])) || 0;
     }
 }

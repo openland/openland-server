@@ -21,7 +21,10 @@ export const Concurrency = {
     FDB: new SimpleFactory(() => {
         return new BoundedConcurrencyPool(128) as ConcurrencyPool;
     }),
-    
+
+    // GQL resolve pool, unique per machine
+    Resolve: new BoundedConcurrencyPool(1024) as ConcurrencyPool,
+
     // Should be avoided
     Default: new BoundedConcurrencyPool(16) as ConcurrencyPool
 };

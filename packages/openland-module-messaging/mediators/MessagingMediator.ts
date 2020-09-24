@@ -21,7 +21,7 @@ import { Message } from '../../openland-module-db/store';
 import { FastCountersMediator } from './FastCountersMediator';
 import { ExperimentalCountersRepository } from '../repositories/ExperimentalCountersRepository';
 import { UserReadSeqsDirectory } from '../repositories/UserReadSeqsDirectory';
-import { NewCountersRepository } from '../repositories/NewCountersRepository';
+import { AsyncCountersRepository } from '../repositories/AsyncCountersRepository';
 
 const trace = createTracer('messaging');
 const linkifyInstance = createLinkifyInstance();
@@ -93,8 +93,8 @@ export class MessagingMediator {
     readonly fastCounters!: FastCountersMediator;
     @lazyInject('ExperimentalCountersRepository')
     readonly experimentalCounters!: ExperimentalCountersRepository;
-    @lazyInject('NewCountersRepository')
-    readonly newCounters!: NewCountersRepository;
+    @lazyInject('AsyncCountersRepository')
+    readonly newCounters!: AsyncCountersRepository;
     @lazyInject('UserReadSeqsDirectory')
     readonly userReadSeqs!: UserReadSeqsDirectory;
 

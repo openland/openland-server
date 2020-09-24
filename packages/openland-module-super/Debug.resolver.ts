@@ -39,7 +39,7 @@ import { FastCountersRepository } from '../openland-module-messaging/repositorie
 import { MessageAttachmentFileInput } from '../openland-module-messaging/MessageInput';
 import { ExperimentalCountersRepository } from '../openland-module-messaging/repositories/ExperimentalCountersRepository';
 import { UserReadSeqsDirectory } from '../openland-module-messaging/repositories/UserReadSeqsDirectory';
-import { NewCountersRepository } from '../openland-module-messaging/repositories/NewCountersRepository';
+import { AsyncCountersRepository } from '../openland-module-messaging/repositories/AsyncCountersRepository';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -296,25 +296,26 @@ export const Resolver: GQLResolver = {
             return JSON.stringify(await Modules.Messaging.counters.fetchUserCounters(ctx, ctx.auth.uid!));
         }),
         debugExperimentalCounter: withPermission('super-admin', async (ctx, args) => {
-            let counters = new ExperimentalCountersRepository();
-            let cid = IDs.Conversation.parse(args.cid);
-            let uid = ctx.auth.uid!;
-
-            let userReadSeq = await counters.userReadSeqsSubspace.get(ctx, [uid, cid]);
-            let messages = await counters.messages.get(ctx, cid, userReadSeq! + 1);
-            let messagesFiltered = messages.filter(m => m.uid !== uid && !m.hiddenFor.includes(uid));
-            let unreadCounter = messages.length;
-            let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
-
-            return JSON.stringify({
-                cid,
-                uid,
-                chatLastSeq,
-                userReadSeq,
-                messages,
-                messagesFiltered,
-                unreadCounter
-            });
+            // let counters = new ExperimentalCountersRepository();
+            // let cid = IDs.Conversation.parse(args.cid);
+            // let uid = ctx.auth.uid!;
+            //
+            // let userReadSeq = await counters.userReadSeqsSubspace.get(ctx, [uid, cid]);
+            // let messages = await counters.messages.get(ctx, cid, userReadSeq! + 1);
+            // let messagesFiltered = messages.filter(m => m.uid !== uid && !m.hiddenFor.includes(uid));
+            // let unreadCounter = messages.length;
+            // let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
+            //
+            // return JSON.stringify({
+            //     cid,
+            //     uid,
+            //     chatLastSeq,
+            //     userReadSeq,
+            //     messages,
+            //     messagesFiltered,
+            //     unreadCounter
+            // });
+            return 'ok';
         }),
     },
     Mutation: {
@@ -2100,7 +2101,7 @@ export const Resolver: GQLResolver = {
         }),
         debugMigrateToNewerCounters: withPermission('super-admin', async (parent, args) => {
             debugSubspaceIterator<MessageShape>(Store.Message.descriptor.subspace, parent.auth.uid!, 'debugMigrateToNewCounters', async (next, log) => {
-                let newCounters = new NewCountersRepository();
+                let newCounters = new AsyncCountersRepository();
                 let res: { key: TupleItem[], value: MessageShape }[] = [];
                 let total = 0;
 
@@ -2163,29 +2164,20 @@ export const Resolver: GQLResolver = {
             return true;
         }),
         debugMigrateToNewLastRead: withPermission('super-admin', async (parent, args) => {
-            let fastCounters = new FastCountersRepository();
-            let experimentalCounters = new ExperimentalCountersRepository();
             let userReadSeqsDirectory = new UserReadSeqsDirectory();
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugMigrateToNewLastRead', async (ctx, uid, log) => {
                 let userDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
-                fastCounters.userReadSeqsSubspace.clearPrefixed(ctx, [uid]);
-                experimentalCounters.userReadSeqsSubspace.clearPrefixed(ctx, [uid]);
+                userReadSeqsDirectory.clearForUser(ctx, uid);
 
                 await Promise.all(userDialogs.map(async d => {
                     let messageId = await Store.UserDialogReadMessageId.get(ctx, uid, d.cid);
                     if (messageId === 0) {
-                        fastCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], 0);
-                        experimentalCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], 0);
                         await userReadSeqsDirectory.updateReadSeq(ctx, uid, d.cid, 0);
                     } else {
                         let message = await Store.Message.findById(ctx, messageId);
                         if (!message) {
-                            fastCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], 0);
-                            experimentalCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], 0);
                             await userReadSeqsDirectory.updateReadSeq(ctx, uid, d.cid, 0);
                         } else {
-                            fastCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], message.seq!);
-                            experimentalCounters.userReadSeqsSubspace.set(ctx, [uid, d.cid], message.seq!);
                             await userReadSeqsDirectory.updateReadSeq(ctx, uid, d.cid, message.seq!);
                         }
                     }
@@ -2194,8 +2186,6 @@ export const Resolver: GQLResolver = {
             return true;
         }),
         debugFixReadSeqs: withPermission('super-admin', async (parent, args) => {
-            let fastCounters = new FastCountersRepository();
-            let experimentalCounters = new ExperimentalCountersRepository();
             let userReadSeqsDirectory = new UserReadSeqsDirectory();
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugFixReadSeqs', async (ctx, uid, log) => {
                 let userDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
@@ -2203,8 +2193,6 @@ export const Resolver: GQLResolver = {
                     let oldUnread = await Store.UserDialogCounter.get(ctx, uid, d.cid);
                     if (oldUnread === 0) {
                         let chatLastSeq = await Store.ConversationLastSeq.get(ctx, d.cid);
-                        fastCounters.onMessageRead(ctx, uid, d.cid, chatLastSeq);
-                        experimentalCounters.onMessageRead(ctx, uid, d.cid, chatLastSeq);
                         await userReadSeqsDirectory.updateReadSeq(ctx, uid, d.cid, chatLastSeq);
                     }
                 }));
@@ -2276,33 +2264,6 @@ export const Resolver: GQLResolver = {
 
                 let orgProfile = (await Store.OrganizationProfile.findById(ctx, org.id))!;
                 profile.status = orgProfile.name.slice(0, 40);
-            });
-            return true;
-        }),
-        debugFixFastCounters: withPermission('super-admin', async (parent, args) => {
-            let fastCounters = new FastCountersRepository();
-
-            debugTaskForAll(Store.User, parent.auth.uid!, 'debugMigrateUserStatus', async (ctx, uid, log) => {
-                let dialogs = (await Modules.Messaging.findUserDialogs(ctx, uid)).map(v => v.cid);
-                let userReadSeqs = (await fastCounters.userReadSeqsSubspace.snapshotRange(ctx, [uid])).map(val => val.key[val.key.length - 1] as number);
-
-                let missing = dialogs.filter(cid => !userReadSeqs.includes(cid));
-                let extra = userReadSeqs.filter(cid => !dialogs.includes(cid));
-
-                if (missing.length > 0) {
-                    await log(`[${uid}] missing: ${missing.length}`);
-                }
-                if (extra.length > 0) {
-                    await log(`[${uid}] extra: ${extra.length}`);
-                }
-
-                for (let cid of missing) {
-                    await fastCounters.onAddDialog(ctx, uid, cid);
-                }
-
-                for (let cid of extra) {
-                    fastCounters.onRemoveDialog(ctx, uid, cid);
-                }
             });
             return true;
         }),

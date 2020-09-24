@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '415808214b31a9ebe6db5195f07cf423';
+export const GQL_SPEC_VERSION = 'c7e75733c0f07d6dd835f2555e96e8a6';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2282,7 +2282,6 @@ export namespace GQL {
         debugFixReadSeqs: boolean;
         debugExportUsers: boolean;
         debugMigrateUserStatus: boolean;
-        debugFixFastCounters: boolean;
         debugMigrateToExperimentalCounters: boolean;
         debugFixCompactMessages: boolean;
         debugMigrateToNewerCounters: boolean;
@@ -2822,7 +2821,6 @@ export namespace GQL {
     export interface MutationDebugFixReadSeqsArgs { }
     export interface MutationDebugExportUsersArgs { }
     export interface MutationDebugMigrateUserStatusArgs { }
-    export interface MutationDebugFixFastCountersArgs { }
     export interface MutationDebugMigrateToExperimentalCountersArgs { }
     export interface MutationDebugFixCompactMessagesArgs { }
     export interface MutationDebugMigrateToNewerCountersArgs { }
@@ -4781,6 +4779,7 @@ export namespace GQL {
         sort: OptionalNullable<string>;
         first: number;
         after: OptionalNullable<string>;
+        cid: OptionalNullable<string>;
     }
     export interface QueryChatMembersSearchArgs {
         cid: string;
@@ -8976,7 +8975,6 @@ export interface GQLResolver {
             debugFixReadSeqs: GQL.MutationDebugFixReadSeqsArgs,
             debugExportUsers: GQL.MutationDebugExportUsersArgs,
             debugMigrateUserStatus: GQL.MutationDebugMigrateUserStatusArgs,
-            debugFixFastCounters: GQL.MutationDebugFixFastCountersArgs,
             debugMigrateToExperimentalCounters: GQL.MutationDebugMigrateToExperimentalCountersArgs,
             debugFixCompactMessages: GQL.MutationDebugFixCompactMessagesArgs,
             debugMigrateToNewerCounters: GQL.MutationDebugMigrateToNewerCountersArgs,

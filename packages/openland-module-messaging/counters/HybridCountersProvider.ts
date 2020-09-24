@@ -3,12 +3,12 @@ import { CounterProvider } from './CounterProvider';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { Context } from '@openland/context';
 import { Modules } from '../../openland-modules/Modules';
-import { AsyncCountersRepository } from '../repositories/AsyncCountersRepository';
+import { HybridCountersRepository } from '../repositories/HybridCountersRepository';
 
 @injectable()
-export class NewCounterProvider implements CounterProvider {
-    @lazyInject('AsyncCountersRepository')
-    private readonly counters!: AsyncCountersRepository;
+export class HybridCountersProvider implements CounterProvider {
+    @lazyInject('HybridCountersRepository')
+    private readonly counters!: HybridCountersRepository;
 
     async fetchUserGlobalCounter(parent: Context, uid: number) {
         let settings = await Modules.Users.getUserSettings(parent, uid);

@@ -10,6 +10,7 @@ import { FastCountersRepository } from './FastCountersRepository';
 import { FastCountersMediator } from '../mediators/FastCountersMediator';
 import { ExperimentalCountersRepository } from './ExperimentalCountersRepository';
 import { UserReadSeqsDirectory } from './UserReadSeqsDirectory';
+import { ChatsMembersListDirectory } from './ChatsMembersListDirectory';
 jest.mock('../mediators/DeliveryMediator', () => ({
     DeliveryMediator: jest.fn(() => {
         return {
@@ -28,6 +29,7 @@ describe('RoomRepository', () => {
         container.bind('FastCountersMediator').to(FastCountersMediator).inSingletonScope();
         container.bind('ExperimentalCountersRepository').to(ExperimentalCountersRepository).inSingletonScope();
         container.bind('UserReadSeqsDirectory').to(UserReadSeqsDirectory).inSingletonScope();
+        container.bind('ChatsMembersListDirectory').to(ChatsMembersListDirectory).inSingletonScope();
         container.bind(UsersModule).toSelf().inSingletonScope();
         loadUsersModule();
     });

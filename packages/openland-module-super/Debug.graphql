@@ -207,7 +207,6 @@ extend type Mutation {
     debugFixReadSeqs: Boolean!
     debugExportUsers: Boolean!
     debugMigrateUserStatus: Boolean!
-    debugFixFastCounters: Boolean!
     debugMigrateToExperimentalCounters: Boolean!
     debugFixCompactMessages: Boolean!
     debugMigrateToNewerCounters: Boolean!

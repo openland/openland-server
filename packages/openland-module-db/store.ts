@@ -22539,7 +22539,9 @@ export interface Store extends BaseStore {
     readonly FastCountersDirectory: Subspace;
     readonly ExperimentalCountersDirectory: Subspace;
     readonly NewCountersDirectory: Subspace;
+    readonly SyncCountersDirectory: Subspace;
     readonly UserReadSeqsDirectory: Subspace;
+    readonly ChatMembersDirectory: Subspace;
     readonly UserDialogMuteSettingDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
@@ -22820,7 +22822,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let FastCountersDirectoryPromise = storage.resolveCustomDirectory('fastCounters');
     let ExperimentalCountersDirectoryPromise = storage.resolveCustomDirectory('experimentalCounters');
     let NewCountersDirectoryPromise = storage.resolveCustomDirectory('newCounters');
+    let SyncCountersDirectoryPromise = storage.resolveCustomDirectory('syncCounters');
     let UserReadSeqsDirectoryPromise = storage.resolveCustomDirectory('userReadSeqs');
+    let ChatMembersDirectoryPromise = storage.resolveCustomDirectory('chatMembers');
     let UserDialogMuteSettingDirectoryPromise = storage.resolveCustomDirectory('userDialogMuteSetting');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
@@ -23069,7 +23073,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         FastCountersDirectory: await FastCountersDirectoryPromise,
         ExperimentalCountersDirectory: await ExperimentalCountersDirectoryPromise,
         NewCountersDirectory: await NewCountersDirectoryPromise,
+        SyncCountersDirectory: await SyncCountersDirectoryPromise,
         UserReadSeqsDirectory: await UserReadSeqsDirectoryPromise,
+        ChatMembersDirectory: await ChatMembersDirectoryPromise,
         UserDialogMuteSettingDirectory: await UserDialogMuteSettingDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
