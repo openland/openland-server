@@ -8,7 +8,7 @@ let hashtagRegex = /#[\w]+/g;
 export function userProfileIndexer() {
     declareSearchIndexer({
         name: 'user-profile-index',
-        version: 23,
+        version: 24,
         index: 'user_profile',
         stream: Store.UserIndexingQueue.updated.stream({ batchSize: 50 })
     }).withProperties({
@@ -54,6 +54,12 @@ export function userProfileIndexer() {
         search: {
             type: 'text'
         },
+        email: {
+            type: 'text'
+        },
+        phone: {
+            type: 'text'
+        },
         about: {
             type: 'text',
             analyzer: 'hashtag'
@@ -85,8 +91,10 @@ export function userProfileIndexer() {
         .start(async (item, parent) => {
         return await inTx(parent, async (ctx) => {
             let profile = (await Store.UserProfile.findById(ctx, item.id));
+            let user = await Store.User.findById(ctx, item.id);
+            let userSettings = await Store.UserSettings.findById(ctx, item.id);
 
-            if (!profile) {
+            if (!profile || !user) {
                 return null;
             }
 
@@ -97,10 +105,10 @@ export function userProfileIndexer() {
             searchData.push(profile.firstName);
             searchData.push(profile.lastName);
             searchData.push(shortName ? shortName.shortname : undefined);
-            searchData.push(profile.email);
+            searchData.push(userSettings?.privacy?.whoCanSeePhone === 'everyone' ? user.phone : undefined);
+            searchData.push(userSettings?.privacy?.whoCanSeeEmail === 'everyone' ? user.email : undefined);
 
             let invitedByName: string | undefined;
-            let user = await Store.User.findById(ctx, item.id);
             if (user && user.invitedBy) {
                 let inviter = await Store.UserProfile.findById(ctx, user.invitedBy);
                 if (inviter) {
@@ -135,7 +143,7 @@ export function userProfileIndexer() {
                     ivitedByName: invitedByName,
                     status: user!.status,
                     createdAt: item.metadata.createdAt,
-                    updatedAt: item.metadata.updatedAt,
+                    updatedAt: item.metadata.updatedAt
                 }
             };
         });

@@ -212,6 +212,7 @@ const settingsUpdateResolver = withUser(async (parent, args: GQL.MutationSetting
         settings.invalidate();
         await Modules.Messaging.onGlobalCounterTypeChanged(ctx, _uid);
         await Modules.Users.notifyUserSettingsChanged(ctx, uid);
+        await Modules.Users.markForUndexing(ctx, uid);
         return settings;
     });
 });
