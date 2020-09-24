@@ -1,5 +1,6 @@
 import { Context } from '@openland/context';
 import { Subspace, inTxLeaky, encoders } from '@openland/foundationdb';
+import { inTxLock } from 'openland-module-db/inTxLock';
 
 const SUBSPACE_TIMEOUT = 0;
 const SUBSPACE_SEQ = 1;
@@ -57,15 +58,17 @@ export class SeqRepository {
      */
     async allocateSeq(parent: Context, subscriber: Buffer) {
         return await inTxLeaky(parent, async (ctx) => {
-            let key = encoders.tuple.pack([subscriber, SUBSPACE_SEQ]);
-            let ex = await this.directory.get(ctx, key);
-            let seq = 0;
-            if (ex) {
-                seq = encoders.int32LE.unpack(ex);
-            }
-            seq++;
-            this.directory.set(ctx, key, encoders.int32LE.pack(seq));
-            return seq;
+            return await inTxLock(ctx, 'seq-' + subscriber.toString('hex'), async () => {
+                let key = encoders.tuple.pack([subscriber, SUBSPACE_SEQ]);
+                let ex = await this.directory.get(ctx, key);
+                let seq = 0;
+                if (ex) {
+                    seq = encoders.int32LE.unpack(ex);
+                }
+                seq++;
+                this.directory.set(ctx, key, encoders.int32LE.pack(seq));
+                return seq;
+            });
         });
     }
 
@@ -77,15 +80,17 @@ export class SeqRepository {
      */
     async allocateBlock(parent: Context, subscriber: Buffer, blockSize: number) {
         return await inTxLeaky(parent, async (ctx) => {
-            let key = encoders.tuple.pack([subscriber, SUBSPACE_SEQ]);
-            let ex = await this.directory.get(ctx, key);
-            let seq = 0;
-            if (ex) {
-                seq = encoders.int32LE.unpack(ex);
-            }
-            seq += blockSize;
-            this.directory.set(ctx, key, encoders.int32LE.pack(seq));
-            return seq - blockSize;
+            return await inTxLock(ctx, 'seq-' + subscriber.toString('hex'), async () => {
+                let key = encoders.tuple.pack([subscriber, SUBSPACE_SEQ]);
+                let ex = await this.directory.get(ctx, key);
+                let seq = 0;
+                if (ex) {
+                    seq = encoders.int32LE.unpack(ex);
+                }
+                seq += blockSize;
+                this.directory.set(ctx, key, encoders.int32LE.pack(seq));
+                return seq - blockSize;
+            });
         });
     }
 
