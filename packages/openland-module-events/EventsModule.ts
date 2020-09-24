@@ -1,4 +1,3 @@
-import { EventMediator } from './mediators/EventMediator';
 import { createLogger } from '@openland/log';
 import { createNamedContext, Context } from '@openland/context';
 import { UserServiceManager } from './users/UserServiceManager';
@@ -13,7 +12,6 @@ const log = createLogger('user-service');
 @injectable()
 export class EventsModule {
 
-    readonly mediator: EventMediator = new EventMediator();
     readonly userSharding = new ShardRegion('users', 128);
     readonly groupSharding = new ShardRegion('groups', 128);
     readonly userService = new UserServiceManager();
