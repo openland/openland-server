@@ -33,9 +33,9 @@ function getLock(ctx: Context, key: string) {
 }
 
 @injectable()
-export class NewCountersRepository {
+export class AsyncCountersRepository {
     private directory = Store.NewCountersDirectory;
-    readonly messages: CompacterMessagesDirectory;
+    readonly messages: CompacterMessagesDirectory; // shared with syncCountersRepository
 
     @lazyInject('UserReadSeqsDirectory')
     readonly userReadSeqs!: UserReadSeqsDirectory;
@@ -137,7 +137,7 @@ export class NewCountersRepository {
         });
     }
 
-    private fetchUserCounterForChat = async (ctx: Context, uid: number, cid: number, lastReadSeq: number, includeAllMention = true) => {
+    fetchUserCounterForChat = async (ctx: Context, uid: number, cid: number, lastReadSeq: number, includeAllMention = true) => {
         let chatLastSeq = await Store.ConversationLastSeq.get(ctx, cid);
         let messages = await this.messages.get(ctx, cid, lastReadSeq + 1);
         let deletedSeqsCount = messages.filter(m => m.deleted).length;

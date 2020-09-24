@@ -36,4 +36,8 @@ export class UserReadSeqsDirectory {
         let userReadSeqs = await this.directory.snapshotRange(ctx, [uid]);
         return userReadSeqs.map(val => ({ cid: val.key[val.key.length - 1] as number, seq: val.value }));
     }
+
+    getUserReadSeqForChat = async (ctx: Context, uid: number, cid: number) => {
+        return (await this.directory.get(ctx, [uid, cid])) || 0;
+    }
 }

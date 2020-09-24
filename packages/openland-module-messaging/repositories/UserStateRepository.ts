@@ -1,10 +1,5 @@
 import { UserDialogEvent } from 'openland-module-db/store';
-import {
-    encoders,
-    inTx,
-    Subspace,
-    TupleItem, withoutTransaction,
-} from '@openland/foundationdb';
+import { encoders, inTx, Subspace, TupleItem } from '@openland/foundationdb';
 import { injectable, inject } from 'inversify';
 import { Context } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
@@ -182,24 +177,19 @@ export class UserStateRepository {
         return zipedEvents;
     }
 
-    async zipUpdatesInBatchesAfterModern(parent: Context, uid: number, state: string | undefined) {
+    async* zipUpdatesInBatchesAfterModern(parent: Context, uid: number, state: string | undefined) {
         if (!state) {
             return;
         }
-        let stream = await Store.UserDialogEventStore.createStream(uid, {batchSize: 1000, after: state});
-        let events: BaseEvent[] = [];
-        let working = true;
-        while (working) {
-            await inTx(withoutTransaction(parent), async ctx => {
-                let res = await stream.next(ctx);
-                if (res.length === 0) {
-                    working = false;
-                    return;
-                }
-                events.push(...res);
-            });
+        let stream = await Store.UserDialogEventStore.createStream(uid, {batchSize: 100, after: state});
+        while (true) {
+            let res = await stream.next(parent);
+            if (res.length > 0) {
+                yield  {items: this.zipUserDialogEventsModern(res as any), cursor: stream.cursor};
+            } else {
+                return;
+            }
         }
-        return { items: this.zipUserDialogEventsModern(events as any), cursor: stream.cursor };
     }
 
     async fetchUserGlobalCounter(ctx: Context, uid: number) {

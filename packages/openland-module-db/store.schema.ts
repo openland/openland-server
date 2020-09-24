@@ -879,10 +879,15 @@ export default declareSchema(() => {
 
     customDirectory('UserCountersIndex');
 
+    // DEPRECATED
     customDirectory('FastCounters');
     customDirectory('ExperimentalCounters');
+    // DEPRECATED
+
     customDirectory('NewCounters');
+    customDirectory('SyncCounters');
     customDirectory('UserReadSeqs');
+    customDirectory('ChatMembers');
 
     entity('UserDialogHandledMessage', () => {
         primaryKey('uid', integer());

@@ -26,7 +26,10 @@ import { OnReadCounterProvider } from './counters/OnReadCounterProvider';
 import { ExperimentalCountersRepository } from './repositories/ExperimentalCountersRepository';
 import { ExperimentalCountersProvider } from './counters/ExperimentalCountersProvider';
 import { UserReadSeqsDirectory } from './repositories/UserReadSeqsDirectory';
-import { NewCountersRepository } from './repositories/NewCountersRepository';
+import { AsyncCountersRepository } from './repositories/AsyncCountersRepository';
+import { ChatsMembersListDirectory } from './repositories/ChatsMembersListDirectory';
+import { SyncCountersRepository } from './repositories/SyncCountersRepository';
+import { HybridCountersRepository } from './repositories/HybridCountersRepository';
 
 export function loadMessagingModule() {
     container.bind(MessagingModule).toSelf().inSingletonScope();
@@ -56,5 +59,8 @@ export function loadMessagingModule() {
     container.bind('ExperimentalCountersRepository').to(ExperimentalCountersRepository).inSingletonScope();
     container.bind('ExperimentalCountersProvider').to(ExperimentalCountersProvider).inSingletonScope();
     container.bind('UserReadSeqsDirectory').to(UserReadSeqsDirectory).inSingletonScope();
-    container.bind('NewCountersRepository').to(NewCountersRepository).inSingletonScope();
+    container.bind('AsyncCountersRepository').to(AsyncCountersRepository).inSingletonScope();
+    container.bind('SyncCountersRepository').to(SyncCountersRepository).inSingletonScope();
+    container.bind('HybridCountersRepository').to(HybridCountersRepository).inSingletonScope();
+    container.bind('ChatsMembersListDirectory').to(ChatsMembersListDirectory).inSingletonScope();
 }

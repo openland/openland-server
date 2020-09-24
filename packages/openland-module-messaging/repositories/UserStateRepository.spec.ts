@@ -11,6 +11,7 @@ import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { UserDialogMessageReadEvent, UserDialogMessageReceivedEvent } from 'openland-module-db/store';
 import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
 import { UsersModule } from '../../openland-module-users/UsersModule';
+import { BaseEvent } from '@openland/foundationdb-entity';
 
 describe('UserStateRepository', () => {
     let ctx: Context;
@@ -67,11 +68,15 @@ describe('UserStateRepository', () => {
     it('should handle old updates then return last state to subscribe for live updates', async () => {
         let { state } = await sendMessage(1, '2');
         let { state: state2 } = await sendMessage(1, '3');
-        let updates = await userStateRepo.zipUpdatesInBatchesAfterModern(ctx, 2, state || undefined);
+        let iterator = await userStateRepo.zipUpdatesInBatchesAfterModern(ctx, 2, state || undefined);
 
-        expect(updates).toBeDefined();
-        expect(updates!.items.length).toBe(1);
-        expect(updates!.cursor).toBe(state2!);
+        let batch: any;
+        for await (let b of iterator) {
+            batch = b;
+        }
+        expect(batch).toBeDefined();
+        expect(batch!.items.length).toBe(1);
+        expect(batch!.cursor).toBe(state2!);
     });
 
     it('should zip updates currectly', async () => {
@@ -99,25 +104,29 @@ describe('UserStateRepository', () => {
         // one more message to chat 1
         let { message: mid9Cid1, state: stateTo } = await sendMessage(1, '9');
 
-        let events = await userStateRepo.zipUpdatesInBatchesAfterModern(ctx, 2, stateFrom || undefined);
+        let iterator = await userStateRepo.zipUpdatesInBatchesAfterModern(ctx, 2, stateFrom || undefined);
 
-        expect(events).toBeDefined();
-        expect(events!.items.length).toBe(4);
+        let batch: { items: BaseEvent[], cursor: string|null } | undefined;
+        for await (let b of iterator) {
+            batch = b as any;
+        }
+        expect(batch).toBeDefined();
+        expect(batch!.items.length).toBe(4);
 
-        expect((events!.items[0] as UserDialogMessageReceivedEvent).mid).toBe(message.id);
-        expect((events!.items[0] as UserDialogMessageReceivedEvent).cid).toBe(1);
-        expect(events!.items[0].type).toBe('userDialogMessageUpdatedEvent');
+        expect((batch!.items[0] as UserDialogMessageReceivedEvent).mid).toBe(message.id);
+        expect((batch!.items[0] as UserDialogMessageReceivedEvent).cid).toBe(1);
+        expect(batch!.items[0].type).toBe('userDialogMessageUpdatedEvent');
 
-        expect((events!.items[1] as UserDialogMessageReadEvent).cid).toBe(1);
-        expect(events!.items[1].type).toBe('userDialogMessageReadEvent');
+        expect((batch!.items[1] as UserDialogMessageReadEvent).cid).toBe(1);
+        expect(batch!.items[1].type).toBe('userDialogMessageReadEvent');
 
-        expect((events!.items[2] as UserDialogMessageReceivedEvent).mid).toBe(m2fromCid2.id);
-        expect((events!.items[2] as UserDialogMessageReceivedEvent).cid).toBe(2);
+        expect((batch!.items[2] as UserDialogMessageReceivedEvent).mid).toBe(m2fromCid2.id);
+        expect((batch!.items[2] as UserDialogMessageReceivedEvent).cid).toBe(2);
 
-        expect((events!.items[3] as UserDialogMessageReceivedEvent).mid).toBe(mid9Cid1.id);
-        expect((events!.items[3] as UserDialogMessageReceivedEvent).cid).toBe(1);
+        expect((batch!.items[3] as UserDialogMessageReceivedEvent).mid).toBe(mid9Cid1.id);
+        expect((batch!.items[3] as UserDialogMessageReceivedEvent).cid).toBe(1);
 
-        expect(events!.cursor).toBe(stateTo);
+        expect(batch!.cursor).toBe(stateTo);
     });
 
 });
