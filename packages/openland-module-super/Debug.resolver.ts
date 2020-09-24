@@ -1874,7 +1874,7 @@ export const Resolver: GQLResolver = {
             debugTaskForAllBatched<RoomParticipantShape>(Store.RoomParticipant.descriptor.subspace, parent.auth.uid!, 'debugReindexRoomParticipants', 100, async (items) => {
                 await inTx(parent, async ctx => {
                     for (let item of items) {
-                        let entity = await Store.RoomParticipant.findById(ctx, item.value.oid, item.value.uid);
+                        let entity = await Store.RoomParticipant.findById(ctx, item.value.cid, item.value.uid);
                         entity!.invalidate();
                         await entity!.flush(ctx);
                     }
