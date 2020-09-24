@@ -195,6 +195,7 @@ extend type Mutation {
     debugDeleteAllContacts: Boolean!
     debugChangeGlobalCounterTypeForAll: Boolean!
     debugReindexOrganizationMembers: Boolean!
+    debugReindexRoomParticipants: Boolean!
     debugDeleteTask(taskType: String!, id: String!): Boolean!
     debugDeliverCallStateEventsForAll: Boolean!
     debugMigrateMuteSettings: Boolean!

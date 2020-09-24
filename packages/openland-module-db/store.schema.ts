@@ -367,6 +367,8 @@ export default declareSchema(() => {
         uniqueIndex('active', ['cid', 'uid']).withCondition((src) => src.status === 'joined');
         uniqueIndex('requests', ['cid', 'uid']).withCondition((src) => src.status === 'requested');
         uniqueIndex('userActive', ['uid', 'cid']).withCondition((src) => src.status === 'joined');
+
+        rangeIndex('created', ['createdAt']);
     });
     customDirectory('RoomParticipantsActive');
     customDirectory('UserChatsActive');
