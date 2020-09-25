@@ -6,7 +6,10 @@ import {
     DialogNeedReindexEvent,
     OrganizationProfile,
     OrganizationMemberShape,
-    UserDialogCallStateChangedEvent, MessageShape, ShortnameReservationShape, UserShape,
+    UserDialogCallStateChangedEvent,
+    MessageShape,
+    ShortnameReservationShape,
+    UserShape, RoomParticipantShape,
 } from './../openland-module-db/store';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from '../openland-module-api/Resolvers';
@@ -1861,6 +1864,18 @@ export const Resolver: GQLResolver = {
                 await inTx(parent, async ctx => {
                     for (let item of items) {
                         let entity = await Store.OrganizationMember.findById(ctx, item.value.oid, item.value.uid);
+                        entity!.invalidate();
+                        await entity!.flush(ctx);
+                    }
+                });
+            });
+            return true;
+        }),
+        debugReindexRoomParticipants: withPermission('super-admin', async (parent) => {
+            debugTaskForAllBatched<RoomParticipantShape>(Store.RoomParticipant.descriptor.subspace, parent.auth.uid!, 'debugReindexRoomParticipants', 100, async (items) => {
+                await inTx(parent, async ctx => {
+                    for (let item of items) {
+                        let entity = await Store.RoomParticipant.findById(ctx, item.value.cid, item.value.uid);
                         entity!.invalidate();
                         await entity!.flush(ctx);
                     }

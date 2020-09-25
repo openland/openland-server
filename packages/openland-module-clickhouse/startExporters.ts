@@ -179,6 +179,28 @@ function startOrgUsersExport(client: DatabaseClient) {
     });
 }
 
+const roomParticipants = table('room_participants', schema({
+    uid: integer(),
+    cid: integer(),
+    deleted: boolean(),
+    sign: integer('Int8'),
+}), {
+    engine: 'CollapsingMergeTree(sign)',
+    orderBy: '(cid, uid)',
+    partition: 'cid',
+    primaryKey: '(cid, uid)'
+});
+function startRoomParticipantsExport(client: DatabaseClient) {
+    updateReader('clickhouse-org-room-participants', 1, Store.RoomParticipant.created.stream({ batchSize: 100 }), async (values, first, ctx) => {
+        await roomParticipants.insert(ctx, client, values.filter(a => a.status === 'joined').map(a => ({
+            uid: a.uid,
+            cid: a.cid,
+            deleted: false,
+            sign: 1,
+        })));
+    });
+}
+
 const presencesModern = table('presences_modern', schema({
     date: date(),
     uid: integer(),
@@ -204,6 +226,7 @@ export function startExporters(parent: Context) {
         startAnalyticsExport(client);
         startHyperlogExport(client);
         startOrgUsersExport(client);
+        startRoomParticipantsExport(client);
         startModernPresenceExport(client);
     })();
 }

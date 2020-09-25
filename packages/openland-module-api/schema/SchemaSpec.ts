@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'c7e75733c0f07d6dd835f2555e96e8a6';
+export const GQL_SPEC_VERSION = 'afdeb7d327ed2fc60db5fdfb9f9ece29';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2270,6 +2270,7 @@ export namespace GQL {
         debugDeleteAllContacts: boolean;
         debugChangeGlobalCounterTypeForAll: boolean;
         debugReindexOrganizationMembers: boolean;
+        debugReindexRoomParticipants: boolean;
         debugDeleteTask: boolean;
         debugDeliverCallStateEventsForAll: boolean;
         debugMigrateMuteSettings: boolean;
@@ -2804,6 +2805,7 @@ export namespace GQL {
     export interface MutationDebugDeleteAllContactsArgs { }
     export interface MutationDebugChangeGlobalCounterTypeForAllArgs { }
     export interface MutationDebugReindexOrganizationMembersArgs { }
+    export interface MutationDebugReindexRoomParticipantsArgs { }
     export interface MutationDebugDeleteTaskArgs {
         taskType: string;
         id: string;
@@ -8963,6 +8965,7 @@ export interface GQLResolver {
             debugDeleteAllContacts: GQL.MutationDebugDeleteAllContactsArgs,
             debugChangeGlobalCounterTypeForAll: GQL.MutationDebugChangeGlobalCounterTypeForAllArgs,
             debugReindexOrganizationMembers: GQL.MutationDebugReindexOrganizationMembersArgs,
+            debugReindexRoomParticipants: GQL.MutationDebugReindexRoomParticipantsArgs,
             debugDeleteTask: GQL.MutationDebugDeleteTaskArgs,
             debugDeliverCallStateEventsForAll: GQL.MutationDebugDeliverCallStateEventsForAllArgs,
             debugMigrateMuteSettings: GQL.MutationDebugMigrateMuteSettingsArgs,
