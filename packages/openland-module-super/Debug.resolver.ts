@@ -752,7 +752,8 @@ export const Resolver: GQLResolver = {
                 let i = 0;
                 for (let room of allRooms) {
                     await inTx(rootCtx, async (ctx) => {
-                        let activeMembers = await Store.RoomParticipant.active.findAll(ctx, room.id);
+                        // let activeMembers = await Store.RoomParticipant.active.findAll(ctx, room.id);
+                        let activeMembers = await Modules.Messaging.room.findConversationMembers(ctx, room.id);
                         let _room = await Store.RoomProfile.findById(ctx, room.id);
 
                         if (_room) {

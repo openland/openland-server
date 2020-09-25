@@ -103,7 +103,6 @@ export class RoomRepository {
             });
             await this.setParticipant(ctx, id, uid, true, false);
             await this.onRoomJoin(ctx, id, uid, uid);
-            await this.incrementRoomActiveMembers(ctx, id);
 
             let memberNo = 0;
             for (let m of [...new Set(members)]) {
@@ -117,7 +116,6 @@ export class RoomRepository {
                 });
                 await this.setParticipant(ctx, id, m, true, memberNo > 50);
                 await this.onRoomJoin(ctx, id, m, uid);
-                await this.incrementRoomActiveMembers(ctx, id);
                 memberNo++;
             }
 
