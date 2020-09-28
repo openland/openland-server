@@ -7,7 +7,7 @@ import { HyperLog, HyperLogEvent } from '../openland-module-db/store';
 import { container } from '../openland-modules/Modules.container';
 import DatabaseClient from './DatabaseClient';
 import { table, TableSpace } from './TableSpace';
-import { boolean, date, integer, schema } from './schema';
+import { boolean, date, integer, nullable, schema, string } from './schema';
 import { subspaceReader } from '../openland-module-workers/subspaceReader';
 import { encoders } from '@openland/foundationdb';
 
@@ -201,6 +201,38 @@ function startRoomParticipantsExport(client: DatabaseClient) {
     });
 }
 
+const rooms = table('room', schema({
+    id: integer(),
+    kind: string(), // PUBLIC, PRIVATE
+    oid: nullable(integer()),
+    deleted: boolean(),
+    sign: integer('Int8'),
+}), {
+    engine: 'CollapsingMergeTree(sign)',
+    orderBy: 'id',
+    partition: 'id',
+    primaryKey: 'id'
+});
+function startRoomExport(client: DatabaseClient) {
+    updateReader('clickhouse-rooms', 1, Store.RoomProfile.created.stream({ batchSize: 100 }), async (values, first, ctx) => {
+        let res = [];
+        for (let a of values) {
+            let convRoom = await Store.ConversationRoom.findById(ctx, a.id);
+            if (!convRoom) {
+                continue;
+            }
+            res.push({
+                id: convRoom.id,
+                kind: convRoom.kind,
+                oid: convRoom.oid,
+                deleted: convRoom.isDeleted || false,
+                sign: 1,
+            });
+        }
+        await rooms.insert(ctx, client, res);
+    });
+}
+
 const presencesModern = table('presences_modern', schema({
     date: date(),
     uid: integer(),
@@ -228,5 +260,6 @@ export function startExporters(parent: Context) {
         startOrgUsersExport(client);
         startRoomParticipantsExport(client);
         startModernPresenceExport(client);
+        startRoomExport(client);
     })();
 }
