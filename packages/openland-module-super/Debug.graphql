@@ -211,6 +211,7 @@ extend type Mutation {
     debugMigrateToExperimentalCounters: Boolean!
     debugFixCompactMessages: Boolean!
     debugMigrateToNewerCounters: Boolean!
+    debugUserAuth(id: ID!): Boolean!
 }
 
 extend type Subscription {

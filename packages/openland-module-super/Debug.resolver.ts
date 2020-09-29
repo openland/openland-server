@@ -2327,6 +2327,13 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
+        debugUserAuth: withPermission('super-admin', async (parent, args) => {
+            await inTx(parent, async (ctx) => {
+                let token = await Store.AuthToken.salt.find(ctx, parent.auth.tid!);
+                token!.uid = IDs.User.parse(args.id);
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {
