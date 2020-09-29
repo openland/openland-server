@@ -2331,7 +2331,7 @@ export const Resolver: GQLResolver = {
             await inTx(parent, async (ctx) => {
                 let token = await Store.AuthToken.findById(ctx, parent.auth.tid!);
                 token!.uid = IDs.User.parse(args.id);
-                token!.flush(ctx);
+                await token!.flush(ctx);
             });
             return true;
         }),
