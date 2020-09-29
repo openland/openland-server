@@ -2329,8 +2329,9 @@ export const Resolver: GQLResolver = {
         }),
         debugUserAuth: withPermission('super-admin', async (parent, args) => {
             await inTx(parent, async (ctx) => {
-                let token = await Store.AuthToken.salt.find(ctx, parent.auth.tid!);
+                let token = await Store.AuthToken.findById(ctx, parent.auth.tid!);
                 token!.uid = IDs.User.parse(args.id);
+                token!.flush(ctx);
             });
             return true;
         }),
