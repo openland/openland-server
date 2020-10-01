@@ -89,6 +89,10 @@ export const Resolver: GQLResolver = {
         hasActiveCall: async (src, _, ctx) => {
             return !!(await Modules.Calls.repo.getOrCreateConference(ctx, src.cid)).active;
         },
+        featured: async (src, _, ctx) => {
+            let conv = await Store.ConversationRoom.findById(ctx, src.cid);
+            return conv?.featured || false;
+        },
         membership: async (src, args, ctx) => ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, src.cid) : 'none'
     },
     Query: {

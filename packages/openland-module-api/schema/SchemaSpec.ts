@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'cf66d05131bfa99c7156511449ffd8df';
+export const GQL_SPEC_VERSION = '11b4119efbe275630ea96a1cdf98457b';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -828,6 +828,7 @@ export namespace GQL {
         isPremium: boolean;
         title: string;
         photo: string;
+        featured: boolean;
         unreadCount: number;
         topMessage: Nullable<Message>;
         betaTopMessage: Nullable<RoomMessage>;
@@ -845,6 +846,7 @@ export namespace GQL {
     export interface DialogIsPremiumArgs { }
     export interface DialogTitleArgs { }
     export interface DialogPhotoArgs { }
+    export interface DialogFeaturedArgs { }
     export interface DialogUnreadCountArgs { }
     export interface DialogTopMessageArgs { }
     export interface DialogBetaTopMessageArgs { }
@@ -7264,6 +7266,7 @@ export interface GQLResolver {
             isPremium: GQL.DialogIsPremiumArgs,
             title: GQL.DialogTitleArgs,
             photo: GQL.DialogPhotoArgs,
+            featured: GQL.DialogFeaturedArgs,
             unreadCount: GQL.DialogUnreadCountArgs,
             topMessage: GQL.DialogTopMessageArgs,
             betaTopMessage: GQL.DialogBetaTopMessageArgs,
