@@ -2366,7 +2366,7 @@ export const Resolver: GQLResolver = {
                     }
                 }
 
-                let membersStream = Store.OrganizationMember.organization.stream('joined', IDs.Organization.parse(args.oid));
+                let membersStream = Store.OrganizationMember.organization.stream('joined', IDs.Organization.parse(args.oid), { batchSize: 100 });
                 let membersCount = -1;
                 let total = 0;
                 while (membersCount !== 0) {
