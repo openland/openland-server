@@ -12,6 +12,7 @@ import { UserDialogMessageReadEvent, UserDialogMessageReceivedEvent } from 'open
 import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
 import { UsersModule } from '../../openland-module-users/UsersModule';
 import { BaseEvent } from '@openland/foundationdb-entity';
+import { inTx } from '@openland/foundationdb';
 
 describe('UserStateRepository', () => {
     let ctx: Context;
@@ -37,7 +38,9 @@ describe('UserStateRepository', () => {
 
     const sendMessage = async (cid: number, text: string) => {
         let m1 = await messagingRepo.createMessage(ctx, cid, 2, { message: text });
-        await deliveryRepo.deliverMessageToUser(ctx, 2, m1.message);
+        await inTx(ctx, async ctx2 => {
+            await deliveryRepo.deliverMessageToUser(ctx2, 2, m1.message);
+        });
         // let state = await Store.UserDialogEvent.user.query(ctx, 2, { limit: 1, reverse: true });
         let state = await Store.UserDialogEventStore.createStream(2, {batchSize: 1}).tail(ctx);
         return { message: m1.message, state };
@@ -88,14 +91,18 @@ describe('UserStateRepository', () => {
 
         // edit message from chat 1
         await messagingRepo.editMessage(ctx, message.id, { message: 'kek' }, false);
-        await deliveryRepo.deliverMessageUpdateToUser(ctx, 2, message);
+        await inTx(ctx, async ctx2 => {
+            await deliveryRepo.deliverMessageUpdateToUser(ctx2, 2, message);
+        });
 
         // more messages to chat 1
         await sendMessage(1, '7');
         let { message: mid8Cid1 } = await sendMessage(1, '8');
 
         // read chat 1
-        await deliveryRepo.deliverMessageReadToUser(ctx, 2, mid8Cid1.id);
+        await inTx(ctx, async ctx2 => {
+            await deliveryRepo.deliverMessageReadToUser(ctx2, 2, mid8Cid1.id);
+        });
 
         // messages to chat 2
         await sendMessage(2, '1');
