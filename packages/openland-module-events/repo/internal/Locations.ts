@@ -11,6 +11,8 @@ const SUBSCRIBER_DIRECT_REV = 3;
 const SUBSCRIBER_DIRECT_UPDATES = 4;
 const SUBSCRIBER_DIRECT_LATEST = 5;
 const SUBSCRIBER_ASYNC = 2;
+const SUBSCRIBER_ASYNC_ONLINE = 3;
+const SUBSCRIBER_ASYNC_ONLINE_LATEST = 3;
 const SUBSCRIBER_SUBSCRIPTIONS_CHANGES = 6;
 
 export const Locations = {
@@ -28,9 +30,11 @@ export const Locations = {
         directReverseAll: (feed: Buffer) => encoders.tuple.pack([feed, SUBSCRIBER_DIRECT_REV]),
         directUpdates: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_DIRECT_UPDATES]),
         directLatest: (feed: Buffer) => encoders.tuple.pack([SUBSCRIBER_DIRECT_LATEST, feed]), // Change location?
-        
+
         async: (subscriber: Buffer, feed: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_ASYNC, feed]),
         asyncAll: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_ASYNC]),
+        asyncOnline: (feed: Buffer) => encoders.tuple.pack([feed, SUBSCRIBER_ASYNC_ONLINE]),
+        asyncOnlineLatest: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_ASYNC_ONLINE_LATEST]),
 
         subscriptionChanges: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_SUBSCRIPTIONS_CHANGES])
     }

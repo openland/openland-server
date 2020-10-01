@@ -92,7 +92,7 @@ export class SubscriberDirectRepository {
 
     async getUpdatedFeeds(ctx: Context, subscriber: Buffer, after: Buffer) {
         let location = Locations.subscriber.directUpdates(subscriber);
-        let res = await this.subspace.range(ctx, Locations.subscriber.directUpdates(subscriber), { after: Buffer.concat([location, after]) });
+        let res = await this.subspace.range(ctx, location, { after: Buffer.concat([location, after]) });
         let updated: { feed: Buffer, seq: number }[] = [];
         for (let r of res) {
             let tuple = encoders.tuple.unpack(r.value);
