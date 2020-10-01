@@ -13,17 +13,6 @@ import { EmailSpan } from 'openland-module-email/EmailSpans';
 
 @injectable()
 export class StatsModule {
-    // public readonly weeklyEngagementQueue = createWeeklyEngagementReportWorker();
-    // public readonly weeklyOnboardingQueue = createWeeklyOnboardingReportWorker();
-    // public readonly dailyOnboardingQueue = createDailyOnboardingReportWorker();
-    // public readonly dailyEngagementQueue = createDailyEngagementReportWorker();
-    // public readonly weeklyUserLeaderboardQueue = createWeeklyUserLeaderboardWorker();
-    // public readonly weeklyRoomLeaderboardQueue = createWeeklyRoomLeaderboardWorker();
-    // public readonly weeklyRoomByMessagesLeaderboardQueue = createWeeklyRoomByMessagesLeaderboardWorker();
-    // public readonly dailyPaidLeaderboardQueue = createDailyPaidLeaderboardWorker();
-    // public readonly weeklyPaidLeaderboardQueue = createWeeklyPaidLeaderboardWorker();
-    // public readonly weeklyRoomViewsQueue = createWeeklyRoomScreenViewsLeaderboardWorker();
-
     start = async () => {
         // no op
     }

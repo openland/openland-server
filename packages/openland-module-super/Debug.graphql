@@ -212,6 +212,7 @@ extend type Mutation {
     debugFixCompactMessages: Boolean!
     debugMigrateToNewerCounters: Boolean!
     debugUserAuth(id: ID!): Boolean!
+    debugCreateOrganizationMailing(oid: ID!, uid: ID!, message: String!, spans: [MessageSpanInput!]): Boolean!
 }
 
 extend type Subscription {

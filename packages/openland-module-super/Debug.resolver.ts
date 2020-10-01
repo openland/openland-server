@@ -39,7 +39,7 @@ import { batch } from '../openland-utils/batch';
 import { UserError } from '../openland-errors/UserError';
 import { UserChatsRepository } from '../openland-module-messaging/repositories/UserChatsRepository';
 import { FastCountersRepository } from '../openland-module-messaging/repositories/FastCountersRepository';
-import { MessageAttachmentFileInput } from '../openland-module-messaging/MessageInput';
+import { MessageAttachmentFileInput, MessageSpan } from '../openland-module-messaging/MessageInput';
 import { ExperimentalCountersRepository } from '../openland-module-messaging/repositories/ExperimentalCountersRepository';
 import { UserReadSeqsDirectory } from '../openland-module-messaging/repositories/UserReadSeqsDirectory';
 import { AsyncCountersRepository } from '../openland-module-messaging/repositories/AsyncCountersRepository';
@@ -2335,6 +2335,60 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
+        debugCreateOrganizationMailing: withPermission('super-admin', async (parent, args) => {
+            debugTask(parent.auth.uid!, 'debugCreateOrgMailing', async (log) => {
+                let spans: MessageSpan[] = [];
+
+                //
+                //  Spans
+                //
+                if (args.spans) {
+                    for (let span of args.spans) {
+                        if (span.type === 'Bold') {
+                            spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
+                        } else if (span.type === 'Italic') {
+                            spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
+                        } else if (span.type === 'InlineCode') {
+                            spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
+                        } else if (span.type === 'CodeBlock') {
+                            spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
+                        } else if (span.type === 'Irony') {
+                            spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
+                        } else if (span.type === 'Insane') {
+                            spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
+                        } else if (span.type === 'Loud') {
+                            spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
+                        } else if (span.type === 'Rotating') {
+                            spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
+                        } else if (span.type === 'Link' && span.url) {
+                            spans.push({offset: span.offset, length: span.length, type: 'link', url: span.url});
+                        }
+                    }
+                }
+
+                let membersStream = Store.OrganizationMember.organization.stream('joined', IDs.Organization.parse(args.oid), { batchSize: 100 });
+                let membersCount = -1;
+                let total = 0;
+                while (membersCount !== 0) {
+                    await inTx(parent, async (ctx) => {
+                        let members = await membersStream.next(ctx);
+                        membersCount = members.length;
+                        for (let member of members) {
+                            let conv = await Modules.Messaging.room.resolvePrivateChat(ctx, member.uid, IDs.User.parse(args.uid));
+                            await Modules.Messaging.sendMessage(ctx, conv.id, IDs.User.parse(args.uid), {
+                                message: args.message,
+                                spans: spans
+                            });
+                        }
+                        total += membersCount;
+                    });
+                    await log('Sent ' + total + ' members');
+                }
+
+                return 'ok, total: ' + total;
+            });
+            return true;
+        })
     },
     Subscription: {
         debugEvents: {
