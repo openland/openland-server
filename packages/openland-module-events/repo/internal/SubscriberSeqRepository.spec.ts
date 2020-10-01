@@ -1,14 +1,14 @@
-import { SeqRepository } from './SeqRepository';
+import { SubscriberSeqRepository } from './SubscriberSeqRepository';
 import { createNamedContext } from '@openland/context';
 import { Database } from '@openland/foundationdb';
 
 const ZERO = Buffer.alloc(0);
 
-describe('SeqRepository', () => {
+describe('SubscriberSeqRepository', () => {
     it('posting allocate seq', async () => {
         let root = createNamedContext('test');
         let db = await Database.openTest({ name: 'event-storage-posting', layers: [] });
-        let repo = new SeqRepository(db.allKeys);
+        let repo = new SubscriberSeqRepository(db.allKeys);
 
         // Initial state
         let seq = await repo.getCurrentSeqSnapshot(root, ZERO);

@@ -8,7 +8,7 @@ const SUBSPACE_SEQ = 1;
 /**
  * Allocation if sequence number for specific subscribers
  */
-export class SeqRepository {
+export class SubscriberSeqRepository {
     private directory: Subspace;
 
     /**

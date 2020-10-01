@@ -26,11 +26,11 @@ export const Locations = {
         directAll: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_DIRECT]),
         directReverse: (subscriber: Buffer, feed: Buffer) => encoders.tuple.pack([feed, SUBSCRIBER_DIRECT_REV, subscriber]),
         directReverseAll: (feed: Buffer) => encoders.tuple.pack([feed, SUBSCRIBER_DIRECT_REV]),
-        async: (subscriber: Buffer, feed: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_ASYNC, feed]),
-        asyncAll: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_ASYNC]),
-
         directUpdates: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_DIRECT_UPDATES]),
         directLatest: (feed: Buffer) => encoders.tuple.pack([SUBSCRIBER_DIRECT_LATEST, feed]), // Change location?
+        
+        async: (subscriber: Buffer, feed: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_ASYNC, feed]),
+        asyncAll: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_ASYNC]),
 
         subscriptionChanges: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_SUBSCRIPTIONS_CHANGES])
     }
