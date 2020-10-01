@@ -19,14 +19,16 @@ import { createLogger } from '@openland/log';
 const tracer = createTracer('message-delivery');
 const log = createLogger('delivery');
 
+type DeliveryAction = 'new' | 'update' | 'delete' | 'call-active' | 'call-inactive' | 'dialog-title-update' | 'dialog-peer-update' | 'dialog-photo-update';
+
 @injectable()
 export class DeliveryMediator {
 
-    readonly queueFanOut = new BetterWorkerQueue<{ messageId: number, cid: number, action?: 'new' | 'update' | 'delete' | 'call-active' | 'call-inactive' }>(Store.DeliveryFanOutQueue, {
+    readonly queueFanOut = new BetterWorkerQueue<{ messageId: number, cid: number, action?: DeliveryAction }>(Store.DeliveryFanOutQueue, {
         maxAttempts: 'infinite',
         type: 'transactional'
     });
-    readonly queueUserMultipe = new BetterWorkerQueue<{ messageId: number, cid: number, uids: number[], action?: 'new' | 'update' | 'delete' | 'call-active' | 'call-inactive' }>(Store.DeliveryUserBatchQueue, {
+    readonly queueUserMultipe = new BetterWorkerQueue<{ messageId: number, cid: number, uids: number[], action?: DeliveryAction }>(Store.DeliveryUserBatchQueue, {
         maxAttempts: 'infinite',
         type: 'transactional'
     });
@@ -56,6 +58,21 @@ export class DeliveryMediator {
                     for (let uid of item.uids) {
                         this.repo.deliverCallStateChangedToUser(ctx, uid, item.cid, false);
                     }
+                } else if (item.action === 'dialog-peer-update') {
+                    for (let uid of item.uids) {
+                        this.repo.deliverDialogPeerUpdatedToUser(ctx, uid, item.cid);
+                    }
+                } else if (item.action === 'dialog-photo-update') {
+                    for (let uid of item.uids) {
+                        this.repo.deliverDialogPhotoUpadtedToUser(ctx, uid, item.cid);
+                        this.repo.deliverDialogPeerUpdatedToUser(ctx, uid, item.cid);
+                    }
+                } else if (item.action === 'dialog-title-update') {
+                    let conv = await Store.RoomProfile.findById(ctx, item.cid);
+                    for (let uid of item.uids) {
+                        this.repo.deliverDialogTitleUpadtedToUser(ctx, uid, item.cid, conv!.title);
+                        this.repo.deliverDialogPeerUpdatedToUser(ctx, uid, item.cid);
+                    }
                 } else {
                     throw Error('Unknown action: ' + item.action);
                 }
@@ -71,6 +88,12 @@ export class DeliveryMediator {
                     await this.fanOutDelivery(ctx, item.messageId, item.cid, 'call-active');
                 } else if (item.action === 'call-inactive') {
                     await this.fanOutDelivery(ctx, item.messageId, item.cid, 'call-inactive');
+                } else if (item.action === 'dialog-peer-update') {
+                    await this.fanOutDelivery(ctx, item.messageId, item.cid, 'dialog-peer-update');
+                } else if (item.action === 'dialog-title-update') {
+                    await this.fanOutDelivery(ctx, item.messageId, item.cid, 'dialog-title-update');
+                } else if (item.action === 'dialog-photo-update') {
+                    await this.fanOutDelivery(ctx, item.messageId, item.cid, 'dialog-photo-update');
                 } else {
                     throw Error('Unknown action: ' + item.action);
                 }
@@ -131,30 +154,19 @@ export class DeliveryMediator {
 
     onDialogTitleUpdate = async (parent: Context, cid: number, title: string) => {
         await inTx(parent, async (ctx) => {
-            let members = await this.room.findConversationMembers(ctx, cid);
-            for (let m of members) {
-                await this.repo.deliverDialogTitleUpadtedToUser(ctx, m, cid, title);
-                await this.repo.deliverDialogPeerUpdatedToUser(ctx, m, cid);
-            }
+            this.queueFanOut.pushWork(ctx, { messageId: 0, cid, action: 'dialog-title-update' });
         });
     }
 
     onDialogPhotoUpdate = async (parent: Context, cid: number, photo?: ImageRef) => {
         await inTx(parent, async (ctx) => {
-            let members = await this.room.findConversationMembers(ctx, cid);
-            for (let m of members) {
-                await this.repo.deliverDialogPhotoUpadtedToUser(ctx, m, cid, photo);
-                await this.repo.deliverDialogPeerUpdatedToUser(ctx, m, cid);
-            }
+            this.queueFanOut.pushWork(ctx, { messageId: 0, cid, action: 'dialog-photo-update' });
         });
     }
 
     onDialogPeerUpdate = async (parent: Context, cid: number) => {
         await inTx(parent, async (ctx) => {
-            let members = await this.room.findConversationMembers(ctx, cid);
-            for (let m of members) {
-                await this.repo.deliverDialogPeerUpdatedToUser(ctx, m, cid);
-            }
+            this.queueFanOut.pushWork(ctx, { messageId: 0, cid, action: 'dialog-peer-update' });
         });
     }
 
@@ -222,7 +234,7 @@ export class DeliveryMediator {
 
     onDialogLostAccess = async (parent: Context, uid: number, cid: number) => {
         await inTx(parent, async (ctx) => {
-            await this.repo.deliverDialogGotAccessToUser(ctx, uid, cid);
+            await this.repo.deliverDialogLostAccessToUser(ctx, uid, cid);
         });
     }
 
@@ -248,7 +260,7 @@ export class DeliveryMediator {
     // Deliver action to every member of the conversation
     //
 
-    private async fanOutDelivery(parent: Context, mid: number, cid: number, action: 'new' | 'update' | 'delete' | 'call-active' | 'call-inactive') {
+    private async fanOutDelivery(parent: Context, mid: number, cid: number, action: DeliveryAction) {
         await tracer.trace(parent, 'fanOutDelivery:' + action, async (tctx) => {
             await inTx(tctx, async (ctx) => {
                 let members = await this.room.findConversationMembers(ctx, cid);
@@ -289,28 +301,22 @@ export class DeliveryMediator {
         Modules.Metrics.onMessageReceived(ctx, message, uid);
     }
 
-    private deliverMessageUpdateToUser = async (parent: Context, uid: number, message: Message) => {
-        await inTx(parent, async (ctx) => {
-            // Update dialogs
-            await this.repo.deliverMessageUpdateToUser(ctx, uid, message);
-        });
+    private deliverMessageUpdateToUser = async (ctx: Context, uid: number, message: Message) => {
+        await this.repo.deliverMessageUpdateToUser(ctx, uid, message);
     }
 
-    private deliverMessageDeleteToUser = async (parent: Context, uid: number, message: Message) => {
-        await inTx(parent, async (ctx) => {
+    private deliverMessageDeleteToUser = async (ctx: Context, uid: number, message: Message) => {
+        // Update counters
+        await this.counters.onMessageDeleted(ctx, uid, message);
 
-            // Update counters
-            await this.counters.onMessageDeleted(ctx, uid, message);
+        // Update dialogs
+        await this.repo.deliverMessageDeleteToUser(ctx, uid, message);
 
-            // Update dialogs
-            await this.repo.deliverMessageDeleteToUser(ctx, uid, message);
+        // Mark user as needed notification delivery
+        this.needNotification.setNeedNotificationDelivery(ctx, uid);
 
-            // Mark user as needed notification delivery
-            this.needNotification.setNeedNotificationDelivery(ctx, uid);
-
-            // Send counter
-            await Modules.Push.sendCounterPush(ctx, uid);
-        });
+        // Send counter
+        await Modules.Push.sendCounterPush(ctx, uid);
     }
 
     private deliverDialogDeleteToUser = async (parent: Context, uid: number, cid: number) => {
