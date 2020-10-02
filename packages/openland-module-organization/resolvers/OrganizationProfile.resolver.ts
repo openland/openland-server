@@ -56,7 +56,7 @@ export const Resolver: GQLResolver = {
         },
         organizationProfile: withUser(async (ctx, args, uid) => {
             let oid = IDs.Organization.parse(args.id);
-            if (!(await Modules.Orgs.isUserAdmin(ctx, uid, oid))) {
+            if (!(await Modules.Orgs.isUserAdmin(ctx, uid, oid)) && !(await Modules.Super.isSuperAdmin(ctx, uid))) {
                 throw new AccessDeniedError();
             }
             let res = await Store.Organization.findById(ctx, oid);
