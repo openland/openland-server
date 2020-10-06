@@ -67,6 +67,71 @@ export class EventsRepository {
         });
     }
 
+    async subscribe(parent: Context, subscriber: Buffer, feed: Buffer, opts: { mode: 'direct' | 'async', strict: boolean }) {
+        return await inTxLeaky(parent, async (ctx) => {
+            if (!(await this.registry.subscriberExists(ctx, subscriber))) {
+                throw Error('Unable to find subscriber');
+            }
+            if (!(await this.registry.feedExists(ctx, feed))) {
+                throw Error('Unable to find feed');
+            }
+
+            // Read feed sequence
+            let seq = (await this.feedSeq.getSeq(ctx, feed));
+
+            // Add subscription
+            // NOTE: This method checks for correctness
+            await this.sub.addSubscription(ctx, subscriber, feed, opts.mode, opts.strict, seq);
+
+            // Add to specific collection
+            if (opts.mode === 'async') {
+                await this.subAsync.addSubscriber(ctx, subscriber, feed);
+            } else if (opts.mode === 'direct') {
+                await this.subDirect.addSubscriber(ctx, subscriber, feed);
+            } else {
+                throw Error('Unknown mode: ' + opts.mode);
+            }
+        });
+    }
+
+    async getSubscriberFeeds(parent: Context, subscriber: Buffer) {
+        return await inTxLeaky(parent, async (ctx) => {
+            return await this.sub.getSubscriptions(ctx, subscriber);
+        });
+    }
+
+    //
+    // Posting
+    //
+
+    async post(parent: Context, args: { feed: Buffer, event: Buffer }) {
+        await inTxLeaky(parent, async (ctx) => {
+
+            // Allocate Seq
+            let seq = await this.feedSeq.allocateSeq(ctx, args.feed);
+
+            // Allocate index
+            let index = this.vts.allocateVersionstampIndex(ctx);
+
+            // Write event to a stream
+            await this.feedEvents.writeEvent(ctx, args.feed, args.event, seq, index);
+
+            // Write latest reference
+            await this.feedLatest.writeLatest(ctx, args.feed, seq, index);
+
+            // Update direct references
+            await this.subDirect.setUpdatedReference(ctx, args.feed, seq, index);
+        });
+    }
+
+    async getState(parent: Context, subscriber: Buffer) {
+        return await inTxLeaky(parent, async (ctx) => {
+            let index = this.vts.allocateVersionstampIndex(ctx);
+            let seq = await this.subSeq.getCurrentSeq(ctx, subscriber);
+            return { seq, state: this.vts.resolveVersionstamp(ctx, index).promise };
+        });
+    }
+
     //
     // Subscriber online
     //
@@ -102,7 +167,13 @@ export class EventsRepository {
                         online: await this.subSeq.isOnline(ctx, sub, clamped)
                     })
                 ));
-            return [...directWithOnline.filter((v) => v.online).map((v) => v.sub), asyncOnlineSubscribers];
+            return [...directWithOnline.filter((v) => v.online).map((v) => v.sub), ...asyncOnlineSubscribers];
+        });
+    }
+
+    async allocateSubscriberSeq(parent: Context, subscribers: Buffer[]) {
+        return await inTxLeaky(parent, async (ctx) => {
+            return await Promise.all(subscribers.map((s) => this.subSeq.allocateSeq(ctx, s)));
         });
     }
 }
