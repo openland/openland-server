@@ -158,12 +158,13 @@ export class EventsRepository {
             for (let h of asyncHeads) {
                 if (Buffer.compare(after, h.latest.state) < 0) {
                     let state = await this.sub.getSubscriptionState(ctx, subscriber, h.feed);
-                    if (!state) {
+                    if (!state || state.to !== null) {
                         throw Error('Broken state');
                     }
-                    if (state.seq < h.latest.seq) {
-                        changed.push({ feed: h.feed, seq: h.latest.seq });
+                    if (h.latest.seq <= state.from) {
+                        continue;
                     }
+                    changed.push({ feed: h.feed, seq: h.latest.seq });
                 }
             }
 

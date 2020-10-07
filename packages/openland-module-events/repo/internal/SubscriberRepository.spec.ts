@@ -32,15 +32,15 @@ describe('SubscriberRepository', () => {
         await inTx(root, async (ctx) => {
             expect(await repo.getSubscriptions(ctx, subsId1)).toMatchObject([{
                 feed: feedId1,
-                state: { mode: 'direct', strict: true, seq: 0 }
+                state: { index: 1, mode: 'direct', strict: true, from: 0, to: null }
             }, {
                 feed: feedId2,
-                state: { mode: 'async', strict: true, seq: 1 }
+                state: { index: 1, mode: 'async', strict: true, from: 1, to: null }
             }]);
 
             expect(await repo.getSubscriptions(ctx, subsId2)).toMatchObject([{
                 feed: feedId1,
-                state: { mode: 'direct', strict: false, seq: 2 }
+                state: { index: 1, mode: 'direct', strict: false, from: 2, to: null }
             }]);
 
             expect(await repo.getSubscriptions(ctx, subsId3)).toMatchObject([]);
@@ -48,18 +48,21 @@ describe('SubscriberRepository', () => {
 
         // Remove subscription
         await inTx(root, async (ctx) => {
-            await repo.removeSubscription(ctx, subsId1, feedId1);
+            await repo.removeSubscription(ctx, subsId1, feedId1, 1);
         });
 
         await inTx(root, async (ctx) => {
             expect(await repo.getSubscriptions(ctx, subsId1)).toMatchObject([{
+                feed: feedId1,
+                state: { index: 1, mode: 'direct', strict: true, from: 0, to: 1 }
+            }, {
                 feed: feedId2,
-                state: { mode: 'async', strict: true, seq: 1 }
+                state: { index: 1, mode: 'async', strict: true, from: 1, to: null }
             }]);
 
             expect(await repo.getSubscriptions(ctx, subsId2)).toMatchObject([{
                 feed: feedId1,
-                state: { mode: 'direct', strict: false, seq: 2 }
+                state: { index: 1, mode: 'direct', strict: false, from: 2, to: null }
             }]);
 
             expect(await repo.getSubscriptions(ctx, subsId3)).toMatchObject([]);
