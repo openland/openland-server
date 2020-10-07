@@ -1,6 +1,7 @@
 import { EventsRepository } from './EventsRepository';
 import { createNamedContext } from '@openland/context';
 import { Database } from '@openland/foundationdb';
+const ZERO = Buffer.alloc(0);
 
 describe('EventsRepository', () => {
     it('should register subscriptions', async () => {
@@ -42,5 +43,39 @@ describe('EventsRepository', () => {
         expect((await repo.getFeedOnlineSubscribers(root, feed2, now2)).length).toBe(1);
         expect((await repo.getFeedOnlineSubscribers(root, feed1, now3)).length).toBe(1);
         expect((await repo.getFeedOnlineSubscribers(root, feed2, now3)).length).toBe(1);
+    });
+
+    it('should post events and get changed feeds', async () => {
+        let root = createNamedContext('test');
+        let db = await Database.openTest({ name: 'event-events-root', layers: [] });
+        let repo = new EventsRepository(db.allKeys);
+        let feed1 = await repo.createFeed(root);
+        let feed2 = await repo.createFeed(root);
+        let subs1 = await repo.createSubscriber(root);
+        let subs2 = await repo.createSubscriber(root);
+        let initial1 = await repo.getState(root, subs1);
+        let initial2 = await repo.getState(root, subs2);
+
+        // Initial difference
+        expect((await repo.getChangedFeeds(root, subs1, await initial1.state)).length).toBe(0);
+        expect((await repo.getChangedFeeds(root, subs2, await initial2.state)).length).toBe(0);
+
+        // Post to some feeds
+        await repo.post(root, { feed: feed1, event: ZERO });
+        await repo.post(root, { feed: feed2, event: ZERO });
+
+        // Subscribe
+        await repo.subscribe(root, subs1, feed1, { mode: 'direct', strict: false });
+        await repo.subscribe(root, subs1, feed2, { mode: 'direct', strict: false });
+        await repo.subscribe(root, subs2, feed1, { mode: 'direct', strict: false });
+
+        // Should still have zero changed feeds
+        expect((await repo.getChangedFeeds(root, subs1, await initial1.state)).length).toBe(0);
+        expect((await repo.getChangedFeeds(root, subs2, await initial2.state)).length).toBe(0);
+
+        // Post more
+        await repo.post(root, { feed: feed1, event: ZERO });
+        expect((await repo.getChangedFeeds(root, subs1, await initial1.state)).length).toBe(1);
+        expect((await repo.getChangedFeeds(root, subs2, await initial2.state)).length).toBe(1);
     });
 });

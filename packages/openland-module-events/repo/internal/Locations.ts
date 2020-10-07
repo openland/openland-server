@@ -8,7 +8,7 @@ const FEED_DIRECT_LATEST = 5;
 const FEED_ASYNC_ONLINE = 4;
 
 const SUBSCRIBER_SUBSCRIPTIONS = 0;
-// const SUBSCRIBER_SUBSCRIPTIONS_VERSION = 3;
+const SUBSCRIBER_VT = 5;
 const SUBSCRIBER_DIRECT = 1;
 const SUBSCRIBER_DIRECT_UPDATES = 4;
 const SUBSCRIBER_ASYNC = 2;
@@ -23,6 +23,8 @@ export const Locations = {
     subscriber: {
         subscription: (subscriber: Buffer, feed: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_SUBSCRIPTIONS, feed]),
         subscriptionAll: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_SUBSCRIPTIONS]),
+
+        subscriptionVt: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_VT]),
 
         direct: (subscriber: Buffer, feed: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_DIRECT, feed]),
         directAll: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_DIRECT]),

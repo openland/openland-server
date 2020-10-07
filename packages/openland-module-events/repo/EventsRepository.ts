@@ -1,3 +1,4 @@
+import { Locations } from './internal/Locations';
 import { SubscriberRepository } from './internal/SubscriberRepository';
 import { SubscriberDirectRepository } from './internal/SubscriberDirectRepository';
 import { SubscriberAsyncRepository } from './internal/SubscriberAsyncRepository';
@@ -9,6 +10,8 @@ import { Subspace, inTxLeaky } from '@openland/foundationdb';
 import { FeedSeqRepository } from './internal/FeedSeqRepository';
 import { FeedEventsRepository } from './internal/FeedEventsRepository';
 import { FeedLatestRepository } from './internal/FeedLatestRepository';
+
+const ONE = Buffer.from([1]);
 
 export class EventsRepository {
     readonly subspace: Subspace;
@@ -105,7 +108,7 @@ export class EventsRepository {
     //
 
     async post(parent: Context, args: { feed: Buffer, event: Buffer }) {
-        await inTxLeaky(parent, async (ctx) => {
+        return await inTxLeaky(parent, async (ctx) => {
 
             // Allocate Seq
             let seq = await this.feedSeq.allocateSeq(ctx, args.feed);
@@ -121,14 +124,50 @@ export class EventsRepository {
 
             // Update direct references
             await this.subDirect.setUpdatedReference(ctx, args.feed, seq, index);
+
+            return { seq };
         });
     }
 
     async getState(parent: Context, subscriber: Buffer) {
         return await inTxLeaky(parent, async (ctx) => {
-            let index = this.vts.allocateVersionstampIndex(ctx);
+
+            // NOTE: We are adding dump write to enforce transaction commit and 
+            //       resolving of a version stamp
+            this.subspace.add(ctx, Locations.subscriber.subscriptionVt(subscriber), ONE);
+
+            // Resolve current seq
             let seq = await this.subSeq.getCurrentSeq(ctx, subscriber);
+
+            // Resolve current state
+            let index = this.vts.allocateVersionstampIndex(ctx);
+
             return { seq, state: this.vts.resolveVersionstamp(ctx, index).promise };
+        });
+    }
+
+    async getChangedFeeds(parent: Context, subscriber: Buffer, after: Buffer) {
+        return await inTxLeaky(parent, async (ctx) => {
+
+            // Direct subscriptions
+            let changed = await this.subDirect.getUpdatedFeeds(ctx, subscriber, after);
+
+            // Async subscriptions
+            let asyncSubscriptions = await this.subAsync.getSubscriberFeeds(ctx, subscriber);
+            let asyncHeads = await Promise.all(asyncSubscriptions.map(async (feed) => ({ latest: await this.feedLatest.readLatest(ctx, feed), feed })));
+            for (let h of asyncHeads) {
+                if (Buffer.compare(after, h.latest.state) < 0) {
+                    let state = await this.sub.getSubscriptionState(ctx, subscriber, h.feed);
+                    if (!state) {
+                        throw Error('Broken state');
+                    }
+                    if (state.seq < h.latest.seq) {
+                        changed.push({ feed: h.feed, seq: h.latest.seq });
+                    }
+                }
+            }
+
+            return changed;
         });
     }
 
