@@ -69,13 +69,21 @@ describe('EventsRepository', () => {
         await repo.subscribe(root, subs1, feed2, { mode: 'direct', strict: false });
         await repo.subscribe(root, subs2, feed1, { mode: 'direct', strict: false });
 
-        // Should still have zero changed feeds
-        expect((await repo.getChangedFeeds(root, subs1, await initial1.state)).length).toBe(0);
-        expect((await repo.getChangedFeeds(root, subs2, await initial2.state)).length).toBe(0);
+        // Should have two changed feeds
+        expect((await repo.getChangedFeeds(root, subs1, await initial1.state)).length).toBe(2);
+        expect((await repo.getChangedFeeds(root, subs2, await initial2.state)).length).toBe(1);
+
+        // Should have zero changed since then
+        let second1 = await repo.getState(root, subs1);
+        let second2 = await repo.getState(root, subs2);
+        expect((await repo.getChangedFeeds(root, subs1, await second1.state)).length).toBe(0);
+        expect((await repo.getChangedFeeds(root, subs2, await second2.state)).length).toBe(0);
 
         // Post more
         await repo.post(root, { feed: feed1, event: ZERO });
-        expect((await repo.getChangedFeeds(root, subs1, await initial1.state)).length).toBe(1);
+        expect((await repo.getChangedFeeds(root, subs1, await second1.state)).length).toBe(1);
+        expect((await repo.getChangedFeeds(root, subs2, await second2.state)).length).toBe(1);
+        expect((await repo.getChangedFeeds(root, subs1, await initial1.state)).length).toBe(2);
         expect((await repo.getChangedFeeds(root, subs2, await initial2.state)).length).toBe(1);
     });
 
@@ -103,13 +111,21 @@ describe('EventsRepository', () => {
         await repo.subscribe(root, subs1, feed2, { mode: 'async', strict: false });
         await repo.subscribe(root, subs2, feed1, { mode: 'async', strict: false });
 
-        // Should still have zero changed feeds
-        expect((await repo.getChangedFeeds(root, subs1, await initial1.state)).length).toBe(0);
-        expect((await repo.getChangedFeeds(root, subs2, await initial2.state)).length).toBe(0);
+        // Should have two changed feeds
+        expect((await repo.getChangedFeeds(root, subs1, await initial1.state)).length).toBe(2);
+        expect((await repo.getChangedFeeds(root, subs2, await initial2.state)).length).toBe(1);
+
+        // Should have zero changed since then
+        let second1 = await repo.getState(root, subs1);
+        let second2 = await repo.getState(root, subs2);
+        expect((await repo.getChangedFeeds(root, subs1, await second1.state)).length).toBe(0);
+        expect((await repo.getChangedFeeds(root, subs2, await second2.state)).length).toBe(0);
 
         // Post more
         await repo.post(root, { feed: feed1, event: ZERO });
-        expect((await repo.getChangedFeeds(root, subs1, await initial1.state)).length).toBe(1);
+        expect((await repo.getChangedFeeds(root, subs1, await second1.state)).length).toBe(1);
+        expect((await repo.getChangedFeeds(root, subs2, await second2.state)).length).toBe(1);
+        expect((await repo.getChangedFeeds(root, subs1, await initial1.state)).length).toBe(2);
         expect((await repo.getChangedFeeds(root, subs2, await initial2.state)).length).toBe(1);
     });
 });

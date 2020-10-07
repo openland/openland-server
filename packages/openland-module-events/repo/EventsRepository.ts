@@ -1,3 +1,5 @@
+import { SubscriberUpdatesRepository } from './internal/SubscriberUpdatesRepository';
+import { BufferSet } from './internal/BufferSet';
 import { Locations } from './internal/Locations';
 import { SubscriberRepository } from './internal/SubscriberRepository';
 import { SubscriberDirectRepository } from './internal/SubscriberDirectRepository';
@@ -21,6 +23,7 @@ export class EventsRepository {
     readonly feedSeq: FeedSeqRepository;
 
     readonly sub: SubscriberRepository;
+    readonly subUpdated: SubscriberUpdatesRepository;
     readonly subSeq: SubscriberSeqRepository;
     readonly subAsync: SubscriberAsyncRepository;
     readonly subDirect: SubscriberDirectRepository;
@@ -38,6 +41,7 @@ export class EventsRepository {
         this.sub = new SubscriberRepository(subspace);
         this.subAsync = new SubscriberAsyncRepository(subspace);
         this.subDirect = new SubscriberDirectRepository(subspace);
+        this.subUpdated = new SubscriberUpdatesRepository(subspace);
         this.vts = new VersionStampRepository(subspace.db);
     }
 
@@ -81,10 +85,14 @@ export class EventsRepository {
 
             // Read feed sequence
             let seq = (await this.feedSeq.getSeq(ctx, feed));
+            let index = this.vts.allocateVersionstampIndex(ctx);
 
             // Add subscription
             // NOTE: This method checks for correctness
             await this.sub.addSubscription(ctx, subscriber, feed, opts.mode, opts.strict, seq);
+
+            // Write to updated list
+            await this.subUpdated.appendChanged(ctx, subscriber, feed, index);
 
             // Add to specific collection
             if (opts.mode === 'async') {
@@ -148,9 +156,26 @@ export class EventsRepository {
 
     async getChangedFeeds(parent: Context, subscriber: Buffer, after: Buffer) {
         return await inTxLeaky(parent, async (ctx) => {
+            let set = new BufferSet();
+            let changed: Buffer[] = [];
+
+            // Changed subscription states
+            let changedSubscriptions = await this.subUpdated.getChanged(ctx, subscriber, after);
+            for (let ch of changedSubscriptions) {
+                if (!set.has(ch)) {
+                    set.add(ch);
+                    changed.push(ch);
+                }
+            }
 
             // Direct subscriptions
-            let changed = await this.subDirect.getUpdatedFeeds(ctx, subscriber, after);
+            let changedDirect = (await this.subDirect.getUpdatedFeeds(ctx, subscriber, after)).map((v) => v.feed);
+            for (let ch of changedDirect) {
+                if (!set.has(ch)) {
+                    set.add(ch);
+                    changed.push(ch);
+                }
+            }
 
             // Async subscriptions
             let asyncSubscriptions = await this.subAsync.getSubscriberFeeds(ctx, subscriber);
@@ -164,7 +189,10 @@ export class EventsRepository {
                     if (h.latest.seq <= state.from) {
                         continue;
                     }
-                    changed.push({ feed: h.feed, seq: h.latest.seq });
+                    if (!set.has(h.feed)) {
+                        set.add(h.feed);
+                        changed.push(h.feed);
+                    }
                 }
             }
 
