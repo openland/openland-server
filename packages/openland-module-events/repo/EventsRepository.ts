@@ -191,7 +191,8 @@ export class EventsRepository {
     async getChangedFeeds(parent: Context, subscriber: Buffer, after: Buffer) {
         return await inTxLeaky(parent, async (ctx) => {
             let set = new BufferSet();
-            let changed: { feed: Buffer, seq: number, state: 'completed' | 'active' | 'joined' }[] = [];
+            let events: { feed: Buffer, seq: number, state: Buffer }[] = [];
+            let changes: { feed: Buffer, seq: number, state: Buffer, change: 'joined' | 'left' }[] = [];
 
             // Changed subscription states
             let changedSubscriptions = await this.subUpdated.getChanged(ctx, subscriber, after);
@@ -203,10 +204,9 @@ export class EventsRepository {
                     continue;
                 }
                 if (state.to !== null) {
-                    if (!set.has(ch)) {
-                        set.add(ch);
-                        changed.push({ feed: ch, seq: state.to.seq, state: 'completed' });
-                    }
+                    changes.push({ feed: ch, seq: state.to.seq, state: state.to.state, change: 'left' });
+                } else {
+                    changes.push({ feed: ch, seq: state.from.seq, state: state.from.state, change: 'joined' });
                 }
             }
 
@@ -215,7 +215,7 @@ export class EventsRepository {
             for (let ch of changedDirect) {
                 if (!set.has(ch.feed)) {
                     set.add(ch.feed);
-                    changed.push({ feed: ch.feed, seq: ch.seq, state: 'active' });
+                    events.push({ feed: ch.feed, seq: ch.seq, state: ch.state });
                 }
             }
 
@@ -233,43 +233,115 @@ export class EventsRepository {
                     }
                     if (!set.has(h.feed)) {
                         set.add(h.feed);
-                        changed.push({ feed: h.feed, seq: h.latest.seq, state: 'active' });
+                        events.push({ feed: h.feed, seq: h.latest.seq, state: h.latest.state });
                     }
                 }
             }
 
-            // Add started subscriptions
-            for (let ch of changedSubscriptions) {
-                let state = await this.sub.getSubscriptionState(ctx, subscriber, ch);
-                if (!state) {
-                    continue;
-                }
-                if (state.to === null) {
-                    if (!set.has(ch)) {
-                        set.add(ch);
-                        changed.push({ feed: ch, seq: state.from.seq, state: 'joined' });
-                    }
-                }
-            }
-
-            return changed;
+            return { events, changes };
         });
     }
 
-    // async getFeedDifference(parent: Context, subscriber: Buffer, feed: Buffer, after: Buffer) {
-    //     return await inTxLeaky(parent, async (ctx) => {
-    //         let state = await this.sub.getSubscriptionState(ctx, subscriber, feed);
-    //         if (!state) {
-    //             return null;
-    //         }
+    async getFeedDifference(parent: Context, subscriber: Buffer, feed: Buffer, after: Buffer, opts: { limits: { strict: number, generic: number } }) {
+        return await inTxLeaky(parent, async (ctx) => {
+            let state = await this.sub.getSubscriptionState(ctx, subscriber, feed);
+            if (!state) {
+                return null;
+            }
 
-    //         // let afterAdjusted = after;
+            // Resolve actual before
+            let before: Buffer | undefined = undefined;
+            if (state.to) {
+                if (Buffer.compare(state.to.state, after) < 0) {
+                    return null;
+                } else {
+                    before = state.to.state;
+                }
+            }
 
-    //         // let events: RawEvent[] = [];
-    //         // let read = await this.feedEvents.getEvents(ctx, feed, { mode: state.strict ? 'forward' : 'only-latest', limit: 100, after });
-    //         //
-    //     });
-    // }
+            // Resolve actual after
+            let afterAdjusted = after;
+            if (Buffer.compare(after, state.from.state) < 0) {
+                afterAdjusted = state.from.state;
+            }
+
+            // Read events
+            let res = await this.feedEvents.getEvents(ctx, feed, {
+                mode: state.strict ? 'forward' : 'only-latest',
+                limit: state.strict ? opts.limits.strict : opts.limits.generic,
+                after: afterAdjusted,
+                before
+            });
+
+            return {
+                strict: state.strict,
+                ...res
+            };
+        });
+    }
+
+    async getDifference(parent: Context, subscriber: Buffer, after: Buffer, opts: { limits: { strict: number, generic: number, global: number } }) {
+        return await inTxLeaky(parent, async (ctx) => {
+            let updates: { feed: Buffer, seq: number, state: Buffer, event: 'joined' | 'completed' | 'event', body: Buffer | null }[] = [];
+            let changedFeeds = await this.getChangedFeeds(ctx, subscriber, after);
+            let feeds: Buffer[] = [];
+            let feedsSet = new BufferSet();
+
+            // Add changed feed events
+            for (let ch of changedFeeds.changes) {
+                if (!feedsSet.has(ch.feed)) {
+                    feedsSet.add(ch.feed);
+                    feeds.push(ch.feed);
+                }
+                if (ch.change === 'joined') {
+                    updates.push({ feed: ch.feed, seq: ch.seq, state: ch.state, event: 'joined', body: null });
+                } else if (ch.change === 'left') {
+                    updates.push({ feed: ch.feed, seq: ch.seq, state: ch.state, event: 'completed', body: null });
+                }
+            }
+            for (let ch of changedFeeds.events) {
+                if (!feedsSet.has(ch.feed)) {
+                    feedsSet.add(ch.feed);
+                    feeds.push(ch.feed);
+                }
+            }
+
+            // Load differences
+            let hasMore = false;
+            let diffs = await Promise.all(feeds.map(async (f) => ({ feed: f, diff: await this.getFeedDifference(ctx, subscriber, f, after, opts) })));
+            for (let d of diffs) {
+                if (!d.diff) {
+                    continue;
+                }
+
+                // Enforce hasMore if strict feeds are changed
+                if (d.diff.strict && d.diff.hasMore) {
+                    hasMore = true;
+                }
+
+                for (let e of d.diff.events) {
+                    updates.push({ feed: d.feed, seq: e.seq, state: e.id, event: 'event', body: e.event });
+                }
+            }
+
+            // Sort updates
+            updates.sort((a, b) => Buffer.compare(a.state, b.state));
+
+            // Limit updates
+            if (updates.length > opts.limits.global) {
+                hasMore = true;
+                updates = updates.slice(0, opts.limits.global);
+            }
+
+            // Calculcate state
+            let state: Buffer = after;
+            if (updates.length > 0) {
+                state = updates[updates.length - 1].state;
+            }
+
+            return { updates: updates.map((v) => ({ event: v.event, body: v.body, feed: v.feed, seq: v.seq })), hasMore, state };
+        });
+    }
 
     //
     // Subscriber online
