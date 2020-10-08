@@ -89,7 +89,7 @@ export class EventsRepository {
 
             // Add subscription
             // NOTE: This method checks for correctness
-            await this.sub.addSubscription(ctx, subscriber, feed, opts.mode, opts.strict, seq);
+            await this.sub.addSubscription(ctx, subscriber, feed, opts.mode, opts.strict, seq, index);
 
             // Write to updated list
             await this.subUpdated.appendChanged(ctx, subscriber, feed, index);
@@ -120,16 +120,16 @@ export class EventsRepository {
 
             // Remove subscription
             // NOTE: This method checks for correctness
-            let ex = await this.sub.removeSubscription(ctx, subscriber, feed, seq);
+            let ex = await this.sub.removeSubscription(ctx, subscriber, feed, seq, index);
 
             // Write to updated list
             await this.subUpdated.appendChanged(ctx, subscriber, feed, index);
 
             // Update specific collections
-            if (ex.mode === 'direct') {
+            if (ex === 'direct') {
                 await this.subDirect.removeSubscriber(ctx, subscriber, feed);
                 await this.subDirect.removeUpdatedReference(ctx, subscriber, feed);
-            } else if (ex.mode === 'async') {
+            } else if (ex === 'async') {
                 await this.subAsync.removeSubscriber(ctx, subscriber, feed);
             }
         });
@@ -167,6 +167,10 @@ export class EventsRepository {
         });
     }
 
+    //
+    // Changes
+    //
+
     async getState(parent: Context, subscriber: Buffer) {
         return await inTxLeaky(parent, async (ctx) => {
 
@@ -187,7 +191,7 @@ export class EventsRepository {
     async getChangedFeeds(parent: Context, subscriber: Buffer, after: Buffer) {
         return await inTxLeaky(parent, async (ctx) => {
             let set = new BufferSet();
-            let changed: { feed: Buffer, seq: number }[] = [];
+            let changed: { feed: Buffer, seq: number, state: 'completed' | 'active' | 'joined' }[] = [];
 
             // Changed subscription states
             let changedSubscriptions = await this.subUpdated.getChanged(ctx, subscriber, after);
@@ -198,10 +202,10 @@ export class EventsRepository {
                 if (!state) {
                     continue;
                 }
-                if (!set.has(ch)) {
-                    set.add(ch);
-                    if (state.to !== null) {
-                        changed.push({ feed: ch, seq: state.to });
+                if (state.to !== null) {
+                    if (!set.has(ch)) {
+                        set.add(ch);
+                        changed.push({ feed: ch, seq: state.to.seq, state: 'completed' });
                     }
                 }
             }
@@ -211,7 +215,7 @@ export class EventsRepository {
             for (let ch of changedDirect) {
                 if (!set.has(ch.feed)) {
                     set.add(ch.feed);
-                    changed.push({ feed: ch.feed, seq: ch.seq });
+                    changed.push({ feed: ch.feed, seq: ch.seq, state: 'active' });
                 }
             }
 
@@ -224,12 +228,12 @@ export class EventsRepository {
                     if (!state || state.to !== null) {
                         throw Error('Broken state');
                     }
-                    if (h.latest.seq <= state.from) {
+                    if (h.latest.seq <= state.from.seq) {
                         continue;
                     }
                     if (!set.has(h.feed)) {
                         set.add(h.feed);
-                        changed.push({ feed: h.feed, seq: h.latest.seq });
+                        changed.push({ feed: h.feed, seq: h.latest.seq, state: 'active' });
                     }
                 }
             }
@@ -240,10 +244,10 @@ export class EventsRepository {
                 if (!state) {
                     continue;
                 }
-                if (!set.has(ch)) {
-                    set.add(ch);
-                    if (state.to === null) {
-                        changed.push({ feed: ch, seq: state.from });
+                if (state.to === null) {
+                    if (!set.has(ch)) {
+                        set.add(ch);
+                        changed.push({ feed: ch, seq: state.from.seq, state: 'joined' });
                     }
                 }
             }
@@ -251,6 +255,21 @@ export class EventsRepository {
             return changed;
         });
     }
+
+    // async getFeedDifference(parent: Context, subscriber: Buffer, feed: Buffer, after: Buffer) {
+    //     return await inTxLeaky(parent, async (ctx) => {
+    //         let state = await this.sub.getSubscriptionState(ctx, subscriber, feed);
+    //         if (!state) {
+    //             return null;
+    //         }
+
+    //         // let afterAdjusted = after;
+
+    //         // let events: RawEvent[] = [];
+    //         // let read = await this.feedEvents.getEvents(ctx, feed, { mode: state.strict ? 'forward' : 'only-latest', limit: 100, after });
+    //         //
+    //     });
+    // }
 
     //
     // Subscriber online
