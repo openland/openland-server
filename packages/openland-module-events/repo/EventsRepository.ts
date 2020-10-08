@@ -1,5 +1,5 @@
 import { SubscriberUpdatesRepository } from './internal/SubscriberUpdatesRepository';
-import { BufferSet } from './internal/BufferSet';
+import { BufferSet } from '../utils/BufferSet';
 import { Locations } from './internal/Locations';
 import { SubscriberRepository } from './internal/SubscriberRepository';
 import { SubscriberDirectRepository } from './internal/SubscriberDirectRepository';
@@ -102,6 +102,8 @@ export class EventsRepository {
             } else {
                 throw Error('Unknown mode: ' + opts.mode);
             }
+
+            return { seq, state: this.vts.resolveVersionstamp(ctx, index).promise };
         });
     }
 
@@ -132,6 +134,26 @@ export class EventsRepository {
             } else if (ex === 'async') {
                 await this.subAsync.removeSubscriber(ctx, subscriber, feed);
             }
+
+            return { seq, state: this.vts.resolveVersionstamp(ctx, index).promise };
+        });
+    }
+
+    async getFeedSubscribersCount(parent: Context, feed: Buffer) {
+        return await inTxLeaky(parent, async (ctx) => {
+            return await this.sub.getFeedSubscriptionsCount(ctx, feed);
+        });
+    }
+
+    async getFeedDirectSubscribersCount(parent: Context, feed: Buffer) {
+        return await inTxLeaky(parent, async (ctx) => {
+            return await this.sub.getFeedDirectSubscriptionsCount(ctx, feed);
+        });
+    }
+
+    async getFeedAsyncSubscribersCount(parent: Context, feed: Buffer) {
+        return await inTxLeaky(parent, async (ctx) => {
+            return await this.sub.getFeedAsyncSubscriptionsCount(ctx, feed);
         });
     }
 
@@ -163,7 +185,7 @@ export class EventsRepository {
             // Update direct references
             await this.subDirect.setUpdatedReference(ctx, args.feed, seq, index);
 
-            return { seq };
+            return { seq, state: this.vts.resolveVersionstamp(ctx, index).promise };
         });
     }
 

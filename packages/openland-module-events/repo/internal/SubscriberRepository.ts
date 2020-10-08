@@ -6,6 +6,8 @@ const MODE_DIRECT = 0;
 const MODE_ASYNC = 1;
 const ZERO = Buffer.from([0]);
 const ONE = Buffer.from([1]);
+const PLUS_ONE = encoders.int32LE.pack(1);
+const MINUS_ONE = encoders.int32LE.pack(-1);
 
 export type SubscriberState = {
     generation: number,
@@ -42,10 +44,10 @@ function unpackState(src: Buffer): SubscriberState {
     let fromSeq = tuple[3] as number;
     let toSeq = tuple[4] as (number | null);
     return {
-        generation, 
-        mode, 
-        strict, 
-        from: { state: from, seq: fromSeq }, 
+        generation,
+        mode,
+        strict,
+        from: { state: from, seq: fromSeq },
         to: (toSeq !== null && to !== null ? { state: to, seq: toSeq } : null)
     };
 }
@@ -103,6 +105,15 @@ export class SubscriberRepository {
 
         let value = Buffer.concat([ONE, packState({ generation, mode, strict, from: seq, to: null })]);
         this.subspace.setVersionstampedValue(ctx, Locations.subscriber.subscription(subscriber, feed), value, index);
+
+        // Update counters
+        this.subspace.add(ctx, Locations.subscriber.counterTotal(feed), PLUS_ONE);
+        if (mode === 'direct') {
+            this.subspace.add(ctx, Locations.subscriber.counterDirect(feed), PLUS_ONE);
+        }
+        if (mode === 'async') {
+            this.subspace.add(ctx, Locations.subscriber.counterAsync(feed), PLUS_ONE);
+        }
     }
 
     async updateSubscriptionMode(ctx: Context, subscriber: Buffer, feed: Buffer, mode: 'direct' | 'async') {
@@ -116,6 +127,19 @@ export class SubscriberRepository {
 
         let value = Buffer.concat([ONE, packState({ generation: state.generation, mode, strict: state.strict, from: state.from.seq, to: null }), state.from.state]);
         this.subspace.set(ctx, Locations.subscriber.subscription(subscriber, feed), value);
+
+        if (state.mode === 'async') {
+            this.subspace.add(ctx, Locations.subscriber.counterAsync(feed), MINUS_ONE);
+        }
+        if (state.mode === 'direct') {
+            this.subspace.add(ctx, Locations.subscriber.counterDirect(feed), MINUS_ONE);
+        }
+        if (mode === 'direct') {
+            this.subspace.add(ctx, Locations.subscriber.counterDirect(feed), PLUS_ONE);
+        }
+        if (mode === 'async') {
+            this.subspace.add(ctx, Locations.subscriber.counterAsync(feed), PLUS_ONE);
+        }
     }
 
     async removeSubscription(ctx: Context, subscriber: Buffer, feed: Buffer, seq: number, index: Buffer) {
@@ -132,6 +156,42 @@ export class SubscriberRepository {
             to: seq
         }), state.from.state]);
         this.subspace.setVersionstampedValue(ctx, Locations.subscriber.subscription(subscriber, feed), value, index);
+
+        this.subspace.add(ctx, Locations.subscriber.counterTotal(feed), MINUS_ONE);
+        if (state.mode === 'async') {
+            this.subspace.add(ctx, Locations.subscriber.counterAsync(feed), MINUS_ONE);
+        }
+        if (state.mode === 'direct') {
+            this.subspace.add(ctx, Locations.subscriber.counterDirect(feed), MINUS_ONE);
+        }
+
         return state.mode;
+    }
+
+    async getFeedSubscriptionsCount(ctx: Context, feed: Buffer) {
+        let counter = await this.subspace.get(ctx, Locations.subscriber.counterTotal(feed));
+        if (counter) {
+            return encoders.int32LE.unpack(counter);
+        } else {
+            return 0;
+        }
+    }
+
+    async getFeedDirectSubscriptionsCount(ctx: Context, feed: Buffer) {
+        let counter = await this.subspace.get(ctx, Locations.subscriber.counterDirect(feed));
+        if (counter) {
+            return encoders.int32LE.unpack(counter);
+        } else {
+            return 0;
+        }
+    }
+
+    async getFeedAsyncSubscriptionsCount(ctx: Context, feed: Buffer) {
+        let counter = await this.subspace.get(ctx, Locations.subscriber.counterAsync(feed));
+        if (counter) {
+            return encoders.int32LE.unpack(counter);
+        } else {
+            return 0;
+        }
     }
 }

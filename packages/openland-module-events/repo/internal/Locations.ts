@@ -6,6 +6,9 @@ const FEED_SEQ = 2; // Latest seq
 const FEED_DIRECT = 3;
 const FEED_DIRECT_LATEST = 5;
 const FEED_ASYNC_ONLINE = 4;
+const FEED_COUNTER = 6;
+const FEED_COUNTER_DIRECT = 7;
+const FEED_COUNTER_ASYNC = 8;
 
 const SUBSCRIBER_SUBSCRIPTIONS = 0;
 const SUBSCRIBER_VT = 5;
@@ -21,6 +24,11 @@ export const Locations = {
     feedStream: (feed: Buffer) => encoders.tuple.pack([feed, FEED_STREAM]),
 
     subscriber: {
+
+        counterTotal: (feed: Buffer) => encoders.tuple.pack([feed, FEED_COUNTER]),
+        counterDirect: (feed: Buffer) => encoders.tuple.pack([feed, FEED_COUNTER_DIRECT]),
+        counterAsync: (feed: Buffer) => encoders.tuple.pack([feed, FEED_COUNTER_ASYNC]),
+
         subscription: (subscriber: Buffer, feed: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_SUBSCRIPTIONS, feed]),
         subscriptionAll: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_SUBSCRIPTIONS]),
 

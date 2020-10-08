@@ -60,9 +60,13 @@ describe('EventsRepository', () => {
         let changed = await repo.getChangedFeeds(root, subs1, await initial1.state);
         expect(changed.events.length).toBe(0);
         expect(changed.changes.length).toBe(0);
+        let diff = await repo.getDifference(root, subs1, await initial1.state, { limits: { strict: 100, generic: 10, global: 1000 } });
+        expect(diff.updates.length).toBe(0);
         changed = await repo.getChangedFeeds(root, subs2, await initial2.state);
         expect(changed.events.length).toBe(0);
         expect(changed.changes.length).toBe(0);
+        diff = await repo.getDifference(root, subs2, await initial2.state, { limits: { strict: 100, generic: 10, global: 1000 } });
+        expect(diff.updates.length).toBe(0);
 
         // Post to some feeds
         await repo.post(root, { feed: feed1, event: ZERO });
@@ -77,9 +81,14 @@ describe('EventsRepository', () => {
         changed = await repo.getChangedFeeds(root, subs1, await initial1.state);
         expect(changed.events.length).toBe(0);
         expect(changed.changes.length).toBe(2);
+        diff = await repo.getDifference(root, subs1, await initial1.state, { limits: { strict: 100, generic: 10, global: 1000 } });
+        expect(diff.updates.length).toBe(2);
+
         changed = await repo.getChangedFeeds(root, subs2, await initial2.state);
         expect(changed.events.length).toBe(0);
         expect(changed.changes.length).toBe(1);
+        diff = await repo.getDifference(root, subs2, await initial2.state, { limits: { strict: 100, generic: 10, global: 1000 } });
+        expect(diff.updates.length).toBe(1);
 
         // Should have zero changed since then
         let second1 = await repo.getState(root, subs1);
