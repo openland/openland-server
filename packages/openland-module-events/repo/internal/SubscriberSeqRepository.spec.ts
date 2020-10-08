@@ -29,8 +29,8 @@ describe('SubscriberSeqRepository', () => {
         expect(seq).toBe(1);
 
         // Should refresh online status
-        expect(await repo.refreshOnline(root, ZERO, now + 5)).toBeNull();
-        expect(await repo.refreshOnline(root, ZERO, now + 6)).toBe(now + 5);
+        await repo.refreshOnline(root, ZERO, now + 5);
+        await repo.refreshOnline(root, ZERO, now + 6);
 
         // Should be online
         expect(await repo.isOnline(root, ZERO, now + 4)).toBe(true);

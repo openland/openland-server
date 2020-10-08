@@ -14,7 +14,7 @@ const ZERO = Buffer.alloc(0);
 
 export class RegistryRepository {
     readonly subspace: Subspace;
-    
+
     constructor(subspace: Subspace) {
         this.subspace = subspace;
     }
@@ -58,6 +58,20 @@ export class RegistryRepository {
 
                 return id;
             }
+        });
+    }
+
+    async feedExists(parent: Context, feed: Buffer) {
+        return await inTxLeaky(parent, async (ctx: Context) => {
+            let key = encoders.tuple.pack([REGISTRY_FEED, feed]);
+            return await this.subspace.snapshotExists(ctx, key);
+        });
+    }
+
+    async subscriberExists(parent: Context, feed: Buffer) {
+        return await inTxLeaky(parent, async (ctx: Context) => {
+            let key = encoders.tuple.pack([REGISTRY_SUBSCRIBERS, feed]);
+            return await this.subspace.snapshotExists(ctx, key);
         });
     }
 }
