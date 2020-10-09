@@ -210,6 +210,43 @@ export class EventsRepository {
         });
     }
 
+    async getChangedFeedsSeqNumbers(parent: Context, subscriber: Buffer, after: Buffer) {
+        return await inTxLeaky(parent, async (ctx) => {
+            let set = new BufferSet();
+            let changed: { feed: Buffer, seq: number, state: Buffer }[] = [];
+
+            // Direct subscriptions
+            let changedDirect = (await this.subDirect.getUpdatedFeeds(ctx, subscriber, after));
+            for (let ch of changedDirect) {
+                if (!set.has(ch.feed)) {
+                    set.add(ch.feed);
+                    changed.push({ feed: ch.feed, seq: ch.seq, state: ch.state });
+                }
+            }
+
+            // Async subscriptions
+            let asyncSubscriptions = await this.subAsync.getSubscriberFeeds(ctx, subscriber);
+            let asyncHeads = await Promise.all(asyncSubscriptions.map(async (feed) => ({ latest: await this.feedLatest.readLatest(ctx, feed), feed })));
+            for (let h of asyncHeads) {
+                if (Buffer.compare(after, h.latest.state) < 0) {
+                    let state = await this.sub.getSubscriptionState(ctx, subscriber, h.feed);
+                    if (!state || state.to !== null) {
+                        throw Error('Broken state');
+                    }
+                    if (h.latest.seq <= state.from.seq) {
+                        continue;
+                    }
+                    if (!set.has(h.feed)) {
+                        set.add(h.feed);
+                        changed.push({ feed: h.feed, seq: h.latest.seq, state: h.latest.state });
+                    }
+                }
+            }
+
+            return changed;
+        });
+    }
+
     async getChangedFeeds(parent: Context, subscriber: Buffer, after: Buffer) {
         return await inTxLeaky(parent, async (ctx) => {
             let set = new BufferSet();

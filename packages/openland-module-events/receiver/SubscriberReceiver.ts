@@ -2,7 +2,7 @@ import { inTx } from '@openland/foundationdb';
 import { BufferMap } from './../utils/BufferMap';
 import { createNamedContext } from '@openland/context';
 import { backoff, delay } from 'openland-utils/timer';
-import { NATS, NatsSubscription } from 'openland-module-pubsub/NATS';
+import { NatsSubscription } from 'openland-module-pubsub/NATS';
 import { EventsMediator } from './../mediators/EventsMediator';
 
 const root = createNamedContext('subscriber');
@@ -56,15 +56,17 @@ export class SubscriberReceiver {
         this.subscriber = subscriber;
         this.mediator = mediator;
         this.handler = handler;
-        this.subscription = NATS.subscribe('events-subscriber-' + subscriber.toString('hex').toLowerCase(), (e) => {
+        // console.warn(subscriber);
+        this.subscription = mediator.bus.subscribe('events-subscriber-' + subscriber.toString('hex').toLowerCase(), (e) => {
+            // console.warn(e);
             let event = {
-                seq: e.data.seq as number,
+                seq: e.seq as number,
                 event: {
-                    seq: e.data.event.seq as number,
-                    state: Buffer.from(e.data.event.state as string, 'base64'),
-                    type: e.data.event.type as 'subscribe' | 'unsubscribe' | 'update',
-                    feed: Buffer.from(e.data.event.feed as string, 'base64'),
-                    event: e.data.event.event ? Buffer.from(e.data.event.event as string, 'base64') : null
+                    seq: e.event.seq as number,
+                    state: Buffer.from(e.event.state as string, 'base64'),
+                    type: e.event.type as 'subscribe' | 'unsubscribe' | 'update',
+                    feed: Buffer.from(e.event.feed as string, 'base64'),
+                    event: e.event.event ? Buffer.from(e.event.event as string, 'base64') : null
                 }
             };
             if (this.stopped) {
@@ -123,10 +125,22 @@ export class SubscriberReceiver {
         // tslint:disable-next-line:no-floating-promises
         backoff(root, async () => {
             while (!this.stopped) {
-                await this.mediator.repo.refreshOnline(root, this.subscriber, ONLINE_EXPIRES);
+                await this.mediator.repo.refreshOnline(root, this.subscriber, Date.now() + ONLINE_EXPIRES);
                 await delay(30000);
             }
         });
+
+        // // Start checkpoint loop
+        // // tslint:disable-next-line:no-floating-promises
+        // backoff(root, async () => {
+        //     let after = state;
+        //     while (!this.stopped) {
+        //         await inTx(root, async (ctx)=>{
+        //             await this.mediator.repo.getChangedFeeds(root, this.subscriber, after)
+        //         });
+        //         let changed = await this.mediator.repo.getChangedFeeds(root, this.subscriber, after);
+        //     }
+        // });
     }
 
     private flushPending = () => {

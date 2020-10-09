@@ -1,15 +1,18 @@
+import { EventBusEngine } from 'openland-module-pubsub/EventBusEngine';
+import { SubscriberReceiver, SubscriberReceiverEvent } from './../receiver/SubscriberReceiver';
 import { inTx, getTransaction } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { EventsRepository } from './../repo/EventsRepository';
-import { NATS } from 'openland-module-pubsub/NATS';
 
 const DIRECT_LIMIT = 100;
 
 export class EventsMediator {
-    repo: EventsRepository;
+    readonly repo: EventsRepository;
+    readonly bus: EventBusEngine;
 
-    constructor(repo: EventsRepository) {
+    constructor(repo: EventsRepository, bus: EventBusEngine) {
         this.repo = repo;
+        this.bus = bus;
     }
 
     createFeed(ctx: Context) {
@@ -33,9 +36,10 @@ export class EventsMediator {
             if (await this.repo.isOnline(ctx, subscriber, Date.now())) {
                 // NOTE: We MUST execute this within transaction to have strict delivery guarantee
                 let seq = (await this.repo.allocateSubscriberSeq(ctx, [subscriber]))[0];
+                let time = Date.now();
                 getTransaction(ctx).afterCommit(async () => {
                     let state = await res.state;
-                    this.postToBus(subscriber, seq, { feed, type: 'subscribe', seq: res.seq, state, event: null });
+                    this.postToBus(subscriber, seq, { feed, time, type: 'subscribe', seq: res.seq, state, event: null });
                 });
             }
         });
@@ -48,9 +52,10 @@ export class EventsMediator {
             if (await this.repo.isOnline(ctx, subscriber, Date.now())) {
                 // NOTE: We MUST execute this within transaction to have strict delivery guarantee
                 let seq = (await this.repo.allocateSubscriberSeq(ctx, [subscriber]))[0];
+                let time = Date.now();
                 getTransaction(ctx).afterCommit(async () => {
                     let state = await res.state;
-                    this.postToBus(subscriber, seq, { feed, type: 'unsubscribe', seq: res.seq, state, event: null });
+                    this.postToBus(subscriber, seq, { feed, time, type: 'unsubscribe', seq: res.seq, state, event: null });
                 });
             }
         });
@@ -64,14 +69,20 @@ export class EventsMediator {
                 // NOTE: This allocation COULD be executed in separate transaction
                 //       we allow missing or reordered updates on receiving side.
                 let seqs = await this.repo.allocateSubscriberSeq(ctx, online);
+                // NOTE: Time MUST be calculated in transaction
+                let time = Date.now();
                 getTransaction(ctx).afterCommit(async () => {
                     let state = await posted.state;
                     for (let i = 0; i < seqs.length; i++) {
-                        this.postToBus(online[i], seqs[i], { feed, type: 'update', seq: posted.seq, state, event });
+                        this.postToBus(online[i], seqs[i], { feed, time, type: 'update', seq: posted.seq, state, event });
                     }
                 });
             }
         });
+    }
+
+    receive(subscriber: Buffer, handler: (e: SubscriberReceiverEvent) => void) {
+        return new SubscriberReceiver(subscriber, this, handler);
     }
 
     private postToBus(subscriber: Buffer, seq: number, event: {
@@ -79,16 +90,17 @@ export class EventsMediator {
         type: 'subscribe' | 'unsubscribe' | 'update',
         seq: number,
         state: Buffer,
-
-        event: Buffer | null
+        event: Buffer | null,
+        time: number
     }) {
-        NATS.post('events-subscriber-' + subscriber.toString('hex').toLowerCase(), {
+        this.bus.publish('events-subscriber-' + subscriber.toString('hex').toLowerCase(), {
             seq,
             event: {
                 feed: event.feed.toString('base64'),
                 seq: event.seq,
                 state: event.state.toString('base64'),
                 type: event.type,
+                time: event.time,
                 ...(event.event ? { event: event.event.toString('base64') } : {})
             }
         });
