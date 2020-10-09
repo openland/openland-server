@@ -50,7 +50,7 @@ export class SubscriberReceiver {
     private pending = new Map<number, BusEvent>();
     private currentSeq: number = -1;
     private deathTimer: NodeJS.Timer | null = null;
-    private receivedChanges = new BufferMap<Buffer>();
+    private receivedEvents = new BufferMap<number>();
 
     constructor(subscriber: Buffer, mediator: EventsMediator, handler: (e: SubscriberReceiverEvent) => void) {
         this.subscriber = subscriber;
@@ -202,9 +202,11 @@ export class SubscriberReceiver {
     private processEvent(src: BusEvent) {
 
         // Save latest if event new
-        let ex = this.receivedChanges.get(src.event.feed);
-        if (!ex || Buffer.compare(ex, src.event.state) < 0) {
-            this.receivedChanges.set(src.event.feed, src.event.state);
+        if (src.event.type === 'update') {
+            let ex = this.receivedEvents.get(src.event.feed);
+            if (!ex || ex < src.event.seq) {
+                this.receivedEvents.set(src.event.feed, src.event.seq);
+            }
         }
 
         // Call handler

@@ -19,13 +19,13 @@ describe('EventsMediator', () => {
         let receiver = mediator.receive(subscriber, callback);
 
         // Wait for start
-        await delay(100);
+        await delay(1000);
 
         // Subscribe (to get update)
         await mediator.subscribe(root, subscriber, feed, false);
 
         // Wait for event bus
-        await delay(100);
+        await delay(1000);
 
         // Close receiver
         receiver.close();
