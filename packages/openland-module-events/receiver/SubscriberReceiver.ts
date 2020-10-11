@@ -1,5 +1,4 @@
 import { inTx } from '@openland/foundationdb';
-import { BufferMap } from './../utils/BufferMap';
 import { createNamedContext } from '@openland/context';
 import { backoff, delay } from 'openland-utils/timer';
 import { NatsSubscription } from 'openland-module-pubsub/NATS';
@@ -7,7 +6,12 @@ import { EventsMediator } from './../mediators/EventsMediator';
 
 const root = createNamedContext('subscriber');
 
+function random(min: number, max: number) {
+    return Math.floor(min + Math.random() * (max - min));
+}
+
 const ONLINE_EXPIRES = 5 * 60 * 1000; // 5 Min
+const ONLINE_REFRESH = 30 * 1000; // 30 Sec
 
 export type SubscriberReceiverEvent =
     | {
@@ -40,6 +44,13 @@ export type SubscriberReceiverEvent =
 
 type BusEvent = { seq: number, event: { type: 'subscribe' | 'unsubscribe' | 'update', seq: number, state: Buffer, feed: Buffer, event: Buffer | null } };
 
+export type ReceiverOpts = {
+    deathDelay: { min: number, max: number };
+    checkpointDelay: { min: number, max: number };
+    checkpointCommitDelay: number;
+    checkpointMaxUpdates: number;
+};
+
 export class SubscriberReceiver {
     private subscriber: Buffer;
     private mediator: EventsMediator;
@@ -50,12 +61,21 @@ export class SubscriberReceiver {
     private pending = new Map<number, BusEvent>();
     private currentSeq: number = -1;
     private deathTimer: NodeJS.Timer | null = null;
-    private receivedEvents = new BufferMap<number>();
+    private startedCheckpoint = false;
+    private checkpointTimer: NodeJS.Timer | null = null;
+    private checkpointSeq = -1;
+    private opts: ReceiverOpts;
 
-    constructor(subscriber: Buffer, mediator: EventsMediator, handler: (e: SubscriberReceiverEvent) => void) {
+    constructor(
+        subscriber: Buffer,
+        mediator: EventsMediator,
+        handler: (e: SubscriberReceiverEvent) => void,
+        opts: ReceiverOpts
+    ) {
         this.subscriber = subscriber;
         this.mediator = mediator;
         this.handler = handler;
+        this.opts = opts;
         // console.warn(subscriber);
         this.subscription = mediator.bus.subscribe('events-subscriber-' + subscriber.toString('hex').toLowerCase(), (e) => {
             // console.warn(e);
@@ -105,7 +125,22 @@ export class SubscriberReceiver {
             return;
         }
         this.stopped = true;
+
+        // NATS subscription
         this.subscription.cancel();
+
+        // Death timer
+        if (this.deathTimer) {
+            clearTimeout(this.deathTimer);
+            this.deathTimer = null;
+        }
+
+        // Checkpoint timer
+        if (this.checkpointTimer) {
+            clearTimeout(this.checkpointTimer);
+            this.checkpointTimer = null;
+        }
+
         this.handler({ type: 'closed' });
     }
 
@@ -113,6 +148,7 @@ export class SubscriberReceiver {
         this.started = true;
         this.handler({ type: 'started', state });
         this.currentSeq = seq;
+        this.checkpointSeq = seq;
         this.flushPending();
 
         // Start death timer right after start
@@ -126,21 +162,12 @@ export class SubscriberReceiver {
         backoff(root, async () => {
             while (!this.stopped) {
                 await this.mediator.repo.refreshOnline(root, this.subscriber, Date.now() + ONLINE_EXPIRES);
-                await delay(30000);
+                await delay(ONLINE_REFRESH);
             }
         });
 
-        // // Start checkpoint loop
-        // // tslint:disable-next-line:no-floating-promises
-        // backoff(root, async () => {
-        //     let after = state;
-        //     while (!this.stopped) {
-        //         await inTx(root, async (ctx)=>{
-        //             await this.mediator.repo.getChangedFeeds(root, this.subscriber, after)
-        //         });
-        //         let changed = await this.mediator.repo.getChangedFeeds(root, this.subscriber, after);
-        //     }
-        // });
+        // Start checkpoint generation
+        this.scheduleCheckpoint();
     }
 
     private flushPending = () => {
@@ -178,6 +205,7 @@ export class SubscriberReceiver {
             this.processEvent(event);
             this.cancelDeathTimer();
             this.flushPending();
+            this.scheduleCheckpoint();
         } else if (event.seq > this.currentSeq) {
             this.pending.set(event.seq, event);
             this.startDeathTimer();
@@ -187,6 +215,9 @@ export class SubscriberReceiver {
     }
 
     private cancelDeathTimer = () => {
+        if (this.stopped) {
+            return;
+        }
         if (this.deathTimer) {
             clearTimeout(this.deathTimer);
             this.deathTimer = null;
@@ -194,21 +225,84 @@ export class SubscriberReceiver {
     }
 
     private startDeathTimer = () => {
+        if (this.stopped) {
+            return;
+        }
         if (!this.deathTimer) {
-            this.deathTimer = setTimeout(this.close, 10000);
+            this.deathTimer = setTimeout(this.close, random(this.opts.deathDelay.min, this.opts.deathDelay.max));
         }
     }
 
-    private processEvent(src: BusEvent) {
+    private scheduleCheckpoint = () => {
+        // Checkpoint
+        if (this.currentSeq - this.checkpointSeq > this.opts.checkpointMaxUpdates) {
+            // Enforce checkpoint if there are too many updates already
+            this.startCheckpoint();
+        } else {
+            // Queue checkpoint timer for low volume events
+            this.startCheckpointTimer();
+        }
+    }
 
-        // Save latest if event new
-        if (src.event.type === 'update') {
-            let ex = this.receivedEvents.get(src.event.feed);
-            if (!ex || ex < src.event.seq) {
-                this.receivedEvents.set(src.event.feed, src.event.seq);
-            }
+    private startCheckpointTimer = () => {
+        if (this.stopped) {
+            return;
+        }
+        if (this.startedCheckpoint) {
+            return;
+        }
+        if (!this.checkpointTimer) {
+            this.checkpointTimer = setTimeout(this.startCheckpoint, random(this.opts.checkpointDelay.min, this.opts.checkpointDelay.max));
+        }
+    }
+
+    private startCheckpoint = () => {
+        if (this.stopped) {
+            return;
+        }
+        if (this.startedCheckpoint) {
+            return;
+        }
+        this.startedCheckpoint = true;
+
+        // Clear checkpoint timer
+        if (this.checkpointTimer) {
+            clearTimeout(this.checkpointTimer);
+            this.checkpointTimer = null;
         }
 
+        // tslint:disable-next-line:no-floating-promises
+        (async () => {
+            try {
+                let checkpoint = await inTx(root, async (ctx) => {
+                    return this.mediator.repo.getState(ctx, this.subscriber);
+                });
+                let state = await checkpoint.state;
+                await delay(this.opts.checkpointCommitDelay);
+                if (this.stopped) {
+                    return;
+                }
+
+                // If there are still missed updates - close receiver
+                if (this.currentSeq < checkpoint.seq) {
+                    this.close();
+                    return;
+                }
+
+                if (this.currentSeq === this.checkpointSeq) {
+                    return;
+                } else {
+                    this.checkpointSeq = checkpoint.seq;
+                    this.handler({ type: 'checkpoint', state });
+                    this.scheduleCheckpoint();
+                }
+            } catch (e) {
+                this.close();
+            }
+        })();
+    }
+
+    private processEvent(src: BusEvent) {
         // Call handler
         if (src.event.type === 'update') {
             this.handler({ type: 'update', feed: src.event.feed, seq: src.event.seq, event: src.event.event! });

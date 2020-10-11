@@ -7,6 +7,7 @@ import { Database } from '@openland/foundationdb';
 
 describe('EventsMediator', () => {
     it('should post and receive updates', async () => {
+        jest.setTimeout(60000);
         let root = createNamedContext('test');
         let db = await Database.openTest({ name: 'event-events-mediator', layers: [] });
         let repo = new EventsRepository(db.allKeys);
@@ -16,7 +17,7 @@ describe('EventsMediator', () => {
         let feed = await mediator.createFeed(root);
 
         // Start receiver
-        let receiver = mediator.receive(subscriber, callback);
+        let receiver = mediator.receive(subscriber, callback, { checkpointDelay: { min: 500, max: 1000 }, checkpointCommitDelay: 1000 });
 
         // Wait for start
         await delay(1000);
@@ -25,12 +26,12 @@ describe('EventsMediator', () => {
         await mediator.subscribe(root, subscriber, feed, false);
 
         // Wait for event bus
-        await delay(1000);
+        await delay(3000);
 
         // Close receiver
         receiver.close();
 
         // Expect three events: create, subscribe and close
-        expect(callback.mock.calls.length).toBe(3);
+        expect(callback.mock.calls.length).toBe(4);
     });
 });
