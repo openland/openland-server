@@ -35,6 +35,7 @@ import MessageReactionTypeRoot = GQLRoots.MessageReactionTypeRoot;
 import { RangeQueryOptions } from '@openland/foundationdb-entity';
 import MentionInput = GQL.MentionInput;
 import GeneralMessageRoot = GQLRoots.GeneralMessageRoot;
+import { plural } from '../../openland-utils/string';
 
 export function hasMention(message: Message | RichMessage, uid: number) {
     if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
@@ -338,9 +339,11 @@ export function fetchMessageFallback(message: Message | Comment | RichMessage): 
     }
     let attachments = message instanceof Message ? message.attachmentsModern : message.attachments;
     if (attachments) {
+        let attachmentsByType = new Map<string, number>();
         for (let attach of attachments) {
             if (attach.type === 'file_attachment') {
-                fallback.push(attachFallback(attach.fileMetadata && attach.fileMetadata.mimeType, attach.fileMetadata && attach.fileMetadata.isImage));
+                let type = attachFallback(attach.fileMetadata && attach.fileMetadata.mimeType, attach.fileMetadata && attach.fileMetadata.isImage);
+                attachmentsByType.set(type, (attachmentsByType.get(type) || 0) + 1);
             } else if (attach.type === 'rich_attachment') {
                 if (attach.title) {
                     fallback.push(attach.title);
@@ -359,6 +362,13 @@ export function fetchMessageFallback(message: Message | Comment | RichMessage): 
                 }
             } else if (attach.type === 'purchase_attachment') {
                 fallback.push(Texts.Notifications.DONATION_ATTACH);
+            }
+        }
+        for (let [type, count] of attachmentsByType) {
+            if (count === 1) {
+                fallback.push(type);
+            } else {
+                fallback.push(`${count} ${plural(count, [type, type + 's'])}`);
             }
         }
     }

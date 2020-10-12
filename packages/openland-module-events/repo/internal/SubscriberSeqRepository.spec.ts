@@ -1,14 +1,14 @@
-import { SeqRepository } from './SeqRepository';
+import { SubscriberSeqRepository } from './SubscriberSeqRepository';
 import { createNamedContext } from '@openland/context';
 import { Database } from '@openland/foundationdb';
 
 const ZERO = Buffer.alloc(0);
 
-describe('SeqRepository', () => {
+describe('SubscriberSeqRepository', () => {
     it('posting allocate seq', async () => {
         let root = createNamedContext('test');
         let db = await Database.openTest({ name: 'event-storage-posting', layers: [] });
-        let repo = new SeqRepository(db.allKeys);
+        let repo = new SubscriberSeqRepository(db.allKeys);
 
         // Initial state
         let seq = await repo.getCurrentSeqSnapshot(root, ZERO);
@@ -29,8 +29,8 @@ describe('SeqRepository', () => {
         expect(seq).toBe(1);
 
         // Should refresh online status
-        expect(await repo.refreshOnline(root, ZERO, now + 5)).toBeNull();
-        expect(await repo.refreshOnline(root, ZERO, now + 6)).toBe(now + 5);
+        await repo.refreshOnline(root, ZERO, now + 5);
+        await repo.refreshOnline(root, ZERO, now + 6);
 
         // Should be online
         expect(await repo.isOnline(root, ZERO, now + 4)).toBe(true);

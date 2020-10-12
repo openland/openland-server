@@ -23,7 +23,7 @@ import { SocialImageRepository } from './repositories/SocialImageRepository';
 import { DonationsMediator } from './mediators/DonationsMediator';
 import { Modules } from '../openland-modules/Modules';
 import { CounterProvider } from './counters/CounterProvider';
-import { NewCounterProvider } from './counters/NewCounterProvider';
+import { PrecalculatedCounterProvider } from './counters/PrecalculatedCounterProvider';
 
 export const USE_NEW_COUNTERS = true;
 
@@ -36,7 +36,7 @@ export class MessagingModule {
     readonly fixer: FixerRepository;
     readonly needNotificationDelivery: NeedNotificationDeliveryRepository;
     readonly delivery: DeliveryMediator;
-    readonly counters: CounterProvider = new NewCounterProvider();
+    readonly counters: CounterProvider = new PrecalculatedCounterProvider();
     private readonly messaging: MessagingMediator;
     private readonly augmentation: AugmentationMediator;
     private readonly userState: UserStateRepository;
