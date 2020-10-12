@@ -10,7 +10,8 @@ import { Subspace, inTxLeaky, encoders } from '@openland/foundationdb';
 const REGISTRY_FEED = 0;
 const REGISTRY_SUBSCRIBERS = 1;
 
-const ZERO = Buffer.alloc(0);
+const ZERO = Buffer.from([]);
+const ONE = Buffer.from([1]);
 
 export class RegistryRepository {
     readonly subspace: Subspace;
@@ -40,7 +41,7 @@ export class RegistryRepository {
         });
     }
 
-    async allocateFeedId(parent: Context) {
+    async allocateFeedId(parent: Context, mode: 'forward-only' | 'generic') {
         return await inTxLeaky(parent, async (ctx: Context) => {
             while (true) {
                 // Create unique random id for a subscriber for even data distribution
@@ -54,17 +55,30 @@ export class RegistryRepository {
 
                 // Save registered id
                 this.subspace.addReadConflictKey(ctx, key);
-                this.subspace.set(ctx, key, ZERO);
+                if (mode === 'forward-only') {
+                    this.subspace.set(ctx, key, ONE);
+                } else if (mode === 'generic') {
+                    this.subspace.set(ctx, key, ZERO);
+                } else {
+                    throw Error('Unknown mode ' + mode);
+                }
 
                 return id;
             }
         });
     }
 
-    async feedExists(parent: Context, feed: Buffer) {
+    async getFeed(parent: Context, feed: Buffer): Promise<null | 'generic' | 'forward-only'> {
         return await inTxLeaky(parent, async (ctx: Context) => {
             let key = encoders.tuple.pack([REGISTRY_FEED, feed]);
-            return await this.subspace.snapshotExists(ctx, key);
+            let ex = await this.subspace.snapshotGet(ctx, key);
+            if (!ex) {
+                return null;
+            } else if (ex.length === 0) {
+                return 'generic';
+            } else {
+                return 'forward-only';
+            }
         });
     }
 

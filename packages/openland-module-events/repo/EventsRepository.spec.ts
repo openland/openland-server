@@ -17,8 +17,8 @@ describe('EventsRepository', () => {
         let root = createNamedContext('test');
         let db = await Database.openTest({ name: 'event-events-root', layers: [] });
         let repo = new EventsRepository(db.allKeys);
-        let feed1 = await repo.createFeed(root);
-        let feed2 = await repo.createFeed(root);
+        let feed1 = await repo.createFeed(root, 'generic');
+        let feed2 = await repo.createFeed(root, 'generic');
         let subs1 = await repo.createSubscriber(root);
         let subs2 = await repo.createSubscriber(root);
         let now = Date.now();
@@ -27,10 +27,10 @@ describe('EventsRepository', () => {
         expect((await repo.getFeedOnlineSubscribers(root, feed2, now)).length).toBe(0);
 
         // Subscribe
-        await repo.subscribe(root, subs1, feed1, { mode: 'direct', strict: false });
+        await repo.subscribe(root, subs1, feed1, 'direct');
         expect((await repo.getFeedOnlineSubscribers(root, feed1, now)).length).toBe(0);
         expect((await repo.getFeedOnlineSubscribers(root, feed2, now)).length).toBe(0);
-        await repo.subscribe(root, subs2, feed1, { mode: 'async', strict: false });
+        await repo.subscribe(root, subs2, feed1, 'direct');
         expect((await repo.getFeedOnlineSubscribers(root, feed1, now)).length).toBe(0);
         expect((await repo.getFeedOnlineSubscribers(root, feed2, now)).length).toBe(0);
 
@@ -47,7 +47,7 @@ describe('EventsRepository', () => {
         expect((await repo.getFeedOnlineSubscribers(root, feed2, now2)).length).toBe(0);
 
         // Subscribe online member
-        await repo.subscribe(root, subs2, feed2, { mode: 'async', strict: false });
+        await repo.subscribe(root, subs2, feed2, 'async');
         expect((await repo.getFeedOnlineSubscribers(root, feed1, now2)).length).toBe(2);
         expect((await repo.getFeedOnlineSubscribers(root, feed2, now2)).length).toBe(1);
         expect((await repo.getFeedOnlineSubscribers(root, feed1, now3)).length).toBe(1);
@@ -60,8 +60,8 @@ describe('EventsRepository', () => {
         let repo = new EventsRepository(db.allKeys);
 
         for (let type of ['async', 'direct']) {
-            let feed1 = await repo.createFeed(root);
-            let feed2 = await repo.createFeed(root);
+            let feed1 = await repo.createFeed(root, 'generic');
+            let feed2 = await repo.createFeed(root, 'generic');
             let subs1 = await repo.createSubscriber(root);
             let subs2 = await repo.createSubscriber(root);
             let initial1 = await repo.getState(root, subs1);
@@ -70,9 +70,9 @@ describe('EventsRepository', () => {
             // Initial difference
             expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, await initial1.state), []);
             expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs2, await initial2.state), []);
-            let diff = await repo.getDifference(root, subs1, await initial1.state, { limits: { strict: 100, generic: 10, global: 1000 } });
+            let diff = await repo.getDifference(root, subs1, await initial1.state, { limits: { forwardOnly: 100, generic: 10, global: 1000 } });
             expect(diff.updates.length).toBe(0);
-            diff = await repo.getDifference(root, subs2, await initial2.state, { limits: { strict: 100, generic: 10, global: 1000 } });
+            diff = await repo.getDifference(root, subs2, await initial2.state, { limits: { forwardOnly: 100, generic: 10, global: 1000 } });
             expect(diff.updates.length).toBe(0);
 
             // Post to some feeds
@@ -80,16 +80,16 @@ describe('EventsRepository', () => {
             await repo.post(root, { feed: feed2, event: ZERO });
 
             // Subscribe
-            await repo.subscribe(root, subs1, feed1, { mode: type as 'async' | 'direct', strict: false });
-            await repo.subscribe(root, subs1, feed2, { mode: type as 'async' | 'direct', strict: false });
-            await repo.subscribe(root, subs2, feed1, { mode: type as 'async' | 'direct', strict: false });
+            await repo.subscribe(root, subs1, feed1, type as 'async' | 'direct');
+            await repo.subscribe(root, subs1, feed2, type as 'async' | 'direct');
+            await repo.subscribe(root, subs2, feed1, type as 'async' | 'direct');
 
             // Should have two changed feeds
             expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, await initial1.state), []);
-            diff = await repo.getDifference(root, subs1, await initial1.state, { limits: { strict: 100, generic: 10, global: 1000 } });
+            diff = await repo.getDifference(root, subs1, await initial1.state, { limits: { forwardOnly: 100, generic: 10, global: 1000 } });
             expect(diff.updates.length).toBe(2);
             expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, await initial1.state), []);
-            diff = await repo.getDifference(root, subs2, await initial2.state, { limits: { strict: 100, generic: 10, global: 1000 } });
+            diff = await repo.getDifference(root, subs2, await initial2.state, { limits: { forwardOnly: 100, generic: 10, global: 1000 } });
             expect(diff.updates.length).toBe(1);
 
             // Should have zero changed since then

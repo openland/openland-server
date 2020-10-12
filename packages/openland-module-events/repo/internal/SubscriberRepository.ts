@@ -12,7 +12,7 @@ const MINUS_ONE = encoders.int32LE.pack(-1);
 export type SubscriberState = {
     generation: number,
     mode: 'async' | 'direct',
-    strict: boolean,
+    forwardOnly: boolean,
     from: { seq: number, state: Buffer },
     to: { seq: number, state: Buffer } | null
 };
@@ -40,24 +40,24 @@ function unpackState(src: Buffer): SubscriberState {
     } else {
         throw Error('Broken index');
     }
-    let strict = tuple[2] as boolean;
+    let forwardOnly = tuple[2] as boolean;
     let fromSeq = tuple[3] as number;
     let toSeq = tuple[4] as (number | null);
     return {
         generation,
         mode,
-        strict,
+        forwardOnly,
         from: { state: from, seq: fromSeq },
         to: (toSeq !== null && to !== null ? { state: to, seq: toSeq } : null)
     };
 }
 
-function packState(src: { generation: number, mode: 'async' | 'direct', strict: boolean, from: number, to: number | null }) {
+function packState(src: { generation: number, mode: 'async' | 'direct', forwardOnly: boolean, from: number, to: number | null }) {
     let type: Buffer;
     if (src.mode === 'direct') {
-        type = encoders.tuple.pack([src.generation, MODE_DIRECT, src.strict, src.from, src.to]);
+        type = encoders.tuple.pack([src.generation, MODE_DIRECT, src.forwardOnly, src.from, src.to]);
     } else if (src.mode === 'async') {
-        type = encoders.tuple.pack([src.generation, MODE_ASYNC, src.strict, src.from, src.to]);
+        type = encoders.tuple.pack([src.generation, MODE_ASYNC, src.forwardOnly, src.from, src.to]);
     } else {
         throw Error('Invalid mode');
     }
@@ -92,7 +92,7 @@ export class SubscriberRepository {
         });
     }
 
-    async addSubscription(ctx: Context, subscriber: Buffer, feed: Buffer, mode: 'direct' | 'async', strict: boolean, seq: number, index: Buffer) {
+    async addSubscription(ctx: Context, subscriber: Buffer, feed: Buffer, mode: 'direct' | 'async', forwardOnly: boolean, seq: number, index: Buffer) {
         let generation = 1;
         let ex = await this.getSubscriptionState(ctx, subscriber, feed);
         if (ex) {
@@ -103,7 +103,7 @@ export class SubscriberRepository {
             generation = ex.generation + 1;
         }
 
-        let value = Buffer.concat([ONE, packState({ generation, mode, strict, from: seq, to: null })]);
+        let value = Buffer.concat([ONE, packState({ generation, mode, forwardOnly, from: seq, to: null })]);
         this.subspace.setVersionstampedValue(ctx, Locations.subscriber.subscription(subscriber, feed), value, index);
 
         // Update counters
@@ -125,7 +125,7 @@ export class SubscriberRepository {
             return;
         }
 
-        let value = Buffer.concat([ONE, packState({ generation: state.generation, mode, strict: state.strict, from: state.from.seq, to: null }), state.from.state]);
+        let value = Buffer.concat([ONE, packState({ generation: state.generation, mode, forwardOnly: state.forwardOnly, from: state.from.seq, to: null }), state.from.state]);
         this.subspace.set(ctx, Locations.subscriber.subscription(subscriber, feed), value);
 
         if (state.mode === 'async') {
@@ -151,7 +151,7 @@ export class SubscriberRepository {
         let value = Buffer.concat([ZERO, packState({
             generation: state.generation,
             mode: state.mode,
-            strict: state.strict,
+            forwardOnly: state.forwardOnly,
             from: state.from.seq,
             to: seq
         }), state.from.state]);

@@ -43,16 +43,16 @@ describe('SubscriberRepository', () => {
             expect(await repo.getSubscriptions(ctx, subsId1)).toMatchObject([{
                 feed: feedId1,
                 state: {
-                    generation: 1, mode: 'direct', strict: true, from: { seq: 0, state: await vts1.vt1 }, to: null
+                    generation: 1, mode: 'direct', forwardOnly: true, from: { seq: 0, state: await vts1.vt1 }, to: null
                 }
             }, {
                 feed: feedId2,
-                state: { generation: 1, mode: 'async', strict: true, from: { seq: 1, state: await vts1.vt2 }, to: null }
+                state: { generation: 1, mode: 'async', forwardOnly: true, from: { seq: 1, state: await vts1.vt2 }, to: null }
             }]);
 
             expect(await repo.getSubscriptions(ctx, subsId2)).toMatchObject([{
                 feed: feedId1,
-                state: { generation: 1, mode: 'direct', strict: false, from: { seq: 2, state: await vts1.vt3 }, to: null }
+                state: { generation: 1, mode: 'direct', forwardOnly: false, from: { seq: 2, state: await vts1.vt3 }, to: null }
             }]);
 
             expect(await repo.getSubscriptions(ctx, subsId3)).toMatchObject([]);
@@ -70,16 +70,16 @@ describe('SubscriberRepository', () => {
             expect(await repo.getSubscriptions(ctx, subsId1)).toMatchObject([{
                 feed: feedId1,
                 state: {
-                    generation: 1, mode: 'direct', strict: true, from: { seq: 0, state: await vts1.vt1 }, to: { seq: 1, state: await vts2.promise }
+                    generation: 1, mode: 'direct', forwardOnly: true, from: { seq: 0, state: await vts1.vt1 }, to: { seq: 1, state: await vts2.promise }
                 }
             }, {
                 feed: feedId2,
-                state: { generation: 1, mode: 'async', strict: true, from: { seq: 1, state: await vts1.vt2 }, to: null }
+                state: { generation: 1, mode: 'async', forwardOnly: true, from: { seq: 1, state: await vts1.vt2 }, to: null }
             }]);
 
             expect(await repo.getSubscriptions(ctx, subsId2)).toMatchObject([{
                 feed: feedId1,
-                state: { generation: 1, mode: 'direct', strict: false, from: { seq: 2, state: await vts1.vt3 }, to: null }
+                state: { generation: 1, mode: 'direct', forwardOnly: false, from: { seq: 2, state: await vts1.vt3 }, to: null }
             }]);
 
             expect(await repo.getSubscriptions(ctx, subsId3)).toMatchObject([]);

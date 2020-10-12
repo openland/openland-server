@@ -22,24 +22,25 @@ export class EventsMediator {
         this.bus = bus;
     }
 
-    createFeed(ctx: Context) {
-        return this.repo.createFeed(ctx);
+    createFeed(ctx: Context, mode: 'forward-only' | 'generic') {
+        return this.repo.createFeed(ctx, mode);
     }
 
     createSubscriber(ctx: Context) {
         return this.repo.createSubscriber(ctx);
     }
 
-    async subscribe(parent: Context, subscriber: Buffer, feed: Buffer, strict: boolean) {
+    async subscribe(parent: Context, subscriber: Buffer, feed: Buffer) {
         await inTx(parent, async (ctx) => {
             let mode: 'direct' | 'async' = 'direct';
-            if (!strict) {
+            let feedMode = await this.repo.registry.getFeed(ctx, feed);
+            if (feedMode === 'generic') {
                 let directSubscribers = await this.repo.getFeedDirectSubscribersCount(ctx, feed);
                 if (directSubscribers > DIRECT_LIMIT) {
                     mode = 'async';
                 }
             }
-            let res = await this.repo.subscribe(ctx, subscriber, feed, { mode: mode, strict });
+            let res = await this.repo.subscribe(ctx, subscriber, feed, mode);
             if (await this.repo.isOnline(ctx, subscriber, Date.now())) {
                 // NOTE: We MUST execute this within transaction to have strict delivery guarantee
                 let seq = (await this.repo.allocateSubscriberSeq(ctx, [subscriber]))[0];

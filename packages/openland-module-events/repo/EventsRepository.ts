@@ -49,11 +49,11 @@ export class EventsRepository {
     // Feed/Subscriber
     //
 
-    async createFeed(parent: Context) {
+    async createFeed(parent: Context, mode: 'forward-only' | 'generic') {
         return await inTxLeaky(parent, async (ctx) => {
 
             // Allocate feed id
-            let feed = await this.registry.allocateFeedId(ctx);
+            let feed = await this.registry.allocateFeedId(ctx, mode);
 
             // Set initial seq
             let seq = 0;
@@ -74,12 +74,13 @@ export class EventsRepository {
         });
     }
 
-    async subscribe(parent: Context, subscriber: Buffer, feed: Buffer, opts: { mode: 'direct' | 'async', strict: boolean }) {
+    async subscribe(parent: Context, subscriber: Buffer, feed: Buffer, mode: 'direct' | 'async') {
         return await inTxLeaky(parent, async (ctx) => {
             if (!(await this.registry.subscriberExists(ctx, subscriber))) {
                 throw Error('Unable to find subscriber');
             }
-            if (!(await this.registry.feedExists(ctx, feed))) {
+            let feedMode = (await this.registry.getFeed(ctx, feed));
+            if (!feedMode) {
                 throw Error('Unable to find feed');
             }
 
@@ -89,18 +90,18 @@ export class EventsRepository {
 
             // Add subscription
             // NOTE: This method checks for correctness
-            await this.sub.addSubscription(ctx, subscriber, feed, opts.mode, opts.strict, seq, index);
+            await this.sub.addSubscription(ctx, subscriber, feed, mode, feedMode === 'forward-only', seq, index);
 
             // Write to updated list
             await this.subUpdated.appendChanged(ctx, subscriber, feed, index);
 
             // Add to specific collection
-            if (opts.mode === 'async') {
+            if (mode === 'async') {
                 await this.subAsync.addSubscriber(ctx, subscriber, feed);
-            } else if (opts.mode === 'direct') {
+            } else if (mode === 'direct') {
                 await this.subDirect.addSubscriber(ctx, subscriber, feed);
             } else {
-                throw Error('Unknown mode: ' + opts.mode);
+                throw Error('Unknown mode: ' + mode);
             }
 
             return { seq, state: this.vts.resolveVersionstamp(ctx, index).promise };
@@ -112,7 +113,7 @@ export class EventsRepository {
             if (!(await this.registry.subscriberExists(ctx, subscriber))) {
                 throw Error('Unable to find subscriber');
             }
-            if (!(await this.registry.feedExists(ctx, feed))) {
+            if (!(await this.registry.getFeed(ctx, feed))) {
                 throw Error('Unable to find feed');
             }
 
@@ -301,7 +302,7 @@ export class EventsRepository {
         });
     }
 
-    async getFeedDifference(parent: Context, subscriber: Buffer, feed: Buffer, after: Buffer, opts: { limits: { strict: number, generic: number } }) {
+    async getFeedDifference(parent: Context, subscriber: Buffer, feed: Buffer, after: Buffer, opts: { limits: { forwardOnly: number, generic: number } }) {
         return await inTxLeaky(parent, async (ctx) => {
             let state = await this.sub.getSubscriptionState(ctx, subscriber, feed);
             if (!state) {
@@ -326,20 +327,20 @@ export class EventsRepository {
 
             // Read events
             let res = await this.feedEvents.getEvents(ctx, feed, {
-                mode: state.strict ? 'forward' : 'only-latest',
-                limit: state.strict ? opts.limits.strict : opts.limits.generic,
+                mode: state.forwardOnly ? 'forward' : 'only-latest',
+                limit: state.forwardOnly ? opts.limits.forwardOnly : opts.limits.generic,
                 after: afterAdjusted,
                 before
             });
 
             return {
-                strict: state.strict,
+                forwardOnly: state.forwardOnly,
                 ...res
             };
         });
     }
 
-    async getDifference(parent: Context, subscriber: Buffer, after: Buffer, opts: { limits: { strict: number, generic: number, global: number } }) {
+    async getDifference(parent: Context, subscriber: Buffer, after: Buffer, opts: { limits: { forwardOnly: number, generic: number, global: number } }) {
         return await inTxLeaky(parent, async (ctx) => {
             let updates: { feed: Buffer, seq: number, state: Buffer, event: 'joined' | 'completed' | 'event', body: Buffer | null }[] = [];
             let changedFeeds = await this.getChangedFeeds(ctx, subscriber, after);
@@ -374,7 +375,7 @@ export class EventsRepository {
                 }
 
                 // Enforce hasMore if strict feeds are changed
-                if (d.diff.strict && d.diff.hasMore) {
+                if (d.diff.forwardOnly && d.diff.hasMore) {
                     hasMore = true;
                 }
 
