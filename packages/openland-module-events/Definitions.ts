@@ -1,9 +1,12 @@
+import { encoders } from '@openland/foundationdb';
 import { Store } from 'openland-module-db/FDB';
 import {
     UpdateChatRead,
     UpdateProfileChanged,
     UpdateChatAccessChanged
 } from 'openland-module-db/store';
+
+export type FeedReference = { type: 'common', uid: number };
 
 //
 // Common Events
@@ -39,4 +42,47 @@ export function commonEventParse(src: Buffer): CommonEvent | null {
         }
     }
     return null;
+}
+
+//
+// Handler
+//
+
+export type Event = CommonEvent;
+
+export type UserSubscriptionHandlerEvent =
+    | { type: 'started', state: string }
+    | { type: 'update', feed: FeedReference, event: Event, seq: number }
+    | { type: 'checkpoint', state: string }
+    | { type: 'closed' };
+
+//
+// Packing
+//
+
+export function packFeedEvent(feed: FeedReference, event: Buffer) {
+    if (feed.type === 'common') {
+        return encoders.tuple.pack([0, feed.uid, event]);
+    }
+    throw Error('Unknown feed type');
+}
+
+export function unpackFeedEvent(src: Buffer): { feed: FeedReference, event: Event } {
+    let tuple = encoders.tuple.unpack(src);
+    if (tuple[0] === 0) {
+        let uid = tuple[1] as number;
+        if (typeof uid !== 'number') {
+            throw Error('Invalid event');
+        }
+        let event = tuple[2] as Buffer;
+        if (!Buffer.isBuffer(event)) {
+            throw Error('Invalid event');
+        }
+        let parsed = commonEventParse(event);
+        if (!parsed) {
+            throw Error('Invalid event');
+        }
+        return { feed: { type: 'common', uid }, event: parsed };
+    }
+    throw Error('Unknown feed type');
 }

@@ -19,6 +19,11 @@ const SUBSCRIBER_ASYNC = 2;
 const SUBSCRIBER_ASYNC_ONLINE_LATEST = 3;
 const SUBSCRIBER_SUBSCRIPTIONS_CHANGES = 6;
 
+const STATS = 0;
+const STATS_FEEDS = 1;
+const STATS_SUBSCRIBERS = 2;
+const STATS_SUBSCRIPTIONS = 3;
+
 export const Locations = {
     feed: {
         seq: (feed: Buffer) => encoders.tuple.pack([feed, FEED_SEQ]),
@@ -51,5 +56,11 @@ export const Locations = {
         asyncOnlineLatest: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_ASYNC_ONLINE_LATEST]),
 
         subscriptionChanges: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_SUBSCRIPTIONS_CHANGES])
+    },
+
+    stats: {
+        feeds: encoders.tuple.pack([STATS, STATS_FEEDS]),
+        subscribers: encoders.tuple.pack([STATS, STATS_SUBSCRIBERS]),
+        subscriptions: encoders.tuple.pack([STATS, STATS_SUBSCRIPTIONS]),
     }
 };

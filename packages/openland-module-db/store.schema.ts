@@ -2517,6 +2517,9 @@ export default declareSchema(() => {
     customDirectory('EventUserSeq');
 
     customDirectory('EventsTestStore');
+    customDirectory('EventsTestRegistrations');
+    atomicInt('EventsStoreSubscriberCount', () => { primaryKey('production', boolean()); });
+    atomicInt('EventsStoreFeedCount', () => { primaryKey('production', boolean()); });
 
     event('UpdateChatRead', () => {
         field('uid', integer());

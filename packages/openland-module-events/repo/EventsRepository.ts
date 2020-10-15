@@ -1,3 +1,4 @@
+import { StatsRepository } from './internal/StatsRepository';
 import { SubscriberUpdatesRepository } from './internal/SubscriberUpdatesRepository';
 import { BufferSet } from '../utils/BufferSet';
 import { Locations } from './internal/Locations';
@@ -30,6 +31,7 @@ export class EventsRepository {
 
     readonly vts: VersionStampRepository;
     readonly registry: RegistryRepository;
+    readonly stats: StatsRepository;
 
     constructor(subspace: Subspace) {
         this.subspace = subspace;
@@ -43,6 +45,7 @@ export class EventsRepository {
         this.subDirect = new SubscriberDirectRepository(subspace);
         this.subUpdated = new SubscriberUpdatesRepository(subspace);
         this.vts = new VersionStampRepository(subspace.db);
+        this.stats = new StatsRepository(subspace);
     }
 
     //
@@ -63,6 +66,9 @@ export class EventsRepository {
             let index = this.vts.allocateVersionstampIndex(ctx);
             await this.feedLatest.writeLatest(ctx, feed, seq, index);
 
+            // Stats
+            this.stats.increment(ctx, 'feeds');
+
             return feed;
         });
     }
@@ -70,6 +76,7 @@ export class EventsRepository {
     async createSubscriber(parent: Context) {
         return await inTxLeaky(parent, async (ctx) => {
             let subs = await this.registry.allocateSubscriberId(ctx);
+            this.stats.increment(ctx, 'subscribers');
             return subs;
         });
     }
@@ -104,6 +111,9 @@ export class EventsRepository {
                 throw Error('Unknown mode: ' + mode);
             }
 
+            // Stats
+            this.stats.increment(ctx, 'subscriptions');
+
             return { seq, state: this.vts.resolveVersionstamp(ctx, index).promise };
         });
     }
@@ -135,6 +145,9 @@ export class EventsRepository {
             } else if (ex === 'async') {
                 await this.subAsync.removeSubscriber(ctx, subscriber, feed);
             }
+
+            // Stats
+            this.stats.decrement(ctx, 'subscriptions');
 
             return { seq, state: this.vts.resolveVersionstamp(ctx, index).promise };
         });

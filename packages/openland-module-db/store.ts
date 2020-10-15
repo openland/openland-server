@@ -1364,6 +1364,78 @@ export class RoomActiveMembersPrevWeekCounterFactory extends AtomicIntegerFactor
     }
 }
 
+export class EventsStoreSubscriberCountFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('eventsStoreSubscriberCount');
+        return new EventsStoreSubscriberCountFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(production: boolean) {
+        return this._findById([production]);
+    }
+
+    get(ctx: Context, production: boolean) {
+        return this._get(ctx, [production]);
+    }
+
+    set(ctx: Context, production: boolean, value: number) {
+        return this._set(ctx, [production], value);
+    }
+
+    add(ctx: Context, production: boolean, value: number) {
+        return this._add(ctx, [production], value);
+    }
+
+    increment(ctx: Context, production: boolean) {
+        return this._increment(ctx, [production]);
+    }
+
+    decrement(ctx: Context, production: boolean) {
+        return this._decrement(ctx, [production]);
+    }
+}
+
+export class EventsStoreFeedCountFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('eventsStoreFeedCount');
+        return new EventsStoreFeedCountFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(production: boolean) {
+        return this._findById([production]);
+    }
+
+    get(ctx: Context, production: boolean) {
+        return this._get(ctx, [production]);
+    }
+
+    set(ctx: Context, production: boolean, value: number) {
+        return this._set(ctx, [production], value);
+    }
+
+    add(ctx: Context, production: boolean, value: number) {
+        return this._add(ctx, [production], value);
+    }
+
+    increment(ctx: Context, production: boolean) {
+        return this._increment(ctx, [production]);
+    }
+
+    decrement(ctx: Context, production: boolean) {
+        return this._decrement(ctx, [production]);
+    }
+}
+
 export class ReaderEstimateFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -22544,6 +22616,8 @@ export interface Store extends BaseStore {
     readonly StatsRecords: StatsRecordsFactory;
     readonly RoomMessagesCounter: RoomMessagesCounterFactory;
     readonly RoomActiveMembersPrevWeekCounter: RoomActiveMembersPrevWeekCounterFactory;
+    readonly EventsStoreSubscriberCount: EventsStoreSubscriberCountFactory;
+    readonly EventsStoreFeedCount: EventsStoreFeedCountFactory;
     readonly ReaderEstimate: ReaderEstimateFactory;
     readonly LastAuthEmailSentTime: LastAuthEmailSentTimeFactory;
     readonly AuthEmailsSentCount: AuthEmailsSentCountFactory;
@@ -22726,6 +22800,7 @@ export interface Store extends BaseStore {
     readonly EventRegistrationsDirectory: Subspace;
     readonly EventUserSeqDirectory: Subspace;
     readonly EventsTestStoreDirectory: Subspace;
+    readonly EventsTestRegistrationsDirectory: Subspace;
     readonly ShardingDataDirectory: Subspace;
     readonly ImportedPhoneDirectory: Subspace;
     readonly PhoneImportedByUserDirectory: Subspace;
@@ -22838,6 +22913,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let StatsRecordsPromise = StatsRecordsFactory.open(storage);
     let RoomMessagesCounterPromise = RoomMessagesCounterFactory.open(storage);
     let RoomActiveMembersPrevWeekCounterPromise = RoomActiveMembersPrevWeekCounterFactory.open(storage);
+    let EventsStoreSubscriberCountPromise = EventsStoreSubscriberCountFactory.open(storage);
+    let EventsStoreFeedCountPromise = EventsStoreFeedCountFactory.open(storage);
     let ReaderEstimatePromise = ReaderEstimateFactory.open(storage);
     let LastAuthEmailSentTimePromise = LastAuthEmailSentTimeFactory.open(storage);
     let AuthEmailsSentCountPromise = AuthEmailsSentCountFactory.open(storage);
@@ -23010,6 +23087,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let EventRegistrationsDirectoryPromise = storage.resolveCustomDirectory('eventRegistrations');
     let EventUserSeqDirectoryPromise = storage.resolveCustomDirectory('eventUserSeq');
     let EventsTestStoreDirectoryPromise = storage.resolveCustomDirectory('eventsTestStore');
+    let EventsTestRegistrationsDirectoryPromise = storage.resolveCustomDirectory('eventsTestRegistrations');
     let ShardingDataDirectoryPromise = storage.resolveCustomDirectory('shardingData');
     let ImportedPhoneDirectoryPromise = storage.resolveCustomDirectory('importedPhone');
     let PhoneImportedByUserDirectoryPromise = storage.resolveCustomDirectory('phoneImportedByUser');
@@ -23090,6 +23168,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         StatsRecords: await StatsRecordsPromise,
         RoomMessagesCounter: await RoomMessagesCounterPromise,
         RoomActiveMembersPrevWeekCounter: await RoomActiveMembersPrevWeekCounterPromise,
+        EventsStoreSubscriberCount: await EventsStoreSubscriberCountPromise,
+        EventsStoreFeedCount: await EventsStoreFeedCountPromise,
         ReaderEstimate: await ReaderEstimatePromise,
         LastAuthEmailSentTime: await LastAuthEmailSentTimePromise,
         AuthEmailsSentCount: await AuthEmailsSentCountPromise,
@@ -23262,6 +23342,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         EventRegistrationsDirectory: await EventRegistrationsDirectoryPromise,
         EventUserSeqDirectory: await EventUserSeqDirectoryPromise,
         EventsTestStoreDirectory: await EventsTestStoreDirectoryPromise,
+        EventsTestRegistrationsDirectory: await EventsTestRegistrationsDirectoryPromise,
         ShardingDataDirectory: await ShardingDataDirectoryPromise,
         ImportedPhoneDirectory: await ImportedPhoneDirectoryPromise,
         PhoneImportedByUserDirectory: await PhoneImportedByUserDirectoryPromise,

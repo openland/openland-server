@@ -1,3 +1,4 @@
+import { TypedEventsMediator } from './mediators/TypedEventsMediator';
 import { createLogger } from '@openland/log';
 import { createNamedContext, Context } from '@openland/context';
 import { UserServiceManager } from './users/UserServiceManager';
@@ -16,6 +17,7 @@ export class EventsModule {
     readonly groupSharding = new ShardRegion('groups', 128);
     readonly userService = new UserServiceManager();
     readonly groupService = new GroupServiceManager();
+    readonly mediator = new TypedEventsMediator();
 
     start = async () => {
         this.userSharding.start();
@@ -38,10 +40,10 @@ export class EventsModule {
     //
 
     onUserCreated = async (ctx: Context, uid: number) => {
-        // TODO: Handle
+        await this.mediator.prepareUser(ctx, uid);
     }
 
     onUserDeleted = async (ctx: Context, uid: number) => {
-        // TODO: Handle
+        // Nothing to do?
     }
 }
