@@ -29,7 +29,7 @@ export class FeedLatestRepository {
         await this.readFirstTransactionLatest(ctx, feed);
 
         // Write latest
-        this.subspace.setVersionstampedValue(ctx, Locations.feedLatest(feed), encoders.int32LE.pack(seq), index);
+        this.subspace.setVersionstampedValue(ctx, Locations.feed.latest(feed), encoders.int32LE.pack(seq), index);
     }
 
     /**
@@ -41,7 +41,7 @@ export class FeedLatestRepository {
         let feedKey = feed.toString('hex');
         let existing = feedFirstLatestCache.get(ctx, feedKey);
         if (!existing) {
-            let latest = await this.subspace.get(ctx, Locations.feedLatest(feed));
+            let latest = await this.subspace.get(ctx, Locations.feed.latest(feed));
             if (!latest) {
                 feedFirstLatestCache.set(ctx, feedKey, { latest: null });
                 return null;
@@ -61,7 +61,7 @@ export class FeedLatestRepository {
      * @param feed feed
      */
     async readLatest(ctx: Context, feed: Buffer) {
-        let latest = await this.subspace.get(ctx, Locations.feedLatest(feed));
+        let latest = await this.subspace.get(ctx, Locations.feed.latest(feed));
         if (!latest) {
             throw Error('Unable to find latest event reference');
         }

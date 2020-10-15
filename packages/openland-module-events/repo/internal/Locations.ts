@@ -3,12 +3,13 @@ import { encoders } from '@openland/foundationdb';
 const FEED_STREAM = 0; // Event Stream
 const FEED_LATEST = 1; // Latest versionstamp
 const FEED_SEQ = 2; // Latest seq
-const FEED_DIRECT = 3;
+const FEED_COLLAPSE = 3;
+const FEED_DIRECT = 4;
 const FEED_DIRECT_LATEST = 5;
-const FEED_ASYNC_ONLINE = 4;
-const FEED_COUNTER = 6;
-const FEED_COUNTER_DIRECT = 7;
-const FEED_COUNTER_ASYNC = 8;
+const FEED_ASYNC_ONLINE = 6;
+const FEED_COUNTER = 7;
+const FEED_COUNTER_DIRECT = 8;
+const FEED_COUNTER_ASYNC = 9;
 
 const SUBSCRIBER_SUBSCRIPTIONS = 0;
 const SUBSCRIBER_VT = 5;
@@ -19,9 +20,12 @@ const SUBSCRIBER_ASYNC_ONLINE_LATEST = 3;
 const SUBSCRIBER_SUBSCRIPTIONS_CHANGES = 6;
 
 export const Locations = {
-    feedSeq: (feed: Buffer) => encoders.tuple.pack([feed, FEED_SEQ]),
-    feedLatest: (feed: Buffer) => encoders.tuple.pack([feed, FEED_LATEST]),
-    feedStream: (feed: Buffer) => encoders.tuple.pack([feed, FEED_STREAM]),
+    feed: {
+        seq: (feed: Buffer) => encoders.tuple.pack([feed, FEED_SEQ]),
+        latest: (feed: Buffer) => encoders.tuple.pack([feed, FEED_LATEST]),
+        stream: (feed: Buffer) => encoders.tuple.pack([feed, FEED_STREAM]),
+        collapsed: (feed: Buffer, key: string) => encoders.tuple.pack([feed, FEED_COLLAPSE, key])
+    },
 
     subscriber: {
 

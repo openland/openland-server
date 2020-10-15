@@ -168,7 +168,7 @@ export class EventsRepository {
     // Posting
     //
 
-    async post(parent: Context, args: { feed: Buffer, event: Buffer }) {
+    async post(parent: Context, args: { feed: Buffer, event: Buffer, collapseKey?: string | null | undefined }) {
         return await inTxLeaky(parent, async (ctx) => {
 
             // Allocate Seq
@@ -178,7 +178,11 @@ export class EventsRepository {
             let index = this.vts.allocateVersionstampIndex(ctx);
 
             // Write event to a stream
-            await this.feedEvents.writeEvent(ctx, args.feed, args.event, seq, index);
+            if (args.collapseKey) {
+                await this.feedEvents.writeCollapsedEvent(ctx, args.feed, args.event, seq, index, args.collapseKey);
+            } else {
+                this.feedEvents.writeEvent(ctx, args.feed, args.event, seq, index);
+            }
 
             // Write latest reference
             await this.feedLatest.writeLatest(ctx, args.feed, seq, index);
