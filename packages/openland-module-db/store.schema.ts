@@ -2523,6 +2523,14 @@ export default declareSchema(() => {
         field('cid', integer());
         field('seq', integer());
     });
+    event('UpdateProfileChanged', () => {
+        field('uid', integer());
+    });
+    event('UpdateChatAccessChanged', () => {
+        field('uid', integer());
+        field('cid', integer());
+    });
+
     event('UpdateChatMessage', () => {
         field('uid', integer());
         field('cid', integer());
@@ -2537,14 +2545,6 @@ export default declareSchema(() => {
         field('uid', integer());
         field('cid', integer());
         field('mid', integer());
-    });
-    event('UpdateChatLostAccess', () => {
-        field('uid', integer());
-        field('cid', integer());
-    });
-    event('UpdateChatGotAccess', () => {
-        field('uid', integer());
-        field('cid', integer());
     });
 
     //

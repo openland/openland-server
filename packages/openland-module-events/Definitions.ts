@@ -1,33 +1,42 @@
-import { EventSerializer } from './receiver/EventSerializer';
 import { Store } from 'openland-module-db/FDB';
 import {
     UpdateChatRead,
-    UpdateChatMessage,
-    UpdateChatMessageUpdated,
-    UpdateChatMessageDeleted,
-    UpdateChatGotAccess,
-    UpdateChatLostAccess
+    UpdateProfileChanged,
+    UpdateChatAccessChanged
 } from 'openland-module-db/store';
 
 //
-// All available events 
+// Common Events
 //
 
-export type Event =
-    | UpdateChatRead
-    | UpdateChatMessage
-    | UpdateChatMessageUpdated
-    | UpdateChatMessageDeleted
-    | UpdateChatGotAccess
-    | UpdateChatLostAccess
-    ;
+const CommonEvents = [
+    UpdateChatRead,
+    UpdateProfileChanged,
+    UpdateChatAccessChanged
+];
 
-export const Serializer: EventSerializer<Event> = {
-    parseEvent(src: Buffer): Event {
-        let json = src.toString('utf-8');
-        return Store.eventFactory.decode(JSON.parse(json)) as Event;
-    },
-    serializeEvent(event: Event) {
-        return Buffer.from(JSON.stringify(Store.eventFactory.encode(event)), 'utf-8');
+export type CommonEvent = ReturnType<(typeof CommonEvents[number])['create']>;
+
+export function commonEventCollapseKey(src: CommonEvent): string | null {
+    if (src.type === 'updateChatRead') {
+        return 'read-' + src.cid;
+    } else if (src.type === 'updateProfileChanged') {
+        return 'profile-' + src.uid;
+    } else if (src.type === 'updateChatAccessChanged') {
+        return 'access-' + src.cid;
     }
-};
+    return null;
+}
+
+export function commonEventSerialize(src: CommonEvent) {
+    return Buffer.from(JSON.stringify(Store.eventFactory.encode(src)), 'utf-8');
+}
+export function commonEventParse(src: Buffer): CommonEvent | null {
+    let event = Store.eventFactory.decode(src.toString('utf-8'));
+    for (let e of CommonEvents) {
+        if (event.type === e.type) {
+            return event as CommonEvent;
+        }
+    }
+    return null;
+}

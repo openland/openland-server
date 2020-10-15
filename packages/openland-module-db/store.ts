@@ -20655,7 +20655,7 @@ interface ChatUpdatedEventShape {
 
 export class ChatUpdatedEvent extends BaseEvent {
 
-    static type: 'chatUpdatedEvent' = 'chatUpdatedEvent';
+    static readonly type: 'chatUpdatedEvent' = 'chatUpdatedEvent';
 
     static create(data: ChatUpdatedEventShape) {
         return new ChatUpdatedEvent(chatUpdatedEventCodec.normalize(data));
@@ -20669,8 +20669,10 @@ export class ChatUpdatedEvent extends BaseEvent {
         return chatUpdatedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'chatUpdatedEvent' = 'chatUpdatedEvent';
+
     private constructor(data: any) {
-        super('chatUpdatedEvent', data);
+        super(data);
     }
 
     get cid(): number { return this.raw.cid; }
@@ -20691,7 +20693,7 @@ interface MessageReceivedEventShape {
 
 export class MessageReceivedEvent extends BaseEvent {
 
-    static type: 'messageReceivedEvent' = 'messageReceivedEvent';
+    static readonly type: 'messageReceivedEvent' = 'messageReceivedEvent';
 
     static create(data: MessageReceivedEventShape) {
         return new MessageReceivedEvent(messageReceivedEventCodec.normalize(data));
@@ -20705,8 +20707,10 @@ export class MessageReceivedEvent extends BaseEvent {
         return messageReceivedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'messageReceivedEvent' = 'messageReceivedEvent';
+
     private constructor(data: any) {
-        super('messageReceivedEvent', data);
+        super(data);
     }
 
     get cid(): number { return this.raw.cid; }
@@ -20728,7 +20732,7 @@ interface MessageUpdatedEventShape {
 
 export class MessageUpdatedEvent extends BaseEvent {
 
-    static type: 'messageUpdatedEvent' = 'messageUpdatedEvent';
+    static readonly type: 'messageUpdatedEvent' = 'messageUpdatedEvent';
 
     static create(data: MessageUpdatedEventShape) {
         return new MessageUpdatedEvent(messageUpdatedEventCodec.normalize(data));
@@ -20742,8 +20746,10 @@ export class MessageUpdatedEvent extends BaseEvent {
         return messageUpdatedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'messageUpdatedEvent' = 'messageUpdatedEvent';
+
     private constructor(data: any) {
-        super('messageUpdatedEvent', data);
+        super(data);
     }
 
     get cid(): number { return this.raw.cid; }
@@ -20765,7 +20771,7 @@ interface MessageDeletedEventShape {
 
 export class MessageDeletedEvent extends BaseEvent {
 
-    static type: 'messageDeletedEvent' = 'messageDeletedEvent';
+    static readonly type: 'messageDeletedEvent' = 'messageDeletedEvent';
 
     static create(data: MessageDeletedEventShape) {
         return new MessageDeletedEvent(messageDeletedEventCodec.normalize(data));
@@ -20779,8 +20785,10 @@ export class MessageDeletedEvent extends BaseEvent {
         return messageDeletedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'messageDeletedEvent' = 'messageDeletedEvent';
+
     private constructor(data: any) {
-        super('messageDeletedEvent', data);
+        super(data);
     }
 
     get cid(): number { return this.raw.cid; }
@@ -20800,7 +20808,7 @@ interface DialogNeedReindexEventShape {
 
 export class DialogNeedReindexEvent extends BaseEvent {
 
-    static type: 'dialogNeedReindexEvent' = 'dialogNeedReindexEvent';
+    static readonly type: 'dialogNeedReindexEvent' = 'dialogNeedReindexEvent';
 
     static create(data: DialogNeedReindexEventShape) {
         return new DialogNeedReindexEvent(dialogNeedReindexEventCodec.normalize(data));
@@ -20814,8 +20822,10 @@ export class DialogNeedReindexEvent extends BaseEvent {
         return dialogNeedReindexEventCodec.encode(event.raw);
     }
 
+    readonly type: 'dialogNeedReindexEvent' = 'dialogNeedReindexEvent';
+
     private constructor(data: any) {
-        super('dialogNeedReindexEvent', data);
+        super(data);
     }
 
     get cid(): number { return this.raw.cid; }
@@ -20836,7 +20846,7 @@ interface UserDialogMessageReceivedEventShape {
 
 export class UserDialogMessageReceivedEvent extends BaseEvent {
 
-    static type: 'userDialogMessageReceivedEvent' = 'userDialogMessageReceivedEvent';
+    static readonly type: 'userDialogMessageReceivedEvent' = 'userDialogMessageReceivedEvent';
 
     static create(data: UserDialogMessageReceivedEventShape) {
         return new UserDialogMessageReceivedEvent(userDialogMessageReceivedEventCodec.normalize(data));
@@ -20850,8 +20860,10 @@ export class UserDialogMessageReceivedEvent extends BaseEvent {
         return userDialogMessageReceivedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'userDialogMessageReceivedEvent' = 'userDialogMessageReceivedEvent';
+
     private constructor(data: any) {
-        super('userDialogMessageReceivedEvent', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -20873,7 +20885,7 @@ interface UserDialogMessageUpdatedEventShape {
 
 export class UserDialogMessageUpdatedEvent extends BaseEvent {
 
-    static type: 'userDialogMessageUpdatedEvent' = 'userDialogMessageUpdatedEvent';
+    static readonly type: 'userDialogMessageUpdatedEvent' = 'userDialogMessageUpdatedEvent';
 
     static create(data: UserDialogMessageUpdatedEventShape) {
         return new UserDialogMessageUpdatedEvent(userDialogMessageUpdatedEventCodec.normalize(data));
@@ -20887,8 +20899,10 @@ export class UserDialogMessageUpdatedEvent extends BaseEvent {
         return userDialogMessageUpdatedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'userDialogMessageUpdatedEvent' = 'userDialogMessageUpdatedEvent';
+
     private constructor(data: any) {
-        super('userDialogMessageUpdatedEvent', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -20910,7 +20924,7 @@ interface UserDialogMessageDeletedEventShape {
 
 export class UserDialogMessageDeletedEvent extends BaseEvent {
 
-    static type: 'userDialogMessageDeletedEvent' = 'userDialogMessageDeletedEvent';
+    static readonly type: 'userDialogMessageDeletedEvent' = 'userDialogMessageDeletedEvent';
 
     static create(data: UserDialogMessageDeletedEventShape) {
         return new UserDialogMessageDeletedEvent(userDialogMessageDeletedEventCodec.normalize(data));
@@ -20924,8 +20938,10 @@ export class UserDialogMessageDeletedEvent extends BaseEvent {
         return userDialogMessageDeletedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'userDialogMessageDeletedEvent' = 'userDialogMessageDeletedEvent';
+
     private constructor(data: any) {
-        super('userDialogMessageDeletedEvent', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -20947,7 +20963,7 @@ interface UserDialogMessageReadEventShape {
 
 export class UserDialogMessageReadEvent extends BaseEvent {
 
-    static type: 'userDialogMessageReadEvent' = 'userDialogMessageReadEvent';
+    static readonly type: 'userDialogMessageReadEvent' = 'userDialogMessageReadEvent';
 
     static create(data: UserDialogMessageReadEventShape) {
         return new UserDialogMessageReadEvent(userDialogMessageReadEventCodec.normalize(data));
@@ -20961,8 +20977,10 @@ export class UserDialogMessageReadEvent extends BaseEvent {
         return userDialogMessageReadEventCodec.encode(event.raw);
     }
 
+    readonly type: 'userDialogMessageReadEvent' = 'userDialogMessageReadEvent';
+
     private constructor(data: any) {
-        super('userDialogMessageReadEvent', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -20984,7 +21002,7 @@ interface UserDialogTitleUpdatedEventShape {
 
 export class UserDialogTitleUpdatedEvent extends BaseEvent {
 
-    static type: 'userDialogTitleUpdatedEvent' = 'userDialogTitleUpdatedEvent';
+    static readonly type: 'userDialogTitleUpdatedEvent' = 'userDialogTitleUpdatedEvent';
 
     static create(data: UserDialogTitleUpdatedEventShape) {
         return new UserDialogTitleUpdatedEvent(userDialogTitleUpdatedEventCodec.normalize(data));
@@ -20998,8 +21016,10 @@ export class UserDialogTitleUpdatedEvent extends BaseEvent {
         return userDialogTitleUpdatedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'userDialogTitleUpdatedEvent' = 'userDialogTitleUpdatedEvent';
+
     private constructor(data: any) {
-        super('userDialogTitleUpdatedEvent', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -21019,7 +21039,7 @@ interface UserDialogDeletedEventShape {
 
 export class UserDialogDeletedEvent extends BaseEvent {
 
-    static type: 'userDialogDeletedEvent' = 'userDialogDeletedEvent';
+    static readonly type: 'userDialogDeletedEvent' = 'userDialogDeletedEvent';
 
     static create(data: UserDialogDeletedEventShape) {
         return new UserDialogDeletedEvent(userDialogDeletedEventCodec.normalize(data));
@@ -21033,8 +21053,10 @@ export class UserDialogDeletedEvent extends BaseEvent {
         return userDialogDeletedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'userDialogDeletedEvent' = 'userDialogDeletedEvent';
+
     private constructor(data: any) {
-        super('userDialogDeletedEvent', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -21053,7 +21075,7 @@ interface UserDialogBumpEventShape {
 
 export class UserDialogBumpEvent extends BaseEvent {
 
-    static type: 'userDialogBumpEvent' = 'userDialogBumpEvent';
+    static readonly type: 'userDialogBumpEvent' = 'userDialogBumpEvent';
 
     static create(data: UserDialogBumpEventShape) {
         return new UserDialogBumpEvent(userDialogBumpEventCodec.normalize(data));
@@ -21067,8 +21089,10 @@ export class UserDialogBumpEvent extends BaseEvent {
         return userDialogBumpEventCodec.encode(event.raw);
     }
 
+    readonly type: 'userDialogBumpEvent' = 'userDialogBumpEvent';
+
     private constructor(data: any) {
-        super('userDialogBumpEvent', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -21089,7 +21113,7 @@ interface UserDialogPhotoUpdatedEventShape {
 
 export class UserDialogPhotoUpdatedEvent extends BaseEvent {
 
-    static type: 'userDialogPhotoUpdatedEvent' = 'userDialogPhotoUpdatedEvent';
+    static readonly type: 'userDialogPhotoUpdatedEvent' = 'userDialogPhotoUpdatedEvent';
 
     static create(data: UserDialogPhotoUpdatedEventShape) {
         return new UserDialogPhotoUpdatedEvent(userDialogPhotoUpdatedEventCodec.normalize(data));
@@ -21103,8 +21127,10 @@ export class UserDialogPhotoUpdatedEvent extends BaseEvent {
         return userDialogPhotoUpdatedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'userDialogPhotoUpdatedEvent' = 'userDialogPhotoUpdatedEvent';
+
     private constructor(data: any) {
-        super('userDialogPhotoUpdatedEvent', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -21126,7 +21152,7 @@ interface UserDialogMuteChangedEventShape {
 
 export class UserDialogMuteChangedEvent extends BaseEvent {
 
-    static type: 'userDialogMuteChangedEvent' = 'userDialogMuteChangedEvent';
+    static readonly type: 'userDialogMuteChangedEvent' = 'userDialogMuteChangedEvent';
 
     static create(data: UserDialogMuteChangedEventShape) {
         return new UserDialogMuteChangedEvent(userDialogMuteChangedEventCodec.normalize(data));
@@ -21140,8 +21166,10 @@ export class UserDialogMuteChangedEvent extends BaseEvent {
         return userDialogMuteChangedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'userDialogMuteChangedEvent' = 'userDialogMuteChangedEvent';
+
     private constructor(data: any) {
-        super('userDialogMuteChangedEvent', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -21161,7 +21189,7 @@ interface UserDialogPeerUpdatedEventShape {
 
 export class UserDialogPeerUpdatedEvent extends BaseEvent {
 
-    static type: 'userDialogPeerUpdatedEvent' = 'userDialogPeerUpdatedEvent';
+    static readonly type: 'userDialogPeerUpdatedEvent' = 'userDialogPeerUpdatedEvent';
 
     static create(data: UserDialogPeerUpdatedEventShape) {
         return new UserDialogPeerUpdatedEvent(userDialogPeerUpdatedEventCodec.normalize(data));
@@ -21175,8 +21203,10 @@ export class UserDialogPeerUpdatedEvent extends BaseEvent {
         return userDialogPeerUpdatedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'userDialogPeerUpdatedEvent' = 'userDialogPeerUpdatedEvent';
+
     private constructor(data: any) {
-        super('userDialogPeerUpdatedEvent', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -21197,7 +21227,7 @@ interface UserDialogCallStateChangedEventShape {
 
 export class UserDialogCallStateChangedEvent extends BaseEvent {
 
-    static type: 'userDialogCallStateChangedEvent' = 'userDialogCallStateChangedEvent';
+    static readonly type: 'userDialogCallStateChangedEvent' = 'userDialogCallStateChangedEvent';
 
     static create(data: UserDialogCallStateChangedEventShape) {
         return new UserDialogCallStateChangedEvent(userDialogCallStateChangedEventCodec.normalize(data));
@@ -21211,8 +21241,10 @@ export class UserDialogCallStateChangedEvent extends BaseEvent {
         return userDialogCallStateChangedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'userDialogCallStateChangedEvent' = 'userDialogCallStateChangedEvent';
+
     private constructor(data: any) {
-        super('userDialogCallStateChangedEvent', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -21232,7 +21264,7 @@ interface UserDialogGotAccessEventShape {
 
 export class UserDialogGotAccessEvent extends BaseEvent {
 
-    static type: 'userDialogGotAccessEvent' = 'userDialogGotAccessEvent';
+    static readonly type: 'userDialogGotAccessEvent' = 'userDialogGotAccessEvent';
 
     static create(data: UserDialogGotAccessEventShape) {
         return new UserDialogGotAccessEvent(userDialogGotAccessEventCodec.normalize(data));
@@ -21246,8 +21278,10 @@ export class UserDialogGotAccessEvent extends BaseEvent {
         return userDialogGotAccessEventCodec.encode(event.raw);
     }
 
+    readonly type: 'userDialogGotAccessEvent' = 'userDialogGotAccessEvent';
+
     private constructor(data: any) {
-        super('userDialogGotAccessEvent', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -21266,7 +21300,7 @@ interface UserDialogLostAccessEventShape {
 
 export class UserDialogLostAccessEvent extends BaseEvent {
 
-    static type: 'userDialogLostAccessEvent' = 'userDialogLostAccessEvent';
+    static readonly type: 'userDialogLostAccessEvent' = 'userDialogLostAccessEvent';
 
     static create(data: UserDialogLostAccessEventShape) {
         return new UserDialogLostAccessEvent(userDialogLostAccessEventCodec.normalize(data));
@@ -21280,8 +21314,10 @@ export class UserDialogLostAccessEvent extends BaseEvent {
         return userDialogLostAccessEventCodec.encode(event.raw);
     }
 
+    readonly type: 'userDialogLostAccessEvent' = 'userDialogLostAccessEvent';
+
     private constructor(data: any) {
-        super('userDialogLostAccessEvent', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -21300,7 +21336,7 @@ interface FeedItemReceivedEventShape {
 
 export class FeedItemReceivedEvent extends BaseEvent {
 
-    static type: 'feedItemReceivedEvent' = 'feedItemReceivedEvent';
+    static readonly type: 'feedItemReceivedEvent' = 'feedItemReceivedEvent';
 
     static create(data: FeedItemReceivedEventShape) {
         return new FeedItemReceivedEvent(feedItemReceivedEventCodec.normalize(data));
@@ -21314,8 +21350,10 @@ export class FeedItemReceivedEvent extends BaseEvent {
         return feedItemReceivedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'feedItemReceivedEvent' = 'feedItemReceivedEvent';
+
     private constructor(data: any) {
-        super('feedItemReceivedEvent', data);
+        super(data);
     }
 
     get subscriberId(): number | null { return this.raw.subscriberId; }
@@ -21334,7 +21372,7 @@ interface FeedItemUpdatedEventShape {
 
 export class FeedItemUpdatedEvent extends BaseEvent {
 
-    static type: 'feedItemUpdatedEvent' = 'feedItemUpdatedEvent';
+    static readonly type: 'feedItemUpdatedEvent' = 'feedItemUpdatedEvent';
 
     static create(data: FeedItemUpdatedEventShape) {
         return new FeedItemUpdatedEvent(feedItemUpdatedEventCodec.normalize(data));
@@ -21348,8 +21386,10 @@ export class FeedItemUpdatedEvent extends BaseEvent {
         return feedItemUpdatedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'feedItemUpdatedEvent' = 'feedItemUpdatedEvent';
+
     private constructor(data: any) {
-        super('feedItemUpdatedEvent', data);
+        super(data);
     }
 
     get subscriberId(): number | null { return this.raw.subscriberId; }
@@ -21368,7 +21408,7 @@ interface FeedItemDeletedEventShape {
 
 export class FeedItemDeletedEvent extends BaseEvent {
 
-    static type: 'feedItemDeletedEvent' = 'feedItemDeletedEvent';
+    static readonly type: 'feedItemDeletedEvent' = 'feedItemDeletedEvent';
 
     static create(data: FeedItemDeletedEventShape) {
         return new FeedItemDeletedEvent(feedItemDeletedEventCodec.normalize(data));
@@ -21382,8 +21422,10 @@ export class FeedItemDeletedEvent extends BaseEvent {
         return feedItemDeletedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'feedItemDeletedEvent' = 'feedItemDeletedEvent';
+
     private constructor(data: any) {
-        super('feedItemDeletedEvent', data);
+        super(data);
     }
 
     get subscriberId(): number | null { return this.raw.subscriberId; }
@@ -21400,7 +21442,7 @@ interface FeedRebuildEventShape {
 
 export class FeedRebuildEvent extends BaseEvent {
 
-    static type: 'feedRebuildEvent' = 'feedRebuildEvent';
+    static readonly type: 'feedRebuildEvent' = 'feedRebuildEvent';
 
     static create(data: FeedRebuildEventShape) {
         return new FeedRebuildEvent(feedRebuildEventCodec.normalize(data));
@@ -21414,8 +21456,10 @@ export class FeedRebuildEvent extends BaseEvent {
         return feedRebuildEventCodec.encode(event.raw);
     }
 
+    readonly type: 'feedRebuildEvent' = 'feedRebuildEvent';
+
     private constructor(data: any) {
-        super('feedRebuildEvent', data);
+        super(data);
     }
 
     get subscriberId(): number | null { return this.raw.subscriberId; }
@@ -21433,7 +21477,7 @@ interface UserLocationUpdatedEventShape {
 
 export class UserLocationUpdatedEvent extends BaseEvent {
 
-    static type: 'userLocationUpdatedEvent' = 'userLocationUpdatedEvent';
+    static readonly type: 'userLocationUpdatedEvent' = 'userLocationUpdatedEvent';
 
     static create(data: UserLocationUpdatedEventShape) {
         return new UserLocationUpdatedEvent(userLocationUpdatedEventCodec.normalize(data));
@@ -21447,8 +21491,10 @@ export class UserLocationUpdatedEvent extends BaseEvent {
         return userLocationUpdatedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'userLocationUpdatedEvent' = 'userLocationUpdatedEvent';
+
     private constructor(data: any) {
-        super('userLocationUpdatedEvent', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -21465,7 +21511,7 @@ interface UserLocationStopSharingEventShape {
 
 export class UserLocationStopSharingEvent extends BaseEvent {
 
-    static type: 'userLocationStopSharingEvent' = 'userLocationStopSharingEvent';
+    static readonly type: 'userLocationStopSharingEvent' = 'userLocationStopSharingEvent';
 
     static create(data: UserLocationStopSharingEventShape) {
         return new UserLocationStopSharingEvent(userLocationStopSharingEventCodec.normalize(data));
@@ -21479,8 +21525,10 @@ export class UserLocationStopSharingEvent extends BaseEvent {
         return userLocationStopSharingEventCodec.encode(event.raw);
     }
 
+    readonly type: 'userLocationStopSharingEvent' = 'userLocationStopSharingEvent';
+
     private constructor(data: any) {
-        super('userLocationStopSharingEvent', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -21496,7 +21544,7 @@ interface WalletTransactionPendingShape {
 
 export class WalletTransactionPending extends BaseEvent {
 
-    static type: 'walletTransactionPending' = 'walletTransactionPending';
+    static readonly type: 'walletTransactionPending' = 'walletTransactionPending';
 
     static create(data: WalletTransactionPendingShape) {
         return new WalletTransactionPending(walletTransactionPendingCodec.normalize(data));
@@ -21510,8 +21558,10 @@ export class WalletTransactionPending extends BaseEvent {
         return walletTransactionPendingCodec.encode(event.raw);
     }
 
+    readonly type: 'walletTransactionPending' = 'walletTransactionPending';
+
     private constructor(data: any) {
-        super('walletTransactionPending', data);
+        super(data);
     }
 
     get id(): string { return this.raw.id; }
@@ -21527,7 +21577,7 @@ interface WalletTransactionSuccessShape {
 
 export class WalletTransactionSuccess extends BaseEvent {
 
-    static type: 'walletTransactionSuccess' = 'walletTransactionSuccess';
+    static readonly type: 'walletTransactionSuccess' = 'walletTransactionSuccess';
 
     static create(data: WalletTransactionSuccessShape) {
         return new WalletTransactionSuccess(walletTransactionSuccessCodec.normalize(data));
@@ -21541,8 +21591,10 @@ export class WalletTransactionSuccess extends BaseEvent {
         return walletTransactionSuccessCodec.encode(event.raw);
     }
 
+    readonly type: 'walletTransactionSuccess' = 'walletTransactionSuccess';
+
     private constructor(data: any) {
-        super('walletTransactionSuccess', data);
+        super(data);
     }
 
     get id(): string { return this.raw.id; }
@@ -21558,7 +21610,7 @@ interface WalletTransactionCanceledShape {
 
 export class WalletTransactionCanceled extends BaseEvent {
 
-    static type: 'walletTransactionCanceled' = 'walletTransactionCanceled';
+    static readonly type: 'walletTransactionCanceled' = 'walletTransactionCanceled';
 
     static create(data: WalletTransactionCanceledShape) {
         return new WalletTransactionCanceled(walletTransactionCanceledCodec.normalize(data));
@@ -21572,8 +21624,10 @@ export class WalletTransactionCanceled extends BaseEvent {
         return walletTransactionCanceledCodec.encode(event.raw);
     }
 
+    readonly type: 'walletTransactionCanceled' = 'walletTransactionCanceled';
+
     private constructor(data: any) {
-        super('walletTransactionCanceled', data);
+        super(data);
     }
 
     get id(): string { return this.raw.id; }
@@ -21589,7 +21643,7 @@ interface PaymentStatusChangedShape {
 
 export class PaymentStatusChanged extends BaseEvent {
 
-    static type: 'paymentStatusChanged' = 'paymentStatusChanged';
+    static readonly type: 'paymentStatusChanged' = 'paymentStatusChanged';
 
     static create(data: PaymentStatusChangedShape) {
         return new PaymentStatusChanged(paymentStatusChangedCodec.normalize(data));
@@ -21603,8 +21657,10 @@ export class PaymentStatusChanged extends BaseEvent {
         return paymentStatusChangedCodec.encode(event.raw);
     }
 
+    readonly type: 'paymentStatusChanged' = 'paymentStatusChanged';
+
     private constructor(data: any) {
-        super('paymentStatusChanged', data);
+        super(data);
     }
 
     get id(): string { return this.raw.id; }
@@ -21620,7 +21676,7 @@ interface WalletBalanceChangedShape {
 
 export class WalletBalanceChanged extends BaseEvent {
 
-    static type: 'walletBalanceChanged' = 'walletBalanceChanged';
+    static readonly type: 'walletBalanceChanged' = 'walletBalanceChanged';
 
     static create(data: WalletBalanceChangedShape) {
         return new WalletBalanceChanged(walletBalanceChangedCodec.normalize(data));
@@ -21634,8 +21690,10 @@ export class WalletBalanceChanged extends BaseEvent {
         return walletBalanceChangedCodec.encode(event.raw);
     }
 
+    readonly type: 'walletBalanceChanged' = 'walletBalanceChanged';
+
     private constructor(data: any) {
-        super('walletBalanceChanged', data);
+        super(data);
     }
 
     get amount(): number { return this.raw.amount; }
@@ -21653,7 +21711,7 @@ interface WalletLockedChangedShape {
 
 export class WalletLockedChanged extends BaseEvent {
 
-    static type: 'walletLockedChanged' = 'walletLockedChanged';
+    static readonly type: 'walletLockedChanged' = 'walletLockedChanged';
 
     static create(data: WalletLockedChangedShape) {
         return new WalletLockedChanged(walletLockedChangedCodec.normalize(data));
@@ -21667,8 +21725,10 @@ export class WalletLockedChanged extends BaseEvent {
         return walletLockedChangedCodec.encode(event.raw);
     }
 
+    readonly type: 'walletLockedChanged' = 'walletLockedChanged';
+
     private constructor(data: any) {
-        super('walletLockedChanged', data);
+        super(data);
     }
 
     get isLocked(): boolean { return this.raw.isLocked; }
@@ -21689,7 +21749,7 @@ interface StripeEventCreatedShape {
 
 export class StripeEventCreated extends BaseEvent {
 
-    static type: 'stripeEventCreated' = 'stripeEventCreated';
+    static readonly type: 'stripeEventCreated' = 'stripeEventCreated';
 
     static create(data: StripeEventCreatedShape) {
         return new StripeEventCreated(stripeEventCreatedCodec.normalize(data));
@@ -21703,8 +21763,10 @@ export class StripeEventCreated extends BaseEvent {
         return stripeEventCreatedCodec.encode(event.raw);
     }
 
+    readonly type: 'stripeEventCreated' = 'stripeEventCreated';
+
     private constructor(data: any) {
-        super('stripeEventCreated', data);
+        super(data);
     }
 
     get id(): string { return this.raw.id; }
@@ -21726,7 +21788,7 @@ interface UpdateChatReadShape {
 
 export class UpdateChatRead extends BaseEvent {
 
-    static type: 'updateChatRead' = 'updateChatRead';
+    static readonly type: 'updateChatRead' = 'updateChatRead';
 
     static create(data: UpdateChatReadShape) {
         return new UpdateChatRead(updateChatReadCodec.normalize(data));
@@ -21740,13 +21802,84 @@ export class UpdateChatRead extends BaseEvent {
         return updateChatReadCodec.encode(event.raw);
     }
 
+    readonly type: 'updateChatRead' = 'updateChatRead';
+
     private constructor(data: any) {
-        super('updateChatRead', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
     get cid(): number { return this.raw.cid; }
     get seq(): number { return this.raw.seq; }
+}
+
+const updateProfileChangedCodec = c.struct({
+    uid: c.integer,
+});
+
+interface UpdateProfileChangedShape {
+    uid: number;
+}
+
+export class UpdateProfileChanged extends BaseEvent {
+
+    static readonly type: 'updateProfileChanged' = 'updateProfileChanged';
+
+    static create(data: UpdateProfileChangedShape) {
+        return new UpdateProfileChanged(updateProfileChangedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateProfileChanged(updateProfileChangedCodec.decode(data));
+    }
+
+    static encode(event: UpdateProfileChanged) {
+        return updateProfileChangedCodec.encode(event.raw);
+    }
+
+    readonly type: 'updateProfileChanged' = 'updateProfileChanged';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+}
+
+const updateChatAccessChangedCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+});
+
+interface UpdateChatAccessChangedShape {
+    uid: number;
+    cid: number;
+}
+
+export class UpdateChatAccessChanged extends BaseEvent {
+
+    static readonly type: 'updateChatAccessChanged' = 'updateChatAccessChanged';
+
+    static create(data: UpdateChatAccessChangedShape) {
+        return new UpdateChatAccessChanged(updateChatAccessChangedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateChatAccessChanged(updateChatAccessChangedCodec.decode(data));
+    }
+
+    static encode(event: UpdateChatAccessChanged) {
+        return updateChatAccessChangedCodec.encode(event.raw);
+    }
+
+    readonly type: 'updateChatAccessChanged' = 'updateChatAccessChanged';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
 }
 
 const updateChatMessageCodec = c.struct({
@@ -21763,7 +21896,7 @@ interface UpdateChatMessageShape {
 
 export class UpdateChatMessage extends BaseEvent {
 
-    static type: 'updateChatMessage' = 'updateChatMessage';
+    static readonly type: 'updateChatMessage' = 'updateChatMessage';
 
     static create(data: UpdateChatMessageShape) {
         return new UpdateChatMessage(updateChatMessageCodec.normalize(data));
@@ -21777,8 +21910,10 @@ export class UpdateChatMessage extends BaseEvent {
         return updateChatMessageCodec.encode(event.raw);
     }
 
+    readonly type: 'updateChatMessage' = 'updateChatMessage';
+
     private constructor(data: any) {
-        super('updateChatMessage', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -21800,7 +21935,7 @@ interface UpdateChatMessageUpdatedShape {
 
 export class UpdateChatMessageUpdated extends BaseEvent {
 
-    static type: 'updateChatMessageUpdated' = 'updateChatMessageUpdated';
+    static readonly type: 'updateChatMessageUpdated' = 'updateChatMessageUpdated';
 
     static create(data: UpdateChatMessageUpdatedShape) {
         return new UpdateChatMessageUpdated(updateChatMessageUpdatedCodec.normalize(data));
@@ -21814,8 +21949,10 @@ export class UpdateChatMessageUpdated extends BaseEvent {
         return updateChatMessageUpdatedCodec.encode(event.raw);
     }
 
+    readonly type: 'updateChatMessageUpdated' = 'updateChatMessageUpdated';
+
     private constructor(data: any) {
-        super('updateChatMessageUpdated', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -21837,7 +21974,7 @@ interface UpdateChatMessageDeletedShape {
 
 export class UpdateChatMessageDeleted extends BaseEvent {
 
-    static type: 'updateChatMessageDeleted' = 'updateChatMessageDeleted';
+    static readonly type: 'updateChatMessageDeleted' = 'updateChatMessageDeleted';
 
     static create(data: UpdateChatMessageDeletedShape) {
         return new UpdateChatMessageDeleted(updateChatMessageDeletedCodec.normalize(data));
@@ -21851,81 +21988,15 @@ export class UpdateChatMessageDeleted extends BaseEvent {
         return updateChatMessageDeletedCodec.encode(event.raw);
     }
 
+    readonly type: 'updateChatMessageDeleted' = 'updateChatMessageDeleted';
+
     private constructor(data: any) {
-        super('updateChatMessageDeleted', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
     get cid(): number { return this.raw.cid; }
     get mid(): number { return this.raw.mid; }
-}
-
-const updateChatLostAccessCodec = c.struct({
-    uid: c.integer,
-    cid: c.integer,
-});
-
-interface UpdateChatLostAccessShape {
-    uid: number;
-    cid: number;
-}
-
-export class UpdateChatLostAccess extends BaseEvent {
-
-    static type: 'updateChatLostAccess' = 'updateChatLostAccess';
-
-    static create(data: UpdateChatLostAccessShape) {
-        return new UpdateChatLostAccess(updateChatLostAccessCodec.normalize(data));
-    }
-
-    static decode(data: any) {
-        return new UpdateChatLostAccess(updateChatLostAccessCodec.decode(data));
-    }
-
-    static encode(event: UpdateChatLostAccess) {
-        return updateChatLostAccessCodec.encode(event.raw);
-    }
-
-    private constructor(data: any) {
-        super('updateChatLostAccess', data);
-    }
-
-    get uid(): number { return this.raw.uid; }
-    get cid(): number { return this.raw.cid; }
-}
-
-const updateChatGotAccessCodec = c.struct({
-    uid: c.integer,
-    cid: c.integer,
-});
-
-interface UpdateChatGotAccessShape {
-    uid: number;
-    cid: number;
-}
-
-export class UpdateChatGotAccess extends BaseEvent {
-
-    static type: 'updateChatGotAccess' = 'updateChatGotAccess';
-
-    static create(data: UpdateChatGotAccessShape) {
-        return new UpdateChatGotAccess(updateChatGotAccessCodec.normalize(data));
-    }
-
-    static decode(data: any) {
-        return new UpdateChatGotAccess(updateChatGotAccessCodec.decode(data));
-    }
-
-    static encode(event: UpdateChatGotAccess) {
-        return updateChatGotAccessCodec.encode(event.raw);
-    }
-
-    private constructor(data: any) {
-        super('updateChatGotAccess', data);
-    }
-
-    get uid(): number { return this.raw.uid; }
-    get cid(): number { return this.raw.cid; }
 }
 
 const hyperLogEventCodec = c.struct({
@@ -21944,7 +22015,7 @@ interface HyperLogEventShape {
 
 export class HyperLogEvent extends BaseEvent {
 
-    static type: 'hyperLogEvent' = 'hyperLogEvent';
+    static readonly type: 'hyperLogEvent' = 'hyperLogEvent';
 
     static create(data: HyperLogEventShape) {
         return new HyperLogEvent(hyperLogEventCodec.normalize(data));
@@ -21958,8 +22029,10 @@ export class HyperLogEvent extends BaseEvent {
         return hyperLogEventCodec.encode(event.raw);
     }
 
+    readonly type: 'hyperLogEvent' = 'hyperLogEvent';
+
     private constructor(data: any) {
-        super('hyperLogEvent', data);
+        super(data);
     }
 
     get id(): string { return this.raw.id; }
@@ -21984,7 +22057,7 @@ interface HyperLogUserEventShape {
 
 export class HyperLogUserEvent extends BaseEvent {
 
-    static type: 'hyperLogUserEvent' = 'hyperLogUserEvent';
+    static readonly type: 'hyperLogUserEvent' = 'hyperLogUserEvent';
 
     static create(data: HyperLogUserEventShape) {
         return new HyperLogUserEvent(hyperLogUserEventCodec.normalize(data));
@@ -21998,8 +22071,10 @@ export class HyperLogUserEvent extends BaseEvent {
         return hyperLogUserEventCodec.encode(event.raw);
     }
 
+    readonly type: 'hyperLogUserEvent' = 'hyperLogUserEvent';
+
     private constructor(data: any) {
-        super('hyperLogUserEvent', data);
+        super(data);
     }
 
     get id(): string { return this.raw.id; }
@@ -22020,7 +22095,7 @@ interface ContactAddedEventShape {
 
 export class ContactAddedEvent extends BaseEvent {
 
-    static type: 'contactAddedEvent' = 'contactAddedEvent';
+    static readonly type: 'contactAddedEvent' = 'contactAddedEvent';
 
     static create(data: ContactAddedEventShape) {
         return new ContactAddedEvent(contactAddedEventCodec.normalize(data));
@@ -22034,8 +22109,10 @@ export class ContactAddedEvent extends BaseEvent {
         return contactAddedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'contactAddedEvent' = 'contactAddedEvent';
+
     private constructor(data: any) {
-        super('contactAddedEvent', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -22054,7 +22131,7 @@ interface ContactRemovedEventShape {
 
 export class ContactRemovedEvent extends BaseEvent {
 
-    static type: 'contactRemovedEvent' = 'contactRemovedEvent';
+    static readonly type: 'contactRemovedEvent' = 'contactRemovedEvent';
 
     static create(data: ContactRemovedEventShape) {
         return new ContactRemovedEvent(contactRemovedEventCodec.normalize(data));
@@ -22068,8 +22145,10 @@ export class ContactRemovedEvent extends BaseEvent {
         return contactRemovedEventCodec.encode(event.raw);
     }
 
+    readonly type: 'contactRemovedEvent' = 'contactRemovedEvent';
+
     private constructor(data: any) {
-        super('contactRemovedEvent', data);
+        super(data);
     }
 
     get uid(): number { return this.raw.uid; }
@@ -22712,11 +22791,11 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('walletLockedChanged', WalletLockedChanged.encode as any, WalletLockedChanged.decode);
     eventFactory.registerEventType('stripeEventCreated', StripeEventCreated.encode as any, StripeEventCreated.decode);
     eventFactory.registerEventType('updateChatRead', UpdateChatRead.encode as any, UpdateChatRead.decode);
+    eventFactory.registerEventType('updateProfileChanged', UpdateProfileChanged.encode as any, UpdateProfileChanged.decode);
+    eventFactory.registerEventType('updateChatAccessChanged', UpdateChatAccessChanged.encode as any, UpdateChatAccessChanged.decode);
     eventFactory.registerEventType('updateChatMessage', UpdateChatMessage.encode as any, UpdateChatMessage.decode);
     eventFactory.registerEventType('updateChatMessageUpdated', UpdateChatMessageUpdated.encode as any, UpdateChatMessageUpdated.decode);
     eventFactory.registerEventType('updateChatMessageDeleted', UpdateChatMessageDeleted.encode as any, UpdateChatMessageDeleted.decode);
-    eventFactory.registerEventType('updateChatLostAccess', UpdateChatLostAccess.encode as any, UpdateChatLostAccess.decode);
-    eventFactory.registerEventType('updateChatGotAccess', UpdateChatGotAccess.encode as any, UpdateChatGotAccess.decode);
     eventFactory.registerEventType('hyperLogEvent', HyperLogEvent.encode as any, HyperLogEvent.decode);
     eventFactory.registerEventType('hyperLogUserEvent', HyperLogUserEvent.encode as any, HyperLogUserEvent.decode);
     eventFactory.registerEventType('contactAddedEvent', ContactAddedEvent.encode as any, ContactAddedEvent.decode);
