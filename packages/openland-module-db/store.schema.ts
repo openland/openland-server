@@ -2509,9 +2509,14 @@ export default declareSchema(() => {
     // Events
     //
 
+    // Deprecated
     customDirectory('EventStorage');
+    // Deprecated
     customDirectory('EventRegistrations');
+    // Deprecated
     customDirectory('EventUserSeq');
+
+    customDirectory('EventsTestStore');
 
     event('UpdateChatRead', () => {
         field('uid', integer());

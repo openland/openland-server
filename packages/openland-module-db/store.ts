@@ -20655,6 +20655,8 @@ interface ChatUpdatedEventShape {
 
 export class ChatUpdatedEvent extends BaseEvent {
 
+    static type: 'chatUpdatedEvent' = 'chatUpdatedEvent';
+
     static create(data: ChatUpdatedEventShape) {
         return new ChatUpdatedEvent(chatUpdatedEventCodec.normalize(data));
     }
@@ -20688,6 +20690,8 @@ interface MessageReceivedEventShape {
 }
 
 export class MessageReceivedEvent extends BaseEvent {
+
+    static type: 'messageReceivedEvent' = 'messageReceivedEvent';
 
     static create(data: MessageReceivedEventShape) {
         return new MessageReceivedEvent(messageReceivedEventCodec.normalize(data));
@@ -20724,6 +20728,8 @@ interface MessageUpdatedEventShape {
 
 export class MessageUpdatedEvent extends BaseEvent {
 
+    static type: 'messageUpdatedEvent' = 'messageUpdatedEvent';
+
     static create(data: MessageUpdatedEventShape) {
         return new MessageUpdatedEvent(messageUpdatedEventCodec.normalize(data));
     }
@@ -20759,6 +20765,8 @@ interface MessageDeletedEventShape {
 
 export class MessageDeletedEvent extends BaseEvent {
 
+    static type: 'messageDeletedEvent' = 'messageDeletedEvent';
+
     static create(data: MessageDeletedEventShape) {
         return new MessageDeletedEvent(messageDeletedEventCodec.normalize(data));
     }
@@ -20791,6 +20799,8 @@ interface DialogNeedReindexEventShape {
 }
 
 export class DialogNeedReindexEvent extends BaseEvent {
+
+    static type: 'dialogNeedReindexEvent' = 'dialogNeedReindexEvent';
 
     static create(data: DialogNeedReindexEventShape) {
         return new DialogNeedReindexEvent(dialogNeedReindexEventCodec.normalize(data));
@@ -20825,6 +20835,8 @@ interface UserDialogMessageReceivedEventShape {
 }
 
 export class UserDialogMessageReceivedEvent extends BaseEvent {
+
+    static type: 'userDialogMessageReceivedEvent' = 'userDialogMessageReceivedEvent';
 
     static create(data: UserDialogMessageReceivedEventShape) {
         return new UserDialogMessageReceivedEvent(userDialogMessageReceivedEventCodec.normalize(data));
@@ -20861,6 +20873,8 @@ interface UserDialogMessageUpdatedEventShape {
 
 export class UserDialogMessageUpdatedEvent extends BaseEvent {
 
+    static type: 'userDialogMessageUpdatedEvent' = 'userDialogMessageUpdatedEvent';
+
     static create(data: UserDialogMessageUpdatedEventShape) {
         return new UserDialogMessageUpdatedEvent(userDialogMessageUpdatedEventCodec.normalize(data));
     }
@@ -20895,6 +20909,8 @@ interface UserDialogMessageDeletedEventShape {
 }
 
 export class UserDialogMessageDeletedEvent extends BaseEvent {
+
+    static type: 'userDialogMessageDeletedEvent' = 'userDialogMessageDeletedEvent';
 
     static create(data: UserDialogMessageDeletedEventShape) {
         return new UserDialogMessageDeletedEvent(userDialogMessageDeletedEventCodec.normalize(data));
@@ -20931,6 +20947,8 @@ interface UserDialogMessageReadEventShape {
 
 export class UserDialogMessageReadEvent extends BaseEvent {
 
+    static type: 'userDialogMessageReadEvent' = 'userDialogMessageReadEvent';
+
     static create(data: UserDialogMessageReadEventShape) {
         return new UserDialogMessageReadEvent(userDialogMessageReadEventCodec.normalize(data));
     }
@@ -20966,6 +20984,8 @@ interface UserDialogTitleUpdatedEventShape {
 
 export class UserDialogTitleUpdatedEvent extends BaseEvent {
 
+    static type: 'userDialogTitleUpdatedEvent' = 'userDialogTitleUpdatedEvent';
+
     static create(data: UserDialogTitleUpdatedEventShape) {
         return new UserDialogTitleUpdatedEvent(userDialogTitleUpdatedEventCodec.normalize(data));
     }
@@ -20999,6 +21019,8 @@ interface UserDialogDeletedEventShape {
 
 export class UserDialogDeletedEvent extends BaseEvent {
 
+    static type: 'userDialogDeletedEvent' = 'userDialogDeletedEvent';
+
     static create(data: UserDialogDeletedEventShape) {
         return new UserDialogDeletedEvent(userDialogDeletedEventCodec.normalize(data));
     }
@@ -21030,6 +21052,8 @@ interface UserDialogBumpEventShape {
 }
 
 export class UserDialogBumpEvent extends BaseEvent {
+
+    static type: 'userDialogBumpEvent' = 'userDialogBumpEvent';
 
     static create(data: UserDialogBumpEventShape) {
         return new UserDialogBumpEvent(userDialogBumpEventCodec.normalize(data));
@@ -21064,6 +21088,8 @@ interface UserDialogPhotoUpdatedEventShape {
 }
 
 export class UserDialogPhotoUpdatedEvent extends BaseEvent {
+
+    static type: 'userDialogPhotoUpdatedEvent' = 'userDialogPhotoUpdatedEvent';
 
     static create(data: UserDialogPhotoUpdatedEventShape) {
         return new UserDialogPhotoUpdatedEvent(userDialogPhotoUpdatedEventCodec.normalize(data));
@@ -21100,6 +21126,8 @@ interface UserDialogMuteChangedEventShape {
 
 export class UserDialogMuteChangedEvent extends BaseEvent {
 
+    static type: 'userDialogMuteChangedEvent' = 'userDialogMuteChangedEvent';
+
     static create(data: UserDialogMuteChangedEventShape) {
         return new UserDialogMuteChangedEvent(userDialogMuteChangedEventCodec.normalize(data));
     }
@@ -21132,6 +21160,8 @@ interface UserDialogPeerUpdatedEventShape {
 }
 
 export class UserDialogPeerUpdatedEvent extends BaseEvent {
+
+    static type: 'userDialogPeerUpdatedEvent' = 'userDialogPeerUpdatedEvent';
 
     static create(data: UserDialogPeerUpdatedEventShape) {
         return new UserDialogPeerUpdatedEvent(userDialogPeerUpdatedEventCodec.normalize(data));
@@ -21167,6 +21197,8 @@ interface UserDialogCallStateChangedEventShape {
 
 export class UserDialogCallStateChangedEvent extends BaseEvent {
 
+    static type: 'userDialogCallStateChangedEvent' = 'userDialogCallStateChangedEvent';
+
     static create(data: UserDialogCallStateChangedEventShape) {
         return new UserDialogCallStateChangedEvent(userDialogCallStateChangedEventCodec.normalize(data));
     }
@@ -21200,6 +21232,8 @@ interface UserDialogGotAccessEventShape {
 
 export class UserDialogGotAccessEvent extends BaseEvent {
 
+    static type: 'userDialogGotAccessEvent' = 'userDialogGotAccessEvent';
+
     static create(data: UserDialogGotAccessEventShape) {
         return new UserDialogGotAccessEvent(userDialogGotAccessEventCodec.normalize(data));
     }
@@ -21231,6 +21265,8 @@ interface UserDialogLostAccessEventShape {
 }
 
 export class UserDialogLostAccessEvent extends BaseEvent {
+
+    static type: 'userDialogLostAccessEvent' = 'userDialogLostAccessEvent';
 
     static create(data: UserDialogLostAccessEventShape) {
         return new UserDialogLostAccessEvent(userDialogLostAccessEventCodec.normalize(data));
@@ -21264,6 +21300,8 @@ interface FeedItemReceivedEventShape {
 
 export class FeedItemReceivedEvent extends BaseEvent {
 
+    static type: 'feedItemReceivedEvent' = 'feedItemReceivedEvent';
+
     static create(data: FeedItemReceivedEventShape) {
         return new FeedItemReceivedEvent(feedItemReceivedEventCodec.normalize(data));
     }
@@ -21295,6 +21333,8 @@ interface FeedItemUpdatedEventShape {
 }
 
 export class FeedItemUpdatedEvent extends BaseEvent {
+
+    static type: 'feedItemUpdatedEvent' = 'feedItemUpdatedEvent';
 
     static create(data: FeedItemUpdatedEventShape) {
         return new FeedItemUpdatedEvent(feedItemUpdatedEventCodec.normalize(data));
@@ -21328,6 +21368,8 @@ interface FeedItemDeletedEventShape {
 
 export class FeedItemDeletedEvent extends BaseEvent {
 
+    static type: 'feedItemDeletedEvent' = 'feedItemDeletedEvent';
+
     static create(data: FeedItemDeletedEventShape) {
         return new FeedItemDeletedEvent(feedItemDeletedEventCodec.normalize(data));
     }
@@ -21357,6 +21399,8 @@ interface FeedRebuildEventShape {
 }
 
 export class FeedRebuildEvent extends BaseEvent {
+
+    static type: 'feedRebuildEvent' = 'feedRebuildEvent';
 
     static create(data: FeedRebuildEventShape) {
         return new FeedRebuildEvent(feedRebuildEventCodec.normalize(data));
@@ -21389,6 +21433,8 @@ interface UserLocationUpdatedEventShape {
 
 export class UserLocationUpdatedEvent extends BaseEvent {
 
+    static type: 'userLocationUpdatedEvent' = 'userLocationUpdatedEvent';
+
     static create(data: UserLocationUpdatedEventShape) {
         return new UserLocationUpdatedEvent(userLocationUpdatedEventCodec.normalize(data));
     }
@@ -21419,6 +21465,8 @@ interface UserLocationStopSharingEventShape {
 
 export class UserLocationStopSharingEvent extends BaseEvent {
 
+    static type: 'userLocationStopSharingEvent' = 'userLocationStopSharingEvent';
+
     static create(data: UserLocationStopSharingEventShape) {
         return new UserLocationStopSharingEvent(userLocationStopSharingEventCodec.normalize(data));
     }
@@ -21447,6 +21495,8 @@ interface WalletTransactionPendingShape {
 }
 
 export class WalletTransactionPending extends BaseEvent {
+
+    static type: 'walletTransactionPending' = 'walletTransactionPending';
 
     static create(data: WalletTransactionPendingShape) {
         return new WalletTransactionPending(walletTransactionPendingCodec.normalize(data));
@@ -21477,6 +21527,8 @@ interface WalletTransactionSuccessShape {
 
 export class WalletTransactionSuccess extends BaseEvent {
 
+    static type: 'walletTransactionSuccess' = 'walletTransactionSuccess';
+
     static create(data: WalletTransactionSuccessShape) {
         return new WalletTransactionSuccess(walletTransactionSuccessCodec.normalize(data));
     }
@@ -21505,6 +21557,8 @@ interface WalletTransactionCanceledShape {
 }
 
 export class WalletTransactionCanceled extends BaseEvent {
+
+    static type: 'walletTransactionCanceled' = 'walletTransactionCanceled';
 
     static create(data: WalletTransactionCanceledShape) {
         return new WalletTransactionCanceled(walletTransactionCanceledCodec.normalize(data));
@@ -21535,6 +21589,8 @@ interface PaymentStatusChangedShape {
 
 export class PaymentStatusChanged extends BaseEvent {
 
+    static type: 'paymentStatusChanged' = 'paymentStatusChanged';
+
     static create(data: PaymentStatusChangedShape) {
         return new PaymentStatusChanged(paymentStatusChangedCodec.normalize(data));
     }
@@ -21563,6 +21619,8 @@ interface WalletBalanceChangedShape {
 }
 
 export class WalletBalanceChanged extends BaseEvent {
+
+    static type: 'walletBalanceChanged' = 'walletBalanceChanged';
 
     static create(data: WalletBalanceChangedShape) {
         return new WalletBalanceChanged(walletBalanceChangedCodec.normalize(data));
@@ -21594,6 +21652,8 @@ interface WalletLockedChangedShape {
 }
 
 export class WalletLockedChanged extends BaseEvent {
+
+    static type: 'walletLockedChanged' = 'walletLockedChanged';
 
     static create(data: WalletLockedChangedShape) {
         return new WalletLockedChanged(walletLockedChangedCodec.normalize(data));
@@ -21628,6 +21688,8 @@ interface StripeEventCreatedShape {
 }
 
 export class StripeEventCreated extends BaseEvent {
+
+    static type: 'stripeEventCreated' = 'stripeEventCreated';
 
     static create(data: StripeEventCreatedShape) {
         return new StripeEventCreated(stripeEventCreatedCodec.normalize(data));
@@ -21664,6 +21726,8 @@ interface UpdateChatReadShape {
 
 export class UpdateChatRead extends BaseEvent {
 
+    static type: 'updateChatRead' = 'updateChatRead';
+
     static create(data: UpdateChatReadShape) {
         return new UpdateChatRead(updateChatReadCodec.normalize(data));
     }
@@ -21698,6 +21762,8 @@ interface UpdateChatMessageShape {
 }
 
 export class UpdateChatMessage extends BaseEvent {
+
+    static type: 'updateChatMessage' = 'updateChatMessage';
 
     static create(data: UpdateChatMessageShape) {
         return new UpdateChatMessage(updateChatMessageCodec.normalize(data));
@@ -21734,6 +21800,8 @@ interface UpdateChatMessageUpdatedShape {
 
 export class UpdateChatMessageUpdated extends BaseEvent {
 
+    static type: 'updateChatMessageUpdated' = 'updateChatMessageUpdated';
+
     static create(data: UpdateChatMessageUpdatedShape) {
         return new UpdateChatMessageUpdated(updateChatMessageUpdatedCodec.normalize(data));
     }
@@ -21769,6 +21837,8 @@ interface UpdateChatMessageDeletedShape {
 
 export class UpdateChatMessageDeleted extends BaseEvent {
 
+    static type: 'updateChatMessageDeleted' = 'updateChatMessageDeleted';
+
     static create(data: UpdateChatMessageDeletedShape) {
         return new UpdateChatMessageDeleted(updateChatMessageDeletedCodec.normalize(data));
     }
@@ -21802,6 +21872,8 @@ interface UpdateChatLostAccessShape {
 
 export class UpdateChatLostAccess extends BaseEvent {
 
+    static type: 'updateChatLostAccess' = 'updateChatLostAccess';
+
     static create(data: UpdateChatLostAccessShape) {
         return new UpdateChatLostAccess(updateChatLostAccessCodec.normalize(data));
     }
@@ -21833,6 +21905,8 @@ interface UpdateChatGotAccessShape {
 }
 
 export class UpdateChatGotAccess extends BaseEvent {
+
+    static type: 'updateChatGotAccess' = 'updateChatGotAccess';
 
     static create(data: UpdateChatGotAccessShape) {
         return new UpdateChatGotAccess(updateChatGotAccessCodec.normalize(data));
@@ -21869,6 +21943,8 @@ interface HyperLogEventShape {
 }
 
 export class HyperLogEvent extends BaseEvent {
+
+    static type: 'hyperLogEvent' = 'hyperLogEvent';
 
     static create(data: HyperLogEventShape) {
         return new HyperLogEvent(hyperLogEventCodec.normalize(data));
@@ -21908,6 +21984,8 @@ interface HyperLogUserEventShape {
 
 export class HyperLogUserEvent extends BaseEvent {
 
+    static type: 'hyperLogUserEvent' = 'hyperLogUserEvent';
+
     static create(data: HyperLogUserEventShape) {
         return new HyperLogUserEvent(hyperLogUserEventCodec.normalize(data));
     }
@@ -21942,6 +22020,8 @@ interface ContactAddedEventShape {
 
 export class ContactAddedEvent extends BaseEvent {
 
+    static type: 'contactAddedEvent' = 'contactAddedEvent';
+
     static create(data: ContactAddedEventShape) {
         return new ContactAddedEvent(contactAddedEventCodec.normalize(data));
     }
@@ -21973,6 +22053,8 @@ interface ContactRemovedEventShape {
 }
 
 export class ContactRemovedEvent extends BaseEvent {
+
+    static type: 'contactRemovedEvent' = 'contactRemovedEvent';
 
     static create(data: ContactRemovedEventShape) {
         return new ContactRemovedEvent(contactRemovedEventCodec.normalize(data));
@@ -22564,6 +22646,7 @@ export interface Store extends BaseStore {
     readonly EventStorageDirectory: Subspace;
     readonly EventRegistrationsDirectory: Subspace;
     readonly EventUserSeqDirectory: Subspace;
+    readonly EventsTestStoreDirectory: Subspace;
     readonly ShardingDataDirectory: Subspace;
     readonly ImportedPhoneDirectory: Subspace;
     readonly PhoneImportedByUserDirectory: Subspace;
@@ -22847,6 +22930,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let EventStorageDirectoryPromise = storage.resolveCustomDirectory('eventStorage');
     let EventRegistrationsDirectoryPromise = storage.resolveCustomDirectory('eventRegistrations');
     let EventUserSeqDirectoryPromise = storage.resolveCustomDirectory('eventUserSeq');
+    let EventsTestStoreDirectoryPromise = storage.resolveCustomDirectory('eventsTestStore');
     let ShardingDataDirectoryPromise = storage.resolveCustomDirectory('shardingData');
     let ImportedPhoneDirectoryPromise = storage.resolveCustomDirectory('importedPhone');
     let PhoneImportedByUserDirectoryPromise = storage.resolveCustomDirectory('phoneImportedByUser');
@@ -23098,6 +23182,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         EventStorageDirectory: await EventStorageDirectoryPromise,
         EventRegistrationsDirectory: await EventRegistrationsDirectoryPromise,
         EventUserSeqDirectory: await EventUserSeqDirectoryPromise,
+        EventsTestStoreDirectory: await EventsTestStoreDirectoryPromise,
         ShardingDataDirectory: await ShardingDataDirectoryPromise,
         ImportedPhoneDirectory: await ImportedPhoneDirectoryPromise,
         PhoneImportedByUserDirectory: await PhoneImportedByUserDirectoryPromise,
