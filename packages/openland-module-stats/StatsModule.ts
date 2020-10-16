@@ -305,7 +305,6 @@ export class StatsModule {
                 query: {
                     bool: {
                         must: [
-                            { term: { oid: { ne: 0 } } },
                             { term: { isService: false } },
                             {
                                 range: {
@@ -316,6 +315,9 @@ export class StatsModule {
                                 },
                             },
                         ],
+                        must_not: [
+                            { term: { oid: 0 } },
+                        ]
                     },
                 },
                 aggs: {
