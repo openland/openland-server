@@ -14,7 +14,7 @@ describe('EventsMediator', () => {
         let mediator = new EventsMediator(repo, new LocalBusEngine());
         let callback = jest.fn();
         let subscriber = await mediator.createSubscriber(root);
-        let feed = await mediator.createFeed(root, 'generic');
+        let feed = await mediator.createFeed(root, 'forward-only');
 
         // Start receiver
         let receiver = mediator.receive(subscriber, callback, { checkpointDelay: { min: 500, max: 1000 }, checkpointCommitDelay: 1000 });
@@ -25,6 +25,9 @@ describe('EventsMediator', () => {
         // Subscribe (to get update)
         await mediator.subscribe(root, subscriber, feed);
 
+        // Post
+        await mediator.post(root, { feed, event: Buffer.from('hello') });
+
         // Wait for event bus
         await delay(3000);
 
@@ -32,6 +35,6 @@ describe('EventsMediator', () => {
         receiver.close();
 
         // Expect three events: create, subscribe and close
-        expect(callback.mock.calls.length).toBe(4);
+        expect(callback.mock.calls.length).toBe(5);
     });
 });
