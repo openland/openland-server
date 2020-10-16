@@ -2,6 +2,7 @@ import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { withAny } from '../../openland-module-api/Resolvers';
 import { Modules } from '../../openland-modules/Modules';
 import { IDs } from '../../openland-module-api/IDs';
+import { Store } from '../../openland-module-db/FDB';
 
 export const Resolver: GQLResolver = {
     PopularNowRoom: {
@@ -129,11 +130,11 @@ export const Resolver: GQLResolver = {
         discoverNewAndGrowingOrganizations: withAny(async (ctx, args) => {
             let clauses: any[] = [];
 
-            // chats with members count > 10
+            // orgs with members count > 10
             clauses.push({range: {membersCount: {gte: 10}}});
-            // chats 180- days old
+            // orgs 180- days old
             clauses.push({range: {createdAt: {gte: 'now-180d/d'}}});
-            // only public chats
+            // only public orgs
             clauses.push({ term: { listed: true } });
 
             let query: any = {bool: {must: clauses}};
@@ -158,8 +159,10 @@ export const Resolver: GQLResolver = {
                 },
             });
 
+            let orgs = await Promise.all(hits.hits.hits.map(a => parseInt(a._id, 10)).map(async a => (await Store.Organization.findById(ctx, a))!));
+
             return {
-                items: hits.hits.hits.map(a => parseInt(a._id, 10)),
+                items: orgs,
                 cursor: (hits.hits.total as any).value > (from + args.first) ? (from + args.first).toString() : null,
             };
         }),
