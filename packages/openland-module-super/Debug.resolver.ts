@@ -1817,16 +1817,15 @@ export const Resolver: GQLResolver = {
             let from = IDs.Conversation.parse(args.cid);
             let to = IDs.Conversation.parse(args.dest);
             debugTask(parent.auth.uid!, 'debugInviteMembersFromChat', async (log) => {
-                let prevMembers = await Modules.Messaging.room.findConversationMembers(parent, from);
+                let prevMembers = await inTx(parent, ctx => Modules.Messaging.room.findConversationMembers(ctx, from));
                 let members = batch(prevMembers, 20);
                 let total = 0;
                 for (let b of members) {
                     await inTx(parent, async ctx => {
                         await Modules.Messaging.room.inviteToRoom(ctx, to, parent.auth.uid!, b);
-
-                        total += b.length;
-                        await log('Invited ' + total + ' members');
                     });
+                    total += b.length;
+                    await log('Invited ' + total + ' members');
                 }
                 return 'ok';
             });
