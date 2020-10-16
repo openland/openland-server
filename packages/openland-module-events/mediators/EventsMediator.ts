@@ -1,8 +1,11 @@
+import { createLogger } from '@openland/log';
 import { EventBusEngine } from 'openland-module-pubsub/EventBusEngine';
 import { SubscriberReceiver, SubscriberReceiverEvent, ReceiverOpts } from './../receiver/SubscriberReceiver';
 import { inTx, getTransaction } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { EventsRepository } from './../repo/EventsRepository';
+
+const log = createLogger('feed-subscriber');
 
 const DIRECT_LIMIT = 100;
 
@@ -107,7 +110,7 @@ export class EventsMediator {
         event: Buffer | null,
         time: number
     }) {
-        this.bus.publish('events-subscriber-' + subscriber.toString('hex').toLowerCase(), {
+        let toPost = {
             seq,
             event: {
                 feed: event.feed.toString('base64'),
@@ -117,6 +120,8 @@ export class EventsMediator {
                 time: event.time,
                 ...(event.event ? { event: event.event.toString('base64') } : {})
             }
-        });
+        };
+        log.debug(root, 'post', toPost);
+        this.bus.publish('events-subscriber-' + subscriber.toString('hex').toLowerCase(),toPost);
     }
 }

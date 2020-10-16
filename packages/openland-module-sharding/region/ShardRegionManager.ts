@@ -1,6 +1,6 @@
 import os from 'os';
 import { Metrics } from 'openland-module-monitoring/Metrics';
-import { createLogger } from '@openland/log';
+// import { createLogger } from '@openland/log';
 import { createNamedContext } from '@openland/context';
 import { backoff } from 'openland-utils/timer';
 import { Modules } from 'openland-modules/Modules';
@@ -9,7 +9,7 @@ import { InvalidateSync } from '@openland/patterns';
 import { ShardState } from './../repo/ShardingRepository';
 import { ShardFactory } from '../ShardFactory';
 
-const log = createLogger('sharding');
+// const log = createLogger('sharding');
 const hostname = os.hostname();
 
 export class ShardRegionManager {
@@ -48,14 +48,14 @@ export class ShardRegionManager {
                         if (shardInstance) {
 
                             // Destroy shard
-                            log.log(ctx, 'Detroying shard ' + shard + ' for ' + this.name);
+                            // log.log(ctx, 'Detroying shard ' + shard + ' for ' + this.name);
                             await backoff(ctx, async () => {
                                 await shardInstance!();
                             });
                             this.allocatedShards.delete(shard);
 
                             // Unregister shard
-                            log.log(ctx, 'Unregistering shard ' + shard + ' for ' + this.name);
+                            // log.log(ctx, 'Unregistering shard ' + shard + ' for ' + this.name);
                             await backoff(ctx, async () => {
                                 await Modules.Sharding.onAllocationRemoved(ctx, this.shardId, this.nodeId, shard);
                             });
@@ -65,7 +65,7 @@ export class ShardRegionManager {
                             Metrics.ShardingNodes.dec(hostname);
 
                             // Logging
-                            log.log(ctx, 'Shard ' + shard + ' removed for ' + this.name);
+                            // log.log(ctx, 'Shard ' + shard + ' removed for ' + this.name);
 
                             // Restart loop to get fresh allocations
                             hadChanges = true;
@@ -82,7 +82,7 @@ export class ShardRegionManager {
                         }
 
                         // Create shard
-                        log.log(ctx, 'Creating shard ' + shard + ' for ' + this.name);
+                        // log.log(ctx, 'Creating shard ' + shard + ' for ' + this.name);
                         let shardInstance = await backoff(ctx, async () => {
                             return await this.factory!(shard);
                         });
@@ -93,13 +93,13 @@ export class ShardRegionManager {
                         Metrics.ShardingNodes.inc(hostname);
 
                         // Register shard
-                        log.log(ctx, 'Registering shard ' + shard + ' for ' + this.name);
+                        // log.log(ctx, 'Registering shard ' + shard + ' for ' + this.name);
                         await backoff(ctx, async () => {
                             await Modules.Sharding.onAllocationReady(ctx, this.shardId, this.nodeId, shard);
                         });
 
                         // Logging
-                        log.log(ctx, 'Shard ' + shard + ' added for ' + this.name);
+                        // log.log(ctx, 'Shard ' + shard + ' added for ' + this.name);
 
                         // Restart loop to get fresh allocations
                         hadChanges = true;

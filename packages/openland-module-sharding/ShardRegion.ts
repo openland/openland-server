@@ -1,6 +1,6 @@
 import { ShardRegionManager } from './region/ShardRegionManager';
 import { ShardState } from './repo/ShardingRepository';
-import { createLogger } from '@openland/log';
+// import { createLogger } from '@openland/log';
 import { Shutdown } from 'openland-utils/Shutdown';
 import { Future } from '../openland-utils/Future';
 import { backoff, delayRandomized } from 'openland-utils/timer';
@@ -12,7 +12,7 @@ import { NodeState } from './repo/NodeRepository';
 import { getShardId } from './getShardId';
 import { ShardFactory } from './ShardFactory';
 
-const log = createLogger('sharding');
+// const log = createLogger('sharding');
 
 export class ShardRegion {
     private readonly regionName: string;
@@ -80,7 +80,7 @@ export class ShardRegion {
         (async () => {
             try {
                 // Resolve shard region
-                log.log(root, 'Loading shard region information for ' + this.regionName);
+                // log.log(root, 'Loading shard region information for ' + this.regionName);
                 let region = await backoff(root, async () => {
                     if (completed) {
                         return null;
@@ -93,7 +93,7 @@ export class ShardRegion {
                     return;
                 }
 
-                log.log(root, 'Loaded shard region information for ' + this.regionName);
+                // log.log(root, 'Loaded shard region information for ' + this.regionName);
 
                 // Resolve initial allocations
                 let initialAllocations = await backoff(root, async () => {
@@ -108,7 +108,7 @@ export class ShardRegion {
                     return;
                 }
 
-                log.log(root, 'Loaded initial allocations for ' + this.regionName);
+                // log.log(root, 'Loaded initial allocations for ' + this.regionName);
 
                 // Handle loaded
                 await this.onLoaded(region.id, region.ringSize, initialAllocations);
@@ -138,7 +138,7 @@ export class ShardRegion {
                     activeWatch = refresh.watch;
 
                     // Handle shard update
-                    log.log(root, 'Allocations updated for ' + this.regionName);
+                    // log.log(root, 'Allocations updated for ' + this.regionName);
                     await this.onShardUpdated(refresh.allocations);
 
                     // Delay between sync
