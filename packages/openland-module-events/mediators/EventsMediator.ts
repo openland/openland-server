@@ -91,6 +91,8 @@ export class EventsMediator {
                         this.postToBus(tx, online[i], seqs[i], { feed: args.feed, time, type: 'update', seq: posted.seq, state, event: args.event });
                     }
                 });
+            } else {
+                log.log(ctx, 'empty-onlines');
             }
         });
     }
