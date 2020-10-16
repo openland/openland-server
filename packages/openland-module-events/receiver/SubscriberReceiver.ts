@@ -110,7 +110,7 @@ export class SubscriberReceiver {
             }
             let rawState = await inTx(root, async (ctx) => {
                 let r = (await mediator.repo.getState(ctx, subscriber));
-                await mediator.repo.refreshOnline(ctx, subscriber, ONLINE_EXPIRES);
+                await mediator.repo.refreshOnline(ctx, subscriber, Date.now() + ONLINE_EXPIRES);
                 return r;
             });
             let state = await rawState.state;
