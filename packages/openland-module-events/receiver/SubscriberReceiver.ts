@@ -99,7 +99,7 @@ export class SubscriberReceiver {
             if (this.stopped) {
                 return;
             }
-            log.debug(root, event);
+            log.log(root, event);
             this.receiveEvent(event);
         });
 

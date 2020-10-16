@@ -48,7 +48,7 @@ export class EventsMediator {
                 // NOTE: We MUST execute this within transaction to have strict delivery guarantee
                 let seq = (await this.repo.allocateSubscriberSeq(ctx, [subscriber]))[0];
                 let time = Date.now();
-                log.debug(ctx, 'subscribe-to-feed');
+                log.log(ctx, 'subscribe-to-feed');
                 getTransaction(ctx).afterCommit(async (tx) => {
                     let state = await res.state;
                     this.postToBus(tx, subscriber, seq, { feed, time, type: 'subscribe', seq: res.seq, state, event: null });
@@ -65,7 +65,7 @@ export class EventsMediator {
                 // NOTE: We MUST execute this within transaction to have strict delivery guarantee
                 let seq = (await this.repo.allocateSubscriberSeq(ctx, [subscriber]))[0];
                 let time = Date.now();
-                log.debug(ctx, 'unsubscribe-from-feed');
+                log.log(ctx, 'unsubscribe-from-feed');
                 getTransaction(ctx).afterCommit(async (tx) => {
                     let state = await res.state;
                     this.postToBus(tx, subscriber, seq, { feed, time, type: 'unsubscribe', seq: res.seq, state, event: null });
@@ -84,7 +84,7 @@ export class EventsMediator {
                 let seqs = await this.repo.allocateSubscriberSeq(ctx, online);
                 // NOTE: Time MUST be calculated in transaction
                 let time = Date.now();
-                log.debug(ctx, 'post-to-feed');
+                log.log(ctx, 'post-to-feed');
                 getTransaction(ctx).afterCommit(async (tx) => {
                     let state = await posted.state;
                     for (let i = 0; i < seqs.length; i++) {
@@ -124,7 +124,7 @@ export class EventsMediator {
                 ...(event.event ? { event: event.event.toString('base64') } : {})
             }
         };
-        log.debug(ctx, 'post', toPost);
+        log.log(ctx, 'post', toPost);
         this.bus.publish('events-subscriber-' + subscriber.toString('hex').toLowerCase(), toPost);
     }
 }
