@@ -1,0 +1,42 @@
+#
+# Subscription
+#
+
+type UpdateSubscriptionStarted {
+    seq: Int!
+    state: String!
+}
+
+type UpdateSubscriptionCheckpoint {
+    seq: Int!
+    state: String!
+}
+
+type UpdateSubscriptionEvent {
+    seq: Int!
+    pts: Int!
+    event: UpdateEvent!
+    sequence: Sequence!
+}
+
+union UpdateSubscription = UpdateSubscriptionStarted | UpdateSubscriptionCheckpoint | UpdateSubscriptionEvent
+
+extend type Subscription {
+    watchUpdates: UpdateSubscription!
+}
+
+#
+# Difference 
+#
+
+# type UpdateDifference {
+#     seq: Int!
+#     state: String!
+    
+#     # Sequences
+#     common: SequenceCommon
+# }
+
+# extend type Mutation {
+#     getUpdateDifference(state: String!): UpdateDifference!
+# }

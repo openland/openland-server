@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'c20a78eb02cb0ee095e7f724126ba725';
+export const GQL_SPEC_VERSION = 'b667ec50a579e25ed8e4cc32e186c83a';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -679,6 +679,29 @@ export namespace GQL {
     export interface InviteHistotyInfoForEmailArgs { }
     export interface InviteHistotyInfoIsGlobalArgs { }
     export type ResolveInviteEntry = InviteInfo | AppInvite | RoomInvite;
+    export interface UpdateSubscriptionStarted {
+        seq: number;
+        state: string;
+    }
+    export interface UpdateSubscriptionStartedSeqArgs { }
+    export interface UpdateSubscriptionStartedStateArgs { }
+    export interface UpdateSubscriptionCheckpoint {
+        seq: number;
+        state: string;
+    }
+    export interface UpdateSubscriptionCheckpointSeqArgs { }
+    export interface UpdateSubscriptionCheckpointStateArgs { }
+    export interface UpdateSubscriptionEvent {
+        seq: number;
+        pts: number;
+        event: UpdateEvent;
+        sequence: Sequence;
+    }
+    export interface UpdateSubscriptionEventSeqArgs { }
+    export interface UpdateSubscriptionEventPtsArgs { }
+    export interface UpdateSubscriptionEventEventArgs { }
+    export interface UpdateSubscriptionEventSequenceArgs { }
+    export type UpdateSubscription = UpdateSubscriptionStarted | UpdateSubscriptionCheckpoint | UpdateSubscriptionEvent;
     export interface Reaction {
         user: User;
         reaction: string;
@@ -4989,6 +5012,7 @@ export namespace GQL {
     export interface Subscription {
         lifecheck: Nullable<string>;
         walletUpdates: WalletUpdateContainer;
+        watchUpdates: UpdateSubscription;
         debugEvents: DebugEvent;
         debugReaderState: Nullable<string>;
         debugServerId: string;
@@ -5018,6 +5042,7 @@ export namespace GQL {
     export interface SubscriptionWalletUpdatesArgs {
         fromState: string;
     }
+    export interface SubscriptionWatchUpdatesArgs { }
     export interface SubscriptionDebugEventsArgs {
         fromState: OptionalNullable<string>;
         eventsCount: number;
@@ -6242,7 +6267,37 @@ export namespace GQL {
     export interface RoomInviteIdArgs { }
     export interface RoomInviteRoomArgs { }
     export interface RoomInviteInvitedByUserArgs { }
+    export type Sequence = SequenceCommon | SequenceChat;
+    export interface SequenceCommon {
+        uid: string;
+        unread: number;
+    }
+    export interface SequenceCommonUidArgs { }
+    export interface SequenceCommonUnreadArgs { }
+    export interface SequenceChat {
+        cid: string;
+        unread: number;
+    }
+    export interface SequenceChatCidArgs { }
+    export interface SequenceChatUnreadArgs { }
     export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection | Channel;
+    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged;
+    export interface UpdateChatRead {
+        cid: string;
+        seq: number;
+    }
+    export interface UpdateChatReadCidArgs { }
+    export interface UpdateChatReadSeqArgs { }
+    export interface UpdateProfileChanged {
+        user: User;
+    }
+    export interface UpdateProfileChangedUserArgs { }
+    export interface UpdateMyProfileChanged {
+        user: User;
+        profile: Profile;
+    }
+    export interface UpdateMyProfileChangedUserArgs { }
+    export interface UpdateMyProfileChangedProfileArgs { }
 }
 
 export interface GQLResolver {
@@ -7114,6 +7169,41 @@ export interface GQLResolver {
         }
     >;
     ResolveInviteEntry?: UnionTypeResolver<GQLRoots.ResolveInviteEntryRoot, 'InviteInfo' | 'AppInvite' | 'RoomInvite'>;
+    UpdateSubscriptionStarted?: ComplexTypedResolver<
+        GQL.UpdateSubscriptionStarted,
+        GQLRoots.UpdateSubscriptionStartedRoot,
+        {
+        },
+        {
+            seq: GQL.UpdateSubscriptionStartedSeqArgs,
+            state: GQL.UpdateSubscriptionStartedStateArgs,
+        }
+    >;
+    UpdateSubscriptionCheckpoint?: ComplexTypedResolver<
+        GQL.UpdateSubscriptionCheckpoint,
+        GQLRoots.UpdateSubscriptionCheckpointRoot,
+        {
+        },
+        {
+            seq: GQL.UpdateSubscriptionCheckpointSeqArgs,
+            state: GQL.UpdateSubscriptionCheckpointStateArgs,
+        }
+    >;
+    UpdateSubscriptionEvent?: ComplexTypedResolver<
+        GQL.UpdateSubscriptionEvent,
+        GQLRoots.UpdateSubscriptionEventRoot,
+        {
+            event: GQLRoots.UpdateEventRoot,
+            sequence: GQLRoots.SequenceRoot,
+        },
+        {
+            seq: GQL.UpdateSubscriptionEventSeqArgs,
+            pts: GQL.UpdateSubscriptionEventPtsArgs,
+            event: GQL.UpdateSubscriptionEventEventArgs,
+            sequence: GQL.UpdateSubscriptionEventSequenceArgs,
+        }
+    >;
+    UpdateSubscription?: UnionTypeResolver<GQLRoots.UpdateSubscriptionRoot, 'UpdateSubscriptionStarted' | 'UpdateSubscriptionCheckpoint' | 'UpdateSubscriptionEvent'>;
     Reaction?: ComplexTypedResolver<
         GQL.Reaction,
         GQLRoots.ReactionRoot,
@@ -10179,6 +10269,7 @@ export interface GQLResolver {
         GQLRoots.SubscriptionRoot,
         {
             walletUpdates: GQLRoots.WalletUpdateContainerRoot,
+            watchUpdates: GQLRoots.UpdateSubscriptionRoot,
             debugEvents: GQLRoots.DebugEventRoot,
             settingsWatch: GQLRoots.SettingsRoot,
             watchSettings: GQLRoots.SettingsRoot,
@@ -10204,6 +10295,7 @@ export interface GQLResolver {
         {
             lifecheck: GQL.SubscriptionLifecheckArgs,
             walletUpdates: GQL.SubscriptionWalletUpdatesArgs,
+            watchUpdates: GQL.SubscriptionWatchUpdatesArgs,
             debugEvents: GQL.SubscriptionDebugEventsArgs,
             debugReaderState: GQL.SubscriptionDebugReaderStateArgs,
             debugServerId: GQL.SubscriptionDebugServerIdArgs,
@@ -11567,5 +11659,59 @@ export interface GQLResolver {
             invitedByUser: GQL.RoomInviteInvitedByUserArgs,
         }
     >;
+    Sequence?: UnionTypeResolver<GQLRoots.SequenceRoot, 'SequenceCommon' | 'SequenceChat'>;
+    SequenceCommon?: ComplexTypedResolver<
+        GQL.SequenceCommon,
+        GQLRoots.SequenceCommonRoot,
+        {
+        },
+        {
+            uid: GQL.SequenceCommonUidArgs,
+            unread: GQL.SequenceCommonUnreadArgs,
+        }
+    >;
+    SequenceChat?: ComplexTypedResolver<
+        GQL.SequenceChat,
+        GQLRoots.SequenceChatRoot,
+        {
+        },
+        {
+            cid: GQL.SequenceChatCidArgs,
+            unread: GQL.SequenceChatUnreadArgs,
+        }
+    >;
     ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom' | 'DiscoverChatsCollection' | 'Channel'>;
+    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged'>;
+    UpdateChatRead?: ComplexTypedResolver<
+        GQL.UpdateChatRead,
+        GQLRoots.UpdateChatReadRoot,
+        {
+        },
+        {
+            cid: GQL.UpdateChatReadCidArgs,
+            seq: GQL.UpdateChatReadSeqArgs,
+        }
+    >;
+    UpdateProfileChanged?: ComplexTypedResolver<
+        GQL.UpdateProfileChanged,
+        GQLRoots.UpdateProfileChangedRoot,
+        {
+            user: GQLRoots.UserRoot,
+        },
+        {
+            user: GQL.UpdateProfileChangedUserArgs,
+        }
+    >;
+    UpdateMyProfileChanged?: ComplexTypedResolver<
+        GQL.UpdateMyProfileChanged,
+        GQLRoots.UpdateMyProfileChangedRoot,
+        {
+            user: GQLRoots.UserRoot,
+            profile: GQLRoots.ProfileRoot,
+        },
+        {
+            user: GQL.UpdateMyProfileChangedUserArgs,
+            profile: GQL.UpdateMyProfileChangedProfileArgs,
+        }
+    >;
 }

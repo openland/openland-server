@@ -3,7 +3,6 @@ import { Store } from 'openland-module-db/FDB';
 import {
     UpdateChatRead,
     UpdateProfileChanged,
-    UpdateChatAccessChanged
 } from 'openland-module-db/store';
 
 export type FeedReference = { type: 'common', uid: number };
@@ -15,7 +14,6 @@ export type FeedReference = { type: 'common', uid: number };
 const CommonEvents = [
     UpdateChatRead,
     UpdateProfileChanged,
-    UpdateChatAccessChanged
 ];
 
 export type CommonEvent = ReturnType<(typeof CommonEvents[number])['create']>;
@@ -25,8 +23,6 @@ export function commonEventCollapseKey(src: CommonEvent): string | null {
         return 'read-' + src.cid;
     } else if (src.type === 'updateProfileChanged') {
         return 'profile-' + src.uid;
-    } else if (src.type === 'updateChatAccessChanged') {
-        return 'access-' + src.cid;
     }
     return null;
 }
@@ -51,9 +47,9 @@ export function commonEventParse(src: Buffer): CommonEvent | null {
 export type Event = CommonEvent;
 
 export type UserSubscriptionHandlerEvent =
-    | { type: 'started', state: string }
-    | { type: 'update', feed: FeedReference, event: Event, seq: number }
-    | { type: 'checkpoint', state: string }
+    | { type: 'started', seq: number, state: string }
+    | { type: 'update', seq: number, feed: FeedReference, pts: number, event: Event }
+    | { type: 'checkpoint', seq: number, state: string }
     | { type: 'closed' };
 
 //

@@ -6,6 +6,7 @@ import { ShardRegion } from 'openland-module-sharding/ShardRegion';
 import { injectable } from 'inversify';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { GroupServiceManager } from './groups/GroupServiceManager';
+import { CommonEvent } from './Definitions';
 
 const root = createNamedContext('user-service');
 const log = createLogger('user-service');
@@ -33,6 +34,14 @@ export class EventsModule {
             this.userSharding.startShard(this.userService.createShard);
             this.groupSharding.startShard(this.groupService.createShard);
         }
+    }
+
+    //
+    // Posting
+    //
+
+    postToCommon = async (ctx: Context, uid: number, update: CommonEvent) => {
+        await this.mediator.postToCommon(ctx, uid, update);
     }
 
     //
