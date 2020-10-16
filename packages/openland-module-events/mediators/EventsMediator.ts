@@ -1,8 +1,11 @@
+import { createLogger } from '@openland/log';
 import { EventBusEngine } from 'openland-module-pubsub/EventBusEngine';
 import { SubscriberReceiver, SubscriberReceiverEvent, ReceiverOpts } from './../receiver/SubscriberReceiver';
 import { inTx, getTransaction } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { EventsRepository } from './../repo/EventsRepository';
+
+const log = createLogger('feed-subscriber');
 
 const DIRECT_LIMIT = 100;
 
@@ -45,9 +48,10 @@ export class EventsMediator {
                 // NOTE: We MUST execute this within transaction to have strict delivery guarantee
                 let seq = (await this.repo.allocateSubscriberSeq(ctx, [subscriber]))[0];
                 let time = Date.now();
-                getTransaction(ctx).afterCommit(async () => {
+                log.log(ctx, 'subscribe-to-feed');
+                getTransaction(ctx).afterCommit(async (tx) => {
                     let state = await res.state;
-                    this.postToBus(subscriber, seq, { feed, time, type: 'subscribe', seq: res.seq, state, event: null });
+                    this.postToBus(tx, subscriber, seq, { feed, time, type: 'subscribe', seq: res.seq, state, event: null });
                 });
             }
         });
@@ -61,9 +65,10 @@ export class EventsMediator {
                 // NOTE: We MUST execute this within transaction to have strict delivery guarantee
                 let seq = (await this.repo.allocateSubscriberSeq(ctx, [subscriber]))[0];
                 let time = Date.now();
-                getTransaction(ctx).afterCommit(async () => {
+                log.log(ctx, 'unsubscribe-from-feed');
+                getTransaction(ctx).afterCommit(async (tx) => {
                     let state = await res.state;
-                    this.postToBus(subscriber, seq, { feed, time, type: 'unsubscribe', seq: res.seq, state, event: null });
+                    this.postToBus(tx, subscriber, seq, { feed, time, type: 'unsubscribe', seq: res.seq, state, event: null });
                 });
             }
         });
@@ -79,12 +84,15 @@ export class EventsMediator {
                 let seqs = await this.repo.allocateSubscriberSeq(ctx, online);
                 // NOTE: Time MUST be calculated in transaction
                 let time = Date.now();
-                getTransaction(ctx).afterCommit(async () => {
+                log.log(ctx, 'post-to-feed');
+                getTransaction(ctx).afterCommit(async (tx) => {
                     let state = await posted.state;
                     for (let i = 0; i < seqs.length; i++) {
-                        this.postToBus(online[i], seqs[i], { feed: args.feed, time, type: 'update', seq: posted.seq, state, event: args.event });
+                        this.postToBus(tx, online[i], seqs[i], { feed: args.feed, time, type: 'update', seq: posted.seq, state, event: args.event });
                     }
                 });
+            } else {
+                log.log(ctx, 'empty-onlines');
             }
         });
     }
@@ -99,7 +107,7 @@ export class EventsMediator {
         });
     }
 
-    private postToBus(subscriber: Buffer, seq: number, event: {
+    private postToBus(ctx: Context, subscriber: Buffer, seq: number, event: {
         feed: Buffer,
         type: 'subscribe' | 'unsubscribe' | 'update',
         seq: number,
@@ -107,7 +115,7 @@ export class EventsMediator {
         event: Buffer | null,
         time: number
     }) {
-        this.bus.publish('events-subscriber-' + subscriber.toString('hex').toLowerCase(), {
+        let toPost = {
             seq,
             event: {
                 feed: event.feed.toString('base64'),
@@ -117,6 +125,8 @@ export class EventsMediator {
                 time: event.time,
                 ...(event.event ? { event: event.event.toString('base64') } : {})
             }
-        });
+        };
+        log.log(ctx, 'post', toPost);
+        this.bus.publish('events-subscriber-' + subscriber.toString('hex').toLowerCase(), toPost);
     }
 }
