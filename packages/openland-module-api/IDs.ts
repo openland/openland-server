@@ -101,4 +101,5 @@ export const IDs = {
     ContactCursor: IdsFactory.createStringId('ContactCursor'),
     ContactsUpdatesCursor: IdsFactory.createStringId('ContactsUpdatesCursor'),
 
+    SequenceStateV1: IdsFactory.createStringId('SequenceState-V1')
 };

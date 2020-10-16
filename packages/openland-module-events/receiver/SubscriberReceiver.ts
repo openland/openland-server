@@ -23,17 +23,20 @@ export type SubscriberReceiverEvent =
         type: 'update',
         feed: Buffer,
         seq: number,
+        pts: number,
         event: Buffer
     }
     | {
         type: 'subscribe',
         feed: Buffer,
-        fromSeq: number
+        seq: number,
+        fromPts: number
     }
     | {
         type: 'unsubscribe',
         feed: Buffer,
-        toSeq: number
+        seq: number,
+        toPts: number
     }
     | {
         type: 'checkpoint',
@@ -307,11 +310,11 @@ export class SubscriberReceiver {
     private processEvent(src: BusEvent) {
         // Call handler
         if (src.event.type === 'update') {
-            this.handler({ type: 'update', feed: src.event.feed, seq: src.event.seq, event: src.event.event! });
+            this.handler({ type: 'update', feed: src.event.feed, seq: src.seq, pts: src.event.seq, event: src.event.event! });
         } else if (src.event.type === 'subscribe') {
-            this.handler({ type: 'subscribe', feed: src.event.feed, fromSeq: src.event.seq });
+            this.handler({ type: 'subscribe', feed: src.event.feed, seq: src.seq, fromPts: src.event.seq });
         } else if (src.event.type === 'unsubscribe') {
-            this.handler({ type: 'unsubscribe', feed: src.event.feed, toSeq: src.event.seq });
+            this.handler({ type: 'unsubscribe', feed: src.event.feed, seq: src.seq, toPts: src.event.seq });
         }
     }
 }

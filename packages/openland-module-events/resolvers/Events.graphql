@@ -1,0 +1,15 @@
+union UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged
+
+type UpdateChatRead {
+    cid: ID!
+    seq: Int!
+}
+
+type UpdateProfileChanged {
+    user: User!
+}
+
+type UpdateMyProfileChanged {
+    user: User!
+    profile: Profile!
+}

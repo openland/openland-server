@@ -87,6 +87,8 @@ import {
     OrganizationMember,
     ContactAddedEvent,
     ContactRemovedEvent, UserDialogGotAccessEvent, UserDialogLostAccessEvent,
+    UpdateChatRead,
+    UpdateProfileChanged
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -308,7 +310,7 @@ export namespace GQLRoots {
     export type ReactionRoot = any;
     export type DialogRoot = { cid: number, counter: { unreadCounter: number, haveMention: boolean } };
     export type DialogKindRoot = DialogKindValues;
-    export type DialogsConnectionRoot = { items: DialogRoot[], cursor: string|undefined };
+    export type DialogsConnectionRoot = { items: DialogRoot[], cursor: string | undefined };
     export type ProfileBadgeTypeRoot = 'organization';
     export type ProfileBadgeRoot = { type: ProfileBadgeTypeRoot, text: string };
 
@@ -789,4 +791,22 @@ export namespace GQLRoots {
     export type ContactAddedRoot = ContactAddedEvent;
     export type ContactRemovedRoot = ContactRemovedEvent;
     export type ContactsStateRoot = { state: string };
+
+    //
+    // Updates
+    //
+
+    export type UpdateChatReadRoot = UpdateChatRead;
+    export type UpdateProfileChangedRoot = UpdateProfileChanged;
+    export type UpdateMyProfileChangedRoot = UpdateProfileChanged;
+    export type UpdateEventRoot = UpdateChatReadRoot | UpdateProfileChangedRoot | UpdateMyProfileChangedRoot;
+
+    export type SequenceCommonRoot = { type: 'common', uid: number };
+    export type SequenceChatRoot = { type: 'chat', cid: number };
+    export type SequenceRoot = SequenceCommonRoot | SequenceChatRoot;
+
+    export type UpdateSubscriptionStartedRoot = { type: 'started', seq: number, state: string };
+    export type UpdateSubscriptionCheckpointRoot = { type: 'checkpoint', seq: number, state: string };
+    export type UpdateSubscriptionEventRoot = { type: 'update', seq: number, pts: number, update: UpdateEventRoot, sequence: SequenceRoot };
+    export type UpdateSubscriptionRoot = UpdateSubscriptionStartedRoot | UpdateSubscriptionCheckpointRoot | UpdateSubscriptionEventRoot;
 }

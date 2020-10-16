@@ -1,0 +1,11 @@
+union Sequence = SequenceCommon | SequenceChat
+
+type SequenceCommon {
+    uid: ID! # Some fields are required
+    unread: Int!
+}
+
+type SequenceChat {
+    cid: ID!
+    unread: Int!
+}

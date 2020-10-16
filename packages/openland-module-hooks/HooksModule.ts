@@ -1,3 +1,4 @@
+import { UpdateProfileChanged } from './../openland-module-db/store';
 import { Events } from 'openland-module-hyperlog/Events';
 import { Modules } from 'openland-modules/Modules';
 import { injectable } from 'inversify';
@@ -32,7 +33,11 @@ export class HooksModule {
      */
 
     onUserProfileUpdated = async (ctx: Context, uid: number) => {
-        Events.ProfileUpdated.event(ctx, { uid });
+
+        // Events
+        Events.ProfileUpdated.event(ctx, { uid }); // Old
+        await Modules.Events.postToCommon(ctx, uid, UpdateProfileChanged.create({ uid })); // New
+
         await Modules.Messaging.onUserProfileUpdated(ctx, uid);
     }
 

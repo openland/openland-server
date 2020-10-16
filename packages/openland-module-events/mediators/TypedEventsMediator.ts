@@ -98,9 +98,9 @@ export class TypedEventsMediator {
                 }
                 receiver = this.events.receive(subscriber, (e) => {
                     if (e.type === 'started') {
-                        handler({ type: 'started', state: e.state.toString('base64') });
+                        handler({ type: 'started', state: e.state.toString('base64'), seq: e.seq });
                     } else if (e.type === 'checkpoint') {
-                        handler({ type: 'checkpoint', state: e.state.toString('base64') });
+                        handler({ type: 'checkpoint', state: e.state.toString('base64'), seq: e.seq });
                     } else if (e.type === 'closed') {
                         if (!closed) {
                             closed = true;
@@ -108,7 +108,7 @@ export class TypedEventsMediator {
                         }
                     } else if (e.type === 'update') {
                         let event = unpackFeedEvent(e.event);
-                        handler({ type: 'update', feed: event.feed, seq: e.seq, event: event.event });
+                        handler({ type: 'update', feed: event.feed, seq: e.seq, event: event.event, pts: e.pts });
                     }
                 });
             } catch (e) {
