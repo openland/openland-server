@@ -8,6 +8,10 @@ export const Resolver: GQLResolver = {
         room: root => root.room.id,
         newMessages: root => root.messagesDelta,
     },
+    PopularNowOrganization: {
+        organization: root => root.organization,
+        newMessages: root => root.messagesDelta,
+    },
     Query: {
         discoverPopularNow: withAny(async (ctx, args) => {
             let after = 0;
@@ -88,8 +92,6 @@ export const Resolver: GQLResolver = {
         discoverNewAndGrowing: withAny(async (ctx, args) => {
             let clauses: any[] = [];
 
-            // chats with messages > 10
-            clauses.push({range: {messagesCount: {gte: 10}}});
             // chats with members count > 10
             clauses.push({range: {membersCount: {gte: 10}}});
             // chats 180- days old
@@ -122,6 +124,61 @@ export const Resolver: GQLResolver = {
             return {
                 items: hits.hits.hits.map(a => parseInt(a._id, 10)),
                 cursor: (hits.hits.total as any).value > (from + args.first) ? (from + args.first).toString() : null,
+            };
+        }),
+        discoverNewAndGrowingOrganizations: withAny(async (ctx, args) => {
+            let clauses: any[] = [];
+
+            // chats with members count > 10
+            clauses.push({range: {membersCount: {gte: 10}}});
+            // chats 180- days old
+            clauses.push({range: {createdAt: {gte: 'now-180d/d'}}});
+            // only public chats
+            clauses.push({ term: { listed: true } });
+
+            let query: any = {bool: {must: clauses}};
+            query = {
+                function_score: {
+                    query,
+                    random_score: {
+                        seed: args.seed,
+                        field: '_id'
+                    }
+                }
+            };
+
+            let from = args.after ? parseInt(args.after, 10) : 0;
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'organization',
+                type: 'organization',
+                size: args.first,
+                from,
+                body: {
+                    query,
+                },
+            });
+
+            return {
+                items: hits.hits.hits.map(a => parseInt(a._id, 10)),
+                cursor: (hits.hits.total as any).value > (from + args.first) ? (from + args.first).toString() : null,
+            };
+        }),
+        discoverPopularNowOrganizations: withAny(async (ctx, args) => {
+            let after = 0;
+            if (args.after) {
+                after = IDs.DiscoverPopularNowOrganizationCursor.parse(args.after);
+            }
+            let popular = await Modules.Stats.getTrendingOrgsByMessages(
+                ctx,
+                Date.now() - 7 * 24 * 60 * 60 * 1000,
+                Date.now(),
+                args.first,
+                after
+            );
+
+            return {
+                items: popular,
+                cursor: popular.length === args.first ? IDs.DiscoverPopularNowOrganizationCursor.serialize(popular[popular.length - 1].cursor) : null
             };
         }),
     }

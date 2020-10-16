@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '11b4119efbe275630ea96a1cdf98457b';
+export const GQL_SPEC_VERSION = 'c20a78eb02cb0ee095e7f724126ba725';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4033,6 +4033,18 @@ export namespace GQL {
     }
     export interface PopularNowRoomConnectionItemsArgs { }
     export interface PopularNowRoomConnectionCursorArgs { }
+    export interface PopularNowOrganization {
+        organization: Organization;
+        newMessages: number;
+    }
+    export interface PopularNowOrganizationOrganizationArgs { }
+    export interface PopularNowOrganizationNewMessagesArgs { }
+    export interface PopularNowOrganizationConnection {
+        items: PopularNowOrganization[];
+        cursor: Nullable<string>;
+    }
+    export interface PopularNowOrganizationConnectionItemsArgs { }
+    export interface PopularNowOrganizationConnectionCursorArgs { }
     export interface Post {
         id: string;
         author: Nullable<User>;
@@ -4289,6 +4301,8 @@ export namespace GQL {
         users: User[];
         discoverNewAndGrowing: SharedRoomConnection;
         discoverPopularNow: PopularNowRoomConnection;
+        discoverNewAndGrowingOrganizations: OrganizationsConnection;
+        discoverPopularNowOrganizations: PopularNowOrganizationConnection;
         discoverTopPremium: SharedRoomConnection;
         discoverTopFree: SharedRoomConnection;
         post: Nullable<Post>;
@@ -4642,6 +4656,15 @@ export namespace GQL {
         after: OptionalNullable<string>;
     }
     export interface QueryDiscoverPopularNowArgs {
+        first: number;
+        after: OptionalNullable<string>;
+    }
+    export interface QueryDiscoverNewAndGrowingOrganizationsArgs {
+        first: number;
+        seed: number;
+        after: OptionalNullable<string>;
+    }
+    export interface QueryDiscoverPopularNowOrganizationsArgs {
         first: number;
         after: OptionalNullable<string>;
     }
@@ -9572,6 +9595,28 @@ export interface GQLResolver {
             cursor: GQL.PopularNowRoomConnectionCursorArgs,
         }
     >;
+    PopularNowOrganization?: ComplexTypedResolver<
+        GQL.PopularNowOrganization,
+        GQLRoots.PopularNowOrganizationRoot,
+        {
+            organization: GQLRoots.OrganizationRoot,
+        },
+        {
+            organization: GQL.PopularNowOrganizationOrganizationArgs,
+            newMessages: GQL.PopularNowOrganizationNewMessagesArgs,
+        }
+    >;
+    PopularNowOrganizationConnection?: ComplexTypedResolver<
+        GQL.PopularNowOrganizationConnection,
+        GQLRoots.PopularNowOrganizationConnectionRoot,
+        {
+            items: GQLRoots.PopularNowOrganizationRoot[],
+        },
+        {
+            items: GQL.PopularNowOrganizationConnectionItemsArgs,
+            cursor: GQL.PopularNowOrganizationConnectionCursorArgs,
+        }
+    >;
     Post?: ComplexTypedResolver<
         GQL.Post,
         GQLRoots.PostRoot,
@@ -9840,6 +9885,8 @@ export interface GQLResolver {
             users: GQLRoots.UserRoot[],
             discoverNewAndGrowing: GQLRoots.SharedRoomConnectionRoot,
             discoverPopularNow: GQLRoots.PopularNowRoomConnectionRoot,
+            discoverNewAndGrowingOrganizations: GQLRoots.OrganizationsConnectionRoot,
+            discoverPopularNowOrganizations: GQLRoots.PopularNowOrganizationConnectionRoot,
             discoverTopPremium: GQLRoots.SharedRoomConnectionRoot,
             discoverTopFree: GQLRoots.SharedRoomConnectionRoot,
             post: Nullable<GQLRoots.PostRoot>,
@@ -10019,6 +10066,8 @@ export interface GQLResolver {
             users: GQL.QueryUsersArgs,
             discoverNewAndGrowing: GQL.QueryDiscoverNewAndGrowingArgs,
             discoverPopularNow: GQL.QueryDiscoverPopularNowArgs,
+            discoverNewAndGrowingOrganizations: GQL.QueryDiscoverNewAndGrowingOrganizationsArgs,
+            discoverPopularNowOrganizations: GQL.QueryDiscoverPopularNowOrganizationsArgs,
             discoverTopPremium: GQL.QueryDiscoverTopPremiumArgs,
             discoverTopFree: GQL.QueryDiscoverTopFreeArgs,
             post: GQL.QueryPostArgs,

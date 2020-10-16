@@ -3,7 +3,7 @@ import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { Store } from '../openland-module-db/FDB';
 import { Modules } from '../openland-modules/Modules';
-import { Message, RoomProfile } from '../openland-module-db/store';
+import { ConversationRoom, Message, Organization, RoomProfile } from '../openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
 import { UnreadGroups, TrendGroup, TrendGroups, UnreadGroup, GroupedByConvKind, TopPost } from './StatsModule.types';
 import { User } from '../openland-module-db/store';
@@ -263,7 +263,7 @@ export class StatsModule {
             size: 0,
         });
 
-        let roomsWithDelta: { room: RoomProfile; messagesDelta: number, cursor: number }[] = [];
+        let roomsWithDelta: { room: RoomProfile, conv: ConversationRoom, messagesDelta: number, cursor: number }[] = [];
         let cursor = after || 0;
         for (let bucket of searchReq.aggregations.byCid.buckets.slice(cursor)) {
             cursor++;
@@ -284,7 +284,8 @@ export class StatsModule {
             }
 
             roomsWithDelta.push({
-                room: room,
+                room,
+                conv,
                 messagesDelta: bucket.doc_count,
                 cursor: cursor,
             });
@@ -294,6 +295,69 @@ export class StatsModule {
         }
 
         return roomsWithDelta;
+    }
+
+    getTrendingOrgsByMessages = async (ctx: Context, from: number, to: number, size?: number, after?: number) => {
+        let searchReq = await Modules.Search.elastic.client.search({
+            index: 'message',
+            type: 'message', // scroll: '1m',
+            body: {
+                query: {
+                    bool: {
+                        must: [
+                            { term: { oid: { ne: 0 } } },
+                            { term: { isService: false } },
+                            {
+                                range: {
+                                    createdAt: {
+                                        gte: from,
+                                        lte: to,
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                },
+                aggs: {
+                    byOid: {
+                        terms: {
+                            field: 'oid',
+                            size: Math.pow(10, 9),
+                            order: { _count: 'desc' },
+                        },
+                    },
+                },
+            },
+            size: 0,
+        });
+
+        let orgsWithDelta: { organization: Organization, messagesDelta: number, cursor: number }[] = [];
+        let cursor = after || 0;
+        for (let bucket of searchReq.aggregations.byOid.buckets.slice(cursor)) {
+            cursor++;
+            let oid = bucket.key;
+            let org = await Store.Organization.findById(ctx, oid);
+
+            if (!org) {
+                continue;
+            }
+
+            let isListed = org && org.kind === 'community';
+            if (!isListed) {
+                continue;
+            }
+
+            orgsWithDelta.push({
+                organization: org,
+                messagesDelta: bucket.doc_count,
+                cursor: cursor,
+            });
+            if (orgsWithDelta.length === size) {
+                break;
+            }
+        }
+
+        return orgsWithDelta;
     }
 
     getGroupScreenViewsByPeriod = async (ctx: Context, cid: number, from?: Date | null, to?: Date | null) => {

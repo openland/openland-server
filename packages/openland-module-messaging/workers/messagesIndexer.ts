@@ -6,7 +6,7 @@ import { Modules } from '../../openland-modules/Modules';
 export function messagesIndexer() {
     declareSearchIndexer({
         name: 'message-index',
-        version: 12,
+        version: 13,
         index: 'message',
         stream: Store.Message.updated.stream({ batchSize: 200 })
     }).withProperties({
@@ -14,6 +14,9 @@ export function messagesIndexer() {
             type: 'integer'
         },
         cid: {
+            type: 'integer',
+        },
+        oid: {
             type: 'integer'
         },
         roomKind: {
@@ -82,6 +85,7 @@ export function messagesIndexer() {
     }).start(async (item, parent) => {
         return await inTx(parent, async (ctx) => {
             let room = await Store.Conversation.findById(ctx, item.cid);
+            let convRoom = await Store.ConversationRoom.findById(ctx, item.cid);
             let userName = await Modules.Users.getUserFullName(ctx, item.uid);
 
             let haveLinkAttachment = false;
@@ -132,6 +136,7 @@ export function messagesIndexer() {
                 doc: {
                     id: item.id,
                     cid: item.cid,
+                    oid: convRoom?.oid || 0,
                     uid: item.uid,
                     name: userName,
                     roomKind: room ? room.kind : 'unknown',

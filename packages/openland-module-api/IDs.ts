@@ -86,6 +86,7 @@ export const IDs = {
     DiscoverChatsCollection: IdsFactory.createId('DiscoverChatsCollection'),
     DiscoverEditorsChoiceChat: IdsFactory.createId('DiscoverEditorsChoice'),
     DiscoverPopularNowCursor: IdsFactory.createId('DiscoverPopularNowCursor'),
+    DiscoverPopularNowOrganizationCursor: IdsFactory.createId('DiscoverPopularNowOrganizationCursor'),
     DiscoverTopPremiumCursor: IdsFactory.createId('DiscoverTopPremiumCursor'),
     DiscoverTopFreeCursor: IdsFactory.createId('DiscoverTopFreeCursor'),
     GqlTrace: IdsFactory.createId('GqlTrace'),
