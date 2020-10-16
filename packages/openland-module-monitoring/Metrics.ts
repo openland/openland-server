@@ -56,6 +56,19 @@ export const Metrics = {
     SpaceXWritesPerMutation: Factory.createSummary('spacex_writes_mutation', 'Summary of read operations per mutation', DEFAULT_QUANTILES),
 
     //
+    // Feed Event Engine
+    //
+    FeedSubscribers: Factory.createPersistedGauge('feed_subscribers', 'Feed Engine subscribers', (ctx) =>
+        Modules.Events.mediator.events.repo.stats.getCounter(ctx, 'subscribers')
+    ),
+    FeedFeeds: Factory.createPersistedGauge('feed_feeds', 'Feed Engine feeds', (ctx) =>
+        Modules.Events.mediator.events.repo.stats.getCounter(ctx, 'feeds')
+    ),
+    FeedSubscriptions: Factory.createPersistedGauge('feed_subscriptions', 'Feed Engine subscriptions', (ctx) =>
+        Modules.Events.mediator.events.repo.stats.getCounter(ctx, 'subscriptions')
+    ),
+
+    //
     // Sharding
     //
     ShardingNodes: Factory.createTaggedMachineGauge('sharding_nodes', 'Shards per node'),

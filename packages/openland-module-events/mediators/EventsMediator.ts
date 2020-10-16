@@ -69,10 +69,10 @@ export class EventsMediator {
         });
     }
 
-    async post(parent: Context, feed: Buffer, event: Buffer) {
+    async post(parent: Context, args: { feed: Buffer, event: Buffer, collapseKey?: string | null | undefined }) {
         await inTx(parent, async (ctx) => {
-            let posted = await this.repo.post(ctx, { feed, event });
-            let online = await this.repo.getFeedOnlineSubscribers(ctx, feed, Date.now());
+            let posted = await this.repo.post(ctx, { feed: args.feed, event: args.event, collapseKey: args.collapseKey });
+            let online = await this.repo.getFeedOnlineSubscribers(ctx, args.feed, Date.now());
             if (online.length > 0) {
                 // NOTE: This allocation COULD be executed in separate transaction
                 //       we allow missing or reordered updates on receiving side.
@@ -82,7 +82,7 @@ export class EventsMediator {
                 getTransaction(ctx).afterCommit(async () => {
                     let state = await posted.state;
                     for (let i = 0; i < seqs.length; i++) {
-                        this.postToBus(online[i], seqs[i], { feed, time, type: 'update', seq: posted.seq, state, event });
+                        this.postToBus(online[i], seqs[i], { feed: args.feed, time, type: 'update', seq: posted.seq, state, event: args.event });
                     }
                 });
             }

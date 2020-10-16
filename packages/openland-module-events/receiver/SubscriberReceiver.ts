@@ -16,6 +16,7 @@ const ONLINE_REFRESH = 30 * 1000; // 30 Sec
 export type SubscriberReceiverEvent =
     | {
         type: 'started',
+        seq: number,
         state: Buffer
     }
     | {
@@ -36,6 +37,7 @@ export type SubscriberReceiverEvent =
     }
     | {
         type: 'checkpoint',
+        seq: number,
         state: Buffer,
     }
     | {
@@ -146,7 +148,7 @@ export class SubscriberReceiver {
 
     private handleStart = (state: Buffer, seq: number) => {
         this.started = true;
-        this.handler({ type: 'started', state });
+        this.handler({ type: 'started', state, seq: seq });
         this.currentSeq = seq;
         this.checkpointSeq = seq;
         this.flushPending();
@@ -293,7 +295,7 @@ export class SubscriberReceiver {
                     return;
                 } else {
                     this.checkpointSeq = checkpoint.seq;
-                    this.handler({ type: 'checkpoint', state });
+                    this.handler({ type: 'checkpoint', state, seq: checkpoint.seq });
                     this.scheduleCheckpoint();
                 }
             } catch (e) {
