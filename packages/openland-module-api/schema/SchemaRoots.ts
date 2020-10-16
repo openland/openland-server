@@ -604,7 +604,7 @@ export namespace GQLRoots {
     export type PopularNowRoomConnectionRoot = { items: PopularNowRoomRoot[], cursor: string | null };
     export type PopularNowOrganizationRoot = { organization: Organization, messagesDelta: number };
     export type PopularNowOrganizationConnectionRoot = { items: PopularNowOrganizationRoot[], cursor: string | null };
-    export type NewAndGrowingOrganizationConnectionRoot = { items: Organization[], cursor: string | null };
+    export type NewAndGrowingOrganizationConnectionRoot = { items: number[], cursor: string | null };
     export type EditorsChoiceChatRoot = EditorsChoiceChat;
 
     //
