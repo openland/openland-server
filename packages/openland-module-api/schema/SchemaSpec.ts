@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'b667ec50a579e25ed8e4cc32e186c83a';
+export const GQL_SPEC_VERSION = 'a11cf9fbd0863a4bfaf609b802f662d7';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4062,6 +4062,12 @@ export namespace GQL {
     }
     export interface PopularNowOrganizationOrganizationArgs { }
     export interface PopularNowOrganizationNewMessagesArgs { }
+    export interface NewAndGrowingOrganizationConnection {
+        items: Organization[];
+        cursor: Nullable<string>;
+    }
+    export interface NewAndGrowingOrganizationConnectionItemsArgs { }
+    export interface NewAndGrowingOrganizationConnectionCursorArgs { }
     export interface PopularNowOrganizationConnection {
         items: PopularNowOrganization[];
         cursor: Nullable<string>;
@@ -4324,7 +4330,7 @@ export namespace GQL {
         users: User[];
         discoverNewAndGrowing: SharedRoomConnection;
         discoverPopularNow: PopularNowRoomConnection;
-        discoverNewAndGrowingOrganizations: OrganizationsConnection;
+        discoverNewAndGrowingOrganizations: NewAndGrowingOrganizationConnection;
         discoverPopularNowOrganizations: PopularNowOrganizationConnection;
         discoverTopPremium: SharedRoomConnection;
         discoverTopFree: SharedRoomConnection;
@@ -9696,6 +9702,17 @@ export interface GQLResolver {
             newMessages: GQL.PopularNowOrganizationNewMessagesArgs,
         }
     >;
+    NewAndGrowingOrganizationConnection?: ComplexTypedResolver<
+        GQL.NewAndGrowingOrganizationConnection,
+        GQLRoots.NewAndGrowingOrganizationConnectionRoot,
+        {
+            items: GQLRoots.OrganizationRoot[],
+        },
+        {
+            items: GQL.NewAndGrowingOrganizationConnectionItemsArgs,
+            cursor: GQL.NewAndGrowingOrganizationConnectionCursorArgs,
+        }
+    >;
     PopularNowOrganizationConnection?: ComplexTypedResolver<
         GQL.PopularNowOrganizationConnection,
         GQLRoots.PopularNowOrganizationConnectionRoot,
@@ -9975,7 +9992,7 @@ export interface GQLResolver {
             users: GQLRoots.UserRoot[],
             discoverNewAndGrowing: GQLRoots.SharedRoomConnectionRoot,
             discoverPopularNow: GQLRoots.PopularNowRoomConnectionRoot,
-            discoverNewAndGrowingOrganizations: GQLRoots.OrganizationsConnectionRoot,
+            discoverNewAndGrowingOrganizations: GQLRoots.NewAndGrowingOrganizationConnectionRoot,
             discoverPopularNowOrganizations: GQLRoots.PopularNowOrganizationConnectionRoot,
             discoverTopPremium: GQLRoots.SharedRoomConnectionRoot,
             discoverTopFree: GQLRoots.SharedRoomConnectionRoot,
