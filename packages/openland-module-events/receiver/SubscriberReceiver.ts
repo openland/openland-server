@@ -306,6 +306,8 @@ export class SubscriberReceiver {
                 }
             } catch (e) {
                 this.close();
+            } finally {
+                this.startedCheckpoint = false;
             }
         })();
     }
