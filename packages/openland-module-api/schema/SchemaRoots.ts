@@ -810,4 +810,10 @@ export namespace GQLRoots {
     export type UpdateSubscriptionCheckpointRoot = { type: 'checkpoint', seq: number, state: string };
     export type UpdateSubscriptionEventRoot = { type: 'update', seq: number, pts: number, update: UpdateEventRoot, sequence: SequenceRoot };
     export type UpdateSubscriptionRoot = UpdateSubscriptionStartedRoot | UpdateSubscriptionCheckpointRoot | UpdateSubscriptionEventRoot;
+
+    export type UpdatesSequenceStateRoot = { sequence: SequenceRoot, pts: number };
+    export type UpdatesStateRoot = { seq: number, state: string, sequences: UpdatesSequenceStateRoot[] };
+
+    export type UpdatesSequenceDifferenceRoot = any;
+    export type UpdatesDifferenceRoot = any;
 }

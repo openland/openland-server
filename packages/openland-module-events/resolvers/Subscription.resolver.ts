@@ -1,3 +1,5 @@
+import { inTx } from '@openland/foundationdb';
+import { withUser } from 'openland-module-api/Resolvers';
 import { IDs } from 'openland-module-api/IDs';
 import { Context } from '@openland/context';
 import { GQLRoots } from 'openland-module-api/schema/SchemaRoots';
@@ -73,5 +75,29 @@ export const Resolver: GQLResolver = {
                 return iterator;
             }
         }
+    },
+    UpdatesState: {
+        seq: (src) => src.seq,
+        state: (src) => IDs.SequenceStateV1.serialize(src.state),
+        sequences: (src) => src.sequences
+    },
+    UpdatesSequenceState: {
+        pts: (src) => src.pts,
+        sequence: (src) => src.sequence
+    },
+    Query: {
+        updatesState: withUser(async (parent, args, uid) => {
+            let res = await inTx(parent, async (ctx) => {
+                let state = await Modules.Events.mediator.getState(ctx, uid);
+                let feeds = await Modules.Events.mediator.getInitialFeeds(ctx, uid);
+                let feedStates = await Promise.all(feeds.map(async (f) => ({ state: await Modules.Events.mediator.getFeedState(ctx, f), feed: f })));
+                return { state, feeds: feedStates };
+            });
+            return {
+                seq: res.state.seq,
+                state: (await res.state.state).toString('base64'),
+                sequences: res.feeds.map((f) => ({ sequence: f.feed, pts: f.state.pts }))
+            };
+        })
     }
 };

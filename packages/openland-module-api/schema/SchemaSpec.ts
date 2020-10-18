@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'a11cf9fbd0863a4bfaf609b802f662d7';
+export const GQL_SPEC_VERSION = '75616fa8d91834ac309a834c69a66256';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -702,6 +702,36 @@ export namespace GQL {
     export interface UpdateSubscriptionEventEventArgs { }
     export interface UpdateSubscriptionEventSequenceArgs { }
     export type UpdateSubscription = UpdateSubscriptionStarted | UpdateSubscriptionCheckpoint | UpdateSubscriptionEvent;
+    export interface UpdatesSequenceState {
+        sequence: Sequence;
+        pts: number;
+    }
+    export interface UpdatesSequenceStateSequenceArgs { }
+    export interface UpdatesSequenceStatePtsArgs { }
+    export interface UpdatesState {
+        seq: number;
+        state: string;
+        sequences: UpdatesSequenceState[];
+    }
+    export interface UpdatesStateSeqArgs { }
+    export interface UpdatesStateStateArgs { }
+    export interface UpdatesStateSequencesArgs { }
+    export interface UpdatesSequenceDifference {
+        sequence: Sequence;
+        pts: number;
+        events: UpdateEvent[];
+    }
+    export interface UpdatesSequenceDifferenceSequenceArgs { }
+    export interface UpdatesSequenceDifferencePtsArgs { }
+    export interface UpdatesSequenceDifferenceEventsArgs { }
+    export interface UpdatesDifference {
+        seq: number;
+        state: string;
+        sequences: UpdatesSequenceDifference[];
+    }
+    export interface UpdatesDifferenceSeqArgs { }
+    export interface UpdatesDifferenceStateArgs { }
+    export interface UpdatesDifferenceSequencesArgs { }
     export interface Reaction {
         user: User;
         reaction: string;
@@ -4237,6 +4267,8 @@ export namespace GQL {
         appInviteFromUser: string;
         appInviteInfo: Nullable<AppInvite>;
         alphaResolveInvite: Nullable<ResolveInviteEntry>;
+        updatesState: UpdatesState;
+        updatesDifference: UpdatesDifference;
         phonebookWasExported: boolean;
         channels: Channel[];
         channel: Nullable<Channel>;
@@ -4450,6 +4482,10 @@ export namespace GQL {
     }
     export interface QueryAlphaResolveInviteArgs {
         key: string;
+    }
+    export interface QueryUpdatesStateArgs { }
+    export interface QueryUpdatesDifferenceArgs {
+        state: string;
     }
     export interface QueryPhonebookWasExportedArgs { }
     export interface QueryChannelsArgs { }
@@ -7210,6 +7246,54 @@ export interface GQLResolver {
         }
     >;
     UpdateSubscription?: UnionTypeResolver<GQLRoots.UpdateSubscriptionRoot, 'UpdateSubscriptionStarted' | 'UpdateSubscriptionCheckpoint' | 'UpdateSubscriptionEvent'>;
+    UpdatesSequenceState?: ComplexTypedResolver<
+        GQL.UpdatesSequenceState,
+        GQLRoots.UpdatesSequenceStateRoot,
+        {
+            sequence: GQLRoots.SequenceRoot,
+        },
+        {
+            sequence: GQL.UpdatesSequenceStateSequenceArgs,
+            pts: GQL.UpdatesSequenceStatePtsArgs,
+        }
+    >;
+    UpdatesState?: ComplexTypedResolver<
+        GQL.UpdatesState,
+        GQLRoots.UpdatesStateRoot,
+        {
+            sequences: GQLRoots.UpdatesSequenceStateRoot[],
+        },
+        {
+            seq: GQL.UpdatesStateSeqArgs,
+            state: GQL.UpdatesStateStateArgs,
+            sequences: GQL.UpdatesStateSequencesArgs,
+        }
+    >;
+    UpdatesSequenceDifference?: ComplexTypedResolver<
+        GQL.UpdatesSequenceDifference,
+        GQLRoots.UpdatesSequenceDifferenceRoot,
+        {
+            sequence: GQLRoots.SequenceRoot,
+            events: GQLRoots.UpdateEventRoot[],
+        },
+        {
+            sequence: GQL.UpdatesSequenceDifferenceSequenceArgs,
+            pts: GQL.UpdatesSequenceDifferencePtsArgs,
+            events: GQL.UpdatesSequenceDifferenceEventsArgs,
+        }
+    >;
+    UpdatesDifference?: ComplexTypedResolver<
+        GQL.UpdatesDifference,
+        GQLRoots.UpdatesDifferenceRoot,
+        {
+            sequences: GQLRoots.UpdatesSequenceDifferenceRoot[],
+        },
+        {
+            seq: GQL.UpdatesDifferenceSeqArgs,
+            state: GQL.UpdatesDifferenceStateArgs,
+            sequences: GQL.UpdatesDifferenceSequencesArgs,
+        }
+    >;
     Reaction?: ComplexTypedResolver<
         GQL.Reaction,
         GQLRoots.ReactionRoot,
@@ -9915,6 +9999,8 @@ export interface GQLResolver {
             alphaInviteInfo: Nullable<GQLRoots.InviteInfoRoot>,
             appInviteInfo: Nullable<GQLRoots.AppInviteRoot>,
             alphaResolveInvite: Nullable<GQLRoots.ResolveInviteEntryRoot>,
+            updatesState: GQLRoots.UpdatesStateRoot,
+            updatesDifference: GQLRoots.UpdatesDifferenceRoot,
             channels: GQLRoots.ChannelRoot[],
             channel: Nullable<GQLRoots.ChannelRoot>,
             debugParseID: GQLRoots.DebugIDRoot,
@@ -10080,6 +10166,8 @@ export interface GQLResolver {
             appInviteFromUser: GQL.QueryAppInviteFromUserArgs,
             appInviteInfo: GQL.QueryAppInviteInfoArgs,
             alphaResolveInvite: GQL.QueryAlphaResolveInviteArgs,
+            updatesState: GQL.QueryUpdatesStateArgs,
+            updatesDifference: GQL.QueryUpdatesDifferenceArgs,
             phonebookWasExported: GQL.QueryPhonebookWasExportedArgs,
             channels: GQL.QueryChannelsArgs,
             channel: GQL.QueryChannelArgs,

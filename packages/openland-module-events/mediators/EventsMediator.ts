@@ -1,6 +1,6 @@
 import { createLogger } from '@openland/log';
 import { EventBusEngine } from 'openland-module-pubsub/EventBusEngine';
-import { SubscriberReceiver, SubscriberReceiverEvent, ReceiverOpts } from './../receiver/SubscriberReceiver';
+import { SubscriberReceiver, SubscriberReceiverEvent, ReceiverOpts, ONLINE_EXPIRES } from './../receiver/SubscriberReceiver';
 import { inTx, getTransaction } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { EventsRepository } from './../repo/EventsRepository';
@@ -105,6 +105,10 @@ export class EventsMediator {
             checkpointCommitDelay: CHECKPOINT_COMMIT_DELAY,
             ...opts
         });
+    }
+
+    async refreshOnline(ctx: Context, subscriber: Buffer) {
+        await this.repo.refreshOnline(ctx, subscriber, Date.now() + ONLINE_EXPIRES);
     }
 
     private postToBus(ctx: Context, subscriber: Buffer, seq: number, event: {

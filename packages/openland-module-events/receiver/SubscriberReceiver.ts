@@ -12,8 +12,8 @@ function random(min: number, max: number) {
     return Math.floor(min + Math.random() * (max - min));
 }
 
-const ONLINE_EXPIRES = 5 * 60 * 1000; // 5 Min
-const ONLINE_REFRESH = 30 * 1000; // 30 Sec
+export const ONLINE_EXPIRES = 5 * 60 * 1000; // 5 Min
+export const ONLINE_REFRESH = 30 * 1000; // 30 Sec
 
 export type SubscriberReceiverEvent =
     | {
