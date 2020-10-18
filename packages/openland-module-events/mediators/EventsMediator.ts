@@ -113,7 +113,7 @@ export class EventsMediator {
     async refreshOnline(ctx: Context, subscriber: Buffer) {
         // If online expires soon (after ONLINE_GAP) - bump seq number to trigger forced difference
         if (!(await this.repo.isOnline(ctx, subscriber, Date.now() + ONLINE_GAP))) {
-            await this.repo.subSeq.allocateBlock(ctx, subscriber, 1000);
+            await this.repo.subSeq.allocateBlock(ctx, subscriber, 10);
         }
         
         await this.repo.refreshOnline(ctx, subscriber, Date.now() + ONLINE_EXPIRES);
