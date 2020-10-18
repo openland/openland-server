@@ -1,6 +1,6 @@
 import { createLogger } from '@openland/log';
 import { EventBusEngine } from 'openland-module-pubsub/EventBusEngine';
-import { SubscriberReceiver, SubscriberReceiverEvent, ReceiverOpts, ONLINE_EXPIRES } from './../receiver/SubscriberReceiver';
+import { SubscriberReceiver, SubscriberReceiverEvent, ReceiverOpts } from './../receiver/SubscriberReceiver';
 import { inTx, getTransaction } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { EventsRepository } from './../repo/EventsRepository';
@@ -15,6 +15,9 @@ const CHECKPOINT_INTERVAL_MIN = 10 * 1000; // 10 Sec
 const CHECKPOINT_INTERVAL_MAX = 20 * 1000; // 10 Sec
 const CHECKPOINT_MAX_UPDATES = 10;
 const CHECKPOINT_COMMIT_DELAY = 30 * 1000; // 30 Sec
+
+const ONLINE_EXPIRES = 5 * 60 * 1000; // 5 Min
+const ONLINE_GAP = 1 * 60 * 1000; // 1 Min
 
 export class EventsMediator {
     readonly repo: EventsRepository;
@@ -108,6 +111,11 @@ export class EventsMediator {
     }
 
     async refreshOnline(ctx: Context, subscriber: Buffer) {
+        // If online expires soon (after ONLINE_GAP) - bump seq number to trigger forced difference
+        if (!(await this.repo.isOnline(ctx, subscriber, Date.now() + ONLINE_GAP))) {
+            await this.repo.subSeq.allocateBlock(ctx, subscriber, 1000);
+        }
+        
         await this.repo.refreshOnline(ctx, subscriber, Date.now() + ONLINE_EXPIRES);
     }
 
