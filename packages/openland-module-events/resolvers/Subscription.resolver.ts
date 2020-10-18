@@ -1,4 +1,4 @@
-import { inTx } from '@openland/foundationdb';
+import { inTx, getTransaction } from '@openland/foundationdb';
 import { withUser } from 'openland-module-api/Resolvers';
 import { IDs } from 'openland-module-api/IDs';
 import { Context } from '@openland/context';
@@ -91,8 +91,11 @@ export const Resolver: GQLResolver = {
                 let state = await Modules.Events.mediator.getState(ctx, uid);
                 let feeds = await Modules.Events.mediator.getInitialFeeds(ctx, uid);
                 let feedStates = await Promise.all(feeds.map(async (f) => ({ state: await Modules.Events.mediator.getFeedState(ctx, f), feed: f })));
-                return { state, feeds: feedStates };
+                let readVersion = getTransaction(ctx).getReadVersion();
+                return { state, feeds: feedStates, readVersion: readVersion };
             });
+            // Keep resolver consistent with base transaction
+            getTransaction(parent).setReadVersion(await res.readVersion);
             return {
                 seq: res.state.seq,
                 state: (await res.state.state).toString('base64'),
