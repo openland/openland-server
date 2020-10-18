@@ -4,8 +4,14 @@ import { Modules } from 'openland-modules/Modules';
 
 export const Resolver: GQLResolver = {
     Sequence: {
-        __resolveType: (src) => {
+        __resolveType: (src, ctx) => {
+            if (!ctx.auth.uid) {
+                throw Error('Not authorized');
+            }
             if (src.type === 'common') {
+                if (ctx.auth.uid !== src.uid) {
+                    throw Error('Invalid sequence');
+                }
                 return 'SequenceCommon';
             } else if (src.type === 'chat') {
                 return 'SequenceChat';
