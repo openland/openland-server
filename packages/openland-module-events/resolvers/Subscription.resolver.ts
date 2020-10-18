@@ -91,11 +91,11 @@ export const Resolver: GQLResolver = {
                 let state = await Modules.Events.mediator.getState(ctx, uid);
                 let feeds = await Modules.Events.mediator.getInitialFeeds(ctx, uid);
                 let feedStates = await Promise.all(feeds.map(async (f) => ({ state: await Modules.Events.mediator.getFeedState(ctx, f), feed: f })));
-                let readVersion = getTransaction(ctx).getReadVersion();
+                let readVersion = await getTransaction(ctx).getReadVersion();
                 return { state, feeds: feedStates, readVersion: readVersion };
             });
             // Keep resolver consistent with base transaction
-            getTransaction(parent).setReadVersion(await res.readVersion);
+            getTransaction(parent).setReadVersion(res.readVersion);
             return {
                 seq: res.state.seq,
                 state: (await res.state.state).toString('base64'),
