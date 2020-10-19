@@ -48,10 +48,15 @@ extend type Query {
 # Difference 
 #
 
+type UpdatesDifferenceEvent {
+    pts: Int!
+    event: UpdateEvent!
+}
+
 type UpdatesSequenceDifference {
     sequence: Sequence!
     pts: Int!
-    events: [UpdateEvent!]!
+    events: [UpdatesDifferenceEvent!]!
 }
 
 type UpdatesDifference {

@@ -96,6 +96,10 @@ export const Resolver: GQLResolver = {
         events: (src) => src.events,
         sequence: (src) => src.sequence
     },
+    UpdatesDifferenceEvent: {
+        pts: (src) => src.pts,
+        event: (src) => src.event,
+    },
     Query: {
         updatesState: withUser(async (ctx, args, uid) => {
             let init = await inTx(ctx, async (ctx2) => {

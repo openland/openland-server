@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '84610a19861d2582e65cd5ba4019b13f';
+export const GQL_SPEC_VERSION = '122ba9cbfe5df624c0d54caf15e31803';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -716,10 +716,16 @@ export namespace GQL {
     export interface UpdatesStateSeqArgs { }
     export interface UpdatesStateStateArgs { }
     export interface UpdatesStateSequencesArgs { }
+    export interface UpdatesDifferenceEvent {
+        pts: number;
+        event: UpdateEvent;
+    }
+    export interface UpdatesDifferenceEventPtsArgs { }
+    export interface UpdatesDifferenceEventEventArgs { }
     export interface UpdatesSequenceDifference {
         sequence: Sequence;
         pts: number;
-        events: UpdateEvent[];
+        events: UpdatesDifferenceEvent[];
     }
     export interface UpdatesSequenceDifferenceSequenceArgs { }
     export interface UpdatesSequenceDifferencePtsArgs { }
@@ -7276,12 +7282,23 @@ export interface GQLResolver {
             sequences: GQL.UpdatesStateSequencesArgs,
         }
     >;
+    UpdatesDifferenceEvent?: ComplexTypedResolver<
+        GQL.UpdatesDifferenceEvent,
+        GQLRoots.UpdatesDifferenceEventRoot,
+        {
+            event: GQLRoots.UpdateEventRoot,
+        },
+        {
+            pts: GQL.UpdatesDifferenceEventPtsArgs,
+            event: GQL.UpdatesDifferenceEventEventArgs,
+        }
+    >;
     UpdatesSequenceDifference?: ComplexTypedResolver<
         GQL.UpdatesSequenceDifference,
         GQLRoots.UpdatesSequenceDifferenceRoot,
         {
             sequence: GQLRoots.SequenceRoot,
-            events: GQLRoots.UpdateEventRoot[],
+            events: GQLRoots.UpdatesDifferenceEventRoot[],
         },
         {
             sequence: GQL.UpdatesSequenceDifferenceSequenceArgs,

@@ -98,7 +98,7 @@ export class TypedEventsMediator {
             let res = await this.events.repo.getDifference(ctx, subscriber, Buffer.from(state, 'base64'), { limits: { forwardOnly: 100, generic: 20, global: 300 } });
 
             // Parse sequences
-            let sequences = new Map<string, { sequence: FeedReference, pts: number, events: Event[] }>();
+            let sequences = new Map<string, { sequence: FeedReference, pts: number, events: { pts: number, event: Event }[] }>();
             for (let u of res.updates) {
                 if (u.event === 'event') {
                     let update = unpackFeedEvent(u.body!);
@@ -106,9 +106,9 @@ export class TypedEventsMediator {
                     if (sequences.has(k)) {
                         let e = sequences.get(k)!;
                         e.pts = Math.max(u.seq, e.pts);
-                        e.events.push(update.event);
+                        e.events.push({ pts: u.seq, event: update.event });
                     } else {
-                        sequences.set(k, { sequence: update.feed, pts: u.seq, events: [update.event] });
+                        sequences.set(k, { sequence: update.feed, pts: u.seq, events: [{ pts: u.seq, event: update.event }] });
                     }
                 }
             }

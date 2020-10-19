@@ -814,6 +814,7 @@ export namespace GQLRoots {
     export type UpdatesSequenceStateRoot = { sequence: SequenceRoot, pts: number };
     export type UpdatesStateRoot = { seq: number, state: string, sequences: UpdatesSequenceStateRoot[] };
 
-    export type UpdatesSequenceDifferenceRoot = { sequence: SequenceRoot, pts: number, events: UpdateEventRoot[] };
+    export type UpdatesDifferenceEventRoot = { pts: number, event: UpdateEventRoot };
+    export type UpdatesSequenceDifferenceRoot = { sequence: SequenceRoot, pts: number, events: UpdatesDifferenceEventRoot[] };
     export type UpdatesDifferenceRoot = { seq: number, state: string, hasMore: boolean, sequences: UpdatesSequenceDifferenceRoot[] };
 }
