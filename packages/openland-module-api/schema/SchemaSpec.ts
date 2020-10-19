@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '04bd0265f8cf5d5b546e0942fb0ef566';
+export const GQL_SPEC_VERSION = 'ac7b97661a7467e1c36b4ce19511857c';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1467,11 +1467,9 @@ export namespace GQL {
     export interface SequenceIdArgs { }
     export interface SequenceCommon extends Sequence {
         id: string;
-        uid: string;
         unread: number;
     }
     export interface SequenceCommonIdArgs { }
-    export interface SequenceCommonUidArgs { }
     export interface SequenceCommonUnreadArgs { }
     export interface SequenceChat extends Sequence {
         id: string;
@@ -7958,7 +7956,6 @@ export interface GQLResolver {
         },
         {
             id: GQL.SequenceCommonIdArgs,
-            uid: GQL.SequenceCommonUidArgs,
             unread: GQL.SequenceCommonUnreadArgs,
         }
     >;
