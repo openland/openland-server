@@ -57,6 +57,7 @@ type UpdatesSequenceDifference {
 type UpdatesDifference {
     seq: Int!
     state: String!
+    hasMore: Boolean!
     sequences: [UpdatesSequenceDifference!]!
 }
 

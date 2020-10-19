@@ -85,6 +85,17 @@ export const Resolver: GQLResolver = {
         pts: (src) => src.pts,
         sequence: (src) => src.sequence
     },
+    UpdatesDifference: {
+        seq: (src) => src.seq,
+        state: (src) => IDs.SequenceStateV1.serialize(src.state),
+        sequences: (src) => src.sequences,
+        hasMore: (src) => src.hasMore
+    },
+    UpdatesSequenceDifference: {
+        pts: (src) => src.pts,
+        events: (src) => src.events,
+        sequence: (src) => src.sequence
+    },
     Query: {
         updatesState: withUser(async (ctx, args, uid) => {
             let init = await inTx(ctx, async (ctx2) => {
@@ -102,13 +113,21 @@ export const Resolver: GQLResolver = {
                 sequences: feedStates.map((f) => ({ sequence: f.feed, pts: f.state.pts }))
             };
         }),
-        // updatesDifference: withUser(async (ctx, args, uid) => {
-        //     let init = await inTx(ctx, async (ctx2) => {
-        //         let state = await Modules.Events.mediator.getState(ctx2, uid);
-        //         return { state, version: getTransaction(ctx2).getCommittedVersion() };
-        //     });
-        //     // Keep resolver consistent with base transaction
-        //     getTransaction(ctx).setReadVersion(await init.version);
-        // })
+        updatesDifference: withUser(async (ctx, args, uid) => {
+            let res = await inTx(ctx, async (ctx2) => {
+                let diff = await Modules.Events.mediator.getDifference(ctx2, uid, IDs.SequenceStateV1.parse(args.state));
+                return { diff, version: getTransaction(ctx2).getCommittedVersion() };
+            });
+            // Keep resolver consistent with base transaction
+            getTransaction(ctx).setReadVersion(await res.version);
+
+            // Resolving sequences
+            return {
+                seq: res.diff.seq,
+                state: res.diff.state,
+                hasMore: res.diff.hasMore,
+                sequences: res.diff.sequences
+            };
+        })
     }
 };

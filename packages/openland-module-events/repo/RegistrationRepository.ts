@@ -30,7 +30,7 @@ export class RegistrationRepository {
         if (res) {
             return this.parseLocation(res);
         } else {
-            return null;
+            throw Error('Unable to find feed');
         }
     }
 

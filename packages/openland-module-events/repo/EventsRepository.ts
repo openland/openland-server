@@ -416,7 +416,10 @@ export class EventsRepository {
                 state = updates[updates.length - 1].state;
             }
 
-            return { updates: updates.map((v) => ({ event: v.event, body: v.body, feed: v.feed, seq: v.seq })), hasMore, state };
+            // Resolve current seq
+            let seq = await this.subSeq.getCurrentSeq(ctx, subscriber);
+
+            return { updates: updates.map((v) => ({ event: v.event, body: v.body, feed: v.feed, seq: v.seq })), hasMore, seq, state };
         });
     }
 

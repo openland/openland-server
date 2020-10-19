@@ -1,5 +1,5 @@
 import { SubscriberReceiver } from './../receiver/SubscriberReceiver';
-import { CommonEvent, commonEventCollapseKey, commonEventSerialize, packFeedEvent, unpackFeedEvent, UserSubscriptionHandlerEvent, FeedReference } from './../Definitions';
+import { CommonEvent, commonEventCollapseKey, commonEventSerialize, packFeedEvent, unpackFeedEvent, UserSubscriptionHandlerEvent, FeedReference, Event } from './../Definitions';
 import { RegistrationRepository } from './../repo/RegistrationRepository';
 import { inTx, withoutTransaction } from '@openland/foundationdb';
 import { EventBus } from 'openland-module-pubsub/EventBus';
@@ -95,7 +95,30 @@ export class TypedEventsMediator {
                 throw Error('Subscriber does not exist');
             }
             await this.events.refreshOnline(ctx, subscriber);
-            await this.events.repo.getDifference(ctx, subscriber, Buffer.from(state, 'base63'), { limits: { forwardOnly: 100, generic: 20, global: 300} });
+            let res = await this.events.repo.getDifference(ctx, subscriber, Buffer.from(state, 'base63'), { limits: { forwardOnly: 100, generic: 20, global: 300 } });
+
+            // Parse sequences
+            let sequences = new Map<string, { sequence: FeedReference, pts: number, events: Event[] }>();
+            for (let u of res.updates) {
+                if (u.event === 'event') {
+                    let update = unpackFeedEvent(u.body!);
+                    let k = u.feed.toString('hex');
+                    if (sequences.has(k)) {
+                        let e = sequences.get(k)!;
+                        e.pts = Math.max(u.seq, e.pts);
+                        e.events.push(update.event);
+                    } else {
+                        sequences.set(k, { sequence: update.feed, pts: u.seq, events: [update.event] });
+                    }
+                }
+            }
+
+            return {
+                hasMore: res.hasMore,
+                seq: res.seq,
+                state: res.state.toString('base64'),
+                sequences: [...sequences.values()]
+            };
         });
     }
 
