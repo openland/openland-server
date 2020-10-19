@@ -86,21 +86,29 @@ export const Resolver: GQLResolver = {
         sequence: (src) => src.sequence
     },
     Query: {
-        updatesState: withUser(async (parent, args, uid) => {
-            let res = await inTx(parent, async (ctx) => {
-                let state = await Modules.Events.mediator.getState(ctx, uid);
-                let feeds = await Modules.Events.mediator.getInitialFeeds(ctx, uid);
-                let feedStates = await Promise.all(feeds.map(async (f) => ({ state: await Modules.Events.mediator.getFeedState(ctx, f), feed: f })));
-                let readVersion = await getTransaction(ctx).getReadVersion();
-                return { state, feeds: feedStates, readVersion: readVersion };
+        updatesState: withUser(async (ctx, args, uid) => {
+            let init = await inTx(ctx, async (ctx2) => {
+                let state = await Modules.Events.mediator.getState(ctx2, uid);
+                return { state, version: getTransaction(ctx2).getCommittedVersion() };
             });
             // Keep resolver consistent with base transaction
-            getTransaction(parent).setReadVersion(res.readVersion);
+            getTransaction(ctx).setReadVersion(await init.version);
+
+            let feeds = await Modules.Events.mediator.getInitialFeeds(ctx, uid);
+            let feedStates = await Promise.all(feeds.map(async (f) => ({ state: await Modules.Events.mediator.getFeedState(ctx, f), feed: f })));
             return {
-                seq: res.state.seq,
-                state: (await res.state.state).toString('base64'),
-                sequences: res.feeds.map((f) => ({ sequence: f.feed, pts: f.state.pts }))
+                seq: init.state.seq,
+                state: (await init.state.state).toString('base64'),
+                sequences: feedStates.map((f) => ({ sequence: f.feed, pts: f.state.pts }))
             };
-        })
+        }),
+        // updatesDifference: withUser(async (ctx, args, uid) => {
+        //     let init = await inTx(ctx, async (ctx2) => {
+        //         let state = await Modules.Events.mediator.getState(ctx2, uid);
+        //         return { state, version: getTransaction(ctx2).getCommittedVersion() };
+        //     });
+        //     // Keep resolver consistent with base transaction
+        //     getTransaction(ctx).setReadVersion(await init.version);
+        // })
     }
 };

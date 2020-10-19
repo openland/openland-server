@@ -87,6 +87,18 @@ export class TypedEventsMediator {
             return { pts: latest.seq, state: latest.state.toString('base64') };
         });
     }
+
+    async getDifference(parent: Context, uid: number, state: string) {
+        return await inTx(parent, async (ctx) => {
+            let subscriber = await this.registry.getUserSubscriber(ctx, uid);
+            if (!subscriber) {
+                throw Error('Subscriber does not exist');
+            }
+            await this.events.refreshOnline(ctx, subscriber);
+            await this.events.repo.getDifference(ctx, subscriber, Buffer.from(state, 'base63'), { limits: { forwardOnly: 100, generic: 20, global: 300} });
+        });
+    }
+
     //
     // Posting
     //
