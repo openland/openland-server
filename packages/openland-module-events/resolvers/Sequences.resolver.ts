@@ -20,10 +20,12 @@ export const Resolver: GQLResolver = {
         }
     },
     SequenceCommon: {
+        id: (src, { }, ctx) => IDs.SequenceUser.serialize(ctx.auth.uid!),
         uid: (src, { }, ctx) => IDs.User.serialize(ctx.auth.uid!),
         unread: (src, { }, ctx) => Modules.Messaging.counters.fetchUserGlobalCounter(ctx, ctx.auth.uid!)
     },
     SequenceChat: {
+        id: (src, { }, ctx) => IDs.SequenceChat.serialize(src.cid),
         cid: (src, { }, ctx) => IDs.Conversation.serialize(src.cid),
         unread: (src, { }, ctx) => Modules.Messaging.counters.fetchUserUnreadInChat(ctx, ctx.auth.uid!, src.cid)
     }

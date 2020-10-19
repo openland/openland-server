@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '75616fa8d91834ac309a834c69a66256';
+export const GQL_SPEC_VERSION = '04bd0265f8cf5d5b546e0942fb0ef566';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1461,6 +1461,26 @@ export namespace GQL {
     export interface RoomPowerupIdArgs { }
     export interface RoomPowerupPowerupArgs { }
     export interface RoomPowerupUserSettingsArgs { }
+    export interface Sequence {
+        id: string;
+    }
+    export interface SequenceIdArgs { }
+    export interface SequenceCommon extends Sequence {
+        id: string;
+        uid: string;
+        unread: number;
+    }
+    export interface SequenceCommonIdArgs { }
+    export interface SequenceCommonUidArgs { }
+    export interface SequenceCommonUnreadArgs { }
+    export interface SequenceChat extends Sequence {
+        id: string;
+        cid: string;
+        unread: number;
+    }
+    export interface SequenceChatIdArgs { }
+    export interface SequenceChatCidArgs { }
+    export interface SequenceChatUnreadArgs { }
     export interface PageInfo {
         hasNextPage: boolean;
         hasPreviousPage: boolean;
@@ -6309,19 +6329,6 @@ export namespace GQL {
     export interface RoomInviteIdArgs { }
     export interface RoomInviteRoomArgs { }
     export interface RoomInviteInvitedByUserArgs { }
-    export type Sequence = SequenceCommon | SequenceChat;
-    export interface SequenceCommon {
-        uid: string;
-        unread: number;
-    }
-    export interface SequenceCommonUidArgs { }
-    export interface SequenceCommonUnreadArgs { }
-    export interface SequenceChat {
-        cid: string;
-        unread: number;
-    }
-    export interface SequenceChatCidArgs { }
-    export interface SequenceChatUnreadArgs { }
     export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection | Channel;
     export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged;
     export interface UpdateChatRead {
@@ -7941,6 +7948,29 @@ export interface GQLResolver {
             id: GQL.RoomPowerupIdArgs,
             powerup: GQL.RoomPowerupPowerupArgs,
             userSettings: GQL.RoomPowerupUserSettingsArgs,
+        }
+    >;
+    Sequence?: InterfaceTypeResolver<GQLRoots.SequenceRoot, 'SequenceCommon' | 'SequenceChat'>;
+    SequenceCommon?: ComplexTypedResolver<
+        GQL.SequenceCommon,
+        GQLRoots.SequenceCommonRoot,
+        {
+        },
+        {
+            id: GQL.SequenceCommonIdArgs,
+            uid: GQL.SequenceCommonUidArgs,
+            unread: GQL.SequenceCommonUnreadArgs,
+        }
+    >;
+    SequenceChat?: ComplexTypedResolver<
+        GQL.SequenceChat,
+        GQLRoots.SequenceChatRoot,
+        {
+        },
+        {
+            id: GQL.SequenceChatIdArgs,
+            cid: GQL.SequenceChatCidArgs,
+            unread: GQL.SequenceChatUnreadArgs,
         }
     >;
     PageInfo?: ComplexTypedResolver<
@@ -11762,27 +11792,6 @@ export interface GQLResolver {
             id: GQL.RoomInviteIdArgs,
             room: GQL.RoomInviteRoomArgs,
             invitedByUser: GQL.RoomInviteInvitedByUserArgs,
-        }
-    >;
-    Sequence?: UnionTypeResolver<GQLRoots.SequenceRoot, 'SequenceCommon' | 'SequenceChat'>;
-    SequenceCommon?: ComplexTypedResolver<
-        GQL.SequenceCommon,
-        GQLRoots.SequenceCommonRoot,
-        {
-        },
-        {
-            uid: GQL.SequenceCommonUidArgs,
-            unread: GQL.SequenceCommonUnreadArgs,
-        }
-    >;
-    SequenceChat?: ComplexTypedResolver<
-        GQL.SequenceChat,
-        GQLRoots.SequenceChatRoot,
-        {
-        },
-        {
-            cid: GQL.SequenceChatCidArgs,
-            unread: GQL.SequenceChatUnreadArgs,
         }
     >;
     ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom' | 'DiscoverChatsCollection' | 'Channel'>;
