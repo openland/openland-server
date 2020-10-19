@@ -95,7 +95,7 @@ export class TypedEventsMediator {
                 throw Error('Subscriber does not exist');
             }
             await this.events.refreshOnline(ctx, subscriber);
-            let res = await this.events.repo.getDifference(ctx, subscriber, Buffer.from(state, 'base63'), { limits: { forwardOnly: 100, generic: 20, global: 300 } });
+            let res = await this.events.repo.getDifference(ctx, subscriber, Buffer.from(state, 'base64'), { limits: { forwardOnly: 100, generic: 20, global: 300 } });
 
             // Parse sequences
             let sequences = new Map<string, { sequence: FeedReference, pts: number, events: Event[] }>();
