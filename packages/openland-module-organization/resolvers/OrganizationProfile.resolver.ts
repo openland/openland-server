@@ -1,4 +1,4 @@
-import { Context } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
 import { IDs } from 'openland-module-api/IDs';
 import { Store } from 'openland-module-db/FDB';
 import { withUser, withAccount } from 'openland-module-api/Resolvers';
@@ -14,8 +14,17 @@ import { Organization } from 'openland-module-db/store';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { createLogger } from '@openland/log';
 import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
+import { asyncRun } from '../../openland-utils/timer';
+import { isDefined } from '../../openland-utils/misc';
+import { MessageAttachmentFileInput } from '../../openland-module-messaging/MessageInput';
 
 const log = createLogger('organization_profile_resolver');
+
+const ORG_MEMBERS_EXPORT_WHITELIST = [
+    '3YgM91xQP1sa3ea5mxxVTwRkJg'
+];
+
+const rootCtx = createNamedContext('organization');
 
 export const Resolver: GQLResolver = {
     OrganizationProfile: {
@@ -193,6 +202,90 @@ export const Resolver: GQLResolver = {
                 ...args.input,
                 autosubscribeRooms: args.input.autosubscribeRooms?.map(a => IDs.Conversation.parse(a))
             });
+        }),
+        requestOrganizationMembersExport: withUser(async (ctx, args, uid) => {
+            let oid = IDs.Organization.parse(args.id);
+            let isInWhiteList = ORG_MEMBERS_EXPORT_WHITELIST.includes(args.id);
+            let isOrgAdmin = await Modules.Orgs.isUserAdmin(ctx, uid, oid);
+            let isSuperAdmin = await Modules.Super.isSuperAdmin(ctx, uid);
+            let canExport = isSuperAdmin || (isOrgAdmin && isInWhiteList);
+
+            if (!canExport) {
+                throw new AccessDeniedError();
+            }
+
+            asyncRun(async () => {
+                let stream = Store.OrganizationMember.organization.stream('joined', oid, { batchSize: 100 });
+
+                let data: string[][] = [];
+
+                data.push(['first name', 'last name', 'email', 'phone', 'link']);
+
+                let working = true;
+                while (working) {
+                    let batch = await inTx(rootCtx, async ctx2 => stream.next(ctx2));
+                    console.log(batch);
+                    if (batch.length === 0) {
+                        working = false;
+                        continue;
+                    }
+                    let settings = (await Promise.all(batch.map(v => Store.UserSettings.findById(ctx, v.uid)))).filter(isDefined);
+                    let profiles = (await Promise.all(batch.map(v => Store.UserProfile.findById(ctx, v.uid)))).filter(isDefined);
+                    let users = (await Promise.all(batch.map(v => Store.User.findById(ctx, v.uid)))).filter(isDefined);
+                    let ignoreUsers = new Set<number>(settings.filter(s => s.privacy?.communityAdminsCanSeeContactInfo === false).map(s => s.id));
+
+                    for (let user of users) {
+                        if (ignoreUsers.has(user.id)) {
+                            continue;
+                        }
+                        let profile = profiles.find(p => p.id === user.id);
+                        if (!profile) {
+                            continue;
+                        }
+
+                        data.push([
+                            profile.firstName,
+                            profile.lastName || '-',
+                            user.email || '-',
+                            user.phone || '-',
+                            `openland.com/${IDs.User.serialize(user.id)}`
+                        ]);
+                    }
+                }
+
+                let csv = '';
+                for (let line of data) {
+                    csv += line.map(v => `"${v}"`).join(';') + '\n';
+                }
+
+                await inTx(rootCtx, async ctx2 => {
+                    let supportUserId = await Modules.Super.getEnvVar<number>(ctx2, 'support-user-id');
+                    if (!supportUserId) {
+                        return;
+                    }
+                    let conv = await Modules.Messaging.room.resolvePrivateChat(ctx2, ctx.auth.uid!, supportUserId!);
+                    let {file} = await Modules.Media.upload(ctx2, Buffer.from(csv), '.csv');
+                    let fileMetadata = await Modules.Media.saveFile(ctx2, file);
+                    let attachment = {
+                        type: 'file_attachment',
+                        fileId: file,
+                        fileMetadata
+                    } as MessageAttachmentFileInput;
+
+                    await Modules.Messaging.sendMessage(
+                        ctx2,
+                        conv.id,
+                        supportUserId,
+                        {
+                            message: 'Here is your data:',
+                            attachments: [attachment]
+                        },
+                        true
+                    );
+                });
+            });
+
+            return true;
         }),
     }
 };

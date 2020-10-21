@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '122ba9cbfe5df624c0d54caf15e31803';
+export const GQL_SPEC_VERSION = 'dc755ed26842c69fd871928dfb13f3f8';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -976,6 +976,7 @@ export namespace GQL {
         excludeMutedChats: Nullable<boolean>;
         whoCanSeeEmail: Nullable<PrivacyWhoCanSee>;
         whoCanSeePhone: Nullable<PrivacyWhoCanSee>;
+        communityAdminsCanSeeContactInfo: Nullable<boolean>;
         notificationsDelay: Nullable<NotificationsDelay>;
         desktopNotifications: Nullable<NotificationMessages>;
         mobileNotifications: Nullable<NotificationMessages>;
@@ -995,6 +996,7 @@ export namespace GQL {
         excludeMutedChats: boolean;
         whoCanSeeEmail: PrivacyWhoCanSee;
         whoCanSeePhone: PrivacyWhoCanSee;
+        communityAdminsCanSeeContactInfo: boolean;
         notificationsDelay: NotificationsDelay;
         desktopNotifications: NotificationMessages;
         mobileNotifications: NotificationMessages;
@@ -1013,6 +1015,7 @@ export namespace GQL {
     export interface SettingsExcludeMutedChatsArgs { }
     export interface SettingsWhoCanSeeEmailArgs { }
     export interface SettingsWhoCanSeePhoneArgs { }
+    export interface SettingsCommunityAdminsCanSeeContactInfoArgs { }
     export interface SettingsNotificationsDelayArgs { }
     export interface SettingsDesktopNotificationsArgs { }
     export interface SettingsMobileNotificationsArgs { }
@@ -2489,6 +2492,7 @@ export namespace GQL {
         updateOrganizationProfile: OrganizationProfile;
         deleteOrganization: boolean;
         createOrganization: Organization;
+        requestOrganizationMembersExport: boolean;
         postDraftCreate: PostDraft;
         postDraftUpdate: PostDraft;
         postDraftPublish: Post;
@@ -3392,6 +3396,9 @@ export namespace GQL {
     }
     export interface MutationCreateOrganizationArgs {
         input: CreateOrganizationInput;
+    }
+    export interface MutationRequestOrganizationMembersExportArgs {
+        id: string;
     }
     export interface MutationPostDraftCreateArgs {
         input: PostInput;
@@ -7569,6 +7576,7 @@ export interface GQLResolver {
             excludeMutedChats: GQL.SettingsExcludeMutedChatsArgs,
             whoCanSeeEmail: GQL.SettingsWhoCanSeeEmailArgs,
             whoCanSeePhone: GQL.SettingsWhoCanSeePhoneArgs,
+            communityAdminsCanSeeContactInfo: GQL.SettingsCommunityAdminsCanSeeContactInfoArgs,
             notificationsDelay: GQL.SettingsNotificationsDelayArgs,
             desktopNotifications: GQL.SettingsDesktopNotificationsArgs,
             mobileNotifications: GQL.SettingsMobileNotificationsArgs,
@@ -9367,6 +9375,7 @@ export interface GQLResolver {
             updateOrganizationProfile: GQL.MutationUpdateOrganizationProfileArgs,
             deleteOrganization: GQL.MutationDeleteOrganizationArgs,
             createOrganization: GQL.MutationCreateOrganizationArgs,
+            requestOrganizationMembersExport: GQL.MutationRequestOrganizationMembersExportArgs,
             postDraftCreate: GQL.MutationPostDraftCreateArgs,
             postDraftUpdate: GQL.MutationPostDraftUpdateArgs,
             postDraftPublish: GQL.MutationPostDraftPublishArgs,

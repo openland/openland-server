@@ -140,7 +140,8 @@ const settingsUpdateResolver = withUser(async (parent, args: GQL.MutationSetting
         if (!settings.privacy) {
             settings.privacy = {
                 whoCanSeePhone: 'nobody',
-                whoCanSeeEmail: 'nobody'
+                whoCanSeeEmail: 'nobody',
+                communityAdminsCanSeeContactInfo: true
             };
         }
         if (args.settings.whoCanSeeEmail) {
@@ -148,6 +149,9 @@ const settingsUpdateResolver = withUser(async (parent, args: GQL.MutationSetting
         }
         if (args.settings.whoCanSeePhone) {
             settings.privacy.whoCanSeePhone = args.settings.whoCanSeePhone === 'EVERYONE' ? 'everyone' : 'nobody';
+        }
+        if (args.settings.communityAdminsCanSeeContactInfo !== null) {
+            settings.privacy.communityAdminsCanSeeContactInfo = args.settings.communityAdminsCanSeeContactInfo;
         }
 
         let countUnreadChats = !settings.globalCounterType ? false : (settings.globalCounterType === 'unread_chats' || settings.globalCounterType === 'unread_chats_no_muted');
@@ -340,7 +344,8 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationUpdateS
         if (!settings.privacy) {
             settings.privacy = {
                 whoCanSeePhone: 'nobody',
-                whoCanSeeEmail: 'nobody'
+                whoCanSeeEmail: 'nobody',
+                communityAdminsCanSeeContactInfo: true
             };
         }
         if (args.settings.whoCanSeeEmail) {
@@ -348,6 +353,9 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationUpdateS
         }
         if (args.settings.whoCanSeePhone) {
             settings.privacy.whoCanSeePhone = args.settings.whoCanSeePhone === 'EVERYONE' ? 'everyone' : 'nobody';
+        }
+        if (args.settings.communityAdminsCanSeeContactInfo !== null) {
+            settings.privacy.communityAdminsCanSeeContactInfo = args.settings.communityAdminsCanSeeContactInfo;
         }
 
         let countUnreadChats = !settings.globalCounterType ? false : (settings.globalCounterType === 'unread_chats' || settings.globalCounterType === 'unread_chats_no_muted');
@@ -476,6 +484,9 @@ export const Resolver: GQLResolver = {
             }
             return 'NOBODY';
         },
+        communityAdminsCanSeeContactInfo: src => {
+            return src.privacy?.communityAdminsCanSeeContactInfo !== false;
+        }
     },
     PlatformNotificationSettings: {
         notificationPreview: src => src.notificationPreview.toUpperCase() as NotificationPreviewRoot

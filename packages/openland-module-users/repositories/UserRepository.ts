@@ -247,7 +247,8 @@ export class UserRepository {
                     mobile: allPlatformEnabled,
                     privacy: {
                         whoCanSeeEmail: 'nobody',
-                        whoCanSeePhone: 'nobody'
+                        whoCanSeePhone: 'nobody',
+                        communityAdminsCanSeeContactInfo: true
                     }
                 });
             }

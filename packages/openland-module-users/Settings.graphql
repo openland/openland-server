@@ -76,6 +76,7 @@ input UpdateSettingsInput {
     excludeMutedChats: Boolean
     whoCanSeeEmail: PrivacyWhoCanSee
     whoCanSeePhone: PrivacyWhoCanSee
+    communityAdminsCanSeeContactInfo: Boolean
 
     # Deprecated
     notificationsDelay: NotificationsDelay
@@ -98,6 +99,7 @@ type Settings {
     excludeMutedChats: Boolean!
     whoCanSeeEmail: PrivacyWhoCanSee!
     whoCanSeePhone: PrivacyWhoCanSee!
+    communityAdminsCanSeeContactInfo: Boolean!
 
     # Deprecated
     notificationsDelay: NotificationsDelay!
