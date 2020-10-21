@@ -117,7 +117,7 @@ export class RoomMediator {
 
             // Check if was kicked
             let participant = await Store.RoomParticipant.findById(ctx, cid, uid);
-            if (participant && participant.status === 'kicked' && !request) {
+            if (participant && participant.status === 'kicked' && !request && !isMemberOfOrg) {
                 throw new UserError(`Unfortunately, you cannot join ${await this.resolveConversationTitle(ctx, cid, uid)}. Someone kicked you from this group, and now you can only join it if a group member adds you.`, 'CANT_JOIN_GROUP');
             }
 
