@@ -43,7 +43,10 @@ const BAD_WORDS = [
     't.me/siliconpravdachat',
     'siliconpravdachat',
     'silicon pravda',
-    'siliconpravda'
+    'siliconpravda',
+    'li.sten.to/youngtrawmusic',
+    'http://li.sten.to/youngtrawmusic',
+    'https://li.sten.to/youngtrawmusic',
 ];
 
 const CENSORED_WORDS = [
@@ -113,6 +116,7 @@ export class MessagingMediator {
             }
 
             if (message.message) {
+                console.log(censor(message.message));
                 message.message = censor(message.message);
             }
 
