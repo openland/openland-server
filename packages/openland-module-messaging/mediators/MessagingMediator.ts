@@ -116,7 +116,6 @@ export class MessagingMediator {
             }
 
             if (message.message) {
-                console.log(censor(message.message));
                 message.message = censor(message.message);
             }
 
