@@ -228,9 +228,9 @@ export const Resolver: GQLResolver = {
                         working = false;
                         continue;
                     }
-                    let settings = (await Promise.all(batch.map(v => Store.UserSettings.findById(ctx, v.uid)))).filter(isDefined);
-                    let profiles = (await Promise.all(batch.map(v => Store.UserProfile.findById(ctx, v.uid)))).filter(isDefined);
-                    let users = (await Promise.all(batch.map(v => Store.User.findById(ctx, v.uid)))).filter(isDefined);
+                    let settings = await inTx(rootCtx, async ctx2 => (await Promise.all(batch.map(v => Store.UserSettings.findById(ctx2, v.uid)))).filter(isDefined));
+                    let profiles = await inTx(rootCtx, async ctx2 => (await Promise.all(batch.map(v => Store.UserProfile.findById(ctx2, v.uid)))).filter(isDefined));
+                    let users = await inTx(rootCtx, async ctx2 => (await Promise.all(batch.map(v => Store.User.findById(ctx2, v.uid)))).filter(isDefined));
                     let ignoreUsers = new Set<number>(settings.filter(s => s.privacy?.communityAdminsCanSeeContactInfo === false).map(s => s.id));
 
                     for (let user of users) {
