@@ -1010,7 +1010,9 @@ export const Resolver: GQLResolver = {
                         let isMuted = mutedChats.has(cid);
                         let unread = dialogCounters.get(cid) || 0;
 
-                        directory.set(ctx, [uid, isMuted ? 'muted' : 'unmuted', cid], unread);
+                        if (unread > 0) {
+                            directory.set(ctx, [uid, isMuted ? 'muted' : 'unmuted', cid], unread);
+                        }
                     }
                 } catch (e) {
                     await log(e);
