@@ -224,7 +224,6 @@ export const Resolver: GQLResolver = {
                 let working = true;
                 while (working) {
                     let batch = await inTx(rootCtx, async ctx2 => stream.next(ctx2));
-                    console.log(batch);
                     if (batch.length === 0) {
                         working = false;
                         continue;
