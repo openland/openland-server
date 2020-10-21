@@ -320,6 +320,15 @@ export const Resolver: GQLResolver = {
             // });
             return 'ok';
         }),
+        debugFindUser: withPermission('super-admin', async (ctx, args) => {
+            if (args.email) {
+                return await Store.User.email.find(ctx, args.email);
+            } else if (args.phone) {
+                return await Store.User.fromPhone.find(ctx, args.phone);
+            } else {
+                return null;
+            }
+        }),
     },
     Mutation: {
         debugSendSMS: withPermission('super-admin', async (ctx, args) => {

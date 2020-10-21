@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'dc755ed26842c69fd871928dfb13f3f8';
+export const GQL_SPEC_VERSION = 'c43b34b22a6a5a7f2a2960081c3e5689';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4327,6 +4327,7 @@ export namespace GQL {
         debugMentionSearchGetUserData: string;
         debugGetCounters: string;
         debugExperimentalCounter: string;
+        debugFindUser: Nullable<User>;
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
@@ -4578,6 +4579,10 @@ export namespace GQL {
     export interface QueryDebugGetCountersArgs { }
     export interface QueryDebugExperimentalCounterArgs {
         cid: string;
+    }
+    export interface QueryDebugFindUserArgs {
+        email: OptionalNullable<string>;
+        phone: OptionalNullable<string>;
     }
     export interface QueryDialogsArgs {
         first: number;
@@ -10069,6 +10074,7 @@ export interface GQLResolver {
             debugGqlTraces: GQLRoots.GqlTraceConnectionRoot,
             debugGqlTrace: GQLRoots.GqlTraceRoot,
             debugUserWallet: GQLRoots.WalletAccountRoot,
+            debugFindUser: Nullable<GQLRoots.UserRoot>,
             dialogs: GQLRoots.DialogsConnectionRoot,
             settings: GQLRoots.SettingsRoot,
             authPoints: GQLRoots.AuthPointRoot,
@@ -10249,6 +10255,7 @@ export interface GQLResolver {
             debugMentionSearchGetUserData: GQL.QueryDebugMentionSearchGetUserDataArgs,
             debugGetCounters: GQL.QueryDebugGetCountersArgs,
             debugExperimentalCounter: GQL.QueryDebugExperimentalCounterArgs,
+            debugFindUser: GQL.QueryDebugFindUserArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
             authPoints: GQL.QueryAuthPointsArgs,
