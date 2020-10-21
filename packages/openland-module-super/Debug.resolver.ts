@@ -978,20 +978,31 @@ export const Resolver: GQLResolver = {
                 .withKeyEncoding(encoders.tuple)
                 .withValueEncoding(encoders.int32LE);
 
-            const calcForChat = async (ctx: Context, uid: number, cid: number) => {
-                let unread = await Store.UserDialogCounter.get(ctx, uid, cid);
-                let isMuted = await isChatMuted(ctx, uid, cid);
-                if (unread > 0) {
-                    directory.set(ctx, [uid, isMuted ? 'muted' : 'unmuted', cid], unread);
-                }
-            };
+            let userMuteSettingsSubspace = Store.UserDialogMuteSettingDirectory
+                .withKeyEncoding(encoders.tuple)
+                .withValueEncoding(encoders.boolean);
+
+            let dialogCountersDirectory = Store.UserDialogCounter.directory
+                .withKeyEncoding(encoders.tuple)
+                .withValueEncoding(encoders.int32LE);
 
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugCalcGlobalCountersForAll', async (ctx, uid, log) => {
                 try {
                     let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
+                    let mutedChatsData = await userMuteSettingsSubspace.range(ctx, [uid]);
+                    let dialogCountersData = await dialogCountersDirectory.range(ctx, [uid]);
+
+                    let mutedChats = new Set<number>(mutedChatsData.filter(v => v.value).map(v => v.key[1] as number));
+                    let dialogCounters = new Map<number, number>(dialogCountersData.map(v => ([v.key[1] as number, v.value])));
+
                     directory.clearPrefixed(ctx, [uid]);
 
-                    await Promise.all(dialogs.map(d => calcForChat(ctx, uid, d.cid)));
+                    for (let {cid} of dialogs) {
+                        let isMuted = mutedChats.has(cid);
+                        let unread = dialogCounters.get(cid) || 0;
+
+                        directory.set(ctx, [uid, isMuted ? 'muted' : 'unmuted', cid], unread);
+                    }
                 } catch (e) {
                     await log(e);
                     logger.error(parent, 'debugCalcGlobalCountersForAllError', e);
