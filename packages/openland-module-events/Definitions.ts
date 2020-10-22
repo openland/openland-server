@@ -31,7 +31,7 @@ export function commonEventSerialize(src: CommonEvent) {
     return Buffer.from(JSON.stringify(Store.eventFactory.encode(src)), 'utf-8');
 }
 export function commonEventParse(src: Buffer): CommonEvent | null {
-    let event = Store.eventFactory.decode(src.toString('utf-8'));
+    let event = Store.eventFactory.decode(JSON.parse(src.toString('utf-8')));
     for (let e of CommonEvents) {
         if (event.type === e.type) {
             return event as CommonEvent;

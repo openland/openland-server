@@ -16,6 +16,9 @@ const CHECKPOINT_INTERVAL_MAX = 20 * 1000; // 10 Sec
 const CHECKPOINT_MAX_UPDATES = 10;
 const CHECKPOINT_COMMIT_DELAY = 30 * 1000; // 30 Sec
 
+const ONLINE_EXPIRES = 5 * 60 * 1000; // 5 Min
+const ONLINE_GAP = 1 * 60 * 1000; // 1 Min
+
 export class EventsMediator {
     readonly repo: EventsRepository;
     readonly bus: EventBusEngine;
@@ -105,6 +108,15 @@ export class EventsMediator {
             checkpointCommitDelay: CHECKPOINT_COMMIT_DELAY,
             ...opts
         });
+    }
+
+    async refreshOnline(ctx: Context, subscriber: Buffer) {
+        // If online expires soon (after ONLINE_GAP) - bump seq number to trigger forced difference
+        if (!(await this.repo.isOnline(ctx, subscriber, Date.now() + ONLINE_GAP))) {
+            await this.repo.subSeq.allocateBlock(ctx, subscriber, 10);
+        }
+        
+        await this.repo.refreshOnline(ctx, subscriber, Date.now() + ONLINE_EXPIRES);
     }
 
     private postToBus(ctx: Context, subscriber: Buffer, seq: number, event: {

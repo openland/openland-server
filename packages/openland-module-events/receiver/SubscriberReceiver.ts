@@ -12,8 +12,7 @@ function random(min: number, max: number) {
     return Math.floor(min + Math.random() * (max - min));
 }
 
-const ONLINE_EXPIRES = 5 * 60 * 1000; // 5 Min
-const ONLINE_REFRESH = 30 * 1000; // 30 Sec
+export const ONLINE_REFRESH = 30 * 1000; // 30 Sec
 
 export type SubscriberReceiverEvent =
     | {
@@ -112,9 +111,8 @@ export class SubscriberReceiver {
                 return;
             }
             let rawState = await inTx(root, async (ctx) => {
-                let r = (await mediator.repo.getState(ctx, subscriber));
-                await mediator.repo.refreshOnline(ctx, subscriber, Date.now() + ONLINE_EXPIRES);
-                return r;
+                await mediator.refreshOnline(ctx, subscriber);
+                return (await mediator.repo.getState(ctx, subscriber));
             });
             let state = await rawState.state;
             let seq = rawState.seq;
@@ -169,7 +167,7 @@ export class SubscriberReceiver {
         // tslint:disable-next-line:no-floating-promises
         backoff(root, async () => {
             while (!this.stopped) {
-                await this.mediator.repo.refreshOnline(root, this.subscriber, Date.now() + ONLINE_EXPIRES);
+                await this.mediator.refreshOnline(root, this.subscriber);
                 await delay(ONLINE_REFRESH);
             }
         });
@@ -306,6 +304,8 @@ export class SubscriberReceiver {
                 }
             } catch (e) {
                 this.close();
+            } finally {
+                this.startedCheckpoint = false;
             }
         })();
     }

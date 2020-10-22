@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'a11cf9fbd0863a4bfaf609b802f662d7';
+export const GQL_SPEC_VERSION = 'c43b34b22a6a5a7f2a2960081c3e5689';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -702,6 +702,44 @@ export namespace GQL {
     export interface UpdateSubscriptionEventEventArgs { }
     export interface UpdateSubscriptionEventSequenceArgs { }
     export type UpdateSubscription = UpdateSubscriptionStarted | UpdateSubscriptionCheckpoint | UpdateSubscriptionEvent;
+    export interface UpdatesSequenceState {
+        sequence: Sequence;
+        pts: number;
+    }
+    export interface UpdatesSequenceStateSequenceArgs { }
+    export interface UpdatesSequenceStatePtsArgs { }
+    export interface UpdatesState {
+        seq: number;
+        state: string;
+        sequences: UpdatesSequenceState[];
+    }
+    export interface UpdatesStateSeqArgs { }
+    export interface UpdatesStateStateArgs { }
+    export interface UpdatesStateSequencesArgs { }
+    export interface UpdatesDifferenceEvent {
+        pts: number;
+        event: UpdateEvent;
+    }
+    export interface UpdatesDifferenceEventPtsArgs { }
+    export interface UpdatesDifferenceEventEventArgs { }
+    export interface UpdatesSequenceDifference {
+        sequence: Sequence;
+        pts: number;
+        events: UpdatesDifferenceEvent[];
+    }
+    export interface UpdatesSequenceDifferenceSequenceArgs { }
+    export interface UpdatesSequenceDifferencePtsArgs { }
+    export interface UpdatesSequenceDifferenceEventsArgs { }
+    export interface UpdatesDifference {
+        seq: number;
+        state: string;
+        hasMore: boolean;
+        sequences: UpdatesSequenceDifference[];
+    }
+    export interface UpdatesDifferenceSeqArgs { }
+    export interface UpdatesDifferenceStateArgs { }
+    export interface UpdatesDifferenceHasMoreArgs { }
+    export interface UpdatesDifferenceSequencesArgs { }
     export interface Reaction {
         user: User;
         reaction: string;
@@ -938,6 +976,7 @@ export namespace GQL {
         excludeMutedChats: Nullable<boolean>;
         whoCanSeeEmail: Nullable<PrivacyWhoCanSee>;
         whoCanSeePhone: Nullable<PrivacyWhoCanSee>;
+        communityAdminsCanSeeContactInfo: Nullable<boolean>;
         notificationsDelay: Nullable<NotificationsDelay>;
         desktopNotifications: Nullable<NotificationMessages>;
         mobileNotifications: Nullable<NotificationMessages>;
@@ -957,6 +996,7 @@ export namespace GQL {
         excludeMutedChats: boolean;
         whoCanSeeEmail: PrivacyWhoCanSee;
         whoCanSeePhone: PrivacyWhoCanSee;
+        communityAdminsCanSeeContactInfo: boolean;
         notificationsDelay: NotificationsDelay;
         desktopNotifications: NotificationMessages;
         mobileNotifications: NotificationMessages;
@@ -975,6 +1015,7 @@ export namespace GQL {
     export interface SettingsExcludeMutedChatsArgs { }
     export interface SettingsWhoCanSeeEmailArgs { }
     export interface SettingsWhoCanSeePhoneArgs { }
+    export interface SettingsCommunityAdminsCanSeeContactInfoArgs { }
     export interface SettingsNotificationsDelayArgs { }
     export interface SettingsDesktopNotificationsArgs { }
     export interface SettingsMobileNotificationsArgs { }
@@ -1431,6 +1472,24 @@ export namespace GQL {
     export interface RoomPowerupIdArgs { }
     export interface RoomPowerupPowerupArgs { }
     export interface RoomPowerupUserSettingsArgs { }
+    export interface Sequence {
+        id: string;
+    }
+    export interface SequenceIdArgs { }
+    export interface SequenceCommon extends Sequence {
+        id: string;
+        unread: number;
+    }
+    export interface SequenceCommonIdArgs { }
+    export interface SequenceCommonUnreadArgs { }
+    export interface SequenceChat extends Sequence {
+        id: string;
+        cid: string;
+        unread: number;
+    }
+    export interface SequenceChatIdArgs { }
+    export interface SequenceChatCidArgs { }
+    export interface SequenceChatUnreadArgs { }
     export interface PageInfo {
         hasNextPage: boolean;
         hasPreviousPage: boolean;
@@ -2433,6 +2492,7 @@ export namespace GQL {
         updateOrganizationProfile: OrganizationProfile;
         deleteOrganization: boolean;
         createOrganization: Organization;
+        requestOrganizationMembersExport: boolean;
         postDraftCreate: PostDraft;
         postDraftUpdate: PostDraft;
         postDraftPublish: Post;
@@ -3337,6 +3397,9 @@ export namespace GQL {
     export interface MutationCreateOrganizationArgs {
         input: CreateOrganizationInput;
     }
+    export interface MutationRequestOrganizationMembersExportArgs {
+        id: string;
+    }
     export interface MutationPostDraftCreateArgs {
         input: PostInput;
     }
@@ -4237,6 +4300,8 @@ export namespace GQL {
         appInviteFromUser: string;
         appInviteInfo: Nullable<AppInvite>;
         alphaResolveInvite: Nullable<ResolveInviteEntry>;
+        updatesState: UpdatesState;
+        updatesDifference: UpdatesDifference;
         phonebookWasExported: boolean;
         channels: Channel[];
         channel: Nullable<Channel>;
@@ -4262,6 +4327,7 @@ export namespace GQL {
         debugMentionSearchGetUserData: string;
         debugGetCounters: string;
         debugExperimentalCounter: string;
+        debugFindUser: Nullable<User>;
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
@@ -4451,6 +4517,10 @@ export namespace GQL {
     export interface QueryAlphaResolveInviteArgs {
         key: string;
     }
+    export interface QueryUpdatesStateArgs { }
+    export interface QueryUpdatesDifferenceArgs {
+        state: string;
+    }
     export interface QueryPhonebookWasExportedArgs { }
     export interface QueryChannelsArgs { }
     export interface QueryChannelArgs {
@@ -4509,6 +4579,10 @@ export namespace GQL {
     export interface QueryDebugGetCountersArgs { }
     export interface QueryDebugExperimentalCounterArgs {
         cid: string;
+    }
+    export interface QueryDebugFindUserArgs {
+        email: OptionalNullable<string>;
+        phone: OptionalNullable<string>;
     }
     export interface QueryDialogsArgs {
         first: number;
@@ -6273,19 +6347,6 @@ export namespace GQL {
     export interface RoomInviteIdArgs { }
     export interface RoomInviteRoomArgs { }
     export interface RoomInviteInvitedByUserArgs { }
-    export type Sequence = SequenceCommon | SequenceChat;
-    export interface SequenceCommon {
-        uid: string;
-        unread: number;
-    }
-    export interface SequenceCommonUidArgs { }
-    export interface SequenceCommonUnreadArgs { }
-    export interface SequenceChat {
-        cid: string;
-        unread: number;
-    }
-    export interface SequenceChatCidArgs { }
-    export interface SequenceChatUnreadArgs { }
     export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection | Channel;
     export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged;
     export interface UpdateChatRead {
@@ -7210,6 +7271,66 @@ export interface GQLResolver {
         }
     >;
     UpdateSubscription?: UnionTypeResolver<GQLRoots.UpdateSubscriptionRoot, 'UpdateSubscriptionStarted' | 'UpdateSubscriptionCheckpoint' | 'UpdateSubscriptionEvent'>;
+    UpdatesSequenceState?: ComplexTypedResolver<
+        GQL.UpdatesSequenceState,
+        GQLRoots.UpdatesSequenceStateRoot,
+        {
+            sequence: GQLRoots.SequenceRoot,
+        },
+        {
+            sequence: GQL.UpdatesSequenceStateSequenceArgs,
+            pts: GQL.UpdatesSequenceStatePtsArgs,
+        }
+    >;
+    UpdatesState?: ComplexTypedResolver<
+        GQL.UpdatesState,
+        GQLRoots.UpdatesStateRoot,
+        {
+            sequences: GQLRoots.UpdatesSequenceStateRoot[],
+        },
+        {
+            seq: GQL.UpdatesStateSeqArgs,
+            state: GQL.UpdatesStateStateArgs,
+            sequences: GQL.UpdatesStateSequencesArgs,
+        }
+    >;
+    UpdatesDifferenceEvent?: ComplexTypedResolver<
+        GQL.UpdatesDifferenceEvent,
+        GQLRoots.UpdatesDifferenceEventRoot,
+        {
+            event: GQLRoots.UpdateEventRoot,
+        },
+        {
+            pts: GQL.UpdatesDifferenceEventPtsArgs,
+            event: GQL.UpdatesDifferenceEventEventArgs,
+        }
+    >;
+    UpdatesSequenceDifference?: ComplexTypedResolver<
+        GQL.UpdatesSequenceDifference,
+        GQLRoots.UpdatesSequenceDifferenceRoot,
+        {
+            sequence: GQLRoots.SequenceRoot,
+            events: GQLRoots.UpdatesDifferenceEventRoot[],
+        },
+        {
+            sequence: GQL.UpdatesSequenceDifferenceSequenceArgs,
+            pts: GQL.UpdatesSequenceDifferencePtsArgs,
+            events: GQL.UpdatesSequenceDifferenceEventsArgs,
+        }
+    >;
+    UpdatesDifference?: ComplexTypedResolver<
+        GQL.UpdatesDifference,
+        GQLRoots.UpdatesDifferenceRoot,
+        {
+            sequences: GQLRoots.UpdatesSequenceDifferenceRoot[],
+        },
+        {
+            seq: GQL.UpdatesDifferenceSeqArgs,
+            state: GQL.UpdatesDifferenceStateArgs,
+            hasMore: GQL.UpdatesDifferenceHasMoreArgs,
+            sequences: GQL.UpdatesDifferenceSequencesArgs,
+        }
+    >;
     Reaction?: ComplexTypedResolver<
         GQL.Reaction,
         GQLRoots.ReactionRoot,
@@ -7460,6 +7581,7 @@ export interface GQLResolver {
             excludeMutedChats: GQL.SettingsExcludeMutedChatsArgs,
             whoCanSeeEmail: GQL.SettingsWhoCanSeeEmailArgs,
             whoCanSeePhone: GQL.SettingsWhoCanSeePhoneArgs,
+            communityAdminsCanSeeContactInfo: GQL.SettingsCommunityAdminsCanSeeContactInfoArgs,
             notificationsDelay: GQL.SettingsNotificationsDelayArgs,
             desktopNotifications: GQL.SettingsDesktopNotificationsArgs,
             mobileNotifications: GQL.SettingsMobileNotificationsArgs,
@@ -7857,6 +7979,28 @@ export interface GQLResolver {
             id: GQL.RoomPowerupIdArgs,
             powerup: GQL.RoomPowerupPowerupArgs,
             userSettings: GQL.RoomPowerupUserSettingsArgs,
+        }
+    >;
+    Sequence?: InterfaceTypeResolver<GQLRoots.SequenceRoot, 'SequenceCommon' | 'SequenceChat'>;
+    SequenceCommon?: ComplexTypedResolver<
+        GQL.SequenceCommon,
+        GQLRoots.SequenceCommonRoot,
+        {
+        },
+        {
+            id: GQL.SequenceCommonIdArgs,
+            unread: GQL.SequenceCommonUnreadArgs,
+        }
+    >;
+    SequenceChat?: ComplexTypedResolver<
+        GQL.SequenceChat,
+        GQLRoots.SequenceChatRoot,
+        {
+        },
+        {
+            id: GQL.SequenceChatIdArgs,
+            cid: GQL.SequenceChatCidArgs,
+            unread: GQL.SequenceChatUnreadArgs,
         }
     >;
     PageInfo?: ComplexTypedResolver<
@@ -9236,6 +9380,7 @@ export interface GQLResolver {
             updateOrganizationProfile: GQL.MutationUpdateOrganizationProfileArgs,
             deleteOrganization: GQL.MutationDeleteOrganizationArgs,
             createOrganization: GQL.MutationCreateOrganizationArgs,
+            requestOrganizationMembersExport: GQL.MutationRequestOrganizationMembersExportArgs,
             postDraftCreate: GQL.MutationPostDraftCreateArgs,
             postDraftUpdate: GQL.MutationPostDraftUpdateArgs,
             postDraftPublish: GQL.MutationPostDraftPublishArgs,
@@ -9915,6 +10060,8 @@ export interface GQLResolver {
             alphaInviteInfo: Nullable<GQLRoots.InviteInfoRoot>,
             appInviteInfo: Nullable<GQLRoots.AppInviteRoot>,
             alphaResolveInvite: Nullable<GQLRoots.ResolveInviteEntryRoot>,
+            updatesState: GQLRoots.UpdatesStateRoot,
+            updatesDifference: GQLRoots.UpdatesDifferenceRoot,
             channels: GQLRoots.ChannelRoot[],
             channel: Nullable<GQLRoots.ChannelRoot>,
             debugParseID: GQLRoots.DebugIDRoot,
@@ -9927,6 +10074,7 @@ export interface GQLResolver {
             debugGqlTraces: GQLRoots.GqlTraceConnectionRoot,
             debugGqlTrace: GQLRoots.GqlTraceRoot,
             debugUserWallet: GQLRoots.WalletAccountRoot,
+            debugFindUser: Nullable<GQLRoots.UserRoot>,
             dialogs: GQLRoots.DialogsConnectionRoot,
             settings: GQLRoots.SettingsRoot,
             authPoints: GQLRoots.AuthPointRoot,
@@ -10080,6 +10228,8 @@ export interface GQLResolver {
             appInviteFromUser: GQL.QueryAppInviteFromUserArgs,
             appInviteInfo: GQL.QueryAppInviteInfoArgs,
             alphaResolveInvite: GQL.QueryAlphaResolveInviteArgs,
+            updatesState: GQL.QueryUpdatesStateArgs,
+            updatesDifference: GQL.QueryUpdatesDifferenceArgs,
             phonebookWasExported: GQL.QueryPhonebookWasExportedArgs,
             channels: GQL.QueryChannelsArgs,
             channel: GQL.QueryChannelArgs,
@@ -10105,6 +10255,7 @@ export interface GQLResolver {
             debugMentionSearchGetUserData: GQL.QueryDebugMentionSearchGetUserDataArgs,
             debugGetCounters: GQL.QueryDebugGetCountersArgs,
             debugExperimentalCounter: GQL.QueryDebugExperimentalCounterArgs,
+            debugFindUser: GQL.QueryDebugFindUserArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
             authPoints: GQL.QueryAuthPointsArgs,
@@ -11674,27 +11825,6 @@ export interface GQLResolver {
             id: GQL.RoomInviteIdArgs,
             room: GQL.RoomInviteRoomArgs,
             invitedByUser: GQL.RoomInviteInvitedByUserArgs,
-        }
-    >;
-    Sequence?: UnionTypeResolver<GQLRoots.SequenceRoot, 'SequenceCommon' | 'SequenceChat'>;
-    SequenceCommon?: ComplexTypedResolver<
-        GQL.SequenceCommon,
-        GQLRoots.SequenceCommonRoot,
-        {
-        },
-        {
-            uid: GQL.SequenceCommonUidArgs,
-            unread: GQL.SequenceCommonUnreadArgs,
-        }
-    >;
-    SequenceChat?: ComplexTypedResolver<
-        GQL.SequenceChat,
-        GQLRoots.SequenceChatRoot,
-        {
-        },
-        {
-            cid: GQL.SequenceChatCidArgs,
-            unread: GQL.SequenceChatUnreadArgs,
         }
     >;
     ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom' | 'DiscoverChatsCollection' | 'Channel'>;

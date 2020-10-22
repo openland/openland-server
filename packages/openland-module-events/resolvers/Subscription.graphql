@@ -26,17 +26,46 @@ extend type Subscription {
 }
 
 #
+# State
+#
+
+type UpdatesSequenceState {
+    sequence: Sequence!
+    pts: Int!
+}
+
+type UpdatesState {
+    seq: Int!
+    state: String!
+    sequences: [UpdatesSequenceState!]!
+}
+
+extend type Query {
+    updatesState: UpdatesState!
+}
+
+#
 # Difference 
 #
 
-# type UpdateDifference {
-#     seq: Int!
-#     state: String!
-    
-#     # Sequences
-#     common: SequenceCommon
-# }
+type UpdatesDifferenceEvent {
+    pts: Int!
+    event: UpdateEvent!
+}
 
-# extend type Mutation {
-#     getUpdateDifference(state: String!): UpdateDifference!
-# }
+type UpdatesSequenceDifference {
+    sequence: Sequence!
+    pts: Int!
+    events: [UpdatesDifferenceEvent!]!
+}
+
+type UpdatesDifference {
+    seq: Int!
+    state: String!
+    hasMore: Boolean!
+    sequences: [UpdatesSequenceDifference!]!
+}
+
+extend type Query {
+    updatesDifference(state: String!): UpdatesDifference!
+}

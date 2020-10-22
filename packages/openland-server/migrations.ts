@@ -726,4 +726,29 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '140-drop-feeds',
+    migration: async (parent) => {
+        await inTx(parent, async ctx => {
+            Store.EventsTestStoreDirectory.clearPrefixed(ctx, Buffer.from([]));
+            Store.EventsTestRegistrationsDirectory.clearPrefixed(ctx, Buffer.from([]));
+        });
+    }
+});
+
+migrations.push({
+    key: '139-create-user-feeds',
+    migration: async (parent) => {
+        let data = await inTx(parent, ctx => Store.User.findAll(ctx));
+        for (let cursor = 0; cursor < data.length; cursor += 100) {
+            let batch = data.slice(cursor, cursor + 100);
+            await inTx(parent, async ctx => {
+                for (let u of batch) {
+                    await Modules.Events.mediator.prepareUser(ctx, u.id);
+                }
+            });
+        }
+    }
+});
+
 export default migrations;

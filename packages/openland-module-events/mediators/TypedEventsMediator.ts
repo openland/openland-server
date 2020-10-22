@@ -1,5 +1,5 @@
 import { SubscriberReceiver } from './../receiver/SubscriberReceiver';
-import { CommonEvent, commonEventCollapseKey, commonEventSerialize, packFeedEvent, unpackFeedEvent, UserSubscriptionHandlerEvent } from './../Definitions';
+import { CommonEvent, commonEventCollapseKey, commonEventSerialize, packFeedEvent, unpackFeedEvent, UserSubscriptionHandlerEvent, FeedReference, Event } from './../Definitions';
 import { RegistrationRepository } from './../repo/RegistrationRepository';
 import { inTx, withoutTransaction } from '@openland/foundationdb';
 import { EventBus } from 'openland-module-pubsub/EventBus';
@@ -46,6 +46,79 @@ export class TypedEventsMediator {
                 await this.events.subscribe(ctx, subscriber, feed);
                 this.registry.setFeed(ctx, { type: 'common', uid }, feed);
             }
+        });
+    }
+
+    //
+    // State
+    //
+
+    async getInitialFeeds(parent: Context, uid: number): Promise<FeedReference[]> {
+        return await inTx(parent, async (ctx) => {
+            let subscriber = await this.registry.getUserSubscriber(ctx, uid);
+            if (!subscriber) {
+                throw Error('Subscriber does not exist');
+            }
+
+            // TODO: Implement initial feeds
+
+            return [{ type: 'common', uid: uid }];
+        });
+    }
+
+    async getState(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let subscriber = await this.registry.getUserSubscriber(ctx, uid);
+            if (!subscriber) {
+                throw Error('Subscriber does not exist');
+            }
+            await this.events.refreshOnline(ctx, subscriber);
+            return (await this.events.repo.getState(ctx, subscriber));
+        });
+    }
+
+    async getFeedState(parent: Context, feed: FeedReference) {
+        return await inTx(parent, async (ctx) => {
+            let feedid = await this.registry.getFeed(ctx, feed);
+            if (!feedid) {
+                throw Error('Feed does not exist');
+            }
+            let latest = await this.events.repo.feedLatest.readLatest(ctx, feedid);
+            return { pts: latest.seq, state: latest.state.toString('base64') };
+        });
+    }
+
+    async getDifference(parent: Context, uid: number, state: string) {
+        return await inTx(parent, async (ctx) => {
+            let subscriber = await this.registry.getUserSubscriber(ctx, uid);
+            if (!subscriber) {
+                throw Error('Subscriber does not exist');
+            }
+            await this.events.refreshOnline(ctx, subscriber);
+            let res = await this.events.repo.getDifference(ctx, subscriber, Buffer.from(state, 'base64'), { limits: { forwardOnly: 100, generic: 20, global: 300 } });
+
+            // Parse sequences
+            let sequences = new Map<string, { sequence: FeedReference, pts: number, events: { pts: number, event: Event }[] }>();
+            for (let u of res.updates) {
+                if (u.event === 'event') {
+                    let update = unpackFeedEvent(u.body!);
+                    let k = u.feed.toString('hex');
+                    if (sequences.has(k)) {
+                        let e = sequences.get(k)!;
+                        e.pts = Math.max(u.seq, e.pts);
+                        e.events.push({ pts: u.seq, event: update.event });
+                    } else {
+                        sequences.set(k, { sequence: update.feed, pts: u.seq, events: [{ pts: u.seq, event: update.event }] });
+                    }
+                }
+            }
+
+            return {
+                hasMore: res.hasMore,
+                seq: res.seq,
+                state: res.state.toString('base64'),
+                sequences: [...sequences.values()]
+            };
         });
     }
 
