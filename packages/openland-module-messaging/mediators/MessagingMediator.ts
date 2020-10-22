@@ -47,12 +47,18 @@ const BAD_WORDS = [
     'li.sten.to/youngtrawmusic',
     'http://li.sten.to/youngtrawmusic',
     'https://li.sten.to/youngtrawmusic',
+    'https://music.apple.com/us/album/click-clack-pow-single/1535133993',
 ];
 
 const CENSORED_WORDS = [
     'fuck', 'faggot',
     'motherfucker',
     'bitch'
+];
+
+const ABSOLUTE_SPAM = [
+    'music.apple.com/us/album/click-clack-pow-single/1535133993',
+    'li.sten.to/youngtrawmusic'
 ];
 
 function censor(text: string) {
@@ -75,6 +81,18 @@ function censor(text: string) {
         }
     }
     return res;
+}
+
+function spamCheck(text: string) {
+    text = text.toLowerCase();
+
+    for (let word of ABSOLUTE_SPAM) {
+        if (text.indexOf(word) > -1) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 @injectable()
@@ -116,6 +134,9 @@ export class MessagingMediator {
             }
 
             if (message.message) {
+                if (spamCheck(message.message)) {
+                    throw new AccessDeniedError();
+                }
                 message.message = censor(message.message);
             }
 
