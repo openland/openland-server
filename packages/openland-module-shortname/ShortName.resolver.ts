@@ -71,7 +71,7 @@ export const Resolver: GQLResolver = {
 
             if (ownerType === 'user') {
                 return await Store.User.findById(ctx, ownerId);
-            } else if (ownerType === 'org' && authorized) {
+            } else if (ownerType === 'org') {
                 return await Store.Organization.findById(ctx, ownerId);
             } else if (ownerType === 'feed_channel' && authorized) {
                 return await Store.FeedChannel.findById(ctx, ownerId);
