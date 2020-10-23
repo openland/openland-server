@@ -256,7 +256,7 @@ export const Resolver: GQLResolver = {
                 for (let line of data) {
                     csv += line.map(v => `"${v}"`).join(';') + '\n';
                 }
-                backoff(rootCtx, async () => {
+                await backoff(rootCtx, async () => {
                     await inTx(rootCtx, async ctx2 => {
                         let supportUserId = await Modules.Super.getEnvVar<number>(ctx2, 'support-user-id');
                         if (!supportUserId) {
