@@ -144,7 +144,7 @@ export class MediaModule {
                     if (!error && response.statusCode === 200) {
                         resolve(JSON.parse(body));
                     } else {
-                        logger.warn(ctx, error);
+                        logger.warn(ctx, error, body);
                         reject(new Error('File error'));
                         // reject(error);
                     }

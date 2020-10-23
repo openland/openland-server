@@ -14,7 +14,7 @@ import { Organization } from 'openland-module-db/store';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { createLogger } from '@openland/log';
 import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
-import { asyncRun } from '../../openland-utils/timer';
+import { asyncRun, backoff } from '../../openland-utils/timer';
 import { isDefined } from '../../openland-utils/misc';
 import { MessageAttachmentFileInput } from '../../openland-module-messaging/MessageInput';
 
@@ -256,31 +256,32 @@ export const Resolver: GQLResolver = {
                 for (let line of data) {
                     csv += line.map(v => `"${v}"`).join(';') + '\n';
                 }
+                backoff(rootCtx, async () => {
+                    await inTx(rootCtx, async ctx2 => {
+                        let supportUserId = await Modules.Super.getEnvVar<number>(ctx2, 'support-user-id');
+                        if (!supportUserId) {
+                            return;
+                        }
+                        let conv = await Modules.Messaging.room.resolvePrivateChat(ctx2, ctx.auth.uid!, supportUserId!);
+                        let {file} = await Modules.Media.upload(ctx2, Buffer.from(csv), '.csv');
+                        let fileMetadata = await Modules.Media.saveFile(ctx2, file);
+                        let attachment = {
+                            type: 'file_attachment',
+                            fileId: file,
+                            fileMetadata
+                        } as MessageAttachmentFileInput;
 
-                await inTx(rootCtx, async ctx2 => {
-                    let supportUserId = await Modules.Super.getEnvVar<number>(ctx2, 'support-user-id');
-                    if (!supportUserId) {
-                        return;
-                    }
-                    let conv = await Modules.Messaging.room.resolvePrivateChat(ctx2, ctx.auth.uid!, supportUserId!);
-                    let {file} = await Modules.Media.upload(ctx2, Buffer.from(csv), '.csv');
-                    let fileMetadata = await Modules.Media.saveFile(ctx2, file);
-                    let attachment = {
-                        type: 'file_attachment',
-                        fileId: file,
-                        fileMetadata
-                    } as MessageAttachmentFileInput;
-
-                    await Modules.Messaging.sendMessage(
-                        ctx2,
-                        conv.id,
-                        supportUserId,
-                        {
-                            message: 'Here is your data:',
-                            attachments: [attachment]
-                        },
-                        true
-                    );
+                        await Modules.Messaging.sendMessage(
+                            ctx2,
+                            conv.id,
+                            supportUserId,
+                            {
+                                message: 'Here is your data:',
+                                attachments: [attachment]
+                            },
+                            true
+                        );
+                    });
                 });
             });
 
