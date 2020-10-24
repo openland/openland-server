@@ -58,7 +58,8 @@ const CENSORED_WORDS = [
 
 const ABSOLUTE_SPAM = [
     'music.apple.com/us/album/click-clack-pow-single/1535133993',
-    'li.sten.to/youngtrawmusic'
+    'li.sten.to/youngtrawmusic',
+    'https://music.apple.com/us/artist/young-traw/1515795274'
 ];
 
 function censor(text: string) {
