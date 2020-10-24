@@ -2410,6 +2410,10 @@ export const Resolver: GQLResolver = {
                 return 'ok, total: ' + total;
             });
             return true;
+        }),
+        debugPaymentCancel: withPermission('super-admin', async (parent, args) => {
+            await Modules.Wallet.paymentsMediator.tryCancelPayment(parent, IDs.Payment.parse(args.id));
+            return true;
         })
     },
     Subscription: {
