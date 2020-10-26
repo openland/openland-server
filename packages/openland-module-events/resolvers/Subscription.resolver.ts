@@ -94,6 +94,7 @@ export const Resolver: GQLResolver = {
     },
     UpdatesSequenceDifference: {
         events: (src) => src.events,
+        after: (src) => src.pts,
         sequence: (src) => src.sequence
     },
     UpdatesDifferenceEvent: {
@@ -123,20 +124,7 @@ export const Resolver: GQLResolver = {
             };
         }),
         updatesDifference: withUser(async (ctx, args, uid) => {
-            let res = await inTx(ctx, async (ctx2) => {
-                let diff = await Modules.Events.mediator.getDifference(ctx2, uid, IDs.SequenceStateV1.parse(args.state));
-                return { diff, version: getTransaction(ctx2).getCommittedVersion() };
-            });
-            // Keep resolver consistent with base transaction
-            getTransaction(ctx).setReadVersion(await res.version);
-
-            // Resolving sequences
-            return {
-                seq: res.diff.seq,
-                state: res.diff.state,
-                hasMore: res.diff.hasMore,
-                sequences: res.diff.sequences
-            };
+            return await Modules.Events.mediator.getDifference(ctx, uid, IDs.SequenceStateV1.parse(args.state));
         }),
         sequenceDifference: withUser(async (ctx, args, uid) => {
 

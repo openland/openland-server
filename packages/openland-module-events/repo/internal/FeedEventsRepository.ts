@@ -146,4 +146,18 @@ export class FeedEventsRepository {
         }
         return { events, hasMore: read.length > opts.limit };
     }
+
+    /**
+     * Resolves first event seq before cursor
+     * @param ctx context
+     * @param feed feed
+     * @param before cursor
+     */
+    async getPreviousSeq(ctx: Context, feed: Buffer, before: Buffer) {
+        let previousSeq = await this.subspace.range(ctx, Locations.feed.stream(feed), { after: Locations.feed.streamItem(feed, new Versionstamp(before)), reverse: true, limit: 1 });
+        if (previousSeq.length === 0) {
+            return 0;
+        }
+        return previousSeq[0].value[0] as number;
+    }
 }

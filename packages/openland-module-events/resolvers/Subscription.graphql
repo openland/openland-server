@@ -54,6 +54,7 @@ type UpdatesDifferenceEvent {
 }
 
 type UpdatesSequenceDifference {
+    after: Int!
     sequence: Sequence!
     events: [UpdatesDifferenceEvent!]!
 }
