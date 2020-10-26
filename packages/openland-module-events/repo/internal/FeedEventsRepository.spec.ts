@@ -58,6 +58,15 @@ describe('FeedEventsRepository', () => {
         for (let i = 0; i < 6; i++) {
             expect(read.events[i].seq).toBe(i + 1);
         }
+
+        read = await inTx(root, async (ctx) => {
+            return await repo.getEvents(ctx, feed, { mode: 'forward', limit: 15, after: 1 });
+        });
+        expect(read.hasMore).toBe(false);
+        expect(read.events.length).toBe(5);
+        for (let i = 2; i < 7; i++) {
+            expect(read.events[i - 2].seq).toBe(i);
+        }
     });
 
     it('should read and write collapsed events', async () => {
