@@ -82,12 +82,30 @@ export class RoomRepository {
                 isChannel: channel,
                 isPremium: !!price
             });
+
+            let serviceMessagesEnabled = true;
+
+            if (kind === 'group') {
+                serviceMessagesEnabled = true;
+            }
+            if (kind === 'public') {
+                serviceMessagesEnabled = false;
+            }
+            if (oid) {
+                let org = await Store.Organization.findById(ctx, oid);
+                if (org && org.kind === 'community') {
+                    serviceMessagesEnabled = false;
+                }
+            }
+
             await Store.RoomProfile.create(ctx, id, {
                 title: profile.title,
                 image: profile.image,
                 description: profile.description,
                 socialImage: profile.socialImage,
-                repliesDisabled: false
+                repliesDisabled: false,
+                joinsMessageDisabled: !serviceMessagesEnabled,
+                leavesMessageDisabled: !serviceMessagesEnabled
             });
             if (price) {
                 await Store.PremiumChatSettings.create(ctx, id, {
