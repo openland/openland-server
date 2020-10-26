@@ -53,8 +53,8 @@ export class EventsMediator {
                 let time = Date.now();
                 log.log(ctx, 'subscribe-to-feed');
                 getTransaction(ctx).afterCommit(async (tx) => {
-                    let state = res.state.resolved.value;
-                    this.postToBus(tx, subscriber, seq, { feed, time, type: 'subscribe', seq: res.seq, state, event: null });
+                    let vt = res.vt.resolved.value;
+                    this.postToBus(tx, subscriber, seq, { feed, time, type: 'subscribe', seq: res.seq, vt, event: null });
                 });
             }
         });
@@ -70,8 +70,8 @@ export class EventsMediator {
                 let time = Date.now();
                 log.log(ctx, 'unsubscribe-from-feed');
                 getTransaction(ctx).afterCommit(async (tx) => {
-                    let state = res.state.resolved.value;
-                    this.postToBus(tx, subscriber, seq, { feed, time, type: 'unsubscribe', seq: res.seq, state, event: null });
+                    let vt = res.vt.resolved.value;
+                    this.postToBus(tx, subscriber, seq, { feed, time, type: 'unsubscribe', seq: res.seq, vt, event: null });
                 });
             }
         });
@@ -89,9 +89,9 @@ export class EventsMediator {
                 let time = Date.now();
                 log.log(ctx, 'post-to-feed');
                 getTransaction(ctx).afterCommit(async (tx) => {
-                    let state = posted.state.resolved.value;
+                    let vt = posted.vt.resolved.value;
                     for (let i = 0; i < seqs.length; i++) {
-                        this.postToBus(tx, online[i], seqs[i], { feed: args.feed, time, type: 'update', seq: posted.seq, state, event: args.event });
+                        this.postToBus(tx, online[i], seqs[i], { feed: args.feed, time, type: 'update', seq: posted.seq, vt, event: args.event });
                     }
                 });
             } else {
@@ -123,7 +123,7 @@ export class EventsMediator {
         feed: Buffer,
         type: 'subscribe' | 'unsubscribe' | 'update',
         seq: number,
-        state: Buffer,
+        vt: Buffer,
         event: Buffer | null,
         time: number
     }) {
@@ -132,7 +132,7 @@ export class EventsMediator {
             event: {
                 feed: event.feed.toString('base64'),
                 seq: event.seq,
-                state: event.state.toString('base64'),
+                vt: event.vt.toString('base64'),
                 type: event.type,
                 time: event.time,
                 ...(event.event ? { event: event.event.toString('base64') } : {})

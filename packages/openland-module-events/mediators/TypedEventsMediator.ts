@@ -116,7 +116,7 @@ export class TypedEventsMediator {
             return {
                 hasMore: res.hasMore,
                 seq: res.seq,
-                state: res.state.toString('base64'),
+                state: res.vt.toString('base64'),
                 sequences: [...sequences.values()]
             };
         });

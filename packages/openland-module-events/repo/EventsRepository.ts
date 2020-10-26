@@ -96,11 +96,12 @@ export class EventsRepository {
             await this.sub.addSubscription(ctx, subscriber, feed, mode, feedMode === 'forward-only', seq, vt.index);
 
             // Write to updated list
-            await this.subUpdated.appendChanged(ctx, subscriber, feed, vt.index);
+            await this.subUpdated.appendChanged(ctx, subscriber, feed, vt);
 
             // Add to specific collection
             if (mode === 'async') {
-                await this.subAsync.addSubscriber(ctx, subscriber, feed);
+                let expires = await this.subSeq.getOnlineExpires(ctx, subscriber);
+                await this.subAsync.addSubscriber(ctx, subscriber, feed, expires);
             } else if (mode === 'direct') {
                 await this.subDirect.addSubscriber(ctx, subscriber, feed);
             } else {
@@ -110,7 +111,7 @@ export class EventsRepository {
             // Stats
             this.stats.increment(ctx, 'subscriptions');
 
-            return { seq, state: vt };
+            return { seq, vt };
         });
     }
 
@@ -132,20 +133,24 @@ export class EventsRepository {
             let ex = await this.sub.removeSubscription(ctx, subscriber, feed, seq, vt.index);
 
             // Write to updated list
-            await this.subUpdated.appendChanged(ctx, subscriber, feed, vt.index);
+            await this.subUpdated.appendChanged(ctx, subscriber, feed, vt);
 
             // Update specific collections
             if (ex === 'direct') {
                 await this.subDirect.removeSubscriber(ctx, subscriber, feed);
-                await this.subDirect.removeUpdatedReference(ctx, subscriber, feed);
+                let latest = await this.feedLatest.readFirstTransactionLatest(ctx, feed);
+                if (latest) {
+                    await this.subDirect.removeUpdatedReference(ctx, subscriber, feed, latest);
+                }
             } else if (ex === 'async') {
-                await this.subAsync.removeSubscriber(ctx, subscriber, feed);
+                let expires = await this.subSeq.getOnlineExpires(ctx, subscriber);
+                await this.subAsync.removeSubscriber(ctx, subscriber, feed, expires);
             }
 
             // Stats
             this.stats.decrement(ctx, 'subscriptions');
 
-            return { seq, state: vt };
+            return { seq, vt };
         });
     }
 
@@ -188,18 +193,19 @@ export class EventsRepository {
 
             // Write event to a stream
             if (args.collapseKey) {
-                await this.feedEvents.writeCollapsedEvent(ctx, args.feed, args.event, seq, vt.index, args.collapseKey);
+                await this.feedEvents.writeCollapsedEvent(ctx, args.feed, args.event, seq, vt, args.collapseKey);
             } else {
-                this.feedEvents.writeEvent(ctx, args.feed, args.event, seq, vt.index);
+                this.feedEvents.writeEvent(ctx, args.feed, args.event, seq, vt);
             }
 
             // Write latest reference
             await this.feedLatest.writeLatest(ctx, args.feed, seq, vt);
 
             // Update direct references
-            await this.subDirect.setUpdatedReference(ctx, args.feed, seq, vt.index);
+            let latest = await this.feedLatest.readFirstTransactionLatest(ctx, args.feed);
+            await this.subDirect.setUpdatedReference(ctx, args.feed, seq, vt, latest);
 
-            return { seq, state: vt };
+            return { seq, vt };
         });
     }
 
@@ -220,21 +226,21 @@ export class EventsRepository {
             // Resolve current state
             let vt = createVersionstampRef(ctx);
 
-            return { seq, state: vt };
+            return { seq, vt };
         });
     }
 
     async getChangedFeedsSeqNumbers(parent: Context, subscriber: Buffer, after: Buffer) {
         return await inTxLeaky(parent, async (ctx) => {
             let set = new BufferSet();
-            let changed: { feed: Buffer, seq: number, state: Buffer }[] = [];
+            let changed: { feed: Buffer, seq: number, vt: Buffer }[] = [];
 
             // Direct subscriptions
             let changedDirect = (await this.subDirect.getUpdatedFeeds(ctx, subscriber, after));
             for (let ch of changedDirect) {
                 if (!set.has(ch.feed)) {
                     set.add(ch.feed);
-                    changed.push({ feed: ch.feed, seq: ch.seq, state: ch.state });
+                    changed.push({ feed: ch.feed, seq: ch.seq, vt: ch.vt });
                 }
             }
 
@@ -252,7 +258,7 @@ export class EventsRepository {
                     }
                     if (!set.has(h.feed)) {
                         set.add(h.feed);
-                        changed.push({ feed: h.feed, seq: h.latest.seq, state: h.latest.vt.value });
+                        changed.push({ feed: h.feed, seq: h.latest.seq, vt: h.latest.vt.value });
                     }
                 }
             }
@@ -264,8 +270,8 @@ export class EventsRepository {
     async getChangedFeeds(parent: Context, subscriber: Buffer, after: Buffer) {
         return await inTxLeaky(parent, async (ctx) => {
             let set = new BufferSet();
-            let events: { feed: Buffer, seq: number, state: Buffer }[] = [];
-            let changes: { feed: Buffer, seq: number, state: Buffer, change: 'joined' | 'left' }[] = [];
+            let events: { feed: Buffer, seq: number, vt: Buffer }[] = [];
+            let changes: { feed: Buffer, seq: number, vt: Buffer, change: 'joined' | 'left' }[] = [];
 
             // Changed subscription states
             let changedSubscriptions = await this.subUpdated.getChanged(ctx, subscriber, after);
@@ -277,9 +283,9 @@ export class EventsRepository {
                     continue;
                 }
                 if (state.to !== null) {
-                    changes.push({ feed: ch, seq: state.to.seq, state: state.to.state, change: 'left' });
+                    changes.push({ feed: ch, seq: state.to.seq, vt: state.to.state, change: 'left' });
                 } else {
-                    changes.push({ feed: ch, seq: state.from.seq, state: state.from.state, change: 'joined' });
+                    changes.push({ feed: ch, seq: state.from.seq, vt: state.from.state, change: 'joined' });
                 }
             }
 
@@ -288,7 +294,7 @@ export class EventsRepository {
             for (let ch of changedDirect) {
                 if (!set.has(ch.feed)) {
                     set.add(ch.feed);
-                    events.push({ feed: ch.feed, seq: ch.seq, state: ch.state });
+                    events.push({ feed: ch.feed, seq: ch.seq, vt: ch.vt });
                 }
             }
 
@@ -306,7 +312,7 @@ export class EventsRepository {
                     }
                     if (!set.has(h.feed)) {
                         set.add(h.feed);
-                        events.push({ feed: h.feed, seq: h.latest.seq, state: h.latest.vt.value });
+                        events.push({ feed: h.feed, seq: h.latest.seq, vt: h.latest.vt.value });
                     }
                 }
             }
@@ -355,7 +361,7 @@ export class EventsRepository {
 
     async getDifference(parent: Context, subscriber: Buffer, after: Buffer, opts: { limits: { forwardOnly: number, generic: number, global: number } }) {
         return await inTxLeaky(parent, async (ctx) => {
-            let updates: { feed: Buffer, seq: number, state: Buffer, event: 'joined' | 'completed' | 'event', body: Buffer | null }[] = [];
+            let updates: { feed: Buffer, seq: number, vt: Buffer, event: 'joined' | 'completed' | 'event', body: Buffer | null }[] = [];
             let changedFeeds = await this.getChangedFeeds(ctx, subscriber, after);
             let feeds: Buffer[] = [];
             let feedsSet = new BufferSet();
@@ -367,9 +373,9 @@ export class EventsRepository {
                     feeds.push(ch.feed);
                 }
                 if (ch.change === 'joined') {
-                    updates.push({ feed: ch.feed, seq: ch.seq, state: ch.state, event: 'joined', body: null });
+                    updates.push({ feed: ch.feed, seq: ch.seq, vt: ch.vt, event: 'joined', body: null });
                 } else if (ch.change === 'left') {
-                    updates.push({ feed: ch.feed, seq: ch.seq, state: ch.state, event: 'completed', body: null });
+                    updates.push({ feed: ch.feed, seq: ch.seq, vt: ch.vt, event: 'completed', body: null });
                 }
             }
             for (let ch of changedFeeds.events) {
@@ -393,12 +399,12 @@ export class EventsRepository {
                 }
 
                 for (let e of d.diff.events) {
-                    updates.push({ feed: d.feed, seq: e.seq, state: e.id, event: 'event', body: e.event });
+                    updates.push({ feed: d.feed, seq: e.seq, vt: e.vt, event: 'event', body: e.event });
                 }
             }
 
             // Sort updates
-            updates.sort((a, b) => Buffer.compare(a.state, b.state));
+            updates.sort((a, b) => Buffer.compare(a.vt, b.vt));
 
             // Limit updates
             if (updates.length > opts.limits.global) {
@@ -407,15 +413,15 @@ export class EventsRepository {
             }
 
             // Calculcate state
-            let state: Buffer = after;
+            let vt: Buffer = after;
             if (updates.length > 0) {
-                state = updates[updates.length - 1].state;
+                vt = updates[updates.length - 1].vt;
             }
 
             // Resolve current seq
             let seq = await this.subSeq.getCurrentSeq(ctx, subscriber);
 
-            return { updates: updates.map((v) => ({ event: v.event, body: v.body, feed: v.feed, seq: v.seq })), hasMore, seq, state };
+            return { updates: updates.map((v) => ({ event: v.event, body: v.body, feed: v.feed, seq: v.seq })), hasMore, seq, vt };
         });
     }
 
@@ -435,8 +441,12 @@ export class EventsRepository {
         let clamped = Math.floor(expires / 1000);
 
         await inTxLeaky(parent, async (ctx) => {
+            let old = await this.subSeq.getOnlineExpires(ctx, subscriber);
+            if (old !== null && old > clamped) {
+                return;
+            }
             await this.subSeq.refreshOnline(ctx, subscriber, clamped);
-            await this.subAsync.setSubscriberOnline(ctx, subscriber, clamped);
+            await this.subAsync.setSubscriberOnline(ctx, subscriber, clamped, old);
         });
     }
 

@@ -24,7 +24,7 @@ describe('FeedEventsRepository', () => {
             // Write a single event
             let seq = await seqs.allocateSeq(ctx, feed);
             let vt = createVersionstampRef(ctx);
-            repo.writeEvent(ctx, feed, ZERO, seq, vt.index);
+            repo.writeEvent(ctx, feed, ZERO, seq, vt);
 
             return { vt, initial };
         });
@@ -36,7 +36,7 @@ describe('FeedEventsRepository', () => {
         });
         expect(read.hasMore).toBe(false);
         expect(read.events.length).toBe(1);
-        expect(read.events[0].id).toMatchObject(id);
+        expect(read.events[0].vt).toMatchObject(id);
 
         // Write batch
         await inTx(root, async (ctx) => {
@@ -45,7 +45,7 @@ describe('FeedEventsRepository', () => {
             for (let i = 0; i < 5; i++) {
                 let seq = await seqs.allocateSeq(ctx, feed);
                 let vt = createVersionstampRef(ctx);
-                repo.writeEvent(ctx, feed, ZERO, seq, vt.index);
+                repo.writeEvent(ctx, feed, ZERO, seq, vt);
             }
         });
 
@@ -54,7 +54,7 @@ describe('FeedEventsRepository', () => {
         });
         expect(read.hasMore).toBe(false);
         expect(read.events.length).toBe(6);
-        expect(read.events[0].id).toMatchObject(id);
+        expect(read.events[0].vt).toMatchObject(id);
         for (let i = 0; i < 6; i++) {
             expect(read.events[i].seq).toBe(i + 1);
         }
@@ -77,7 +77,7 @@ describe('FeedEventsRepository', () => {
             // Write a single event
             let seq = await seqs.allocateSeq(ctx, feed);
             let vt = createVersionstampRef(ctx);
-            await repo.writeCollapsedEvent(ctx, feed, ZERO, seq, vt.index, 'collapse-1');
+            await repo.writeCollapsedEvent(ctx, feed, ZERO, seq, vt, 'collapse-1');
 
             return { id: vt, state: initial };
         });
@@ -89,7 +89,7 @@ describe('FeedEventsRepository', () => {
         });
         expect(read.hasMore).toBe(false);
         expect(read.events.length).toBe(1);
-        expect(read.events[0].id).toMatchObject(id);
+        expect(read.events[0].vt).toMatchObject(id);
 
         // Write batch
         await inTx(root, async (ctx) => {
@@ -98,7 +98,7 @@ describe('FeedEventsRepository', () => {
             for (let i = 0; i < 5; i++) {
                 let seq = await seqs.allocateSeq(ctx, feed);
                 let vt = createVersionstampRef(ctx);
-                await repo.writeCollapsedEvent(ctx, feed, ZERO, seq, vt.index, 'collapse-1');
+                await repo.writeCollapsedEvent(ctx, feed, ZERO, seq, vt, 'collapse-1');
             }
         });
 

@@ -1,4 +1,4 @@
-import { VersionstampRef, Versionstamp } from '@openland/foundationdb-tuple';
+import { VersionstampRef, Versionstamp, TupleItem } from '@openland/foundationdb-tuple';
 import { Locations } from './Locations';
 import { Context } from '@openland/context';
 import { Subspace, encoders, TransactionCache } from '@openland/foundationdb';
@@ -6,10 +6,13 @@ import { Subspace, encoders, TransactionCache } from '@openland/foundationdb';
 const feedFirstLatestCache = new TransactionCache<{ latest: { vt: Versionstamp, seq: number } | null }>('feed-index-latest');
 
 export class FeedLatestRepository {
-    readonly subspace: Subspace;
+
+    readonly subspace: Subspace<TupleItem[], TupleItem[]>;
 
     constructor(subspace: Subspace) {
-        this.subspace = subspace;
+        this.subspace = subspace
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.tuple);
     }
 
     /**
@@ -47,9 +50,8 @@ export class FeedLatestRepository {
                 feedFirstLatestCache.set(ctx, feedKey, { latest: null });
                 return null;
             }
-            let res = encoders.tuple.unpack(latest);
-            let seq = res[0] as number;
-            let vt = (res[1] as Versionstamp);
+            let seq = latest[0] as number;
+            let vt = (latest[1] as Versionstamp);
             feedFirstLatestCache.set(ctx, feedKey, { latest: { vt, seq } });
             return { vt, seq };
         }
@@ -67,9 +69,8 @@ export class FeedLatestRepository {
         if (!latest) {
             throw Error('Unable to find latest event reference');
         }
-        let res = encoders.tuple.unpack(latest);
-        let seq = res[0] as number;
-        let vt = res[1] as Versionstamp;
+        let seq = latest[0] as number;
+        let vt = latest[1] as Versionstamp;
         return { vt, seq };
     }
 }

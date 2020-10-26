@@ -1,22 +1,33 @@
-import { encoders } from '@openland/foundationdb';
+import { VersionstampRef, Versionstamp } from '@openland/foundationdb-tuple';
+import { encoders, TupleItem, TupleItemExtended } from '@openland/foundationdb';
 
-const FEED_STREAM = 0; // Event Stream
-const FEED_LATEST = 1; // Latest versionstamp
-const FEED_SEQ = 2; // Latest seq
+//
+// Feed
+//
+// Event stream
+const FEED_STREAM = 0;
+// VT and Seq
+const FEED_LATEST = 1;
+const FEED_SEQ = 2;
+// Event collapsing map
 const FEED_COLLAPSE = 3;
+// Direct members
 const FEED_DIRECT = 4;
-const FEED_DIRECT_LATEST = 5;
+// Async members
 const FEED_ASYNC_ONLINE = 6;
+// Feed counters
 const FEED_COUNTER = 7;
 const FEED_COUNTER_DIRECT = 8;
 const FEED_COUNTER_ASYNC = 9;
 
+//
+// Subscriber
+//
 const SUBSCRIBER_SUBSCRIPTIONS = 0;
 const SUBSCRIBER_VT = 5;
 const SUBSCRIBER_DIRECT = 1;
 const SUBSCRIBER_DIRECT_UPDATES = 4;
 const SUBSCRIBER_ASYNC = 2;
-const SUBSCRIBER_ASYNC_ONLINE_LATEST = 3;
 const SUBSCRIBER_SUBSCRIPTIONS_CHANGES = 6;
 
 const STATS = 0;
@@ -24,38 +35,51 @@ const STATS_FEEDS = 1;
 const STATS_SUBSCRIBERS = 2;
 const STATS_SUBSCRIPTIONS = 3;
 
+type TupleType = TupleItem[];
+type TupleTypeEx = TupleItemExtended[];
+
 export const Locations = {
     feed: {
-        seq: (feed: Buffer) => encoders.tuple.pack([feed, FEED_SEQ]),
-        latest: (feed: Buffer) => encoders.tuple.pack([feed, FEED_LATEST]),
-        stream: (feed: Buffer) => encoders.tuple.pack([feed, FEED_STREAM]),
-        collapsed: (feed: Buffer, key: string) => encoders.tuple.pack([feed, FEED_COLLAPSE, key])
-    },
+        seq: (feed: Buffer): TupleType => [feed, FEED_SEQ],
+        latest: (feed: Buffer): TupleType => [feed, FEED_LATEST],
+        stream: (feed: Buffer): TupleType => [feed, FEED_STREAM],
+        streamItem: (feed: Buffer, vt: Versionstamp): TupleType => [feed, FEED_STREAM, vt],
+        streamItemWrite: (feed: Buffer, vt: VersionstampRef): TupleTypeEx => [feed, FEED_STREAM, vt],
+        collapsed: (feed: Buffer, key: string): TupleType => [feed, FEED_COLLAPSE, key],
 
-    subscriber: {
+        direct: (feed: Buffer, subscriber: Buffer): TupleType => [feed, FEED_DIRECT, subscriber],
+        directAll: (feed: Buffer): TupleType => [feed, FEED_DIRECT],
+
+        asyncOnlineAll: (feed: Buffer): TupleType => [feed, FEED_ASYNC_ONLINE],
+        asyncOnlineAfter: (feed: Buffer, time: number): TupleType => [feed, FEED_ASYNC_ONLINE, time],
+        asyncOnlineItem: (feed: Buffer, subscriber: Buffer, expires: number): TupleType => [feed, FEED_ASYNC_ONLINE, expires, subscriber],
 
         counterTotal: (feed: Buffer) => encoders.tuple.pack([feed, FEED_COUNTER]),
         counterDirect: (feed: Buffer) => encoders.tuple.pack([feed, FEED_COUNTER_DIRECT]),
         counterAsync: (feed: Buffer) => encoders.tuple.pack([feed, FEED_COUNTER_ASYNC]),
+    },
+
+    subscriber: {
 
         subscription: (subscriber: Buffer, feed: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_SUBSCRIPTIONS, feed]),
         subscriptionAll: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_SUBSCRIPTIONS]),
 
         subscriptionVt: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_VT]),
 
-        direct: (subscriber: Buffer, feed: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_DIRECT, feed]),
-        directAll: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_DIRECT]),
-        directReverse: (subscriber: Buffer, feed: Buffer) => encoders.tuple.pack([feed, FEED_DIRECT, subscriber]),
-        directReverseAll: (feed: Buffer) => encoders.tuple.pack([feed, FEED_DIRECT]),
-        directUpdates: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_DIRECT_UPDATES]),
-        directLatest: (feed: Buffer) => encoders.tuple.pack([feed, FEED_DIRECT_LATEST]),
+        direct: (subscriber: Buffer, feed: Buffer): TupleType => [subscriber, SUBSCRIBER_DIRECT, feed],
+        directAll: (subscriber: Buffer): TupleType => [subscriber, SUBSCRIBER_DIRECT],
+        directUpdatesAll: (subscriber: Buffer): TupleType => [subscriber, SUBSCRIBER_DIRECT_UPDATES],
+        directUpdatesRead: (subscriber: Buffer, vt: Versionstamp): TupleType => [subscriber, SUBSCRIBER_DIRECT_UPDATES, vt],
+        directUpdatesWrite: (subscriber: Buffer, vt: VersionstampRef) => [subscriber, SUBSCRIBER_DIRECT_UPDATES, vt],
 
-        async: (subscriber: Buffer, feed: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_ASYNC, feed]),
-        asyncAll: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_ASYNC]),
-        asyncOnline: (feed: Buffer) => encoders.tuple.pack([feed, FEED_ASYNC_ONLINE]),
-        asyncOnlineLatest: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_ASYNC_ONLINE_LATEST]),
+        async: (subscriber: Buffer, feed: Buffer): TupleType => [subscriber, SUBSCRIBER_ASYNC, feed],
+        asyncAll: (subscriber: Buffer): TupleType => [subscriber, SUBSCRIBER_ASYNC],
 
-        subscriptionChanges: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_SUBSCRIPTIONS_CHANGES])
+        subscriptionChanges: {
+            all: (subscriber: Buffer): TupleType => [subscriber, SUBSCRIBER_SUBSCRIPTIONS_CHANGES],
+            read: (subscriber: Buffer, vt: Versionstamp): TupleType => [subscriber, SUBSCRIBER_SUBSCRIPTIONS_CHANGES, vt],
+            write: (subscriber: Buffer, vt: VersionstampRef): TupleTypeEx => [subscriber, SUBSCRIBER_SUBSCRIPTIONS_CHANGES, vt]
+        }
     },
 
     stats: {

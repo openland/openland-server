@@ -1,5 +1,5 @@
 export type RawEvent = {
     seq: number,
-    id: Buffer,
+    vt: Buffer,
     event: Buffer
 };

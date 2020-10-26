@@ -107,12 +107,12 @@ export class SubscriberRepository {
         this.subspace.setVersionstampedValue(ctx, Locations.subscriber.subscription(subscriber, feed), value, index);
 
         // Update counters
-        this.subspace.add(ctx, Locations.subscriber.counterTotal(feed), PLUS_ONE);
+        this.subspace.add(ctx, Locations.feed.counterTotal(feed), PLUS_ONE);
         if (mode === 'direct') {
-            this.subspace.add(ctx, Locations.subscriber.counterDirect(feed), PLUS_ONE);
+            this.subspace.add(ctx, Locations.feed.counterDirect(feed), PLUS_ONE);
         }
         if (mode === 'async') {
-            this.subspace.add(ctx, Locations.subscriber.counterAsync(feed), PLUS_ONE);
+            this.subspace.add(ctx, Locations.feed.counterAsync(feed), PLUS_ONE);
         }
     }
 
@@ -129,16 +129,16 @@ export class SubscriberRepository {
         this.subspace.set(ctx, Locations.subscriber.subscription(subscriber, feed), value);
 
         if (state.mode === 'async') {
-            this.subspace.add(ctx, Locations.subscriber.counterAsync(feed), MINUS_ONE);
+            this.subspace.add(ctx, Locations.feed.counterAsync(feed), MINUS_ONE);
         }
         if (state.mode === 'direct') {
-            this.subspace.add(ctx, Locations.subscriber.counterDirect(feed), MINUS_ONE);
+            this.subspace.add(ctx, Locations.feed.counterDirect(feed), MINUS_ONE);
         }
         if (mode === 'direct') {
-            this.subspace.add(ctx, Locations.subscriber.counterDirect(feed), PLUS_ONE);
+            this.subspace.add(ctx, Locations.feed.counterDirect(feed), PLUS_ONE);
         }
         if (mode === 'async') {
-            this.subspace.add(ctx, Locations.subscriber.counterAsync(feed), PLUS_ONE);
+            this.subspace.add(ctx, Locations.feed.counterAsync(feed), PLUS_ONE);
         }
     }
 
@@ -157,19 +157,19 @@ export class SubscriberRepository {
         }), state.from.state]);
         this.subspace.setVersionstampedValue(ctx, Locations.subscriber.subscription(subscriber, feed), value, index);
 
-        this.subspace.add(ctx, Locations.subscriber.counterTotal(feed), MINUS_ONE);
+        this.subspace.add(ctx, Locations.feed.counterTotal(feed), MINUS_ONE);
         if (state.mode === 'async') {
-            this.subspace.add(ctx, Locations.subscriber.counterAsync(feed), MINUS_ONE);
+            this.subspace.add(ctx, Locations.feed.counterAsync(feed), MINUS_ONE);
         }
         if (state.mode === 'direct') {
-            this.subspace.add(ctx, Locations.subscriber.counterDirect(feed), MINUS_ONE);
+            this.subspace.add(ctx, Locations.feed.counterDirect(feed), MINUS_ONE);
         }
 
         return state.mode;
     }
 
     async getFeedSubscriptionsCount(ctx: Context, feed: Buffer) {
-        let counter = await this.subspace.get(ctx, Locations.subscriber.counterTotal(feed));
+        let counter = await this.subspace.get(ctx, Locations.feed.counterTotal(feed));
         if (counter) {
             return encoders.int32LE.unpack(counter);
         } else {
@@ -178,7 +178,7 @@ export class SubscriberRepository {
     }
 
     async getFeedDirectSubscriptionsCount(ctx: Context, feed: Buffer) {
-        let counter = await this.subspace.get(ctx, Locations.subscriber.counterDirect(feed));
+        let counter = await this.subspace.get(ctx, Locations.feed.counterDirect(feed));
         if (counter) {
             return encoders.int32LE.unpack(counter);
         } else {
@@ -187,7 +187,7 @@ export class SubscriberRepository {
     }
 
     async getFeedAsyncSubscriptionsCount(ctx: Context, feed: Buffer) {
-        let counter = await this.subspace.get(ctx, Locations.subscriber.counterAsync(feed));
+        let counter = await this.subspace.get(ctx, Locations.feed.counterAsync(feed));
         if (counter) {
             return encoders.int32LE.unpack(counter);
         } else {

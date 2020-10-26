@@ -3,7 +3,7 @@ import { createNamedContext } from '@openland/context';
 import { Database } from '@openland/foundationdb';
 const ZERO = Buffer.alloc(0);
 
-function expectChangedFeeds(received: { feed: Buffer, seq: number, state: Buffer }[], expected: { feed: Buffer, seq: number }[]) {
+function expectChangedFeeds(received: { feed: Buffer, seq: number, vt: Buffer }[], expected: { feed: Buffer, seq: number }[]) {
     expect(received.length).toBe(expected.length);
     for (let r of received) {
         let ex = (expected.find((e) => e.feed.equals(r.feed)))!;
@@ -68,11 +68,11 @@ describe('EventsRepository', () => {
             let initial2 = await repo.getState(root, subs2);
 
             // Initial difference
-            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, initial1.state.resolved.value), []);
-            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs2, initial2.state.resolved.value), []);
-            let diff = await repo.getDifference(root, subs1, initial1.state.resolved.value, { limits: { forwardOnly: 100, generic: 10, global: 1000 } });
+            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, initial1.vt.resolved.value), []);
+            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs2, initial2.vt.resolved.value), []);
+            let diff = await repo.getDifference(root, subs1, initial1.vt.resolved.value, { limits: { forwardOnly: 100, generic: 10, global: 1000 } });
             expect(diff.updates.length).toBe(0);
-            diff = await repo.getDifference(root, subs2, initial2.state.resolved.value, { limits: { forwardOnly: 100, generic: 10, global: 1000 } });
+            diff = await repo.getDifference(root, subs2, initial2.vt.resolved.value, { limits: { forwardOnly: 100, generic: 10, global: 1000 } });
             expect(diff.updates.length).toBe(0);
 
             // Post to some feeds
@@ -85,27 +85,27 @@ describe('EventsRepository', () => {
             await repo.subscribe(root, subs2, feed1, type as 'async' | 'direct');
 
             // Should have two changed feeds
-            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, initial1.state.resolved.value), []);
-            diff = await repo.getDifference(root, subs1, initial1.state.resolved.value, { limits: { forwardOnly: 100, generic: 10, global: 1000 } });
+            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, initial1.vt.resolved.value), []);
+            diff = await repo.getDifference(root, subs1, initial1.vt.resolved.value, { limits: { forwardOnly: 100, generic: 10, global: 1000 } });
             expect(diff.updates.length).toBe(2);
-            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, initial1.state.resolved.value), []);
-            diff = await repo.getDifference(root, subs2, initial2.state.resolved.value, { limits: { forwardOnly: 100, generic: 10, global: 1000 } });
+            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, initial1.vt.resolved.value), []);
+            diff = await repo.getDifference(root, subs2, initial2.vt.resolved.value, { limits: { forwardOnly: 100, generic: 10, global: 1000 } });
             expect(diff.updates.length).toBe(1);
 
             // Should have zero changed since then
             let second1 = await repo.getState(root, subs1);
             let second2 = await repo.getState(root, subs2);
-            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, second1.state.resolved.value), []);
-            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs2, second2.state.resolved.value), []);
+            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, second1.vt.resolved.value), []);
+            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs2, second2.vt.resolved.value), []);
 
             // Post more
             let lastPost = await repo.post(root, { feed: feed1, event: ZERO });
 
             // Should detect new seq numbers
-            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, second1.state.resolved.value), [{ feed: feed1, seq: lastPost.seq }]);
-            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs2, second2.state.resolved.value), [{ feed: feed1, seq: lastPost.seq }]);
-            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, initial1.state.resolved.value), [{ feed: feed1, seq: lastPost.seq }]);
-            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs2, initial2.state.resolved.value), [{ feed: feed1, seq: lastPost.seq }]);
+            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, second1.vt.resolved.value), [{ feed: feed1, seq: lastPost.seq }]);
+            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs2, second2.vt.resolved.value), [{ feed: feed1, seq: lastPost.seq }]);
+            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, initial1.vt.resolved.value), [{ feed: feed1, seq: lastPost.seq }]);
+            expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs2, initial2.vt.resolved.value), [{ feed: feed1, seq: lastPost.seq }]);
         }
     });
 });

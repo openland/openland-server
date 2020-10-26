@@ -1,10 +1,10 @@
+import { TupleItem, VersionstampRef, Versionstamp } from '@openland/foundationdb-tuple';
 import { RawEvent } from './RawEvent';
 import { Locations } from './Locations';
 import { Context } from '@openland/context';
 import { Subspace, encoders, TransactionCache, getTransaction } from '@openland/foundationdb';
 
-const ZERO = Buffer.alloc(0);
-type PendingEvent = { seq: number, index: Buffer, event: Buffer };
+type PendingEvent = { seq: number, vt: VersionstampRef, event: Buffer };
 const feedPostEventCache = new TransactionCache<{ pending: PendingEvent[] }>('feed-index-post');
 const feedPostEventCollapsedCache = new TransactionCache<{ pending: { [key: string]: PendingEvent } }>('feed-index-post-collapsed');
 
@@ -13,10 +13,12 @@ const feedPostEventCollapsedCache = new TransactionCache<{ pending: { [key: stri
  */
 export class FeedEventsRepository {
 
-    readonly subspace: Subspace;
+    readonly subspace: Subspace<TupleItem[], TupleItem[]>;
 
     constructor(subspace: Subspace) {
-        this.subspace = subspace;
+        this.subspace = subspace
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.tuple);
     }
 
     /**
@@ -25,24 +27,26 @@ export class FeedEventsRepository {
      * @param feed feed
      * @param event event body
      * @param seq event sequence number
-     * @param index event versionstamp index
+     * @param vt event versionstamp
      */
-    writeEvent(ctx: Context, feed: Buffer, event: Buffer, seq: number, index: Buffer) {
+    writeEvent(ctx: Context, feed: Buffer, event: Buffer, seq: number, vt: VersionstampRef) {
         let feedKey = feed.toString('hex');
         let post = feedPostEventCache.get(ctx, feedKey);
-        let location = Locations.feed.stream(feed);
 
         if (!post) {
             post = { pending: [] };
             feedPostEventCache.set(ctx, feedKey, post);
             getTransaction(ctx).beforeCommit(async (tx) => {
                 for (let pending of post!.pending) {
-                    this.subspace.setVersionstampedKey(tx, location, encoders.tuple.pack([pending.seq, pending.event]), pending.index);
+                    this.subspace.setTupleKey(tx,
+                        Locations.feed.streamItemWrite(feed, pending.vt),
+                        [pending.seq, pending.event]
+                    );
                 }
             });
         }
 
-        post.pending.push({ seq, index, event });
+        post.pending.push({ seq, vt, event });
     }
 
     /**
@@ -51,13 +55,12 @@ export class FeedEventsRepository {
      * @param feed feed
      * @param event event body
      * @param seq event sequence number
-     * @param index event versionstamp index
+     * @param vt event versionstamp
      * @param collapseKey event collapse key
      */
-    async writeCollapsedEvent(ctx: Context, feed: Buffer, event: Buffer, seq: number, index: Buffer, collapseKey: string) {
+    async writeCollapsedEvent(ctx: Context, feed: Buffer, event: Buffer, seq: number, vt: VersionstampRef, collapseKey: string) {
         let feedKey = feed.toString('hex');
         let post = feedPostEventCollapsedCache.get(ctx, feedKey);
-        let location = Locations.feed.stream(feed);
         let referenceLocation = Locations.feed.collapsed(feed, collapseKey);
 
         if (!post) {
@@ -67,8 +70,11 @@ export class FeedEventsRepository {
             getTransaction(ctx).beforeCommit(async (tx) => {
                 for (let key of Object.keys(post!.pending)) {
                     let pending = post!.pending[key]!;
-                    this.subspace.setVersionstampedKey(tx, location, encoders.tuple.pack([pending.seq, pending.event]), pending.index);
-                    this.subspace.setVersionstampedValue(tx, referenceLocation, ZERO, pending.index);
+                    this.subspace.setTupleKey(tx,
+                        Locations.feed.streamItemWrite(feed, pending.vt),
+                        [pending.seq, pending.event]
+                    );
+                    this.subspace.setTupleValue(tx, referenceLocation, [seq, pending.vt]);
                 }
             });
         }
@@ -77,12 +83,12 @@ export class FeedEventsRepository {
         if (!post.pending[collapseKey]) {
             let existing = await this.subspace.get(ctx, referenceLocation);
             if (existing) {
-                this.subspace.clear(ctx, Buffer.concat([Locations.feed.stream(feed), existing]));
+                this.subspace.clear(ctx, Locations.feed.streamItem(feed, existing[1] as Versionstamp));
             }
         }
 
         // Save pending
-        post.pending[collapseKey] = { seq, index, event };
+        post.pending[collapseKey] = { seq, vt, event };
     }
 
     /**
@@ -93,22 +99,21 @@ export class FeedEventsRepository {
      */
     async getEvents(ctx: Context, feed: Buffer, opts: { mode: 'forward' | 'only-latest', limit: number, after?: Buffer, before?: Buffer }) {
         let location = Locations.feed.stream(feed);
-        let start = opts.after ? Buffer.concat([location, opts.after]) : undefined;
-        let end = opts.before ? Buffer.concat([location, opts.before]) : undefined;
+        let start = opts.after ? Locations.feed.streamItem(feed, new Versionstamp(opts.after)) : undefined;
+        let end = opts.before ? Locations.feed.streamItem(feed, new Versionstamp(opts.before)) : undefined;
         let read = opts.mode === 'forward'
             ? await this.subspace.range(ctx, location, { after: start, before: end, reverse: false, limit: opts.limit + 1 })
             : await this.subspace.range(ctx, location, { before: start, after: end, reverse: true, limit: opts.limit + 1 });
         let events: RawEvent[] = [];
         for (let i = 0; i < Math.min(opts.limit, read.length); i++) {
             let r = read[i];
-            let id = r.key.slice(r.key.length - 12);
-            let value = encoders.tuple.unpack(r.value);
-            let seq = value[0] as number;
-            let event = value[1] as Buffer;
+            let vt = (r.key[r.key.length - 1] as Versionstamp).value;
+            let seq = r.value[0] as number;
+            let event = r.value[1] as Buffer;
             if (opts.mode === 'only-latest') {
-                events.unshift({ id, seq, event });
+                events.unshift({ vt, seq, event });
             } else {
-                events.push({ id, seq, event });
+                events.push({ vt, seq, event });
             }
         }
         return { events, hasMore: read.length > opts.limit };

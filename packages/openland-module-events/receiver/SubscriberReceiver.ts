@@ -48,7 +48,7 @@ export type SubscriberReceiverEvent =
         type: 'closed'
     };
 
-type BusEvent = { seq: number, event: { type: 'subscribe' | 'unsubscribe' | 'update', seq: number, state: Buffer, feed: Buffer, event: Buffer | null } };
+type BusEvent = { seq: number, event: { type: 'subscribe' | 'unsubscribe' | 'update', seq: number, vt: Buffer, feed: Buffer, event: Buffer | null } };
 
 export type ReceiverOpts = {
     deathDelay: { min: number, max: number };
@@ -89,7 +89,7 @@ export class SubscriberReceiver {
                 seq: e.seq as number,
                 event: {
                     seq: e.event.seq as number,
-                    state: Buffer.from(e.event.state as string, 'base64'),
+                    vt: Buffer.from(e.event.vt as string, 'base64'),
                     type: e.event.type as 'subscribe' | 'unsubscribe' | 'update',
                     feed: Buffer.from(e.event.feed as string, 'base64'),
                     event: e.event.event ? Buffer.from(e.event.event as string, 'base64') : null
@@ -114,7 +114,7 @@ export class SubscriberReceiver {
                 await mediator.refreshOnline(ctx, subscriber);
                 return (await mediator.repo.getState(ctx, subscriber));
             });
-            let state = rawState.state.resolved.value;
+            let state = rawState.vt.resolved.value;
             let seq = rawState.seq;
             if (this.stopped) {
                 return;
@@ -283,7 +283,7 @@ export class SubscriberReceiver {
                 let checkpoint = await inTx(root, async (ctx) => {
                     return this.mediator.repo.getState(ctx, this.subscriber);
                 });
-                let state = checkpoint.state.resolved.value;
+                let state = checkpoint.vt.resolved.value;
                 await delay(this.opts.checkpointCommitDelay);
                 if (this.stopped) {
                     return;
