@@ -321,27 +321,58 @@ export class EventsRepository {
         });
     }
 
-    async getFeedDifference(parent: Context, subscriber: Buffer, feed: Buffer, after: Buffer, opts: { limits: { forwardOnly: number, generic: number } }) {
+    async getFeedDifference(parent: Context, subscriber: Buffer, feed: Buffer, after: Buffer | number, opts: { limits: { forwardOnly: number, generic: number } }) {
         return await inTxLeaky(parent, async (ctx) => {
             let state = await this.sub.getSubscriptionState(ctx, subscriber, feed);
             if (!state) {
-                return null;
+                return {
+                    active: false,
+                    forwardOnly: false,
+                    events: [],
+                    hasMore: false
+                };
             }
 
             // Resolve actual before
-            let before: Buffer | undefined = undefined;
+            let before: Buffer | number | undefined = undefined;
+            let active = true;
             if (state.to) {
-                if (Buffer.compare(state.to.state, after) < 0) {
-                    return null;
+                active = false;
+                if (typeof after === 'number') {
+                    if (state.to.seq <= after) {
+                        return {
+                            active,
+                            forwardOnly: state.forwardOnly,
+                            events: [],
+                            hasMore: false
+                        };
+                    } else {
+                        before = state.to.state;
+                    }
                 } else {
-                    before = state.to.state;
+                    if (Buffer.compare(state.to.state, after) <= 0) {
+                        return {
+                            active,
+                            forwardOnly: state.forwardOnly,
+                            events: [],
+                            hasMore: false
+                        };
+                    } else {
+                        before = state.to.state;
+                    }
                 }
             }
 
             // Resolve actual after
             let afterAdjusted = after;
-            if (Buffer.compare(after, state.from.state) < 0) {
-                afterAdjusted = state.from.state;
+            if (typeof after === 'number') {
+                if (after < state.from.seq) {
+                    afterAdjusted = state.from.state;
+                }
+            } else {
+                if (Buffer.compare(after, state.from.state) < 0) {
+                    afterAdjusted = state.from.state;
+                }
             }
 
             // Read events
@@ -353,6 +384,7 @@ export class EventsRepository {
             });
 
             return {
+                active,
                 forwardOnly: state.forwardOnly,
                 ...res
             };

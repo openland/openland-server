@@ -88,6 +88,32 @@ export class TypedEventsMediator {
         });
     }
 
+    async getFeedDifference(parent: Context, uid: number, feed: FeedReference, seq: number) {
+        return await inTx(parent, async (ctx) => {
+            let subscriber = await this.registry.getUserSubscriber(ctx, uid);
+            if (!subscriber) {
+                throw Error('Subscriber does not exist');
+            }
+            let feedid = await this.registry.getFeed(ctx, feed);
+            if (!feedid) {
+                throw Error('Feed does not exist');
+            }
+            await this.events.refreshOnline(ctx, subscriber);
+            let difference = await this.events.repo.getFeedDifference(ctx, subscriber, feedid, seq, { limits: { forwardOnly: 100, generic: 20 } });
+            let events: { pts: number, event: Event }[] = [];
+            for (let e of difference.events) {
+                let update = unpackFeedEvent(e.event);
+                events.push({ pts: e.seq, event: update.event });
+            }
+            return {
+                active: difference.active,
+                forwardOnly: difference.forwardOnly,
+                hasMore: difference.hasMore,
+                events
+            };
+        });
+    }
+
     async getDifference(parent: Context, uid: number, state: string) {
         return await inTx(parent, async (ctx) => {
             let subscriber = await this.registry.getUserSubscriber(ctx, uid);
