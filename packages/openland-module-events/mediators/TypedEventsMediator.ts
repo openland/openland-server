@@ -124,26 +124,25 @@ export class TypedEventsMediator {
             let res = await this.events.repo.getDifference(ctx, subscriber, Buffer.from(state, 'base64'), { limits: { forwardOnly: 100, generic: 20, global: 300 } });
 
             // Parse sequences
-            let sequences = new Map<string, { sequence: FeedReference, pts: number, events: { pts: number, event: Event }[] }>();
-            for (let u of res.updates) {
-                if (u.event === 'event') {
-                    let update = unpackFeedEvent(u.body!);
-                    let k = u.feed.toString('hex');
-                    if (sequences.has(k)) {
-                        let e = sequences.get(k)!;
-                        e.pts = Math.max(u.seq, e.pts);
-                        e.events.push({ pts: u.seq, event: update.event });
-                    } else {
-                        sequences.set(k, { sequence: update.feed, pts: u.seq, events: [{ pts: u.seq, event: update.event }] });
-                    }
-                }
+            let sequences: { sequence: FeedReference, pts: number, events: { pts: number, event: Event }[] }[] = [];
+            for (let f of res.updates) {
+                let update = unpackFeedEvent(f.events[0].event);
+                let sequence = update.feed;
+                sequences.push({
+                    sequence,
+                    pts: f.afterSeq,
+                    events: f.events.map((v) => ({
+                        event: unpackFeedEvent(v.event).event,
+                        pts: v.seq
+                    }))
+                });
             }
 
             return {
                 hasMore: res.hasMore,
                 seq: res.seq,
                 state: res.vt.toString('base64'),
-                sequences: [...sequences.values()]
+                sequences
             };
         });
     }

@@ -38,6 +38,11 @@ describe('FeedEventsRepository', () => {
         expect(read.events.length).toBe(1);
         expect(read.events[0].vt).toMatchObject(id);
 
+        let prevSeq = await inTx(root, async (ctx) => {
+            return await repo.getPreviousSeq(ctx, feed, state);
+        });
+        expect(prevSeq).toBe(0);
+
         // Write batch
         await inTx(root, async (ctx) => {
 

@@ -87,10 +87,10 @@ describe('EventsRepository', () => {
             // Should have two changed feeds
             expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, initial1.vt.resolved.value), []);
             diff = await repo.getDifference(root, subs1, initial1.vt.resolved.value, { limits: { forwardOnly: 100, generic: 10, global: 1000 } });
-            expect(diff.updates.length).toBe(2);
+            expect(diff.updates.length).toBe(0);
             expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, initial1.vt.resolved.value), []);
             diff = await repo.getDifference(root, subs2, initial2.vt.resolved.value, { limits: { forwardOnly: 100, generic: 10, global: 1000 } });
-            expect(diff.updates.length).toBe(1);
+            expect(diff.updates.length).toBe(0);
 
             // Should have zero changed since then
             let second1 = await repo.getState(root, subs1);

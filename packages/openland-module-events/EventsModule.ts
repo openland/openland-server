@@ -41,7 +41,7 @@ export class EventsModule {
     //
 
     postToCommon = async (ctx: Context, uid: number, update: CommonEvent) => {
-        // await this.mediator.postToCommon(ctx, uid, update);
+        await this.mediator.postToCommon(ctx, uid, update);
     }
 
     //

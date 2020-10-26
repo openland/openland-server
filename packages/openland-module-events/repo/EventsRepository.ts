@@ -325,12 +325,31 @@ export class EventsRepository {
         return await inTxLeaky(parent, async (ctx) => {
             let state = await this.sub.getSubscriptionState(ctx, subscriber, feed);
             if (!state) {
-                return {
-                    active: false,
-                    forwardOnly: false,
-                    events: [],
-                    hasMore: false
-                };
+                throw Error('Unable to find subscription state');
+            }
+
+            // Resolve actual after
+            let afterAdjusted = after;
+            let afterSeq: number;
+            if (typeof after === 'number') {
+                if (after < state.from.seq) {
+                    afterAdjusted = state.from.state;
+                    afterSeq = state.from.seq;
+                } else {
+                    afterSeq = after;
+                }
+            } else {
+                if (Buffer.compare(after, state.from.state) < 0) {
+                    afterAdjusted = state.from.state;
+                    afterSeq = state.from.seq;
+                } else {
+                    let ss = await this.feedEvents.getPreviousSeq(ctx, feed, after);
+                    if (ss < state.from.seq) {
+                        afterSeq = state.from.seq;
+                    } else {
+                        afterSeq = ss;
+                    }
+                }
             }
 
             // Resolve actual before
@@ -344,7 +363,8 @@ export class EventsRepository {
                             active,
                             forwardOnly: state.forwardOnly,
                             events: [],
-                            hasMore: false
+                            hasMore: false,
+                            afterSeq
                         };
                     } else {
                         before = state.to.state;
@@ -355,23 +375,12 @@ export class EventsRepository {
                             active,
                             forwardOnly: state.forwardOnly,
                             events: [],
-                            hasMore: false
+                            hasMore: false,
+                            afterSeq
                         };
                     } else {
                         before = state.to.state;
                     }
-                }
-            }
-
-            // Resolve actual after
-            let afterAdjusted = after;
-            if (typeof after === 'number') {
-                if (after < state.from.seq) {
-                    afterAdjusted = state.from.state;
-                }
-            } else {
-                if (Buffer.compare(after, state.from.state) < 0) {
-                    afterAdjusted = state.from.state;
                 }
             }
 
@@ -386,6 +395,7 @@ export class EventsRepository {
             return {
                 active,
                 forwardOnly: state.forwardOnly,
+                afterSeq,
                 ...res
             };
         });
@@ -393,67 +403,64 @@ export class EventsRepository {
 
     async getDifference(parent: Context, subscriber: Buffer, after: Buffer, opts: { limits: { forwardOnly: number, generic: number, global: number } }) {
         return await inTxLeaky(parent, async (ctx) => {
-            let updates: { feed: Buffer, seq: number, vt: Buffer, event: 'joined' | 'completed' | 'event', body: Buffer | null }[] = [];
-            let changedFeeds = await this.getChangedFeeds(ctx, subscriber, after);
+            let updates: { feed: Buffer, afterSeq: number, events: { seq: number, vt: Buffer, event: Buffer }[] }[] = [];
             let feeds: Buffer[] = [];
-            let feedsSet = new BufferSet();
-
-            // Add changed feed events
-            for (let ch of changedFeeds.changes) {
-                if (!feedsSet.has(ch.feed)) {
-                    feedsSet.add(ch.feed);
-                    feeds.push(ch.feed);
-                }
-                if (ch.change === 'joined') {
-                    updates.push({ feed: ch.feed, seq: ch.seq, vt: ch.vt, event: 'joined', body: null });
-                } else if (ch.change === 'left') {
-                    updates.push({ feed: ch.feed, seq: ch.seq, vt: ch.vt, event: 'completed', body: null });
-                }
-            }
-            for (let ch of changedFeeds.events) {
-                if (!feedsSet.has(ch.feed)) {
-                    feedsSet.add(ch.feed);
-                    feeds.push(ch.feed);
-                }
-            }
 
             // Load differences
             let hasMore = false;
             let diffs = await Promise.all(feeds.map(async (f) => ({ feed: f, diff: await this.getFeedDifference(ctx, subscriber, f, after, opts) })));
+            let total = 0;
             for (let d of diffs) {
-                if (!d.diff) {
-                    continue;
-                }
 
                 // Enforce hasMore if strict feeds are changed
                 if (d.diff.forwardOnly && d.diff.hasMore) {
                     hasMore = true;
                 }
 
-                for (let e of d.diff.events) {
-                    updates.push({ feed: d.feed, seq: e.seq, vt: e.vt, event: 'event', body: e.event });
-                }
+                // Convert updates
+                updates.push({
+                    feed: d.feed,
+                    afterSeq: d.diff.afterSeq,
+                    events: d.diff.events
+                });
+
+                // Calculate total
+                total += d.diff.events.length;
             }
 
-            // Sort updates
-            updates.sort((a, b) => Buffer.compare(a.vt, b.vt));
-
-            // Limit updates
-            if (updates.length > opts.limits.global) {
-                hasMore = true;
-                updates = updates.slice(0, opts.limits.global);
-            }
-
-            // Calculcate state
             let vt: Buffer = after;
-            if (updates.length > 0) {
-                vt = updates[updates.length - 1].vt;
+            if (total > opts.limits.global) {
+                // Cut updates
+                let vts: Buffer[] = [];
+                vts.sort((a, b) => Buffer.compare(a, b));
+                for (let d of diffs) {
+                    for (let e of d.diff.events) {
+                        vts.push(e.vt);
+                    }
+                }
+                let cut = vts[opts.limits.global - 1];
+                cut = vt;
+
+                // Updates
+                for (let f of updates) {
+                    f.events = f.events.filter((v) => Buffer.compare(v.vt, cut) <= 0);
+                }
+                updates = updates.filter((v) => v.events.length > 0);
+            } else {
+                // Update diff
+                for (let d of diffs) {
+                    for (let e of d.diff.events) {
+                        if (Buffer.compare(vt, e.vt) < 0) {
+                            vt = e.vt;
+                        }
+                    }
+                }
             }
 
             // Resolve current seq
             let seq = await this.subSeq.getCurrentSeq(ctx, subscriber);
 
-            return { updates: updates.map((v) => ({ event: v.event, body: v.body, feed: v.feed, seq: v.seq })), hasMore, seq, vt };
+            return { updates, hasMore, seq, vt };
         });
     }
 
