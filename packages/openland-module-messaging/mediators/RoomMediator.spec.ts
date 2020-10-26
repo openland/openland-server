@@ -62,10 +62,6 @@ describe('RoomMediator', () => {
         let org = await orgs.createOrganization(ctx, USER_ID, { name: 'Org', isCommunity: true });
         let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
         await mediator.joinRoom(ctx, room.id, USER2_ID);
-        let messages = await Store.Message.chat.findAll(ctx, room.id);
-        expect(messages.length).toBe(2);
-        expect(messages[0].uid).toBe(USER_ID);
-        expect(messages[1].uid).toBe(USER2_ID);
         let members = await Store.RoomParticipant.active.findAll(ctx, room.id);
         expect(members.length).toBe(2);
         for (let m of members) {
@@ -260,10 +256,6 @@ describe('RoomMediator', () => {
         let org = await orgs.createOrganization(ctx, USER_ID, { name: 'Org', isCommunity: true });
         let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
         await mediator.joinRoom(ctx, room.id, USER2_ID);
-        let messages = await Store.Message.chat.findAll(ctx, room.id);
-        expect(messages.length).toBe(2);
-        expect(messages[0].uid).toBe(USER_ID);
-        expect(messages[1].uid).toBe(USER2_ID);
         let members = await Store.RoomParticipant.active.findAll(ctx, room.id);
         expect(members.length).toBe(2);
         for (let m of members) {
