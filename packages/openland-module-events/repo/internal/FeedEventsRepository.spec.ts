@@ -1,9 +1,8 @@
 import { FeedSeqRepository } from './FeedSeqRepository';
-import { VersionStampRepository } from './VersionStampRepository';
 import { randomId } from 'openland-utils/randomId';
 import { FeedEventsRepository } from './FeedEventsRepository';
 import { createNamedContext } from '@openland/context';
-import { Database, inTx } from '@openland/foundationdb';
+import { Database, inTx, createVersionstampRef } from '@openland/foundationdb';
 
 const ZERO = Buffer.alloc(0);
 
@@ -13,25 +12,24 @@ describe('FeedEventsRepository', () => {
         let db = await Database.openTest({ name: 'event-feed-rw', layers: [] });
         let repo = new FeedEventsRepository(db.allKeys);
         let seqs = new FeedSeqRepository(db.allKeys);
-        let vt = new VersionStampRepository(db);
         let feed = randomId();
 
         // Init and write single vent
         let res = await inTx(root, async (ctx) => {
 
-            let initial = vt.allocateVersionstampIndex(ctx);
+            let initial = createVersionstampRef(ctx);
 
             seqs.setSeq(ctx, feed, 0);
 
             // Write a single event
             let seq = await seqs.allocateSeq(ctx, feed);
-            let index = vt.allocateVersionstampIndex(ctx);
-            repo.writeEvent(ctx, feed, ZERO, seq, index);
+            let vt = createVersionstampRef(ctx);
+            repo.writeEvent(ctx, feed, ZERO, seq, vt.index);
 
-            return { id: vt.resolveVersionstamp(ctx, index), state: vt.resolveVersionstamp(ctx, initial) };
+            return { vt, initial };
         });
-        let id = await res.id.promise;
-        let state = await res.state.promise;
+        let id = res.vt.resolved.value;
+        let state = res.initial.resolved.value;
 
         let read = await inTx(root, async (ctx) => {
             return await repo.getEvents(ctx, feed, { mode: 'forward', limit: 10, after: state });
@@ -46,8 +44,8 @@ describe('FeedEventsRepository', () => {
             // Write a single event
             for (let i = 0; i < 5; i++) {
                 let seq = await seqs.allocateSeq(ctx, feed);
-                let index = vt.allocateVersionstampIndex(ctx);
-                repo.writeEvent(ctx, feed, ZERO, seq, index);
+                let vt = createVersionstampRef(ctx);
+                repo.writeEvent(ctx, feed, ZERO, seq, vt.index);
             }
         });
 
@@ -67,25 +65,24 @@ describe('FeedEventsRepository', () => {
         let db = await Database.openTest({ name: 'event-feed-rw-collapsed', layers: [] });
         let repo = new FeedEventsRepository(db.allKeys);
         let seqs = new FeedSeqRepository(db.allKeys);
-        let vt = new VersionStampRepository(db);
         let feed = randomId();
 
         // Init and write single vent
         let res = await inTx(root, async (ctx) => {
 
-            let initial = vt.allocateVersionstampIndex(ctx);
+            let initial = createVersionstampRef(ctx);
 
             seqs.setSeq(ctx, feed, 0);
 
             // Write a single event
             let seq = await seqs.allocateSeq(ctx, feed);
-            let index = vt.allocateVersionstampIndex(ctx);
-            await repo.writeCollapsedEvent(ctx, feed, ZERO, seq, index, 'collapse-1');
+            let vt = createVersionstampRef(ctx);
+            await repo.writeCollapsedEvent(ctx, feed, ZERO, seq, vt.index, 'collapse-1');
 
-            return { id: vt.resolveVersionstamp(ctx, index), state: vt.resolveVersionstamp(ctx, initial) };
+            return { id: vt, state: initial };
         });
-        let id = await res.id.promise;
-        let state = await res.state.promise;
+        let id = res.id.resolved.value;
+        let state = res.state.resolved.value;
 
         let read = await inTx(root, async (ctx) => {
             return await repo.getEvents(ctx, feed, { mode: 'forward', limit: 10, after: state });
@@ -100,8 +97,8 @@ describe('FeedEventsRepository', () => {
             // Write a single event
             for (let i = 0; i < 5; i++) {
                 let seq = await seqs.allocateSeq(ctx, feed);
-                let index = vt.allocateVersionstampIndex(ctx);
-                await repo.writeCollapsedEvent(ctx, feed, ZERO, seq, index, 'collapse-1');
+                let vt = createVersionstampRef(ctx);
+                await repo.writeCollapsedEvent(ctx, feed, ZERO, seq, vt.index, 'collapse-1');
             }
         });
 

@@ -53,7 +53,7 @@ export class EventsMediator {
                 let time = Date.now();
                 log.log(ctx, 'subscribe-to-feed');
                 getTransaction(ctx).afterCommit(async (tx) => {
-                    let state = await res.state;
+                    let state = res.state.resolved.value;
                     this.postToBus(tx, subscriber, seq, { feed, time, type: 'subscribe', seq: res.seq, state, event: null });
                 });
             }
@@ -70,7 +70,7 @@ export class EventsMediator {
                 let time = Date.now();
                 log.log(ctx, 'unsubscribe-from-feed');
                 getTransaction(ctx).afterCommit(async (tx) => {
-                    let state = await res.state;
+                    let state = res.state.resolved.value;
                     this.postToBus(tx, subscriber, seq, { feed, time, type: 'unsubscribe', seq: res.seq, state, event: null });
                 });
             }
@@ -89,7 +89,7 @@ export class EventsMediator {
                 let time = Date.now();
                 log.log(ctx, 'post-to-feed');
                 getTransaction(ctx).afterCommit(async (tx) => {
-                    let state = await posted.state;
+                    let state = posted.state.resolved.value;
                     for (let i = 0; i < seqs.length; i++) {
                         this.postToBus(tx, online[i], seqs[i], { feed: args.feed, time, type: 'update', seq: posted.seq, state, event: args.event });
                     }

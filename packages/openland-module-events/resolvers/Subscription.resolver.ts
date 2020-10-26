@@ -113,7 +113,7 @@ export const Resolver: GQLResolver = {
             let feedStates = await Promise.all(feeds.map(async (f) => ({ state: await Modules.Events.mediator.getFeedState(ctx, f), feed: f })));
             return {
                 seq: init.state.seq,
-                state: (await init.state.state).toString('base64'),
+                state: init.state.state.resolved.value.toString('base64'),
                 sequences: feedStates.map((f) => ({ sequence: f.feed, pts: f.state.pts }))
             };
         }),

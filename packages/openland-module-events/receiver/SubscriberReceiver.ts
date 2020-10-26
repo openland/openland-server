@@ -114,7 +114,7 @@ export class SubscriberReceiver {
                 await mediator.refreshOnline(ctx, subscriber);
                 return (await mediator.repo.getState(ctx, subscriber));
             });
-            let state = await rawState.state;
+            let state = rawState.state.resolved.value;
             let seq = rawState.seq;
             if (this.stopped) {
                 return;
@@ -283,7 +283,7 @@ export class SubscriberReceiver {
                 let checkpoint = await inTx(root, async (ctx) => {
                     return this.mediator.repo.getState(ctx, this.subscriber);
                 });
-                let state = await checkpoint.state;
+                let state = checkpoint.state.resolved.value;
                 await delay(this.opts.checkpointCommitDelay);
                 if (this.stopped) {
                     return;

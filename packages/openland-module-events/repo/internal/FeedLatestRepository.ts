@@ -1,8 +1,9 @@
+import { VersionstampRef, Versionstamp } from '@openland/foundationdb-tuple';
 import { Locations } from './Locations';
 import { Context } from '@openland/context';
 import { Subspace, encoders, TransactionCache } from '@openland/foundationdb';
 
-const feedFirstLatestCache = new TransactionCache<{ latest: { state: Buffer, seq: number } | null }>('feed-index-latest');
+const feedFirstLatestCache = new TransactionCache<{ latest: { vt: Versionstamp, seq: number } | null }>('feed-index-latest');
 
 export class FeedLatestRepository {
     readonly subspace: Subspace;
@@ -23,13 +24,13 @@ export class FeedLatestRepository {
      * @param seq event sequence number
      * @param index event versionstamp index
      */
-    async writeLatest(ctx: Context, feed: Buffer, seq: number, index: Buffer) {
+    async writeLatest(ctx: Context, feed: Buffer, seq: number, vt: VersionstampRef) {
 
         // Read existing latest into cache
         await this.readFirstTransactionLatest(ctx, feed);
 
         // Write latest
-        this.subspace.setVersionstampedValue(ctx, Locations.feed.latest(feed), encoders.int32LE.pack(seq), index);
+        this.subspace.setTupleValue(ctx, Locations.feed.latest(feed), [seq, vt]);
     }
 
     /**
@@ -46,10 +47,11 @@ export class FeedLatestRepository {
                 feedFirstLatestCache.set(ctx, feedKey, { latest: null });
                 return null;
             }
-            let seq = encoders.int32LE.unpack(latest.slice(0, 4));
-            let state = latest.slice(4);
-            feedFirstLatestCache.set(ctx, feedKey, { latest: { state, seq } });
-            return { state, seq };
+            let res = encoders.tuple.unpack(latest);
+            let seq = res[0] as number;
+            let vt = (res[1] as Versionstamp);
+            feedFirstLatestCache.set(ctx, feedKey, { latest: { vt, seq } });
+            return { vt, seq };
         }
         return existing.latest;
     }
@@ -65,8 +67,9 @@ export class FeedLatestRepository {
         if (!latest) {
             throw Error('Unable to find latest event reference');
         }
-        let seq = encoders.int32LE.unpack(latest.slice(0, 4));
-        let state = latest.slice(4);
-        return { state, seq };
+        let res = encoders.tuple.unpack(latest);
+        let seq = res[0] as number;
+        let vt = res[1] as Versionstamp;
+        return { vt, seq };
     }
 }

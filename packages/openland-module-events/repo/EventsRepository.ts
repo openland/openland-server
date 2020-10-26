@@ -7,9 +7,8 @@ import { SubscriberDirectRepository } from './internal/SubscriberDirectRepositor
 import { SubscriberAsyncRepository } from './internal/SubscriberAsyncRepository';
 import { SubscriberSeqRepository } from './internal/SubscriberSeqRepository';
 import { Context } from '@openland/context';
-import { VersionStampRepository } from './internal/VersionStampRepository';
 import { RegistryRepository } from './internal/RegistryRepository';
-import { Subspace, inTxLeaky } from '@openland/foundationdb';
+import { Subspace, inTxLeaky, createVersionstampRef } from '@openland/foundationdb';
 import { FeedSeqRepository } from './internal/FeedSeqRepository';
 import { FeedEventsRepository } from './internal/FeedEventsRepository';
 import { FeedLatestRepository } from './internal/FeedLatestRepository';
@@ -29,7 +28,6 @@ export class EventsRepository {
     readonly subAsync: SubscriberAsyncRepository;
     readonly subDirect: SubscriberDirectRepository;
 
-    readonly vts: VersionStampRepository;
     readonly registry: RegistryRepository;
     readonly stats: StatsRepository;
 
@@ -44,7 +42,6 @@ export class EventsRepository {
         this.subAsync = new SubscriberAsyncRepository(subspace);
         this.subDirect = new SubscriberDirectRepository(subspace);
         this.subUpdated = new SubscriberUpdatesRepository(subspace);
-        this.vts = new VersionStampRepository(subspace.db);
         this.stats = new StatsRepository(subspace);
     }
 
@@ -60,11 +57,10 @@ export class EventsRepository {
 
             // Set initial seq
             let seq = 0;
-            this.feedSeq.setSeq(ctx, feed, seq);
+            let vt = createVersionstampRef(ctx);
 
-            // Set initial latest
-            let index = this.vts.allocateVersionstampIndex(ctx);
-            await this.feedLatest.writeLatest(ctx, feed, seq, index);
+            this.feedSeq.setSeq(ctx, feed, seq);
+            await this.feedLatest.writeLatest(ctx, feed, seq, vt);
 
             // Stats
             this.stats.increment(ctx, 'feeds');
@@ -93,14 +89,14 @@ export class EventsRepository {
 
             // Read feed sequence
             let seq = (await this.feedSeq.getSeq(ctx, feed));
-            let index = this.vts.allocateVersionstampIndex(ctx);
+            let vt = createVersionstampRef(ctx);
 
             // Add subscription
             // NOTE: This method checks for correctness
-            await this.sub.addSubscription(ctx, subscriber, feed, mode, feedMode === 'forward-only', seq, index);
+            await this.sub.addSubscription(ctx, subscriber, feed, mode, feedMode === 'forward-only', seq, vt.index);
 
             // Write to updated list
-            await this.subUpdated.appendChanged(ctx, subscriber, feed, index);
+            await this.subUpdated.appendChanged(ctx, subscriber, feed, vt.index);
 
             // Add to specific collection
             if (mode === 'async') {
@@ -114,7 +110,7 @@ export class EventsRepository {
             // Stats
             this.stats.increment(ctx, 'subscriptions');
 
-            return { seq, state: this.vts.resolveVersionstamp(ctx, index).promise };
+            return { seq, state: vt };
         });
     }
 
@@ -129,14 +125,14 @@ export class EventsRepository {
 
             // Read feed sequence
             let seq = (await this.feedSeq.getSeq(ctx, feed));
-            let index = this.vts.allocateVersionstampIndex(ctx);
+            let vt = createVersionstampRef(ctx);
 
             // Remove subscription
             // NOTE: This method checks for correctness
-            let ex = await this.sub.removeSubscription(ctx, subscriber, feed, seq, index);
+            let ex = await this.sub.removeSubscription(ctx, subscriber, feed, seq, vt.index);
 
             // Write to updated list
-            await this.subUpdated.appendChanged(ctx, subscriber, feed, index);
+            await this.subUpdated.appendChanged(ctx, subscriber, feed, vt.index);
 
             // Update specific collections
             if (ex === 'direct') {
@@ -149,7 +145,7 @@ export class EventsRepository {
             // Stats
             this.stats.decrement(ctx, 'subscriptions');
 
-            return { seq, state: this.vts.resolveVersionstamp(ctx, index).promise };
+            return { seq, state: vt };
         });
     }
 
@@ -188,22 +184,22 @@ export class EventsRepository {
             let seq = await this.feedSeq.allocateSeq(ctx, args.feed);
 
             // Allocate index
-            let index = this.vts.allocateVersionstampIndex(ctx);
+            let vt = createVersionstampRef(ctx);
 
             // Write event to a stream
             if (args.collapseKey) {
-                await this.feedEvents.writeCollapsedEvent(ctx, args.feed, args.event, seq, index, args.collapseKey);
+                await this.feedEvents.writeCollapsedEvent(ctx, args.feed, args.event, seq, vt.index, args.collapseKey);
             } else {
-                this.feedEvents.writeEvent(ctx, args.feed, args.event, seq, index);
+                this.feedEvents.writeEvent(ctx, args.feed, args.event, seq, vt.index);
             }
 
             // Write latest reference
-            await this.feedLatest.writeLatest(ctx, args.feed, seq, index);
+            await this.feedLatest.writeLatest(ctx, args.feed, seq, vt);
 
             // Update direct references
-            await this.subDirect.setUpdatedReference(ctx, args.feed, seq, index);
+            await this.subDirect.setUpdatedReference(ctx, args.feed, seq, vt.index);
 
-            return { seq, state: this.vts.resolveVersionstamp(ctx, index).promise };
+            return { seq, state: vt };
         });
     }
 
@@ -222,9 +218,9 @@ export class EventsRepository {
             let seq = await this.subSeq.getCurrentSeq(ctx, subscriber);
 
             // Resolve current state
-            let index = this.vts.allocateVersionstampIndex(ctx);
+            let vt = createVersionstampRef(ctx);
 
-            return { seq, state: this.vts.resolveVersionstamp(ctx, index).promise };
+            return { seq, state: vt };
         });
     }
 
@@ -246,7 +242,7 @@ export class EventsRepository {
             let asyncSubscriptions = await this.subAsync.getSubscriberFeeds(ctx, subscriber);
             let asyncHeads = await Promise.all(asyncSubscriptions.map(async (feed) => ({ latest: await this.feedLatest.readLatest(ctx, feed), feed })));
             for (let h of asyncHeads) {
-                if (Buffer.compare(after, h.latest.state) < 0) {
+                if (Buffer.compare(after, h.latest.vt.value) < 0) {
                     let state = await this.sub.getSubscriptionState(ctx, subscriber, h.feed);
                     if (!state || state.to !== null) {
                         throw Error('Broken state');
@@ -256,7 +252,7 @@ export class EventsRepository {
                     }
                     if (!set.has(h.feed)) {
                         set.add(h.feed);
-                        changed.push({ feed: h.feed, seq: h.latest.seq, state: h.latest.state });
+                        changed.push({ feed: h.feed, seq: h.latest.seq, state: h.latest.vt.value });
                     }
                 }
             }
@@ -300,7 +296,7 @@ export class EventsRepository {
             let asyncSubscriptions = await this.subAsync.getSubscriberFeeds(ctx, subscriber);
             let asyncHeads = await Promise.all(asyncSubscriptions.map(async (feed) => ({ latest: await this.feedLatest.readLatest(ctx, feed), feed })));
             for (let h of asyncHeads) {
-                if (Buffer.compare(after, h.latest.state) < 0) {
+                if (Buffer.compare(after, h.latest.vt.value) < 0) {
                     let state = await this.sub.getSubscriptionState(ctx, subscriber, h.feed);
                     if (!state || state.to !== null) {
                         throw Error('Broken state');
@@ -310,7 +306,7 @@ export class EventsRepository {
                     }
                     if (!set.has(h.feed)) {
                         set.add(h.feed);
-                        events.push({ feed: h.feed, seq: h.latest.seq, state: h.latest.state });
+                        events.push({ feed: h.feed, seq: h.latest.seq, state: h.latest.vt.value });
                     }
                 }
             }

@@ -84,7 +84,7 @@ export class TypedEventsMediator {
                 throw Error('Feed does not exist');
             }
             let latest = await this.events.repo.feedLatest.readLatest(ctx, feedid);
-            return { pts: latest.seq, state: latest.state.toString('base64') };
+            return { pts: latest.seq, state: latest.vt.value.toString('base64') };
         });
     }
 
