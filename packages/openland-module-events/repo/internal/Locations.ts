@@ -6,6 +6,9 @@ import { encoders, TupleItem, TupleItemExtended } from '@openland/foundationdb';
 //
 // Event stream
 const FEED_STREAM = 0;
+const FEED_STREAM_NORMALIZED = 0;
+// const FEED_STREAM_VT = 1;
+// const FEED_STREAM_SEQ = 2;
 // VT and Seq
 const FEED_LATEST = 1;
 const FEED_SEQ = 2;
@@ -42,9 +45,11 @@ export const Locations = {
     feed: {
         seq: (feed: Buffer): TupleType => [feed, FEED_SEQ],
         latest: (feed: Buffer): TupleType => [feed, FEED_LATEST],
-        stream: (feed: Buffer): TupleType => [feed, FEED_STREAM],
-        streamItem: (feed: Buffer, vt: Versionstamp): TupleType => [feed, FEED_STREAM, vt],
-        streamItemWrite: (feed: Buffer, vt: VersionstampRef): TupleTypeEx => [feed, FEED_STREAM, vt],
+        
+        stream: (feed: Buffer): TupleType => [feed, FEED_STREAM, FEED_STREAM_NORMALIZED],
+        streamItem: (feed: Buffer, vt: Versionstamp): TupleType => [feed, FEED_STREAM, FEED_STREAM_NORMALIZED, vt],
+        streamItemWrite: (feed: Buffer, vt: VersionstampRef): TupleTypeEx => [feed, FEED_STREAM, FEED_STREAM_NORMALIZED, vt],
+
         collapsed: (feed: Buffer, key: string): TupleType => [feed, FEED_COLLAPSE, key],
 
         direct: (feed: Buffer, subscriber: Buffer): TupleType => [feed, FEED_DIRECT, subscriber],
