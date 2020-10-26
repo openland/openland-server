@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '37013f259202c5f27218096d1b5a38e6';
+export const GQL_SPEC_VERSION = '498ba090586f6307d0a1e068e9a0b0a2';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -724,11 +724,9 @@ export namespace GQL {
     export interface UpdatesDifferenceEventEventArgs { }
     export interface UpdatesSequenceDifference {
         sequence: Sequence;
-        pts: number;
         events: UpdatesDifferenceEvent[];
     }
     export interface UpdatesSequenceDifferenceSequenceArgs { }
-    export interface UpdatesSequenceDifferencePtsArgs { }
     export interface UpdatesSequenceDifferenceEventsArgs { }
     export interface UpdatesDifference {
         seq: number;
@@ -740,6 +738,14 @@ export namespace GQL {
     export interface UpdatesDifferenceStateArgs { }
     export interface UpdatesDifferenceHasMoreArgs { }
     export interface UpdatesDifferenceSequencesArgs { }
+    export interface SequenceDifference {
+        sequence: Sequence;
+        events: UpdatesDifferenceEvent[];
+        hasMore: boolean;
+    }
+    export interface SequenceDifferenceSequenceArgs { }
+    export interface SequenceDifferenceEventsArgs { }
+    export interface SequenceDifferenceHasMoreArgs { }
     export interface Reaction {
         user: User;
         reaction: string;
@@ -4306,6 +4312,7 @@ export namespace GQL {
         alphaResolveInvite: Nullable<ResolveInviteEntry>;
         updatesState: UpdatesState;
         updatesDifference: UpdatesDifference;
+        sequenceDifference: SequenceDifference;
         phonebookWasExported: boolean;
         channels: Channel[];
         channel: Nullable<Channel>;
@@ -4524,6 +4531,10 @@ export namespace GQL {
     export interface QueryUpdatesStateArgs { }
     export interface QueryUpdatesDifferenceArgs {
         state: string;
+    }
+    export interface QuerySequenceDifferenceArgs {
+        id: string;
+        seq: number;
     }
     export interface QueryPhonebookWasExportedArgs { }
     export interface QueryChannelsArgs { }
@@ -7318,7 +7329,6 @@ export interface GQLResolver {
         },
         {
             sequence: GQL.UpdatesSequenceDifferenceSequenceArgs,
-            pts: GQL.UpdatesSequenceDifferencePtsArgs,
             events: GQL.UpdatesSequenceDifferenceEventsArgs,
         }
     >;
@@ -7333,6 +7343,19 @@ export interface GQLResolver {
             state: GQL.UpdatesDifferenceStateArgs,
             hasMore: GQL.UpdatesDifferenceHasMoreArgs,
             sequences: GQL.UpdatesDifferenceSequencesArgs,
+        }
+    >;
+    SequenceDifference?: ComplexTypedResolver<
+        GQL.SequenceDifference,
+        GQLRoots.SequenceDifferenceRoot,
+        {
+            sequence: GQLRoots.SequenceRoot,
+            events: GQLRoots.UpdatesDifferenceEventRoot[],
+        },
+        {
+            sequence: GQL.SequenceDifferenceSequenceArgs,
+            events: GQL.SequenceDifferenceEventsArgs,
+            hasMore: GQL.SequenceDifferenceHasMoreArgs,
         }
     >;
     Reaction?: ComplexTypedResolver<
@@ -10067,6 +10090,7 @@ export interface GQLResolver {
             alphaResolveInvite: Nullable<GQLRoots.ResolveInviteEntryRoot>,
             updatesState: GQLRoots.UpdatesStateRoot,
             updatesDifference: GQLRoots.UpdatesDifferenceRoot,
+            sequenceDifference: GQLRoots.SequenceDifferenceRoot,
             channels: GQLRoots.ChannelRoot[],
             channel: Nullable<GQLRoots.ChannelRoot>,
             debugParseID: GQLRoots.DebugIDRoot,
@@ -10235,6 +10259,7 @@ export interface GQLResolver {
             alphaResolveInvite: GQL.QueryAlphaResolveInviteArgs,
             updatesState: GQL.QueryUpdatesStateArgs,
             updatesDifference: GQL.QueryUpdatesDifferenceArgs,
+            sequenceDifference: GQL.QuerySequenceDifferenceArgs,
             phonebookWasExported: GQL.QueryPhonebookWasExportedArgs,
             channels: GQL.QueryChannelsArgs,
             channel: GQL.QueryChannelArgs,

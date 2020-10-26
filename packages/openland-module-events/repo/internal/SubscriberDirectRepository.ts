@@ -1,34 +1,38 @@
+import { Versionstamp, VersionstampRef } from '@openland/foundationdb-tuple';
 import { Locations } from './Locations';
 import { Context } from '@openland/context';
-import { Subspace, encoders, TransactionCache, getTransaction } from '@openland/foundationdb';
+import { Subspace, encoders, TransactionCache, getTransaction, TupleItem } from '@openland/foundationdb';
 import { inTxLock } from 'openland-module-db/inTxLock';
 
-const ZERO = Buffer.alloc(0);
-const subscriberUpdates = new TransactionCache<{ latest: { index: Buffer, seq: number } }>('feed-subscriber-updates');
+const subscriberUpdates = new TransactionCache<{
+    latest: { seq: number, vt: VersionstampRef },
+    previous: { seq: number, vt: Versionstamp } | null
+}>('feed-subscriber-updates');
 
 export class SubscriberDirectRepository {
-    readonly subspace: Subspace;
+    readonly subspace: Subspace<TupleItem[], TupleItem[]>;
 
     constructor(subspace: Subspace) {
-        this.subspace = subspace;
+        this.subspace = subspace
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.tuple);
     }
 
     async addSubscriber(ctx: Context, subscriber: Buffer, feed: Buffer) {
-        this.subspace.set(ctx, Locations.subscriber.direct(subscriber, feed), ZERO);
-        this.subspace.set(ctx, Locations.subscriber.directReverse(subscriber, feed), ZERO);
+        this.subspace.set(ctx, Locations.subscriber.direct(subscriber, feed), []);
+        this.subspace.set(ctx, Locations.feed.direct(feed, subscriber), []);
     }
 
     async removeSubscriber(ctx: Context, subscriber: Buffer, feed: Buffer) {
         this.subspace.clear(ctx, Locations.subscriber.direct(subscriber, feed));
-        this.subspace.clear(ctx, Locations.subscriber.directReverse(subscriber, feed));
+        this.subspace.clear(ctx, Locations.feed.direct(feed, subscriber));
     }
 
     async getFeedSubscribers(ctx: Context, feed: Buffer) {
-        let direct = await this.subspace.range(ctx, Locations.subscriber.directReverseAll(feed));
+        let direct = await this.subspace.range(ctx, Locations.feed.directAll(feed));
         let res: Buffer[] = [];
         for (let d of direct) {
-            let tuple = encoders.tuple.unpack(d.key);
-            res.push(tuple[tuple.length - 1] as Buffer);
+            res.push(d.key[d.key.length - 1] as Buffer);
         }
         return res;
     }
@@ -37,69 +41,55 @@ export class SubscriberDirectRepository {
         let direct = await this.subspace.range(ctx, Locations.subscriber.directAll(subscriber));
         let res: Buffer[] = [];
         for (let d of direct) {
-            let tuple = encoders.tuple.unpack(d.key);
-            res.push(tuple[tuple.length - 1] as Buffer);
+            res.push(d.key[d.key.length - 1] as Buffer);
         }
         return res;
     }
 
-    async removeUpdatedReference(ctx: Context, subscriber: Buffer, feed: Buffer) {
+    async removeUpdatedReference(ctx: Context, subscriber: Buffer, feed: Buffer, latest: { vt: Versionstamp, seq: number }) {
         let feedKey = feed.toString('hex');
         await inTxLock(ctx, 'direct-updated-' + feedKey, async () => {
-            // Updated reference already removed
-            if (subscriberUpdates.get(ctx, feedKey)) {
-                return;
-            }
-
-            // Read latest and clear if exist
-            let existing = await this.subspace.get(ctx, Locations.subscriber.directLatest(feed));
-            if (existing) {
-                this.subspace.clear(ctx, Buffer.concat([Locations.subscriber.directUpdates(subscriber), existing]));
-            }
+            this.subspace.clear(ctx, Locations.subscriber.directUpdatesRead(subscriber, latest.vt));
         });
     }
 
-    async setUpdatedReference(ctx: Context, feed: Buffer, seq: number, index: Buffer) {
+    async setUpdatedReference(ctx: Context, feed: Buffer, seq: number, vt: VersionstampRef, previous: { vt: Versionstamp, seq: number } | null) {
         let feedKey = feed.toString('hex');
         await inTxLock(ctx, 'direct-updated-' + feedKey, async () => {
             let ex = subscriberUpdates.get(ctx, feedKey);
             if (!ex) {
-                ex = { latest: { seq, index } };
+                ex = { latest: { seq, vt }, previous };
                 subscriberUpdates.set(ctx, feedKey, ex);
 
                 // Delete existing
-                let existing = await this.subspace.get(ctx, Locations.subscriber.directLatest(feed));
-                if (existing) {
+                if (ex.previous) {
                     for (let subscriber of await this.getFeedSubscribers(ctx, feed)) {
-                        this.subspace.clear(ctx, Buffer.concat([Locations.subscriber.directUpdates(subscriber), existing]));
+                        this.subspace.clear(ctx, Locations.subscriber.directUpdatesRead(subscriber, ex.previous.vt));
                     }
                 }
 
                 getTransaction(ctx).beforeCommit(async (commit) => {
-                    // Save written latest
-                    this.subspace.setVersionstampedValue(ctx, Locations.subscriber.directLatest(feed), ZERO, index);
-
+                    let latest = ex!.latest!;
                     // Update updated list
-                    for (let subscriber of await this.getFeedSubscribers(ctx, feed)) {
-                        this.subspace.setVersionstampedKey(commit, Locations.subscriber.directUpdates(subscriber), encoders.tuple.pack([feed, ex!.latest!.seq]), ex!.latest!.index);
+                    for (let subscriber of await this.getFeedSubscribers(commit, feed)) {
+                        this.subspace.setTupleKey(commit, Locations.subscriber.directUpdatesWrite(subscriber, latest.vt), [feed, latest.seq]);
                     }
                 });
             } else {
-                ex.latest = { seq, index };
+                ex.latest = { seq, vt };
             }
         });
     }
 
     async getUpdatedFeeds(ctx: Context, subscriber: Buffer, after: Buffer) {
-        let location = Locations.subscriber.directUpdates(subscriber);
-        let res = await this.subspace.range(ctx, location, { after: Buffer.concat([location, after]) });
-        let updated: { feed: Buffer, seq: number, state: Buffer }[] = [];
+        let location = Locations.subscriber.directUpdatesAll(subscriber);
+        let res = await this.subspace.range(ctx, location, { after: Locations.subscriber.directUpdatesRead(subscriber, new Versionstamp(after)) });
+        let updated: { feed: Buffer, seq: number, vt: Buffer }[] = [];
         for (let r of res) {
-            let state = r.key.slice(r.key.length - 12);
-            let tuple = encoders.tuple.unpack(r.value);
-            let feed = tuple[0] as Buffer;
-            let seq = tuple[1] as number;
-            updated.push({ feed, seq, state });
+            let vt = (r.key[r.key.length - 1] as Versionstamp).value;
+            let feed = r.value[0] as Buffer;
+            let seq = r.value[1] as number;
+            updated.push({ feed, seq, vt });
         }
         return updated;
     }

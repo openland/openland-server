@@ -23,9 +23,9 @@ describe('SubscriberAsyncRepository', () => {
 
         // Add subscribers
         await inTx(root, async (ctx) => {
-            await repo.addSubscriber(ctx, subsId1, feedId1);
-            await repo.addSubscriber(ctx, subsId1, feedId2);
-            await repo.addSubscriber(ctx, subsId2, feedId1);
+            await repo.addSubscriber(ctx, subsId1, feedId1, null);
+            await repo.addSubscriber(ctx, subsId1, feedId2, null);
+            await repo.addSubscriber(ctx, subsId2, feedId1, null);
         });
 
         // Check subscriber map
@@ -50,9 +50,9 @@ describe('SubscriberAsyncRepository', () => {
 
         // Add subscribers
         await inTx(root, async (ctx) => {
-            await repo.addSubscriber(ctx, subsId1, feedId1);
-            await repo.addSubscriber(ctx, subsId1, feedId2);
-            await repo.addSubscriber(ctx, subsId2, feedId1);
+            await repo.addSubscriber(ctx, subsId1, feedId1, null);
+            await repo.addSubscriber(ctx, subsId1, feedId2, null);
+            await repo.addSubscriber(ctx, subsId2, feedId1, null);
         });
 
         // Check initial
@@ -63,9 +63,9 @@ describe('SubscriberAsyncRepository', () => {
         });
 
         await inTx(root, async (ctx) => {
-            await repo.setSubscriberOnline(ctx, subsId1, 50);
-            await repo.setSubscriberOnline(ctx, subsId2, 50);
-            await repo.setSubscriberOnline(ctx, subsId3, 50);
+            await repo.setSubscriberOnline(ctx, subsId1, 50, null);
+            await repo.setSubscriberOnline(ctx, subsId2, 50, null);
+            await repo.setSubscriberOnline(ctx, subsId3, 50, null);
         });
 
         await inTx(root, async (ctx) => {
