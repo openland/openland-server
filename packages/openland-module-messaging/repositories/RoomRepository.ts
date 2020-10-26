@@ -1384,7 +1384,7 @@ export class RoomRepository {
                     await Modules.Orgs.addUserToOrganization(ctx, uid, org.id, by, true);
                 }
 
-                if (org.autosubscribeRooms) {
+                if (org.autosubscribeRooms && !(await Store.AutoSubscribeWasExecutedForUser.get(ctx, uid, 'org', org.id))) {
                     for (let c of org.autosubscribeRooms) {
                         let conv = await Store.ConversationRoom.findById(ctx, c);
                         if (!conv || conv.isDeleted) {
@@ -1392,6 +1392,7 @@ export class RoomRepository {
                         }
                         await Modules.Messaging.room.joinRoom(ctx, c, uid);
                     }
+                    await Store.AutoSubscribeWasExecutedForUser.set(ctx, uid, 'org', org.id, true);
                 }
             }
             const welcomeMessage = await this.resolveConversationWelcomeMessage(ctx, cid);
@@ -1400,7 +1401,7 @@ export class RoomRepository {
                 await this.welcomeMessageWorker.pushWork(ctx, { uid, cid }, Date.now() + 1000 * 40);
             }
 
-            if (room.autosubscribeRooms) {
+            if (room.autosubscribeRooms && !(await Store.AutoSubscribeWasExecutedForUser.get(ctx, uid, 'room', room.id))) {
                 for (let c of room.autosubscribeRooms) {
                     let conv = await Store.ConversationRoom.findById(ctx, c);
                     if (!conv || conv.isDeleted) {
@@ -1408,6 +1409,7 @@ export class RoomRepository {
                     }
                     await Modules.Messaging.room.joinRoom(ctx, c, uid);
                 }
+                await Store.AutoSubscribeWasExecutedForUser.set(ctx, uid, 'room', room.id, true);
             }
 
             await Modules.Hooks.onRoomJoin(ctx, cid, uid, by);

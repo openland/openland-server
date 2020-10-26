@@ -315,6 +315,12 @@ export default declareSchema(() => {
             .withCondition((v) => v.kind === 'public' && !v.isDeleted);
     });
 
+    atomicBool('AutoSubscribeWasExecutedForUser', () => {
+        primaryKey('uid', integer());
+        primaryKey('targetType', enumString('room', 'org'));
+        primaryKey('targetId', integer());
+    });
+
     entity('PremiumChatSettings', () => {
         primaryKey('id', integer());
         field('price', integer());
