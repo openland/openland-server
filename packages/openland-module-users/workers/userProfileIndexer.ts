@@ -8,7 +8,7 @@ let hashtagRegex = /#[\w]+/g;
 export function userProfileIndexer() {
     declareSearchIndexer({
         name: 'user-profile-index',
-        version: 24,
+        version: 26,
         index: 'user_profile',
         stream: Store.UserIndexingQueue.updated.stream({ batchSize: 50 })
     }).withProperties({
@@ -31,7 +31,7 @@ export function userProfileIndexer() {
             type: 'text'
         },
         name: {
-            type: 'text'
+            type: 'keyword'
         },
         ivitedBy: {
             type: 'long'
@@ -125,12 +125,14 @@ export function userProfileIndexer() {
             }
             let chats = (await Store.RoomParticipant.userActive.findAll(ctx, item.id)).map(p => p.cid);
 
+            console.log(item.id);
             return {
                 id: item.id!!,
                 doc: {
                     firstName: profile.firstName,
                     lastName: profile.lastName || undefined,
                     name: (profile.firstName || '') + ' ' + (profile.lastName || ''),
+                    nameKeyWord: (profile.firstName || '') + ' ' + (profile.lastName || ''),
                     shortName: shortName ? shortName.shortname : undefined,
                     userId: item.id,
                     search: searchData.join(' '),
