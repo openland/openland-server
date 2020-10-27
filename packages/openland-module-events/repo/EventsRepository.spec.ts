@@ -84,7 +84,7 @@ describe('EventsRepository', () => {
             await repo.subscribe(root, subs1, feed2, type as 'async' | 'direct');
             await repo.subscribe(root, subs2, feed1, type as 'async' | 'direct');
 
-            // Should have two changed feeds
+            // Should have no changed feeds
             expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, initial1.vt.resolved.value), []);
             diff = await repo.getDifference(root, subs1, initial1.vt.resolved.value, { limits: { forwardOnly: 100, generic: 10, global: 1000 } });
             expect(diff.updates.length).toBe(0);
@@ -106,6 +106,57 @@ describe('EventsRepository', () => {
             expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs2, second2.vt.resolved.value), [{ feed: feed1, seq: lastPost.seq }]);
             expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs1, initial1.vt.resolved.value), [{ feed: feed1, seq: lastPost.seq }]);
             expectChangedFeeds(await repo.getChangedFeedsSeqNumbers(root, subs2, initial2.vt.resolved.value), [{ feed: feed1, seq: lastPost.seq }]);
+            diff = await repo.getDifference(root, subs1, initial1.vt.resolved.value, { limits: { forwardOnly: 100, generic: 10, global: 1000 } });
+            expect(diff.updates.length).toBe(1);
+            diff = await repo.getDifference(root, subs2, initial2.vt.resolved.value, { limits: { forwardOnly: 100, generic: 10, global: 1000 } });
+            expect(diff.updates.length).toBe(1);
+        }
+    });
+
+    it('should implement getFeedDifference', async () => {
+        let root = createNamedContext('test');
+        let db = await Database.openTest({ name: 'event-events-changed', layers: [] });
+        let repo = new EventsRepository(db.allKeys);
+
+        for (let type of ['generic', 'forward-only']) {
+            let opts = { limits: { forwardOnly: 100, generic: 10, global: 1000 } };
+            let feed = await repo.createFeed(root, type as 'generic' | 'forward-only');
+            let subs = await repo.createSubscriber(root);
+            let initial = await repo.getState(root, subs);
+            await repo.subscribe(root, subs, feed, 'direct');
+            
+            // Empty difference
+            let diff = await repo.getFeedDifference(root, subs, feed, 0, opts);
+            expect(diff.events).toMatchObject([]);
+            expect(diff.afterSeq).toBe(0);
+            expect(diff.forwardOnly).toBe(type === 'forward-only');
+            expect(diff.hasMore).toBe(false);
+            expect(diff.active).toBe(true);
+
+            diff = await repo.getFeedDifference(root, subs, feed, initial.vt.resolved.value, opts);
+            expect(diff.events).toMatchObject([]);
+            expect(diff.afterSeq).toBe(0);
+            expect(diff.forwardOnly).toBe(type === 'forward-only');
+            expect(diff.hasMore).toBe(false);
+            expect(diff.active).toBe(true);
+
+            // Post
+            await repo.post(root, { feed: feed, event: ZERO });
+
+            // Update diff
+            diff = await repo.getFeedDifference(root, subs, feed, 0, opts);
+            expect(diff.events.length).toBe(1);
+            expect(diff.afterSeq).toBe(0);
+            expect(diff.forwardOnly).toBe(type === 'forward-only');
+            expect(diff.hasMore).toBe(false);
+            expect(diff.active).toBe(true);
+
+            diff = await repo.getFeedDifference(root, subs, feed, initial.vt.resolved.value, opts);
+            expect(diff.events.length).toBe(1);
+            expect(diff.afterSeq).toBe(0);
+            expect(diff.forwardOnly).toBe(type === 'forward-only');
+            expect(diff.hasMore).toBe(false);
+            expect(diff.active).toBe(true);
         }
     });
 });

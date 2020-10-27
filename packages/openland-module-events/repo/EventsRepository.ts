@@ -406,6 +406,16 @@ export class EventsRepository {
             let updates: { feed: Buffer, afterSeq: number, events: { seq: number, vt: Buffer, event: Buffer }[] }[] = [];
             let feeds: Buffer[] = [];
 
+            // Resolve changed feeds
+            let changedFeeds = await this.getChangedFeeds(ctx, subscriber, after);
+            let feedsSet = new BufferSet();
+            for (let ch of changedFeeds.events) {
+                if (!feedsSet.has(ch.feed)) {
+                    feedsSet.add(ch.feed);
+                    feeds.push(ch.feed);
+                }
+            }
+
             // Load differences
             let hasMore = false;
             let diffs = await Promise.all(feeds.map(async (f) => ({ feed: f, diff: await this.getFeedDifference(ctx, subscriber, f, after, opts) })));
