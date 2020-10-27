@@ -10,7 +10,7 @@ export function userProfileIndexer() {
         name: 'user-profile-index',
         version: 29,
         index: 'user_profile',
-        stream: Store.UserIndexingQueue.updated.stream({ batchSize: 50 })
+        stream: Store.UserIndexingQueue.updated.stream({ batchSize: 200 })
     }).withProperties({
         primaryOrganization: {
             type: 'keyword'
