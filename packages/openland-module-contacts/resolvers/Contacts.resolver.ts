@@ -17,14 +17,36 @@ export const Resolver: GQLResolver = {
 
     Query: {
         myContacts: withUser(async (ctx, args, uid) => {
-            let contacts = await Store.Contact.user.query(ctx, uid, {
-                limit: args.first,
-                after: args.after ? parseInt(IDs.ContactCursor.parse(args.after), 10) : null
+            let contactsAll = await Store.Contact.user.findAll(ctx, uid);
+
+            let clauses: any[] = [];
+            clauses.push({terms: {userId: contactsAll.map(c => c.contactUid)}});
+            clauses.push({term: {status: 'activated'}});
+
+            let from = 0;
+            if (args.after) {
+                from = IDs.ContactCursor2.parse(args.after);
+            }
+
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'user_profile',
+                type: 'user_profile',
+                size: args.first || 20,
+                body: {
+                    query: {bool: {must: clauses}},
+                    sort: [{name: {order: 'asc'}}]
+                },
+                from
             });
 
+            let haveMore = (hits.hits.total as any).value > (from + args.first);
+
+            let uids = hits.hits.hits.map(v => parseInt(v._id, 10));
+            let items = contactsAll.filter(c => uids.includes(c.contactUid));
+
             return {
-                items: contacts.items,
-                cursor: contacts.haveMore ? IDs.ContactCursor.serialize(contacts.items[contacts.items.length - 1].metadata.createdAt.toString(10)) : null
+                items,
+                cursor: haveMore ? IDs.ContactCursor2.serialize(from + args.first) : null,
             };
         }),
         myContactsSearch: withUser(async (ctx, args, uid) => {
@@ -33,6 +55,7 @@ export const Resolver: GQLResolver = {
 
             let clauses: any[] = [];
             clauses.push({terms: {userId: contacts.map(c => c.contactUid)}});
+            clauses.push({term: {status: 'activated'}});
             clauses.push({
                 bool: {
                     should: query.trim().length > 0 ? [
