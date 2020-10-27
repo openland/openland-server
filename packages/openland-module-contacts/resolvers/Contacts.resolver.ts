@@ -42,7 +42,7 @@ export const Resolver: GQLResolver = {
             let haveMore = (hits.hits.total as any).value > (from + args.first);
 
             let uids = hits.hits.hits.map(v => parseInt(v._id, 10));
-            let items = contactsAll.filter(c => uids.includes(c.contactUid));
+            let items = uids.map(id => contactsAll.find(c => c.contactUid === id)!);
 
             return {
                 items,
