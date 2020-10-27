@@ -31,6 +31,9 @@ export function userProfileIndexer() {
             type: 'text'
         },
         name: {
+            type: 'text'
+        },
+        nameKeyword: {
             type: 'keyword'
         },
         ivitedBy: {
@@ -131,6 +134,7 @@ export function userProfileIndexer() {
                     firstName: profile.firstName,
                     lastName: profile.lastName || undefined,
                     name: (profile.firstName || '') + ' ' + (profile.lastName || ''),
+                    nameKeyword: (profile.firstName || '') + ' ' + (profile.lastName || ''),
                     nameKeyWord: (profile.firstName || '') + ' ' + (profile.lastName || ''),
                     shortName: shortName ? shortName.shortname : undefined,
                     userId: item.id,

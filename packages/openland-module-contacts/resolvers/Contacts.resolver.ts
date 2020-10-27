@@ -34,7 +34,7 @@ export const Resolver: GQLResolver = {
                 size: args.first || 20,
                 body: {
                     query: {bool: {must: clauses}},
-                    sort: [{name: {order: 'asc'}}]
+                    sort: [{nameKeyword: {order: 'asc'}}]
                 },
                 from
             });
