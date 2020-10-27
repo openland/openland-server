@@ -125,7 +125,6 @@ export function userProfileIndexer() {
             }
             let chats = (await Store.RoomParticipant.userActive.findAll(ctx, item.id)).map(p => p.cid);
 
-            console.log(item.id);
             return {
                 id: item.id!!,
                 doc: {
