@@ -4,6 +4,7 @@ import { withUser } from '../../openland-module-api/Resolvers';
 import { Store } from '../../openland-module-db/FDB';
 import { Modules } from '../../openland-modules/Modules';
 import { isDefined } from '../../openland-utils/misc';
+import { Contact } from '../../openland-module-db/store';
 
 export const Resolver: GQLResolver = {
     Contact: {
@@ -41,8 +42,11 @@ export const Resolver: GQLResolver = {
 
             let haveMore = (hits.hits.total as any).value > (from + args.first);
 
+            let contactsMap = new Map<number, Contact>();
+            contactsAll.forEach(c => contactsMap.set(c.contactUid, c));
+
             let uids = hits.hits.hits.map(v => parseInt(v._id, 10));
-            let items = uids.map(id => contactsAll.find(c => c.contactUid === id)!);
+            let items = uids.map(id => contactsMap.get(id)!);
 
             return {
                 items,
