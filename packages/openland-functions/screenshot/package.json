@@ -8,11 +8,5 @@
     "iltorb": "^2.4.3",
     "node-fetch": "^2.6.0",
     "puppeteer-core": "^1.19.0"
-  },
-  "scripts": {
-    "build": "docker build -t openland/chrome-screenshot:v$npm_package_version .",
-    "push": "docker push openland/chrome-screenshot:v$npm_package_version",
-    "ver": "echo $npm_package_version",
-    "postversion": "yarn build"
   }
 }
