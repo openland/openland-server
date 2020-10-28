@@ -139,6 +139,8 @@ export const Resolver: GQLResolver = {
             // only public orgs
             clauses.push({ term: { listed: true } });
 
+            clauses.push({ term: { status: 'activated' } });
+
             let from = args.after ? parseInt(args.after, 10) : 0;
             let hits = await Modules.Search.elastic.client.search({
                 index: 'organization',
@@ -188,6 +190,8 @@ export const Resolver: GQLResolver = {
             clauses.push({range: {membersCount: {gte: 10}}});
             // only public orgs
             clauses.push({ term: { listed: true } });
+
+            clauses.push({ term: { status: 'activated' } });
 
             let hits = await Modules.Search.elastic.client.search({
                 index: 'organization',
