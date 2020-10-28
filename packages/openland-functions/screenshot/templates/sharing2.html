@@ -79,6 +79,20 @@
             letter-spacing: 0.4px;
         }
     </style>
+    <script>
+        function fill(args) {
+            if (!args.title || !args.image) {
+                return Promise.reject('Title or image is not specified ' + JSON.stringify(args))
+            }
+            let imgSrc = args.image;
+            let titleText = args.title;
+            let image = document.getElementById('image')
+            let title = document.getElementById('title')
+
+            image.src = imgSrc
+            title.innerText = titleText
+        }
+    </script>
 </head>
 
 <body>
