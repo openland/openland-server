@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'af483bd82c172f119ad1deb85a1adb97';
+export const GQL_SPEC_VERSION = 'f1013a055071e30c2462d9baff39228b';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4319,6 +4319,7 @@ export namespace GQL {
         appInviteInfo: Nullable<AppInvite>;
         alphaResolveInvite: Nullable<ResolveInviteEntry>;
         updatesState: UpdatesState;
+        sequenceState: Sequence;
         updatesDifference: UpdatesDifference;
         sequenceDifference: SequenceDifference;
         phonebookWasExported: boolean;
@@ -4539,6 +4540,9 @@ export namespace GQL {
         key: string;
     }
     export interface QueryUpdatesStateArgs { }
+    export interface QuerySequenceStateArgs {
+        id: string;
+    }
     export interface QueryUpdatesDifferenceArgs {
         state: string;
     }
@@ -10120,6 +10124,7 @@ export interface GQLResolver {
             appInviteInfo: Nullable<GQLRoots.AppInviteRoot>,
             alphaResolveInvite: Nullable<GQLRoots.ResolveInviteEntryRoot>,
             updatesState: GQLRoots.UpdatesStateRoot,
+            sequenceState: GQLRoots.SequenceRoot,
             updatesDifference: GQLRoots.UpdatesDifferenceRoot,
             sequenceDifference: GQLRoots.SequenceDifferenceRoot,
             channels: GQLRoots.ChannelRoot[],
@@ -10290,6 +10295,7 @@ export interface GQLResolver {
             appInviteInfo: GQL.QueryAppInviteInfoArgs,
             alphaResolveInvite: GQL.QueryAlphaResolveInviteArgs,
             updatesState: GQL.QueryUpdatesStateArgs,
+            sequenceState: GQL.QuerySequenceStateArgs,
             updatesDifference: GQL.QueryUpdatesDifferenceArgs,
             sequenceDifference: GQL.QuerySequenceDifferenceArgs,
             phonebookWasExported: GQL.QueryPhonebookWasExportedArgs,

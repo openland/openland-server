@@ -42,6 +42,7 @@ type UpdatesState {
 
 extend type Query {
     updatesState: UpdatesState!
+    sequenceState(id: ID!): Sequence!
 }
 
 #
