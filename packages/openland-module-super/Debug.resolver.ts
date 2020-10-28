@@ -43,6 +43,7 @@ import { MessageAttachmentFileInput, MessageSpan } from '../openland-module-mess
 import { ExperimentalCountersRepository } from '../openland-module-messaging/repositories/ExperimentalCountersRepository';
 import { UserReadSeqsDirectory } from '../openland-module-messaging/repositories/UserReadSeqsDirectory';
 import { AsyncCountersRepository } from '../openland-module-messaging/repositories/AsyncCountersRepository';
+import fetch from 'node-fetch';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -328,6 +329,27 @@ export const Resolver: GQLResolver = {
             } else {
                 return null;
             }
+        }),
+        debugSocialSharingImage: withPermission('super-admin', async (ctx, args) => {
+            let res = await fetch(Config.screenshotter + '/render', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    template: args.template,
+                    args: {
+                        title: args.title,
+                        image: args.image
+                    }
+                })
+            });
+            if (res.status !== 200) {
+                throw new UserError('Error in screenshor')
+            }
+            let json = await res.json();
+            return JSON.stringify(json);
         }),
     },
     Mutation: {

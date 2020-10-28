@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '42018786be5014d8f221a7eaa6155ce9';
+export const GQL_SPEC_VERSION = 'af483bd82c172f119ad1deb85a1adb97';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4347,6 +4347,7 @@ export namespace GQL {
         debugGetCounters: string;
         debugExperimentalCounter: string;
         debugFindUser: Nullable<User>;
+        debugSocialSharingImage: string;
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
@@ -4607,6 +4608,11 @@ export namespace GQL {
     export interface QueryDebugFindUserArgs {
         email: OptionalNullable<string>;
         phone: OptionalNullable<string>;
+    }
+    export interface QueryDebugSocialSharingImageArgs {
+        template: string;
+        title: string;
+        image: string;
     }
     export interface QueryDialogsArgs {
         first: number;
@@ -10312,6 +10318,7 @@ export interface GQLResolver {
             debugGetCounters: GQL.QueryDebugGetCountersArgs,
             debugExperimentalCounter: GQL.QueryDebugExperimentalCounterArgs,
             debugFindUser: GQL.QueryDebugFindUserArgs,
+            debugSocialSharingImage: GQL.QueryDebugSocialSharingImageArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
             authPoints: GQL.QueryAuthPointsArgs,

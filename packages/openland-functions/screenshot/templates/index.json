@@ -3,5 +3,10 @@
     "width": 600,
     "height": 300,
     "file": "sharing.html"
+  },
+  "sharing2": {
+    "width": 600,
+    "height": 300,
+    "file": "sharing2.html"
   }
 }
