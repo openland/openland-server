@@ -176,5 +176,36 @@ export const Resolver: GQLResolver = {
                 cursor: popular.length === args.first ? IDs.DiscoverPopularNowOrganizationCursor.serialize(popular[popular.length - 1].cursor) : null
             };
         }),
+        discoverTopOrganizations: withAny(async (ctx, args) => {
+            let from = 0;
+            if (args.after) {
+                from = IDs.DiscoverTopOrganizationCursor.parse(args.after);
+            }
+
+            let clauses: any[] = [];
+
+            // orgs with members count > 10
+            clauses.push({range: {membersCount: {gte: 10}}});
+            // only public orgs
+            clauses.push({ term: { listed: true } });
+
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'organization',
+                type: 'organization',
+                size: args.first,
+                from,
+                body: {
+                    query: {bool: {must: clauses}},
+                    sort: [{membersCount: {'order': 'desc'}}]
+                },
+            });
+
+            let orgs = await Promise.all(hits.hits.hits.map(a => parseInt(a._id, 10)).map(async a => (await Store.Organization.findById(ctx, a))!));
+
+            return {
+                items: orgs,
+                cursor: (hits.hits.total as any).value > (from + args.first) ? IDs.DiscoverTopOrganizationCursor.serialize(from + args.first) : null,
+            };
+        }),
     }
 };

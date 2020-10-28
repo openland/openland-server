@@ -23,11 +23,17 @@ type PopularNowOrganizationConnection {
     cursor: String
 }
 
+type OrganizationConnection {
+    items: [Organization!]!
+    cursor: String
+}
+
 extend type Query {
     discoverNewAndGrowing(first: Int!, seed: Int!, after: String): SharedRoomConnection!
     discoverPopularNow(first: Int!, after: String): PopularNowRoomConnection!
     discoverNewAndGrowingOrganizations(first: Int!, seed: Int!, after: String): NewAndGrowingOrganizationConnection!
     discoverPopularNowOrganizations(first: Int!, after: String): PopularNowOrganizationConnection!
+    discoverTopOrganizations(first: Int!, after: String): OrganizationConnection!
     discoverTopPremium(first: Int!, after: String): SharedRoomConnection!
     discoverTopFree(first: Int!, after: String): SharedRoomConnection!
 }

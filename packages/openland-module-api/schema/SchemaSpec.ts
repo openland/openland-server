@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'b0cb03415f3254e89501eab9c3471f91';
+export const GQL_SPEC_VERSION = '42018786be5014d8f221a7eaa6155ce9';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4149,6 +4149,12 @@ export namespace GQL {
     }
     export interface PopularNowOrganizationConnectionItemsArgs { }
     export interface PopularNowOrganizationConnectionCursorArgs { }
+    export interface OrganizationConnection {
+        items: Organization[];
+        cursor: Nullable<string>;
+    }
+    export interface OrganizationConnectionItemsArgs { }
+    export interface OrganizationConnectionCursorArgs { }
     export interface Post {
         id: string;
         author: Nullable<User>;
@@ -4411,6 +4417,7 @@ export namespace GQL {
         discoverPopularNow: PopularNowRoomConnection;
         discoverNewAndGrowingOrganizations: NewAndGrowingOrganizationConnection;
         discoverPopularNowOrganizations: PopularNowOrganizationConnection;
+        discoverTopOrganizations: OrganizationConnection;
         discoverTopPremium: SharedRoomConnection;
         discoverTopFree: SharedRoomConnection;
         post: Nullable<Post>;
@@ -4785,6 +4792,10 @@ export namespace GQL {
         after: OptionalNullable<string>;
     }
     export interface QueryDiscoverPopularNowOrganizationsArgs {
+        first: number;
+        after: OptionalNullable<string>;
+    }
+    export interface QueryDiscoverTopOrganizationsArgs {
         first: number;
         after: OptionalNullable<string>;
     }
@@ -9900,6 +9911,17 @@ export interface GQLResolver {
             cursor: GQL.PopularNowOrganizationConnectionCursorArgs,
         }
     >;
+    OrganizationConnection?: ComplexTypedResolver<
+        GQL.OrganizationConnection,
+        GQLRoots.OrganizationConnectionRoot,
+        {
+            items: GQLRoots.OrganizationRoot[],
+        },
+        {
+            items: GQL.OrganizationConnectionItemsArgs,
+            cursor: GQL.OrganizationConnectionCursorArgs,
+        }
+    >;
     Post?: ComplexTypedResolver<
         GQL.Post,
         GQLRoots.PostRoot,
@@ -10174,6 +10196,7 @@ export interface GQLResolver {
             discoverPopularNow: GQLRoots.PopularNowRoomConnectionRoot,
             discoverNewAndGrowingOrganizations: GQLRoots.NewAndGrowingOrganizationConnectionRoot,
             discoverPopularNowOrganizations: GQLRoots.PopularNowOrganizationConnectionRoot,
+            discoverTopOrganizations: GQLRoots.OrganizationConnectionRoot,
             discoverTopPremium: GQLRoots.SharedRoomConnectionRoot,
             discoverTopFree: GQLRoots.SharedRoomConnectionRoot,
             post: Nullable<GQLRoots.PostRoot>,
@@ -10359,6 +10382,7 @@ export interface GQLResolver {
             discoverPopularNow: GQL.QueryDiscoverPopularNowArgs,
             discoverNewAndGrowingOrganizations: GQL.QueryDiscoverNewAndGrowingOrganizationsArgs,
             discoverPopularNowOrganizations: GQL.QueryDiscoverPopularNowOrganizationsArgs,
+            discoverTopOrganizations: GQL.QueryDiscoverTopOrganizationsArgs,
             discoverTopPremium: GQL.QueryDiscoverTopPremiumArgs,
             discoverTopFree: GQL.QueryDiscoverTopFreeArgs,
             post: GQL.QueryPostArgs,
