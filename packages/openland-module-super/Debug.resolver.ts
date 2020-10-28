@@ -346,7 +346,7 @@ export const Resolver: GQLResolver = {
                 })
             });
             if (res.status !== 200) {
-                throw new UserError('Error in screenshor')
+                throw new UserError('Error in screenshor');
             }
             let json = await res.json();
             return JSON.stringify(json);
