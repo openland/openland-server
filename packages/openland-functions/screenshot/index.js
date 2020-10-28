@@ -263,7 +263,7 @@ app.post('/render', handleAsync(async (req, res) => {
 
         // Load page
         await page.setViewport({width, height, deviceScaleFactor: 2});
-        await page.goto(`file://${path.join(appDir, 'templates', file)}`, {waitUntil: 'networkidle2'});
+        await page.goto(`file://${path.join(appDir, 'templates', file)}`, {waitUntil: 'networkidle0'});
 
         // Fill template
         await page.evaluate((a) => fill(a), args)
