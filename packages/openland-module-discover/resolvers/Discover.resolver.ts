@@ -134,21 +134,10 @@ export const Resolver: GQLResolver = {
 
             // orgs with members count > 10
             clauses.push({range: {membersCount: {gte: 10}}});
-            // orgs 180- days old
-            clauses.push({range: {createdAt: {gte: 'now-180d/d'}}});
+            // orgs 60- days old
+            clauses.push({range: {createdAt: {gte: 'now-60d/d'}}});
             // only public orgs
             clauses.push({ term: { listed: true } });
-
-            let query: any = {bool: {must: clauses}};
-            query = {
-                function_score: {
-                    query,
-                    random_score: {
-                        seed: args.seed,
-                        field: '_id'
-                    }
-                }
-            };
 
             let from = args.after ? parseInt(args.after, 10) : 0;
             let hits = await Modules.Search.elastic.client.search({
@@ -157,7 +146,8 @@ export const Resolver: GQLResolver = {
                 size: args.first,
                 from,
                 body: {
-                    query,
+                    query: {bool: {must: clauses}},
+                    sort: [{membersCount: {'order': 'desc'}}]
                 },
             });
 
