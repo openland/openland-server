@@ -825,7 +825,7 @@ export default declareSchema(() => {
         field('mid', integer());
         field('hiddenForUids', optional(array(integer())));
     });
-    event('MessageDeletedEvent', () => {
+    event('MessageDeletServiceCacheedEvent', () => {
         field('cid', integer());
         field('mid', integer());
         field('hiddenForUids', optional(array(integer())));
