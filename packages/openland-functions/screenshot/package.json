@@ -11,7 +11,8 @@
   },
   "scripts": {
     "build": "docker build -t openland/chrome-screenshot:v$npm_package_version .",
-    "postversion": "yarn build",
-    "deploy": "cd ../../../deploy/screenshotter && echo \"FROM openland/chrome-screenshot:v$npm_package_version\" > Dockerfile && flyctl deploy"
+    "push": "docker push openland/chrome-screenshot:v$npm_package_version",
+    "ver": "echo $npm_package_version",
+    "postversion": "yarn build"
   }
 }
