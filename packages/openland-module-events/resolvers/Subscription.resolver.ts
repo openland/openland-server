@@ -143,6 +143,16 @@ export const Resolver: GQLResolver = {
                 events: diff.events,
                 sequence,
             };
+        }),
+        sequenceState: withUser(async (ctx, args, uid) => {
+            let sequence: FeedReference;
+            let id = IdsFactory.resolve(args.id);
+            if (id.type === IDs.SequenceUser) {
+                sequence = { type: 'common', uid };
+            } else {
+                throw Error('Invalid id');
+            }
+            return sequence;
         })
     }
 };
