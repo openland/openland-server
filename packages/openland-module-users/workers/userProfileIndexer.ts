@@ -8,9 +8,9 @@ let hashtagRegex = /#[\w]+/g;
 export function userProfileIndexer() {
     declareSearchIndexer({
         name: 'user-profile-index',
-        version: 24,
+        version: 29,
         index: 'user_profile',
-        stream: Store.UserIndexingQueue.updated.stream({ batchSize: 50 })
+        stream: Store.UserIndexingQueue.updated.stream({ batchSize: 200 })
     }).withProperties({
         primaryOrganization: {
             type: 'keyword'
@@ -32,6 +32,9 @@ export function userProfileIndexer() {
         },
         name: {
             type: 'text'
+        },
+        nameKeyword: {
+            type: 'keyword'
         },
         ivitedBy: {
             type: 'long'
@@ -131,6 +134,7 @@ export function userProfileIndexer() {
                     firstName: profile.firstName,
                     lastName: profile.lastName || undefined,
                     name: (profile.firstName || '') + ' ' + (profile.lastName || ''),
+                    nameKeyword: (profile.firstName || '') + ' ' + (profile.lastName || ''),
                     shortName: shortName ? shortName.shortname : undefined,
                     userId: item.id,
                     search: searchData.join(' '),

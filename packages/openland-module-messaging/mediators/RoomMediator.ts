@@ -449,12 +449,17 @@ export class RoomMediator {
             }
             if (res.kindChanged) {
                 await this.delivery.onDialogPeerUpdate(parent, cid);
+            }
+
+            if (
+                res.updatedPhoto ||
+                res.updatedTitle ||
+                res.kindChanged ||
+                res.repliesUpdated ||
+                res.callSettingsUpdated
+            ) {
                 this.markConversationAsUpdated(ctx, cid, uid);
             }
-            if (res.repliesUpdated) {
-                this.markConversationAsUpdated(ctx, cid, uid);
-            }
-            
             return (await Store.Conversation.findById(ctx, cid))!;
         });
     }

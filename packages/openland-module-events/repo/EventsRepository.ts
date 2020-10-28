@@ -7,9 +7,8 @@ import { SubscriberDirectRepository } from './internal/SubscriberDirectRepositor
 import { SubscriberAsyncRepository } from './internal/SubscriberAsyncRepository';
 import { SubscriberSeqRepository } from './internal/SubscriberSeqRepository';
 import { Context } from '@openland/context';
-import { VersionStampRepository } from './internal/VersionStampRepository';
 import { RegistryRepository } from './internal/RegistryRepository';
-import { Subspace, inTxLeaky } from '@openland/foundationdb';
+import { Subspace, inTxLeaky, createVersionstampRef } from '@openland/foundationdb';
 import { FeedSeqRepository } from './internal/FeedSeqRepository';
 import { FeedEventsRepository } from './internal/FeedEventsRepository';
 import { FeedLatestRepository } from './internal/FeedLatestRepository';
@@ -29,7 +28,6 @@ export class EventsRepository {
     readonly subAsync: SubscriberAsyncRepository;
     readonly subDirect: SubscriberDirectRepository;
 
-    readonly vts: VersionStampRepository;
     readonly registry: RegistryRepository;
     readonly stats: StatsRepository;
 
@@ -44,7 +42,6 @@ export class EventsRepository {
         this.subAsync = new SubscriberAsyncRepository(subspace);
         this.subDirect = new SubscriberDirectRepository(subspace);
         this.subUpdated = new SubscriberUpdatesRepository(subspace);
-        this.vts = new VersionStampRepository(subspace.db);
         this.stats = new StatsRepository(subspace);
     }
 
@@ -60,11 +57,10 @@ export class EventsRepository {
 
             // Set initial seq
             let seq = 0;
-            this.feedSeq.setSeq(ctx, feed, seq);
+            let vt = createVersionstampRef(ctx);
 
-            // Set initial latest
-            let index = this.vts.allocateVersionstampIndex(ctx);
-            await this.feedLatest.writeLatest(ctx, feed, seq, index);
+            this.feedSeq.setSeq(ctx, feed, seq);
+            await this.feedLatest.writeLatest(ctx, feed, seq, vt);
 
             // Stats
             this.stats.increment(ctx, 'feeds');
@@ -93,18 +89,19 @@ export class EventsRepository {
 
             // Read feed sequence
             let seq = (await this.feedSeq.getSeq(ctx, feed));
-            let index = this.vts.allocateVersionstampIndex(ctx);
+            let vt = createVersionstampRef(ctx);
 
             // Add subscription
             // NOTE: This method checks for correctness
-            await this.sub.addSubscription(ctx, subscriber, feed, mode, feedMode === 'forward-only', seq, index);
+            await this.sub.addSubscription(ctx, subscriber, feed, mode, feedMode === 'forward-only', seq, vt.index);
 
             // Write to updated list
-            await this.subUpdated.appendChanged(ctx, subscriber, feed, index);
+            await this.subUpdated.appendChanged(ctx, subscriber, feed, vt);
 
             // Add to specific collection
             if (mode === 'async') {
-                await this.subAsync.addSubscriber(ctx, subscriber, feed);
+                let expires = await this.subSeq.getOnlineExpires(ctx, subscriber);
+                await this.subAsync.addSubscriber(ctx, subscriber, feed, expires);
             } else if (mode === 'direct') {
                 await this.subDirect.addSubscriber(ctx, subscriber, feed);
             } else {
@@ -114,7 +111,7 @@ export class EventsRepository {
             // Stats
             this.stats.increment(ctx, 'subscriptions');
 
-            return { seq, state: this.vts.resolveVersionstamp(ctx, index).promise };
+            return { seq, vt };
         });
     }
 
@@ -129,27 +126,31 @@ export class EventsRepository {
 
             // Read feed sequence
             let seq = (await this.feedSeq.getSeq(ctx, feed));
-            let index = this.vts.allocateVersionstampIndex(ctx);
+            let vt = createVersionstampRef(ctx);
 
             // Remove subscription
             // NOTE: This method checks for correctness
-            let ex = await this.sub.removeSubscription(ctx, subscriber, feed, seq, index);
+            let ex = await this.sub.removeSubscription(ctx, subscriber, feed, seq, vt.index);
 
             // Write to updated list
-            await this.subUpdated.appendChanged(ctx, subscriber, feed, index);
+            await this.subUpdated.appendChanged(ctx, subscriber, feed, vt);
 
             // Update specific collections
             if (ex === 'direct') {
                 await this.subDirect.removeSubscriber(ctx, subscriber, feed);
-                await this.subDirect.removeUpdatedReference(ctx, subscriber, feed);
+                let latest = await this.feedLatest.readFirstTransactionLatest(ctx, feed);
+                if (latest) {
+                    await this.subDirect.removeUpdatedReference(ctx, subscriber, feed, latest);
+                }
             } else if (ex === 'async') {
-                await this.subAsync.removeSubscriber(ctx, subscriber, feed);
+                let expires = await this.subSeq.getOnlineExpires(ctx, subscriber);
+                await this.subAsync.removeSubscriber(ctx, subscriber, feed, expires);
             }
 
             // Stats
             this.stats.decrement(ctx, 'subscriptions');
 
-            return { seq, state: this.vts.resolveVersionstamp(ctx, index).promise };
+            return { seq, vt };
         });
     }
 
@@ -188,22 +189,23 @@ export class EventsRepository {
             let seq = await this.feedSeq.allocateSeq(ctx, args.feed);
 
             // Allocate index
-            let index = this.vts.allocateVersionstampIndex(ctx);
+            let vt = createVersionstampRef(ctx);
 
             // Write event to a stream
             if (args.collapseKey) {
-                await this.feedEvents.writeCollapsedEvent(ctx, args.feed, args.event, seq, index, args.collapseKey);
+                await this.feedEvents.writeCollapsedEvent(ctx, args.feed, args.event, seq, vt, args.collapseKey);
             } else {
-                this.feedEvents.writeEvent(ctx, args.feed, args.event, seq, index);
+                this.feedEvents.writeEvent(ctx, args.feed, args.event, seq, vt);
             }
 
             // Write latest reference
-            await this.feedLatest.writeLatest(ctx, args.feed, seq, index);
+            await this.feedLatest.writeLatest(ctx, args.feed, seq, vt);
 
             // Update direct references
-            await this.subDirect.setUpdatedReference(ctx, args.feed, seq, index);
+            let latest = await this.feedLatest.readFirstTransactionLatest(ctx, args.feed);
+            await this.subDirect.setUpdatedReference(ctx, args.feed, seq, vt, latest);
 
-            return { seq, state: this.vts.resolveVersionstamp(ctx, index).promise };
+            return { seq, vt };
         });
     }
 
@@ -222,23 +224,23 @@ export class EventsRepository {
             let seq = await this.subSeq.getCurrentSeq(ctx, subscriber);
 
             // Resolve current state
-            let index = this.vts.allocateVersionstampIndex(ctx);
+            let vt = createVersionstampRef(ctx);
 
-            return { seq, state: this.vts.resolveVersionstamp(ctx, index).promise };
+            return { seq, vt };
         });
     }
 
     async getChangedFeedsSeqNumbers(parent: Context, subscriber: Buffer, after: Buffer) {
         return await inTxLeaky(parent, async (ctx) => {
             let set = new BufferSet();
-            let changed: { feed: Buffer, seq: number, state: Buffer }[] = [];
+            let changed: { feed: Buffer, seq: number, vt: Buffer }[] = [];
 
             // Direct subscriptions
             let changedDirect = (await this.subDirect.getUpdatedFeeds(ctx, subscriber, after));
             for (let ch of changedDirect) {
                 if (!set.has(ch.feed)) {
                     set.add(ch.feed);
-                    changed.push({ feed: ch.feed, seq: ch.seq, state: ch.state });
+                    changed.push({ feed: ch.feed, seq: ch.seq, vt: ch.vt });
                 }
             }
 
@@ -246,7 +248,7 @@ export class EventsRepository {
             let asyncSubscriptions = await this.subAsync.getSubscriberFeeds(ctx, subscriber);
             let asyncHeads = await Promise.all(asyncSubscriptions.map(async (feed) => ({ latest: await this.feedLatest.readLatest(ctx, feed), feed })));
             for (let h of asyncHeads) {
-                if (Buffer.compare(after, h.latest.state) < 0) {
+                if (Buffer.compare(after, h.latest.vt.value) < 0) {
                     let state = await this.sub.getSubscriptionState(ctx, subscriber, h.feed);
                     if (!state || state.to !== null) {
                         throw Error('Broken state');
@@ -256,7 +258,7 @@ export class EventsRepository {
                     }
                     if (!set.has(h.feed)) {
                         set.add(h.feed);
-                        changed.push({ feed: h.feed, seq: h.latest.seq, state: h.latest.state });
+                        changed.push({ feed: h.feed, seq: h.latest.seq, vt: h.latest.vt.value });
                     }
                 }
             }
@@ -268,8 +270,8 @@ export class EventsRepository {
     async getChangedFeeds(parent: Context, subscriber: Buffer, after: Buffer) {
         return await inTxLeaky(parent, async (ctx) => {
             let set = new BufferSet();
-            let events: { feed: Buffer, seq: number, state: Buffer }[] = [];
-            let changes: { feed: Buffer, seq: number, state: Buffer, change: 'joined' | 'left' }[] = [];
+            let events: { feed: Buffer, seq: number, vt: Buffer }[] = [];
+            let changes: { feed: Buffer, seq: number, vt: Buffer, change: 'joined' | 'left' }[] = [];
 
             // Changed subscription states
             let changedSubscriptions = await this.subUpdated.getChanged(ctx, subscriber, after);
@@ -281,9 +283,9 @@ export class EventsRepository {
                     continue;
                 }
                 if (state.to !== null) {
-                    changes.push({ feed: ch, seq: state.to.seq, state: state.to.state, change: 'left' });
+                    changes.push({ feed: ch, seq: state.to.seq, vt: state.to.state, change: 'left' });
                 } else {
-                    changes.push({ feed: ch, seq: state.from.seq, state: state.from.state, change: 'joined' });
+                    changes.push({ feed: ch, seq: state.from.seq, vt: state.from.state, change: 'joined' });
                 }
             }
 
@@ -292,7 +294,7 @@ export class EventsRepository {
             for (let ch of changedDirect) {
                 if (!set.has(ch.feed)) {
                     set.add(ch.feed);
-                    events.push({ feed: ch.feed, seq: ch.seq, state: ch.state });
+                    events.push({ feed: ch.feed, seq: ch.seq, vt: ch.vt });
                 }
             }
 
@@ -300,7 +302,7 @@ export class EventsRepository {
             let asyncSubscriptions = await this.subAsync.getSubscriberFeeds(ctx, subscriber);
             let asyncHeads = await Promise.all(asyncSubscriptions.map(async (feed) => ({ latest: await this.feedLatest.readLatest(ctx, feed), feed })));
             for (let h of asyncHeads) {
-                if (Buffer.compare(after, h.latest.state) < 0) {
+                if (Buffer.compare(after, h.latest.vt.value) < 0) {
                     let state = await this.sub.getSubscriptionState(ctx, subscriber, h.feed);
                     if (!state || state.to !== null) {
                         throw Error('Broken state');
@@ -310,7 +312,7 @@ export class EventsRepository {
                     }
                     if (!set.has(h.feed)) {
                         set.add(h.feed);
-                        events.push({ feed: h.feed, seq: h.latest.seq, state: h.latest.state });
+                        events.push({ feed: h.feed, seq: h.latest.seq, vt: h.latest.vt.value });
                     }
                 }
             }
@@ -319,27 +321,67 @@ export class EventsRepository {
         });
     }
 
-    async getFeedDifference(parent: Context, subscriber: Buffer, feed: Buffer, after: Buffer, opts: { limits: { forwardOnly: number, generic: number } }) {
+    async getFeedDifference(parent: Context, subscriber: Buffer, feed: Buffer, after: Buffer | number, opts: { limits: { forwardOnly: number, generic: number } }) {
         return await inTxLeaky(parent, async (ctx) => {
             let state = await this.sub.getSubscriptionState(ctx, subscriber, feed);
             if (!state) {
-                return null;
-            }
-
-            // Resolve actual before
-            let before: Buffer | undefined = undefined;
-            if (state.to) {
-                if (Buffer.compare(state.to.state, after) < 0) {
-                    return null;
-                } else {
-                    before = state.to.state;
-                }
+                throw Error('Unable to find subscription state');
             }
 
             // Resolve actual after
             let afterAdjusted = after;
-            if (Buffer.compare(after, state.from.state) < 0) {
-                afterAdjusted = state.from.state;
+            let afterSeq: number;
+            if (typeof after === 'number') {
+                if (after < state.from.seq) {
+                    afterAdjusted = state.from.state;
+                    afterSeq = state.from.seq;
+                } else {
+                    afterSeq = after;
+                }
+            } else {
+                if (Buffer.compare(after, state.from.state) < 0) {
+                    afterAdjusted = state.from.state;
+                    afterSeq = state.from.seq;
+                } else {
+                    let ss = await this.feedEvents.getPreviousSeq(ctx, feed, after);
+                    if (ss < state.from.seq) {
+                        afterSeq = state.from.seq;
+                    } else {
+                        afterSeq = ss;
+                    }
+                }
+            }
+
+            // Resolve actual before
+            let before: Buffer | number | undefined = undefined;
+            let active = true;
+            if (state.to) {
+                active = false;
+                if (typeof after === 'number') {
+                    if (state.to.seq <= after) {
+                        return {
+                            active,
+                            forwardOnly: state.forwardOnly,
+                            events: [],
+                            hasMore: false,
+                            afterSeq
+                        };
+                    } else {
+                        before = state.to.state;
+                    }
+                } else {
+                    if (Buffer.compare(state.to.state, after) <= 0) {
+                        return {
+                            active,
+                            forwardOnly: state.forwardOnly,
+                            events: [],
+                            hasMore: false,
+                            afterSeq
+                        };
+                    } else {
+                        before = state.to.state;
+                    }
+                }
             }
 
             // Read events
@@ -351,7 +393,9 @@ export class EventsRepository {
             });
 
             return {
+                active,
                 forwardOnly: state.forwardOnly,
+                afterSeq,
                 ...res
             };
         });
@@ -359,23 +403,12 @@ export class EventsRepository {
 
     async getDifference(parent: Context, subscriber: Buffer, after: Buffer, opts: { limits: { forwardOnly: number, generic: number, global: number } }) {
         return await inTxLeaky(parent, async (ctx) => {
-            let updates: { feed: Buffer, seq: number, state: Buffer, event: 'joined' | 'completed' | 'event', body: Buffer | null }[] = [];
-            let changedFeeds = await this.getChangedFeeds(ctx, subscriber, after);
+            let updates: { feed: Buffer, afterSeq: number, events: { seq: number, vt: Buffer, event: Buffer }[] }[] = [];
             let feeds: Buffer[] = [];
-            let feedsSet = new BufferSet();
 
-            // Add changed feed events
-            for (let ch of changedFeeds.changes) {
-                if (!feedsSet.has(ch.feed)) {
-                    feedsSet.add(ch.feed);
-                    feeds.push(ch.feed);
-                }
-                if (ch.change === 'joined') {
-                    updates.push({ feed: ch.feed, seq: ch.seq, state: ch.state, event: 'joined', body: null });
-                } else if (ch.change === 'left') {
-                    updates.push({ feed: ch.feed, seq: ch.seq, state: ch.state, event: 'completed', body: null });
-                }
-            }
+            // Resolve changed feeds
+            let changedFeeds = await this.getChangedFeeds(ctx, subscriber, after);
+            let feedsSet = new BufferSet();
             for (let ch of changedFeeds.events) {
                 if (!feedsSet.has(ch.feed)) {
                     feedsSet.add(ch.feed);
@@ -386,40 +419,58 @@ export class EventsRepository {
             // Load differences
             let hasMore = false;
             let diffs = await Promise.all(feeds.map(async (f) => ({ feed: f, diff: await this.getFeedDifference(ctx, subscriber, f, after, opts) })));
+            let total = 0;
             for (let d of diffs) {
-                if (!d.diff) {
-                    continue;
-                }
 
                 // Enforce hasMore if strict feeds are changed
                 if (d.diff.forwardOnly && d.diff.hasMore) {
                     hasMore = true;
                 }
 
-                for (let e of d.diff.events) {
-                    updates.push({ feed: d.feed, seq: e.seq, state: e.id, event: 'event', body: e.event });
+                // Convert updates
+                updates.push({
+                    feed: d.feed,
+                    afterSeq: d.diff.afterSeq,
+                    events: d.diff.events
+                });
+
+                // Calculate total
+                total += d.diff.events.length;
+            }
+
+            let vt: Buffer = after;
+            if (total > opts.limits.global) {
+                // Cut updates
+                let vts: Buffer[] = [];
+                vts.sort((a, b) => Buffer.compare(a, b));
+                for (let d of diffs) {
+                    for (let e of d.diff.events) {
+                        vts.push(e.vt);
+                    }
                 }
-            }
+                let cut = vts[opts.limits.global - 1];
+                cut = vt;
 
-            // Sort updates
-            updates.sort((a, b) => Buffer.compare(a.state, b.state));
-
-            // Limit updates
-            if (updates.length > opts.limits.global) {
-                hasMore = true;
-                updates = updates.slice(0, opts.limits.global);
-            }
-
-            // Calculcate state
-            let state: Buffer = after;
-            if (updates.length > 0) {
-                state = updates[updates.length - 1].state;
+                // Updates
+                for (let f of updates) {
+                    f.events = f.events.filter((v) => Buffer.compare(v.vt, cut) <= 0);
+                }
+                updates = updates.filter((v) => v.events.length > 0);
+            } else {
+                // Update diff
+                for (let d of diffs) {
+                    for (let e of d.diff.events) {
+                        if (Buffer.compare(vt, e.vt) < 0) {
+                            vt = e.vt;
+                        }
+                    }
+                }
             }
 
             // Resolve current seq
             let seq = await this.subSeq.getCurrentSeq(ctx, subscriber);
 
-            return { updates: updates.map((v) => ({ event: v.event, body: v.body, feed: v.feed, seq: v.seq })), hasMore, seq, state };
+            return { updates, hasMore, seq, vt };
         });
     }
 
@@ -439,8 +490,12 @@ export class EventsRepository {
         let clamped = Math.floor(expires / 1000);
 
         await inTxLeaky(parent, async (ctx) => {
+            let old = await this.subSeq.getOnlineExpires(ctx, subscriber);
+            if (old !== null && old > clamped) {
+                return;
+            }
             await this.subSeq.refreshOnline(ctx, subscriber, clamped);
-            await this.subAsync.setSubscriberOnline(ctx, subscriber, clamped);
+            await this.subAsync.setSubscriberOnline(ctx, subscriber, clamped, old);
         });
     }
 

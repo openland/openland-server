@@ -1,8 +1,7 @@
 import { FeedSeqRepository } from './FeedSeqRepository';
 import { randomId } from 'openland-utils/randomId';
-import { VersionStampRepository } from './VersionStampRepository';
 import { createNamedContext } from '@openland/context';
-import { Database, inTx } from '@openland/foundationdb';
+import { createVersionstampRef, Database, inTx } from '@openland/foundationdb';
 import { FeedLatestRepository } from './FeedLatestRepository';
 
 describe('FeedLatestRepository', () => {
@@ -11,7 +10,6 @@ describe('FeedLatestRepository', () => {
         let db = await Database.openTest({ name: 'event-feed-latest', layers: [] });
         let repo = new FeedLatestRepository(db.allKeys);
         let seqs = new FeedSeqRepository(db.allKeys);
-        let vt = new VersionStampRepository(db);
         let feed = randomId();
 
         let res = await inTx(root, async (ctx) => {
@@ -23,23 +21,22 @@ describe('FeedLatestRepository', () => {
             // Write latest
             seqs.setSeq(ctx, feed, 0);
             let seq = await seqs.allocateSeq(ctx, feed);
-            let index = vt.allocateVersionstampIndex(ctx);
-            await repo.writeLatest(ctx, feed, seq, index);
+            let vt = createVersionstampRef(ctx);
+            await repo.writeLatest(ctx, feed, seq, vt);
 
             // Initial read should still work as expected
             initial = await repo.readFirstTransactionLatest(ctx, feed);
             expect(initial).toBeNull();
 
-            return { id: vt.resolveVersionstamp(ctx, index) };
+            return { id: vt };
         });
 
         // Latest value should match written
-        let id = await res.id.promise;
         let latest = await inTx(root, async (ctx) => {
             return await repo.readLatest(ctx, feed);
         });
         expect(latest!.seq).toBe(1);
-        expect(latest!.state).toMatchObject(id);
+        expect(latest!.vt.value).toMatchObject(res.id.resolved.value);
 
         // Second write
         res = await inTx(root, async (ctx) => {
@@ -47,27 +44,26 @@ describe('FeedLatestRepository', () => {
             // Initial should have correct value
             let initial = await repo.readFirstTransactionLatest(ctx, feed);
             expect(initial!.seq).toBe(1);
-            expect(initial!.state).toMatchObject(id);
+            expect(initial!.vt.value).toMatchObject(res.id.resolved.value);
 
             // Write latest
             let seq = await seqs.allocateSeq(ctx, feed);
-            let index = vt.allocateVersionstampIndex(ctx);
-            await repo.writeLatest(ctx, feed, seq, index);
+            let vt = createVersionstampRef(ctx);
+            await repo.writeLatest(ctx, feed, seq, vt);
 
             // Initial read should still work as expected
             initial = await repo.readFirstTransactionLatest(ctx, feed);
             expect(initial!.seq).toBe(1);
-            expect(initial!.state).toMatchObject(id);
+            expect(initial!.vt.value).toMatchObject(res.id.resolved.value);
 
-            return { id: vt.resolveVersionstamp(ctx, index) };
+            return { id: vt };
         });
 
         // Latest value should match written
-        id = await res.id.promise;
         latest = await inTx(root, async (ctx) => {
             return await repo.readLatest(ctx, feed);
         });
         expect(latest!.seq).toBe(2);
-        expect(latest!.state).toMatchObject(id);
+        expect(latest!.vt.value).toMatchObject(res.id.resolved.value);
     });
 });

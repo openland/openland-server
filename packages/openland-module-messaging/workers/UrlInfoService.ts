@@ -247,6 +247,8 @@ export function createUrlInfoService() {
 
             let { hostname } = URL.parse(url);
 
+            _shortname = _shortname.replace('group/', '');
+
             let ownerId;
             let ownerType;
             try {
@@ -294,6 +296,11 @@ export function createUrlInfoService() {
                     hostname: null,
                     iconRef: null,
                     iconInfo: null,
+                    keyboard: {
+                        buttons: [[
+                            { title: 'View', style: 'DEFAULT', url }
+                        ]]
+                    },
                     photoFallback: makePhotoFallback(IDs.Organization.serialize(org!.id), org!.name || 'deleted'),
                 };
             } else if (ownerType === 'room') {
@@ -312,6 +319,17 @@ export function createUrlInfoService() {
                 let membersCount = profile.activeMembersCount || 0;
                 let price = premiumChatSettings && formatMoneyWithInterval(premiumChatSettings.price, premiumChatSettings.interval);
 
+                let buttonTitle = '';
+
+                if (conv?.isChannel) {
+                    buttonTitle = 'Join channel';
+                } else {
+                    buttonTitle = 'Join chat';
+                }
+                if (price) {
+                    buttonTitle = price;
+                }
+
                 return {
                     url,
                     title: profile!.title || null,
@@ -325,7 +343,7 @@ export function createUrlInfoService() {
                     iconInfo: null,
                     keyboard: {
                         buttons: [[
-                            { title: price || 'Join chat', style: price ? 'PAY' : 'DEFAULT', url }
+                            { title: buttonTitle, style: price ? 'PAY' : 'DEFAULT', url }
                         ]]
                     },
                     photoFallback: makePhotoFallback(IDs.Conversation.serialize(profile.id), profile.title || 'deleted'),

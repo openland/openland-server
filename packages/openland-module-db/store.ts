@@ -48,6 +48,34 @@ export class ConversationLastSeqFactory extends AtomicIntegerFactory {
     }
 }
 
+export class AutoSubscribeWasExecutedForUserFactory extends AtomicBooleanFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('autoSubscribeWasExecutedForUser');
+        return new AutoSubscribeWasExecutedForUserFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number, targetType: 'room' | 'org', targetId: number) {
+        return this._findById([uid, targetType, targetId]);
+    }
+
+    get(ctx: Context, uid: number, targetType: 'room' | 'org', targetId: number) {
+        return this._get(ctx, [uid, targetType, targetId]);
+    }
+
+    set(ctx: Context, uid: number, targetType: 'room' | 'org', targetId: number, value: boolean) {
+        return this._set(ctx, [uid, targetType, targetId], value);
+    }
+
+    invert(ctx: Context, uid: number, targetType: 'room' | 'org', targetId: number) {
+        return this._invert(ctx, [uid, targetType, targetId]);
+    }
+}
+
 export class RoomParticipantsVersionFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -22579,6 +22607,7 @@ export class UserContactsEventStore extends EventStore {
 
 export interface Store extends BaseStore {
     readonly ConversationLastSeq: ConversationLastSeqFactory;
+    readonly AutoSubscribeWasExecutedForUser: AutoSubscribeWasExecutedForUserFactory;
     readonly RoomParticipantsVersion: RoomParticipantsVersionFactory;
     readonly UserDialogReadMessageId: UserDialogReadMessageIdFactory;
     readonly FeedChannelMembersCount: FeedChannelMembersCountFactory;
@@ -22876,6 +22905,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('contactAddedEvent', ContactAddedEvent.encode as any, ContactAddedEvent.decode);
     eventFactory.registerEventType('contactRemovedEvent', ContactRemovedEvent.encode as any, ContactRemovedEvent.decode);
     let ConversationLastSeqPromise = ConversationLastSeqFactory.open(storage);
+    let AutoSubscribeWasExecutedForUserPromise = AutoSubscribeWasExecutedForUserFactory.open(storage);
     let RoomParticipantsVersionPromise = RoomParticipantsVersionFactory.open(storage);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
@@ -23131,6 +23161,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         storage,
         eventFactory,
         ConversationLastSeq: await ConversationLastSeqPromise,
+        AutoSubscribeWasExecutedForUser: await AutoSubscribeWasExecutedForUserPromise,
         RoomParticipantsVersion: await RoomParticipantsVersionPromise,
         UserDialogReadMessageId: await UserDialogReadMessageIdPromise,
         FeedChannelMembersCount: await FeedChannelMembersCountPromise,

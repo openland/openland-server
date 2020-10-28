@@ -82,12 +82,30 @@ export class RoomRepository {
                 isChannel: channel,
                 isPremium: !!price
             });
+
+            let serviceMessagesEnabled = true;
+
+            if (kind === 'group') {
+                serviceMessagesEnabled = true;
+            }
+            if (kind === 'public') {
+                serviceMessagesEnabled = false;
+            }
+            if (oid) {
+                let org = await Store.Organization.findById(ctx, oid);
+                if (org && org.kind === 'community') {
+                    serviceMessagesEnabled = false;
+                }
+            }
+
             await Store.RoomProfile.create(ctx, id, {
                 title: profile.title,
                 image: profile.image,
                 description: profile.description,
                 socialImage: profile.socialImage,
-                repliesDisabled: false
+                repliesDisabled: false,
+                joinsMessageDisabled: !serviceMessagesEnabled,
+                leavesMessageDisabled: !serviceMessagesEnabled
             });
             if (price) {
                 await Store.PremiumChatSettings.create(ctx, id, {
@@ -266,6 +284,7 @@ export class RoomRepository {
             let updatedPhoto = false;
             let kindChanged = false;
             let repliesUpdated = false;
+            let callSettingsUpdated = false;
 
             if (profile.title) {
                 let res = profile.title.trim();
@@ -334,6 +353,7 @@ export class RoomRepository {
             if (profile.callSettings) {
                 conv.callsMode = profile.callSettings.mode;
                 conv.callLink = profile.callSettings.callLink;
+                callSettingsUpdated = true;
             }
 
             if (profile.serviceMessageSettings) {
@@ -343,7 +363,7 @@ export class RoomRepository {
 
             await conv.flush(ctx);
 
-            return { updatedTitle, updatedPhoto, kindChanged, repliesUpdated };
+            return { updatedTitle, updatedPhoto, kindChanged, repliesUpdated, callSettingsUpdated };
         });
     }
 
@@ -1384,7 +1404,7 @@ export class RoomRepository {
                     await Modules.Orgs.addUserToOrganization(ctx, uid, org.id, by, true);
                 }
 
-                if (org.autosubscribeRooms) {
+                if (org.autosubscribeRooms && !(await Store.AutoSubscribeWasExecutedForUser.get(ctx, uid, 'org', org.id))) {
                     for (let c of org.autosubscribeRooms) {
                         let conv = await Store.ConversationRoom.findById(ctx, c);
                         if (!conv || conv.isDeleted) {
@@ -1392,6 +1412,7 @@ export class RoomRepository {
                         }
                         await Modules.Messaging.room.joinRoom(ctx, c, uid);
                     }
+                    await Store.AutoSubscribeWasExecutedForUser.set(ctx, uid, 'org', org.id, true);
                 }
             }
             const welcomeMessage = await this.resolveConversationWelcomeMessage(ctx, cid);
@@ -1400,7 +1421,7 @@ export class RoomRepository {
                 await this.welcomeMessageWorker.pushWork(ctx, { uid, cid }, Date.now() + 1000 * 40);
             }
 
-            if (room.autosubscribeRooms) {
+            if (room.autosubscribeRooms && !(await Store.AutoSubscribeWasExecutedForUser.get(ctx, uid, 'room', room.id))) {
                 for (let c of room.autosubscribeRooms) {
                     let conv = await Store.ConversationRoom.findById(ctx, c);
                     if (!conv || conv.isDeleted) {
@@ -1408,6 +1429,7 @@ export class RoomRepository {
                     }
                     await Modules.Messaging.room.joinRoom(ctx, c, uid);
                 }
+                await Store.AutoSubscribeWasExecutedForUser.set(ctx, uid, 'room', room.id, true);
             }
 
             await Modules.Hooks.onRoomJoin(ctx, cid, uid, by);

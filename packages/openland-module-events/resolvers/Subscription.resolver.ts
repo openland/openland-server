@@ -1,6 +1,7 @@
+import { FeedReference } from './../Definitions';
 import { inTx, getTransaction } from '@openland/foundationdb';
 import { withUser } from 'openland-module-api/Resolvers';
-import { IDs } from 'openland-module-api/IDs';
+import { IDs, IdsFactory } from 'openland-module-api/IDs';
 import { Context } from '@openland/context';
 import { GQLRoots } from 'openland-module-api/schema/SchemaRoots';
 import { GQL, GQLResolver } from 'openland-module-api/schema/SchemaSpec';
@@ -92,13 +93,18 @@ export const Resolver: GQLResolver = {
         hasMore: (src) => src.hasMore
     },
     UpdatesSequenceDifference: {
-        pts: (src) => src.pts,
         events: (src) => src.events,
+        after: (src) => src.pts,
         sequence: (src) => src.sequence
     },
     UpdatesDifferenceEvent: {
         pts: (src) => src.pts,
         event: (src) => src.event,
+    },
+    SequenceDifference: {
+        events: (src) => src.events,
+        hasMore: (src) => src.hasMore,
+        sequence: (src) => src.sequence
     },
     Query: {
         updatesState: withUser(async (ctx, args, uid) => {
@@ -113,24 +119,29 @@ export const Resolver: GQLResolver = {
             let feedStates = await Promise.all(feeds.map(async (f) => ({ state: await Modules.Events.mediator.getFeedState(ctx, f), feed: f })));
             return {
                 seq: init.state.seq,
-                state: (await init.state.state).toString('base64'),
+                state: init.state.vt.resolved.value.toString('base64'),
                 sequences: feedStates.map((f) => ({ sequence: f.feed, pts: f.state.pts }))
             };
         }),
         updatesDifference: withUser(async (ctx, args, uid) => {
-            let res = await inTx(ctx, async (ctx2) => {
-                let diff = await Modules.Events.mediator.getDifference(ctx2, uid, IDs.SequenceStateV1.parse(args.state));
-                return { diff, version: getTransaction(ctx2).getCommittedVersion() };
-            });
-            // Keep resolver consistent with base transaction
-            getTransaction(ctx).setReadVersion(await res.version);
+            return await Modules.Events.mediator.getDifference(ctx, uid, IDs.SequenceStateV1.parse(args.state));
+        }),
+        sequenceDifference: withUser(async (ctx, args, uid) => {
 
-            // Resolving sequences
+            let sequence: FeedReference;
+            let id = IdsFactory.resolve(args.id);
+            if (id.type === IDs.SequenceUser) {
+                sequence = { type: 'common', uid };
+            } else {
+                throw Error('Invalid id');
+            }
+
+            let diff = await Modules.Events.mediator.getFeedDifference(ctx, uid, sequence, args.seq);
             return {
-                seq: res.diff.seq,
-                state: res.diff.state,
-                hasMore: res.diff.hasMore,
-                sequences: res.diff.sequences
+                hasMore: diff.hasMore,
+                active: diff.active,
+                events: diff.events,
+                sequence,
             };
         })
     }

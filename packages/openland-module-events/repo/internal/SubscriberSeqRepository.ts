@@ -116,6 +116,22 @@ export class SubscriberSeqRepository {
     }
 
     /**
+     * Get subscriber online expiration time
+     * @param parent context
+     * @param subscriber subscriber
+     */
+    async getOnlineExpires(parent: Context, subscriber: Buffer) {
+        return await inTxLeaky(parent, async (ctx) => {
+            let ex = await this.directory.snapshotGet(ctx, encoders.tuple.pack([subscriber, SUBSPACE_TIMEOUT]));
+            if (!ex) {
+                return null;
+            } else {
+                return encoders.int32LE.unpack(ex);
+            }
+        });
+    }
+
+    /**
      * Refresh online expiration
      * @param parent context
      * @param subscriber subscriber id
@@ -123,17 +139,6 @@ export class SubscriberSeqRepository {
      */
     async refreshOnline(parent: Context, subscriber: Buffer, expires: number) {
         await inTxLeaky(parent, async (ctx) => {
-            let existingRaw = await this.directory.get(ctx, encoders.tuple.pack([subscriber, SUBSPACE_TIMEOUT]));
-            let existing: number | null = null;
-            if (existingRaw) {
-                existing = encoders.int32LE.unpack(existingRaw);
-            }
-            // Check if existing is already in the future: ignore write
-            if (existing && expires < existing) {
-                return;
-            }
-
-            // Write new expiration
             this.directory.set(ctx, encoders.tuple.pack([subscriber, SUBSPACE_TIMEOUT]), encoders.int32LE.pack(expires));
         });
     }

@@ -98,7 +98,8 @@ export const IDs = {
     Session: IdsFactory.createStringId('Session'),
 
     Contact: IdsFactory.createId('Contact'),
-    ContactCursor: IdsFactory.createStringId('ContactCursor'),
+    ContactCursor: IdsFactory.createStringId('ContactCursor'), // deprecated
+    ContactCursor2: IdsFactory.createId('ContactCursor2'),
     ContactsUpdatesCursor: IdsFactory.createStringId('ContactsUpdatesCursor'),
 
     SequenceStateV1: IdsFactory.createStringId('SequenceState-V1'),

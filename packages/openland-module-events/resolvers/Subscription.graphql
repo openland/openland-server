@@ -54,8 +54,8 @@ type UpdatesDifferenceEvent {
 }
 
 type UpdatesSequenceDifference {
+    after: Int!
     sequence: Sequence!
-    pts: Int!
     events: [UpdatesDifferenceEvent!]!
 }
 
@@ -66,6 +66,13 @@ type UpdatesDifference {
     sequences: [UpdatesSequenceDifference!]!
 }
 
+type SequenceDifference {
+    sequence: Sequence!
+    events: [UpdatesDifferenceEvent!]!
+    hasMore: Boolean!
+}
+
 extend type Query {
     updatesDifference(state: String!): UpdatesDifference!
+    sequenceDifference(id: ID!, seq: Int!): SequenceDifference!
 }

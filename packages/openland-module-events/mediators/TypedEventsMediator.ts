@@ -84,7 +84,33 @@ export class TypedEventsMediator {
                 throw Error('Feed does not exist');
             }
             let latest = await this.events.repo.feedLatest.readLatest(ctx, feedid);
-            return { pts: latest.seq, state: latest.state.toString('base64') };
+            return { pts: latest.seq, state: latest.vt.value.toString('base64') };
+        });
+    }
+
+    async getFeedDifference(parent: Context, uid: number, feed: FeedReference, seq: number) {
+        return await inTx(parent, async (ctx) => {
+            let subscriber = await this.registry.getUserSubscriber(ctx, uid);
+            if (!subscriber) {
+                throw Error('Subscriber does not exist');
+            }
+            let feedid = await this.registry.getFeed(ctx, feed);
+            if (!feedid) {
+                throw Error('Feed does not exist');
+            }
+            await this.events.refreshOnline(ctx, subscriber);
+            let difference = await this.events.repo.getFeedDifference(ctx, subscriber, feedid, seq, { limits: { forwardOnly: 100, generic: 20 } });
+            let events: { pts: number, event: Event }[] = [];
+            for (let e of difference.events) {
+                let update = unpackFeedEvent(e.event);
+                events.push({ pts: e.seq, event: update.event });
+            }
+            return {
+                active: difference.active,
+                forwardOnly: difference.forwardOnly,
+                hasMore: difference.hasMore,
+                events
+            };
         });
     }
 
@@ -98,26 +124,25 @@ export class TypedEventsMediator {
             let res = await this.events.repo.getDifference(ctx, subscriber, Buffer.from(state, 'base64'), { limits: { forwardOnly: 100, generic: 20, global: 300 } });
 
             // Parse sequences
-            let sequences = new Map<string, { sequence: FeedReference, pts: number, events: { pts: number, event: Event }[] }>();
-            for (let u of res.updates) {
-                if (u.event === 'event') {
-                    let update = unpackFeedEvent(u.body!);
-                    let k = u.feed.toString('hex');
-                    if (sequences.has(k)) {
-                        let e = sequences.get(k)!;
-                        e.pts = Math.max(u.seq, e.pts);
-                        e.events.push({ pts: u.seq, event: update.event });
-                    } else {
-                        sequences.set(k, { sequence: update.feed, pts: u.seq, events: [{ pts: u.seq, event: update.event }] });
-                    }
-                }
+            let sequences: { sequence: FeedReference, pts: number, events: { pts: number, event: Event }[] }[] = [];
+            for (let f of res.updates) {
+                let update = unpackFeedEvent(f.events[0].event);
+                let sequence = update.feed;
+                sequences.push({
+                    sequence,
+                    pts: f.afterSeq,
+                    events: f.events.map((v) => ({
+                        event: unpackFeedEvent(v.event).event,
+                        pts: v.seq
+                    }))
+                });
             }
 
             return {
                 hasMore: res.hasMore,
                 seq: res.seq,
-                state: res.state.toString('base64'),
-                sequences: [...sequences.values()]
+                state: res.vt.toString('base64'),
+                sequences
             };
         });
     }

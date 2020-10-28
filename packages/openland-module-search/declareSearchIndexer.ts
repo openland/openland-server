@@ -177,6 +177,8 @@ export class SearchIndexer<T, P extends SearchIndexerProperties, S> {
                         if (res.errors) {
                             log.warn(ctx, 'Elastic error', res, 'Errors: ', JSON.stringify(res.items.filter((i: any) => i.index.error)));
                             throw new Error('Error during indexing (' + name + ')');
+                        } else {
+                            log.log(ctx, name, 'inserted', converted.length);
                         }
                     } catch (e) {
                         log.warn(ctx, e);
