@@ -234,6 +234,7 @@
     "openland-module-discussions": "build/openland-module-discussions",
     "openland-spacex": "build/openland-spacex",
     "openland-mtproto3": "build/openland-mtproto3",
-    "openland-module-contacts": "build/openland-module-contacts"
+    "openland-module-contacts": "build/openland-module-contacts",
+    "openland-module-social-image": "build/openland-module-social-image"
   }
 }

@@ -60,6 +60,8 @@ module.exports = {
         'openland-module-media': '<rootDir>/packages/openland-module-media',
         'openland-module-api/(.*)': '<rootDir>/packages/openland-module-api/$1',
         'openland-module-api': '<rootDir>/packages/openland-module-api',
+        'openland-module-social-image/(.*)': '<rootDir>/packages/openland-module-social-image/$1',
+        'openland-module-social-image': '<rootDir>/packages/openland-module-social-image',
         'openland-module-social/(.*)': '<rootDir>/packages/openland-module-social/$1',
         'openland-module-social': '<rootDir>/packages/openland-module-social',
         'openland-module-feed/(.*)': '<rootDir>/packages/openland-module-feed/$1',
