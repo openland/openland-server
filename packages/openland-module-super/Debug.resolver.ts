@@ -2445,7 +2445,7 @@ export const Resolver: GQLResolver = {
             return await inTx(parent, async ctx => {
                 await cache.deleteAll(ctx);
                 return true;
-            })
+            });
         })
     },
     Subscription: {
