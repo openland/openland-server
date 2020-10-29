@@ -93,6 +93,8 @@ export const Resolver: GQLResolver = {
                     await Modules.Users.userBindInvitedBy(ctx, uid, args.inviteKey);
                 }
                 let profile = await Modules.Users.profileById(ctx, uid);
+                let nameChanged = false;
+                let photoChanged = false;
                 if (!profile) {
                     throw Error('Unable to find profile');
                 }
@@ -103,9 +105,11 @@ export const Resolver: GQLResolver = {
                         'input.firstName'
                     );
                     profile.firstName = Sanitizer.sanitizeString(args.input.firstName)!;
+                    nameChanged = true;
                 }
                 if (args.input.lastName !== undefined) {
                     profile.lastName = Sanitizer.sanitizeString(args.input.lastName);
+                    nameChanged = true;
                 }
                 if (args.input.location !== undefined) {
                     profile.location = Sanitizer.sanitizeString(args.input.location);
@@ -122,6 +126,7 @@ export const Resolver: GQLResolver = {
                         await Modules.Media.saveFile(ctx, args.input.photoRef.uuid);
                     }
                     profile.picture = Sanitizer.sanitizeImageRef(args.input.photoRef);
+                    photoChanged = true;
                 }
                 if (args.input.phone !== undefined) {
                     profile.phone = Sanitizer.sanitizeString(args.input.phone);
@@ -170,6 +175,9 @@ export const Resolver: GQLResolver = {
 
                 await Modules.Hooks.onUserProfileUpdated(ctx, profile.id);
                 await Modules.Users.markForUndexing(ctx, uid);
+                if (nameChanged || photoChanged) {
+                    await Modules.SocialImageModule.onUserUpdated(ctx, uid);
+                }
                 return profile;
             });
         }),
@@ -212,6 +220,8 @@ export const Resolver: GQLResolver = {
                 if (!profile) {
                     throw Error('Unable to find profile');
                 }
+                let nameChanged = false;
+                let photoChanged = false;
                 if (args.input.firstName !== undefined) {
                     await validate(
                         stringNotEmpty('Please enter your first name'),
@@ -219,9 +229,11 @@ export const Resolver: GQLResolver = {
                         'input.firstName'
                     );
                     profile.firstName = Sanitizer.sanitizeString(args.input.firstName)!;
+                    nameChanged = true;
                 }
                 if (args.input.lastName !== undefined) {
                     profile.lastName = Sanitizer.sanitizeString(args.input.lastName);
+                    nameChanged = true;
                 }
                 if (args.input.location !== undefined) {
                     profile.location = Sanitizer.sanitizeString(args.input.location);
@@ -238,6 +250,7 @@ export const Resolver: GQLResolver = {
                         await Modules.Media.saveFile(ctx, args.input.photoRef.uuid);
                     }
                     profile.picture = Sanitizer.sanitizeImageRef(args.input.photoRef);
+                    photoChanged = true;
                 }
                 if (args.input.phone !== undefined) {
                     profile.phone = Sanitizer.sanitizeString(args.input.phone);
@@ -278,7 +291,9 @@ export const Resolver: GQLResolver = {
                 await profile.flush(ctx);
                 await Modules.Hooks.onUserProfileUpdated(ctx, profile.id);
                 await Modules.Users.markForUndexing(ctx, uid);
-
+                if (nameChanged || photoChanged) {
+                    await Modules.SocialImageModule.onUserUpdated(ctx, uid);
+                }
                 return (await Modules.Users.profileById(ctx, uid))!;
             });
         }),

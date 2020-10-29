@@ -46,6 +46,7 @@ import { PermissionsModule } from '../openland-module-permissions/PermissionsMod
 import { PhonebookModule } from '../openland-module-phonebook/PhonebookModule';
 import { ClickHouseModule } from '../openland-module-clickhouse/ClickHouseModule';
 import { ContactsModule } from '../openland-module-contacts/ContactsModule';
+import { SocialImageModule } from '../openland-module-social-image/SocialImageModule';
 
 class ModulesImpl {
 
@@ -189,6 +190,9 @@ class ModulesImpl {
     }
     get Events() {
         return container.get(EventsModule);
+    }
+    get SocialImageModule() {
+        return container.get(SocialImageModule);
     }
 }
 

@@ -101,6 +101,8 @@ export const Resolver: GQLResolver = {
                 }
                 let isMemberOwner = uid === existing.ownerId;
 
+                let nameChanged = false;
+                let photoChanged = false;
                 let profile = (await Store.OrganizationProfile.findById(ctx, orgId))!;
 
                 if (args.input.name !== undefined) {
@@ -110,6 +112,7 @@ export const Resolver: GQLResolver = {
                         'input.name'
                     );
                     profile.name = Sanitizer.sanitizeString(args.input.name)!;
+                    nameChanged = true;
                 }
                 if (args.input.website !== undefined) {
                     profile.website = Sanitizer.sanitizeString(args.input.website);
@@ -119,6 +122,7 @@ export const Resolver: GQLResolver = {
                         await Modules.Media.saveFile(ctx, args.input.photoRef.uuid);
                     }
                     profile.photo = Sanitizer.sanitizeImageRef(args.input.photoRef);
+                    photoChanged = true;
                 }
 
                 if (args.input.socialImageRef !== undefined) {
@@ -190,7 +194,9 @@ export const Resolver: GQLResolver = {
                 await editorial.flush(ctx);
                 await profile.flush(ctx);
                 await Modules.Hooks.onOrganizationProfileUpdated(ctx, profile.id);
-
+                if (nameChanged || photoChanged) {
+                    await Modules.SocialImageModule.onOrganizationUpdated(ctx, profile.id);
+                }
                 return existing;
             });
         }),

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'c6965f5d4ca1410a5968f67aae07f250';
+export const GQL_SPEC_VERSION = 'fb2e741e1b173557b1218b948e9f2eaf';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -3967,6 +3967,7 @@ export namespace GQL {
         status: string;
         membersCount: number;
         personal: boolean;
+        externalSocialImage: Nullable<string>;
         linkedFeedChannels: FeedChannel[];
         shortname: Nullable<string>;
     }
@@ -4010,6 +4011,7 @@ export namespace GQL {
     export interface OrganizationStatusArgs { }
     export interface OrganizationMembersCountArgs { }
     export interface OrganizationPersonalArgs { }
+    export interface OrganizationExternalSocialImageArgs { }
     export interface OrganizationLinkedFeedChannelsArgs { }
     export interface OrganizationShortnameArgs { }
     export interface OrganizationProfile {
@@ -5377,6 +5379,7 @@ export namespace GQL {
         alphaTwitter: Nullable<string>;
         alphaLocations: Nullable<string[]>;
         chatsWithBadge: UserChatWithBadge[];
+        externalSocialImage: Nullable<string>;
         online: boolean;
         active: boolean;
         lastSeen: Nullable<string>;
@@ -5419,6 +5422,7 @@ export namespace GQL {
     export interface UserAlphaTwitterArgs { }
     export interface UserAlphaLocationsArgs { }
     export interface UserChatsWithBadgeArgs { }
+    export interface UserExternalSocialImageArgs { }
     export interface UserOnlineArgs { }
     export interface UserActiveArgs { }
     export interface UserLastSeenArgs { }
@@ -6184,6 +6188,7 @@ export namespace GQL {
         callSettings: RoomCallSettings;
         featured: boolean;
         owner: Nullable<User>;
+        externalSocialImage: Nullable<string>;
         linkedFeedChannels: FeedChannel[];
         shortname: Nullable<string>;
     }
@@ -6224,6 +6229,7 @@ export namespace GQL {
     export interface SharedRoomCallSettingsArgs { }
     export interface SharedRoomFeaturedArgs { }
     export interface SharedRoomOwnerArgs { }
+    export interface SharedRoomExternalSocialImageArgs { }
     export interface SharedRoomLinkedFeedChannelsArgs { }
     export interface SharedRoomShortnameArgs { }
     export interface PremiumChatSettings {
@@ -9801,6 +9807,7 @@ export interface GQLResolver {
             status: GQL.OrganizationStatusArgs,
             membersCount: GQL.OrganizationMembersCountArgs,
             personal: GQL.OrganizationPersonalArgs,
+            externalSocialImage: GQL.OrganizationExternalSocialImageArgs,
             linkedFeedChannels: GQL.OrganizationLinkedFeedChannelsArgs,
             shortname: GQL.OrganizationShortnameArgs,
         }
@@ -10753,6 +10760,7 @@ export interface GQLResolver {
             alphaTwitter: GQL.UserAlphaTwitterArgs,
             alphaLocations: GQL.UserAlphaLocationsArgs,
             chatsWithBadge: GQL.UserChatsWithBadgeArgs,
+            externalSocialImage: GQL.UserExternalSocialImageArgs,
             online: GQL.UserOnlineArgs,
             active: GQL.UserActiveArgs,
             lastSeen: GQL.UserLastSeenArgs,
@@ -11715,6 +11723,7 @@ export interface GQLResolver {
             callSettings: GQL.SharedRoomCallSettingsArgs,
             featured: GQL.SharedRoomFeaturedArgs,
             owner: GQL.SharedRoomOwnerArgs,
+            externalSocialImage: GQL.SharedRoomExternalSocialImageArgs,
             linkedFeedChannels: GQL.SharedRoomLinkedFeedChannelsArgs,
             shortname: GQL.SharedRoomShortnameArgs,
         }

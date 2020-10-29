@@ -1,0 +1,11 @@
+extend type SharedRoom {
+    externalSocialImage: String
+}
+
+extend type User {
+    externalSocialImage: String
+}
+
+extend type Organization {
+    externalSocialImage: String
+}

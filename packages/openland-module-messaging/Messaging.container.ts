@@ -17,7 +17,6 @@ import { UserDialogsRepository } from './repositories/UserDialogsRepository';
 import { MentionNotificationsMediator } from './mediators/MentionNotificationsMediator';
 import { PremiumChatMediator } from './mediators/PremiumChatMediator';
 import { PremiumChatRepository } from './repositories/PremiumChatRepository';
-import { SocialImageRepository } from './repositories/SocialImageRepository';
 import { DonationsMediator } from './mediators/DonationsMediator';
 import { FastCountersRepository } from './repositories/FastCountersRepository';
 import { FastCountersMediator } from './mediators/FastCountersMediator';
@@ -50,7 +49,6 @@ export function loadMessagingModule() {
     container.bind('NeedNotificationDeliveryRepository').to(NeedNotificationDeliveryRepository).inSingletonScope();
     container.bind('UserDialogsRepository').to(UserDialogsRepository).inSingletonScope();
     container.bind('MentionNotificationsMediator').to(MentionNotificationsMediator).inSingletonScope();
-    container.bind('SocialImageRepository').to(SocialImageRepository).inSingletonScope();
     container.bind('DonationsMediator').to(DonationsMediator).inSingletonScope();
     container.bind('FastCountersRepository').to(FastCountersRepository).inSingletonScope();
     container.bind('FastCountersMediator').to(FastCountersMediator).inSingletonScope();

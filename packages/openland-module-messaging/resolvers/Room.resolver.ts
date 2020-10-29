@@ -45,7 +45,7 @@ import PostMessageTypeRoot = GQLRoots.PostMessageTypeRoot;
 
 type RoomRoot = Conversation | number;
 
-function withConverationId<T, R>(handler: (ctx: Context, src: number, args: T, showPlaceholder: boolean) => MaybePromise<R>) {
+export function withConverationId<T, R>(handler: (ctx: Context, src: number, args: T, showPlaceholder: boolean) => MaybePromise<R>) {
     return async (src: SharedRoomRoot, args: T, ctx: Context) => {
         if (typeof src === 'number') {
             let showPlaceholder = ctx.auth!.uid ? await Modules.Messaging.room.userWasKickedFromRoom(ctx, ctx.auth!.uid!, src) : false;
@@ -526,7 +526,7 @@ export const Resolver: GQLResolver = {
             if (!room) {
                 return null;
             }
-            let image = await Modules.Messaging.getSocialImage(ctx, cid);
+            let image = await Modules.SocialImageModule.getRoomSocialImage(ctx, cid);
             return image ? buildBaseImageUrl(image) : null;
         },
         roomSuper: withPermission('super-admin', async (ctx, args) => {
