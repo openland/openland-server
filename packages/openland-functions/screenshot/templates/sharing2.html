@@ -75,7 +75,7 @@
             margin-top: 2px;
         }
 
-        .subtitle {
+        #subtitle {
             font-size: 15px;
             line-height: 24px;
             letter-spacing: 0.4px;
@@ -86,13 +86,16 @@
             if (!args.title || !args.image) {
                 return Promise.reject('Title or image is not specified ' + JSON.stringify(args))
             }
-            let imgSrc = args.image;
-            let titleText = args.title;
+            let imgSrc = args.image
+            let titleText = args.title
+            let subTitleText = args.subTitle
             let image = document.getElementById('image')
             let title = document.getElementById('title')
+            let subTitle = document.getElementById('subtitle')
 
             image.src = imgSrc
             title.innerText = titleText
+            subTitle.innerText = subTitleText
 
             return new Promise((resolve, reject) => {
                 image.onload = () => {
@@ -128,7 +131,7 @@
                         </defs>
                     </svg>
                 </div>
-                <span class="subtitle">Join on Openland</span>
+                <span id="subtitle">Join on Openland</span>
             </div>
 
         </div>
