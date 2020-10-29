@@ -341,7 +341,8 @@ export const Resolver: GQLResolver = {
                     template: args.template,
                     args: {
                         title: args.title,
-                        image: args.image
+                        image: args.image,
+                        subTitle: args.subTitle
                     }
                 })
             });

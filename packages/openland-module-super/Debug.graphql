@@ -103,7 +103,7 @@ extend type Query {
     debugGetCounters: String!
     debugExperimentalCounter(cid: ID!): String!
     debugFindUser(email: String, phone: String): User
-    debugSocialSharingImage(template: String!, title: String!, image: String!): String!
+    debugSocialSharingImage(template: String!, title: String!, image: String!, subTitle: String!): String!
 }
 
 enum SuperNotificationType {
