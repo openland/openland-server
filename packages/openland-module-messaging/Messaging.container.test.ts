@@ -12,6 +12,7 @@ import { PresenceModule } from '../openland-module-presences/PresenceModule';
 import { SearchModule } from '../openland-module-search/SearchModule';
 import { FastCountersRepository } from './repositories/FastCountersRepository';
 import { FastCountersMediator } from './mediators/FastCountersMediator';
+import { loadSocialImageModule } from '../openland-module-social-image/SocialImageModule.container';
 
 export function loadMessagingTestModule() {
     loadMessagingModule();
@@ -25,5 +26,6 @@ export function loadMessagingTestModule() {
     container.bind(MetricsModule).toSelf().inSingletonScope();
     container.bind(FastCountersRepository).toSelf().inSingletonScope();
     container.bind(FastCountersMediator).toSelf().inSingletonScope();
+    loadSocialImageModule();
     // container.bind(PushModule).toSelf().inSingletonScope();
 }
