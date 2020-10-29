@@ -15,7 +15,7 @@ export const Resolver: GQLResolver = {
         externalSocialImage: withUser(async (ctx, user) => {
             let image = await Modules.SocialImageModule.getUserSocialImage(ctx, user.id);
             return image ? buildBaseImageUrl(image) : null;
-        })
+        }, true)
     },
     Organization: {
         externalSocialImage: async (org, args, ctx) => {
