@@ -73,10 +73,11 @@ export class SocialImageRepository {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                template: 'sharing',
+                template: 'sharing2',
                 args: {
                     title,
-                    image
+                    image,
+                    subTitle: 'join on Openland'
                 }
             })
         });
