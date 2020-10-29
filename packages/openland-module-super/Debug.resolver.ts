@@ -44,6 +44,8 @@ import { ExperimentalCountersRepository } from '../openland-module-messaging/rep
 import { UserReadSeqsDirectory } from '../openland-module-messaging/repositories/UserReadSeqsDirectory';
 import { AsyncCountersRepository } from '../openland-module-messaging/repositories/AsyncCountersRepository';
 import fetch from 'node-fetch';
+import { CacheRepository } from '../openland-module-cache/CacheRepository';
+import { ImageRef } from '../openland-module-media/ImageRef';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -2437,6 +2439,13 @@ export const Resolver: GQLResolver = {
         debugPaymentCancel: withPermission('super-admin', async (parent, args) => {
             await Modules.Wallet.paymentsMediator.tryCancelPayment(parent, IDs.Payment.parse(args.id));
             return true;
+        })
+        debugInvalidateAllSocialImages: withPermission('super-admin', async (parent, args) => {
+            const cache = new CacheRepository('social-image');
+            return await inTx(parent, async ctx => {
+                await cache.deleteAll(ctx);
+                return true;
+            })
         })
     },
     Subscription: {
