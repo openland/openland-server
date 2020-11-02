@@ -356,7 +356,7 @@ export const Resolver: GQLResolver = {
                 let sort: any[] | undefined = undefined;
 
                 let parser = new QueryParser();
-                parser.registerText('text', 'prefix');
+                parser.registerText('text', 'text');
                 parser.registerBoolean('isService', 'isService');
                 parser.registerText('createdAt', 'createdAt');
                 parser.registerText('updatedAt', 'updatedAt');
