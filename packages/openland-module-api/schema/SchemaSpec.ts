@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '088a56d09fb5c03a6e254589f21a9cbd';
+export const GQL_SPEC_VERSION = '4f2406498df776854379bf53b94c232a';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4325,7 +4325,7 @@ export namespace GQL {
         updatesState: UpdatesState;
         sequenceState: UpdatesSequenceState;
         updatesDifference: UpdatesDifference;
-        sequenceDifference: s;
+        sequenceDifference: SequenceDifference;
         phonebookWasExported: boolean;
         channels: Channel[];
         channel: Nullable<Channel>;
@@ -10137,7 +10137,7 @@ export interface GQLResolver {
             updatesState: GQLRoots.UpdatesStateRoot,
             sequenceState: GQLRoots.UpdatesSequenceStateRoot,
             updatesDifference: GQLRoots.UpdatesDifferenceRoot,
-            sequenceDifference: GQLRoots.sRoot,
+            sequenceDifference: GQLRoots.SequenceDifferenceRoot,
             channels: GQLRoots.ChannelRoot[],
             channel: Nullable<GQLRoots.ChannelRoot>,
             debugParseID: GQLRoots.DebugIDRoot,

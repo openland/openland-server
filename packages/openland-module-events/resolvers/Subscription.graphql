@@ -75,5 +75,5 @@ type SequenceDifference {
 
 extend type Query {
     updatesDifference(state: String!): UpdatesDifference!
-    sequenceDifference(id: ID!, pts: Int!): s!
+    sequenceDifference(id: ID!, pts: Int!): SequenceDifference!
 }
