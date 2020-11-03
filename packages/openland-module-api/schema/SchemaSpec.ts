@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'cfb91b0db9fcd04974d1f279659844bc';
+export const GQL_SPEC_VERSION = '088a56d09fb5c03a6e254589f21a9cbd';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4325,7 +4325,7 @@ export namespace GQL {
         updatesState: UpdatesState;
         sequenceState: UpdatesSequenceState;
         updatesDifference: UpdatesDifference;
-        sequenceDifference: SequenceDifference;
+        sequenceDifference: s;
         phonebookWasExported: boolean;
         channels: Channel[];
         channel: Nullable<Channel>;
@@ -4552,7 +4552,7 @@ export namespace GQL {
     }
     export interface QuerySequenceDifferenceArgs {
         id: string;
-        seq: number;
+        pts: number;
     }
     export interface QueryPhonebookWasExportedArgs { }
     export interface QueryChannelsArgs { }
@@ -10137,7 +10137,7 @@ export interface GQLResolver {
             updatesState: GQLRoots.UpdatesStateRoot,
             sequenceState: GQLRoots.UpdatesSequenceStateRoot,
             updatesDifference: GQLRoots.UpdatesDifferenceRoot,
-            sequenceDifference: GQLRoots.SequenceDifferenceRoot,
+            sequenceDifference: GQLRoots.sRoot,
             channels: GQLRoots.ChannelRoot[],
             channel: Nullable<GQLRoots.ChannelRoot>,
             debugParseID: GQLRoots.DebugIDRoot,

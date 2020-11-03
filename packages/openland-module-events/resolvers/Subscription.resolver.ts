@@ -136,7 +136,7 @@ export const Resolver: GQLResolver = {
                 throw Error('Invalid id');
             }
 
-            let diff = await Modules.Events.mediator.getFeedDifference(ctx, uid, sequence, args.seq);
+            let diff = await Modules.Events.mediator.getFeedDifference(ctx, uid, sequence, args.pts);
             return {
                 hasMore: diff.hasMore,
                 active: diff.active,
