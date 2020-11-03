@@ -152,7 +152,7 @@ export const Resolver: GQLResolver = {
             } else {
                 throw Error('Invalid id');
             }
-            return sequence;
+            return { sequence: sequence, pts: await Modules.Events.mediator.getFeedSubscriberPts(ctx, sequence, uid) };
         })
     }
 };
