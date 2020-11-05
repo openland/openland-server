@@ -42,7 +42,7 @@ type UpdatesState {
 
 extend type Query {
     updatesState: UpdatesState!
-    sequenceState(id: ID!): Sequence!
+    sequenceState(id: ID!): UpdatesSequenceState!
 }
 
 #
@@ -75,5 +75,5 @@ type SequenceDifference {
 
 extend type Query {
     updatesDifference(state: String!): UpdatesDifference!
-    sequenceDifference(id: ID!, seq: Int!): SequenceDifference!
+    sequenceDifference(id: ID!, pts: Int!): SequenceDifference!
 }
