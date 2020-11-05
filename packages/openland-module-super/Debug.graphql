@@ -217,6 +217,7 @@ extend type Mutation {
     debugCreateOrganizationMailing(oid: ID!, uid: ID!, message: String!, spans: [MessageSpanInput!]): Boolean!
     debugPaymentCancel(id: ID!): Boolean!
     debugInvalidateAllSocialImages: Boolean!
+    debugChangeChatPrice(cid: ID!, price: Int!): Boolean!
 }
 
 extend type Subscription {

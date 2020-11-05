@@ -2445,6 +2445,16 @@ export const Resolver: GQLResolver = {
                 await cache.deleteAll(ctx);
                 return true;
             });
+        }),
+        debugChangeChatPrice: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async ctx => {
+                let settings = await Store.PremiumChatSettings.findById(ctx, IDs.Conversation.parse(args.cid));
+                if (!settings) {
+                    return false;
+                }
+                settings.price = args.price;
+                return true;
+            });
         })
     },
     Subscription: {
