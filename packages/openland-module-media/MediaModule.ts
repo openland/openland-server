@@ -134,13 +134,6 @@ export class MediaModule {
     private async call(ctx: Context, path: string, method: string = 'GET'): Promise<any> {
         return await tracer.trace(ctx, 'call', async () => {
             return await new Promise<any>((resolve, reject) => {
-                logger.log(ctx, {
-                    method,
-                    url: 'https://api.uploadcare.com/' + path,
-                    headers: {
-                        'Authorization': MediaModule.UPLOAD_CARE_AUTH
-                    }
-                });
                 request({
                     method,
                     url: 'https://api.uploadcare.com/' + path,

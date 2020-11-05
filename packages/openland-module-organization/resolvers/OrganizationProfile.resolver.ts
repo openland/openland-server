@@ -270,7 +270,6 @@ export const Resolver: GQLResolver = {
                 }
 
                 let res = await Modules.Media.upload(rootCtx, Buffer.from(csv), '.csv');
-                log.log(ctx, 'export file:', res);
                 let fileMetadata = await Modules.Media.saveFile(rootCtx, res.file);
                 let attachment = {
                     type: 'file_attachment',
@@ -278,26 +277,20 @@ export const Resolver: GQLResolver = {
                     fileMetadata
                 } as MessageAttachmentFileInput;
 
-                log.log(ctx, 'export', attachment);
-                try {
-                    await inTx(rootCtx, async ctx2 => {
-                        let conv = await Modules.Messaging.room.resolvePrivateChat(ctx2, ctx.auth.uid!, supportUserId!);
-                        let orgProfile = (await Store.OrganizationProfile.findById(ctx, oid))!;
-                        log.log(ctx, 'export sending message');
-                        await Modules.Messaging.sendMessage(
-                            ctx2,
-                            conv.id,
-                            supportUserId!,
-                            {
-                                ...buildMessage('Member list for ', orgMention(orgProfile.name, oid)),
-                                attachments: [attachment]
-                            },
-                            true
-                        );
-                    });
-                } catch (e) {
-                    log.log(rootCtx, 'export_error', e);
-                }
+                await inTx(rootCtx, async ctx2 => {
+                    let conv = await Modules.Messaging.room.resolvePrivateChat(ctx2, ctx.auth.uid!, supportUserId!);
+                    let orgProfile = (await Store.OrganizationProfile.findById(ctx2, oid))!;
+                    await Modules.Messaging.sendMessage(
+                        ctx2,
+                        conv.id,
+                        supportUserId!,
+                        {
+                            ...buildMessage('Member list for ', orgMention(orgProfile.name, oid)),
+                            attachments: [attachment]
+                        },
+                        true
+                    );
+                });
             });
 
             return true;
