@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '4f2406498df776854379bf53b94c232a';
+export const GQL_SPEC_VERSION = 'fd26a32b567d4aae68d8490ebe5e00bd';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2382,6 +2382,7 @@ export namespace GQL {
         debugCreateOrganizationMailing: boolean;
         debugPaymentCancel: boolean;
         debugInvalidateAllSocialImages: boolean;
+        debugChangeChatPrice: boolean;
         settingsUpdate: Settings;
         sendEmailPairCode: string;
         pairEmail: boolean;
@@ -2936,6 +2937,10 @@ export namespace GQL {
         id: string;
     }
     export interface MutationDebugInvalidateAllSocialImagesArgs { }
+    export interface MutationDebugChangeChatPriceArgs {
+        cid: string;
+        price: number;
+    }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
         uid: OptionalNullable<string>;
@@ -9322,6 +9327,7 @@ export interface GQLResolver {
             debugCreateOrganizationMailing: GQL.MutationDebugCreateOrganizationMailingArgs,
             debugPaymentCancel: GQL.MutationDebugPaymentCancelArgs,
             debugInvalidateAllSocialImages: GQL.MutationDebugInvalidateAllSocialImagesArgs,
+            debugChangeChatPrice: GQL.MutationDebugChangeChatPriceArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailPairCode: GQL.MutationSendEmailPairCodeArgs,
             pairEmail: GQL.MutationPairEmailArgs,
