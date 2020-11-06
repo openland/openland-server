@@ -1,4 +1,3 @@
-import { EventsModule } from 'openland-module-events/EventsModule';
 import { Store } from '../../openland-module-db/FDB';
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
