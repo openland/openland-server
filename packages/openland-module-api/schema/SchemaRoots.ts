@@ -131,6 +131,7 @@ import {
     TextParagraph, PostParagraphSpans, LinkPostSpan, BoldTextPostSpan, ItalicTextPostSpan, IronyTextPostSpan
 } from '../../openland-module-discussions/repositories/PostsRepository';
 import { GeoIPResponse } from '../../openland-utils/geoIP';
+import { Event } from 'openland-module-events/Definitions';
 
 //
 //  Root types
@@ -801,7 +802,7 @@ export namespace GQLRoots {
     export type UpdateChatReadRoot = UpdateChatRead;
     export type UpdateProfileChangedRoot = UpdateProfileChanged;
     export type UpdateMyProfileChangedRoot = UpdateProfileChanged;
-    export type UpdateEventRoot = UpdateChatReadRoot | UpdateProfileChangedRoot | UpdateMyProfileChangedRoot;
+    export type UpdateEventRoot = Event;
 
     export type SequenceCommonRoot = { type: 'common', uid: number };
     export type SequenceChatRoot = { type: 'chat', cid: number };
