@@ -133,6 +133,7 @@ export class TypedEventsMediator {
                 active: difference.active,
                 forwardOnly: difference.forwardOnly,
                 hasMore: difference.hasMore,
+                after: difference.afterSeq,
                 events
             };
         });

@@ -104,7 +104,8 @@ export const Resolver: GQLResolver = {
     SequenceDifference: {
         events: (src) => src.events,
         hasMore: (src) => src.hasMore,
-        sequence: (src) => src.sequence
+        sequence: (src) => src.sequence,
+        after: (src) => src.pts,
     },
     Query: {
         updatesState: withUser(async (ctx, args, uid) => {
@@ -141,6 +142,7 @@ export const Resolver: GQLResolver = {
                 hasMore: diff.hasMore,
                 active: diff.active,
                 events: diff.events,
+                pts: diff.after,
                 sequence,
             };
         }),
