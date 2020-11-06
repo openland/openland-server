@@ -32,7 +32,6 @@ describe('RoomRepository', () => {
         container.bind('UserReadSeqsDirectory').to(UserReadSeqsDirectory).inSingletonScope();
         container.bind('ChatsMembersListDirectory').to(ChatsMembersListDirectory).inSingletonScope();
         container.bind(UsersModule).toSelf().inSingletonScope();
-        container.bind(EventsModule).toSelf().inSingletonScope();
         loadUsersModule();
     });
     afterAll( async () => {
