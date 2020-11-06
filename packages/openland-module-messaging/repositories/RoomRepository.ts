@@ -733,6 +733,7 @@ export class RoomRepository {
                 await this.userReadSeqs.onAddDialog(ctx, uid1, conv.id);
                 await this.userReadSeqs.onAddDialog(ctx, uid2, conv.id);
                 await conv.flush(ctx);
+                await Modules.Events.mediator.prepareChat(ctx, conv.id);
             }
             return (await Store.Conversation.findById(ctx, conv.id))!;
         });

@@ -1,3 +1,4 @@
+import { EventsModule } from 'openland-module-events/EventsModule';
 import { Store } from '../../openland-module-db/FDB';
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
@@ -31,6 +32,7 @@ describe('RoomRepository', () => {
         container.bind('UserReadSeqsDirectory').to(UserReadSeqsDirectory).inSingletonScope();
         container.bind('ChatsMembersListDirectory').to(ChatsMembersListDirectory).inSingletonScope();
         container.bind(UsersModule).toSelf().inSingletonScope();
+        container.bind(EventsModule).toSelf().inSingletonScope();
         loadUsersModule();
     });
     afterAll( async () => {
