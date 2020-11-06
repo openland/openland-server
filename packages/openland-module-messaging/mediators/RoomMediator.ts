@@ -62,6 +62,10 @@ export class RoomMediator {
             }
             // Create room
             let res = await this.repo.createRoom(ctx, kind, oid, uid, members, profile, listed, channel, price, interval);
+
+            // Create feed
+            await Modules.Events.mediator.prepareChat(ctx, res.id);
+
             // Send initial messages
             let userName = await Modules.Users.getUserFullName(parent, uid);
             let chatTypeString = channel ? 'channel' : 'group';

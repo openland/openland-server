@@ -50,6 +50,26 @@ export class TypedEventsMediator {
     }
 
     //
+    // Chat
+    //
+
+    async prepareChat(parent: Context, cid: number) {
+        await inTx(parent, async (ctx) => {
+            await this.createChatFeedIfNeeded(ctx, cid);
+        });
+    }
+
+    async createChatFeedIfNeeded(parent: Context, cid: number) {
+        await inTx(parent, async (ctx) => {
+            let ex = await this.registry.getFeed(ctx, { type: 'chat', cid });
+            if (!ex) {
+                let feed = await this.events.createFeed(ctx, 'generic');
+                this.registry.setFeed(ctx, { type: 'chat', cid }, feed);
+            }
+        });
+    }
+
+    //
     // State
     //
 
@@ -98,7 +118,7 @@ export class TypedEventsMediator {
             if (!subscriber) {
                 throw Error('Subscriber does not exist');
             }
-        
+
             let substate = await this.events.repo.sub.getSubscriptionState(ctx, subscriber, feedid);
             if (!substate) {
                 throw Error('Subscription does not exist');

@@ -55,4 +55,8 @@ export class EventsModule {
     onUserDeleted = async (ctx: Context, uid: number) => {
         // Nothing to do?
     }
+
+    onConversationCreated = async (ctx: Context, cid: number) => {
+        await this.mediator.prepareChat(ctx, cid);
+    }
 }
