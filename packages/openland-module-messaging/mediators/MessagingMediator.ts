@@ -322,7 +322,7 @@ export class MessagingMediator {
         }));
     }
 
-    editMessage = async (parent: Context, mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean) => {
+    editMessage = async (parent: Context, mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean, augmentation: boolean = false) => {
         return await inTx(parent, async (ctx) => {
             if (newMessage.message !== null && newMessage.message !== undefined && newMessage.message!.trim().length === 0) {
                 throw new UserError('Can\'t edit empty message');
@@ -386,7 +386,7 @@ export class MessagingMediator {
             // Send notification center updates
             await Modules.NotificationCenter.onCommentPeerUpdated(ctx, 'message', message.id, null);
 
-            if (!newMessage.ignoreAugmentation) {
+            if (!newMessage.ignoreAugmentation && !augmentation) {
                 // Augment
                 this.augmentation.onMessageUpdated(ctx, message);
             }
