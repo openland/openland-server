@@ -1,3 +1,4 @@
+import { MessagesEventsRepository } from './../repositories/MessagesEventsRepository';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { LinkSpan, MessageInput, MessageSpan } from 'openland-module-messaging/MessageInput';
@@ -27,7 +28,7 @@ const trace = createTracer('messaging');
 const linkifyInstance = createLinkifyInstance();
 
 function fetchMessageMentions(message: Message) {
-    let mentions: (number|'all')[] = [];
+    let mentions: (number | 'all')[] = [];
     for (let span of message.spans || []) {
         if (span.type === 'user_mention') {
             mentions.push(span.user);
@@ -101,6 +102,9 @@ export class MessagingMediator {
 
     @lazyInject('MessagesRepository')
     private readonly repo!: MessagesRepository;
+    @lazyInject('MessagesEventsRepository')
+    readonly messagingEvents!: MessagesEventsRepository;
+
     @lazyInject('DeliveryMediator')
     private readonly delivery!: DeliveryMediator;
     @lazyInject('AugmentationMediator')
@@ -225,6 +229,9 @@ export class MessagingMediator {
 
             // Create
             let res = await this.repo.createMessage(ctx, cid, uid, { ...msg, spans });
+
+            // Post classic event
+            this.messagingEvents.postMessageReceived(ctx, cid, res.message.id, res.message.hiddenForUids || []);
 
             // Delivery
             await this.delivery.onNewMessage(ctx, res.message);

@@ -1,5 +1,4 @@
-import { MessageUpdatedEvent, MessageDeletedEvent } from '../../openland-module-db/store';
-import { Message, MessageReceivedEvent } from 'openland-module-db/store';
+import { Message, MessageUpdatedEvent, MessageDeletedEvent } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import {
     MessageAttachment,
@@ -89,16 +88,6 @@ export class MessagesRepository {
                 overrideAvatar: message.overrideAvatar,
                 overrideName: message.overrideName,
             });
-
-            //
-            // Write Event
-            //
-
-            Store.ConversationEventStore.post(ctx, cid, MessageReceivedEvent.create({
-                cid,
-                mid,
-                hiddenForUids: message.hiddenForUids || []
-            }));
 
             //
             // Update user counter

@@ -1,3 +1,4 @@
+import { MessagesEventsRepository } from './repositories/MessagesEventsRepository';
 import { container } from 'openland-modules/Modules.container';
 import { MessagingModule } from './MessagingModule';
 import { UserStateRepository } from './repositories/UserStateRepository';
@@ -61,4 +62,5 @@ export function loadMessagingModule() {
     container.bind('SyncCountersRepository').to(SyncCountersRepository).inSingletonScope();
     container.bind('HybridCountersRepository').to(HybridCountersRepository).inSingletonScope();
     container.bind('ChatsMembersListDirectory').to(ChatsMembersListDirectory).inSingletonScope();
+    container.bind('MessagesEventsRepository').to(MessagesEventsRepository).inSingletonScope();
 }
