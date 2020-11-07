@@ -69,6 +69,54 @@ export class TypedEventsMediator {
         });
     }
 
+    async subscribe(parent: Context, uid: number, feedRef: FeedReference) {
+        await inTx(parent, async (ctx) => {
+            let subscriber = await this.registry.getUserSubscriber(ctx, uid);
+            if (!subscriber) {
+                throw Error('Subscriber does not exist');
+            }
+            let feed = await this.registry.getFeed(ctx, feedRef);
+            if (!feed) {
+                throw Error('Feed does not exist');
+            }
+
+            // Check if already subscribed
+            let ex = await this.events.repo.sub.getSubscriptionState(ctx, subscriber, feed);
+            if (ex && ex.to !== null) {
+                return false;
+            }
+
+            // Subscribe
+            await this.events.subscribe(ctx, subscriber, feed);
+
+            return true;
+        });
+    }
+
+    async unsubscribe(parent: Context, uid: number, feedRef: FeedReference) {
+        await inTx(parent, async (ctx) => {
+            let subscriber = await this.registry.getUserSubscriber(ctx, uid);
+            if (!subscriber) {
+                throw Error('Subscriber does not exist');
+            }
+            let feed = await this.registry.getFeed(ctx, feedRef);
+            if (!feed) {
+                throw Error('Feed does not exist');
+            }
+
+            // Check if already subscribed
+            let ex = await this.events.repo.sub.getSubscriptionState(ctx, subscriber, feed);
+            if (!ex || ex.to === null) {
+                return false;
+            }
+
+            // Subscribe
+            await this.events.unsubscribe(ctx, subscriber, feed);
+
+            return true;
+        });
+    }
+
     //
     // State
     //
