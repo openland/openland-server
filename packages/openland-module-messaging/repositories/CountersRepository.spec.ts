@@ -25,7 +25,7 @@ describe('CountersRepository', () => {
     it('should increment counter and decrement', async () => {
         let ctx = createNamedContext('test');
         let urepo = container.get<UserStateRepository>('UserStateRepository');
-        let mrepo = container.get<MessagesRepository>('MessagingRepository');
+        let mrepo = container.get<MessagesRepository>('MessagesRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
 
         let mid1 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message;
