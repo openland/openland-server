@@ -3,7 +3,7 @@ import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testE
 import { container } from 'openland-modules/Modules.container';
 import { UserStateRepository } from './UserStateRepository';
 import { CountersRepository } from './CountersRepository';
-import { MessagingRepository } from './MessagingRepository';
+import { MessagesRepository } from './MessagesRepository';
 import { loadMessagingTestModule } from '../Messaging.container.test';
 import { createNamedContext } from '@openland/context';
 import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
@@ -25,7 +25,7 @@ describe('CountersRepository', () => {
     it('should increment counter and decrement', async () => {
         let ctx = createNamedContext('test');
         let urepo = container.get<UserStateRepository>('UserStateRepository');
-        let mrepo = container.get<MessagingRepository>('MessagingRepository');
+        let mrepo = container.get<MessagesRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
 
         let mid1 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message;
@@ -61,7 +61,7 @@ describe('CountersRepository', () => {
     it('should properly decrement on middle-read', async () => {
         let ctx = createNamedContext('test');
         let urepo = container.get<UserStateRepository>('UserStateRepository');
-        let mrepo = container.get<MessagingRepository>('MessagingRepository');
+        let mrepo = container.get<MessagesRepository>('MessagesRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
 
         let mid1 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message;
@@ -97,7 +97,7 @@ describe('CountersRepository', () => {
     it('should be order-independent', async () => {
         let ctx = createNamedContext('test');
         let urepo = container.get<UserStateRepository>('UserStateRepository');
-        let mrepo = container.get<MessagingRepository>('MessagingRepository');
+        let mrepo = container.get<MessagesRepository>('MessagesRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
 
         let mid1 = (await mrepo.createMessage(ctx, 2, 1, { message: '1' })).message;
@@ -137,7 +137,7 @@ describe('CountersRepository', () => {
     it('should decrement counter on unread message deletion', async () => {
         let ctx = createNamedContext('test');
         let urepo = container.get<UserStateRepository>('UserStateRepository');
-        let mrepo = container.get<MessagingRepository>('MessagingRepository');
+        let mrepo = container.get<MessagesRepository>('MessagesRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
 
         let mid1 = (await mrepo.createMessage(ctx, 4, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 3 }] })).message;
@@ -162,7 +162,7 @@ describe('CountersRepository', () => {
     it('should mark dialog mention for messages with mentions', async () => {
         let ctx = createNamedContext('test');
         let urepo = container.get<UserStateRepository>('UserStateRepository');
-        let mrepo = container.get<MessagingRepository>('MessagingRepository');
+        let mrepo = container.get<MessagesRepository>('MessagesRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
 
         let mid1 = (await mrepo.createMessage(ctx, 5, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 6 }] })).message;
@@ -195,7 +195,7 @@ describe('CountersRepository', () => {
     it('should clear mention flag on read', async () => {
         let ctx = createNamedContext('test');
         let urepo = container.get<UserStateRepository>('UserStateRepository');
-        let mrepo = container.get<MessagingRepository>('MessagingRepository');
+        let mrepo = container.get<MessagesRepository>('MessagesRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
         const CID = 7;
         const S_UID = 8;

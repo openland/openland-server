@@ -1,4 +1,4 @@
-import { MessageUpdatedEvent, MessageDeletedEvent } from './../../openland-module-db/store';
+import { MessageUpdatedEvent, MessageDeletedEvent } from '../../openland-module-db/store';
 import { Message, MessageReceivedEvent } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import {
@@ -20,7 +20,7 @@ import { Sanitizer } from '../../openland-utils/Sanitizer';
 import uuid from 'uuid';
 
 @injectable()
-export class MessagingRepository {
+export class MessagesRepository {
     @lazyInject('ChatMetricsRepository')
     private readonly chatMetrics!: ChatMetricsRepository;
 

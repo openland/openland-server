@@ -1,7 +1,7 @@
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { LinkSpan, MessageInput, MessageSpan } from 'openland-module-messaging/MessageInput';
-import { MessagingRepository } from 'openland-module-messaging/repositories/MessagingRepository';
+import { MessagesRepository } from 'openland-module-messaging/repositories/MessagesRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { DeliveryMediator } from './DeliveryMediator';
 import { Modules } from 'openland-modules/Modules';
@@ -99,8 +99,8 @@ function spamCheck(text: string) {
 @injectable()
 export class MessagingMediator {
 
-    @lazyInject('MessagingRepository')
-    private readonly repo!: MessagingRepository;
+    @lazyInject('MessagesRepository')
+    private readonly repo!: MessagesRepository;
     @lazyInject('DeliveryMediator')
     private readonly delivery!: DeliveryMediator;
     @lazyInject('AugmentationMediator')

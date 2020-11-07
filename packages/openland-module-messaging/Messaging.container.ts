@@ -3,7 +3,7 @@ import { MessagingModule } from './MessagingModule';
 import { UserStateRepository } from './repositories/UserStateRepository';
 import { DeliveryRepository } from './repositories/DeliveryRepository';
 import { CountersRepository } from './repositories/CountersRepository';
-import { MessagingRepository } from './repositories/MessagingRepository';
+import { MessagesRepository } from './repositories/MessagesRepository';
 import { RoomRepository } from './repositories/RoomRepository';
 import { MessagingMediator } from './mediators/MessagingMediator';
 import { AugmentationMediator } from './mediators/AugmentationMediator';
@@ -35,7 +35,7 @@ export function loadMessagingModule() {
     container.bind('UserStateRepository').to(UserStateRepository).inSingletonScope();
     container.bind('DeliveryRepository').to(DeliveryRepository).inSingletonScope();
     container.bind('CountersRepository').to(CountersRepository).inSingletonScope();
-    container.bind('MessagingRepository').to(MessagingRepository).inSingletonScope();
+    container.bind('MessagesRepository').to(MessagesRepository).inSingletonScope();
     container.bind('RoomRepository').to(RoomRepository).inSingletonScope();
     container.bind('MessagingMediator').to(MessagingMediator).inSingletonScope();
     container.bind('PremiumChatRepository').to(PremiumChatRepository).inSingletonScope();
