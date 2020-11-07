@@ -1,4 +1,4 @@
-import { Message, MessageUpdatedEvent } from 'openland-module-db/store';
+import { Message } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import {
     MessageAttachment,
@@ -122,16 +122,6 @@ export class MessagesRepository {
             if (newMessage.serviceMetadata) {
                 message.serviceMetadata = newMessage.serviceMetadata;
             }
-
-            //
-            // Write Event
-            //
-
-            Store.ConversationEventStore.post(ctx, message!.cid, MessageUpdatedEvent.create({
-                cid: message!.cid,
-                mid,
-                hiddenForUids: message.hiddenForUids || []
-            }));
         });
     }
 

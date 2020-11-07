@@ -369,6 +369,9 @@ export class MessagingMediator {
             let res = await this.repo.editMessage(ctx, mid, { ...newMessage, ... (spans ? { spans } : {}) }, markAsEdited);
             message = (await Store.Message.findById(ctx, mid!))!;
 
+            // Classic event
+            this.messagingEvents.postMessageUpdated(ctx, message.cid, mid!, message.hiddenForUids || []);
+
             // Delivery
             await this.delivery.onUpdateMessage(ctx, message);
 
