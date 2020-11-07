@@ -358,7 +358,7 @@ export class MessagingMediator {
     }
 
     markMessageUpdated = async (parent: Context, mid: number) => {
-        return await this.repo.markMessageUpdated(parent, mid);
+        await this.messagingEvents.postMessageUpdatedByMid(parent, mid);
     }
 
     setReaction = async (parent: Context, mid: number, uid: number, reaction: string, reset: boolean = false) => {
@@ -369,6 +369,9 @@ export class MessagingMediator {
             if (!res) {
                 return false;
             }
+
+            // Post classic update
+            this.messagingEvents.postMessageUpdated(ctx, res.cid, mid, res.hiddenForUids || []);
 
             // Delivery
             // let message = (await Store.Message.findById(ctx, mid))!;
@@ -390,6 +393,9 @@ export class MessagingMediator {
 
             // Delete
             await this.repo.deleteMessage(ctx, mid);
+
+            // Classic event
+            this.messagingEvents.postMessageDeleted(ctx, message.cid, mid, message.hiddenForUids || []);
 
             // Delivery
             message = (await Store.Message.findById(ctx, mid))!;

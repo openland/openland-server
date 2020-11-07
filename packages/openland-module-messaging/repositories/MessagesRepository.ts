@@ -1,4 +1,4 @@
-import { Message, MessageUpdatedEvent, MessageDeletedEvent } from 'openland-module-db/store';
+import { Message, MessageUpdatedEvent } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import {
     MessageAttachment,
@@ -164,26 +164,10 @@ export class MessagesRepository {
     async deleteMessage(parent: Context, mid: number): Promise<void> {
         await inTx(parent, async (ctx) => {
             let message = (await Store.Message.findById(ctx, mid));
-
             if (!message || message.deleted) {
                 throw new Error('Message not found');
             }
-
-            //
-            // Delete message
-            //
-
             message.deleted = true;
-
-            //
-            // Write Event
-            //
-
-            Store.ConversationEventStore.post(ctx, message!.cid, MessageDeletedEvent.create({
-                cid: message!.cid,
-                mid,
-                hiddenForUids: message.hiddenForUids || []
-            }));
         });
     }
 
@@ -218,30 +202,7 @@ export class MessagesRepository {
                 await Modules.Stats.onReactionSet(ctx, message, uid);
             }
 
-            //
-            // Write Event
-            //
-
-            Store.ConversationEventStore.post(ctx, message!.cid, MessageUpdatedEvent.create({
-                cid: message!.cid,
-                mid
-            }));
-            return true;
-        });
-    }
-
-    async markMessageUpdated(parent: Context, mid: number) {
-        await inTx(parent, async (ctx) => {
-            let message = await Store.Message.findById(ctx, mid);
-
-            if (!message) {
-                throw new Error('Message not found');
-            }
-
-            Store.ConversationEventStore.post(ctx, message!.cid, MessageUpdatedEvent.create({
-                cid: message!.cid,
-                mid
-            }));
+            return { cid: message.cid, hiddenForUids: message.hiddenForUids };
         });
     }
 

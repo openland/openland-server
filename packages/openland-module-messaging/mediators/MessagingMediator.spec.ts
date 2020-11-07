@@ -136,7 +136,7 @@ describe('MessagingMediator', () => {
 
         if (message.attachmentsModern) {
             newAttachments = message.attachmentsModern.filter(a => a.type !== 'rich_attachment').map(a => {
-                delete a.id;
+                delete (a as any).id;
                 return a;
             });
         }
