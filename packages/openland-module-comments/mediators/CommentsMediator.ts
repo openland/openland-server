@@ -54,9 +54,8 @@ export class CommentsMediator {
             await Modules.Messaging.markMessageUpdated(ctx, message.id);
 
             //
-            //  Track event
+            //  Augmentation
             //
-            await Modules.Metrics.onCommentCreated(ctx, message, res);
 
             if (!commentInput.ignoreAugmentation) {
                 await this.augmentation.onNewComment(ctx, res);

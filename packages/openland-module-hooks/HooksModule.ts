@@ -176,7 +176,6 @@ export class HooksModule {
     }
 
     onUserActivated = async (ctx: Context, uid: number) => {
-        await Modules.Metrics.onUserActivated(ctx, uid);
         await Modules.Phonebook.onNewUser(ctx, uid);
 
         const user = await Store.User.findById(ctx, uid);
@@ -233,15 +232,9 @@ export class HooksModule {
 
     onRoomLeave = async (ctx: Context, cid: number, uid: number, wasKicked: boolean) => {
         await Modules.Matchmaking.clearProfile(ctx, cid, 'room', uid);
-
-        Modules.Metrics.onChatLeave(ctx, uid, wasKicked);
     }
 
     onRoomJoin = async (ctx: Context, cid: number, uid: number, by: number) => {
-        let addedByUser = uid !== by;
-
-        Modules.Metrics.onChatJoined(ctx, uid, addedByUser);
-
         await Modules.Feed.onAutoSubscriptionPeerNewMember(ctx, uid, 'room', cid);
 
         // TODO: make feature

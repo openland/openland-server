@@ -326,6 +326,5 @@ export class PremiumChatMediator {
         let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, billyId, ownerId);
         let message = buildMessage(userMention(name, uid), ` just paid ${formatMoney(parts.amount)} (income: ${formatMoney(parts.rest)}, commission: ${formatMoney(parts.commission)}) for `, roomMention(chat.title, gid), ` access (${type})`);
         await Modules.Messaging.sendMessage(ctx, privateChat.id, billyId, message);
-        Modules.Metrics.onBillyBotMessageRecieved(ctx, uid, `premium_chat_${type}_notification`);
     }
 }

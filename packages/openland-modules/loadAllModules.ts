@@ -50,7 +50,6 @@ import { Context } from '@openland/context';
 import { NotificationCenterModule } from '../openland-module-notification-center/NotificationCenterModule';
 import { loadNotificationCenterModule } from '../openland-module-notification-center/NotificationCenterModule.container';
 import { openDatabase } from 'openland-server/foundationdb';
-import { MetricsModule } from '../openland-module-metrics/MetricsModule';
 import { backoff, currentTime } from 'openland-utils/timer';
 import { createLogger } from '@openland/log';
 import { EntityStorage } from '@openland/foundationdb-entity';
@@ -163,7 +162,6 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind(DraftsModule).toSelf().inSingletonScope();
     container.bind(TypingsModule).toSelf().inSingletonScope();
     container.bind(AppsModule).toSelf().inSingletonScope();
-    container.bind(MetricsModule).toSelf().inSingletonScope();
 
     container.bind(OrganizationModule).toSelf().inSingletonScope();
     container.bind(OrganizationRepository).toSelf();
@@ -247,8 +245,6 @@ export async function startAllModules(ctx: Context) {
     await container.get(DiscoverModule).start();
     logger.log(ctx, 'Starting module: Notification Center');
     await container.get(NotificationCenterModule).start();
-    logger.log(ctx, 'Starting module: Metrics');
-    await container.get(MetricsModule).start();
     logger.log(ctx, 'Starting module: OnBoarding');
     await container.get(UserOnboardingModule).start();
     logger.log(ctx, 'Starting module: Stats');

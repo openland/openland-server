@@ -1,4 +1,3 @@
-import { InternalTrackEvent } from './Log.resolver';
 import { createHyperlogger, createModernHyperlogger } from './createHyperlogEvent';
 import { integer, nullable, string, union } from '../openland-module-clickhouse/schema';
 
@@ -115,8 +114,6 @@ export const Events = {
     OrganizationProfileUpdated: createHyperlogger<{ oid: number }>('organization-profile-updated'),
     OrganizationCreated: createHyperlogger<{ oid: number, uid: number }>('organization-created'),
     SuccessfulInvite: createHyperlogger<{ uid: number, invitedBy: number }>('successful-invite'),
-
-    TrackEvent: createHyperlogger<InternalTrackEvent>('track'),
 
     MembersLog: createHyperlogger<{ rid: number, delta: number }>('room-members-change'),
 

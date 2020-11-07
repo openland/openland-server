@@ -5,7 +5,6 @@ import { TypingsModuleMock } from 'openland-module-typings/TypingsModule.mock';
 import { DraftsModule } from 'openland-module-drafts/DraftsModule';
 import { loadCommentsModule } from 'openland-module-comments/CommentsModule.container';
 import { loadNotificationCenterModule } from '../openland-module-notification-center/NotificationCenterModule.container';
-import { MetricsModule } from '../openland-module-metrics/MetricsModule';
 import { PushModule } from '../openland-module-push/PushModule';
 import { PushModuleMock } from '../openland-module-push/PushModule.mock';
 import { PresenceModule } from '../openland-module-presences/PresenceModule';
@@ -23,7 +22,6 @@ export function loadMessagingTestModule() {
     container.bind(PushModule).to(PushModuleMock as any).inSingletonScope();
     container.bind(PresenceModule).toSelf().inSingletonScope();
     container.bind(DraftsModule).toSelf().inSingletonScope();
-    container.bind(MetricsModule).toSelf().inSingletonScope();
     container.bind(FastCountersRepository).toSelf().inSingletonScope();
     container.bind(FastCountersMediator).toSelf().inSingletonScope();
     loadSocialImageModule();

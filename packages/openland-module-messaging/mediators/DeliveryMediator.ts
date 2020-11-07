@@ -296,9 +296,6 @@ export class DeliveryMediator {
 
         // Mark user as needed notification delivery
         this.needNotification.setNeedNotificationDelivery(ctx, uid);
-
-        // Track message received
-        Modules.Metrics.onMessageReceived(ctx, message, uid);
     }
 
     private deliverMessageUpdateToUser = async (ctx: Context, uid: number, message: Message) => {
