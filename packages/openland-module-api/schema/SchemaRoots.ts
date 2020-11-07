@@ -52,10 +52,7 @@ import {
     OauthApplication,
     OauthContext,
     UserLocation,
-    ChatPowerup,
-    Powerup,
     UserStripeCard,
-    PermissionRequest,
     Payment,
     Wallet,
     WalletTransaction,
@@ -122,9 +119,7 @@ import { UserFullRoot } from '../../openland-module-users/User.resolver';
 import { LiveStreamItem, BaseEvent } from '@openland/foundationdb-entity';
 import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfoService';
 import { RichMessageReaction, Slide } from '../../openland-module-rich-message/repositories/RichMessageRepository';
-import { PowerupChatUserSettings } from 'openland-module-powerups/PowerupsRepository';
 import Stripe from 'stripe';
-import { PermissionGroup } from 'openland-module-permissions/PermissionsRepository';
 import {
     PostContent, H1Paragraph, H2Paragraph,
     ImageParagraph,
@@ -688,13 +683,6 @@ export namespace GQLRoots {
     export type IpLocationRoot = GeoIPResponse;
 
     //
-    // Powerups
-    //
-    export type RoomPowerupRoot = ChatPowerup;
-    export type PowerupRoot = Powerup;
-    export type PowerupUserSettingsRoot = PowerupChatUserSettings;
-
-    //
     // Billing
     //
     export type CreditCardRoot = UserStripeCard;
@@ -741,13 +729,6 @@ export namespace GQLRoots {
     export type WalletSubscriptionIntervalRoot = WalletSubscriptionIntervalValues;
     export type PurchaseRoot = WalletPurchase;
     export type PurchaseStateRoot = PurchaseStateValues;
-    //
-    // Permissions
-    //
-    export type PermissionRequestRoot = PermissionRequest;
-    export type PermissionGroupRoot = PermissionGroup;
-    export type PermissionScopeRoot = 'group' | 'chat';
-    export type PermissionAppTypeRoot = 'powerup';
 
     //
     // Log

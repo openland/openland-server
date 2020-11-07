@@ -41,8 +41,6 @@ import { MatchmakingModule } from '../openland-module-matchmaking/MatchmakingMod
 import { ZapierModule } from '../openland-module-zapier/ZapierModule';
 import { OauthModule } from '../openland-module-oauth/OauthModule';
 import { GeoModule } from '../openland-module-geo/GeoModule';
-import { PowerupsModule } from '../openland-module-powerups/PowerupsModule';
-import { PermissionsModule } from '../openland-module-permissions/PermissionsModule';
 import { PhonebookModule } from '../openland-module-phonebook/PhonebookModule';
 import { ClickHouseModule } from '../openland-module-clickhouse/ClickHouseModule';
 import { ContactsModule } from '../openland-module-contacts/ContactsModule';
@@ -164,14 +162,8 @@ class ModulesImpl {
     get Geo() {
         return container.get(GeoModule);
     }
-    get Powerups() {
-        return container.get(PowerupsModule);
-    }
     get Wallet() {
         return container.get(WalletModule);
-    }
-    get Permissions() {
-        return container.get(PermissionsModule);
     }
     get Phonebook() {
         return container.get(PhonebookModule);

@@ -66,11 +66,7 @@ import { FeedMentionNotificationsMediator } from '../openland-module-feed/reposi
 import { ZapierModule } from '../openland-module-zapier/ZapierModule';
 import { OauthModule } from '../openland-module-oauth/OauthModule';
 import { loadGeoModule } from '../openland-module-geo/GeoModule.container';
-import { loadPowerupsModule } from '../openland-module-powerups/PowerupsModule.container';
 import { GeoModule } from '../openland-module-geo/GeoModule';
-import { PowerupsModule } from '../openland-module-powerups/PowerupsModule';
-import { loadPermissionsModule } from '../openland-module-permissions/PermissionsModule.container';
-import { PermissionsModule } from '../openland-module-permissions/PermissionsModule';
 import { loadDiscoverModule } from '../openland-module-discover/DiscoverModule.container';
 import { PhonebookModule } from '../openland-module-phonebook/PhonebookModule';
 import { loadPhonebookModule } from '../openland-module-phonebook/PhonebookModule.container';
@@ -183,8 +179,6 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadStickersModule();
     loadMatchmakingModule();
     loadGeoModule();
-    loadPowerupsModule();
-    loadPermissionsModule();
     loadDiscoverModule();
     loadPhonebookModule();
     loadDiscussionsModule();
@@ -272,12 +266,8 @@ export async function startAllModules(ctx: Context) {
     await container.get(OauthModule).start();
     logger.log(ctx, 'Starting module: Geo');
     await container.get(GeoModule).start();
-    logger.log(ctx, 'Starting module: Powerups');
-    await container.get(PowerupsModule).start();
     logger.log(ctx, 'Starting module: Wallet');
     await container.get(WalletModule).start();
-    logger.log(ctx, 'Starting module: Permissions');
-    await container.get(PermissionsModule).start();
     logger.log(ctx, 'Starting module: Phonebook');
     await container.get(PhonebookModule).start();
     logger.log(ctx, 'Starting module: Discussions');

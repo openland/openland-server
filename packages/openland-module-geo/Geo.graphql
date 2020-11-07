@@ -3,13 +3,6 @@ type GeoLocation {
     lat: Float!
 }
 
-type UserLocation {
-    id: ID!
-    isSharing: Boolean!
-    user: User!
-    lastLocations: [GeoLocation!]!
-}
-
 type IpLocation {
     ip: String!
     countryCode: String
@@ -17,21 +10,6 @@ type IpLocation {
     location: GeoLocation
 }
 
-input GeoLocationInput {
-    long: Float!
-    lat: Float!
-}
-
 extend type Query {
-    myLocation: UserLocation!
     ipLocation: IpLocation
-    shouldShareLocation: Boolean!
-}
-
-extend type Mutation {
-    shareLocation(location: GeoLocationInput!): Boolean!
-}
-
-extend type Subscription {
-    shouldShareLocationUpdates: Boolean!
 }
