@@ -1,5 +1,5 @@
+import { EventsMediator } from './EventsMediator';
 import { ChatMetricsRepository } from './../repositories/ChatMetricsRepository';
-import { MessagesEventsRepository } from './../repositories/MessagesEventsRepository';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { LinkSpan, MessageInput, MessageSpan } from 'openland-module-messaging/MessageInput';
@@ -103,8 +103,8 @@ export class MessagingMediator {
 
     @lazyInject('MessagesRepository')
     private readonly repo!: MessagesRepository;
-    @lazyInject('MessagesEventsRepository')
-    readonly messagingEvents!: MessagesEventsRepository;
+    @lazyInject('MessagingEventsMediator')
+    readonly events!: EventsMediator;
 
     @lazyInject('DeliveryMediator')
     private readonly delivery!: DeliveryMediator;
@@ -243,7 +243,7 @@ export class MessagingMediator {
             let res = await this.repo.createMessage(ctx, cid, uid, { ...msg, spans });
 
             // Post classic event
-            this.messagingEvents.postMessageReceived(ctx, cid, res.message.id, res.message.hiddenForUids || []);
+            await this.events.onMessageSent(ctx, cid, res.message.id, res.message.hiddenForUids || []);
 
             //
             // Update user counter
@@ -370,7 +370,7 @@ export class MessagingMediator {
             message = (await Store.Message.findById(ctx, mid!))!;
 
             // Classic event
-            this.messagingEvents.postMessageUpdated(ctx, message.cid, mid!, message.hiddenForUids || []);
+            await this.events.onMessageUpdated(ctx, message.cid, mid!, message.hiddenForUids || []);
 
             // Delivery
             await this.delivery.onUpdateMessage(ctx, message);
@@ -399,7 +399,13 @@ export class MessagingMediator {
     }
 
     markMessageUpdated = async (parent: Context, mid: number) => {
-        await this.messagingEvents.postMessageUpdatedByMid(parent, mid);
+        await inTx(parent, async (ctx) => {
+            let message = await Store.Message.findById(ctx, mid);
+            if (!message) {
+                throw new Error('Message not found');
+            }
+            await this.events.onMessageUpdated(parent, message!.cid, mid, message.hiddenForUids || []);
+        });
     }
 
     setReaction = async (parent: Context, mid: number, uid: number, reaction: string, reset: boolean = false) => {
@@ -412,7 +418,7 @@ export class MessagingMediator {
             }
 
             // Post classic update
-            this.messagingEvents.postMessageUpdated(ctx, res.cid, mid, res.hiddenForUids || []);
+            await this.events.onMessageUpdated(ctx, res.cid, mid, res.hiddenForUids || []);
 
             // Stats
             if (!reset) {
@@ -441,7 +447,7 @@ export class MessagingMediator {
             await this.repo.deleteMessage(ctx, mid);
 
             // Classic event
-            this.messagingEvents.postMessageDeleted(ctx, message.cid, mid, message.hiddenForUids || []);
+            await this.events.onMessageDeleted(ctx, message.cid, mid, message.hiddenForUids || []);
 
             // Delivery
             message = (await Store.Message.findById(ctx, mid))!;

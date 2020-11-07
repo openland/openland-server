@@ -717,6 +717,7 @@ export class RoomRepository {
     async resolvePrivateChat(parent: Context, uid1: number, uid2: number) {
         return await inTx(parent, async (ctx) => {
             let conv = await Store.ConversationPrivate.users.find(ctx, Math.min(uid1, uid2), Math.max(uid1, uid2));
+            let created = false;
             if (!conv) {
                 let id = await this.fetchNextConversationId(ctx);
                 await (await Store.Conversation.create(ctx, id, { kind: 'private' })).flush(ctx);
@@ -733,9 +734,9 @@ export class RoomRepository {
                 await this.userReadSeqs.onAddDialog(ctx, uid1, conv.id);
                 await this.userReadSeqs.onAddDialog(ctx, uid2, conv.id);
                 await conv.flush(ctx);
-                await Modules.Events.mediator.prepareChat(ctx, conv.id);
+                created = true;
             }
-            return (await Store.Conversation.findById(ctx, conv.id))!;
+            return { conv: (await Store.Conversation.findById(ctx, conv.id))!, created };
         });
     }
 

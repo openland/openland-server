@@ -1,3 +1,4 @@
+import { EventsMediator } from './mediators/EventsMediator';
 import { MessagesEventsRepository } from './repositories/MessagesEventsRepository';
 import { container } from 'openland-modules/Modules.container';
 import { MessagingModule } from './MessagingModule';
@@ -63,4 +64,5 @@ export function loadMessagingModule() {
     container.bind('HybridCountersRepository').to(HybridCountersRepository).inSingletonScope();
     container.bind('ChatsMembersListDirectory').to(ChatsMembersListDirectory).inSingletonScope();
     container.bind('MessagesEventsRepository').to(MessagesEventsRepository).inSingletonScope();
+    container.bind('MessagingEventsMediator').to(EventsMediator).inSingletonScope();
 }

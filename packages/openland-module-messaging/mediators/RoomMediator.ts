@@ -1,3 +1,4 @@
+import { EventsMediator } from './../mediators/EventsMediator';
 import { ChatUpdatedEvent, ConversationRoom } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
@@ -24,6 +25,8 @@ export class RoomMediator {
     private readonly messaging!: MessagingMediator;
     @lazyInject('DeliveryMediator')
     private readonly delivery!: DeliveryMediator;
+    @lazyInject('MessagingEventsMediator')
+    readonly events!: EventsMediator;
 
     async isRoomMember(ctx: Context, uid: number, cid: number) {
         return await this.repo.isActiveMember(ctx, uid, cid);
@@ -64,7 +67,7 @@ export class RoomMediator {
             let res = await this.repo.createRoom(ctx, kind, oid, uid, members, profile, listed, channel, price, interval);
 
             // Create feed
-            await Modules.Events.mediator.prepareChat(ctx, res.id);
+            await this.events.onChatCreated(ctx, res.id);
 
             // Send initial messages
             let userName = await Modules.Users.getUserFullName(parent, uid);
@@ -605,8 +608,14 @@ export class RoomMediator {
     // Queries
     //
 
-    async resolvePrivateChat(ctx: Context, uid1: number, uid2: number) {
-        return await this.repo.resolvePrivateChat(ctx, uid1, uid2);
+    async resolvePrivateChat(parent: Context, uid1: number, uid2: number) {
+        return await inTx(parent, async (ctx) => {
+            let res = await this.repo.resolvePrivateChat(ctx, uid1, uid2);
+            if (res.created) {
+                await this.events.onChatCreated(ctx, res.conv.id);
+            }
+            return res.conv;
+        });
     }
 
     async hasPrivateChat(ctx: Context, uid1: number, uid2: number) {
