@@ -8,10 +8,7 @@ import {
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { DoubleInvokeError } from '../../openland-errors/DoubleInvokeError';
-import { lazyInject } from '../../openland-modules/Modules.container';
-import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { RandomLayer } from '@openland/foundationdb-random';
-import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 import { REACTIONS, REACTIONS_LEGACY } from '../resolvers/ModernMessage.resolver';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
@@ -20,8 +17,6 @@ import uuid from 'uuid';
 
 @injectable()
 export class MessagesRepository {
-    @lazyInject('ChatMetricsRepository')
-    private readonly chatMetrics!: ChatMetricsRepository;
 
     async createMessage(parent: Context, cid: number, uid: number, message: MessageInput): Promise<{ message: Message }> {
         return await inTx(parent, async (ctx) => {
@@ -55,7 +50,6 @@ export class MessagesRepository {
             }
 
             if (message.overrideAvatar) {
-                await Modules.Media.saveFile(ctx, message.overrideAvatar.uuid);
                 message.overrideAvatar = Sanitizer.sanitizeImageRef(message.overrideAvatar);
             }
 
@@ -88,26 +82,6 @@ export class MessagesRepository {
                 overrideAvatar: message.overrideAvatar,
                 overrideName: message.overrideName,
             });
-
-            //
-            // Update user counter
-            //
-            if (!message.isService) {
-                this.chatMetrics.onMessageSent(ctx, uid);
-                await Modules.Stats.onMessageSent(ctx, uid);
-            }
-            let conv = await Store.Conversation.findById(ctx, cid);
-            let direct = conv && conv.kind === 'private';
-            if (direct) {
-                await this.chatMetrics.onMessageSentDirect(ctx, uid, cid);
-            } else {
-                await Modules.Stats.onRoomMessageSent(ctx, cid);
-            }
-
-            //
-            // Notify hooks
-            //
-            await Modules.Hooks.onMessageSent(ctx, uid);
 
             return {
                 message: msg
@@ -198,11 +172,7 @@ export class MessagesRepository {
             }
             message.reactions = reactions;
 
-            if (!reset) {
-                await Modules.Stats.onReactionSet(ctx, message, uid);
-            }
-
-            return { cid: message.cid, hiddenForUids: message.hiddenForUids };
+            return message;
         });
     }
 

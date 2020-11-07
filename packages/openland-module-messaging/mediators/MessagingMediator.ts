@@ -1,3 +1,4 @@
+import { ChatMetricsRepository } from './../repositories/ChatMetricsRepository';
 import { MessagesEventsRepository } from './../repositories/MessagesEventsRepository';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
@@ -123,6 +124,8 @@ export class MessagingMediator {
     readonly newCounters!: AsyncCountersRepository;
     @lazyInject('UserReadSeqsDirectory')
     readonly userReadSeqs!: UserReadSeqsDirectory;
+    @lazyInject('ChatMetricsRepository')
+    private readonly chatMetrics!: ChatMetricsRepository;
 
     sendMessage = async (parent: Context, uid: number, cid: number, message: MessageInput, skipAccessCheck?: boolean) => {
         return trace.trace(parent, 'sendMessage', async (ctx2) => await inTx(ctx2, async (ctx) => {
@@ -145,10 +148,12 @@ export class MessagingMediator {
                 message.message = censor(message.message);
             }
 
+            // Read conversation
+            let conv = await Store.Conversation.findById(ctx, cid);
+
             // Permissions
             if (!skipAccessCheck) {
                 await this.room.checkAccess(ctx, uid, cid);
-                let conv = await Store.Conversation.findById(ctx, cid);
                 if (!conv || conv.deleted) {
                     throw new AccessDeniedError();
                 }
@@ -227,16 +232,49 @@ export class MessagingMediator {
                 spans.push(...dates);
             }
 
+            //
+            // Persist custom avatar
+            //
+            if (msg.overrideAvatar) {
+                await Modules.Media.saveFile(ctx, msg.overrideAvatar.uuid);
+            }
+
             // Create
             let res = await this.repo.createMessage(ctx, cid, uid, { ...msg, spans });
 
             // Post classic event
             this.messagingEvents.postMessageReceived(ctx, cid, res.message.id, res.message.hiddenForUids || []);
 
+            //
+            // Update user counter
+            //
+            if (!message.isService) {
+                this.chatMetrics.onMessageSent(ctx, uid);
+                await Modules.Stats.onMessageSent(ctx, uid);
+            }
+            let direct = conv && conv.kind === 'private';
+            if (direct) {
+                await this.chatMetrics.onMessageSentDirect(ctx, uid, cid);
+            } else {
+                await Modules.Stats.onRoomMessageSent(ctx, cid);
+            }
+
+            //
+            // Notify hooks
+            //
+
+            await Modules.Hooks.onMessageSent(ctx, uid);
+
+            //
             // Delivery
+            //
+
             await this.delivery.onNewMessage(ctx, res.message);
 
+            //
             // Fast counters
+            //
+
             if (res.message.seq) {
                 await this.userReadSeqs.updateReadSeq(ctx, uid, cid, res.message.seq);
                 await this.fastCounters.onMessageCreated(ctx, uid, cid, res.message.seq, fetchMessageMentions(res.message), res.message.hiddenForUids || []);
@@ -372,6 +410,11 @@ export class MessagingMediator {
 
             // Post classic update
             this.messagingEvents.postMessageUpdated(ctx, res.cid, mid, res.hiddenForUids || []);
+
+            // Stats
+            if (!reset) {
+                await Modules.Stats.onReactionSet(ctx, res, uid);
+            }
 
             // Delivery
             // let message = (await Store.Message.findById(ctx, mid))!;
