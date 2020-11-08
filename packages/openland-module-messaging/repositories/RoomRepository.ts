@@ -233,7 +233,7 @@ export class RoomRepository {
         });
     }
 
-    async joinRoom(parent: Context, cid: number, uid: number, request?: boolean) {
+    async joinRoom(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
             // Check if room exists
             await this.checkRoomExists(ctx, cid);
@@ -241,25 +241,23 @@ export class RoomRepository {
             let activeMembersCount = await this.roomMembersCount(ctx, cid, 'joined');
             let isAsyncMember = activeMembersCount >= 50;
 
-            let targetStatus: 'requested' | 'joined' = request ? 'requested' : 'joined';
+            // let targetStatus: 'requested' | 'joined' = request ? 'requested' : 'joined';
             let p = await Store.RoomParticipant.findById(ctx, cid, uid);
             if (p) {
-                if ((p.status === targetStatus) || (p.status === 'joined')) {
+                if (p.status === 'joined') {
                     return false;
                 } else {
                     p.invitedBy = uid;
-                    p.status = targetStatus;
+                    p.status = 'joined';
                     Store.RoomParticipantsVersion.increment(ctx, cid);
                     await this.setParticipant(ctx, cid, uid, true, isAsyncMember);
-                    if (targetStatus === 'joined') {
-                        await this.incrementRoomActiveMembers(ctx, cid);
-                        await this.onRoomJoin(ctx, cid, uid, uid);
-                    }
+                    await this.incrementRoomActiveMembers(ctx, cid);
+                    await this.onRoomJoin(ctx, cid, uid, uid);
                     return true;
                 }
             } else {
                 await this.createRoomParticipant(ctx, cid, uid, {
-                    status: targetStatus,
+                    status: 'joined',
                     role: 'member',
                     invitedBy: uid
                 });
@@ -1412,7 +1410,7 @@ export class RoomRepository {
                         if (!conv || conv.isDeleted) {
                             continue;
                         }
-                        await Modules.Messaging.room.joinRoom(ctx, c, uid);
+                        await Modules.Messaging.room.joinRoom(ctx, c, uid, false);
                     }
                     await Store.AutoSubscribeWasExecutedForUser.set(ctx, uid, 'org', org.id, true);
                 }
@@ -1429,7 +1427,7 @@ export class RoomRepository {
                     if (!conv || conv.isDeleted) {
                         continue;
                     }
-                    await Modules.Messaging.room.joinRoom(ctx, c, uid);
+                    await Modules.Messaging.room.joinRoom(ctx, c, uid, false);
                 }
                 await Store.AutoSubscribeWasExecutedForUser.set(ctx, uid, 'room', room.id, true);
             }

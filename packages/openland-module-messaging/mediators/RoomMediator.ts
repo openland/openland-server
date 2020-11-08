@@ -85,7 +85,7 @@ export class RoomMediator {
         });
     }
 
-    async joinRoom(parent: Context, cid: number, uid: number, request?: boolean, invited?: boolean) {
+    async joinRoom(parent: Context, cid: number, uid: number, invited: boolean) {
         return await inTx(parent, async (ctx) => {
 
             // Check Room
@@ -113,20 +113,14 @@ export class RoomMediator {
                 }
             }
 
-            // Any one can join public rooms from community
-            // Member of org can join any rooms
-            if (isPublic || isMemberOfOrg) {
-                request = false;
-            }
-
             // Check if was kicked
             let participant = await Store.RoomParticipant.findById(ctx, cid, uid);
-            if (participant && participant.status === 'kicked' && !request && !isMemberOfOrg) {
+            if (participant && participant.status === 'kicked' && !isMemberOfOrg) {
                 throw new UserError(`Unfortunately, you cannot join ${await this.resolveConversationTitle(ctx, cid, uid)}. Someone kicked you from this group, and now you can only join it if a group member adds you.`, 'CANT_JOIN_GROUP');
             }
 
             // Join room
-            if (await this.repo.joinRoom(ctx, cid, uid, request) && !request) {
+            if (await this.repo.joinRoom(ctx, cid, uid)) {
                 let shouldSendJoinMessage = await this.shouldSendJoinMessage(ctx, cid);
                 if (shouldSendJoinMessage) {
                     let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid, uid);

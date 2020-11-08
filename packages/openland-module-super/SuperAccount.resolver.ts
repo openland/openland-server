@@ -62,7 +62,7 @@ export const Resolver: GQLResolver = {
             return (await Store.Organization.findById(ctx, IDs.SuperAccount.parse(args.id)))!;
         }),
         superAccountChannelMemberAdd: withPermission('super-admin', async (ctx, args) => {
-            await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
+            await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(args.id), IDs.User.parse(args.userId), true);
             return 'ok';
         }),
         superDeleteUser: withPermission('super-admin', async (ctx, args) => {

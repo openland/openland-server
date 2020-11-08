@@ -244,7 +244,7 @@ export class HooksModule {
                 if (!conv || conv.isDeleted) {
                     continue;
                 }
-                await Modules.Messaging.room.joinRoom(ctx, c, uid);
+                await Modules.Messaging.room.joinRoom(ctx, c, uid, true /* Just like it was invited */);
             }
         };
         /*

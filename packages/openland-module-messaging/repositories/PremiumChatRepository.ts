@@ -22,7 +22,7 @@ export class PremiumChatRepository {
             await pass.flush(ctx);
 
             if (isActive) {
-                return await this.room.joinRoom(ctx, cid, uid, false);
+                return await this.room.joinRoom(ctx, cid, uid);
             } else {
                 return await this.room.kickFromRoom(ctx, cid, uid);
             }

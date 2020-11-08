@@ -45,7 +45,7 @@ export class InvitesMediator {
             await this.activateUserOrgs(ctx, uid, !isNewUser, 'ROOM', invite.creatorId);
 
             // let chat = await Store.ConversationRoom.findById(ctx, invite.channelId);
-            await this.rooms.joinRoom(ctx, invite.channelId, uid, false, true);
+            await this.rooms.joinRoom(ctx, invite.channelId, uid, true);
             if (invite instanceof ChannelInvitation) {
                 await Emails.sendRoomInviteAcceptedEmail(ctx, uid, invite);
             }
