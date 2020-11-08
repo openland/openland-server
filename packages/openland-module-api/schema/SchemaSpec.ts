@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '18d50ff96768e9636b247bd479ed8064';
+export const GQL_SPEC_VERSION = '301b349d6510eb9036b7a314399cda20';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2343,7 +2343,6 @@ export namespace GQL {
         superAdminAdd: string;
         superAdminRemove: string;
         alphaAlterPublished: Organization;
-        alphaRenderVideo: string;
         betaFixCounter: boolean;
         betaFixCountersForAll: boolean;
         deliverCountersForAll: boolean;
@@ -3002,9 +3001,6 @@ export namespace GQL {
     export interface MutationAlphaAlterPublishedArgs {
         id: string;
         published: boolean;
-    }
-    export interface MutationAlphaRenderVideoArgs {
-        name: string;
     }
     export interface MutationBetaFixCounterArgs {
         uid: string;
@@ -9111,7 +9107,6 @@ export interface GQLResolver {
             superAdminAdd: GQL.MutationSuperAdminAddArgs,
             superAdminRemove: GQL.MutationSuperAdminRemoveArgs,
             alphaAlterPublished: GQL.MutationAlphaAlterPublishedArgs,
-            alphaRenderVideo: GQL.MutationAlphaRenderVideoArgs,
             betaFixCounter: GQL.MutationBetaFixCounterArgs,
             betaFixCountersForAll: GQL.MutationBetaFixCountersForAllArgs,
             deliverCountersForAll: GQL.MutationDeliverCountersForAllArgs,
