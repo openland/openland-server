@@ -703,22 +703,6 @@ export class RoomMediator {
         return null;
     }
 
-    async findAvailableRooms(ctx: Context, uid: number) {
-        return await this.repo.findAvailableRooms(ctx, uid);
-    }
-
-    async userRooms(parent: Context, uid: number, limit?: number, after?: number) {
-        if (after !== undefined) {
-            return (await Store.RoomParticipant.active.query(parent, uid, { after, limit: limit || 10000 })).items.map(p => p.cid);
-        } else {
-            return (await Store.RoomParticipant.active.query(parent, uid, { limit: limit || 10000 })).items.map(p => p.cid);
-        }
-    }
-
-    async userAvailableRooms(ctx: Context, uid: number, isChannel: boolean | undefined, limit?: number, after?: number) {
-        return await this.repo.userAvailableRooms(ctx, uid, limit || 1000, isChannel, after);
-    }
-
     async getUserGroups(ctx: Context, uid: number) {
         return this.repo.userChats.getGroups(ctx, uid);
     }

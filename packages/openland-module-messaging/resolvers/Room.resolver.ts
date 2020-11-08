@@ -635,15 +635,6 @@ export const Resolver: GQLResolver = {
         betaRoomInviteLink: withActivatedUser(async (ctx, args, uid) => {
             return await Modules.Invites.createRoomlInviteLink(ctx, IDs.Conversation.parse(args.roomId), uid);
         }),
-        betaAvailableRooms: withActivatedUser(async (ctx, args, uid) => {
-            return await Modules.Messaging.room.findAvailableRooms(ctx, uid);
-        }),
-        betaUserRooms: withActivatedUser(async (ctx, args, uid) => {
-            return await Modules.Messaging.room.userRooms(ctx, uid, args.limit || undefined, args.after ? IDs.Conversation.parse(args.after) : undefined);
-        }),
-        betaUserAvailableRooms: withActivatedUser(async (ctx, args, uid) => {
-            return await Modules.Messaging.room.userAvailableRooms(ctx, uid, args.isChannel === null ? undefined : args.isChannel, args.limit || undefined, args.after ? IDs.Conversation.parse(args.after) : undefined);
-        }),
         alphaUserAvailableRooms: withActivatedUser(async (ctx, args, uid) => {
             let clauses: any[] = [];
 
