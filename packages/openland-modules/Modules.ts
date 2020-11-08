@@ -11,7 +11,6 @@ import { EmailModule } from 'openland-module-email/EmailModule';
 import { MessagingModule } from 'openland-module-messaging/MessagingModule';
 import { AuthModule } from 'openland-module-auth/AuthModule';
 import { UsersModule } from 'openland-module-users/UsersModule';
-import { FeaturesModule } from 'openland-module-features/FeaturesModule';
 import { SearchModule } from 'openland-module-search/SearchModule';
 import { SuperModule } from 'openland-module-super/SuperModule';
 import { ShortnameModule } from 'openland-module-shortname/ShortnameModule';
@@ -79,9 +78,6 @@ class ModulesImpl {
     }
     get Users() {
         return container.get(UsersModule);
-    }
-    get Features() {
-        return container.get(FeaturesModule);
     }
     get Search() {
         return container.get(SearchModule);

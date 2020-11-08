@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'e268accc7dfb90273d8b4531073fca90';
+export const GQL_SPEC_VERSION = '18d50ff96768e9636b247bd479ed8064';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1338,7 +1338,6 @@ export namespace GQL {
         name: string;
         state: SuperAccountState;
         members: User[];
-        features: FeatureFlag[];
         alphaPublished: boolean;
         createdAt: Nullable<string>;
         createdBy: Nullable<User>;
@@ -1349,7 +1348,6 @@ export namespace GQL {
     export interface SuperAccountNameArgs { }
     export interface SuperAccountStateArgs { }
     export interface SuperAccountMembersArgs { }
-    export interface SuperAccountFeaturesArgs { }
     export interface SuperAccountAlphaPublishedArgs { }
     export interface SuperAccountCreatedAtArgs { }
     export interface SuperAccountCreatedByArgs { }
@@ -2052,14 +2050,6 @@ export namespace GQL {
     }
     export interface EnvVarNameArgs { }
     export interface EnvVarValueArgs { }
-    export interface FeatureFlag {
-        id: string;
-        key: string;
-        title: string;
-    }
-    export interface FeatureFlagIdArgs { }
-    export interface FeatureFlagKeyArgs { }
-    export interface FeatureFlagTitleArgs { }
     export interface FeedUpdateContainer {
         updates: FeedUpdate[];
         state: string;
@@ -2398,9 +2388,6 @@ export namespace GQL {
         setEnvVarString: boolean;
         setEnvVarNumber: boolean;
         setEnvVarBoolean: boolean;
-        featureFlagAdd: FeatureFlag;
-        superAccountFeatureAdd: SuperAccount;
-        superAccountFeatureRemove: SuperAccount;
         stickerPackCreate: StickerPack;
         stickerPackUpdate: StickerPack;
         stickerPackAddSticker: Sticker;
@@ -3199,18 +3186,6 @@ export namespace GQL {
     export interface MutationSetEnvVarBooleanArgs {
         name: string;
         value: boolean;
-    }
-    export interface MutationFeatureFlagAddArgs {
-        key: string;
-        title: string;
-    }
-    export interface MutationSuperAccountFeatureAddArgs {
-        id: string;
-        featureId: string;
-    }
-    export interface MutationSuperAccountFeatureRemoveArgs {
-        id: string;
-        featureId: string;
     }
     export interface MutationStickerPackCreateArgs {
         title: string;
@@ -4296,7 +4271,6 @@ export namespace GQL {
         dialogsState: DialogUpdateState;
         envVars: Nullable<EnvVar[]>;
         envVar: Nullable<EnvVar>;
-        featureFlags: FeatureFlag[];
         ipLocation: Nullable<IpLocation>;
         myStickers: UserStickers;
         createdStickerPacks: StickerPack[];
@@ -4621,7 +4595,6 @@ export namespace GQL {
     export interface QueryEnvVarArgs {
         name: string;
     }
-    export interface QueryFeatureFlagsArgs { }
     export interface QueryIpLocationArgs { }
     export interface QueryMyStickersArgs { }
     export interface QueryCreatedStickerPacksArgs { }
@@ -7778,7 +7751,6 @@ export interface GQLResolver {
         GQLRoots.SuperAccountRoot,
         {
             members: GQLRoots.UserRoot[],
-            features: GQLRoots.FeatureFlagRoot[],
             createdBy: Nullable<GQLRoots.UserRoot>,
         },
         {
@@ -7788,7 +7760,6 @@ export interface GQLResolver {
             name: GQL.SuperAccountNameArgs,
             state: GQL.SuperAccountStateArgs,
             members: GQL.SuperAccountMembersArgs,
-            features: GQL.SuperAccountFeaturesArgs,
             alphaPublished: GQL.SuperAccountAlphaPublishedArgs,
             createdAt: GQL.SuperAccountCreatedAtArgs,
             createdBy: GQL.SuperAccountCreatedByArgs,
@@ -8671,17 +8642,6 @@ export interface GQLResolver {
             value: GQL.EnvVarValueArgs,
         }
     >;
-    FeatureFlag?: ComplexTypedResolver<
-        GQL.FeatureFlag,
-        GQLRoots.FeatureFlagRoot,
-        {
-        },
-        {
-            id: GQL.FeatureFlagIdArgs,
-            key: GQL.FeatureFlagKeyArgs,
-            title: GQL.FeatureFlagTitleArgs,
-        }
-    >;
     FeedUpdateContainer?: ComplexTypedResolver<
         GQL.FeedUpdateContainer,
         GQLRoots.FeedUpdateContainerRoot,
@@ -8916,9 +8876,6 @@ export interface GQLResolver {
             mediaStreamAnswer: GQLRoots.ConferenceMediaRoot,
             mediaStreamCandidate: GQLRoots.ConferenceMediaRoot,
             mediaStreamFailed: GQLRoots.ConferenceMediaRoot,
-            featureFlagAdd: GQLRoots.FeatureFlagRoot,
-            superAccountFeatureAdd: GQLRoots.SuperAccountRoot,
-            superAccountFeatureRemove: GQLRoots.SuperAccountRoot,
             stickerPackCreate: GQLRoots.StickerPackRoot,
             stickerPackUpdate: GQLRoots.StickerPackRoot,
             stickerPackAddSticker: GQLRoots.StickerRoot,
@@ -9199,9 +9156,6 @@ export interface GQLResolver {
             setEnvVarString: GQL.MutationSetEnvVarStringArgs,
             setEnvVarNumber: GQL.MutationSetEnvVarNumberArgs,
             setEnvVarBoolean: GQL.MutationSetEnvVarBooleanArgs,
-            featureFlagAdd: GQL.MutationFeatureFlagAddArgs,
-            superAccountFeatureAdd: GQL.MutationSuperAccountFeatureAddArgs,
-            superAccountFeatureRemove: GQL.MutationSuperAccountFeatureRemoveArgs,
             stickerPackCreate: GQL.MutationStickerPackCreateArgs,
             stickerPackUpdate: GQL.MutationStickerPackUpdateArgs,
             stickerPackAddSticker: GQL.MutationStickerPackAddStickerArgs,
@@ -9972,7 +9926,6 @@ export interface GQLResolver {
             dialogsState: GQLRoots.DialogUpdateStateRoot,
             envVars: Nullable<GQLRoots.EnvVarRoot[]>,
             envVar: Nullable<GQLRoots.EnvVarRoot>,
-            featureFlags: GQLRoots.FeatureFlagRoot[],
             ipLocation: Nullable<GQLRoots.IpLocationRoot>,
             myStickers: GQLRoots.UserStickersRoot,
             createdStickerPacks: GQLRoots.StickerPackRoot[],
@@ -10152,7 +10105,6 @@ export interface GQLResolver {
             dialogsState: GQL.QueryDialogsStateArgs,
             envVars: GQL.QueryEnvVarsArgs,
             envVar: GQL.QueryEnvVarArgs,
-            featureFlags: GQL.QueryFeatureFlagsArgs,
             ipLocation: GQL.QueryIpLocationArgs,
             myStickers: GQL.QueryMyStickersArgs,
             createdStickerPacks: GQL.QueryCreatedStickerPacksArgs,

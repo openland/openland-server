@@ -16,7 +16,6 @@ import { EmailModuleImpl } from 'openland-module-email/EmailModule.impl';
 import { EmailModule } from 'openland-module-email/EmailModule';
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { MessagingModule } from 'openland-module-messaging/MessagingModule';
-import { FeaturesModule } from 'openland-module-features/FeaturesModule';
 import { SearchModule } from 'openland-module-search/SearchModule';
 import { SuperModule } from 'openland-module-super/SuperModule';
 import { ShortnameModule } from 'openland-module-shortname/ShortnameModule';
@@ -154,7 +153,6 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind(PushModule).toSelf().inSingletonScope();
     container.bind('EmailModule').to(EmailModuleImpl).inSingletonScope();
     container.bind(UsersModule).toSelf().inSingletonScope();
-    container.bind(FeaturesModule).toSelf().inSingletonScope();
     container.bind(SearchModule).toSelf().inSingletonScope();
     container.bind(SuperModule).toSelf().inSingletonScope();
     container.bind(ShortnameModule).toSelf().inSingletonScope();
@@ -211,8 +209,6 @@ export async function startAllModules(ctx: Context) {
     await container.get(UsersModule).start();
     logger.log(ctx, 'Starting module: Messaging');
     await container.get(MessagingModule).start();
-    logger.log(ctx, 'Starting module: Features');
-    await container.get(FeaturesModule).start();
     logger.log(ctx, 'Starting module: Search');
     await container.get(SearchModule).start();
     logger.log(ctx, 'Starting module: Super');

@@ -12,7 +12,6 @@ type SuperAccount {
     name: String!
     state: SuperAccountState!
     members: [User!]!
-    features: [FeatureFlag!]!
     alphaPublished: Boolean!
     createdAt: String,
     createdBy: User,
