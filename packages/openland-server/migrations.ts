@@ -1,9 +1,13 @@
+import { createLogger } from '@openland/log';
 import { Modules } from 'openland-modules/Modules';
 import { MigrationDefinition } from '@openland/foundationdb-migrations/lib/MigrationDefinition';
 import { Store } from 'openland-module-db/FDB';
 import { inTx, encoders } from '@openland/foundationdb';
 import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 import uuid from 'uuid';
+
+// @ts-ignore
+const logger = createLogger('migration');
 
 let migrations: MigrationDefinition[] = [];
 
@@ -780,7 +784,9 @@ migrations.push({
     key: '143-create-conversation-feeds',
     migration: async (parent) => {
         let data = await inTx(parent, ctx => Store.Conversation.findAll(ctx));
+        logger.log(parent, 'Loaded conversations');
         for (let cursor = 0; cursor < data.length; cursor += 100) {
+            logger.log(parent, 'Apply conversatino ' + cursor);
             let batch = data.slice(cursor, cursor + 100);
             await inTx(parent, async ctx => {
                 for (let u of batch) {
