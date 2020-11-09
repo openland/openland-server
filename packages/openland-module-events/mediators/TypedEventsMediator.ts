@@ -1,5 +1,11 @@
 import { SubscriberReceiver } from './../receiver/SubscriberReceiver';
-import { CommonEvent, commonEventCollapseKey, commonEventSerialize, packFeedEvent, unpackFeedEvent, UserSubscriptionHandlerEvent, FeedReference, Event } from './../Definitions';
+import {
+    CommonEvent, commonEventCollapseKey, commonEventSerialize,
+    packFeedEvent, unpackFeedEvent,
+    UserSubscriptionHandlerEvent, FeedReference, Event, ChatEvent,
+    chatEventCollapseKey,
+    chatEventSerialize
+} from './../Definitions';
 import { RegistrationRepository } from './../repo/RegistrationRepository';
 import { inTx, withoutTransaction } from '@openland/foundationdb';
 import { EventBus } from 'openland-module-pubsub/EventBus';
@@ -65,6 +71,23 @@ export class TypedEventsMediator {
             if (!ex) {
                 let feed = await this.events.createFeed(ctx, 'generic');
                 this.registry.setFeed(ctx, { type: 'chat', cid }, feed);
+            }
+        });
+    }
+
+    async preparePrivateChat(parent: Context, owner: number, uid: number) {
+        await inTx(parent, async (ctx) => {
+            await this.createPrivateChatFeedIfNeeded(ctx, owner, uid);
+            await this.subscribe(ctx, owner, { type: 'chat-private', owner, uid });
+        });
+    }
+
+    async createPrivateChatFeedIfNeeded(parent: Context, owner: number, uid: number) {
+        await inTx(parent, async (ctx) => {
+            let ex = await this.registry.getFeed(ctx, { type: 'chat-private', owner, uid });
+            if (!ex) {
+                let feed = await this.events.createFeed(ctx, 'generic');
+                this.registry.setFeed(ctx, { type: 'chat-private', owner, uid }, feed);
             }
         });
     }
@@ -256,6 +279,42 @@ export class TypedEventsMediator {
             let serialized = commonEventSerialize(event);
             let collapseKey = commonEventCollapseKey(event);
             let packed = packFeedEvent({ type: 'common', uid }, serialized);
+
+            // Publish
+            await this.events.post(ctx, { feed, event: packed, collapseKey });
+        });
+    }
+
+    async postToChat(parent: Context, cid: number, event: ChatEvent) {
+        await inTx(parent, async (ctx) => {
+            // Load feed
+            let feed = await this.registry.getFeed(ctx, { type: 'chat', cid });
+            if (!feed) {
+                throw Error('Feed does not exist');
+            }
+
+            // Pack
+            let serialized = chatEventSerialize(event);
+            let collapseKey = chatEventCollapseKey(event);
+            let packed = packFeedEvent({ type: 'chat', cid }, serialized);
+
+            // Publish
+            await this.events.post(ctx, { feed, event: packed, collapseKey });
+        });
+    }
+
+    async postToPrivateChat(parent: Context, args: { owner: number, uid: number, event: ChatEvent }) {
+        await inTx(parent, async (ctx) => {
+            // Load feed
+            let feed = await this.registry.getFeed(ctx, { type: 'chat-private', owner: args.owner, uid: args.uid });
+            if (!feed) {
+                throw Error('Feed does not exist');
+            }
+
+            // Pack
+            let serialized = chatEventSerialize(args.event);
+            let collapseKey = chatEventCollapseKey(args.event);
+            let packed = packFeedEvent({ type: 'chat-private', owner: args.owner, uid: args.uid }, serialized);
 
             // Publish
             await this.events.post(ctx, { feed, event: packed, collapseKey });
