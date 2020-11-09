@@ -44,9 +44,8 @@ export class InvitesMediator {
             await Modules.Users.activateUser(ctx, uid, isNewUser, invite.creatorId);
             await this.activateUserOrgs(ctx, uid, !isNewUser, 'ROOM', invite.creatorId);
 
-            let chat = await Store.ConversationRoom.findById(ctx, invite.channelId);
-            await this.rooms.joinRoom(ctx, invite.channelId, uid, false, true);
-            await Modules.Metrics.onChatInviteJoin(ctx, uid, invite.creatorId, chat!);
+            // let chat = await Store.ConversationRoom.findById(ctx, invite.channelId);
+            await this.rooms.joinRoom(ctx, invite.channelId, uid, true);
             if (invite instanceof ChannelInvitation) {
                 await Emails.sendRoomInviteAcceptedEmail(ctx, uid, invite);
             }
@@ -66,7 +65,6 @@ export class InvitesMediator {
             if (privateChat) {
                 return 'ok';
             }
-            await Modules.Metrics.onOpenlandInviteJoin(ctx, uid, inviteData.uid);
             await Modules.Users.activateUser(ctx, uid, isNewUser, inviteData.uid);
             await this.activateUserOrgs(ctx, uid, !isNewUser, 'APP', inviteData.uid);
             let chat = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, inviteData.uid);
@@ -137,7 +135,6 @@ export class InvitesMediator {
             if (ex && ex.status === 'left') {
                 throw new UserError(`Unfortunately, you cannot join ${profile.name}. One of ${org.kind === 'organization' ? 'organization' : 'community'} admins kicked you from ${profile.name}, and now you can only join it if a member adds you.`, 'CANT_JOIN_ORG');
             }
-            await Modules.Metrics.onOrganizationInviteJoin(ctx, uid, invite.oid, org);
 
             await Modules.Orgs.addUserToOrganization(ctx, uid, invite.oid, invite.uid, false, isNewUser);
 

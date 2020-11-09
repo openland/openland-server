@@ -1,8 +1,6 @@
-import { Events } from 'openland-module-hyperlog/Events';
 import { ExpiringCache } from './../../openland-utils/ExpiringCache';
 import { RoomParticipantCreateShape, Message, ChatUpdatedEvent } from './../../openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
-import { EventBus } from './../../openland-module-pubsub/EventBus';
 import { inTx, encoders } from '@openland/foundationdb';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { buildBaseImageUrl, imageRefEquals } from 'openland-module-media/ImageRef';
@@ -19,8 +17,6 @@ import { MessageAttachmentFile } from '../MessageInput';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { User, ConversationRoom } from 'openland-module-db/store';
 import { smartSlice } from '../../openland-utils/string';
-import { createWelcomeMessageWorker } from '../workers/welcomeMessageWorker';
-import { DeliveryMediator } from '../mediators/DeliveryMediator';
 import { UserChatsRepository } from './UserChatsRepository';
 import { FastCountersMediator } from '../mediators/FastCountersMediator';
 import { ExperimentalCountersRepository } from './ExperimentalCountersRepository';
@@ -47,10 +43,7 @@ export type WelcomeMessageT = {
 @injectable()
 export class RoomRepository {
     // @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
-    @lazyInject('ChatMetricsRepository') private readonly metrics!: ChatMetricsRepository;
-
-    @lazyInject('DeliveryMediator')
-    private readonly delivery!: DeliveryMediator;
+    @lazyInject('ChatMetricsRepository') readonly metrics!: ChatMetricsRepository;
 
     @lazyInject('FastCountersMediator')
     readonly fastCounters!: FastCountersMediator;
@@ -64,7 +57,6 @@ export class RoomRepository {
     @lazyInject('ChatsMembersListDirectory')
     readonly chatMembers!: ChatsMembersListDirectory;
 
-    public readonly welcomeMessageWorker = createWelcomeMessageWorker();
     private membersCache = new ExpiringCache<number[]>({ timeout: 15 * 60 * 1000 });
 
     readonly userChats = new UserChatsRepository();
@@ -120,7 +112,6 @@ export class RoomRepository {
                 status: 'joined'
             });
             await this.setParticipant(ctx, id, uid, true, false);
-            await this.onRoomJoin(ctx, id, uid, uid);
 
             let memberNo = 0;
             for (let m of [...new Set(members)]) {
@@ -133,7 +124,6 @@ export class RoomRepository {
                     status: 'joined'
                 });
                 await this.setParticipant(ctx, id, m, true, memberNo > 50);
-                await this.onRoomJoin(ctx, id, m, uid);
                 memberNo++;
             }
 
@@ -161,7 +151,6 @@ export class RoomRepository {
                     Store.RoomParticipantsVersion.increment(ctx, cid);
                     await this.setParticipant(ctx, cid, uid, true, isAsyncMember);
                     await this.incrementRoomActiveMembers(ctx, cid);
-                    await this.onRoomJoin(ctx, cid, uid, by);
                     return true;
                 }
             } else {
@@ -172,7 +161,6 @@ export class RoomRepository {
                 });
                 Store.RoomParticipantsVersion.increment(ctx, cid);
                 await this.setParticipant(ctx, cid, uid, true, isAsyncMember);
-                await this.onRoomJoin(ctx, cid, uid, by);
                 return true;
             }
         });
@@ -192,7 +180,6 @@ export class RoomRepository {
             Store.RoomParticipantsVersion.increment(ctx, cid);
             await this.setParticipant(ctx, cid, uid, false, false);
             await this.decrementRoomActiveMembers(ctx, cid);
-            await this.onRoomLeave(ctx, cid, uid, true);
             return true;
         });
     }
@@ -228,12 +215,11 @@ export class RoomRepository {
             Store.RoomParticipantsVersion.increment(ctx, cid);
             await this.setParticipant(ctx, cid, uid, false, false);
             await this.decrementRoomActiveMembers(ctx, cid);
-            await this.onRoomLeave(ctx, cid, uid, false);
             return true;
         });
     }
 
-    async joinRoom(parent: Context, cid: number, uid: number, request?: boolean) {
+    async joinRoom(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
             // Check if room exists
             await this.checkRoomExists(ctx, cid);
@@ -241,31 +227,27 @@ export class RoomRepository {
             let activeMembersCount = await this.roomMembersCount(ctx, cid, 'joined');
             let isAsyncMember = activeMembersCount >= 50;
 
-            let targetStatus: 'requested' | 'joined' = request ? 'requested' : 'joined';
+            // let targetStatus: 'requested' | 'joined' = request ? 'requested' : 'joined';
             let p = await Store.RoomParticipant.findById(ctx, cid, uid);
             if (p) {
-                if ((p.status === targetStatus) || (p.status === 'joined')) {
+                if (p.status === 'joined') {
                     return false;
                 } else {
                     p.invitedBy = uid;
-                    p.status = targetStatus;
+                    p.status = 'joined';
                     Store.RoomParticipantsVersion.increment(ctx, cid);
                     await this.setParticipant(ctx, cid, uid, true, isAsyncMember);
-                    if (targetStatus === 'joined') {
-                        await this.incrementRoomActiveMembers(ctx, cid);
-                        await this.onRoomJoin(ctx, cid, uid, uid);
-                    }
+                    await this.incrementRoomActiveMembers(ctx, cid);
                     return true;
                 }
             } else {
                 await this.createRoomParticipant(ctx, cid, uid, {
-                    status: targetStatus,
+                    status: 'joined',
                     role: 'member',
                     invitedBy: uid
                 });
                 Store.RoomParticipantsVersion.increment(ctx, cid);
                 await this.setParticipant(ctx, cid, uid, true, isAsyncMember);
-                await this.onRoomJoin(ctx, cid, uid, uid);
                 return true;
             }
         });
@@ -717,6 +699,7 @@ export class RoomRepository {
     async resolvePrivateChat(parent: Context, uid1: number, uid2: number) {
         return await inTx(parent, async (ctx) => {
             let conv = await Store.ConversationPrivate.users.find(ctx, Math.min(uid1, uid2), Math.max(uid1, uid2));
+            let created = false;
             if (!conv) {
                 let id = await this.fetchNextConversationId(ctx);
                 await (await Store.Conversation.create(ctx, id, { kind: 'private' })).flush(ctx);
@@ -733,8 +716,9 @@ export class RoomRepository {
                 await this.userReadSeqs.onAddDialog(ctx, uid1, conv.id);
                 await this.userReadSeqs.onAddDialog(ctx, uid2, conv.id);
                 await conv.flush(ctx);
+                created = true;
             }
-            return (await Store.Conversation.findById(ctx, conv.id))!;
+            return { conv: (await Store.Conversation.findById(ctx, conv.id))!, created };
         });
     }
 
@@ -1180,135 +1164,6 @@ export class RoomRepository {
         throw new NotFoundError();
     }
 
-    async userAvailableRooms(parent: Context, uid: number, limit: number, isChannel: boolean | undefined, after?: number) {
-        let userOrgs = await Modules.Orgs.findUserOrganizations(parent, uid);
-
-        let availableRooms = new Set<number>();
-        //
-        //  Find all communities
-        //
-        let allCommunities = await Store.Organization.community.findAll(parent);
-
-        let organizations = [...userOrgs, ...allCommunities.map(c => c.id)];
-
-        //
-        //  Rooms from orgs & communities
-        //
-        for (let orgId of organizations) {
-            let org = await Store.Organization.findById(parent, orgId);
-
-            if (!org) {
-                continue;
-            }
-
-            let isUserMember = userOrgs.indexOf(orgId) > -1;
-
-            //
-            //  Add all rooms from communities if not private
-            //
-            if (org.kind === 'community' && !org.private) {
-                let rooms = await Store.ConversationRoom.organizationPublicRooms.findAll(parent, orgId);
-                rooms
-                    .filter(r => (isChannel === undefined) || (!!r.isChannel === isChannel))
-                    .map(r => availableRooms.add(r.id));
-            } else if (isUserMember) {
-                //
-                //  Add rooms from org if user is member
-                //
-                let rooms = await Store.ConversationRoom.organizationPublicRooms.findAll(parent, orgId);
-                for (let room of rooms) {
-                    if ((room.kind === 'public') && ((isChannel === undefined) || (!!room.isChannel === isChannel))) {
-                        availableRooms.add(room.id);
-                    }
-                }
-            }
-        }
-
-        let toSort: { rid: number, count: number }[] = [];
-        for (let rid of availableRooms) {
-            let conv = await Store.Conversation.findById(parent, rid);
-            let userAsMember = (await Store.RoomParticipant.findById(parent, rid, uid));
-            if (
-                (!conv || conv.archived || conv.deleted) ||
-                (userAsMember && (userAsMember.status === 'left' || userAsMember.status === 'kicked'))
-            ) {
-                continue;
-            }
-
-            let membersCount = (await Store.RoomProfile.findById(parent, rid)!)!.activeMembersCount || 0;
-            toSort.push({ rid, count: membersCount });
-        }
-        let res = toSort.sort((a, b) => b.count - a.count).map(r => r.rid);
-
-        let start = after !== undefined ? res.findIndex(r => r === after) + 1 : 0;
-        return res.slice(start, start + limit);
-    }
-
-    //
-    //  Returns chats available to user
-    //
-    async findAvailableRooms(parent: Context, uid: number) {
-        return await inTx(parent, async (ctx) => {
-            let availableRooms = new Set<number>();
-
-            //
-            //  Find organizations with membership
-            //
-            let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
-
-            //
-            //  Rooms in which user exists
-            //
-            let userDialogs = await Store.RoomParticipant.active.findAll(ctx, uid);
-            for (let dialog of userDialogs) {
-                let room = await Store.ConversationRoom.findById(ctx, dialog.cid);
-                if (room) {
-                    availableRooms.add(dialog.cid);
-                }
-            }
-
-            //
-            //  Find all communities
-            //
-            let allCommunities = await Store.Organization.community.findAll(ctx);
-
-            let organizations = [...userOrgs, ...allCommunities.map(c => c.id)];
-
-            //
-            //  Rooms from orgs & communities
-            //
-            for (let orgId of organizations) {
-                let org = await Store.Organization.findById(ctx, orgId);
-
-                if (!org) {
-                    continue;
-                }
-
-                let isUserMember = userOrgs.indexOf(orgId) > -1;
-
-                //
-                //  Add all rooms from communities
-                //
-                if (org.kind === 'community') {
-                    let rooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, orgId);
-                    rooms.map(r => availableRooms.add(r.id));
-                } else if (isUserMember) {
-                    //
-                    //  Add rooms from org if user is member
-                    //
-                    let rooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, orgId);
-                    for (let room of rooms) {
-                        if (room.kind === 'public') {
-                            availableRooms.add(room.id);
-                        }
-                    }
-                }
-            }
-
-            return [...availableRooms];
-        });
-    }
-
     //
     // Internals
     //
@@ -1369,97 +1224,7 @@ export class RoomRepository {
         });
     }
 
-    //
-    //  Events
-    //
-    private async onRoomJoin(parent: Context, cid: number, uid: number, by: number) {
-        return await inTx(parent, async (ctx) => {
-            EventBus.publish(`chat_join_${cid}`, { uid, cid });
-            Events.MembersLog.event(ctx, { rid: cid, delta: 1 });
-
-            let room = await Store.ConversationRoom.findById(ctx, cid);
-            let roomProfile = await Store.RoomProfile.findById(ctx, cid);
-            if (!room || !roomProfile) {
-                throw new Error('Room not found');
-            }
-            if (await this.isPublicCommunityChat(ctx, cid)) {
-                Store.UserAudienceCounter.add(ctx, uid, roomProfile.activeMembersCount ? (roomProfile.activeMembersCount) - 1 : 0);
-            }
-            if (room.oid) {
-                let org = await Store.Organization.findById(ctx, room.oid);
-
-                if (!org) {
-                    return;
-                }
-
-                //
-                //  Join community if not already
-                //
-                this.metrics.onChatCreated(ctx, uid);
-                if (room.isChannel) {
-                    this.metrics.onChannelJoined(ctx, uid);
-                }
-
-                if (org.kind === 'community') {
-                    await Modules.Orgs.addUserToOrganization(ctx, uid, org.id, by, true);
-                }
-
-                if (org.autosubscribeRooms && !(await Store.AutoSubscribeWasExecutedForUser.get(ctx, uid, 'org', org.id))) {
-                    for (let c of org.autosubscribeRooms) {
-                        let conv = await Store.ConversationRoom.findById(ctx, c);
-                        if (!conv || conv.isDeleted) {
-                            continue;
-                        }
-                        await Modules.Messaging.room.joinRoom(ctx, c, uid);
-                    }
-                    await Store.AutoSubscribeWasExecutedForUser.set(ctx, uid, 'org', org.id, true);
-                }
-            }
-            const welcomeMessage = await this.resolveConversationWelcomeMessage(ctx, cid);
-            if (welcomeMessage && welcomeMessage.isOn && welcomeMessage.sender) {
-                // Send welcome message after 60s
-                await this.welcomeMessageWorker.pushWork(ctx, { uid, cid }, Date.now() + 1000 * 40);
-            }
-
-            if (room.autosubscribeRooms && !(await Store.AutoSubscribeWasExecutedForUser.get(ctx, uid, 'room', room.id))) {
-                for (let c of room.autosubscribeRooms) {
-                    let conv = await Store.ConversationRoom.findById(ctx, c);
-                    if (!conv || conv.isDeleted) {
-                        continue;
-                    }
-                    await Modules.Messaging.room.joinRoom(ctx, c, uid);
-                }
-                await Store.AutoSubscribeWasExecutedForUser.set(ctx, uid, 'room', room.id, true);
-            }
-
-            await Modules.Hooks.onRoomJoin(ctx, cid, uid, by);
-            await this.delivery.onDialogGotAccess(ctx, uid, cid);
-            await Modules.Users.markForUndexing(ctx, uid);
-        });
-    }
-
-    private async onRoomLeave(parent: Context, cid: number, uid: number, wasKicked: boolean) {
-        return await inTx(parent, async (ctx) => {
-            Events.MembersLog.event(ctx, { rid: cid, delta: -1 });
-            let roomProfile = await Store.RoomProfile.findById(ctx, cid);
-            if (await this.isPublicCommunityChat(ctx, cid)) {
-                Store.UserAudienceCounter.add(ctx, uid, (roomProfile!.activeMembersCount ? (roomProfile!.activeMembersCount) : 0) * -1);
-            }
-            await EventBus.publish(`chat_leave_${cid}`, { uid, cid });
-
-            let userRoomBadge = await Store.UserRoomBadge.findById(ctx, uid, cid);
-
-            if (userRoomBadge && userRoomBadge.bid !== null) {
-                userRoomBadge.bid = null;
-            }
-
-            await Modules.Hooks.onRoomLeave(ctx, cid, uid, wasKicked);
-            await this.delivery.onDialogLostAccess(ctx, uid, cid);
-            await Modules.Users.markForUndexing(ctx, uid);
-        });
-    }
-
-    private async isPublicCommunityChat(ctx: Context, cid: number) {
+    async isPublicCommunityChat(ctx: Context, cid: number) {
         let chat = await Store.Conversation.findById(ctx, cid);
         if (!chat || chat.kind !== 'room') {
             return false;

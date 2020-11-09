@@ -4,7 +4,7 @@ import { Store } from './../../openland-module-db/FDB';
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
 import { UserStateRepository } from './UserStateRepository';
-import { MessagingRepository } from './MessagingRepository';
+import { MessagesRepository } from './MessagesRepository';
 import { DeliveryRepository } from './DeliveryRepository';
 import { Context, createNamedContext } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
@@ -17,13 +17,13 @@ import { inTx } from '@openland/foundationdb';
 describe('UserStateRepository', () => {
     let ctx: Context;
     let userStateRepo: UserStateRepository;
-    let messagingRepo: MessagingRepository;
+    let messagingRepo: MessagesRepository;
     let deliveryRepo: DeliveryRepository;
 
     beforeAll(async () => {
         await testEnvironmentStart('user-state');
         container.bind('UserStateRepository').to(UserStateRepository).inSingletonScope();
-        container.bind('MessagingRepository').to(MessagingRepository).inSingletonScope();
+        container.bind('MessagesRepository').to(MessagesRepository).inSingletonScope();
         container.bind('DeliveryRepository').to(DeliveryRepository).inSingletonScope();
         container.bind('ChatMetricsRepository').to(ChatMetricsRepository).inSingletonScope();
         container.bind('UserDialogsRepository').to(UserDialogsRepository).inSingletonScope();
@@ -32,7 +32,7 @@ describe('UserStateRepository', () => {
 
         ctx = createNamedContext('test');
         userStateRepo = container.get<UserStateRepository>('UserStateRepository');
-        messagingRepo = container.get<MessagingRepository>('MessagingRepository');
+        messagingRepo = container.get<MessagesRepository>('MessagesRepository');
         deliveryRepo = container.get<DeliveryRepository>('DeliveryRepository');
     });
 

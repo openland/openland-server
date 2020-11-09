@@ -16,7 +16,6 @@ import { EmailModuleImpl } from 'openland-module-email/EmailModule.impl';
 import { EmailModule } from 'openland-module-email/EmailModule';
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { MessagingModule } from 'openland-module-messaging/MessagingModule';
-import { FeaturesModule } from 'openland-module-features/FeaturesModule';
 import { SearchModule } from 'openland-module-search/SearchModule';
 import { SuperModule } from 'openland-module-super/SuperModule';
 import { ShortnameModule } from 'openland-module-shortname/ShortnameModule';
@@ -50,7 +49,6 @@ import { Context } from '@openland/context';
 import { NotificationCenterModule } from '../openland-module-notification-center/NotificationCenterModule';
 import { loadNotificationCenterModule } from '../openland-module-notification-center/NotificationCenterModule.container';
 import { openDatabase } from 'openland-server/foundationdb';
-import { MetricsModule } from '../openland-module-metrics/MetricsModule';
 import { backoff, currentTime } from 'openland-utils/timer';
 import { createLogger } from '@openland/log';
 import { EntityStorage } from '@openland/foundationdb-entity';
@@ -66,11 +64,7 @@ import { FeedMentionNotificationsMediator } from '../openland-module-feed/reposi
 import { ZapierModule } from '../openland-module-zapier/ZapierModule';
 import { OauthModule } from '../openland-module-oauth/OauthModule';
 import { loadGeoModule } from '../openland-module-geo/GeoModule.container';
-import { loadPowerupsModule } from '../openland-module-powerups/PowerupsModule.container';
 import { GeoModule } from '../openland-module-geo/GeoModule';
-import { PowerupsModule } from '../openland-module-powerups/PowerupsModule';
-import { loadPermissionsModule } from '../openland-module-permissions/PermissionsModule.container';
-import { PermissionsModule } from '../openland-module-permissions/PermissionsModule';
 import { loadDiscoverModule } from '../openland-module-discover/DiscoverModule.container';
 import { PhonebookModule } from '../openland-module-phonebook/PhonebookModule';
 import { loadPhonebookModule } from '../openland-module-phonebook/PhonebookModule.container';
@@ -159,7 +153,6 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind(PushModule).toSelf().inSingletonScope();
     container.bind('EmailModule').to(EmailModuleImpl).inSingletonScope();
     container.bind(UsersModule).toSelf().inSingletonScope();
-    container.bind(FeaturesModule).toSelf().inSingletonScope();
     container.bind(SearchModule).toSelf().inSingletonScope();
     container.bind(SuperModule).toSelf().inSingletonScope();
     container.bind(ShortnameModule).toSelf().inSingletonScope();
@@ -167,7 +160,6 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind(DraftsModule).toSelf().inSingletonScope();
     container.bind(TypingsModule).toSelf().inSingletonScope();
     container.bind(AppsModule).toSelf().inSingletonScope();
-    container.bind(MetricsModule).toSelf().inSingletonScope();
 
     container.bind(OrganizationModule).toSelf().inSingletonScope();
     container.bind(OrganizationRepository).toSelf();
@@ -183,8 +175,6 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadStickersModule();
     loadMatchmakingModule();
     loadGeoModule();
-    loadPowerupsModule();
-    loadPermissionsModule();
     loadDiscoverModule();
     loadPhonebookModule();
     loadDiscussionsModule();
@@ -219,8 +209,6 @@ export async function startAllModules(ctx: Context) {
     await container.get(UsersModule).start();
     logger.log(ctx, 'Starting module: Messaging');
     await container.get(MessagingModule).start();
-    logger.log(ctx, 'Starting module: Features');
-    await container.get(FeaturesModule).start();
     logger.log(ctx, 'Starting module: Search');
     await container.get(SearchModule).start();
     logger.log(ctx, 'Starting module: Super');
@@ -253,8 +241,6 @@ export async function startAllModules(ctx: Context) {
     await container.get(DiscoverModule).start();
     logger.log(ctx, 'Starting module: Notification Center');
     await container.get(NotificationCenterModule).start();
-    logger.log(ctx, 'Starting module: Metrics');
-    await container.get(MetricsModule).start();
     logger.log(ctx, 'Starting module: OnBoarding');
     await container.get(UserOnboardingModule).start();
     logger.log(ctx, 'Starting module: Stats');
@@ -272,12 +258,8 @@ export async function startAllModules(ctx: Context) {
     await container.get(OauthModule).start();
     logger.log(ctx, 'Starting module: Geo');
     await container.get(GeoModule).start();
-    logger.log(ctx, 'Starting module: Powerups');
-    await container.get(PowerupsModule).start();
     logger.log(ctx, 'Starting module: Wallet');
     await container.get(WalletModule).start();
-    logger.log(ctx, 'Starting module: Permissions');
-    await container.get(PermissionsModule).start();
     logger.log(ctx, 'Starting module: Phonebook');
     await container.get(PhonebookModule).start();
     logger.log(ctx, 'Starting module: Discussions');

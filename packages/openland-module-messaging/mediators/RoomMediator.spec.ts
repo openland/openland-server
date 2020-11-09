@@ -23,13 +23,13 @@ describe('RoomMediator', () => {
         container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
         container.bind(OrganizationModule).toSelf().inSingletonScope();
     });
-    afterAll( async () => {
-      await  testEnvironmentEnd();
+    afterAll(async () => {
+        await testEnvironmentEnd();
     });
 
     async function randomUser(ctx: Context) {
         let users = container.get<UsersModule>(UsersModule);
-        let uid = (await users.createUser(ctx, {email: 'email' + Math.random()})).id;
+        let uid = (await users.createUser(ctx, { email: 'email' + Math.random() })).id;
         await users.createUserProfile(ctx, uid, { firstName: 'User Name' + Math.random() });
         return uid;
     }
@@ -61,7 +61,7 @@ describe('RoomMediator', () => {
         let orgs = await container.get<OrganizationModule>(OrganizationModule);
         let org = await orgs.createOrganization(ctx, USER_ID, { name: 'Org', isCommunity: true });
         let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
-        await mediator.joinRoom(ctx, room.id, USER2_ID);
+        await mediator.joinRoom(ctx, room.id, USER2_ID, false);
         let members = await Store.RoomParticipant.active.findAll(ctx, room.id);
         expect(members.length).toBe(2);
         for (let m of members) {
@@ -89,7 +89,7 @@ describe('RoomMediator', () => {
         await orgs.activateOrganization(ctx, org.id, true);
 
         let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
-        await mediator.joinRoom(ctx, room.id, USER2_ID);
+        await mediator.joinRoom(ctx, room.id, USER2_ID, false);
 
         expect(await orgs.isUserMember(ctx, USER2_ID, org.id)).toEqual(true);
     });
@@ -106,7 +106,7 @@ describe('RoomMediator', () => {
         await orgs.activateOrganization(ctx, org.id, true);
 
         let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
-        let res = mediator.joinRoom(ctx, room.id, USER2_ID);
+        let res = mediator.joinRoom(ctx, room.id, USER2_ID, false);
         await expect(res).rejects.toThrowError('You can\'t join non-public room');
 
         expect(await orgs.isUserMember(ctx, USER2_ID, org.id)).toEqual(false);
@@ -160,8 +160,8 @@ describe('RoomMediator', () => {
         await orgs.addUserToOrganization(ctx, USER2_ID, org.id, USER_ID);
 
         let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
-        await mediator.joinRoom(ctx, room.id, USER2_ID, true);
-        let res = mediator.joinRoom(ctx, room.id, USER3_ID, true);
+        await mediator.joinRoom(ctx, room.id, USER2_ID, false);
+        let res = mediator.joinRoom(ctx, room.id, USER3_ID, false);
         await expect(res).rejects.toThrowError('You can\'t join non-public room');
         let members = await Store.RoomParticipant.active.findAll(ctx, room.id);
         expect(members.length).toBe(2);
@@ -185,8 +185,8 @@ describe('RoomMediator', () => {
         await orgs.addUserToOrganization(ctx, USER2_ID, org.id, USER_ID);
 
         let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
-        await mediator.joinRoom(ctx, room.id, USER2_ID, true);
-        await mediator.joinRoom(ctx, room.id, USER3_ID, true);
+        await mediator.joinRoom(ctx, room.id, USER2_ID, false);
+        await mediator.joinRoom(ctx, room.id, USER3_ID, false);
         let members = await Store.RoomParticipant.active.findAll(ctx, room.id);
         expect(members.length).toBe(3);
         for (let m of members) {
@@ -211,8 +211,8 @@ describe('RoomMediator', () => {
         await orgs.addUserToOrganization(ctx, USER2_ID, org.id, USER_ID);
 
         let room = await mediator.createRoom(ctx, 'group', org.id, USER_ID, [], { title: 'Room' });
-        await expect(mediator.joinRoom(ctx, room.id, USER2_ID, true)).rejects.toThrowError('You can\'t join non-public room');
-        await expect(mediator.joinRoom(ctx, room.id, USER3_ID, true)).rejects.toThrowError('You can\'t join non-public room');
+        await expect(mediator.joinRoom(ctx, room.id, USER2_ID, false)).rejects.toThrowError('You can\'t join non-public room');
+        await expect(mediator.joinRoom(ctx, room.id, USER3_ID, false)).rejects.toThrowError('You can\'t join non-public room');
         let members = await Store.RoomParticipant.active.findAll(ctx, room.id);
         expect(members.length).toBe(1);
         for (let m of members) {
@@ -233,9 +233,9 @@ describe('RoomMediator', () => {
         await orgs.addUserToOrganization(ctx, USER2_ID, org.id, USER_ID);
 
         let room = await mediator.createRoom(ctx, 'group', org.id, USER_ID, [], { title: 'Room' });
-        await expect(mediator.joinRoom(ctx, room.id, USER2_ID, true)).rejects.toThrowError('You can\'t join non-public room');
-        await mediator.inviteToRoom(ctx, room.id, USER_ID, [ USER3_ID ]);
-        await mediator.joinRoom(ctx, room.id, USER3_ID, false, true);
+        await expect(mediator.joinRoom(ctx, room.id, USER2_ID, false)).rejects.toThrowError('You can\'t join non-public room');
+        await mediator.inviteToRoom(ctx, room.id, USER_ID, [USER3_ID]);
+        await mediator.joinRoom(ctx, room.id, USER3_ID, true);
         let members = await Store.RoomParticipant.active.findAll(ctx, room.id);
         expect(members.length).toBe(2);
         for (let m of members) {
@@ -255,7 +255,7 @@ describe('RoomMediator', () => {
         let USER2_ID = await randomUser(ctx);
         let org = await orgs.createOrganization(ctx, USER_ID, { name: 'Org', isCommunity: true });
         let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
-        await mediator.joinRoom(ctx, room.id, USER2_ID);
+        await mediator.joinRoom(ctx, room.id, USER2_ID, false);
         let members = await Store.RoomParticipant.active.findAll(ctx, room.id);
         expect(members.length).toBe(2);
         for (let m of members) {

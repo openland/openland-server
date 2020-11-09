@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'fd26a32b567d4aae68d8490ebe5e00bd';
+export const GQL_SPEC_VERSION = '301b349d6510eb9036b7a314399cda20';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -743,10 +743,12 @@ export namespace GQL {
     export interface SequenceDifference {
         sequence: Sequence;
         events: UpdatesDifferenceEvent[];
+        after: number;
         hasMore: boolean;
     }
     export interface SequenceDifferenceSequenceArgs { }
     export interface SequenceDifferenceEventsArgs { }
+    export interface SequenceDifferenceAfterArgs { }
     export interface SequenceDifferenceHasMoreArgs { }
     export interface Reaction {
         user: User;
@@ -1204,34 +1206,6 @@ export namespace GQL {
     }
     export interface JoinedOrganizationMembersConnectionEdgesArgs { }
     export interface JoinedOrganizationMembersConnectionPageInfoArgs { }
-    export type PermissionScopeValues = 'GLOBAL' | 'CHAT';
-    export type PermissionScope = GQLRoots.PermissionScopeRoot;
-    export type PermissionAppTypeValues = 'POWERUP';
-    export type PermissionAppType = GQLRoots.PermissionAppTypeRoot;
-    export interface PermissionGroup {
-        id: string;
-        name: string;
-        description: string;
-        requests: PermissionRequest[];
-    }
-    export interface PermissionGroupIdArgs { }
-    export interface PermissionGroupNameArgs { }
-    export interface PermissionGroupDescriptionArgs { }
-    export interface PermissionGroupRequestsArgs { }
-    export interface PermissionRequest {
-        id: string;
-        group: PermissionGroup;
-        appType: PermissionAppType;
-        powerup: Nullable<Powerup>;
-        scope: PermissionScope;
-        chat: Nullable<Room>;
-    }
-    export interface PermissionRequestIdArgs { }
-    export interface PermissionRequestGroupArgs { }
-    export interface PermissionRequestAppTypeArgs { }
-    export interface PermissionRequestPowerupArgs { }
-    export interface PermissionRequestScopeArgs { }
-    export interface PermissionRequestChatArgs { }
     export type ProfileBadgeTypeValues = 'ORGANIZATION';
     export type ProfileBadgeType = GQLRoots.ProfileBadgeTypeRoot;
     export interface ProfileBadge {
@@ -1364,7 +1338,6 @@ export namespace GQL {
         name: string;
         state: SuperAccountState;
         members: User[];
-        features: FeatureFlag[];
         alphaPublished: boolean;
         createdAt: Nullable<string>;
         createdBy: Nullable<User>;
@@ -1375,7 +1348,6 @@ export namespace GQL {
     export interface SuperAccountNameArgs { }
     export interface SuperAccountStateArgs { }
     export interface SuperAccountMembersArgs { }
-    export interface SuperAccountFeaturesArgs { }
     export interface SuperAccountAlphaPublishedArgs { }
     export interface SuperAccountCreatedAtArgs { }
     export interface SuperAccountCreatedByArgs { }
@@ -1450,36 +1422,6 @@ export namespace GQL {
     }
     export type EventPlatformValues = 'Android' | 'iOS' | 'WEB' | 'MobileWeb';
     export type EventPlatform = GQLRoots.EventPlatformRoot;
-    export interface PowerupInput {
-        name: Nullable<string>;
-        description: Nullable<string>;
-        image: Nullable<ImageRefInput>;
-    }
-    export interface Powerup {
-        id: string;
-        name: string;
-        description: string;
-        image: Nullable<ImageRef>;
-    }
-    export interface PowerupIdArgs { }
-    export interface PowerupNameArgs { }
-    export interface PowerupDescriptionArgs { }
-    export interface PowerupImageArgs { }
-    export interface PowerupUserSettingsInput {
-        enabled: boolean;
-    }
-    export interface PowerupUserSettings {
-        enabled: boolean;
-    }
-    export interface PowerupUserSettingsEnabledArgs { }
-    export interface RoomPowerup {
-        id: string;
-        powerup: Powerup;
-        userSettings: PowerupUserSettings;
-    }
-    export interface RoomPowerupIdArgs { }
-    export interface RoomPowerupPowerupArgs { }
-    export interface RoomPowerupUserSettingsArgs { }
     export interface Sequence {
         id: string;
     }
@@ -2108,14 +2050,6 @@ export namespace GQL {
     }
     export interface EnvVarNameArgs { }
     export interface EnvVarValueArgs { }
-    export interface FeatureFlag {
-        id: string;
-        key: string;
-        title: string;
-    }
-    export interface FeatureFlagIdArgs { }
-    export interface FeatureFlagKeyArgs { }
-    export interface FeatureFlagTitleArgs { }
     export interface FeedUpdateContainer {
         updates: FeedUpdate[];
         state: string;
@@ -2145,16 +2079,6 @@ export namespace GQL {
     }
     export interface GeoLocationLongArgs { }
     export interface GeoLocationLatArgs { }
-    export interface UserLocation {
-        id: string;
-        isSharing: boolean;
-        user: User;
-        lastLocations: GeoLocation[];
-    }
-    export interface UserLocationIdArgs { }
-    export interface UserLocationIsSharingArgs { }
-    export interface UserLocationUserArgs { }
-    export interface UserLocationLastLocationsArgs { }
     export interface IpLocation {
         ip: string;
         countryCode: Nullable<string>;
@@ -2165,10 +2089,6 @@ export namespace GQL {
     export interface IpLocationCountryCodeArgs { }
     export interface IpLocationLocationNameArgs { }
     export interface IpLocationLocationArgs { }
-    export interface GeoLocationInput {
-        long: number;
-        lat: number;
-    }
     export interface ImageSticker {
         id: string;
         image: ImageRef;
@@ -2423,7 +2343,6 @@ export namespace GQL {
         superAdminAdd: string;
         superAdminRemove: string;
         alphaAlterPublished: Organization;
-        alphaRenderVideo: string;
         betaFixCounter: boolean;
         betaFixCountersForAll: boolean;
         deliverCountersForAll: boolean;
@@ -2436,11 +2355,6 @@ export namespace GQL {
         discoverEditorsChoiceUpdate: EditorsChoiceChat;
         discoverEditorsChoiceDelete: boolean;
         track: string;
-        createPowerup: Powerup;
-        updatePowerup: Powerup;
-        addPowerupToChat: boolean;
-        removePowerupFromChat: boolean;
-        updatePowerupUserSettingsInChat: PowerupUserSettings;
         createApp: AppProfile;
         createSuperApp: AppProfile;
         refreshAppToken: AppProfile;
@@ -2473,10 +2387,6 @@ export namespace GQL {
         setEnvVarString: boolean;
         setEnvVarNumber: boolean;
         setEnvVarBoolean: boolean;
-        featureFlagAdd: FeatureFlag;
-        superAccountFeatureAdd: SuperAccount;
-        superAccountFeatureRemove: SuperAccount;
-        shareLocation: boolean;
         stickerPackCreate: StickerPack;
         stickerPackUpdate: StickerPack;
         stickerPackAddSticker: Sticker;
@@ -3092,9 +3002,6 @@ export namespace GQL {
         id: string;
         published: boolean;
     }
-    export interface MutationAlphaRenderVideoArgs {
-        name: string;
-    }
     export interface MutationBetaFixCounterArgs {
         uid: string;
     }
@@ -3133,26 +3040,6 @@ export namespace GQL {
         events: Event[];
         platform: OptionalNullable<EventPlatform>;
         isProd: OptionalNullable<boolean>;
-    }
-    export interface MutationCreatePowerupArgs {
-        input: PowerupInput;
-    }
-    export interface MutationUpdatePowerupArgs {
-        id: string;
-        input: PowerupInput;
-    }
-    export interface MutationAddPowerupToChatArgs {
-        id: string;
-        powerupId: string;
-    }
-    export interface MutationRemovePowerupFromChatArgs {
-        id: string;
-        powerupId: string;
-    }
-    export interface MutationUpdatePowerupUserSettingsInChatArgs {
-        id: string;
-        powerupId: string;
-        settings: PowerupUserSettingsInput;
     }
     export interface MutationCreateAppArgs {
         name: string;
@@ -3295,21 +3182,6 @@ export namespace GQL {
     export interface MutationSetEnvVarBooleanArgs {
         name: string;
         value: boolean;
-    }
-    export interface MutationFeatureFlagAddArgs {
-        key: string;
-        title: string;
-    }
-    export interface MutationSuperAccountFeatureAddArgs {
-        id: string;
-        featureId: string;
-    }
-    export interface MutationSuperAccountFeatureRemoveArgs {
-        id: string;
-        featureId: string;
-    }
-    export interface MutationShareLocationArgs {
-        location: GeoLocationInput;
     }
     export interface MutationStickerPackCreateArgs {
         title: string;
@@ -4366,13 +4238,10 @@ export namespace GQL {
         alphaOrganizationMembers: OrganizationMember[];
         alphaOrganizationInviteLink: Nullable<Invite>;
         alphaOrganizationPublicInvite: Nullable<Invite>;
-        permissionGroups: PermissionGroup[];
-        waitingPermissionRequests: PermissionRequest[];
         myProfile: Nullable<Profile>;
         superAccounts: SuperAccount[];
         superAccount: SuperAccount;
         superAdmins: SuperAdmin[];
-        chatLocations: UserLocation[];
         alphaChatTextSearch: Conversation[];
         betaDialogTextSearch: Dialog[];
         conversationDraft: Nullable<string>;
@@ -4381,9 +4250,6 @@ export namespace GQL {
         discoverCollection: Nullable<DiscoverChatsCollection>;
         discoverEditorsChoice: EditorsChoiceChat[];
         discoverEditorsChoiceChat: EditorsChoiceChat;
-        powerups: Powerup[];
-        chatsWithPowerup: Room[];
-        chatPowerups: RoomPowerup[];
         myApps: AppProfile[];
         userStorage: AppStorageValue[];
         chatState: ChatUpdateState;
@@ -4401,10 +4267,7 @@ export namespace GQL {
         dialogsState: DialogUpdateState;
         envVars: Nullable<EnvVar[]>;
         envVar: Nullable<EnvVar>;
-        featureFlags: FeatureFlag[];
-        myLocation: UserLocation;
         ipLocation: Nullable<IpLocation>;
-        shouldShareLocation: boolean;
         myStickers: UserStickers;
         createdStickerPacks: StickerPack[];
         stickersByEmoji: Sticker[];
@@ -4649,8 +4512,6 @@ export namespace GQL {
     export interface QueryAlphaOrganizationPublicInviteArgs {
         organizationId: OptionalNullable<string>;
     }
-    export interface QueryPermissionGroupsArgs { }
-    export interface QueryWaitingPermissionRequestsArgs { }
     export interface QueryMyProfileArgs { }
     export interface QuerySuperAccountsArgs { }
     export interface QuerySuperAccountArgs {
@@ -4658,9 +4519,6 @@ export namespace GQL {
         viaOrgId: OptionalNullable<boolean>;
     }
     export interface QuerySuperAdminsArgs { }
-    export interface QueryChatLocationsArgs {
-        id: string;
-    }
     export interface QueryAlphaChatTextSearchArgs {
         query: string;
     }
@@ -4682,13 +4540,6 @@ export namespace GQL {
     }
     export interface QueryDiscoverEditorsChoiceArgs { }
     export interface QueryDiscoverEditorsChoiceChatArgs {
-        id: string;
-    }
-    export interface QueryPowerupsArgs { }
-    export interface QueryChatsWithPowerupArgs {
-        id: string;
-    }
-    export interface QueryChatPowerupsArgs {
         id: string;
     }
     export interface QueryMyAppsArgs { }
@@ -4740,10 +4591,7 @@ export namespace GQL {
     export interface QueryEnvVarArgs {
         name: string;
     }
-    export interface QueryFeatureFlagsArgs { }
-    export interface QueryMyLocationArgs { }
     export interface QueryIpLocationArgs { }
-    export interface QueryShouldShareLocationArgs { }
     export interface QueryMyStickersArgs { }
     export interface QueryCreatedStickerPacksArgs { }
     export interface QueryStickersByEmojiArgs {
@@ -5148,9 +4996,6 @@ export namespace GQL {
         watchSettings: Settings;
         alphaConferenceWatch: Conference;
         alphaConferenceMediaWatch: ConferenceMedia;
-        permissionsUpdates: PermissionRequest;
-        waitingPermissionRequestsUpdates: PermissionRequest;
-        chatLocationUpdates: UserLocation;
         userEventBus: UserEventBusMessage;
         globalEventBus: UserEventBusMessage;
         chatUpdates: ChatUpdateContainer;
@@ -5160,7 +5005,6 @@ export namespace GQL {
         myContactsUpdates: ContactsUpdateContainer;
         dialogsUpdates: DialogUpdateContainer;
         homeFeedUpdates: FeedUpdateContainer;
-        shouldShareLocationUpdates: boolean;
         notificationCenterUpdates: Nullable<NotificationCenterUpdateContainer>;
         alphaSubscribeOnline: OnlineEvent;
         chatOnlinesCount: ChatOnlineEvent;
@@ -5189,11 +5033,6 @@ export namespace GQL {
     export interface SubscriptionAlphaConferenceMediaWatchArgs {
         id: string;
         peerId: string;
-    }
-    export interface SubscriptionPermissionsUpdatesArgs { }
-    export interface SubscriptionWaitingPermissionRequestsUpdatesArgs { }
-    export interface SubscriptionChatLocationUpdatesArgs {
-        id: string;
     }
     export interface SubscriptionUserEventBusArgs {
         topic: string;
@@ -5225,7 +5064,6 @@ export namespace GQL {
     export interface SubscriptionHomeFeedUpdatesArgs {
         fromState: OptionalNullable<string>;
     }
-    export interface SubscriptionShouldShareLocationUpdatesArgs { }
     export interface SubscriptionNotificationCenterUpdatesArgs {
         fromState: OptionalNullable<string>;
     }
@@ -7393,6 +7231,7 @@ export interface GQLResolver {
         {
             sequence: GQL.SequenceDifferenceSequenceArgs,
             events: GQL.SequenceDifferenceEventsArgs,
+            after: GQL.SequenceDifferenceAfterArgs,
             hasMore: GQL.SequenceDifferenceHasMoreArgs,
         }
     >;
@@ -7837,38 +7676,6 @@ export interface GQLResolver {
             pageInfo: GQL.JoinedOrganizationMembersConnectionPageInfoArgs,
         }
     >;
-    PermissionScope?: EnumTypeResolver<'GLOBAL' | 'CHAT', GQLRoots.PermissionScopeRoot>;
-    PermissionAppType?: EnumTypeResolver<'POWERUP', GQLRoots.PermissionAppTypeRoot>;
-    PermissionGroup?: ComplexTypedResolver<
-        GQL.PermissionGroup,
-        GQLRoots.PermissionGroupRoot,
-        {
-            requests: GQLRoots.PermissionRequestRoot[],
-        },
-        {
-            id: GQL.PermissionGroupIdArgs,
-            name: GQL.PermissionGroupNameArgs,
-            description: GQL.PermissionGroupDescriptionArgs,
-            requests: GQL.PermissionGroupRequestsArgs,
-        }
-    >;
-    PermissionRequest?: ComplexTypedResolver<
-        GQL.PermissionRequest,
-        GQLRoots.PermissionRequestRoot,
-        {
-            group: GQLRoots.PermissionGroupRoot,
-            powerup: Nullable<GQLRoots.PowerupRoot>,
-            chat: Nullable<GQLRoots.RoomRoot>,
-        },
-        {
-            id: GQL.PermissionRequestIdArgs,
-            group: GQL.PermissionRequestGroupArgs,
-            appType: GQL.PermissionRequestAppTypeArgs,
-            powerup: GQL.PermissionRequestPowerupArgs,
-            scope: GQL.PermissionRequestScopeArgs,
-            chat: GQL.PermissionRequestChatArgs,
-        }
-    >;
     ProfileBadgeType?: EnumTypeResolver<'ORGANIZATION', GQLRoots.ProfileBadgeTypeRoot>;
     ProfileBadge?: ComplexTypedResolver<
         GQL.ProfileBadge,
@@ -7940,7 +7747,6 @@ export interface GQLResolver {
         GQLRoots.SuperAccountRoot,
         {
             members: GQLRoots.UserRoot[],
-            features: GQLRoots.FeatureFlagRoot[],
             createdBy: Nullable<GQLRoots.UserRoot>,
         },
         {
@@ -7950,7 +7756,6 @@ export interface GQLResolver {
             name: GQL.SuperAccountNameArgs,
             state: GQL.SuperAccountStateArgs,
             members: GQL.SuperAccountMembersArgs,
-            features: GQL.SuperAccountFeaturesArgs,
             alphaPublished: GQL.SuperAccountAlphaPublishedArgs,
             createdAt: GQL.SuperAccountCreatedAtArgs,
             createdBy: GQL.SuperAccountCreatedByArgs,
@@ -8011,41 +7816,6 @@ export interface GQLResolver {
         }
     >;
     EventPlatform?: EnumTypeResolver<'Android' | 'iOS' | 'WEB' | 'MobileWeb', GQLRoots.EventPlatformRoot>;
-    Powerup?: ComplexTypedResolver<
-        GQL.Powerup,
-        GQLRoots.PowerupRoot,
-        {
-            image: Nullable<GQLRoots.ImageRefRoot>,
-        },
-        {
-            id: GQL.PowerupIdArgs,
-            name: GQL.PowerupNameArgs,
-            description: GQL.PowerupDescriptionArgs,
-            image: GQL.PowerupImageArgs,
-        }
-    >;
-    PowerupUserSettings?: ComplexTypedResolver<
-        GQL.PowerupUserSettings,
-        GQLRoots.PowerupUserSettingsRoot,
-        {
-        },
-        {
-            enabled: GQL.PowerupUserSettingsEnabledArgs,
-        }
-    >;
-    RoomPowerup?: ComplexTypedResolver<
-        GQL.RoomPowerup,
-        GQLRoots.RoomPowerupRoot,
-        {
-            powerup: GQLRoots.PowerupRoot,
-            userSettings: GQLRoots.PowerupUserSettingsRoot,
-        },
-        {
-            id: GQL.RoomPowerupIdArgs,
-            powerup: GQL.RoomPowerupPowerupArgs,
-            userSettings: GQL.RoomPowerupUserSettingsArgs,
-        }
-    >;
     Sequence?: InterfaceTypeResolver<GQLRoots.SequenceRoot, 'SequenceCommon' | 'SequenceChat'>;
     SequenceCommon?: ComplexTypedResolver<
         GQL.SequenceCommon,
@@ -8868,17 +8638,6 @@ export interface GQLResolver {
             value: GQL.EnvVarValueArgs,
         }
     >;
-    FeatureFlag?: ComplexTypedResolver<
-        GQL.FeatureFlag,
-        GQLRoots.FeatureFlagRoot,
-        {
-        },
-        {
-            id: GQL.FeatureFlagIdArgs,
-            key: GQL.FeatureFlagKeyArgs,
-            title: GQL.FeatureFlagTitleArgs,
-        }
-    >;
     FeedUpdateContainer?: ComplexTypedResolver<
         GQL.FeedUpdateContainer,
         GQLRoots.FeedUpdateContainerRoot,
@@ -8939,20 +8698,6 @@ export interface GQLResolver {
         {
             long: GQL.GeoLocationLongArgs,
             lat: GQL.GeoLocationLatArgs,
-        }
-    >;
-    UserLocation?: ComplexTypedResolver<
-        GQL.UserLocation,
-        GQLRoots.UserLocationRoot,
-        {
-            user: GQLRoots.UserRoot,
-            lastLocations: GQLRoots.GeoLocationRoot[],
-        },
-        {
-            id: GQL.UserLocationIdArgs,
-            isSharing: GQL.UserLocationIsSharingArgs,
-            user: GQL.UserLocationUserArgs,
-            lastLocations: GQL.UserLocationLastLocationsArgs,
         }
     >;
     IpLocation?: ComplexTypedResolver<
@@ -9111,9 +8856,6 @@ export interface GQLResolver {
             discoverCollectionsUpdate: GQLRoots.DiscoverChatsCollectionRoot,
             discoverEditorsChoiceCreate: GQLRoots.EditorsChoiceChatRoot,
             discoverEditorsChoiceUpdate: GQLRoots.EditorsChoiceChatRoot,
-            createPowerup: GQLRoots.PowerupRoot,
-            updatePowerup: GQLRoots.PowerupRoot,
-            updatePowerupUserSettingsInChat: GQLRoots.PowerupUserSettingsRoot,
             createApp: GQLRoots.AppProfileRoot,
             createSuperApp: GQLRoots.AppProfileRoot,
             refreshAppToken: GQLRoots.AppProfileRoot,
@@ -9130,9 +8872,6 @@ export interface GQLResolver {
             mediaStreamAnswer: GQLRoots.ConferenceMediaRoot,
             mediaStreamCandidate: GQLRoots.ConferenceMediaRoot,
             mediaStreamFailed: GQLRoots.ConferenceMediaRoot,
-            featureFlagAdd: GQLRoots.FeatureFlagRoot,
-            superAccountFeatureAdd: GQLRoots.SuperAccountRoot,
-            superAccountFeatureRemove: GQLRoots.SuperAccountRoot,
             stickerPackCreate: GQLRoots.StickerPackRoot,
             stickerPackUpdate: GQLRoots.StickerPackRoot,
             stickerPackAddSticker: GQLRoots.StickerRoot,
@@ -9368,7 +9107,6 @@ export interface GQLResolver {
             superAdminAdd: GQL.MutationSuperAdminAddArgs,
             superAdminRemove: GQL.MutationSuperAdminRemoveArgs,
             alphaAlterPublished: GQL.MutationAlphaAlterPublishedArgs,
-            alphaRenderVideo: GQL.MutationAlphaRenderVideoArgs,
             betaFixCounter: GQL.MutationBetaFixCounterArgs,
             betaFixCountersForAll: GQL.MutationBetaFixCountersForAllArgs,
             deliverCountersForAll: GQL.MutationDeliverCountersForAllArgs,
@@ -9381,11 +9119,6 @@ export interface GQLResolver {
             discoverEditorsChoiceUpdate: GQL.MutationDiscoverEditorsChoiceUpdateArgs,
             discoverEditorsChoiceDelete: GQL.MutationDiscoverEditorsChoiceDeleteArgs,
             track: GQL.MutationTrackArgs,
-            createPowerup: GQL.MutationCreatePowerupArgs,
-            updatePowerup: GQL.MutationUpdatePowerupArgs,
-            addPowerupToChat: GQL.MutationAddPowerupToChatArgs,
-            removePowerupFromChat: GQL.MutationRemovePowerupFromChatArgs,
-            updatePowerupUserSettingsInChat: GQL.MutationUpdatePowerupUserSettingsInChatArgs,
             createApp: GQL.MutationCreateAppArgs,
             createSuperApp: GQL.MutationCreateSuperAppArgs,
             refreshAppToken: GQL.MutationRefreshAppTokenArgs,
@@ -9418,10 +9151,6 @@ export interface GQLResolver {
             setEnvVarString: GQL.MutationSetEnvVarStringArgs,
             setEnvVarNumber: GQL.MutationSetEnvVarNumberArgs,
             setEnvVarBoolean: GQL.MutationSetEnvVarBooleanArgs,
-            featureFlagAdd: GQL.MutationFeatureFlagAddArgs,
-            superAccountFeatureAdd: GQL.MutationSuperAccountFeatureAddArgs,
-            superAccountFeatureRemove: GQL.MutationSuperAccountFeatureRemoveArgs,
-            shareLocation: GQL.MutationShareLocationArgs,
             stickerPackCreate: GQL.MutationStickerPackCreateArgs,
             stickerPackUpdate: GQL.MutationStickerPackUpdateArgs,
             stickerPackAddSticker: GQL.MutationStickerPackAddStickerArgs,
@@ -10165,22 +9894,16 @@ export interface GQLResolver {
             alphaOrganizationMembers: GQLRoots.OrganizationMemberRoot[],
             alphaOrganizationInviteLink: Nullable<GQLRoots.InviteRoot>,
             alphaOrganizationPublicInvite: Nullable<GQLRoots.InviteRoot>,
-            permissionGroups: GQLRoots.PermissionGroupRoot[],
-            waitingPermissionRequests: GQLRoots.PermissionRequestRoot[],
             myProfile: Nullable<GQLRoots.ProfileRoot>,
             superAccounts: GQLRoots.SuperAccountRoot[],
             superAccount: GQLRoots.SuperAccountRoot,
             superAdmins: GQLRoots.SuperAdminRoot[],
-            chatLocations: GQLRoots.UserLocationRoot[],
             alphaChatTextSearch: GQLRoots.ConversationRoot[],
             betaDialogTextSearch: GQLRoots.DialogRoot[],
             discoverCollections: Nullable<GQLRoots.DiscoverChatsCollectionConnectionRoot>,
             discoverCollection: Nullable<GQLRoots.DiscoverChatsCollectionRoot>,
             discoverEditorsChoice: GQLRoots.EditorsChoiceChatRoot[],
             discoverEditorsChoiceChat: GQLRoots.EditorsChoiceChatRoot,
-            powerups: GQLRoots.PowerupRoot[],
-            chatsWithPowerup: GQLRoots.RoomRoot[],
-            chatPowerups: GQLRoots.RoomPowerupRoot[],
             myApps: GQLRoots.AppProfileRoot[],
             userStorage: GQLRoots.AppStorageValueRoot[],
             chatState: GQLRoots.ChatUpdateStateRoot,
@@ -10198,8 +9921,6 @@ export interface GQLResolver {
             dialogsState: GQLRoots.DialogUpdateStateRoot,
             envVars: Nullable<GQLRoots.EnvVarRoot[]>,
             envVar: Nullable<GQLRoots.EnvVarRoot>,
-            featureFlags: GQLRoots.FeatureFlagRoot[],
-            myLocation: GQLRoots.UserLocationRoot,
             ipLocation: Nullable<GQLRoots.IpLocationRoot>,
             myStickers: GQLRoots.UserStickersRoot,
             createdStickerPacks: GQLRoots.StickerPackRoot[],
@@ -10350,13 +10071,10 @@ export interface GQLResolver {
             alphaOrganizationMembers: GQL.QueryAlphaOrganizationMembersArgs,
             alphaOrganizationInviteLink: GQL.QueryAlphaOrganizationInviteLinkArgs,
             alphaOrganizationPublicInvite: GQL.QueryAlphaOrganizationPublicInviteArgs,
-            permissionGroups: GQL.QueryPermissionGroupsArgs,
-            waitingPermissionRequests: GQL.QueryWaitingPermissionRequestsArgs,
             myProfile: GQL.QueryMyProfileArgs,
             superAccounts: GQL.QuerySuperAccountsArgs,
             superAccount: GQL.QuerySuperAccountArgs,
             superAdmins: GQL.QuerySuperAdminsArgs,
-            chatLocations: GQL.QueryChatLocationsArgs,
             alphaChatTextSearch: GQL.QueryAlphaChatTextSearchArgs,
             betaDialogTextSearch: GQL.QueryBetaDialogTextSearchArgs,
             conversationDraft: GQL.QueryConversationDraftArgs,
@@ -10365,9 +10083,6 @@ export interface GQLResolver {
             discoverCollection: GQL.QueryDiscoverCollectionArgs,
             discoverEditorsChoice: GQL.QueryDiscoverEditorsChoiceArgs,
             discoverEditorsChoiceChat: GQL.QueryDiscoverEditorsChoiceChatArgs,
-            powerups: GQL.QueryPowerupsArgs,
-            chatsWithPowerup: GQL.QueryChatsWithPowerupArgs,
-            chatPowerups: GQL.QueryChatPowerupsArgs,
             myApps: GQL.QueryMyAppsArgs,
             userStorage: GQL.QueryUserStorageArgs,
             chatState: GQL.QueryChatStateArgs,
@@ -10385,10 +10100,7 @@ export interface GQLResolver {
             dialogsState: GQL.QueryDialogsStateArgs,
             envVars: GQL.QueryEnvVarsArgs,
             envVar: GQL.QueryEnvVarArgs,
-            featureFlags: GQL.QueryFeatureFlagsArgs,
-            myLocation: GQL.QueryMyLocationArgs,
             ipLocation: GQL.QueryIpLocationArgs,
-            shouldShareLocation: GQL.QueryShouldShareLocationArgs,
             myStickers: GQL.QueryMyStickersArgs,
             createdStickerPacks: GQL.QueryCreatedStickerPacksArgs,
             stickersByEmoji: GQL.QueryStickersByEmojiArgs,
@@ -10530,9 +10242,6 @@ export interface GQLResolver {
             watchSettings: GQLRoots.SettingsRoot,
             alphaConferenceWatch: GQLRoots.ConferenceRoot,
             alphaConferenceMediaWatch: GQLRoots.ConferenceMediaRoot,
-            permissionsUpdates: GQLRoots.PermissionRequestRoot,
-            waitingPermissionRequestsUpdates: GQLRoots.PermissionRequestRoot,
-            chatLocationUpdates: GQLRoots.UserLocationRoot,
             userEventBus: GQLRoots.UserEventBusMessageRoot,
             globalEventBus: GQLRoots.UserEventBusMessageRoot,
             chatUpdates: GQLRoots.ChatUpdateContainerRoot,
@@ -10558,9 +10267,6 @@ export interface GQLResolver {
             watchSettings: GQL.SubscriptionWatchSettingsArgs,
             alphaConferenceWatch: GQL.SubscriptionAlphaConferenceWatchArgs,
             alphaConferenceMediaWatch: GQL.SubscriptionAlphaConferenceMediaWatchArgs,
-            permissionsUpdates: GQL.SubscriptionPermissionsUpdatesArgs,
-            waitingPermissionRequestsUpdates: GQL.SubscriptionWaitingPermissionRequestsUpdatesArgs,
-            chatLocationUpdates: GQL.SubscriptionChatLocationUpdatesArgs,
             userEventBus: GQL.SubscriptionUserEventBusArgs,
             globalEventBus: GQL.SubscriptionGlobalEventBusArgs,
             chatUpdates: GQL.SubscriptionChatUpdatesArgs,
@@ -10570,7 +10276,6 @@ export interface GQLResolver {
             myContactsUpdates: GQL.SubscriptionMyContactsUpdatesArgs,
             dialogsUpdates: GQL.SubscriptionDialogsUpdatesArgs,
             homeFeedUpdates: GQL.SubscriptionHomeFeedUpdatesArgs,
-            shouldShareLocationUpdates: GQL.SubscriptionShouldShareLocationUpdatesArgs,
             notificationCenterUpdates: GQL.SubscriptionNotificationCenterUpdatesArgs,
             alphaSubscribeOnline: GQL.SubscriptionAlphaSubscribeOnlineArgs,
             chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs,

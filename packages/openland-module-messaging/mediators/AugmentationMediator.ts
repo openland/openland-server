@@ -1,7 +1,7 @@
+import { MessagingMediator } from './MessagingMediator';
 import { injectable } from 'inversify';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { createUrlInfoService } from 'openland-module-messaging/workers/UrlInfoService';
-import { MessagingRepository } from 'openland-module-messaging/repositories/MessagingRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { MessageAttachmentFileInput, MessageRichAttachmentInput } from '../MessageInput';
 import { createLinkifyInstance } from '../../openland-utils/createLinkifyInstance';
@@ -18,7 +18,7 @@ const linkifyInstance = createLinkifyInstance();
 export class AugmentationMediator {
     private readonly queue = new BetterWorkerQueue<{ messageId: number }>(Store.MessageAugmentationQueue, { type: 'external', maxAttempts: 3 });
 
-    @lazyInject('MessagingRepository') private readonly messaging!: MessagingRepository;
+    @lazyInject('MessagingMediator') messaging!: MessagingMediator;
 
     private started = false;
 
@@ -92,8 +92,10 @@ export class AugmentationMediator {
                         await this.messaging.editMessage(
                             ctx,
                             item.messageId,
+                            message!.uid,
                             { attachments: [richAttachment], appendAttachments: true },
-                            false
+                            false,
+                            true
                         );
                     } else if (isImage) {
                         let fileAttachment: MessageAttachmentFileInput = {
@@ -106,8 +108,10 @@ export class AugmentationMediator {
                         await this.messaging.editMessage(
                             ctx,
                             item.messageId,
+                            message!.uid,
                             { attachments: [fileAttachment], appendAttachments: true },
-                            false
+                            false,
+                            true
                         );
                     }
                 });

@@ -1,5 +1,11 @@
 import { SubscriberReceiver } from './../receiver/SubscriberReceiver';
-import { CommonEvent, commonEventCollapseKey, commonEventSerialize, packFeedEvent, unpackFeedEvent, UserSubscriptionHandlerEvent, FeedReference, Event } from './../Definitions';
+import {
+    CommonEvent, commonEventCollapseKey, commonEventSerialize,
+    packFeedEvent, unpackFeedEvent,
+    UserSubscriptionHandlerEvent, FeedReference, Event, ChatEvent,
+    chatEventCollapseKey,
+    chatEventSerialize
+} from './../Definitions';
 import { RegistrationRepository } from './../repo/RegistrationRepository';
 import { inTx, withoutTransaction } from '@openland/foundationdb';
 import { EventBus } from 'openland-module-pubsub/EventBus';
@@ -46,6 +52,91 @@ export class TypedEventsMediator {
                 await this.events.subscribe(ctx, subscriber, feed);
                 this.registry.setFeed(ctx, { type: 'common', uid }, feed);
             }
+        });
+    }
+
+    //
+    // Chat
+    //
+
+    async prepareChat(parent: Context, cid: number) {
+        await inTx(parent, async (ctx) => {
+            await this.createChatFeedIfNeeded(ctx, cid);
+        });
+    }
+
+    async createChatFeedIfNeeded(parent: Context, cid: number) {
+        await inTx(parent, async (ctx) => {
+            let ex = await this.registry.getFeed(ctx, { type: 'chat', cid });
+            if (!ex) {
+                let feed = await this.events.createFeed(ctx, 'generic');
+                this.registry.setFeed(ctx, { type: 'chat', cid }, feed);
+            }
+        });
+    }
+
+    async preparePrivateChat(parent: Context, cid: number, uid: number) {
+        await inTx(parent, async (ctx) => {
+            await this.createPrivateChatFeedIfNeeded(ctx, cid, uid);
+            await this.subscribe(ctx, uid, { type: 'chat-private', cid, uid });
+        });
+    }
+
+    async createPrivateChatFeedIfNeeded(parent: Context, cid: number, uid: number) {
+        await inTx(parent, async (ctx) => {
+            let ex = await this.registry.getFeed(ctx, { type: 'chat-private', cid, uid });
+            if (!ex) {
+                let feed = await this.events.createFeed(ctx, 'generic');
+                this.registry.setFeed(ctx, { type: 'chat-private', cid, uid }, feed);
+            }
+        });
+    }
+
+    async subscribe(parent: Context, uid: number, feedRef: FeedReference) {
+        await inTx(parent, async (ctx) => {
+            let subscriber = await this.registry.getUserSubscriber(ctx, uid);
+            if (!subscriber) {
+                throw Error('Subscriber does not exist');
+            }
+            let feed = await this.registry.getFeed(ctx, feedRef);
+            if (!feed) {
+                throw Error('Feed does not exist');
+            }
+
+            // Check if already subscribed
+            let ex = await this.events.repo.sub.getSubscriptionState(ctx, subscriber, feed);
+            if (ex && ex.to !== null) {
+                return false;
+            }
+
+            // Subscribe
+            await this.events.subscribe(ctx, subscriber, feed);
+
+            return true;
+        });
+    }
+
+    async unsubscribe(parent: Context, uid: number, feedRef: FeedReference) {
+        await inTx(parent, async (ctx) => {
+            let subscriber = await this.registry.getUserSubscriber(ctx, uid);
+            if (!subscriber) {
+                throw Error('Subscriber does not exist');
+            }
+            let feed = await this.registry.getFeed(ctx, feedRef);
+            if (!feed) {
+                throw Error('Feed does not exist');
+            }
+
+            // Check if already subscribed
+            let ex = await this.events.repo.sub.getSubscriptionState(ctx, subscriber, feed);
+            if (!ex || ex.to === null) {
+                return false;
+            }
+
+            // Subscribe
+            await this.events.unsubscribe(ctx, subscriber, feed);
+
+            return true;
         });
     }
 
@@ -98,7 +189,7 @@ export class TypedEventsMediator {
             if (!subscriber) {
                 throw Error('Subscriber does not exist');
             }
-        
+
             let substate = await this.events.repo.sub.getSubscriptionState(ctx, subscriber, feedid);
             if (!substate) {
                 throw Error('Subscription does not exist');
@@ -133,6 +224,7 @@ export class TypedEventsMediator {
                 active: difference.active,
                 forwardOnly: difference.forwardOnly,
                 hasMore: difference.hasMore,
+                after: difference.afterSeq,
                 events
             };
         });
@@ -187,6 +279,42 @@ export class TypedEventsMediator {
             let serialized = commonEventSerialize(event);
             let collapseKey = commonEventCollapseKey(event);
             let packed = packFeedEvent({ type: 'common', uid }, serialized);
+
+            // Publish
+            await this.events.post(ctx, { feed, event: packed, collapseKey });
+        });
+    }
+
+    async postToChat(parent: Context, cid: number, event: ChatEvent) {
+        await inTx(parent, async (ctx) => {
+            // Load feed
+            let feed = await this.registry.getFeed(ctx, { type: 'chat', cid });
+            if (!feed) {
+                throw Error('Feed does not exist');
+            }
+
+            // Pack
+            let serialized = chatEventSerialize(event);
+            let collapseKey = chatEventCollapseKey(event);
+            let packed = packFeedEvent({ type: 'chat', cid }, serialized);
+
+            // Publish
+            await this.events.post(ctx, { feed, event: packed, collapseKey });
+        });
+    }
+
+    async postToChatPrivate(parent: Context, cid: number, uid: number, event: ChatEvent) {
+        await inTx(parent, async (ctx) => {
+            // Load feed
+            let feed = await this.registry.getFeed(ctx, { type: 'chat-private', cid, uid });
+            if (!feed) {
+                throw Error('Feed does not exist');
+            }
+
+            // Pack
+            let serialized = chatEventSerialize(event);
+            let collapseKey = chatEventCollapseKey(event);
+            let packed = packFeedEvent({ type: 'chat-private', cid, uid: uid }, serialized);
 
             // Publish
             await this.events.post(ctx, { feed, event: packed, collapseKey });

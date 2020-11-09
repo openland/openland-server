@@ -151,6 +151,5 @@ export class DonationsMediator {
             ...message,
             replyMessages: [mid]
         });
-        Modules.Metrics.onBillyBotMessageRecieved(ctx, uid, `donation_${type}_notification`);
     }
 }

@@ -106,4 +106,5 @@ export const IDs = {
     SequenceStateV1: IdsFactory.createStringId('SequenceState-V1'),
     SequenceUser: IdsFactory.createId('SequenceUser'),
     SequenceChat: IdsFactory.createId('SequenceChat'),
+    SequenceChatPrivate: IdsFactory.createId('SequenceChatPrivate'),
 };

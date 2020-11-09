@@ -176,7 +176,6 @@ export class HooksModule {
     }
 
     onUserActivated = async (ctx: Context, uid: number) => {
-        await Modules.Metrics.onUserActivated(ctx, uid);
         await Modules.Phonebook.onNewUser(ctx, uid);
 
         const user = await Store.User.findById(ctx, uid);
@@ -233,15 +232,9 @@ export class HooksModule {
 
     onRoomLeave = async (ctx: Context, cid: number, uid: number, wasKicked: boolean) => {
         await Modules.Matchmaking.clearProfile(ctx, cid, 'room', uid);
-
-        Modules.Metrics.onChatLeave(ctx, uid, wasKicked);
     }
 
     onRoomJoin = async (ctx: Context, cid: number, uid: number, by: number) => {
-        let addedByUser = uid !== by;
-
-        Modules.Metrics.onChatJoined(ctx, uid, addedByUser);
-
         await Modules.Feed.onAutoSubscriptionPeerNewMember(ctx, uid, 'room', cid);
 
         // TODO: make feature
@@ -251,16 +244,9 @@ export class HooksModule {
                 if (!conv || conv.isDeleted) {
                     continue;
                 }
-                await Modules.Messaging.room.joinRoom(ctx, c, uid);
+                await Modules.Messaging.room.joinRoom(ctx, c, uid, true /* Just like it was invited */);
             }
         };
-        /*
-         * Hack for mesto.community
-         */
-        if (cid === 88912) {
-            let mestoDefaultChatIds = [88914, 88910, 88908, 89740, 91565, 99729, 89805, 111097];
-            await autoSubscribe(mestoDefaultChatIds);
-        }
         if (cid === 213797) {
             let superNextDefaultChatIds = [213793, 97587];
             await autoSubscribe(superNextDefaultChatIds);

@@ -6,7 +6,6 @@ import { Modules } from 'openland-modules/Modules';
 import { UserError } from 'openland-errors/UserError';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { Organization } from 'openland-module-db/store';
-import { isDefined } from '../openland-utils/misc';
 
 export const Resolver: GQLResolver = {
     SuperAccountState: {
@@ -22,7 +21,6 @@ export const Resolver: GQLResolver = {
         name: async (src: Organization, args: {}, ctx: Context) => (await Store.OrganizationProfile.findById(ctx, src.id))!.name,
         state: (src: Organization) => src.status as any,
         members: (src: Organization, args: {}, ctx: Context) => Modules.Orgs.findOrganizationMembers(ctx, src.id),
-        features: async (src: Organization, args: {}, ctx: Context) => (await Modules.Features.repo.findOrganizationFeatureFlags(ctx, src.id)).filter(isDefined),
         alphaPublished: async (src: Organization, args: {}, ctx: Context) => (await Store.OrganizationEditorial.findById(ctx, src.id))!.listed,
         createdAt: (src: Organization) => src.metadata.createdAt + '',
         createdBy: async (src: Organization, args: {}, ctx: Context) => await Store.User.findById(ctx, src.ownerId),
@@ -64,7 +62,7 @@ export const Resolver: GQLResolver = {
             return (await Store.Organization.findById(ctx, IDs.SuperAccount.parse(args.id)))!;
         }),
         superAccountChannelMemberAdd: withPermission('super-admin', async (ctx, args) => {
-            await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
+            await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(args.id), IDs.User.parse(args.userId), true);
             return 'ok';
         }),
         superDeleteUser: withPermission('super-admin', async (ctx, args) => {

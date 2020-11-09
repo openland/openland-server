@@ -1,7 +1,9 @@
+import { EventsMediator } from './EventsMediator';
+import { ChatMetricsRepository } from './../repositories/ChatMetricsRepository';
 import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { LinkSpan, MessageInput, MessageSpan } from 'openland-module-messaging/MessageInput';
-import { MessagingRepository } from 'openland-module-messaging/repositories/MessagingRepository';
+import { MessagesRepository } from 'openland-module-messaging/repositories/MessagesRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { DeliveryMediator } from './DeliveryMediator';
 import { Modules } from 'openland-modules/Modules';
@@ -27,7 +29,7 @@ const trace = createTracer('messaging');
 const linkifyInstance = createLinkifyInstance();
 
 function fetchMessageMentions(message: Message) {
-    let mentions: (number|'all')[] = [];
+    let mentions: (number | 'all')[] = [];
     for (let span of message.spans || []) {
         if (span.type === 'user_mention') {
             mentions.push(span.user);
@@ -99,8 +101,11 @@ function spamCheck(text: string) {
 @injectable()
 export class MessagingMediator {
 
-    @lazyInject('MessagingRepository')
-    private readonly repo!: MessagingRepository;
+    @lazyInject('MessagesRepository')
+    private readonly repo!: MessagesRepository;
+    @lazyInject('MessagingEventsMediator')
+    readonly events!: EventsMediator;
+
     @lazyInject('DeliveryMediator')
     private readonly delivery!: DeliveryMediator;
     @lazyInject('AugmentationMediator')
@@ -119,6 +124,8 @@ export class MessagingMediator {
     readonly newCounters!: AsyncCountersRepository;
     @lazyInject('UserReadSeqsDirectory')
     readonly userReadSeqs!: UserReadSeqsDirectory;
+    @lazyInject('ChatMetricsRepository')
+    private readonly chatMetrics!: ChatMetricsRepository;
 
     sendMessage = async (parent: Context, uid: number, cid: number, message: MessageInput, skipAccessCheck?: boolean) => {
         return trace.trace(parent, 'sendMessage', async (ctx2) => await inTx(ctx2, async (ctx) => {
@@ -141,10 +148,12 @@ export class MessagingMediator {
                 message.message = censor(message.message);
             }
 
+            // Read conversation
+            let conv = await Store.Conversation.findById(ctx, cid);
+
             // Permissions
             if (!skipAccessCheck) {
                 await this.room.checkAccess(ctx, uid, cid);
-                let conv = await Store.Conversation.findById(ctx, cid);
                 if (!conv || conv.deleted) {
                     throw new AccessDeniedError();
                 }
@@ -223,13 +232,49 @@ export class MessagingMediator {
                 spans.push(...dates);
             }
 
+            //
+            // Persist custom avatar
+            //
+            if (msg.overrideAvatar) {
+                await Modules.Media.saveFile(ctx, msg.overrideAvatar.uuid);
+            }
+
             // Create
             let res = await this.repo.createMessage(ctx, cid, uid, { ...msg, spans });
 
+            // Post classic event
+            await this.events.onMessageSent(ctx, cid, res.message.id, res.message.hiddenForUids || []);
+
+            //
+            // Update user counter
+            //
+            if (!message.isService) {
+                this.chatMetrics.onMessageSent(ctx, uid);
+                await Modules.Stats.onMessageSent(ctx, uid);
+            }
+            let direct = conv && conv.kind === 'private';
+            if (direct) {
+                await this.chatMetrics.onMessageSentDirect(ctx, uid, cid);
+            } else {
+                await Modules.Stats.onRoomMessageSent(ctx, cid);
+            }
+
+            //
+            // Notify hooks
+            //
+
+            await Modules.Hooks.onMessageSent(ctx, uid);
+
+            //
             // Delivery
+            //
+
             await this.delivery.onNewMessage(ctx, res.message);
 
+            //
             // Fast counters
+            //
+
             if (res.message.seq) {
                 await this.userReadSeqs.updateReadSeq(ctx, uid, cid, res.message.seq);
                 await this.fastCounters.onMessageCreated(ctx, uid, cid, res.message.seq, fetchMessageMentions(res.message), res.message.hiddenForUids || []);
@@ -277,7 +322,7 @@ export class MessagingMediator {
         }));
     }
 
-    editMessage = async (parent: Context, mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean) => {
+    editMessage = async (parent: Context, mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean, augmentation: boolean = false) => {
         return await inTx(parent, async (ctx) => {
             if (newMessage.message !== null && newMessage.message !== undefined && newMessage.message!.trim().length === 0) {
                 throw new UserError('Can\'t edit empty message');
@@ -324,6 +369,9 @@ export class MessagingMediator {
             let res = await this.repo.editMessage(ctx, mid, { ...newMessage, ... (spans ? { spans } : {}) }, markAsEdited);
             message = (await Store.Message.findById(ctx, mid!))!;
 
+            // Classic event
+            await this.events.onMessageUpdated(ctx, message.cid, mid!, message.hiddenForUids || []);
+
             // Delivery
             await this.delivery.onUpdateMessage(ctx, message);
 
@@ -341,7 +389,7 @@ export class MessagingMediator {
             // Send notification center updates
             await Modules.NotificationCenter.onCommentPeerUpdated(ctx, 'message', message.id, null);
 
-            if (!newMessage.ignoreAugmentation) {
+            if (!newMessage.ignoreAugmentation && !augmentation) {
                 // Augment
                 this.augmentation.onMessageUpdated(ctx, message);
             }
@@ -351,7 +399,13 @@ export class MessagingMediator {
     }
 
     markMessageUpdated = async (parent: Context, mid: number) => {
-        return await this.repo.markMessageUpdated(parent, mid);
+        await inTx(parent, async (ctx) => {
+            let message = await Store.Message.findById(ctx, mid);
+            if (!message) {
+                throw new Error('Message not found');
+            }
+            await this.events.onMessageUpdated(parent, message!.cid, mid, message.hiddenForUids || []);
+        });
     }
 
     setReaction = async (parent: Context, mid: number, uid: number, reaction: string, reset: boolean = false) => {
@@ -363,12 +417,17 @@ export class MessagingMediator {
                 return false;
             }
 
-            // Delivery
-            let message = (await Store.Message.findById(ctx, mid))!;
-            // await this.delivery.onUpdateMessage(ctx, message);
+            // Post classic update
+            await this.events.onMessageUpdated(ctx, res.cid, mid, res.hiddenForUids || []);
+
+            // Stats
             if (!reset) {
-                await Modules.Metrics.onReactionAdded(ctx, message, reaction);
+                await Modules.Stats.onReactionSet(ctx, res, uid);
             }
+
+            // Delivery
+            // let message = (await Store.Message.findById(ctx, mid))!;
+            // await this.delivery.onUpdateMessage(ctx, message);
 
             return res;
         });
@@ -386,6 +445,9 @@ export class MessagingMediator {
 
             // Delete
             await this.repo.deleteMessage(ctx, mid);
+
+            // Classic event
+            await this.events.onMessageDeleted(ctx, message.cid, mid, message.hiddenForUids || []);
 
             // Delivery
             message = (await Store.Message.findById(ctx, mid))!;

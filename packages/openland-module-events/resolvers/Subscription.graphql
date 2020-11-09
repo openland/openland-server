@@ -70,6 +70,7 @@ type UpdatesDifference {
 type SequenceDifference {
     sequence: Sequence!
     events: [UpdatesDifferenceEvent!]!
+    after: Int!
     hasMore: Boolean!
 }
 

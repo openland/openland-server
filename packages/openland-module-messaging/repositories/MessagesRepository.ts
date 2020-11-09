@@ -1,5 +1,4 @@
-import { MessageUpdatedEvent, MessageDeletedEvent } from './../../openland-module-db/store';
-import { Message, MessageReceivedEvent } from 'openland-module-db/store';
+import { Message } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import {
     MessageAttachment,
@@ -9,10 +8,7 @@ import {
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { DoubleInvokeError } from '../../openland-errors/DoubleInvokeError';
-import { lazyInject } from '../../openland-modules/Modules.container';
-import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { RandomLayer } from '@openland/foundationdb-random';
-import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 import { REACTIONS, REACTIONS_LEGACY } from '../resolvers/ModernMessage.resolver';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
@@ -20,9 +16,7 @@ import { Sanitizer } from '../../openland-utils/Sanitizer';
 import uuid from 'uuid';
 
 @injectable()
-export class MessagingRepository {
-    @lazyInject('ChatMetricsRepository')
-    private readonly chatMetrics!: ChatMetricsRepository;
+export class MessagesRepository {
 
     async createMessage(parent: Context, cid: number, uid: number, message: MessageInput): Promise<{ message: Message }> {
         return await inTx(parent, async (ctx) => {
@@ -56,7 +50,6 @@ export class MessagingRepository {
             }
 
             if (message.overrideAvatar) {
-                await Modules.Media.saveFile(ctx, message.overrideAvatar.uuid);
                 message.overrideAvatar = Sanitizer.sanitizeImageRef(message.overrideAvatar);
             }
 
@@ -89,36 +82,6 @@ export class MessagingRepository {
                 overrideAvatar: message.overrideAvatar,
                 overrideName: message.overrideName,
             });
-
-            //
-            // Write Event
-            //
-
-            Store.ConversationEventStore.post(ctx, cid, MessageReceivedEvent.create({
-                cid,
-                mid,
-                hiddenForUids: message.hiddenForUids || []
-            }));
-
-            //
-            // Update user counter
-            //
-            if (!message.isService) {
-                this.chatMetrics.onMessageSent(ctx, uid);
-                await Modules.Stats.onMessageSent(ctx, uid);
-            }
-            let conv = await Store.Conversation.findById(ctx, cid);
-            let direct = conv && conv.kind === 'private';
-            if (direct) {
-                await this.chatMetrics.onMessageSentDirect(ctx, uid, cid);
-            } else {
-                await Modules.Stats.onRoomMessageSent(ctx, cid);
-            }
-
-            //
-            // Notify hooks
-            //
-            await Modules.Hooks.onMessageSent(ctx, uid);
 
             return {
                 message: msg
@@ -159,42 +122,16 @@ export class MessagingRepository {
             if (newMessage.serviceMetadata) {
                 message.serviceMetadata = newMessage.serviceMetadata;
             }
-
-            //
-            // Write Event
-            //
-
-            Store.ConversationEventStore.post(ctx, message!.cid, MessageUpdatedEvent.create({
-                cid: message!.cid,
-                mid,
-                hiddenForUids: message.hiddenForUids || []
-            }));
         });
     }
 
     async deleteMessage(parent: Context, mid: number): Promise<void> {
         await inTx(parent, async (ctx) => {
             let message = (await Store.Message.findById(ctx, mid));
-
             if (!message || message.deleted) {
                 throw new Error('Message not found');
             }
-
-            //
-            // Delete message
-            //
-
             message.deleted = true;
-
-            //
-            // Write Event
-            //
-
-            Store.ConversationEventStore.post(ctx, message!.cid, MessageDeletedEvent.create({
-                cid: message!.cid,
-                mid,
-                hiddenForUids: message.hiddenForUids || []
-            }));
         });
     }
 
@@ -225,34 +162,7 @@ export class MessagingRepository {
             }
             message.reactions = reactions;
 
-            if (!reset) {
-                await Modules.Stats.onReactionSet(ctx, message, uid);
-            }
-
-            //
-            // Write Event
-            //
-
-            Store.ConversationEventStore.post(ctx, message!.cid, MessageUpdatedEvent.create({
-                cid: message!.cid,
-                mid
-            }));
-            return true;
-        });
-    }
-
-    async markMessageUpdated(parent: Context, mid: number) {
-        await inTx(parent, async (ctx) => {
-            let message = await Store.Message.findById(ctx, mid);
-
-            if (!message) {
-                throw new Error('Message not found');
-            }
-
-            Store.ConversationEventStore.post(ctx, message!.cid, MessageUpdatedEvent.create({
-                cid: message!.cid,
-                mid
-            }));
+            return message;
         });
     }
 

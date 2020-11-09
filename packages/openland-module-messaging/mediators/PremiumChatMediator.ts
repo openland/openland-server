@@ -1,3 +1,4 @@
+import { RoomMediator } from 'openland-module-messaging/mediators/RoomMediator';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { Context } from '@openland/context';
@@ -23,6 +24,8 @@ export class PremiumChatMediator {
     private readonly repo!: PremiumChatRepository;
     @lazyInject('MessagingMediator')
     private readonly messaging!: MessagingMediator;
+    @lazyInject('RoomMediator')
+    private readonly room!: RoomMediator;
 
     async createPremiumChatSubscription(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
@@ -96,7 +99,17 @@ export class PremiumChatMediator {
                 throw new NotFoundError();
             }
 
-            let membershipChanged = await this.repo.alterPaidChatUserPass(ctx, cid, uid, activeSubscription);
+            // Update pass
+            await this.repo.alterPaidChatUserPass(ctx, cid, uid, activeSubscription);
+
+            // Update room
+            let membershipChanged: boolean;
+            if (activeSubscription) {
+                membershipChanged = await this.room.joinRoom(ctx, cid, uid, true);
+            } else {
+                membershipChanged = await this.room.kickFromRoom(ctx, cid, null, uid);
+            }
+
             if (membershipChanged) {
                 if (activeSubscription) {
                     let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid, uid);
@@ -326,6 +339,5 @@ export class PremiumChatMediator {
         let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, billyId, ownerId);
         let message = buildMessage(userMention(name, uid), ` just paid ${formatMoney(parts.amount)} (income: ${formatMoney(parts.rest)}, commission: ${formatMoney(parts.commission)}) for `, roomMention(chat.title, gid), ` access (${type})`);
         await Modules.Messaging.sendMessage(ctx, privateChat.id, billyId, message);
-        Modules.Metrics.onBillyBotMessageRecieved(ctx, uid, `premium_chat_${type}_notification`);
     }
 }

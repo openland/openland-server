@@ -11,7 +11,6 @@ import { EmailModule } from 'openland-module-email/EmailModule';
 import { MessagingModule } from 'openland-module-messaging/MessagingModule';
 import { AuthModule } from 'openland-module-auth/AuthModule';
 import { UsersModule } from 'openland-module-users/UsersModule';
-import { FeaturesModule } from 'openland-module-features/FeaturesModule';
 import { SearchModule } from 'openland-module-search/SearchModule';
 import { SuperModule } from 'openland-module-super/SuperModule';
 import { ShortnameModule } from 'openland-module-shortname/ShortnameModule';
@@ -32,7 +31,6 @@ import { AppsModule } from '../openland-module-apps/AppsModule';
 import { CommentsModule } from '../openland-module-comments/CommentsModule';
 import { DiscoverModule } from '../openland-module-discover/DiscoverModule';
 import { NotificationCenterModule } from '../openland-module-notification-center/NotificationCenterModule';
-import { MetricsModule } from '../openland-module-metrics/MetricsModule';
 import { UserOnboardingModule } from '../openland-module-user-onboarding/UserOnboardingModule';
 import { StatsModule } from '../openland-module-stats/StatsModule';
 import { MonitoringModule } from 'openland-module-monitoring/MonitoringModule';
@@ -41,8 +39,6 @@ import { MatchmakingModule } from '../openland-module-matchmaking/MatchmakingMod
 import { ZapierModule } from '../openland-module-zapier/ZapierModule';
 import { OauthModule } from '../openland-module-oauth/OauthModule';
 import { GeoModule } from '../openland-module-geo/GeoModule';
-import { PowerupsModule } from '../openland-module-powerups/PowerupsModule';
-import { PermissionsModule } from '../openland-module-permissions/PermissionsModule';
 import { PhonebookModule } from '../openland-module-phonebook/PhonebookModule';
 import { ClickHouseModule } from '../openland-module-clickhouse/ClickHouseModule';
 import { ContactsModule } from '../openland-module-contacts/ContactsModule';
@@ -82,9 +78,6 @@ class ModulesImpl {
     }
     get Users() {
         return container.get(UsersModule);
-    }
-    get Features() {
-        return container.get(FeaturesModule);
     }
     get Search() {
         return container.get(SearchModule);
@@ -137,9 +130,6 @@ class ModulesImpl {
     get NotificationCenter() {
         return container.get(NotificationCenterModule);
     }
-    get Metrics() {
-        return container.get(MetricsModule);
-    }
     get UserOnboarding() {
         return container.get(UserOnboardingModule);
     }
@@ -164,14 +154,8 @@ class ModulesImpl {
     get Geo() {
         return container.get(GeoModule);
     }
-    get Powerups() {
-        return container.get(PowerupsModule);
-    }
     get Wallet() {
         return container.get(WalletModule);
-    }
-    get Permissions() {
-        return container.get(PermissionsModule);
     }
     get Phonebook() {
         return container.get(PhonebookModule);

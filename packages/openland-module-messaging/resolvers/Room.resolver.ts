@@ -123,9 +123,9 @@ export const Resolver: GQLResolver = {
         NONE: 'none',
     },
     RoomCallsMode: {
-      DISABLED: 'disabled',
-      LINK: 'link',
-      STANDARD: 'standard'
+        DISABLED: 'disabled',
+        LINK: 'link',
+        STANDARD: 'standard'
     },
     RoomCallSettings: {
         callLink: root => root.callLink,
@@ -182,7 +182,7 @@ export const Resolver: GQLResolver = {
             } else if (premiumChatSettings.interval) {
                 throw Error('Unknown subscription interval: ' + premiumChatSettings.interval);
             }
-            return {id, price: premiumChatSettings.price, interval};
+            return { id, price: premiumChatSettings.price, interval };
         }),
         premiumSubscription: withAuthFallback(withConverationId(async (ctx, id) => {
             let pass = ctx.auth.uid && await Store.PremiumChatUserPass.findById(ctx, id, ctx.auth.uid);
@@ -242,7 +242,7 @@ export const Resolver: GQLResolver = {
                 return [];
             }
 
-            let members = (await Store.RoomParticipant.active.query(ctx, id, {limit: 50})).items;
+            let members = (await Store.RoomParticipant.active.query(ctx, id, { limit: 50 })).items;
             let profiles = await Promise.all(members.map(m => Store.UserProfile.findById(ctx, m.uid)));
 
             let membersWithPhoto = profiles.filter(p => p!.picture);
@@ -268,7 +268,7 @@ export const Resolver: GQLResolver = {
                 })).items;
             }
 
-            return (await Store.RoomParticipant.active.query(ctx, id, {limit: args.first || 1000})).items;
+            return (await Store.RoomParticipant.active.query(ctx, id, { limit: args.first || 1000 })).items;
         }), []),
         requests: withAuthFallback(withConverationId(async (ctx, id) => ctx.auth.uid && (await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)) || []), []),
         settings: withAuthFallback(async (root, args, ctx) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)), {
@@ -551,7 +551,7 @@ export const Resolver: GQLResolver = {
                 })).items;
             }
 
-            return (await Store.Message.chat.query(ctx, roomId, {limit: args.first!, reverse: true})).items;
+            return (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true })).items;
         }),
         roomMember: withActivatedUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.roomId);
@@ -593,7 +593,7 @@ export const Resolver: GQLResolver = {
                     })).items;
                 }
 
-                return (await Store.RoomParticipant.active.query(ctx, roomId, {limit: args.first || 1000})).items;
+                return (await Store.RoomParticipant.active.query(ctx, roomId, { limit: args.first || 1000 })).items;
             }
         }),
         roomAdmins: withActivatedUser(async (ctx, args, uid) => {
@@ -617,7 +617,7 @@ export const Resolver: GQLResolver = {
             if (!conversation) {
                 throw new Error('Room not found');
             }
-            let badges = (await Store.UserRoomBadge.chat.query(ctx, roomId, {limit: args.first || 1000})).items;
+            let badges = (await Store.UserRoomBadge.chat.query(ctx, roomId, { limit: args.first || 1000 })).items;
             return (await Promise.all(badges.map(b => Store.RoomParticipant.findById(ctx, b.cid, b.uid)))).filter(isDefined);
         }),
 
@@ -634,15 +634,6 @@ export const Resolver: GQLResolver = {
         }),
         betaRoomInviteLink: withActivatedUser(async (ctx, args, uid) => {
             return await Modules.Invites.createRoomlInviteLink(ctx, IDs.Conversation.parse(args.roomId), uid);
-        }),
-        betaAvailableRooms: withActivatedUser(async (ctx, args, uid) => {
-            return await Modules.Messaging.room.findAvailableRooms(ctx, uid);
-        }),
-        betaUserRooms: withActivatedUser(async (ctx, args, uid) => {
-            return await Modules.Messaging.room.userRooms(ctx, uid, args.limit || undefined, args.after ? IDs.Conversation.parse(args.after) : undefined);
-        }),
-        betaUserAvailableRooms: withActivatedUser(async (ctx, args, uid) => {
-            return await Modules.Messaging.room.userAvailableRooms(ctx, uid, args.isChannel === null ? undefined : args.isChannel, args.limit || undefined, args.after ? IDs.Conversation.parse(args.after) : undefined);
         }),
         alphaUserAvailableRooms: withActivatedUser(async (ctx, args, uid) => {
             let clauses: any[] = [];
@@ -668,10 +659,10 @@ export const Resolver: GQLResolver = {
             clauses.push({
                 bool: {
                     should: [
-                        {term: {listed: true}},
-                        {terms: {oid: userOrgs}}
+                        { term: { listed: true } },
+                        { terms: { oid: userOrgs } }
                     ],
-                    must_not: {terms: {cid: userDialogs.map(d => d.cid)}}
+                    must_not: { terms: { cid: userDialogs.map(d => d.cid) } }
                 }
             });
 
@@ -681,8 +672,8 @@ export const Resolver: GQLResolver = {
                 size: args.first,
                 from: args.after ? parseInt(args.after, 10) : 0,
                 body: {
-                    sort: [{membersCount: 'desc'}],
-                    query: {bool: {must: clauses}}
+                    sort: [{ membersCount: 'desc' }],
+                    query: { bool: { must: clauses } }
                 }
             });
 
@@ -826,10 +817,11 @@ export const Resolver: GQLResolver = {
             let userId = IDs.User.parse(args.userId);
             return inTx(parent, async (ctx) => {
                 if (uid === userId) {
-                    return await Modules.Messaging.room.leaveRoom(ctx, IDs.Conversation.parse(args.roomId), uid);
+                    await Modules.Messaging.room.leaveRoom(ctx, IDs.Conversation.parse(args.roomId), uid);
                 } else {
-                    return await Modules.Messaging.room.kickFromRoom(ctx, IDs.Conversation.parse(args.roomId), uid, userId);
+                    await Modules.Messaging.room.kickFromRoom(ctx, IDs.Conversation.parse(args.roomId), uid, userId);
                 }
+                return (await Store.Conversation.findById(ctx, IDs.Conversation.parse(args.roomId)))!;
             });
         }),
         betaRoomDeclineJoinRequest: withUser(async (parent, args, uid) => {
@@ -848,13 +840,15 @@ export const Resolver: GQLResolver = {
         }),
 
         betaRoomJoin: withUser(async (ctx, args, uid) => {
-            return await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(args.roomId), uid, true);
+            await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(args.roomId), uid, false);
+            return (await Store.Conversation.findById(ctx, IDs.Conversation.parse(args.roomId)))!;
         }),
         betaRoomsJoin: withUser(async (parent, args, uid) => {
             return inTx(parent, async (ctx) => {
                 let res = [];
                 for (let id of args.roomsIds) {
-                    res.push(await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(id), uid, true));
+                    await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(id), uid, false);
+                    res.push((await Store.Conversation.findById(ctx, IDs.Conversation.parse(id)))!);
                 }
                 if (res.length) {
                     await Modules.Hooks.onDiscoverCompleted(ctx, uid);
@@ -879,7 +873,7 @@ export const Resolver: GQLResolver = {
         // invite links
         betaRoomInviteLinkSendEmail: withUser(async (parent, args, uid) => {
             await validate({
-                inviteRequests: [{email: defined(emailValidator)}]
+                inviteRequests: [{ email: defined(emailValidator) }]
             }, args);
 
             await inTx(parent, async (ctx) => {
@@ -935,7 +929,7 @@ export const Resolver: GQLResolver = {
             return await Modules.Messaging.room.setListed(ctx, IDs.ConversationSuper.parse(args.roomId), args.listed);
         }),
         betaRoomSetupAutosubscribe: withPermission('super-admin', async (ctx, args) => {
-           return await Modules.Messaging.room.setupAutosubscribe(ctx, IDs.ConversationSuper.parse(args.roomId), args.childRoomIds.map(a => IDs.Conversation.parse(a)));
+            return await Modules.Messaging.room.setupAutosubscribe(ctx, IDs.ConversationSuper.parse(args.roomId), args.childRoomIds.map(a => IDs.Conversation.parse(a)));
         }),
 
         updateWelcomeMessage: withUser(async (ctx, args, uid) => {

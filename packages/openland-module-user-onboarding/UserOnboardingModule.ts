@@ -8,7 +8,6 @@ import { inTx } from '@openland/foundationdb';
 import { buildMessage, MessagePart } from 'openland-utils/MessageBuilder';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { UserProfile } from 'openland-module-db/store';
-import * as Case from 'change-case';
 
 type DelayedEvents = 'activated20h' | 'activated30m';
 type Template = 'welcome' | 'writeFirstMessage' | 'installApps' | 'inviteFriends';
@@ -148,11 +147,8 @@ export class UserOnboardingModule {
     }
 
     onMuted = async (ctx: Context, uid: number, cid: number) => {
-        let billyId = await Modules.Super.getEnvVar<number>(ctx, 'onboarding-bot-id');
-        let conv = await Store.ConversationPrivate.findById(ctx, cid);
-        if (conv && (conv.uid1 === billyId || conv.uid2 === billyId)) {
-            Modules.Metrics.onBillyBotMuted(ctx, uid);
-        }
+        // let billyId = await Modules.Super.getEnvVar<number>(ctx, 'onboarding-bot-id');
+        // let conv = await Store.ConversationPrivate.findById(ctx, cid);
     }
 
     //
@@ -237,7 +233,6 @@ export class UserOnboardingModule {
             message.isService = true;
         }
         await Modules.Messaging.sendMessage(ctx, privateChat.id, billyId, message);
-        await Modules.Metrics.onBillyBotMessageRecieved(ctx, uid, Case.snakeCase(template));
     }
 
     private userDidSendMessageToGroups = async (ctx: Context, uid: number) => {

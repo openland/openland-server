@@ -3,9 +3,15 @@ import { Store } from 'openland-module-db/FDB';
 import {
     UpdateChatRead,
     UpdateProfileChanged,
+    UpdateChatMessage,
+    UpdateChatMessageUpdated,
+    UpdateChatMessageDeleted
 } from 'openland-module-db/store';
 
-export type FeedReference = { type: 'common', uid: number };
+export type FeedReference =
+    | { type: 'common', uid: number }
+    | { type: 'chat', cid: number }
+    | { type: 'chat-private', cid: number, uid: number };
 
 //
 // Common Events
@@ -41,10 +47,48 @@ export function commonEventParse(src: Buffer): CommonEvent | null {
 }
 
 //
+// Chat Events
+//
+
+const ChatEvents = [
+    UpdateChatMessage,
+    UpdateChatMessageUpdated,
+    UpdateChatMessageDeleted
+];
+
+export type ChatEvent = ReturnType<(typeof ChatEvents[number])['create']>;
+
+export function chatEventCollapseKey(src: ChatEvent): string | null {
+
+    // All updates have same collapse key
+    if (src.type === 'updateChatMessage') {
+        return 'message-' + src.mid;
+    } else if (src.type === 'updateChatMessageDeleted') {
+        return 'message-' + src.mid;
+    } else if (src.type === 'updateChatMessageUpdated') {
+        return 'message-' + src.mid;
+    }
+    return null;
+}
+
+export function chatEventSerialize(src: ChatEvent) {
+    return Buffer.from(JSON.stringify(Store.eventFactory.encode(src)), 'utf-8');
+}
+export function chatEventParse(src: Buffer): ChatEvent | null {
+    let event = Store.eventFactory.decode(JSON.parse(src.toString('utf-8')));
+    for (let e of ChatEvents) {
+        if (event.type === e.type) {
+            return event as ChatEvent;
+        }
+    }
+    return null;
+}
+
+//
 // Handler
 //
 
-export type Event = CommonEvent;
+export type Event = CommonEvent | ChatEvent;
 
 export type UserSubscriptionHandlerEvent =
     | { type: 'started', seq: number, state: string }
@@ -59,6 +103,10 @@ export type UserSubscriptionHandlerEvent =
 export function packFeedEvent(feed: FeedReference, event: Buffer) {
     if (feed.type === 'common') {
         return encoders.tuple.pack([0, feed.uid, event]);
+    } else if (feed.type === 'chat') {
+        return encoders.tuple.pack([1, feed.cid, event]);
+    } else if (feed.type === 'chat-private') {
+        return encoders.tuple.pack([2, feed.cid, feed.uid, event]);
     }
     throw Error('Unknown feed type');
 }
@@ -79,6 +127,38 @@ export function unpackFeedEvent(src: Buffer): { feed: FeedReference, event: Even
             throw Error('Invalid event');
         }
         return { feed: { type: 'common', uid }, event: parsed };
+    } else if (tuple[0] === 1) {
+        let cid = tuple[1] as number;
+        if (typeof cid !== 'number') {
+            throw Error('Invalid event');
+        }
+        let event = tuple[2] as Buffer;
+        if (!Buffer.isBuffer(event)) {
+            throw Error('Invalid event');
+        }
+        let parsed = chatEventParse(event);
+        if (!parsed) {
+            throw Error('Invalid event');
+        }
+        return { feed: { type: 'chat', cid }, event: parsed };
+    } else if (tuple[0] === 2) {
+        let cid = tuple[1] as number;
+        let uid = tuple[2] as number;
+        if (typeof cid !== 'number') {
+            throw Error('Invalid event');
+        }
+        if (typeof uid !== 'number') {
+            throw Error('Invalid event');
+        }
+        let event = tuple[3] as Buffer;
+        if (!Buffer.isBuffer(event)) {
+            throw Error('Invalid event');
+        }
+        let parsed = chatEventParse(event);
+        if (!parsed) {
+            throw Error('Invalid event');
+        }
+        return { feed: { type: 'chat-private', cid, uid }, event: parsed };
     }
     throw Error('Unknown feed type');
 }

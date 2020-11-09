@@ -52,10 +52,7 @@ import {
     OauthApplication,
     OauthContext,
     UserLocation,
-    ChatPowerup,
-    Powerup,
     UserStripeCard,
-    PermissionRequest,
     Payment,
     Wallet,
     WalletTransaction,
@@ -122,15 +119,14 @@ import { UserFullRoot } from '../../openland-module-users/User.resolver';
 import { LiveStreamItem, BaseEvent } from '@openland/foundationdb-entity';
 import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfoService';
 import { RichMessageReaction, Slide } from '../../openland-module-rich-message/repositories/RichMessageRepository';
-import { PowerupChatUserSettings } from 'openland-module-powerups/PowerupsRepository';
 import Stripe from 'stripe';
-import { PermissionGroup } from 'openland-module-permissions/PermissionsRepository';
 import {
     PostContent, H1Paragraph, H2Paragraph,
     ImageParagraph,
     TextParagraph, PostParagraphSpans, LinkPostSpan, BoldTextPostSpan, ItalicTextPostSpan, IronyTextPostSpan
 } from '../../openland-module-discussions/repositories/PostsRepository';
 import { GeoIPResponse } from '../../openland-utils/geoIP';
+import { Event } from 'openland-module-events/Definitions';
 
 //
 //  Root types
@@ -687,13 +683,6 @@ export namespace GQLRoots {
     export type IpLocationRoot = GeoIPResponse;
 
     //
-    // Powerups
-    //
-    export type RoomPowerupRoot = ChatPowerup;
-    export type PowerupRoot = Powerup;
-    export type PowerupUserSettingsRoot = PowerupChatUserSettings;
-
-    //
     // Billing
     //
     export type CreditCardRoot = UserStripeCard;
@@ -740,13 +729,6 @@ export namespace GQLRoots {
     export type WalletSubscriptionIntervalRoot = WalletSubscriptionIntervalValues;
     export type PurchaseRoot = WalletPurchase;
     export type PurchaseStateRoot = PurchaseStateValues;
-    //
-    // Permissions
-    //
-    export type PermissionRequestRoot = PermissionRequest;
-    export type PermissionGroupRoot = PermissionGroup;
-    export type PermissionScopeRoot = 'group' | 'chat';
-    export type PermissionAppTypeRoot = 'powerup';
 
     //
     // Log
@@ -801,10 +783,10 @@ export namespace GQLRoots {
     export type UpdateChatReadRoot = UpdateChatRead;
     export type UpdateProfileChangedRoot = UpdateProfileChanged;
     export type UpdateMyProfileChangedRoot = UpdateProfileChanged;
-    export type UpdateEventRoot = UpdateChatReadRoot | UpdateProfileChangedRoot | UpdateMyProfileChangedRoot;
+    export type UpdateEventRoot = Event;
 
     export type SequenceCommonRoot = { type: 'common', uid: number };
-    export type SequenceChatRoot = { type: 'chat', cid: number };
+    export type SequenceChatRoot = { type: 'chat', cid: number } | { type: 'chat-private', cid: number, uid: number };
     export type SequenceRoot = SequenceCommonRoot | SequenceChatRoot;
 
     export type UpdateSubscriptionStartedRoot = { type: 'started', seq: number, state: string };
@@ -819,5 +801,5 @@ export namespace GQLRoots {
     export type UpdatesSequenceDifferenceRoot = { sequence: SequenceRoot, pts: number, events: UpdatesDifferenceEventRoot[] };
     export type UpdatesDifferenceRoot = { seq: number, state: string, hasMore: boolean, sequences: UpdatesSequenceDifferenceRoot[] };
 
-    export type SequenceDifferenceRoot = { hasMore: boolean, sequence: SequenceRoot, events: UpdatesDifferenceEventRoot[] };
+    export type SequenceDifferenceRoot = { hasMore: boolean, pts: number, sequence: SequenceRoot, events: UpdatesDifferenceEventRoot[] };
 }

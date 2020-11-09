@@ -46,17 +46,6 @@ export class PermissionsRepository {
                     permissions.add('org-' + IDs.Organization.serialize(member.oid) + '-admin');
                 }
             }
-
-            //
-            // Organization features
-            //
-            let org = await Store.Organization.findById(ctx, args.oid);
-            if (org) {
-                let features = await Modules.Features.repo.findOrganizationFeatures(ctx, org.id!);
-                for (let f of features) {
-                    permissions.add('feature-' + f.featureKey);
-                }
-            }
         }
 
         return permissions;

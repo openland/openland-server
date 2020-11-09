@@ -1,16 +1,16 @@
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { container } from 'openland-modules/Modules.container';
-import { MessagingRepository } from './MessagingRepository';
+import { MessagesRepository } from './MessagesRepository';
 import { UserStateRepository } from './UserStateRepository';
 import { createNamedContext } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
 import { UsersModule } from '../../openland-module-users/UsersModule';
 
-describe('MessagingRepository', () => {
+describe('MessagesRepository', () => {
     beforeAll(async () => {
         await testEnvironmentStart('messaging-repo');
-        container.bind('MessagingRepository').to(MessagingRepository).inSingletonScope();
+        container.bind('MessagesRepository').to(MessagesRepository).inSingletonScope();
         container.bind('UserStateRepository').to(UserStateRepository).inSingletonScope();
         container.bind('ChatMetricsRepository').to(ChatMetricsRepository).inSingletonScope();
         container.bind(UsersModule).toSelf().inSingletonScope();
@@ -22,7 +22,7 @@ describe('MessagingRepository', () => {
 
     it('should create message and event', async () => {
         let ctx = createNamedContext('test');
-        let repo = container.get<MessagingRepository>('MessagingRepository');
+        let repo = container.get<MessagesRepository>('MessagesRepository');
         let res = (await repo.createMessage(ctx, 1, 2, { message: 'text' }));
         expect(res).not.toBeNull();
         expect(res).not.toBeUndefined();

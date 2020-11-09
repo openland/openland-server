@@ -1,3 +1,4 @@
+import { EventsModule } from 'openland-module-events/EventsModule';
 import { Store } from './../openland-module-db/store';
 import { openStore } from 'openland-module-db/store';
 import { EntityStorage } from '@openland/foundationdb-entity';
@@ -27,6 +28,7 @@ export async function testEnvironmentStart(name: string) {
     // Set Mock Email
     container.bind('EmailModule').toConstantValue(new EmailModuleMock());
     container.bind('HooksModule').toConstantValue(new HooksModuleMock());
+    container.bind(EventsModule).toSelf().inSingletonScope();
     container.bind(StatsModule).toSelf().inSingletonScope();
 
     // Prepare test DB connection
