@@ -783,36 +783,26 @@ migrations.push({
 migrations.push({
     key: '143-create-conversation-feeds',
     migration: async (parent) => {
-        let data = await inTx(parent, ctx => Store.Conversation.findAll(ctx));
-        logger.log(parent, 'Loaded conversations');
-        for (let cursor = 0; cursor < data.length; cursor += 100) {
-            logger.log(parent, 'Apply conversatino ' + cursor);
-            let batch = data.slice(cursor, cursor + 100);
+        let after = 0;
+        while (true) {
+            let ex = await Store.Conversation.descriptor.subspace.range(parent, [], { after: [0], limit: 100 });
+            if (ex.length === 0) {
+                break;
+            }
+            let ids = ex.map((e) => e.key[0] as number);
+            logger.log(parent, 'Apply conversation ' + after);
             await inTx(parent, async ctx => {
-                for (let u of batch) {
-                    await Modules.Events.mediator.prepareChat(ctx, u.id);
-                }
-            });
-        }
-    }
-});
-
-migrations.push({
-    key: '144-create-conversation-feeds',
-    migration: async (parent) => {
-        let data = await inTx(parent, ctx => Store.Conversation.findAll(ctx));
-        for (let cursor = 0; cursor < data.length; cursor += 100) {
-            let batch = data.slice(cursor, cursor + 100);
-            await inTx(parent, async ctx => {
-                for (let u of batch) {
-                    await Modules.Events.mediator.prepareChat(ctx, u.id);
-                    if (u.kind === 'private') {
-                        let pr = (await Store.ConversationPrivate.findById(ctx, u.id))!;
-                        await Modules.Events.mediator.preparePrivateChat(ctx, u.id, pr.uid1);
-                        await Modules.Events.mediator.preparePrivateChat(ctx, u.id, pr.uid2);
+                for (let u of ids) {
+                    await Modules.Events.mediator.prepareChat(ctx, u);
+                    let conv = await Store.ConversationPrivate.findById(ctx, u);
+                    if (conv) {
+                        await Modules.Events.mediator.preparePrivateChat(ctx, u, conv.uid1);
+                        await Modules.Events.mediator.preparePrivateChat(ctx, u, conv.uid2);
                     }
                 }
             });
+
+            after = ex[ex.length - 1].key[0] as number;
         }
     }
 });
