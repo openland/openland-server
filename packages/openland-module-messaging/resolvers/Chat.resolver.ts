@@ -595,7 +595,7 @@ export const Resolver: GQLResolver = {
 
             if (message.attachmentsModern) {
                 newAttachments = message.attachmentsModern.filter(a => a.type !== 'rich_attachment').map(a => {
-                    delete a.id;
+                    delete (a as any).id;
                     return a;
                 });
             }
@@ -679,16 +679,15 @@ export const Resolver: GQLResolver = {
             let userId = IDs.User.parse(args.userId);
             return inTx(parent, async (ctx) => {
                 if (uid === userId) {
-                    let chat = await Modules.Messaging.room.leaveRoom(ctx, conversationId, uid);
-                    return {
-                        chat
-                    };
+                    await Modules.Messaging.room.leaveRoom(ctx, conversationId, uid);
                 } else {
-                    let chat = await Modules.Messaging.room.kickFromRoom(ctx, conversationId, uid, userId);
-                    return {
-                        chat
-                    };
+                    await Modules.Messaging.room.kickFromRoom(ctx, conversationId, uid, userId);
                 }
+
+                let chat = (await Store.Conversation.findById(ctx, conversationId))!;
+                return {
+                    chat
+                };
             });
         }),
         alphaChatChangeRoleInGroup: withUser(async (ctx, args, uid) => {

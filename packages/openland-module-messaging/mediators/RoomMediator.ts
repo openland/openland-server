@@ -1,3 +1,5 @@
+import { Events } from 'openland-module-hyperlog/Events';
+import { EventBus } from 'openland-module-pubsub/EventBus';
 import { EventsMediator } from './../mediators/EventsMediator';
 import { ChatUpdatedEvent, ConversationRoom } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
@@ -15,6 +17,7 @@ import { Context } from '@openland/context';
 import { MessageInput } from '../MessageInput';
 import { boldString, buildMessage, userMention, usersMention } from '../../openland-utils/MessageBuilder';
 import { Store } from 'openland-module-db/FDB';
+import { createWelcomeMessageWorker } from 'openland-module-messaging/workers/welcomeMessageWorker';
 
 @injectable()
 export class RoomMediator {
@@ -27,6 +30,8 @@ export class RoomMediator {
     private readonly delivery!: DeliveryMediator;
     @lazyInject('MessagingEventsMediator')
     readonly events!: EventsMediator;
+
+    public readonly welcomeMessageWorker = createWelcomeMessageWorker();
 
     async isRoomMember(ctx: Context, uid: number, cid: number) {
         return await this.repo.isActiveMember(ctx, uid, cid);
@@ -68,6 +73,15 @@ export class RoomMediator {
 
             // Create feed
             await this.events.onChatCreated(ctx, res.id);
+
+            // Handle room join
+            await this.onRoomJoin(ctx, res.id, uid, uid);
+            for (let m of members) {
+                if (m === uid) {
+                    continue;
+                }
+                await this.onRoomJoin(ctx, res.id, m, uid);
+            }
 
             // Send initial messages
             let userName = await Modules.Users.getUserFullName(parent, uid);
@@ -121,6 +135,8 @@ export class RoomMediator {
 
             // Join room
             if (await this.repo.joinRoom(ctx, cid, uid)) {
+                await this.onRoomJoin(ctx, cid, uid, uid);
+
                 let shouldSendJoinMessage = await this.shouldSendJoinMessage(ctx, cid);
                 if (shouldSendJoinMessage) {
                     let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid, uid);
@@ -139,10 +155,9 @@ export class RoomMediator {
                     // message not sent to new members, move room up in dialog list other way
                     await this.messaging.bumpDialog(ctx, uid, cid);
                 }
-
+                return true;
             }
-
-            return (await Store.Conversation.findById(ctx, cid))!;
+            return false;
         });
     }
 
@@ -162,6 +177,7 @@ export class RoomMediator {
                 let res: number[] = [];
                 for (let id of invites) {
                     if (await this.repo.addToRoom(ctx, cid, id, uid)) {
+                        await this.onRoomJoin(ctx, cid, id, uid);
                         res.push(id);
                     }
                 }
@@ -200,7 +216,7 @@ export class RoomMediator {
         });
     }
 
-    async kickFromRoom(parent: Context, cid: number, uid: number, kickedUid: number) {
+    async kickFromRoom(parent: Context, cid: number, uid: number | null, kickedUid: number) {
         return await inTx(parent, async (ctx) => {
             if (uid === kickedUid) {
                 throw new UserError('Unable to kick yourself');
@@ -222,15 +238,17 @@ export class RoomMediator {
             //     throw new UserError('User are not member of a room');
             // }
 
-            let canKick = await this.canKickFromRoom(ctx, cid, uid, kickedUid);
+            let canKick = uid === null || await this.canKickFromRoom(ctx, cid, uid, kickedUid);
             if (!canKick) {
                 throw new UserError('Insufficient rights');
             }
 
             // Kick from group
             if (await this.repo.kickFromRoom(ctx, cid, kickedUid)) {
+                await this.onRoomLeave(ctx, cid, kickedUid, true);
+
                 let profile = await Store.RoomProfile.findById(ctx, cid);
-                if (!conv.isChannel && !profile?.leavesMessageDisabled) {
+                if (!conv.isChannel && !profile?.leavesMessageDisabled && uid !== null) {
                     // Send message
                     let cickerName = await Modules.Users.getUserFullName(parent, uid);
                     let cickedName = await Modules.Users.getUserFullName(parent, kickedUid);
@@ -248,9 +266,11 @@ export class RoomMediator {
 
                 // Deliver dialog deletion
                 await this.delivery.onDialogDelete(ctx, kickedUid, cid);
+
+                return true;
             }
 
-            return (await Store.Conversation.findById(ctx, cid))!;
+            return false;
         });
     }
 
@@ -312,6 +332,8 @@ export class RoomMediator {
         return await inTx(parent, async (ctx) => {
 
             if (await this.repo.leaveRoom(ctx, cid, uid)) {
+                await this.onRoomLeave(ctx, cid, uid, false);
+
                 // Send message
                 let userName = await Modules.Users.getUserFullName(ctx, uid);
 
@@ -552,7 +574,9 @@ export class RoomMediator {
             if (await this.repo.deleteRoom(ctx, cid)) {
                 for (let member of members) {
                     if (conv.kind === 'room') {
-                        await this.repo.kickFromRoom(ctx, cid, member);
+                        if (await this.repo.kickFromRoom(ctx, cid, member)) {
+                            await this.onRoomLeave(ctx, cid, member, true);
+                        }
                     }
                     await this.delivery.onDialogDelete(ctx, member, cid);
                 }
@@ -814,5 +838,92 @@ export class RoomMediator {
                 invitedById: uid
             }
         };
+    }
+
+    private async onRoomJoin(parent: Context, cid: number, uid: number, by: number) {
+        return await inTx(parent, async (ctx) => {
+            EventBus.publish(`chat_join_${cid}`, { uid, cid });
+            Events.MembersLog.event(ctx, { rid: cid, delta: 1 });
+
+            let room = await Store.ConversationRoom.findById(ctx, cid);
+            let roomProfile = await Store.RoomProfile.findById(ctx, cid);
+            if (!room || !roomProfile) {
+                throw new Error('Room not found');
+            }
+            if (await this.repo.isPublicCommunityChat(ctx, cid)) {
+                Store.UserAudienceCounter.add(ctx, uid, roomProfile.activeMembersCount ? (roomProfile.activeMembersCount) - 1 : 0);
+            }
+            if (room.oid) {
+                let org = await Store.Organization.findById(ctx, room.oid);
+
+                if (!org) {
+                    return;
+                }
+
+                //
+                //  Join community if not already
+                //
+                this.repo.metrics.onChatCreated(ctx, uid);
+                if (room.isChannel) {
+                    this.repo.metrics.onChannelJoined(ctx, uid);
+                }
+
+                if (org.kind === 'community') {
+                    await Modules.Orgs.addUserToOrganization(ctx, uid, org.id, by, true);
+                }
+
+                if (org.autosubscribeRooms && !(await Store.AutoSubscribeWasExecutedForUser.get(ctx, uid, 'org', org.id))) {
+                    for (let c of org.autosubscribeRooms) {
+                        let conv = await Store.ConversationRoom.findById(ctx, c);
+                        if (!conv || conv.isDeleted) {
+                            continue;
+                        }
+                        await Modules.Messaging.room.joinRoom(ctx, c, uid, false);
+                    }
+                    Store.AutoSubscribeWasExecutedForUser.set(ctx, uid, 'org', org.id, true);
+                }
+            }
+            const welcomeMessage = await this.resolveConversationWelcomeMessage(ctx, cid);
+            if (welcomeMessage && welcomeMessage.isOn && welcomeMessage.sender) {
+                // Send welcome message after 60s
+                await this.welcomeMessageWorker.pushWork(ctx, { uid, cid }, Date.now() + 1000 * 40);
+            }
+
+            if (room.autosubscribeRooms && !(await Store.AutoSubscribeWasExecutedForUser.get(ctx, uid, 'room', room.id))) {
+                for (let c of room.autosubscribeRooms) {
+                    let conv = await Store.ConversationRoom.findById(ctx, c);
+                    if (!conv || conv.isDeleted) {
+                        continue;
+                    }
+                    await Modules.Messaging.room.joinRoom(ctx, c, uid, false);
+                }
+                Store.AutoSubscribeWasExecutedForUser.set(ctx, uid, 'room', room.id, true);
+            }
+
+            await Modules.Hooks.onRoomJoin(ctx, cid, uid, by);
+            await this.delivery.onDialogGotAccess(ctx, uid, cid);
+            await Modules.Users.markForUndexing(ctx, uid);
+        });
+    }
+
+    private async onRoomLeave(parent: Context, cid: number, uid: number, wasKicked: boolean) {
+        return await inTx(parent, async (ctx) => {
+            Events.MembersLog.event(ctx, { rid: cid, delta: -1 });
+            let roomProfile = await Store.RoomProfile.findById(ctx, cid);
+            if (await this.repo.isPublicCommunityChat(ctx, cid)) {
+                Store.UserAudienceCounter.add(ctx, uid, (roomProfile!.activeMembersCount ? (roomProfile!.activeMembersCount) : 0) * -1);
+            }
+            EventBus.publish(`chat_leave_${cid}`, { uid, cid });
+
+            let userRoomBadge = await Store.UserRoomBadge.findById(ctx, uid, cid);
+
+            if (userRoomBadge && userRoomBadge.bid !== null) {
+                userRoomBadge.bid = null;
+            }
+
+            await Modules.Hooks.onRoomLeave(ctx, cid, uid, wasKicked);
+            await this.delivery.onDialogLostAccess(ctx, uid, cid);
+            await Modules.Users.markForUndexing(ctx, uid);
+        });
     }
 }
