@@ -51,8 +51,8 @@ describe('Emails', () => {
         container.bind(SuperModule).toSelf().inSingletonScope();
         loadInvitesModule();
     });
-    afterAll( async () => {
-      await  testEnvironmentEnd();
+    afterAll(async () => {
+        await testEnvironmentEnd();
     });
 
     const getSpy = () => {
@@ -66,15 +66,16 @@ describe('Emails', () => {
     async function randomUser(ctx: Context) {
         let users = container.get<UsersModule>(UsersModule);
         let email = 'test' + randStr() + '@openland.com';
-        let uid = (await users.createUser(ctx, {email})).id;
+        let uid = (await users.createUser(ctx, { email })).id;
         await users.createUserProfile(ctx, uid, { firstName: 'User Name' + Math.random() });
+        await Modules.Events.mediator.prepareUser(ctx, uid);
         return { uid, email };
     }
 
     it('should send welcome email', async () => {
         let ctx = createNamedContext('test');
         let spy = getSpy();
-        let {uid, email} = await randomUser(ctx);
+        let { uid, email } = await randomUser(ctx);
         await Modules.Users.activateUser(ctx, uid, true);
         let args: EmailTask = spy.mock.calls[0][1];
         expect(spy.mock.calls.length).toBe(1);
@@ -84,8 +85,8 @@ describe('Emails', () => {
 
     it('should send welcome email if joined with invite', async () => {
         let ctx = createNamedContext('test');
-        let {uid, email} = await randomUser(ctx);
-        let {uid: uid2} = await randomUser(ctx);
+        let { uid, email } = await randomUser(ctx);
+        let { uid: uid2 } = await randomUser(ctx);
 
         let org = await Modules.Orgs.createOrganization(ctx, uid2, { name: 'test' });
         await Modules.Orgs.activateOrganization(ctx, org.id, false);
@@ -103,7 +104,7 @@ describe('Emails', () => {
     it('should send unread message email', async () => {
         let ctx = createNamedContext('test');
 
-        let {uid, email} = await randomUser(ctx);
+        let { uid, email } = await randomUser(ctx);
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: '1' });
         let spy = getSpy();
 
@@ -122,7 +123,7 @@ describe('Emails', () => {
     it('should send unread messages email', async () => {
         let ctx = createNamedContext('test');
 
-        let {uid, email} = await randomUser(ctx);
+        let { uid, email } = await randomUser(ctx);
 
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: '1' });
         let spy = getSpy();
@@ -145,8 +146,8 @@ describe('Emails', () => {
     it('should send account activated Email', async () => {
         let ctx = createNamedContext('test');
         let spy = getSpy();
-        let {uid, email} = await randomUser(ctx);
-        let {uid: uid2, email: email2} = await randomUser(ctx);
+        let { uid, email } = await randomUser(ctx);
+        let { uid: uid2, email: email2 } = await randomUser(ctx);
 
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: 'test' });
         await Modules.Orgs.addUserToOrganization(ctx, uid2, org.id, uid, false, true);
@@ -169,8 +170,8 @@ describe('Emails', () => {
 
     it('should send account deactivated Email', async () => {
         let ctx = createNamedContext('test');
-        let {uid, email} = await randomUser(ctx);
-        let {uid: uid2, email: email2} = await randomUser(ctx);
+        let { uid, email } = await randomUser(ctx);
+        let { uid: uid2, email: email2 } = await randomUser(ctx);
 
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: 'test' });
         await Modules.Orgs.addUserToOrganization(ctx, uid2, org.id, uid);
@@ -192,8 +193,8 @@ describe('Emails', () => {
 
     it('should send member removed email', async () => {
         let ctx = createNamedContext('test');
-        let {uid} = await randomUser(ctx);
-        let {uid: uid2, email: email2} = await randomUser(ctx);
+        let { uid } = await randomUser(ctx);
+        let { uid: uid2, email: email2 } = await randomUser(ctx);
 
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: 'test' });
         let org2 = await Modules.Orgs.createOrganization(ctx, uid, { name: 'test' });
@@ -212,8 +213,8 @@ describe('Emails', () => {
 
     it('should send membership level changed email', async () => {
         let ctx = createNamedContext('test');
-        let {uid} = await randomUser(ctx);
-        let {uid: uid2, email: email2} = await randomUser(ctx);
+        let { uid } = await randomUser(ctx);
+        let { uid: uid2, email: email2 } = await randomUser(ctx);
 
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: 'test' });
         await Modules.Orgs.addUserToOrganization(ctx, uid2, org.id, uid);
@@ -230,8 +231,8 @@ describe('Emails', () => {
 
     it('should send organization invite email', async () => {
         let ctx = createNamedContext('test');
-        let {uid} = await randomUser(ctx);
-        let {email: email2} = await randomUser(ctx);
+        let { uid } = await randomUser(ctx);
+        let { email: email2 } = await randomUser(ctx);
 
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: 'test' });
         await Modules.Orgs.activateOrganization(ctx, org.id, false);
@@ -276,7 +277,7 @@ describe('Emails', () => {
 
     it('should send activation code email', async () => {
         let ctx = createNamedContext('test');
-        let {email} = await randomUser(ctx);
+        let { email } = await randomUser(ctx);
 
         let spy = getSpy();
         await Emails.sendActivationCodeEmail(ctx, email, '11111', true);
@@ -294,8 +295,8 @@ describe('Emails', () => {
 
     it('should send room invite email', async () => {
         let ctx = createNamedContext('test');
-        let {uid} = await randomUser(ctx);
-        let {email: email2} = await randomUser(ctx);
+        let { uid } = await randomUser(ctx);
+        let { email: email2 } = await randomUser(ctx);
 
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: '1' });
         let spy = getSpy();
@@ -317,8 +318,8 @@ describe('Emails', () => {
 
     it('should send room invite accepted email', async () => {
         let ctx = createNamedContext('test');
-        let {uid, email} = await randomUser(ctx);
-        let {uid: uid2, email: email2} = await randomUser(ctx);
+        let { uid, email } = await randomUser(ctx);
+        let { uid: uid2, email: email2 } = await randomUser(ctx);
 
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: '1' });
         let chat = await Modules.Messaging.room.createRoom(ctx, 'group', org.id, uid, [], { title: '' });
