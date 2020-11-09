@@ -2,7 +2,7 @@ import { Context } from '@openland/context';
 import { MessagesEventsRepository } from './../repositories/MessagesEventsRepository';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
-import { Modules } from 'openland-modules/Modules';
+// import { Modules } from 'openland-modules/Modules';
 
 @injectable()
 export class EventsMediator {
@@ -11,11 +11,11 @@ export class EventsMediator {
     readonly messagingEvents!: MessagesEventsRepository;
 
     async onChatCreated(ctx: Context, cid: number) {
-        await Modules.Events.mediator.prepareChat(ctx, cid);
+        // await Modules.Events.mediator.prepareChat(ctx, cid);
     }
 
     async onChatPrivateCreated(ctx: Context, cid: number, uid: number) {
-        await Modules.Events.mediator.preparePrivateChat(ctx, cid, uid);
+        // await Modules.Events.mediator.preparePrivateChat(ctx, cid, uid);
     }
 
     async onChatJoined(ctx: Context, cid: number, uid: number) {

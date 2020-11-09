@@ -781,11 +781,11 @@ migrations.push({
 });
 
 migrations.push({
-    key: '143-create-conversation-feeds',
+    key: '144-create-conversation-feeds',
     migration: async (parent) => {
         let after = 0;
         while (true) {
-            let ex = await Store.Conversation.descriptor.subspace.range(parent, [], { after: [0], limit: 100 });
+            let ex = await Store.Conversation.descriptor.subspace.range(parent, [], { after: [after], limit: 100 });
             if (ex.length === 0) {
                 break;
             }
