@@ -247,13 +247,6 @@ export class HooksModule {
                 await Modules.Messaging.room.joinRoom(ctx, c, uid, true /* Just like it was invited */);
             }
         };
-        /*
-         * Hack for mesto.community
-         */
-        if (cid === 88912) {
-            let mestoDefaultChatIds = [88914, 88910, 88908, 89740, 91565, 99729, 89805, 111097];
-            await autoSubscribe(mestoDefaultChatIds);
-        }
         if (cid === 213797) {
             let superNextDefaultChatIds = [213793, 97587];
             await autoSubscribe(superNextDefaultChatIds);
