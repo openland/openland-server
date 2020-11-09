@@ -776,4 +776,19 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '143-create-conversation-feeds',
+    migration: async (parent) => {
+        let data = await inTx(parent, ctx => Store.Conversation.findAll(ctx));
+        for (let cursor = 0; cursor < data.length; cursor += 100) {
+            let batch = data.slice(cursor, cursor + 100);
+            await inTx(parent, async ctx => {
+                for (let u of batch) {
+                    await Modules.Events.mediator.prepareChat(ctx, u.id);
+                }
+            });
+        }
+    }
+});
+
 export default migrations;
