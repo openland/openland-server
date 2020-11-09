@@ -631,6 +631,8 @@ export class RoomMediator {
             let res = await this.repo.resolvePrivateChat(ctx, uid1, uid2);
             if (res.created) {
                 await this.events.onChatCreated(ctx, res.conv.id);
+                await this.events.onChatPrivateCreated(ctx, res.conv.id, uid1);
+                await this.events.onChatPrivateCreated(ctx, res.conv.id, uid2);
             }
             return res.conv;
         });
@@ -842,6 +844,8 @@ export class RoomMediator {
 
     private async onRoomJoin(parent: Context, cid: number, uid: number, by: number) {
         return await inTx(parent, async (ctx) => {
+            await this.events.onChatJoined(ctx, cid, uid);
+
             EventBus.publish(`chat_join_${cid}`, { uid, cid });
             Events.MembersLog.event(ctx, { rid: cid, delta: 1 });
 
@@ -908,6 +912,8 @@ export class RoomMediator {
 
     private async onRoomLeave(parent: Context, cid: number, uid: number, wasKicked: boolean) {
         return await inTx(parent, async (ctx) => {
+            await this.events.onChatLeft(ctx, cid, uid);
+
             Events.MembersLog.event(ctx, { rid: cid, delta: -1 });
             let roomProfile = await Store.RoomProfile.findById(ctx, cid);
             if (await this.repo.isPublicCommunityChat(ctx, cid)) {

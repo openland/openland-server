@@ -791,4 +791,24 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '144-create-conversation-feeds',
+    migration: async (parent) => {
+        let data = await inTx(parent, ctx => Store.Conversation.findAll(ctx));
+        for (let cursor = 0; cursor < data.length; cursor += 100) {
+            let batch = data.slice(cursor, cursor + 100);
+            await inTx(parent, async ctx => {
+                for (let u of batch) {
+                    await Modules.Events.mediator.prepareChat(ctx, u.id);
+                    if (u.kind === 'private') {
+                        let pr = (await Store.ConversationPrivate.findById(ctx, u.id))!;
+                        await Modules.Events.mediator.preparePrivateChat(ctx, u.id, pr.uid1);
+                        await Modules.Events.mediator.preparePrivateChat(ctx, u.id, pr.uid2);
+                    }
+                }
+            });
+        }
+    }
+});
+
 export default migrations;

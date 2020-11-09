@@ -14,12 +14,16 @@ export class EventsMediator {
         await Modules.Events.mediator.prepareChat(ctx, cid);
     }
 
+    async onChatPrivateCreated(ctx: Context, cid: number, uid: number) {
+        await Modules.Events.mediator.preparePrivateChat(ctx, cid, uid);
+    }
+
     async onChatJoined(ctx: Context, cid: number, uid: number) {
-        // 
+        // TODO: Implement
     }
 
     async onChatLeft(ctx: Context, cid: number, uid: number) {
-        // 
+        // TODO: Implement
     }
 
     async onMessageSent(ctx: Context, cid: number, mid: number, hiddenForUids: number[]) {
