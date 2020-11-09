@@ -11,7 +11,7 @@ import {
 export type FeedReference =
     | { type: 'common', uid: number }
     | { type: 'chat', cid: number }
-    | { type: 'chat-private', owner: number, uid: number };
+    | { type: 'chat-private', cid: number, uid: number };
 
 //
 // Common Events
@@ -106,7 +106,7 @@ export function packFeedEvent(feed: FeedReference, event: Buffer) {
     } else if (feed.type === 'chat') {
         return encoders.tuple.pack([1, feed.cid, event]);
     } else if (feed.type === 'chat-private') {
-        return encoders.tuple.pack([2, feed.owner, feed.uid, event]);
+        return encoders.tuple.pack([2, feed.cid, feed.uid, event]);
     }
     throw Error('Unknown feed type');
 }
@@ -142,9 +142,9 @@ export function unpackFeedEvent(src: Buffer): { feed: FeedReference, event: Even
         }
         return { feed: { type: 'chat', cid }, event: parsed };
     } else if (tuple[0] === 2) {
-        let owner = tuple[1] as number;
+        let cid = tuple[1] as number;
         let uid = tuple[2] as number;
-        if (typeof owner !== 'number') {
+        if (typeof cid !== 'number') {
             throw Error('Invalid event');
         }
         if (typeof uid !== 'number') {
@@ -158,7 +158,7 @@ export function unpackFeedEvent(src: Buffer): { feed: FeedReference, event: Even
         if (!parsed) {
             throw Error('Invalid event');
         }
-        return { feed: { type: 'chat-private', owner, uid }, event: parsed };
+        return { feed: { type: 'chat-private', cid, uid }, event: parsed };
     }
     throw Error('Unknown feed type');
 }

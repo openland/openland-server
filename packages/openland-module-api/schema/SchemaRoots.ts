@@ -786,7 +786,7 @@ export namespace GQLRoots {
     export type UpdateEventRoot = Event;
 
     export type SequenceCommonRoot = { type: 'common', uid: number };
-    export type SequenceChatRoot = { type: 'chat', cid: number };
+    export type SequenceChatRoot = { type: 'chat', cid: number } | { type: 'chat-private', cid: number, uid: number };
     export type SequenceRoot = SequenceCommonRoot | SequenceChatRoot;
 
     export type UpdateSubscriptionStartedRoot = { type: 'started', seq: number, state: string };

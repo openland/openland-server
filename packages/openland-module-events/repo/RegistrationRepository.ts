@@ -49,7 +49,7 @@ export class RegistrationRepository {
         } else if (feed.type === 'chat') {
             return encoders.tuple.pack([SUBSPACE_CHAT, feed.cid]);
         } else if (feed.type === 'chat-private') {
-            return encoders.tuple.pack([SUBSPACE_CHAT_PRIVATE, feed.owner, feed.uid]);
+            return encoders.tuple.pack([SUBSPACE_CHAT_PRIVATE, feed.cid, feed.uid]);
         }
         throw Error('Unknown feed type');
     }
@@ -73,7 +73,7 @@ export class RegistrationRepository {
             if (typeof tuple[2] !== 'number') {
                 throw Error('Unknown feed type');
             }
-            return { type: 'chat-private', owner: tuple[1] as number, uid: tuple[2] as number };
+            return { type: 'chat-private', cid: tuple[1] as number, uid: tuple[2] as number };
         }
         throw Error('Unknown feed type');
     }

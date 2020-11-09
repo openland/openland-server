@@ -1,13 +1,13 @@
-import { FeedReference } from './../Definitions';
 import { inTx, getTransaction } from '@openland/foundationdb';
 import { withUser } from 'openland-module-api/Resolvers';
-import { IDs, IdsFactory } from 'openland-module-api/IDs';
+import { IDs } from 'openland-module-api/IDs';
 import { Context } from '@openland/context';
 import { GQLRoots } from 'openland-module-api/schema/SchemaRoots';
 import { GQL, GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { createIterator } from 'openland-utils/asyncIterator';
 import { UserError } from 'openland-errors/UserError';
 import { Modules } from 'openland-modules/Modules';
+import { parseSequenceId } from './Sequences.resolver';
 
 export const Resolver: GQLResolver = {
     UpdateSubscription: {
@@ -128,15 +128,7 @@ export const Resolver: GQLResolver = {
             return await Modules.Events.mediator.getDifference(ctx, uid, IDs.SequenceStateV1.parse(args.state));
         }),
         sequenceDifference: withUser(async (ctx, args, uid) => {
-
-            let sequence: FeedReference;
-            let id = IdsFactory.resolve(args.id);
-            if (id.type === IDs.SequenceUser) {
-                sequence = { type: 'common', uid };
-            } else {
-                throw Error('Invalid id');
-            }
-
+            let sequence = parseSequenceId(args.id, uid);
             let diff = await Modules.Events.mediator.getFeedDifference(ctx, uid, sequence, args.pts);
             return {
                 hasMore: diff.hasMore,
@@ -147,13 +139,7 @@ export const Resolver: GQLResolver = {
             };
         }),
         sequenceState: withUser(async (ctx, args, uid) => {
-            let sequence: FeedReference;
-            let id = IdsFactory.resolve(args.id);
-            if (id.type === IDs.SequenceUser) {
-                sequence = { type: 'common', uid };
-            } else {
-                throw Error('Invalid id');
-            }
+            let sequence = parseSequenceId(args.id, uid);
             return { sequence: sequence, pts: await Modules.Events.mediator.getFeedSubscriberPts(ctx, sequence, uid) };
         })
     }

@@ -75,19 +75,19 @@ export class TypedEventsMediator {
         });
     }
 
-    async preparePrivateChat(parent: Context, owner: number, uid: number) {
+    async preparePrivateChat(parent: Context, cid: number, uid: number) {
         await inTx(parent, async (ctx) => {
-            await this.createPrivateChatFeedIfNeeded(ctx, owner, uid);
-            await this.subscribe(ctx, owner, { type: 'chat-private', owner, uid });
+            await this.createPrivateChatFeedIfNeeded(ctx, cid, uid);
+            await this.subscribe(ctx, uid, { type: 'chat-private', cid, uid });
         });
     }
 
-    async createPrivateChatFeedIfNeeded(parent: Context, owner: number, uid: number) {
+    async createPrivateChatFeedIfNeeded(parent: Context, cid: number, uid: number) {
         await inTx(parent, async (ctx) => {
-            let ex = await this.registry.getFeed(ctx, { type: 'chat-private', owner, uid });
+            let ex = await this.registry.getFeed(ctx, { type: 'chat-private', cid, uid });
             if (!ex) {
                 let feed = await this.events.createFeed(ctx, 'generic');
-                this.registry.setFeed(ctx, { type: 'chat-private', owner, uid }, feed);
+                this.registry.setFeed(ctx, { type: 'chat-private', cid, uid }, feed);
             }
         });
     }
@@ -303,18 +303,18 @@ export class TypedEventsMediator {
         });
     }
 
-    async postToPrivateChat(parent: Context, args: { owner: number, uid: number, event: ChatEvent }) {
+    async postToChatPrivate(parent: Context, cid: number, uid: number, event: ChatEvent) {
         await inTx(parent, async (ctx) => {
             // Load feed
-            let feed = await this.registry.getFeed(ctx, { type: 'chat-private', owner: args.owner, uid: args.uid });
+            let feed = await this.registry.getFeed(ctx, { type: 'chat-private', cid, uid });
             if (!feed) {
                 throw Error('Feed does not exist');
             }
 
             // Pack
-            let serialized = chatEventSerialize(args.event);
-            let collapseKey = chatEventCollapseKey(args.event);
-            let packed = packFeedEvent({ type: 'chat-private', owner: args.owner, uid: args.uid }, serialized);
+            let serialized = chatEventSerialize(event);
+            let collapseKey = chatEventCollapseKey(event);
+            let packed = packFeedEvent({ type: 'chat-private', cid, uid: uid }, serialized);
 
             // Publish
             await this.events.post(ctx, { feed, event: packed, collapseKey });
