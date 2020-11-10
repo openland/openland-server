@@ -280,26 +280,6 @@ export class RoomMediator {
             return false;
         }
 
-        // let existingMembership = await this.repo.findMembershipStatus(ctx, uidToKick, cid);
-        // if (!existingMembership || existingMembership.status !== 'joined') {
-        //     return false;
-        // }
-
-        // No one can kick room owner
-        if (conv.ownerId === uidToKick) {
-            return false;
-        }
-
-        // No one can kick room org owner
-        if (conv.oid && await Modules.Orgs.isUserOwner(ctx, uidToKick, conv.oid)) {
-            return false;
-        }
-
-        // Inviter can kick
-        // if (existingMembership.invitedBy === uid) {
-        //     return true;
-        // }
-
         // org owner can kick
         if (conv.oid && await Modules.Orgs.isUserAdmin(ctx, uid, conv.oid)) {
             return true;
@@ -309,6 +289,26 @@ export class RoomMediator {
         let isSuper = await Modules.Super.isSuperAdmin(ctx, uid);
         if (isSuper) {
             return true;
+        }
+
+        let existingMembership = await this.repo.findMembershipStatus(ctx, uidToKick, cid);
+        if (!existingMembership || existingMembership.status !== 'joined') {
+            return false;
+        }
+
+        // Inviter can kick
+        if (existingMembership.invitedBy === uid) {
+            return true;
+        }
+
+        // No one can kick room org owner
+        if (conv.oid && await Modules.Orgs.isUserOwner(ctx, uidToKick, conv.oid)) {
+            return false;
+        }
+
+        // No one can kick room owner
+        if (conv.ownerId === uidToKick) {
+            return false;
         }
 
         return await this.repo.userHaveAdminPermissionsInChat(ctx, conv, uid);
