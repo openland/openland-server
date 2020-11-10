@@ -41,16 +41,16 @@ describe('SubscriberRepository', () => {
             expect(await repo.getSubscriptions(ctx, subsId1)).toMatchObject([{
                 feed: feedId1,
                 state: {
-                    generation: 1, mode: 'direct', forwardOnly: true, from: { seq: 0, state: vts1.vt1.resolved.value }, to: null
+                    generation: 1, mode: 'direct', forwardOnly: true, from: { seq: 0, state: vts1.vt1.resolved.value }, to: null, subscribed: true
                 }
             }, {
                 feed: feedId2,
-                state: { generation: 1, mode: 'async', forwardOnly: true, from: { seq: 1, state: vts1.vt2.resolved.value }, to: null }
+                state: { generation: 1, mode: 'async', forwardOnly: true, from: { seq: 1, state: vts1.vt2.resolved.value }, to: null, subscribed: true }
             }]);
 
             expect(await repo.getSubscriptions(ctx, subsId2)).toMatchObject([{
                 feed: feedId1,
-                state: { generation: 1, mode: 'direct', forwardOnly: false, from: { seq: 2, state: vts1.vt3.resolved.value }, to: null }
+                state: { generation: 1, mode: 'direct', forwardOnly: false, from: { seq: 2, state: vts1.vt3.resolved.value }, to: null, subscribed: true }
             }]);
 
             expect(await repo.getSubscriptions(ctx, subsId3)).toMatchObject([]);
@@ -68,16 +68,16 @@ describe('SubscriberRepository', () => {
             expect(await repo.getSubscriptions(ctx, subsId1)).toMatchObject([{
                 feed: feedId1,
                 state: {
-                    generation: 1, mode: 'direct', forwardOnly: true, from: { seq: 0, state: vts1.vt1.resolved.value }, to: { seq: 1, state: vts2.resolved.value }
+                    generation: 1, mode: 'direct', forwardOnly: true, from: { seq: 0, state: vts1.vt1.resolved.value }, to: { seq: 1, state: vts2.resolved.value }, subscribed: false
                 }
             }, {
                 feed: feedId2,
-                state: { generation: 1, mode: 'async', forwardOnly: true, from: { seq: 1, state: vts1.vt2.resolved.value }, to: null }
+                state: { generation: 1, mode: 'async', forwardOnly: true, from: { seq: 1, state: vts1.vt2.resolved.value }, to: null, subscribed: true },
             }]);
 
             expect(await repo.getSubscriptions(ctx, subsId2)).toMatchObject([{
                 feed: feedId1,
-                state: { generation: 1, mode: 'direct', forwardOnly: false, from: { seq: 2, state: vts1.vt3.resolved.value }, to: null }
+                state: { generation: 1, mode: 'direct', forwardOnly: false, from: { seq: 2, state: vts1.vt3.resolved.value }, to: null, subscribed: true }
             }]);
 
             expect(await repo.getSubscriptions(ctx, subsId3)).toMatchObject([]);
