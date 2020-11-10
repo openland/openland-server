@@ -74,6 +74,9 @@ export const Locations = {
     subscriber: {
 
         subscription: (subscriber: Buffer, feed: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_SUBSCRIPTIONS, feed]),
+        subscriptionDescriptor: (subscriber: Buffer, feed: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_SUBSCRIPTIONS, feed, 0]),
+        subscriptionStart: (subscriber: Buffer, feed: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_SUBSCRIPTIONS, feed, 1]),
+        subscriptionStop: (subscriber: Buffer, feed: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_SUBSCRIPTIONS, feed, 2]),
         subscriptionAll: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_SUBSCRIPTIONS]),
 
         subscriptionVt: (subscriber: Buffer) => encoders.tuple.pack([subscriber, SUBSCRIBER_VT]),
