@@ -280,10 +280,10 @@ export class RoomMediator {
             return false;
         }
 
-        let existingMembership = await this.repo.findMembershipStatus(ctx, uidToKick, cid);
-        if (!existingMembership || existingMembership.status !== 'joined') {
-            return false;
-        }
+        // let existingMembership = await this.repo.findMembershipStatus(ctx, uidToKick, cid);
+        // if (!existingMembership || existingMembership.status !== 'joined') {
+        //     return false;
+        // }
 
         // No one can kick room owner
         if (conv.ownerId === uidToKick) {
@@ -296,9 +296,9 @@ export class RoomMediator {
         }
 
         // Inviter can kick
-        if (existingMembership.invitedBy === uid) {
-            return true;
-        }
+        // if (existingMembership.invitedBy === uid) {
+        //     return true;
+        // }
 
         // org owner can kick
         if (conv.oid && await Modules.Orgs.isUserAdmin(ctx, uid, conv.oid)) {
