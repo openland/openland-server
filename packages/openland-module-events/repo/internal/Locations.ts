@@ -102,4 +102,4 @@ export const Locations = {
         subscribers: encoders.tuple.pack([STATS, STATS_SUBSCRIBERS]),
         subscriptions: encoders.tuple.pack([STATS, STATS_SUBSCRIPTIONS]),
     }
-    }
+};
