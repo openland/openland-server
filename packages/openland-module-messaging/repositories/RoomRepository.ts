@@ -1036,13 +1036,14 @@ export class RoomRepository {
             }
         } else if (conv.kind === 'room') {
             let convRoom = await Store.ConversationRoom.findById(ctx, cid);
-            if (convRoom && await this.userHaveAdminPermissionsInChat(ctx, convRoom, uid)) {
-                return;
-            }
 
             let member = await Store.RoomParticipant.findById(ctx, cid, uid);
             if (!member || member.status !== 'joined') {
                 throw new AccessDeniedError();
+            }
+
+            if (convRoom && await this.userHaveAdminPermissionsInChat(ctx, convRoom, uid)) {
+                return;
             }
         } else if (conv.kind === 'organization') {
             let org = await Store.ConversationOrganization.findById(ctx, cid);
