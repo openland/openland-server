@@ -300,6 +300,17 @@ export class RoomMediator {
             return true;
         }
 
+        // org owner can kick
+        if (conv.oid && await Modules.Orgs.isUserAdmin(ctx, uid, conv.oid)) {
+            return true;
+        }
+
+        // Super admin can kick
+        let isSuper = await Modules.Super.isSuperAdmin(ctx, uid);
+        if (isSuper) {
+            return true;
+        }
+
         return await this.repo.userHaveAdminPermissionsInChat(ctx, conv, uid);
     }
 
