@@ -77,6 +77,20 @@ export class EventsRepository {
         });
     }
 
+    async isSubscribed(parent: Context, subscriber: Buffer, feed: Buffer) {
+        return await inTxLeaky(parent, async (ctx) => {
+            if (!(await this.registry.subscriberExists(ctx, subscriber))) {
+                throw Error('Unable to find subscriber');
+            }
+            let feedMode = (await this.registry.getFeed(ctx, feed));
+            if (!feedMode) {
+                throw Error('Unable to find feed');
+            }
+
+            return await this.sub.isSubscribed(ctx, subscriber, feed);
+        });
+    }
+
     async subscribe(parent: Context, subscriber: Buffer, feed: Buffer, mode: 'direct' | 'async') {
         return await inTxLeaky(parent, async (ctx) => {
             if (!(await this.registry.subscriberExists(ctx, subscriber))) {

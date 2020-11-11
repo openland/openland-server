@@ -104,8 +104,7 @@ export class TypedEventsMediator {
             }
 
             // Check if already subscribed
-            let ex = await this.events.repo.sub.getSubscriptionState(ctx, subscriber, feed);
-            if (ex && ex.to !== null) {
+            if (await this.events.repo.isSubscribed(ctx, subscriber, feed)) {
                 return false;
             }
 
@@ -128,8 +127,7 @@ export class TypedEventsMediator {
             }
 
             // Check if already subscribed
-            let ex = await this.events.repo.sub.getSubscriptionState(ctx, subscriber, feed);
-            if (!ex || ex.to === null) {
+            if (!(await this.events.repo.isSubscribed(ctx, subscriber, feed))) {
                 return false;
             }
 
