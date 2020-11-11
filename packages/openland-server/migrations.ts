@@ -837,4 +837,31 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '147-create-conversation-feeds',
+    migration: async (parent) => {
+        let after = 0;
+        while (true) {
+            let ex = await Store.Conversation.descriptor.subspace.range(parent, [], { after: [after], limit: 100 });
+            if (ex.length === 0) {
+                break;
+            }
+            let ids = ex.map((e) => e.key[0] as number);
+            logger.log(parent, 'Apply conversation ' + after + ': ' + ids.length);
+            await inTx(parent, async ctx => {
+                for (let u of ids) {
+                    await Modules.Events.mediator.prepareChat(ctx, u);
+                    let conv = await Store.ConversationPrivate.findById(ctx, u);
+                    if (conv) {
+                        await Modules.Events.mediator.preparePrivateChat(ctx, u, conv.uid1);
+                        await Modules.Events.mediator.preparePrivateChat(ctx, u, conv.uid2);
+                    }
+                }
+            });
+
+            after = ex[ex.length - 1].key[0] as number;
+        }
+    }
+});
+
 export default migrations;
