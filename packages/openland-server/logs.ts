@@ -59,8 +59,8 @@ setLogProvider({
     log: (ctx, service, level, message) => {
         let obj: any;
         if (isProduction) {
-            if (message.length > 512) {
-                message = message.slice(0, 512) + '...';
+            if (message.length > 2048) {
+                message = message.slice(0, 2048) + '...';
             }
             obj = {
                 app: {
