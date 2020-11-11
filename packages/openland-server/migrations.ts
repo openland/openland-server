@@ -827,6 +827,7 @@ migrations.push({
     migration: async (parent) => {
         let data = await inTx(parent, ctx => Store.User.findAll(ctx));
         for (let cursor = 0; cursor < data.length; cursor += 100) {
+            logger.log(parent, 'Apply users ' + cursor);
             let batch = data.slice(cursor, cursor + 100);
             await inTx(parent, async ctx => {
                 for (let u of batch) {
