@@ -85,7 +85,7 @@ import {
     ContactAddedEvent,
     ContactRemovedEvent, UserDialogGotAccessEvent, UserDialogLostAccessEvent,
     UpdateChatRead,
-    UpdateProfileChanged
+    UpdateProfileChanged, BlackListAddedEvent, BlackListRemovedEvent
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -775,6 +775,15 @@ export namespace GQLRoots {
     export type ContactAddedRoot = ContactAddedEvent;
     export type ContactRemovedRoot = ContactRemovedEvent;
     export type ContactsStateRoot = { state: string };
+
+    //
+    // Black List
+    //
+    export type BlackListUpdateContainerRoot = LiveStreamItem<BaseEvent>;
+    export type BlackListUpdateRoot = BaseEvent;
+    export type BlackListAddedRoot = BlackListAddedEvent;
+    export type BlackListRemovedRoot = BlackListRemovedEvent;
+    export type BlackListUpdatesStateRoot = { state: string };
 
     //
     // Updates

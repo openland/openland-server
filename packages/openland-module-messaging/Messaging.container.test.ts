@@ -25,5 +25,7 @@ export function loadMessagingTestModule() {
     container.bind(FastCountersRepository).toSelf().inSingletonScope();
     container.bind(FastCountersMediator).toSelf().inSingletonScope();
     loadSocialImageModule();
+    loadSocialImageModule();
+
     // container.bind(PushModule).toSelf().inSingletonScope();
 }

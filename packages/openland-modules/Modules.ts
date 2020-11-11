@@ -43,6 +43,7 @@ import { PhonebookModule } from '../openland-module-phonebook/PhonebookModule';
 import { ClickHouseModule } from '../openland-module-clickhouse/ClickHouseModule';
 import { ContactsModule } from '../openland-module-contacts/ContactsModule';
 import { SocialImageModule } from '../openland-module-social-image/SocialImageModule';
+import { BlackListModule } from '../openland-module-blacklist/BlackListModule';
 
 class ModulesImpl {
 
@@ -177,6 +178,9 @@ class ModulesImpl {
     }
     get SocialImageModule() {
         return container.get(SocialImageModule);
+    }
+    get BlackListModule() {
+        return container.get(BlackListModule);
     }
 }
 

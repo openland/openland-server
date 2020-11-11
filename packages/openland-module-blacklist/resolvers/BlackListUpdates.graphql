@@ -1,0 +1,28 @@
+type BlackListUpdateContainer {
+    updates: [BlackListUpdate!]!
+    state: String!
+}
+
+union BlackListUpdate = BlackListAdded | BlackListRemoved
+
+type BlackListAdded {
+    bannedBy: User!
+    bannedUser: User!
+}
+
+type BlackListRemoved {
+    bannedBy: User!
+    bannedUser: User!
+}
+
+type BlackListUpdatesState {
+    state: String!
+}
+
+extend type Query {
+    blackListUpdatesState: BlackListUpdatesState!
+}
+
+extend type Subscription {
+    blackListUpdates(fromState: String!): BlackListUpdateContainer!
+}

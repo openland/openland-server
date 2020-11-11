@@ -1,0 +1,4 @@
+extend type User {
+    isBanned: Boolean!
+    isMeBanned: Boolean!
+}

@@ -1,0 +1,8 @@
+extend type Query {
+    myBlackList: [User!]!
+}
+
+extend type Mutation {
+    banUser(id: ID!): Boolean!
+    unBanUser(id: ID!): Boolean!
+}

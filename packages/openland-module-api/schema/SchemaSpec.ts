@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '301b349d6510eb9036b7a314399cda20';
+export const GQL_SPEC_VERSION = 'e60444d47008ef77c7b7893d7001856d';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1546,6 +1546,29 @@ export namespace GQL {
         message: string;
     }
     export interface UserEventBusMessageMessageArgs { }
+    export interface BlackListUpdateContainer {
+        updates: BlackListUpdate[];
+        state: string;
+    }
+    export interface BlackListUpdateContainerUpdatesArgs { }
+    export interface BlackListUpdateContainerStateArgs { }
+    export type BlackListUpdate = BlackListAdded | BlackListRemoved;
+    export interface BlackListAdded {
+        bannedBy: User;
+        bannedUser: User;
+    }
+    export interface BlackListAddedBannedByArgs { }
+    export interface BlackListAddedBannedUserArgs { }
+    export interface BlackListRemoved {
+        bannedBy: User;
+        bannedUser: User;
+    }
+    export interface BlackListRemovedBannedByArgs { }
+    export interface BlackListRemovedBannedUserArgs { }
+    export interface BlackListUpdatesState {
+        state: string;
+    }
+    export interface BlackListUpdatesStateStateArgs { }
     export interface ChatUpdateSingle {
         seq: number;
         state: string;
@@ -2348,6 +2371,8 @@ export namespace GQL {
         deliverCountersForAll: boolean;
         conversationDraftUpdate: string;
         alphaSaveDraftMessage: string;
+        banUser: boolean;
+        unBanUser: boolean;
         discoverCollectionsCreate: DiscoverChatsCollection;
         discoverCollectionsUpdate: DiscoverChatsCollection;
         discoverCollectionsDelete: boolean;
@@ -3014,6 +3039,12 @@ export namespace GQL {
     export interface MutationAlphaSaveDraftMessageArgs {
         conversationId: string;
         message: OptionalNullable<string>;
+    }
+    export interface MutationBanUserArgs {
+        id: string;
+    }
+    export interface MutationUnBanUserArgs {
+        id: string;
     }
     export interface MutationDiscoverCollectionsCreateArgs {
         collection: DiscoverChatsCollectionInput;
@@ -4246,12 +4277,14 @@ export namespace GQL {
         betaDialogTextSearch: Dialog[];
         conversationDraft: Nullable<string>;
         alphaDraftMessage: Nullable<string>;
+        myBlackList: User[];
         discoverCollections: Nullable<DiscoverChatsCollectionConnection>;
         discoverCollection: Nullable<DiscoverChatsCollection>;
         discoverEditorsChoice: EditorsChoiceChat[];
         discoverEditorsChoiceChat: EditorsChoiceChat;
         myApps: AppProfile[];
         userStorage: AppStorageValue[];
+        blackListUpdatesState: BlackListUpdatesState;
         chatState: ChatUpdateState;
         conversationState: ConversationUpdateState;
         messageComments: CommentsPeer;
@@ -4531,6 +4564,7 @@ export namespace GQL {
     export interface QueryAlphaDraftMessageArgs {
         conversationId: string;
     }
+    export interface QueryMyBlackListArgs { }
     export interface QueryDiscoverCollectionsArgs {
         first: number;
         after: OptionalNullable<string>;
@@ -4547,6 +4581,7 @@ export namespace GQL {
         namespace: string;
         keys: string[];
     }
+    export interface QueryBlackListUpdatesStateArgs { }
     export interface QueryChatStateArgs {
         chatId: string;
     }
@@ -4998,6 +5033,7 @@ export namespace GQL {
         alphaConferenceMediaWatch: ConferenceMedia;
         userEventBus: UserEventBusMessage;
         globalEventBus: UserEventBusMessage;
+        blackListUpdates: BlackListUpdateContainer;
         chatUpdates: ChatUpdateContainer;
         commentUpdates: Nullable<CommentUpdateContainer>;
         conferenceWatch: Conference;
@@ -5039,6 +5075,9 @@ export namespace GQL {
     }
     export interface SubscriptionGlobalEventBusArgs {
         topic: string;
+    }
+    export interface SubscriptionBlackListUpdatesArgs {
+        fromState: string;
     }
     export interface SubscriptionChatUpdatesArgs {
         chatId: string;
@@ -5223,6 +5262,8 @@ export namespace GQL {
         alphaLocations: Nullable<string[]>;
         chatsWithBadge: UserChatWithBadge[];
         externalSocialImage: Nullable<string>;
+        isBanned: boolean;
+        isMeBanned: boolean;
         online: boolean;
         active: boolean;
         lastSeen: Nullable<string>;
@@ -5266,6 +5307,8 @@ export namespace GQL {
     export interface UserAlphaLocationsArgs { }
     export interface UserChatsWithBadgeArgs { }
     export interface UserExternalSocialImageArgs { }
+    export interface UserIsBannedArgs { }
+    export interface UserIsMeBannedArgs { }
     export interface UserOnlineArgs { }
     export interface UserActiveArgs { }
     export interface UserLastSeenArgs { }
@@ -7953,6 +7996,51 @@ export interface GQLResolver {
             message: GQL.UserEventBusMessageMessageArgs,
         }
     >;
+    BlackListUpdateContainer?: ComplexTypedResolver<
+        GQL.BlackListUpdateContainer,
+        GQLRoots.BlackListUpdateContainerRoot,
+        {
+            updates: GQLRoots.BlackListUpdateRoot[],
+        },
+        {
+            updates: GQL.BlackListUpdateContainerUpdatesArgs,
+            state: GQL.BlackListUpdateContainerStateArgs,
+        }
+    >;
+    BlackListUpdate?: UnionTypeResolver<GQLRoots.BlackListUpdateRoot, 'BlackListAdded' | 'BlackListRemoved'>;
+    BlackListAdded?: ComplexTypedResolver<
+        GQL.BlackListAdded,
+        GQLRoots.BlackListAddedRoot,
+        {
+            bannedBy: GQLRoots.UserRoot,
+            bannedUser: GQLRoots.UserRoot,
+        },
+        {
+            bannedBy: GQL.BlackListAddedBannedByArgs,
+            bannedUser: GQL.BlackListAddedBannedUserArgs,
+        }
+    >;
+    BlackListRemoved?: ComplexTypedResolver<
+        GQL.BlackListRemoved,
+        GQLRoots.BlackListRemovedRoot,
+        {
+            bannedBy: GQLRoots.UserRoot,
+            bannedUser: GQLRoots.UserRoot,
+        },
+        {
+            bannedBy: GQL.BlackListRemovedBannedByArgs,
+            bannedUser: GQL.BlackListRemovedBannedUserArgs,
+        }
+    >;
+    BlackListUpdatesState?: ComplexTypedResolver<
+        GQL.BlackListUpdatesState,
+        GQLRoots.BlackListUpdatesStateRoot,
+        {
+        },
+        {
+            state: GQL.BlackListUpdatesStateStateArgs,
+        }
+    >;
     ChatUpdateSingle?: ComplexTypedResolver<
         GQL.ChatUpdateSingle,
         GQLRoots.ChatUpdateSingleRoot,
@@ -9112,6 +9200,8 @@ export interface GQLResolver {
             deliverCountersForAll: GQL.MutationDeliverCountersForAllArgs,
             conversationDraftUpdate: GQL.MutationConversationDraftUpdateArgs,
             alphaSaveDraftMessage: GQL.MutationAlphaSaveDraftMessageArgs,
+            banUser: GQL.MutationBanUserArgs,
+            unBanUser: GQL.MutationUnBanUserArgs,
             discoverCollectionsCreate: GQL.MutationDiscoverCollectionsCreateArgs,
             discoverCollectionsUpdate: GQL.MutationDiscoverCollectionsUpdateArgs,
             discoverCollectionsDelete: GQL.MutationDiscoverCollectionsDeleteArgs,
@@ -9900,12 +9990,14 @@ export interface GQLResolver {
             superAdmins: GQLRoots.SuperAdminRoot[],
             alphaChatTextSearch: GQLRoots.ConversationRoot[],
             betaDialogTextSearch: GQLRoots.DialogRoot[],
+            myBlackList: GQLRoots.UserRoot[],
             discoverCollections: Nullable<GQLRoots.DiscoverChatsCollectionConnectionRoot>,
             discoverCollection: Nullable<GQLRoots.DiscoverChatsCollectionRoot>,
             discoverEditorsChoice: GQLRoots.EditorsChoiceChatRoot[],
             discoverEditorsChoiceChat: GQLRoots.EditorsChoiceChatRoot,
             myApps: GQLRoots.AppProfileRoot[],
             userStorage: GQLRoots.AppStorageValueRoot[],
+            blackListUpdatesState: GQLRoots.BlackListUpdatesStateRoot,
             chatState: GQLRoots.ChatUpdateStateRoot,
             conversationState: GQLRoots.ConversationUpdateStateRoot,
             messageComments: GQLRoots.CommentsPeerRoot,
@@ -10079,12 +10171,14 @@ export interface GQLResolver {
             betaDialogTextSearch: GQL.QueryBetaDialogTextSearchArgs,
             conversationDraft: GQL.QueryConversationDraftArgs,
             alphaDraftMessage: GQL.QueryAlphaDraftMessageArgs,
+            myBlackList: GQL.QueryMyBlackListArgs,
             discoverCollections: GQL.QueryDiscoverCollectionsArgs,
             discoverCollection: GQL.QueryDiscoverCollectionArgs,
             discoverEditorsChoice: GQL.QueryDiscoverEditorsChoiceArgs,
             discoverEditorsChoiceChat: GQL.QueryDiscoverEditorsChoiceChatArgs,
             myApps: GQL.QueryMyAppsArgs,
             userStorage: GQL.QueryUserStorageArgs,
+            blackListUpdatesState: GQL.QueryBlackListUpdatesStateArgs,
             chatState: GQL.QueryChatStateArgs,
             conversationState: GQL.QueryConversationStateArgs,
             messageComments: GQL.QueryMessageCommentsArgs,
@@ -10244,6 +10338,7 @@ export interface GQLResolver {
             alphaConferenceMediaWatch: GQLRoots.ConferenceMediaRoot,
             userEventBus: GQLRoots.UserEventBusMessageRoot,
             globalEventBus: GQLRoots.UserEventBusMessageRoot,
+            blackListUpdates: GQLRoots.BlackListUpdateContainerRoot,
             chatUpdates: GQLRoots.ChatUpdateContainerRoot,
             commentUpdates: Nullable<GQLRoots.CommentUpdateContainerRoot>,
             conferenceWatch: GQLRoots.ConferenceRoot,
@@ -10269,6 +10364,7 @@ export interface GQLResolver {
             alphaConferenceMediaWatch: GQL.SubscriptionAlphaConferenceMediaWatchArgs,
             userEventBus: GQL.SubscriptionUserEventBusArgs,
             globalEventBus: GQL.SubscriptionGlobalEventBusArgs,
+            blackListUpdates: GQL.SubscriptionBlackListUpdatesArgs,
             chatUpdates: GQL.SubscriptionChatUpdatesArgs,
             commentUpdates: GQL.SubscriptionCommentUpdatesArgs,
             conferenceWatch: GQL.SubscriptionConferenceWatchArgs,
@@ -10472,6 +10568,8 @@ export interface GQLResolver {
             alphaLocations: GQL.UserAlphaLocationsArgs,
             chatsWithBadge: GQL.UserChatsWithBadgeArgs,
             externalSocialImage: GQL.UserExternalSocialImageArgs,
+            isBanned: GQL.UserIsBannedArgs,
+            isMeBanned: GQL.UserIsMeBannedArgs,
             online: GQL.UserOnlineArgs,
             active: GQL.UserActiveArgs,
             lastSeen: GQL.UserLastSeenArgs,

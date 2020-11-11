@@ -1034,6 +1034,18 @@ export class RoomRepository {
             if (p.uid1 !== uid && p.uid2 !== uid) {
                 throw new AccessDeniedError();
             }
+            let targetUid: number;
+            if (p.uid1 === uid) {
+                targetUid = p.uid2;
+            } else {
+                targetUid = p.uid1;
+            }
+            if (await Modules.BlackListModule.isUserBanned(ctx, uid, targetUid)) {
+                throw new AccessDeniedError();
+            }
+            if (await Modules.BlackListModule.isUserBanned(ctx, targetUid, uid)) {
+                throw new AccessDeniedError();
+            }
         } else if (conv.kind === 'room') {
             let convRoom = await Store.ConversationRoom.findById(ctx, cid);
 

@@ -80,6 +80,8 @@ import { asyncRun } from '../openland-spacex/utils/asyncRun';
 import { EventsModule } from 'openland-module-events/EventsModule';
 import { SocialImageModule } from '../openland-module-social-image/SocialImageModule';
 import { loadSocialImageModule } from '../openland-module-social-image/SocialImageModule.container';
+import { loadBlackListModule } from '../openland-module-blacklist/BlackListModule.container';
+import { BlackListModule } from '../openland-module-blacklist/BlackListModule';
 
 const logger = createLogger('starting');
 
@@ -184,6 +186,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind(ContactsModule).toSelf().inSingletonScope();
     container.bind(EventsModule).toSelf().inSingletonScope();
     loadSocialImageModule();
+    loadBlackListModule();
 
     logger.log(ctx, 'Modules loaded');
 }
@@ -272,6 +275,8 @@ export async function startAllModules(ctx: Context) {
     await container.get(EventsModule).start();
     logger.log(ctx, 'Starting module: SocialImageModule');
     await container.get(SocialImageModule).start();
+    logger.log(ctx, 'Starting module: BlackListModule');
+    await container.get(BlackListModule).start();
 
     // Enable API after all modules started
     logger.log(ctx, 'Starting module: API');

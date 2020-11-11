@@ -22183,6 +22183,78 @@ export class ContactRemovedEvent extends BaseEvent {
     get contactUid(): number { return this.raw.contactUid; }
 }
 
+const blackListAddedEventCodec = c.struct({
+    bannedBy: c.integer,
+    bannedUid: c.integer,
+});
+
+interface BlackListAddedEventShape {
+    bannedBy: number;
+    bannedUid: number;
+}
+
+export class BlackListAddedEvent extends BaseEvent {
+
+    static readonly type: 'blackListAddedEvent' = 'blackListAddedEvent';
+
+    static create(data: BlackListAddedEventShape) {
+        return new BlackListAddedEvent(blackListAddedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new BlackListAddedEvent(blackListAddedEventCodec.decode(data));
+    }
+
+    static encode(event: BlackListAddedEvent) {
+        return blackListAddedEventCodec.encode(event.raw);
+    }
+
+    readonly type: 'blackListAddedEvent' = 'blackListAddedEvent';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get bannedBy(): number { return this.raw.bannedBy; }
+    get bannedUid(): number { return this.raw.bannedUid; }
+}
+
+const blackListRemovedEventCodec = c.struct({
+    bannedBy: c.integer,
+    bannedUid: c.integer,
+});
+
+interface BlackListRemovedEventShape {
+    bannedBy: number;
+    bannedUid: number;
+}
+
+export class BlackListRemovedEvent extends BaseEvent {
+
+    static readonly type: 'blackListRemovedEvent' = 'blackListRemovedEvent';
+
+    static create(data: BlackListRemovedEventShape) {
+        return new BlackListRemovedEvent(blackListRemovedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new BlackListRemovedEvent(blackListRemovedEventCodec.decode(data));
+    }
+
+    static encode(event: BlackListRemovedEvent) {
+        return blackListRemovedEventCodec.encode(event.raw);
+    }
+
+    readonly type: 'blackListRemovedEvent' = 'blackListRemovedEvent';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get bannedBy(): number { return this.raw.bannedBy; }
+    get bannedUid(): number { return this.raw.bannedUid; }
+}
+
 export class ConversationEventStore extends EventStore {
 
     static async open(storage: EntityStorage, factory: EventFactory) {
@@ -22533,6 +22605,41 @@ export class UserContactsEventStore extends EventStore {
     }
 }
 
+export class BlackListEventStore extends EventStore {
+
+    static async open(storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory('blackListEventStore');
+        const descriptor = {
+            name: 'BlackListEventStore',
+            storageKey: 'blackListEventStore',
+            subspace,
+            storage,
+            factory
+        };
+        return new BlackListEventStore(descriptor);
+    }
+
+    private constructor(descriptor: EventStoreDescriptor) {
+        super(descriptor);
+    }
+
+    post(ctx: Context, uid: number, event: BaseEvent) {
+        this._post(ctx, [uid], event);
+    }
+
+    async findAll(ctx: Context, uid: number) {
+        return this._findAll(ctx, [uid]);
+    }
+
+    createStream(uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createStream([uid], opts);
+    }
+
+    createLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createLiveStream(ctx, [uid], opts);
+    }
+}
+
 export interface Store extends BaseStore {
     readonly ConversationLastSeq: ConversationLastSeqFactory;
     readonly AutoSubscribeWasExecutedForUser: AutoSubscribeWasExecutedForUserFactory;
@@ -22732,6 +22839,7 @@ export interface Store extends BaseStore {
     readonly StripeEventStore: StripeEventStore;
     readonly HyperLogStore: HyperLogStore;
     readonly UserContactsEventStore: UserContactsEventStore;
+    readonly BlackListEventStore: BlackListEventStore;
     readonly PresenceLogDirectory: Subspace;
     readonly PresenceMobileInstalledDirectory: Subspace;
     readonly UserPresenceDirectory: Subspace;
@@ -22756,6 +22864,7 @@ export interface Store extends BaseStore {
     readonly ShardingDataDirectory: Subspace;
     readonly ImportedPhoneDirectory: Subspace;
     readonly PhoneImportedByUserDirectory: Subspace;
+    readonly BlackListDirectoryDirectory: Subspace;
     readonly DeliveryFanOutQueue: QueueStorage;
     readonly DeliveryUserBatchQueue: QueueStorage;
     readonly CommentAugmentationQueue: QueueStorage;
@@ -22827,6 +22936,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('hyperLogUserEvent', HyperLogUserEvent.encode as any, HyperLogUserEvent.decode);
     eventFactory.registerEventType('contactAddedEvent', ContactAddedEvent.encode as any, ContactAddedEvent.decode);
     eventFactory.registerEventType('contactRemovedEvent', ContactRemovedEvent.encode as any, ContactRemovedEvent.decode);
+    eventFactory.registerEventType('blackListAddedEvent', BlackListAddedEvent.encode as any, BlackListAddedEvent.decode);
+    eventFactory.registerEventType('blackListRemovedEvent', BlackListRemovedEvent.encode as any, BlackListRemovedEvent.decode);
     let ConversationLastSeqPromise = ConversationLastSeqFactory.open(storage);
     let AutoSubscribeWasExecutedForUserPromise = AutoSubscribeWasExecutedForUserFactory.open(storage);
     let RoomParticipantsVersionPromise = RoomParticipantsVersionFactory.open(storage);
@@ -23039,6 +23150,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ShardingDataDirectoryPromise = storage.resolveCustomDirectory('shardingData');
     let ImportedPhoneDirectoryPromise = storage.resolveCustomDirectory('importedPhone');
     let PhoneImportedByUserDirectoryPromise = storage.resolveCustomDirectory('phoneImportedByUser');
+    let BlackListDirectoryDirectoryPromise = storage.resolveCustomDirectory('blackListDirectory');
     let ConversationEventStorePromise = ConversationEventStore.open(storage, eventFactory);
     let DialogIndexEventStorePromise = DialogIndexEventStore.open(storage, eventFactory);
     let UserDialogEventStorePromise = UserDialogEventStore.open(storage, eventFactory);
@@ -23049,6 +23161,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let StripeEventStorePromise = StripeEventStore.open(storage, eventFactory);
     let HyperLogStorePromise = HyperLogStore.open(storage, eventFactory);
     let UserContactsEventStorePromise = UserContactsEventStore.open(storage, eventFactory);
+    let BlackListEventStorePromise = BlackListEventStore.open(storage, eventFactory);
     let DeliveryFanOutQueuePromise = QueueStorage.open('DeliveryFanOut', storage);
     let DeliveryUserBatchQueuePromise = QueueStorage.open('DeliveryUserBatch', storage);
     let CommentAugmentationQueuePromise = QueueStorage.open('CommentAugmentation', storage);
@@ -23290,6 +23403,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ShardingDataDirectory: await ShardingDataDirectoryPromise,
         ImportedPhoneDirectory: await ImportedPhoneDirectoryPromise,
         PhoneImportedByUserDirectory: await PhoneImportedByUserDirectoryPromise,
+        BlackListDirectoryDirectory: await BlackListDirectoryDirectoryPromise,
         ConversationEventStore: await ConversationEventStorePromise,
         DialogIndexEventStore: await DialogIndexEventStorePromise,
         UserDialogEventStore: await UserDialogEventStorePromise,
@@ -23300,6 +23414,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         StripeEventStore: await StripeEventStorePromise,
         HyperLogStore: await HyperLogStorePromise,
         UserContactsEventStore: await UserContactsEventStorePromise,
+        BlackListEventStore: await BlackListEventStorePromise,
         DeliveryFanOutQueue: await DeliveryFanOutQueuePromise,
         DeliveryUserBatchQueue: await DeliveryUserBatchQueuePromise,
         CommentAugmentationQueue: await CommentAugmentationQueuePromise,
