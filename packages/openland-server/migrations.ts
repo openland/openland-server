@@ -857,13 +857,6 @@ migrations.push({
                         await Modules.Events.mediator.preparePrivateChat(ctx, u, conv.uid1);
                         await Modules.Events.mediator.preparePrivateChat(ctx, u, conv.uid2);
                     }
-                    let conv2 = await Store.ConversationRoom.findById(ctx, u);
-                    if (conv2) {
-                        let members = await Modules.Messaging.room.findConversationMembers(ctx, u);
-                        for (let m of members) {
-                            await Modules.Events.mediator.subscribe(ctx, m, { type: 'chat', cid: u });
-                        }
-                    }
                 }));
             });
 
