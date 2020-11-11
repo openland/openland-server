@@ -823,7 +823,7 @@ migrations.push({
 // });
 
 migrations.push({
-    key: '146-create-user-feeds',
+    key: '148-create-user-feeds',
     migration: async (parent) => {
         let data = await inTx(parent, ctx => Store.User.findAll(ctx));
         for (let cursor = 0; cursor < data.length; cursor += 100) {
@@ -839,7 +839,7 @@ migrations.push({
 });
 
 migrations.push({
-    key: '147-create-conversation-feeds',
+    key: '149-create-conversation-feeds',
     migration: async (parent) => {
         let after = 0;
         while (true) {
@@ -850,14 +850,21 @@ migrations.push({
             let ids = ex.map((e) => e.key[0] as number);
             logger.log(parent, 'Apply conversation ' + after + ': ' + ids.length);
             await inTx(parent, async ctx => {
-                for (let u of ids) {
+                await Promise.all(ids.map(async (u) => {
                     await Modules.Events.mediator.prepareChat(ctx, u);
                     let conv = await Store.ConversationPrivate.findById(ctx, u);
                     if (conv) {
                         await Modules.Events.mediator.preparePrivateChat(ctx, u, conv.uid1);
                         await Modules.Events.mediator.preparePrivateChat(ctx, u, conv.uid2);
                     }
-                }
+                    let conv2 = await Store.ConversationRoom.findById(ctx, u);
+                    if (conv2) {
+                        let members = await Modules.Messaging.room.findConversationMembers(ctx, u);
+                        for (let m of members) {
+                            await Modules.Events.mediator.subscribe(ctx, m, { type: 'chat', cid: u });
+                        }
+                    }
+                }));
             });
 
             after = ex[ex.length - 1].key[0] as number;
