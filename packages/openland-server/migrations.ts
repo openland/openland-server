@@ -715,45 +715,45 @@ migrations.push({
     }
 });
 
-migrations.push({
-    key: '137-create-user-feeds',
-    migration: async (parent) => {
-        let data = await inTx(parent, ctx => Store.User.findAll(ctx));
-        for (let cursor = 0; cursor < data.length; cursor += 100) {
-            let batch = data.slice(cursor, cursor + 100);
-            await inTx(parent, async ctx => {
-                for (let u of batch) {
-                    await Modules.Events.mediator.prepareUser(ctx, u.id);
-                }
-            });
-        }
-    }
-});
+// migrations.push({
+//     key: '137-create-user-feeds',
+//     migration: async (parent) => {
+//         let data = await inTx(parent, ctx => Store.User.findAll(ctx));
+//         for (let cursor = 0; cursor < data.length; cursor += 100) {
+//             let batch = data.slice(cursor, cursor + 100);
+//             await inTx(parent, async ctx => {
+//                 for (let u of batch) {
+//                     await Modules.Events.mediator.prepareUser(ctx, u.id);
+//                 }
+//             });
+//         }
+//     }
+// });
 
-migrations.push({
-    key: '140-drop-feeds',
-    migration: async (parent) => {
-        await inTx(parent, async ctx => {
-            Store.EventsTestStoreDirectory.clearPrefixed(ctx, Buffer.from([]));
-            Store.EventsTestRegistrationsDirectory.clearPrefixed(ctx, Buffer.from([]));
-        });
-    }
-});
+// migrations.push({
+//     key: '140-drop-feeds',
+//     migration: async (parent) => {
+//         await inTx(parent, async ctx => {
+//             Store.EventsTestStoreDirectory.clearPrefixed(ctx, Buffer.from([]));
+//             Store.EventsTestRegistrationsDirectory.clearPrefixed(ctx, Buffer.from([]));
+//         });
+//     }
+// });
 
-migrations.push({
-    key: '139-create-user-feeds',
-    migration: async (parent) => {
-        let data = await inTx(parent, ctx => Store.User.findAll(ctx));
-        for (let cursor = 0; cursor < data.length; cursor += 100) {
-            let batch = data.slice(cursor, cursor + 100);
-            await inTx(parent, async ctx => {
-                for (let u of batch) {
-                    await Modules.Events.mediator.prepareUser(ctx, u.id);
-                }
-            });
-        }
-    }
-});
+// migrations.push({
+//     key: '139-create-user-feeds',
+//     migration: async (parent) => {
+//         let data = await inTx(parent, ctx => Store.User.findAll(ctx));
+//         for (let cursor = 0; cursor < data.length; cursor += 100) {
+//             let batch = data.slice(cursor, cursor + 100);
+//             await inTx(parent, async ctx => {
+//                 for (let u of batch) {
+//                     await Modules.Events.mediator.prepareUser(ctx, u.id);
+//                 }
+//             });
+//         }
+//     }
+// });
 
 // migrations.push({
 //     key: '141-drop-feeds',
@@ -807,18 +807,33 @@ migrations.push({
 //     }
 // });
 
+// migrations.push({
+//     key: '145-drop-feeds',
+//     migration: async (parent) => {
+//         await inTx(parent, async ctx => {
+//             Store.EventsTestStoreDirectory.clearPrefixed(ctx, Buffer.from([]));
+//             Store.EventsTestRegistrationsDirectory.clearPrefixed(ctx, Buffer.from([]));
+//             Store.EventStorageDirectory.clearPrefixed(ctx, Buffer.from([]));
+//             Store.EventRegistrationsDirectory.clearPrefixed(ctx, Buffer.from([]));
+//             Store.EventUserSeqDirectory.clearPrefixed(ctx, Buffer.from([]));
+//             Store.EventsStoreFeedCount.directory.clearPrefixed(ctx, Buffer.from([]));
+//             Store.EventsStoreSubscriberCount.directory.clearPrefixed(ctx, Buffer.from([]));
+//         });
+//     }
+// });
+
 migrations.push({
-    key: '145-drop-feeds',
+    key: '146-create-user-feeds',
     migration: async (parent) => {
-        await inTx(parent, async ctx => {
-            Store.EventsTestStoreDirectory.clearPrefixed(ctx, Buffer.from([]));
-            Store.EventsTestRegistrationsDirectory.clearPrefixed(ctx, Buffer.from([]));
-            Store.EventStorageDirectory.clearPrefixed(ctx, Buffer.from([]));
-            Store.EventRegistrationsDirectory.clearPrefixed(ctx, Buffer.from([]));
-            Store.EventUserSeqDirectory.clearPrefixed(ctx, Buffer.from([]));
-            Store.EventsStoreFeedCount.directory.clearPrefixed(ctx, Buffer.from([]));
-            Store.EventsStoreSubscriberCount.directory.clearPrefixed(ctx, Buffer.from([]));
-        });
+        let data = await inTx(parent, ctx => Store.User.findAll(ctx));
+        for (let cursor = 0; cursor < data.length; cursor += 100) {
+            let batch = data.slice(cursor, cursor + 100);
+            await inTx(parent, async ctx => {
+                for (let u of batch) {
+                    await Modules.Events.mediator.prepareUser(ctx, u.id);
+                }
+            });
+        }
     }
 });
 

@@ -155,7 +155,7 @@ export class SubscriberRepository {
             }
         }
 
-        return await Promise.all(feeds.map((f) => this.getSubscriptionState(ctx, subscriber, f)));
+        return await Promise.all(feeds.map(async (f) => ({ state: await this.getSubscriptionState(ctx, subscriber, f), feed: f })));
     }
 
     //
@@ -195,7 +195,7 @@ export class SubscriberRepository {
         }
 
         // Write stop
-        this.subspace.set(ctx, Locations.subscriber.subscriptionDescriptor(subscriber, feed), packDescription({ ...state, subscribed: true }));
+        this.subspace.set(ctx, Locations.subscriber.subscriptionDescriptor(subscriber, feed), packDescription({ ...state, subscribed: false }));
         this.subspace.setTupleValue(ctx, Locations.subscriber.subscriptionStop(subscriber, feed), [new VersionstampRef(index), seq]);
 
         // Update counter

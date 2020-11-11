@@ -49,7 +49,7 @@ export class EventsModule {
     //
 
     onUserCreated = async (ctx: Context, uid: number) => {
-        // await this.mediator.prepareUser(ctx, uid);
+        await this.mediator.prepareUser(ctx, uid);
     }
 
     onUserDeleted = async (ctx: Context, uid: number) => {

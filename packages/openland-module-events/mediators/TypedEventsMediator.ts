@@ -16,8 +16,8 @@ import { EventsRepository } from 'openland-module-events/repo/EventsRepository';
 
 export class TypedEventsMediator {
 
-    readonly registry = new RegistrationRepository(Store.EventsTestRegistrationsDirectory);
-    readonly events = new EventsMediator(new EventsRepository(Store.EventsTestStoreDirectory), EventBus);
+    readonly registry = new RegistrationRepository(Store.EventRegistrationsDirectory);
+    readonly events = new EventsMediator(new EventsRepository(Store.EventStorageDirectory), EventBus);
 
     //
     // User

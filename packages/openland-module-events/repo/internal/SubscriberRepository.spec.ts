@@ -64,7 +64,6 @@ describe('SubscriberRepository', () => {
         });
 
         await inTx(root, async (ctx) => {
-
             expect(await repo.getSubscriptions(ctx, subsId1)).toMatchObject([{
                 feed: feedId1,
                 state: {

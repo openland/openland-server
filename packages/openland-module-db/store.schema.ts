@@ -825,7 +825,7 @@ export default declareSchema(() => {
         field('mid', integer());
         field('hiddenForUids', optional(array(integer())));
     });
-    event('MessageDeletServiceCacheedEvent', () => {
+    event('MessageDeletedEvent', () => {
         field('cid', integer());
         field('mid', integer());
         field('hiddenForUids', optional(array(integer())));
@@ -2518,13 +2518,6 @@ export default declareSchema(() => {
 
     customDirectory('EventStorage');
     customDirectory('EventRegistrations');
-
-    // Deprecated
-    customDirectory('EventUserSeq');
-    customDirectory('EventsTestStore');
-    customDirectory('EventsTestRegistrations');
-    atomicInt('EventsStoreSubscriberCount', () => { primaryKey('production', boolean()); });
-    atomicInt('EventsStoreFeedCount', () => { primaryKey('production', boolean()); });
 
     // Events
 
