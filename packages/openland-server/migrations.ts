@@ -755,57 +755,57 @@ migrations.push({
     }
 });
 
-migrations.push({
-    key: '141-drop-feeds',
-    migration: async (parent) => {
-        await inTx(parent, async ctx => {
-            Store.EventsTestStoreDirectory.clearPrefixed(ctx, Buffer.from([]));
-            Store.EventsTestRegistrationsDirectory.clearPrefixed(ctx, Buffer.from([]));
-        });
-    }
-});
+// migrations.push({
+//     key: '141-drop-feeds',
+//     migration: async (parent) => {
+//         await inTx(parent, async ctx => {
+//             Store.EventsTestStoreDirectory.clearPrefixed(ctx, Buffer.from([]));
+//             Store.EventsTestRegistrationsDirectory.clearPrefixed(ctx, Buffer.from([]));
+//         });
+//     }
+// });
 
-migrations.push({
-    key: '142-create-user-feeds',
-    migration: async (parent) => {
-        let data = await inTx(parent, ctx => Store.User.findAll(ctx));
-        for (let cursor = 0; cursor < data.length; cursor += 100) {
-            let batch = data.slice(cursor, cursor + 100);
-            await inTx(parent, async ctx => {
-                for (let u of batch) {
-                    await Modules.Events.mediator.prepareUser(ctx, u.id);
-                }
-            });
-        }
-    }
-});
+// migrations.push({
+//     key: '142-create-user-feeds',
+//     migration: async (parent) => {
+//         let data = await inTx(parent, ctx => Store.User.findAll(ctx));
+//         for (let cursor = 0; cursor < data.length; cursor += 100) {
+//             let batch = data.slice(cursor, cursor + 100);
+//             await inTx(parent, async ctx => {
+//                 for (let u of batch) {
+//                     await Modules.Events.mediator.prepareUser(ctx, u.id);
+//                 }
+//             });
+//         }
+//     }
+// });
 
-migrations.push({
-    key: '144-create-conversation-feeds',
-    migration: async (parent) => {
-        let after = 0;
-        while (true) {
-            let ex = await Store.Conversation.descriptor.subspace.range(parent, [], { after: [after], limit: 100 });
-            if (ex.length === 0) {
-                break;
-            }
-            let ids = ex.map((e) => e.key[0] as number);
-            logger.log(parent, 'Apply conversation ' + after);
-            await inTx(parent, async ctx => {
-                for (let u of ids) {
-                    await Modules.Events.mediator.prepareChat(ctx, u);
-                    let conv = await Store.ConversationPrivate.findById(ctx, u);
-                    if (conv) {
-                        await Modules.Events.mediator.preparePrivateChat(ctx, u, conv.uid1);
-                        await Modules.Events.mediator.preparePrivateChat(ctx, u, conv.uid2);
-                    }
-                }
-            });
+// migrations.push({
+//     key: '144-create-conversation-feeds',
+//     migration: async (parent) => {
+//         let after = 0;
+//         while (true) {
+//             let ex = await Store.Conversation.descriptor.subspace.range(parent, [], { after: [after], limit: 100 });
+//             if (ex.length === 0) {
+//                 break;
+//             }
+//             let ids = ex.map((e) => e.key[0] as number);
+//             logger.log(parent, 'Apply conversation ' + after);
+//             await inTx(parent, async ctx => {
+//                 for (let u of ids) {
+//                     await Modules.Events.mediator.prepareChat(ctx, u);
+//                     let conv = await Store.ConversationPrivate.findById(ctx, u);
+//                     if (conv) {
+//                         await Modules.Events.mediator.preparePrivateChat(ctx, u, conv.uid1);
+//                         await Modules.Events.mediator.preparePrivateChat(ctx, u, conv.uid2);
+//                     }
+//                 }
+//             });
 
-            after = ex[ex.length - 1].key[0] as number;
-        }
-    }
-});
+//             after = ex[ex.length - 1].key[0] as number;
+//         }
+//     }
+// });
 
 migrations.push({
     key: '145-drop-feeds',
