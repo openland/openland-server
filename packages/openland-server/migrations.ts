@@ -807,4 +807,19 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '145-drop-feeds',
+    migration: async (parent) => {
+        await inTx(parent, async ctx => {
+            Store.EventsTestStoreDirectory.clearPrefixed(ctx, Buffer.from([]));
+            Store.EventsTestRegistrationsDirectory.clearPrefixed(ctx, Buffer.from([]));
+            Store.EventStorageDirectory.clearPrefixed(ctx, Buffer.from([]));
+            Store.EventRegistrationsDirectory.clearPrefixed(ctx, Buffer.from([]));
+            Store.EventUserSeqDirectory.clearPrefixed(ctx, Buffer.from([]));
+            Store.EventsStoreFeedCount.directory.clearPrefixed(ctx, Buffer.from([]));
+            Store.EventsStoreSubscriberCount.directory.clearPrefixed(ctx, Buffer.from([]));
+        });
+    }
+});
+
 export default migrations;

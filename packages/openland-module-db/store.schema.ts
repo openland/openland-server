@@ -2516,17 +2516,17 @@ export default declareSchema(() => {
     // Events
     //
 
-    // Deprecated
     customDirectory('EventStorage');
-    // Deprecated
     customDirectory('EventRegistrations');
+
     // Deprecated
     customDirectory('EventUserSeq');
-
     customDirectory('EventsTestStore');
     customDirectory('EventsTestRegistrations');
     atomicInt('EventsStoreSubscriberCount', () => { primaryKey('production', boolean()); });
     atomicInt('EventsStoreFeedCount', () => { primaryKey('production', boolean()); });
+
+    // Events
 
     event('UpdateChatRead', () => {
         field('uid', integer());
