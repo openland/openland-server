@@ -19,11 +19,11 @@ export class EventsMediator {
     }
 
     async onChatJoined(ctx: Context, cid: number, uid: number) {
-        // await Modules.Events.mediator.subscribe(ctx, uid, { type: 'chat', cid });
+        await Modules.Events.mediator.subscribe(ctx, uid, { type: 'chat', cid });
     }
 
     async onChatLeft(ctx: Context, cid: number, uid: number) {
-        // await Modules.Events.mediator.unsubscribe(ctx, uid, { type: 'chat', cid });
+        await Modules.Events.mediator.unsubscribe(ctx, uid, { type: 'chat', cid });
     }
 
     async onMessageSent(ctx: Context, cid: number, mid: number, hiddenForUids: number[]) {
