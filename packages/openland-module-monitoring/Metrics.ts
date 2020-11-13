@@ -3,7 +3,6 @@ import { Store } from 'openland-module-db/FDB';
 import { MetricFactory } from './MetricFactory';
 import { Modules } from '../openland-modules/Modules';
 import { ShardState } from 'openland-module-sharding/repo/ShardingRepository';
-import { inTx, TupleItem } from '@openland/foundationdb';
 
 export const Factory = new MetricFactory();
 
@@ -223,24 +222,13 @@ export const Metrics = {
     TracingFrequence: Factory.createFrequencyGauge('tracing_span_hz', 'Tracing spans generation frequence'),
 
     // Basics
-    Users: Factory.createPersistedGauge('users_count', 'Total openland users', async (parent) => {
-        let cursor: TupleItem[] | undefined = undefined;
-        let total = 0;
-        let shouldContinue = true;
-        while (shouldContinue) {
-            shouldContinue = await inTx(parent, async ctx => {
-                let next = await Store.User.descriptor.subspace.range(ctx, [], { after: cursor, limit: 10000 });
-                total += next.length;
-                cursor = next[next.length - 1].key;
-
-                if (next.length < 10000) {
-                    return false;
-                }
-                return true;
-            });
+    Users: Factory.createPersistedGauge('users_count', 'Total openland users', async (ctx) => {
+        let seq = (await Store.Sequence.findById(ctx, 'user-id'));
+        if (seq) {
+            return seq.value;
+        } else {
+            return 0;
         }
-
-        return total;
     }),
 
     // Calls
