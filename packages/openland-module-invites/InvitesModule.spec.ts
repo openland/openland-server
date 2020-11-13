@@ -55,6 +55,7 @@ describe('RoomMediator', () => {
         let USER2_ID = (await users.createUser(ctx, { email: 'email112' })).id;
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
         await Modules.Events.mediator.prepareUser(ctx, USER_ID);
+        await Modules.Events.mediator.prepareUser(ctx, USER2_ID);
         let oid = (await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' })).id;
         let room = await mediator.createRoom(ctx, 'group', oid, USER_ID, [], { title: 'Room' });
         await expect(mediator.joinRoom(ctx, room.id, USER2_ID, false)).rejects.toThrowError('You can\'t join non-public room');

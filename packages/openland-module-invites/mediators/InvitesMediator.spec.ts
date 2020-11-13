@@ -45,6 +45,8 @@ describe('InvitesMediator', () => {
         let USER_ID = (await randomTestUser(ctx)).uid;
         let USER2_ID = (await users.createUser(ctx, {email: 'email112'})).id;
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
+        await Modules.Events.mediator.prepareUser(ctx, USER_ID);
+        await Modules.Events.mediator.prepareUser(ctx, USER2_ID);
         let oid = (await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' })).id;
 
         let USER2_ORG_ID = (await orgs.createOrganization(ctx, USER2_ID, { name: 'ACME' })).id;
@@ -74,6 +76,7 @@ describe('InvitesMediator', () => {
         let ctx = createNamedContext('test');
         let USER_ID = (await users.createUser(ctx, {email: 'email_app_1'})).id;
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
+        await Modules.Events.mediator.prepareUser(ctx, USER_ID);
 
         let USER_ORG_ID = (await orgs.createOrganization(ctx, USER_ID, { name: 'ACME' })).id;
 
@@ -99,6 +102,8 @@ describe('InvitesMediator', () => {
         let USER2_ID = (await users.createUser(ctx, {email: 'email_org_2'})).id;
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
+        await Modules.Events.mediator.prepareUser(ctx, USER_ID);
+        await Modules.Events.mediator.prepareUser(ctx, USER2_ID);
 
         let USER_ORG_ID = (await orgs.createOrganization(ctx, USER_ID, { name: 'ACME' })).id;
         await orgs.activateOrganization(ctx, USER_ORG_ID, true);
@@ -129,6 +134,8 @@ describe('InvitesMediator', () => {
         let USER2_ID = (await users.createUser(ctx, {email: 'email_org_p_2'})).id;
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
+        await Modules.Events.mediator.prepareUser(ctx, USER_ID);
+        await Modules.Events.mediator.prepareUser(ctx, USER2_ID);
 
         let USER_ORG_ID = (await orgs.createOrganization(ctx, USER_ID, { name: 'ACME' })).id;
         await orgs.activateOrganization(ctx, USER_ORG_ID, true);
