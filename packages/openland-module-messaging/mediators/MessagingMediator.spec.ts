@@ -37,8 +37,9 @@ describe('MessagingMediator', () => {
         let roooms = container.get<RoomMediator>('RoomMediator');
         let mediator = container.get<MessagingMediator>('MessagingMediator');
         let users = container.get<UsersModule>(UsersModule);
-        let USER_ID = (await users.createUser(ctx, {email: 'email' + Math.random()})).id;
+        let USER_ID = (await users.createUser(ctx, { email: 'email' + Math.random() })).id;
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' + Math.random() });
+        await Modules.Events.mediator.prepareUser(ctx, USER_ID);
         let org = await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' });
         let room = await roooms.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
 

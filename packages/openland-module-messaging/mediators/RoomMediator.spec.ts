@@ -31,6 +31,7 @@ describe('RoomMediator', () => {
         let users = container.get<UsersModule>(UsersModule);
         let uid = (await users.createUser(ctx, { email: 'email' + Math.random() })).id;
         await users.createUserProfile(ctx, uid, { firstName: 'User Name' + Math.random() });
+        await Modules.Events.mediator.prepareUser(ctx, uid);
         return uid;
     }
 
