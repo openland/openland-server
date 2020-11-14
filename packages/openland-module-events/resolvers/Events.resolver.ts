@@ -19,7 +19,7 @@ export const Resolver: GQLResolver = {
                 if (!msg || msg.deleted || (msg.hiddenForUids !== null && !!msg.hiddenForUids.find((v) => v === ctx.auth.uid))) {
                     return 'UpdateChatMessageDeleted';
                 } else {
-                    return 'UpdateProfileChanged';
+                    return 'UpdateChatMessage';
                 }
             } else if (src.type === 'updateChatMessageDeleted') {
                 return 'UpdateChatMessageDeleted';
