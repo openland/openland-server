@@ -892,4 +892,29 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '151-create-conversation-subscriptions',
+    migration: async (parent) => {
+        let after = 0;
+        while (true) {
+            let ex = await Store.ConversationRoom.descriptor.subspace.range(parent, [], { after: [after], limit: 500 });
+            if (ex.length === 0) {
+                break;
+            }
+            let ids = ex.map((e) => e.key[0] as number);
+            logger.log(parent, 'Apply conversation ' + after + ': ' + ids.length);
+            for (let u of ids) {
+                await inTx(parent, async ctx => {
+                    let participants = await Store.RoomParticipant.active.findAll(ctx, u);
+                    await Promise.all(participants.map(async (p) => {
+                        await Modules.Events.mediator.subscribe(ctx, p.uid, { type: 'chat', cid: u });
+                    }));
+                });
+            }
+
+            after = ex[ex.length - 1].key[0] as number;
+        }
+    }
+});
+
 export default migrations;
