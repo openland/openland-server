@@ -906,9 +906,9 @@ migrations.push({
                 logger.log(parent, 'Apply conversation ' + u);
                 await inTx(parent, async ctx => {
                     let participants = await Store.RoomParticipant.active.findAll(ctx, u);
-                    await Promise.all(participants.map(async (p) => {
+                    for (let p of participants) {
                         await Modules.Events.mediator.subscribe(ctx, p.uid, { type: 'chat', cid: u });
-                    }));
+                    }
                 });
             }
 
