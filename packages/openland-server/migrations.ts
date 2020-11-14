@@ -916,7 +916,7 @@ migrations.push({
                     }
                 }));
             });
-            after = [ex[ex.length - 2].key[0] as number, ex[ex.length - 1].key[0] as number];
+            after = [ex[ex.length - 1].key[0] as number, ex[ex.length - 1].key[1] as number];
         }
     }
 });
