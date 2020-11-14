@@ -895,24 +895,28 @@ migrations.push({
 migrations.push({
     key: '151-create-conversation-subscriptions',
     migration: async (parent) => {
-        let after = 0;
+        let after: number[] = [0, 0];
         while (true) {
-            let ex = await Store.ConversationRoom.descriptor.subspace.range(parent, [], { after: [after], limit: 500 });
+            let ex = await Store.RoomParticipant.descriptor.subspace.range(parent, [], { after: [], limit: 500 });
             if (ex.length === 0) {
                 break;
             }
-            let ids = ex.map((e) => e.key[0] as number);
-            for (let u of ids) {
-                logger.log(parent, 'Apply conversation ' + u);
-                await inTx(parent, async ctx => {
-                    let participants = await Store.RoomParticipant.active.findAll(ctx, u);
-                    for (let p of participants) {
-                        await Modules.Events.mediator.subscribe(ctx, p.uid, { type: 'chat', cid: u });
+            let ids = ex.map((e) => ({ cid: e.key[0] as number, uid: e.key[1] as number }));
+            logger.log(parent, 'Apply conversation ' + after[0] + ',' + after[1]);
+            await inTx(parent, async ctx => {
+                await Promise.all(ids.map(async (u) => {
+                    let participant = await Store.RoomParticipant.findById(ctx, u.cid, u.uid);
+                    if (!participant) {
+                        return;
                     }
-                });
-            }
-
-            after = ex[ex.length - 1].key[0] as number;
+                    if (participant.status === 'joined') {
+                        await Modules.Events.mediator.subscribe(ctx, u.uid, { type: 'chat', cid: u.cid });
+                    } else {
+                        await Modules.Events.mediator.unsubscribe(ctx, u.uid, { type: 'chat', cid: u.cid });
+                    }
+                }));
+            });
+            after = [ex[ex.length - 2].key[0] as number, ex[ex.length - 1].key[0] as number];
         }
     }
 });
