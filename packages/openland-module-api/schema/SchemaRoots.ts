@@ -85,7 +85,7 @@ import {
     ContactAddedEvent,
     ContactRemovedEvent, UserDialogGotAccessEvent, UserDialogLostAccessEvent,
     UpdateChatRead,
-    UpdateProfileChanged, BlackListAddedEvent, BlackListRemovedEvent
+    UpdateProfileChanged, BlackListAddedEvent, BlackListRemovedEvent, UpdateChatMessage, UpdateChatMessageUpdated, UpdateChatMessageDeleted
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -792,6 +792,8 @@ export namespace GQLRoots {
     export type UpdateChatReadRoot = UpdateChatRead;
     export type UpdateProfileChangedRoot = UpdateProfileChanged;
     export type UpdateMyProfileChangedRoot = UpdateProfileChanged;
+    export type UpdateChatMessageRoot = UpdateChatMessage | UpdateChatMessageUpdated;
+    export type UpdateChatMessageDeletedRoot = UpdateChatMessageDeleted;
     export type UpdateEventRoot = Event;
 
     export type SequenceCommonRoot = { type: 'common', uid: number };

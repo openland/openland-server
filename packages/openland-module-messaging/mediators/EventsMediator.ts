@@ -3,6 +3,7 @@ import { MessagesEventsRepository } from './../repositories/MessagesEventsReposi
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { Modules } from 'openland-modules/Modules';
+import { UpdateChatMessage, UpdateChatMessageDeleted, UpdateChatMessageUpdated } from 'openland-module-db/store';
 
 @injectable()
 export class EventsMediator {
@@ -26,15 +27,65 @@ export class EventsMediator {
         await Modules.Events.mediator.unsubscribe(ctx, uid, { type: 'chat', cid });
     }
 
-    async onMessageSent(ctx: Context, cid: number, mid: number, hiddenForUids: number[]) {
+    //
+    // Group Updates
+    //
+
+    async onGroupMessageSent(ctx: Context, cid: number, mid: number, uid: number, hiddenForUids: number[]) {
         this.messagingEvents.postMessageReceived(ctx, cid, mid, hiddenForUids);
+        await Modules.Events.postToChat(ctx, cid, UpdateChatMessage.create({ cid, mid, uid }));
     }
 
-    async onMessageUpdated(ctx: Context, cid: number, mid: number, hiddenForUids: number[]) {
+    async onGroupMessageUpdated(ctx: Context, cid: number, mid: number, uid: number, hiddenForUids: number[]) {
         this.messagingEvents.postMessageUpdated(ctx, cid, mid, hiddenForUids);
+        await Modules.Events.postToChat(ctx, cid, UpdateChatMessageUpdated.create({ cid, mid, uid }));
     }
 
-    async onMessageDeleted(ctx: Context, cid: number, mid: number, hiddenForUids: number[]) {
+    async onGroupMessageDeleted(ctx: Context, cid: number, mid: number, uid: number, hiddenForUids: number[]) {
         this.messagingEvents.postMessageDeleted(ctx, cid, mid, hiddenForUids);
+        await Modules.Events.postToChat(ctx, cid, UpdateChatMessageDeleted.create({ cid, mid, uid }));
+    }
+
+    //
+    // Private Updates
+    //
+
+    async onPrivateMessageSent(ctx: Context, cid: number, mid: number, uid: number, hiddenForUids: number[], members: number[]) {
+        this.messagingEvents.postMessageReceived(ctx, cid, mid, hiddenForUids);
+
+        let update = UpdateChatMessage.create({ cid, mid, uid });
+        await Modules.Events.postToChat(ctx, cid, update);
+        for (let m of members) {
+            if (hiddenForUids.find((u) => u === m)) {
+                continue;
+            }
+            await Modules.Events.postToChatPrivate(ctx, cid, m, update);
+        }
+    }
+
+    async onPrivateMessageUpdated(ctx: Context, cid: number, mid: number, uid: number, hiddenForUids: number[], members: number[]) {
+        this.messagingEvents.postMessageUpdated(ctx, cid, mid, hiddenForUids);
+
+        let update = UpdateChatMessageUpdated.create({ cid, mid, uid });
+        await Modules.Events.postToChat(ctx, cid, update);
+        for (let m of members) {
+            if (hiddenForUids.find((u) => u === m)) {
+                continue;
+            }
+            await Modules.Events.postToChatPrivate(ctx, cid, m, update);
+        }
+    }
+
+    async onPrivateMessageDeleted(ctx: Context, cid: number, mid: number, uid: number, hiddenForUids: number[], members: number[]) {
+        this.messagingEvents.postMessageDeleted(ctx, cid, mid, hiddenForUids);
+
+        let update = UpdateChatMessageDeleted.create({ cid, mid, uid });
+        await Modules.Events.postToChat(ctx, cid, update);
+        for (let m of members) {
+            if (hiddenForUids.find((u) => u === m)) {
+                continue;
+            }
+            await Modules.Events.postToChatPrivate(ctx, cid, m, update);
+        }
     }
 }

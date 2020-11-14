@@ -150,11 +150,14 @@ export class MessagingMediator {
 
             // Read conversation
             let conv = await Store.Conversation.findById(ctx, cid);
+            if (!conv) {
+                throw new AccessDeniedError();
+            }
 
             // Permissions
             if (!skipAccessCheck) {
                 await this.room.checkAccess(ctx, uid, cid);
-                if (!conv || conv.deleted) {
+                if (conv.deleted) {
                     throw new AccessDeniedError();
                 }
                 if (conv && conv.archived) {
@@ -242,8 +245,13 @@ export class MessagingMediator {
             // Create
             let res = await this.repo.createMessage(ctx, cid, uid, { ...msg, spans });
 
-            // Post classic event
-            await this.events.onMessageSent(ctx, cid, res.message.id, res.message.hiddenForUids || []);
+            // Post Event
+            if (conv!.kind === 'private') {
+                let p = (await Store.ConversationPrivate.findById(ctx, cid))!;
+                await this.events.onPrivateMessageSent(ctx, cid, res.message.id, uid, res.message.hiddenForUids || [], [p.uid1, p.uid2]);
+            } else {
+                await this.events.onGroupMessageSent(ctx, cid, res.message.id, uid, res.message.hiddenForUids || []);
+            }
 
             //
             // Update user counter
@@ -338,6 +346,12 @@ export class MessagingMediator {
                 }
             }
 
+            // Read conversation
+            let conv = await Store.Conversation.findById(ctx, message.cid);
+            if (!conv) {
+                throw new AccessDeniedError();
+            }
+
             let spans: MessageSpan[] | null = null;
 
             if (newMessage.message) {
@@ -369,8 +383,13 @@ export class MessagingMediator {
             let res = await this.repo.editMessage(ctx, mid, { ...newMessage, ... (spans ? { spans } : {}) }, markAsEdited);
             message = (await Store.Message.findById(ctx, mid!))!;
 
-            // Classic event
-            await this.events.onMessageUpdated(ctx, message.cid, mid!, message.hiddenForUids || []);
+            // Post Event
+            if (conv!.kind === 'private') {
+                let p = (await Store.ConversationPrivate.findById(ctx, conv.id))!;
+                await this.events.onPrivateMessageUpdated(ctx, conv.id, mid, uid, message.hiddenForUids || [], [p.uid1, p.uid2]);
+            } else {
+                await this.events.onGroupMessageUpdated(ctx, conv.id, mid, uid, message.hiddenForUids || []);
+            }
 
             // Delivery
             await this.delivery.onUpdateMessage(ctx, message);
@@ -404,7 +423,20 @@ export class MessagingMediator {
             if (!message) {
                 throw new Error('Message not found');
             }
-            await this.events.onMessageUpdated(parent, message!.cid, mid, message.hiddenForUids || []);
+            
+            // Read conversation
+            let conv = await Store.Conversation.findById(ctx, message.cid);
+            if (!conv) {
+                throw new AccessDeniedError();
+            }
+
+            // Post event
+            if (conv!.kind === 'private') {
+                let p = (await Store.ConversationPrivate.findById(ctx, conv.id))!;
+                await this.events.onPrivateMessageUpdated(ctx, conv.id, mid, message.uid, message.hiddenForUids || [], [p.uid1, p.uid2]);
+            } else {
+                await this.events.onGroupMessageUpdated(ctx, conv.id, mid, message.uid, message.hiddenForUids || []);
+            }
         });
     }
 
@@ -417,8 +449,19 @@ export class MessagingMediator {
                 return false;
             }
 
-            // Post classic update
-            await this.events.onMessageUpdated(ctx, res.cid, mid, res.hiddenForUids || []);
+            // Read conversation
+            let conv = await Store.Conversation.findById(ctx, res.cid);
+            if (!conv) {
+                throw new AccessDeniedError();
+            }
+
+            // Post event
+            if (conv!.kind === 'private') {
+                let p = (await Store.ConversationPrivate.findById(ctx, conv.id))!;
+                await this.events.onPrivateMessageUpdated(ctx, conv.id, mid, res.uid, res.hiddenForUids || [], [p.uid1, p.uid2]);
+            } else {
+                await this.events.onGroupMessageUpdated(ctx, conv.id, mid, res.uid, res.hiddenForUids || []);
+            }
 
             // Stats
             if (!reset) {
@@ -446,8 +489,19 @@ export class MessagingMediator {
             // Delete
             await this.repo.deleteMessage(ctx, mid);
 
-            // Classic event
-            await this.events.onMessageDeleted(ctx, message.cid, mid, message.hiddenForUids || []);
+            // Read conversation
+            let conv = await Store.Conversation.findById(ctx, message.cid);
+            if (!conv) {
+                throw new AccessDeniedError();
+            }
+
+            // Post event
+            if (conv!.kind === 'private') {
+                let p = (await Store.ConversationPrivate.findById(ctx, conv.id))!;
+                await this.events.onPrivateMessageDeleted(ctx, conv.id, mid, message.uid, message.hiddenForUids || [], [p.uid1, p.uid2]);
+            } else {
+                await this.events.onGroupMessageDeleted(ctx, conv.id, mid, message.uid, message.hiddenForUids || []);
+            }
 
             // Delivery
             message = (await Store.Message.findById(ctx, mid))!;
