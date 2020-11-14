@@ -893,11 +893,11 @@ migrations.push({
 });
 
 migrations.push({
-    key: '151-create-conversation-subscriptions',
+    key: '152-create-conversation-subscriptions',
     migration: async (parent) => {
         let after: number[] = [0, 0];
         while (true) {
-            let ex = await Store.RoomParticipant.descriptor.subspace.range(parent, [], { after: [], limit: 500 });
+            let ex = await Store.RoomParticipant.descriptor.subspace.range(parent, [], { after: after, limit: 500 });
             if (ex.length === 0) {
                 break;
             }
