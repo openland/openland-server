@@ -902,8 +902,8 @@ migrations.push({
                 break;
             }
             let ids = ex.map((e) => e.key[0] as number);
-            logger.log(parent, 'Apply conversation ' + after + ': ' + ids.length);
             for (let u of ids) {
+                logger.log(parent, 'Apply conversation ' + u);
                 await inTx(parent, async ctx => {
                     let participants = await Store.RoomParticipant.active.findAll(ctx, u);
                     await Promise.all(participants.map(async (p) => {
