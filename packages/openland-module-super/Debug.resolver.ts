@@ -37,7 +37,7 @@ import { asyncRun } from '../openland-mtproto3/utils';
 import { container } from '../openland-modules/Modules.container';
 import { batch } from '../openland-utils/batch';
 import { UserError } from '../openland-errors/UserError';
-import { UserChatsRepository } from '../openland-module-messaging/repositories/UserChatsRepository';
+import { UserGroupsRepository } from '../openland-module-messaging/repositories/UserGroupsRepository';
 import { FastCountersRepository } from '../openland-module-messaging/repositories/FastCountersRepository';
 import { MessageAttachmentFileInput, MessageSpan } from '../openland-module-messaging/MessageInput';
 import { ExperimentalCountersRepository } from '../openland-module-messaging/repositories/ExperimentalCountersRepository';
@@ -1970,14 +1970,14 @@ export const Resolver: GQLResolver = {
             return true;
         }),
         debugMigrateUserChatsList: withPermission('super-admin', async (parent, args) => {
-            let repo = new UserChatsRepository();
+            let repo = new UserGroupsRepository();
 
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugMigrateUserChatsList', async (ctx, uid, log) => {
                 let userDialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
                 await Promise.all(userDialogs.map(async d => {
                     let room = await Store.ConversationRoom.findById(ctx, d.cid);
                     if (room) {
-                        repo.addChat(ctx, uid, d.cid);
+                        repo.addGroup(ctx, uid, d.cid);
                     }
                 }));
             });
