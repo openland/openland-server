@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '3839d474e28767d094d90eb8e5d25cb8';
+export const GQL_SPEC_VERSION = 'bdd3aa845fb666f7e1ca019cdf8abc52';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -5121,9 +5121,11 @@ export namespace GQL {
     export interface SyncChat {
         conversation: Conversation;
         sequence: Sequence;
+        pts: number;
     }
     export interface SyncChatConversationArgs { }
     export interface SyncChatSequenceArgs { }
+    export interface SyncChatPtsArgs { }
     export interface SyncChatsConnection {
         items: SyncChat[];
         cursor: Nullable<string>;
@@ -10421,6 +10423,7 @@ export interface GQLResolver {
         {
             conversation: GQL.SyncChatConversationArgs,
             sequence: GQL.SyncChatSequenceArgs,
+            pts: GQL.SyncChatPtsArgs,
         }
     >;
     SyncChatsConnection?: ComplexTypedResolver<

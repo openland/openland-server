@@ -7,7 +7,8 @@ import { Modules } from 'openland-modules/Modules';
 export const Resolver: GQLResolver = {
     SyncChat: {
         conversation: (src) => src.conversation,
-        sequence: (src) => src.sequence
+        sequence: (src) => src.sequence,
+        pts: async (src, _, ctx) => Modules.Events.mediator.getFeedSubscriberPts(ctx, src.sequence, ctx.auth.uid!)
     },
     SyncChatsConnection: {
         items: (src) => src.items,
