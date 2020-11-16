@@ -105,6 +105,10 @@ export class MessagingModule {
         return this.userDialogs.findUserDialogs(ctx, uid);
     }
 
+    loadUserDialogs(ctx: Context, uid: number, after: number) {
+        return this.userDialogs.loadUserDialogs(ctx, uid, after);
+    }
+
     hasActiveDialog(ctx: Context, uid: number, cid: number) {
         return this.userDialogs.hasActiveDialog(ctx, uid, cid);
     }
@@ -319,7 +323,7 @@ export class MessagingModule {
 
         let userMentioned = hasMention(message, uid);
 
-        let {mobile, desktop} = settings;
+        let { mobile, desktop } = settings;
         let mobileSettings: { showNotification: boolean, sound: boolean } | null = null;
         let desktopSettings: { showNotification: boolean, sound: boolean } | null = null;
         if (conversation.kind === 'private') {
@@ -348,15 +352,15 @@ export class MessagingModule {
 
         let conversationSettings = await Store.UserDialogSettings.findById(ctx, uid, conversation.id);
         if (conversationSettings && conversationSettings.mute && !userMentioned) {
-            mobileSettings = {showNotification: false, sound: false};
-            desktopSettings = {showNotification: false, sound: false};
+            mobileSettings = { showNotification: false, sound: false };
+            desktopSettings = { showNotification: false, sound: false };
         }
 
         let isMuted = !mobileSettings.showNotification || !mobileSettings.sound ||
             !desktopSettings.sound || !desktopSettings.showNotification;
         if (isMuted && userMentioned) {
-            mobileSettings = {showNotification: true, sound: true};
-            desktopSettings = {showNotification: true, sound: true};
+            mobileSettings = { showNotification: true, sound: true };
+            desktopSettings = { showNotification: true, sound: true };
         }
 
         return {

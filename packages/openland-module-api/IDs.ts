@@ -108,5 +108,7 @@ export const IDs = {
     SequenceChat: IdsFactory.createId('SequenceChat'),
     SequenceChatPrivate: IdsFactory.createId('SequenceChatPrivate'),
 
-    BlackListUpdatesCursor: IdsFactory.createStringId('BlackListUpdatesCursor')
+    BlackListUpdatesCursor: IdsFactory.createStringId('BlackListUpdatesCursor'),
+
+    ChatSyncAfter: IdsFactory.createId('ChatSyncAfter')
 };

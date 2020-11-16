@@ -813,4 +813,11 @@ export namespace GQLRoots {
     export type UpdatesDifferenceRoot = { seq: number, state: string, hasMore: boolean, sequences: UpdatesSequenceDifferenceRoot[] };
 
     export type SequenceDifferenceRoot = { hasMore: boolean, pts: number, sequence: SequenceRoot, events: UpdatesDifferenceEventRoot[] };
+
+    //
+    // Chats
+    //
+
+    export type SyncChatRoot = { conversation: Conversation, sequence: SequenceRoot };
+    export type SyncChatsConnectionRoot = { items: SyncChatRoot[], cursor: string | null };
 }

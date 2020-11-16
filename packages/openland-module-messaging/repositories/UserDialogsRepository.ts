@@ -27,6 +27,14 @@ export class UserDialogsRepository {
         Store.DialogIndexEventStore.post(ctx, DialogNeedReindexEvent.create({ uid, cid }));
     }
 
+    loadUserDialogs = async (ctx: Context, uid: number, after: number) => {
+        return (await Store.UserDialogIndexDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.json)
+            .range(ctx, [uid], { after: [uid, after], limit: 500 }))
+            .map((v) => v.key[1] as number);
+    }
+
     findUserDialogs = async (ctx: Context, uid: number): Promise<{ cid: number, date: number }[]> => {
         return (await Store.UserDialogIndexDirectory
             .withKeyEncoding(encoders.tuple)

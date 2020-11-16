@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '966bc75956efbd793741ea0dfbbddaef';
+export const GQL_SPEC_VERSION = '3839d474e28767d094d90eb8e5d25cb8';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -4335,6 +4335,7 @@ export namespace GQL {
         pushSettings: PushSettings;
         activeSessions: Nullable<Session>[];
         sessionState: SessionState;
+        syncUserChats: SyncChatsConnection;
         betaNextDiscoverPage: Nullable<DiscoverPage>;
         gammaNextDiscoverPage: Nullable<DiscoverPage>;
         betaSuggestedRooms: Room[];
@@ -4729,6 +4730,10 @@ export namespace GQL {
     export interface QueryPushSettingsArgs { }
     export interface QueryActiveSessionsArgs { }
     export interface QuerySessionStateArgs { }
+    export interface QuerySyncUserChatsArgs {
+        first: number;
+        after: OptionalNullable<string>;
+    }
     export interface QueryBetaNextDiscoverPageArgs {
         selectedTagsIds: string[];
         excudedGroupsIds: string[];
@@ -5113,6 +5118,18 @@ export namespace GQL {
         chatId: string;
     }
     export interface SubscriptionTypingsArgs { }
+    export interface SyncChat {
+        conversation: Conversation;
+        sequence: Sequence;
+    }
+    export interface SyncChatConversationArgs { }
+    export interface SyncChatSequenceArgs { }
+    export interface SyncChatsConnection {
+        items: SyncChat[];
+        cursor: Nullable<string>;
+    }
+    export interface SyncChatsConnectionItemsArgs { }
+    export interface SyncChatsConnectionCursorArgs { }
     export interface Tag {
         id: string;
         title: string;
@@ -10062,6 +10079,7 @@ export interface GQLResolver {
             pushSettings: GQLRoots.PushSettingsRoot,
             activeSessions: Nullable<GQLRoots.SessionRoot>[],
             sessionState: GQLRoots.SessionStateRoot,
+            syncUserChats: GQLRoots.SyncChatsConnectionRoot,
             betaNextDiscoverPage: Nullable<GQLRoots.DiscoverPageRoot>,
             gammaNextDiscoverPage: Nullable<GQLRoots.DiscoverPageRoot>,
             betaSuggestedRooms: GQLRoots.RoomRoot[],
@@ -10243,6 +10261,7 @@ export interface GQLResolver {
             pushSettings: GQL.QueryPushSettingsArgs,
             activeSessions: GQL.QueryActiveSessionsArgs,
             sessionState: GQL.QuerySessionStateArgs,
+            syncUserChats: GQL.QuerySyncUserChatsArgs,
             betaNextDiscoverPage: GQL.QueryBetaNextDiscoverPageArgs,
             gammaNextDiscoverPage: GQL.QueryGammaNextDiscoverPageArgs,
             betaSuggestedRooms: GQL.QueryBetaSuggestedRoomsArgs,
@@ -10390,6 +10409,29 @@ export interface GQLResolver {
             alphaSubscribeOnline: GQL.SubscriptionAlphaSubscribeOnlineArgs,
             chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs,
             typings: GQL.SubscriptionTypingsArgs,
+        }
+    >;
+    SyncChat?: ComplexTypedResolver<
+        GQL.SyncChat,
+        GQLRoots.SyncChatRoot,
+        {
+            conversation: GQLRoots.ConversationRoot,
+            sequence: GQLRoots.SequenceRoot,
+        },
+        {
+            conversation: GQL.SyncChatConversationArgs,
+            sequence: GQL.SyncChatSequenceArgs,
+        }
+    >;
+    SyncChatsConnection?: ComplexTypedResolver<
+        GQL.SyncChatsConnection,
+        GQLRoots.SyncChatsConnectionRoot,
+        {
+            items: GQLRoots.SyncChatRoot[],
+        },
+        {
+            items: GQL.SyncChatsConnectionItemsArgs,
+            cursor: GQL.SyncChatsConnectionCursorArgs,
         }
     >;
     Tag?: ComplexTypedResolver<
