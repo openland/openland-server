@@ -921,4 +921,19 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '153-create-user-active-chats',
+    migration: async (parent) => {
+        let data = await inTx(parent, ctx => Store.User.findAll(ctx));
+        for (let u of data) {
+            await inTx(parent, async ctx => {
+                let dialogs = await Modules.Messaging.findUserDialogs(ctx, u.id);
+                for (let d of dialogs) {
+                    Modules.Messaging.messaging.events.userActiveChats.addChat(ctx, u.id, d.cid);
+                }
+            });
+        }
+    }
+});
+
 export default migrations;
