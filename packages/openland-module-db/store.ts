@@ -22846,6 +22846,7 @@ export interface Store extends BaseStore {
     readonly UserOnlineDirectory: Subspace;
     readonly RoomParticipantsActiveDirectory: Subspace;
     readonly UserChatsActiveDirectory: Subspace;
+    readonly UserChatsAllIndexDirectory: Subspace;
     readonly MessageDeliveryDirectory: Subspace;
     readonly MessageDeliveryBatchDirectory: Subspace;
     readonly UserDialogIndexDirectory: Subspace;
@@ -23132,6 +23133,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserOnlineDirectoryPromise = storage.resolveCustomDirectory('userOnline');
     let RoomParticipantsActiveDirectoryPromise = storage.resolveCustomDirectory('roomParticipantsActive');
     let UserChatsActiveDirectoryPromise = storage.resolveCustomDirectory('userChatsActive');
+    let UserChatsAllIndexDirectoryPromise = storage.resolveCustomDirectory('userChatsAllIndex');
     let MessageDeliveryDirectoryPromise = storage.resolveCustomDirectory('messageDelivery');
     let MessageDeliveryBatchDirectoryPromise = storage.resolveCustomDirectory('messageDeliveryBatch');
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
@@ -23385,6 +23387,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserOnlineDirectory: await UserOnlineDirectoryPromise,
         RoomParticipantsActiveDirectory: await RoomParticipantsActiveDirectoryPromise,
         UserChatsActiveDirectory: await UserChatsActiveDirectoryPromise,
+        UserChatsAllIndexDirectory: await UserChatsAllIndexDirectoryPromise,
         MessageDeliveryDirectory: await MessageDeliveryDirectoryPromise,
         MessageDeliveryBatchDirectory: await MessageDeliveryBatchDirectoryPromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,

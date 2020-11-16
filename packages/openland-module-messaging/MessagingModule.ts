@@ -36,7 +36,7 @@ export class MessagingModule {
     readonly needNotificationDelivery: NeedNotificationDeliveryRepository;
     readonly delivery: DeliveryMediator;
     readonly counters: CounterProvider = new PrecalculatedCounterProvider();
-    private readonly messaging: MessagingMediator;
+    readonly messaging: MessagingMediator;
     private readonly augmentation: AugmentationMediator;
     private readonly userState: UserStateRepository;
     private readonly userDialogs: UserDialogsRepository;

@@ -730,15 +730,15 @@ export class RoomMediator {
     }
 
     async getUserGroups(ctx: Context, uid: number) {
-        return this.repo.userChats.getGroups(ctx, uid);
+        return this.repo.userGroups.getGroups(ctx, uid);
     }
 
     async getUserGroupsVersion(ctx: Context, uid: number) {
-        return this.repo.userChats.getVersion(ctx, uid);
+        return this.repo.userGroups.getVersion(ctx, uid);
     }
 
     watchUserGroups(ctx: Context, uid: number) {
-        return this.repo.userChats.watchVersion(ctx, uid);
+        return this.repo.userGroups.watchVersion(ctx, uid);
     }
 
     private async roomJoinMessageText(parent: Context, room: ConversationRoom, uids: number[], invitedBy: number | null, isUpdate: boolean = false) {
