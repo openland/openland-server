@@ -922,14 +922,24 @@ migrations.push({
 });
 
 migrations.push({
-    key: '153-create-user-active-chats',
+    key: '154-create-user-active-chats',
     migration: async (parent) => {
         let data = await inTx(parent, ctx => Store.User.findAll(ctx));
         for (let u of data) {
             await inTx(parent, async ctx => {
                 let dialogs = await Modules.Messaging.findUserDialogs(ctx, u.id);
                 for (let d of dialogs) {
-                    Modules.Messaging.messaging.events.userActiveChats.addChat(ctx, u.id, d.cid);
+                    let conv = (await Store.Conversation.findById(ctx, d.cid))!;
+                    if (conv.kind === 'room') {
+                        let status = await Modules.Messaging.room.findMembershipStatus(ctx, u.id, d.cid);
+                        if (status && status.status === 'joined') {
+                            Modules.Messaging.messaging.events.userActiveChats.addChat(ctx, u.id, d.cid);
+                        } else {
+                            Modules.Messaging.messaging.events.userActiveChats.removeChat(ctx, u.id, d.cid);
+                        }
+                    } else if (conv.kind === 'private') {
+                        Modules.Messaging.messaging.events.userActiveChats.addChat(ctx, u.id, d.cid);
+                    }
                 }
             });
         }
