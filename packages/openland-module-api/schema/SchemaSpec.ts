@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '636b26e67e0c10c276498989fffc6579';
+export const GQL_SPEC_VERSION = 'e9e38b38302c107f207cd3e6bd1aad70';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1451,12 +1451,10 @@ export namespace GQL {
         id: string;
         cid: string;
         draft: Nullable<Draft>;
-        unread: Nullable<ReadState>;
     }
     export interface SequenceChatIdArgs { }
     export interface SequenceChatCidArgs { }
     export interface SequenceChatDraftArgs { }
-    export interface SequenceChatUnreadArgs { }
     export interface PageInfo {
         hasNextPage: boolean;
         hasPreviousPage: boolean;
@@ -5003,12 +5001,6 @@ export namespace GQL {
     export interface QueryAlphaResolveShortNameArgs {
         shortname: string;
     }
-    export interface ReadState {
-        unread: number;
-        readSeq: number;
-    }
-    export interface ReadStateUnreadArgs { }
-    export interface ReadStateReadSeqArgs { }
     export interface Session {
         id: string;
         lastIp: string;
@@ -7952,13 +7944,11 @@ export interface GQLResolver {
         GQLRoots.SequenceChatRoot,
         {
             draft: Nullable<GQLRoots.DraftRoot>,
-            unread: Nullable<GQLRoots.ReadStateRoot>,
         },
         {
             id: GQL.SequenceChatIdArgs,
             cid: GQL.SequenceChatCidArgs,
             draft: GQL.SequenceChatDraftArgs,
-            unread: GQL.SequenceChatUnreadArgs,
         }
     >;
     PageInfo?: ComplexTypedResolver<
@@ -10383,16 +10373,6 @@ export interface GQLResolver {
             betaUserAvailableRooms: GQL.QueryBetaUserAvailableRoomsArgs,
             alphaUserAvailableRooms: GQL.QueryAlphaUserAvailableRoomsArgs,
             alphaResolveShortName: GQL.QueryAlphaResolveShortNameArgs,
-        }
-    >;
-    ReadState?: ComplexTypedResolver<
-        GQL.ReadState,
-        GQLRoots.ReadStateRoot,
-        {
-        },
-        {
-            unread: GQL.ReadStateUnreadArgs,
-            readSeq: GQL.ReadStateReadSeqArgs,
         }
     >;
     Session?: ComplexTypedResolver<
