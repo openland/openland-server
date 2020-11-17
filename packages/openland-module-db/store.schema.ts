@@ -172,7 +172,8 @@ export default declareSchema(() => {
         field('privacy', optional(struct({
             whoCanSeeEmail: enumString('everyone', 'nobody'),
             whoCanSeePhone: enumString('everyone', 'nobody'),
-            communityAdminsCanSeeContactInfo: optional(boolean())
+            communityAdminsCanSeeContactInfo: optional(boolean()),
+            whoCanAddToGroups: enumString('everyone', 'correspondents', 'nobody'),
         })));
     });
 

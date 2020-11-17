@@ -141,7 +141,8 @@ const settingsUpdateResolver = withUser(async (parent, args: GQL.MutationSetting
             settings.privacy = {
                 whoCanSeePhone: 'nobody',
                 whoCanSeeEmail: 'nobody',
-                communityAdminsCanSeeContactInfo: true
+                communityAdminsCanSeeContactInfo: true,
+                whoCanAddToGroups: 'everyone'
             };
         }
         if (args.settings.whoCanSeeEmail) {
@@ -152,6 +153,19 @@ const settingsUpdateResolver = withUser(async (parent, args: GQL.MutationSetting
         }
         if (args.settings.communityAdminsCanSeeContactInfo !== null) {
             settings.privacy.communityAdminsCanSeeContactInfo = args.settings.communityAdminsCanSeeContactInfo;
+        }
+        if (args.settings.whoCanAddToGroups) {
+            switch (args.settings.whoCanAddToGroups) {
+                case 'NOBODY':
+                    settings.privacy.whoCanAddToGroups = 'nobody';
+                    break;
+                case 'CORRESPONDENTS':
+                    settings.privacy.whoCanAddToGroups = 'correspondents';
+                    break;
+                default: // EVERYONE (default)
+                    settings.privacy.whoCanAddToGroups = 'everyone';
+                    break;
+            }
         }
 
         let countUnreadChats = !settings.globalCounterType ? false : (settings.globalCounterType === 'unread_chats' || settings.globalCounterType === 'unread_chats_no_muted');
@@ -345,7 +359,8 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationUpdateS
             settings.privacy = {
                 whoCanSeePhone: 'nobody',
                 whoCanSeeEmail: 'nobody',
-                communityAdminsCanSeeContactInfo: true
+                communityAdminsCanSeeContactInfo: true,
+                whoCanAddToGroups: 'everyone'
             };
         }
         if (args.settings.whoCanSeeEmail) {
@@ -356,6 +371,19 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationUpdateS
         }
         if (args.settings.communityAdminsCanSeeContactInfo !== null) {
             settings.privacy.communityAdminsCanSeeContactInfo = args.settings.communityAdminsCanSeeContactInfo;
+        }
+        if (args.settings.whoCanAddToGroups) {
+            switch (args.settings.whoCanAddToGroups) {
+                case 'NOBODY':
+                    settings.privacy.whoCanAddToGroups = 'nobody';
+                    break;
+                case 'CORRESPONDENTS':
+                    settings.privacy.whoCanAddToGroups = 'correspondents';
+                    break;
+                default: // EVERYONE (default)
+                    settings.privacy.whoCanAddToGroups = 'everyone';
+                    break;
+            }
         }
 
         let countUnreadChats = !settings.globalCounterType ? false : (settings.globalCounterType === 'unread_chats' || settings.globalCounterType === 'unread_chats_no_muted');
@@ -486,6 +514,19 @@ export const Resolver: GQLResolver = {
         },
         communityAdminsCanSeeContactInfo: src => {
             return src.privacy?.communityAdminsCanSeeContactInfo !== false;
+        },
+        whoCanAddToGroups: src => {
+            if (!src.privacy) {
+                return 'EVERYONE';
+            }
+            switch (src.privacy.whoCanAddToGroups) {
+                case 'nobody':
+                    return 'NOBODY';
+                case 'correspondents':
+                    return 'CORRESPONDENTS';
+                default:
+                    return 'EVERYONE';
+            }
         }
     },
     PlatformNotificationSettings: {
