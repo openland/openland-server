@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'd794fb6345bbc3d977f9dda99cad707b';
+export const GQL_SPEC_VERSION = '2eb64a55d7cb6a317e5e2e1dbf191abe';
 
 export namespace GQL {
     export interface CreditCard {
@@ -4108,7 +4108,6 @@ export namespace GQL {
         room: Nullable<Room>;
         rooms: Room[];
         roomSuper: Nullable<RoomSuper>;
-        roomMessages: RoomMessage[];
         roomMembers: RoomMember[];
         roomAdmins: RoomMember[];
         roomFeaturedMembers: RoomMember[];
@@ -4625,11 +4624,6 @@ export namespace GQL {
     }
     export interface QueryRoomSuperArgs {
         id: string;
-    }
-    export interface QueryRoomMessagesArgs {
-        roomId: string;
-        first: OptionalNullable<number>;
-        before: OptionalNullable<string>;
     }
     export interface QueryRoomMembersArgs {
         roomId: string;
@@ -5863,61 +5857,6 @@ export namespace GQL {
         serviceMessageSettings: Nullable<RoomServiceMessageSettingsInput>;
         callSettings: Nullable<RoomCallSettingsInput>;
     }
-    export interface UserMention {
-        user: User;
-    }
-    export interface UserMentionUserArgs { }
-    export interface SharedRoomMention {
-        sharedRoom: SharedRoom;
-    }
-    export interface SharedRoomMentionSharedRoomArgs { }
-    export type Mention = UserMention | SharedRoomMention;
-    export interface RoomMessage {
-        id: string;
-        message: Nullable<string>;
-        file: Nullable<string>;
-        fileMetadata: Nullable<FileMetadata>;
-        filePreview: Nullable<string>;
-        sender: User;
-        date: Date;
-        repeatKey: Nullable<string>;
-        isService: boolean;
-        serviceMetadata: Nullable<ServiceMetadata>;
-        urlAugmentation: Nullable<UrlAugmentation>;
-        edited: boolean;
-        reactions: MessageReaction[];
-        replyMessages: Nullable<RoomMessage[]>;
-        plainText: Nullable<string>;
-        mentions: Nullable<User[]>;
-        alphaAttachments: MessageAttachment[];
-        alphaButtons: Nullable<MessageButton[]>[];
-        alphaType: MessageType;
-        alphaTitle: Nullable<string>;
-        alphaPostType: Nullable<PostMessageType>;
-        alphaMentions: Nullable<Mention[]>;
-    }
-    export interface RoomMessageIdArgs { }
-    export interface RoomMessageMessageArgs { }
-    export interface RoomMessageFileArgs { }
-    export interface RoomMessageFileMetadataArgs { }
-    export interface RoomMessageFilePreviewArgs { }
-    export interface RoomMessageSenderArgs { }
-    export interface RoomMessageDateArgs { }
-    export interface RoomMessageRepeatKeyArgs { }
-    export interface RoomMessageIsServiceArgs { }
-    export interface RoomMessageServiceMetadataArgs { }
-    export interface RoomMessageUrlAugmentationArgs { }
-    export interface RoomMessageEditedArgs { }
-    export interface RoomMessageReactionsArgs { }
-    export interface RoomMessageReplyMessagesArgs { }
-    export interface RoomMessagePlainTextArgs { }
-    export interface RoomMessageMentionsArgs { }
-    export interface RoomMessageAlphaAttachmentsArgs { }
-    export interface RoomMessageAlphaButtonsArgs { }
-    export interface RoomMessageAlphaTypeArgs { }
-    export interface RoomMessageAlphaTitleArgs { }
-    export interface RoomMessageAlphaPostTypeArgs { }
-    export interface RoomMessageAlphaMentionsArgs { }
     export interface RoomMember {
         user: User;
         role: RoomMemberRole;
@@ -9589,7 +9528,6 @@ export interface GQLResolver {
             room: Nullable<GQLRoots.RoomRoot>,
             rooms: GQLRoots.RoomRoot[],
             roomSuper: Nullable<GQLRoots.RoomSuperRoot>,
-            roomMessages: GQLRoots.RoomMessageRoot[],
             roomMembers: GQLRoots.RoomMemberRoot[],
             roomAdmins: GQLRoots.RoomMemberRoot[],
             roomFeaturedMembers: GQLRoots.RoomMemberRoot[],
@@ -9767,7 +9705,6 @@ export interface GQLResolver {
             room: GQL.QueryRoomArgs,
             rooms: GQL.QueryRoomsArgs,
             roomSuper: GQL.QueryRoomSuperArgs,
-            roomMessages: GQL.QueryRoomMessagesArgs,
             roomMembers: GQL.QueryRoomMembersArgs,
             roomAdmins: GQL.QueryRoomAdminsArgs,
             roomFeaturedMembers: GQL.QueryRoomFeaturedMembersArgs,
@@ -11072,67 +11009,6 @@ export interface GQLResolver {
             featured: GQL.RoomSuperFeaturedArgs,
             listed: GQL.RoomSuperListedArgs,
             autosubscribeRooms: GQL.RoomSuperAutosubscribeRoomsArgs,
-        }
-    >;
-    UserMention?: ComplexTypedResolver<
-        GQL.UserMention,
-        GQLRoots.UserMentionRoot,
-        {
-            user: GQLRoots.UserRoot,
-        },
-        {
-            user: GQL.UserMentionUserArgs,
-        }
-    >;
-    SharedRoomMention?: ComplexTypedResolver<
-        GQL.SharedRoomMention,
-        GQLRoots.SharedRoomMentionRoot,
-        {
-            sharedRoom: GQLRoots.SharedRoomRoot,
-        },
-        {
-            sharedRoom: GQL.SharedRoomMentionSharedRoomArgs,
-        }
-    >;
-    Mention?: UnionTypeResolver<GQLRoots.MentionRoot, 'UserMention' | 'SharedRoomMention'>;
-    RoomMessage?: ComplexTypedResolver<
-        GQL.RoomMessage,
-        GQLRoots.RoomMessageRoot,
-        {
-            fileMetadata: Nullable<GQLRoots.FileMetadataRoot>,
-            sender: GQLRoots.UserRoot,
-            serviceMetadata: Nullable<GQLRoots.ServiceMetadataRoot>,
-            urlAugmentation: Nullable<GQLRoots.UrlAugmentationRoot>,
-            reactions: GQLRoots.MessageReactionRoot[],
-            replyMessages: Nullable<GQLRoots.RoomMessageRoot[]>,
-            mentions: Nullable<GQLRoots.UserRoot[]>,
-            alphaAttachments: GQLRoots.MessageAttachmentRoot[],
-            alphaButtons: Nullable<GQLRoots.MessageButtonRoot[]>[],
-            alphaMentions: Nullable<GQLRoots.MentionRoot[]>,
-        },
-        {
-            id: GQL.RoomMessageIdArgs,
-            message: GQL.RoomMessageMessageArgs,
-            file: GQL.RoomMessageFileArgs,
-            fileMetadata: GQL.RoomMessageFileMetadataArgs,
-            filePreview: GQL.RoomMessageFilePreviewArgs,
-            sender: GQL.RoomMessageSenderArgs,
-            date: GQL.RoomMessageDateArgs,
-            repeatKey: GQL.RoomMessageRepeatKeyArgs,
-            isService: GQL.RoomMessageIsServiceArgs,
-            serviceMetadata: GQL.RoomMessageServiceMetadataArgs,
-            urlAugmentation: GQL.RoomMessageUrlAugmentationArgs,
-            edited: GQL.RoomMessageEditedArgs,
-            reactions: GQL.RoomMessageReactionsArgs,
-            replyMessages: GQL.RoomMessageReplyMessagesArgs,
-            plainText: GQL.RoomMessagePlainTextArgs,
-            mentions: GQL.RoomMessageMentionsArgs,
-            alphaAttachments: GQL.RoomMessageAlphaAttachmentsArgs,
-            alphaButtons: GQL.RoomMessageAlphaButtonsArgs,
-            alphaType: GQL.RoomMessageAlphaTypeArgs,
-            alphaTitle: GQL.RoomMessageAlphaTitleArgs,
-            alphaPostType: GQL.RoomMessageAlphaPostTypeArgs,
-            alphaMentions: GQL.RoomMessageAlphaMentionsArgs,
         }
     >;
     RoomMember?: ComplexTypedResolver<
