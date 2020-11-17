@@ -926,6 +926,7 @@ migrations.push({
     migration: async (parent) => {
         let data = await inTx(parent, ctx => Store.User.findAll(ctx));
         for (let u of data) {
+            logger.log(parent, 'Apply user ' + u.id);
             await inTx(parent, async ctx => {
                 let dialogs = await Modules.Messaging.findUserDialogs(ctx, u.id);
                 for (let d of dialogs) {
