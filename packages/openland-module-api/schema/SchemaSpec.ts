@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '689c816e95ccaa5da713f7485e530c9c';
+export const GQL_SPEC_VERSION = '211980683dc9832a2339d4f9c5ce351a';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -755,11 +755,13 @@ export namespace GQL {
         events: UpdatesDifferenceEvent[];
         after: number;
         hasMore: boolean;
+        seq: number;
     }
     export interface SequenceDifferenceSequenceArgs { }
     export interface SequenceDifferenceEventsArgs { }
     export interface SequenceDifferenceAfterArgs { }
     export interface SequenceDifferenceHasMoreArgs { }
+    export interface SequenceDifferenceSeqArgs { }
     export interface Reaction {
         user: User;
         reaction: string;
@@ -7338,6 +7340,7 @@ export interface GQLResolver {
             events: GQL.SequenceDifferenceEventsArgs,
             after: GQL.SequenceDifferenceAfterArgs,
             hasMore: GQL.SequenceDifferenceHasMoreArgs,
+            seq: GQL.SequenceDifferenceSeqArgs,
         }
     >;
     Reaction?: ComplexTypedResolver<

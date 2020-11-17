@@ -79,6 +79,7 @@ type SequenceDifference {
     events: [UpdatesDifferenceEvent!]!
     after: Int!
     hasMore: Boolean!
+    seq: Int!
 }
 
 extend type Query {

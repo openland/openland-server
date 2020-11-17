@@ -94,7 +94,7 @@ export const Resolver: GQLResolver = {
     UpdatesSequenceState: {
         pts: (src) => src.pts,
         sequence: (src) => src.sequence,
-        seq: async (src, _, ctx) => await Modules.Events.mediator.getCurrentSeq(ctx, ctx.auth.uid!)
+        seq: (src, _, ctx) => Modules.Events.mediator.getCurrentSeq(ctx, ctx.auth.uid!)
     },
     UpdatesDifference: {
         seq: (src) => src.seq,
@@ -116,6 +116,7 @@ export const Resolver: GQLResolver = {
         hasMore: (src) => src.hasMore,
         sequence: (src) => src.sequence,
         after: (src) => src.pts,
+        seq: (src, _, ctx) => Modules.Events.mediator.getCurrentSeq(ctx, ctx.auth.uid!)
     },
     Query: {
         updatesState: withUser(async (ctx, args, uid) => {
