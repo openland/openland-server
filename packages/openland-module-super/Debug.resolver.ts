@@ -1825,7 +1825,8 @@ export const Resolver: GQLResolver = {
                 settings.privacy = {
                     whoCanSeeEmail: 'nobody',
                     whoCanSeePhone: 'nobody',
-                    communityAdminsCanSeeContactInfo: true
+                    communityAdminsCanSeeContactInfo: true,
+                    whoCanAddToGroups: 'everyone'
                 };
                 await settings.flush(ctx);
             });

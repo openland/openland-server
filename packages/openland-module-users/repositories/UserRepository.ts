@@ -248,7 +248,8 @@ export class UserRepository {
                     privacy: {
                         whoCanSeeEmail: 'nobody',
                         whoCanSeePhone: 'nobody',
-                        communityAdminsCanSeeContactInfo: true
+                        communityAdminsCanSeeContactInfo: true,
+                        whoCanAddToGroups: 'everyone'
                     }
                 });
             }

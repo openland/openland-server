@@ -140,6 +140,18 @@ export class RoomRepository {
             let activeMembersCount = await this.roomMembersCount(ctx, cid, 'joined');
             let isAsyncMember = activeMembersCount >= 50;
 
+            // Fetching user privacy setting
+            let userSettings = await Modules.Users.getUserSettings(ctx, uid);
+            let whoCanAdd = userSettings.privacy?.whoCanAddToGroups
+            if (whoCanAdd == 'nobody') {
+                return false
+            } else if (whoCanAdd == 'correspondents') { // check is users have a chat
+                let edge = await Store.UserEdge.findById(ctx, uid, by);
+                if (!edge) {
+                    return false // no edge mean no chat between users
+                }
+            }
+
             // Create or update room participant
             let p = await Store.RoomParticipant.findById(ctx, cid, uid);
             if (p) {

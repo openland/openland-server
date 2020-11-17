@@ -39,6 +39,12 @@ enum PrivacyWhoCanSee {
     NOBODY
 }
 
+enum PrivacyWhoCanAddToGroups {
+    EVERYONE,
+    CORRESPONDENTS,
+    NOBODY
+}
+
 type ChatTypeNotificationSettings {
     showNotification: Boolean!
     sound: Boolean!
@@ -77,6 +83,7 @@ input UpdateSettingsInput {
     whoCanSeeEmail: PrivacyWhoCanSee
     whoCanSeePhone: PrivacyWhoCanSee
     communityAdminsCanSeeContactInfo: Boolean
+    whoCanAddToGroups: PrivacyWhoCanAddToGroups
 
     # Deprecated
     notificationsDelay: NotificationsDelay
@@ -100,6 +107,7 @@ type Settings {
     whoCanSeeEmail: PrivacyWhoCanSee!
     whoCanSeePhone: PrivacyWhoCanSee!
     communityAdminsCanSeeContactInfo: Boolean!
+    whoCanAddToGroups: PrivacyWhoCanAddToGroups!
 
     # Deprecated
     notificationsDelay: NotificationsDelay!

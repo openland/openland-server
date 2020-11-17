@@ -324,6 +324,7 @@ export namespace GQLRoots {
         notificationPreview: 'name_text' | 'name',
     };
     export type PrivacyWhoCanSeeRoot = GQL.PrivacyWhoCanSeeValues;
+    export type PrivacyWhoCanAddToGroupsRoot = GQL.PrivacyWhoCanAddToGroupsValues;
     export type EmailFrequencyRoot = 'never' | '15min' | '1hour' | '24hour' | '1week';
     export type NotificationMessagesRoot = 'all' | 'direct' | 'none';
     export type NotificationCommentsRoot = 'all' | 'direct' | 'none';
