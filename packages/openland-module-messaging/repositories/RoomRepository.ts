@@ -142,13 +142,13 @@ export class RoomRepository {
 
             // Fetching user privacy setting
             let userSettings = await Modules.Users.getUserSettings(ctx, uid);
-            let whoCanAdd = userSettings.privacy?.whoCanAddToGroups
-            if (whoCanAdd == 'nobody') {
-                return false
-            } else if (whoCanAdd == 'correspondents') { // check is users have a chat
+            let whoCanAdd = userSettings.privacy?.whoCanAddToGroups;
+            if (whoCanAdd === 'nobody') {
+                return false;
+            } else if (whoCanAdd === 'correspondents') { // check is users have a chat
                 let edge = await Store.UserEdge.findById(ctx, uid, by);
                 if (!edge) {
-                    return false // no edge mean no chat between users
+                    return false; // no edge mean no chat between users
                 }
             }
 

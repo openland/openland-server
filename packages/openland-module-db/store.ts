@@ -2240,7 +2240,7 @@ export interface UserSettingsShape {
     globalCounterType: 'unread_messages' | 'unread_chats' | 'unread_messages_no_muted' | 'unread_chats_no_muted' | null;
     desktop: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' };
     mobile: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' };
-    privacy: { whoCanSeeEmail: 'everyone' | 'nobody', whoCanSeePhone: 'everyone' | 'nobody', communityAdminsCanSeeContactInfo: boolean | null, whoCanAddToGroups: 'everyone' | 'correspondents' | 'nobody' } | null;
+    privacy: { whoCanSeeEmail: 'everyone' | 'nobody', whoCanSeePhone: 'everyone' | 'nobody', communityAdminsCanSeeContactInfo: boolean | null, whoCanAddToGroups: 'everyone' | 'correspondents' | 'nobody' | null } | null;
 }
 
 export interface UserSettingsCreateShape {
@@ -2255,7 +2255,7 @@ export interface UserSettingsCreateShape {
     globalCounterType?: 'unread_messages' | 'unread_chats' | 'unread_messages_no_muted' | 'unread_chats_no_muted' | null | undefined;
     desktop: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' };
     mobile: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' };
-    privacy?: { whoCanSeeEmail: 'everyone' | 'nobody', whoCanSeePhone: 'everyone' | 'nobody', communityAdminsCanSeeContactInfo: boolean | null | undefined, whoCanAddToGroups: 'everyone' | 'correspondents' | 'nobody' } | null | undefined;
+    privacy?: { whoCanSeeEmail: 'everyone' | 'nobody', whoCanSeePhone: 'everyone' | 'nobody', communityAdminsCanSeeContactInfo: boolean | null | undefined, whoCanAddToGroups: 'everyone' | 'correspondents' | 'nobody' | null | undefined } | null | undefined;
 }
 
 export class UserSettings extends Entity<UserSettingsShape> {
@@ -2359,8 +2359,8 @@ export class UserSettings extends Entity<UserSettingsShape> {
             this.invalidate();
         }
     }
-    get privacy(): { whoCanSeeEmail: 'everyone' | 'nobody', whoCanSeePhone: 'everyone' | 'nobody', communityAdminsCanSeeContactInfo: boolean | null, whoCanAddToGroups: 'everyone' | 'correspondents' | 'nobody' } | null { return this._rawValue.privacy; }
-    set privacy(value: { whoCanSeeEmail: 'everyone' | 'nobody', whoCanSeePhone: 'everyone' | 'nobody', communityAdminsCanSeeContactInfo: boolean | null, whoCanAddToGroups: 'everyone' | 'correspondents' | 'nobody' } | null) {
+    get privacy(): { whoCanSeeEmail: 'everyone' | 'nobody', whoCanSeePhone: 'everyone' | 'nobody', communityAdminsCanSeeContactInfo: boolean | null, whoCanAddToGroups: 'everyone' | 'correspondents' | 'nobody' | null } | null { return this._rawValue.privacy; }
+    set privacy(value: { whoCanSeeEmail: 'everyone' | 'nobody', whoCanSeePhone: 'everyone' | 'nobody', communityAdminsCanSeeContactInfo: boolean | null, whoCanAddToGroups: 'everyone' | 'correspondents' | 'nobody' | null } | null) {
         let normalized = this.descriptor.codec.fields.privacy.normalize(value);
         if (this._rawValue.privacy !== normalized) {
             this._rawValue.privacy = normalized;
@@ -2389,7 +2389,7 @@ export class UserSettingsFactory extends EntityFactory<UserSettingsShape, UserSe
         fields.push({ name: 'globalCounterType', type: { type: 'optional', inner: { type: 'enum', values: ['unread_messages', 'unread_chats', 'unread_messages_no_muted', 'unread_chats_no_muted'] } }, secure: false });
         fields.push({ name: 'desktop', type: { type: 'struct', fields: { direct: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, secretChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, organizationChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, communityChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, comments: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, notificationPreview: { type: 'enum', values: ['name_text', 'name'] } } }, secure: false });
         fields.push({ name: 'mobile', type: { type: 'struct', fields: { direct: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, secretChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, organizationChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, communityChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, comments: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, notificationPreview: { type: 'enum', values: ['name_text', 'name'] } } }, secure: false });
-        fields.push({ name: 'privacy', type: { type: 'optional', inner: { type: 'struct', fields: { whoCanSeeEmail: { type: 'enum', values: ['everyone', 'nobody'] }, whoCanSeePhone: { type: 'enum', values: ['everyone', 'nobody'] }, communityAdminsCanSeeContactInfo: { type: 'optional', inner: { type: 'boolean' } }, whoCanAddToGroups: { type: 'enum', values: ['everyone', 'correspondents', 'nobody'] } } } }, secure: false });
+        fields.push({ name: 'privacy', type: { type: 'optional', inner: { type: 'struct', fields: { whoCanSeeEmail: { type: 'enum', values: ['everyone', 'nobody'] }, whoCanSeePhone: { type: 'enum', values: ['everyone', 'nobody'] }, communityAdminsCanSeeContactInfo: { type: 'optional', inner: { type: 'boolean' } }, whoCanAddToGroups: { type: 'optional', inner: { type: 'enum', values: ['everyone', 'correspondents', 'nobody'] } } } } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             emailFrequency: c.enum('1hour', '15min', 'never', '24hour', '1week'),
@@ -2403,7 +2403,7 @@ export class UserSettingsFactory extends EntityFactory<UserSettingsShape, UserSe
             globalCounterType: c.optional(c.enum('unread_messages', 'unread_chats', 'unread_messages_no_muted', 'unread_chats_no_muted')),
             desktop: c.struct({ direct: c.struct({ showNotification: c.boolean, sound: c.boolean }), secretChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), organizationChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), communityChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), comments: c.struct({ showNotification: c.boolean, sound: c.boolean }), notificationPreview: c.enum('name_text', 'name') }),
             mobile: c.struct({ direct: c.struct({ showNotification: c.boolean, sound: c.boolean }), secretChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), organizationChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), communityChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), comments: c.struct({ showNotification: c.boolean, sound: c.boolean }), notificationPreview: c.enum('name_text', 'name') }),
-            privacy: c.optional(c.struct({ whoCanSeeEmail: c.enum('everyone', 'nobody'), whoCanSeePhone: c.enum('everyone', 'nobody'), communityAdminsCanSeeContactInfo: c.optional(c.boolean), whoCanAddToGroups: c.enum('everyone', 'correspondents', 'nobody') })),
+            privacy: c.optional(c.struct({ whoCanSeeEmail: c.enum('everyone', 'nobody'), whoCanSeePhone: c.enum('everyone', 'nobody'), communityAdminsCanSeeContactInfo: c.optional(c.boolean), whoCanAddToGroups: c.optional(c.enum('everyone', 'correspondents', 'nobody')) })),
         });
         let descriptor: EntityDescriptor<UserSettingsShape> = {
             name: 'UserSettings',

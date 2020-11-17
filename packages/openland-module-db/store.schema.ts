@@ -173,7 +173,7 @@ export default declareSchema(() => {
             whoCanSeeEmail: enumString('everyone', 'nobody'),
             whoCanSeePhone: enumString('everyone', 'nobody'),
             communityAdminsCanSeeContactInfo: optional(boolean()),
-            whoCanAddToGroups: enumString('everyone', 'correspondents', 'nobody'),
+            whoCanAddToGroups: optional(enumString('everyone', 'correspondents', 'nobody')),
         })));
     });
 
