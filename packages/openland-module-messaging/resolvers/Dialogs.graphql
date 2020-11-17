@@ -18,7 +18,6 @@ type Dialog {
 
     unreadCount: Int!
 
-    topMessage: Message
     betaTopMessage: RoomMessage
     alphaTopMessage: ModernMessage
     isMuted: Boolean!

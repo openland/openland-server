@@ -1,19 +1,8 @@
-
-input UpdateConversationSettingsInput {
-    mobileNotifications: NotificationMessages
-    mute: Boolean
-}
-
-
 type ConversationSettings {
     id: ID!
     mobileNotifications: NotificationMessages!
     mute: Boolean!    
 }
-
-#
-# Types Of Conversations
-#
 
 interface Conversation {
     id: ID!
@@ -177,174 +166,11 @@ type FileMetadata {
     imageFormat: String
 }
 
-#
-# Conversation Events
-#
-
-type ConversationEventSimpleBatch {
-    events: [ConversationEvent!]!
-}
-
-#union ConversationEventBatch = ConversationEventSimpleBatch
-
-interface ConversationEvent {
-    seq: Int!
-}
-
-type ConversationEventMessage implements ConversationEvent {
-    seq: Int!
-    message: ConversationMessage!
-}
-
-type ConversationEventEditMessage implements ConversationEvent {
-    seq: Int!
-    message: ConversationMessage!
-}
-
-type ConversationEventDelete implements ConversationEvent {
-    seq: Int!
-    messageId: ID!
-}
-
-type ConversationEventNewMembers implements ConversationEvent {
-    seq: Int!
-    users: [User!]
-    invitedBy: User!
-}
-
-type ConversationEventKick implements ConversationEvent {
-    seq: Int!
-    user: User!
-    kickedBy: User!
-}
-
-type ConversationEventTitle implements ConversationEvent {
-    seq: Int!
-    title: String!
-}
-
-type ConversationEventUpdate implements ConversationEvent {
-    seq: Int!
-    chat: Conversation!
-}
-
-type ConversationEventUpdateRole implements ConversationEvent {
-    seq: Int!
-    user: User!
-    newRole: String!
-}
-
-type ConversationState {
-    seq: Int!
-    messages: [ConversationMessage!]!
-}
-
-#
-# Conversation List
-#
-
-type ConversationConnection {
-    conversations: [Conversation!]!
-    counter: NotificationCounter!
-    seq: Int!
-    next: String
-}
-
 type NotificationCounter {
     id: ID!
     unreadCount: Int!
 }
 
-type ChatReadResult {
-    conversation: Conversation!
-    counter: NotificationCounter!
-}
-
-union ComposeSearchResult = User | Organization
-
-type GroupConversationMember {
-    user: User!
-    role: String! # member | creator | admin
-}
-
-input GroupConversationInvite {
-    userId: ID!
-    role: String! # member | creator | admin
-}
-
-type GroupChatUpdateResponse {
-    chat: Conversation!
-
-    chatEventMessage: ConversationEventMessage
-    chatEvent: ConversationEvent
-}
-
-type ConversationUpdateResponse {
-    chat: Conversation!
-    curSeq: Int!
-}
-
-type ConversationBlockedUser{
-    user: User!
-    blockedBy: User!
-}
-
 extend type Query {
     alphaNotificationCounter: NotificationCounter!
-    alphaChat(conversationId: ID, shortName: String): Conversation!
-    alphaLoadMessages(conversationId: ID!, first: Int, before: ID, after: ID): ConversationState!
-    alphaChatsSearchForCompose(query: String, organizations: Boolean, limit: Int): [ComposeSearchResult!]!
-    alphaChatSearch(members: [ID!]!): Conversation
-    alphaGroupConversationMembers(conversationId: ID!): [GroupConversationMember!]!
-}
-
-input UpdateGroupInput {
-    title: String
-    photoRef: ImageRefInput
-    description: String
-    longDescription: String
-    socialImageRef: ImageRefInput
-}
-
-extend type Mutation {
-    #
-    # [START] Deprecated
-    #
-
-    alphaSendMessage(conversationId: ID!, message: String, file: String, repeatKey: String, replyMessages: [ID!], mentions: [ID!]): ConversationEventMessage!
-    alphaReadChat(conversationId: ID!, messageId: ID!): ChatReadResult!
-    alphaEditMessage(messageId: ID!, message: String, file: String, replyMessages: [ID!], mentions: [ID!]): ConversationEventEditMessage!
-    alphaSendIntro(conversationId: ID!, userId: ID!, about: String, message: String, file: String, repeatKey: String): ConversationEventMessage!
-    alphaEditIntro(messageId: ID!, userId: ID!, about: String, message: String, file: String): ConversationEventMessage!
-    alphaDeleteMessageUrlAugmentation(messageId: ID!): ConversationEventMessage!
-    alphaDeleteMessage(messageId: ID!): ConversationEventDelete!
-    alphaChatSetReaction(messageId: ID!, reaction: String!): String!
-    alphaChatUnsetReaction(messageId: ID!, reaction: String!): String!
-    alphaGlobalRead(toSeq: Int!): String!
-    alphaBlockUser(userId: ID!): String!
-    alphaUnblockUser(userId: ID!, conversationId: ID): String!
-    
-    #
-    # [END] Deprecated
-    #
-
-
-    #
-    # Groups
-    #
-
-    alphaChatCreateGroup(title: String, photoRef: ImageRefInput, members: [ID!]!, message: String): Conversation!
-    alphaChatUpdateGroup(conversationId: ID!, input: UpdateGroupInput!): ConversationUpdateResponse!
-    alphaChatChangeGroupTitle(conversationId: ID!, title: String!): GroupChatUpdateResponse!
-    alphaChatInviteToGroup(conversationId: ID!, invites: [GroupConversationInvite!]!): GroupChatUpdateResponse!
-    alphaChatKickFromGroup(conversationId: ID!, userId: ID!): GroupChatUpdateResponse!
-    alphaChatChangeRoleInGroup(conversationId: ID!, userId: ID!, newRole: String!): GroupChatUpdateResponse!
-    alphaChatCopyGroup(conversationId: ID!, title: String, extraMembers: [ID!], message: String!): GroupChatUpdateResponse!
-    alphaChatLeave(conversationId: ID!): ConversationUpdateResponse!
-
-    #
-    # BlackList
-    #
-
-    alphaUpdateConversationSettings(settings: UpdateConversationSettingsInput!, conversationId: ID!): ConversationSettings!
 }
