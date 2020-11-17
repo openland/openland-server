@@ -43,14 +43,6 @@ export const Resolver: GQLResolver = {
         title: async (src, _, ctx) => {
             return (await Store.OrganizationProfile.findById(ctx, (await Store.ConversationOrganization.findById(ctx, src.id))!.oid))!.name;
         },
-        photos: async (src, _, ctx) => {
-            let p = (await Store.OrganizationProfile.findById(ctx, (await Store.ConversationOrganization.findById(ctx, src.id))!.oid))!.photo;
-            if (p) {
-                return [buildBaseImageUrl(p)];
-            } else {
-                return [];
-            }
-        },
         unreadCount: async (src, _, ctx) => {
             return Store.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx);
         },
@@ -89,24 +81,6 @@ export const Resolver: GQLResolver = {
             let profile = (await Modules.Users.profileById(ctx, uid))!;
             return [profile.firstName, profile.lastName].filter((v) => !!v).join(' ');
         },
-        photos: async (src, _, ctx) => {
-            let uid;
-            let conv = (await Store.ConversationPrivate.findById(ctx, src.id))!;
-            if (conv.uid1 === ctx.auth.uid) {
-                uid = conv.uid2;
-            } else if (conv.uid2 === ctx.auth.uid) {
-                uid = conv.uid1;
-            } else {
-                throw Error('Inconsistent Private Conversation resolver');
-            }
-            let profile = (await Modules.Users.profileById(ctx, uid))!;
-
-            if (profile.picture) {
-                return [buildBaseImageUrl(profile.picture)];
-            } else {
-                return [];
-            }
-        },
         unreadCount: async (src, _, ctx) => {
             return Store.UserDialogCounter.byId(ctx.auth.uid!, src.id).get(ctx);
         },
@@ -144,29 +118,6 @@ export const Resolver: GQLResolver = {
                 name.push([p.firstName, p.lastName].filter((v) => !!v).join(' '));
             }
             return name.join(', ');
-        },
-        photos: async (src, _, ctx) => {
-            // let res = await DB.ConversationGroupMembers.findAll({
-            //     where: {
-            //         conversationId: src.id,
-            //         userId: {
-            //             $not: context.uid
-            //         }
-            //     },
-            //     order: ['userId']
-            // });
-            // let photos: string[] = [];
-            // for (let r of res) {
-            //     let p = (await DB.UserProfile.find({ where: { userId: r.userId } }))!!.picture;
-            //     if (p) {
-            //         photos.push(buildBaseImageUrl(p));
-            //     }
-            //     if (photos.length >= 4) {
-            //         break;
-            //     }
-            // }
-            // return photos;
-            return [];
         },
         members: async (src, _, ctx) => {
             let res = await Store.RoomParticipant.active.findAll(ctx, src.id);
@@ -308,7 +259,6 @@ export const Resolver: GQLResolver = {
         alphaType: async src => src.type ? src.type as MessageTypeRoot : 'MESSAGE',
         postType: async src => src.postType,
         alphaTitle: async src => src.title,
-        alphaMentions: async src => src.complexMentions
     },
     InviteServiceMetadata: {
         // users: (src: any, args: {}, ctx: Context) => src.userIds.map((id: number) => FDB.User.findById(ctx, id)),
@@ -320,7 +270,6 @@ export const Resolver: GQLResolver = {
         kickedBy: async (src, args, ctx) => (await Store.User.findById(ctx, src.kickedById))!
     },
     PostRespondServiceMetadata: {
-        post: async (src, _, ctx) => (await Store.Message.findById(ctx, src.postId))!,
         postRoom: (src) => src.postRoomId,
         responder: (src) => src.responderId,
         respondType: (src) => src.respondType

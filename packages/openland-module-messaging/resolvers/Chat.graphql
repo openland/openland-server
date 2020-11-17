@@ -8,7 +8,6 @@ interface Conversation {
     id: ID!
     flexibleId: ID!
     title: String!
-    photos: [String!]!
     unreadCount: Int!
     topMessage: ConversationMessage
     settings: ConversationSettings!
@@ -18,18 +17,7 @@ type ChannelConversation implements Conversation {
     id: ID!
     flexibleId: ID!
     title: String!
-    photos: [String!]!
     members: [User!]!
-    unreadCount: Int!
-    topMessage: ConversationMessage
-    settings: ConversationSettings!
-}
-
-type AnonymousConversation implements Conversation {
-    id: ID!
-    flexibleId: ID!
-    title: String!
-    photos: [String!]!
     unreadCount: Int!
     topMessage: ConversationMessage
     settings: ConversationSettings!
@@ -39,7 +27,6 @@ type SharedConversation implements Conversation {
     id: ID!
     flexibleId: ID!
     title: String!
-    photos: [String!]!
     organizations: [Organization!]!
     unreadCount: Int!
     topMessage: ConversationMessage
@@ -51,7 +38,6 @@ type PrivateConversation implements Conversation {
     id: ID!
     flexibleId: ID!
     title: String!
-    photos: [String!]!
     user: User!
     unreadCount: Int!
     topMessage: ConversationMessage
@@ -63,7 +49,6 @@ type GroupConversation implements Conversation {
     id: ID!
     flexibleId: ID!
     title: String!
-    photos: [String!]!
     members: [User!]!
     unreadCount: Int!
     topMessage: ConversationMessage
@@ -104,7 +89,6 @@ type PhotoChangeServiceMetadata {
 }
 
 type PostRespondServiceMetadata {
-    post: RoomMessage!
     postRoom: Room!
     responder: User!
     respondType: ID!
@@ -153,7 +137,6 @@ type ConversationMessage {
     alphaType: MessageType!
     alphaTitle: String
     postType: String
-    alphaMentions: [Mention!]
 }
 
 type FileMetadata {

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '2eb64a55d7cb6a317e5e2e1dbf191abe';
+export const GQL_SPEC_VERSION = 'c11bfdec8a4e16478ecf000814f4b021';
 
 export namespace GQL {
     export interface CreditCard {
@@ -503,7 +503,6 @@ export namespace GQL {
         photo: string;
         featured: boolean;
         unreadCount: number;
-        betaTopMessage: Nullable<RoomMessage>;
         alphaTopMessage: Nullable<ModernMessage>;
         isMuted: boolean;
         haveMention: boolean;
@@ -520,7 +519,6 @@ export namespace GQL {
     export interface DialogPhotoArgs { }
     export interface DialogFeaturedArgs { }
     export interface DialogUnreadCountArgs { }
-    export interface DialogBetaTopMessageArgs { }
     export interface DialogAlphaTopMessageArgs { }
     export interface DialogIsMutedArgs { }
     export interface DialogHaveMentionArgs { }
@@ -1514,7 +1512,6 @@ export namespace GQL {
         id: string;
         flexibleId: string;
         title: string;
-        photos: string[];
         unreadCount: number;
         topMessage: Nullable<ConversationMessage>;
         settings: ConversationSettings;
@@ -1522,7 +1519,6 @@ export namespace GQL {
     export interface ConversationIdArgs { }
     export interface ConversationFlexibleIdArgs { }
     export interface ConversationTitleArgs { }
-    export interface ConversationPhotosArgs { }
     export interface ConversationUnreadCountArgs { }
     export interface ConversationTopMessageArgs { }
     export interface ConversationSettingsArgs { }
@@ -1530,7 +1526,6 @@ export namespace GQL {
         id: string;
         flexibleId: string;
         title: string;
-        photos: string[];
         members: User[];
         unreadCount: number;
         topMessage: Nullable<ConversationMessage>;
@@ -1539,32 +1534,14 @@ export namespace GQL {
     export interface ChannelConversationIdArgs { }
     export interface ChannelConversationFlexibleIdArgs { }
     export interface ChannelConversationTitleArgs { }
-    export interface ChannelConversationPhotosArgs { }
     export interface ChannelConversationMembersArgs { }
     export interface ChannelConversationUnreadCountArgs { }
     export interface ChannelConversationTopMessageArgs { }
     export interface ChannelConversationSettingsArgs { }
-    export interface AnonymousConversation extends Conversation {
-        id: string;
-        flexibleId: string;
-        title: string;
-        photos: string[];
-        unreadCount: number;
-        topMessage: Nullable<ConversationMessage>;
-        settings: ConversationSettings;
-    }
-    export interface AnonymousConversationIdArgs { }
-    export interface AnonymousConversationFlexibleIdArgs { }
-    export interface AnonymousConversationTitleArgs { }
-    export interface AnonymousConversationPhotosArgs { }
-    export interface AnonymousConversationUnreadCountArgs { }
-    export interface AnonymousConversationTopMessageArgs { }
-    export interface AnonymousConversationSettingsArgs { }
     export interface SharedConversation extends Conversation {
         id: string;
         flexibleId: string;
         title: string;
-        photos: string[];
         organizations: Organization[];
         unreadCount: number;
         topMessage: Nullable<ConversationMessage>;
@@ -1574,7 +1551,6 @@ export namespace GQL {
     export interface SharedConversationIdArgs { }
     export interface SharedConversationFlexibleIdArgs { }
     export interface SharedConversationTitleArgs { }
-    export interface SharedConversationPhotosArgs { }
     export interface SharedConversationOrganizationsArgs { }
     export interface SharedConversationUnreadCountArgs { }
     export interface SharedConversationTopMessageArgs { }
@@ -1584,7 +1560,6 @@ export namespace GQL {
         id: string;
         flexibleId: string;
         title: string;
-        photos: string[];
         user: User;
         unreadCount: number;
         topMessage: Nullable<ConversationMessage>;
@@ -1594,7 +1569,6 @@ export namespace GQL {
     export interface PrivateConversationIdArgs { }
     export interface PrivateConversationFlexibleIdArgs { }
     export interface PrivateConversationTitleArgs { }
-    export interface PrivateConversationPhotosArgs { }
     export interface PrivateConversationUserArgs { }
     export interface PrivateConversationUnreadCountArgs { }
     export interface PrivateConversationTopMessageArgs { }
@@ -1604,7 +1578,6 @@ export namespace GQL {
         id: string;
         flexibleId: string;
         title: string;
-        photos: string[];
         members: User[];
         unreadCount: number;
         topMessage: Nullable<ConversationMessage>;
@@ -1621,7 +1594,6 @@ export namespace GQL {
     export interface GroupConversationIdArgs { }
     export interface GroupConversationFlexibleIdArgs { }
     export interface GroupConversationTitleArgs { }
-    export interface GroupConversationPhotosArgs { }
     export interface GroupConversationMembersArgs { }
     export interface GroupConversationUnreadCountArgs { }
     export interface GroupConversationTopMessageArgs { }
@@ -1657,12 +1629,10 @@ export namespace GQL {
     export interface PhotoChangeServiceMetadataPhotoArgs { }
     export interface PhotoChangeServiceMetadataPhotoRefArgs { }
     export interface PostRespondServiceMetadata {
-        post: RoomMessage;
         postRoom: Room;
         responder: User;
         respondType: string;
     }
-    export interface PostRespondServiceMetadataPostArgs { }
     export interface PostRespondServiceMetadataPostRoomArgs { }
     export interface PostRespondServiceMetadataResponderArgs { }
     export interface PostRespondServiceMetadataRespondTypeArgs { }
@@ -1718,7 +1688,6 @@ export namespace GQL {
         alphaType: MessageType;
         alphaTitle: Nullable<string>;
         postType: Nullable<string>;
-        alphaMentions: Nullable<Mention[]>;
     }
     export interface ConversationMessageIdArgs { }
     export interface ConversationMessageMessageArgs { }
@@ -1741,7 +1710,6 @@ export namespace GQL {
     export interface ConversationMessageAlphaTypeArgs { }
     export interface ConversationMessageAlphaTitleArgs { }
     export interface ConversationMessagePostTypeArgs { }
-    export interface ConversationMessageAlphaMentionsArgs { }
     export interface FileMetadata {
         name: string;
         mimeType: Nullable<string>;
@@ -1799,7 +1767,6 @@ export namespace GQL {
     export interface DialogMessageReceived {
         cid: string;
         message: ConversationMessage;
-        betaMessage: RoomMessage;
         alphaMessage: ModernMessage;
         unread: number;
         globalUnread: number;
@@ -1810,7 +1777,6 @@ export namespace GQL {
     }
     export interface DialogMessageReceivedCidArgs { }
     export interface DialogMessageReceivedMessageArgs { }
-    export interface DialogMessageReceivedBetaMessageArgs { }
     export interface DialogMessageReceivedAlphaMessageArgs { }
     export interface DialogMessageReceivedUnreadArgs { }
     export interface DialogMessageReceivedGlobalUnreadArgs { }
@@ -1821,20 +1787,16 @@ export namespace GQL {
     export interface DialogMessageUpdated {
         cid: string;
         message: ConversationMessage;
-        betaMessage: RoomMessage;
         alphaMessage: ModernMessage;
         haveMention: boolean;
     }
     export interface DialogMessageUpdatedCidArgs { }
     export interface DialogMessageUpdatedMessageArgs { }
-    export interface DialogMessageUpdatedBetaMessageArgs { }
     export interface DialogMessageUpdatedAlphaMessageArgs { }
     export interface DialogMessageUpdatedHaveMentionArgs { }
     export interface DialogMessageDeleted {
         cid: string;
         message: ConversationMessage;
-        betaMessage: RoomMessage;
-        prevMessage: Nullable<RoomMessage>;
         alphaPrevMessage: Nullable<ModernMessage>;
         alphaMessage: ModernMessage;
         unread: number;
@@ -1843,8 +1805,6 @@ export namespace GQL {
     }
     export interface DialogMessageDeletedCidArgs { }
     export interface DialogMessageDeletedMessageArgs { }
-    export interface DialogMessageDeletedBetaMessageArgs { }
-    export interface DialogMessageDeletedPrevMessageArgs { }
     export interface DialogMessageDeletedAlphaPrevMessageArgs { }
     export interface DialogMessageDeletedAlphaMessageArgs { }
     export interface DialogMessageDeletedUnreadArgs { }
@@ -6640,7 +6600,6 @@ export interface GQLResolver {
         GQL.Dialog,
         GQLRoots.DialogRoot,
         {
-            betaTopMessage: Nullable<GQLRoots.RoomMessageRoot>,
             alphaTopMessage: Nullable<GQLRoots.ModernMessageRoot>,
         },
         {
@@ -6654,7 +6613,6 @@ export interface GQLResolver {
             photo: GQL.DialogPhotoArgs,
             featured: GQL.DialogFeaturedArgs,
             unreadCount: GQL.DialogUnreadCountArgs,
-            betaTopMessage: GQL.DialogBetaTopMessageArgs,
             alphaTopMessage: GQL.DialogAlphaTopMessageArgs,
             isMuted: GQL.DialogIsMutedArgs,
             haveMention: GQL.DialogHaveMentionArgs,
@@ -7692,7 +7650,7 @@ export interface GQLResolver {
             mute: GQL.ConversationSettingsMuteArgs,
         }
     >;
-    Conversation?: InterfaceTypeResolver<GQLRoots.ConversationRoot, 'ChannelConversation' | 'AnonymousConversation' | 'SharedConversation' | 'PrivateConversation' | 'GroupConversation'>;
+    Conversation?: InterfaceTypeResolver<GQLRoots.ConversationRoot, 'ChannelConversation' | 'SharedConversation' | 'PrivateConversation' | 'GroupConversation'>;
     ChannelConversation?: ComplexTypedResolver<
         GQL.ChannelConversation,
         GQLRoots.ChannelConversationRoot,
@@ -7705,28 +7663,10 @@ export interface GQLResolver {
             id: GQL.ChannelConversationIdArgs,
             flexibleId: GQL.ChannelConversationFlexibleIdArgs,
             title: GQL.ChannelConversationTitleArgs,
-            photos: GQL.ChannelConversationPhotosArgs,
             members: GQL.ChannelConversationMembersArgs,
             unreadCount: GQL.ChannelConversationUnreadCountArgs,
             topMessage: GQL.ChannelConversationTopMessageArgs,
             settings: GQL.ChannelConversationSettingsArgs,
-        }
-    >;
-    AnonymousConversation?: ComplexTypedResolver<
-        GQL.AnonymousConversation,
-        GQLRoots.AnonymousConversationRoot,
-        {
-            topMessage: Nullable<GQLRoots.ConversationMessageRoot>,
-            settings: GQLRoots.ConversationSettingsRoot,
-        },
-        {
-            id: GQL.AnonymousConversationIdArgs,
-            flexibleId: GQL.AnonymousConversationFlexibleIdArgs,
-            title: GQL.AnonymousConversationTitleArgs,
-            photos: GQL.AnonymousConversationPhotosArgs,
-            unreadCount: GQL.AnonymousConversationUnreadCountArgs,
-            topMessage: GQL.AnonymousConversationTopMessageArgs,
-            settings: GQL.AnonymousConversationSettingsArgs,
         }
     >;
     SharedConversation?: ComplexTypedResolver<
@@ -7742,7 +7682,6 @@ export interface GQLResolver {
             id: GQL.SharedConversationIdArgs,
             flexibleId: GQL.SharedConversationFlexibleIdArgs,
             title: GQL.SharedConversationTitleArgs,
-            photos: GQL.SharedConversationPhotosArgs,
             organizations: GQL.SharedConversationOrganizationsArgs,
             unreadCount: GQL.SharedConversationUnreadCountArgs,
             topMessage: GQL.SharedConversationTopMessageArgs,
@@ -7762,7 +7701,6 @@ export interface GQLResolver {
             id: GQL.PrivateConversationIdArgs,
             flexibleId: GQL.PrivateConversationFlexibleIdArgs,
             title: GQL.PrivateConversationTitleArgs,
-            photos: GQL.PrivateConversationPhotosArgs,
             user: GQL.PrivateConversationUserArgs,
             unreadCount: GQL.PrivateConversationUnreadCountArgs,
             topMessage: GQL.PrivateConversationTopMessageArgs,
@@ -7784,7 +7722,6 @@ export interface GQLResolver {
             id: GQL.GroupConversationIdArgs,
             flexibleId: GQL.GroupConversationFlexibleIdArgs,
             title: GQL.GroupConversationTitleArgs,
-            photos: GQL.GroupConversationPhotosArgs,
             members: GQL.GroupConversationMembersArgs,
             unreadCount: GQL.GroupConversationUnreadCountArgs,
             topMessage: GQL.GroupConversationTopMessageArgs,
@@ -7847,12 +7784,10 @@ export interface GQLResolver {
         GQL.PostRespondServiceMetadata,
         GQLRoots.PostRespondServiceMetadataRoot,
         {
-            post: GQLRoots.RoomMessageRoot,
             postRoom: GQLRoots.RoomRoot,
             responder: GQLRoots.UserRoot,
         },
         {
-            post: GQL.PostRespondServiceMetadataPostArgs,
             postRoom: GQL.PostRespondServiceMetadataPostRoomArgs,
             responder: GQL.PostRespondServiceMetadataResponderArgs,
             respondType: GQL.PostRespondServiceMetadataRespondTypeArgs,
@@ -7899,7 +7834,6 @@ export interface GQLResolver {
             mentions: Nullable<GQLRoots.UserRoot[]>,
             alphaAttachments: GQLRoots.MessageAttachmentRoot[],
             alphaButtons: Nullable<GQLRoots.MessageButtonRoot[]>[],
-            alphaMentions: Nullable<GQLRoots.MentionRoot[]>,
         },
         {
             id: GQL.ConversationMessageIdArgs,
@@ -7923,7 +7857,6 @@ export interface GQLResolver {
             alphaType: GQL.ConversationMessageAlphaTypeArgs,
             alphaTitle: GQL.ConversationMessageAlphaTitleArgs,
             postType: GQL.ConversationMessagePostTypeArgs,
-            alphaMentions: GQL.ConversationMessageAlphaMentionsArgs,
         }
     >;
     FileMetadata?: ComplexTypedResolver<
@@ -8003,7 +7936,6 @@ export interface GQLResolver {
         GQLRoots.DialogMessageReceivedRoot,
         {
             message: GQLRoots.ConversationMessageRoot,
-            betaMessage: GQLRoots.RoomMessageRoot,
             alphaMessage: GQLRoots.ModernMessageRoot,
             silent: GQLRoots.SilentMessageInfoRoot,
             showNotification: GQLRoots.SilentMessageInfoRoot,
@@ -8011,7 +7943,6 @@ export interface GQLResolver {
         {
             cid: GQL.DialogMessageReceivedCidArgs,
             message: GQL.DialogMessageReceivedMessageArgs,
-            betaMessage: GQL.DialogMessageReceivedBetaMessageArgs,
             alphaMessage: GQL.DialogMessageReceivedAlphaMessageArgs,
             unread: GQL.DialogMessageReceivedUnreadArgs,
             globalUnread: GQL.DialogMessageReceivedGlobalUnreadArgs,
@@ -8026,13 +7957,11 @@ export interface GQLResolver {
         GQLRoots.DialogMessageUpdatedRoot,
         {
             message: GQLRoots.ConversationMessageRoot,
-            betaMessage: GQLRoots.RoomMessageRoot,
             alphaMessage: GQLRoots.ModernMessageRoot,
         },
         {
             cid: GQL.DialogMessageUpdatedCidArgs,
             message: GQL.DialogMessageUpdatedMessageArgs,
-            betaMessage: GQL.DialogMessageUpdatedBetaMessageArgs,
             alphaMessage: GQL.DialogMessageUpdatedAlphaMessageArgs,
             haveMention: GQL.DialogMessageUpdatedHaveMentionArgs,
         }
@@ -8042,16 +7971,12 @@ export interface GQLResolver {
         GQLRoots.DialogMessageDeletedRoot,
         {
             message: GQLRoots.ConversationMessageRoot,
-            betaMessage: GQLRoots.RoomMessageRoot,
-            prevMessage: Nullable<GQLRoots.RoomMessageRoot>,
             alphaPrevMessage: Nullable<GQLRoots.ModernMessageRoot>,
             alphaMessage: GQLRoots.ModernMessageRoot,
         },
         {
             cid: GQL.DialogMessageDeletedCidArgs,
             message: GQL.DialogMessageDeletedMessageArgs,
-            betaMessage: GQL.DialogMessageDeletedBetaMessageArgs,
-            prevMessage: GQL.DialogMessageDeletedPrevMessageArgs,
             alphaPrevMessage: GQL.DialogMessageDeletedAlphaPrevMessageArgs,
             alphaMessage: GQL.DialogMessageDeletedAlphaMessageArgs,
             unread: GQL.DialogMessageDeletedUnreadArgs,
