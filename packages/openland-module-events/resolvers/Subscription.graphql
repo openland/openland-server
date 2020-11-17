@@ -19,7 +19,13 @@ type UpdateSubscriptionEvent {
     sequence: Sequence!
 }
 
-union UpdateSubscription = UpdateSubscriptionStarted | UpdateSubscriptionCheckpoint | UpdateSubscriptionEvent
+type UpdateSubscriptionEphemeralEvent {
+    seq: Int!
+    event: UpdateEvent!
+    sequence: Sequence!
+}
+
+union UpdateSubscription = UpdateSubscriptionStarted | UpdateSubscriptionCheckpoint | UpdateSubscriptionEvent | UpdateSubscriptionEphemeralEvent
 
 extend type Subscription {
     watchUpdates: UpdateSubscription!

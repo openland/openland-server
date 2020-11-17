@@ -28,6 +28,12 @@ export type SubscriberReceiverEvent =
         event: Buffer
     }
     | {
+        type: 'update-ephemeral',
+        feed: Buffer,
+        seq: number,
+        event: Buffer
+    }
+    | {
         type: 'subscribe',
         feed: Buffer,
         seq: number,
@@ -48,7 +54,7 @@ export type SubscriberReceiverEvent =
         type: 'closed'
     };
 
-type BusEvent = { seq: number, event: { type: 'subscribe' | 'unsubscribe' | 'update', seq: number, vt: Buffer, feed: Buffer, event: Buffer | null } };
+type BusEvent = { seq: number, event: { type: 'subscribe' | 'unsubscribe' | 'update' | 'update-ephemeral', pts: number | null, vt: Buffer, feed: Buffer, event: Buffer | null } };
 
 export type ReceiverOpts = {
     deathDelay: { min: number, max: number };
@@ -88,7 +94,7 @@ export class SubscriberReceiver {
             let event = {
                 seq: e.seq as number,
                 event: {
-                    seq: e.event.seq as number,
+                    pts: e.event.pts as number | null,
                     vt: Buffer.from(e.event.vt as string, 'base64'),
                     type: e.event.type as 'subscribe' | 'unsubscribe' | 'update',
                     feed: Buffer.from(e.event.feed as string, 'base64'),
@@ -313,11 +319,13 @@ export class SubscriberReceiver {
     private processEvent(src: BusEvent) {
         // Call handler
         if (src.event.type === 'update') {
-            this.handler({ type: 'update', feed: src.event.feed, seq: src.seq, pts: src.event.seq, event: src.event.event! });
+            this.handler({ type: 'update', feed: src.event.feed, seq: src.seq, pts: src.event.pts!, event: src.event.event! });
+        } else if (src.event.type === 'update-ephemeral') {
+            this.handler({ type: 'update-ephemeral', feed: src.event.feed, seq: src.seq, event: src.event.event! });
         } else if (src.event.type === 'subscribe') {
-            this.handler({ type: 'subscribe', feed: src.event.feed, seq: src.seq, fromPts: src.event.seq });
+            this.handler({ type: 'subscribe', feed: src.event.feed, seq: src.seq, fromPts: src.event.pts! });
         } else if (src.event.type === 'unsubscribe') {
-            this.handler({ type: 'unsubscribe', feed: src.event.feed, seq: src.seq, toPts: src.event.seq });
+            this.handler({ type: 'unsubscribe', feed: src.event.feed, seq: src.seq, toPts: src.event.pts! });
         }
     }
 }

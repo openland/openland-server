@@ -18,6 +18,8 @@ export const Resolver: GQLResolver = {
                 return 'UpdateSubscriptionCheckpoint';
             } else if (src.type === 'update') {
                 return 'UpdateSubscriptionEvent';
+            } else if (src.type === 'update-ephemeral') {
+                return 'UpdateSubscriptionEphemeralEvent';
             } else {
                 throw Error('Unknown update');
             }
@@ -37,6 +39,11 @@ export const Resolver: GQLResolver = {
         sequence: (src) => src.sequence,
         event: (src) => src.update
     },
+    UpdateSubscriptionEphemeralEvent: {
+        seq: (src) => src.seq,
+        sequence: (src) => src.sequence,
+        event: (src) => src.update
+    },
     Subscription: {
         watchUpdates: {
             resolve: (msg: GQLRoots.UpdateSubscriptionRoot) => msg,
@@ -53,6 +60,8 @@ export const Resolver: GQLResolver = {
                         iterator.push({ type: 'started', state: e.state, seq: e.seq });
                     } else if (e.type === 'update') {
                         iterator.push({ type: 'update', sequence: e.feed, seq: e.seq, pts: e.pts, update: e.event });
+                    } else if (e.type === 'update-ephemeral') {
+                        iterator.push({ type: 'update-ephemeral', sequence: e.feed, seq: e.seq, update: e.event });
                     } else if (e.type === 'checkpoint') {
                         iterator.push({ type: 'checkpoint', state: e.state, seq: e.seq });
                     } else {
@@ -125,6 +134,12 @@ export const Resolver: GQLResolver = {
             };
         }),
         updatesDifference: withUser(async (ctx, args, uid) => {
+
+            // TODO: Get difference from older events
+            // VTs generated with 10 sec delay
+            // <Buffer 00 00 06 75 de 95 ef ae 00 00>
+            // <Buffer 00 00 06 75 df 2e a5 dc 00 00>
+
             return await Modules.Events.mediator.getDifference(ctx, uid, IDs.SequenceStateV1.parse(args.state));
         }),
         sequenceDifference: withUser(async (ctx, args, uid) => {

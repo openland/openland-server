@@ -803,7 +803,8 @@ export namespace GQLRoots {
     export type UpdateSubscriptionStartedRoot = { type: 'started', seq: number, state: string };
     export type UpdateSubscriptionCheckpointRoot = { type: 'checkpoint', seq: number, state: string };
     export type UpdateSubscriptionEventRoot = { type: 'update', seq: number, pts: number, update: UpdateEventRoot, sequence: SequenceRoot };
-    export type UpdateSubscriptionRoot = UpdateSubscriptionStartedRoot | UpdateSubscriptionCheckpointRoot | UpdateSubscriptionEventRoot;
+    export type UpdateSubscriptionEphemeralEventRoot = { type: 'update-ephemeral', seq: number, update: UpdateEventRoot, sequence: SequenceRoot };
+    export type UpdateSubscriptionRoot = UpdateSubscriptionStartedRoot | UpdateSubscriptionCheckpointRoot | UpdateSubscriptionEventRoot | UpdateSubscriptionEphemeralEventRoot;
 
     export type UpdatesSequenceStateRoot = { sequence: SequenceRoot, pts: number };
     export type UpdatesStateRoot = { seq: number, state: string, sequences: UpdatesSequenceStateRoot[] };

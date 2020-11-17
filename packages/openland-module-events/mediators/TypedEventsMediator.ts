@@ -357,6 +357,9 @@ export class TypedEventsMediator {
                     } else if (e.type === 'update') {
                         let event = unpackFeedEvent(e.event);
                         handler({ type: 'update', feed: event.feed, seq: e.seq, event: event.event, pts: e.pts });
+                    } else if (e.type === 'update-ephemeral') {
+                        let event = unpackFeedEvent(e.event);
+                        handler({ type: 'update-ephemeral', feed: event.feed, seq: e.seq, event: event.event });
                     }
                 });
             } catch (e) {
