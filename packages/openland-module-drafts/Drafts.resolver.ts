@@ -4,6 +4,11 @@ import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 
 export const Resolver: GQLResolver = {
+    Draft: {
+        date: (src) => src.date,
+        message: (src) => src.value,
+        version: (src) => src.version
+    },
     SequenceChat: {
         draft: (src, { }, ctx) => Modules.Drafts.findDraft(ctx, ctx.auth.uid!, src.cid)
     },
