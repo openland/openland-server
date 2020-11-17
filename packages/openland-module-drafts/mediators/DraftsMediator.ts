@@ -24,6 +24,7 @@ export class DraftsMediator {
             if (existing) {
                 if (existing.contents !== message) {
                     existing.contents = message;
+                    await existing.flush(ctx);
                 }
             } else {
                 existing = await Store.MessageDraft.create(ctx, uid, cid, { contents: message });
