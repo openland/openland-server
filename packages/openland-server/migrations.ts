@@ -927,22 +927,28 @@ migrations.push({
         let data = await inTx(parent, ctx => Store.User.findAll(ctx));
         for (let u of data) {
             logger.log(parent, 'Apply user ' + u.id);
-            await inTx(parent, async ctx => {
-                let dialogs = await Modules.Messaging.findUserDialogs(ctx, u.id);
-                for (let d of dialogs) {
-                    let conv = (await Store.Conversation.findById(ctx, d.cid))!;
-                    if (conv.kind === 'room') {
-                        let status = await Modules.Messaging.room.findMembershipStatus(ctx, u.id, d.cid);
-                        if (status && status.status === 'joined') {
-                            Modules.Messaging.messaging.events.userActiveChats.addChat(ctx, u.id, d.cid);
-                        } else {
-                            Modules.Messaging.messaging.events.userActiveChats.removeChat(ctx, u.id, d.cid);
-                        }
-                    } else if (conv.kind === 'private') {
-                        Modules.Messaging.messaging.events.userActiveChats.addChat(ctx, u.id, d.cid);
-                    }
-                }
+            let dialogs = await inTx(parent, async ctx => {
+                return await Modules.Messaging.findUserDialogs(ctx, u.id);
             });
+            for (let cursor = 0; cursor < dialogs.length; cursor += 1000) {
+                logger.log(parent, 'Apply user ' + u.id + '/' + cursor);
+                let batch = dialogs.slice(cursor, cursor + 1000);
+                await inTx(parent, async ctx => {
+                    for (let d of batch) {
+                        let conv = (await Store.Conversation.findById(ctx, d.cid))!;
+                        if (conv.kind === 'room') {
+                            let status = await Modules.Messaging.room.findMembershipStatus(ctx, u.id, d.cid);
+                            if (status && status.status === 'joined') {
+                                Modules.Messaging.messaging.events.userActiveChats.addChat(ctx, u.id, d.cid);
+                            } else {
+                                Modules.Messaging.messaging.events.userActiveChats.removeChat(ctx, u.id, d.cid);
+                            }
+                        } else if (conv.kind === 'private') {
+                            Modules.Messaging.messaging.events.userActiveChats.addChat(ctx, u.id, d.cid);
+                        }
+                    }
+                });
+            }
         }
     }
 });

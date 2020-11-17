@@ -57,20 +57,6 @@ export class UserStateRepository {
         });
     }
 
-    // Deprecated
-    async markAsSeqRead(parent: Context, uid: number, toSeq: number) {
-        await inTx(parent, async (ctx) => {
-            let state = await this.getUserNotificationState(ctx, uid);
-            let global = await this.getUserMessagingState(ctx, uid);
-            if (toSeq > global.seq) {
-                state.readSeq = global.seq;
-            } else {
-                state.readSeq = toSeq;
-            }
-            await state.flush(ctx);
-        });
-    }
-
     async getUserNotificationState(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
             let existing = await Store.UserNotificationsState.findById(ctx, uid);
