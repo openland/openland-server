@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'c11bfdec8a4e16478ecf000814f4b021';
+export const GQL_SPEC_VERSION = 'a963e4f091e59f181707b469a5ec8792';
 
 export namespace GQL {
     export interface CreditCard {
@@ -4763,11 +4763,9 @@ export namespace GQL {
     }
     export interface SubscriptionTypingsArgs { }
     export interface SyncChat {
-        conversation: Conversation;
         sequence: Sequence;
         pts: number;
     }
-    export interface SyncChatConversationArgs { }
     export interface SyncChatSequenceArgs { }
     export interface SyncChatPtsArgs { }
     export interface SyncChatsConnection {
@@ -9733,11 +9731,9 @@ export interface GQLResolver {
         GQL.SyncChat,
         GQLRoots.SyncChatRoot,
         {
-            conversation: GQLRoots.ConversationRoot,
             sequence: GQLRoots.SequenceRoot,
         },
         {
-            conversation: GQL.SyncChatConversationArgs,
             sequence: GQL.SyncChatSequenceArgs,
             pts: GQL.SyncChatPtsArgs,
         }

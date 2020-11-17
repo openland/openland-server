@@ -1,5 +1,4 @@
 type SyncChat {
-    conversation: Conversation!
     sequence: Sequence!
     pts: Int!
 }
