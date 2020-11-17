@@ -85,7 +85,7 @@ import {
     ContactAddedEvent,
     ContactRemovedEvent, UserDialogGotAccessEvent, UserDialogLostAccessEvent,
     UpdateChatRead,
-    UpdateProfileChanged, BlackListAddedEvent, BlackListRemovedEvent
+    UpdateProfileChanged, BlackListAddedEvent, BlackListRemovedEvent, UpdateChatMessage, UpdateChatMessageUpdated, UpdateChatMessageDeleted
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -793,6 +793,8 @@ export namespace GQLRoots {
     export type UpdateChatReadRoot = UpdateChatRead;
     export type UpdateProfileChangedRoot = UpdateProfileChanged;
     export type UpdateMyProfileChangedRoot = UpdateProfileChanged;
+    export type UpdateChatMessageRoot = UpdateChatMessage | UpdateChatMessageUpdated;
+    export type UpdateChatMessageDeletedRoot = UpdateChatMessageDeleted;
     export type UpdateEventRoot = Event;
 
     export type SequenceCommonRoot = { type: 'common', uid: number };
@@ -812,4 +814,11 @@ export namespace GQLRoots {
     export type UpdatesDifferenceRoot = { seq: number, state: string, hasMore: boolean, sequences: UpdatesSequenceDifferenceRoot[] };
 
     export type SequenceDifferenceRoot = { hasMore: boolean, pts: number, sequence: SequenceRoot, events: UpdatesDifferenceEventRoot[] };
+
+    //
+    // Chats
+    //
+
+    export type SyncChatRoot = { conversation: Conversation, sequence: SequenceRoot };
+    export type SyncChatsConnectionRoot = { items: SyncChatRoot[], cursor: string | null };
 }

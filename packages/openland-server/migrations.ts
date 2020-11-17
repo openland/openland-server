@@ -865,4 +865,85 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '150-create-conversation-feeds',
+    migration: async (parent) => {
+        let after = 0;
+        while (true) {
+            let ex = await Store.Conversation.descriptor.subspace.range(parent, [], { after: [after], limit: 500 });
+            if (ex.length === 0) {
+                break;
+            }
+            let ids = ex.map((e) => e.key[0] as number);
+            logger.log(parent, 'Apply conversation ' + after + ': ' + ids.length);
+            await inTx(parent, async ctx => {
+                await Promise.all(ids.map(async (u) => {
+                    await Modules.Events.mediator.prepareChat(ctx, u);
+                    let conv = await Store.ConversationPrivate.findById(ctx, u);
+                    if (conv) {
+                        await Modules.Events.mediator.preparePrivateChat(ctx, u, conv.uid1);
+                        await Modules.Events.mediator.preparePrivateChat(ctx, u, conv.uid2);
+                    }
+                }));
+            });
+
+            after = ex[ex.length - 1].key[0] as number;
+        }
+    }
+});
+
+migrations.push({
+    key: '152-create-conversation-subscriptions',
+    migration: async (parent) => {
+        let after: number[] = [0, 0];
+        while (true) {
+            let ex = await Store.RoomParticipant.descriptor.subspace.range(parent, [], { after: after, limit: 500 });
+            if (ex.length === 0) {
+                break;
+            }
+            let ids = ex.map((e) => ({ cid: e.key[0] as number, uid: e.key[1] as number }));
+            logger.log(parent, 'Apply conversation ' + after[0] + ',' + after[1]);
+            await inTx(parent, async ctx => {
+                await Promise.all(ids.map(async (u) => {
+                    let participant = await Store.RoomParticipant.findById(ctx, u.cid, u.uid);
+                    if (!participant) {
+                        return;
+                    }
+                    if (participant.status === 'joined') {
+                        await Modules.Events.mediator.subscribe(ctx, u.uid, { type: 'chat', cid: u.cid });
+                    } else {
+                        await Modules.Events.mediator.unsubscribe(ctx, u.uid, { type: 'chat', cid: u.cid });
+                    }
+                }));
+            });
+            after = [ex[ex.length - 1].key[0] as number, ex[ex.length - 1].key[1] as number];
+        }
+    }
+});
+
+migrations.push({
+    key: '154-create-user-active-chats',
+    migration: async (parent) => {
+        let data = await inTx(parent, ctx => Store.User.findAll(ctx));
+        for (let u of data) {
+            await inTx(parent, async ctx => {
+                let dialogs = await Modules.Messaging.findUserDialogs(ctx, u.id);
+                for (let d of dialogs) {
+                    let conv = (await Store.Conversation.findById(ctx, d.cid))!;
+                    if (conv.kind === 'room') {
+                        let status = await Modules.Messaging.room.findMembershipStatus(ctx, u.id, d.cid);
+                        if (status && status.status === 'joined') {
+                            Modules.Messaging.messaging.events.userActiveChats.addChat(ctx, u.id, d.cid);
+                        } else {
+                            Modules.Messaging.messaging.events.userActiveChats.removeChat(ctx, u.id, d.cid);
+                        }
+                    } else if (conv.kind === 'private') {
+                        Modules.Messaging.messaging.events.userActiveChats.addChat(ctx, u.id, d.cid);
+                    }
+                }
+            });
+        }
+    }
+});
+
 export default migrations;

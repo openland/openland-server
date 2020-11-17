@@ -1,4 +1,4 @@
-union UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged
+union UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted
 
 type UpdateChatRead {
     cid: ID!
@@ -12,4 +12,15 @@ type UpdateProfileChanged {
 type UpdateMyProfileChanged {
     user: User!
     profile: Profile!
+}
+
+type UpdateChatMessage {
+    cid: ID!
+    message: ModernMessage!
+}
+
+type UpdateChatMessageDeleted {
+    cid: ID!
+    mid: ID!
+    seq: Int!
 }

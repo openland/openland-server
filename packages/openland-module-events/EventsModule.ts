@@ -6,7 +6,7 @@ import { ShardRegion } from 'openland-module-sharding/ShardRegion';
 import { injectable } from 'inversify';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { GroupServiceManager } from './groups/GroupServiceManager';
-import { CommonEvent } from './Definitions';
+import { CommonEvent, ChatEvent } from './Definitions';
 
 const root = createNamedContext('user-service');
 const log = createLogger('user-service');
@@ -41,7 +41,15 @@ export class EventsModule {
     //
 
     postToCommon = async (ctx: Context, uid: number, update: CommonEvent) => {
-        // await this.mediator.postToCommon(ctx, uid, update);
+        await this.mediator.postToCommon(ctx, uid, update);
+    }
+
+    async postToChat(ctx: Context, cid: number, event: ChatEvent) {
+        await this.mediator.postToChat(ctx, cid, event);
+    }
+
+    async postToChatPrivate(ctx: Context, cid: number, uid: number, event: ChatEvent) {
+        await this.mediator.postToChatPrivate(ctx, cid, uid, event);
     }
 
     //

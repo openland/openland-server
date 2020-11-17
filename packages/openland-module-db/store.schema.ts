@@ -381,6 +381,8 @@ export default declareSchema(() => {
     });
     customDirectory('RoomParticipantsActive');
     customDirectory('UserChatsActive');
+    customDirectory('UserChatsAllIndex');
+
     atomicInt('RoomParticipantsVersion', () => {
         primaryKey('cid', integer());
     });

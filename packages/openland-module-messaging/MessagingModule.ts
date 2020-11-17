@@ -36,7 +36,7 @@ export class MessagingModule {
     readonly needNotificationDelivery: NeedNotificationDeliveryRepository;
     readonly delivery: DeliveryMediator;
     readonly counters: CounterProvider = new PrecalculatedCounterProvider();
-    private readonly messaging: MessagingMediator;
+    readonly messaging: MessagingMediator;
     private readonly augmentation: AugmentationMediator;
     private readonly userState: UserStateRepository;
     private readonly userDialogs: UserDialogsRepository;
@@ -103,6 +103,10 @@ export class MessagingModule {
 
     findUserDialogs(ctx: Context, uid: number) {
         return this.userDialogs.findUserDialogs(ctx, uid);
+    }
+
+    loadUserDialogs(ctx: Context, uid: number, after: number) {
+        return this.messaging.events.userActiveChats.loadChats(ctx, uid, after);
     }
 
     hasActiveDialog(ctx: Context, uid: number, cid: number) {
@@ -319,7 +323,7 @@ export class MessagingModule {
 
         let userMentioned = hasMention(message, uid);
 
-        let {mobile, desktop} = settings;
+        let { mobile, desktop } = settings;
         let mobileSettings: { showNotification: boolean, sound: boolean } | null = null;
         let desktopSettings: { showNotification: boolean, sound: boolean } | null = null;
         if (conversation.kind === 'private') {
@@ -348,15 +352,15 @@ export class MessagingModule {
 
         let conversationSettings = await Store.UserDialogSettings.findById(ctx, uid, conversation.id);
         if (conversationSettings && conversationSettings.mute && !userMentioned) {
-            mobileSettings = {showNotification: false, sound: false};
-            desktopSettings = {showNotification: false, sound: false};
+            mobileSettings = { showNotification: false, sound: false };
+            desktopSettings = { showNotification: false, sound: false };
         }
 
         let isMuted = !mobileSettings.showNotification || !mobileSettings.sound ||
             !desktopSettings.sound || !desktopSettings.showNotification;
         if (isMuted && userMentioned) {
-            mobileSettings = {showNotification: true, sound: true};
-            desktopSettings = {showNotification: true, sound: true};
+            mobileSettings = { showNotification: true, sound: true };
+            desktopSettings = { showNotification: true, sound: true };
         }
 
         return {

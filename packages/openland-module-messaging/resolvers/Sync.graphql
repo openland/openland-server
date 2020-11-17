@@ -1,0 +1,14 @@
+type SyncChat {
+    conversation: Conversation!
+    sequence: Sequence!
+    pts: Int!
+}
+
+type SyncChatsConnection {
+    items: [SyncChat!]!
+    cursor: String
+}
+
+extend type Query {
+    syncUserChats(first: Int!, after: String): SyncChatsConnection!
+}

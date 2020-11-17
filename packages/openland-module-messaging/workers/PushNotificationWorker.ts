@@ -263,7 +263,7 @@ function createWorker(fromUid: number, toUid: number) {
     });
 }
 
-const TOTAL_USERS = 50000;
+const TOTAL_USERS = 55000;
 const USERS_PER_WORKER = 2000;
 
 export function startPushNotificationWorker() {

@@ -14,6 +14,7 @@ import { createLogger } from '@openland/log';
 
 import { StatsModule } from '../openland-module-stats/StatsModule';
 import { loadMonitoringModule } from 'openland-module-monitoring/loadMonitoringModule';
+import { Modules } from './Modules';
 
 const logger = createLogger('environment');
 
@@ -60,5 +61,6 @@ export async function randomTestUser(ctx: Context) {
     let email = 'test' + randStr() + '@openland.com';
     let uid = (await users.createUser(ctx, {email})).id;
     await users.createUserProfile(ctx, uid, { firstName: 'User Name' + Math.random() });
+    await Modules.Events.mediator.prepareUser(ctx, uid);
     return { uid, email };
 }

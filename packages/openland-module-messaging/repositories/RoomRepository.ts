@@ -17,7 +17,7 @@ import { MessageAttachmentFile } from '../MessageInput';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { User, ConversationRoom } from 'openland-module-db/store';
 import { smartSlice } from '../../openland-utils/string';
-import { UserChatsRepository } from './UserChatsRepository';
+import { UserGroupsRepository } from './UserGroupsRepository';
 import { FastCountersMediator } from '../mediators/FastCountersMediator';
 import { ExperimentalCountersRepository } from './ExperimentalCountersRepository';
 import { UserReadSeqsDirectory } from './UserReadSeqsDirectory';
@@ -59,7 +59,7 @@ export class RoomRepository {
 
     private membersCache = new ExpiringCache<number[]>({ timeout: 15 * 60 * 1000 });
 
-    readonly userChats = new UserChatsRepository();
+    readonly userGroups = new UserGroupsRepository();
 
     async createRoom(parent: Context, kind: 'public' | 'group', oid: number | undefined, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean, channel?: boolean, price?: number, interval?: 'week' | 'month') {
         return await inTx(parent, async (ctx) => {
@@ -585,13 +585,13 @@ export class RoomRepository {
 
         if (isMember) {
             dir.set(ctx, [cid, uid], false);
-            this.userChats.addChat(ctx, uid, cid);
+            this.userGroups.addGroup(ctx, uid, cid);
             await this.fastCounters.onAddDialog(ctx, uid, cid);
             await this.experimentalCounters.onAddDialog(ctx, uid, cid);
             await this.userReadSeqs.onAddDialog(ctx, uid, cid);
             this.chatMembers.addMember(ctx, cid, uid, async);
         } else {
-            this.userChats.removeChat(ctx, uid, cid);
+            this.userGroups.removeGroup(ctx, uid, cid);
             this.fastCounters.onRemoveDialog(ctx, uid, cid);
             this.experimentalCounters.onRemoveDialog(ctx, uid, cid);
             await this.userReadSeqs.onRemoveDialog(ctx, uid, cid);

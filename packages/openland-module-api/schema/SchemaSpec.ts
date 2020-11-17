@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '23b6a4f94e05317b26ac0befbdf62a71';
+export const GQL_SPEC_VERSION = 'bdd3aa845fb666f7e1ca019cdf8abc52';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -946,8 +946,6 @@ export namespace GQL {
     export type NotificationPreview = GQLRoots.NotificationPreviewRoot;
     export type PrivacyWhoCanSeeValues = 'EVERYONE' | 'NOBODY';
     export type PrivacyWhoCanSee = GQLRoots.PrivacyWhoCanSeeRoot;
-    export type PrivacyWhoCanAddToGroupsValues = 'EVERYONE' | 'CORRESPONDENTS' | 'NOBODY';
-    export type PrivacyWhoCanAddToGroups = GQLRoots.PrivacyWhoCanAddToGroupsRoot;
     export interface ChatTypeNotificationSettings {
         showNotification: boolean;
         sound: boolean;
@@ -989,7 +987,6 @@ export namespace GQL {
         whoCanSeeEmail: Nullable<PrivacyWhoCanSee>;
         whoCanSeePhone: Nullable<PrivacyWhoCanSee>;
         communityAdminsCanSeeContactInfo: Nullable<boolean>;
-        whoCanAddToGroups: Nullable<PrivacyWhoCanAddToGroups>;
         notificationsDelay: Nullable<NotificationsDelay>;
         desktopNotifications: Nullable<NotificationMessages>;
         mobileNotifications: Nullable<NotificationMessages>;
@@ -1010,7 +1007,6 @@ export namespace GQL {
         whoCanSeeEmail: PrivacyWhoCanSee;
         whoCanSeePhone: PrivacyWhoCanSee;
         communityAdminsCanSeeContactInfo: boolean;
-        whoCanAddToGroups: PrivacyWhoCanAddToGroups;
         notificationsDelay: NotificationsDelay;
         desktopNotifications: NotificationMessages;
         mobileNotifications: NotificationMessages;
@@ -1030,7 +1026,6 @@ export namespace GQL {
     export interface SettingsWhoCanSeeEmailArgs { }
     export interface SettingsWhoCanSeePhoneArgs { }
     export interface SettingsCommunityAdminsCanSeeContactInfoArgs { }
-    export interface SettingsWhoCanAddToGroupsArgs { }
     export interface SettingsNotificationsDelayArgs { }
     export interface SettingsDesktopNotificationsArgs { }
     export interface SettingsMobileNotificationsArgs { }
@@ -4340,6 +4335,7 @@ export namespace GQL {
         pushSettings: PushSettings;
         activeSessions: Nullable<Session>[];
         sessionState: SessionState;
+        syncUserChats: SyncChatsConnection;
         betaNextDiscoverPage: Nullable<DiscoverPage>;
         gammaNextDiscoverPage: Nullable<DiscoverPage>;
         betaSuggestedRooms: Room[];
@@ -4734,6 +4730,10 @@ export namespace GQL {
     export interface QueryPushSettingsArgs { }
     export interface QueryActiveSessionsArgs { }
     export interface QuerySessionStateArgs { }
+    export interface QuerySyncUserChatsArgs {
+        first: number;
+        after: OptionalNullable<string>;
+    }
     export interface QueryBetaNextDiscoverPageArgs {
         selectedTagsIds: string[];
         excudedGroupsIds: string[];
@@ -5118,6 +5118,20 @@ export namespace GQL {
         chatId: string;
     }
     export interface SubscriptionTypingsArgs { }
+    export interface SyncChat {
+        conversation: Conversation;
+        sequence: Sequence;
+        pts: number;
+    }
+    export interface SyncChatConversationArgs { }
+    export interface SyncChatSequenceArgs { }
+    export interface SyncChatPtsArgs { }
+    export interface SyncChatsConnection {
+        items: SyncChat[];
+        cursor: Nullable<string>;
+    }
+    export interface SyncChatsConnectionItemsArgs { }
+    export interface SyncChatsConnectionCursorArgs { }
     export interface Tag {
         id: string;
         title: string;
@@ -6286,7 +6300,7 @@ export namespace GQL {
     export interface RoomInviteRoomArgs { }
     export interface RoomInviteInvitedByUserArgs { }
     export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection | Channel;
-    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged;
+    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted;
     export interface UpdateChatRead {
         cid: string;
         seq: number;
@@ -6303,6 +6317,20 @@ export namespace GQL {
     }
     export interface UpdateMyProfileChangedUserArgs { }
     export interface UpdateMyProfileChangedProfileArgs { }
+    export interface UpdateChatMessage {
+        cid: string;
+        message: ModernMessage;
+    }
+    export interface UpdateChatMessageCidArgs { }
+    export interface UpdateChatMessageMessageArgs { }
+    export interface UpdateChatMessageDeleted {
+        cid: string;
+        mid: string;
+        seq: number;
+    }
+    export interface UpdateChatMessageDeletedCidArgs { }
+    export interface UpdateChatMessageDeletedMidArgs { }
+    export interface UpdateChatMessageDeletedSeqArgs { }
 }
 
 export interface GQLResolver {
@@ -7487,7 +7515,6 @@ export interface GQLResolver {
     NotificationsDelay?: EnumTypeResolver<'NONE' | 'MIN_1' | 'MIN_15', GQLRoots.NotificationsDelayRoot>;
     NotificationPreview?: EnumTypeResolver<'NAME_TEXT' | 'NAME', GQLRoots.NotificationPreviewRoot>;
     PrivacyWhoCanSee?: EnumTypeResolver<'EVERYONE' | 'NOBODY', GQLRoots.PrivacyWhoCanSeeRoot>;
-    PrivacyWhoCanAddToGroups?: EnumTypeResolver<'EVERYONE' | 'CORRESPONDENTS' | 'NOBODY', GQLRoots.PrivacyWhoCanAddToGroupsRoot>;
     ChatTypeNotificationSettings?: ComplexTypedResolver<
         GQL.ChatTypeNotificationSettings,
         GQLRoots.ChatTypeNotificationSettingsRoot,
@@ -7535,7 +7562,6 @@ export interface GQLResolver {
             whoCanSeeEmail: GQL.SettingsWhoCanSeeEmailArgs,
             whoCanSeePhone: GQL.SettingsWhoCanSeePhoneArgs,
             communityAdminsCanSeeContactInfo: GQL.SettingsCommunityAdminsCanSeeContactInfoArgs,
-            whoCanAddToGroups: GQL.SettingsWhoCanAddToGroupsArgs,
             notificationsDelay: GQL.SettingsNotificationsDelayArgs,
             desktopNotifications: GQL.SettingsDesktopNotificationsArgs,
             mobileNotifications: GQL.SettingsMobileNotificationsArgs,
@@ -10055,6 +10081,7 @@ export interface GQLResolver {
             pushSettings: GQLRoots.PushSettingsRoot,
             activeSessions: Nullable<GQLRoots.SessionRoot>[],
             sessionState: GQLRoots.SessionStateRoot,
+            syncUserChats: GQLRoots.SyncChatsConnectionRoot,
             betaNextDiscoverPage: Nullable<GQLRoots.DiscoverPageRoot>,
             gammaNextDiscoverPage: Nullable<GQLRoots.DiscoverPageRoot>,
             betaSuggestedRooms: GQLRoots.RoomRoot[],
@@ -10236,6 +10263,7 @@ export interface GQLResolver {
             pushSettings: GQL.QueryPushSettingsArgs,
             activeSessions: GQL.QueryActiveSessionsArgs,
             sessionState: GQL.QuerySessionStateArgs,
+            syncUserChats: GQL.QuerySyncUserChatsArgs,
             betaNextDiscoverPage: GQL.QueryBetaNextDiscoverPageArgs,
             gammaNextDiscoverPage: GQL.QueryGammaNextDiscoverPageArgs,
             betaSuggestedRooms: GQL.QueryBetaSuggestedRoomsArgs,
@@ -10383,6 +10411,30 @@ export interface GQLResolver {
             alphaSubscribeOnline: GQL.SubscriptionAlphaSubscribeOnlineArgs,
             chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs,
             typings: GQL.SubscriptionTypingsArgs,
+        }
+    >;
+    SyncChat?: ComplexTypedResolver<
+        GQL.SyncChat,
+        GQLRoots.SyncChatRoot,
+        {
+            conversation: GQLRoots.ConversationRoot,
+            sequence: GQLRoots.SequenceRoot,
+        },
+        {
+            conversation: GQL.SyncChatConversationArgs,
+            sequence: GQL.SyncChatSequenceArgs,
+            pts: GQL.SyncChatPtsArgs,
+        }
+    >;
+    SyncChatsConnection?: ComplexTypedResolver<
+        GQL.SyncChatsConnection,
+        GQLRoots.SyncChatsConnectionRoot,
+        {
+            items: GQLRoots.SyncChatRoot[],
+        },
+        {
+            items: GQL.SyncChatsConnectionItemsArgs,
+            cursor: GQL.SyncChatsConnectionCursorArgs,
         }
     >;
     Tag?: ComplexTypedResolver<
@@ -11727,7 +11779,7 @@ export interface GQLResolver {
         }
     >;
     ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom' | 'DiscoverChatsCollection' | 'Channel'>;
-    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged'>;
+    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged' | 'UpdateChatMessage' | 'UpdateChatMessageDeleted'>;
     UpdateChatRead?: ComplexTypedResolver<
         GQL.UpdateChatRead,
         GQLRoots.UpdateChatReadRoot,
@@ -11758,6 +11810,28 @@ export interface GQLResolver {
         {
             user: GQL.UpdateMyProfileChangedUserArgs,
             profile: GQL.UpdateMyProfileChangedProfileArgs,
+        }
+    >;
+    UpdateChatMessage?: ComplexTypedResolver<
+        GQL.UpdateChatMessage,
+        GQLRoots.UpdateChatMessageRoot,
+        {
+            message: GQLRoots.ModernMessageRoot,
+        },
+        {
+            cid: GQL.UpdateChatMessageCidArgs,
+            message: GQL.UpdateChatMessageMessageArgs,
+        }
+    >;
+    UpdateChatMessageDeleted?: ComplexTypedResolver<
+        GQL.UpdateChatMessageDeleted,
+        GQLRoots.UpdateChatMessageDeletedRoot,
+        {
+        },
+        {
+            cid: GQL.UpdateChatMessageDeletedCidArgs,
+            mid: GQL.UpdateChatMessageDeletedMidArgs,
+            seq: GQL.UpdateChatMessageDeletedSeqArgs,
         }
     >;
 }
