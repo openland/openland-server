@@ -21910,6 +21910,39 @@ export class UpdateChatAccessChanged extends BaseEvent {
     get cid(): number { return this.raw.cid; }
 }
 
+const updateSettingsChangedCodec = c.struct({
+    uid: c.integer,
+});
+
+interface UpdateSettingsChangedShape {
+    uid: number;
+}
+
+export class UpdateSettingsChanged extends BaseEvent {
+
+    static readonly type: 'updateSettingsChanged' = 'updateSettingsChanged';
+
+    static create(data: UpdateSettingsChangedShape) {
+        return new UpdateSettingsChanged(updateSettingsChangedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateSettingsChanged(updateSettingsChangedCodec.decode(data));
+    }
+
+    static encode(event: UpdateSettingsChanged) {
+        return updateSettingsChangedCodec.encode(event.raw);
+    }
+
+    readonly type: 'updateSettingsChanged' = 'updateSettingsChanged';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+}
+
 const updateChatMessageCodec = c.struct({
     uid: c.integer,
     cid: c.integer,
@@ -22975,6 +23008,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('updateChatRead', UpdateChatRead.encode as any, UpdateChatRead.decode);
     eventFactory.registerEventType('updateProfileChanged', UpdateProfileChanged.encode as any, UpdateProfileChanged.decode);
     eventFactory.registerEventType('updateChatAccessChanged', UpdateChatAccessChanged.encode as any, UpdateChatAccessChanged.decode);
+    eventFactory.registerEventType('updateSettingsChanged', UpdateSettingsChanged.encode as any, UpdateSettingsChanged.decode);
     eventFactory.registerEventType('updateChatMessage', UpdateChatMessage.encode as any, UpdateChatMessage.decode);
     eventFactory.registerEventType('updateChatMessageUpdated', UpdateChatMessageUpdated.encode as any, UpdateChatMessageUpdated.decode);
     eventFactory.registerEventType('updateChatMessageDeleted', UpdateChatMessageDeleted.encode as any, UpdateChatMessageDeleted.decode);

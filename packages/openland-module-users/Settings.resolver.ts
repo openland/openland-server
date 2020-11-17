@@ -1,3 +1,4 @@
+import { UpdateSettingsChanged } from './../openland-module-db/store';
 import { Store } from './../openland-module-db/FDB';
 import { UserSettings } from 'openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
@@ -231,6 +232,7 @@ const settingsUpdateResolver = withUser(async (parent, args: GQL.MutationSetting
         await Modules.Messaging.onGlobalCounterTypeChanged(ctx, _uid);
         await Modules.Users.notifyUserSettingsChanged(ctx, uid);
         await Modules.Users.markForUndexing(ctx, uid);
+        await Modules.Events.postToCommon(ctx, uid, UpdateSettingsChanged.create({ uid }));
         return settings;
     });
 });
@@ -448,6 +450,7 @@ const updateSettingsResolver = withUser(async (parent, args: GQL.MutationUpdateS
         settings.invalidate();
         await Modules.Messaging.onGlobalCounterTypeChanged(ctx, uid);
         await Modules.Users.notifyUserSettingsChanged(ctx, uid);
+        await Modules.Events.postToCommon(ctx, uid, UpdateSettingsChanged.create({ uid }));
         return settings;
     });
 });
@@ -481,6 +484,7 @@ export const Resolver: GQLResolver = {
     },
     Settings: {
         id: src => IDs.Settings.serialize(src.id),
+        version: src => src.metadata.versionCode,
         primaryEmail: async (src: UserSettings, args: {}, ctx: Context) => (await Store.User.findById(ctx, src.id))!.email || '',
         emailFrequency: src => src.emailFrequency,
         desktopNotifications: src => src.desktopNotifications,
@@ -542,6 +546,11 @@ export const Resolver: GQLResolver = {
                 email: user?.email || null,
                 phone: user?.phone || null
             };
+        }),
+    },
+    SequenceCommon: {
+        settings: withUser(async (ctx, args, uid) => {
+            return Modules.Users.getUserSettings(ctx, uid);
         }),
     },
     Mutation: {

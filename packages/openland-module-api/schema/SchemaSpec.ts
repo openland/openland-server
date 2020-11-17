@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'a963e4f091e59f181707b469a5ec8792';
+export const GQL_SPEC_VERSION = '29724502249292c1504608727e6f399f';
 
 export namespace GQL {
     export interface CreditCard {
@@ -599,6 +599,7 @@ export namespace GQL {
     }
     export interface Settings {
         id: string;
+        version: number;
         primaryEmail: string;
         emailFrequency: EmailFrequency;
         desktop: PlatformNotificationSettings;
@@ -619,6 +620,7 @@ export namespace GQL {
         mute: Nullable<boolean>;
     }
     export interface SettingsIdArgs { }
+    export interface SettingsVersionArgs { }
     export interface SettingsPrimaryEmailArgs { }
     export interface SettingsEmailFrequencyArgs { }
     export interface SettingsDesktopArgs { }
@@ -1031,8 +1033,10 @@ export namespace GQL {
     export interface SequenceIdArgs { }
     export interface SequenceCommon extends Sequence {
         id: string;
+        settings: Settings;
     }
     export interface SequenceCommonIdArgs { }
+    export interface SequenceCommonSettingsArgs { }
     export interface SequenceChat extends Sequence {
         id: string;
         cid: string;
@@ -5887,7 +5891,7 @@ export namespace GQL {
     export interface RoomInviteRoomArgs { }
     export interface RoomInviteInvitedByUserArgs { }
     export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection | Channel;
-    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted | UpdateChatDraftChanged;
+    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted | UpdateChatDraftChanged | UpdateSettingsChanged;
     export interface UpdateChatRead {
         cid: string;
         seq: number;
@@ -5928,6 +5932,10 @@ export namespace GQL {
     export interface UpdateChatDraftChangedDraftArgs { }
     export interface UpdateChatDraftChangedVersionArgs { }
     export interface UpdateChatDraftChangedDateArgs { }
+    export interface UpdateSettingsChanged {
+        settings: Settings;
+    }
+    export interface UpdateSettingsChangedSettingsArgs { }
 }
 
 export interface GQLResolver {
@@ -6675,6 +6683,7 @@ export interface GQLResolver {
         },
         {
             id: GQL.SettingsIdArgs,
+            version: GQL.SettingsVersionArgs,
             primaryEmail: GQL.SettingsPrimaryEmailArgs,
             emailFrequency: GQL.SettingsEmailFrequencyArgs,
             desktop: GQL.SettingsDesktopArgs,
@@ -7020,9 +7029,11 @@ export interface GQLResolver {
         GQL.SequenceCommon,
         GQLRoots.SequenceCommonRoot,
         {
+            settings: GQLRoots.SettingsRoot,
         },
         {
             id: GQL.SequenceCommonIdArgs,
+            settings: GQL.SequenceCommonSettingsArgs,
         }
     >;
     SequenceChat?: ComplexTypedResolver<
@@ -11030,7 +11041,7 @@ export interface GQLResolver {
         }
     >;
     ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom' | 'DiscoverChatsCollection' | 'Channel'>;
-    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged' | 'UpdateChatMessage' | 'UpdateChatMessageDeleted' | 'UpdateChatDraftChanged'>;
+    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged' | 'UpdateChatMessage' | 'UpdateChatMessageDeleted' | 'UpdateChatDraftChanged' | 'UpdateSettingsChanged'>;
     UpdateChatRead?: ComplexTypedResolver<
         GQL.UpdateChatRead,
         GQLRoots.UpdateChatReadRoot,
@@ -11095,6 +11106,16 @@ export interface GQLResolver {
             draft: GQL.UpdateChatDraftChangedDraftArgs,
             version: GQL.UpdateChatDraftChangedVersionArgs,
             date: GQL.UpdateChatDraftChangedDateArgs,
+        }
+    >;
+    UpdateSettingsChanged?: ComplexTypedResolver<
+        GQL.UpdateSettingsChanged,
+        GQLRoots.UpdateSettingsChangedRoot,
+        {
+            settings: GQLRoots.SettingsRoot,
+        },
+        {
+            settings: GQL.UpdateSettingsChangedSettingsArgs,
         }
     >;
 }

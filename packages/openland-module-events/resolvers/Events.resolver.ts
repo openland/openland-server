@@ -1,3 +1,4 @@
+import { withUser } from 'openland-module-api/Resolvers';
 import { Store } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
@@ -28,6 +29,11 @@ export const Resolver: GQLResolver = {
                     throw Error('Invalid update');
                 }
                 return 'UpdateChatDraftChanged';
+            } else if (src.type === 'updateSettingsChanged') {
+                if (src.uid !== ctx.auth.uid) {
+                    throw Error('Invalid update');
+                }
+                return 'UpdateSettingsChanged';
             }
             throw Error('Unknown update');
         },
@@ -57,5 +63,10 @@ export const Resolver: GQLResolver = {
         draft: (src) => src.draft,
         date: (src) => src.date,
         version: (src) => src.version
+    },
+    UpdateSettingsChanged: {
+        settings: withUser(async (ctx, args, uid) => {
+            return Modules.Users.getUserSettings(ctx, uid);
+        }),
     }
 };

@@ -1,4 +1,4 @@
-union UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted | UpdateChatDraftChanged
+union UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted | UpdateChatDraftChanged | UpdateSettingsChanged
 
 type UpdateChatRead {
     cid: ID!
@@ -30,4 +30,8 @@ type UpdateChatDraftChanged {
     draft: String
     version: Int!
     date: Date!
+}
+
+type UpdateSettingsChanged {
+    settings: Settings!
 }
