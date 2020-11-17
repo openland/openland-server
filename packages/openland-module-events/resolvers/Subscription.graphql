@@ -38,6 +38,7 @@ extend type Subscription {
 type UpdatesSequenceState {
     sequence: Sequence!
     pts: Int!
+    seq: Int!
 }
 
 type UpdatesState {

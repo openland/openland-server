@@ -166,6 +166,17 @@ export class TypedEventsMediator {
         });
     }
 
+    async getCurrentSeq(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let subscriber = await this.registry.getUserSubscriber(ctx, uid);
+            if (!subscriber) {
+                throw Error('Subscriber does not exist');
+            }
+            await this.events.refreshOnline(ctx, subscriber);
+            return (await this.events.repo.subSeq.getCurrentSeq(ctx, subscriber));
+        });
+    }
+
     async getFeedState(parent: Context, feed: FeedReference) {
         return await inTx(parent, async (ctx) => {
             let feedid = await this.registry.getFeed(ctx, feed);
