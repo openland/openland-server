@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '211980683dc9832a2339d4f9c5ce351a';
+export const GQL_SPEC_VERSION = '52dd0ca0b937af84cd9bd7c93498420a';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1453,10 +1453,12 @@ export namespace GQL {
         id: string;
         cid: string;
         unread: number;
+        draft: Nullable<Draft>;
     }
     export interface SequenceChatIdArgs { }
     export interface SequenceChatCidArgs { }
     export interface SequenceChatUnreadArgs { }
+    export interface SequenceChatDraftArgs { }
     export interface PageInfo {
         hasNextPage: boolean;
         hasPreviousPage: boolean;
@@ -2084,6 +2086,14 @@ export namespace GQL {
         state: Nullable<string>;
     }
     export interface DialogUpdateStateStateArgs { }
+    export interface Draft {
+        message: Nullable<string>;
+        date: Date;
+        version: number;
+    }
+    export interface DraftMessageArgs { }
+    export interface DraftDateArgs { }
+    export interface DraftVersionArgs { }
     export interface EnvVar {
         name: string;
         value: string;
@@ -2386,8 +2396,6 @@ export namespace GQL {
         betaFixCounter: boolean;
         betaFixCountersForAll: boolean;
         deliverCountersForAll: boolean;
-        conversationDraftUpdate: string;
-        alphaSaveDraftMessage: string;
         banUser: boolean;
         unBanUser: boolean;
         discoverCollectionsCreate: DiscoverChatsCollection;
@@ -2425,6 +2433,7 @@ export namespace GQL {
         mediaStreamFailed: ConferenceMedia;
         addToContacts: boolean;
         removeFromContacts: boolean;
+        conversationDraftUpdate: Draft;
         setEnvVar: boolean;
         setEnvVarString: boolean;
         setEnvVarNumber: boolean;
@@ -3049,14 +3058,6 @@ export namespace GQL {
     }
     export interface MutationBetaFixCountersForAllArgs { }
     export interface MutationDeliverCountersForAllArgs { }
-    export interface MutationConversationDraftUpdateArgs {
-        conversationId: string;
-        message: OptionalNullable<string>;
-    }
-    export interface MutationAlphaSaveDraftMessageArgs {
-        conversationId: string;
-        message: OptionalNullable<string>;
-    }
     export interface MutationBanUserArgs {
         id: string;
     }
@@ -3214,6 +3215,10 @@ export namespace GQL {
     }
     export interface MutationRemoveFromContactsArgs {
         userId: string;
+    }
+    export interface MutationConversationDraftUpdateArgs {
+        id: string;
+        message: OptionalNullable<string>;
     }
     export interface MutationSetEnvVarArgs {
         name: string;
@@ -4292,8 +4297,6 @@ export namespace GQL {
         superAdmins: SuperAdmin[];
         alphaChatTextSearch: Conversation[];
         betaDialogTextSearch: Dialog[];
-        conversationDraft: Nullable<string>;
-        alphaDraftMessage: Nullable<string>;
         myBlackList: User[];
         discoverCollections: Nullable<DiscoverChatsCollectionConnection>;
         discoverCollection: Nullable<DiscoverChatsCollection>;
@@ -4575,12 +4578,6 @@ export namespace GQL {
     }
     export interface QueryBetaDialogTextSearchArgs {
         query: string;
-    }
-    export interface QueryConversationDraftArgs {
-        conversationId: string;
-    }
-    export interface QueryAlphaDraftMessageArgs {
-        conversationId: string;
     }
     export interface QueryMyBlackListArgs { }
     export interface QueryDiscoverCollectionsArgs {
@@ -6317,7 +6314,7 @@ export namespace GQL {
     export interface RoomInviteRoomArgs { }
     export interface RoomInviteInvitedByUserArgs { }
     export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection | Channel;
-    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted;
+    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted | UpdateChatDraftChanged;
     export interface UpdateChatRead {
         cid: string;
         seq: number;
@@ -6348,6 +6345,16 @@ export namespace GQL {
     export interface UpdateChatMessageDeletedCidArgs { }
     export interface UpdateChatMessageDeletedMidArgs { }
     export interface UpdateChatMessageDeletedSeqArgs { }
+    export interface UpdateChatDraftChanged {
+        cid: string;
+        draft: Nullable<string>;
+        version: number;
+        date: Date;
+    }
+    export interface UpdateChatDraftChangedCidArgs { }
+    export interface UpdateChatDraftChangedDraftArgs { }
+    export interface UpdateChatDraftChangedVersionArgs { }
+    export interface UpdateChatDraftChangedDateArgs { }
 }
 
 export interface GQLResolver {
@@ -7941,11 +7948,13 @@ export interface GQLResolver {
         GQL.SequenceChat,
         GQLRoots.SequenceChatRoot,
         {
+            draft: Nullable<GQLRoots.DraftRoot>,
         },
         {
             id: GQL.SequenceChatIdArgs,
             cid: GQL.SequenceChatCidArgs,
             unread: GQL.SequenceChatUnreadArgs,
+            draft: GQL.SequenceChatDraftArgs,
         }
     >;
     PageInfo?: ComplexTypedResolver<
@@ -8783,6 +8792,17 @@ export interface GQLResolver {
             state: GQL.DialogUpdateStateStateArgs,
         }
     >;
+    Draft?: ComplexTypedResolver<
+        GQL.Draft,
+        GQLRoots.DraftRoot,
+        {
+        },
+        {
+            message: GQL.DraftMessageArgs,
+            date: GQL.DraftDateArgs,
+            version: GQL.DraftVersionArgs,
+        }
+    >;
     EnvVar?: ComplexTypedResolver<
         GQL.EnvVar,
         GQLRoots.EnvVarRoot,
@@ -9027,6 +9047,7 @@ export interface GQLResolver {
             mediaStreamAnswer: GQLRoots.ConferenceMediaRoot,
             mediaStreamCandidate: GQLRoots.ConferenceMediaRoot,
             mediaStreamFailed: GQLRoots.ConferenceMediaRoot,
+            conversationDraftUpdate: GQLRoots.DraftRoot,
             stickerPackCreate: GQLRoots.StickerPackRoot,
             stickerPackUpdate: GQLRoots.StickerPackRoot,
             stickerPackAddSticker: GQLRoots.StickerRoot,
@@ -9265,8 +9286,6 @@ export interface GQLResolver {
             betaFixCounter: GQL.MutationBetaFixCounterArgs,
             betaFixCountersForAll: GQL.MutationBetaFixCountersForAllArgs,
             deliverCountersForAll: GQL.MutationDeliverCountersForAllArgs,
-            conversationDraftUpdate: GQL.MutationConversationDraftUpdateArgs,
-            alphaSaveDraftMessage: GQL.MutationAlphaSaveDraftMessageArgs,
             banUser: GQL.MutationBanUserArgs,
             unBanUser: GQL.MutationUnBanUserArgs,
             discoverCollectionsCreate: GQL.MutationDiscoverCollectionsCreateArgs,
@@ -9304,6 +9323,7 @@ export interface GQLResolver {
             mediaStreamFailed: GQL.MutationMediaStreamFailedArgs,
             addToContacts: GQL.MutationAddToContactsArgs,
             removeFromContacts: GQL.MutationRemoveFromContactsArgs,
+            conversationDraftUpdate: GQL.MutationConversationDraftUpdateArgs,
             setEnvVar: GQL.MutationSetEnvVarArgs,
             setEnvVarString: GQL.MutationSetEnvVarStringArgs,
             setEnvVarNumber: GQL.MutationSetEnvVarNumberArgs,
@@ -10237,8 +10257,6 @@ export interface GQLResolver {
             superAdmins: GQL.QuerySuperAdminsArgs,
             alphaChatTextSearch: GQL.QueryAlphaChatTextSearchArgs,
             betaDialogTextSearch: GQL.QueryBetaDialogTextSearchArgs,
-            conversationDraft: GQL.QueryConversationDraftArgs,
-            alphaDraftMessage: GQL.QueryAlphaDraftMessageArgs,
             myBlackList: GQL.QueryMyBlackListArgs,
             discoverCollections: GQL.QueryDiscoverCollectionsArgs,
             discoverCollection: GQL.QueryDiscoverCollectionArgs,
@@ -11813,7 +11831,7 @@ export interface GQLResolver {
         }
     >;
     ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom' | 'DiscoverChatsCollection' | 'Channel'>;
-    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged' | 'UpdateChatMessage' | 'UpdateChatMessageDeleted'>;
+    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged' | 'UpdateChatMessage' | 'UpdateChatMessageDeleted' | 'UpdateChatDraftChanged'>;
     UpdateChatRead?: ComplexTypedResolver<
         GQL.UpdateChatRead,
         GQLRoots.UpdateChatReadRoot,
@@ -11866,6 +11884,18 @@ export interface GQLResolver {
             cid: GQL.UpdateChatMessageDeletedCidArgs,
             mid: GQL.UpdateChatMessageDeletedMidArgs,
             seq: GQL.UpdateChatMessageDeletedSeqArgs,
+        }
+    >;
+    UpdateChatDraftChanged?: ComplexTypedResolver<
+        GQL.UpdateChatDraftChanged,
+        GQLRoots.UpdateChatDraftChangedRoot,
+        {
+        },
+        {
+            cid: GQL.UpdateChatDraftChangedCidArgs,
+            draft: GQL.UpdateChatDraftChangedDraftArgs,
+            version: GQL.UpdateChatDraftChangedVersionArgs,
+            date: GQL.UpdateChatDraftChangedDateArgs,
         }
     >;
 }

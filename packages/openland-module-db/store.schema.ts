@@ -78,6 +78,7 @@ import { discussionsStore } from '../openland-module-discussions/Discussions.sto
 import { contactsStore } from '../openland-module-contacts/Contacts.store';
 import { phoneBookStore } from '../openland-module-phonebook/Phonebook.store';
 import { blackListStore } from '../openland-module-blacklist/BlackList.store';
+import { defineEvents } from '../openland-module-events/Definitions.store';
 
 export default declareSchema(() => {
 
@@ -2525,34 +2526,7 @@ export default declareSchema(() => {
 
     // Events
 
-    event('UpdateChatRead', () => {
-        field('uid', integer());
-        field('cid', integer());
-        field('seq', integer());
-    });
-    event('UpdateProfileChanged', () => {
-        field('uid', integer());
-    });
-    event('UpdateChatAccessChanged', () => {
-        field('uid', integer());
-        field('cid', integer());
-    });
-
-    event('UpdateChatMessage', () => {
-        field('uid', integer());
-        field('cid', integer());
-        field('mid', integer());
-    });
-    event('UpdateChatMessageUpdated', () => {
-        field('uid', integer());
-        field('cid', integer());
-        field('mid', integer());
-    });
-    event('UpdateChatMessageDeleted', () => {
-        field('uid', integer());
-        field('cid', integer());
-        field('mid', integer());
-    });
+    defineEvents();
 
     //
     // System
