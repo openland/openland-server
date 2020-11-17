@@ -1152,9 +1152,7 @@ export const Resolver: GQLResolver = {
     },
     MessageWithMention: {
         __resolveType(obj: MessageWithMentionRoot) {
-            if (obj instanceof Message) {
-                return 'Message';
-            } else if (obj instanceof FeedEvent) {
+            if (obj instanceof FeedEvent) {
                 return 'FeedPost';
             }
             throw new Error('Obj type is unknown');
