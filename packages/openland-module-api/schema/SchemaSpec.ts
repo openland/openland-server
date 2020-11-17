@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5bd60eb54257c2b83b17dd72f8c681fd';
+export const GQL_SPEC_VERSION = '2a37a3b5c810360916bb9e1d87954907';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -954,6 +954,8 @@ export namespace GQL {
     export type NotificationPreview = GQLRoots.NotificationPreviewRoot;
     export type PrivacyWhoCanSeeValues = 'EVERYONE' | 'NOBODY';
     export type PrivacyWhoCanSee = GQLRoots.PrivacyWhoCanSeeRoot;
+    export type PrivacyWhoCanAddToGroupsValues = 'EVERYONE' | 'CORRESPONDENTS' | 'NOBODY';
+    export type PrivacyWhoCanAddToGroups = GQLRoots.PrivacyWhoCanAddToGroupsRoot;
     export interface ChatTypeNotificationSettings {
         showNotification: boolean;
         sound: boolean;
@@ -995,6 +997,7 @@ export namespace GQL {
         whoCanSeeEmail: Nullable<PrivacyWhoCanSee>;
         whoCanSeePhone: Nullable<PrivacyWhoCanSee>;
         communityAdminsCanSeeContactInfo: Nullable<boolean>;
+        whoCanAddToGroups: Nullable<PrivacyWhoCanAddToGroups>;
         notificationsDelay: Nullable<NotificationsDelay>;
         desktopNotifications: Nullable<NotificationMessages>;
         mobileNotifications: Nullable<NotificationMessages>;
@@ -1015,6 +1018,7 @@ export namespace GQL {
         whoCanSeeEmail: PrivacyWhoCanSee;
         whoCanSeePhone: PrivacyWhoCanSee;
         communityAdminsCanSeeContactInfo: boolean;
+        whoCanAddToGroups: PrivacyWhoCanAddToGroups;
         notificationsDelay: NotificationsDelay;
         desktopNotifications: NotificationMessages;
         mobileNotifications: NotificationMessages;
@@ -1034,6 +1038,7 @@ export namespace GQL {
     export interface SettingsWhoCanSeeEmailArgs { }
     export interface SettingsWhoCanSeePhoneArgs { }
     export interface SettingsCommunityAdminsCanSeeContactInfoArgs { }
+    export interface SettingsWhoCanAddToGroupsArgs { }
     export interface SettingsNotificationsDelayArgs { }
     export interface SettingsDesktopNotificationsArgs { }
     export interface SettingsMobileNotificationsArgs { }
@@ -7536,6 +7541,7 @@ export interface GQLResolver {
     NotificationsDelay?: EnumTypeResolver<'NONE' | 'MIN_1' | 'MIN_15', GQLRoots.NotificationsDelayRoot>;
     NotificationPreview?: EnumTypeResolver<'NAME_TEXT' | 'NAME', GQLRoots.NotificationPreviewRoot>;
     PrivacyWhoCanSee?: EnumTypeResolver<'EVERYONE' | 'NOBODY', GQLRoots.PrivacyWhoCanSeeRoot>;
+    PrivacyWhoCanAddToGroups?: EnumTypeResolver<'EVERYONE' | 'CORRESPONDENTS' | 'NOBODY', GQLRoots.PrivacyWhoCanAddToGroupsRoot>;
     ChatTypeNotificationSettings?: ComplexTypedResolver<
         GQL.ChatTypeNotificationSettings,
         GQLRoots.ChatTypeNotificationSettingsRoot,
@@ -7583,6 +7589,7 @@ export interface GQLResolver {
             whoCanSeeEmail: GQL.SettingsWhoCanSeeEmailArgs,
             whoCanSeePhone: GQL.SettingsWhoCanSeePhoneArgs,
             communityAdminsCanSeeContactInfo: GQL.SettingsCommunityAdminsCanSeeContactInfoArgs,
+            whoCanAddToGroups: GQL.SettingsWhoCanAddToGroupsArgs,
             notificationsDelay: GQL.SettingsNotificationsDelayArgs,
             desktopNotifications: GQL.SettingsDesktopNotificationsArgs,
             mobileNotifications: GQL.SettingsMobileNotificationsArgs,
