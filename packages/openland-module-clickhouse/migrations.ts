@@ -257,7 +257,7 @@ migrations.push({
     }
 });
 
-migrations.push({
+/*migrations.push({
     name: '14-platform-to-modern-presences',
     command: async (ctx: Context, client: DatabaseClient)  => {
         await client.query(ctx, `ALTER TABLE ${client.dbName}.presences_modern ADD COLUMN platform UInt8`);
@@ -290,7 +290,7 @@ migrations.push({
     command: async (ctx: Context, client: DatabaseClient)  => {
         await client.query(ctx, `DROP TABLE ${client.dbName}.org_users`);
     }
-});
+});*/
 
 //
 // ╔╗║║╦╔╗╔═╗╔═║║╔═╔╗╔╗╦╔═╦╗
