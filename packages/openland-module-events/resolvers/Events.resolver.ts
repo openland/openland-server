@@ -1,3 +1,4 @@
+import { withUser } from 'openland-module-api/Resolvers';
 import { Store } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
@@ -23,6 +24,16 @@ export const Resolver: GQLResolver = {
                 }
             } else if (src.type === 'updateChatMessageDeleted') {
                 return 'UpdateChatMessageDeleted';
+            } else if (src.type === 'updateChatDraftUpdated') {
+                if (src.uid !== ctx.auth.uid) {
+                    throw Error('Invalid update');
+                }
+                return 'UpdateChatDraftChanged';
+            } else if (src.type === 'updateSettingsChanged') {
+                if (src.uid !== ctx.auth.uid) {
+                    throw Error('Invalid update');
+                }
+                return 'UpdateSettingsChanged';
             }
             throw Error('Unknown update');
         },
@@ -46,5 +57,16 @@ export const Resolver: GQLResolver = {
         cid: (src) => IDs.Conversation.serialize(src.cid),
         mid: (src) => IDs.Message.serialize(src.mid),
         seq: async (src, { }, ctx) => (await Store.Message.findById(ctx, src.mid))!.seq!
+    },
+    UpdateChatDraftChanged: {
+        cid: (src) => IDs.Conversation.serialize(src.cid),
+        draft: (src) => src.draft,
+        date: (src) => src.date,
+        version: (src) => src.version
+    },
+    UpdateSettingsChanged: {
+        settings: withUser(async (ctx, args, uid) => {
+            return Modules.Users.getUserSettings(ctx, uid);
+        }),
     }
 };

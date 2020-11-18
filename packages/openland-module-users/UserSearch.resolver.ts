@@ -3,7 +3,6 @@ import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { IDs } from '../openland-module-api/IDs';
-import { UserEdge } from 'openland-module-db/store';
 
 export const Resolver: GQLResolver = {
     Query: {
@@ -110,7 +109,7 @@ export const Resolver: GQLResolver = {
                         let edge = await Store.UserEdge.findById(ctx, uid, ctx.auth.uid!)
                         restricted = !edge
                     }
-                    
+
                     return {
                         node: p,
                         cursor: (i + 1 + offset).toString(),

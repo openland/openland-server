@@ -153,10 +153,6 @@ export class MessagingModule {
         return await this.messaging.readRoom(ctx, uid, cid, mid);
     }
 
-    async markAsSeqRead(ctx: Context, uid: number, toSeq: number) {
-        return await this.userState.markAsSeqRead(ctx, uid, toSeq);
-    }
-
     async getUserMessagingState(parent: Context, uid: number) {
         return await this.userState.getUserMessagingState(parent, uid);
     }

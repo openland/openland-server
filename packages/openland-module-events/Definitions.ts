@@ -1,3 +1,4 @@
+import { UpdateChatDraftUpdated, UpdateSettingsChanged } from './../openland-module-db/store';
 import { encoders } from '@openland/foundationdb';
 import { Store } from 'openland-module-db/FDB';
 import {
@@ -19,7 +20,9 @@ export type FeedReference =
 
 const CommonEvents = [
     UpdateChatRead,
+    UpdateChatDraftUpdated,
     UpdateProfileChanged,
+    UpdateSettingsChanged
 ];
 
 export type CommonEvent = ReturnType<(typeof CommonEvents[number])['create']>;
@@ -29,6 +32,10 @@ export function commonEventCollapseKey(src: CommonEvent): string | null {
         return 'read-' + src.cid;
     } else if (src.type === 'updateProfileChanged') {
         return 'profile-' + src.uid;
+    } else if (src.type === 'updateChatDraftUpdated') {
+        return 'draft-' + src.cid;
+    } else if (src.type === 'updateSettingsChanged') {
+        return 'settings';
     }
     return null;
 }

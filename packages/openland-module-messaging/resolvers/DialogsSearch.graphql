@@ -1,4 +1,0 @@
-extend type Query {
-    alphaChatTextSearch(query: String!): [Conversation!]!
-    betaDialogTextSearch(query: String!): [Dialog!]!
-}

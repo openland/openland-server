@@ -130,42 +130,6 @@ input RoomUpdateInput {
     callSettings: RoomCallSettingsInput
 }
 
-type UserMention {
-    user: User!
-}
-
-type SharedRoomMention {
-    sharedRoom: SharedRoom!
-}
-
-union Mention = UserMention | SharedRoomMention
-
-type RoomMessage {
-    id: ID!
-    message: String
-    file: String
-    fileMetadata: FileMetadata
-    filePreview: String
-    sender: User!
-    date: Date!
-    repeatKey: String
-    isService: Boolean!
-    serviceMetadata: ServiceMetadata
-    urlAugmentation: UrlAugmentation
-    edited: Boolean!
-    reactions: [MessageReaction!]!
-    replyMessages: [RoomMessage!]
-    plainText: String
-    mentions: [User!]
-
-    alphaAttachments: [MessageAttachment!]!
-    alphaButtons: [[MessageButton!]]!
-    alphaType: MessageType!
-    alphaTitle: String
-    alphaPostType: PostMessageType
-    alphaMentions: [Mention!]
-}
-
 type RoomMember {
     user: User!
     role: RoomMemberRole!
@@ -225,7 +189,6 @@ extend type Query {
     room(id: ID!): Room
     rooms(ids: [ID!]!): [Room!]!
     roomSuper(id: ID!): RoomSuper
-    roomMessages(roomId: ID!, first: Int, before: ID): [RoomMessage!]!
     roomMembers(roomId: ID!, first: Int, after: ID): [RoomMember!]!
     roomAdmins(roomId: ID!): [RoomMember!]!
     roomFeaturedMembers(roomId: ID!, first: Int): [RoomMember!]!

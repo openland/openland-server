@@ -4,11 +4,9 @@ interface Sequence {
 
 type SequenceCommon implements Sequence {
     id: ID!
-    unread: Int!
 }
 
 type SequenceChat implements Sequence {
     id: ID!
     cid: ID!
-    unread: Int!
 }

@@ -21910,6 +21910,39 @@ export class UpdateChatAccessChanged extends BaseEvent {
     get cid(): number { return this.raw.cid; }
 }
 
+const updateSettingsChangedCodec = c.struct({
+    uid: c.integer,
+});
+
+interface UpdateSettingsChangedShape {
+    uid: number;
+}
+
+export class UpdateSettingsChanged extends BaseEvent {
+
+    static readonly type: 'updateSettingsChanged' = 'updateSettingsChanged';
+
+    static create(data: UpdateSettingsChangedShape) {
+        return new UpdateSettingsChanged(updateSettingsChangedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateSettingsChanged(updateSettingsChangedCodec.decode(data));
+    }
+
+    static encode(event: UpdateSettingsChanged) {
+        return updateSettingsChangedCodec.encode(event.raw);
+    }
+
+    readonly type: 'updateSettingsChanged' = 'updateSettingsChanged';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+}
+
 const updateChatMessageCodec = c.struct({
     uid: c.integer,
     cid: c.integer,
@@ -22025,6 +22058,51 @@ export class UpdateChatMessageDeleted extends BaseEvent {
     get uid(): number { return this.raw.uid; }
     get cid(): number { return this.raw.cid; }
     get mid(): number { return this.raw.mid; }
+}
+
+const updateChatDraftUpdatedCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+    version: c.integer,
+    date: c.integer,
+    draft: c.optional(c.string),
+});
+
+interface UpdateChatDraftUpdatedShape {
+    uid: number;
+    cid: number;
+    version: number;
+    date: number;
+    draft?: string | null | undefined;
+}
+
+export class UpdateChatDraftUpdated extends BaseEvent {
+
+    static readonly type: 'updateChatDraftUpdated' = 'updateChatDraftUpdated';
+
+    static create(data: UpdateChatDraftUpdatedShape) {
+        return new UpdateChatDraftUpdated(updateChatDraftUpdatedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateChatDraftUpdated(updateChatDraftUpdatedCodec.decode(data));
+    }
+
+    static encode(event: UpdateChatDraftUpdated) {
+        return updateChatDraftUpdatedCodec.encode(event.raw);
+    }
+
+    readonly type: 'updateChatDraftUpdated' = 'updateChatDraftUpdated';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+    get version(): number { return this.raw.version; }
+    get date(): number { return this.raw.date; }
+    get draft(): string | null { return this.raw.draft; }
 }
 
 const hyperLogEventCodec = c.struct({
@@ -22930,9 +23008,11 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('updateChatRead', UpdateChatRead.encode as any, UpdateChatRead.decode);
     eventFactory.registerEventType('updateProfileChanged', UpdateProfileChanged.encode as any, UpdateProfileChanged.decode);
     eventFactory.registerEventType('updateChatAccessChanged', UpdateChatAccessChanged.encode as any, UpdateChatAccessChanged.decode);
+    eventFactory.registerEventType('updateSettingsChanged', UpdateSettingsChanged.encode as any, UpdateSettingsChanged.decode);
     eventFactory.registerEventType('updateChatMessage', UpdateChatMessage.encode as any, UpdateChatMessage.decode);
     eventFactory.registerEventType('updateChatMessageUpdated', UpdateChatMessageUpdated.encode as any, UpdateChatMessageUpdated.decode);
     eventFactory.registerEventType('updateChatMessageDeleted', UpdateChatMessageDeleted.encode as any, UpdateChatMessageDeleted.decode);
+    eventFactory.registerEventType('updateChatDraftUpdated', UpdateChatDraftUpdated.encode as any, UpdateChatDraftUpdated.decode);
     eventFactory.registerEventType('hyperLogEvent', HyperLogEvent.encode as any, HyperLogEvent.decode);
     eventFactory.registerEventType('hyperLogUserEvent', HyperLogUserEvent.encode as any, HyperLogUserEvent.decode);
     eventFactory.registerEventType('contactAddedEvent', ContactAddedEvent.encode as any, ContactAddedEvent.decode);

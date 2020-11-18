@@ -98,6 +98,7 @@ input UpdateSettingsInput {
 
 type Settings {
     id: ID!
+    version: Int!
     primaryEmail: String!
     emailFrequency: EmailFrequency!
     desktop: PlatformNotificationSettings!
@@ -148,4 +149,8 @@ extend type Subscription {
 
     # Deprecated
     watchSettings: Settings!
+}
+
+extend type SequenceCommon {
+    settings: Settings!
 }

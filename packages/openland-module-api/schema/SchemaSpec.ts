@@ -2,397 +2,9 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'de0eb2e3e751c33f0d89ba56e43480ba';
+export const GQL_SPEC_VERSION = 'dce0a1a5f898f6fe7af221e6e29f4a81';
 
 export namespace GQL {
-    export interface UpdateConversationSettingsInput {
-        mobileNotifications: Nullable<NotificationMessages>;
-        mute: Nullable<boolean>;
-    }
-    export interface ConversationSettings {
-        id: string;
-        mobileNotifications: NotificationMessages;
-        mute: boolean;
-    }
-    export interface ConversationSettingsIdArgs { }
-    export interface ConversationSettingsMobileNotificationsArgs { }
-    export interface ConversationSettingsMuteArgs { }
-    export interface Conversation {
-        id: string;
-        flexibleId: string;
-        title: string;
-        photos: string[];
-        unreadCount: number;
-        topMessage: Nullable<ConversationMessage>;
-        settings: ConversationSettings;
-    }
-    export interface ConversationIdArgs { }
-    export interface ConversationFlexibleIdArgs { }
-    export interface ConversationTitleArgs { }
-    export interface ConversationPhotosArgs { }
-    export interface ConversationUnreadCountArgs { }
-    export interface ConversationTopMessageArgs { }
-    export interface ConversationSettingsArgs { }
-    export interface ChannelConversation extends Conversation {
-        id: string;
-        flexibleId: string;
-        title: string;
-        photos: string[];
-        members: User[];
-        unreadCount: number;
-        topMessage: Nullable<ConversationMessage>;
-        settings: ConversationSettings;
-    }
-    export interface ChannelConversationIdArgs { }
-    export interface ChannelConversationFlexibleIdArgs { }
-    export interface ChannelConversationTitleArgs { }
-    export interface ChannelConversationPhotosArgs { }
-    export interface ChannelConversationMembersArgs { }
-    export interface ChannelConversationUnreadCountArgs { }
-    export interface ChannelConversationTopMessageArgs { }
-    export interface ChannelConversationSettingsArgs { }
-    export interface AnonymousConversation extends Conversation {
-        id: string;
-        flexibleId: string;
-        title: string;
-        photos: string[];
-        unreadCount: number;
-        topMessage: Nullable<ConversationMessage>;
-        settings: ConversationSettings;
-    }
-    export interface AnonymousConversationIdArgs { }
-    export interface AnonymousConversationFlexibleIdArgs { }
-    export interface AnonymousConversationTitleArgs { }
-    export interface AnonymousConversationPhotosArgs { }
-    export interface AnonymousConversationUnreadCountArgs { }
-    export interface AnonymousConversationTopMessageArgs { }
-    export interface AnonymousConversationSettingsArgs { }
-    export interface SharedConversation extends Conversation {
-        id: string;
-        flexibleId: string;
-        title: string;
-        photos: string[];
-        organizations: Organization[];
-        unreadCount: number;
-        topMessage: Nullable<ConversationMessage>;
-        organization: Nullable<Organization>;
-        settings: ConversationSettings;
-    }
-    export interface SharedConversationIdArgs { }
-    export interface SharedConversationFlexibleIdArgs { }
-    export interface SharedConversationTitleArgs { }
-    export interface SharedConversationPhotosArgs { }
-    export interface SharedConversationOrganizationsArgs { }
-    export interface SharedConversationUnreadCountArgs { }
-    export interface SharedConversationTopMessageArgs { }
-    export interface SharedConversationOrganizationArgs { }
-    export interface SharedConversationSettingsArgs { }
-    export interface PrivateConversation extends Conversation {
-        id: string;
-        flexibleId: string;
-        title: string;
-        photos: string[];
-        user: User;
-        unreadCount: number;
-        topMessage: Nullable<ConversationMessage>;
-        blocked: boolean;
-        settings: ConversationSettings;
-    }
-    export interface PrivateConversationIdArgs { }
-    export interface PrivateConversationFlexibleIdArgs { }
-    export interface PrivateConversationTitleArgs { }
-    export interface PrivateConversationPhotosArgs { }
-    export interface PrivateConversationUserArgs { }
-    export interface PrivateConversationUnreadCountArgs { }
-    export interface PrivateConversationTopMessageArgs { }
-    export interface PrivateConversationBlockedArgs { }
-    export interface PrivateConversationSettingsArgs { }
-    export interface GroupConversation extends Conversation {
-        id: string;
-        flexibleId: string;
-        title: string;
-        photos: string[];
-        members: User[];
-        unreadCount: number;
-        topMessage: Nullable<ConversationMessage>;
-        membersCount: number;
-        settings: ConversationSettings;
-        photo: Nullable<string>;
-        photoRef: Nullable<ImageRef>;
-        description: Nullable<string>;
-        longDescription: Nullable<string>;
-        pinnedMessage: Nullable<ConversationMessage>;
-        membersOnline: number;
-        myRole: Nullable<string>;
-    }
-    export interface GroupConversationIdArgs { }
-    export interface GroupConversationFlexibleIdArgs { }
-    export interface GroupConversationTitleArgs { }
-    export interface GroupConversationPhotosArgs { }
-    export interface GroupConversationMembersArgs { }
-    export interface GroupConversationUnreadCountArgs { }
-    export interface GroupConversationTopMessageArgs { }
-    export interface GroupConversationMembersCountArgs { }
-    export interface GroupConversationSettingsArgs { }
-    export interface GroupConversationPhotoArgs { }
-    export interface GroupConversationPhotoRefArgs { }
-    export interface GroupConversationDescriptionArgs { }
-    export interface GroupConversationLongDescriptionArgs { }
-    export interface GroupConversationPinnedMessageArgs { }
-    export interface GroupConversationMembersOnlineArgs { }
-    export interface GroupConversationMyRoleArgs { }
-    export interface InviteServiceMetadata {
-        users: Nullable<User[]>;
-        invitedBy: User;
-    }
-    export interface InviteServiceMetadataUsersArgs { }
-    export interface InviteServiceMetadataInvitedByArgs { }
-    export interface KickServiceMetadata {
-        user: User;
-        kickedBy: User;
-    }
-    export interface KickServiceMetadataUserArgs { }
-    export interface KickServiceMetadataKickedByArgs { }
-    export interface TitleChangeServiceMetadata {
-        title: string;
-    }
-    export interface TitleChangeServiceMetadataTitleArgs { }
-    export interface PhotoChangeServiceMetadata {
-        photo: Nullable<string>;
-        photoRef: Nullable<ImageRef>;
-    }
-    export interface PhotoChangeServiceMetadataPhotoArgs { }
-    export interface PhotoChangeServiceMetadataPhotoRefArgs { }
-    export interface PostRespondServiceMetadata {
-        post: RoomMessage;
-        postRoom: Room;
-        responder: User;
-        respondType: string;
-    }
-    export interface PostRespondServiceMetadataPostArgs { }
-    export interface PostRespondServiceMetadataPostRoomArgs { }
-    export interface PostRespondServiceMetadataResponderArgs { }
-    export interface PostRespondServiceMetadataRespondTypeArgs { }
-    export type UrlAugmentationExtra = User | Organization | ChannelConversation;
-    export interface UrlAugmentation {
-        url: string;
-        title: Nullable<string>;
-        date: Nullable<string>;
-        subtitle: Nullable<string>;
-        description: Nullable<string>;
-        photo: Nullable<ImageRef>;
-        imageInfo: Nullable<FileMetadata>;
-        imageURL: Nullable<string>;
-        iconRef: Nullable<ImageRef>;
-        iconInfo: Nullable<FileMetadata>;
-        hostname: Nullable<string>;
-        type: Nullable<string>;
-        extra: Nullable<UrlAugmentationExtra>;
-    }
-    export interface UrlAugmentationUrlArgs { }
-    export interface UrlAugmentationTitleArgs { }
-    export interface UrlAugmentationDateArgs { }
-    export interface UrlAugmentationSubtitleArgs { }
-    export interface UrlAugmentationDescriptionArgs { }
-    export interface UrlAugmentationPhotoArgs { }
-    export interface UrlAugmentationImageInfoArgs { }
-    export interface UrlAugmentationImageURLArgs { }
-    export interface UrlAugmentationIconRefArgs { }
-    export interface UrlAugmentationIconInfoArgs { }
-    export interface UrlAugmentationHostnameArgs { }
-    export interface UrlAugmentationTypeArgs { }
-    export interface UrlAugmentationExtraArgs { }
-    export type ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata | PhotoChangeServiceMetadata | PostRespondServiceMetadata;
-    export interface ConversationMessage {
-        id: string;
-        message: Nullable<string>;
-        file: Nullable<string>;
-        fileMetadata: Nullable<FileMetadata>;
-        filePreview: Nullable<string>;
-        sender: User;
-        date: Date;
-        repeatKey: Nullable<string>;
-        isService: boolean;
-        serviceMetadata: Nullable<ServiceMetadata>;
-        urlAugmentation: Nullable<UrlAugmentation>;
-        edited: boolean;
-        reactions: MessageReaction[];
-        replyMessages: Nullable<ConversationMessage[]>;
-        plainText: Nullable<string>;
-        mentions: Nullable<User[]>;
-        alphaAttachments: MessageAttachment[];
-        alphaButtons: Nullable<MessageButton[]>[];
-        alphaType: MessageType;
-        alphaTitle: Nullable<string>;
-        postType: Nullable<string>;
-        alphaMentions: Nullable<Mention[]>;
-    }
-    export interface ConversationMessageIdArgs { }
-    export interface ConversationMessageMessageArgs { }
-    export interface ConversationMessageFileArgs { }
-    export interface ConversationMessageFileMetadataArgs { }
-    export interface ConversationMessageFilePreviewArgs { }
-    export interface ConversationMessageSenderArgs { }
-    export interface ConversationMessageDateArgs { }
-    export interface ConversationMessageRepeatKeyArgs { }
-    export interface ConversationMessageIsServiceArgs { }
-    export interface ConversationMessageServiceMetadataArgs { }
-    export interface ConversationMessageUrlAugmentationArgs { }
-    export interface ConversationMessageEditedArgs { }
-    export interface ConversationMessageReactionsArgs { }
-    export interface ConversationMessageReplyMessagesArgs { }
-    export interface ConversationMessagePlainTextArgs { }
-    export interface ConversationMessageMentionsArgs { }
-    export interface ConversationMessageAlphaAttachmentsArgs { }
-    export interface ConversationMessageAlphaButtonsArgs { }
-    export interface ConversationMessageAlphaTypeArgs { }
-    export interface ConversationMessageAlphaTitleArgs { }
-    export interface ConversationMessagePostTypeArgs { }
-    export interface ConversationMessageAlphaMentionsArgs { }
-    export interface FileMetadata {
-        name: string;
-        mimeType: Nullable<string>;
-        size: number;
-        isImage: boolean;
-        imageWidth: Nullable<number>;
-        imageHeight: Nullable<number>;
-        imageFormat: Nullable<string>;
-    }
-    export interface FileMetadataNameArgs { }
-    export interface FileMetadataMimeTypeArgs { }
-    export interface FileMetadataSizeArgs { }
-    export interface FileMetadataIsImageArgs { }
-    export interface FileMetadataImageWidthArgs { }
-    export interface FileMetadataImageHeightArgs { }
-    export interface FileMetadataImageFormatArgs { }
-    export interface ConversationEventSimpleBatch {
-        events: ConversationEvent[];
-    }
-    export interface ConversationEventSimpleBatchEventsArgs { }
-    export interface ConversationEvent {
-        seq: number;
-    }
-    export interface ConversationEventSeqArgs { }
-    export interface ConversationEventMessage extends ConversationEvent {
-        seq: number;
-        message: ConversationMessage;
-    }
-    export interface ConversationEventMessageSeqArgs { }
-    export interface ConversationEventMessageMessageArgs { }
-    export interface ConversationEventEditMessage extends ConversationEvent {
-        seq: number;
-        message: ConversationMessage;
-    }
-    export interface ConversationEventEditMessageSeqArgs { }
-    export interface ConversationEventEditMessageMessageArgs { }
-    export interface ConversationEventDelete extends ConversationEvent {
-        seq: number;
-        messageId: string;
-    }
-    export interface ConversationEventDeleteSeqArgs { }
-    export interface ConversationEventDeleteMessageIdArgs { }
-    export interface ConversationEventNewMembers extends ConversationEvent {
-        seq: number;
-        users: Nullable<User[]>;
-        invitedBy: User;
-    }
-    export interface ConversationEventNewMembersSeqArgs { }
-    export interface ConversationEventNewMembersUsersArgs { }
-    export interface ConversationEventNewMembersInvitedByArgs { }
-    export interface ConversationEventKick extends ConversationEvent {
-        seq: number;
-        user: User;
-        kickedBy: User;
-    }
-    export interface ConversationEventKickSeqArgs { }
-    export interface ConversationEventKickUserArgs { }
-    export interface ConversationEventKickKickedByArgs { }
-    export interface ConversationEventTitle extends ConversationEvent {
-        seq: number;
-        title: string;
-    }
-    export interface ConversationEventTitleSeqArgs { }
-    export interface ConversationEventTitleTitleArgs { }
-    export interface ConversationEventUpdate extends ConversationEvent {
-        seq: number;
-        chat: Conversation;
-    }
-    export interface ConversationEventUpdateSeqArgs { }
-    export interface ConversationEventUpdateChatArgs { }
-    export interface ConversationEventUpdateRole extends ConversationEvent {
-        seq: number;
-        user: User;
-        newRole: string;
-    }
-    export interface ConversationEventUpdateRoleSeqArgs { }
-    export interface ConversationEventUpdateRoleUserArgs { }
-    export interface ConversationEventUpdateRoleNewRoleArgs { }
-    export interface ConversationState {
-        seq: number;
-        messages: ConversationMessage[];
-    }
-    export interface ConversationStateSeqArgs { }
-    export interface ConversationStateMessagesArgs { }
-    export interface ConversationConnection {
-        conversations: Conversation[];
-        counter: NotificationCounter;
-        seq: number;
-        next: Nullable<string>;
-    }
-    export interface ConversationConnectionConversationsArgs { }
-    export interface ConversationConnectionCounterArgs { }
-    export interface ConversationConnectionSeqArgs { }
-    export interface ConversationConnectionNextArgs { }
-    export interface NotificationCounter {
-        id: string;
-        unreadCount: number;
-    }
-    export interface NotificationCounterIdArgs { }
-    export interface NotificationCounterUnreadCountArgs { }
-    export interface ChatReadResult {
-        conversation: Conversation;
-        counter: NotificationCounter;
-    }
-    export interface ChatReadResultConversationArgs { }
-    export interface ChatReadResultCounterArgs { }
-    export type ComposeSearchResult = User | Organization;
-    export interface GroupConversationMember {
-        user: User;
-        role: string;
-    }
-    export interface GroupConversationMemberUserArgs { }
-    export interface GroupConversationMemberRoleArgs { }
-    export interface GroupConversationInvite {
-        userId: string;
-        role: string;
-    }
-    export interface GroupChatUpdateResponse {
-        chat: Conversation;
-        chatEventMessage: Nullable<ConversationEventMessage>;
-        chatEvent: Nullable<ConversationEvent>;
-    }
-    export interface GroupChatUpdateResponseChatArgs { }
-    export interface GroupChatUpdateResponseChatEventMessageArgs { }
-    export interface GroupChatUpdateResponseChatEventArgs { }
-    export interface ConversationUpdateResponse {
-        chat: Conversation;
-        curSeq: number;
-    }
-    export interface ConversationUpdateResponseChatArgs { }
-    export interface ConversationUpdateResponseCurSeqArgs { }
-    export interface ConversationBlockedUser {
-        user: User;
-        blockedBy: User;
-    }
-    export interface ConversationBlockedUserUserArgs { }
-    export interface ConversationBlockedUserBlockedByArgs { }
-    export interface UpdateGroupInput {
-        title: Nullable<string>;
-        photoRef: Nullable<ImageRefInput>;
-        description: Nullable<string>;
-        longDescription: Nullable<string>;
-        socialImageRef: Nullable<ImageRefInput>;
-    }
     export interface CreditCard {
         id: string;
         pmid: string;
@@ -762,28 +374,6 @@ export namespace GQL {
     export interface SequenceDifferenceAfterArgs { }
     export interface SequenceDifferenceHasMoreArgs { }
     export interface SequenceDifferenceSeqArgs { }
-    export interface Reaction {
-        user: User;
-        reaction: string;
-    }
-    export interface ReactionUserArgs { }
-    export interface ReactionReactionArgs { }
-    export interface Message {
-        id: string;
-        date: Date;
-        sender: User;
-        edited: boolean;
-        text: Nullable<string>;
-        quoted: Message[];
-        alphaReactions: Reaction[];
-    }
-    export interface MessageIdArgs { }
-    export interface MessageDateArgs { }
-    export interface MessageSenderArgs { }
-    export interface MessageEditedArgs { }
-    export interface MessageTextArgs { }
-    export interface MessageQuotedArgs { }
-    export interface MessageAlphaReactionsArgs { }
     export interface PhonebookRecordInput {
         firstName: Nullable<string>;
         lastName: Nullable<string>;
@@ -913,8 +503,6 @@ export namespace GQL {
         photo: string;
         featured: boolean;
         unreadCount: number;
-        topMessage: Nullable<Message>;
-        betaTopMessage: Nullable<RoomMessage>;
         alphaTopMessage: Nullable<ModernMessage>;
         isMuted: boolean;
         haveMention: boolean;
@@ -931,8 +519,6 @@ export namespace GQL {
     export interface DialogPhotoArgs { }
     export interface DialogFeaturedArgs { }
     export interface DialogUnreadCountArgs { }
-    export interface DialogTopMessageArgs { }
-    export interface DialogBetaTopMessageArgs { }
     export interface DialogAlphaTopMessageArgs { }
     export interface DialogIsMutedArgs { }
     export interface DialogHaveMentionArgs { }
@@ -1013,6 +599,7 @@ export namespace GQL {
     }
     export interface Settings {
         id: string;
+        version: number;
         primaryEmail: string;
         emailFrequency: EmailFrequency;
         desktop: PlatformNotificationSettings;
@@ -1033,6 +620,7 @@ export namespace GQL {
         mute: Nullable<boolean>;
     }
     export interface SettingsIdArgs { }
+    export interface SettingsVersionArgs { }
     export interface SettingsPrimaryEmailArgs { }
     export interface SettingsEmailFrequencyArgs { }
     export interface SettingsDesktopArgs { }
@@ -1445,18 +1033,18 @@ export namespace GQL {
     export interface SequenceIdArgs { }
     export interface SequenceCommon extends Sequence {
         id: string;
-        unread: number;
+        settings: Settings;
     }
     export interface SequenceCommonIdArgs { }
-    export interface SequenceCommonUnreadArgs { }
+    export interface SequenceCommonSettingsArgs { }
     export interface SequenceChat extends Sequence {
         id: string;
         cid: string;
-        unread: number;
+        draft: Nullable<Draft>;
     }
     export interface SequenceChatIdArgs { }
     export interface SequenceChatCidArgs { }
-    export interface SequenceChatUnreadArgs { }
+    export interface SequenceChatDraftArgs { }
     export interface PageInfo {
         hasNextPage: boolean;
         hasPreviousPage: boolean;
@@ -1916,6 +1504,238 @@ export namespace GQL {
         state: string;
     }
     export interface ContactsStateStateArgs { }
+    export interface ConversationSettings {
+        id: string;
+        mobileNotifications: NotificationMessages;
+        mute: boolean;
+    }
+    export interface ConversationSettingsIdArgs { }
+    export interface ConversationSettingsMobileNotificationsArgs { }
+    export interface ConversationSettingsMuteArgs { }
+    export interface Conversation {
+        id: string;
+        flexibleId: string;
+        title: string;
+        unreadCount: number;
+        topMessage: Nullable<ConversationMessage>;
+        settings: ConversationSettings;
+    }
+    export interface ConversationIdArgs { }
+    export interface ConversationFlexibleIdArgs { }
+    export interface ConversationTitleArgs { }
+    export interface ConversationUnreadCountArgs { }
+    export interface ConversationTopMessageArgs { }
+    export interface ConversationSettingsArgs { }
+    export interface ChannelConversation extends Conversation {
+        id: string;
+        flexibleId: string;
+        title: string;
+        members: User[];
+        unreadCount: number;
+        topMessage: Nullable<ConversationMessage>;
+        settings: ConversationSettings;
+    }
+    export interface ChannelConversationIdArgs { }
+    export interface ChannelConversationFlexibleIdArgs { }
+    export interface ChannelConversationTitleArgs { }
+    export interface ChannelConversationMembersArgs { }
+    export interface ChannelConversationUnreadCountArgs { }
+    export interface ChannelConversationTopMessageArgs { }
+    export interface ChannelConversationSettingsArgs { }
+    export interface SharedConversation extends Conversation {
+        id: string;
+        flexibleId: string;
+        title: string;
+        organizations: Organization[];
+        unreadCount: number;
+        topMessage: Nullable<ConversationMessage>;
+        organization: Nullable<Organization>;
+        settings: ConversationSettings;
+    }
+    export interface SharedConversationIdArgs { }
+    export interface SharedConversationFlexibleIdArgs { }
+    export interface SharedConversationTitleArgs { }
+    export interface SharedConversationOrganizationsArgs { }
+    export interface SharedConversationUnreadCountArgs { }
+    export interface SharedConversationTopMessageArgs { }
+    export interface SharedConversationOrganizationArgs { }
+    export interface SharedConversationSettingsArgs { }
+    export interface PrivateConversation extends Conversation {
+        id: string;
+        flexibleId: string;
+        title: string;
+        user: User;
+        unreadCount: number;
+        topMessage: Nullable<ConversationMessage>;
+        blocked: boolean;
+        settings: ConversationSettings;
+    }
+    export interface PrivateConversationIdArgs { }
+    export interface PrivateConversationFlexibleIdArgs { }
+    export interface PrivateConversationTitleArgs { }
+    export interface PrivateConversationUserArgs { }
+    export interface PrivateConversationUnreadCountArgs { }
+    export interface PrivateConversationTopMessageArgs { }
+    export interface PrivateConversationBlockedArgs { }
+    export interface PrivateConversationSettingsArgs { }
+    export interface GroupConversation extends Conversation {
+        id: string;
+        flexibleId: string;
+        title: string;
+        members: User[];
+        unreadCount: number;
+        topMessage: Nullable<ConversationMessage>;
+        membersCount: number;
+        settings: ConversationSettings;
+        photo: Nullable<string>;
+        photoRef: Nullable<ImageRef>;
+        description: Nullable<string>;
+        longDescription: Nullable<string>;
+        pinnedMessage: Nullable<ConversationMessage>;
+        membersOnline: number;
+        myRole: Nullable<string>;
+    }
+    export interface GroupConversationIdArgs { }
+    export interface GroupConversationFlexibleIdArgs { }
+    export interface GroupConversationTitleArgs { }
+    export interface GroupConversationMembersArgs { }
+    export interface GroupConversationUnreadCountArgs { }
+    export interface GroupConversationTopMessageArgs { }
+    export interface GroupConversationMembersCountArgs { }
+    export interface GroupConversationSettingsArgs { }
+    export interface GroupConversationPhotoArgs { }
+    export interface GroupConversationPhotoRefArgs { }
+    export interface GroupConversationDescriptionArgs { }
+    export interface GroupConversationLongDescriptionArgs { }
+    export interface GroupConversationPinnedMessageArgs { }
+    export interface GroupConversationMembersOnlineArgs { }
+    export interface GroupConversationMyRoleArgs { }
+    export interface InviteServiceMetadata {
+        users: Nullable<User[]>;
+        invitedBy: User;
+    }
+    export interface InviteServiceMetadataUsersArgs { }
+    export interface InviteServiceMetadataInvitedByArgs { }
+    export interface KickServiceMetadata {
+        user: User;
+        kickedBy: User;
+    }
+    export interface KickServiceMetadataUserArgs { }
+    export interface KickServiceMetadataKickedByArgs { }
+    export interface TitleChangeServiceMetadata {
+        title: string;
+    }
+    export interface TitleChangeServiceMetadataTitleArgs { }
+    export interface PhotoChangeServiceMetadata {
+        photo: Nullable<string>;
+        photoRef: Nullable<ImageRef>;
+    }
+    export interface PhotoChangeServiceMetadataPhotoArgs { }
+    export interface PhotoChangeServiceMetadataPhotoRefArgs { }
+    export interface PostRespondServiceMetadata {
+        postRoom: Room;
+        responder: User;
+        respondType: string;
+    }
+    export interface PostRespondServiceMetadataPostRoomArgs { }
+    export interface PostRespondServiceMetadataResponderArgs { }
+    export interface PostRespondServiceMetadataRespondTypeArgs { }
+    export type UrlAugmentationExtra = User | Organization | ChannelConversation;
+    export interface UrlAugmentation {
+        url: string;
+        title: Nullable<string>;
+        date: Nullable<string>;
+        subtitle: Nullable<string>;
+        description: Nullable<string>;
+        photo: Nullable<ImageRef>;
+        imageInfo: Nullable<FileMetadata>;
+        imageURL: Nullable<string>;
+        iconRef: Nullable<ImageRef>;
+        iconInfo: Nullable<FileMetadata>;
+        hostname: Nullable<string>;
+        type: Nullable<string>;
+        extra: Nullable<UrlAugmentationExtra>;
+    }
+    export interface UrlAugmentationUrlArgs { }
+    export interface UrlAugmentationTitleArgs { }
+    export interface UrlAugmentationDateArgs { }
+    export interface UrlAugmentationSubtitleArgs { }
+    export interface UrlAugmentationDescriptionArgs { }
+    export interface UrlAugmentationPhotoArgs { }
+    export interface UrlAugmentationImageInfoArgs { }
+    export interface UrlAugmentationImageURLArgs { }
+    export interface UrlAugmentationIconRefArgs { }
+    export interface UrlAugmentationIconInfoArgs { }
+    export interface UrlAugmentationHostnameArgs { }
+    export interface UrlAugmentationTypeArgs { }
+    export interface UrlAugmentationExtraArgs { }
+    export type ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata | PhotoChangeServiceMetadata | PostRespondServiceMetadata;
+    export interface ConversationMessage {
+        id: string;
+        message: Nullable<string>;
+        file: Nullable<string>;
+        fileMetadata: Nullable<FileMetadata>;
+        filePreview: Nullable<string>;
+        sender: User;
+        date: Date;
+        repeatKey: Nullable<string>;
+        isService: boolean;
+        serviceMetadata: Nullable<ServiceMetadata>;
+        urlAugmentation: Nullable<UrlAugmentation>;
+        edited: boolean;
+        reactions: MessageReaction[];
+        replyMessages: Nullable<ConversationMessage[]>;
+        plainText: Nullable<string>;
+        mentions: Nullable<User[]>;
+        alphaAttachments: MessageAttachment[];
+        alphaButtons: Nullable<MessageButton[]>[];
+        alphaType: MessageType;
+        alphaTitle: Nullable<string>;
+        postType: Nullable<string>;
+    }
+    export interface ConversationMessageIdArgs { }
+    export interface ConversationMessageMessageArgs { }
+    export interface ConversationMessageFileArgs { }
+    export interface ConversationMessageFileMetadataArgs { }
+    export interface ConversationMessageFilePreviewArgs { }
+    export interface ConversationMessageSenderArgs { }
+    export interface ConversationMessageDateArgs { }
+    export interface ConversationMessageRepeatKeyArgs { }
+    export interface ConversationMessageIsServiceArgs { }
+    export interface ConversationMessageServiceMetadataArgs { }
+    export interface ConversationMessageUrlAugmentationArgs { }
+    export interface ConversationMessageEditedArgs { }
+    export interface ConversationMessageReactionsArgs { }
+    export interface ConversationMessageReplyMessagesArgs { }
+    export interface ConversationMessagePlainTextArgs { }
+    export interface ConversationMessageMentionsArgs { }
+    export interface ConversationMessageAlphaAttachmentsArgs { }
+    export interface ConversationMessageAlphaButtonsArgs { }
+    export interface ConversationMessageAlphaTypeArgs { }
+    export interface ConversationMessageAlphaTitleArgs { }
+    export interface ConversationMessagePostTypeArgs { }
+    export interface FileMetadata {
+        name: string;
+        mimeType: Nullable<string>;
+        size: number;
+        isImage: boolean;
+        imageWidth: Nullable<number>;
+        imageHeight: Nullable<number>;
+        imageFormat: Nullable<string>;
+    }
+    export interface FileMetadataNameArgs { }
+    export interface FileMetadataMimeTypeArgs { }
+    export interface FileMetadataSizeArgs { }
+    export interface FileMetadataIsImageArgs { }
+    export interface FileMetadataImageWidthArgs { }
+    export interface FileMetadataImageHeightArgs { }
+    export interface FileMetadataImageFormatArgs { }
+    export interface NotificationCounter {
+        id: string;
+        unreadCount: number;
+    }
+    export interface NotificationCounterIdArgs { }
+    export interface NotificationCounterUnreadCountArgs { }
     export interface DialogUpdateSingle {
         seq: number;
         state: string;
@@ -1951,7 +1771,6 @@ export namespace GQL {
     export interface DialogMessageReceived {
         cid: string;
         message: ConversationMessage;
-        betaMessage: RoomMessage;
         alphaMessage: ModernMessage;
         unread: number;
         globalUnread: number;
@@ -1962,7 +1781,6 @@ export namespace GQL {
     }
     export interface DialogMessageReceivedCidArgs { }
     export interface DialogMessageReceivedMessageArgs { }
-    export interface DialogMessageReceivedBetaMessageArgs { }
     export interface DialogMessageReceivedAlphaMessageArgs { }
     export interface DialogMessageReceivedUnreadArgs { }
     export interface DialogMessageReceivedGlobalUnreadArgs { }
@@ -1973,20 +1791,16 @@ export namespace GQL {
     export interface DialogMessageUpdated {
         cid: string;
         message: ConversationMessage;
-        betaMessage: RoomMessage;
         alphaMessage: ModernMessage;
         haveMention: boolean;
     }
     export interface DialogMessageUpdatedCidArgs { }
     export interface DialogMessageUpdatedMessageArgs { }
-    export interface DialogMessageUpdatedBetaMessageArgs { }
     export interface DialogMessageUpdatedAlphaMessageArgs { }
     export interface DialogMessageUpdatedHaveMentionArgs { }
     export interface DialogMessageDeleted {
         cid: string;
         message: ConversationMessage;
-        betaMessage: RoomMessage;
-        prevMessage: Nullable<RoomMessage>;
         alphaPrevMessage: Nullable<ModernMessage>;
         alphaMessage: ModernMessage;
         unread: number;
@@ -1995,8 +1809,6 @@ export namespace GQL {
     }
     export interface DialogMessageDeletedCidArgs { }
     export interface DialogMessageDeletedMessageArgs { }
-    export interface DialogMessageDeletedBetaMessageArgs { }
-    export interface DialogMessageDeletedPrevMessageArgs { }
     export interface DialogMessageDeletedAlphaPrevMessageArgs { }
     export interface DialogMessageDeletedAlphaMessageArgs { }
     export interface DialogMessageDeletedUnreadArgs { }
@@ -2084,6 +1896,14 @@ export namespace GQL {
         state: Nullable<string>;
     }
     export interface DialogUpdateStateStateArgs { }
+    export interface Draft {
+        message: Nullable<string>;
+        date: Date;
+        version: number;
+    }
+    export interface DraftMessageArgs { }
+    export interface DraftDateArgs { }
+    export interface DraftVersionArgs { }
     export interface EnvVar {
         name: string;
         value: string;
@@ -2205,27 +2025,6 @@ export namespace GQL {
     export type PostMessageType = GQLRoots.PostMessageTypeRoot;
     export interface Mutation {
         lifecheck: Nullable<string>;
-        alphaSendMessage: ConversationEventMessage;
-        alphaReadChat: ChatReadResult;
-        alphaEditMessage: ConversationEventEditMessage;
-        alphaSendIntro: ConversationEventMessage;
-        alphaEditIntro: ConversationEventMessage;
-        alphaDeleteMessageUrlAugmentation: ConversationEventMessage;
-        alphaDeleteMessage: ConversationEventDelete;
-        alphaChatSetReaction: string;
-        alphaChatUnsetReaction: string;
-        alphaGlobalRead: string;
-        alphaBlockUser: string;
-        alphaUnblockUser: string;
-        alphaChatCreateGroup: Conversation;
-        alphaChatUpdateGroup: ConversationUpdateResponse;
-        alphaChatChangeGroupTitle: GroupChatUpdateResponse;
-        alphaChatInviteToGroup: GroupChatUpdateResponse;
-        alphaChatKickFromGroup: GroupChatUpdateResponse;
-        alphaChatChangeRoleInGroup: GroupChatUpdateResponse;
-        alphaChatCopyGroup: GroupChatUpdateResponse;
-        alphaChatLeave: ConversationUpdateResponse;
-        alphaUpdateConversationSettings: ConversationSettings;
         cardCreateSetupIntent: CardSetupIntent;
         cardCommitSetupIntent: CreditCard;
         cardRemove: CreditCard;
@@ -2386,8 +2185,6 @@ export namespace GQL {
         betaFixCounter: boolean;
         betaFixCountersForAll: boolean;
         deliverCountersForAll: boolean;
-        conversationDraftUpdate: string;
-        alphaSaveDraftMessage: string;
         banUser: boolean;
         unBanUser: boolean;
         discoverCollectionsCreate: DiscoverChatsCollection;
@@ -2425,6 +2222,7 @@ export namespace GQL {
         mediaStreamFailed: ConferenceMedia;
         addToContacts: boolean;
         removeFromContacts: boolean;
+        conversationDraftUpdate: Draft;
         setEnvVar: boolean;
         setEnvVarString: boolean;
         setEnvVarNumber: boolean;
@@ -2444,8 +2242,6 @@ export namespace GQL {
         betaMessageDelete: boolean;
         betaReactionSet: boolean;
         betaReactionRemove: boolean;
-        betaIntroSend: boolean;
-        betaIntroEdit: boolean;
         readNotification: NotificationCenter;
         deleteNotification: boolean;
         notificationCenterMarkSeqRead: boolean;
@@ -2553,104 +2349,6 @@ export namespace GQL {
         alphaSetCollectionShortName: Nullable<string>;
     }
     export interface MutationLifecheckArgs { }
-    export interface MutationAlphaSendMessageArgs {
-        conversationId: string;
-        message: OptionalNullable<string>;
-        file: OptionalNullable<string>;
-        repeatKey: OptionalNullable<string>;
-        replyMessages: OptionalNullable<string[]>;
-        mentions: OptionalNullable<string[]>;
-    }
-    export interface MutationAlphaReadChatArgs {
-        conversationId: string;
-        messageId: string;
-    }
-    export interface MutationAlphaEditMessageArgs {
-        messageId: string;
-        message: OptionalNullable<string>;
-        file: OptionalNullable<string>;
-        replyMessages: OptionalNullable<string[]>;
-        mentions: OptionalNullable<string[]>;
-    }
-    export interface MutationAlphaSendIntroArgs {
-        conversationId: string;
-        userId: string;
-        about: OptionalNullable<string>;
-        message: OptionalNullable<string>;
-        file: OptionalNullable<string>;
-        repeatKey: OptionalNullable<string>;
-    }
-    export interface MutationAlphaEditIntroArgs {
-        messageId: string;
-        userId: string;
-        about: OptionalNullable<string>;
-        message: OptionalNullable<string>;
-        file: OptionalNullable<string>;
-    }
-    export interface MutationAlphaDeleteMessageUrlAugmentationArgs {
-        messageId: string;
-    }
-    export interface MutationAlphaDeleteMessageArgs {
-        messageId: string;
-    }
-    export interface MutationAlphaChatSetReactionArgs {
-        messageId: string;
-        reaction: string;
-    }
-    export interface MutationAlphaChatUnsetReactionArgs {
-        messageId: string;
-        reaction: string;
-    }
-    export interface MutationAlphaGlobalReadArgs {
-        toSeq: number;
-    }
-    export interface MutationAlphaBlockUserArgs {
-        userId: string;
-    }
-    export interface MutationAlphaUnblockUserArgs {
-        userId: string;
-        conversationId: OptionalNullable<string>;
-    }
-    export interface MutationAlphaChatCreateGroupArgs {
-        title: OptionalNullable<string>;
-        photoRef: OptionalNullable<ImageRefInput>;
-        members: string[];
-        message: OptionalNullable<string>;
-    }
-    export interface MutationAlphaChatUpdateGroupArgs {
-        conversationId: string;
-        input: UpdateGroupInput;
-    }
-    export interface MutationAlphaChatChangeGroupTitleArgs {
-        conversationId: string;
-        title: string;
-    }
-    export interface MutationAlphaChatInviteToGroupArgs {
-        conversationId: string;
-        invites: GroupConversationInvite[];
-    }
-    export interface MutationAlphaChatKickFromGroupArgs {
-        conversationId: string;
-        userId: string;
-    }
-    export interface MutationAlphaChatChangeRoleInGroupArgs {
-        conversationId: string;
-        userId: string;
-        newRole: string;
-    }
-    export interface MutationAlphaChatCopyGroupArgs {
-        conversationId: string;
-        title: OptionalNullable<string>;
-        extraMembers: OptionalNullable<string[]>;
-        message: string;
-    }
-    export interface MutationAlphaChatLeaveArgs {
-        conversationId: string;
-    }
-    export interface MutationAlphaUpdateConversationSettingsArgs {
-        settings: UpdateConversationSettingsInput;
-        conversationId: string;
-    }
     export interface MutationCardCreateSetupIntentArgs {
         retryKey: string;
     }
@@ -3049,14 +2747,6 @@ export namespace GQL {
     }
     export interface MutationBetaFixCountersForAllArgs { }
     export interface MutationDeliverCountersForAllArgs { }
-    export interface MutationConversationDraftUpdateArgs {
-        conversationId: string;
-        message: OptionalNullable<string>;
-    }
-    export interface MutationAlphaSaveDraftMessageArgs {
-        conversationId: string;
-        message: OptionalNullable<string>;
-    }
     export interface MutationBanUserArgs {
         id: string;
     }
@@ -3215,6 +2905,10 @@ export namespace GQL {
     export interface MutationRemoveFromContactsArgs {
         userId: string;
     }
+    export interface MutationConversationDraftUpdateArgs {
+        id: string;
+        message: OptionalNullable<string>;
+    }
     export interface MutationSetEnvVarArgs {
         name: string;
         value: string;
@@ -3291,21 +2985,6 @@ export namespace GQL {
     export interface MutationBetaReactionRemoveArgs {
         mid: string;
         reaction: string;
-    }
-    export interface MutationBetaIntroSendArgs {
-        room: string;
-        uid: string;
-        about: OptionalNullable<string>;
-        message: OptionalNullable<string>;
-        file: OptionalNullable<string>;
-        repeatKey: OptionalNullable<string>;
-    }
-    export interface MutationBetaIntroEditArgs {
-        mid: string;
-        uid: string;
-        about: OptionalNullable<string>;
-        message: OptionalNullable<string>;
-        file: OptionalNullable<string>;
     }
     export interface MutationReadNotificationArgs {
         notificationId: string;
@@ -3749,7 +3428,7 @@ export namespace GQL {
     }
     export interface NewMatchmakingProfilesNotificationRoomArgs { }
     export interface NewMatchmakingProfilesNotificationProfilesArgs { }
-    export type MessageWithMention = FeedPost | Message;
+    export type MessageWithMention = FeedPost;
     export interface MentionNotification {
         peer: MentionPeer;
         message: MessageWithMention;
@@ -4230,12 +3909,6 @@ export namespace GQL {
     export type PushType = GQLRoots.PushTypeRoot;
     export interface Query {
         lifecheck: Nullable<string>;
-        alphaNotificationCounter: NotificationCounter;
-        alphaChat: Conversation;
-        alphaLoadMessages: ConversationState;
-        alphaChatsSearchForCompose: ComposeSearchResult[];
-        alphaChatSearch: Nullable<Conversation>;
-        alphaGroupConversationMembers: GroupConversationMember[];
         myCards: CreditCard[];
         myWallet: WalletAccount;
         transactionsPending: WalletTransaction[];
@@ -4290,10 +3963,6 @@ export namespace GQL {
         superAccounts: SuperAccount[];
         superAccount: SuperAccount;
         superAdmins: SuperAdmin[];
-        alphaChatTextSearch: Conversation[];
-        betaDialogTextSearch: Dialog[];
-        conversationDraft: Nullable<string>;
-        alphaDraftMessage: Nullable<string>;
         myBlackList: User[];
         discoverCollections: Nullable<DiscoverChatsCollectionConnection>;
         discoverCollection: Nullable<DiscoverChatsCollection>;
@@ -4314,6 +3983,7 @@ export namespace GQL {
         myContacts: ContactConnection;
         myContactsSearch: UserConnection;
         myContactsState: ContactsState;
+        alphaNotificationCounter: NotificationCounter;
         dialogsState: DialogUpdateState;
         envVars: Nullable<EnvVar[]>;
         envVar: Nullable<EnvVar>;
@@ -4402,7 +4072,6 @@ export namespace GQL {
         room: Nullable<Room>;
         rooms: Room[];
         roomSuper: Nullable<RoomSuper>;
-        roomMessages: RoomMessage[];
         roomMembers: RoomMember[];
         roomAdmins: RoomMember[];
         roomFeaturedMembers: RoomMember[];
@@ -4418,28 +4087,6 @@ export namespace GQL {
         alphaResolveShortName: Nullable<ShortNameDestination>;
     }
     export interface QueryLifecheckArgs { }
-    export interface QueryAlphaNotificationCounterArgs { }
-    export interface QueryAlphaChatArgs {
-        conversationId: OptionalNullable<string>;
-        shortName: OptionalNullable<string>;
-    }
-    export interface QueryAlphaLoadMessagesArgs {
-        conversationId: string;
-        first: OptionalNullable<number>;
-        before: OptionalNullable<string>;
-        after: OptionalNullable<string>;
-    }
-    export interface QueryAlphaChatsSearchForComposeArgs {
-        query: OptionalNullable<string>;
-        organizations: OptionalNullable<boolean>;
-        limit: OptionalNullable<number>;
-    }
-    export interface QueryAlphaChatSearchArgs {
-        members: string[];
-    }
-    export interface QueryAlphaGroupConversationMembersArgs {
-        conversationId: string;
-    }
     export interface QueryMyCardsArgs { }
     export interface QueryMyWalletArgs { }
     export interface QueryTransactionsPendingArgs { }
@@ -4570,18 +4217,6 @@ export namespace GQL {
         viaOrgId: OptionalNullable<boolean>;
     }
     export interface QuerySuperAdminsArgs { }
-    export interface QueryAlphaChatTextSearchArgs {
-        query: string;
-    }
-    export interface QueryBetaDialogTextSearchArgs {
-        query: string;
-    }
-    export interface QueryConversationDraftArgs {
-        conversationId: string;
-    }
-    export interface QueryAlphaDraftMessageArgs {
-        conversationId: string;
-    }
     export interface QueryMyBlackListArgs { }
     export interface QueryDiscoverCollectionsArgs {
         first: number;
@@ -4639,6 +4274,7 @@ export namespace GQL {
         page: OptionalNullable<number>;
     }
     export interface QueryMyContactsStateArgs { }
+    export interface QueryAlphaNotificationCounterArgs { }
     export interface QueryDialogsStateArgs { }
     export interface QueryEnvVarsArgs { }
     export interface QueryEnvVarArgs {
@@ -4953,11 +4589,6 @@ export namespace GQL {
     export interface QueryRoomSuperArgs {
         id: string;
     }
-    export interface QueryRoomMessagesArgs {
-        roomId: string;
-        first: OptionalNullable<number>;
-        before: OptionalNullable<string>;
-    }
     export interface QueryRoomMembersArgs {
         roomId: string;
         first: OptionalNullable<number>;
@@ -5136,11 +4767,9 @@ export namespace GQL {
     }
     export interface SubscriptionTypingsArgs { }
     export interface SyncChat {
-        conversation: Conversation;
         sequence: Sequence;
         pts: number;
     }
-    export interface SyncChatConversationArgs { }
     export interface SyncChatSequenceArgs { }
     export interface SyncChatPtsArgs { }
     export interface SyncChatsConnection {
@@ -6192,61 +5821,6 @@ export namespace GQL {
         serviceMessageSettings: Nullable<RoomServiceMessageSettingsInput>;
         callSettings: Nullable<RoomCallSettingsInput>;
     }
-    export interface UserMention {
-        user: User;
-    }
-    export interface UserMentionUserArgs { }
-    export interface SharedRoomMention {
-        sharedRoom: SharedRoom;
-    }
-    export interface SharedRoomMentionSharedRoomArgs { }
-    export type Mention = UserMention | SharedRoomMention;
-    export interface RoomMessage {
-        id: string;
-        message: Nullable<string>;
-        file: Nullable<string>;
-        fileMetadata: Nullable<FileMetadata>;
-        filePreview: Nullable<string>;
-        sender: User;
-        date: Date;
-        repeatKey: Nullable<string>;
-        isService: boolean;
-        serviceMetadata: Nullable<ServiceMetadata>;
-        urlAugmentation: Nullable<UrlAugmentation>;
-        edited: boolean;
-        reactions: MessageReaction[];
-        replyMessages: Nullable<RoomMessage[]>;
-        plainText: Nullable<string>;
-        mentions: Nullable<User[]>;
-        alphaAttachments: MessageAttachment[];
-        alphaButtons: Nullable<MessageButton[]>[];
-        alphaType: MessageType;
-        alphaTitle: Nullable<string>;
-        alphaPostType: Nullable<PostMessageType>;
-        alphaMentions: Nullable<Mention[]>;
-    }
-    export interface RoomMessageIdArgs { }
-    export interface RoomMessageMessageArgs { }
-    export interface RoomMessageFileArgs { }
-    export interface RoomMessageFileMetadataArgs { }
-    export interface RoomMessageFilePreviewArgs { }
-    export interface RoomMessageSenderArgs { }
-    export interface RoomMessageDateArgs { }
-    export interface RoomMessageRepeatKeyArgs { }
-    export interface RoomMessageIsServiceArgs { }
-    export interface RoomMessageServiceMetadataArgs { }
-    export interface RoomMessageUrlAugmentationArgs { }
-    export interface RoomMessageEditedArgs { }
-    export interface RoomMessageReactionsArgs { }
-    export interface RoomMessageReplyMessagesArgs { }
-    export interface RoomMessagePlainTextArgs { }
-    export interface RoomMessageMentionsArgs { }
-    export interface RoomMessageAlphaAttachmentsArgs { }
-    export interface RoomMessageAlphaButtonsArgs { }
-    export interface RoomMessageAlphaTypeArgs { }
-    export interface RoomMessageAlphaTitleArgs { }
-    export interface RoomMessageAlphaPostTypeArgs { }
-    export interface RoomMessageAlphaMentionsArgs { }
     export interface RoomMember {
         user: User;
         role: RoomMemberRole;
@@ -6319,7 +5893,7 @@ export namespace GQL {
     export interface RoomInviteRoomArgs { }
     export interface RoomInviteInvitedByUserArgs { }
     export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection | Channel;
-    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted;
+    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted | UpdateChatDraftChanged | UpdateSettingsChanged;
     export interface UpdateChatRead {
         cid: string;
         seq: number;
@@ -6350,467 +5924,23 @@ export namespace GQL {
     export interface UpdateChatMessageDeletedCidArgs { }
     export interface UpdateChatMessageDeletedMidArgs { }
     export interface UpdateChatMessageDeletedSeqArgs { }
+    export interface UpdateChatDraftChanged {
+        cid: string;
+        draft: Nullable<string>;
+        version: number;
+        date: Date;
+    }
+    export interface UpdateChatDraftChangedCidArgs { }
+    export interface UpdateChatDraftChangedDraftArgs { }
+    export interface UpdateChatDraftChangedVersionArgs { }
+    export interface UpdateChatDraftChangedDateArgs { }
+    export interface UpdateSettingsChanged {
+        settings: Settings;
+    }
+    export interface UpdateSettingsChangedSettingsArgs { }
 }
 
 export interface GQLResolver {
-    ConversationSettings?: ComplexTypedResolver<
-        GQL.ConversationSettings,
-        GQLRoots.ConversationSettingsRoot,
-        {
-        },
-        {
-            id: GQL.ConversationSettingsIdArgs,
-            mobileNotifications: GQL.ConversationSettingsMobileNotificationsArgs,
-            mute: GQL.ConversationSettingsMuteArgs,
-        }
-    >;
-    Conversation?: InterfaceTypeResolver<GQLRoots.ConversationRoot, 'ChannelConversation' | 'AnonymousConversation' | 'SharedConversation' | 'PrivateConversation' | 'GroupConversation'>;
-    ChannelConversation?: ComplexTypedResolver<
-        GQL.ChannelConversation,
-        GQLRoots.ChannelConversationRoot,
-        {
-            members: GQLRoots.UserRoot[],
-            topMessage: Nullable<GQLRoots.ConversationMessageRoot>,
-            settings: GQLRoots.ConversationSettingsRoot,
-        },
-        {
-            id: GQL.ChannelConversationIdArgs,
-            flexibleId: GQL.ChannelConversationFlexibleIdArgs,
-            title: GQL.ChannelConversationTitleArgs,
-            photos: GQL.ChannelConversationPhotosArgs,
-            members: GQL.ChannelConversationMembersArgs,
-            unreadCount: GQL.ChannelConversationUnreadCountArgs,
-            topMessage: GQL.ChannelConversationTopMessageArgs,
-            settings: GQL.ChannelConversationSettingsArgs,
-        }
-    >;
-    AnonymousConversation?: ComplexTypedResolver<
-        GQL.AnonymousConversation,
-        GQLRoots.AnonymousConversationRoot,
-        {
-            topMessage: Nullable<GQLRoots.ConversationMessageRoot>,
-            settings: GQLRoots.ConversationSettingsRoot,
-        },
-        {
-            id: GQL.AnonymousConversationIdArgs,
-            flexibleId: GQL.AnonymousConversationFlexibleIdArgs,
-            title: GQL.AnonymousConversationTitleArgs,
-            photos: GQL.AnonymousConversationPhotosArgs,
-            unreadCount: GQL.AnonymousConversationUnreadCountArgs,
-            topMessage: GQL.AnonymousConversationTopMessageArgs,
-            settings: GQL.AnonymousConversationSettingsArgs,
-        }
-    >;
-    SharedConversation?: ComplexTypedResolver<
-        GQL.SharedConversation,
-        GQLRoots.SharedConversationRoot,
-        {
-            organizations: GQLRoots.OrganizationRoot[],
-            topMessage: Nullable<GQLRoots.ConversationMessageRoot>,
-            organization: Nullable<GQLRoots.OrganizationRoot>,
-            settings: GQLRoots.ConversationSettingsRoot,
-        },
-        {
-            id: GQL.SharedConversationIdArgs,
-            flexibleId: GQL.SharedConversationFlexibleIdArgs,
-            title: GQL.SharedConversationTitleArgs,
-            photos: GQL.SharedConversationPhotosArgs,
-            organizations: GQL.SharedConversationOrganizationsArgs,
-            unreadCount: GQL.SharedConversationUnreadCountArgs,
-            topMessage: GQL.SharedConversationTopMessageArgs,
-            organization: GQL.SharedConversationOrganizationArgs,
-            settings: GQL.SharedConversationSettingsArgs,
-        }
-    >;
-    PrivateConversation?: ComplexTypedResolver<
-        GQL.PrivateConversation,
-        GQLRoots.PrivateConversationRoot,
-        {
-            user: GQLRoots.UserRoot,
-            topMessage: Nullable<GQLRoots.ConversationMessageRoot>,
-            settings: GQLRoots.ConversationSettingsRoot,
-        },
-        {
-            id: GQL.PrivateConversationIdArgs,
-            flexibleId: GQL.PrivateConversationFlexibleIdArgs,
-            title: GQL.PrivateConversationTitleArgs,
-            photos: GQL.PrivateConversationPhotosArgs,
-            user: GQL.PrivateConversationUserArgs,
-            unreadCount: GQL.PrivateConversationUnreadCountArgs,
-            topMessage: GQL.PrivateConversationTopMessageArgs,
-            blocked: GQL.PrivateConversationBlockedArgs,
-            settings: GQL.PrivateConversationSettingsArgs,
-        }
-    >;
-    GroupConversation?: ComplexTypedResolver<
-        GQL.GroupConversation,
-        GQLRoots.GroupConversationRoot,
-        {
-            members: GQLRoots.UserRoot[],
-            topMessage: Nullable<GQLRoots.ConversationMessageRoot>,
-            settings: GQLRoots.ConversationSettingsRoot,
-            photoRef: Nullable<GQLRoots.ImageRefRoot>,
-            pinnedMessage: Nullable<GQLRoots.ConversationMessageRoot>,
-        },
-        {
-            id: GQL.GroupConversationIdArgs,
-            flexibleId: GQL.GroupConversationFlexibleIdArgs,
-            title: GQL.GroupConversationTitleArgs,
-            photos: GQL.GroupConversationPhotosArgs,
-            members: GQL.GroupConversationMembersArgs,
-            unreadCount: GQL.GroupConversationUnreadCountArgs,
-            topMessage: GQL.GroupConversationTopMessageArgs,
-            membersCount: GQL.GroupConversationMembersCountArgs,
-            settings: GQL.GroupConversationSettingsArgs,
-            photo: GQL.GroupConversationPhotoArgs,
-            photoRef: GQL.GroupConversationPhotoRefArgs,
-            description: GQL.GroupConversationDescriptionArgs,
-            longDescription: GQL.GroupConversationLongDescriptionArgs,
-            pinnedMessage: GQL.GroupConversationPinnedMessageArgs,
-            membersOnline: GQL.GroupConversationMembersOnlineArgs,
-            myRole: GQL.GroupConversationMyRoleArgs,
-        }
-    >;
-    InviteServiceMetadata?: ComplexTypedResolver<
-        GQL.InviteServiceMetadata,
-        GQLRoots.InviteServiceMetadataRoot,
-        {
-            users: Nullable<GQLRoots.UserRoot[]>,
-            invitedBy: GQLRoots.UserRoot,
-        },
-        {
-            users: GQL.InviteServiceMetadataUsersArgs,
-            invitedBy: GQL.InviteServiceMetadataInvitedByArgs,
-        }
-    >;
-    KickServiceMetadata?: ComplexTypedResolver<
-        GQL.KickServiceMetadata,
-        GQLRoots.KickServiceMetadataRoot,
-        {
-            user: GQLRoots.UserRoot,
-            kickedBy: GQLRoots.UserRoot,
-        },
-        {
-            user: GQL.KickServiceMetadataUserArgs,
-            kickedBy: GQL.KickServiceMetadataKickedByArgs,
-        }
-    >;
-    TitleChangeServiceMetadata?: ComplexTypedResolver<
-        GQL.TitleChangeServiceMetadata,
-        GQLRoots.TitleChangeServiceMetadataRoot,
-        {
-        },
-        {
-            title: GQL.TitleChangeServiceMetadataTitleArgs,
-        }
-    >;
-    PhotoChangeServiceMetadata?: ComplexTypedResolver<
-        GQL.PhotoChangeServiceMetadata,
-        GQLRoots.PhotoChangeServiceMetadataRoot,
-        {
-            photoRef: Nullable<GQLRoots.ImageRefRoot>,
-        },
-        {
-            photo: GQL.PhotoChangeServiceMetadataPhotoArgs,
-            photoRef: GQL.PhotoChangeServiceMetadataPhotoRefArgs,
-        }
-    >;
-    PostRespondServiceMetadata?: ComplexTypedResolver<
-        GQL.PostRespondServiceMetadata,
-        GQLRoots.PostRespondServiceMetadataRoot,
-        {
-            post: GQLRoots.RoomMessageRoot,
-            postRoom: GQLRoots.RoomRoot,
-            responder: GQLRoots.UserRoot,
-        },
-        {
-            post: GQL.PostRespondServiceMetadataPostArgs,
-            postRoom: GQL.PostRespondServiceMetadataPostRoomArgs,
-            responder: GQL.PostRespondServiceMetadataResponderArgs,
-            respondType: GQL.PostRespondServiceMetadataRespondTypeArgs,
-        }
-    >;
-    UrlAugmentationExtra?: UnionTypeResolver<GQLRoots.UrlAugmentationExtraRoot, 'User' | 'Organization' | 'ChannelConversation'>;
-    UrlAugmentation?: ComplexTypedResolver<
-        GQL.UrlAugmentation,
-        GQLRoots.UrlAugmentationRoot,
-        {
-            photo: Nullable<GQLRoots.ImageRefRoot>,
-            imageInfo: Nullable<GQLRoots.FileMetadataRoot>,
-            iconRef: Nullable<GQLRoots.ImageRefRoot>,
-            iconInfo: Nullable<GQLRoots.FileMetadataRoot>,
-            extra: Nullable<GQLRoots.UrlAugmentationExtraRoot>,
-        },
-        {
-            url: GQL.UrlAugmentationUrlArgs,
-            title: GQL.UrlAugmentationTitleArgs,
-            date: GQL.UrlAugmentationDateArgs,
-            subtitle: GQL.UrlAugmentationSubtitleArgs,
-            description: GQL.UrlAugmentationDescriptionArgs,
-            photo: GQL.UrlAugmentationPhotoArgs,
-            imageInfo: GQL.UrlAugmentationImageInfoArgs,
-            imageURL: GQL.UrlAugmentationImageURLArgs,
-            iconRef: GQL.UrlAugmentationIconRefArgs,
-            iconInfo: GQL.UrlAugmentationIconInfoArgs,
-            hostname: GQL.UrlAugmentationHostnameArgs,
-            type: GQL.UrlAugmentationTypeArgs,
-            extra: GQL.UrlAugmentationExtraArgs,
-        }
-    >;
-    ServiceMetadata?: UnionTypeResolver<GQLRoots.ServiceMetadataRoot, 'InviteServiceMetadata' | 'KickServiceMetadata' | 'TitleChangeServiceMetadata' | 'PhotoChangeServiceMetadata' | 'PostRespondServiceMetadata'>;
-    ConversationMessage?: ComplexTypedResolver<
-        GQL.ConversationMessage,
-        GQLRoots.ConversationMessageRoot,
-        {
-            fileMetadata: Nullable<GQLRoots.FileMetadataRoot>,
-            sender: GQLRoots.UserRoot,
-            serviceMetadata: Nullable<GQLRoots.ServiceMetadataRoot>,
-            urlAugmentation: Nullable<GQLRoots.UrlAugmentationRoot>,
-            reactions: GQLRoots.MessageReactionRoot[],
-            replyMessages: Nullable<GQLRoots.ConversationMessageRoot[]>,
-            mentions: Nullable<GQLRoots.UserRoot[]>,
-            alphaAttachments: GQLRoots.MessageAttachmentRoot[],
-            alphaButtons: Nullable<GQLRoots.MessageButtonRoot[]>[],
-            alphaMentions: Nullable<GQLRoots.MentionRoot[]>,
-        },
-        {
-            id: GQL.ConversationMessageIdArgs,
-            message: GQL.ConversationMessageMessageArgs,
-            file: GQL.ConversationMessageFileArgs,
-            fileMetadata: GQL.ConversationMessageFileMetadataArgs,
-            filePreview: GQL.ConversationMessageFilePreviewArgs,
-            sender: GQL.ConversationMessageSenderArgs,
-            date: GQL.ConversationMessageDateArgs,
-            repeatKey: GQL.ConversationMessageRepeatKeyArgs,
-            isService: GQL.ConversationMessageIsServiceArgs,
-            serviceMetadata: GQL.ConversationMessageServiceMetadataArgs,
-            urlAugmentation: GQL.ConversationMessageUrlAugmentationArgs,
-            edited: GQL.ConversationMessageEditedArgs,
-            reactions: GQL.ConversationMessageReactionsArgs,
-            replyMessages: GQL.ConversationMessageReplyMessagesArgs,
-            plainText: GQL.ConversationMessagePlainTextArgs,
-            mentions: GQL.ConversationMessageMentionsArgs,
-            alphaAttachments: GQL.ConversationMessageAlphaAttachmentsArgs,
-            alphaButtons: GQL.ConversationMessageAlphaButtonsArgs,
-            alphaType: GQL.ConversationMessageAlphaTypeArgs,
-            alphaTitle: GQL.ConversationMessageAlphaTitleArgs,
-            postType: GQL.ConversationMessagePostTypeArgs,
-            alphaMentions: GQL.ConversationMessageAlphaMentionsArgs,
-        }
-    >;
-    FileMetadata?: ComplexTypedResolver<
-        GQL.FileMetadata,
-        GQLRoots.FileMetadataRoot,
-        {
-        },
-        {
-            name: GQL.FileMetadataNameArgs,
-            mimeType: GQL.FileMetadataMimeTypeArgs,
-            size: GQL.FileMetadataSizeArgs,
-            isImage: GQL.FileMetadataIsImageArgs,
-            imageWidth: GQL.FileMetadataImageWidthArgs,
-            imageHeight: GQL.FileMetadataImageHeightArgs,
-            imageFormat: GQL.FileMetadataImageFormatArgs,
-        }
-    >;
-    ConversationEventSimpleBatch?: ComplexTypedResolver<
-        GQL.ConversationEventSimpleBatch,
-        GQLRoots.ConversationEventSimpleBatchRoot,
-        {
-            events: GQLRoots.ConversationEventRoot[],
-        },
-        {
-            events: GQL.ConversationEventSimpleBatchEventsArgs,
-        }
-    >;
-    ConversationEvent?: InterfaceTypeResolver<GQLRoots.ConversationEventRoot, 'ConversationEventMessage' | 'ConversationEventEditMessage' | 'ConversationEventDelete' | 'ConversationEventNewMembers' | 'ConversationEventKick' | 'ConversationEventTitle' | 'ConversationEventUpdate' | 'ConversationEventUpdateRole'>;
-    ConversationEventMessage?: ComplexTypedResolver<
-        GQL.ConversationEventMessage,
-        GQLRoots.ConversationEventMessageRoot,
-        {
-            message: GQLRoots.ConversationMessageRoot,
-        },
-        {
-            seq: GQL.ConversationEventMessageSeqArgs,
-            message: GQL.ConversationEventMessageMessageArgs,
-        }
-    >;
-    ConversationEventEditMessage?: ComplexTypedResolver<
-        GQL.ConversationEventEditMessage,
-        GQLRoots.ConversationEventEditMessageRoot,
-        {
-            message: GQLRoots.ConversationMessageRoot,
-        },
-        {
-            seq: GQL.ConversationEventEditMessageSeqArgs,
-            message: GQL.ConversationEventEditMessageMessageArgs,
-        }
-    >;
-    ConversationEventDelete?: ComplexTypedResolver<
-        GQL.ConversationEventDelete,
-        GQLRoots.ConversationEventDeleteRoot,
-        {
-        },
-        {
-            seq: GQL.ConversationEventDeleteSeqArgs,
-            messageId: GQL.ConversationEventDeleteMessageIdArgs,
-        }
-    >;
-    ConversationEventNewMembers?: ComplexTypedResolver<
-        GQL.ConversationEventNewMembers,
-        GQLRoots.ConversationEventNewMembersRoot,
-        {
-            users: Nullable<GQLRoots.UserRoot[]>,
-            invitedBy: GQLRoots.UserRoot,
-        },
-        {
-            seq: GQL.ConversationEventNewMembersSeqArgs,
-            users: GQL.ConversationEventNewMembersUsersArgs,
-            invitedBy: GQL.ConversationEventNewMembersInvitedByArgs,
-        }
-    >;
-    ConversationEventKick?: ComplexTypedResolver<
-        GQL.ConversationEventKick,
-        GQLRoots.ConversationEventKickRoot,
-        {
-            user: GQLRoots.UserRoot,
-            kickedBy: GQLRoots.UserRoot,
-        },
-        {
-            seq: GQL.ConversationEventKickSeqArgs,
-            user: GQL.ConversationEventKickUserArgs,
-            kickedBy: GQL.ConversationEventKickKickedByArgs,
-        }
-    >;
-    ConversationEventTitle?: ComplexTypedResolver<
-        GQL.ConversationEventTitle,
-        GQLRoots.ConversationEventTitleRoot,
-        {
-        },
-        {
-            seq: GQL.ConversationEventTitleSeqArgs,
-            title: GQL.ConversationEventTitleTitleArgs,
-        }
-    >;
-    ConversationEventUpdate?: ComplexTypedResolver<
-        GQL.ConversationEventUpdate,
-        GQLRoots.ConversationEventUpdateRoot,
-        {
-            chat: GQLRoots.ConversationRoot,
-        },
-        {
-            seq: GQL.ConversationEventUpdateSeqArgs,
-            chat: GQL.ConversationEventUpdateChatArgs,
-        }
-    >;
-    ConversationEventUpdateRole?: ComplexTypedResolver<
-        GQL.ConversationEventUpdateRole,
-        GQLRoots.ConversationEventUpdateRoleRoot,
-        {
-            user: GQLRoots.UserRoot,
-        },
-        {
-            seq: GQL.ConversationEventUpdateRoleSeqArgs,
-            user: GQL.ConversationEventUpdateRoleUserArgs,
-            newRole: GQL.ConversationEventUpdateRoleNewRoleArgs,
-        }
-    >;
-    ConversationState?: ComplexTypedResolver<
-        GQL.ConversationState,
-        GQLRoots.ConversationStateRoot,
-        {
-            messages: GQLRoots.ConversationMessageRoot[],
-        },
-        {
-            seq: GQL.ConversationStateSeqArgs,
-            messages: GQL.ConversationStateMessagesArgs,
-        }
-    >;
-    ConversationConnection?: ComplexTypedResolver<
-        GQL.ConversationConnection,
-        GQLRoots.ConversationConnectionRoot,
-        {
-            conversations: GQLRoots.ConversationRoot[],
-            counter: GQLRoots.NotificationCounterRoot,
-        },
-        {
-            conversations: GQL.ConversationConnectionConversationsArgs,
-            counter: GQL.ConversationConnectionCounterArgs,
-            seq: GQL.ConversationConnectionSeqArgs,
-            next: GQL.ConversationConnectionNextArgs,
-        }
-    >;
-    NotificationCounter?: ComplexTypedResolver<
-        GQL.NotificationCounter,
-        GQLRoots.NotificationCounterRoot,
-        {
-        },
-        {
-            id: GQL.NotificationCounterIdArgs,
-            unreadCount: GQL.NotificationCounterUnreadCountArgs,
-        }
-    >;
-    ChatReadResult?: ComplexTypedResolver<
-        GQL.ChatReadResult,
-        GQLRoots.ChatReadResultRoot,
-        {
-            conversation: GQLRoots.ConversationRoot,
-            counter: GQLRoots.NotificationCounterRoot,
-        },
-        {
-            conversation: GQL.ChatReadResultConversationArgs,
-            counter: GQL.ChatReadResultCounterArgs,
-        }
-    >;
-    ComposeSearchResult?: UnionTypeResolver<GQLRoots.ComposeSearchResultRoot, 'User' | 'Organization'>;
-    GroupConversationMember?: ComplexTypedResolver<
-        GQL.GroupConversationMember,
-        GQLRoots.GroupConversationMemberRoot,
-        {
-            user: GQLRoots.UserRoot,
-        },
-        {
-            user: GQL.GroupConversationMemberUserArgs,
-            role: GQL.GroupConversationMemberRoleArgs,
-        }
-    >;
-    GroupChatUpdateResponse?: ComplexTypedResolver<
-        GQL.GroupChatUpdateResponse,
-        GQLRoots.GroupChatUpdateResponseRoot,
-        {
-            chat: GQLRoots.ConversationRoot,
-            chatEventMessage: Nullable<GQLRoots.ConversationEventMessageRoot>,
-            chatEvent: Nullable<GQLRoots.ConversationEventRoot>,
-        },
-        {
-            chat: GQL.GroupChatUpdateResponseChatArgs,
-            chatEventMessage: GQL.GroupChatUpdateResponseChatEventMessageArgs,
-            chatEvent: GQL.GroupChatUpdateResponseChatEventArgs,
-        }
-    >;
-    ConversationUpdateResponse?: ComplexTypedResolver<
-        GQL.ConversationUpdateResponse,
-        GQLRoots.ConversationUpdateResponseRoot,
-        {
-            chat: GQLRoots.ConversationRoot,
-        },
-        {
-            chat: GQL.ConversationUpdateResponseChatArgs,
-            curSeq: GQL.ConversationUpdateResponseCurSeqArgs,
-        }
-    >;
-    ConversationBlockedUser?: ComplexTypedResolver<
-        GQL.ConversationBlockedUser,
-        GQLRoots.ConversationBlockedUserRoot,
-        {
-            user: GQLRoots.UserRoot,
-            blockedBy: GQLRoots.UserRoot,
-        },
-        {
-            user: GQL.ConversationBlockedUserUserArgs,
-            blockedBy: GQL.ConversationBlockedUserBlockedByArgs,
-        }
-    >;
     CreditCard?: ComplexTypedResolver<
         GQL.CreditCard,
         GQLRoots.CreditCardRoot,
@@ -7345,35 +6475,6 @@ export interface GQLResolver {
             seq: GQL.SequenceDifferenceSeqArgs,
         }
     >;
-    Reaction?: ComplexTypedResolver<
-        GQL.Reaction,
-        GQLRoots.ReactionRoot,
-        {
-            user: GQLRoots.UserRoot,
-        },
-        {
-            user: GQL.ReactionUserArgs,
-            reaction: GQL.ReactionReactionArgs,
-        }
-    >;
-    Message?: ComplexTypedResolver<
-        GQL.Message,
-        GQLRoots.MessageRoot,
-        {
-            sender: GQLRoots.UserRoot,
-            quoted: GQLRoots.MessageRoot[],
-            alphaReactions: GQLRoots.ReactionRoot[],
-        },
-        {
-            id: GQL.MessageIdArgs,
-            date: GQL.MessageDateArgs,
-            sender: GQL.MessageSenderArgs,
-            edited: GQL.MessageEditedArgs,
-            text: GQL.MessageTextArgs,
-            quoted: GQL.MessageQuotedArgs,
-            alphaReactions: GQL.MessageAlphaReactionsArgs,
-        }
-    >;
     ChannelType?: EnumTypeResolver<'SYSTEM' | 'PERSONAL' | 'PUBLIC' | 'SECRET', GQLRoots.ChannelTypeRoot>;
     Channel?: ComplexTypedResolver<
         GQL.Channel,
@@ -7507,8 +6608,6 @@ export interface GQLResolver {
         GQL.Dialog,
         GQLRoots.DialogRoot,
         {
-            topMessage: Nullable<GQLRoots.MessageRoot>,
-            betaTopMessage: Nullable<GQLRoots.RoomMessageRoot>,
             alphaTopMessage: Nullable<GQLRoots.ModernMessageRoot>,
         },
         {
@@ -7522,8 +6621,6 @@ export interface GQLResolver {
             photo: GQL.DialogPhotoArgs,
             featured: GQL.DialogFeaturedArgs,
             unreadCount: GQL.DialogUnreadCountArgs,
-            topMessage: GQL.DialogTopMessageArgs,
-            betaTopMessage: GQL.DialogBetaTopMessageArgs,
             alphaTopMessage: GQL.DialogAlphaTopMessageArgs,
             isMuted: GQL.DialogIsMutedArgs,
             haveMention: GQL.DialogHaveMentionArgs,
@@ -7588,6 +6685,7 @@ export interface GQLResolver {
         },
         {
             id: GQL.SettingsIdArgs,
+            version: GQL.SettingsVersionArgs,
             primaryEmail: GQL.SettingsPrimaryEmailArgs,
             emailFrequency: GQL.SettingsEmailFrequencyArgs,
             desktop: GQL.SettingsDesktopArgs,
@@ -7933,21 +7031,23 @@ export interface GQLResolver {
         GQL.SequenceCommon,
         GQLRoots.SequenceCommonRoot,
         {
+            settings: GQLRoots.SettingsRoot,
         },
         {
             id: GQL.SequenceCommonIdArgs,
-            unread: GQL.SequenceCommonUnreadArgs,
+            settings: GQL.SequenceCommonSettingsArgs,
         }
     >;
     SequenceChat?: ComplexTypedResolver<
         GQL.SequenceChat,
         GQLRoots.SequenceChatRoot,
         {
+            draft: Nullable<GQLRoots.DraftRoot>,
         },
         {
             id: GQL.SequenceChatIdArgs,
             cid: GQL.SequenceChatCidArgs,
-            unread: GQL.SequenceChatUnreadArgs,
+            draft: GQL.SequenceChatDraftArgs,
         }
     >;
     PageInfo?: ComplexTypedResolver<
@@ -8550,6 +7650,251 @@ export interface GQLResolver {
             state: GQL.ContactsStateStateArgs,
         }
     >;
+    ConversationSettings?: ComplexTypedResolver<
+        GQL.ConversationSettings,
+        GQLRoots.ConversationSettingsRoot,
+        {
+        },
+        {
+            id: GQL.ConversationSettingsIdArgs,
+            mobileNotifications: GQL.ConversationSettingsMobileNotificationsArgs,
+            mute: GQL.ConversationSettingsMuteArgs,
+        }
+    >;
+    Conversation?: InterfaceTypeResolver<GQLRoots.ConversationRoot, 'ChannelConversation' | 'SharedConversation' | 'PrivateConversation' | 'GroupConversation'>;
+    ChannelConversation?: ComplexTypedResolver<
+        GQL.ChannelConversation,
+        GQLRoots.ChannelConversationRoot,
+        {
+            members: GQLRoots.UserRoot[],
+            topMessage: Nullable<GQLRoots.ConversationMessageRoot>,
+            settings: GQLRoots.ConversationSettingsRoot,
+        },
+        {
+            id: GQL.ChannelConversationIdArgs,
+            flexibleId: GQL.ChannelConversationFlexibleIdArgs,
+            title: GQL.ChannelConversationTitleArgs,
+            members: GQL.ChannelConversationMembersArgs,
+            unreadCount: GQL.ChannelConversationUnreadCountArgs,
+            topMessage: GQL.ChannelConversationTopMessageArgs,
+            settings: GQL.ChannelConversationSettingsArgs,
+        }
+    >;
+    SharedConversation?: ComplexTypedResolver<
+        GQL.SharedConversation,
+        GQLRoots.SharedConversationRoot,
+        {
+            organizations: GQLRoots.OrganizationRoot[],
+            topMessage: Nullable<GQLRoots.ConversationMessageRoot>,
+            organization: Nullable<GQLRoots.OrganizationRoot>,
+            settings: GQLRoots.ConversationSettingsRoot,
+        },
+        {
+            id: GQL.SharedConversationIdArgs,
+            flexibleId: GQL.SharedConversationFlexibleIdArgs,
+            title: GQL.SharedConversationTitleArgs,
+            organizations: GQL.SharedConversationOrganizationsArgs,
+            unreadCount: GQL.SharedConversationUnreadCountArgs,
+            topMessage: GQL.SharedConversationTopMessageArgs,
+            organization: GQL.SharedConversationOrganizationArgs,
+            settings: GQL.SharedConversationSettingsArgs,
+        }
+    >;
+    PrivateConversation?: ComplexTypedResolver<
+        GQL.PrivateConversation,
+        GQLRoots.PrivateConversationRoot,
+        {
+            user: GQLRoots.UserRoot,
+            topMessage: Nullable<GQLRoots.ConversationMessageRoot>,
+            settings: GQLRoots.ConversationSettingsRoot,
+        },
+        {
+            id: GQL.PrivateConversationIdArgs,
+            flexibleId: GQL.PrivateConversationFlexibleIdArgs,
+            title: GQL.PrivateConversationTitleArgs,
+            user: GQL.PrivateConversationUserArgs,
+            unreadCount: GQL.PrivateConversationUnreadCountArgs,
+            topMessage: GQL.PrivateConversationTopMessageArgs,
+            blocked: GQL.PrivateConversationBlockedArgs,
+            settings: GQL.PrivateConversationSettingsArgs,
+        }
+    >;
+    GroupConversation?: ComplexTypedResolver<
+        GQL.GroupConversation,
+        GQLRoots.GroupConversationRoot,
+        {
+            members: GQLRoots.UserRoot[],
+            topMessage: Nullable<GQLRoots.ConversationMessageRoot>,
+            settings: GQLRoots.ConversationSettingsRoot,
+            photoRef: Nullable<GQLRoots.ImageRefRoot>,
+            pinnedMessage: Nullable<GQLRoots.ConversationMessageRoot>,
+        },
+        {
+            id: GQL.GroupConversationIdArgs,
+            flexibleId: GQL.GroupConversationFlexibleIdArgs,
+            title: GQL.GroupConversationTitleArgs,
+            members: GQL.GroupConversationMembersArgs,
+            unreadCount: GQL.GroupConversationUnreadCountArgs,
+            topMessage: GQL.GroupConversationTopMessageArgs,
+            membersCount: GQL.GroupConversationMembersCountArgs,
+            settings: GQL.GroupConversationSettingsArgs,
+            photo: GQL.GroupConversationPhotoArgs,
+            photoRef: GQL.GroupConversationPhotoRefArgs,
+            description: GQL.GroupConversationDescriptionArgs,
+            longDescription: GQL.GroupConversationLongDescriptionArgs,
+            pinnedMessage: GQL.GroupConversationPinnedMessageArgs,
+            membersOnline: GQL.GroupConversationMembersOnlineArgs,
+            myRole: GQL.GroupConversationMyRoleArgs,
+        }
+    >;
+    InviteServiceMetadata?: ComplexTypedResolver<
+        GQL.InviteServiceMetadata,
+        GQLRoots.InviteServiceMetadataRoot,
+        {
+            users: Nullable<GQLRoots.UserRoot[]>,
+            invitedBy: GQLRoots.UserRoot,
+        },
+        {
+            users: GQL.InviteServiceMetadataUsersArgs,
+            invitedBy: GQL.InviteServiceMetadataInvitedByArgs,
+        }
+    >;
+    KickServiceMetadata?: ComplexTypedResolver<
+        GQL.KickServiceMetadata,
+        GQLRoots.KickServiceMetadataRoot,
+        {
+            user: GQLRoots.UserRoot,
+            kickedBy: GQLRoots.UserRoot,
+        },
+        {
+            user: GQL.KickServiceMetadataUserArgs,
+            kickedBy: GQL.KickServiceMetadataKickedByArgs,
+        }
+    >;
+    TitleChangeServiceMetadata?: ComplexTypedResolver<
+        GQL.TitleChangeServiceMetadata,
+        GQLRoots.TitleChangeServiceMetadataRoot,
+        {
+        },
+        {
+            title: GQL.TitleChangeServiceMetadataTitleArgs,
+        }
+    >;
+    PhotoChangeServiceMetadata?: ComplexTypedResolver<
+        GQL.PhotoChangeServiceMetadata,
+        GQLRoots.PhotoChangeServiceMetadataRoot,
+        {
+            photoRef: Nullable<GQLRoots.ImageRefRoot>,
+        },
+        {
+            photo: GQL.PhotoChangeServiceMetadataPhotoArgs,
+            photoRef: GQL.PhotoChangeServiceMetadataPhotoRefArgs,
+        }
+    >;
+    PostRespondServiceMetadata?: ComplexTypedResolver<
+        GQL.PostRespondServiceMetadata,
+        GQLRoots.PostRespondServiceMetadataRoot,
+        {
+            postRoom: GQLRoots.RoomRoot,
+            responder: GQLRoots.UserRoot,
+        },
+        {
+            postRoom: GQL.PostRespondServiceMetadataPostRoomArgs,
+            responder: GQL.PostRespondServiceMetadataResponderArgs,
+            respondType: GQL.PostRespondServiceMetadataRespondTypeArgs,
+        }
+    >;
+    UrlAugmentationExtra?: UnionTypeResolver<GQLRoots.UrlAugmentationExtraRoot, 'User' | 'Organization' | 'ChannelConversation'>;
+    UrlAugmentation?: ComplexTypedResolver<
+        GQL.UrlAugmentation,
+        GQLRoots.UrlAugmentationRoot,
+        {
+            photo: Nullable<GQLRoots.ImageRefRoot>,
+            imageInfo: Nullable<GQLRoots.FileMetadataRoot>,
+            iconRef: Nullable<GQLRoots.ImageRefRoot>,
+            iconInfo: Nullable<GQLRoots.FileMetadataRoot>,
+            extra: Nullable<GQLRoots.UrlAugmentationExtraRoot>,
+        },
+        {
+            url: GQL.UrlAugmentationUrlArgs,
+            title: GQL.UrlAugmentationTitleArgs,
+            date: GQL.UrlAugmentationDateArgs,
+            subtitle: GQL.UrlAugmentationSubtitleArgs,
+            description: GQL.UrlAugmentationDescriptionArgs,
+            photo: GQL.UrlAugmentationPhotoArgs,
+            imageInfo: GQL.UrlAugmentationImageInfoArgs,
+            imageURL: GQL.UrlAugmentationImageURLArgs,
+            iconRef: GQL.UrlAugmentationIconRefArgs,
+            iconInfo: GQL.UrlAugmentationIconInfoArgs,
+            hostname: GQL.UrlAugmentationHostnameArgs,
+            type: GQL.UrlAugmentationTypeArgs,
+            extra: GQL.UrlAugmentationExtraArgs,
+        }
+    >;
+    ServiceMetadata?: UnionTypeResolver<GQLRoots.ServiceMetadataRoot, 'InviteServiceMetadata' | 'KickServiceMetadata' | 'TitleChangeServiceMetadata' | 'PhotoChangeServiceMetadata' | 'PostRespondServiceMetadata'>;
+    ConversationMessage?: ComplexTypedResolver<
+        GQL.ConversationMessage,
+        GQLRoots.ConversationMessageRoot,
+        {
+            fileMetadata: Nullable<GQLRoots.FileMetadataRoot>,
+            sender: GQLRoots.UserRoot,
+            serviceMetadata: Nullable<GQLRoots.ServiceMetadataRoot>,
+            urlAugmentation: Nullable<GQLRoots.UrlAugmentationRoot>,
+            reactions: GQLRoots.MessageReactionRoot[],
+            replyMessages: Nullable<GQLRoots.ConversationMessageRoot[]>,
+            mentions: Nullable<GQLRoots.UserRoot[]>,
+            alphaAttachments: GQLRoots.MessageAttachmentRoot[],
+            alphaButtons: Nullable<GQLRoots.MessageButtonRoot[]>[],
+        },
+        {
+            id: GQL.ConversationMessageIdArgs,
+            message: GQL.ConversationMessageMessageArgs,
+            file: GQL.ConversationMessageFileArgs,
+            fileMetadata: GQL.ConversationMessageFileMetadataArgs,
+            filePreview: GQL.ConversationMessageFilePreviewArgs,
+            sender: GQL.ConversationMessageSenderArgs,
+            date: GQL.ConversationMessageDateArgs,
+            repeatKey: GQL.ConversationMessageRepeatKeyArgs,
+            isService: GQL.ConversationMessageIsServiceArgs,
+            serviceMetadata: GQL.ConversationMessageServiceMetadataArgs,
+            urlAugmentation: GQL.ConversationMessageUrlAugmentationArgs,
+            edited: GQL.ConversationMessageEditedArgs,
+            reactions: GQL.ConversationMessageReactionsArgs,
+            replyMessages: GQL.ConversationMessageReplyMessagesArgs,
+            plainText: GQL.ConversationMessagePlainTextArgs,
+            mentions: GQL.ConversationMessageMentionsArgs,
+            alphaAttachments: GQL.ConversationMessageAlphaAttachmentsArgs,
+            alphaButtons: GQL.ConversationMessageAlphaButtonsArgs,
+            alphaType: GQL.ConversationMessageAlphaTypeArgs,
+            alphaTitle: GQL.ConversationMessageAlphaTitleArgs,
+            postType: GQL.ConversationMessagePostTypeArgs,
+        }
+    >;
+    FileMetadata?: ComplexTypedResolver<
+        GQL.FileMetadata,
+        GQLRoots.FileMetadataRoot,
+        {
+        },
+        {
+            name: GQL.FileMetadataNameArgs,
+            mimeType: GQL.FileMetadataMimeTypeArgs,
+            size: GQL.FileMetadataSizeArgs,
+            isImage: GQL.FileMetadataIsImageArgs,
+            imageWidth: GQL.FileMetadataImageWidthArgs,
+            imageHeight: GQL.FileMetadataImageHeightArgs,
+            imageFormat: GQL.FileMetadataImageFormatArgs,
+        }
+    >;
+    NotificationCounter?: ComplexTypedResolver<
+        GQL.NotificationCounter,
+        GQLRoots.NotificationCounterRoot,
+        {
+        },
+        {
+            id: GQL.NotificationCounterIdArgs,
+            unreadCount: GQL.NotificationCounterUnreadCountArgs,
+        }
+    >;
     DialogUpdateSingle?: ComplexTypedResolver<
         GQL.DialogUpdateSingle,
         GQLRoots.DialogUpdateSingleRoot,
@@ -8602,7 +7947,6 @@ export interface GQLResolver {
         GQLRoots.DialogMessageReceivedRoot,
         {
             message: GQLRoots.ConversationMessageRoot,
-            betaMessage: GQLRoots.RoomMessageRoot,
             alphaMessage: GQLRoots.ModernMessageRoot,
             silent: GQLRoots.SilentMessageInfoRoot,
             showNotification: GQLRoots.SilentMessageInfoRoot,
@@ -8610,7 +7954,6 @@ export interface GQLResolver {
         {
             cid: GQL.DialogMessageReceivedCidArgs,
             message: GQL.DialogMessageReceivedMessageArgs,
-            betaMessage: GQL.DialogMessageReceivedBetaMessageArgs,
             alphaMessage: GQL.DialogMessageReceivedAlphaMessageArgs,
             unread: GQL.DialogMessageReceivedUnreadArgs,
             globalUnread: GQL.DialogMessageReceivedGlobalUnreadArgs,
@@ -8625,13 +7968,11 @@ export interface GQLResolver {
         GQLRoots.DialogMessageUpdatedRoot,
         {
             message: GQLRoots.ConversationMessageRoot,
-            betaMessage: GQLRoots.RoomMessageRoot,
             alphaMessage: GQLRoots.ModernMessageRoot,
         },
         {
             cid: GQL.DialogMessageUpdatedCidArgs,
             message: GQL.DialogMessageUpdatedMessageArgs,
-            betaMessage: GQL.DialogMessageUpdatedBetaMessageArgs,
             alphaMessage: GQL.DialogMessageUpdatedAlphaMessageArgs,
             haveMention: GQL.DialogMessageUpdatedHaveMentionArgs,
         }
@@ -8641,16 +7982,12 @@ export interface GQLResolver {
         GQLRoots.DialogMessageDeletedRoot,
         {
             message: GQLRoots.ConversationMessageRoot,
-            betaMessage: GQLRoots.RoomMessageRoot,
-            prevMessage: Nullable<GQLRoots.RoomMessageRoot>,
             alphaPrevMessage: Nullable<GQLRoots.ModernMessageRoot>,
             alphaMessage: GQLRoots.ModernMessageRoot,
         },
         {
             cid: GQL.DialogMessageDeletedCidArgs,
             message: GQL.DialogMessageDeletedMessageArgs,
-            betaMessage: GQL.DialogMessageDeletedBetaMessageArgs,
-            prevMessage: GQL.DialogMessageDeletedPrevMessageArgs,
             alphaPrevMessage: GQL.DialogMessageDeletedAlphaPrevMessageArgs,
             alphaMessage: GQL.DialogMessageDeletedAlphaMessageArgs,
             unread: GQL.DialogMessageDeletedUnreadArgs,
@@ -8783,6 +8120,17 @@ export interface GQLResolver {
         },
         {
             state: GQL.DialogUpdateStateStateArgs,
+        }
+    >;
+    Draft?: ComplexTypedResolver<
+        GQL.Draft,
+        GQLRoots.DraftRoot,
+        {
+        },
+        {
+            message: GQL.DraftMessageArgs,
+            date: GQL.DraftDateArgs,
+            version: GQL.DraftVersionArgs,
         }
     >;
     EnvVar?: ComplexTypedResolver<
@@ -8955,22 +8303,6 @@ export interface GQLResolver {
         GQL.Mutation,
         GQLRoots.MutationRoot,
         {
-            alphaSendMessage: GQLRoots.ConversationEventMessageRoot,
-            alphaReadChat: GQLRoots.ChatReadResultRoot,
-            alphaEditMessage: GQLRoots.ConversationEventEditMessageRoot,
-            alphaSendIntro: GQLRoots.ConversationEventMessageRoot,
-            alphaEditIntro: GQLRoots.ConversationEventMessageRoot,
-            alphaDeleteMessageUrlAugmentation: GQLRoots.ConversationEventMessageRoot,
-            alphaDeleteMessage: GQLRoots.ConversationEventDeleteRoot,
-            alphaChatCreateGroup: GQLRoots.ConversationRoot,
-            alphaChatUpdateGroup: GQLRoots.ConversationUpdateResponseRoot,
-            alphaChatChangeGroupTitle: GQLRoots.GroupChatUpdateResponseRoot,
-            alphaChatInviteToGroup: GQLRoots.GroupChatUpdateResponseRoot,
-            alphaChatKickFromGroup: GQLRoots.GroupChatUpdateResponseRoot,
-            alphaChatChangeRoleInGroup: GQLRoots.GroupChatUpdateResponseRoot,
-            alphaChatCopyGroup: GQLRoots.GroupChatUpdateResponseRoot,
-            alphaChatLeave: GQLRoots.ConversationUpdateResponseRoot,
-            alphaUpdateConversationSettings: GQLRoots.ConversationSettingsRoot,
             cardCreateSetupIntent: GQLRoots.CardSetupIntentRoot,
             cardCommitSetupIntent: GQLRoots.CreditCardRoot,
             cardRemove: GQLRoots.CreditCardRoot,
@@ -9029,6 +8361,7 @@ export interface GQLResolver {
             mediaStreamAnswer: GQLRoots.ConferenceMediaRoot,
             mediaStreamCandidate: GQLRoots.ConferenceMediaRoot,
             mediaStreamFailed: GQLRoots.ConferenceMediaRoot,
+            conversationDraftUpdate: GQLRoots.DraftRoot,
             stickerPackCreate: GQLRoots.StickerPackRoot,
             stickerPackUpdate: GQLRoots.StickerPackRoot,
             stickerPackAddSticker: GQLRoots.StickerRoot,
@@ -9086,27 +8419,6 @@ export interface GQLResolver {
         },
         {
             lifecheck: GQL.MutationLifecheckArgs,
-            alphaSendMessage: GQL.MutationAlphaSendMessageArgs,
-            alphaReadChat: GQL.MutationAlphaReadChatArgs,
-            alphaEditMessage: GQL.MutationAlphaEditMessageArgs,
-            alphaSendIntro: GQL.MutationAlphaSendIntroArgs,
-            alphaEditIntro: GQL.MutationAlphaEditIntroArgs,
-            alphaDeleteMessageUrlAugmentation: GQL.MutationAlphaDeleteMessageUrlAugmentationArgs,
-            alphaDeleteMessage: GQL.MutationAlphaDeleteMessageArgs,
-            alphaChatSetReaction: GQL.MutationAlphaChatSetReactionArgs,
-            alphaChatUnsetReaction: GQL.MutationAlphaChatUnsetReactionArgs,
-            alphaGlobalRead: GQL.MutationAlphaGlobalReadArgs,
-            alphaBlockUser: GQL.MutationAlphaBlockUserArgs,
-            alphaUnblockUser: GQL.MutationAlphaUnblockUserArgs,
-            alphaChatCreateGroup: GQL.MutationAlphaChatCreateGroupArgs,
-            alphaChatUpdateGroup: GQL.MutationAlphaChatUpdateGroupArgs,
-            alphaChatChangeGroupTitle: GQL.MutationAlphaChatChangeGroupTitleArgs,
-            alphaChatInviteToGroup: GQL.MutationAlphaChatInviteToGroupArgs,
-            alphaChatKickFromGroup: GQL.MutationAlphaChatKickFromGroupArgs,
-            alphaChatChangeRoleInGroup: GQL.MutationAlphaChatChangeRoleInGroupArgs,
-            alphaChatCopyGroup: GQL.MutationAlphaChatCopyGroupArgs,
-            alphaChatLeave: GQL.MutationAlphaChatLeaveArgs,
-            alphaUpdateConversationSettings: GQL.MutationAlphaUpdateConversationSettingsArgs,
             cardCreateSetupIntent: GQL.MutationCardCreateSetupIntentArgs,
             cardCommitSetupIntent: GQL.MutationCardCommitSetupIntentArgs,
             cardRemove: GQL.MutationCardRemoveArgs,
@@ -9267,8 +8579,6 @@ export interface GQLResolver {
             betaFixCounter: GQL.MutationBetaFixCounterArgs,
             betaFixCountersForAll: GQL.MutationBetaFixCountersForAllArgs,
             deliverCountersForAll: GQL.MutationDeliverCountersForAllArgs,
-            conversationDraftUpdate: GQL.MutationConversationDraftUpdateArgs,
-            alphaSaveDraftMessage: GQL.MutationAlphaSaveDraftMessageArgs,
             banUser: GQL.MutationBanUserArgs,
             unBanUser: GQL.MutationUnBanUserArgs,
             discoverCollectionsCreate: GQL.MutationDiscoverCollectionsCreateArgs,
@@ -9306,6 +8616,7 @@ export interface GQLResolver {
             mediaStreamFailed: GQL.MutationMediaStreamFailedArgs,
             addToContacts: GQL.MutationAddToContactsArgs,
             removeFromContacts: GQL.MutationRemoveFromContactsArgs,
+            conversationDraftUpdate: GQL.MutationConversationDraftUpdateArgs,
             setEnvVar: GQL.MutationSetEnvVarArgs,
             setEnvVarString: GQL.MutationSetEnvVarStringArgs,
             setEnvVarNumber: GQL.MutationSetEnvVarNumberArgs,
@@ -9325,8 +8636,6 @@ export interface GQLResolver {
             betaMessageDelete: GQL.MutationBetaMessageDeleteArgs,
             betaReactionSet: GQL.MutationBetaReactionSetArgs,
             betaReactionRemove: GQL.MutationBetaReactionRemoveArgs,
-            betaIntroSend: GQL.MutationBetaIntroSendArgs,
-            betaIntroEdit: GQL.MutationBetaIntroEditArgs,
             readNotification: GQL.MutationReadNotificationArgs,
             deleteNotification: GQL.MutationDeleteNotificationArgs,
             notificationCenterMarkSeqRead: GQL.MutationNotificationCenterMarkSeqReadArgs,
@@ -9483,7 +8792,7 @@ export interface GQLResolver {
             profiles: GQL.NewMatchmakingProfilesNotificationProfilesArgs,
         }
     >;
-    MessageWithMention?: UnionTypeResolver<GQLRoots.MessageWithMentionRoot, 'FeedPost' | 'Message'>;
+    MessageWithMention?: UnionTypeResolver<GQLRoots.MessageWithMentionRoot, 'FeedPost'>;
     MentionNotification?: ComplexTypedResolver<
         GQL.MentionNotification,
         GQLRoots.MentionNotificationRoot,
@@ -10014,12 +9323,6 @@ export interface GQLResolver {
         GQL.Query,
         GQLRoots.QueryRoot,
         {
-            alphaNotificationCounter: GQLRoots.NotificationCounterRoot,
-            alphaChat: GQLRoots.ConversationRoot,
-            alphaLoadMessages: GQLRoots.ConversationStateRoot,
-            alphaChatsSearchForCompose: GQLRoots.ComposeSearchResultRoot[],
-            alphaChatSearch: Nullable<GQLRoots.ConversationRoot>,
-            alphaGroupConversationMembers: GQLRoots.GroupConversationMemberRoot[],
             myCards: GQLRoots.CreditCardRoot[],
             myWallet: GQLRoots.WalletAccountRoot,
             transactionsPending: GQLRoots.WalletTransactionRoot[],
@@ -10057,8 +9360,6 @@ export interface GQLResolver {
             superAccounts: GQLRoots.SuperAccountRoot[],
             superAccount: GQLRoots.SuperAccountRoot,
             superAdmins: GQLRoots.SuperAdminRoot[],
-            alphaChatTextSearch: GQLRoots.ConversationRoot[],
-            betaDialogTextSearch: GQLRoots.DialogRoot[],
             myBlackList: GQLRoots.UserRoot[],
             discoverCollections: Nullable<GQLRoots.DiscoverChatsCollectionConnectionRoot>,
             discoverCollection: Nullable<GQLRoots.DiscoverChatsCollectionRoot>,
@@ -10079,6 +9380,7 @@ export interface GQLResolver {
             myContacts: GQLRoots.ContactConnectionRoot,
             myContactsSearch: GQLRoots.UserConnectionRoot,
             myContactsState: GQLRoots.ContactsStateRoot,
+            alphaNotificationCounter: GQLRoots.NotificationCounterRoot,
             dialogsState: GQLRoots.DialogUpdateStateRoot,
             envVars: Nullable<GQLRoots.EnvVarRoot[]>,
             envVar: Nullable<GQLRoots.EnvVarRoot>,
@@ -10162,7 +9464,6 @@ export interface GQLResolver {
             room: Nullable<GQLRoots.RoomRoot>,
             rooms: GQLRoots.RoomRoot[],
             roomSuper: Nullable<GQLRoots.RoomSuperRoot>,
-            roomMessages: GQLRoots.RoomMessageRoot[],
             roomMembers: GQLRoots.RoomMemberRoot[],
             roomAdmins: GQLRoots.RoomMemberRoot[],
             roomFeaturedMembers: GQLRoots.RoomMemberRoot[],
@@ -10177,12 +9478,6 @@ export interface GQLResolver {
         },
         {
             lifecheck: GQL.QueryLifecheckArgs,
-            alphaNotificationCounter: GQL.QueryAlphaNotificationCounterArgs,
-            alphaChat: GQL.QueryAlphaChatArgs,
-            alphaLoadMessages: GQL.QueryAlphaLoadMessagesArgs,
-            alphaChatsSearchForCompose: GQL.QueryAlphaChatsSearchForComposeArgs,
-            alphaChatSearch: GQL.QueryAlphaChatSearchArgs,
-            alphaGroupConversationMembers: GQL.QueryAlphaGroupConversationMembersArgs,
             myCards: GQL.QueryMyCardsArgs,
             myWallet: GQL.QueryMyWalletArgs,
             transactionsPending: GQL.QueryTransactionsPendingArgs,
@@ -10237,10 +9532,6 @@ export interface GQLResolver {
             superAccounts: GQL.QuerySuperAccountsArgs,
             superAccount: GQL.QuerySuperAccountArgs,
             superAdmins: GQL.QuerySuperAdminsArgs,
-            alphaChatTextSearch: GQL.QueryAlphaChatTextSearchArgs,
-            betaDialogTextSearch: GQL.QueryBetaDialogTextSearchArgs,
-            conversationDraft: GQL.QueryConversationDraftArgs,
-            alphaDraftMessage: GQL.QueryAlphaDraftMessageArgs,
             myBlackList: GQL.QueryMyBlackListArgs,
             discoverCollections: GQL.QueryDiscoverCollectionsArgs,
             discoverCollection: GQL.QueryDiscoverCollectionArgs,
@@ -10261,6 +9552,7 @@ export interface GQLResolver {
             myContacts: GQL.QueryMyContactsArgs,
             myContactsSearch: GQL.QueryMyContactsSearchArgs,
             myContactsState: GQL.QueryMyContactsStateArgs,
+            alphaNotificationCounter: GQL.QueryAlphaNotificationCounterArgs,
             dialogsState: GQL.QueryDialogsStateArgs,
             envVars: GQL.QueryEnvVarsArgs,
             envVar: GQL.QueryEnvVarArgs,
@@ -10349,7 +9641,6 @@ export interface GQLResolver {
             room: GQL.QueryRoomArgs,
             rooms: GQL.QueryRoomsArgs,
             roomSuper: GQL.QueryRoomSuperArgs,
-            roomMessages: GQL.QueryRoomMessagesArgs,
             roomMembers: GQL.QueryRoomMembersArgs,
             roomAdmins: GQL.QueryRoomAdminsArgs,
             roomFeaturedMembers: GQL.QueryRoomFeaturedMembersArgs,
@@ -10453,11 +9744,9 @@ export interface GQLResolver {
         GQL.SyncChat,
         GQLRoots.SyncChatRoot,
         {
-            conversation: GQLRoots.ConversationRoot,
             sequence: GQLRoots.SequenceRoot,
         },
         {
-            conversation: GQL.SyncChatConversationArgs,
             sequence: GQL.SyncChatSequenceArgs,
             pts: GQL.SyncChatPtsArgs,
         }
@@ -11657,67 +10946,6 @@ export interface GQLResolver {
             autosubscribeRooms: GQL.RoomSuperAutosubscribeRoomsArgs,
         }
     >;
-    UserMention?: ComplexTypedResolver<
-        GQL.UserMention,
-        GQLRoots.UserMentionRoot,
-        {
-            user: GQLRoots.UserRoot,
-        },
-        {
-            user: GQL.UserMentionUserArgs,
-        }
-    >;
-    SharedRoomMention?: ComplexTypedResolver<
-        GQL.SharedRoomMention,
-        GQLRoots.SharedRoomMentionRoot,
-        {
-            sharedRoom: GQLRoots.SharedRoomRoot,
-        },
-        {
-            sharedRoom: GQL.SharedRoomMentionSharedRoomArgs,
-        }
-    >;
-    Mention?: UnionTypeResolver<GQLRoots.MentionRoot, 'UserMention' | 'SharedRoomMention'>;
-    RoomMessage?: ComplexTypedResolver<
-        GQL.RoomMessage,
-        GQLRoots.RoomMessageRoot,
-        {
-            fileMetadata: Nullable<GQLRoots.FileMetadataRoot>,
-            sender: GQLRoots.UserRoot,
-            serviceMetadata: Nullable<GQLRoots.ServiceMetadataRoot>,
-            urlAugmentation: Nullable<GQLRoots.UrlAugmentationRoot>,
-            reactions: GQLRoots.MessageReactionRoot[],
-            replyMessages: Nullable<GQLRoots.RoomMessageRoot[]>,
-            mentions: Nullable<GQLRoots.UserRoot[]>,
-            alphaAttachments: GQLRoots.MessageAttachmentRoot[],
-            alphaButtons: Nullable<GQLRoots.MessageButtonRoot[]>[],
-            alphaMentions: Nullable<GQLRoots.MentionRoot[]>,
-        },
-        {
-            id: GQL.RoomMessageIdArgs,
-            message: GQL.RoomMessageMessageArgs,
-            file: GQL.RoomMessageFileArgs,
-            fileMetadata: GQL.RoomMessageFileMetadataArgs,
-            filePreview: GQL.RoomMessageFilePreviewArgs,
-            sender: GQL.RoomMessageSenderArgs,
-            date: GQL.RoomMessageDateArgs,
-            repeatKey: GQL.RoomMessageRepeatKeyArgs,
-            isService: GQL.RoomMessageIsServiceArgs,
-            serviceMetadata: GQL.RoomMessageServiceMetadataArgs,
-            urlAugmentation: GQL.RoomMessageUrlAugmentationArgs,
-            edited: GQL.RoomMessageEditedArgs,
-            reactions: GQL.RoomMessageReactionsArgs,
-            replyMessages: GQL.RoomMessageReplyMessagesArgs,
-            plainText: GQL.RoomMessagePlainTextArgs,
-            mentions: GQL.RoomMessageMentionsArgs,
-            alphaAttachments: GQL.RoomMessageAlphaAttachmentsArgs,
-            alphaButtons: GQL.RoomMessageAlphaButtonsArgs,
-            alphaType: GQL.RoomMessageAlphaTypeArgs,
-            alphaTitle: GQL.RoomMessageAlphaTitleArgs,
-            alphaPostType: GQL.RoomMessageAlphaPostTypeArgs,
-            alphaMentions: GQL.RoomMessageAlphaMentionsArgs,
-        }
-    >;
     RoomMember?: ComplexTypedResolver<
         GQL.RoomMember,
         GQLRoots.RoomMemberRoot,
@@ -11816,7 +11044,7 @@ export interface GQLResolver {
         }
     >;
     ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom' | 'DiscoverChatsCollection' | 'Channel'>;
-    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged' | 'UpdateChatMessage' | 'UpdateChatMessageDeleted'>;
+    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged' | 'UpdateChatMessage' | 'UpdateChatMessageDeleted' | 'UpdateChatDraftChanged' | 'UpdateSettingsChanged'>;
     UpdateChatRead?: ComplexTypedResolver<
         GQL.UpdateChatRead,
         GQLRoots.UpdateChatReadRoot,
@@ -11869,6 +11097,28 @@ export interface GQLResolver {
             cid: GQL.UpdateChatMessageDeletedCidArgs,
             mid: GQL.UpdateChatMessageDeletedMidArgs,
             seq: GQL.UpdateChatMessageDeletedSeqArgs,
+        }
+    >;
+    UpdateChatDraftChanged?: ComplexTypedResolver<
+        GQL.UpdateChatDraftChanged,
+        GQLRoots.UpdateChatDraftChangedRoot,
+        {
+        },
+        {
+            cid: GQL.UpdateChatDraftChangedCidArgs,
+            draft: GQL.UpdateChatDraftChangedDraftArgs,
+            version: GQL.UpdateChatDraftChangedVersionArgs,
+            date: GQL.UpdateChatDraftChangedDateArgs,
+        }
+    >;
+    UpdateSettingsChanged?: ComplexTypedResolver<
+        GQL.UpdateSettingsChanged,
+        GQLRoots.UpdateSettingsChangedRoot,
+        {
+            settings: GQLRoots.SettingsRoot,
+        },
+        {
+            settings: GQL.UpdateSettingsChangedSettingsArgs,
         }
     >;
 }

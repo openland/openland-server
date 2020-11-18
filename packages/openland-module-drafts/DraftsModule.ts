@@ -1,21 +1,17 @@
-import { DraftsRepository } from './repositories/DraftsRepository';
+import { DraftsMediator } from './mediators/DraftsMediator';
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 
 @injectable()
 export class DraftsModule {
-    private readonly repo = new DraftsRepository();
+    private readonly repo = new DraftsMediator();
 
-    findDraft = async (ctx: Context, uid: number, conversationId: number) => {
-        return this.repo.findDraft(ctx, uid, conversationId);
+    findDraft = async (ctx: Context, uid: number, cid: number) => {
+        return this.repo.findDraft(ctx, uid, cid);
     }
 
-    saveDraft = async (ctx: Context, uid: number, conversationId: number, message: string) => {
-        return this.repo.saveDraft(ctx, uid, conversationId, message);
-    }
-
-    clearDraft = async (ctx: Context, uid: number, conversationId: number) => {
-        return this.repo.clearDraft(ctx, uid, conversationId);
+    setDraft = async (ctx: Context, uid: number, cid: number, message: string | null) => {
+        return this.repo.setDraft(ctx, uid, cid, message);
     }
 
     start = async () => {

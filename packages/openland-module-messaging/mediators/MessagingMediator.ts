@@ -303,23 +303,6 @@ export class MessagingMediator {
                 this.augmentation.onNewMessage(ctx, res.message);
             }
 
-            // Cancel typings
-            // TODO: Remove
-            // if (!message.isService && !message.isMuted) {
-            //     // tslint:disable
-            //     (async () => {
-            //         await inTx(withoutTransaction(ctx), async ctx2 => {
-            //             let members = await this.room.findConversationMembers(ctx2, cid);
-            //             await Modules.Typings.cancelTyping(uid, cid, members);
-            //         })
-            //     })();
-            //     // tslint:enable
-            // }
-
-            // Clear draft
-            // TODO: Move
-            await Modules.Drafts.clearDraft(ctx, uid, cid);
-
             return res.message;
         }));
     }

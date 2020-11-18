@@ -42,7 +42,6 @@ type ShowNotificationMessageInfo {
 type DialogMessageReceived {
     cid: ID!
     message: ConversationMessage!
-    betaMessage: RoomMessage!
     alphaMessage: ModernMessage!
     unread: Int!
     globalUnread: Int!
@@ -55,7 +54,6 @@ type DialogMessageReceived {
 type DialogMessageUpdated {
     cid: ID!
     message: ConversationMessage!
-    betaMessage: RoomMessage!
     alphaMessage: ModernMessage!
     haveMention: Boolean!
 }
@@ -63,8 +61,6 @@ type DialogMessageUpdated {
 type DialogMessageDeleted {
     cid: ID!
     message: ConversationMessage!
-    betaMessage: RoomMessage!
-    prevMessage: RoomMessage
     alphaPrevMessage: ModernMessage
     alphaMessage: ModernMessage!
     unread: Int!
