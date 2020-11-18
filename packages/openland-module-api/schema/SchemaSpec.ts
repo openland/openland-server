@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '211980683dc9832a2339d4f9c5ce351a';
+export const GQL_SPEC_VERSION = 'de0eb2e3e751c33f0d89ba56e43480ba';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -5385,10 +5385,12 @@ export namespace GQL {
         node: User;
         isMember: boolean;
         cursor: string;
+        inviteRestricted: boolean;
     }
     export interface ChatUserEdgeNodeArgs { }
     export interface ChatUserEdgeIsMemberArgs { }
     export interface ChatUserEdgeCursorArgs { }
+    export interface ChatUserEdgeInviteRestrictedArgs { }
     export interface ChatUserConnection {
         edges: ChatUserEdge[];
         pageInfo: PageInfo;
@@ -10731,6 +10733,7 @@ export interface GQLResolver {
             node: GQL.ChatUserEdgeNodeArgs,
             isMember: GQL.ChatUserEdgeIsMemberArgs,
             cursor: GQL.ChatUserEdgeCursorArgs,
+            inviteRestricted: GQL.ChatUserEdgeInviteRestrictedArgs,
         }
     >;
     ChatUserConnection?: ComplexTypedResolver<

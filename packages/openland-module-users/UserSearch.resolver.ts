@@ -3,11 +3,11 @@ import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { IDs } from '../openland-module-api/IDs';
+import { UserEdge } from 'openland-module-db/store';
 
 export const Resolver: GQLResolver = {
     Query: {
         userSearch: withAny(async (ctx, args) => {
-
             let {uids, total} = await Modules.Users.searchForUsers(
                 ctx,
                 args.query || '',
@@ -100,10 +100,22 @@ export const Resolver: GQLResolver = {
 
             return {
                 edges: await Promise.all(users.map(async (p, i) => {
+                    let uid = p!.id
+                    let settings = await Modules.Users.getUserSettings(ctx, uid)
+                    let whoCanAddToGroups = settings.privacy?.whoCanAddToGroups
+                    let restricted = false
+                    if (whoCanAddToGroups == 'nobody') {
+                        restricted = true
+                    } else if (whoCanAddToGroups == 'correspondents') {
+                        let edge = await Store.UserEdge.findById(ctx, uid, ctx.auth.uid!)
+                        restricted = !edge
+                    }
+                    
                     return {
                         node: p,
                         cursor: (i + 1 + offset).toString(),
-                        isMember: await Modules.Messaging.room.isRoomMember(ctx, p!.id, cid)
+                        isMember: await Modules.Messaging.room.isRoomMember(ctx, p!.id, cid),
+                        inviteRestricted: restricted
                     };
                 })),
                 pageInfo: {

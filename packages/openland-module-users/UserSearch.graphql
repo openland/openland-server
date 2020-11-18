@@ -12,6 +12,7 @@ type ChatUserEdge {
     node: User!
     isMember: Boolean!
     cursor: String!
+    inviteRestricted: Boolean!
 }
 
 type ChatUserConnection {
