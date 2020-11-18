@@ -99,15 +99,14 @@ export const Resolver: GQLResolver = {
 
             return {
                 edges: await Promise.all(users.map(async (p, i) => {
-                    let uid = p!.id
-                    let settings = await Modules.Users.getUserSettings(ctx, uid)
-                    let whoCanAddToGroups = settings.privacy?.whoCanAddToGroups
-                    let restricted = false
-                    if (whoCanAddToGroups == 'nobody') {
-                        restricted = true
-                    } else if (whoCanAddToGroups == 'correspondents') {
-                        let edge = await Store.UserEdge.findById(ctx, uid, ctx.auth.uid!)
-                        restricted = !edge
+                    let settings = await Modules.Users.getUserSettings(ctx, p!.id);
+                    let whoCanAddToGroups = settings.privacy?.whoCanAddToGroups;
+                    let restricted = false;
+                    if (whoCanAddToGroups === 'nobody') {
+                        restricted = true;
+                    } else if (whoCanAddToGroups === 'correspondents') {
+                        let edge = await Store.UserEdge.findById(ctx, p!.id, ctx.auth.uid!);
+                        restricted = !edge;
                     }
 
                     return {
