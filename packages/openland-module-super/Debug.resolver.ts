@@ -2041,7 +2041,7 @@ export const Resolver: GQLResolver = {
                     let orgRooms = await Store.ConversationRoom.organizationPublicRooms.findAll(ctx, oid);
 
                     await Promise.all(orgRooms.map(async room => {
-                        await Promise.all(members.map(member => Modules.Messaging.room.leaveRoom(ctx, room.id, member.uid)));
+                        await Promise.all(members.map(member => Modules.Messaging.room.leaveRoom(ctx, room.id, member.uid, false)));
                     }));
                 } catch (e) {
                     await log(e);

@@ -216,7 +216,7 @@ export class RoomMediator {
         });
     }
 
-    async kickFromRoom(parent: Context, cid: number, uid: number | null, kickedUid: number) {
+    async kickFromRoom(parent: Context, cid: number, uid: number | null, kickedUid: number, silent: boolean) {
         return await inTx(parent, async (ctx) => {
             if (uid === kickedUid) {
                 throw new UserError('Unable to kick yourself');
@@ -252,16 +252,18 @@ export class RoomMediator {
                     // Send message
                     let cickerName = await Modules.Users.getUserFullName(parent, uid);
                     let cickedName = await Modules.Users.getUserFullName(parent, kickedUid);
-                    await this.messaging.sendMessage(ctx, uid, cid, {
-                        ...buildMessage(userMention(cickerName, uid), ' kicked ', userMention(cickedName, kickedUid)),
-                        isService: true,
-                        isMuted: true,
-                        serviceMetadata: {
-                            type: 'user_kick',
-                            userId: kickedUid,
-                            kickedById: uid
-                        },
-                    }, true);
+                    if (!silent) {
+                        await this.messaging.sendMessage(ctx, uid, cid, {
+                            ...buildMessage(userMention(cickerName, uid), ' kicked ', userMention(cickedName, kickedUid)),
+                            isService: true,
+                            isMuted: true,
+                            serviceMetadata: {
+                                type: 'user_kick',
+                                userId: kickedUid,
+                                kickedById: uid
+                            },
+                        }, true);
+                    }
                 }
 
                 // Deliver dialog deletion
@@ -328,7 +330,7 @@ export class RoomMediator {
         });
     }
 
-    async leaveRoom(parent: Context, cid: number, uid: number) {
+    async leaveRoom(parent: Context, cid: number, uid: number, silent: boolean) {
         return await inTx(parent, async (ctx) => {
 
             if (await this.repo.leaveRoom(ctx, cid, uid)) {
@@ -337,7 +339,7 @@ export class RoomMediator {
                 // Send message
                 let userName = await Modules.Users.getUserFullName(ctx, uid);
 
-                if (await this.shouldSendLeaveMessage(ctx, cid)) {
+                if (await this.shouldSendLeaveMessage(ctx, cid) && !silent) {
                     await this.messaging.sendMessage(ctx, uid, cid, {
                         ...buildMessage(userMention(userName, uid), ` left the\u00A0group`),
                         isService: true,

@@ -690,9 +690,9 @@ export const Resolver: GQLResolver = {
             let userId = IDs.User.parse(args.userId);
             return inTx(parent, async (ctx) => {
                 if (uid === userId) {
-                    await Modules.Messaging.room.leaveRoom(ctx, IDs.Conversation.parse(args.roomId), uid);
+                    await Modules.Messaging.room.leaveRoom(ctx, IDs.Conversation.parse(args.roomId), uid, false);
                 } else {
-                    await Modules.Messaging.room.kickFromRoom(ctx, IDs.Conversation.parse(args.roomId), uid, userId);
+                    await Modules.Messaging.room.kickFromRoom(ctx, IDs.Conversation.parse(args.roomId), uid, userId, false);
                 }
                 return (await Store.Conversation.findById(ctx, IDs.Conversation.parse(args.roomId)))!;
             });
@@ -705,7 +705,7 @@ export const Resolver: GQLResolver = {
             });
         }),
         betaRoomLeave: withUser(async (parent, args, uid) => {
-            return await Modules.Messaging.room.leaveRoom(parent, IDs.Conversation.parse(args.roomId), uid);
+            return await Modules.Messaging.room.leaveRoom(parent, IDs.Conversation.parse(args.roomId), uid, false);
 
         }),
         betaRoomChangeRole: withUser(async (ctx, args, uid) => {

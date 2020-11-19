@@ -114,7 +114,7 @@ export class UserRepository {
 
             // Leave chats
             let participates = await Store.RoomParticipant.userActive.findAll(ctx, uid);
-            await Promise.all(participates.map(p => Modules.Messaging.room.leaveRoom(ctx, p.cid, uid)));
+            await Promise.all(participates.map(p => Modules.Messaging.room.leaveRoom(ctx, p.cid, uid, false)));
 
             // Free shortname
             await Modules.Shortnames.freeShortName(ctx, 'user', uid);
