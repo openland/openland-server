@@ -328,8 +328,8 @@ export class MessagingModule {
         }
         if (convRoom) {
             if (convRoom.isChannel) {
-                mobileSettings = mobile.channels;
-                desktopSettings = desktop.channels;
+                mobileSettings = mobile.channels ? mobile.channels : { showNotification: true, sound: true };
+                desktopSettings = desktop.channels ? desktop.channels : { showNotification: true, sound: true };
             } else if (convRoom.kind === 'group') {
                 mobileSettings = mobile.secretChat;
                 desktopSettings = desktop.secretChat;
