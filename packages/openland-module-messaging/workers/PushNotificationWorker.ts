@@ -229,6 +229,8 @@ const handleUser = async (root: Context, uid: number) =>  {
     }
 };
 
+const RING_SIZE = 10;
+
 async function handleUsersForShard(parent: Context, shardId: number) {
     let unreadUsers = await inTx(parent, async (ctx) => await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push'));
     unreadUsers = unreadUsers.filter(uid => getShardId(uid, RING_SIZE) === shardId);
@@ -263,8 +265,6 @@ function createWorker(shardId: number) {
         await handleUsersForShard(parent, shardId);
     });
 }
-
-const RING_SIZE = 10;
 
 export function startPushNotificationWorker() {
     for (let i = 0; i <= RING_SIZE; i++) {
