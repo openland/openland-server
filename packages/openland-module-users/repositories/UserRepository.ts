@@ -231,7 +231,8 @@ export class UserRepository {
                     direct: allChatEnabled,
                     communityChat: allChatEnabled,
                     organizationChat: allChatEnabled,
-                    notificationPreview: 'name_text' as any
+                    channels: allChatEnabled,
+                    notificationPreview: 'name_text' as any,
                 };
                 settings = await Store.UserSettings.create(ctx, uid, {
                     emailFrequency: '1hour',

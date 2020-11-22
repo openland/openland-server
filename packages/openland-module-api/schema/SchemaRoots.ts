@@ -328,6 +328,7 @@ export namespace GQLRoots {
         organizationChat: ChatTypeNotificationSettingsRoot,
         communityChat: ChatTypeNotificationSettingsRoot,
         comments: ChatTypeNotificationSettingsRoot,
+        channels: ChatTypeNotificationSettingsRoot | null,
         notificationPreview: 'name_text' | 'name',
     };
     export type PrivacyWhoCanSeeRoot = GQL.PrivacyWhoCanSeeValues;

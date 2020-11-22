@@ -327,7 +327,10 @@ export class MessagingModule {
             desktopSettings = desktop.direct;
         }
         if (convRoom) {
-            if (convRoom.kind === 'group') {
+            if (convRoom.isChannel) {
+                mobileSettings = mobile.channels;
+                desktopSettings = desktop.channels;
+            } else if (convRoom.kind === 'group') {
                 mobileSettings = mobile.secretChat;
                 desktopSettings = desktop.secretChat;
             } else if (convRoom.kind === 'public' && convRoom.oid) {

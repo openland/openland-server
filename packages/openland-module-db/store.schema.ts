@@ -154,6 +154,7 @@ export default declareSchema(() => {
         organizationChat: notificationSettings,
         communityChat: notificationSettings,
         comments: notificationSettings,
+        channels: optional(notificationSettings),
         notificationPreview: enumString('name_text', 'name'),
     });
 

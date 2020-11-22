@@ -61,6 +61,7 @@ type PlatformNotificationSettings {
     organizationChat: ChatTypeNotificationSettings!
     communityChat: ChatTypeNotificationSettings!
     comments: ChatTypeNotificationSettings!
+    channels: ChatTypeNotificationSettings!
     notificationPreview: NotificationPreview!
 }
 
@@ -71,6 +72,7 @@ input PlatformNotificationSettingsInput {
     organizationChat: ChatTypeNotificationSettingsInput
     communityChat: ChatTypeNotificationSettingsInput
     comments: ChatTypeNotificationSettingsInput
+    channels: ChatTypeNotificationSettingsInput
     notificationPreview: NotificationPreview
 }
 

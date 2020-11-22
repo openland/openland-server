@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0bf35b4c476abcf5d2dae4b5c0ecae35';
+export const GQL_SPEC_VERSION = '91d6f79abccc2111fb799022848ed66b';
 
 export namespace GQL {
     export interface CreditCard {
@@ -562,6 +562,7 @@ export namespace GQL {
         organizationChat: ChatTypeNotificationSettings;
         communityChat: ChatTypeNotificationSettings;
         comments: ChatTypeNotificationSettings;
+        channels: ChatTypeNotificationSettings;
         notificationPreview: NotificationPreview;
     }
     export interface PlatformNotificationSettingsDirectArgs { }
@@ -569,6 +570,7 @@ export namespace GQL {
     export interface PlatformNotificationSettingsOrganizationChatArgs { }
     export interface PlatformNotificationSettingsCommunityChatArgs { }
     export interface PlatformNotificationSettingsCommentsArgs { }
+    export interface PlatformNotificationSettingsChannelsArgs { }
     export interface PlatformNotificationSettingsNotificationPreviewArgs { }
     export interface PlatformNotificationSettingsInput {
         direct: Nullable<ChatTypeNotificationSettingsInput>;
@@ -576,6 +578,7 @@ export namespace GQL {
         organizationChat: Nullable<ChatTypeNotificationSettingsInput>;
         communityChat: Nullable<ChatTypeNotificationSettingsInput>;
         comments: Nullable<ChatTypeNotificationSettingsInput>;
+        channels: Nullable<ChatTypeNotificationSettingsInput>;
         notificationPreview: Nullable<NotificationPreview>;
     }
     export interface UpdateSettingsInput {
@@ -6689,6 +6692,7 @@ export interface GQLResolver {
             organizationChat: GQLRoots.ChatTypeNotificationSettingsRoot,
             communityChat: GQLRoots.ChatTypeNotificationSettingsRoot,
             comments: GQLRoots.ChatTypeNotificationSettingsRoot,
+            channels: GQLRoots.ChatTypeNotificationSettingsRoot,
         },
         {
             direct: GQL.PlatformNotificationSettingsDirectArgs,
@@ -6696,6 +6700,7 @@ export interface GQLResolver {
             organizationChat: GQL.PlatformNotificationSettingsOrganizationChatArgs,
             communityChat: GQL.PlatformNotificationSettingsCommunityChatArgs,
             comments: GQL.PlatformNotificationSettingsCommentsArgs,
+            channels: GQL.PlatformNotificationSettingsChannelsArgs,
             notificationPreview: GQL.PlatformNotificationSettingsNotificationPreviewArgs,
         }
     >;
