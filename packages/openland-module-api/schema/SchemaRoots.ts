@@ -387,6 +387,15 @@ export namespace GQLRoots {
     export type UserConnectionRoot = any;
     export type ChatUserEdgeRoot = any;
     export type ChatUserConnectionRoot = any;
+    export type OrgUserEdgeRoot = {
+        node: UserRoot,
+        isMember: boolean,
+        cursor: string
+    };
+    export type OrgUserConnectionRoot = {
+        edges: OrgUserEdgeRoot[],
+        pageInfo: PageInfoRoot
+    };
     export type RoomRoot = Conversation | number;
     export type PrivateRoomRoot = any;
     export type WelcomeMessageRoot = WelcomeMessageT;
