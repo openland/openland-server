@@ -85,7 +85,14 @@ import {
     ContactAddedEvent,
     ContactRemovedEvent, UserDialogGotAccessEvent, UserDialogLostAccessEvent,
     UpdateChatRead,
-    UpdateProfileChanged, BlackListAddedEvent, BlackListRemovedEvent, UpdateChatMessage, UpdateChatMessageUpdated, UpdateChatMessageDeleted
+    UpdateProfileChanged,
+    BlackListAddedEvent,
+    BlackListRemovedEvent,
+    UpdateChatMessage,
+    UpdateChatMessageUpdated,
+    UpdateChatMessageDeleted,
+    UpdateChatDraftUpdated,
+    UpdateSettingsChanged
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -321,9 +328,11 @@ export namespace GQLRoots {
         organizationChat: ChatTypeNotificationSettingsRoot,
         communityChat: ChatTypeNotificationSettingsRoot,
         comments: ChatTypeNotificationSettingsRoot,
+        channels: ChatTypeNotificationSettingsRoot | null,
         notificationPreview: 'name_text' | 'name',
     };
     export type PrivacyWhoCanSeeRoot = GQL.PrivacyWhoCanSeeValues;
+    export type PrivacyWhoCanAddToGroupsRoot = GQL.PrivacyWhoCanAddToGroupsValues;
     export type EmailFrequencyRoot = 'never' | '15min' | '1hour' | '24hour' | '1week';
     export type NotificationMessagesRoot = 'all' | 'direct' | 'none';
     export type NotificationCommentsRoot = 'all' | 'direct' | 'none';
@@ -379,6 +388,15 @@ export namespace GQLRoots {
     export type UserConnectionRoot = any;
     export type ChatUserEdgeRoot = any;
     export type ChatUserConnectionRoot = any;
+    export type OrgUserEdgeRoot = {
+        node: UserRoot,
+        isMember: boolean,
+        cursor: string
+    };
+    export type OrgUserConnectionRoot = {
+        edges: OrgUserEdgeRoot[],
+        pageInfo: PageInfoRoot
+    };
     export type RoomRoot = Conversation | number;
     export type PrivateRoomRoot = any;
     export type WelcomeMessageRoot = WelcomeMessageT;
@@ -794,16 +812,24 @@ export namespace GQLRoots {
     export type UpdateMyProfileChangedRoot = UpdateProfileChanged;
     export type UpdateChatMessageRoot = UpdateChatMessage | UpdateChatMessageUpdated;
     export type UpdateChatMessageDeletedRoot = UpdateChatMessageDeleted;
+    export type UpdateChatDraftChangedRoot = UpdateChatDraftUpdated;
+    export type UpdateSettingsChangedRoot = UpdateSettingsChanged;
     export type UpdateEventRoot = Event;
 
     export type SequenceCommonRoot = { type: 'common', uid: number };
     export type SequenceChatRoot = { type: 'chat', cid: number } | { type: 'chat-private', cid: number, uid: number };
     export type SequenceRoot = SequenceCommonRoot | SequenceChatRoot;
+    export type DraftRoot = {
+        version: number;
+        date: number;
+        value: string | null;
+    };
 
     export type UpdateSubscriptionStartedRoot = { type: 'started', seq: number, state: string };
     export type UpdateSubscriptionCheckpointRoot = { type: 'checkpoint', seq: number, state: string };
     export type UpdateSubscriptionEventRoot = { type: 'update', seq: number, pts: number, update: UpdateEventRoot, sequence: SequenceRoot };
-    export type UpdateSubscriptionRoot = UpdateSubscriptionStartedRoot | UpdateSubscriptionCheckpointRoot | UpdateSubscriptionEventRoot;
+    export type UpdateSubscriptionEphemeralEventRoot = { type: 'update-ephemeral', seq: number, update: UpdateEventRoot, sequence: SequenceRoot };
+    export type UpdateSubscriptionRoot = UpdateSubscriptionStartedRoot | UpdateSubscriptionCheckpointRoot | UpdateSubscriptionEventRoot | UpdateSubscriptionEphemeralEventRoot;
 
     export type UpdatesSequenceStateRoot = { sequence: SequenceRoot, pts: number };
     export type UpdatesStateRoot = { seq: number, state: string, sequences: UpdatesSequenceStateRoot[] };
@@ -813,4 +839,11 @@ export namespace GQLRoots {
     export type UpdatesDifferenceRoot = { seq: number, state: string, hasMore: boolean, sequences: UpdatesSequenceDifferenceRoot[] };
 
     export type SequenceDifferenceRoot = { hasMore: boolean, pts: number, sequence: SequenceRoot, events: UpdatesDifferenceEventRoot[] };
+
+    //
+    // Chats
+    //
+
+    export type SyncChatRoot = { conversation: Conversation, sequence: SequenceRoot };
+    export type SyncChatsConnectionRoot = { items: SyncChatRoot[], cursor: string | null };
 }

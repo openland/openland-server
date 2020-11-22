@@ -19,7 +19,13 @@ type UpdateSubscriptionEvent {
     sequence: Sequence!
 }
 
-union UpdateSubscription = UpdateSubscriptionStarted | UpdateSubscriptionCheckpoint | UpdateSubscriptionEvent
+type UpdateSubscriptionEphemeralEvent {
+    seq: Int!
+    event: UpdateEvent!
+    sequence: Sequence!
+}
+
+union UpdateSubscription = UpdateSubscriptionStarted | UpdateSubscriptionCheckpoint | UpdateSubscriptionEvent | UpdateSubscriptionEphemeralEvent
 
 extend type Subscription {
     watchUpdates: UpdateSubscription!
@@ -32,6 +38,7 @@ extend type Subscription {
 type UpdatesSequenceState {
     sequence: Sequence!
     pts: Int!
+    seq: Int!
 }
 
 type UpdatesState {
@@ -72,6 +79,7 @@ type SequenceDifference {
     events: [UpdatesDifferenceEvent!]!
     after: Int!
     hasMore: Boolean!
+    seq: Int!
 }
 
 extend type Query {

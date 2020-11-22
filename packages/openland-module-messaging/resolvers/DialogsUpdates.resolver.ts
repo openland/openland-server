@@ -82,7 +82,6 @@ export const Resolver: GQLResolver = {
     DialogMessageReceived: {
         cid: src => IDs.Conversation.serialize(src.cid!),
         message: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
-        betaMessage: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
         alphaMessage: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
         unread: async (src, args, ctx) => Modules.Messaging.counters.fetchUserUnreadInChat(ctx, src.uid, src.cid),
         globalUnread: async (src, args, ctx) => await Modules.Messaging.counters.fetchUserGlobalCounter(ctx, ctx.auth.uid!),
@@ -94,19 +93,14 @@ export const Resolver: GQLResolver = {
     DialogMessageUpdated: {
         cid: async (src, args, ctx) => IDs.Conversation.serialize(src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid),
         message: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
-        betaMessage: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
         alphaMessage: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
         haveMention: async (src, args, ctx) => Modules.Messaging.counters.fetchUserMentionedInChat(ctx, src.uid, src.cid)
     },
     DialogMessageDeleted: {
         cid: async (src, args, ctx) => IDs.Conversation.serialize(src.cid || (await Store.Message.findById(ctx, src.mid!))!.cid),
         message: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
-        betaMessage: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
         alphaMessage: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!,
         alphaPrevMessage: async (src, args, ctx) => {
-            return await Modules.Messaging.findTopMessage(ctx, src.cid!, ctx.auth.uid!);
-        },
-        prevMessage: async (src, args, ctx) => {
             return await Modules.Messaging.findTopMessage(ctx, src.cid!, ctx.auth.uid!);
         },
         unread: async (src, args, ctx) => Modules.Messaging.counters.fetchUserUnreadInChat(ctx, src.uid, src.cid),

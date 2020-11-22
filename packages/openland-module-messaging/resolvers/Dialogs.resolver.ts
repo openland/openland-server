@@ -75,9 +75,6 @@ export const Resolver: GQLResolver = {
             }
             return Store.UserDialogCounter.byId(ctx.auth.uid!, src.cid).get(ctx);
         },
-
-        topMessage: (src: { cid: number }, args: {}, ctx: Context) => Modules.Messaging.findTopMessage(ctx, src.cid, ctx.auth.uid!),
-        betaTopMessage: (src: { cid: number }, args: {}, ctx: Context) => Modules.Messaging.findTopMessage(ctx, src.cid, ctx.auth.uid!),
         alphaTopMessage: (src: { cid: number }, args: {}, ctx: Context) => Modules.Messaging.findTopMessage(ctx, src.cid, ctx.auth.uid!),
         isMuted: async (src: { cid: number }, _, ctx) => await Modules.Messaging.isChatMuted(ctx, ctx.auth.uid!, src.cid),
         haveMention: async (src, _, ctx) => {

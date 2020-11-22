@@ -193,6 +193,7 @@ migrations.push({
                         sound: s.commentNotifications !== 'none',
                     },
                     notificationPreview: s.mobileIncludeText ? 'name_text' : 'name',
+                    channels: null
                 };
 
                 let desktopChatNotificationEnabled = s.desktopNotifications === 'all';
@@ -219,6 +220,7 @@ migrations.push({
                         sound: s.commentNotifications !== 'none',
                     },
                     notificationPreview: 'name_text',
+                    channels: null
                 };
 
                 await s.flush(ctx);
@@ -280,6 +282,7 @@ migrations.push({
                             sound: commentsEnabled,
                         },
                         notificationPreview: mobileIncludeText,
+                        channels: null
                     };
                 }
 
@@ -313,6 +316,7 @@ migrations.push({
                         showNotification: true, sound: true,
                     },
                     notificationPreview: 'name_text' as any,
+                    channels: null
                 };
 
                 s.mobile = allEnabled;
@@ -917,6 +921,38 @@ migrations.push({
                 }));
             });
             after = [ex[ex.length - 1].key[0] as number, ex[ex.length - 1].key[1] as number];
+        }
+    }
+});
+
+migrations.push({
+    key: '154-create-user-active-chats',
+    migration: async (parent) => {
+        let data = await inTx(parent, ctx => Store.User.findAll(ctx));
+        for (let u of data) {
+            logger.log(parent, 'Apply user ' + u.id);
+            let dialogs = await inTx(parent, async ctx => {
+                return await Modules.Messaging.findUserDialogs(ctx, u.id);
+            });
+            for (let cursor = 0; cursor < dialogs.length; cursor += 1000) {
+                logger.log(parent, 'Apply user ' + u.id + '/' + cursor);
+                let batch = dialogs.slice(cursor, cursor + 1000);
+                await inTx(parent, async ctx => {
+                    for (let d of batch) {
+                        let conv = (await Store.Conversation.findById(ctx, d.cid))!;
+                        if (conv.kind === 'room') {
+                            let status = await Modules.Messaging.room.findMembershipStatus(ctx, u.id, d.cid);
+                            if (status && status.status === 'joined') {
+                                Modules.Messaging.messaging.events.userActiveChats.addChat(ctx, u.id, d.cid);
+                            } else {
+                                Modules.Messaging.messaging.events.userActiveChats.removeChat(ctx, u.id, d.cid);
+                            }
+                        } else if (conv.kind === 'private') {
+                            Modules.Messaging.messaging.events.userActiveChats.addChat(ctx, u.id, d.cid);
+                        }
+                    }
+                });
+            }
         }
     }
 });

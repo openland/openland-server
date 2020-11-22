@@ -270,7 +270,7 @@ describe('RoomMediator', () => {
             }
         }
 
-        await mediator.kickFromRoom(ctx, room.id, USER_ID, USER2_ID);
+        await mediator.kickFromRoom(ctx, room.id, USER_ID, USER2_ID, false);
         members = await Store.RoomParticipant.active.findAll(ctx, room.id);
         expect(members.length).toBe(1);
         expect(members[0].uid).toBe(USER_ID);

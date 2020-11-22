@@ -107,7 +107,7 @@ export class PremiumChatMediator {
             if (activeSubscription) {
                 membershipChanged = await this.room.joinRoom(ctx, cid, uid, true);
             } else {
-                membershipChanged = await this.room.kickFromRoom(ctx, cid, null, uid);
+                membershipChanged = await this.room.kickFromRoom(ctx, cid, null, uid, false);
             }
 
             if (membershipChanged) {

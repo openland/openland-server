@@ -32,6 +32,8 @@ const SUBSCRIBER_DIRECT = 1;
 const SUBSCRIBER_DIRECT_UPDATES = 4;
 const SUBSCRIBER_ASYNC = 2;
 const SUBSCRIBER_SUBSCRIPTIONS_CHANGES = 6;
+const SUBSCRIBER_EPHEMERAL = 7;
+const SUBSCRIBER_LATEST = 8;
 
 const STATS = 0;
 const STATS_FEEDS = 1;
@@ -94,6 +96,13 @@ export const Locations = {
             all: (subscriber: Buffer): TupleType => [subscriber, SUBSCRIBER_SUBSCRIPTIONS_CHANGES],
             read: (subscriber: Buffer, vt: Versionstamp): TupleType => [subscriber, SUBSCRIBER_SUBSCRIPTIONS_CHANGES, vt],
             write: (subscriber: Buffer, vt: VersionstampRef): TupleTypeEx => [subscriber, SUBSCRIBER_SUBSCRIPTIONS_CHANGES, vt]
+        },
+
+        ephemeral: {
+            latest: (subscriber: Buffer, feed: Buffer): TupleType => [subscriber, SUBSCRIBER_LATEST, feed],
+            write: (subscriber: Buffer, vt: VersionstampRef): TupleTypeEx => [subscriber, SUBSCRIBER_EPHEMERAL, vt],
+            read: (subscriber: Buffer, vt: Versionstamp): TupleType => [subscriber, SUBSCRIBER_EPHEMERAL, vt],
+            all: (subscriber: Buffer): TupleType => [subscriber, SUBSCRIBER_EPHEMERAL],
         }
     },
 

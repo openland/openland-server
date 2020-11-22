@@ -2238,9 +2238,9 @@ export interface UserSettingsShape {
     mobileIncludeText: boolean | null;
     notificationsDelay: 'none' | '1min' | '15min' | null;
     globalCounterType: 'unread_messages' | 'unread_chats' | 'unread_messages_no_muted' | 'unread_chats_no_muted' | null;
-    desktop: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' };
-    mobile: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' };
-    privacy: { whoCanSeeEmail: 'everyone' | 'nobody', whoCanSeePhone: 'everyone' | 'nobody', communityAdminsCanSeeContactInfo: boolean | null } | null;
+    desktop: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, channels: { showNotification: boolean, sound: boolean } | null, notificationPreview: 'name_text' | 'name' };
+    mobile: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, channels: { showNotification: boolean, sound: boolean } | null, notificationPreview: 'name_text' | 'name' };
+    privacy: { whoCanSeeEmail: 'everyone' | 'nobody', whoCanSeePhone: 'everyone' | 'nobody', communityAdminsCanSeeContactInfo: boolean | null, whoCanAddToGroups: 'everyone' | 'correspondents' | 'nobody' | null } | null;
 }
 
 export interface UserSettingsCreateShape {
@@ -2253,9 +2253,9 @@ export interface UserSettingsCreateShape {
     mobileIncludeText?: boolean | null | undefined;
     notificationsDelay?: 'none' | '1min' | '15min' | null | undefined;
     globalCounterType?: 'unread_messages' | 'unread_chats' | 'unread_messages_no_muted' | 'unread_chats_no_muted' | null | undefined;
-    desktop: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' };
-    mobile: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' };
-    privacy?: { whoCanSeeEmail: 'everyone' | 'nobody', whoCanSeePhone: 'everyone' | 'nobody', communityAdminsCanSeeContactInfo: boolean | null | undefined } | null | undefined;
+    desktop: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, channels: { showNotification: boolean, sound: boolean } | null | undefined, notificationPreview: 'name_text' | 'name' };
+    mobile: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, channels: { showNotification: boolean, sound: boolean } | null | undefined, notificationPreview: 'name_text' | 'name' };
+    privacy?: { whoCanSeeEmail: 'everyone' | 'nobody', whoCanSeePhone: 'everyone' | 'nobody', communityAdminsCanSeeContactInfo: boolean | null | undefined, whoCanAddToGroups: 'everyone' | 'correspondents' | 'nobody' | null | undefined } | null | undefined;
 }
 
 export class UserSettings extends Entity<UserSettingsShape> {
@@ -2341,8 +2341,8 @@ export class UserSettings extends Entity<UserSettingsShape> {
             this.invalidate();
         }
     }
-    get desktop(): { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } { return this._rawValue.desktop; }
-    set desktop(value: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' }) {
+    get desktop(): { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, channels: { showNotification: boolean, sound: boolean } | null, notificationPreview: 'name_text' | 'name' } { return this._rawValue.desktop; }
+    set desktop(value: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, channels: { showNotification: boolean, sound: boolean } | null, notificationPreview: 'name_text' | 'name' }) {
         let normalized = this.descriptor.codec.fields.desktop.normalize(value);
         if (this._rawValue.desktop !== normalized) {
             this._rawValue.desktop = normalized;
@@ -2350,8 +2350,8 @@ export class UserSettings extends Entity<UserSettingsShape> {
             this.invalidate();
         }
     }
-    get mobile(): { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' } { return this._rawValue.mobile; }
-    set mobile(value: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, notificationPreview: 'name_text' | 'name' }) {
+    get mobile(): { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, channels: { showNotification: boolean, sound: boolean } | null, notificationPreview: 'name_text' | 'name' } { return this._rawValue.mobile; }
+    set mobile(value: { direct: { showNotification: boolean, sound: boolean }, secretChat: { showNotification: boolean, sound: boolean }, organizationChat: { showNotification: boolean, sound: boolean }, communityChat: { showNotification: boolean, sound: boolean }, comments: { showNotification: boolean, sound: boolean }, channels: { showNotification: boolean, sound: boolean } | null, notificationPreview: 'name_text' | 'name' }) {
         let normalized = this.descriptor.codec.fields.mobile.normalize(value);
         if (this._rawValue.mobile !== normalized) {
             this._rawValue.mobile = normalized;
@@ -2359,8 +2359,8 @@ export class UserSettings extends Entity<UserSettingsShape> {
             this.invalidate();
         }
     }
-    get privacy(): { whoCanSeeEmail: 'everyone' | 'nobody', whoCanSeePhone: 'everyone' | 'nobody', communityAdminsCanSeeContactInfo: boolean | null } | null { return this._rawValue.privacy; }
-    set privacy(value: { whoCanSeeEmail: 'everyone' | 'nobody', whoCanSeePhone: 'everyone' | 'nobody', communityAdminsCanSeeContactInfo: boolean | null } | null) {
+    get privacy(): { whoCanSeeEmail: 'everyone' | 'nobody', whoCanSeePhone: 'everyone' | 'nobody', communityAdminsCanSeeContactInfo: boolean | null, whoCanAddToGroups: 'everyone' | 'correspondents' | 'nobody' | null } | null { return this._rawValue.privacy; }
+    set privacy(value: { whoCanSeeEmail: 'everyone' | 'nobody', whoCanSeePhone: 'everyone' | 'nobody', communityAdminsCanSeeContactInfo: boolean | null, whoCanAddToGroups: 'everyone' | 'correspondents' | 'nobody' | null } | null) {
         let normalized = this.descriptor.codec.fields.privacy.normalize(value);
         if (this._rawValue.privacy !== normalized) {
             this._rawValue.privacy = normalized;
@@ -2387,9 +2387,9 @@ export class UserSettingsFactory extends EntityFactory<UserSettingsShape, UserSe
         fields.push({ name: 'mobileIncludeText', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'notificationsDelay', type: { type: 'optional', inner: { type: 'enum', values: ['none', '1min', '15min'] } }, secure: false });
         fields.push({ name: 'globalCounterType', type: { type: 'optional', inner: { type: 'enum', values: ['unread_messages', 'unread_chats', 'unread_messages_no_muted', 'unread_chats_no_muted'] } }, secure: false });
-        fields.push({ name: 'desktop', type: { type: 'struct', fields: { direct: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, secretChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, organizationChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, communityChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, comments: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, notificationPreview: { type: 'enum', values: ['name_text', 'name'] } } }, secure: false });
-        fields.push({ name: 'mobile', type: { type: 'struct', fields: { direct: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, secretChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, organizationChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, communityChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, comments: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, notificationPreview: { type: 'enum', values: ['name_text', 'name'] } } }, secure: false });
-        fields.push({ name: 'privacy', type: { type: 'optional', inner: { type: 'struct', fields: { whoCanSeeEmail: { type: 'enum', values: ['everyone', 'nobody'] }, whoCanSeePhone: { type: 'enum', values: ['everyone', 'nobody'] }, communityAdminsCanSeeContactInfo: { type: 'optional', inner: { type: 'boolean' } } } } }, secure: false });
+        fields.push({ name: 'desktop', type: { type: 'struct', fields: { direct: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, secretChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, organizationChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, communityChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, comments: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, channels: { type: 'optional', inner: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } } }, notificationPreview: { type: 'enum', values: ['name_text', 'name'] } } }, secure: false });
+        fields.push({ name: 'mobile', type: { type: 'struct', fields: { direct: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, secretChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, organizationChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, communityChat: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, comments: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } }, channels: { type: 'optional', inner: { type: 'struct', fields: { showNotification: { type: 'boolean' }, sound: { type: 'boolean' } } } }, notificationPreview: { type: 'enum', values: ['name_text', 'name'] } } }, secure: false });
+        fields.push({ name: 'privacy', type: { type: 'optional', inner: { type: 'struct', fields: { whoCanSeeEmail: { type: 'enum', values: ['everyone', 'nobody'] }, whoCanSeePhone: { type: 'enum', values: ['everyone', 'nobody'] }, communityAdminsCanSeeContactInfo: { type: 'optional', inner: { type: 'boolean' } }, whoCanAddToGroups: { type: 'optional', inner: { type: 'enum', values: ['everyone', 'correspondents', 'nobody'] } } } } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             emailFrequency: c.enum('1hour', '15min', 'never', '24hour', '1week'),
@@ -2401,9 +2401,9 @@ export class UserSettingsFactory extends EntityFactory<UserSettingsShape, UserSe
             mobileIncludeText: c.optional(c.boolean),
             notificationsDelay: c.optional(c.enum('none', '1min', '15min')),
             globalCounterType: c.optional(c.enum('unread_messages', 'unread_chats', 'unread_messages_no_muted', 'unread_chats_no_muted')),
-            desktop: c.struct({ direct: c.struct({ showNotification: c.boolean, sound: c.boolean }), secretChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), organizationChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), communityChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), comments: c.struct({ showNotification: c.boolean, sound: c.boolean }), notificationPreview: c.enum('name_text', 'name') }),
-            mobile: c.struct({ direct: c.struct({ showNotification: c.boolean, sound: c.boolean }), secretChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), organizationChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), communityChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), comments: c.struct({ showNotification: c.boolean, sound: c.boolean }), notificationPreview: c.enum('name_text', 'name') }),
-            privacy: c.optional(c.struct({ whoCanSeeEmail: c.enum('everyone', 'nobody'), whoCanSeePhone: c.enum('everyone', 'nobody'), communityAdminsCanSeeContactInfo: c.optional(c.boolean) })),
+            desktop: c.struct({ direct: c.struct({ showNotification: c.boolean, sound: c.boolean }), secretChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), organizationChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), communityChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), comments: c.struct({ showNotification: c.boolean, sound: c.boolean }), channels: c.optional(c.struct({ showNotification: c.boolean, sound: c.boolean })), notificationPreview: c.enum('name_text', 'name') }),
+            mobile: c.struct({ direct: c.struct({ showNotification: c.boolean, sound: c.boolean }), secretChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), organizationChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), communityChat: c.struct({ showNotification: c.boolean, sound: c.boolean }), comments: c.struct({ showNotification: c.boolean, sound: c.boolean }), channels: c.optional(c.struct({ showNotification: c.boolean, sound: c.boolean })), notificationPreview: c.enum('name_text', 'name') }),
+            privacy: c.optional(c.struct({ whoCanSeeEmail: c.enum('everyone', 'nobody'), whoCanSeePhone: c.enum('everyone', 'nobody'), communityAdminsCanSeeContactInfo: c.optional(c.boolean), whoCanAddToGroups: c.optional(c.enum('everyone', 'correspondents', 'nobody')) })),
         });
         let descriptor: EntityDescriptor<UserSettingsShape> = {
             name: 'UserSettings',
@@ -21910,6 +21910,39 @@ export class UpdateChatAccessChanged extends BaseEvent {
     get cid(): number { return this.raw.cid; }
 }
 
+const updateSettingsChangedCodec = c.struct({
+    uid: c.integer,
+});
+
+interface UpdateSettingsChangedShape {
+    uid: number;
+}
+
+export class UpdateSettingsChanged extends BaseEvent {
+
+    static readonly type: 'updateSettingsChanged' = 'updateSettingsChanged';
+
+    static create(data: UpdateSettingsChangedShape) {
+        return new UpdateSettingsChanged(updateSettingsChangedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateSettingsChanged(updateSettingsChangedCodec.decode(data));
+    }
+
+    static encode(event: UpdateSettingsChanged) {
+        return updateSettingsChangedCodec.encode(event.raw);
+    }
+
+    readonly type: 'updateSettingsChanged' = 'updateSettingsChanged';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+}
+
 const updateChatMessageCodec = c.struct({
     uid: c.integer,
     cid: c.integer,
@@ -22025,6 +22058,51 @@ export class UpdateChatMessageDeleted extends BaseEvent {
     get uid(): number { return this.raw.uid; }
     get cid(): number { return this.raw.cid; }
     get mid(): number { return this.raw.mid; }
+}
+
+const updateChatDraftUpdatedCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+    version: c.integer,
+    date: c.integer,
+    draft: c.optional(c.string),
+});
+
+interface UpdateChatDraftUpdatedShape {
+    uid: number;
+    cid: number;
+    version: number;
+    date: number;
+    draft?: string | null | undefined;
+}
+
+export class UpdateChatDraftUpdated extends BaseEvent {
+
+    static readonly type: 'updateChatDraftUpdated' = 'updateChatDraftUpdated';
+
+    static create(data: UpdateChatDraftUpdatedShape) {
+        return new UpdateChatDraftUpdated(updateChatDraftUpdatedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateChatDraftUpdated(updateChatDraftUpdatedCodec.decode(data));
+    }
+
+    static encode(event: UpdateChatDraftUpdated) {
+        return updateChatDraftUpdatedCodec.encode(event.raw);
+    }
+
+    readonly type: 'updateChatDraftUpdated' = 'updateChatDraftUpdated';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+    get version(): number { return this.raw.version; }
+    get date(): number { return this.raw.date; }
+    get draft(): string | null { return this.raw.draft; }
 }
 
 const hyperLogEventCodec = c.struct({
@@ -22846,6 +22924,7 @@ export interface Store extends BaseStore {
     readonly UserOnlineDirectory: Subspace;
     readonly RoomParticipantsActiveDirectory: Subspace;
     readonly UserChatsActiveDirectory: Subspace;
+    readonly UserChatsAllIndexDirectory: Subspace;
     readonly MessageDeliveryDirectory: Subspace;
     readonly MessageDeliveryBatchDirectory: Subspace;
     readonly UserDialogIndexDirectory: Subspace;
@@ -22929,9 +23008,11 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('updateChatRead', UpdateChatRead.encode as any, UpdateChatRead.decode);
     eventFactory.registerEventType('updateProfileChanged', UpdateProfileChanged.encode as any, UpdateProfileChanged.decode);
     eventFactory.registerEventType('updateChatAccessChanged', UpdateChatAccessChanged.encode as any, UpdateChatAccessChanged.decode);
+    eventFactory.registerEventType('updateSettingsChanged', UpdateSettingsChanged.encode as any, UpdateSettingsChanged.decode);
     eventFactory.registerEventType('updateChatMessage', UpdateChatMessage.encode as any, UpdateChatMessage.decode);
     eventFactory.registerEventType('updateChatMessageUpdated', UpdateChatMessageUpdated.encode as any, UpdateChatMessageUpdated.decode);
     eventFactory.registerEventType('updateChatMessageDeleted', UpdateChatMessageDeleted.encode as any, UpdateChatMessageDeleted.decode);
+    eventFactory.registerEventType('updateChatDraftUpdated', UpdateChatDraftUpdated.encode as any, UpdateChatDraftUpdated.decode);
     eventFactory.registerEventType('hyperLogEvent', HyperLogEvent.encode as any, HyperLogEvent.decode);
     eventFactory.registerEventType('hyperLogUserEvent', HyperLogUserEvent.encode as any, HyperLogUserEvent.decode);
     eventFactory.registerEventType('contactAddedEvent', ContactAddedEvent.encode as any, ContactAddedEvent.decode);
@@ -23132,6 +23213,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserOnlineDirectoryPromise = storage.resolveCustomDirectory('userOnline');
     let RoomParticipantsActiveDirectoryPromise = storage.resolveCustomDirectory('roomParticipantsActive');
     let UserChatsActiveDirectoryPromise = storage.resolveCustomDirectory('userChatsActive');
+    let UserChatsAllIndexDirectoryPromise = storage.resolveCustomDirectory('userChatsAllIndex');
     let MessageDeliveryDirectoryPromise = storage.resolveCustomDirectory('messageDelivery');
     let MessageDeliveryBatchDirectoryPromise = storage.resolveCustomDirectory('messageDeliveryBatch');
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
@@ -23385,6 +23467,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserOnlineDirectory: await UserOnlineDirectoryPromise,
         RoomParticipantsActiveDirectory: await RoomParticipantsActiveDirectoryPromise,
         UserChatsActiveDirectory: await UserChatsActiveDirectoryPromise,
+        UserChatsAllIndexDirectory: await UserChatsAllIndexDirectoryPromise,
         MessageDeliveryDirectory: await MessageDeliveryDirectoryPromise,
         MessageDeliveryBatchDirectory: await MessageDeliveryBatchDirectoryPromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,

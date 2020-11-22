@@ -1,3 +1,4 @@
+import { SubscriberEphemeralRepository } from './internal/SubscriberEphemeralRepository';
 import { StatsRepository } from './internal/StatsRepository';
 import { SubscriberUpdatesRepository } from './internal/SubscriberUpdatesRepository';
 import { BufferSet } from '../utils/BufferSet';
@@ -28,6 +29,8 @@ export class EventsRepository {
     readonly subAsync: SubscriberAsyncRepository;
     readonly subDirect: SubscriberDirectRepository;
 
+    readonly ephemeral: SubscriberEphemeralRepository;
+
     readonly registry: RegistryRepository;
     readonly stats: StatsRepository;
 
@@ -43,6 +46,7 @@ export class EventsRepository {
         this.subDirect = new SubscriberDirectRepository(subspace);
         this.subUpdated = new SubscriberUpdatesRepository(subspace);
         this.stats = new StatsRepository(subspace);
+        this.ephemeral = new SubscriberEphemeralRepository(subspace);
     }
 
     //
@@ -223,6 +227,18 @@ export class EventsRepository {
         });
     }
 
+    async postEphemeral(parent: Context, args: { feed: Buffer, subscriber: Buffer, event: Buffer }) {
+        return await inTxLeaky(parent, async (ctx) => {
+            // Allocate index
+            let vt = createVersionstampRef(ctx);
+
+            // Post change
+            await this.ephemeral.writeEphemeralChanged(ctx, args.subscriber, args.feed, vt);
+
+            return { vt };
+        });
+    }
+
     //
     // Changes
     //
@@ -286,6 +302,10 @@ export class EventsRepository {
             let set = new BufferSet();
             let events: { feed: Buffer, seq: number, vt: Buffer }[] = [];
             let changes: { feed: Buffer, seq: number, vt: Buffer, change: 'joined' | 'left' }[] = [];
+            let ephemeral: { feed: Buffer, vt: Buffer }[];
+
+            // Load ephemeral
+            ephemeral = await this.ephemeral.getUpdatedFeeds(ctx, subscriber, after);
 
             // Changed subscription states
             let changedSubscriptions = await this.subUpdated.getChanged(ctx, subscriber, after);
@@ -331,7 +351,7 @@ export class EventsRepository {
                 }
             }
 
-            return { events, changes };
+            return { events, changes, ephemeral };
         });
     }
 

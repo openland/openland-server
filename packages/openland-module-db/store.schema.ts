@@ -78,6 +78,7 @@ import { discussionsStore } from '../openland-module-discussions/Discussions.sto
 import { contactsStore } from '../openland-module-contacts/Contacts.store';
 import { phoneBookStore } from '../openland-module-phonebook/Phonebook.store';
 import { blackListStore } from '../openland-module-blacklist/BlackList.store';
+import { defineEvents } from '../openland-module-events/Definitions.store';
 
 export default declareSchema(() => {
 
@@ -153,6 +154,7 @@ export default declareSchema(() => {
         organizationChat: notificationSettings,
         communityChat: notificationSettings,
         comments: notificationSettings,
+        channels: optional(notificationSettings),
         notificationPreview: enumString('name_text', 'name'),
     });
 
@@ -172,7 +174,8 @@ export default declareSchema(() => {
         field('privacy', optional(struct({
             whoCanSeeEmail: enumString('everyone', 'nobody'),
             whoCanSeePhone: enumString('everyone', 'nobody'),
-            communityAdminsCanSeeContactInfo: optional(boolean())
+            communityAdminsCanSeeContactInfo: optional(boolean()),
+            whoCanAddToGroups: optional(enumString('everyone', 'correspondents', 'nobody')),
         })));
     });
 
@@ -380,6 +383,8 @@ export default declareSchema(() => {
     });
     customDirectory('RoomParticipantsActive');
     customDirectory('UserChatsActive');
+    customDirectory('UserChatsAllIndex');
+
     atomicInt('RoomParticipantsVersion', () => {
         primaryKey('cid', integer());
     });
@@ -2522,34 +2527,7 @@ export default declareSchema(() => {
 
     // Events
 
-    event('UpdateChatRead', () => {
-        field('uid', integer());
-        field('cid', integer());
-        field('seq', integer());
-    });
-    event('UpdateProfileChanged', () => {
-        field('uid', integer());
-    });
-    event('UpdateChatAccessChanged', () => {
-        field('uid', integer());
-        field('cid', integer());
-    });
-
-    event('UpdateChatMessage', () => {
-        field('uid', integer());
-        field('cid', integer());
-        field('mid', integer());
-    });
-    event('UpdateChatMessageUpdated', () => {
-        field('uid', integer());
-        field('cid', integer());
-        field('mid', integer());
-    });
-    event('UpdateChatMessageDeleted', () => {
-        field('uid', integer());
-        field('cid', integer());
-        field('mid', integer());
-    });
+    defineEvents();
 
     //
     // System

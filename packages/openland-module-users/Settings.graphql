@@ -39,6 +39,12 @@ enum PrivacyWhoCanSee {
     NOBODY
 }
 
+enum PrivacyWhoCanAddToGroups {
+    EVERYONE,
+    CORRESPONDENTS,
+    NOBODY
+}
+
 type ChatTypeNotificationSettings {
     showNotification: Boolean!
     sound: Boolean!
@@ -55,6 +61,7 @@ type PlatformNotificationSettings {
     organizationChat: ChatTypeNotificationSettings!
     communityChat: ChatTypeNotificationSettings!
     comments: ChatTypeNotificationSettings!
+    channels: ChatTypeNotificationSettings!
     notificationPreview: NotificationPreview!
 }
 
@@ -65,6 +72,7 @@ input PlatformNotificationSettingsInput {
     organizationChat: ChatTypeNotificationSettingsInput
     communityChat: ChatTypeNotificationSettingsInput
     comments: ChatTypeNotificationSettingsInput
+    channels: ChatTypeNotificationSettingsInput
     notificationPreview: NotificationPreview
 }
 
@@ -77,6 +85,7 @@ input UpdateSettingsInput {
     whoCanSeeEmail: PrivacyWhoCanSee
     whoCanSeePhone: PrivacyWhoCanSee
     communityAdminsCanSeeContactInfo: Boolean
+    whoCanAddToGroups: PrivacyWhoCanAddToGroups
 
     # Deprecated
     notificationsDelay: NotificationsDelay
@@ -91,6 +100,7 @@ input UpdateSettingsInput {
 
 type Settings {
     id: ID!
+    version: Int!
     primaryEmail: String!
     emailFrequency: EmailFrequency!
     desktop: PlatformNotificationSettings!
@@ -100,6 +110,7 @@ type Settings {
     whoCanSeeEmail: PrivacyWhoCanSee!
     whoCanSeePhone: PrivacyWhoCanSee!
     communityAdminsCanSeeContactInfo: Boolean!
+    whoCanAddToGroups: PrivacyWhoCanAddToGroups!
 
     # Deprecated
     notificationsDelay: NotificationsDelay!
@@ -140,4 +151,8 @@ extend type Subscription {
 
     # Deprecated
     watchSettings: Settings!
+}
+
+extend type SequenceCommon {
+    settings: Settings!
 }

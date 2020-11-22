@@ -6,9 +6,9 @@ export const Resolver: GQLResolver = {
     User: {
         isBanned: withUser(async (ctx, src) => {
             return await Modules.BlackListModule.isUserBanned(ctx, ctx.auth.uid!, src.id);
-        }),
+        }, true),
         isMeBanned: withUser(async (ctx, src) => {
             return await Modules.BlackListModule.isUserBanned(ctx, src.id, ctx.auth.uid!);
-        }),
+        }, true),
     }
 };

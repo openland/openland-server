@@ -1,7 +1,6 @@
 import { FeedReference } from './../Definitions';
 import { IDs, IdsFactory } from 'openland-module-api/IDs';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
-import { Modules } from 'openland-modules/Modules';
 
 export function parseSequenceId(src: string, uid: number) {
     let sequence: FeedReference;
@@ -42,11 +41,9 @@ export const Resolver: GQLResolver = {
     },
     SequenceCommon: {
         id: (src, { }, ctx) => IDs.SequenceUser.serialize(ctx.auth.uid!),
-        unread: (src, { }, ctx) => Modules.Messaging.counters.fetchUserGlobalCounter(ctx, ctx.auth.uid!)
     },
     SequenceChat: {
         id: (src, { }, ctx) => src.type === 'chat-private' ? IDs.SequenceChatPrivate.serialize(src.cid) : IDs.SequenceChat.serialize(src.cid),
         cid: (src, { }, ctx) => IDs.Conversation.serialize(src.cid),
-        unread: (src, { }, ctx) => Modules.Messaging.counters.fetchUserUnreadInChat(ctx, ctx.auth.uid!, src.cid)
     }
 };

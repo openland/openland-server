@@ -54,7 +54,7 @@ export class EventsMediator {
                 log.log(ctx, 'subscribe-to-feed');
                 getTransaction(ctx).afterCommit(async (tx) => {
                     let vt = res.vt.resolved.value;
-                    this.postToBus(tx, subscriber, seq, { feed, time, type: 'subscribe', seq: res.seq, vt, event: null });
+                    this.postToBus(tx, subscriber, seq, { feed, time, type: 'subscribe', pts: res.seq, vt, event: null });
                 });
             }
         });
@@ -71,7 +71,7 @@ export class EventsMediator {
                 log.log(ctx, 'unsubscribe-from-feed');
                 getTransaction(ctx).afterCommit(async (tx) => {
                     let vt = res.vt.resolved.value;
-                    this.postToBus(tx, subscriber, seq, { feed, time, type: 'unsubscribe', seq: res.seq, vt, event: null });
+                    this.postToBus(tx, subscriber, seq, { feed, time, type: 'unsubscribe', pts: res.seq, vt, event: null });
                 });
             }
         });
@@ -87,15 +87,27 @@ export class EventsMediator {
                 let seqs = await this.repo.allocateSubscriberSeq(ctx, online);
                 // NOTE: Time MUST be calculated in transaction
                 let time = Date.now();
-                log.log(ctx, 'post-to-feed');
                 getTransaction(ctx).afterCommit(async (tx) => {
                     let vt = posted.vt.resolved.value;
                     for (let i = 0; i < seqs.length; i++) {
-                        this.postToBus(tx, online[i], seqs[i], { feed: args.feed, time, type: 'update', seq: posted.seq, vt, event: args.event });
+                        this.postToBus(tx, online[i], seqs[i], { feed: args.feed, time, type: 'update', pts: posted.seq, vt, event: args.event });
                     }
                 });
-            } else {
-                log.log(ctx, 'empty-onlines');
+            }
+        });
+    }
+
+    async postEphemeral(parent: Context, args: { feed: Buffer, subscriber: Buffer, event: Buffer }) {
+        await inTx(parent, async (ctx) => {
+            let posted = await this.repo.postEphemeral(ctx, { feed: args.feed, subscriber: args.subscriber, event: args.event });
+            if (await this.repo.isOnline(ctx, args.subscriber, Date.now())) {
+                // NOTE: We MUST execute this within transaction to have strict delivery guarantee
+                let seq = (await this.repo.allocateSubscriberSeq(ctx, [args.subscriber]))[0];
+                let time = Date.now();
+                getTransaction(ctx).afterCommit(async (tx) => {
+                    let vt = posted.vt.resolved.value;
+                    this.postToBus(tx, args.subscriber, seq, { feed: args.feed, time, type: 'update-ephemeral', pts: null, vt, event: args.event });
+                });
             }
         });
     }
@@ -115,14 +127,14 @@ export class EventsMediator {
         if (!(await this.repo.isOnline(ctx, subscriber, Date.now() + ONLINE_GAP))) {
             await this.repo.subSeq.allocateBlock(ctx, subscriber, 10);
         }
-        
+
         await this.repo.refreshOnline(ctx, subscriber, Date.now() + ONLINE_EXPIRES);
     }
 
     private postToBus(ctx: Context, subscriber: Buffer, seq: number, event: {
         feed: Buffer,
-        type: 'subscribe' | 'unsubscribe' | 'update',
-        seq: number,
+        type: 'subscribe' | 'unsubscribe' | 'update' | 'update-ephemeral',
+        pts: number | null,
         vt: Buffer,
         event: Buffer | null,
         time: number
@@ -131,7 +143,7 @@ export class EventsMediator {
             seq,
             event: {
                 feed: event.feed.toString('base64'),
-                seq: event.seq,
+                pts: event.pts,
                 vt: event.vt.toString('base64'),
                 type: event.type,
                 time: event.time,

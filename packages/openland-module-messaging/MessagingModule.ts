@@ -36,7 +36,7 @@ export class MessagingModule {
     readonly needNotificationDelivery: NeedNotificationDeliveryRepository;
     readonly delivery: DeliveryMediator;
     readonly counters: CounterProvider = new PrecalculatedCounterProvider();
-    private readonly messaging: MessagingMediator;
+    readonly messaging: MessagingMediator;
     private readonly augmentation: AugmentationMediator;
     private readonly userState: UserStateRepository;
     private readonly userDialogs: UserDialogsRepository;
@@ -105,6 +105,10 @@ export class MessagingModule {
         return this.userDialogs.findUserDialogs(ctx, uid);
     }
 
+    loadUserDialogs(ctx: Context, uid: number, after: number) {
+        return this.messaging.events.userActiveChats.loadChats(ctx, uid, after);
+    }
+
     hasActiveDialog(ctx: Context, uid: number, cid: number) {
         return this.userDialogs.hasActiveDialog(ctx, uid, cid);
     }
@@ -147,10 +151,6 @@ export class MessagingModule {
 
     async readRoom(ctx: Context, uid: number, cid: number, mid: number) {
         return await this.messaging.readRoom(ctx, uid, cid, mid);
-    }
-
-    async markAsSeqRead(ctx: Context, uid: number, toSeq: number) {
-        return await this.userState.markAsSeqRead(ctx, uid, toSeq);
     }
 
     async getUserMessagingState(parent: Context, uid: number) {
@@ -319,7 +319,7 @@ export class MessagingModule {
 
         let userMentioned = hasMention(message, uid);
 
-        let {mobile, desktop} = settings;
+        let { mobile, desktop } = settings;
         let mobileSettings: { showNotification: boolean, sound: boolean } | null = null;
         let desktopSettings: { showNotification: boolean, sound: boolean } | null = null;
         if (conversation.kind === 'private') {
@@ -327,7 +327,10 @@ export class MessagingModule {
             desktopSettings = desktop.direct;
         }
         if (convRoom) {
-            if (convRoom.kind === 'group') {
+            if (convRoom.isChannel) {
+                mobileSettings = mobile.channels ? mobile.channels : { showNotification: true, sound: true };
+                desktopSettings = desktop.channels ? desktop.channels : { showNotification: true, sound: true };
+            } else if (convRoom.kind === 'group') {
                 mobileSettings = mobile.secretChat;
                 desktopSettings = desktop.secretChat;
             } else if (convRoom.kind === 'public' && convRoom.oid) {
@@ -348,15 +351,15 @@ export class MessagingModule {
 
         let conversationSettings = await Store.UserDialogSettings.findById(ctx, uid, conversation.id);
         if (conversationSettings && conversationSettings.mute && !userMentioned) {
-            mobileSettings = {showNotification: false, sound: false};
-            desktopSettings = {showNotification: false, sound: false};
+            mobileSettings = { showNotification: false, sound: false };
+            desktopSettings = { showNotification: false, sound: false };
         }
 
         let isMuted = !mobileSettings.showNotification || !mobileSettings.sound ||
             !desktopSettings.sound || !desktopSettings.showNotification;
         if (isMuted && userMentioned) {
-            mobileSettings = {showNotification: true, sound: true};
-            desktopSettings = {showNotification: true, sound: true};
+            mobileSettings = { showNotification: true, sound: true };
+            desktopSettings = { showNotification: true, sound: true };
         }
 
         return {

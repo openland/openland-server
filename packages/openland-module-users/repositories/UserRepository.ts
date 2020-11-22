@@ -114,7 +114,7 @@ export class UserRepository {
 
             // Leave chats
             let participates = await Store.RoomParticipant.userActive.findAll(ctx, uid);
-            await Promise.all(participates.map(p => Modules.Messaging.room.leaveRoom(ctx, p.cid, uid)));
+            await Promise.all(participates.map(p => Modules.Messaging.room.leaveRoom(ctx, p.cid, uid, false)));
 
             // Free shortname
             await Modules.Shortnames.freeShortName(ctx, 'user', uid);
@@ -231,7 +231,8 @@ export class UserRepository {
                     direct: allChatEnabled,
                     communityChat: allChatEnabled,
                     organizationChat: allChatEnabled,
-                    notificationPreview: 'name_text' as any
+                    channels: allChatEnabled,
+                    notificationPreview: 'name_text' as any,
                 };
                 settings = await Store.UserSettings.create(ctx, uid, {
                     emailFrequency: '1hour',
@@ -248,7 +249,8 @@ export class UserRepository {
                     privacy: {
                         whoCanSeeEmail: 'nobody',
                         whoCanSeePhone: 'nobody',
-                        communityAdminsCanSeeContactInfo: true
+                        communityAdminsCanSeeContactInfo: true,
+                        whoCanAddToGroups: 'everyone'
                     }
                 });
             }

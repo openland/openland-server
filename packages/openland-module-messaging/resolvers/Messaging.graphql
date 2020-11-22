@@ -47,7 +47,4 @@ extend type Mutation {
     betaMessageDelete(mid: ID, mids: [ID!]): Boolean!
     betaReactionSet(mid: ID!, reaction: String!): Boolean!
     betaReactionRemove(mid: ID!, reaction: String!): Boolean!
-
-    betaIntroSend(room: ID!, uid: ID!, about: String, message: String, file: String, repeatKey: String): Boolean!
-    betaIntroEdit(mid: ID!, uid: ID!, about: String, message: String, file: String): Boolean!
 }

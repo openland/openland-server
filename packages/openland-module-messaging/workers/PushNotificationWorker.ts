@@ -10,6 +10,7 @@ import { Context, createNamedContext } from '@openland/context';
 import { eventsFind } from '../../openland-module-db/eventsFind';
 import { UserDialogMessageReceivedEvent, UserSettings } from '../../openland-module-db/store';
 import { batch } from '../../openland-utils/batch';
+import { getShardId } from '../../openland-module-sharding/getShardId';
 
 // const Delays = {
 //     'none': 10 * 1000,
@@ -228,9 +229,11 @@ const handleUser = async (root: Context, uid: number) =>  {
     }
 };
 
-async function handleUsersSlice(parent: Context, fromUid: number, toUid: number) {
+const RING_SIZE = 10;
+
+async function handleUsersForShard(parent: Context, shardId: number) {
     let unreadUsers = await inTx(parent, async (ctx) => await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push'));
-    unreadUsers = unreadUsers.filter(uid => (uid >= fromUid) && (uid <= toUid));
+    unreadUsers = unreadUsers.filter(uid => getShardId(uid, RING_SIZE) === shardId);
 
     if (unreadUsers.length > 0) {
         log.debug(parent, 'unread users: ' + unreadUsers.length, JSON.stringify(unreadUsers));
@@ -252,25 +255,19 @@ async function handleUsersSlice(parent: Context, fromUid: number, toUid: number)
     }
 }
 
-function createWorker(fromUid: number, toUid: number) {
+function createWorker(shardId: number) {
     singletonWorker({
-        name: `push_notifications_${fromUid}_${toUid}`,
+        name: `push_notifications_shard_${shardId}`,
         delay: 1000,
         startDelay: 3000,
         db: Store.storage.db
     }, async (parent) => {
-        await handleUsersSlice(parent, fromUid, toUid);
+        await handleUsersForShard(parent, shardId);
     });
 }
 
-const TOTAL_USERS = 55000;
-const USERS_PER_WORKER = 2000;
-
 export function startPushNotificationWorker() {
-    for (let i = 0; i <= TOTAL_USERS; i += USERS_PER_WORKER) {
-        let fromUid = i;
-        let toUid = i + USERS_PER_WORKER - 1;
-
-        createWorker(fromUid, toUid);
+    for (let i = 0; i <= RING_SIZE; i++) {
+        createWorker(i);
     }
 }

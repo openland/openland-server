@@ -1,9 +1,13 @@
-extend type Query {
-    conversationDraft(conversationId: ID!): String
-    alphaDraftMessage(conversationId: ID!): String
+type Draft {
+    message: String
+    date: Date!
+    version: Int!
+}
+
+extend type SequenceChat {
+    draft: Draft
 }
 
 extend type Mutation {
-    conversationDraftUpdate(conversationId: ID!, message: String): String!
-    alphaSaveDraftMessage(conversationId: ID!, message: String): String!
+    conversationDraftUpdate(id: ID!, message: String): Draft!
 }

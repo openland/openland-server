@@ -208,9 +208,9 @@ export class OrganizationModule {
                         return;
                     }
                     if (uid === by) {
-                        await Modules.Messaging.room.leaveRoom(ctx, room.id, uid);
+                        await Modules.Messaging.room.leaveRoom(ctx, room.id, uid, true);
                     } else {
-                        await Modules.Messaging.room.kickFromRoom(ctx, room.id, by, uid);
+                        await Modules.Messaging.room.kickFromRoom(ctx, room.id, by, uid, true);
                     }
                 }));
                 await Emails.sendMemberRemovedEmail(ctx, oid, uid);

@@ -17,9 +17,6 @@ import { IdsFactory, IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { IDMailformedError } from 'openland-errors/IDMailformedError';
 import { Store } from 'openland-module-db/FDB';
-import {
-    Message
-} from '../../openland-module-db/store';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Sanitizer } from 'openland-utils/Sanitizer';
@@ -32,7 +29,6 @@ import {
     mustBeArray,
     emailValidator
 } from 'openland-utils/NewInputValidator';
-import { MessageMention } from '../MessageInput';
 import { MaybePromise } from '../../openland-module-api/schema/SchemaUtils';
 import { buildElasticQuery, QueryParser } from '../../openland-utils/QueryParser';
 import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
@@ -40,8 +36,6 @@ import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import SharedRoomRoot = GQLRoots.SharedRoomRoot;
 import RoomMemberRoleRoot = GQLRoots.RoomMemberRoleRoot;
 import { isDefined } from '../../openland-utils/misc';
-import MessageTypeRoot = GQLRoots.MessageTypeRoot;
-import PostMessageTypeRoot = GQLRoots.PostMessageTypeRoot;
 
 type RoomRoot = Conversation | number;
 
@@ -313,84 +307,6 @@ export const Resolver: GQLResolver = {
             return !!room?.featured;
         })
     },
-    RoomMessage: {
-        id: (src) => {
-            return IDs.ConversationMessage.serialize(src.id);
-        },
-        message: (src) => src.text,
-        file: (src) => src.fileId as any,
-        fileMetadata: (src) => {
-            if (src.fileId && src.fileMetadata) {
-                return {
-                    name: src.fileMetadata.name,
-                    mimeType: src.fileMetadata.mimeType,
-                    isImage: !!(src.fileMetadata.isImage),
-                    imageWidth: src.fileMetadata.imageWidth,
-                    imageHeight: src.fileMetadata.imageHeight,
-                    imageFormat: src.fileMetadata.imageFormat,
-                    size: src.fileMetadata.size
-                };
-            } else {
-                return null;
-            }
-        },
-        filePreview: (src) => null,
-        sender: async (src, _, ctx) => (await Store.User.findById(ctx, src.uid))!,
-        date: (src) => src.metadata.createdAt,
-        repeatKey: (src, args, ctx) => src.uid === ctx.auth.uid ? src.repeatKey : null,
-        isService: (src) => src.isService,
-        serviceMetadata: (src) => {
-            if (src.serviceMetadata && (src.serviceMetadata as any).type) {
-                return src.serviceMetadata;
-            }
-
-            return null;
-        },
-        urlAugmentation: (src) => src.augmentation || null,
-        edited: (src) => (src.edited) || false,
-        reactions: (src) => src.reactions || [],
-        replyMessages: async (src, args, ctx) => {
-            if (src.replyMessages) {
-                let messages = (await Promise.all((src.replyMessages).map(id => Store.Message.findById(ctx, id)))).filter(isDefined);
-                let filtered = messages.filter(m => !!m);
-                if (filtered.length > 0) {
-                    return filtered;
-                }
-                return null;
-            }
-            return null;
-        },
-        plainText: async (src) => null,
-        mentions: async (src, args, ctx) => {
-            if (src.mentions) {
-                return (await Promise.all((src.mentions as number[]).map(uid => Store.User.findById(ctx, uid)))).filter(isDefined);
-            }
-            return [];
-        },
-
-        alphaAttachments: async (src) => {
-            let attachments: { fileId: string, fileMetadata: any, filePreview: string | null }[] = [];
-
-            if (src.fileId) {
-                attachments.push({
-                    fileId: src.fileId,
-                    fileMetadata: src.fileMetadata,
-                    filePreview: src.filePreview
-                });
-            }
-
-            if (src.attachments) {
-                attachments.push(...src.attachments);
-            }
-
-            return attachments;
-        },
-        alphaButtons: async (src) => src.buttons ? src.buttons : [],
-        alphaType: async (src) => (src.type ? src.type : 'MESSAGE') as MessageTypeRoot,
-        alphaPostType: async (src) => src.postType as PostMessageTypeRoot,
-        alphaTitle: async (src) => src.title,
-        alphaMentions: async (src) => src.complexMentions
-    },
     RoomMember: {
         user: async (src, args, ctx) => (await Store.User.findById(ctx, src.uid))!,
         role: async (src) => src.role.toUpperCase() as RoomMemberRoleRoot,
@@ -446,32 +362,10 @@ export const Resolver: GQLResolver = {
             }
         }
     },
-
-    Mention: {
-        __resolveType(obj: MessageMention) {
-            if (obj.type === 'User') {
-                return 'UserMention';
-            } else if (obj.type === 'SharedRoom') {
-                return 'SharedRoomMention';
-            }
-
-            throw new Error('Unknown mention type');
-        }
-    },
-
-    UserMention: {
-        user: async (src, _, ctx) => (await Modules.Users.profileById(ctx, src.id))!
-    },
-
-    SharedRoomMention: {
-        sharedRoom: async (src, _, ctx) => (await Store.ConversationRoom.findById(ctx, src.id))!
-    },
-
     SharedRoomConnection: {
         items: src => src.items,
         cursor: src => src.cursor
     },
-
     Query: {
         room: withAccount(async (ctx, args, uid, oid) => {
             let id = IdsFactory.resolve(args.id);
@@ -531,27 +425,6 @@ export const Resolver: GQLResolver = {
         },
         roomSuper: withPermission('super-admin', async (ctx, args) => {
             return IDs.Conversation.parse(args.id);
-        }),
-        roomMessages: withActivatedUser(async (ctx, args, uid) => {
-            let roomId = IDs.Conversation.parse(args.roomId);
-            await Modules.Messaging.room.checkAccess(ctx, uid, roomId);
-            if (!args.first || args.first <= 0) {
-                return [];
-            }
-            let beforeMessage: Message | null = null;
-            if (args.before) {
-                beforeMessage = await Store.Message.findById(ctx, IDs.ConversationMessage.parse(args.before));
-            }
-
-            if (beforeMessage) {
-                return (await Store.Message.chat.query(ctx, roomId, {
-                    after: beforeMessage.id,
-                    limit: args.first!,
-                    reverse: true
-                })).items;
-            }
-
-            return (await Store.Message.chat.query(ctx, roomId, { limit: args.first!, reverse: true })).items;
         }),
         roomMember: withActivatedUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.roomId);
@@ -817,9 +690,9 @@ export const Resolver: GQLResolver = {
             let userId = IDs.User.parse(args.userId);
             return inTx(parent, async (ctx) => {
                 if (uid === userId) {
-                    await Modules.Messaging.room.leaveRoom(ctx, IDs.Conversation.parse(args.roomId), uid);
+                    await Modules.Messaging.room.leaveRoom(ctx, IDs.Conversation.parse(args.roomId), uid, false);
                 } else {
-                    await Modules.Messaging.room.kickFromRoom(ctx, IDs.Conversation.parse(args.roomId), uid, userId);
+                    await Modules.Messaging.room.kickFromRoom(ctx, IDs.Conversation.parse(args.roomId), uid, userId, false);
                 }
                 return (await Store.Conversation.findById(ctx, IDs.Conversation.parse(args.roomId)))!;
             });
@@ -832,7 +705,7 @@ export const Resolver: GQLResolver = {
             });
         }),
         betaRoomLeave: withUser(async (parent, args, uid) => {
-            return await Modules.Messaging.room.leaveRoom(parent, IDs.Conversation.parse(args.roomId), uid);
+            return await Modules.Messaging.room.leaveRoom(parent, IDs.Conversation.parse(args.roomId), uid, false);
 
         }),
         betaRoomChangeRole: withUser(async (ctx, args, uid) => {

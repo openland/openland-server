@@ -12,6 +12,7 @@ type ChatUserEdge {
     node: User!
     isMember: Boolean!
     cursor: String!
+    inviteRestricted: Boolean!
 }
 
 type ChatUserConnection {
@@ -19,9 +20,21 @@ type ChatUserConnection {
     pageInfo: PageInfo!
 }
 
+type OrgUserEdge {
+    node: User!
+    isMember: Boolean!
+    cursor: String!
+}
+
+type OrgUserConnection {
+    edges: [OrgUserEdge!]!
+    pageInfo: PageInfo!
+}
+
 extend type Query {
     userSearch(query: String, first: Int!, after: String, page: Int, sort: String): UserConnection! @withAuth
     userSearchForChat(chatId: ID!, query: String, first: Int!, after: String, page: Int, sort: String): ChatUserConnection! @withAuth
+    userSearchForOrg(orgId: ID!, query: String, first: Int!, after: String, page: Int, sort: String): OrgUserConnection!
 
     # Deprecated
     alphaProfiles(query: String, first: Int!, after: String, page: Int, sort: String): UserConnection! @withAuth
