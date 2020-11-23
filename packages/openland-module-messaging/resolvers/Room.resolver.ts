@@ -455,18 +455,45 @@ export const Resolver: GQLResolver = {
                     invitedBy: m.invitedBy || org.ownerId
                 }));
             } else {
+                let admins = (await Store.RoomParticipant.admins.findAll(ctx, roomId));
+
+                let adminsIds =  new Map<string, number>();
+                admins.forEach((row, i) => {
+                    adminsIds.set(row.cid + ':' + row.uid, i);
+                });
+
                 let afterMember: RoomParticipant | null = null;
                 if (args.after) {
                     afterMember = await Store.RoomParticipant.findById(ctx, roomId, IDs.User.parse(args.after));
+                    let adminsOffset = adminsIds.get(roomId + ':' + IDs.User.parse(args.after));
+                    if (adminsOffset === undefined) {
+                        admins = []; // no need for admins since we already pass them
+                    } else {
+                        admins = admins.slice(adminsOffset + 1);
+                    }
                 }
+                let response: RoomParticipant[] = [];
                 if (afterMember) {
-                    return (await Store.RoomParticipant.active.query(ctx, roomId, {
+                    response = (await Store.RoomParticipant.active.query(ctx, roomId, {
                         after: afterMember.uid,
                         limit: args.first || 1000
                     })).items;
+                } else {
+                    response = (await Store.RoomParticipant.active.query(ctx, roomId, { limit: args.first || 1000 })).items;
+                }
+                response = response.filter((row) => {
+                    return !adminsIds.has(row.cid + ':' + row.uid);
+                });
+
+                let limit = args.first || 1000;
+                if (admins.length < limit) {
+                    return admins.concat(response.slice(0, limit - admins.length));
+                } else {
+                    return admins.slice(0, limit);
                 }
 
-                return (await Store.RoomParticipant.active.query(ctx, roomId, { limit: args.first || 1000 })).items;
+                return response;
+
             }
         }),
         roomAdmins: withActivatedUser(async (ctx, args, uid) => {

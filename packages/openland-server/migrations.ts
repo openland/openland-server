@@ -953,4 +953,31 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '155-room-participants-admins-index',
+    migration: async (parent) => {
+
+        let after = 0;
+        while (true) {
+            let ex = await Store.RoomParticipant.descriptor.subspace.range(parent, [], { after: [after], limit: 100 });
+            if (ex.length === 0) {
+                break;
+            }
+            let ids = ex.map((e) => ({cid: e.key[0] as number, uid: e.key[1] as number}));
+            logger.log(parent, 'Apply conversation ' + after + ': ' + ids.length);
+            await inTx(parent, async ctx => {
+                await Promise.all(ids.map(async (u) => {
+                    let conv = await Store.RoomParticipant.findById(ctx, u.cid, u.uid);
+                    if (conv) {
+                        conv.invalidate();
+                        await conv.flush(ctx);
+                    }
+                }));
+            });
+
+            after = ex[ex.length - 1].key[0] as number;
+        }
+    }
+});
+
 export default migrations;

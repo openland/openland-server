@@ -32,6 +32,7 @@ export function startEventsReaderWorker(mediator: PaymentMediator) {
 
         const cursorId = (mediator.liveMode ? 'live' : 'test') + '-v2';
         let cursorRecord = await Store.StripeEventsCursor.findById(parent, cursorId);
+
         let cursor = cursorRecord ? cursorRecord.cursor : undefined;
 
         //
