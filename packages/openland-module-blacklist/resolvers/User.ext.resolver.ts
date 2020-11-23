@@ -4,10 +4,16 @@ import { Modules } from '../../openland-modules/Modules';
 
 export const Resolver: GQLResolver = {
     User: {
-        isBanned: withUser(async (ctx, src) => {
+        isBanned: withUser(async (ctx, src, authorized) => {
+            if (!authorized) {
+                return false;
+            }
             return await Modules.BlackListModule.isUserBanned(ctx, ctx.auth.uid!, src.id);
         }, true),
-        isMeBanned: withUser(async (ctx, src) => {
+        isMeBanned: withUser(async (ctx, src, authorized) => {
+            if (!authorized) {
+                return false;
+            }
             return await Modules.BlackListModule.isUserBanned(ctx, src.id, ctx.auth.uid!);
         }, true),
     }
