@@ -193,6 +193,7 @@ migrations.push({
                         sound: s.commentNotifications !== 'none',
                     },
                     notificationPreview: s.mobileIncludeText ? 'name_text' : 'name',
+                    channels: null
                 };
 
                 let desktopChatNotificationEnabled = s.desktopNotifications === 'all';
@@ -219,6 +220,7 @@ migrations.push({
                         sound: s.commentNotifications !== 'none',
                     },
                     notificationPreview: 'name_text',
+                    channels: null
                 };
 
                 await s.flush(ctx);
@@ -280,6 +282,7 @@ migrations.push({
                             sound: commentsEnabled,
                         },
                         notificationPreview: mobileIncludeText,
+                        channels: null
                     };
                 }
 
@@ -313,6 +316,7 @@ migrations.push({
                         showNotification: true, sound: true,
                     },
                     notificationPreview: 'name_text' as any,
+                    channels: null
                 };
 
                 s.mobile = allEnabled;

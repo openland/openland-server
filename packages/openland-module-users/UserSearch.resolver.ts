@@ -127,6 +127,60 @@ export const Resolver: GQLResolver = {
                 },
             };
         }),
+        userSearchForOrg: withAccount(async (ctx, args, uid) => {
+            let oid = IDs.Organization.parse(args.orgId);
+
+            let {uids, total} = await Modules.Users.searchForUsers(ctx, args.query || '', {
+                uid: ctx.auth.uid,
+                limit: args.first,
+                page: (args.page || undefined),
+                after: (args.after || undefined)
+            });
+
+            if (uids.length === 0) {
+                return {
+                    edges: [],
+                    pageInfo: {
+                        hasNextPage: false,
+                        hasPreviousPage: false,
+
+                        itemsCount: 0,
+                        pagesCount: 0,
+                        currentPage: 0,
+                        openEnded: false
+                    },
+                };
+            }
+
+            // Fetch profiles
+            let users = (await Promise.all(uids.map((v) => Store.User.findById(ctx, v)))).filter(u => u);
+
+            let offset = 0;
+            if (args.after) {
+                offset = parseInt(args.after, 10);
+            } else if (args.page) {
+                offset = (args.page - 1) * args.first;
+            }
+
+            return {
+                edges: await Promise.all(users.map(async (p, i) => {
+                    return {
+                        node: p!,
+                        cursor: (i + 1 + offset).toString(),
+                        isMember: await Modules.Orgs.isUserMember(ctx, p!.id, oid),
+                    };
+                })),
+                pageInfo: {
+                    hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
+                    hasPreviousPage: false,
+
+                    itemsCount: total,
+                    pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
+                    currentPage: Math.floor(offset / args.first) + 1,
+                    openEnded: true
+                },
+            };
+        }),
         alphaProfiles: withAny(async (ctx, args) => {
 
             let {uids, total} = await Modules.Users.searchForUsers(ctx, args.query || '', {uid: ctx.auth.uid});

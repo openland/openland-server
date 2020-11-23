@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'dce0a1a5f898f6fe7af221e6e29f4a81';
+export const GQL_SPEC_VERSION = '91d6f79abccc2111fb799022848ed66b';
 
 export namespace GQL {
     export interface CreditCard {
@@ -562,6 +562,7 @@ export namespace GQL {
         organizationChat: ChatTypeNotificationSettings;
         communityChat: ChatTypeNotificationSettings;
         comments: ChatTypeNotificationSettings;
+        channels: ChatTypeNotificationSettings;
         notificationPreview: NotificationPreview;
     }
     export interface PlatformNotificationSettingsDirectArgs { }
@@ -569,6 +570,7 @@ export namespace GQL {
     export interface PlatformNotificationSettingsOrganizationChatArgs { }
     export interface PlatformNotificationSettingsCommunityChatArgs { }
     export interface PlatformNotificationSettingsCommentsArgs { }
+    export interface PlatformNotificationSettingsChannelsArgs { }
     export interface PlatformNotificationSettingsNotificationPreviewArgs { }
     export interface PlatformNotificationSettingsInput {
         direct: Nullable<ChatTypeNotificationSettingsInput>;
@@ -576,6 +578,7 @@ export namespace GQL {
         organizationChat: Nullable<ChatTypeNotificationSettingsInput>;
         communityChat: Nullable<ChatTypeNotificationSettingsInput>;
         comments: Nullable<ChatTypeNotificationSettingsInput>;
+        channels: Nullable<ChatTypeNotificationSettingsInput>;
         notificationPreview: Nullable<NotificationPreview>;
     }
     export interface UpdateSettingsInput {
@@ -4039,6 +4042,7 @@ export namespace GQL {
         badgeInRoom: Nullable<UserBadge>;
         userSearch: UserConnection;
         userSearchForChat: ChatUserConnection;
+        userSearchForOrg: OrgUserConnection;
         alphaProfiles: UserConnection;
         alphaHomeFeed: FeedItemConnection;
         alphaFeedItem: Nullable<FeedItem>;
@@ -4436,6 +4440,14 @@ export namespace GQL {
     }
     export interface QueryUserSearchForChatArgs {
         chatId: string;
+        query: OptionalNullable<string>;
+        first: number;
+        after: OptionalNullable<string>;
+        page: OptionalNullable<number>;
+        sort: OptionalNullable<string>;
+    }
+    export interface QueryUserSearchForOrgArgs {
+        orgId: string;
         query: OptionalNullable<string>;
         first: number;
         after: OptionalNullable<string>;
@@ -5026,6 +5038,20 @@ export namespace GQL {
     }
     export interface ChatUserConnectionEdgesArgs { }
     export interface ChatUserConnectionPageInfoArgs { }
+    export interface OrgUserEdge {
+        node: User;
+        isMember: boolean;
+        cursor: string;
+    }
+    export interface OrgUserEdgeNodeArgs { }
+    export interface OrgUserEdgeIsMemberArgs { }
+    export interface OrgUserEdgeCursorArgs { }
+    export interface OrgUserConnection {
+        edges: OrgUserEdge[];
+        pageInfo: PageInfo;
+    }
+    export interface OrgUserConnectionEdgesArgs { }
+    export interface OrgUserConnectionPageInfoArgs { }
     export type FeedItem = FeedPost;
     export type FeedPostAuthor = User;
     export type FeedPostSource = FeedChannel;
@@ -6666,6 +6692,7 @@ export interface GQLResolver {
             organizationChat: GQLRoots.ChatTypeNotificationSettingsRoot,
             communityChat: GQLRoots.ChatTypeNotificationSettingsRoot,
             comments: GQLRoots.ChatTypeNotificationSettingsRoot,
+            channels: GQLRoots.ChatTypeNotificationSettingsRoot,
         },
         {
             direct: GQL.PlatformNotificationSettingsDirectArgs,
@@ -6673,6 +6700,7 @@ export interface GQLResolver {
             organizationChat: GQL.PlatformNotificationSettingsOrganizationChatArgs,
             communityChat: GQL.PlatformNotificationSettingsCommunityChatArgs,
             comments: GQL.PlatformNotificationSettingsCommentsArgs,
+            channels: GQL.PlatformNotificationSettingsChannelsArgs,
             notificationPreview: GQL.PlatformNotificationSettingsNotificationPreviewArgs,
         }
     >;
@@ -9432,6 +9460,7 @@ export interface GQLResolver {
             badgeInRoom: Nullable<GQLRoots.UserBadgeRoot>,
             userSearch: GQLRoots.UserConnectionRoot,
             userSearchForChat: GQLRoots.ChatUserConnectionRoot,
+            userSearchForOrg: GQLRoots.OrgUserConnectionRoot,
             alphaProfiles: GQLRoots.UserConnectionRoot,
             alphaHomeFeed: GQLRoots.FeedItemConnectionRoot,
             alphaFeedItem: Nullable<GQLRoots.FeedItemRoot>,
@@ -9608,6 +9637,7 @@ export interface GQLResolver {
             badgeInRoom: GQL.QueryBadgeInRoomArgs,
             userSearch: GQL.QueryUserSearchArgs,
             userSearchForChat: GQL.QueryUserSearchForChatArgs,
+            userSearchForOrg: GQL.QueryUserSearchForOrgArgs,
             alphaProfiles: GQL.QueryAlphaProfilesArgs,
             alphaHomeFeed: GQL.QueryAlphaHomeFeedArgs,
             alphaFeedItem: GQL.QueryAlphaFeedItemArgs,
@@ -10035,6 +10065,30 @@ export interface GQLResolver {
         {
             edges: GQL.ChatUserConnectionEdgesArgs,
             pageInfo: GQL.ChatUserConnectionPageInfoArgs,
+        }
+    >;
+    OrgUserEdge?: ComplexTypedResolver<
+        GQL.OrgUserEdge,
+        GQLRoots.OrgUserEdgeRoot,
+        {
+            node: GQLRoots.UserRoot,
+        },
+        {
+            node: GQL.OrgUserEdgeNodeArgs,
+            isMember: GQL.OrgUserEdgeIsMemberArgs,
+            cursor: GQL.OrgUserEdgeCursorArgs,
+        }
+    >;
+    OrgUserConnection?: ComplexTypedResolver<
+        GQL.OrgUserConnection,
+        GQLRoots.OrgUserConnectionRoot,
+        {
+            edges: GQLRoots.OrgUserEdgeRoot[],
+            pageInfo: GQLRoots.PageInfoRoot,
+        },
+        {
+            edges: GQL.OrgUserConnectionEdgesArgs,
+            pageInfo: GQL.OrgUserConnectionPageInfoArgs,
         }
     >;
     FeedItem?: UnionTypeResolver<GQLRoots.FeedItemRoot, 'FeedPost'>;

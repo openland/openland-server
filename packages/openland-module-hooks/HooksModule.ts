@@ -236,25 +236,6 @@ export class HooksModule {
 
     onRoomJoin = async (ctx: Context, cid: number, uid: number, by: number) => {
         await Modules.Feed.onAutoSubscriptionPeerNewMember(ctx, uid, 'room', cid);
-
-        // TODO: make feature
-        let autoSubscribe = async (cids: number[]) => {
-            for (let c of cids) {
-                let conv = await Store.ConversationRoom.findById(ctx, c);
-                if (!conv || conv.isDeleted) {
-                    continue;
-                }
-                await Modules.Messaging.room.joinRoom(ctx, c, uid, true /* Just like it was invited */);
-            }
-        };
-        if (cid === 213797) {
-            let superNextDefaultChatIds = [213793, 97587];
-            await autoSubscribe(superNextDefaultChatIds);
-        }
-        if (cid === 220362) {
-            let horizonDefaultChatIds = [220493, 220489];
-            await autoSubscribe(horizonDefaultChatIds);
-        }
     }
 
     onOrgJoin = async (ctx: Context, oid: number, uid: number) => {
