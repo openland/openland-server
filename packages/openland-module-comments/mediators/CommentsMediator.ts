@@ -27,6 +27,9 @@ export class CommentsMediator {
                 throw new NotFoundError();
             }
 
+            // Checking Permissions (access to the room)
+            await Modules.Messaging.room.checkAccess(ctx, uid, message.cid);
+
             //
             // Create comment
             //
