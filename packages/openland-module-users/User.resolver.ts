@@ -90,7 +90,7 @@ export const Resolver: GQLResolver = {
                 return 'BadgeStatus';
             }
             if (root.type === 'custom') {
-                return 'BadgeStatus';
+                return 'CustomStatus';
             }
             throw new Error('Unsupported type of \'Status\'');
         }
