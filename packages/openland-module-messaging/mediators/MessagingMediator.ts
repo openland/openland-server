@@ -173,7 +173,7 @@ export class MessagingMediator {
             // /me service message
             if (message.message && message.message.startsWith('/me ')) {
                 let user = (await Store.UserProfile.findById(ctx, uid))!;
-                let userMentionStr = `@${user.firstName} ${user.lastName}`;
+                let userMentionStr = `@` + [user.firstName, user.lastName].filter(a => !!a).join(' ');
                 let lengthDiff = userMentionStr.length - 3;
                 msg = {
                     message: userMentionStr + message.message.substring(3, message.message.length),
