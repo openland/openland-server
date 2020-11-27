@@ -119,7 +119,7 @@ export class HooksModule {
             Events.SuccessfulInvite.event(ctx, { uid: uid, invitedBy: user!.invitedBy });
             await Modules.Stats.onSuccessfulInvite(ctx, user!);
         }
-        this.reportNewUser(ctx, uid, user?.invitedBy);
+        await this.reportNewUser(ctx, uid, user?.invitedBy);
         await Modules.UserOnboarding.onUserActivated(ctx, uid);
     }
 
