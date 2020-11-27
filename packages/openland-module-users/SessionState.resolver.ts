@@ -43,6 +43,7 @@ export const Resolver: GQLResolver = {
 
             // State 0: Is Logged In
             let isLoggedIn = true; // Checked in previous steps
+            let isActivated = res.status === 'activated';
 
             // Stage 1: Create Profile
             let profile = auth.uid ? (await Modules.Users.profileById(ctx, auth.uid)) : null;
@@ -57,7 +58,6 @@ export const Resolver: GQLResolver = {
             // Stage 3: Activation Status
             let orgs = await Promise.all(orgsIDs.map((v) => Store.Organization.findById(ctx, v)));
             let isAllOrganizationsSuspended = orgs.length > 0 && orgs.filter(o => o!.status === 'suspended').length === orgs.length;
-            let isActivated = orgs.filter(o => o!.status === 'activated').length > 0;
             // deprecated
             let isOrganizationActivated = isOrganizationPicked && organization!!.status !== 'pending';
 
