@@ -1,24 +1,22 @@
 import { Store } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
-import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { inTx } from '@openland/foundationdb';
-import { Sanitizer } from 'openland-utils/Sanitizer';
 import { withUser } from 'openland-module-api/Resolvers';
-import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
-import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
-import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
-import ProfileBadgeRoot = GQLRoots.ProfileBadgeRoot;
-import { UserError } from '../openland-errors/UserError';
+import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { ProfileInput } from './ProfileInput';
+
+const resolveInput = (input: GQL.ProfileInput): ProfileInput => {
+    return {
+        ...input,
+        status: input.status ? {
+            badge: input.status.badge?.id ? {  id: IDs.ModernBadge.parse(input.status.badge.id) } : null,
+            custom: input.status.custom
+        } : null
+    };
+};
 
 export const Resolver: GQLResolver = {
-    ProfileBadge: {
-        type: root => root.type,
-        text: root => root.text,
-    },
-    ProfileBadgeType: {
-        ORGANIZATION: 'organization'
-    },
     Profile: {
         id: (src) => IDs.Profile.serialize(src.id!!),
         firstName: (src) => src.firstName,
@@ -35,14 +33,7 @@ export const Resolver: GQLResolver = {
         facebook: (src) => src.facebook,
         primaryBadge: (src, args, ctx) => src.primaryBadge ? Store.UserBadge.findById(ctx, src.primaryBadge) : null,
         authEmail: async (src, args, ctx) => (await Store.User.findById(ctx, src.id))!.email,
-        badge: async (src, args, ctx): Promise<ProfileBadgeRoot | null> => {
-            let org = src.primaryOrganization ? await Store.OrganizationProfile.findById(ctx, src.primaryOrganization) : null;
-            return org ? {
-                type: 'organization',
-                text: org.name
-            } : null;
-        },
-
+        status: async (src) => src.modernStatus,
         alphaRole: (src) => src.role,
         alphaLocations: (src) => src.locations,
         alphaLinkedin: (src) => src.linkedin,
@@ -56,7 +47,6 @@ export const Resolver: GQLResolver = {
             return null;
         },
         birthDay: async (src, args, ctx) => src.birthDay,
-        status: src => src.status
     },
     Query: {
         myProfile: async (src, args, ctx) => {
@@ -69,233 +59,15 @@ export const Resolver: GQLResolver = {
     Mutation: {
         profileCreate: withUser(async (parent, args, uid) => {
             return await inTx(parent, async (ctx) => {
-                let res = await Modules.Users.createUserProfile(ctx, uid, args.input);
                 if (args.inviteKey) {
                     await Modules.Users.userBindInvitedBy(ctx, uid, args.inviteKey);
                 }
+                let res = await Modules.Users.createUserProfile(ctx, uid, resolveInput(args.input));
                 return res;
             });
         }),
         profileUpdate: withUser(async (parent, args, uid) => {
-            return await inTx(parent, async (ctx) => {
-                if (args.uid) {
-                    let role = await Modules.Super.superRole(ctx, uid);
-                    if (!(role === 'super-admin')) {
-                        throw new AccessDeniedError();
-                    }
-                    uid = IDs.User.parse(args.uid);
-                }
-                let user = await Store.User.findById(ctx, uid);
-                if (!user) {
-                    throw Error('Unable to find user');
-                }
-                if (args.inviteKey) {
-                    await Modules.Users.userBindInvitedBy(ctx, uid, args.inviteKey);
-                }
-                let profile = await Modules.Users.profileById(ctx, uid);
-                let nameChanged = false;
-                let photoChanged = false;
-                if (!profile) {
-                    throw Error('Unable to find profile');
-                }
-                if (args.input.firstName !== undefined) {
-                    await validate(
-                        stringNotEmpty('Please enter your first name'),
-                        args.input.firstName,
-                        'input.firstName'
-                    );
-                    profile.firstName = Sanitizer.sanitizeString(args.input.firstName)!;
-                    nameChanged = true;
-                }
-                if (args.input.lastName !== undefined) {
-                    profile.lastName = Sanitizer.sanitizeString(args.input.lastName);
-                    nameChanged = true;
-                }
-                if (args.input.location !== undefined) {
-                    profile.location = Sanitizer.sanitizeString(args.input.location);
-                }
-                if (args.input.website !== undefined) {
-                    profile.website = Sanitizer.sanitizeString(args.input.website);
-                }
-                if (args.input.about !== undefined) {
-                    profile.about = Sanitizer.sanitizeString(args.input.about);
-                    await Modules.Stats.onAboutChange(ctx, uid);
-                }
-                if (args.input.photoRef !== undefined) {
-                    if (args.input.photoRef !== null) {
-                        await Modules.Media.saveFile(ctx, args.input.photoRef.uuid);
-                    }
-                    profile.picture = Sanitizer.sanitizeImageRef(args.input.photoRef);
-                    photoChanged = true;
-                }
-                if (args.input.phone !== undefined) {
-                    profile.phone = Sanitizer.sanitizeString(args.input.phone);
-                }
-                if (args.input.email !== undefined) {
-                    profile.email = Sanitizer.sanitizeString(args.input.email);
-                }
-
-                if (args.input.linkedin !== undefined) {
-                    profile.linkedin = Sanitizer.sanitizeString(args.input.linkedin);
-                }
-
-                if (args.input.instagram !== undefined) {
-                    profile.instagram = Sanitizer.sanitizeString(args.input.instagram);
-                }
-
-                if (args.input.twitter !== undefined) {
-                    profile.twitter = Sanitizer.sanitizeString(args.input.twitter);
-                }
-
-                if (args.input.facebook !== undefined) {
-                    profile.facebook = Sanitizer.sanitizeString(args.input.facebook);
-                }
-
-                if (args.input.primaryOrganization) {
-                    let oid = IDs.Organization.parse(args.input.primaryOrganization);
-                    let org = await Store.Organization.findById(ctx, oid);
-                    if (org && org.kind === 'organization') {
-                        profile.primaryOrganization = IDs.Organization.parse(args.input.primaryOrganization);
-                    }
-                }
-                if (args.input.birthDay !== undefined) {
-                    if (!args.input.birthDay) {
-                        profile.birthDay = null;
-                    } else {
-                        profile.birthDay = args.input.birthDay!.getTime();
-                    }
-                }
-                if (args.input.status !== undefined) {
-                    let status = Sanitizer.sanitizeString(args.input.status);
-                    if (status && status.length > 40) {
-                        throw new UserError(`Status is too long`);
-                    }
-                    profile.status = status;
-                }
-
-                await Modules.Hooks.onUserProfileUpdated(ctx, profile.id);
-                await Modules.Users.markForUndexing(ctx, uid);
-                if (nameChanged || photoChanged) {
-                    await Modules.SocialImageModule.onUserUpdated(ctx, uid);
-                }
-                return profile;
-            });
-        }),
-
-        // Deprecated
-        createProfile: withUser(async (ctx, args, uid) => {
-            return await Modules.Users.createUserProfile(ctx, uid, args.input);
-        }),
-        // Deprecated
-        alphaCreateUserProfileAndOrganization: withUser(async (parent, args, uid) => {
-            return await inTx(parent, async (ctx) => {
-                let userProfile = await Modules.Users.createUserProfile(ctx, uid, args.user);
-                let organization = await Modules.Orgs.createOrganization(ctx, uid, {
-                    ...args.organization,
-                    personal: false,
-                    autosubscribeRooms: args.organization.autosubscribeRooms?.map(a => IDs.Conversation.parse(a))
-                });
-
-                return {
-                    user: userProfile,
-                    organization: organization
-                };
-            });
-        }),
-        updateProfile: withUser(async (parent, args, uid) => {
-            return await inTx(parent, async (ctx) => {
-                if (args.uid) {
-                    let role = await Modules.Super.superRole(ctx, uid);
-                    if (!(role === 'super-admin')) {
-                        throw new AccessDeniedError();
-                    }
-                    uid = IDs.User.parse(args.uid);
-                }
-                let user = await Store.User.findById(ctx, uid);
-                if (!user) {
-                    throw Error('Unable to find user');
-                }
-
-                let profile = await Modules.Users.profileById(ctx, uid);
-                if (!profile) {
-                    throw Error('Unable to find profile');
-                }
-                let nameChanged = false;
-                let photoChanged = false;
-                if (args.input.firstName !== undefined) {
-                    await validate(
-                        stringNotEmpty('Please enter your first name'),
-                        args.input.firstName,
-                        'input.firstName'
-                    );
-                    profile.firstName = Sanitizer.sanitizeString(args.input.firstName)!;
-                    nameChanged = true;
-                }
-                if (args.input.lastName !== undefined) {
-                    profile.lastName = Sanitizer.sanitizeString(args.input.lastName);
-                    nameChanged = true;
-                }
-                if (args.input.location !== undefined) {
-                    profile.location = Sanitizer.sanitizeString(args.input.location);
-                }
-                if (args.input.website !== undefined) {
-                    profile.website = Sanitizer.sanitizeString(args.input.website);
-                }
-                if (args.input.about !== undefined) {
-                    profile.about = Sanitizer.sanitizeString(args.input.about);
-                    await Modules.Stats.onAboutChange(ctx, uid);
-                }
-                if (args.input.photoRef !== undefined) {
-                    if (args.input.photoRef !== null) {
-                        await Modules.Media.saveFile(ctx, args.input.photoRef.uuid);
-                    }
-                    profile.picture = Sanitizer.sanitizeImageRef(args.input.photoRef);
-                    photoChanged = true;
-                }
-                if (args.input.phone !== undefined) {
-                    profile.phone = Sanitizer.sanitizeString(args.input.phone);
-                }
-                if (args.input.email !== undefined) {
-                    profile.email = Sanitizer.sanitizeString(args.input.email);
-                }
-
-                if (args.input.alphaLocations !== undefined) {
-                    profile.locations = Sanitizer.sanitizeAny(args.input.alphaLocations);
-                }
-
-                if (args.input.linkedin !== undefined) {
-                    profile.linkedin = Sanitizer.sanitizeString(args.input.linkedin);
-                }
-
-                if (args.input.alphaLinkedin !== undefined) {
-                    profile.linkedin = Sanitizer.sanitizeString(args.input.alphaLinkedin);
-                }
-
-                if (args.input.alphaTwitter !== undefined) {
-                    profile.twitter = Sanitizer.sanitizeString(args.input.alphaTwitter);
-                }
-
-                if (args.input.alphaRole !== undefined) {
-                    profile.role = Sanitizer.sanitizeString(args.input.alphaRole);
-                }
-
-                if (args.input.alphaPrimaryOrganizationId !== undefined) {
-                    let oid = IDs.Organization.parse(args.input.alphaPrimaryOrganizationId!);
-                    let org = await Store.Organization.findById(ctx, oid);
-                    if (org && org.kind === 'organization') {
-                        profile.primaryOrganization = oid;
-                    }
-                }
-
-                // Call hook
-                await profile.flush(ctx);
-                await Modules.Hooks.onUserProfileUpdated(ctx, profile.id);
-                await Modules.Users.markForUndexing(ctx, uid);
-                if (nameChanged || photoChanged) {
-                    await Modules.SocialImageModule.onUserUpdated(ctx, uid);
-                }
-                return (await Modules.Users.profileById(ctx, uid))!;
-            });
+            return await Modules.Users.updateUserProfile(parent, (args.uid ? IDs.User.parse(args.uid) : null) || uid, resolveInput(args.input));
         }),
     }
 };

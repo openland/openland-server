@@ -70,7 +70,6 @@ export async function prepare() {
         // Developer account
         let uid = await createUser(ctx, 'bot@openland.com');
         await Modules.Super.makeSuperAdmin(ctx, uid, 'super-admin');
-        await Modules.Users.activateUser(ctx, uid, false);
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: 'Developer Organization' });
         let group = await Modules.Messaging.room.createRoom(ctx, 'group', org.id, uid, [], { title: 'Test Group' });
         // for (let i = 0; i < 150; i++) {

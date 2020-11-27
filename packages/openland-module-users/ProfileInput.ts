@@ -1,4 +1,5 @@
 import { ImageRef } from 'openland-module-media/ImageRef';
+import { StatusInput } from './repositories/UserRepository';
 
 export interface ProfileInput {
     firstName?: string | undefined | null;
@@ -14,4 +15,6 @@ export interface ProfileInput {
     twitter?: string | undefined | null;
     facebook?: string | undefined | null;
     primaryOrganization?: string | undefined | null;
+    status?: StatusInput | undefined | null;
+    birthDay?: Date | null;
 }

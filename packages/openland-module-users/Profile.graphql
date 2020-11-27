@@ -1,11 +1,13 @@
-enum ProfileBadgeType {
-    ORGANIZATION
-}
-
-type ProfileBadge {
-    type: ProfileBadgeType!
+type CustomStatus {
+    emoji: String
     text: String!
 }
+
+type BadgeStatus {
+    badge: ModernBadge!
+}
+
+union Status = BadgeStatus | CustomStatus
 
 type Profile {
     id: ID!
@@ -22,9 +24,8 @@ type Profile {
     twitter: String
     facebook: String
     authEmail: String
-    badge: ProfileBadge
     birthDay: Date
-    status: String
+    status: Status
 
     # Deprecated
     alphaLinkedin: String
@@ -33,6 +34,20 @@ type Profile {
     alphaInvitedBy: User
     alphaRole: String
     alphaLocations: [String!]
+}
+
+input CustomStatusInput {
+    emoji: String
+    text: String
+}
+
+input BadgeStatusInput {
+    id: ID!
+}
+
+input StatusInput {
+    custom: CustomStatusInput
+    badge: BadgeStatusInput
 }
 
 input ProfileInput {
@@ -50,46 +65,7 @@ input ProfileInput {
     facebook: String
     primaryOrganization: ID
     birthDay: Date
-    status: String
-}
-
-# Deprecated
-input UpdateProfileInput {
-    firstName: String
-    lastName: String
-    photoRef: ImageRefInput
-    phone: String
-    email: String
-    website: String
-    about: String
-    location: String
-    linkedin: String
-    instagram: String
-    twitter: String
-    facebook: String
-    primaryOrganization: ID
-
-    alphaRole: String
-    alphaLocations: [String!]
-    alphaLinkedin: String
-    alphaTwitter: String
-    alphaPrimaryOrganizationId: ID
-}
-
-# Deprecated
-input CreateProfileInput {
-    firstName: String!
-    lastName: String
-    photoRef: ImageRefInput
-    phone: String
-    email: String
-    about: String
-    location: String
-    website: String
-    linkedin: String
-    twitter: String
-    facebook: String
-    primaryOrganization: ID
+    status: StatusInput
 }
 
 extend type Query {
@@ -104,10 +80,4 @@ type AlphaSignupData{
 extend type Mutation {
     profileCreate(input: ProfileInput!, inviteKey: String): Profile!
     profileUpdate(input: ProfileInput!, uid: ID, inviteKey: String): Profile!
-
-
-    # Deprecated
-    createProfile(input: CreateProfileInput!): Profile!
-    updateProfile(input: UpdateProfileInput!, uid: ID): Profile!
-    alphaCreateUserProfileAndOrganization(user: ProfileInput!, organization: CreateOrganizationInput!): AlphaSignupData!
 }

@@ -1,0 +1,42 @@
+type ModernBadge {
+    id: ID!
+    emoji: String!
+    text: String!
+    global: Boolean!
+}
+
+input ModernBadgeInput {
+    emoji: String!
+    text: String!
+}
+
+type ModernBadgeAdditionResult {
+    badge: ModernBadge!
+    added: Boolean!
+}
+
+extend type Mutation {
+    # Adds badge to user, creates it if id not specified
+    # Replaces duplicates with existing badges to easy ban some words
+    modernBadgeAdd(input: ModernBadgeInput, id: ID): ModernBadgeAdditionResult!
+    modernBadgeRemove(id: ID!): Boolean!
+
+    #
+    # Super
+    #
+    globalBadgeCreate(input: ModernBadgeInput!): ModernBadge!
+    superModernBadgeBan(id: ID!): Boolean!
+}
+
+extend type Query {
+    modernBadgeSearch(search: String, first: Int!, after: ID): [ModernBadge!]!
+    modernBadgeUsers(bid: ID!, first: Int!, after: ID): UserConnection
+}
+
+extend type User {
+    modernBadges: [ModernBadge!]!
+}
+
+extend type Profile {
+    modernBadges: [ModernBadge!]!
+}

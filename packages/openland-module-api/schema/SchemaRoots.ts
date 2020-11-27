@@ -83,7 +83,9 @@ import {
     Contact,
     OrganizationMember,
     ContactAddedEvent,
-    ContactRemovedEvent, UserDialogGotAccessEvent, UserDialogLostAccessEvent,
+    ContactRemovedEvent,
+    UserDialogGotAccessEvent,
+    UserDialogLostAccessEvent,
     UpdateChatRead,
     UpdateProfileChanged,
     BlackListAddedEvent,
@@ -91,8 +93,8 @@ import {
     UpdateChatMessage,
     UpdateChatMessageUpdated,
     UpdateChatMessageDeleted,
-    UpdateChatDraftUpdated,
-    UpdateSettingsChanged
+    ModernBadge,
+    UpdateSettingsChanged, UpdateChatDraftUpdated,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -403,6 +405,13 @@ export namespace GQLRoots {
     export type SharedRoomRoot = ConversationRoom | Conversation | number;
     export type SharedRoomConnectionRoot = { items: SharedRoomRoot[], cursor: string | null };
     export type UserBadgeRoot = UserBadge;
+
+    export type StatusRoot = NonNullable<UserProfile['modernStatus']>;
+    export type CustomStatusRoot = Extract<StatusRoot, { type: 'custom' }>;
+    export type BadgeStatusRoot = Extract<StatusRoot, { type: 'badge' }>;
+
+    export type ModernBadgeRoot = ModernBadge;
+    export type ModernBadgeAdditionResultRoot = { added: boolean, badge: ModernBadgeRoot };
 
     export type RoomCallsModeRoot = 'standard' | 'link' | 'disabled';
     export type RoomCallSettingsRoot = {

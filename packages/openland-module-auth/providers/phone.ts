@@ -195,7 +195,6 @@ export function initPhoneAuthProvider(app: Express) {
                 return { ok: true, accessToken: token.salt };
             } else {
                 let user = await Modules.Users.createUser(ctx, {phone});
-                await Modules.Hooks.onSignUp(ctx, user.id);
                 let token = await Modules.Auth.createToken(ctx, user.id);
                 return { ok: true, accessToken: token.salt };
             }

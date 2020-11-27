@@ -39,7 +39,7 @@ export function createEmailWorker() {
             if (Config.environment !== 'production') {
                 if (
                     devTeamEmails.indexOf(args.to.toLowerCase()) < 0 &&
-                    !args.to.endsWith('@maildu.de')
+                    !args.to.endsWith('@affecting.org')
                 ) {
                     return;
                 }

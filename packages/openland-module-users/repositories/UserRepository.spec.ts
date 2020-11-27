@@ -25,7 +25,7 @@ describe('UserRepository', () => {
         let repo = container.get<UserRepository>('UserRepository');
         let res = await repo.createUser(createNamedContext('test'), {email: 'someemail4411@open.com'});
         expect(res.email).toEqual('someemail4411@open.com');
-        expect(res.status).toEqual('pending');
+        expect(res.status).toEqual('activated');
     });
 
     // it('should crash on duplicate authId', async () => {

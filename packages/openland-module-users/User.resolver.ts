@@ -28,7 +28,7 @@ export async function userRootFull(ctx: Context, uid: number) {
     return new UserFullRoot(user, profile);
 }
 
-export function withUser(handler: (ctx: Context, user: User, authorized: Boolean) => any, noAuthNeeded: boolean = false) {
+export function withUser<T>(handler: (ctx: Context, user: User, authorized: Boolean) => Promise<T> | T, noAuthNeeded: boolean = false) {
     return async (src: UserRoot, _params: {}, ctx: Context) => {
         let authorized = !!ctx.auth.uid;
         if (!authorized && !noAuthNeeded) {
@@ -84,6 +84,24 @@ export function withProfile(handler: (ctx: Context, user: User, profile: UserPro
 }
 
 export const Resolver: GQLResolver = {
+    Status: {
+        __resolveType: (root) => {
+            if (root.type === 'badge') {
+                return 'BadgeStatus';
+            }
+            if (root.type === 'custom') {
+                return 'BadgeStatus';
+            }
+            throw new Error('Unsupported type of \'Status\'');
+        }
+    },
+    BadgeStatus: {
+         badge: async (root, _, ctx) => (await Store.ModernBadge.findById(ctx, root.id))!
+    },
+    CustomStatus: {
+        emoji: root => root.emoji,
+        text: root => root.text
+    },
     User: {
         id: (src) => {
             if (typeof src === 'number') {
@@ -104,17 +122,6 @@ export const Resolver: GQLResolver = {
         photo: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null, true),
         photoRef: withProfile((ctx, src, profile) => profile && profile.picture, true),
         about: withProfile((ctx, src, profile) => profile ? profile.about : null, true),
-        badge: withProfile(async (ctx, src, profile) => {
-            if (!profile) {
-                return null;
-            }
-            let org = profile.primaryOrganization ? await Store.OrganizationProfile.findById(ctx, profile.primaryOrganization) : null;
-            return org ? {
-                type: 'organization',
-                text: org.name
-            } : null;
-        }),
-
         email: withUser(async (ctx, src, authorized) => {
             if (!authorized) {
                 return null;
@@ -172,7 +179,7 @@ export const Resolver: GQLResolver = {
         audienceSize: withUser(async (ctx, src) => await Store.UserAudienceCounter.get(ctx, src.id), true),
         joinDate: withUser(async (ctx, src) => src.metadata.createdAt, true),
         birthDay: withProfile(async (ctx, src, profile) => profile?.birthDay, true),
-        status: withProfile(async (ctx, src, profile) => profile?.status, true),
+        status: withProfile(async (ctx, src, profile) => profile?.modernStatus, true),
 
         // Deprecated
         picture: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null, true),

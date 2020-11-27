@@ -28,7 +28,7 @@ export class OrganizationModule {
     async createOrganization(parent: Context, uid: number, input: OrganizatinProfileInput) {
         return inTx(parent, async (ctx) => {
             // 1. Ensure user is not suspended and has profile
-            let [user, profile] = await this.getUnsuspendedUserWithProfile(ctx, uid);
+            let [, profile] = await this.getUnsuspendedUserWithProfile(ctx, uid);
 
             // 2. Resolve editorial flag
             let editorial = (await Modules.Super.findSuperRole(ctx, uid)) === 'editor';
@@ -39,16 +39,6 @@ export class OrganizationModule {
             // 4. Update primary organization if needed
             if (!profile.primaryOrganization && !input.isCommunity) {
                 profile.primaryOrganization = res.id;
-            }
-
-            // 5. Activate user if needed and call hooks
-            if (user.status === 'pending') {
-                await Modules.Users.activateUser(ctx, uid, true);
-                if (user.invitedBy) {
-                    await Modules.Hooks.onFirstOrganizationActivated(ctx, res.id, { type: 'BY_INVITE', inviteOwner: user.invitedBy, inviteType: 'APP', uid });
-                } else {
-                    await Modules.Hooks.onFirstOrganizationActivated(ctx, res.id, { type: 'ACTIVATED_AUTOMATICALLY', uid });
-                }
             }
 
             // 6. Invoke Hook
@@ -64,7 +54,6 @@ export class OrganizationModule {
                     await Emails.sendAccountActivatedEmail(ctx, id);
                 }
                 for (let m of await Store.OrganizationMember.organization.findAll(ctx, 'joined', id)) {
-                    await Modules.Users.activateUser(ctx, m.uid, false);
                     let profile = await Store.UserProfile.findById(ctx, m.uid);
                     let org = await Store.Organization.findById(ctx, id);
                     if (profile && !profile.primaryOrganization && (org && org.kind === 'organization')) {
@@ -93,8 +82,6 @@ export class OrganizationModule {
 
     async addUserToOrganization(parent: Context, uid: number, oid: number, by: number, skipChecks: boolean = false, isNewUser: boolean = false) {
         return await inTx(parent, async (ctx) => {
-            let [, profile] = await this.getUnsuspendedUserWithProfile(ctx, uid);
-
             let member = await Store.OrganizationMember.findById(ctx, oid, by);
             let isSuperAdmin = (await Modules.Super.superRole(ctx, by)) === 'super-admin';
             let canAdd = (member && member.status === 'joined') || isSuperAdmin || skipChecks;
@@ -103,35 +90,7 @@ export class OrganizationModule {
             }
 
             // Add member
-            if (await this.repo.addUserToOrganization(ctx, uid, oid, by)) {
-                let org = (await Store.Organization.findById(ctx, oid))!;
-                if (org.status === 'activated') {
-                    // Activate user if organization is in activated state
-                    await Modules.Users.activateUser(ctx, uid, isNewUser, by);
-
-                    // Find and activate organizations created by user if have one
-                    let userOrgs = await Promise.all((await this.findUserOrganizations(ctx, uid)).map(orgId => Store.Organization.findById(ctx, orgId)));
-                    userOrgs = userOrgs.filter(o => o!.ownerId === uid);
-                    for (let userOrg of userOrgs) {
-                        // Activate user organization
-                        if (await this.activateOrganization(ctx, userOrg!.id, !isNewUser)) {
-                            await Modules.Hooks.onFirstOrganizationActivated(ctx, userOrg!.id, { type: 'OWNER_ADDED_TO_ORG', owner: by, otherOid: oid, uid });
-                        }
-                    }
-
-                    if (org.kind === 'organization') {
-                        // Update primary organization if needed
-                        if (!profile.primaryOrganization) {
-                            profile.primaryOrganization = oid;
-                        }
-                    } else if (org.kind === 'community') {
-                        if (!profile.primaryOrganization && userOrgs.length > 0) {
-                            profile.primaryOrganization = await this.repo.findPrimaryOrganizationForUser(ctx, uid);
-                        }
-                    }
-                }
-                return org;
-            }
+            await this.repo.addUserToOrganization(ctx, uid, oid, by);
 
             return (await Store.Organization.findById(ctx, oid))!;
         });

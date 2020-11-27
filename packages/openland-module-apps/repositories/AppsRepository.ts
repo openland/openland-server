@@ -31,7 +31,6 @@ export class AppsRepository {
             let email = `app-${rnd}@openland.com`;
 
             let appUser = await Modules.Users.createUser(ctx, {email});
-            await Modules.Users.activateUser(ctx, appUser.id, false);
             appUser.isBot = true;
             appUser.botOwner = uid;
             appUser.isSuperBot = extra.isSuperBot !== undefined ? extra.isSuperBot : false;
@@ -52,7 +51,7 @@ export class AppsRepository {
             }
 
             await appUser!.flush(ctx);
-            await Modules.Users.markForUndexing(ctx, appUser!.id);
+            await Modules.Users.markForIndexing(ctx, appUser!.id);
             return appUser;
         });
     }
@@ -114,7 +113,7 @@ export class AppsRepository {
             let appUser = await Store.User.findById(ctx, appId);
             appUser!.status = 'deleted';
             await appUser!.flush(ctx);
-            await Modules.Users.markForUndexing(ctx, appUser!.id);
+            await Modules.Users.markForIndexing(ctx, appUser!.id);
             return true;
         });
     }

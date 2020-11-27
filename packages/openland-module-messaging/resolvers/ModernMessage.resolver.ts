@@ -381,16 +381,7 @@ export function fetchMessageFallback(message: Message | Comment | RichMessage): 
 }
 
 async function getMessageSenderBadge(ctx: Context, src: Message | Comment): Promise<UserBadge | null> {
-    let cid: number | undefined = undefined;
-
-    if (src instanceof Message) {
-        cid = src.cid;
-    } else if (src instanceof Comment && src.peerType === 'message') {
-        let message = await Store.Message.findById(ctx, src.peerId);
-        cid = message!.cid;
-    }
-
-    return await Modules.Users.getUserBadge(ctx, src.uid, cid);
+    return null;
 }
 
 function isMessageHiddenForUser(message: Message | Comment | RichMessage, forUid: number) {

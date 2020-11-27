@@ -41,9 +41,6 @@ export class InvitesMediator {
                 throw new NotFoundError('Invite not found');
             }
 
-            await Modules.Users.activateUser(ctx, uid, isNewUser, invite.creatorId);
-            await this.activateUserOrgs(ctx, uid, !isNewUser, 'ROOM', invite.creatorId);
-
             // let chat = await Store.ConversationRoom.findById(ctx, invite.channelId);
             await this.rooms.joinRoom(ctx, invite.channelId, uid, true);
             if (invite instanceof ChannelInvitation) {
@@ -65,8 +62,6 @@ export class InvitesMediator {
             if (privateChat) {
                 return 'ok';
             }
-            await Modules.Users.activateUser(ctx, uid, isNewUser, inviteData.uid);
-            await this.activateUserOrgs(ctx, uid, !isNewUser, 'APP', inviteData.uid);
             let chat = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, inviteData.uid);
             let name1 = await Modules.Users.getUserFullName(ctx, uid);
 
@@ -164,14 +159,5 @@ export class InvitesMediator {
             // await Emails.sendMemberJoinedEmails(ctx, invite.oid, uid);
             return IDs.Organization.serialize(invite.oid);
         });
-    }
-
-    private async activateUserOrgs(ctx: Context, uid: number, sendEmail: boolean, inviteType: 'APP' | 'ROOM', inviteOwner: number) {
-        let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
-        for (let oid of userOrgs) {
-            if (await Modules.Orgs.activateOrganization(ctx, oid, sendEmail)) {
-                await Modules.Hooks.onFirstOrganizationActivated(ctx, oid, { type: 'BY_INVITE', inviteType, inviteOwner, uid });
-            }
-        }
     }
 }

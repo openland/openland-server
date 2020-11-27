@@ -96,7 +96,6 @@ export const Authenticator = async function (req: express.Request, response: exp
             let user = await Store.User.email.find(ctx, profile.email.toLowerCase());
             if (!user) {
                 user = await Modules.Users.createUser(ctx, {email: profile.email.toLowerCase(), googleId: userKey});
-                await Modules.Hooks.onSignUp(ctx, user!.id);
             }
 
             // Prefill

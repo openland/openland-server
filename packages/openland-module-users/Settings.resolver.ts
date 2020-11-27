@@ -239,7 +239,7 @@ const settingsUpdateResolver = async (parent: Context, args: { settings: Optiona
         settings.invalidate();
         await Modules.Messaging.onGlobalCounterTypeChanged(ctx, _uid);
         await Modules.Users.notifyUserSettingsChanged(ctx, uid);
-        await Modules.Users.markForUndexing(ctx, uid);
+        await Modules.Users.markForIndexing(ctx, uid);
         await Modules.Events.postToCommon(ctx, uid, UpdateSettingsChanged.create({ uid }));
         return settings;
     });

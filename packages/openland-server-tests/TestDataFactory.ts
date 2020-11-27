@@ -13,7 +13,6 @@ export default class TestDataFactory {
             await Modules.Users.createUserProfile(ctx, user.id, {
                 firstName: firstName, lastName: lastName
             });
-            await Modules.Users.activateUser(ctx, user.id, false, user.id);
             await Modules.Orgs.createOrganization(ctx, user.id, { name: `Openland` });
             await Modules.Super.makeSuperAdmin(ctx, user.id, 'super-admin');
             return user;
@@ -28,7 +27,6 @@ export default class TestDataFactory {
                 await Modules.Users.createUserProfile(ctx, testUser.id, {
                     firstName: 'Test', lastName: `${i}`
                 });
-                await Modules.Users.activateUser(ctx, testUser.id, false, testUser.id);
                 await Modules.Orgs.createOrganization(ctx, testUser.id, { name: `Test organization ${i}` });
                 testUsers.push(testUser);
             }

@@ -133,6 +133,15 @@ export default declareSchema(() => {
         field('role', optional(string()));
         field('birthDay', optional(integer()));
         field('status', optional(string()));
+        field('modernStatus', optional(union({
+            custom: struct({
+                emoji: optional(string()),
+                text: string()
+            }),
+            badge: struct({
+                id: integer()
+            })
+        })));
         rangeIndex('byUpdatedAt', ['updatedAt']);
         rangeIndex('created', ['createdAt']);
     });
@@ -182,6 +191,28 @@ export default declareSchema(() => {
     entity('UserIndexingQueue', () => {
         primaryKey('id', integer());
         rangeIndex('updated', ['updatedAt']);
+    });
+
+    entity('ModernBadge', () => {
+        primaryKey('id', integer());
+        field('emoji', string());
+        field('text', string());
+        field('banned', boolean());
+        field('global', boolean());
+        field('creatorId', optional(integer()));
+
+        uniqueIndex('duplicates', ['emoji' , 'text']);
+        rangeIndex('updated', ['updatedAt']);
+    });
+
+    entity('UserModernBadge', () => {
+       primaryKey('uid', integer());
+       primaryKey('bid', integer());
+
+       field('deleted', boolean());
+
+       rangeIndex('byBid', ['bid', 'updatedAt']).withCondition(a => !a.deleted);
+       rangeIndex('byUid', ['uid', 'updatedAt']).withCondition(a => !a.deleted);
     });
 
     //

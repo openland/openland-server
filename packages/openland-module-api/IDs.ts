@@ -69,6 +69,9 @@ export const IDs = {
     CreditCard: IdsFactory.createStringId('CreditCard'),
     CreditCardSetupIntent: IdsFactory.createStringId('CreditCardSetupIntent'),
 
+    ModernBadge: IdsFactory.createId('ModernBadge'),
+    ModernBadgeSearchCursor: IdsFactory.createId('ModernBadgeSearchCursor'),
+
     WalletAccount: IdsFactory.createId('WalletAccount'),
     WalletTransaction: IdsFactory.createStringId('WalletTransaction'),
     WalletUpdatesCursor: IdsFactory.createStringId('WalletUpdatesCursor'),
