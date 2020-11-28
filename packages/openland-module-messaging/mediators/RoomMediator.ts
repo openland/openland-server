@@ -911,7 +911,7 @@ export class RoomMediator {
 
             await Modules.Hooks.onRoomJoin(ctx, cid, uid, by);
             await this.delivery.onDialogGotAccess(ctx, uid, cid);
-            await Modules.Users.markForUndexing(ctx, uid);
+            await Modules.Users.markForIndexing(ctx, uid);
         });
     }
 
@@ -934,7 +934,7 @@ export class RoomMediator {
 
             await Modules.Hooks.onRoomLeave(ctx, cid, uid, wasKicked);
             await this.delivery.onDialogLostAccess(ctx, uid, cid);
-            await Modules.Users.markForUndexing(ctx, uid);
+            await Modules.Users.markForIndexing(ctx, uid);
         });
     }
 }

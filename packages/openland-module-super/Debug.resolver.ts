@@ -470,26 +470,7 @@ export const Resolver: GQLResolver = {
             return await URLInfoService.deleteURLInfoCacheAll(ctx);
         }),
         debugSuperNotifications: withPermission('super-admin', async (ctx, args) => {
-            let uid = ctx.auth.uid!;
-            let oid = ctx.auth.oid!;
-
-            if (args.type === 'ON_SIGN_UP') {
-                await Modules.Hooks.onSignUp(ctx, uid);
-            } else if (args.type === 'ON_USER_PROFILE_CREATED') {
-                await Modules.Hooks.onUserProfileCreated(ctx, uid);
-            } else if (args.type === 'ON_ORG_ACTIVATED_BY_ADMIN') {
-                await Modules.Hooks.onFirstOrganizationActivated(ctx, oid, {type: 'BY_SUPER_ADMIN', uid});
-            } else if (args.type === 'ON_ORG_ACTIVATED_VIA_INVITE') {
-                await Modules.Hooks.onFirstOrganizationActivated(ctx, oid, {
-                    type: 'BY_INVITE',
-                    inviteType: 'APP',
-                    inviteOwner: uid,
-                    uid,
-                });
-            } else if (args.type === 'ON_ORG_SUSPEND') {
-                await Modules.Hooks.onOrganizationSuspended(ctx, oid, {type: 'BY_SUPER_ADMIN', uid});
-            }
-            return true;
+            throw new UserError('Deprecated');
         }),
         debugCalcUsersMessagingStats: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'calcUserChatsStats', async (log) => {
@@ -856,8 +837,6 @@ export const Resolver: GQLResolver = {
                 return false;
             }
             await inTx(root, async ctx => {
-                await Modules.Users.activateUser(ctx, uid, false);
-                await Modules.Orgs.createOrganization(ctx, uid, {name: 'Openland'});
                 await Modules.Super.makeSuperAdmin(ctx, uid, 'super-admin');
             });
             return true;
@@ -1107,7 +1086,7 @@ export const Resolver: GQLResolver = {
         }),
         debugReindexUserProfiles: withPermission('super-admin', async (parent) => {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugReindexUserProfiles', async (ctx, uid, log) => {
-                await Modules.Users.markForUndexing(ctx, uid);
+                await Modules.Users.markForIndexing(ctx, uid);
             });
             return true;
         }),

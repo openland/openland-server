@@ -30,7 +30,6 @@ export async function createUser(ctx: Context, email: string) {
         about: faker.name.jobTitle()
     });
     await Modules.Auth.createToken(ctx, user.id);
-    await Modules.Users.activateUser(ctx, user.id, false);
 
     return user.id;
 }
@@ -91,7 +90,6 @@ export async function prepare() {
         const adminMail = 'bot@openland.com';
         let adminId = await createUser(ctx, adminMail);
         await Modules.Super.makeSuperAdmin(ctx, adminId, 'super-admin');
-        await Modules.Users.activateUser(ctx, adminId, false);
         let org = await Modules.Orgs.createOrganization(ctx, adminId, { name: 'Developer Organization' });
         // const start = Date.now();
 

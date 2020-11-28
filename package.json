@@ -113,6 +113,7 @@
     "module-alias": "^2.1.0",
     "moment": "^2.24.0",
     "morgan": "^1.9.0",
+    "node-emoji": "^1.10.0",
     "node-fetch": "^1.7.1",
     "nodemon": "^1.11.0",
     "opentracing": "^0.14.4",
@@ -181,7 +182,8 @@
     "ch:gen": ". ./scripts/set_dev_config.sh && ./node_modules/.bin/ts-node packages/openland-module-clickhouse/generateMigrations.ts"
   },
   "devDependencies": {
-    "@types/geoip-lite": "^1.1.31"
+    "@types/geoip-lite": "^1.1.31",
+    "@types/node-emoji": "^1.8.1"
   },
   "_moduleAliases": {
     "async_hooks": "build/openland-server/empty.js",

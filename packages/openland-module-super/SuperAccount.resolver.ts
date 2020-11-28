@@ -39,9 +39,7 @@ export const Resolver: GQLResolver = {
         }),
         superAccountActivate: withPermission('super-admin', async (ctx, args) => {
             let oid = IDs.SuperAccount.parse(args.id);
-            if (await Modules.Orgs.activateOrganization(ctx, oid, true, true)) {
-                await Modules.Hooks.onFirstOrganizationActivated(ctx, oid, { type: 'BY_SUPER_ADMIN', uid: ctx.auth.uid! });
-            }
+            await Modules.Orgs.activateOrganization(ctx, oid, true, true);
             return (await Store.Organization.findById(ctx, oid))!;
         }),
         superAccountPend: withPermission('super-admin', (ctx, args) => {
@@ -49,9 +47,7 @@ export const Resolver: GQLResolver = {
         }),
         superAccountSuspend: withPermission('super-admin', async (ctx, args) => {
             let oid = IDs.SuperAccount.parse(args.id);
-            if (await Modules.Orgs.suspendOrganization(ctx, IDs.SuperAccount.parse(args.id))) {
-                await Modules.Hooks.onOrganizationSuspended(ctx, oid, { type: 'BY_SUPER_ADMIN', uid: ctx.auth.uid! });
-            }
+            await Modules.Orgs.suspendOrganization(ctx, IDs.SuperAccount.parse(args.id));
             return (await Store.Organization.findById(ctx, oid))!;
         }),
         superAccountMemberAdd: withPermission('super-admin', (ctx, args) => {

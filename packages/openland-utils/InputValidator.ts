@@ -1,6 +1,47 @@
 import { Sanitizer } from './Sanitizer';
 import { InvalidInputError } from '../openland-errors/InvalidInputError';
 
+export function onlyOneOfKeys<T extends object>(...keys: (keyof T)[]) {
+    return (obj: T) => {
+        let found = 0;
+        for (let [k, v] of Object.entries(obj)) {
+            if (keys.length > 0 && !(keys as string[]).includes(k)) {
+                continue;
+            }
+            if (!!v) {
+                found++;
+            }
+        }
+        return found === 1;
+    };
+}
+
+type ValidationRule<T> = (obj: T) => boolean;
+
+export function ensure<T>(obj: T, ...rules: ValidationRule<T>[]) {
+    let valid = true;
+    for (let rule of rules) {
+        if (!rule(obj)) {
+            valid = false;
+            break;
+        }
+    }
+
+    return {
+        throw: (error: Error | string) => {
+            if (valid) {
+                return;
+            }
+
+            if (error instanceof Error) {
+                throw error;
+            } else {
+                throw new Error(error);
+            }
+        }
+    };
+}
+
 export const InputValidator = {
 
     validateEnumString(str: string | null | undefined, ethalon: string[], filedName: string, fieldKey: string, errorAccumulator?: { key: string, message: string }[], nullable?: boolean) {

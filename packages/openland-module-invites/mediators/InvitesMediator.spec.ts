@@ -122,10 +122,6 @@ describe('InvitesMediator', () => {
         // should activate user
         let user = (await Store.User.findById(ctx, USER2_ID))!;
         expect(user.status).toEqual('activated');
-
-        // should make org primary
-        let userProfile = (await Store.UserProfile.findById(ctx, USER2_ID))!;
-        expect(userProfile.primaryOrganization).toEqual(USER_ORG_ID);
     });
 
     it('should add to organization via public invite', async () => {
@@ -154,10 +150,6 @@ describe('InvitesMediator', () => {
         // should activate user
         let user = (await Store.User.findById(ctx, USER2_ID))!;
         expect(user.status).toEqual('activated');
-
-        // should make org primary
-        let userProfile = (await Store.UserProfile.findById(ctx, USER2_ID))!;
-        expect(userProfile.primaryOrganization).toEqual(USER_ORG_ID);
     });
 
 });

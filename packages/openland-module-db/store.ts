@@ -1830,6 +1830,7 @@ export interface UserProfileShape {
     role: string | null;
     birthDay: number | null;
     status: string | null;
+    modernStatus: { type: 'custom', emoji: string | null, text: string } | { type: 'badge', id: number } | null;
 }
 
 export interface UserProfileCreateShape {
@@ -1851,6 +1852,7 @@ export interface UserProfileCreateShape {
     role?: string | null | undefined;
     birthDay?: number | null | undefined;
     status?: string | null | undefined;
+    modernStatus?: { type: 'custom', emoji: string | null | undefined, text: string } | { type: 'badge', id: number } | null | undefined;
 }
 
 export class UserProfile extends Entity<UserProfileShape> {
@@ -2017,6 +2019,15 @@ export class UserProfile extends Entity<UserProfileShape> {
             this.invalidate();
         }
     }
+    get modernStatus(): { type: 'custom', emoji: string | null, text: string } | { type: 'badge', id: number } | null { return this._rawValue.modernStatus; }
+    set modernStatus(value: { type: 'custom', emoji: string | null, text: string } | { type: 'badge', id: number } | null) {
+        let normalized = this.descriptor.codec.fields.modernStatus.normalize(value);
+        if (this._rawValue.modernStatus !== normalized) {
+            this._rawValue.modernStatus = normalized;
+            this._updatedValues.modernStatus = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProfile> {
@@ -2047,6 +2058,7 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
         fields.push({ name: 'role', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'birthDay', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'status', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'modernStatus', type: { type: 'optional', inner: { type: 'union', types: { custom: { emoji: { type: 'optional', inner: { type: 'string' } }, text: { type: 'string' } }, badge: { id: { type: 'integer' } } } } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             firstName: c.string,
@@ -2067,6 +2079,7 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
             role: c.optional(c.string),
             birthDay: c.optional(c.integer),
             status: c.optional(c.string),
+            modernStatus: c.optional(c.union({ custom: c.struct({ emoji: c.optional(c.string), text: c.string }), badge: c.struct({ id: c.integer }) })),
         });
         let descriptor: EntityDescriptor<UserProfileShape> = {
             name: 'UserProfile',
@@ -2508,6 +2521,261 @@ export class UserIndexingQueueFactory extends EntityFactory<UserIndexingQueueSha
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserIndexingQueueShape>): UserIndexingQueue {
         return new UserIndexingQueue([value.id], value, this.descriptor, this._flush, this._delete, ctx);
+    }
+}
+
+export interface ModernBadgeShape {
+    id: number;
+    emoji: string;
+    text: string;
+    banned: boolean;
+    global: boolean;
+    creatorId: number | null;
+}
+
+export interface ModernBadgeCreateShape {
+    emoji: string;
+    text: string;
+    banned: boolean;
+    global: boolean;
+    creatorId?: number | null | undefined;
+}
+
+export class ModernBadge extends Entity<ModernBadgeShape> {
+    get id(): number { return this._rawValue.id; }
+    get emoji(): string { return this._rawValue.emoji; }
+    set emoji(value: string) {
+        let normalized = this.descriptor.codec.fields.emoji.normalize(value);
+        if (this._rawValue.emoji !== normalized) {
+            this._rawValue.emoji = normalized;
+            this._updatedValues.emoji = normalized;
+            this.invalidate();
+        }
+    }
+    get text(): string { return this._rawValue.text; }
+    set text(value: string) {
+        let normalized = this.descriptor.codec.fields.text.normalize(value);
+        if (this._rawValue.text !== normalized) {
+            this._rawValue.text = normalized;
+            this._updatedValues.text = normalized;
+            this.invalidate();
+        }
+    }
+    get banned(): boolean { return this._rawValue.banned; }
+    set banned(value: boolean) {
+        let normalized = this.descriptor.codec.fields.banned.normalize(value);
+        if (this._rawValue.banned !== normalized) {
+            this._rawValue.banned = normalized;
+            this._updatedValues.banned = normalized;
+            this.invalidate();
+        }
+    }
+    get global(): boolean { return this._rawValue.global; }
+    set global(value: boolean) {
+        let normalized = this.descriptor.codec.fields.global.normalize(value);
+        if (this._rawValue.global !== normalized) {
+            this._rawValue.global = normalized;
+            this._updatedValues.global = normalized;
+            this.invalidate();
+        }
+    }
+    get creatorId(): number | null { return this._rawValue.creatorId; }
+    set creatorId(value: number | null) {
+        let normalized = this.descriptor.codec.fields.creatorId.normalize(value);
+        if (this._rawValue.creatorId !== normalized) {
+            this._rawValue.creatorId = normalized;
+            this._updatedValues.creatorId = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class ModernBadgeFactory extends EntityFactory<ModernBadgeShape, ModernBadge> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('modernBadge');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'duplicates', storageKey: 'duplicates', type: { type: 'unique', fields: [{ name: 'emoji', type: 'string' }, { name: 'text', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('modernBadge', 'duplicates'), condition: undefined });
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('modernBadge', 'updated'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'emoji', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'text', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'banned', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'global', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'creatorId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            emoji: c.string,
+            text: c.string,
+            banned: c.boolean,
+            global: c.boolean,
+            creatorId: c.optional(c.integer),
+        });
+        let descriptor: EntityDescriptor<ModernBadgeShape> = {
+            name: 'ModernBadge',
+            storageKey: 'modernBadge',
+            allowDelete: false,
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new ModernBadgeFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<ModernBadgeShape>) {
+        super(descriptor);
+    }
+
+    readonly duplicates = Object.freeze({
+        find: async (ctx: Context, emoji: string, text: string) => {
+            return this._findFromUniqueIndex(ctx, [emoji, text], this.descriptor.secondaryIndexes[0]);
+        },
+        findAll: async (ctx: Context, emoji: string) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [emoji])).items;
+        },
+        query: (ctx: Context, emoji: string, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [emoji], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+    });
+
+    readonly updated = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: ModernBadgeCreateShape): Promise<ModernBadge> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: ModernBadgeCreateShape): ModernBadge {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<ModernBadge | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ModernBadgeShape>): ModernBadge {
+        return new ModernBadge([value.id], value, this.descriptor, this._flush, this._delete, ctx);
+    }
+}
+
+export interface UserModernBadgeShape {
+    uid: number;
+    bid: number;
+    deleted: boolean;
+}
+
+export interface UserModernBadgeCreateShape {
+    deleted: boolean;
+}
+
+export class UserModernBadge extends Entity<UserModernBadgeShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get bid(): number { return this._rawValue.bid; }
+    get deleted(): boolean { return this._rawValue.deleted; }
+    set deleted(value: boolean) {
+        let normalized = this.descriptor.codec.fields.deleted.normalize(value);
+        if (this._rawValue.deleted !== normalized) {
+            this._rawValue.deleted = normalized;
+            this._updatedValues.deleted = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserModernBadgeFactory extends EntityFactory<UserModernBadgeShape, UserModernBadge> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userModernBadge');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'byBid', storageKey: 'byBid', type: { type: 'range', fields: [{ name: 'bid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userModernBadge', 'byBid'), condition: a => !a.deleted });
+        secondaryIndexes.push({ name: 'byUid', storageKey: 'byUid', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userModernBadge', 'byUid'), condition: a => !a.deleted });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        primaryKeys.push({ name: 'bid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'deleted', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            bid: c.integer,
+            deleted: c.boolean,
+        });
+        let descriptor: EntityDescriptor<UserModernBadgeShape> = {
+            name: 'UserModernBadge',
+            storageKey: 'userModernBadge',
+            allowDelete: false,
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserModernBadgeFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserModernBadgeShape>) {
+        super(descriptor);
+    }
+
+    readonly byBid = Object.freeze({
+        findAll: async (ctx: Context, bid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [bid])).items;
+        },
+        query: (ctx: Context, bid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [bid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (bid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [bid], opts);
+        },
+        liveStream: (ctx: Context, bid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [bid], opts);
+        },
+    });
+
+    readonly byUid = Object.freeze({
+        findAll: async (ctx: Context, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [uid])).items;
+        },
+        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [uid], opts);
+        },
+        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [uid], opts);
+        },
+    });
+
+    create(ctx: Context, uid: number, bid: number, src: UserModernBadgeCreateShape): Promise<UserModernBadge> {
+        return this._create(ctx, [uid, bid], this.descriptor.codec.normalize({ uid, bid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, bid: number, src: UserModernBadgeCreateShape): UserModernBadge {
+        return this._create_UNSAFE(ctx, [uid, bid], this.descriptor.codec.normalize({ uid, bid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number, bid: number): Promise<UserModernBadge | null> {
+        return this._findById(ctx, [uid, bid]);
+    }
+
+    watch(ctx: Context, uid: number, bid: number): Watch {
+        return this._watch(ctx, [uid, bid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserModernBadgeShape>): UserModernBadge {
+        return new UserModernBadge([value.uid, value.bid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -22800,6 +23068,8 @@ export interface Store extends BaseStore {
     readonly UserProfilePrefil: UserProfilePrefilFactory;
     readonly UserSettings: UserSettingsFactory;
     readonly UserIndexingQueue: UserIndexingQueueFactory;
+    readonly ModernBadge: ModernBadgeFactory;
+    readonly UserModernBadge: UserModernBadgeFactory;
     readonly Organization: OrganizationFactory;
     readonly OrganizationProfile: OrganizationProfileFactory;
     readonly OrganizationEditorial: OrganizationEditorialFactory;
@@ -23100,6 +23370,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserProfilePrefilPromise = UserProfilePrefilFactory.open(storage);
     let UserSettingsPromise = UserSettingsFactory.open(storage);
     let UserIndexingQueuePromise = UserIndexingQueueFactory.open(storage);
+    let ModernBadgePromise = ModernBadgeFactory.open(storage);
+    let UserModernBadgePromise = UserModernBadgeFactory.open(storage);
     let OrganizationPromise = OrganizationFactory.open(storage);
     let OrganizationProfilePromise = OrganizationProfileFactory.open(storage);
     let OrganizationEditorialPromise = OrganizationEditorialFactory.open(storage);
@@ -23354,6 +23626,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserProfilePrefil: await UserProfilePrefilPromise,
         UserSettings: await UserSettingsPromise,
         UserIndexingQueue: await UserIndexingQueuePromise,
+        ModernBadge: await ModernBadgePromise,
+        UserModernBadge: await UserModernBadgePromise,
         Organization: await OrganizationPromise,
         OrganizationProfile: await OrganizationProfilePromise,
         OrganizationEditorial: await OrganizationEditorialPromise,

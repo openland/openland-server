@@ -43,35 +43,23 @@ export const Resolver: GQLResolver = {
 
             // State 0: Is Logged In
             let isLoggedIn = true; // Checked in previous steps
+            let isActivated = res.status === 'activated';
 
             // Stage 1: Create Profile
             let profile = auth.uid ? (await Modules.Users.profileById(ctx, auth.uid)) : null;
             let isProfileCreated = !!profile;
 
-            // Stage 2: Pick organization or create a new one (if there are no exists)
-            let organization = (profile && profile.primaryOrganization) ? await Store.Organization.findById(ctx, profile.primaryOrganization) : null;
-            let isOrganizationPicked = organization !== null;
-            let orgsIDs = auth.uid ? await Modules.Orgs.findUserOrganizations(ctx, auth.uid) : [];
-            let isOrganizationExists = orgsIDs.length > 0;
-
-            // Stage 3: Activation Status
-            let orgs = await Promise.all(orgsIDs.map((v) => Store.Organization.findById(ctx, v)));
-            let isAllOrganizationsSuspended = orgs.length > 0 && orgs.filter(o => o!.status === 'suspended').length === orgs.length;
-            let isActivated = orgs.filter(o => o!.status === 'activated').length > 0;
-            // deprecated
-            let isOrganizationActivated = isOrganizationPicked && organization!!.status !== 'pending';
-
             let queryResult = {
                 isLoggedIn: isLoggedIn,
                 isProfileCreated: isProfileCreated,
                 isActivated: isActivated,
-                isAccountExists: isOrganizationExists,
+                isAccountExists: isProfileCreated,
                 // isCompleted: isProfileCreated && isOrganizationExists && isOrganizationPicked && isActivated,
                 isCompleted: isProfileCreated && isActivated,
-                isBlocked: isAllOrganizationsSuspended,
+                isBlocked: res.status !== 'activated',
                 // deprecated
-                isAccountPicked: isOrganizationPicked,
-                isAccountActivated: isOrganizationActivated,
+                isAccountPicked: true,
+                isAccountActivated: true,
             };
 
             return queryResult;

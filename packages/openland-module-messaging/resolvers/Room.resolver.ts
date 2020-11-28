@@ -107,7 +107,7 @@ export const Resolver: GQLResolver = {
                 return null;
             }
         },
-        myBadge: (root: RoomRoot, args: {}, ctx: Context) => Modules.Users.getUserBadge(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)),
+        myBadge: (root: RoomRoot, args: {}, ctx: Context) => null,
     },
     SharedRoomMembershipStatus: {
         MEMBER: 'joined',
@@ -278,7 +278,7 @@ export const Resolver: GQLResolver = {
                 return false;
             }
         }), false),
-        myBadge: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : await Modules.Users.getUserBadge(ctx, ctx.auth.uid!, id)), null),
+        myBadge: () => null,
         featuredMembersCount: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => (await Store.UserRoomBadge.chat.findAll(ctx, id)).length), 0),
         matchmaking: withAuthFallback(withConverationId(async (ctx, id) => await Modules.Matchmaking.getRoom(ctx, id, 'room')), null),
         owner: withAuthFallback(withConverationId(async (ctx, id) => {
@@ -313,7 +313,7 @@ export const Resolver: GQLResolver = {
         membership: async (src, args, ctx) => src.status,
         invitedBy: async (src, args, ctx) => src.invitedBy,
         canKick: async (src, args, ctx) => await Modules.Messaging.room.canKickFromRoom(ctx, src.cid, ctx.auth.uid!, src.uid),
-        badge: (src, args, ctx) => Modules.Users.getUserBadge(ctx, src.uid, src.cid),
+        badge: (src, args, ctx) => null,
     },
 
     RoomInvite: {

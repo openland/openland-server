@@ -48,10 +48,6 @@ export class HooksModuleMock {
         // Nothing to do
     }
 
-    onSignUp = async (ctx: Context, uid: number) => {
-        // Nothing to do
-    }
-
     onUserProfileCreated = async (ctx: Context, uid: number) => {
         // Nothing to do
     }

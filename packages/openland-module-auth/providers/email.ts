@@ -301,7 +301,6 @@ export async function getAccessToken(req: express.Request, response: express.Res
                 return;
             } else {
                 let user = await Modules.Users.createUser(ctx, {email: authSession.email.toLowerCase()});
-                await Modules.Hooks.onSignUp(ctx, user.id);
                 let token = await Modules.Auth.createToken(ctx, user.id!);
                 response.json({ ok: true, accessToken: token.salt });
                 authSession.enabled = false;

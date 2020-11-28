@@ -89,7 +89,6 @@ export async function getAccessToken(req: express.Request, response: express.Res
                         picture: payload.picture
                     });
 
-                    await Modules.Hooks.onSignUp(ctx, user.id);
                     let token = await Modules.Auth.createToken(ctx, user.id!);
                     response.json({ok: true, accessToken: token.salt});
                     return;

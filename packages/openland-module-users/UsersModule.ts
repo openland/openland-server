@@ -1,12 +1,10 @@
-
-import { AuthInfo, UserRepository } from './repositories/UserRepository';
+import { AuthInfo } from './repositories/UserRepository';
 import { userProfileIndexer } from './workers/userProfileIndexer';
 import { UserSearch } from './search/UserSearch';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { ProfileInput } from './ProfileInput';
 import { injectable, inject } from 'inversify';
-import { inTx, withReadOnlyTransaction } from '@openland/foundationdb';
-import { Emails } from 'openland-module-email/Emails';
+import { withReadOnlyTransaction } from '@openland/foundationdb';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { Context, createNamedContext } from '@openland/context';
 import { NotFoundError } from '../openland-errors/NotFoundError';
@@ -14,28 +12,37 @@ import { Modules } from '../openland-modules/Modules';
 import { AudienceCounterRepository } from './repositories/AudienceCounterRepository';
 import { declareUserAudienceCalculator } from './workers/userAudienceCalculator';
 import { createLogger } from '@openland/log';
+import { badgeIndexer } from './workers/badgeIndexer';
+import { ModernBadgeMediator } from './mediators/ModernBadgeMediator';
+import { UserMediator } from './mediators/UserMediator';
 
 const rootCtx = createNamedContext('users_module');
 const log = createLogger('users_module');
 
 @injectable()
 export class UsersModule {
-    private readonly repo: UserRepository;
+    private readonly users: UserMediator;
     private readonly audienceCounterRepo: AudienceCounterRepository;
+
+    public readonly badges: ModernBadgeMediator;
     public readonly search = new UserSearch();
     private deletedUserId: number | null = null;
 
     constructor(
-        @inject('UserRepository') userRepo: UserRepository,
-        @inject('AudienceCounterRepository') audienceCounterRepo: AudienceCounterRepository
+        @inject('UserMediator') users: UserMediator,
+        @inject('AudienceCounterRepository') audienceCounterRepo: AudienceCounterRepository,
+        @inject('ModernBadgeMediator') badges: ModernBadgeMediator,
     ) {
-        this.repo = userRepo;
+        this.users = users;
         this.audienceCounterRepo = audienceCounterRepo;
+        this.badges = badges;
     }
 
     start = async () => {
         if (serverRoleEnabled('workers')) {
             userProfileIndexer();
+            badgeIndexer();
+
             declareUserAudienceCalculator();
         }
 
@@ -46,104 +53,64 @@ export class UsersModule {
         }
     }
 
-    async createUser(parent: Context, authInfo: AuthInfo) {
-        return await inTx(parent, async (ctx) => {
-            let created = await this.repo.createUser(ctx, authInfo);
-            await Modules.Hooks.onUserCreated(ctx, created.id);
-            return created;
-        });
+    async createUser(ctx: Context, authInfo: AuthInfo) {
+        return await this.users.createUser(ctx, authInfo);
     }
 
-    async activateUser(parent: Context, uid: number, sendEmail: boolean, invitedBy: number | null = null) {
-        await inTx(parent, async (ctx) => {
-            if (await this.repo.activateUser(ctx, uid, invitedBy)) {
-                if (sendEmail) {
-                    await Emails.sendWelcomeEmail(ctx, uid);
-                }
-                await Modules.Hooks.onUserActivated(ctx, uid);
-            }
-        });
-    }
-
-    async deleteUser(parent: Context, uid: number) {
-        await inTx(parent, async (ctx) => {
-            await this.repo.deleteUser(ctx, uid);
-            await Modules.Hooks.onUserDeleted(ctx, uid);
-        });
+    async deleteUser(ctx: Context, uid: number) {
+        return await this.users.deleteUser(ctx, uid);
     }
 
     async profileById(ctx: Context, uid: number) {
-        return this.repo.findUserProfile(ctx, uid);
+        return this.users.findUserProfile(ctx, uid);
     }
 
     async findUserByAuthId(ctx: Context, authId: string): Promise<number | undefined> {
-        return this.repo.findUserByAuthId(ctx, authId);
+        return this.users.findUserByAuthId(ctx, authId);
     }
 
     async createSystemBot(ctx: Context, key: string, name: string, photoRef: ImageRef) {
-        return await this.repo.createSystemBot(ctx, key, name, photoRef);
+        return await this.users.createSystemBot(ctx, key, name, photoRef);
     }
 
     async createTestUser(ctx: Context, key: string, name: string) {
-        return await this.repo.createTestUser(ctx, key, name);
+        return await this.users.createTestUser(ctx, key, name);
     }
 
     async createUserProfile(ctx: Context, uid: number, input: ProfileInput) {
-        return await this.repo.createUserProfile(ctx, uid, input);
+        return await this.users.createUserProfile(ctx, uid, input);
+    }
+
+    async updateUserProfile(ctx: Context, uid: number, input: ProfileInput) {
+        return await this.users.updateUserProfile(ctx, uid, input);
     }
 
     async userBindInvitedBy(ctx: Context, uid: number, inviteKey: string) {
-        return await this.repo.bindInvitedBy(ctx, uid, inviteKey);
+        return await this.users.bindInvitedBy(ctx, uid, inviteKey);
     }
 
     async findProfilePrefill(ctx: Context, uid: number) {
-        return this.repo.findProfilePrefill(ctx, uid);
+        return this.users.findProfilePrefill(ctx, uid);
     }
 
     async saveProfilePrefill(ctx: Context, uid: number, prefill: { firstName?: string, lastName?: string, picture?: string }) {
-        return this.repo.saveProfilePrefill(ctx, uid, prefill);
+        return this.users.saveProfilePrefill(ctx, uid, prefill);
     }
 
     async getUserSettings(ctx: Context, uid: number) {
-        return await this.repo.getUserSettings(ctx, uid);
+        return await this.users.getUserSettings(ctx, uid);
     }
 
     async notifyUserSettingsChanged(parent: Context, uid: number) {
-        return await this.repo.notifyUserSettingsChanged(parent, uid);
+        return await this.users.notifyUserSettingsChanged(parent, uid);
     }
 
     async waitForNextSettings(ctx: Context, uid: number) {
-        await this.repo.waitForNextSettings(ctx, uid);
+        await this.users.waitForNextSettings(ctx, uid);
     }
 
     async searchForUsers(ctx: Context, query: string, options?: { uid?: number, limit?: number, after?: string, page?: number, byName?: boolean, uids?: number[], hashtags?: string[] }) {
         return await this.search.searchForUsers(ctx, query, options);
-    }
-
-    // Badges
-
-    async createBadge(ctx: Context, uid: number, name: string, isSuper: boolean, cid?: number) {
-        return await this.repo.createBadge(ctx, uid, name, isSuper, cid);
-    }
-
-    async deleteBadge(ctx: Context, uid: number, bid: number) {
-        return await this.repo.deleteBadge(ctx, uid, bid);
-    }
-
-    async updatePrimaryBadge(ctx: Context, uid: number, bid: number | null) {
-        return await this.repo.updatePrimaryBadge(ctx, uid, bid);
-    }
-
-    async verifyBadge(ctx: Context, bid: number, by: number | null) {
-        return await this.repo.verifyBadge(ctx, bid, by);
-    }
-
-    async updateRoomBage(ctx: Context, uid: number, cid: number, bid: number | null) {
-        return await this.repo.updateRoomBadge(ctx, uid, cid, bid);
-    }
-
-    async getUserBadge(ctx: Context, uid: number, cid?: number, ignorePrimary?: boolean) {
-        return await this.repo.getUserBadge(ctx, uid, cid, true);
     }
 
     async getUserFullName(ctx: Context, uid: number) {
@@ -160,20 +127,16 @@ export class UsersModule {
         }
     }
 
-    async isTest(ctx: Context, uid: number) {
-        let user = await this.repo.findUser(ctx, uid);
-        if (user && user.email?.endsWith('maildu.de')) {
-            return true;
-        }
-        return false;
-    }
-
-    async markForUndexing(ctx: Context, uid: number) {
-        return this.repo.markForUndexing(ctx, uid);
+    async markForIndexing(ctx: Context, uid: number) {
+        return this.users.markForIndexing(ctx, uid);
     }
 
     async getSupportUserId(ctx: Context) {
         return await Modules.Super.getEnvVar<number>(ctx, 'support-user-id');
+    }
+
+    async isTest(ctx: Context, uid: number) {
+        return await this.users.isTest(ctx, uid);
     }
 
     getDeletedUserId() {

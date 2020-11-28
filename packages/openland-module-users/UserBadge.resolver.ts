@@ -1,7 +1,7 @@
 import { IDs } from 'openland-module-api/IDs';
 import { withUser, withPermission } from 'openland-module-api/Resolvers';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
-import { Modules } from 'openland-modules/Modules';
+import { UserError } from '../openland-errors/UserError';
 
 export const Resolver: GQLResolver = {
     UserBadge: {
@@ -11,91 +11,57 @@ export const Resolver: GQLResolver = {
     },
     Query: {
         badgeInRoom: withUser(async (ctx, args, uid) => {
-            let cid = IDs.Conversation.parse(args.roomId);
-
-            return await Modules.Users.getUserBadge(ctx, uid, cid, true);
+            return null;
         }),
 
         superBadgeInRoom: withPermission('super-admin', async (ctx, args) => {
-            let uid = IDs.User.parse(args.userId);
-            let cid = IDs.Conversation.parse(args.roomId);
-
-            return await Modules.Users.getUserBadge(ctx, uid, cid, true);
+            return null;
         }),
     },
     Mutation: {
         badgeCreate: withUser(async (ctx, args, uid) => {
-            await Modules.Users.createBadge(ctx, uid, args.name, false);
-            return uid;
+            throw new UserError('This method is not supported');
         }),
         badgeCreateToRoom: withUser(async (ctx, args, uid) => {
-            let cid = IDs.Conversation.parse(args.roomId);
-
-            return await Modules.Users.createBadge(ctx, uid, args.name, false, cid);
+            throw new UserError('This method is not supported');
         }),
         badgeSetToRoom: withUser(async (ctx, args, uid) => {
-            let cid = IDs.Conversation.parse(args.roomId);
-            let bid = IDs.UserBadge.parse(args.badgeId);
-            return (await Modules.Users.updateRoomBage(ctx, uid, cid, bid))!;
+            throw new UserError('This method is not supported');
         }),
         badgeUnsetToRoom: withUser(async (ctx, args, uid) => {
-            let cid = IDs.Conversation.parse(args.roomId);
-            await Modules.Users.updateRoomBage(ctx, uid, cid, null);
-            return true;
+            throw new UserError('This method is not supported');
         }),
         badgeDelete: withUser(async (ctx, args, uid) => {
-            let bid = IDs.UserBadge.parse(args.badgeId);
-            return await Modules.Users.deleteBadge(ctx, uid, bid);
+            throw new UserError('This method is not supported');
         }),
         badgeSetPrimary: withUser(async (ctx, args, uid) => {
-            let bid = IDs.UserBadge.parse(args.badgeId);
-            return await Modules.Users.updatePrimaryBadge(ctx, uid, bid);
+            throw new UserError('This method is not supported');
         }),
         badgeUnsetPrimary: withUser(async (ctx, args, uid) => {
-            return await Modules.Users.updatePrimaryBadge(ctx, uid, null);
+            throw new UserError('This method is not supported');
         }),
 
         // super-admin methods
         superBadgeCreate: withPermission('super-admin', async (ctx, args) => {
-            let uid = IDs.User.parse(args.userId);
-            await Modules.Users.createBadge(ctx, uid, args.name, true);
-            return uid;
+            throw new UserError('This method is not supported');
         }),
         superBadgeCreateToRoom: withPermission('super-admin', async (ctx, args) => {
-            let uid = IDs.User.parse(args.userId);
-            let cid = IDs.Conversation.parse(args.roomId);
-
-            return await Modules.Users.createBadge(ctx, uid, args.name, true, cid);
+            throw new UserError('This method is not supported');
         }),
         superBadgeSetToRoom: withPermission('super-admin', async (ctx, args) => {
-            let uid = IDs.User.parse(args.userId);
-            let cid = IDs.Conversation.parse(args.roomId);
-            let bid = IDs.UserBadge.parse(args.badgeId);
-
-            return (await Modules.Users.updateRoomBage(ctx, uid, cid, bid))!;
+            throw new UserError('This method is not supported');
         }),
         superBadgeUnsetToRoom: withPermission('super-admin', async (ctx, args) => {
-            let uid = IDs.User.parse(args.userId);
-            let cid = IDs.Conversation.parse(args.roomId);
-            await Modules.Users.updateRoomBage(ctx, uid, cid, null);
-            return true;
+            throw new UserError('This method is not supported');
         }),
         superBadgeDelete: withPermission('super-admin', async (ctx, args) => {
-            let uid = IDs.User.parse(args.userId);
-            let bid = IDs.UserBadge.parse(args.badgeId);
-
-            return await Modules.Users.deleteBadge(ctx, uid, bid);
+            throw new UserError('This method is not supported');
         }),
         superBadgeVerify: withPermission('super-admin', async (ctx, args) => {
-            let by = ctx.auth.uid!;
-            let bid = IDs.UserBadge.parse(args.badgeId);
-
-            return await Modules.Users.verifyBadge(ctx, bid, by);
+            throw new UserError('This method is not supported');
         }),
         superBadgeUnverify: withPermission('super-admin', async (ctx, args) => {
-            let bid = IDs.UserBadge.parse(args.badgeId);
-
-            return await Modules.Users.verifyBadge(ctx, bid, null);
+            throw new UserError('This method is not supported');
         }),
     }
 };

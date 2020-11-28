@@ -17,10 +17,9 @@ type User {
     twitter: String
     facebook: String
     audienceSize: Int!
-    badge: ProfileBadge
     joinDate: Date!
     birthDay: Date
-    status: String
+    status: Status
 
     # TODO: Refactor
     channelsJoined: [ChannelConversation!]! @disabled

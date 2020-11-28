@@ -24,7 +24,6 @@ export const Resolver: GQLResolver = {
                     pageInfo: {
                         hasNextPage: false,
                         hasPreviousPage: false,
-
                         itemsCount: 0,
                         pagesCount: 0,
                         currentPage: 0,
