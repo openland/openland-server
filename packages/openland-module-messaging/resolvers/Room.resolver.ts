@@ -446,6 +446,7 @@ export const Resolver: GQLResolver = {
             if (conversation.kind === 'organization') {
                 let convOrg = await Store.ConversationOrganization.findById(ctx, roomId);
                 let org = (await Store.Organization.findById(ctx, convOrg!.oid))!;
+
                 let members = await Store.OrganizationMember.organization.findAll(ctx, 'joined', convOrg!.oid);
                 return members.map(m => ({
                     cid: roomId,
@@ -455,17 +456,17 @@ export const Resolver: GQLResolver = {
                     invitedBy: m.invitedBy || org.ownerId
                 }));
             } else {
+                let adminsIds =  new Map<number, number>();
                 let admins = (await Store.RoomParticipant.admins.findAll(ctx, roomId));
 
-                let adminsIds =  new Map<string, number>();
                 admins.forEach((row, i) => {
-                    adminsIds.set(row.cid + ':' + row.uid, i);
+                    adminsIds.set(row.uid, i);
                 });
 
                 let afterMember: RoomParticipant | null = null;
                 if (args.after) {
                     afterMember = await Store.RoomParticipant.findById(ctx, roomId, IDs.User.parse(args.after));
-                    let adminsOffset = adminsIds.get(roomId + ':' + IDs.User.parse(args.after));
+                    let adminsOffset = adminsIds.get(IDs.User.parse(args.after));
                     if (adminsOffset === undefined) {
                         admins = []; // no need for admins since we already pass them
                     } else {
@@ -482,7 +483,7 @@ export const Resolver: GQLResolver = {
                     response = (await Store.RoomParticipant.active.query(ctx, roomId, { limit: args.first || 1000 })).items;
                 }
                 response = response.filter((row) => {
-                    return !adminsIds.has(row.cid + ':' + row.uid);
+                    return !adminsIds.has(row.uid);
                 });
 
                 let limit = args.first || 1000;

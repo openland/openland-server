@@ -12,7 +12,6 @@ import { CallScheduler, MediaSources, StreamHint, Capabilities } from './CallSch
 import { notifyFastWatch } from 'openland-module-db/fastWatch';
 import { DeliveryMediator } from '../../openland-module-messaging/mediators/DeliveryMediator';
 import { Events } from 'openland-module-hyperlog/Events';
-import { Modules } from '../../openland-modules/Modules';
 
 let log = createLogger('call-repo');
 
@@ -59,17 +58,6 @@ export class CallRepository {
 
     getOrCreateConference = async (parent: Context, cid: number) => {
         return await inTx(parent, async (ctx) => {
-            // cid is room so lets fetch the room
-            let privateConv = (await Store.ConversationPrivate.findById(ctx, cid))!;
-            if (privateConv) { // this conversation is private
-                if (await Modules.BlackListModule.isUserBanned(ctx, privateConv.uid1, privateConv.uid2)) {
-                    throw Error('User is banned, could not start a call');
-                }
-                if (await Modules.BlackListModule.isUserBanned(ctx, privateConv.uid2, privateConv.uid1)) {
-                    throw Error('User is banned, could not start a call');
-                }
-            }
-
             let res = await Store.ConferenceRoom.findById(ctx, cid);
             if (!res) {
                 res = await Store.ConferenceRoom.create(ctx, cid, {

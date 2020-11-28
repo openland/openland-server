@@ -241,6 +241,7 @@ export default declareSchema(() => {
         rangeIndex('user', ['status', 'uid', 'oid']);
         rangeIndex('updated', ['updatedAt']);
         rangeIndex('created', ['createdAt']);
+        rangeIndex('admins', ['oid', 'uid']).withCondition((src) => src.role === 'admin');
     });
 
     entity('OrganizationIndexingQueue', () => {
