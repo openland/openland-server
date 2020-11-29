@@ -412,7 +412,7 @@ export default declareSchema(() => {
         uniqueIndex('userActive', ['uid', 'cid']).withCondition((src) => src.status === 'joined');
 
         rangeIndex('created', ['createdAt']);
-        rangeIndex('admins', ['cid', 'uid']).withCondition((src) => src.role === 'admin' || src.role === 'owner');
+        rangeIndex('admins', ['cid', 'uid']).withCondition((src) => src.status === 'joined' && (src.role === 'admin' || src.role === 'owner'));
     });
 
     customDirectory('RoomParticipantsActive');
