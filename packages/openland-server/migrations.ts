@@ -984,8 +984,6 @@ migrations.push({
     }
 });
 
-
-
 migrations.push({
     key: '157-room-participants-admins-index',
     migration: async (parent) => {
