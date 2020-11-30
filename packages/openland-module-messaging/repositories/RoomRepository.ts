@@ -153,12 +153,12 @@ export class RoomRepository {
             }
 
             // Check is banned (reject if user banned in any way    )
-            /*if (await Modules.BlackListModule.isUserBanned(ctx, uid, by)) {
+            if (await Modules.BlackListModule.isUserBanned(ctx, uid, by)) {
                 return false;
             }
             if (await Modules.BlackListModule.isUserBanned(ctx, by, uid)) {
                 return false;
-            }*/
+            }
 
             // Create or update room participant
             let p = await Store.RoomParticipant.findById(ctx, cid, uid);
