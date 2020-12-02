@@ -2435,6 +2435,33 @@ export const Resolver: GQLResolver = {
                 settings.price = args.price;
                 return true;
             });
+        }),
+        debugCopyChatMembers: withPermission('super-admin', async (parent, args) => {
+            debugTask(parent.auth.uid!, 'debugCopyChatMembers', async log => {
+                let fromCid = IDs.Conversation.parse(args.fromCid);
+                let toCid = IDs.Conversation.parse(args.toCid);
+
+                let sourceMembers = await inTx(parent, async ctx => await Store.RoomParticipant.active.findAll(ctx, fromCid));
+                let uids = sourceMembers.map(member => member.uid);
+
+                let destChat = await inTx(parent, async ctx => await Store.ConversationRoom.findById(ctx, toCid));
+                if (!destChat || !destChat.ownerId) {
+                    return 'dest chat not found';
+                }
+
+                let i = 0;
+                for (let uid of uids) {
+                    await inTx(parent, async ctx => {
+                        await Modules.Messaging.room.inviteToRoom(ctx, toCid, destChat!.ownerId!, [uid]);
+                    });
+                    i++;
+                    if (i % 100 === 0) {
+                        await log(`processed ${i} of ${uids.length} users`);
+                    }
+                }
+                return 'ok';
+            });
+            return true;
         })
     },
     Subscription: {
