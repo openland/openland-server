@@ -1,5 +1,5 @@
-import { Context } from "@openland/context";
-import { encoders, Subspace } from "@openland/foundationdb";
+import { Context } from '@openland/context';
+import { encoders, Subspace } from '@openland/foundationdb';
 
 const INDEX_PRIMARY = 0;
 
