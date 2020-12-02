@@ -1,15 +1,15 @@
 import { encoders, getTransaction, inTx, keyIncrement, Subspace, TupleItem } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { Algorithm } from './Algorithm';
+import { binarySearch } from './utils/binarySearch';
 
-export class BucketCountingCollection implements Algorithm {
+export class BucketCountingOptimizedCollection implements Algorithm {
     private bucketSize: number;
-    private directory: Subspace<TupleItem[], TupleItem[]>;
+    private directory: Subspace<TupleItem[], Buffer>;
 
     constructor(directory: Subspace<Buffer, Buffer>, bucketSize: number) {
         this.directory = directory
-            .withKeyEncoding(encoders.tuple)
-            .withValueEncoding(encoders.tuple);
+            .withKeyEncoding(encoders.tuple);
 
         this.bucketSize = bucketSize;
     }
@@ -21,14 +21,23 @@ export class BucketCountingCollection implements Algorithm {
             }
 
             let bucketNo = Math.ceil(id / this.bucketSize);
-            let bucket = (await this.directory.get(ctx, [collection, bucketNo])) || [];
+            let bucket = (await this.directory.get(ctx, [collection, bucketNo]));
+            let bucketValue: number[] = [];
+            if (bucket) {
+                bucketValue = encoders.tuple.unpack(bucket) as number[];
+                if (bucketValue.includes(id)) {
+                    return;
+                }
 
-            if (bucket.includes(id)) {
-                return;
+                // Update value
+                let newValue = [...bucketValue, id] as number[];
+                newValue.sort((a, b) => a - b);
+                this.directory.set(ctx, [collection, bucketNo], encoders.tuple.pack(newValue));
+            } else {
+
+                // Update sorted
+                this.directory.set(ctx, [collection, bucketNo], encoders.tuple.pack([id]));
             }
-
-            bucket.push(id);
-            this.directory.set(ctx, [collection, bucketNo], bucket);
         });
     }
 
@@ -39,13 +48,17 @@ export class BucketCountingCollection implements Algorithm {
             }
 
             let bucketNo = Math.ceil(id / this.bucketSize);
-            let bucket = (await this.directory.get(ctx, [collection, bucketNo])) || [];
-
-            if (!bucket.includes(id)) {
+            let bucket = (await this.directory.get(ctx, [collection, bucketNo]));
+            let bucketValue: number[] = [];
+            if (bucket) {
+                bucketValue = encoders.tuple.unpack(bucket) as number[];
+                if (binarySearch(bucketValue, id) >= 0) {
+                    return;
+                }
                 return;
             }
 
-            this.directory.set(ctx, [collection, bucketNo], bucket.filter(v => v !== id));
+            this.directory.set(ctx, [collection, bucketNo], encoders.tuple.pack(bucketValue.filter(v => v !== id)));
         });
     }
 

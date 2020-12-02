@@ -1,8 +1,9 @@
 import { Subspace, TupleItem, inTx, getTransaction, keyIncrement } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { encoders } from '@openland/foundationdb';
+import { Algorithm } from './Algorithm';
 
-export class DirectCountingCollection {
+export class DirectCountingCollection implements Algorithm {
 
     private directory: Subspace<TupleItem[], boolean>;
 
@@ -12,15 +13,15 @@ export class DirectCountingCollection {
             .withValueEncoding(encoders.boolean);
     }
 
-    add = (ctx: Context, collection: Buffer, id: number) => {
-        if (id <= 0) {
+    add = async (ctx: Context, collection: Buffer, id: number) => {
+        if (id < 0) {
             throw Error('Id could not be less than zero');
         }
         this.directory.set(ctx, [collection, id], false);
     }
 
-    remove = (ctx: Context, collection: Buffer, id: number) => {
-        if (id <= 0) {
+    remove = async (ctx: Context, collection: Buffer, id: number) => {
+        if (id < 0) {
             throw Error('Id could not be less than zero');
         }
         this.directory.clear(ctx, [collection, id]);
