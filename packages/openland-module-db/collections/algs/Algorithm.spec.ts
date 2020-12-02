@@ -79,11 +79,13 @@ function testAlgorithm(type: 'direct' | 'bucket' | 'bucket-optimized') {
 
         // Fill collection
         const COLLECTION_0 = encoders.tuple.pack([0]);
-        await inTx(root, async (ctx) => {
-            for (let i = 0; i < 10000; i++) {
-                await alg.add(ctx, COLLECTION_0, i);
-            }
-        });
+        for (let j = 0; j < 10; j++) {
+            await inTx(root, async (ctx) => {
+                for (let i = 0; i < 10000; i++) {
+                    await alg.add(ctx, COLLECTION_0, j * 10000 + i);
+                }
+            });
+        }
     });
 
     it('should count for reasonble time', async () => {
@@ -102,17 +104,19 @@ function testAlgorithm(type: 'direct' | 'bucket' | 'bucket-optimized') {
 
         // Fill collection
         const COLLECTION_0 = encoders.tuple.pack([0]);
-        await inTx(root, async (ctx) => {
-            for (let i = 0; i < 10000; i++) {
-                await alg.add(ctx, COLLECTION_0, i);
-            }
-        });
+        for (let j = 0; j < 10; j++) {
+            await inTx(root, async (ctx) => {
+                for (let i = 0; i < 10000; i++) {
+                    await alg.add(ctx, COLLECTION_0, j * 10000 + i);
+                }
+            });
+        }
 
         // Check count
         let count = await inTx(root, async (ctx) => {
-            return await alg.count(ctx, COLLECTION_0, { from: 15, to: 9000 });
+            return await alg.count(ctx, COLLECTION_0, { from: 15, to: 90000 });
         });
-        expect(count).toBe(8986);
+        expect(count).toBe(89986);
     });
 }
 
