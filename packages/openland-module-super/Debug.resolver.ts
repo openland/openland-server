@@ -2451,9 +2451,13 @@ export const Resolver: GQLResolver = {
 
                 let i = 0;
                 for (let uid of uids) {
-                    await inTx(parent, async ctx => {
-                        await Modules.Messaging.room.inviteToRoom(ctx, toCid, destChat!.ownerId!, [uid]);
-                    });
+                    try {
+                        await inTx(parent, async ctx => {
+                            await Modules.Messaging.room.inviteToRoom(ctx, toCid, destChat!.ownerId!, [uid]);
+                        });
+                    } catch (e) {
+                        // noop
+                    }
                     i++;
                     if (i % 100 === 0) {
                         await log(`processed ${i} of ${uids.length} users`);
