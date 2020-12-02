@@ -1,4 +1,4 @@
-import { Subspace, TupleItem, inTx, getTransaction, keyNext } from '@openland/foundationdb';
+import { Subspace, TupleItem, inTx, getTransaction, keyIncrement } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { encoders } from '@openland/foundationdb';
 
@@ -38,9 +38,9 @@ export class DirectCountingCollection {
                 fromBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection])]);
             }
             if (cursor.to !== null && cursor.to !== undefined) {
-                toBuffer = keyNext(Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection, cursor.to])]));
+                toBuffer = keyIncrement(Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection, cursor.to])]));
             } else {
-                toBuffer = keyNext(Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection])]));
+                toBuffer = keyIncrement(Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection])]));
             }
 
             // Read all keys
