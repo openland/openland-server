@@ -1,4 +1,4 @@
-import { encoders, getTransaction, inTx, Subspace, TupleItem } from '@openland/foundationdb';
+import { encoders, getTransaction, inTx, keyIncrement, Subspace, TupleItem } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 
 export class BucketCountingCollection {
@@ -13,57 +13,56 @@ export class BucketCountingCollection {
         this.bucketSize = bucketSize;
     }
 
-    add = async (parent: Context, collectionPrefix: number[], id: number) => {
+    add = async (parent: Context, collection: Buffer, id: number) => {
         return await inTx(parent, async (ctx) => {
             if (id <= 0) {
                 throw Error('Id could not be less than zero');
             }
 
             let bucketNo = Math.ceil(id / this.bucketSize);
-            let bucket = (await this.directory.get(ctx, [...collectionPrefix, bucketNo])) || [];
+            let bucket = (await this.directory.get(ctx, [collection, bucketNo])) || [];
 
             if (bucket.includes(id)) {
                 return;
             }
 
             bucket.push(id);
-            this.directory.set(ctx, [...collectionPrefix, bucketNo], bucket);
+            this.directory.set(ctx, [collection, bucketNo], bucket);
         });
     }
 
-    remove = async (parent: Context, collectionPrefix: number[], id: number) => {
+    remove = async (parent: Context, collection: Buffer, id: number) => {
         return await inTx(parent, async (ctx) => {
             if (id <= 0) {
                 throw Error('Id could not be less than zero');
             }
 
             let bucketNo = Math.ceil(id / this.bucketSize);
-            let bucket = (await this.directory.get(ctx, [...collectionPrefix, bucketNo])) || [];
+            let bucket = (await this.directory.get(ctx, [collection, bucketNo])) || [];
 
             if (!bucket.includes(id)) {
                 return;
             }
 
-            this.directory.set(ctx, [...collectionPrefix, bucketNo], bucket.filter(v => v !== id));
+            this.directory.set(ctx, [collection, bucketNo], bucket.filter(v => v !== id));
         });
     }
 
-    count = async (ctx: Context, collectionPrefix: number[], cursor: { from?: number | null, to?: number | null }) => {
+    count = async (ctx: Context, collection: Buffer, cursor: { from?: number | null, to?: number | null }) => {
         // Resolve offsets
         let fromBuffer: Buffer;
         let toBuffer: Buffer;
         if (cursor.from !== null && cursor.from !== undefined) {
             let bucketNo = Math.ceil(cursor.from / this.bucketSize);
-            fromBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack([...collectionPrefix, bucketNo])]);
+            fromBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection, bucketNo])]);
         } else {
-            fromBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack(collectionPrefix)]);
+            fromBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection])]);
         }
         if (cursor.to !== null && cursor.to !== undefined) {
             let bucketNo = Math.ceil(cursor.to / this.bucketSize);
-            toBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack([...collectionPrefix, bucketNo + 1])]);
+            toBuffer = keyIncrement(Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection, bucketNo])]));
         } else {
-            collectionPrefix[collectionPrefix.length - 1]++;
-            toBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack(collectionPrefix)]);
+            toBuffer = keyIncrement(Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection])]));
         }
 
         // Read all keys
