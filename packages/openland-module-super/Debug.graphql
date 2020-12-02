@@ -219,6 +219,7 @@ extend type Mutation {
     debugInvalidateAllSocialImages: Boolean!
     debugChangeChatPrice(cid: ID!, price: Int!): Boolean!
     debugCopyChatMembers(fromCid: ID!, toCid: ID!): Boolean!
+    debugCopyOrgMembers(fromOrg: ID!, toOrg: ID!): Boolean!
 }
 
 extend type Subscription {

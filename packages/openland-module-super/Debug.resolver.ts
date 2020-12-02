@@ -2466,7 +2466,38 @@ export const Resolver: GQLResolver = {
                 return 'ok';
             });
             return true;
-        })
+        }),
+        debugCopyOrgMembers: withPermission('super-admin', async (parent, args) => {
+            debugTask(parent.auth.uid!, 'debugCopyChatMembers', async log => {
+                let fromOrg = IDs.Organization.parse(args.fromOrg);
+                let toOrg = IDs.Organization.parse(args.toOrg);
+
+                let sourceMembers = await inTx(parent, async ctx => await Store.OrganizationMember.organization.findAll(ctx, 'joined', fromOrg));
+                let uids = sourceMembers.map(member => member.uid);
+
+                let destOrg = await inTx(parent, async ctx => await Store.Organization.findById(ctx, toOrg));
+                if (!destOrg || !destOrg.ownerId) {
+                    return 'dest org not found';
+                }
+
+                let i = 0;
+                for (let uid of uids) {
+                    try {
+                        await inTx(parent, async ctx => {
+                            await Modules.Orgs.addUserToOrganization(ctx, uid, toOrg, destOrg!.ownerId!);
+                        });
+                    } catch (e) {
+                        // noop
+                    }
+                    i++;
+                    if (i % 100 === 0) {
+                        await log(`processed ${i} of ${uids.length} users`);
+                    }
+                }
+                return 'ok';
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {
