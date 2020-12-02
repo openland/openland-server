@@ -3,6 +3,12 @@ import { Context } from '@openland/context';
 import { Algorithm } from './Algorithm';
 import { binarySearch } from './utils/binarySearch';
 
+const SUBSPACE_BUCKET = 0;
+const SUBSPACE_COUNTER = 1;
+
+const INT_MINUS_ONE = encoders.int32LE.pack(-1);
+const INT_PLUS_ONE = encoders.int32LE.pack(1);
+
 export class BucketCountingOptimizedCollection implements Algorithm {
     private bucketSize: number;
     private directory: Subspace<TupleItem[], Buffer>;
@@ -21,7 +27,7 @@ export class BucketCountingOptimizedCollection implements Algorithm {
             }
 
             let bucketNo = Math.ceil(id / this.bucketSize);
-            let bucket = (await this.directory.get(ctx, [collection, bucketNo]));
+            let bucket = (await this.directory.get(ctx, [collection, SUBSPACE_BUCKET, bucketNo]));
             let bucketValue: number[] = [];
             if (bucket) {
                 bucketValue = encoders.tuple.unpack(bucket) as number[];
@@ -32,12 +38,15 @@ export class BucketCountingOptimizedCollection implements Algorithm {
                 // Update value
                 let newValue = [...bucketValue, id] as number[];
                 newValue.sort((a, b) => a - b);
-                this.directory.set(ctx, [collection, bucketNo], encoders.tuple.pack(newValue));
+                this.directory.set(ctx, [collection, SUBSPACE_BUCKET, bucketNo], encoders.tuple.pack(newValue));
             } else {
 
                 // Update sorted
-                this.directory.set(ctx, [collection, bucketNo], encoders.tuple.pack([id]));
+                this.directory.set(ctx, [collection, SUBSPACE_BUCKET, bucketNo], encoders.tuple.pack([id]));
             }
+
+            // Update counter
+            this.directory.add(ctx, [collection, SUBSPACE_COUNTER, bucketNo], INT_PLUS_ONE);
         });
     }
 
@@ -48,35 +57,50 @@ export class BucketCountingOptimizedCollection implements Algorithm {
             }
 
             let bucketNo = Math.ceil(id / this.bucketSize);
-            let bucket = (await this.directory.get(ctx, [collection, bucketNo]));
+            let bucket = (await this.directory.get(ctx, [collection, SUBSPACE_BUCKET, bucketNo]));
             let bucketValue: number[] = [];
             if (bucket) {
                 bucketValue = encoders.tuple.unpack(bucket) as number[];
-                if (binarySearch(bucketValue, id) >= 0) {
+                if (binarySearch(bucketValue, id) < 0) {
                     return;
                 }
                 return;
             }
 
-            this.directory.set(ctx, [collection, bucketNo], encoders.tuple.pack(bucketValue.filter(v => v !== id)));
+            this.directory.set(ctx, [collection, SUBSPACE_BUCKET, bucketNo], encoders.tuple.pack(bucketValue.filter(v => v !== id)));
+
+            // Update counter
+            this.directory.add(ctx, [collection, SUBSPACE_COUNTER, bucketNo], INT_MINUS_ONE);
         });
     }
 
     count = async (ctx: Context, collection: Buffer, cursor: { from?: number | null, to?: number | null }) => {
+
+        // If no from and to specified
+        if ((cursor.from === null || cursor.from === undefined) && (cursor.to === null || cursor.to === undefined)) {
+            let allBucketCounters = await this.directory.range(ctx, [collection, SUBSPACE_COUNTER]);
+            let counters = allBucketCounters.map((v) => encoders.int32LE.unpack(v.value));
+            let res = 0;
+            for (let c of counters) {
+                res += c;
+            }
+            return res;
+        }
+
         // Resolve offsets
         let fromBuffer: Buffer;
         let toBuffer: Buffer;
         if (cursor.from !== null && cursor.from !== undefined) {
             let bucketNo = Math.ceil(cursor.from / this.bucketSize);
-            fromBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection, bucketNo])]);
+            fromBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection, SUBSPACE_BUCKET, bucketNo])]);
         } else {
-            fromBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection])]);
+            fromBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection, SUBSPACE_BUCKET])]);
         }
         if (cursor.to !== null && cursor.to !== undefined) {
             let bucketNo = Math.ceil(cursor.to / this.bucketSize);
-            toBuffer = keyIncrement(Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection, bucketNo])]));
+            toBuffer = keyIncrement(Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection, SUBSPACE_BUCKET, bucketNo])]));
         } else {
-            toBuffer = keyIncrement(Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection])]));
+            toBuffer = keyIncrement(Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection, SUBSPACE_BUCKET])]));
         }
 
         // Read all keys

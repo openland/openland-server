@@ -19,9 +19,15 @@ async function benchmarkPrepare(alg: Algorithm) {
     }
 }
 
-async function benchmark(alg: Algorithm) {
+async function benchmarkSimple(alg: Algorithm) {
     await inTx(root, async (ctx) => {
         return await alg.count(ctx, COLLECTION_0, { from: 15, to: 900000 });
+    });
+}
+
+async function benchmarkAll(alg: Algorithm) {
+    await inTx(root, async (ctx) => {
+        return await alg.count(ctx, COLLECTION_0, {});
     });
 }
 
@@ -60,7 +66,10 @@ async function benchmark(alg: Algorithm) {
         //
         console.log('Benchmarking ' + type);
         let start = Date.now();
-        await benchmark(alg);
-        console.log(type + ': ' + (Date.now() - start) + 'ms');
+        await benchmarkSimple(alg);
+        console.log('simple:' + type + ': ' + (Date.now() - start) + 'ms');
+        start = Date.now();
+        await benchmarkAll(alg);
+        console.log('all:' + type + ': ' + (Date.now() - start) + 'ms');
     }
 })();
