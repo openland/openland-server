@@ -1,8 +1,9 @@
-import { Subspace, TupleItem, inTx, getTransaction } from '@openland/foundationdb';
+import { Subspace, TupleItem, inTx, getTransaction, keyIncrement } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { encoders } from '@openland/foundationdb';
+import { Algorithm } from './Algorithm';
 
-export class CountingDirectory {
+export class DirectCountingCollection implements Algorithm {
 
     private directory: Subspace<TupleItem[], boolean>;
 
@@ -12,21 +13,21 @@ export class CountingDirectory {
             .withValueEncoding(encoders.boolean);
     }
 
-    add = (ctx: Context, collection: number, id: number) => {
-        if (id <= 0) {
+    add = async (ctx: Context, collection: Buffer, id: number) => {
+        if (id < 0) {
             throw Error('Id could not be less than zero');
         }
         this.directory.set(ctx, [collection, id], false);
     }
 
-    remove = (ctx: Context, collection: number, id: number) => {
-        if (id <= 0) {
+    remove = async (ctx: Context, collection: Buffer, id: number) => {
+        if (id < 0) {
             throw Error('Id could not be less than zero');
         }
         this.directory.clear(ctx, [collection, id]);
     }
 
-    count = async (parent: Context, collection: number, cursor: { from?: number | null, to?: number | null }) => {
+    count = async (parent: Context, collection: Buffer, cursor: { from?: number | null, to?: number | null }) => {
         return await inTx(parent, async (ctx) => {
 
             // Resolve offsets 
@@ -38,9 +39,9 @@ export class CountingDirectory {
                 fromBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection])]);
             }
             if (cursor.to !== null && cursor.to !== undefined) {
-                toBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection, cursor.to + 1])]);
+                toBuffer = keyIncrement(Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection, cursor.to])]));
             } else {
-                toBuffer = Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection + 1])]);
+                toBuffer = keyIncrement(Buffer.concat([this.directory.prefix, encoders.tuple.pack([collection])]));
             }
 
             // Read all keys

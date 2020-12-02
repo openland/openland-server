@@ -157,7 +157,6 @@
     "dev:db": ". ./scripts/set_dev_config.sh && yarn build && RECREATE_DB=true yarn start",
     "dev:reset-db": "./node_modules/.bin/ts-node packages/openland-server-tests/prepare.ts",
     "dev:init": ". ./scripts/set_dev_config.sh && ./node_modules/.bin/ts-node packages/openland-server-tests/generate_fake_activity.ts",
-    "promote": "kubectl set image deployment/statecraft-server statecraft-server=`kubectl get deployment statecraft-server-staging -o=jsonpath='{$.spec.template.spec.containers[1:2].image}'` && kubectl rollout status deployments statecraft-server",
     "lint": "NODE_ENV=production ./node_modules/.bin/tslint --project . --config ./tslint.json",
     "test:watch": ". ./scripts/set_testing_config.sh && node ./node_modules/jest/bin/jest.js --watch --verbose",
     "test": ". ./scripts/set_testing_config.sh && node --no-deprecation ./node_modules/jest/bin/jest.js --forceExit --",
@@ -176,8 +175,7 @@
     "model:new": "./node_modules/.bin/ts-node ./packages/openland-module-db/store.compile.ts",
     "model:old": "./node_modules/.bin/ts-node packages/openland-module-db/schemaDeclaration.ts",
     "model:test": "./node_modules/.bin/ts-node ./packages/foundation-orm/tests/createTestSchema.ts",
-    "benchmark": "NODE_ENV=production ./node_modules/.bin/ts-node ./packages/openland-benchmarks/index.ts",
-    "benchmark:parallel": "./node_modules/.bin/concurrently \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\"",
+    "benchmark": "ts-node ./packages/openland-module-db/collections/algs/Algorithm.benchmark.ts",
     "cli": ". ./scripts/set_testing_config.sh && ./node_modules/.bin/ts-node ./packages/openland-cli/index.ts",
     "ch:gen": ". ./scripts/set_dev_config.sh && ./node_modules/.bin/ts-node packages/openland-module-clickhouse/generateMigrations.ts"
   },
