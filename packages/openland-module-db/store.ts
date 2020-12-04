@@ -2703,7 +2703,7 @@ export class UserModernBadgeFactory extends EntityFactory<UserModernBadgeShape, 
     static async open(storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory('userModernBadge');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'byBid', storageKey: 'byBid', type: { type: 'range', fields: [{ name: 'bid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userModernBadge', 'byBid'), condition: a => !a.deleted });
+        secondaryIndexes.push({ name: 'byBid', storageKey: 'byBid', type: { type: 'range', fields: [{ name: 'bid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userModernBadge', 'byBid'), condition: a => !a.deleted });
         secondaryIndexes.push({ name: 'byUid', storageKey: 'byUid', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userModernBadge', 'byUid'), condition: a => !a.deleted });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -3302,6 +3302,7 @@ export class OrganizationMemberFactory extends EntityFactory<OrganizationMemberS
         secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'status', type: 'string' }, { name: 'uid', type: 'integer' }, { name: 'oid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationMember', 'user'), condition: undefined });
         secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationMember', 'updated'), condition: undefined });
         secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationMember', 'created'), condition: undefined });
+        secondaryIndexes.push({ name: 'admins', storageKey: 'admins', type: { type: 'range', fields: [{ name: 'oid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationMember', 'admins'), condition: (src) => src.status === 'joined' && src.role === 'admin' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'oid', type: 'integer' });
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -3398,6 +3399,21 @@ export class OrganizationMemberFactory extends EntityFactory<OrganizationMemberS
         },
         liveStream: (ctx: Context, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[4], [], opts);
+        },
+    });
+
+    readonly admins = Object.freeze({
+        findAll: async (ctx: Context, oid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[5], [oid])).items;
+        },
+        query: (ctx: Context, oid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[5], [oid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (oid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[5], [oid], opts);
+        },
+        liveStream: (ctx: Context, oid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[5], [oid], opts);
         },
     });
 
@@ -4736,7 +4752,7 @@ export class RoomParticipantFactory extends EntityFactory<RoomParticipantShape, 
         secondaryIndexes.push({ name: 'requests', storageKey: 'requests', type: { type: 'unique', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('roomParticipant', 'requests'), condition: (src) => src.status === 'requested' });
         secondaryIndexes.push({ name: 'userActive', storageKey: 'userActive', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('roomParticipant', 'userActive'), condition: (src) => src.status === 'joined' });
         secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('roomParticipant', 'created'), condition: undefined });
-        secondaryIndexes.push({ name: 'admins', storageKey: 'admins', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('roomParticipant', 'admins'), condition: (src) => src.role === 'admin' || src.role === 'owner' });
+        secondaryIndexes.push({ name: 'admins', storageKey: 'admins', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('roomParticipant', 'admins'), condition: (src) => src.status === 'joined' && (src.role === 'admin' || src.role === 'owner') });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'cid', type: 'integer' });
         primaryKeys.push({ name: 'uid', type: 'integer' });

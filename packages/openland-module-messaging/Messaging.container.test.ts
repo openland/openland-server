@@ -12,6 +12,8 @@ import { SearchModule } from '../openland-module-search/SearchModule';
 import { FastCountersRepository } from './repositories/FastCountersRepository';
 import { FastCountersMediator } from './mediators/FastCountersMediator';
 import { loadSocialImageModule } from '../openland-module-social-image/SocialImageModule.container';
+import { BlackListModule } from '../openland-module-blacklist/BlackListModule';
+import { BlackListRepository } from '../openland-module-blacklist/repositories/BlackListRepository';
 
 export function loadMessagingTestModule() {
     loadMessagingModule();
@@ -26,6 +28,7 @@ export function loadMessagingTestModule() {
     container.bind(FastCountersMediator).toSelf().inSingletonScope();
     loadSocialImageModule();
     loadSocialImageModule();
-
+    container.bind(BlackListModule).toSelf().inSingletonScope();
+    container.bind(BlackListRepository).toSelf().inSingletonScope();
     // container.bind(PushModule).toSelf().inSingletonScope();
 }

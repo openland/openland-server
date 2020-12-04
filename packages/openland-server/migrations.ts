@@ -958,7 +958,7 @@ migrations.push({
 });
 
 migrations.push({
-    key: '155-room-participants-admins-index',
+    key: '157-room-participants-admins-index',
     migration: async (parent) => {
 
         let after = 0;
@@ -972,6 +972,101 @@ migrations.push({
             await inTx(parent, async ctx => {
                 await Promise.all(ids.map(async (u) => {
                     let conv = await Store.RoomParticipant.findById(ctx, u.cid, u.uid);
+                    if (conv) {
+                        conv.invalidate();
+                        await conv.flush(ctx);
+                    }
+                }));
+            });
+
+            after = ex[ex.length - 1].key[0] as number;
+        }
+    }
+});
+
+migrations.push({
+    key: '158-organisation-members-admins-index',
+    migration: async (parent) => {
+
+        let after = 0;
+        while (true) {
+            let ex = await Store.OrganizationMember.descriptor.subspace.range(parent, [], { after: [after], limit: 100 });
+            if (ex.length === 0) {
+                break;
+            }
+            let ids = ex.map((e) => ({cid: e.key[0] as number, uid: e.key[1] as number}));
+            logger.log(parent, 'Apply conversation ' + after + ': ' + ids.length);
+            await inTx(parent, async ctx => {
+                await Promise.all(ids.map(async (u) => {
+                    let conv = await Store.OrganizationMember.findById(ctx, u.cid, u.uid);
+                    if (conv) {
+                        conv.invalidate();
+                        await conv.flush(ctx);
+                    }
+                }));
+            });
+
+            after = ex[ex.length - 1].key[0] as number;
+        }
+    }
+});
+
+migrations.push({
+    key: '159-room-and-organization-admins-clear-and-reindex',
+    migration: async (parent) => {
+        await inTx(parent, async ctx => {
+            for (let index of Store.RoomParticipant.descriptor.secondaryIndexes) {
+                if (index.name !== 'admins') {
+                    continue;
+                }
+                let items = await index.subspace.range(ctx, []);
+                for (let item of items) {
+                    await index.subspace.clear(ctx, item.key);
+                }
+            }
+            for (let index of Store.OrganizationMember.descriptor.secondaryIndexes) {
+                if (index.name !== 'admins') {
+                    continue;
+                }
+                let items = await index.subspace.range(ctx, []);
+                for (let item of items) {
+                    await index.subspace.clear(ctx, item.key);
+                }
+            }
+        });
+
+        let after = 0;
+        while (true) {
+            let ex = await Store.RoomParticipant.descriptor.subspace.range(parent, [], { after: [after], limit: 100 });
+            if (ex.length === 0) {
+                break;
+            }
+            let ids = ex.map((e) => ({cid: e.key[0] as number, uid: e.key[1] as number}));
+            logger.log(parent, 'Apply conversation ' + after + ': ' + ids.length);
+            await inTx(parent, async ctx => {
+                await Promise.all(ids.map(async (u) => {
+                    let conv = await Store.RoomParticipant.findById(ctx, u.cid, u.uid);
+                    if (conv) {
+                        conv.invalidate();
+                        await conv.flush(ctx);
+                    }
+                }));
+            });
+
+            after = ex[ex.length - 1].key[0] as number;
+        }
+
+        after = 0;
+        while (true) {
+            let ex = await Store.OrganizationMember.descriptor.subspace.range(parent, [], { after: [after], limit: 100 });
+            if (ex.length === 0) {
+                break;
+            }
+            let ids = ex.map((e) => ({cid: e.key[0] as number, uid: e.key[1] as number}));
+            logger.log(parent, 'Apply conversation ' + after + ': ' + ids.length);
+            await inTx(parent, async ctx => {
+                await Promise.all(ids.map(async (u) => {
+                    let conv = await Store.OrganizationMember.findById(ctx, u.cid, u.uid);
                     if (conv) {
                         conv.invalidate();
                         await conv.flush(ctx);

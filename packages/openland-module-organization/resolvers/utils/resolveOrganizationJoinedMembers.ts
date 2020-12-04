@@ -42,6 +42,12 @@ export async function resolveOrganizationJoinedMembers(
         afterMember = await Store.OrganizationMember.findById(ctx, orgId, args.afterMemberId);
     }
 
+    let adminsIds =  new Map<number, number>();
+    let admins = (await Store.OrganizationMember.admins.findAll(ctx, orgId));
+    admins.forEach((row, i) => {
+        adminsIds.set(row.uid, i);
+    });
+
     let members;
     if (afterMember) {
         members = (await Store.OrganizationMember.organization.query(
@@ -50,12 +56,29 @@ export async function resolveOrganizationJoinedMembers(
             orgId,
             { limit: args.first || 10, after: afterMember.uid }
         )).items;
+        let adminsOffset = adminsIds.get(afterMember.uid);
+        if (adminsOffset === undefined) {
+            admins = [];
+        } else {
+            admins = admins.slice(adminsOffset + 1);
+        }
     } else {
         if (!args.first) {
             members = await Modules.Orgs.findOrganizationMembership(ctx, orgId);
         } else {
             members = (await Store.OrganizationMember.organization.query(ctx, 'joined', orgId, { limit: args.first })).items;
         }
+    }
+
+    members = members.filter((row) => {
+        return !adminsIds.has(row.uid);
+    });
+
+    let limit = args.first || 1000;
+    if (admins.length < limit) {
+        members = admins.concat(members.slice(0, limit - admins.length));
+    } else {
+        members = admins.slice(0, limit);
     }
 
     let roles = await resolveRolesInOrganization(ctx, orgId, members);
