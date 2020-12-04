@@ -210,6 +210,9 @@ export const Resolver: GQLResolver = {
             }
             // TODO: Remove this after web release
             let room = (await Store.ConversationRoom.findById(ctx, id))!;
+            if (room.ownerId === ctx.auth.uid!) {
+                return 'OWNER';
+            }
             if (room.oid && (await Modules.Orgs.isUserAdmin(ctx, ctx.auth.uid!, room.oid))) {
                 return 'ADMIN';
             }
