@@ -1,7 +1,7 @@
 import { Context } from '@openland/context';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { Modules } from 'openland-modules/Modules';
-import { withActivatedUser } from '../openland-module-api/Resolvers';
+import { withActivatedUser, withPermission } from '../openland-module-api/Resolvers';
 import { IDs } from '../openland-module-api/IDs';
 import { MaybePromise } from '../openland-module-api/schema/SchemaUtils';
 import { Sticker, StickerPack } from 'openland-module-db/store';
@@ -69,7 +69,8 @@ export const Resolver: GQLResolver = {
     },
     UserStickers: {
         favorites: root => root.favoriteIds,
-        packs: root => root.packs
+        packs: root => root.packs,
+        unviewedCount: root => root.unviewedPackIds.length
     },
     ImageSticker: {
         image: withSticker((ctx, sticker) => sticker.image),
@@ -94,6 +95,14 @@ export const Resolver: GQLResolver = {
         }),
         stickerPackCatalog: withActivatedUser(async (ctx, args, id) => {
             return await Modules.Stickers.getCatalog(ctx);
+        }),
+
+        /*
+        * Super
+        * */
+        superAllStickerPacks: withPermission('super-admin', async (ctx) => {
+            let packs = await Store.StickerPack.findAll(ctx);
+            return packs.filter(a => a.published);
         })
     },
     Mutation: {

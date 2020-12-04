@@ -56,7 +56,7 @@ export const Resolver: GQLResolver = {
                 isAccountExists: isProfileCreated,
                 // isCompleted: isProfileCreated && isOrganizationExists && isOrganizationPicked && isActivated,
                 isCompleted: isProfileCreated && isActivated,
-                isBlocked: res.status !== 'activated',
+                isBlocked: res.status === 'deleted' || res.status === 'suspended',
                 // deprecated
                 isAccountPicked: true,
                 isAccountActivated: true,

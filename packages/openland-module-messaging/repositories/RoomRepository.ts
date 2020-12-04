@@ -97,7 +97,8 @@ export class RoomRepository {
                 socialImage: profile.socialImage,
                 repliesDisabled: false,
                 joinsMessageDisabled: !serviceMessagesEnabled,
-                leavesMessageDisabled: !serviceMessagesEnabled
+                leavesMessageDisabled: !serviceMessagesEnabled,
+                giftStickerPackId: profile.giftStickerPackId,
             });
             if (price) {
                 await Store.PremiumChatSettings.create(ctx, id, {
@@ -361,6 +362,13 @@ export class RoomRepository {
             if (profile.serviceMessageSettings) {
                 conv.joinsMessageDisabled = !profile.serviceMessageSettings.joinsMessageEnabled;
                 conv.leavesMessageDisabled = !profile.serviceMessageSettings.leavesMessageEnabled;
+            }
+
+            if (profile.giftStickerPackId) {
+                if (!await Modules.Super.superRole(ctx, uid)) {
+                    throw new AccessDeniedError();
+                }
+                conv.giftStickerPackId = profile.giftStickerPackId;
             }
 
             await conv.flush(ctx);

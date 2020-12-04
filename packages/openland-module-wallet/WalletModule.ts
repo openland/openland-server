@@ -11,13 +11,13 @@ import { PaymentMediator } from './mediators/PaymentMediator';
 import { Store } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { injectable } from 'inversify';
-import { startCustomerExportWorker } from './workers/CustomerExportWorker';
-import { startCardSyncWorker } from './workers/CardSyncWorker';
-import { startEventsReaderWorker } from './workers/EventsReaderWorker';
-import { startPaymentIntentCommiter } from './workers/PaymentIntentCommiter';
+// import { startCustomerExportWorker } from './workers/CustomerExportWorker';
+// import { startCardSyncWorker } from './workers/CardSyncWorker';
+// import { startEventsReaderWorker } from './workers/EventsReaderWorker';
+// import { startPaymentIntentCommiter } from './workers/PaymentIntentCommiter';
 import { PaymentsRepository } from './repo/PaymentsRepository';
-import { startPaymentScheduler } from './workers/startPaymentScheduler';
-import { startSubscriptionsScheduler } from './workers/startSubscriptionsScheduler';
+// import { startPaymentScheduler } from './workers/startPaymentScheduler';
+// import { startSubscriptionsScheduler } from './workers/startSubscriptionsScheduler';
 import { PurchaseRepository } from './repo/PurchaseRepository';
 import { inTx } from '@openland/foundationdb';
 import { UserError } from 'openland-errors/UserError';
@@ -54,12 +54,12 @@ export class WalletModule {
 
     start = async () => {
         if (serverRoleEnabled('workers')) {
-            startCustomerExportWorker(this.paymentsMediator.createCustomerQueue, this.paymentsMediator);
-            startCardSyncWorker(this.paymentsMediator.syncCardQueue, this.paymentsMediator);
-            startEventsReaderWorker(this.paymentsMediator);
-            startPaymentIntentCommiter(this.paymentsMediator);
-            startPaymentScheduler(this.paymentsMediator);
-            startSubscriptionsScheduler(this.subscriptions, this.paymentsMediator);
+            // startCustomerExportWorker(this.paymentsMediator.createCustomerQueue, this.paymentsMediator);
+            // startCardSyncWorker(this.paymentsMediator.syncCardQueue, this.paymentsMediator);
+            // startEventsReaderWorker(this.paymentsMediator);
+            // startPaymentIntentCommiter(this.paymentsMediator);
+            // startPaymentScheduler(this.paymentsMediator);
+            // startSubscriptionsScheduler(this.subscriptions, this.paymentsMediator);
         }
     }
 
