@@ -2,6 +2,7 @@
 import { createNamedContext } from '@openland/context';
 import { Database, encoders, inTx } from '@openland/foundationdb';
 import { Algorithm } from './Algorithm';
+import { BTreeCountingCollection } from './BTreeCountingCollection';
 import { BucketCountingCollection } from './BucketCountingCollection';
 import { BucketCountingOptimizedCollection } from './BucketCountingOptimizedCollection';
 import { DirectCountingCollection } from './DirectCountingCollection';
@@ -11,7 +12,7 @@ const COLLECTION_0 = encoders.tuple.pack([0]);
 const COLLECTION_1 = encoders.tuple.pack([1]);
 
 async function benchmarkPrepare(alg: Algorithm) {
-    for (let j = 0; j < 100; j++) {
+    for (let j = 0; j < 10; j++) {
         await inTx(root, async (ctx) => {
             for (let i = 0; i < 10000; i++) {
                 await alg.add(ctx, COLLECTION_0, j * 10000 + i);
@@ -19,7 +20,7 @@ async function benchmarkPrepare(alg: Algorithm) {
         });
     }
 
-    for (let j = 0; j < 100; j++) {
+    for (let j = 0; j < 10; j++) {
         await inTx(root, async (ctx) => {
             for (let i = 0; i < 100; i++) {
                 await alg.add(ctx, COLLECTION_1, j * 10000 + i * 100);
@@ -52,7 +53,7 @@ async function benchmarkSparse(alg: Algorithm) {
     console.log('Loading database...');
     let db = await Database.openTest({ name: 'counting-collection-benchmark', layers: [] });
 
-    for (let type of ['direct', 'bucket', 'bucket-optimized', 'bucket-optimized-large', 'bucket-optimized-xlarge'] as const) {
+    for (let type of ['direct', 'bucket', 'bucket-optimized', 'bucket-optimized-large', 'bucket-optimized-xlarge', 'b-tree'] as const) {
 
         //
         // Prepare
@@ -73,6 +74,8 @@ async function benchmarkSparse(alg: Algorithm) {
             alg = new BucketCountingOptimizedCollection(db.allKeys, 100);
         } else if (type === 'bucket-optimized-xlarge') {
             alg = new BucketCountingOptimizedCollection(db.allKeys, 1000);
+        } else if (type === 'b-tree') {
+            alg = new BTreeCountingCollection(db.allKeys, 1000);
         } else {
             throw Error();
         }

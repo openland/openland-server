@@ -1,11 +1,12 @@
 import { createNamedContext } from '@openland/context';
 import { inTx, Database, encoders } from '@openland/foundationdb';
 import { Algorithm } from './Algorithm';
+import { BTreeCountingCollection } from './BTreeCountingCollection';
 import { BucketCountingCollection } from './BucketCountingCollection';
 import { BucketCountingOptimizedCollection } from './BucketCountingOptimizedCollection';
 import { DirectCountingCollection } from './DirectCountingCollection';
 
-function testAlgorithm(type: 'direct' | 'bucket' | 'bucket-optimized') {
+function testAlgorithm(type: 'direct' | 'bucket' | 'bucket-optimized' | 'b-tree') {
     it('should count elements', async () => {
         let root = createNamedContext('test');
         let db = await Database.openTest({ name: 'counting-collection-' + type, layers: [] });
@@ -16,6 +17,8 @@ function testAlgorithm(type: 'direct' | 'bucket' | 'bucket-optimized') {
             alg = new BucketCountingCollection(db.allKeys, 10);
         } else if (type === 'bucket-optimized') {
             alg = new BucketCountingOptimizedCollection(db.allKeys, 10);
+        } else if (type === 'b-tree') {
+            alg = new BTreeCountingCollection(db.allKeys, 1000);
         } else {
             throw Error();
         }
@@ -73,6 +76,8 @@ function testAlgorithm(type: 'direct' | 'bucket' | 'bucket-optimized') {
             alg = new BucketCountingCollection(db.allKeys, 10);
         } else if (type === 'bucket-optimized') {
             alg = new BucketCountingOptimizedCollection(db.allKeys, 10);
+        } else if (type === 'b-tree') {
+            alg = new BTreeCountingCollection(db.allKeys, 1000);
         } else {
             throw Error();
         }
@@ -80,7 +85,7 @@ function testAlgorithm(type: 'direct' | 'bucket' | 'bucket-optimized') {
         // Fill collection
         const COLLECTION_0 = encoders.tuple.pack([0]);
         await inTx(root, async (ctx) => {
-            for (let i = 0; i < 10000; i++) {
+            for (let i = 0; i < 1000; i++) {
                 await alg.add(ctx, COLLECTION_0, i);
             }
         });
@@ -96,6 +101,8 @@ function testAlgorithm(type: 'direct' | 'bucket' | 'bucket-optimized') {
             alg = new BucketCountingCollection(db.allKeys, 10);
         } else if (type === 'bucket-optimized') {
             alg = new BucketCountingOptimizedCollection(db.allKeys, 10);
+        } else if (type === 'b-tree') {
+            alg = new BTreeCountingCollection(db.allKeys, 1000);
         } else {
             throw Error();
         }
@@ -103,7 +110,7 @@ function testAlgorithm(type: 'direct' | 'bucket' | 'bucket-optimized') {
         // Fill collection
         const COLLECTION_0 = encoders.tuple.pack([0]);
         await inTx(root, async (ctx) => {
-            for (let i = 0; i < 10000; i++) {
+            for (let i = 0; i < 1000; i++) {
                 await alg.add(ctx, COLLECTION_0, i);
             }
         });
@@ -112,11 +119,11 @@ function testAlgorithm(type: 'direct' | 'bucket' | 'bucket-optimized') {
         let count = await inTx(root, async (ctx) => {
             return await alg.count(ctx, COLLECTION_0, { from: 15, to: 9000 });
         });
-        expect(count).toBe(8986);
+        expect(count).toBe(985);
     });
 }
 
-for (let type of ['direct', 'bucket', 'bucket-optimized'] as const) {
+for (let type of ['direct', 'bucket', 'bucket-optimized', 'b-tree'] as const) {
     let name: string;
     if (type === 'direct') {
         name = 'DirectCountingCollection';
@@ -124,6 +131,8 @@ for (let type of ['direct', 'bucket', 'bucket-optimized'] as const) {
         name = 'BucketCountingCollection';
     } else if (type === 'bucket-optimized') {
         name = 'BucketCountingOptimizedCollection';
+    } else if (type === 'b-tree') {
+        name = 'BTreeCountingCollection';
     } else {
         throw Error();
     }
@@ -131,3 +140,7 @@ for (let type of ['direct', 'bucket', 'bucket-optimized'] as const) {
         testAlgorithm(type);
     });
 }
+
+    // describe('BTreeCountingCollection', () => {
+    //     testAlgorithm('b-tree');
+    // });
