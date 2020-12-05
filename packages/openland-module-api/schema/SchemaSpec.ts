@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '7ab3ee1dd019ea9729f35fb191caaa7d';
+export const GQL_SPEC_VERSION = '73c32d83e9054bdfe0eb10d92c58c82e';
 
 export namespace GQL {
     export interface CreditCard {
@@ -1960,9 +1960,11 @@ export namespace GQL {
     export interface StickerPackAddedArgs { }
     export interface StickerPackPublishedArgs { }
     export interface UserStickers {
+        unviewedCount: number;
         packs: StickerPack[];
         favorites: Sticker[];
     }
+    export interface UserStickersUnviewedCountArgs { }
     export interface UserStickersPacksArgs { }
     export interface UserStickersFavoritesArgs { }
     export interface StickerInput {
@@ -2145,6 +2147,8 @@ export namespace GQL {
         debugPaymentCancel: boolean;
         debugInvalidateAllSocialImages: boolean;
         debugChangeChatPrice: boolean;
+        debugCopyChatMembers: boolean;
+        debugCopyOrgMembers: boolean;
         settingsUpdate: Settings;
         sendEmailPairCode: string;
         pairEmail: boolean;
@@ -2594,6 +2598,14 @@ export namespace GQL {
     export interface MutationDebugChangeChatPriceArgs {
         cid: string;
         price: number;
+    }
+    export interface MutationDebugCopyChatMembersArgs {
+        fromCid: string;
+        toCid: string;
+    }
+    export interface MutationDebugCopyOrgMembersArgs {
+        fromOrg: string;
+        toOrg: string;
     }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
@@ -3999,6 +4011,7 @@ export namespace GQL {
         stickersByEmoji: Sticker[];
         stickerPack: Nullable<StickerPack>;
         stickerPackCatalog: StickerPack[];
+        superAllStickerPacks: StickerPack[];
         modernBadgeSearch: ModernBadge[];
         modernBadgeUsers: Nullable<UserConnection>;
         myNotificationCenter: NotificationCenter;
@@ -4299,6 +4312,7 @@ export namespace GQL {
         id: string;
     }
     export interface QueryStickerPackCatalogArgs { }
+    export interface QuerySuperAllStickerPacksArgs { }
     export interface QueryModernBadgeSearchArgs {
         search: OptionalNullable<string>;
         first: number;
@@ -5861,6 +5875,7 @@ export namespace GQL {
         repliesEnabled: Nullable<boolean>;
         serviceMessageSettings: Nullable<RoomServiceMessageSettingsInput>;
         callSettings: Nullable<RoomCallSettingsInput>;
+        giftStickerPackId: Nullable<string>;
     }
     export interface RoomMember {
         user: User;
@@ -8312,6 +8327,7 @@ export interface GQLResolver {
             favorites: GQLRoots.StickerRoot[],
         },
         {
+            unviewedCount: GQL.UserStickersUnviewedCountArgs,
             packs: GQL.UserStickersPacksArgs,
             favorites: GQL.UserStickersFavoritesArgs,
         }
@@ -8612,6 +8628,8 @@ export interface GQLResolver {
             debugPaymentCancel: GQL.MutationDebugPaymentCancelArgs,
             debugInvalidateAllSocialImages: GQL.MutationDebugInvalidateAllSocialImagesArgs,
             debugChangeChatPrice: GQL.MutationDebugChangeChatPriceArgs,
+            debugCopyChatMembers: GQL.MutationDebugCopyChatMembersArgs,
+            debugCopyOrgMembers: GQL.MutationDebugCopyOrgMembersArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailPairCode: GQL.MutationSendEmailPairCodeArgs,
             pairEmail: GQL.MutationPairEmailArgs,
@@ -9467,6 +9485,7 @@ export interface GQLResolver {
             stickersByEmoji: GQLRoots.StickerRoot[],
             stickerPack: Nullable<GQLRoots.StickerPackRoot>,
             stickerPackCatalog: GQLRoots.StickerPackRoot[],
+            superAllStickerPacks: GQLRoots.StickerPackRoot[],
             modernBadgeSearch: GQLRoots.ModernBadgeRoot[],
             modernBadgeUsers: Nullable<GQLRoots.UserConnectionRoot>,
             myNotificationCenter: GQLRoots.NotificationCenterRoot,
@@ -9642,6 +9661,7 @@ export interface GQLResolver {
             stickersByEmoji: GQL.QueryStickersByEmojiArgs,
             stickerPack: GQL.QueryStickerPackArgs,
             stickerPackCatalog: GQL.QueryStickerPackCatalogArgs,
+            superAllStickerPacks: GQL.QuerySuperAllStickerPacksArgs,
             modernBadgeSearch: GQL.QueryModernBadgeSearchArgs,
             modernBadgeUsers: GQL.QueryModernBadgeUsersArgs,
             myNotificationCenter: GQL.QueryMyNotificationCenterArgs,

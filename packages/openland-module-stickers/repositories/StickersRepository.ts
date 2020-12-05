@@ -130,7 +130,7 @@ export class StickersRepository {
         });
     }
 
-    addToCollection = (parent: Context, uid: number, pid: number) => {
+    addToCollection = (parent: Context, uid: number, pid: number, isUnviewed?: boolean) => {
         return inTx(parent, async (ctx) => {
             let pack = await Store.StickerPack.findById(ctx, pid);
             if (!pack) {
@@ -142,6 +142,15 @@ export class StickersRepository {
                 return false;
             }
             userStickersState.packIds = [pid, ...userStickersState.packIds];
+            if (isUnviewed) {
+                if (userStickersState.unviewedPackIds === undefined || userStickersState.unviewedPackIds === null) {
+                    userStickersState.unviewedPackIds = [];
+                }
+
+                if (!userStickersState.unviewedPackIds.find(a => a === pid)) {
+                    userStickersState.unviewedPackIds = [pid, ...userStickersState.unviewedPackIds];
+                }
+            }
             await userStickersState.flush(ctx);
 
             pack.usesCount++;
@@ -162,6 +171,9 @@ export class StickersRepository {
             if (!userStickersState.packIds.find(a => a === pid)) {
                 return false;
             }
+            if (userStickersState.unviewedPackIds?.find(a => a === pid)) {
+                userStickersState.unviewedPackIds = [...userStickersState.unviewedPackIds.filter(a => a !== pid)];
+            }
 
             userStickersState.packIds = [...userStickersState.packIds.filter(a => a !== pid)];
             await userStickersState.flush(ctx);
@@ -180,7 +192,8 @@ export class StickersRepository {
 
             return {
                 packs: packs.filter(isDefined).filter(a => a.published),
-                favoriteIds: state.favoriteIds
+                favoriteIds: state.favoriteIds,
+                unviewedPackIds: state.unviewedPackIds || []
             };
         });
     }

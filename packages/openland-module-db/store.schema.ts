@@ -345,6 +345,7 @@ export default declareSchema(() => {
         field('isPremium', optional(boolean()));
         field('isDeleted', optional(boolean()));
         field('autosubscribeRooms', optional(array(integer())));
+
         rangeIndex('organization', ['oid'])
             .withCondition((v) => (v.kind === 'public' || v.kind === 'internal') && !v.isDeleted);
         uniqueIndex('organizationPublicRooms', ['oid', 'id'])
@@ -383,6 +384,8 @@ export default declareSchema(() => {
         field('welcomeMessageIsOn', optional(boolean()));
         field('welcomeMessageSender', optional(integer()));
         field('welcomeMessageText', optional(string()));
+
+        field('giftStickerPackId', optional(integer()));
 
         // common settings
         field('repliesDisabled', optional(boolean()));
@@ -2051,6 +2054,7 @@ export default declareSchema(() => {
         primaryKey('uid', integer());
         field('packIds', array(integer()));
         field('favoriteIds', array(string()));
+        field('unviewedPackIds', optional(array(integer())));
     });
 
     entity('Sticker', () => {

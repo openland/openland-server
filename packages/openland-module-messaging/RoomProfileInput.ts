@@ -16,4 +16,5 @@ export interface RoomProfileInput {
     repliesEnabled?: boolean | null;
     callSettings?: CallSettings | null;
     serviceMessageSettings?: ServiceMessageSettings | null;
+    giftStickerPackId?: number | null;
 }

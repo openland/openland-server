@@ -4425,6 +4425,7 @@ export interface RoomProfileShape {
     welcomeMessageIsOn: boolean | null;
     welcomeMessageSender: number | null;
     welcomeMessageText: string | null;
+    giftStickerPackId: number | null;
     repliesDisabled: boolean | null;
     callsMode: 'standard' | 'link' | 'disabled' | null;
     callLink: string | null;
@@ -4443,6 +4444,7 @@ export interface RoomProfileCreateShape {
     welcomeMessageIsOn?: boolean | null | undefined;
     welcomeMessageSender?: number | null | undefined;
     welcomeMessageText?: string | null | undefined;
+    giftStickerPackId?: number | null | undefined;
     repliesDisabled?: boolean | null | undefined;
     callsMode?: 'standard' | 'link' | 'disabled' | null | undefined;
     callLink?: string | null | undefined;
@@ -4534,6 +4536,15 @@ export class RoomProfile extends Entity<RoomProfileShape> {
             this.invalidate();
         }
     }
+    get giftStickerPackId(): number | null { return this._rawValue.giftStickerPackId; }
+    set giftStickerPackId(value: number | null) {
+        let normalized = this.descriptor.codec.fields.giftStickerPackId.normalize(value);
+        if (this._rawValue.giftStickerPackId !== normalized) {
+            this._rawValue.giftStickerPackId = normalized;
+            this._updatedValues.giftStickerPackId = normalized;
+            this.invalidate();
+        }
+    }
     get repliesDisabled(): boolean | null { return this._rawValue.repliesDisabled; }
     set repliesDisabled(value: boolean | null) {
         let normalized = this.descriptor.codec.fields.repliesDisabled.normalize(value);
@@ -4609,6 +4620,7 @@ export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProf
         fields.push({ name: 'welcomeMessageIsOn', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'welcomeMessageSender', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'welcomeMessageText', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'giftStickerPackId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'repliesDisabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'callsMode', type: { type: 'optional', inner: { type: 'enum', values: ['standard', 'link', 'disabled'] } }, secure: false });
         fields.push({ name: 'callLink', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
@@ -4626,6 +4638,7 @@ export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProf
             welcomeMessageIsOn: c.optional(c.boolean),
             welcomeMessageSender: c.optional(c.integer),
             welcomeMessageText: c.optional(c.string),
+            giftStickerPackId: c.optional(c.integer),
             repliesDisabled: c.optional(c.boolean),
             callsMode: c.optional(c.enum('standard', 'link', 'disabled')),
             callLink: c.optional(c.string),
@@ -14125,11 +14138,13 @@ export interface UserStickersStateShape {
     uid: number;
     packIds: (number)[];
     favoriteIds: (string)[];
+    unviewedPackIds: (number)[] | null;
 }
 
 export interface UserStickersStateCreateShape {
     packIds: (number)[];
     favoriteIds: (string)[];
+    unviewedPackIds?: (number)[] | null | undefined;
 }
 
 export class UserStickersState extends Entity<UserStickersStateShape> {
@@ -14152,6 +14167,15 @@ export class UserStickersState extends Entity<UserStickersStateShape> {
             this.invalidate();
         }
     }
+    get unviewedPackIds(): (number)[] | null { return this._rawValue.unviewedPackIds; }
+    set unviewedPackIds(value: (number)[] | null) {
+        let normalized = this.descriptor.codec.fields.unviewedPackIds.normalize(value);
+        if (this._rawValue.unviewedPackIds !== normalized) {
+            this._rawValue.unviewedPackIds = normalized;
+            this._updatedValues.unviewedPackIds = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class UserStickersStateFactory extends EntityFactory<UserStickersStateShape, UserStickersState> {
@@ -14164,10 +14188,12 @@ export class UserStickersStateFactory extends EntityFactory<UserStickersStateSha
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'packIds', type: { type: 'array', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'favoriteIds', type: { type: 'array', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'unviewedPackIds', type: { type: 'optional', inner: { type: 'array', inner: { type: 'integer' } } }, secure: false });
         let codec = c.struct({
             uid: c.integer,
             packIds: c.array(c.integer),
             favoriteIds: c.array(c.string),
+            unviewedPackIds: c.optional(c.array(c.integer)),
         });
         let descriptor: EntityDescriptor<UserStickersStateShape> = {
             name: 'UserStickersState',

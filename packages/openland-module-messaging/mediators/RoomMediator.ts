@@ -898,6 +898,10 @@ export class RoomMediator {
                 await this.welcomeMessageWorker.pushWork(ctx, { uid, cid }, Date.now() + 1000 * 40);
             }
 
+            if (!!roomProfile.giftStickerPackId) {
+                await Modules.Stickers.addToCollection(ctx, uid, roomProfile.giftStickerPackId, true);
+            }
+
             if (room.autosubscribeRooms && !(await Store.AutoSubscribeWasExecutedForUser.get(ctx, uid, 'room', room.id))) {
                 for (let c of room.autosubscribeRooms) {
                     let conv = await Store.ConversationRoom.findById(ctx, c);

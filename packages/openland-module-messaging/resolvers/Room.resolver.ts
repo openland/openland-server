@@ -210,6 +210,9 @@ export const Resolver: GQLResolver = {
             }
             // TODO: Remove this after web release
             let room = (await Store.ConversationRoom.findById(ctx, id))!;
+            if (room.ownerId === ctx.auth.uid!) {
+                return 'OWNER';
+            }
             if (room.oid && (await Modules.Orgs.isUserAdmin(ctx, ctx.auth.uid!, room.oid))) {
                 return 'ADMIN';
             }
@@ -668,7 +671,8 @@ export const Resolver: GQLResolver = {
                     kind: kind,
                     repliesEnabled: args.input.repliesEnabled,
                     callSettings: args.input.callSettings,
-                    serviceMessageSettings: args.input.serviceMessageSettings
+                    serviceMessageSettings: args.input.serviceMessageSettings,
+                    giftStickerPackId: args.input.giftStickerPackId ? IDs.StickerPack.parse(args.input.giftStickerPackId) : null
                 });
             });
         }),

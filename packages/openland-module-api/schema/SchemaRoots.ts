@@ -282,6 +282,7 @@ export namespace GQLRoots {
     export type UserStickersRoot = {
         favoriteIds: string[];
         packs: StickerPack[];
+        unviewedPackIds: number[];
     };
     export type StickerRoot = ImageStickerRoot;
     export type ImageStickerRoot = Sticker | string;

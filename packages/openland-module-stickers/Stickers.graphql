@@ -17,6 +17,8 @@ type StickerPack {
 }
 
 type UserStickers {
+    unviewedCount: Int!
+
     packs: [StickerPack!]!
     favorites: [Sticker!]!
 }
@@ -37,6 +39,8 @@ extend type Query {
     stickersByEmoji(emoji: String!): [Sticker!]!
     stickerPack(id: ID!): StickerPack
     stickerPackCatalog: [StickerPack!]!
+
+    superAllStickerPacks: [StickerPack!]!
 }
 
 extend type Mutation {

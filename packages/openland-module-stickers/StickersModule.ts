@@ -35,7 +35,7 @@ export class StickersModule {
         return this.repo.removeSticker(parent, uid, uuid);
     }
 
-    addToCollection = (parent: Context, uid: number, pid: number) => {
+    addToCollection = (parent: Context, uid: number, pid: number, isUnviewed?: boolean) => {
         return this.repo.addToCollection(parent, uid, pid);
     }
 
