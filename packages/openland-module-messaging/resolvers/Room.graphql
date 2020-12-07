@@ -108,6 +108,7 @@ type RoomSuper {
     featured: Boolean!
     listed: Boolean!
     autosubscribeRooms: [Room!]!
+    giftStickerPackId: ID
 }
 
 input RoomCallSettingsInput {

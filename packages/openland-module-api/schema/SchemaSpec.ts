@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '7a66d758c16ebbd877ca9fbbd46580a3';
+export const GQL_SPEC_VERSION = '994004d6e66dd02be72fad5ff3ca8813';
 
 export namespace GQL {
     export interface CreditCard {
@@ -5853,11 +5853,13 @@ export namespace GQL {
         featured: boolean;
         listed: boolean;
         autosubscribeRooms: Room[];
+        giftStickerPackId: Nullable<string>;
     }
     export interface RoomSuperIdArgs { }
     export interface RoomSuperFeaturedArgs { }
     export interface RoomSuperListedArgs { }
     export interface RoomSuperAutosubscribeRoomsArgs { }
+    export interface RoomSuperGiftStickerPackIdArgs { }
     export interface RoomCallSettingsInput {
         mode: RoomCallsMode;
         callLink: Nullable<string>;
@@ -11072,6 +11074,7 @@ export interface GQLResolver {
             featured: GQL.RoomSuperFeaturedArgs,
             listed: GQL.RoomSuperListedArgs,
             autosubscribeRooms: GQL.RoomSuperAutosubscribeRoomsArgs,
+            giftStickerPackId: GQL.RoomSuperGiftStickerPackIdArgs,
         }
     >;
     RoomMember?: ComplexTypedResolver<
