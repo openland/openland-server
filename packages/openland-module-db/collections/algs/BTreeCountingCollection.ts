@@ -1,7 +1,7 @@
 import { Context } from '@openland/context';
 import { Subspace } from '@openland/foundationdb';
 import { Algorithm } from './Algorithm';
-import { BPlusTreeDirectory } from './btree/BPlusTreeDirectory';
+import { BPlusTreeDirectory } from './btree2/BPlusTreeDirectory';
 
 export class BTreeCountingCollection implements Algorithm {
     readonly subspace: Subspace;

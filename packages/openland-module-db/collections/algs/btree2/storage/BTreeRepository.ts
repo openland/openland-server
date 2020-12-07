@@ -1,10 +1,10 @@
 import { Context } from '@openland/context';
 import { encoders, getTransaction, Subspace, TransactionCache, TupleItem } from '@openland/foundationdb';
-import { TreeHead, TreeNode } from './BTree';
+import { TreeHead, TreeNode, TreeNodeType } from './BTree';
 
 type TreeCache = {
     head: {
-        root: number | null,
+        root: number,
         nodeCounter: number,
     },
     cache: { [key: number]: TreeNode },
@@ -44,6 +44,9 @@ export class BTreeRepository {
     }
 
     async writeNode(ctx: Context, collection: Buffer, node: TreeNode) {
+        if (node.type === TreeNodeType.INNER && node.children.length < 2) {
+            throw Error('Invalid inner node');
+        }
         let cache = await this.getCache(ctx, collection);
         let hadWrites = cache.writeHead || Object.keys(cache.writes).length > 0;
         cache.cache[node.id] = node;
@@ -62,12 +65,20 @@ export class BTreeRepository {
 
     async getRoot(ctx: Context, collection: Buffer) {
         let cache = await this.getCache(ctx, collection);
-        return cache.head.root;
+        if (cache.head.root > 0) {
+            return cache.head.root;
+        } else {
+            return null;
+        }
     }
 
-    async setRoot(ctx: Context, collection: Buffer, node: number) {
+    async setRoot(ctx: Context, collection: Buffer, node: number | null) {
         let cache = await this.getCache(ctx, collection);
-        cache.head.root = node;
+        if (node === null) {
+            cache.head.root = 0;
+        } else {
+            cache.head.root = node;
+        }
         this.flushHead(ctx, collection, cache);
     }
 
@@ -108,7 +119,7 @@ export class BTreeRepository {
         if (!existing) {
             let headRaw = await this.subspace.get(ctx, [collection, SUBSPACE_HEAD]);
             if (!headRaw) {
-                existing = { head: { nodeCounter: 1, root: null }, writeHead: false, cache: {}, writes: {} };
+                existing = { head: { nodeCounter: 1, root: 0 }, writeHead: false, cache: {}, writes: {} };
                 bucketWriteCache.set(ctx, key, existing);
             } else {
                 let decoded = TreeHead.decode(headRaw);
