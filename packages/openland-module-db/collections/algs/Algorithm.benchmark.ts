@@ -12,12 +12,14 @@ const COLLECTION_0 = encoders.tuple.pack([0]);
 const COLLECTION_1 = encoders.tuple.pack([1]);
 
 async function benchmarkPrepare(alg: Algorithm) {
-    for (let j = 0; j < 10; j++) {
+    for (let j = 0; j < 1000; j++) {
+        let start = Date.now();
         await inTx(root, async (ctx) => {
-            for (let i = 0; i < 10000; i++) {
-                await alg.add(ctx, COLLECTION_0, j * 10000 + i);
+            for (let i = 0; i < 1000; i++) {
+                await alg.add(ctx, COLLECTION_0, j * 1000 + i);
             }
         });
+        console.log('Iteration ' + j + ' completed in ' + (Date.now() - start) + ' ms');
     }
 
     for (let j = 0; j < 10; j++) {
@@ -79,13 +81,15 @@ async function benchmarkSparse(alg: Algorithm) {
         } else {
             throw Error();
         }
+        let start = Date.now();
         await benchmarkPrepare(alg);
+        console.log('Prepared in ' + (Date.now() - start) + ' ms');
 
         //
         // Benchmarking
         //
         console.log('Benchmarking ' + type);
-        let start = Date.now();
+        start = Date.now();
         await benchmarkSimple(alg);
         console.log('simple:' + type + ': ' + (Date.now() - start) + 'ms');
         start = Date.now();

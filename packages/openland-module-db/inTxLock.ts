@@ -1,4 +1,4 @@
-import { AsyncLock } from 'openland-utils/timer';
+import { AsyncLock } from '../openland-utils/timer';
 import { TransactionCache } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 
