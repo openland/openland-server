@@ -9,7 +9,6 @@ const COLLECTION_2 = Buffer.from([2]);
 const COLLECTION_3 = Buffer.from([3]);
 const COLLECTION_4 = Buffer.from([4]);
 const COLLECTION_5 = Buffer.from([5]);
-const ZERO = Buffer.from([]);
 
 function expectDumpToMatch(src: DumpedNode | null, dst: DumpedNode) {
     expect(src).toMatchObject(dst);
@@ -25,7 +24,7 @@ describe('BPlusTreeDirectory', () => {
 
     it('should create root node', async () => {
         await inTx(root, async (ctx) => {
-            await directory.add(ctx, COLLECTION_0, 1, ZERO);
+            await directory.add(ctx, COLLECTION_0, 1);
         });
 
         let dump = await inTx(root, async (ctx) => {
@@ -39,9 +38,9 @@ describe('BPlusTreeDirectory', () => {
 
     it('should expand root node', async () => {
         await inTx(root, async (ctx) => {
-            await directory.add(ctx, COLLECTION_1, 2, ZERO);
-            await directory.add(ctx, COLLECTION_1, 10, ZERO);
-            await directory.add(ctx, COLLECTION_1, 1, ZERO);
+            await directory.add(ctx, COLLECTION_1, 2);
+            await directory.add(ctx, COLLECTION_1, 10);
+            await directory.add(ctx, COLLECTION_1, 1);
         });
 
         let dump = await inTx(root, async (ctx) => {
@@ -55,10 +54,10 @@ describe('BPlusTreeDirectory', () => {
 
     it('should split root node', async () => {
         await inTx(root, async (ctx) => {
-            await directory.add(ctx, COLLECTION_2, 1, ZERO);
-            await directory.add(ctx, COLLECTION_2, 10, ZERO);
-            await directory.add(ctx, COLLECTION_2, 5, ZERO);
-            await directory.add(ctx, COLLECTION_2, 11, ZERO);
+            await directory.add(ctx, COLLECTION_2, 1);
+            await directory.add(ctx, COLLECTION_2, 10);
+            await directory.add(ctx, COLLECTION_2, 5);
+            await directory.add(ctx, COLLECTION_2, 11);
         });
 
         let dump = await inTx(root, async (ctx) => {
@@ -88,17 +87,17 @@ describe('BPlusTreeDirectory', () => {
 
     it('should split root internal node', async () => {
         await inTx(root, async (ctx) => {
-            await directory.add(ctx, COLLECTION_3, 1, ZERO);
-            await directory.add(ctx, COLLECTION_3, 10, ZERO);
-            await directory.add(ctx, COLLECTION_3, 5, ZERO);
-            await directory.add(ctx, COLLECTION_3, 11, ZERO);
+            await directory.add(ctx, COLLECTION_3, 1);
+            await directory.add(ctx, COLLECTION_3, 10);
+            await directory.add(ctx, COLLECTION_3, 5);
+            await directory.add(ctx, COLLECTION_3, 11);
         });
 
         await inTx(root, async (ctx) => {
-            await directory.add(ctx, COLLECTION_3, 12, ZERO);
-            await directory.add(ctx, COLLECTION_3, 145, ZERO);
-            await directory.add(ctx, COLLECTION_3, 113, ZERO);
-            await directory.add(ctx, COLLECTION_3, -1, ZERO);
+            await directory.add(ctx, COLLECTION_3, 12);
+            await directory.add(ctx, COLLECTION_3, 145);
+            await directory.add(ctx, COLLECTION_3, 113);
+            await directory.add(ctx, COLLECTION_3, -1);
         });
 
         let dump = await inTx(root, async (ctx) => {
@@ -136,21 +135,21 @@ describe('BPlusTreeDirectory', () => {
 
     it('should split internal node', async () => {
         await inTx(root, async (ctx) => {
-            await directory.add(ctx, COLLECTION_4, 1, ZERO);
-            await directory.add(ctx, COLLECTION_4, 10, ZERO);
-            await directory.add(ctx, COLLECTION_4, 5, ZERO);
-            await directory.add(ctx, COLLECTION_4, 11, ZERO);
+            await directory.add(ctx, COLLECTION_4, 1);
+            await directory.add(ctx, COLLECTION_4, 10);
+            await directory.add(ctx, COLLECTION_4, 5);
+            await directory.add(ctx, COLLECTION_4, 11);
         });
 
         await inTx(root, async (ctx) => {
-            await directory.add(ctx, COLLECTION_4, 12, ZERO);
-            await directory.add(ctx, COLLECTION_4, 145, ZERO);
-            await directory.add(ctx, COLLECTION_4, 113, ZERO);
-            await directory.add(ctx, COLLECTION_4, -1, ZERO);
-            await directory.add(ctx, COLLECTION_4, 114, ZERO);
-            await directory.add(ctx, COLLECTION_4, 115, ZERO);
-            await directory.add(ctx, COLLECTION_4, 118, ZERO);
-            await directory.add(ctx, COLLECTION_4, 119, ZERO);
+            await directory.add(ctx, COLLECTION_4, 12);
+            await directory.add(ctx, COLLECTION_4, 145);
+            await directory.add(ctx, COLLECTION_4, 113);
+            await directory.add(ctx, COLLECTION_4, -1);
+            await directory.add(ctx, COLLECTION_4, 114);
+            await directory.add(ctx, COLLECTION_4, 115);
+            await directory.add(ctx, COLLECTION_4, 118);
+            await directory.add(ctx, COLLECTION_4, 119);
         });
 
         let dump = await inTx(root, async (ctx) => {
@@ -222,7 +221,7 @@ describe('BPlusTreeDirectory', () => {
     it('should count', async () => {
         await inTx(root, async (ctx) => {
             for (let i = 0; i < 100; i++) {
-                await directory.add(ctx, COLLECTION_5, i, ZERO);
+                await directory.add(ctx, COLLECTION_5, i);
             }
         });
 

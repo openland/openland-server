@@ -5,7 +5,7 @@ export type LeafNode = {
     type: 'leaf',
     id: number,
     parent: number | null,
-    children: { key: number, value: Buffer }[];
+    children: number[];
 };
 
 export type InternalNode = {
@@ -24,7 +24,7 @@ export function packNode(src: Node): Buffer {
             src.id,
             src.parent,
             src.children.length,
-            ...(([] as TupleItem[]).concat(...src.children.map((r) => [r.key, r.value])))
+            ...src.children
         ]);
     } else if (src.type === 'internal') {
         return encoders.tuple.pack([
@@ -50,9 +50,9 @@ export function unpackNode(src: Buffer): Node {
         let count = tuple[offset++] as number;
 
         // Read records
-        let children: { key: number, value: Buffer }[] = [];
+        let children: number[] = [];
         for (let i = 0; i < count; i++) {
-            children.push({ key: tuple[offset++] as number, value: tuple[offset++] as Buffer });
+            children.push(tuple[offset++] as number);
         }
 
         return {
@@ -86,10 +86,10 @@ export function unpackNode(src: Buffer): Node {
     }
 }
 
-const recordCompare = (a: { key: number, value: Buffer }, b: { key: number, value: Buffer }) => a.key - b.key;
+const recordCompare = (a: number, b: number) => a - b;
 // const childrenCompare = (a: { count: number, key: number, node: number }, b: { count: number, key: number, node: number }) => a.key - b.key;
 
-export function recordAdd(records: { key: number, value: Buffer }[], value: { key: number, value: Buffer }) {
+export function recordAdd(records: number[], value: number) {
     return sortedArrayAdd(records, value, recordCompare);
 }
 

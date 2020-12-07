@@ -9,8 +9,8 @@ function testPack(node: Node) {
 describe('Node', () => {
     it('should pack and unpack nodes', () => {
         testPack({ type: 'leaf', id: 1, parent: null, children: [] });
-        testPack({ type: 'leaf', id: 2, parent: null, children: [{ key: 1, value: Buffer.from([]) }] });
-        testPack({ type: 'leaf', id: 3, parent: 3, children: [{ key: 2, value: Buffer.from([]) }, { key: 1, value: Buffer.from([]) }] });
+        testPack({ type: 'leaf', id: 2, parent: null, children: [1] });
+        testPack({ type: 'leaf', id: 3, parent: 3, children: [2, 1] });
 
         testPack({ type: 'internal', id: 1, parent: null, children: [] });
         testPack({ type: 'internal', id: 2, parent: null, children: [{ count: 10, node: 1, min: 10, max: 10 }] });

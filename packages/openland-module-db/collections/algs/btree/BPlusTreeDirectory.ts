@@ -60,7 +60,7 @@ export class BPlusTreeDirectory {
         this.subspace = subspace.withKeyEncoding(encoders.tuple);
     }
 
-    add = async (ctx: Context, collection: Buffer, key: number, value: Buffer) => {
+    add = async (ctx: Context, collection: Buffer, key: number) => {
         let root = await this.readRoot(ctx, collection);
         if (!root) {
             // Allocate root node id
@@ -68,7 +68,7 @@ export class BPlusTreeDirectory {
 
             // Write node value
             this.writeRoot(ctx, collection, nodeId);
-            this.writeNode(ctx, collection, { type: 'leaf', id: nodeId, parent: null, children: [{ key, value }] });
+            this.writeNode(ctx, collection, { type: 'leaf', id: nodeId, parent: null, children: [key] });
             return;
         }
 
@@ -76,12 +76,12 @@ export class BPlusTreeDirectory {
         let ex = await this.treeSearch(ctx, collection, root.id, key);
 
         // If record already exist: exit
-        if (ex.children.find((v) => v.key === key)) {
+        if (ex.children.find((v) => v === key)) {
             return;
         }
 
         // Add record to node
-        let newRecords = recordAdd(ex.children, { key, value });
+        let newRecords = recordAdd(ex.children, key);
         this.writeNode(ctx, collection, { ...ex, children: newRecords });
 
         // Update counter
@@ -108,7 +108,7 @@ export class BPlusTreeDirectory {
         if (node.type === 'leaf') {
             let res = 0;
             for (let n of node.children) {
-                if (isWithin(cursor, n.key)) {
+                if (isWithin(cursor, n)) {
                     res++;
                 }
             }
@@ -148,7 +148,7 @@ export class BPlusTreeDirectory {
         if (node.type === 'leaf') {
             return {
                 type: 'leaf',
-                records: node.children.map((ch) => ch.key)
+                records: node.children
             };
         } else if (node.type === 'internal') {
             return {
@@ -212,13 +212,13 @@ export class BPlusTreeDirectory {
 
             // Resolve left metrics
             leftCount = split.left.length;
-            leftMin = split.left[0].key;
-            leftMax = split.left[split.left.length - 1].key;
+            leftMin = split.left[0];
+            leftMax = split.left[split.left.length - 1];
 
             // Resolve right metrics
             rightCount = split.right.length;
-            rightMin = split.right[0].key;
-            rightMax = split.right[split.right.length - 1].key;
+            rightMin = split.right[0];
+            rightMax = split.right[split.right.length - 1];
         } else if (node.type === 'internal') {
             let split = arraySplit(node.children);
 
