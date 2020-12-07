@@ -6,12 +6,21 @@ import { BTreeCountingCollection } from './BTreeCountingCollection';
 import { BucketCountingCollection } from './BucketCountingCollection';
 import { BucketCountingOptimizedCollection } from './BucketCountingOptimizedCollection';
 import { DirectCountingCollection } from './DirectCountingCollection';
+import { generateReport } from './utils/generateReport';
 
 let root = createNamedContext('test');
+const types = ['direct', 'bucket', 'bucket-optimized', 'bucket-optimized-large', 'bucket-optimized-xlarge', 'b-tree'] as const;
 const COLLECTION_0 = encoders.tuple.pack([0]);
 const COLLECTION_1 = encoders.tuple.pack([1]);
 
-async function benchmarkPrepare(alg: Algorithm) {
+let benchrmarks: { data: { x: number, y: number }[], name: string }[] = [];
+function reportBenchmark(name: string, data: { x: number, y: number }[]) {
+    benchrmarks.push({ name, data });
+    generateReport(__dirname + '/Algorithm.report.html', benchrmarks);
+}
+
+async function benchmarkPrepare(alg: Algorithm, type: typeof types[number]) {
+    let metrics: { x: number, y: number }[] = [];
     for (let j = 0; j < 1000; j++) {
         let start = Date.now();
         await inTx(root, async (ctx) => {
@@ -19,8 +28,10 @@ async function benchmarkPrepare(alg: Algorithm) {
                 await alg.add(ctx, COLLECTION_0, j * 1000 + i);
             }
         });
+        metrics.push({ x: j, y: (Date.now() - start) });
         console.log('Iteration ' + j + ' completed in ' + (Date.now() - start) + ' ms');
     }
+    reportBenchmark(type + '-prepare', metrics);
 
     for (let j = 0; j < 10; j++) {
         await inTx(root, async (ctx) => {
@@ -55,6 +66,35 @@ async function benchmarkSparse(alg: Algorithm) {
     console.log('Loading database...');
     let db = await Database.openTest({ name: 'counting-collection-benchmark', layers: [] });
 
+    //
+    // Benchmark buckets
+    //
+
+    let metrics: { x: number, y: number }[] = [];
+    let metrics2: { x: number, y: number }[] = [];
+    for (let i = 1000; i < 25000; i += 50) {
+        console.log('Bucket ' + i);
+        await inTx(root, async (ctx) => {
+            db.allKeys.clearPrefixed(ctx, Buffer.from([]));
+        });
+        let start = Date.now();
+        let count = 0;
+        for (let j = 0; j < 100000; j += i) {
+            count++;
+            await inTx(root, async (ctx) => {
+                let items: number[] = [];
+                for (let k = 0; k < i; k++) {
+                    items.push(k + j);
+                }
+                db.allKeys.set(ctx, encoders.tuple.pack([j]), encoders.tuple.pack(items));
+            });
+        }
+        metrics.push({ x: i, y: Date.now() - start });
+        metrics2.push({ x: i, y: count });
+    }
+    reportBenchmark('buckets', metrics);
+    reportBenchmark('buckets-write', metrics2);
+
     for (let type of ['direct', 'bucket', 'bucket-optimized', 'bucket-optimized-large', 'bucket-optimized-xlarge', 'b-tree'] as const) {
 
         //
@@ -78,11 +118,12 @@ async function benchmarkSparse(alg: Algorithm) {
             alg = new BucketCountingOptimizedCollection(db.allKeys, 1000);
         } else if (type === 'b-tree') {
             alg = new BTreeCountingCollection(db.allKeys, 1000);
+            return;
         } else {
             throw Error();
         }
         let start = Date.now();
-        await benchmarkPrepare(alg);
+        await benchmarkPrepare(alg, type);
         console.log('Prepared in ' + (Date.now() - start) + ' ms');
 
         //
