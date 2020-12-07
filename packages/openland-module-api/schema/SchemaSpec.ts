@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '73c32d83e9054bdfe0eb10d92c58c82e';
+export const GQL_SPEC_VERSION = '7a66d758c16ebbd877ca9fbbd46580a3';
 
 export namespace GQL {
     export interface CreditCard {
@@ -5737,7 +5737,7 @@ export namespace GQL {
     export type SharedRoomKind = GQLRoots.SharedRoomKindRoot;
     export type SharedRoomMembershipStatusValues = 'MEMBER' | 'REQUESTED' | 'LEFT' | 'KICKED' | 'NONE';
     export type SharedRoomMembershipStatus = GQLRoots.SharedRoomMembershipStatusRoot;
-    export type RoomMemberRoleValues = 'OWNER' | 'ADMIN' | 'MEMBER';
+    export type RoomMemberRoleValues = 'OWNER' | 'ADMIN' | 'MEMBER' | 'NONE';
     export type RoomMemberRole = GQLRoots.RoomMemberRoleRoot;
     export interface WelcomeMessage {
         isOn: boolean;
@@ -10956,7 +10956,7 @@ export interface GQLResolver {
     >;
     SharedRoomKind?: EnumTypeResolver<'INTERNAL' | 'PUBLIC' | 'GROUP', GQLRoots.SharedRoomKindRoot>;
     SharedRoomMembershipStatus?: EnumTypeResolver<'MEMBER' | 'REQUESTED' | 'LEFT' | 'KICKED' | 'NONE', GQLRoots.SharedRoomMembershipStatusRoot>;
-    RoomMemberRole?: EnumTypeResolver<'OWNER' | 'ADMIN' | 'MEMBER', GQLRoots.RoomMemberRoleRoot>;
+    RoomMemberRole?: EnumTypeResolver<'OWNER' | 'ADMIN' | 'MEMBER' | 'NONE', GQLRoots.RoomMemberRoleRoot>;
     WelcomeMessage?: ComplexTypedResolver<
         GQL.WelcomeMessage,
         GQLRoots.WelcomeMessageRoot,

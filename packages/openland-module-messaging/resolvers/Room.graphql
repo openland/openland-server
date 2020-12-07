@@ -26,6 +26,7 @@ enum RoomMemberRole {
     OWNER
     ADMIN
     MEMBER
+    NONE
 }
 
 type WelcomeMessage {
