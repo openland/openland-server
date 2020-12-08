@@ -1,60 +1,27 @@
 import { Context } from '@openland/context';
-import { encoders, Subspace } from '@openland/foundationdb';
-
-const INDEX_PRIMARY = 0;
+import { encoders, Subspace, TupleItem } from '@openland/foundationdb';
+import { BPlusTreeDirectory } from './algs/btree2/BPlusTreeDirectory';
 
 export class CountingCollection {
-    private readonly subspace: Subspace;
+    private readonly btree: BPlusTreeDirectory;
 
     constructor(subspace: Subspace) {
-        this.subspace = subspace;
+        this.btree = new BPlusTreeDirectory(subspace, 4000);
     }
 
-    //
-    // Mutations
-    //
-
-    async add(ctx: Context, collection: string | number, item: number) {
-        let existing = await this.subspace.get(ctx, encoders.tuple.pack([collection, INDEX_PRIMARY, item]));
-        if (existing) {
-            return;
-        }
-
-        // Update primary index
-        this.subspace.set(ctx, encoders.tuple.pack([collection, INDEX_PRIMARY, item]), encoders.tuple.pack([]));
-
-        // TODO: Update secondary index
+    async add(ctx: Context, collection: TupleItem[], key: number) {
+        await this.btree.add(ctx, encoders.tuple.pack(collection), key);
     }
 
-    async remove(ctx: Context, collection: string | number, item: number) {
-        let existing = await this.subspace.get(ctx, encoders.tuple.pack([collection, INDEX_PRIMARY, item]));
-        if (!existing) {
-            return;
-        }
-
-        // Update primary index
-        this.subspace.clear(ctx, encoders.tuple.pack([collection, INDEX_PRIMARY, item]));
-
-        // TODO: Update secondary index
+    async remove(ctx: Context, collection: TupleItem[], key: number) {
+        await this.btree.remove(ctx, encoders.tuple.pack(collection), key);
     }
 
-    //
-    // Querying
-    //
-
-    async count(ctx: Context, collection: string | number, after: number) {
-        return await this.countPrimary(ctx, collection, after);
+    async count(ctx: Context, collection: TupleItem[], after: number) {
+        return await this.btree.count(ctx, encoders.tuple.pack(collection), { from: after + 1 });
     }
 
-    async hasAny(ctx: Context, collection: string | number, after: number) {
+    async hasAny(ctx: Context, collection: TupleItem[], after: number) {
         return (await this.count(ctx, collection, after)) > 0;
-    }
-
-    //
-    // Implementation
-    //
-
-    private async countPrimary(ctx: Context, collection: string | number, after: number) {
-        return (await this.subspace.range(ctx, encoders.tuple.pack([collection, INDEX_PRIMARY]), { after: encoders.tuple.pack([collection, INDEX_PRIMARY, after]) })).length;
     }
 }
