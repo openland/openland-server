@@ -1,4 +1,4 @@
-import { sortedArrayAdd } from '../../utils/sortedArrayAdd';
+import { sortedArrayAdd } from '../../../utils/sortedArrayAdd';
 
 export function isWithin(cursor: { from?: number | null, to?: number | null }, key: number) {
     if ((cursor.to !== null && cursor.to !== undefined) && (cursor.to < key)) {
@@ -37,12 +37,20 @@ export function isIntersects(cursor: { from?: number | null, to?: number | null 
 }
 
 const recordCompare = (a: number, b: number) => a - b;
+const childrenCompare = (a: { id: number, min: number, max: number, count: number }, b: { id: number, min: number, max: number, count: number }) => a.min - b.min;
 
 export function recordAdd(records: number[], value: number) {
     return sortedArrayAdd(records, value, recordCompare);
 }
 
+export function childrenAdd(records: { id: number, min: number, max: number, count: number }[], value: { id: number, min: number, max: number, count: number }) {
+    return sortedArrayAdd(records, value, childrenCompare);
+}
+
 export function arraySplit<T>(records: T[]) {
+    if (records.length < 2) {
+        throw Error('Not enought items for split');
+    }
     let mid = records.length >> 1;
     return {
         left: records.slice(0, mid),

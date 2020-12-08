@@ -1,6 +1,6 @@
 import { createNamedContext } from '@openland/context';
 import { inTx, Database } from '@openland/foundationdb';
-import { BPlusTreeDirectory, DumpedNode } from './BPlusTreeDirectory';
+import { BPlusTreeDirectory } from './BPlusTreeDirectory';
 
 let root = createNamedContext('test');
 const COLLECTION_0 = Buffer.from([0]);
@@ -9,10 +9,9 @@ const COLLECTION_2 = Buffer.from([2]);
 const COLLECTION_3 = Buffer.from([3]);
 const COLLECTION_4 = Buffer.from([4]);
 const COLLECTION_5 = Buffer.from([5]);
-
-function expectDumpToMatch(src: DumpedNode | null, dst: DumpedNode) {
-    expect(src).toMatchObject(dst);
-}
+const COLLECTION_6 = Buffer.from([6]);
+const COLLECTION_7 = Buffer.from([7]);
+const COLLECTION_8 = Buffer.from([8]);
 
 describe('BPlusTreeDirectory', () => {
 
@@ -28,21 +27,22 @@ describe('BPlusTreeDirectory', () => {
         });
 
         let dump = await inTx(root, async (ctx) => {
-            return await directory.dump(ctx, COLLECTION_0);
+            return await directory.ops.dumpAll(ctx, COLLECTION_0);
         });
-        expectDumpToMatch(dump, {
-            type: 'leaf',
-            records: [1]
+        expect(dump).toMatchSnapshot();
+    });
+
+    it('should create delete root node', async () => {
+        await inTx(root, async (ctx) => {
+            await directory.add(ctx, COLLECTION_6, 1);
         });
-
-        // await inTx(root, async (ctx) => {
-        //     await directory.remove(ctx, COLLECTION_0, 1);
-        // });
-
-        // dump = await inTx(root, async (ctx) => {
-        //     return await directory.dump(ctx, COLLECTION_0);
-        // });
-        // expect(dump).toBeNull();
+        await inTx(root, async (ctx) => {
+            await directory.remove(ctx, COLLECTION_6, 1);
+        });
+        let dump = await inTx(root, async (ctx) => {
+            return await directory.ops.dumpAll(ctx, COLLECTION_6);
+        });
+        expect(dump).toBeNull();
     });
 
     it('should expand root node', async () => {
@@ -53,34 +53,38 @@ describe('BPlusTreeDirectory', () => {
         });
 
         let dump = await inTx(root, async (ctx) => {
-            return await directory.dump(ctx, COLLECTION_1);
+            return await directory.ops.dumpAll(ctx, COLLECTION_1);
         });
-        expectDumpToMatch(dump, {
-            type: 'leaf',
-            records: [1, 2, 10]
+        expect(dump).toMatchSnapshot();
+    });
+
+    it('should shrink root node', async () => {
+        await inTx(root, async (ctx) => {
+            await directory.add(ctx, COLLECTION_7, 2);
+            await directory.add(ctx, COLLECTION_7, 10);
+            await directory.add(ctx, COLLECTION_7, 1);
+            await directory.remove(ctx, COLLECTION_7, 1);
         });
+        let dump = await inTx(root, async (ctx) => {
+            return await directory.ops.dumpAll(ctx, COLLECTION_7);
+        });
+        expect(dump).toMatchSnapshot();
 
-        // await inTx(root, async (ctx) => {
-        //     await directory.remove(ctx, COLLECTION_1, 1);
-        // });
-        // dump = await inTx(root, async (ctx) => {
-        //     return await directory.dump(ctx, COLLECTION_1);
-        // });
-        // expectDumpToMatch(dump, {
-        //     type: 'leaf',
-        //     records: [2, 10]
-        // });
+        await inTx(root, async (ctx) => {
+            await directory.remove(ctx, COLLECTION_7, 10);
+        });
+        dump = await inTx(root, async (ctx) => {
+            return await directory.ops.dumpAll(ctx, COLLECTION_7);
+        });
+        expect(dump).toMatchSnapshot();
 
-        // await inTx(root, async (ctx) => {
-        //     await directory.remove(ctx, COLLECTION_1, 10);
-        // });
-        // dump = await inTx(root, async (ctx) => {
-        //     return await directory.dump(ctx, COLLECTION_1);
-        // });
-        // expectDumpToMatch(dump, {
-        //     type: 'leaf',
-        //     records: [2]
-        // });
+        await inTx(root, async (ctx) => {
+            await directory.remove(ctx, COLLECTION_7, 2);
+        });
+        dump = await inTx(root, async (ctx) => {
+            return await directory.ops.dumpAll(ctx, COLLECTION_7);
+        });
+        expect(dump).toMatchSnapshot();
     });
 
     it('should split root node', async () => {
@@ -89,31 +93,42 @@ describe('BPlusTreeDirectory', () => {
             await directory.add(ctx, COLLECTION_2, 10);
             await directory.add(ctx, COLLECTION_2, 5);
             await directory.add(ctx, COLLECTION_2, 11);
+            await directory.add(ctx, COLLECTION_2, 12);
         });
 
         let dump = await inTx(root, async (ctx) => {
-            return await directory.dump(ctx, COLLECTION_2);
+            return await directory.ops.dumpAll(ctx, COLLECTION_2);
         });
-        expectDumpToMatch(dump, {
-            type: 'internal',
-            children: [{
-                min: 1,
-                max: 5,
-                count: 2,
-                node: {
-                    type: 'leaf',
-                    records: [1, 5]
-                }
-            }, {
-                min: 10,
-                max: 11,
-                count: 2,
-                node: {
-                    type: 'leaf',
-                    records: [10, 11]
-                }
-            }]
+        expect(dump).toMatchSnapshot();
+    });
+
+    it('should shrink splitted root node', async () => {
+        await inTx(root, async (ctx) => {
+            await directory.add(ctx, COLLECTION_8, 1);
+            await directory.add(ctx, COLLECTION_8, 10);
+            await directory.add(ctx, COLLECTION_8, 5);
+            await directory.add(ctx, COLLECTION_8, 11);
+            await directory.add(ctx, COLLECTION_8, 12);
         });
+
+        let dump = await inTx(root, async (ctx) => {
+            await directory.remove(ctx, COLLECTION_8, 1);
+            return await directory.ops.dumpAll(ctx, COLLECTION_8);
+        });
+        expect(dump).toMatchSnapshot();
+
+        dump = await inTx(root, async (ctx) => {
+            await directory.remove(ctx, COLLECTION_8, 10);
+            return await directory.ops.dumpAll(ctx, COLLECTION_8);
+        });
+        expect(dump).toMatchSnapshot();
+
+        dump = await inTx(root, async (ctx) => {
+            await directory.remove(ctx, COLLECTION_8, 5);
+            return await directory.ops.dumpAll(ctx, COLLECTION_8);
+        });
+        expect(dump).toMatchSnapshot();
+        
     });
 
     it('should split root internal node', async () => {
@@ -132,36 +147,9 @@ describe('BPlusTreeDirectory', () => {
         });
 
         let dump = await inTx(root, async (ctx) => {
-            return await directory.dump(ctx, COLLECTION_3);
+            return await directory.ops.dumpAll(ctx, COLLECTION_3);
         });
-        expectDumpToMatch(dump, {
-            type: 'internal',
-            children: [{
-                min: -1,
-                max: 5,
-                count: 3,
-                node: {
-                    type: 'leaf',
-                    records: [-1, 1, 5],
-                }
-            }, {
-                min: 10,
-                max: 11,
-                count: 2,
-                node: {
-                    type: 'leaf',
-                    records: [10, 11]
-                }
-            }, {
-                min: 12,
-                max: 145,
-                count: 3,
-                node: {
-                    type: 'leaf',
-                    records: [12, 113, 145]
-                }
-            }]
-        });
+        expect(dump).toMatchSnapshot();
     });
 
     it('should split internal node', async () => {
@@ -184,69 +172,9 @@ describe('BPlusTreeDirectory', () => {
         });
 
         let dump = await inTx(root, async (ctx) => {
-            return await directory.dump(ctx, COLLECTION_4);
+            return await directory.ops.dumpAll(ctx, COLLECTION_4);
         });
-        expectDumpToMatch(dump, {
-            type: 'internal',
-            children: [{
-                min: -1,
-                max: 11,
-                count: 5,
-                node: {
-                    type: 'internal',
-                    children: [{
-                        min: -1,
-                        max: 5,
-                        count: 3,
-                        node: {
-                            type: 'leaf',
-                            records: [-1, 1, 5]
-                        }
-                    },
-                    {
-                        min: 10,
-                        max: 11,
-                        count: 2,
-                        node: {
-                            type: 'leaf',
-                            records: [10, 11]
-                        }
-                    }]
-                }
-            }, {
-                min: 12,
-                max: 145,
-                count: 7,
-                node: {
-                    type: 'internal',
-                    children: [{
-                        min: 12,
-                        max: 113,
-                        count: 2,
-                        node: {
-                            type: 'leaf',
-                            records: [12, 113]
-                        }
-                    }, {
-                        min: 114,
-                        max: 115,
-                        count: 2,
-                        node: {
-                            type: 'leaf',
-                            records: [114, 115]
-                        }
-                    }, {
-                        min: 118,
-                        max: 145,
-                        count: 3,
-                        node: {
-                            type: 'leaf',
-                            records: [118, 119, 145]
-                        }
-                    }]
-                }
-            }]
-        });
+        expect(dump).toMatchSnapshot();
     });
 
     it('should count', async () => {
@@ -258,8 +186,7 @@ describe('BPlusTreeDirectory', () => {
 
         let count = await inTx(root, async (ctx) => {
             let res = await directory.count(ctx, COLLECTION_5, { from: 43, to: 60 });
-            let dump = await directory.dump(ctx, COLLECTION_5);
-            return { res, dump };
+            return { res };
         });
         expect(count.res).toBe(18);
     });

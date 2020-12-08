@@ -14,6 +14,10 @@ describe('CountingCollection', () => {
             await collection.add(ctx, 'collection-1', 1);
             await collection.add(ctx, 'collection-1', 2);
             await collection.add(ctx, 'collection-1', 3);
+            await collection.add(ctx, 'collection-1', -1);
+            await collection.add(ctx, 'collection-1', 4);
+            await collection.remove(ctx, 'collection-1', -1);
+            await collection.remove(ctx, 'collection-1', 4);
         });
 
         // Resolve count
