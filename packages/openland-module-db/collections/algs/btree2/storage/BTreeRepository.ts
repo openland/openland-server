@@ -7,7 +7,7 @@ type TreeCache = {
         root: number,
         nodeCounter: number,
     },
-    cache: { [key: number]: TreeNode },
+    cache: { [key: number]: TreeNode | null },
     writes: { [key: number]: true }
     writeHead: boolean,
 };
@@ -31,7 +31,10 @@ export class BTreeRepository {
     async readNode(ctx: Context, collection: Buffer, node: number) {
         let cache = await this.getCache(ctx, collection);
         let cached = cache.cache[node];
-        if (cached) {
+        if (cached !== undefined) {
+            if (cached === null) {
+                throw Error('Unable to find node ' + node);
+            }
             return cached;
         }
         let rawNode = await this.subspace.get(ctx, [collection, SUBSPACE_NODES, node]);
@@ -41,6 +44,16 @@ export class BTreeRepository {
         let decoded = TreeNode.decode(rawNode);
         cache.cache[node] = decoded;
         return decoded;
+    }
+
+    async clearNode(ctx: Context, collection: Buffer, id: number) {
+        let cache = await this.getCache(ctx, collection);
+        let hadWrites = cache.writeHead || Object.keys(cache.writes).length > 0;
+        cache.cache[id] = null;
+        cache.writes[id] = true;
+        if (!hadWrites) {
+            this.registerFlush(ctx, collection, cache);
+        }
     }
 
     async writeNode(ctx: Context, collection: Buffer, node: TreeNode) {
@@ -108,7 +121,11 @@ export class BTreeRepository {
             // Flush nodes
             for (let key in cache.writes) {
                 let id = parseInt(key, 10);
-                this.subspace.set(commit, [collection, SUBSPACE_NODES, id], Buffer.from(TreeNode.encode(cache.cache[id]).finish()));
+                if (cache.cache[id]) {
+                    this.subspace.set(commit, [collection, SUBSPACE_NODES, id], Buffer.from(TreeNode.encode(cache.cache[id]!).finish()));
+                } else {
+                    this.subspace.clear(commit, [collection, SUBSPACE_NODES, id]);
+                }
             }
         });
     }

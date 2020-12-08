@@ -34,6 +34,15 @@ describe('BPlusTreeDirectory', () => {
             type: 'leaf',
             records: [1]
         });
+
+        // await inTx(root, async (ctx) => {
+        //     await directory.remove(ctx, COLLECTION_0, 1);
+        // });
+
+        // dump = await inTx(root, async (ctx) => {
+        //     return await directory.dump(ctx, COLLECTION_0);
+        // });
+        // expect(dump).toBeNull();
     });
 
     it('should expand root node', async () => {
@@ -50,6 +59,28 @@ describe('BPlusTreeDirectory', () => {
             type: 'leaf',
             records: [1, 2, 10]
         });
+
+        // await inTx(root, async (ctx) => {
+        //     await directory.remove(ctx, COLLECTION_1, 1);
+        // });
+        // dump = await inTx(root, async (ctx) => {
+        //     return await directory.dump(ctx, COLLECTION_1);
+        // });
+        // expectDumpToMatch(dump, {
+        //     type: 'leaf',
+        //     records: [2, 10]
+        // });
+
+        // await inTx(root, async (ctx) => {
+        //     await directory.remove(ctx, COLLECTION_1, 10);
+        // });
+        // dump = await inTx(root, async (ctx) => {
+        //     return await directory.dump(ctx, COLLECTION_1);
+        // });
+        // expectDumpToMatch(dump, {
+        //     type: 'leaf',
+        //     records: [2]
+        // });
     });
 
     it('should split root node', async () => {

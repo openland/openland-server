@@ -51,27 +51,47 @@ export class BPlusTreeDirectory {
 
         // Update counter and min/max
         if (ex.parent !== 0) {
-            await this.updateParents(ctx, collection, ex.parent, ex.id, key, values.length);
+            await this.updateParents(ctx, collection, ex.parent, ex.id, values[0], values[values.length - 1], values.length);
         }
 
         // Rebalance
         await this.rebalance(ctx, collection, ex.id);
     }
 
-    remove = async (ctx: Context, collection: Buffer, key: number) => {
-        let root = await this.store.getRoot(ctx, collection);
-        if (!root) {
-            return;
-        }
+    // remove = async (ctx: Context, collection: Buffer, key: number) => {
+    //     let root = await this.store.getRoot(ctx, collection);
+    //     if (!root) {
+    //         return;
+    //     }
 
-        // Search from the root
-        let ex = await this.treeSearch(ctx, collection, root, key);
+    //     // Search from the root
+    //     let ex = await this.treeSearch(ctx, collection, root, key);
 
-        // If record already exist: exit
-        if (!ex.values.find((v) => v === key)) {
-            return;
-        }
-    }
+    //     // If record already exist: exit
+    //     if (!ex.values.find((v) => v === key)) {
+    //         return;
+    //     }
+
+    //     // Remove value from node
+    //     let values = ex.values.filter((v) => v !== key);
+
+    //     // Delete node if it was last value
+    //     if (values.length === 0) {
+    //         await this.deleteNode(ctx, collection, ex.id);
+    //         return;
+    //     }
+
+    //     // Update node
+    //     await this.store.writeNode(ctx, collection, new TreeNode({ ...ex, values }));
+
+    //     // Update counter and min/max
+    //     if (ex.parent !== 0) {
+    //         await this.updateParents(ctx, collection, ex.parent, ex.id, values[0], values[values.length - 1], values.length);
+    //     }
+
+    //     // Rebalance
+    //     await this.rebalance(ctx, collection, ex.id);
+    // }
 
     count = async (ctx: Context, collection: Buffer, cursor: { from?: number | null, to?: number | null }) => {
         let root = await this.store.getRoot(ctx, collection);
@@ -168,12 +188,67 @@ export class BPlusTreeDirectory {
     // Rebalancing
     //
 
+    // private deleteNode = async (ctx: Context, collection: Buffer, nodeId: number) => {
+    //     let node = await this.store.readNode(ctx, collection, nodeId);
+    //     await this.store.clearNode(ctx, collection, nodeId);
+
+    //     // Return parent node
+    //     if (node.parent === 0) {
+    //         await this.store.setRoot(ctx, collection, null);
+    //         return;
+    //     }
+
+    //     // Delete node from parent
+    //     let parent = await this.store.readNode(ctx, collection, node.parent);
+    //     if (parent.type !== TreeNodeType.INNER) {
+    //         throw Error('Invalid node');
+    //     }
+
+    //     // Find child position
+    //     let child = parent.children.findIndex((v) => v.id === parent.id);
+    //     if (!child) {
+    //         throw Error('Invalid node');
+    //     }
+
+    //     // Child is last - deleting a node
+    //     if (parent.children.length <= 1) {
+    //         await this.deleteNode(ctx, collection, node.parent);
+    //         return;
+    //     }
+
+    //     // Remove children
+    //     let updatedChildren = parent.children.filter((v) => v.id !== parent.id);
+    //     let max = updatedChildren[updatedChildren.length - 1].max;
+    //     let min = updatedChildren[0].min;
+    //     let sum = 0;
+    //     for (let u of updatedChildren) {
+    //         sum += u.count;
+    //     }
+
+    //     // Update counters in parents
+    //     await this.updateParents(ctx, collection, parent.id, nodeId, min, max, sum);
+
+    //     // Write node
+    //     parent.children = parent.children.filter((v) => v.id !== parent.id);
+    //     await this.store.writeNode(ctx, collection, parent);
+    // }
+
     private rebalance = async (ctx: Context, collection: Buffer, nodeId: number) => {
         let node = await this.store.readNode(ctx, collection, nodeId);
         if (node.children.length >= this.maxBranch - 1 || node.values.length >= this.maxBranch - 1) {
             await this.splitNode(ctx, collection, node.id);
         }
+        // if (node.children.length < (this.maxBranch - 1) / 2 || node.values.length < (this.maxBranch - 1) / 2) {
+        //     await this.mergeNode(ctx, collection, node.id);
+        // }
     }
+
+    // private mergeNode = async (ctx: Context, collection: Buffer, nodeId: number) => {
+    //     let node = await this.store.readNode(ctx, collection, nodeId);
+    //     if (node.parent === 0) {
+    //         return;
+    //     }
+    // }
 
     private splitNode = async (ctx: Context, collection: Buffer, nodeId: number) => {
         let node = await this.store.readNode(ctx, collection, nodeId);
@@ -319,7 +394,7 @@ export class BPlusTreeDirectory {
     // Update parents
     //
 
-    private async updateParents(ctx: Context, collection: Buffer, nodeId: number, childrenId: number, key: number, count: number) {
+    private async updateParents(ctx: Context, collection: Buffer, nodeId: number, childrenId: number, min: number, max: number, count: number) {
         let node = await this.store.readNode(ctx, collection, nodeId);
         if (node.type !== TreeNodeType.INNER) {
             throw Error('Node type invalid');
@@ -329,8 +404,8 @@ export class BPlusTreeDirectory {
             throw Error('Unable to find children');
         }
         node.children[index].count = count;
-        node.children[index].min = Math.min(node.children[index].min, key);
-        node.children[index].max = Math.max(node.children[index].max, key);
+        node.children[index].min = min;
+        node.children[index].max = max;
         await this.store.writeNode(ctx, collection, node);
 
         if (node.parent !== 0) {
@@ -338,7 +413,7 @@ export class BPlusTreeDirectory {
             for (let ch of node.children) {
                 sum += ch.count;
             }
-            await this.updateParents(ctx, collection, node.parent, nodeId, key, sum);
+            await this.updateParents(ctx, collection, node.parent, nodeId, node.children[0].min, node.children[node.children.length - 1].max, sum);
         }
     }
 
