@@ -26,6 +26,7 @@ enum RoomMemberRole {
     OWNER
     ADMIN
     MEMBER
+    NONE
 }
 
 type WelcomeMessage {
@@ -107,6 +108,7 @@ type RoomSuper {
     featured: Boolean!
     listed: Boolean!
     autosubscribeRooms: [Room!]!
+    giftStickerPackId: ID
 }
 
 input RoomCallSettingsInput {

@@ -709,7 +709,7 @@ export class RoomRepository {
 
     async resolveUserRole(ctx: Context, uid: number, cid: number) {
         let participant = await Store.RoomParticipant.findById(ctx, cid, uid);
-        return participant ? participant.role : 'MEMBER';
+        return participant ? participant.role : 'NONE';
     }
 
     async findActiveMembers(ctx: Context, cid: number) {

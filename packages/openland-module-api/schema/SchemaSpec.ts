@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '73c32d83e9054bdfe0eb10d92c58c82e';
+export const GQL_SPEC_VERSION = '994004d6e66dd02be72fad5ff3ca8813';
 
 export namespace GQL {
     export interface CreditCard {
@@ -5737,7 +5737,7 @@ export namespace GQL {
     export type SharedRoomKind = GQLRoots.SharedRoomKindRoot;
     export type SharedRoomMembershipStatusValues = 'MEMBER' | 'REQUESTED' | 'LEFT' | 'KICKED' | 'NONE';
     export type SharedRoomMembershipStatus = GQLRoots.SharedRoomMembershipStatusRoot;
-    export type RoomMemberRoleValues = 'OWNER' | 'ADMIN' | 'MEMBER';
+    export type RoomMemberRoleValues = 'OWNER' | 'ADMIN' | 'MEMBER' | 'NONE';
     export type RoomMemberRole = GQLRoots.RoomMemberRoleRoot;
     export interface WelcomeMessage {
         isOn: boolean;
@@ -5853,11 +5853,13 @@ export namespace GQL {
         featured: boolean;
         listed: boolean;
         autosubscribeRooms: Room[];
+        giftStickerPackId: Nullable<string>;
     }
     export interface RoomSuperIdArgs { }
     export interface RoomSuperFeaturedArgs { }
     export interface RoomSuperListedArgs { }
     export interface RoomSuperAutosubscribeRoomsArgs { }
+    export interface RoomSuperGiftStickerPackIdArgs { }
     export interface RoomCallSettingsInput {
         mode: RoomCallsMode;
         callLink: Nullable<string>;
@@ -10956,7 +10958,7 @@ export interface GQLResolver {
     >;
     SharedRoomKind?: EnumTypeResolver<'INTERNAL' | 'PUBLIC' | 'GROUP', GQLRoots.SharedRoomKindRoot>;
     SharedRoomMembershipStatus?: EnumTypeResolver<'MEMBER' | 'REQUESTED' | 'LEFT' | 'KICKED' | 'NONE', GQLRoots.SharedRoomMembershipStatusRoot>;
-    RoomMemberRole?: EnumTypeResolver<'OWNER' | 'ADMIN' | 'MEMBER', GQLRoots.RoomMemberRoleRoot>;
+    RoomMemberRole?: EnumTypeResolver<'OWNER' | 'ADMIN' | 'MEMBER' | 'NONE', GQLRoots.RoomMemberRoleRoot>;
     WelcomeMessage?: ComplexTypedResolver<
         GQL.WelcomeMessage,
         GQLRoots.WelcomeMessageRoot,
@@ -11072,6 +11074,7 @@ export interface GQLResolver {
             featured: GQL.RoomSuperFeaturedArgs,
             listed: GQL.RoomSuperListedArgs,
             autosubscribeRooms: GQL.RoomSuperAutosubscribeRoomsArgs,
+            giftStickerPackId: GQL.RoomSuperGiftStickerPackIdArgs,
         }
     >;
     RoomMember?: ComplexTypedResolver<

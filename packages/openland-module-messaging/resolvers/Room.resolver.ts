@@ -344,6 +344,9 @@ export const Resolver: GQLResolver = {
             let room = await Store.ConversationRoom.findById(ctx, id);
             return room!.autosubscribeRooms || [];
         }),
+        giftStickerPackId: withRoomProfile(async (ctx, profile) => {
+            return profile?.giftStickerPackId;
+        }),
     },
 
     MessageAttachment: {
