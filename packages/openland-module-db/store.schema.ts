@@ -448,6 +448,7 @@ export default declareSchema(() => {
         field('edited', optional(boolean()));
         field('isMuted', boolean());
         field('isService', boolean());
+        field('visibleOnlyForUids', optional(array(integer())));
         field('hiddenForUids', optional(array(integer())));
         field('deleted', optional(boolean()));
         field('spans', optional(array(union({
@@ -861,16 +862,19 @@ export default declareSchema(() => {
     event('MessageReceivedEvent', () => {
         field('cid', integer());
         field('mid', integer());
+        field('visibleOnlyForUids', optional(array(integer())));
         field('hiddenForUids', optional(array(integer())));
     });
     event('MessageUpdatedEvent', () => {
         field('cid', integer());
         field('mid', integer());
+        field('visibleOnlyForUids', optional(array(integer())));
         field('hiddenForUids', optional(array(integer())));
     });
     event('MessageDeletedEvent', () => {
         field('cid', integer());
         field('mid', integer());
+        field('visibleOnlyForUids', optional(array(integer())));
         field('hiddenForUids', optional(array(integer())));
     });
     eventStore('ConversationEventStore', () => {

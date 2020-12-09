@@ -388,7 +388,7 @@ function isMessageHiddenForUser(message: Message | Comment | RichMessage, forUid
     if (!(message instanceof Message)) {
         return false;
     }
-    if (message.hiddenForUids && message.hiddenForUids.includes(forUid)) {
+    if (message.visibleOnlyForUids && message.visibleOnlyForUids.length > 0 && !message.visibleOnlyForUids.includes(forUid)) {
         return true;
     }
     return false;
@@ -400,7 +400,7 @@ async function fetchMessages(ctx: Context, cid: number, forUid: number, opts: Ra
         return messages;
     }
     let after = messages.items[messages.items.length - 1].id;
-    messages.items = messages.items.filter(m => !m.hiddenForUids?.includes(forUid));
+    messages.items = messages.items.filter(m => (m.visibleOnlyForUids && m.visibleOnlyForUids.length > 0) ? m.visibleOnlyForUids.includes(forUid) : true);
 
     while (messages.items.length < (opts.limit || 0) && messages.haveMore) {
         let more = await Store.Message.chat.query(ctx, cid, {...opts, after, limit: 1});
@@ -410,7 +410,7 @@ async function fetchMessages(ctx: Context, cid: number, forUid: number, opts: Ra
         }
         after = more.items[more.items.length - 1].id;
 
-        let filtered = more.items.filter(m => !m.hiddenForUids?.includes(forUid));
+        let filtered = more.items.filter(m => (m.visibleOnlyForUids && m.visibleOnlyForUids.length > 0) ? m.visibleOnlyForUids.includes(forUid) : true);
         messages.items.push(...filtered);
         messages.haveMore = more.haveMore;
         messages.cursor = more.cursor;
@@ -421,34 +421,6 @@ async function fetchMessages(ctx: Context, cid: number, forUid: number, opts: Ra
 
     return messages;
 }
-
-// async function fetchMessagesFromSeq(ctx: Context, cid: number, forUid: number, opts: RangeQueryOptions<number>) {
-//     let messages = await Store.Message.chatSeq.query(ctx, cid, opts);
-//     if (messages.items.length === 0) {
-//         return messages;
-//     }
-//     let after = messages.items[messages.items.length - 1].id;
-//     messages.items = messages.items.filter(m => !m.hiddenForUids?.includes(forUid));
-//
-//     while (messages.items.length < (opts.limit || 0) && messages.haveMore) {
-//         let more = await Store.Message.chatSeq.query(ctx, cid, {...opts, after, limit: 1});
-//         if (more.items.length === 0) {
-//             messages.haveMore = false;
-//             return messages;
-//         }
-//         after = more.items[more.items.length - 1].id;
-//
-//         let filtered = more.items.filter(m => !m.hiddenForUids?.includes(forUid));
-//         messages.items.push(...filtered);
-//         messages.haveMore = more.haveMore;
-//         messages.cursor = more.cursor;
-//     }
-//     if (opts.limit) {
-//         messages.items = messages.items.slice(0, opts.limit);
-//     }
-//
-//     return messages;
-// }
 
 function resolveReactionCounters(src: GeneralMessageRoot, args: any, ctx: Context) {
     let counts = new Map<MessageReactionTypeRoot, number>();
@@ -1222,7 +1194,7 @@ export const Resolver: GQLResolver = {
                 let aroundMessage: Message | undefined | null;
                 if (aroundId) {
                     aroundMessage = await Store.Message.findById(ctx, aroundId);
-                    if (aroundMessage && aroundMessage.hiddenForUids?.includes(uid)) {
+                    if (aroundMessage && (aroundMessage.visibleOnlyForUids && aroundMessage.visibleOnlyForUids.length > 0 && !aroundMessage.visibleOnlyForUids.includes(uid))) {
                         aroundMessage = null;
                     }
                 }

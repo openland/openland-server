@@ -4893,6 +4893,7 @@ export interface MessageShape {
     edited: boolean | null;
     isMuted: boolean;
     isService: boolean;
+    visibleOnlyForUids: (number)[] | null;
     hiddenForUids: (number)[] | null;
     deleted: boolean | null;
     spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'organization_mention', offset: number, length: number, organization: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number } | { type: 'hash_tag', offset: number, length: number, tag: string })[] | null;
@@ -4925,6 +4926,7 @@ export interface MessageCreateShape {
     edited?: boolean | null | undefined;
     isMuted: boolean;
     isService: boolean;
+    visibleOnlyForUids?: (number)[] | null | undefined;
     hiddenForUids?: (number)[] | null | undefined;
     deleted?: boolean | null | undefined;
     spans?: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'organization_mention', offset: number, length: number, organization: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number } | { type: 'hash_tag', offset: number, length: number, tag: string })[] | null | undefined;
@@ -5043,6 +5045,15 @@ export class Message extends Entity<MessageShape> {
         if (this._rawValue.isService !== normalized) {
             this._rawValue.isService = normalized;
             this._updatedValues.isService = normalized;
+            this.invalidate();
+        }
+    }
+    get visibleOnlyForUids(): (number)[] | null { return this._rawValue.visibleOnlyForUids; }
+    set visibleOnlyForUids(value: (number)[] | null) {
+        let normalized = this.descriptor.codec.fields.visibleOnlyForUids.normalize(value);
+        if (this._rawValue.visibleOnlyForUids !== normalized) {
+            this._rawValue.visibleOnlyForUids = normalized;
+            this._updatedValues.visibleOnlyForUids = normalized;
             this.invalidate();
         }
     }
@@ -5327,6 +5338,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         fields.push({ name: 'edited', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'isMuted', type: { type: 'boolean' }, secure: false });
         fields.push({ name: 'isService', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'visibleOnlyForUids', type: { type: 'optional', inner: { type: 'array', inner: { type: 'integer' } } }, secure: false });
         fields.push({ name: 'hiddenForUids', type: { type: 'optional', inner: { type: 'array', inner: { type: 'integer' } } }, secure: false });
         fields.push({ name: 'deleted', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'spans', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, user: { type: 'integer' } }, multi_user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, users: { type: 'array', inner: { type: 'integer' } } }, room_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, room: { type: 'integer' } }, organization_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, organization: { type: 'integer' } }, link: { offset: { type: 'integer' }, length: { type: 'integer' }, url: { type: 'string' } }, date_text: { offset: { type: 'integer' }, length: { type: 'integer' }, date: { type: 'integer' } }, bold_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, italic_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, irony_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, inline_code_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, code_block_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, insane_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, loud_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, rotating_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, all_mention: { offset: { type: 'integer' }, length: { type: 'integer' } }, hash_tag: { offset: { type: 'integer' }, length: { type: 'integer' }, tag: { type: 'string' } } } } } }, secure: false });
@@ -5358,6 +5370,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
             edited: c.optional(c.boolean),
             isMuted: c.boolean,
             isService: c.boolean,
+            visibleOnlyForUids: c.optional(c.array(c.integer)),
             hiddenForUids: c.optional(c.array(c.integer)),
             deleted: c.optional(c.boolean),
             spans: c.optional(c.array(c.union({ user_mention: c.struct({ offset: c.integer, length: c.integer, user: c.integer }), multi_user_mention: c.struct({ offset: c.integer, length: c.integer, users: c.array(c.integer) }), room_mention: c.struct({ offset: c.integer, length: c.integer, room: c.integer }), organization_mention: c.struct({ offset: c.integer, length: c.integer, organization: c.integer }), link: c.struct({ offset: c.integer, length: c.integer, url: c.string }), date_text: c.struct({ offset: c.integer, length: c.integer, date: c.integer }), bold_text: c.struct({ offset: c.integer, length: c.integer }), italic_text: c.struct({ offset: c.integer, length: c.integer }), irony_text: c.struct({ offset: c.integer, length: c.integer }), inline_code_text: c.struct({ offset: c.integer, length: c.integer }), code_block_text: c.struct({ offset: c.integer, length: c.integer }), insane_text: c.struct({ offset: c.integer, length: c.integer }), loud_text: c.struct({ offset: c.integer, length: c.integer }), rotating_text: c.struct({ offset: c.integer, length: c.integer }), all_mention: c.struct({ offset: c.integer, length: c.integer }), hash_tag: c.struct({ offset: c.integer, length: c.integer, tag: c.string }) }))),
@@ -21036,12 +21049,14 @@ export class ChatUpdatedEvent extends BaseEvent {
 const messageReceivedEventCodec = c.struct({
     cid: c.integer,
     mid: c.integer,
+    visibleOnlyForUids: c.optional(c.array(c.integer)),
     hiddenForUids: c.optional(c.array(c.integer)),
 });
 
 interface MessageReceivedEventShape {
     cid: number;
     mid: number;
+    visibleOnlyForUids?: (number)[] | null | undefined;
     hiddenForUids?: (number)[] | null | undefined;
 }
 
@@ -21069,18 +21084,21 @@ export class MessageReceivedEvent extends BaseEvent {
 
     get cid(): number { return this.raw.cid; }
     get mid(): number { return this.raw.mid; }
+    get visibleOnlyForUids(): (number)[] | null { return this.raw.visibleOnlyForUids; }
     get hiddenForUids(): (number)[] | null { return this.raw.hiddenForUids; }
 }
 
 const messageUpdatedEventCodec = c.struct({
     cid: c.integer,
     mid: c.integer,
+    visibleOnlyForUids: c.optional(c.array(c.integer)),
     hiddenForUids: c.optional(c.array(c.integer)),
 });
 
 interface MessageUpdatedEventShape {
     cid: number;
     mid: number;
+    visibleOnlyForUids?: (number)[] | null | undefined;
     hiddenForUids?: (number)[] | null | undefined;
 }
 
@@ -21108,18 +21126,21 @@ export class MessageUpdatedEvent extends BaseEvent {
 
     get cid(): number { return this.raw.cid; }
     get mid(): number { return this.raw.mid; }
+    get visibleOnlyForUids(): (number)[] | null { return this.raw.visibleOnlyForUids; }
     get hiddenForUids(): (number)[] | null { return this.raw.hiddenForUids; }
 }
 
 const messageDeletedEventCodec = c.struct({
     cid: c.integer,
     mid: c.integer,
+    visibleOnlyForUids: c.optional(c.array(c.integer)),
     hiddenForUids: c.optional(c.array(c.integer)),
 });
 
 interface MessageDeletedEventShape {
     cid: number;
     mid: number;
+    visibleOnlyForUids?: (number)[] | null | undefined;
     hiddenForUids?: (number)[] | null | undefined;
 }
 
@@ -21147,6 +21168,7 @@ export class MessageDeletedEvent extends BaseEvent {
 
     get cid(): number { return this.raw.cid; }
     get mid(): number { return this.raw.mid; }
+    get visibleOnlyForUids(): (number)[] | null { return this.raw.visibleOnlyForUids; }
     get hiddenForUids(): (number)[] | null { return this.raw.hiddenForUids; }
 }
 

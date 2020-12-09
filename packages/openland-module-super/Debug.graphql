@@ -205,14 +205,11 @@ extend type Mutation {
     debugFreeUnusedShortnames: Boolean!
     debugFreeShortname(shortname: String!): Boolean!
     debugRemoveKickedUsersFromOrgChats: Boolean!
-    debugMigrateToNewCounters: Boolean!
     debugMigrateToNewLastRead: Boolean!
     debugFixReadSeqs: Boolean!
     debugExportUsers: Boolean!
     debugMigrateUserStatus: Boolean!
-    debugMigrateToExperimentalCounters: Boolean!
-    debugFixCompactMessages: Boolean!
-    debugMigrateToNewerCounters: Boolean!
+    debugFixMessages: Boolean!
     debugUserAuth(id: ID!): Boolean!
     debugCreateOrganizationMailing(oid: ID!, uid: ID!, message: String!, spans: [MessageSpanInput!]): Boolean!
     debugPaymentCancel(id: ID!): Boolean!

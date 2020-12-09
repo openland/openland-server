@@ -20,7 +20,6 @@ import { Store } from '../openland-module-db/FDB';
 import { hasMention } from './resolvers/ModernMessage.resolver';
 import { PremiumChatMediator } from './mediators/PremiumChatMediator';
 import { DonationsMediator } from './mediators/DonationsMediator';
-import { Modules } from '../openland-modules/Modules';
 import { CounterProvider } from './counters/CounterProvider';
 import { PrecalculatedCounterProvider } from './counters/PrecalculatedCounterProvider';
 
@@ -167,78 +166,6 @@ export class MessagingModule {
 
     async zipUpdatesInBatchesAfterModern(parent: Context, uid: number, state: string | undefined) {
         return await this.userState.zipUpdatesInBatchesAfterModern(parent, uid, state);
-    }
-
-    //
-    // Counters
-    //
-    async fetchUserGlobalCounter(parent: Context, uid: number) {
-        if (!USE_NEW_COUNTERS) {
-            return await this.userState.fetchUserGlobalCounter(parent, uid);
-        } else {
-            let settings = await Modules.Users.getUserSettings(parent, uid);
-            let counterType = settings.globalCounterType || 'unread_chats_no_muted';
-
-            if (counterType === 'unread_messages') {
-                return this.messaging.fastCounters.fetchUserGlobalCounter(parent, uid, false, false);
-            } else if (counterType === 'unread_chats') {
-                return this.messaging.fastCounters.fetchUserGlobalCounter(parent, uid, true, false);
-            } else if (counterType === 'unread_messages_no_muted') {
-                return this.messaging.fastCounters.fetchUserGlobalCounter(parent, uid, false, true);
-            } else if (counterType === 'unread_chats_no_muted') {
-                return this.messaging.fastCounters.fetchUserGlobalCounter(parent, uid, true, true);
-            }
-            return this.messaging.fastCounters.fetchUserGlobalCounter(parent, uid, true, true);
-        }
-    }
-
-    async fetchUserUnreadMessagesCount(parent: Context, uid: number) {
-        if (USE_NEW_COUNTERS) {
-            return await this.messaging.fastCounters.fetchUserGlobalCounter(parent, uid, false, false);
-        } else {
-            return await Store.UserCounter.get(parent, uid);
-        }
-    }
-
-    async fetchUserCounters(parent: Context, uid: number) {
-        return this.messaging.fastCounters.fetchUserCounters(parent, uid);
-    }
-
-    async fetchUserCountersForChats(ctx: Context, uid: number, cids: number[], includeAllMention: boolean = true) {
-        return this.messaging.fastCounters.fetchUserCountersForChats(ctx, uid, cids, includeAllMention);
-    }
-
-    /**
-     * Fetches all counters & caches, call this only if you fetch global counter in same tx
-     * or if you call this for several chats in same tx
-     */
-    async fetchUserUnreadInChat(ctx: Context, uid: number, cid: number) {
-        if (!USE_NEW_COUNTERS) {
-            return await Store.UserDialogCounter.get(ctx, uid, cid);
-        }
-        let counters = await this.messaging.fastCounters.fetchUserCounters(ctx, uid);
-
-        let chatUnread = counters.find(c => c.cid === cid);
-        if (!chatUnread) {
-            return 0;
-        }
-        return chatUnread.unreadCounter;
-    }
-
-    /**
-     * Fetches all counters & caches, call this only if you fetch global counter in same tx
-     * or if you call this for several chats in same tx
-     */
-    async fetchUserMentionedInChat(ctx: Context, uid: number, cid: number) {
-        if (!USE_NEW_COUNTERS) {
-            return await Store.UserDialogHaveMention.get(ctx, uid, cid);
-        }
-        let counters = await this.messaging.fastCounters.fetchUserCounters(ctx, uid);
-        let chatUnread = counters.find(c => c.cid === cid);
-        if (!chatUnread) {
-            return false;
-        }
-        return chatUnread.haveMention;
     }
 
     //

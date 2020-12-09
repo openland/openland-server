@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '994004d6e66dd02be72fad5ff3ca8813';
+export const GQL_SPEC_VERSION = 'f66257fb43a101a8168829d19440aece';
 
 export namespace GQL {
     export interface CreditCard {
@@ -2134,14 +2134,11 @@ export namespace GQL {
         debugFreeUnusedShortnames: boolean;
         debugFreeShortname: boolean;
         debugRemoveKickedUsersFromOrgChats: boolean;
-        debugMigrateToNewCounters: boolean;
         debugMigrateToNewLastRead: boolean;
         debugFixReadSeqs: boolean;
         debugExportUsers: boolean;
         debugMigrateUserStatus: boolean;
-        debugMigrateToExperimentalCounters: boolean;
-        debugFixCompactMessages: boolean;
-        debugMigrateToNewerCounters: boolean;
+        debugFixMessages: boolean;
         debugUserAuth: boolean;
         debugCreateOrganizationMailing: boolean;
         debugPaymentCancel: boolean;
@@ -2574,14 +2571,11 @@ export namespace GQL {
         shortname: string;
     }
     export interface MutationDebugRemoveKickedUsersFromOrgChatsArgs { }
-    export interface MutationDebugMigrateToNewCountersArgs { }
     export interface MutationDebugMigrateToNewLastReadArgs { }
     export interface MutationDebugFixReadSeqsArgs { }
     export interface MutationDebugExportUsersArgs { }
     export interface MutationDebugMigrateUserStatusArgs { }
-    export interface MutationDebugMigrateToExperimentalCountersArgs { }
-    export interface MutationDebugFixCompactMessagesArgs { }
-    export interface MutationDebugMigrateToNewerCountersArgs { }
+    export interface MutationDebugFixMessagesArgs { }
     export interface MutationDebugUserAuthArgs {
         id: string;
     }
@@ -8617,14 +8611,11 @@ export interface GQLResolver {
             debugFreeUnusedShortnames: GQL.MutationDebugFreeUnusedShortnamesArgs,
             debugFreeShortname: GQL.MutationDebugFreeShortnameArgs,
             debugRemoveKickedUsersFromOrgChats: GQL.MutationDebugRemoveKickedUsersFromOrgChatsArgs,
-            debugMigrateToNewCounters: GQL.MutationDebugMigrateToNewCountersArgs,
             debugMigrateToNewLastRead: GQL.MutationDebugMigrateToNewLastReadArgs,
             debugFixReadSeqs: GQL.MutationDebugFixReadSeqsArgs,
             debugExportUsers: GQL.MutationDebugExportUsersArgs,
             debugMigrateUserStatus: GQL.MutationDebugMigrateUserStatusArgs,
-            debugMigrateToExperimentalCounters: GQL.MutationDebugMigrateToExperimentalCountersArgs,
-            debugFixCompactMessages: GQL.MutationDebugFixCompactMessagesArgs,
-            debugMigrateToNewerCounters: GQL.MutationDebugMigrateToNewerCountersArgs,
+            debugFixMessages: GQL.MutationDebugFixMessagesArgs,
             debugUserAuth: GQL.MutationDebugUserAuthArgs,
             debugCreateOrganizationMailing: GQL.MutationDebugCreateOrganizationMailingArgs,
             debugPaymentCancel: GQL.MutationDebugPaymentCancelArgs,

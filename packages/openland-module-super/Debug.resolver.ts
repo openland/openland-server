@@ -38,11 +38,8 @@ import { container } from '../openland-modules/Modules.container';
 import { batch } from '../openland-utils/batch';
 import { UserError } from '../openland-errors/UserError';
 import { UserGroupsRepository } from '../openland-module-messaging/repositories/UserGroupsRepository';
-import { FastCountersRepository } from '../openland-module-messaging/repositories/FastCountersRepository';
 import { MessageAttachmentFileInput, MessageSpan } from '../openland-module-messaging/MessageInput';
-import { ExperimentalCountersRepository } from '../openland-module-messaging/repositories/ExperimentalCountersRepository';
 import { UserReadSeqsDirectory } from '../openland-module-messaging/repositories/UserReadSeqsDirectory';
-import { AsyncCountersRepository } from '../openland-module-messaging/repositories/AsyncCountersRepository';
 import fetch from 'node-fetch';
 import { CacheRepository } from '../openland-module-cache/CacheRepository';
 
@@ -1597,7 +1594,8 @@ export const Resolver: GQLResolver = {
                 let dialog = await Modules.Messaging.room.resolvePrivateChat(ctx, parent.auth.uid!, IDs.User.parse(args.uid));
                 await Modules.Messaging.sendMessage(ctx, dialog.id, parent.auth.uid!, {
                     message: args.message,
-                    hiddenForUids: [IDs.User.parse(args.uid)]
+                    visibleOnlyForUids: [ctx.auth.uid!]
+                    // hiddenForUids: [IDs.User.parse(args.uid)]
                 });
                 return true;
             });
@@ -2028,183 +2026,183 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
-        debugMigrateToNewCounters: withPermission('super-admin', async (parent, args) => {
-            debugSubspaceIterator<MessageShape>(Store.Message.descriptor.subspace, parent.auth.uid!, 'debugMigrateToNewCounters', async (next, log) => {
-                let fastCounters = new FastCountersRepository();
-                let res: { key: TupleItem[], value: MessageShape }[] = [];
-                let total = 0;
-
-                const handleMessage = async (ctx: Context, id: number) => {
-                    let message = await Store.Message.findById(ctx, id);
-                    if (!message) {
-                        return;
-                    }
-                    let cid = message.cid;
-                    let seq = message.seq!;
-
-                    if (message.deleted) {
-                        await fastCounters.deletedSeqs.add(ctx, [cid], seq);
-                    }
-                    if (message.spans?.find(s => s.type === 'all_mention')) {
-                        await fastCounters.allMentions.add(ctx, [cid], seq);
-                    }
-
-                    let userMentions = message.spans?.filter(s => s.type === 'user_mention');
-                    if (userMentions && userMentions.length > 0) {
-                        await Promise.all(userMentions.map(async m => {
-                            if (m.type === 'user_mention') {
-                                await fastCounters.userMentions.add(ctx, [m.user, cid], seq);
-                            }
-                        }));
-                    }
-
-                    if (message.hiddenForUids) {
-                        await Promise.all(message.hiddenForUids.map(u => fastCounters.hiddenMessages.add(ctx, [u, cid], seq)));
-                    }
-                };
-
-                do {
-                    res = await next(parent, 99);
-                    total += res.length;
-
-                    try {
-                        await inTx(parent, async ctx => {
-                            await Promise.all(res.map(msg => handleMessage(ctx, msg.value.id)));
-                        });
-                        if (total % 9900 === 0) {
-                            await log('done: ' + total);
-                        }
-                    } catch (e) {
-                        await log('error: ' + e);
-                    }
-                } while (res.length > 0);
-
-                return 'done, total: ' + total;
-            });
-            return true;
-        }),
-        debugMigrateToExperimentalCounters: withPermission('super-admin', async (parent, args) => {
-            debugSubspaceIterator<MessageShape>(Store.Message.descriptor.subspace, parent.auth.uid!, 'debugMigrateToNewCounters', async (next, log) => {
-                let experimentalCounters = new ExperimentalCountersRepository();
-                let res: { key: TupleItem[], value: MessageShape }[] = [];
-                let total = 0;
-
-                function fetchMessageMentions(message: Message) {
-                    let mentions: number[] = [];
-                    for (let span of message.spans || []) {
-                        if (span.type === 'user_mention') {
-                            mentions.push(span.user);
-                        } else if (span.type === 'all_mention') {
-                            mentions.push(0);
-                        }
-                    }
-                    return mentions;
-                }
-
-                const handleMessage = async (ctx: Context, id: number) => {
-                    let message = await Store.Message.findById(ctx, id);
-                    if (!message) {
-                        return;
-                    }
-                    let cid = message.cid;
-                    let seq = message.seq!;
-
-                    if (message.deleted) {
-                        return;
-                    }
-
-                    await experimentalCounters.messages.add(ctx, cid, {
-                        seq,
-                        uid: message.uid,
-                        mentions: fetchMessageMentions(message),
-                        hiddenFor: message.hiddenForUids || []
-                    });
-                };
-
-                do {
-                    res = await next(parent, 99);
-                    total += res.length;
-
-                    try {
-                        await inTx(parent, async ctx => {
-                            await Promise.all(res.map(msg => handleMessage(ctx, msg.value.id)));
-                        });
-                        if (total % 9900 === 0) {
-                            await log('done: ' + total);
-                        }
-                    } catch (e) {
-                        await log('error: ' + e);
-                    }
-                } while (res.length > 0);
-
-                return 'done, total: ' + total;
-            });
-            return true;
-        }),
-        debugMigrateToNewerCounters: withPermission('super-admin', async (parent, args) => {
-            debugSubspaceIterator<MessageShape>(Store.Message.descriptor.subspace, parent.auth.uid!, 'debugMigrateToNewCounters', async (next, log) => {
-                let newCounters = new AsyncCountersRepository();
-                let res: { key: TupleItem[], value: MessageShape }[] = [];
-                let total = 0;
-
-                function fetchMessageMentions(message: Message) {
-                    let mentions: number[] = [];
-                    for (let span of message.spans || []) {
-                        if (span.type === 'user_mention') {
-                            mentions.push(span.user);
-                        } else if (span.type === 'all_mention') {
-                            mentions.push(0);
-                        }
-                    }
-                    return mentions;
-                }
-
-                const handleMessage = async (ctx: Context, id: number) => {
-                    let message = await Store.Message.findById(ctx, id);
-                    if (!message) {
-                        return;
-                    }
-                    let cid = message.cid;
-                    let seq = message.seq!;
-
-                    let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
-                    if (seq > chatLastSeq) {
-                        return;
-                    }
-
-                    if (message.deleted) {
-                        await newCounters.messages.onMessageDelete(ctx, cid, seq);
-                    } else {
-                        await newCounters.messages.onNewMessage(ctx, cid, {
-                            seq,
-                            uid: message.uid,
-                            mentions: fetchMessageMentions(message),
-                            hiddenFor: message.hiddenForUids || [],
-                            deleted: false,
-                        });
-                    }
-                };
-
-                do {
-                    res = await next(parent, 99);
-                    total += res.length;
-
-                    try {
-                        await inTx(parent, async ctx => {
-                            await Promise.all(res.map(msg => handleMessage(ctx, msg.value.id)));
-                        });
-                        if (total % 9900 === 0) {
-                            await log('done: ' + total);
-                        }
-                    } catch (e) {
-                        await log('error: ' + e);
-                    }
-                } while (res.length > 0);
-
-                return 'done, total: ' + total;
-            });
-            return true;
-        }),
+        // debugMigrateToNewCounters: withPermission('super-admin', async (parent, args) => {
+        //     debugSubspaceIterator<MessageShape>(Store.Message.descriptor.subspace, parent.auth.uid!, 'debugMigrateToNewCounters', async (next, log) => {
+        //         let fastCounters = new FastCountersRepository();
+        //         let res: { key: TupleItem[], value: MessageShape }[] = [];
+        //         let total = 0;
+        //
+        //         const handleMessage = async (ctx: Context, id: number) => {
+        //             let message = await Store.Message.findById(ctx, id);
+        //             if (!message) {
+        //                 return;
+        //             }
+        //             let cid = message.cid;
+        //             let seq = message.seq!;
+        //
+        //             if (message.deleted) {
+        //                 await fastCounters.deletedSeqs.add(ctx, [cid], seq);
+        //             }
+        //             if (message.spans?.find(s => s.type === 'all_mention')) {
+        //                 await fastCounters.allMentions.add(ctx, [cid], seq);
+        //             }
+        //
+        //             let userMentions = message.spans?.filter(s => s.type === 'user_mention');
+        //             if (userMentions && userMentions.length > 0) {
+        //                 await Promise.all(userMentions.map(async m => {
+        //                     if (m.type === 'user_mention') {
+        //                         await fastCounters.userMentions.add(ctx, [m.user, cid], seq);
+        //                     }
+        //                 }));
+        //             }
+        //
+        //             if (message.hiddenForUids) {
+        //                 await Promise.all(message.hiddenForUids.map(u => fastCounters.hiddenMessages.add(ctx, [u, cid], seq)));
+        //             }
+        //         };
+        //
+        //         do {
+        //             res = await next(parent, 99);
+        //             total += res.length;
+        //
+        //             try {
+        //                 await inTx(parent, async ctx => {
+        //                     await Promise.all(res.map(msg => handleMessage(ctx, msg.value.id)));
+        //                 });
+        //                 if (total % 9900 === 0) {
+        //                     await log('done: ' + total);
+        //                 }
+        //             } catch (e) {
+        //                 await log('error: ' + e);
+        //             }
+        //         } while (res.length > 0);
+        //
+        //         return 'done, total: ' + total;
+        //     });
+        //     return true;
+        // }),
+        // debugMigrateToExperimentalCounters: withPermission('super-admin', async (parent, args) => {
+        //     debugSubspaceIterator<MessageShape>(Store.Message.descriptor.subspace, parent.auth.uid!, 'debugMigrateToNewCounters', async (next, log) => {
+        //         let experimentalCounters = new ExperimentalCountersRepository();
+        //         let res: { key: TupleItem[], value: MessageShape }[] = [];
+        //         let total = 0;
+        //
+        //         function fetchMessageMentions(message: Message) {
+        //             let mentions: number[] = [];
+        //             for (let span of message.spans || []) {
+        //                 if (span.type === 'user_mention') {
+        //                     mentions.push(span.user);
+        //                 } else if (span.type === 'all_mention') {
+        //                     mentions.push(0);
+        //                 }
+        //             }
+        //             return mentions;
+        //         }
+        //
+        //         const handleMessage = async (ctx: Context, id: number) => {
+        //             let message = await Store.Message.findById(ctx, id);
+        //             if (!message) {
+        //                 return;
+        //             }
+        //             let cid = message.cid;
+        //             let seq = message.seq!;
+        //
+        //             if (message.deleted) {
+        //                 return;
+        //             }
+        //
+        //             await experimentalCounters.messages.add(ctx, cid, {
+        //                 seq,
+        //                 uid: message.uid,
+        //                 mentions: fetchMessageMentions(message),
+        //                 hiddenFor: message.hiddenForUids || []
+        //             });
+        //         };
+        //
+        //         do {
+        //             res = await next(parent, 99);
+        //             total += res.length;
+        //
+        //             try {
+        //                 await inTx(parent, async ctx => {
+        //                     await Promise.all(res.map(msg => handleMessage(ctx, msg.value.id)));
+        //                 });
+        //                 if (total % 9900 === 0) {
+        //                     await log('done: ' + total);
+        //                 }
+        //             } catch (e) {
+        //                 await log('error: ' + e);
+        //             }
+        //         } while (res.length > 0);
+        //
+        //         return 'done, total: ' + total;
+        //     });
+        //     return true;
+        // }),
+        // debugMigrateToNewerCounters: withPermission('super-admin', async (parent, args) => {
+        //     debugSubspaceIterator<MessageShape>(Store.Message.descriptor.subspace, parent.auth.uid!, 'debugMigrateToNewCounters', async (next, log) => {
+        //         let newCounters = new AsyncCountersRepository();
+        //         let res: { key: TupleItem[], value: MessageShape }[] = [];
+        //         let total = 0;
+        //
+        //         function fetchMessageMentions(message: Message) {
+        //             let mentions: number[] = [];
+        //             for (let span of message.spans || []) {
+        //                 if (span.type === 'user_mention') {
+        //                     mentions.push(span.user);
+        //                 } else if (span.type === 'all_mention') {
+        //                     mentions.push(0);
+        //                 }
+        //             }
+        //             return mentions;
+        //         }
+        //
+        //         const handleMessage = async (ctx: Context, id: number) => {
+        //             let message = await Store.Message.findById(ctx, id);
+        //             if (!message) {
+        //                 return;
+        //             }
+        //             let cid = message.cid;
+        //             let seq = message.seq!;
+        //
+        //             let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
+        //             if (seq > chatLastSeq) {
+        //                 return;
+        //             }
+        //
+        //             if (message.deleted) {
+        //                 await newCounters.messages.onMessageDelete(ctx, cid, seq);
+        //             } else {
+        //                 await newCounters.messages.onNewMessage(ctx, cid, {
+        //                     seq,
+        //                     uid: message.uid,
+        //                     mentions: fetchMessageMentions(message),
+        //                     hiddenFor: message.hiddenForUids || [],
+        //                     deleted: false,
+        //                 });
+        //             }
+        //         };
+        //
+        //         do {
+        //             res = await next(parent, 99);
+        //             total += res.length;
+        //
+        //             try {
+        //                 await inTx(parent, async ctx => {
+        //                     await Promise.all(res.map(msg => handleMessage(ctx, msg.value.id)));
+        //                 });
+        //                 if (total % 9900 === 0) {
+        //                     await log('done: ' + total);
+        //                 }
+        //             } catch (e) {
+        //                 await log('error: ' + e);
+        //             }
+        //         } while (res.length > 0);
+        //
+        //         return 'done, total: ' + total;
+        //     });
+        //     return true;
+        // }),
         debugMigrateToNewLastRead: withPermission('super-admin', async (parent, args) => {
             let userReadSeqsDirectory = new UserReadSeqsDirectory();
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugMigrateToNewLastRead', async (ctx, uid, log) => {
@@ -2309,28 +2307,38 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
-        debugFixCompactMessages: withPermission('super-admin', async (parent, args) => {
+        debugFixMessages: withPermission('super-admin', async (parent, args) => {
             debugSubspaceIterator<MessageShape>(Store.Message.descriptor.subspace, parent.auth.uid!, 'debugFixCompactMessages', async (next, log) => {
-                let experimentalCounters = new ExperimentalCountersRepository();
                 let res: { key: TupleItem[], value: MessageShape }[] = [];
                 let total = 0;
 
                 const handleMessage = async (ctx: Context, id: number) => {
                     let message = await Store.Message.findById(ctx, id);
-                    if (!message) {
+                    if (
+                        !message ||
+                        !message.isService ||
+                        !message.hiddenForUids
+                    ) {
                         return;
                     }
-                    let cid = message.cid;
-                    let seq = message.seq!;
-
-                    if (message.deleted) {
+                    let hiddenForUid = message.hiddenForUids[0];
+                    if (!hiddenForUid) {
                         return;
                     }
 
-                    let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
-                    if (seq > chatLastSeq) {
-                        await experimentalCounters.messages.remove(ctx, cid, seq);
+                    let privateChat = await Store.ConversationPrivate.findById(ctx, message.cid);
+                    if (!privateChat) {
+                        return;
                     }
+
+                    let visibleOnlyFor: number;
+
+                    if (hiddenForUid === privateChat.uid1) {
+                        visibleOnlyFor = privateChat.uid2;
+                    } else {
+                        visibleOnlyFor = privateChat.uid1;
+                    }
+                    message.visibleOnlyForUids = [visibleOnlyFor];
                 };
 
                 do {

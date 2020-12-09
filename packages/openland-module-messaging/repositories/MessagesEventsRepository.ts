@@ -6,27 +6,27 @@ import { injectable } from 'inversify';
 @injectable()
 export class MessagesEventsRepository {
 
-    postMessageReceived(ctx: Context, cid: number, mid: number, hiddenForUids: number[]) {
+    postMessageReceived(ctx: Context, cid: number, mid: number, visibleOnlyForUids: number[]) {
         Store.ConversationEventStore.post(ctx, cid, MessageReceivedEvent.create({
             cid,
             mid,
-            hiddenForUids
+            visibleOnlyForUids
         }));
     }
 
-    postMessageUpdated(ctx: Context, cid: number, mid: number, hiddenForUids: number[]) {
+    postMessageUpdated(ctx: Context, cid: number, mid: number, visibleOnlyForUids: number[]) {
         Store.ConversationEventStore.post(ctx, cid, MessageUpdatedEvent.create({
             cid,
             mid,
-            hiddenForUids
+            visibleOnlyForUids
         }));
     }
 
-    postMessageDeleted(ctx: Context, cid: number, mid: number, hiddenForUids: number[]) {
+    postMessageDeleted(ctx: Context, cid: number, mid: number, visibleOnlyForUids: number[]) {
         Store.ConversationEventStore.post(ctx, cid, MessageDeletedEvent.create({
             cid,
             mid,
-            hiddenForUids
+            visibleOnlyForUids
         }));
     }
 }

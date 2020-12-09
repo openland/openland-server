@@ -20,17 +20,9 @@ import { MentionNotificationsMediator } from './mediators/MentionNotificationsMe
 import { PremiumChatMediator } from './mediators/PremiumChatMediator';
 import { PremiumChatRepository } from './repositories/PremiumChatRepository';
 import { DonationsMediator } from './mediators/DonationsMediator';
-import { FastCountersRepository } from './repositories/FastCountersRepository';
-import { FastCountersMediator } from './mediators/FastCountersMediator';
 import { PrecalculatedCounterProvider } from './counters/PrecalculatedCounterProvider';
-import { OnReadCounterProvider } from './counters/OnReadCounterProvider';
-import { ExperimentalCountersRepository } from './repositories/ExperimentalCountersRepository';
-import { ExperimentalCountersProvider } from './counters/ExperimentalCountersProvider';
 import { UserReadSeqsDirectory } from './repositories/UserReadSeqsDirectory';
-import { AsyncCountersRepository } from './repositories/AsyncCountersRepository';
 import { ChatsMembersListDirectory } from './repositories/ChatsMembersListDirectory';
-import { SyncCountersRepository } from './repositories/SyncCountersRepository';
-import { HybridCountersRepository } from './repositories/HybridCountersRepository';
 
 export function loadMessagingModule() {
     container.bind(MessagingModule).toSelf().inSingletonScope();
@@ -52,16 +44,8 @@ export function loadMessagingModule() {
     container.bind('UserDialogsRepository').to(UserDialogsRepository).inSingletonScope();
     container.bind('MentionNotificationsMediator').to(MentionNotificationsMediator).inSingletonScope();
     container.bind('DonationsMediator').to(DonationsMediator).inSingletonScope();
-    container.bind('FastCountersRepository').to(FastCountersRepository).inSingletonScope();
-    container.bind('FastCountersMediator').to(FastCountersMediator).inSingletonScope();
     container.bind('PrecalculatedCounterProvider').to(PrecalculatedCounterProvider).inSingletonScope();
-    container.bind('OnReadCounterProvider').to(OnReadCounterProvider).inSingletonScope();
-    container.bind('ExperimentalCountersRepository').to(ExperimentalCountersRepository).inSingletonScope();
-    container.bind('ExperimentalCountersProvider').to(ExperimentalCountersProvider).inSingletonScope();
     container.bind('UserReadSeqsDirectory').to(UserReadSeqsDirectory).inSingletonScope();
-    container.bind('AsyncCountersRepository').to(AsyncCountersRepository).inSingletonScope();
-    container.bind('SyncCountersRepository').to(SyncCountersRepository).inSingletonScope();
-    container.bind('HybridCountersRepository').to(HybridCountersRepository).inSingletonScope();
     container.bind('ChatsMembersListDirectory').to(ChatsMembersListDirectory).inSingletonScope();
     container.bind('MessagesEventsRepository').to(MessagesEventsRepository).inSingletonScope();
     container.bind('MessagingEventsMediator').to(EventsMediator).inSingletonScope();
