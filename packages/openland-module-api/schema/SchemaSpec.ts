@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'f66257fb43a101a8168829d19440aece';
+export const GQL_SPEC_VERSION = 'e5ac24729f9e51eb9773ae629f367004';
 
 export namespace GQL {
     export interface CreditCard {
@@ -4050,6 +4050,7 @@ export namespace GQL {
         me: Nullable<User>;
         user: User;
         mySuccessfulInvitesCount: number;
+        shouldAskForAppReview: boolean;
         superBadgeInRoom: Nullable<UserBadge>;
         badgeInRoom: Nullable<UserBadge>;
         userSearch: UserConnection;
@@ -4447,6 +4448,7 @@ export namespace GQL {
         id: string;
     }
     export interface QueryMySuccessfulInvitesCountArgs { }
+    export interface QueryShouldAskForAppReviewArgs { }
     export interface QuerySuperBadgeInRoomArgs {
         roomId: string;
         userId: string;
@@ -9699,6 +9701,7 @@ export interface GQLResolver {
             me: GQL.QueryMeArgs,
             user: GQL.QueryUserArgs,
             mySuccessfulInvitesCount: GQL.QueryMySuccessfulInvitesCountArgs,
+            shouldAskForAppReview: GQL.QueryShouldAskForAppReviewArgs,
             superBadgeInRoom: GQL.QuerySuperBadgeInRoomArgs,
             badgeInRoom: GQL.QueryBadgeInRoomArgs,
             userSearch: GQL.QueryUserSearchArgs,

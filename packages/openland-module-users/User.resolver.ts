@@ -246,6 +246,18 @@ export const Resolver: GQLResolver = {
         }),
         mySuccessfulInvitesCount: withUserResolver(async (ctx, args, uid) => {
             return Store.UserSuccessfulInvitesCounter.get(ctx, uid);
+        }),
+        shouldAskForAppReview: withUserResolver(async (ctx, args, uid) => {
+            let user = await Store.User.findById(ctx, uid);
+            if (!user) {
+                return false;
+            }
+            // true for users joined before 1st November of 2020
+            if (user.metadata.createdAt < 1604188800000) {
+                return true;
+            }
+
+            return false;
         })
     },
     Mutation: {

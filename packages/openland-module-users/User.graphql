@@ -45,6 +45,7 @@ extend type Query {
     me: User
     user(id: ID!): User!
     mySuccessfulInvitesCount: Int!
+    shouldAskForAppReview: Boolean!
 }
 
 extend type Mutation {
