@@ -14,12 +14,12 @@ describe('HybridCountersRepository', () => {
     it('should count items', async () => {
 
         await inTx(root, async (ctx) => {
-            await repo.addOrUpdateMessage(ctx, [1], 1, { mentions: [], allMention: false, sender: 1 });
-            await repo.addOrUpdateMessage(ctx, [1], 2, { mentions: [], allMention: true, sender: 1 });
-            await repo.addOrUpdateMessage(ctx, [1], 3, { mentions: [], allMention: false, sender: 1 });
-            await repo.addOrUpdateMessage(ctx, [1], 4, { mentions: [2], allMention: true, sender: 1 });
-            await repo.addOrUpdateMessage(ctx, [1], 5, { mentions: [2], allMention: false, sender: 1 });
-            await repo.addOrUpdateMessage(ctx, [1], 6, { mentions: [], allMention: false, sender: 1 });
+            await repo.addOrUpdateMessage(ctx, [1], 1, { mentions: [], allMention: false, sender: 1, visibleOnlyTo: [] });
+            await repo.addOrUpdateMessage(ctx, [1], 2, { mentions: [], allMention: true, sender: 1, visibleOnlyTo: [] });
+            await repo.addOrUpdateMessage(ctx, [1], 3, { mentions: [], allMention: false, sender: 1, visibleOnlyTo: [] });
+            await repo.addOrUpdateMessage(ctx, [1], 4, { mentions: [2], allMention: true, sender: 1, visibleOnlyTo: [] });
+            await repo.addOrUpdateMessage(ctx, [1], 5, { mentions: [2], allMention: false, sender: 1, visibleOnlyTo: [] });
+            await repo.addOrUpdateMessage(ctx, [1], 6, { mentions: [], allMention: false, sender: 1, visibleOnlyTo: [] });
         });
 
         await inTx(root, async (ctx) => {
@@ -37,10 +37,14 @@ describe('HybridCountersRepository', () => {
         });
 
         await inTx(root, async (ctx) => {
-            await repo.addOrUpdateMessage(ctx, [1], 6, { mentions: [], allMention: true, sender: 1 });
+            await repo.addOrUpdateMessage(ctx, [1], 6, { mentions: [], allMention: true, sender: 1, visibleOnlyTo: [] });
             let counted = await repo.count(ctx, [1], 2, 3);
             expect(counted.unread).toBe(3);
             expect(counted.unreadMentions).toBe(3);
+            await repo.addOrUpdateMessage(ctx, [1], 6, { mentions: [], allMention: false, sender: 1, visibleOnlyTo: [] });
+            counted = await repo.count(ctx, [1], 2, 3);
+            expect(counted.unread).toBe(3);
+            expect(counted.unreadMentions).toBe(2);
         });
 
         await inTx(root, async (ctx) => {

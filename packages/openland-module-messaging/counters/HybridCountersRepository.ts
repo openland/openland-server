@@ -13,6 +13,18 @@ const COLLECTION_ALL_MENTION = 1;
 const COLLECTION_MENTION = 2;
 const COLLECTION_USER_TOTAL = 3;
 const COLLECTION_USER_ALL_MENTION = 4;
+const COLLECTION_PERSONAL_TOTAL = 5;
+
+function filterDuplicates(src: number[]): number[] {
+    let res: number[] = [];
+    for (let s of src) {
+        if (res.find((v) => v === s) !== undefined) {
+            continue;
+        }
+        res.push(s);
+    }
+    return res;
+}
 
 export class HybridCountersRepository {
     private readonly subspace: Subspace;
@@ -29,82 +41,101 @@ export class HybridCountersRepository {
         );
     }
 
-    async addOrUpdateMessage(ctx: Context, collection: TupleItem[], id: number, message: { mentions: number[], allMention: boolean, sender: number }) {
+    async addOrUpdateMessage(ctx: Context, collection: TupleItem[], id: number, message: { mentions: number[], allMention: boolean, sender: number, visibleOnlyTo: number[] }) {
 
+        //
         // Normalized input
+        //
+        // - Deduplicate visibleOnlyTo
+        // - Remove sender from mention
+        // - When allMentions -> mentions is empty
+        // - When personal -> allMentions is empty
+        //
         let sender = message.sender;
-        let allMention = message.allMention;
-        let mentions = message.allMention ? [] : message.mentions.filter((v) => v !== message.sender);
+        let allMention: boolean;
+        let mentions: number[];
+        let visibleOnlyTo: number[] = filterDuplicates(message.visibleOnlyTo);
+        if (visibleOnlyTo.length === 0) {
+            allMention = message.allMention;
+            mentions = message.allMention ? [] : message.mentions.filter((v) => v !== message.sender);
+        } else {
+            allMention = false;
+            mentions = [];
+            for (let u of message.visibleOnlyTo) {
+                if (u === message.sender) {
+                    continue;
+                }
+                if (allMention) {
+                    mentions.push(u);
+                } else if (message.mentions.find((v) => v === u) !== undefined) {
+                    mentions.push(u);
+                }
+            }
+        }
 
         // Update max known id
         await this.updateMaxId(ctx, collection, id);
 
-        // Resolve reference
+        // Remove existing
         let old = await this.refs.read(ctx, [...collection, id]);
+        if (old) {
+            await this.removeMessage(ctx, collection, id);
+        }
         this.refs.write(ctx, [...collection, id], new CountersMessageRef({
             sender,
             mentions,
-            allMention
+            allMention,
+            visibleOnlyTo
         }));
 
-        if (old) {
-            // NOTE: Not updating total counter
+        //
+        // Write global counters
+        //
 
-            // Update all mention counter
-            if (old.allMention !== allMention) {
-                if (allMention) {
-                    await this.counting.add(ctx, [...collection, COLLECTION_ALL_MENTION], id);
-                } else {
-                    await this.counting.remove(ctx, [...collection, COLLECTION_ALL_MENTION], id);
-                }
-            }
-
-            // Update personal mentions
-            // 1. Add missing mentions
-            for (let mention of mentions) {
-                if (!old.mentions.find((v) => v === mention)) {
-                    await this.counting.add(ctx, [...collection, COLLECTION_MENTION, mention], id);
-                }
-            }
-            // 2. Remove removed mentions
-            for (let mention of old.mentions) {
-                if (!mentions.find((v) => v === mention)) {
-                    await this.counting.remove(ctx, [...collection, COLLECTION_MENTION, mention], id);
-                }
-            }
-
-            // NOTE: Not updating own sent total counter
-
-            // Update sent all mention counter
-            if (old.allMention !== allMention) {
-                if (message.allMention) {
-                    await this.counting.add(ctx, [...collection, COLLECTION_USER_ALL_MENTION, message.sender], id);
-                } else {
-                    await this.counting.remove(ctx, [...collection, COLLECTION_USER_ALL_MENTION, message.sender], id);
-                }
-            }
-        } else {
-
-            // Write total counter
+        if (visibleOnlyTo.length === 0) {
             await this.counting.add(ctx, [...collection, COLLECTION_TOTAL], id);
+        }
 
-            // Write total all mention
-            if (allMention) {
-                await this.counting.add(ctx, [...collection, COLLECTION_ALL_MENTION], id);
+        //
+        // Write personal message counters
+        //
+
+        for (let u of visibleOnlyTo) {
+            if (u !== sender) {
+                await this.counting.add(ctx, [...collection, COLLECTION_PERSONAL_TOTAL, u], id);
             }
+        }
 
-            // Write personal mentions
-            for (let m of mentions) {
-                await this.counting.add(ctx, [...collection, COLLECTION_MENTION, m], id);
-            }
+        //
+        // Write total all mention
+        //
 
-            // Write own sent total counter
-            await this.counting.add(ctx, [...collection, COLLECTION_USER_TOTAL, message.sender], id);
+        if (allMention) {
+            await this.counting.add(ctx, [...collection, COLLECTION_ALL_MENTION], id);
+        }
 
-            // Write own sent all mentions
-            if (allMention) {
-                await this.counting.add(ctx, [...collection, COLLECTION_USER_ALL_MENTION, message.sender], id);
-            }
+        //
+        // Write personal mentions
+        //
+
+        for (let m of mentions) {
+            await this.counting.add(ctx, [...collection, COLLECTION_MENTION, m], id);
+        }
+
+        //
+        // Write own sent total counter
+        // 
+
+        if (visibleOnlyTo.length === 0) {
+            await this.counting.add(ctx, [...collection, COLLECTION_USER_TOTAL, sender], id);
+        }
+
+        //
+        // Write own sent all mentions
+        //
+
+        if (allMention) {
+            await this.counting.add(ctx, [...collection, COLLECTION_USER_ALL_MENTION, sender], id);
         }
     }
 
@@ -114,33 +145,75 @@ export class HybridCountersRepository {
 
         // Remove message from index
         let old = await this.refs.read(ctx, [...collection, id]);
-        if (old) {
-            this.refs.write(ctx, [...collection, id], null);
+        if (!old) {
+            return;
+        }
+        this.refs.write(ctx, [...collection, id], null);
+
+        //
+        // Remove global counter
+        // 
+
+        if (old.visibleOnlyTo.length === 0) {
             await this.counting.remove(ctx, [...collection, COLLECTION_TOTAL], id);
-            if (old.allMention) {
-                await this.counting.remove(ctx, [...collection, COLLECTION_ALL_MENTION], id);
+        }
+
+        //
+        // Remove personal message counters
+        //
+
+        for (let u of old.visibleOnlyTo) {
+            if (u !== old.sender) {
+                await this.counting.remove(ctx, [...collection, COLLECTION_PERSONAL_TOTAL, u], id);
             }
-            for (let m of old.mentions) {
-                await this.counting.remove(ctx, [...collection, COLLECTION_MENTION, m], id);
-            }
+        }
+
+        //
+        // Write total all mention
+        //
+
+        if (old.allMention) {
+            await this.counting.remove(ctx, [...collection, COLLECTION_ALL_MENTION], id);
+        }
+
+        //
+        // Write personal mentions
+        //
+
+        for (let m of old.mentions) {
+            await this.counting.remove(ctx, [...collection, COLLECTION_MENTION, m], id);
+        }
+
+        //
+        // Write own sent total counter
+        // 
+
+        if (old.visibleOnlyTo.length === 0) {
             await this.counting.remove(ctx, [...collection, COLLECTION_USER_TOTAL, old.sender], id);
-            if (old.allMention) {
-                await this.counting.remove(ctx, [...collection, COLLECTION_USER_ALL_MENTION, old.sender], id);
-            }
+        }
+
+        //
+        // Write own sent all mentions
+        //
+
+        if (old.allMention) {
+            await this.counting.remove(ctx, [...collection, COLLECTION_USER_ALL_MENTION, old.sender], id);
         }
     }
 
     async count(ctx: Context, collection: TupleItem[], uid: number, id: number) {
-        let totalUnread = await this.counting.count(ctx, [...collection, COLLECTION_TOTAL], id);
-        let totalAllMentions = await this.counting.count(ctx, [...collection, COLLECTION_ALL_MENTION], id);
-        let totalMentions = await this.counting.count(ctx, [...collection, COLLECTION_MENTION, uid], id);
+        let totalMessages = await this.counting.count(ctx, [...collection, COLLECTION_TOTAL], id);
+        let allMentions = await this.counting.count(ctx, [...collection, COLLECTION_ALL_MENTION], id);
 
-        let localSent = await this.counting.count(ctx, [...collection, COLLECTION_USER_TOTAL, uid], id);
-        let localAllMentions = await this.counting.count(ctx, [...collection, COLLECTION_USER_ALL_MENTION, uid], id);
+        let totalSent = await this.counting.count(ctx, [...collection, COLLECTION_USER_TOTAL, uid], id);
+        let sentAllMentions = await this.counting.count(ctx, [...collection, COLLECTION_USER_ALL_MENTION, uid], id);
+
+        let personalMentions = await this.counting.count(ctx, [...collection, COLLECTION_MENTION, uid], id);
+        let personalMessages = await this.counting.count(ctx, [...collection, COLLECTION_PERSONAL_TOTAL, uid], id);
 
         return {
-            unreadMentions: totalAllMentions + totalMentions - localAllMentions,
-            unread: totalUnread - localSent
+            unreadMentions: allMentions - sentAllMentions + personalMentions,
+            unread: totalMessages - totalSent + personalMessages
         };
     }
 

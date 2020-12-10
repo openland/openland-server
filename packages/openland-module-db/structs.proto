@@ -24,6 +24,7 @@ message CountersMessageRef {
     required int32 sender = 0;
     repeated int32 mentions = 1;
     required bool allMention = 2;
+    repeated int32 visibleOnlyTo = 3;
 }
 
 enum TreeNodeType {

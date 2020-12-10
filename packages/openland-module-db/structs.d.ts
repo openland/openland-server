@@ -328,6 +328,9 @@ export interface ICountersMessageRef {
 
     /** CountersMessageRef allMention */
     allMention: boolean;
+
+    /** CountersMessageRef visibleOnlyTo */
+    visibleOnlyTo?: (number[]|null);
 }
 
 /** Represents a CountersMessageRef. */
@@ -347,6 +350,9 @@ export class CountersMessageRef implements ICountersMessageRef {
 
     /** CountersMessageRef allMention. */
     public allMention: boolean;
+
+    /** CountersMessageRef visibleOnlyTo. */
+    public visibleOnlyTo: number[];
 
     /**
      * Creates a new CountersMessageRef instance using the specified properties.

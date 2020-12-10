@@ -818,6 +818,7 @@ $root.CountersMessageRef = (function() {
      * @property {number} sender CountersMessageRef sender
      * @property {Array.<number>|null} [mentions] CountersMessageRef mentions
      * @property {boolean} allMention CountersMessageRef allMention
+     * @property {Array.<number>|null} [visibleOnlyTo] CountersMessageRef visibleOnlyTo
      */
 
     /**
@@ -830,6 +831,7 @@ $root.CountersMessageRef = (function() {
      */
     function CountersMessageRef(properties) {
         this.mentions = [];
+        this.visibleOnlyTo = [];
         if (properties)
             for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                 if (properties[keys[i]] != null)
@@ -859,6 +861,14 @@ $root.CountersMessageRef = (function() {
      * @instance
      */
     CountersMessageRef.prototype.allMention = false;
+
+    /**
+     * CountersMessageRef visibleOnlyTo.
+     * @member {Array.<number>} visibleOnlyTo
+     * @memberof CountersMessageRef
+     * @instance
+     */
+    CountersMessageRef.prototype.visibleOnlyTo = $util.emptyArray;
 
     /**
      * Creates a new CountersMessageRef instance using the specified properties.
@@ -892,6 +902,12 @@ $root.CountersMessageRef = (function() {
             writer.ldelim();
         }
         writer.uint32(/* id 2, wireType 0 =*/16).bool(message.allMention);
+        if (message.visibleOnlyTo != null && message.visibleOnlyTo.length) {
+            writer.uint32(/* id 3, wireType 2 =*/26).fork();
+            for (var i = 0; i < message.visibleOnlyTo.length; ++i)
+                writer.int32(message.visibleOnlyTo[i]);
+            writer.ldelim();
+        }
         return writer;
     };
 
@@ -941,6 +957,16 @@ $root.CountersMessageRef = (function() {
                 break;
             case 2:
                 message.allMention = reader.bool();
+                break;
+            case 3:
+                if (!(message.visibleOnlyTo && message.visibleOnlyTo.length))
+                    message.visibleOnlyTo = [];
+                if ((tag & 7) === 2) {
+                    var end2 = reader.uint32() + reader.pos;
+                    while (reader.pos < end2)
+                        message.visibleOnlyTo.push(reader.int32());
+                } else
+                    message.visibleOnlyTo.push(reader.int32());
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -992,6 +1018,13 @@ $root.CountersMessageRef = (function() {
         }
         if (typeof message.allMention !== "boolean")
             return "allMention: boolean expected";
+        if (message.visibleOnlyTo != null && message.hasOwnProperty("visibleOnlyTo")) {
+            if (!Array.isArray(message.visibleOnlyTo))
+                return "visibleOnlyTo: array expected";
+            for (var i = 0; i < message.visibleOnlyTo.length; ++i)
+                if (!$util.isInteger(message.visibleOnlyTo[i]))
+                    return "visibleOnlyTo: integer[] expected";
+        }
         return null;
     };
 
@@ -1018,6 +1051,13 @@ $root.CountersMessageRef = (function() {
         }
         if (object.allMention != null)
             message.allMention = Boolean(object.allMention);
+        if (object.visibleOnlyTo) {
+            if (!Array.isArray(object.visibleOnlyTo))
+                throw TypeError(".CountersMessageRef.visibleOnlyTo: array expected");
+            message.visibleOnlyTo = [];
+            for (var i = 0; i < object.visibleOnlyTo.length; ++i)
+                message.visibleOnlyTo[i] = object.visibleOnlyTo[i] | 0;
+        }
         return message;
     };
 
@@ -1034,8 +1074,10 @@ $root.CountersMessageRef = (function() {
         if (!options)
             options = {};
         var object = {};
-        if (options.arrays || options.defaults)
+        if (options.arrays || options.defaults) {
             object.mentions = [];
+            object.visibleOnlyTo = [];
+        }
         if (options.defaults) {
             object.sender = 0;
             object.allMention = false;
@@ -1049,6 +1091,11 @@ $root.CountersMessageRef = (function() {
         }
         if (message.allMention != null && message.hasOwnProperty("allMention"))
             object.allMention = message.allMention;
+        if (message.visibleOnlyTo && message.visibleOnlyTo.length) {
+            object.visibleOnlyTo = [];
+            for (var j = 0; j < message.visibleOnlyTo.length; ++j)
+                object.visibleOnlyTo[j] = message.visibleOnlyTo[j];
+        }
         return object;
     };
 
