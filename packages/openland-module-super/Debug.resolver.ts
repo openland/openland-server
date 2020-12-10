@@ -2312,13 +2312,18 @@ export const Resolver: GQLResolver = {
                 let res: { key: TupleItem[], value: MessageShape }[] = [];
                 let total = 0;
 
-                const handleMessage = async (ctx: Context, id: number) => {
-                    let message = await Store.Message.findById(ctx, id);
+                const handleMessage = async (ctx: Context, value: MessageShape) => {
                     if (
-                        !message ||
-                        !message.isService ||
-                        !message.hiddenForUids
+                        !value ||
+                        !value.isService ||
+                        !value.hiddenForUids ||
+                        value.hiddenForUids.length === 0
                     ) {
+                        return;
+                    }
+
+                    let message = await Store.Message.findById(ctx, value.id);
+                    if (!message || !message.hiddenForUids) {
                         return;
                     }
                     let hiddenForUid = message.hiddenForUids[0];
@@ -2347,7 +2352,7 @@ export const Resolver: GQLResolver = {
 
                     try {
                         await inTx(parent, async ctx => {
-                            await Promise.all(res.map(msg => handleMessage(ctx, msg.value.id)));
+                            await Promise.all(res.map(msg => handleMessage(ctx, msg.value)));
                         });
                         if (total % 9900 === 0) {
                             await log('done: ' + total);
