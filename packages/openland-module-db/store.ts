@@ -23277,6 +23277,7 @@ export interface Store extends BaseStore {
     readonly UserChatsAllIndexDirectory: Subspace;
     readonly MessageDeliveryDirectory: Subspace;
     readonly MessageDeliveryBatchDirectory: Subspace;
+    readonly MessageCountersDirectory: Subspace;
     readonly UserDialogIndexDirectory: Subspace;
     readonly UserCountersIndexDirectory: Subspace;
     readonly FastCountersDirectory: Subspace;
@@ -23568,6 +23569,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserChatsAllIndexDirectoryPromise = storage.resolveCustomDirectory('userChatsAllIndex');
     let MessageDeliveryDirectoryPromise = storage.resolveCustomDirectory('messageDelivery');
     let MessageDeliveryBatchDirectoryPromise = storage.resolveCustomDirectory('messageDeliveryBatch');
+    let MessageCountersDirectoryPromise = storage.resolveCustomDirectory('messageCounters');
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
     let UserCountersIndexDirectoryPromise = storage.resolveCustomDirectory('userCountersIndex');
     let FastCountersDirectoryPromise = storage.resolveCustomDirectory('fastCounters');
@@ -23824,6 +23826,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserChatsAllIndexDirectory: await UserChatsAllIndexDirectoryPromise,
         MessageDeliveryDirectory: await MessageDeliveryDirectoryPromise,
         MessageDeliveryBatchDirectory: await MessageDeliveryBatchDirectoryPromise,
+        MessageCountersDirectory: await MessageCountersDirectoryPromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,
         UserCountersIndexDirectory: await UserCountersIndexDirectoryPromise,
         FastCountersDirectory: await FastCountersDirectoryPromise,

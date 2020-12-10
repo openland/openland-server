@@ -20,6 +20,7 @@ import { Store } from 'openland-module-db/FDB';
 import { MentionNotificationsMediator } from './MentionNotificationsMediator';
 import { DonationsMediator } from './DonationsMediator';
 import { UserReadSeqsDirectory } from '../repositories/UserReadSeqsDirectory';
+import { NewCountersRepository } from 'openland-module-messaging/counters/NewCountersRepository';
 
 const trace = createTracer('messaging');
 const linkifyInstance = createLinkifyInstance();
@@ -104,6 +105,8 @@ export class MessagingMediator {
     readonly userReadSeqs!: UserReadSeqsDirectory;
     @lazyInject('ChatMetricsRepository')
     private readonly chatMetrics!: ChatMetricsRepository;
+    // New counters
+    readonly counters = new NewCountersRepository(Store.MessageCountersDirectory);
 
     sendMessage = async (parent: Context, uid: number, cid: number, message: MessageInput, skipAccessCheck?: boolean) => {
         return trace.trace(parent, 'sendMessage', async (ctx2) => await inTx(ctx2, async (ctx) => {
@@ -223,6 +226,9 @@ export class MessagingMediator {
             // Create
             let res = await this.repo.createMessage(ctx, cid, uid, { ...msg, spans });
 
+            // Update counters
+            await this.counters.onMessage(ctx, res.message);
+
             // Post Event
             if (conv!.kind === 'private') {
                 let p = (await Store.ConversationPrivate.findById(ctx, cid))!;
@@ -336,6 +342,9 @@ export class MessagingMediator {
             let res = await this.repo.editMessage(ctx, mid, { ...newMessage, ... (spans ? { spans } : {}) }, markAsEdited);
             message = (await Store.Message.findById(ctx, mid!))!;
 
+            // Update counters
+            await this.counters.onMessage(ctx, message);
+
             // Post Event
             if (conv!.kind === 'private') {
                 let p = (await Store.ConversationPrivate.findById(ctx, conv.id))!;
@@ -368,7 +377,7 @@ export class MessagingMediator {
             if (!message) {
                 throw new Error('Message not found');
             }
-            
+
             // Read conversation
             let conv = await Store.Conversation.findById(ctx, message.cid);
             if (!conv) {
@@ -451,6 +460,9 @@ export class MessagingMediator {
             // Delivery
             message = (await Store.Message.findById(ctx, mid))!;
             await this.delivery.onDeleteMessage(ctx, message);
+
+            // Update counters
+            await this.counters.onMessage(ctx, message);
 
             // cancel payment if it is not success/canceled
             await this.donations.onDeleteMessage(ctx, message);

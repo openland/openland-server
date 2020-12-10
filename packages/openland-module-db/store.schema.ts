@@ -201,18 +201,18 @@ export default declareSchema(() => {
         field('global', boolean());
         field('creatorId', optional(integer()));
 
-        uniqueIndex('duplicates', ['emoji' , 'text']);
+        uniqueIndex('duplicates', ['emoji', 'text']);
         rangeIndex('updated', ['updatedAt']);
     });
 
     entity('UserModernBadge', () => {
-       primaryKey('uid', integer());
-       primaryKey('bid', integer());
+        primaryKey('uid', integer());
+        primaryKey('bid', integer());
 
-       field('deleted', boolean());
+        field('deleted', boolean());
 
-       rangeIndex('byBid', ['bid', 'updatedAt']).withCondition(a => !a.deleted);
-       rangeIndex('byUid', ['uid', 'updatedAt']).withCondition(a => !a.deleted);
+        rangeIndex('byBid', ['bid', 'updatedAt']).withCondition(a => !a.deleted);
+        rangeIndex('byUid', ['uid', 'updatedAt']).withCondition(a => !a.deleted);
     });
 
     //
@@ -431,7 +431,8 @@ export default declareSchema(() => {
 
     taskQueue('DeliveryFanOut');
     taskQueue('DeliveryUserBatch');
-
+    
+    customDirectory('MessageCounters');
     entity('Message', () => {
         primaryKey('id', integer());
         field('cid', integer());

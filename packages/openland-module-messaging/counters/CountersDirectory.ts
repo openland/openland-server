@@ -26,7 +26,7 @@ function filterDuplicates(src: number[]): number[] {
     return res;
 }
 
-export class HybridCountersRepository {
+export class CountersDirectory {
     private readonly subspace: Subspace;
     private readonly counting: CountingCollection;
     private readonly refs: CachedSubspace<CountersMessageRef>;
