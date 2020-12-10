@@ -146,7 +146,7 @@
     "assets:watch": "yarn cpx \"./packages/openland-server/assets/**/*\" ./build/openland-server/assets/ --watch",
     "schema": "yarn cpx \"./packages/**/*.graphql\" ./build/",
     "schema:watch": "yarn cpx \"./packages/**/*.graphql\" ./build/ --watch",
-    "build": "yarn schema && yarn assets && cpx ./packages/openland-module-db/struct.js ./build/openland-module-db/struct.js && npx tsc -p tsconfig.json && yarn vostok-schema:copy",
+    "build": "yarn schema && yarn assets && cpx ./packages/openland-module-db/structs.js ./build/openland-module-db/structs.js && npx tsc -p tsconfig.json && yarn vostok-schema:copy",
     "build:watch": "./node_modules/.bin/tsc -w -p tsconfig.json",
     "start:watch": "nodemon build/openland-server/index.js",
     "start:inspect": "nodemon --inspect build/openland-server/index.js",
