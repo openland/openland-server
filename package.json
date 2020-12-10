@@ -146,7 +146,7 @@
     "assets:watch": "yarn cpx \"./packages/openland-server/assets/**/*\" ./build/openland-server/assets/ --watch",
     "schema": "yarn cpx \"./packages/**/*.graphql\" ./build/",
     "schema:watch": "yarn cpx \"./packages/**/*.graphql\" ./build/ --watch",
-    "build": "yarn schema && yarn assets && npx tsc -p tsconfig.json && yarn vostok-schema:copy",
+    "build": "yarn schema && yarn assets && cpx ./packages/openland-module-db/structs.js ./build/openland-module-db/ && npx tsc -p tsconfig.json && yarn vostok-schema:copy",
     "build:watch": "./node_modules/.bin/tsc -w -p tsconfig.json",
     "start:watch": "nodemon build/openland-server/index.js",
     "start:inspect": "nodemon --inspect build/openland-server/index.js",
@@ -176,7 +176,7 @@
     "model:old": "./node_modules/.bin/ts-node packages/openland-module-db/schemaDeclaration.ts",
     "model:test": "./node_modules/.bin/ts-node ./packages/foundation-orm/tests/createTestSchema.ts",
     "benchmark": "ts-node ./packages/openland-module-db/collections/algs/Algorithm.benchmark.ts",
-    "proto": "pbjs -t static-module -w commonjs -o ./packages/openland-module-db/collections/algs/btree2/storage/BTree.js ./packages/openland-module-db/collections/algs/btree2/storage/BTree.proto && pbts -o ./packages/openland-module-db/collections/algs/btree2/storage/BTree.d.ts ./packages/openland-module-db/collections/algs/btree2/storage/BTree.js",
+    "proto": "pbjs -t static-module -w commonjs -o ./packages/openland-module-db/structs.js ./packages/openland-module-db/structs.proto && pbts -o ./packages/openland-module-db/structs.d.ts ./packages/openland-module-db/structs.js",
     "cli": ". ./scripts/set_testing_config.sh && ./node_modules/.bin/ts-node ./packages/openland-cli/index.ts",
     "ch:gen": ". ./scripts/set_dev_config.sh && ./node_modules/.bin/ts-node packages/openland-module-clickhouse/generateMigrations.ts"
   },

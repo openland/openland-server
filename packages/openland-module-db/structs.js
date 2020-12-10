@@ -809,6 +809,310 @@ $root.TreeHead = (function() {
     return TreeHead;
 })();
 
+$root.CountersMessageRef = (function() {
+
+    /**
+     * Properties of a CountersMessageRef.
+     * @exports ICountersMessageRef
+     * @interface ICountersMessageRef
+     * @property {number} sender CountersMessageRef sender
+     * @property {Array.<number>|null} [mentions] CountersMessageRef mentions
+     * @property {boolean} allMention CountersMessageRef allMention
+     * @property {Array.<number>|null} [visibleOnlyTo] CountersMessageRef visibleOnlyTo
+     */
+
+    /**
+     * Constructs a new CountersMessageRef.
+     * @exports CountersMessageRef
+     * @classdesc Represents a CountersMessageRef.
+     * @implements ICountersMessageRef
+     * @constructor
+     * @param {ICountersMessageRef=} [properties] Properties to set
+     */
+    function CountersMessageRef(properties) {
+        this.mentions = [];
+        this.visibleOnlyTo = [];
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * CountersMessageRef sender.
+     * @member {number} sender
+     * @memberof CountersMessageRef
+     * @instance
+     */
+    CountersMessageRef.prototype.sender = 0;
+
+    /**
+     * CountersMessageRef mentions.
+     * @member {Array.<number>} mentions
+     * @memberof CountersMessageRef
+     * @instance
+     */
+    CountersMessageRef.prototype.mentions = $util.emptyArray;
+
+    /**
+     * CountersMessageRef allMention.
+     * @member {boolean} allMention
+     * @memberof CountersMessageRef
+     * @instance
+     */
+    CountersMessageRef.prototype.allMention = false;
+
+    /**
+     * CountersMessageRef visibleOnlyTo.
+     * @member {Array.<number>} visibleOnlyTo
+     * @memberof CountersMessageRef
+     * @instance
+     */
+    CountersMessageRef.prototype.visibleOnlyTo = $util.emptyArray;
+
+    /**
+     * Creates a new CountersMessageRef instance using the specified properties.
+     * @function create
+     * @memberof CountersMessageRef
+     * @static
+     * @param {ICountersMessageRef=} [properties] Properties to set
+     * @returns {CountersMessageRef} CountersMessageRef instance
+     */
+    CountersMessageRef.create = function create(properties) {
+        return new CountersMessageRef(properties);
+    };
+
+    /**
+     * Encodes the specified CountersMessageRef message. Does not implicitly {@link CountersMessageRef.verify|verify} messages.
+     * @function encode
+     * @memberof CountersMessageRef
+     * @static
+     * @param {ICountersMessageRef} message CountersMessageRef message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    CountersMessageRef.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        writer.uint32(/* id 0, wireType 0 =*/0).int32(message.sender);
+        if (message.mentions != null && message.mentions.length) {
+            writer.uint32(/* id 1, wireType 2 =*/10).fork();
+            for (var i = 0; i < message.mentions.length; ++i)
+                writer.int32(message.mentions[i]);
+            writer.ldelim();
+        }
+        writer.uint32(/* id 2, wireType 0 =*/16).bool(message.allMention);
+        if (message.visibleOnlyTo != null && message.visibleOnlyTo.length) {
+            writer.uint32(/* id 3, wireType 2 =*/26).fork();
+            for (var i = 0; i < message.visibleOnlyTo.length; ++i)
+                writer.int32(message.visibleOnlyTo[i]);
+            writer.ldelim();
+        }
+        return writer;
+    };
+
+    /**
+     * Encodes the specified CountersMessageRef message, length delimited. Does not implicitly {@link CountersMessageRef.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof CountersMessageRef
+     * @static
+     * @param {ICountersMessageRef} message CountersMessageRef message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    CountersMessageRef.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a CountersMessageRef message from the specified reader or buffer.
+     * @function decode
+     * @memberof CountersMessageRef
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {CountersMessageRef} CountersMessageRef
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    CountersMessageRef.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.CountersMessageRef();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 0:
+                message.sender = reader.int32();
+                break;
+            case 1:
+                if (!(message.mentions && message.mentions.length))
+                    message.mentions = [];
+                if ((tag & 7) === 2) {
+                    var end2 = reader.uint32() + reader.pos;
+                    while (reader.pos < end2)
+                        message.mentions.push(reader.int32());
+                } else
+                    message.mentions.push(reader.int32());
+                break;
+            case 2:
+                message.allMention = reader.bool();
+                break;
+            case 3:
+                if (!(message.visibleOnlyTo && message.visibleOnlyTo.length))
+                    message.visibleOnlyTo = [];
+                if ((tag & 7) === 2) {
+                    var end2 = reader.uint32() + reader.pos;
+                    while (reader.pos < end2)
+                        message.visibleOnlyTo.push(reader.int32());
+                } else
+                    message.visibleOnlyTo.push(reader.int32());
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        if (!message.hasOwnProperty("sender"))
+            throw $util.ProtocolError("missing required 'sender'", { instance: message });
+        if (!message.hasOwnProperty("allMention"))
+            throw $util.ProtocolError("missing required 'allMention'", { instance: message });
+        return message;
+    };
+
+    /**
+     * Decodes a CountersMessageRef message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof CountersMessageRef
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {CountersMessageRef} CountersMessageRef
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    CountersMessageRef.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a CountersMessageRef message.
+     * @function verify
+     * @memberof CountersMessageRef
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    CountersMessageRef.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (!$util.isInteger(message.sender))
+            return "sender: integer expected";
+        if (message.mentions != null && message.hasOwnProperty("mentions")) {
+            if (!Array.isArray(message.mentions))
+                return "mentions: array expected";
+            for (var i = 0; i < message.mentions.length; ++i)
+                if (!$util.isInteger(message.mentions[i]))
+                    return "mentions: integer[] expected";
+        }
+        if (typeof message.allMention !== "boolean")
+            return "allMention: boolean expected";
+        if (message.visibleOnlyTo != null && message.hasOwnProperty("visibleOnlyTo")) {
+            if (!Array.isArray(message.visibleOnlyTo))
+                return "visibleOnlyTo: array expected";
+            for (var i = 0; i < message.visibleOnlyTo.length; ++i)
+                if (!$util.isInteger(message.visibleOnlyTo[i]))
+                    return "visibleOnlyTo: integer[] expected";
+        }
+        return null;
+    };
+
+    /**
+     * Creates a CountersMessageRef message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof CountersMessageRef
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {CountersMessageRef} CountersMessageRef
+     */
+    CountersMessageRef.fromObject = function fromObject(object) {
+        if (object instanceof $root.CountersMessageRef)
+            return object;
+        var message = new $root.CountersMessageRef();
+        if (object.sender != null)
+            message.sender = object.sender | 0;
+        if (object.mentions) {
+            if (!Array.isArray(object.mentions))
+                throw TypeError(".CountersMessageRef.mentions: array expected");
+            message.mentions = [];
+            for (var i = 0; i < object.mentions.length; ++i)
+                message.mentions[i] = object.mentions[i] | 0;
+        }
+        if (object.allMention != null)
+            message.allMention = Boolean(object.allMention);
+        if (object.visibleOnlyTo) {
+            if (!Array.isArray(object.visibleOnlyTo))
+                throw TypeError(".CountersMessageRef.visibleOnlyTo: array expected");
+            message.visibleOnlyTo = [];
+            for (var i = 0; i < object.visibleOnlyTo.length; ++i)
+                message.visibleOnlyTo[i] = object.visibleOnlyTo[i] | 0;
+        }
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a CountersMessageRef message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof CountersMessageRef
+     * @static
+     * @param {CountersMessageRef} message CountersMessageRef
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    CountersMessageRef.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.arrays || options.defaults) {
+            object.mentions = [];
+            object.visibleOnlyTo = [];
+        }
+        if (options.defaults) {
+            object.sender = 0;
+            object.allMention = false;
+        }
+        if (message.sender != null && message.hasOwnProperty("sender"))
+            object.sender = message.sender;
+        if (message.mentions && message.mentions.length) {
+            object.mentions = [];
+            for (var j = 0; j < message.mentions.length; ++j)
+                object.mentions[j] = message.mentions[j];
+        }
+        if (message.allMention != null && message.hasOwnProperty("allMention"))
+            object.allMention = message.allMention;
+        if (message.visibleOnlyTo && message.visibleOnlyTo.length) {
+            object.visibleOnlyTo = [];
+            for (var j = 0; j < message.visibleOnlyTo.length; ++j)
+                object.visibleOnlyTo[j] = message.visibleOnlyTo[j];
+        }
+        return object;
+    };
+
+    /**
+     * Converts this CountersMessageRef to JSON.
+     * @function toJSON
+     * @memberof CountersMessageRef
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    CountersMessageRef.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return CountersMessageRef;
+})();
+
 /**
  * TreeNodeType enum.
  * @exports TreeNodeType

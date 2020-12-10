@@ -1,6 +1,6 @@
 import { createNamedContext } from '@openland/context';
 import { inTx, Database } from '@openland/foundationdb';
-import { TreeNode, TreeNodeType } from './BTree';
+import { TreeNode, TreeNodeType } from '../../../../structs';
 import { BTreeRepository } from './BTreeRepository';
 
 const COLLECTION_0 = Buffer.from([0]);

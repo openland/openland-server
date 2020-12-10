@@ -1,6 +1,6 @@
 import { Context } from '@openland/context';
 import { Subspace } from '@openland/foundationdb';
-import { TreeNode, TreeNodeType } from './storage/BTree';
+import { TreeNode, TreeNodeType } from '../../../structs';
 import { BTreeOperations } from './storage/BTreeOperations';
 import { BTreeRepository } from './storage/BTreeRepository';
 

@@ -1,7 +1,7 @@
 import { Context } from '@openland/context';
 import { binarySearch } from '../../utils/binarySearch';
 import { arraySplit, recordAdd, isIntersects, isIntervalWithin, isWithin, childrenAdd } from './utils/interval';
-import { INodeChildren, ITreeNode, TreeNode, TreeNodeType } from './BTree';
+import { INodeChildren, ITreeNode, TreeNode, TreeNodeType } from '../../../../structs';
 import { BTreeRepository } from './BTreeRepository';
 
 export type DumpedNode = {

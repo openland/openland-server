@@ -1,6 +1,6 @@
 import { createNamedContext } from '@openland/context';
 import { inTx, Database } from '@openland/foundationdb';
-import { TreeNodeType } from './BTree';
+import { TreeNodeType } from '../../../../structs';
 import { BTreeRepository } from './BTreeRepository';
 import { BTreeOperations } from './BTreeOperations';
 
@@ -24,7 +24,7 @@ describe('BTreeOperations', () => {
 
     it('should create and delete root node', async () => {
         let dump = await inTx(root, async (ctx) => {
-            await ops.setRootNode(ctx, COLLECTION_0, { id: 1, type: TreeNodeType.LEAF, values: [1, 2, 3, 4] });
+            await ops.setRootNode(ctx, COLLECTION_0, { id: await ops.store.allocateNodeId(ctx, COLLECTION_0), type: TreeNodeType.LEAF, values: [1, 2, 3, 4] });
             return await ops.dumpAll(ctx, COLLECTION_0);
         });
         expect(dump).toMatchSnapshot();
@@ -38,7 +38,7 @@ describe('BTreeOperations', () => {
 
     it('should split root node', async () => {
         await inTx(root, async (ctx) => {
-            await ops.setRootNode(ctx, COLLECTION_1, { id: 1, type: TreeNodeType.LEAF, values: [1, 2, 3, 4] });
+            await ops.setRootNode(ctx, COLLECTION_1, { id: await ops.store.allocateNodeId(ctx, COLLECTION_1), type: TreeNodeType.LEAF, values: [1, 2, 3, 4] });
         });
 
         let dump = await inTx(root, async (ctx) => {
@@ -68,7 +68,7 @@ describe('BTreeOperations', () => {
 
     it('should find node', async () => {
         await inTx(root, async (ctx) => {
-            await ops.setRootNode(ctx, COLLECTION_2, { id: 1, type: TreeNodeType.LEAF, values: [1, 2, 3, 4, 5, 6, 7, 8] });
+            await ops.setRootNode(ctx, COLLECTION_2, { id: await ops.store.allocateNodeId(ctx, COLLECTION_2), type: TreeNodeType.LEAF, values: [1, 2, 3, 4, 5, 6, 7, 8] });
             await ops.splitNode(ctx, COLLECTION_2, 1);
             await ops.splitNode(ctx, COLLECTION_2, 1);
             await ops.splitNode(ctx, COLLECTION_2, 3);
@@ -98,7 +98,7 @@ describe('BTreeOperations', () => {
 
     it('should insert to leaf', async () => {
         await inTx(root, async (ctx) => {
-            await ops.setRootNode(ctx, COLLECTION_3, { id: 1, type: TreeNodeType.LEAF, values: [1, 2, 3, 4, 5, 6, 7, 8] });
+            await ops.setRootNode(ctx, COLLECTION_3, { id: await ops.store.allocateNodeId(ctx, COLLECTION_3), type: TreeNodeType.LEAF, values: [1, 2, 3, 4, 5, 6, 7, 8] });
             await ops.splitNode(ctx, COLLECTION_3, 1);
             await ops.splitNode(ctx, COLLECTION_3, 1);
             await ops.splitNode(ctx, COLLECTION_3, 3);
@@ -114,7 +114,7 @@ describe('BTreeOperations', () => {
 
     it('should delete node', async () => {
         await inTx(root, async (ctx) => {
-            await ops.setRootNode(ctx, COLLECTION_4, { id: 1, type: TreeNodeType.LEAF, values: [1, 2, 3, 4, 5, 6, 7, 8] });
+            await ops.setRootNode(ctx, COLLECTION_4, { id: await ops.store.allocateNodeId(ctx, COLLECTION_4), type: TreeNodeType.LEAF, values: [1, 2, 3, 4, 5, 6, 7, 8] });
             await ops.splitNode(ctx, COLLECTION_4, 1);
             await ops.splitNode(ctx, COLLECTION_4, 1);
             await ops.splitNode(ctx, COLLECTION_4, 3);
@@ -129,7 +129,7 @@ describe('BTreeOperations', () => {
 
     it('should move value', async () => {
         await inTx(root, async (ctx) => {
-            await ops.setRootNode(ctx, COLLECTION_5, { id: 1, type: TreeNodeType.LEAF, values: [1, 2, 3, 4] });
+            await ops.setRootNode(ctx, COLLECTION_5, { id: await ops.store.allocateNodeId(ctx, COLLECTION_5), type: TreeNodeType.LEAF, values: [1, 2, 3, 4] });
             await ops.splitNode(ctx, COLLECTION_5, 1);
         });
 
@@ -149,7 +149,7 @@ describe('BTreeOperations', () => {
 
     it('should move node', async () => {
         let dump = await inTx(root, async (ctx) => {
-            await ops.setRootNode(ctx, COLLECTION_6, { id: 1, type: TreeNodeType.LEAF, values: [1, 2, 3, 4, 5, 6, 7, 8] });
+            await ops.setRootNode(ctx, COLLECTION_6, { id: await ops.store.allocateNodeId(ctx, COLLECTION_6), type: TreeNodeType.LEAF, values: [1, 2, 3, 4, 5, 6, 7, 8] });
             await ops.splitNode(ctx, COLLECTION_6, 1);
             await ops.splitNode(ctx, COLLECTION_6, 1);
             await ops.splitNode(ctx, COLLECTION_6, 3);
