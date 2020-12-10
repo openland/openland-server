@@ -1,6 +1,6 @@
 import { Context } from '@openland/context';
 import { encoders, getTransaction, Subspace, TransactionCache, TupleItem } from '@openland/foundationdb';
-import { TreeHead, TreeNode } from './BTree';
+import { TreeHead, TreeNode } from '../../../../structs';
 
 type TreeCache = {
     head: {

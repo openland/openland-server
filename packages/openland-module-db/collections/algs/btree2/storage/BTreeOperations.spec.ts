@@ -1,6 +1,6 @@
 import { createNamedContext } from '@openland/context';
 import { inTx, Database } from '@openland/foundationdb';
-import { TreeNodeType } from './BTree';
+import { TreeNodeType } from '../../../../structs';
 import { BTreeRepository } from './BTreeRepository';
 import { BTreeOperations } from './BTreeOperations';
 

@@ -20,6 +20,12 @@ message TreeHead {
     optional int32 root = 2;
 }
 
+message CountersMessageRef {
+    required int32 sender = 0;
+    repeated int32 mentions = 1;
+    required bool allMention = 2;
+}
+
 enum TreeNodeType {
     LEAF = 0;
     INNER = 1;
