@@ -148,9 +148,9 @@ export class CounterSubscribersDirectory {
 
     async readState(ctx: Context, args: { cid: number, uid: number }) {
         let existing = await this.users.read(ctx, [args.uid, args.cid]);
-        if (!existing) {
-            throw Error('Internal error');
-        }
+        // if (!existing) {
+        //     throw Error('Internal error');
+        // }
         return existing;
     }
 

@@ -49,7 +49,7 @@ export class NewCountersRepository {
         for (let d of direct) {
             let state = await this.subscribers.readState(ctx, { cid: message.cid, uid: d });
             if (!state || state.async) {
-                throw Error('Internal error');
+                continue;
             }
             let read = await this.counters.count(ctx, [message.cid], d, state.seq);
             await this.subscribers.updateDirect(ctx, { cid: message.cid, uid: d, counter: read.unread, mentions: read.unreadMentions });
