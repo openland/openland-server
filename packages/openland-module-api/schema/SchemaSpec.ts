@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'e5ac24729f9e51eb9773ae629f367004';
+export const GQL_SPEC_VERSION = '47b2eb01c010aacfd64402982b56c128';
 
 export namespace GQL {
     export interface CreditCard {
@@ -460,16 +460,6 @@ export namespace GQL {
     export interface DebugUserMetricsDirectMessagesSentArgs { }
     export interface DebugUserMetricsSuccessfulInvitesCountArgs { }
     export interface DebugUserMetricsAudienceCountArgs { }
-    export interface DebugGlobalCounters {
-        allUnreadMessages: number;
-        unreadMessagesWithoutMuted: number;
-        allUnreadChats: number;
-        unreadChatsWithoutMuted: number;
-    }
-    export interface DebugGlobalCountersAllUnreadMessagesArgs { }
-    export interface DebugGlobalCountersUnreadMessagesWithoutMutedArgs { }
-    export interface DebugGlobalCountersAllUnreadChatsArgs { }
-    export interface DebugGlobalCountersUnreadChatsWithoutMutedArgs { }
     export interface GqlTrace {
         id: string;
         name: string;
@@ -488,6 +478,18 @@ export namespace GQL {
     }
     export interface GqlTraceConnectionItemsArgs { }
     export interface GqlTraceConnectionCursorArgs { }
+    export interface DebugGlobalCounter {
+        all: number;
+        mentions: number;
+    }
+    export interface DebugGlobalCounterAllArgs { }
+    export interface DebugGlobalCounterMentionsArgs { }
+    export interface DebugChatCounter {
+        all: number;
+        mentions: number;
+    }
+    export interface DebugChatCounterAllArgs { }
+    export interface DebugChatCounterMentionsArgs { }
     export type SuperNotificationTypeValues = 'ON_SIGN_UP' | 'ON_USER_PROFILE_CREATED' | 'ON_ORG_ACTIVATED_BY_ADMIN' | 'ON_ORG_ACTIVATED_VIA_INVITE' | 'ON_ORG_SUSPEND';
     export type SuperNotificationType = GQLRoots.SuperNotificationTypeRoot;
     export type DialogKindValues = 'PRIVATE' | 'INTERNAL' | 'PUBLIC' | 'GROUP';
@@ -3949,7 +3951,6 @@ export namespace GQL {
         debugCheckTasksIndex: string;
         debug2WayDirectChatsCounter: number;
         debugUserMetrics: DebugUserMetrics;
-        debugGlobalCounters: DebugGlobalCounters;
         debugServerId: string;
         debugGqlTraces: GqlTraceConnection;
         debugGqlTrace: GqlTrace;
@@ -3963,6 +3964,8 @@ export namespace GQL {
         debugExperimentalCounter: string;
         debugFindUser: Nullable<User>;
         debugSocialSharingImage: string;
+        debugChatCounter: DebugChatCounter;
+        debugGlobalCounter: DebugGlobalCounter;
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
@@ -4161,9 +4164,6 @@ export namespace GQL {
     export interface QueryDebugUserMetricsArgs {
         id: string;
     }
-    export interface QueryDebugGlobalCountersArgs {
-        uid: OptionalNullable<string>;
-    }
     export interface QueryDebugServerIdArgs { }
     export interface QueryDebugGqlTracesArgs {
         first: number;
@@ -4206,6 +4206,10 @@ export namespace GQL {
         image: string;
         subTitle: string;
     }
+    export interface QueryDebugChatCounterArgs {
+        id: string;
+    }
+    export interface QueryDebugGlobalCounterArgs { }
     export interface QueryDialogsArgs {
         first: number;
         after: OptionalNullable<string>;
@@ -6620,18 +6624,6 @@ export interface GQLResolver {
             audienceCount: GQL.DebugUserMetricsAudienceCountArgs,
         }
     >;
-    DebugGlobalCounters?: ComplexTypedResolver<
-        GQL.DebugGlobalCounters,
-        GQLRoots.DebugGlobalCountersRoot,
-        {
-        },
-        {
-            allUnreadMessages: GQL.DebugGlobalCountersAllUnreadMessagesArgs,
-            unreadMessagesWithoutMuted: GQL.DebugGlobalCountersUnreadMessagesWithoutMutedArgs,
-            allUnreadChats: GQL.DebugGlobalCountersAllUnreadChatsArgs,
-            unreadChatsWithoutMuted: GQL.DebugGlobalCountersUnreadChatsWithoutMutedArgs,
-        }
-    >;
     GqlTrace?: ComplexTypedResolver<
         GQL.GqlTrace,
         GQLRoots.GqlTraceRoot,
@@ -6654,6 +6646,26 @@ export interface GQLResolver {
         {
             items: GQL.GqlTraceConnectionItemsArgs,
             cursor: GQL.GqlTraceConnectionCursorArgs,
+        }
+    >;
+    DebugGlobalCounter?: ComplexTypedResolver<
+        GQL.DebugGlobalCounter,
+        GQLRoots.DebugGlobalCounterRoot,
+        {
+        },
+        {
+            all: GQL.DebugGlobalCounterAllArgs,
+            mentions: GQL.DebugGlobalCounterMentionsArgs,
+        }
+    >;
+    DebugChatCounter?: ComplexTypedResolver<
+        GQL.DebugChatCounter,
+        GQLRoots.DebugChatCounterRoot,
+        {
+        },
+        {
+            all: GQL.DebugChatCounterAllArgs,
+            mentions: GQL.DebugChatCounterMentionsArgs,
         }
     >;
     SuperNotificationType?: EnumTypeResolver<'ON_SIGN_UP' | 'ON_USER_PROFILE_CREATED' | 'ON_ORG_ACTIVATED_BY_ADMIN' | 'ON_ORG_ACTIVATED_VIA_INVITE' | 'ON_ORG_SUSPEND', GQLRoots.SuperNotificationTypeRoot>;
@@ -9433,11 +9445,12 @@ export interface GQLResolver {
             organizationChatsStats: GQLRoots.OrganizationChatStatsRoot[],
             debugEventsState: GQLRoots.DebugEventsStateRoot,
             debugUserMetrics: GQLRoots.DebugUserMetricsRoot,
-            debugGlobalCounters: GQLRoots.DebugGlobalCountersRoot,
             debugGqlTraces: GQLRoots.GqlTraceConnectionRoot,
             debugGqlTrace: GQLRoots.GqlTraceRoot,
             debugUserWallet: GQLRoots.WalletAccountRoot,
             debugFindUser: Nullable<GQLRoots.UserRoot>,
+            debugChatCounter: GQLRoots.DebugChatCounterRoot,
+            debugGlobalCounter: GQLRoots.DebugGlobalCounterRoot,
             dialogs: GQLRoots.DialogsConnectionRoot,
             settings: GQLRoots.SettingsRoot,
             authPoints: GQLRoots.AuthPointRoot,
@@ -9600,7 +9613,6 @@ export interface GQLResolver {
             debugCheckTasksIndex: GQL.QueryDebugCheckTasksIndexArgs,
             debug2WayDirectChatsCounter: GQL.QueryDebug2WayDirectChatsCounterArgs,
             debugUserMetrics: GQL.QueryDebugUserMetricsArgs,
-            debugGlobalCounters: GQL.QueryDebugGlobalCountersArgs,
             debugServerId: GQL.QueryDebugServerIdArgs,
             debugGqlTraces: GQL.QueryDebugGqlTracesArgs,
             debugGqlTrace: GQL.QueryDebugGqlTraceArgs,
@@ -9614,6 +9626,8 @@ export interface GQLResolver {
             debugExperimentalCounter: GQL.QueryDebugExperimentalCounterArgs,
             debugFindUser: GQL.QueryDebugFindUserArgs,
             debugSocialSharingImage: GQL.QueryDebugSocialSharingImageArgs,
+            debugChatCounter: GQL.QueryDebugChatCounterArgs,
+            debugGlobalCounter: GQL.QueryDebugGlobalCounterArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
             authPoints: GQL.QueryAuthPointsArgs,

@@ -50,7 +50,7 @@ const logger = createLogger('debug');
 const nextDebugSeq = async (ctx: Context, uid: number) => {
     let state = await Store.DebugEventState.findById(ctx, uid!);
     if (!state) {
-        await Store.DebugEventState.create(ctx, uid!, {seq: 1});
+        await Store.DebugEventState.create(ctx, uid!, { seq: 1 });
         return 1;
     } else {
         state.seq++;
@@ -62,7 +62,7 @@ const nextDebugSeq = async (ctx: Context, uid: number) => {
 const createDebugEvent = async (parent: Context, uid: number, key: string) => {
     return inTx(parent, async (ctx) => {
         let seq = await nextDebugSeq(ctx, uid);
-        await Store.DebugEvent.create(ctx, uid!, seq, {key});
+        await Store.DebugEvent.create(ctx, uid!, seq, { key });
     });
 };
 
@@ -84,7 +84,7 @@ async function sendSuperNotification(root: Context, uid: number, message: string
             ctx,
             conv.id,
             superNotificationsAppId!,
-            {message},
+            { message },
             true
         );
     });
@@ -115,6 +115,13 @@ export const Resolver: GQLResolver = {
         cursor: src => src.cursor || null
     },
     Query: {
+        debugGlobalCounter: withPermission('super-admin', async (ctx, args) => {
+            let id = ctx.auth.uid!;
+            return {
+                all: await Modules.Messaging.messaging.counters.getGlobalCounter(ctx, id, false, 'all'),
+                mentions: await Modules.Messaging.messaging.counters.getGlobalCounter(ctx, id, false, 'all-mentions')
+            };
+        }),
         lifecheck: () => `i'm ok`,
         debugParseID: withPermission('super-admin', async (ctx, args) => {
             let id = IdsFactory.resolve(args.id);
@@ -162,8 +169,8 @@ export const Resolver: GQLResolver = {
             return res;
         }),
         debugEventsState: withPermission('super-admin', async (ctx, args) => {
-            let tail = await Store.DebugEvent.user.stream(ctx.auth.uid!, {batchSize: 1}).tail(ctx);
-            return {state: tail || ''};
+            let tail = await Store.DebugEvent.user.stream(ctx.auth.uid!, { batchSize: 1 }).tail(ctx);
+            return { state: tail || '' };
         }),
         debugCheckTasksIndex: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugTasksIndex', async (log) => {
@@ -210,25 +217,16 @@ export const Resolver: GQLResolver = {
                 audienceCount: await Store.UserAudienceCounter.get(ctx, uid),
             };
         }),
-        debugGlobalCounters: withUser(async (ctx, args, uid) => {
-            let _uid = args.uid ? IDs.User.parse(args.uid) : uid;
-            return {
-                allUnreadMessages: await Store.UserGlobalCounterAllUnreadMessages.get(ctx, _uid),
-                unreadMessagesWithoutMuted: await Store.UserGlobalCounterUnreadMessagesWithoutMuted.get(ctx, _uid),
-                allUnreadChats: await Store.UserGlobalCounterAllUnreadChats.get(ctx, _uid),
-                unreadChatsWithoutMuted: await Store.UserGlobalCounterUnreadChatsWithoutMuted.get(ctx, _uid),
-            };
-        }),
         debugServerId: withUser(async (ctx, args, uid) => {
             return ServerId;
         }),
         debugGqlTraces: withPermission('super-admin', async (ctx, args) => {
             let afterId = args.after ? IDs.GqlTrace.parse(args.after) : null;
             if (!args.first || args.first <= 0) {
-                return {items: [], cursor: undefined};
+                return { items: [], cursor: undefined };
             }
             let afterExists = afterId && await Store.GqlTrace.findById(ctx, afterId);
-            let {items, haveMore} = await Store.GqlTrace.trace.query(ctx, {
+            let { items, haveMore } = await Store.GqlTrace.trace.query(ctx, {
                 limit: args.first,
                 after: afterExists ? afterId : undefined,
                 reverse: true
@@ -283,12 +281,12 @@ export const Resolver: GQLResolver = {
             let room = await Store.ConversationRoom.findById(ctx, cid);
             let roomOid: null | number = room ? room.oid : null;
             let [topPrivateDialogs, topGroupDialogs] = await Promise.all([
-                Store.UserEdge.forwardWeight.query(ctx, ctx.auth.uid!, {limit: 300, reverse: true}),
-                Store.UserGroupEdge.user.query(ctx, ctx.auth.uid!, {limit: 300, reverse: true})
+                Store.UserEdge.forwardWeight.query(ctx, ctx.auth.uid!, { limit: 300, reverse: true }),
+                Store.UserGroupEdge.user.query(ctx, ctx.auth.uid!, { limit: 300, reverse: true })
             ]);
             return JSON.stringify({
-                topPrivateDialogs: topPrivateDialogs.items.map(d => ({uid1: d.uid1, uid2: d.uid2, weight: d.weight})),
-                topGroupDialogs: topGroupDialogs.items.map(d => ({cid: d.cid, weight: d.weight})),
+                topPrivateDialogs: topPrivateDialogs.items.map(d => ({ uid1: d.uid1, uid2: d.uid2, weight: d.weight })),
+                topGroupDialogs: topGroupDialogs.items.map(d => ({ cid: d.cid, weight: d.weight })),
                 userOrgs,
                 roomOid,
                 cid
@@ -402,7 +400,7 @@ export const Resolver: GQLResolver = {
                 } else if (type === 'UNREAD_MESSAGE') {
                     let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
                     let dialog = dialogs[0];
-                    let messages = await Store.Message.chat.query(ctx, dialog.cid, {limit: 1, reverse: true});
+                    let messages = await Store.Message.chat.query(ctx, dialog.cid, { limit: 1, reverse: true });
 
                     await Emails.sendUnreadMessages(ctx, uid, messages.items);
                 } else if (type === 'UNREAD_MESSAGES') {
@@ -410,7 +408,7 @@ export const Resolver: GQLResolver = {
                     let messages: Message[] = [];
 
                     for (let dialog of dialogs) {
-                        let msgs = await Store.Message.chat.query(ctx, dialog.cid, {limit: 1, reverse: true});
+                        let msgs = await Store.Message.chat.query(ctx, dialog.cid, { limit: 1, reverse: true });
                         messages.push(msgs.items[0]);
                     }
 
@@ -418,11 +416,11 @@ export const Resolver: GQLResolver = {
                 } else if (type === 'PUBLIC_ROOM_INVITE') {
                     let cid = IDs.Conversation.parse(isProd ? 'AL1ZPXB9Y0iq3yp4rx03cvMk9d' : 'd5z2ppJy6JSXx4OA00lxSJXmp6');
 
-                    await Emails.sendRoomInviteEmail(ctx, uid, email, cid, {id: 'xxxxx'} as any);
+                    await Emails.sendRoomInviteEmail(ctx, uid, email, cid, { id: 'xxxxx' } as any);
                 } else if (type === 'PRIVATE_ROOM_INVITE') {
                     let cid = IDs.Conversation.parse(isProd ? 'qljZr9WbMKSRlBZWbDo5U9qZW4' : 'vBDpxxEQREhQyOBB6l7LUDMwPE');
 
-                    await Emails.sendRoomInviteEmail(ctx, uid, email, cid, {id: 'xxxxx'} as any);
+                    await Emails.sendRoomInviteEmail(ctx, uid, email, cid, { id: 'xxxxx' } as any);
                 } else if (type === 'ROOM_INVITE_ACCEPTED') {
                     let cid = IDs.Conversation.parse(isProd ? 'AL1ZPXB9Y0iq3yp4rx03cvMk9d' : 'd5z2ppJy6JSXx4OA00lxSJXmp6');
 
@@ -503,7 +501,7 @@ export const Resolver: GQLResolver = {
                         }
                     }
 
-                    return {totalSent, totalReceived, totalSentDirect};
+                    return { totalSent, totalReceived, totalSentDirect };
                 };
 
                 let users = await Store.User.findAll(parent);
@@ -516,7 +514,7 @@ export const Resolver: GQLResolver = {
                     }
                     await inTx(rootCtx, async (ctx) => {
                         try {
-                            let {totalSent, totalReceived, totalSentDirect} = await calculateForUser(ctx, user.id);
+                            let { totalSent, totalReceived, totalSentDirect } = await calculateForUser(ctx, user.id);
 
                             let messagesSent = Store.UserMessagesSentCounter.byId(user.id);
                             messagesSent.set(ctx, totalSent);
@@ -1006,7 +1004,7 @@ export const Resolver: GQLResolver = {
 
                     directory.clearPrefixed(ctx, [uid]);
 
-                    for (let {cid} of dialogs) {
+                    for (let { cid } of dialogs) {
                         let isMuted = mutedChats.has(cid);
                         let unread = dialogCounters.get(cid) || 0;
 
@@ -1062,11 +1060,11 @@ export const Resolver: GQLResolver = {
                 let users: number[] = [];
                 for (let i = 0; i <= args.membersCount; i++) {
                     let key = randKey();
-                    let user = await Modules.Users.createUser(ctx, {email: key + '@openland.com'});
-                    await Modules.Users.createUserProfile(ctx, user.id, {firstName: 'Test', lastName: '#' + key});
+                    let user = await Modules.Users.createUser(ctx, { email: key + '@openland.com' });
+                    await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Test', lastName: '#' + key });
                     users.push(user.id);
                 }
-                await Modules.Messaging.room.createRoom(ctx, 'group', 1, parent.auth.uid!, users, {title: 'Test #' + randKey()});
+                await Modules.Messaging.room.createRoom(ctx, 'group', 1, parent.auth.uid!, users, { title: 'Test #' + randKey() });
                 return true;
             });
         }),
@@ -1075,7 +1073,7 @@ export const Resolver: GQLResolver = {
                 const randKey = () => (Math.random() * Math.pow(2, 55)).toString(16);
                 let start = Date.now();
                 for (let i = 0; i <= args.messagesCount; i++) {
-                    await Modules.Messaging.sendMessage(ctx, IDs.Conversation.parse(args.chat), parent.auth.uid!, {message: i + ' ' + randKey()});
+                    await Modules.Messaging.sendMessage(ctx, IDs.Conversation.parse(args.chat), parent.auth.uid!, { message: i + ' ' + randKey() });
                 }
                 logger.log(ctx, 'debugFlood took', Date.now() - start);
                 return true;
@@ -1145,7 +1143,7 @@ export const Resolver: GQLResolver = {
             debugTaskForAll(Store.User, parent.auth.uid!, 'debugReindexUsersDialogs', async (ctx, uid, log) => {
                 let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
                 for (let dialog of dialogs) {
-                    Store.DialogIndexEventStore.post(ctx, DialogNeedReindexEvent.create({uid, cid: dialog.cid}));
+                    Store.DialogIndexEventStore.post(ctx, DialogNeedReindexEvent.create({ uid, cid: dialog.cid }));
                 }
             });
             return true;
@@ -1290,7 +1288,7 @@ export const Resolver: GQLResolver = {
                     return false;
                 }
                 if (event.body && event.body.args && (typeof event.body.args !== 'object' || Array.isArray(event.body.args) || Object.keys(event.body.args).length === 0)) {
-                    event.body = {...event.body, args: undefined};
+                    event.body = { ...event.body, args: undefined };
                 }
                 for (let key of Object.keys(event.body.args)) {
                     let val = event.body.args[key];
@@ -1299,7 +1297,7 @@ export const Resolver: GQLResolver = {
                     }
                 }
                 if (event.body && event.body.args && Object.keys(event.body.args).length === 0) {
-                    event.body = {...event.body, args: undefined};
+                    event.body = { ...event.body, args: undefined };
                 }
 
                 await event.flush(ctx);
@@ -1438,7 +1436,7 @@ export const Resolver: GQLResolver = {
                 let total = 0;
                 let seenChats = new Set<number>();
                 try {
-                    let stream = Store.Message.created.stream({batchSize: limit});
+                    let stream = Store.Message.created.stream({ batchSize: limit });
                     do {
                         await inTx(parent, async ctx => {
                             let messages = await stream.next(ctx);
@@ -1471,7 +1469,7 @@ export const Resolver: GQLResolver = {
                 let total = 0;
                 let broken = 0;
                 try {
-                    let stream = Store.Message.updated.stream({batchSize: limit});
+                    let stream = Store.Message.updated.stream({ batchSize: limit });
                     do {
                         await inTx(parent, async ctx => {
                             let messages = await stream.next(ctx);
@@ -1518,7 +1516,7 @@ export const Resolver: GQLResolver = {
                     type: 'message',
                     size: 100,
                     body: {
-                        sort: [{createdAt: 'desc'}], query: {bool: {must: [{term: {cid}}]}},
+                        sort: [{ createdAt: 'desc' }], query: { bool: { must: [{ term: { cid } }] } },
                     },
                 });
                 await Store.RoomMessagesCounter.set(ctx, cid, (hits.hits.total as any).value);
@@ -1604,7 +1602,7 @@ export const Resolver: GQLResolver = {
             await debugTask(parent.auth.uid!, 'fix-broken-donations', async (log) => {
                 let purchasesWithMessage: { pid: string, mid: number }[] = [];
                 await inTx(parent, async ctx => {
-                    let messages = await Store.Message.updated.query(ctx, {reverse: true, limit: 50000});
+                    let messages = await Store.Message.updated.query(ctx, { reverse: true, limit: 50000 });
                     let total = 0;
                     for (let message of messages.items) {
                         if (!message.attachmentsModern) {
@@ -1613,14 +1611,14 @@ export const Resolver: GQLResolver = {
 
                         let purchaseAttachment = message.attachmentsModern!.find(a => a.type === 'purchase_attachment');
                         if (purchaseAttachment && purchaseAttachment.type === 'purchase_attachment') {
-                            purchasesWithMessage.push({pid: purchaseAttachment.pid, mid: message.id});
+                            purchasesWithMessage.push({ pid: purchaseAttachment.pid, mid: message.id });
                             total += 1;
                         }
                     }
                     await log('found ' + total);
                 });
                 await inTx(parent, async ctx => {
-                    for (let {pid, mid} of purchasesWithMessage) {
+                    for (let { pid, mid } of purchasesWithMessage) {
                         let purchase = await Store.WalletPurchase.findById(ctx, pid);
                         if (purchase && purchase.product.type === 'donate_message') {
                             await log('mid: ' + mid);
@@ -1731,7 +1729,7 @@ export const Resolver: GQLResolver = {
                         }
 
                         let count = await findEntitiesCount(entity);
-                        res.push({name, count});
+                        res.push({ name, count });
                         await sendSuperNotification(rootCtx, uid, `${entity.descriptor.name} count: ${count}`);
                     }
                 }
@@ -2274,14 +2272,14 @@ export const Resolver: GQLResolver = {
                 await inTx(parent, async ctx => {
                     let superNotificationsAppId = await Modules.Super.getEnvVar<number>(ctx, 'super-notifications-app-id');
                     let conv = await Modules.Messaging.room.resolvePrivateChat(ctx, ctx.auth.uid!, superNotificationsAppId!);
-                    let {file} = await Modules.Media.upload(ctx, Buffer.from(JSON.stringify(result)), '.json');
+                    let { file } = await Modules.Media.upload(ctx, Buffer.from(JSON.stringify(result)), '.json');
                     let fileMetadata = await Modules.Media.saveFile(ctx, file);
                     let attachment = {
                         type: 'file_attachment',
                         fileId: file,
                         fileMetadata
                     } as MessageAttachmentFileInput;
-                    await Modules.Messaging.sendMessage(ctx, conv.id, superNotificationsAppId!, {attachments: [attachment]}, true);
+                    await Modules.Messaging.sendMessage(ctx, conv.id, superNotificationsAppId!, { attachments: [attachment] }, true);
                 });
                 return 'done, total: ' + total;
             });
@@ -2384,23 +2382,23 @@ export const Resolver: GQLResolver = {
                 if (args.spans) {
                     for (let span of args.spans) {
                         if (span.type === 'Bold') {
-                            spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
+                            spans.push({ offset: span.offset, length: span.length, type: 'bold_text' });
                         } else if (span.type === 'Italic') {
-                            spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
+                            spans.push({ offset: span.offset, length: span.length, type: 'italic_text' });
                         } else if (span.type === 'InlineCode') {
-                            spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
+                            spans.push({ offset: span.offset, length: span.length, type: 'inline_code_text' });
                         } else if (span.type === 'CodeBlock') {
-                            spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
+                            spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
                         } else if (span.type === 'Irony') {
-                            spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
+                            spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
                         } else if (span.type === 'Insane') {
-                            spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
+                            spans.push({ offset: span.offset, length: span.length, type: 'insane_text' });
                         } else if (span.type === 'Loud') {
-                            spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
+                            spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
                         } else if (span.type === 'Rotating') {
-                            spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
+                            spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
                         } else if (span.type === 'Link' && span.url) {
-                            spans.push({offset: span.offset, length: span.length, type: 'link', url: span.url});
+                            spans.push({ offset: span.offset, length: span.length, type: 'link', url: span.url });
                         }
                     }
                 }

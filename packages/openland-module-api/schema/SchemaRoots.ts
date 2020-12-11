@@ -856,4 +856,7 @@ export namespace GQLRoots {
 
     export type SyncChatRoot = { conversation: Conversation, sequence: SequenceRoot };
     export type SyncChatsConnectionRoot = { items: SyncChatRoot[], cursor: string | null };
+
+    export type DebugGlobalCounterRoot = { all: number, mentions: number };
+    export type DebugChatCounterRoot = { all: number, mentions: number };
 }
