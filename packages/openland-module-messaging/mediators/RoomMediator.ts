@@ -638,6 +638,8 @@ export class RoomMediator {
                 await this.events.onChatCreated(ctx, res.conv.id);
                 await this.events.onChatPrivateCreated(ctx, res.conv.id, uid1);
                 await this.events.onChatPrivateCreated(ctx, res.conv.id, uid2);
+                await this.messaging.counters.subscribe(ctx, { cid: res.conv.id, uid: uid1, muted: false, seq: 0 });
+                await this.messaging.counters.subscribe(ctx, { cid: res.conv.id, uid: uid2, muted: false, seq: 0 });
             }
             return res.conv;
         });
