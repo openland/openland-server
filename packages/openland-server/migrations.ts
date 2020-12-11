@@ -5,8 +5,6 @@ import { Store } from 'openland-module-db/FDB';
 import { inTx, encoders } from '@openland/foundationdb';
 import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 import uuid from 'uuid';
-import { debugSubspaceIterator } from 'openland-utils/debugTask';
-import { MessageShape } from 'openland-module-db/store';
 
 // @ts-ignore
 const logger = createLogger('migration');
