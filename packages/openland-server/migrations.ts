@@ -1108,7 +1108,7 @@ migrations.push({
     key: '166-migrate-counters-all-private',
     migration: async (parent) => {
         let index = 0;
-        await Store.ConversationPrivate.iterateAllItems(parent, 10000, async (ctx, items) => {
+        await Store.ConversationPrivate.iterateAllItems(parent, 1000, async (ctx, items) => {
             try {
                 logger.log(ctx, 'Iteration ' + index);
                 for (let i of items) {
