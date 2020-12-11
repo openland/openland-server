@@ -24,7 +24,13 @@ export class UserReadSeqsDirectory {
 
     updateReadSeq = async (parent: Context, uid: number, cid: number, toSeq: number) => {
         return inTx(parent, async ctx => {
-            this.directory.set(ctx, [uid, cid], toSeq);
+            let existing = await this.directory.get(ctx, [uid, cid]);
+            if (existing === null || existing < toSeq) {
+                this.directory.set(ctx, [uid, cid], toSeq);
+                return true;
+            } else {
+                return false;
+            }
         });
     }
 
