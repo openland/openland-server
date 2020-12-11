@@ -5,6 +5,8 @@ import { Store } from 'openland-module-db/FDB';
 import { inTx, encoders } from '@openland/foundationdb';
 import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 import uuid from 'uuid';
+import { debugSubspaceIterator } from 'openland-utils/debugTask';
+import { MessageShape } from 'openland-module-db/store';
 
 // @ts-ignore
 const logger = createLogger('migration');
@@ -967,7 +969,7 @@ migrations.push({
             if (ex.length === 0) {
                 break;
             }
-            let ids = ex.map((e) => ({cid: e.key[0] as number, uid: e.key[1] as number}));
+            let ids = ex.map((e) => ({ cid: e.key[0] as number, uid: e.key[1] as number }));
             logger.log(parent, 'Apply conversation ' + after + ': ' + ids.length);
             await inTx(parent, async ctx => {
                 await Promise.all(ids.map(async (u) => {
@@ -994,7 +996,7 @@ migrations.push({
             if (ex.length === 0) {
                 break;
             }
-            let ids = ex.map((e) => ({cid: e.key[0] as number, uid: e.key[1] as number}));
+            let ids = ex.map((e) => ({ cid: e.key[0] as number, uid: e.key[1] as number }));
             logger.log(parent, 'Apply conversation ' + after + ': ' + ids.length);
             await inTx(parent, async ctx => {
                 await Promise.all(ids.map(async (u) => {
@@ -1041,7 +1043,7 @@ migrations.push({
             if (ex.length === 0) {
                 break;
             }
-            let ids = ex.map((e) => ({cid: e.key[0] as number, uid: e.key[1] as number}));
+            let ids = ex.map((e) => ({ cid: e.key[0] as number, uid: e.key[1] as number }));
             logger.log(parent, 'Apply conversation ' + after + ': ' + ids.length);
             await inTx(parent, async ctx => {
                 await Promise.all(ids.map(async (u) => {
@@ -1062,7 +1064,7 @@ migrations.push({
             if (ex.length === 0) {
                 break;
             }
-            let ids = ex.map((e) => ({cid: e.key[0] as number, uid: e.key[1] as number}));
+            let ids = ex.map((e) => ({ cid: e.key[0] as number, uid: e.key[1] as number }));
             logger.log(parent, 'Apply conversation ' + after + ': ' + ids.length);
             await inTx(parent, async ctx => {
                 await Promise.all(ids.map(async (u) => {
@@ -1076,6 +1078,17 @@ migrations.push({
 
             after = ex[ex.length - 1].key[0] as number;
         }
+    }
+});
+
+migrations.push({
+    key: '160-migrate-all-counters',
+    migration: async (parent) => {
+        await Store.Message.iterateAllItems(parent, 1000, async (ctx, items) => {
+            for (let i of items) {
+                await Modules.Messaging.messaging.counters.onMessage(ctx, i);
+            }
+        });
     }
 });
 
