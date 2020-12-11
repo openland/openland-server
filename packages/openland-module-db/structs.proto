@@ -27,6 +27,39 @@ message CountersMessageRef {
     repeated int32 visibleOnlyTo = 3;
 }
 
+message DirectCounterRefs {
+    repeated DirectCounterRef refs = 0;
+}
+
+message DirectCounterRef {
+    required int32 uid = 0;
+    required int32 seq = 1;
+    required int32 counter = 2;
+    required int32 mentions = 3;
+}
+
+message ConversationCountersState {
+    repeated int32 direct = 0;
+}
+
+message UserCounterState {
+    required int32 seq = 1;
+    required bool muted = 2;
+    required bool async = 3;
+    optional int32 counter = 4;
+    optional int32 mentions = 5;
+}
+
+message UserSubscriptionState {
+    required int32 cid = 1;
+    required bool muted = 2;
+    required int32 seq = 3;
+}
+
+message UserCounterAsyncSubscriptions {
+    repeated UserSubscriptionState subscriptions = 1;
+}
+
 enum TreeNodeType {
     LEAF = 0;
     INNER = 1;

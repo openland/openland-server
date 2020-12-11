@@ -263,9 +263,8 @@ export class MessagingMediator {
 
             await this.delivery.onNewMessage(ctx, res.message);
 
-            if (res.message.seq) {
-                await this.userReadSeqs.updateReadSeq(ctx, uid, cid, res.message.seq);
-            }
+            // WTF?
+            // await this.userReadSeqs.updateReadSeq(ctx, uid, cid, res.message.seq);
 
             // Mentions
             await this.mentionNotifications.onNewMessage(ctx, res.message);
@@ -491,10 +490,9 @@ export class MessagingMediator {
             if (!msg || msg.cid !== cid) {
                 throw Error('Invalid request');
             }
-            await this.delivery.onRoomRead(ctx, uid, mid);
-
-            if (msg.seq) {
-                await this.userReadSeqs.updateReadSeq(ctx, uid, cid, msg.seq);
+            if (await this.userReadSeqs.updateReadSeq(ctx, uid, cid, msg.seq)) {
+                await this.delivery.onRoomRead(ctx, uid, mid);
+                await this.counters.readMessages(ctx, { cid, uid, seq: msg.seq });
             }
         });
     }

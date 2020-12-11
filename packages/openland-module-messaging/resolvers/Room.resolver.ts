@@ -462,7 +462,7 @@ export const Resolver: GQLResolver = {
                     invitedBy: m.invitedBy || org.ownerId
                 }));
             } else {
-                let adminsIds =  new Map<number, number>();
+                let adminsIds = new Map<number, number>();
                 let admins = (await Store.RoomParticipant.admins.findAll(ctx, roomId));
 
                 admins.forEach((row, i) => {
@@ -818,6 +818,7 @@ export const Resolver: GQLResolver = {
                 if (args.settings.mute !== undefined && args.settings.mute !== null) {
                     if (settings.mute !== args.settings.mute) {
                         await Modules.Messaging.setChatMuted(ctx, uid, cid, args.settings.mute);
+                        await Modules.Messaging.messaging.counters.updateMuted(ctx, { cid, uid, muted: args.settings.mute });
                         await Modules.Messaging.room.onDialogMuteChanged(ctx, uid, cid, args.settings.mute);
                         await Modules.Hooks.onDialogMuteChanged(ctx, uid, cid, args.settings.mute);
                     }

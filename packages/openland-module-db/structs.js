@@ -1113,6 +1113,1395 @@ $root.CountersMessageRef = (function() {
     return CountersMessageRef;
 })();
 
+$root.DirectCounterRefs = (function() {
+
+    /**
+     * Properties of a DirectCounterRefs.
+     * @exports IDirectCounterRefs
+     * @interface IDirectCounterRefs
+     * @property {Array.<IDirectCounterRef>|null} [refs] DirectCounterRefs refs
+     */
+
+    /**
+     * Constructs a new DirectCounterRefs.
+     * @exports DirectCounterRefs
+     * @classdesc Represents a DirectCounterRefs.
+     * @implements IDirectCounterRefs
+     * @constructor
+     * @param {IDirectCounterRefs=} [properties] Properties to set
+     */
+    function DirectCounterRefs(properties) {
+        this.refs = [];
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * DirectCounterRefs refs.
+     * @member {Array.<IDirectCounterRef>} refs
+     * @memberof DirectCounterRefs
+     * @instance
+     */
+    DirectCounterRefs.prototype.refs = $util.emptyArray;
+
+    /**
+     * Creates a new DirectCounterRefs instance using the specified properties.
+     * @function create
+     * @memberof DirectCounterRefs
+     * @static
+     * @param {IDirectCounterRefs=} [properties] Properties to set
+     * @returns {DirectCounterRefs} DirectCounterRefs instance
+     */
+    DirectCounterRefs.create = function create(properties) {
+        return new DirectCounterRefs(properties);
+    };
+
+    /**
+     * Encodes the specified DirectCounterRefs message. Does not implicitly {@link DirectCounterRefs.verify|verify} messages.
+     * @function encode
+     * @memberof DirectCounterRefs
+     * @static
+     * @param {IDirectCounterRefs} message DirectCounterRefs message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    DirectCounterRefs.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        if (message.refs != null && message.refs.length)
+            for (var i = 0; i < message.refs.length; ++i)
+                $root.DirectCounterRef.encode(message.refs[i], writer.uint32(/* id 0, wireType 2 =*/2).fork()).ldelim();
+        return writer;
+    };
+
+    /**
+     * Encodes the specified DirectCounterRefs message, length delimited. Does not implicitly {@link DirectCounterRefs.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof DirectCounterRefs
+     * @static
+     * @param {IDirectCounterRefs} message DirectCounterRefs message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    DirectCounterRefs.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a DirectCounterRefs message from the specified reader or buffer.
+     * @function decode
+     * @memberof DirectCounterRefs
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {DirectCounterRefs} DirectCounterRefs
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    DirectCounterRefs.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.DirectCounterRefs();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 0:
+                if (!(message.refs && message.refs.length))
+                    message.refs = [];
+                message.refs.push($root.DirectCounterRef.decode(reader, reader.uint32()));
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Decodes a DirectCounterRefs message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof DirectCounterRefs
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {DirectCounterRefs} DirectCounterRefs
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    DirectCounterRefs.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a DirectCounterRefs message.
+     * @function verify
+     * @memberof DirectCounterRefs
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    DirectCounterRefs.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (message.refs != null && message.hasOwnProperty("refs")) {
+            if (!Array.isArray(message.refs))
+                return "refs: array expected";
+            for (var i = 0; i < message.refs.length; ++i) {
+                var error = $root.DirectCounterRef.verify(message.refs[i]);
+                if (error)
+                    return "refs." + error;
+            }
+        }
+        return null;
+    };
+
+    /**
+     * Creates a DirectCounterRefs message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof DirectCounterRefs
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {DirectCounterRefs} DirectCounterRefs
+     */
+    DirectCounterRefs.fromObject = function fromObject(object) {
+        if (object instanceof $root.DirectCounterRefs)
+            return object;
+        var message = new $root.DirectCounterRefs();
+        if (object.refs) {
+            if (!Array.isArray(object.refs))
+                throw TypeError(".DirectCounterRefs.refs: array expected");
+            message.refs = [];
+            for (var i = 0; i < object.refs.length; ++i) {
+                if (typeof object.refs[i] !== "object")
+                    throw TypeError(".DirectCounterRefs.refs: object expected");
+                message.refs[i] = $root.DirectCounterRef.fromObject(object.refs[i]);
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a DirectCounterRefs message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof DirectCounterRefs
+     * @static
+     * @param {DirectCounterRefs} message DirectCounterRefs
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    DirectCounterRefs.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.arrays || options.defaults)
+            object.refs = [];
+        if (message.refs && message.refs.length) {
+            object.refs = [];
+            for (var j = 0; j < message.refs.length; ++j)
+                object.refs[j] = $root.DirectCounterRef.toObject(message.refs[j], options);
+        }
+        return object;
+    };
+
+    /**
+     * Converts this DirectCounterRefs to JSON.
+     * @function toJSON
+     * @memberof DirectCounterRefs
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    DirectCounterRefs.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return DirectCounterRefs;
+})();
+
+$root.DirectCounterRef = (function() {
+
+    /**
+     * Properties of a DirectCounterRef.
+     * @exports IDirectCounterRef
+     * @interface IDirectCounterRef
+     * @property {number} uid DirectCounterRef uid
+     * @property {number} seq DirectCounterRef seq
+     * @property {number} counter DirectCounterRef counter
+     * @property {number} mentions DirectCounterRef mentions
+     */
+
+    /**
+     * Constructs a new DirectCounterRef.
+     * @exports DirectCounterRef
+     * @classdesc Represents a DirectCounterRef.
+     * @implements IDirectCounterRef
+     * @constructor
+     * @param {IDirectCounterRef=} [properties] Properties to set
+     */
+    function DirectCounterRef(properties) {
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * DirectCounterRef uid.
+     * @member {number} uid
+     * @memberof DirectCounterRef
+     * @instance
+     */
+    DirectCounterRef.prototype.uid = 0;
+
+    /**
+     * DirectCounterRef seq.
+     * @member {number} seq
+     * @memberof DirectCounterRef
+     * @instance
+     */
+    DirectCounterRef.prototype.seq = 0;
+
+    /**
+     * DirectCounterRef counter.
+     * @member {number} counter
+     * @memberof DirectCounterRef
+     * @instance
+     */
+    DirectCounterRef.prototype.counter = 0;
+
+    /**
+     * DirectCounterRef mentions.
+     * @member {number} mentions
+     * @memberof DirectCounterRef
+     * @instance
+     */
+    DirectCounterRef.prototype.mentions = 0;
+
+    /**
+     * Creates a new DirectCounterRef instance using the specified properties.
+     * @function create
+     * @memberof DirectCounterRef
+     * @static
+     * @param {IDirectCounterRef=} [properties] Properties to set
+     * @returns {DirectCounterRef} DirectCounterRef instance
+     */
+    DirectCounterRef.create = function create(properties) {
+        return new DirectCounterRef(properties);
+    };
+
+    /**
+     * Encodes the specified DirectCounterRef message. Does not implicitly {@link DirectCounterRef.verify|verify} messages.
+     * @function encode
+     * @memberof DirectCounterRef
+     * @static
+     * @param {IDirectCounterRef} message DirectCounterRef message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    DirectCounterRef.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        writer.uint32(/* id 0, wireType 0 =*/0).int32(message.uid);
+        writer.uint32(/* id 1, wireType 0 =*/8).int32(message.seq);
+        writer.uint32(/* id 2, wireType 0 =*/16).int32(message.counter);
+        writer.uint32(/* id 3, wireType 0 =*/24).int32(message.mentions);
+        return writer;
+    };
+
+    /**
+     * Encodes the specified DirectCounterRef message, length delimited. Does not implicitly {@link DirectCounterRef.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof DirectCounterRef
+     * @static
+     * @param {IDirectCounterRef} message DirectCounterRef message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    DirectCounterRef.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a DirectCounterRef message from the specified reader or buffer.
+     * @function decode
+     * @memberof DirectCounterRef
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {DirectCounterRef} DirectCounterRef
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    DirectCounterRef.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.DirectCounterRef();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 0:
+                message.uid = reader.int32();
+                break;
+            case 1:
+                message.seq = reader.int32();
+                break;
+            case 2:
+                message.counter = reader.int32();
+                break;
+            case 3:
+                message.mentions = reader.int32();
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        if (!message.hasOwnProperty("uid"))
+            throw $util.ProtocolError("missing required 'uid'", { instance: message });
+        if (!message.hasOwnProperty("seq"))
+            throw $util.ProtocolError("missing required 'seq'", { instance: message });
+        if (!message.hasOwnProperty("counter"))
+            throw $util.ProtocolError("missing required 'counter'", { instance: message });
+        if (!message.hasOwnProperty("mentions"))
+            throw $util.ProtocolError("missing required 'mentions'", { instance: message });
+        return message;
+    };
+
+    /**
+     * Decodes a DirectCounterRef message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof DirectCounterRef
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {DirectCounterRef} DirectCounterRef
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    DirectCounterRef.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a DirectCounterRef message.
+     * @function verify
+     * @memberof DirectCounterRef
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    DirectCounterRef.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (!$util.isInteger(message.uid))
+            return "uid: integer expected";
+        if (!$util.isInteger(message.seq))
+            return "seq: integer expected";
+        if (!$util.isInteger(message.counter))
+            return "counter: integer expected";
+        if (!$util.isInteger(message.mentions))
+            return "mentions: integer expected";
+        return null;
+    };
+
+    /**
+     * Creates a DirectCounterRef message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof DirectCounterRef
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {DirectCounterRef} DirectCounterRef
+     */
+    DirectCounterRef.fromObject = function fromObject(object) {
+        if (object instanceof $root.DirectCounterRef)
+            return object;
+        var message = new $root.DirectCounterRef();
+        if (object.uid != null)
+            message.uid = object.uid | 0;
+        if (object.seq != null)
+            message.seq = object.seq | 0;
+        if (object.counter != null)
+            message.counter = object.counter | 0;
+        if (object.mentions != null)
+            message.mentions = object.mentions | 0;
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a DirectCounterRef message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof DirectCounterRef
+     * @static
+     * @param {DirectCounterRef} message DirectCounterRef
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    DirectCounterRef.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.defaults) {
+            object.uid = 0;
+            object.seq = 0;
+            object.counter = 0;
+            object.mentions = 0;
+        }
+        if (message.uid != null && message.hasOwnProperty("uid"))
+            object.uid = message.uid;
+        if (message.seq != null && message.hasOwnProperty("seq"))
+            object.seq = message.seq;
+        if (message.counter != null && message.hasOwnProperty("counter"))
+            object.counter = message.counter;
+        if (message.mentions != null && message.hasOwnProperty("mentions"))
+            object.mentions = message.mentions;
+        return object;
+    };
+
+    /**
+     * Converts this DirectCounterRef to JSON.
+     * @function toJSON
+     * @memberof DirectCounterRef
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    DirectCounterRef.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return DirectCounterRef;
+})();
+
+$root.ConversationCountersState = (function() {
+
+    /**
+     * Properties of a ConversationCountersState.
+     * @exports IConversationCountersState
+     * @interface IConversationCountersState
+     * @property {Array.<number>|null} [direct] ConversationCountersState direct
+     */
+
+    /**
+     * Constructs a new ConversationCountersState.
+     * @exports ConversationCountersState
+     * @classdesc Represents a ConversationCountersState.
+     * @implements IConversationCountersState
+     * @constructor
+     * @param {IConversationCountersState=} [properties] Properties to set
+     */
+    function ConversationCountersState(properties) {
+        this.direct = [];
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * ConversationCountersState direct.
+     * @member {Array.<number>} direct
+     * @memberof ConversationCountersState
+     * @instance
+     */
+    ConversationCountersState.prototype.direct = $util.emptyArray;
+
+    /**
+     * Creates a new ConversationCountersState instance using the specified properties.
+     * @function create
+     * @memberof ConversationCountersState
+     * @static
+     * @param {IConversationCountersState=} [properties] Properties to set
+     * @returns {ConversationCountersState} ConversationCountersState instance
+     */
+    ConversationCountersState.create = function create(properties) {
+        return new ConversationCountersState(properties);
+    };
+
+    /**
+     * Encodes the specified ConversationCountersState message. Does not implicitly {@link ConversationCountersState.verify|verify} messages.
+     * @function encode
+     * @memberof ConversationCountersState
+     * @static
+     * @param {IConversationCountersState} message ConversationCountersState message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    ConversationCountersState.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        if (message.direct != null && message.direct.length) {
+            writer.uint32(/* id 0, wireType 2 =*/2).fork();
+            for (var i = 0; i < message.direct.length; ++i)
+                writer.int32(message.direct[i]);
+            writer.ldelim();
+        }
+        return writer;
+    };
+
+    /**
+     * Encodes the specified ConversationCountersState message, length delimited. Does not implicitly {@link ConversationCountersState.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof ConversationCountersState
+     * @static
+     * @param {IConversationCountersState} message ConversationCountersState message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    ConversationCountersState.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a ConversationCountersState message from the specified reader or buffer.
+     * @function decode
+     * @memberof ConversationCountersState
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {ConversationCountersState} ConversationCountersState
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    ConversationCountersState.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.ConversationCountersState();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 0:
+                if (!(message.direct && message.direct.length))
+                    message.direct = [];
+                if ((tag & 7) === 2) {
+                    var end2 = reader.uint32() + reader.pos;
+                    while (reader.pos < end2)
+                        message.direct.push(reader.int32());
+                } else
+                    message.direct.push(reader.int32());
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Decodes a ConversationCountersState message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof ConversationCountersState
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {ConversationCountersState} ConversationCountersState
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    ConversationCountersState.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a ConversationCountersState message.
+     * @function verify
+     * @memberof ConversationCountersState
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    ConversationCountersState.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (message.direct != null && message.hasOwnProperty("direct")) {
+            if (!Array.isArray(message.direct))
+                return "direct: array expected";
+            for (var i = 0; i < message.direct.length; ++i)
+                if (!$util.isInteger(message.direct[i]))
+                    return "direct: integer[] expected";
+        }
+        return null;
+    };
+
+    /**
+     * Creates a ConversationCountersState message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof ConversationCountersState
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {ConversationCountersState} ConversationCountersState
+     */
+    ConversationCountersState.fromObject = function fromObject(object) {
+        if (object instanceof $root.ConversationCountersState)
+            return object;
+        var message = new $root.ConversationCountersState();
+        if (object.direct) {
+            if (!Array.isArray(object.direct))
+                throw TypeError(".ConversationCountersState.direct: array expected");
+            message.direct = [];
+            for (var i = 0; i < object.direct.length; ++i)
+                message.direct[i] = object.direct[i] | 0;
+        }
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a ConversationCountersState message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof ConversationCountersState
+     * @static
+     * @param {ConversationCountersState} message ConversationCountersState
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    ConversationCountersState.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.arrays || options.defaults)
+            object.direct = [];
+        if (message.direct && message.direct.length) {
+            object.direct = [];
+            for (var j = 0; j < message.direct.length; ++j)
+                object.direct[j] = message.direct[j];
+        }
+        return object;
+    };
+
+    /**
+     * Converts this ConversationCountersState to JSON.
+     * @function toJSON
+     * @memberof ConversationCountersState
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    ConversationCountersState.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return ConversationCountersState;
+})();
+
+$root.UserCounterState = (function() {
+
+    /**
+     * Properties of a UserCounterState.
+     * @exports IUserCounterState
+     * @interface IUserCounterState
+     * @property {number} seq UserCounterState seq
+     * @property {boolean} muted UserCounterState muted
+     * @property {boolean} async UserCounterState async
+     * @property {number|null} [counter] UserCounterState counter
+     * @property {number|null} [mentions] UserCounterState mentions
+     */
+
+    /**
+     * Constructs a new UserCounterState.
+     * @exports UserCounterState
+     * @classdesc Represents a UserCounterState.
+     * @implements IUserCounterState
+     * @constructor
+     * @param {IUserCounterState=} [properties] Properties to set
+     */
+    function UserCounterState(properties) {
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * UserCounterState seq.
+     * @member {number} seq
+     * @memberof UserCounterState
+     * @instance
+     */
+    UserCounterState.prototype.seq = 0;
+
+    /**
+     * UserCounterState muted.
+     * @member {boolean} muted
+     * @memberof UserCounterState
+     * @instance
+     */
+    UserCounterState.prototype.muted = false;
+
+    /**
+     * UserCounterState async.
+     * @member {boolean} async
+     * @memberof UserCounterState
+     * @instance
+     */
+    UserCounterState.prototype.async = false;
+
+    /**
+     * UserCounterState counter.
+     * @member {number} counter
+     * @memberof UserCounterState
+     * @instance
+     */
+    UserCounterState.prototype.counter = 0;
+
+    /**
+     * UserCounterState mentions.
+     * @member {number} mentions
+     * @memberof UserCounterState
+     * @instance
+     */
+    UserCounterState.prototype.mentions = 0;
+
+    /**
+     * Creates a new UserCounterState instance using the specified properties.
+     * @function create
+     * @memberof UserCounterState
+     * @static
+     * @param {IUserCounterState=} [properties] Properties to set
+     * @returns {UserCounterState} UserCounterState instance
+     */
+    UserCounterState.create = function create(properties) {
+        return new UserCounterState(properties);
+    };
+
+    /**
+     * Encodes the specified UserCounterState message. Does not implicitly {@link UserCounterState.verify|verify} messages.
+     * @function encode
+     * @memberof UserCounterState
+     * @static
+     * @param {IUserCounterState} message UserCounterState message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    UserCounterState.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        writer.uint32(/* id 1, wireType 0 =*/8).int32(message.seq);
+        writer.uint32(/* id 2, wireType 0 =*/16).bool(message.muted);
+        writer.uint32(/* id 3, wireType 0 =*/24).bool(message.async);
+        if (message.counter != null && Object.hasOwnProperty.call(message, "counter"))
+            writer.uint32(/* id 4, wireType 0 =*/32).int32(message.counter);
+        if (message.mentions != null && Object.hasOwnProperty.call(message, "mentions"))
+            writer.uint32(/* id 5, wireType 0 =*/40).int32(message.mentions);
+        return writer;
+    };
+
+    /**
+     * Encodes the specified UserCounterState message, length delimited. Does not implicitly {@link UserCounterState.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof UserCounterState
+     * @static
+     * @param {IUserCounterState} message UserCounterState message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    UserCounterState.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a UserCounterState message from the specified reader or buffer.
+     * @function decode
+     * @memberof UserCounterState
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {UserCounterState} UserCounterState
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    UserCounterState.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.UserCounterState();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 1:
+                message.seq = reader.int32();
+                break;
+            case 2:
+                message.muted = reader.bool();
+                break;
+            case 3:
+                message.async = reader.bool();
+                break;
+            case 4:
+                message.counter = reader.int32();
+                break;
+            case 5:
+                message.mentions = reader.int32();
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        if (!message.hasOwnProperty("seq"))
+            throw $util.ProtocolError("missing required 'seq'", { instance: message });
+        if (!message.hasOwnProperty("muted"))
+            throw $util.ProtocolError("missing required 'muted'", { instance: message });
+        if (!message.hasOwnProperty("async"))
+            throw $util.ProtocolError("missing required 'async'", { instance: message });
+        return message;
+    };
+
+    /**
+     * Decodes a UserCounterState message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof UserCounterState
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {UserCounterState} UserCounterState
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    UserCounterState.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a UserCounterState message.
+     * @function verify
+     * @memberof UserCounterState
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    UserCounterState.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (!$util.isInteger(message.seq))
+            return "seq: integer expected";
+        if (typeof message.muted !== "boolean")
+            return "muted: boolean expected";
+        if (typeof message.async !== "boolean")
+            return "async: boolean expected";
+        if (message.counter != null && message.hasOwnProperty("counter"))
+            if (!$util.isInteger(message.counter))
+                return "counter: integer expected";
+        if (message.mentions != null && message.hasOwnProperty("mentions"))
+            if (!$util.isInteger(message.mentions))
+                return "mentions: integer expected";
+        return null;
+    };
+
+    /**
+     * Creates a UserCounterState message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof UserCounterState
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {UserCounterState} UserCounterState
+     */
+    UserCounterState.fromObject = function fromObject(object) {
+        if (object instanceof $root.UserCounterState)
+            return object;
+        var message = new $root.UserCounterState();
+        if (object.seq != null)
+            message.seq = object.seq | 0;
+        if (object.muted != null)
+            message.muted = Boolean(object.muted);
+        if (object.async != null)
+            message.async = Boolean(object.async);
+        if (object.counter != null)
+            message.counter = object.counter | 0;
+        if (object.mentions != null)
+            message.mentions = object.mentions | 0;
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a UserCounterState message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof UserCounterState
+     * @static
+     * @param {UserCounterState} message UserCounterState
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    UserCounterState.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.defaults) {
+            object.seq = 0;
+            object.muted = false;
+            object.async = false;
+            object.counter = 0;
+            object.mentions = 0;
+        }
+        if (message.seq != null && message.hasOwnProperty("seq"))
+            object.seq = message.seq;
+        if (message.muted != null && message.hasOwnProperty("muted"))
+            object.muted = message.muted;
+        if (message.async != null && message.hasOwnProperty("async"))
+            object.async = message.async;
+        if (message.counter != null && message.hasOwnProperty("counter"))
+            object.counter = message.counter;
+        if (message.mentions != null && message.hasOwnProperty("mentions"))
+            object.mentions = message.mentions;
+        return object;
+    };
+
+    /**
+     * Converts this UserCounterState to JSON.
+     * @function toJSON
+     * @memberof UserCounterState
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    UserCounterState.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return UserCounterState;
+})();
+
+$root.UserSubscriptionState = (function() {
+
+    /**
+     * Properties of a UserSubscriptionState.
+     * @exports IUserSubscriptionState
+     * @interface IUserSubscriptionState
+     * @property {number} cid UserSubscriptionState cid
+     * @property {boolean} muted UserSubscriptionState muted
+     * @property {number} seq UserSubscriptionState seq
+     */
+
+    /**
+     * Constructs a new UserSubscriptionState.
+     * @exports UserSubscriptionState
+     * @classdesc Represents a UserSubscriptionState.
+     * @implements IUserSubscriptionState
+     * @constructor
+     * @param {IUserSubscriptionState=} [properties] Properties to set
+     */
+    function UserSubscriptionState(properties) {
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * UserSubscriptionState cid.
+     * @member {number} cid
+     * @memberof UserSubscriptionState
+     * @instance
+     */
+    UserSubscriptionState.prototype.cid = 0;
+
+    /**
+     * UserSubscriptionState muted.
+     * @member {boolean} muted
+     * @memberof UserSubscriptionState
+     * @instance
+     */
+    UserSubscriptionState.prototype.muted = false;
+
+    /**
+     * UserSubscriptionState seq.
+     * @member {number} seq
+     * @memberof UserSubscriptionState
+     * @instance
+     */
+    UserSubscriptionState.prototype.seq = 0;
+
+    /**
+     * Creates a new UserSubscriptionState instance using the specified properties.
+     * @function create
+     * @memberof UserSubscriptionState
+     * @static
+     * @param {IUserSubscriptionState=} [properties] Properties to set
+     * @returns {UserSubscriptionState} UserSubscriptionState instance
+     */
+    UserSubscriptionState.create = function create(properties) {
+        return new UserSubscriptionState(properties);
+    };
+
+    /**
+     * Encodes the specified UserSubscriptionState message. Does not implicitly {@link UserSubscriptionState.verify|verify} messages.
+     * @function encode
+     * @memberof UserSubscriptionState
+     * @static
+     * @param {IUserSubscriptionState} message UserSubscriptionState message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    UserSubscriptionState.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        writer.uint32(/* id 1, wireType 0 =*/8).int32(message.cid);
+        writer.uint32(/* id 2, wireType 0 =*/16).bool(message.muted);
+        writer.uint32(/* id 3, wireType 0 =*/24).int32(message.seq);
+        return writer;
+    };
+
+    /**
+     * Encodes the specified UserSubscriptionState message, length delimited. Does not implicitly {@link UserSubscriptionState.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof UserSubscriptionState
+     * @static
+     * @param {IUserSubscriptionState} message UserSubscriptionState message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    UserSubscriptionState.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a UserSubscriptionState message from the specified reader or buffer.
+     * @function decode
+     * @memberof UserSubscriptionState
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {UserSubscriptionState} UserSubscriptionState
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    UserSubscriptionState.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.UserSubscriptionState();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 1:
+                message.cid = reader.int32();
+                break;
+            case 2:
+                message.muted = reader.bool();
+                break;
+            case 3:
+                message.seq = reader.int32();
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        if (!message.hasOwnProperty("cid"))
+            throw $util.ProtocolError("missing required 'cid'", { instance: message });
+        if (!message.hasOwnProperty("muted"))
+            throw $util.ProtocolError("missing required 'muted'", { instance: message });
+        if (!message.hasOwnProperty("seq"))
+            throw $util.ProtocolError("missing required 'seq'", { instance: message });
+        return message;
+    };
+
+    /**
+     * Decodes a UserSubscriptionState message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof UserSubscriptionState
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {UserSubscriptionState} UserSubscriptionState
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    UserSubscriptionState.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a UserSubscriptionState message.
+     * @function verify
+     * @memberof UserSubscriptionState
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    UserSubscriptionState.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (!$util.isInteger(message.cid))
+            return "cid: integer expected";
+        if (typeof message.muted !== "boolean")
+            return "muted: boolean expected";
+        if (!$util.isInteger(message.seq))
+            return "seq: integer expected";
+        return null;
+    };
+
+    /**
+     * Creates a UserSubscriptionState message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof UserSubscriptionState
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {UserSubscriptionState} UserSubscriptionState
+     */
+    UserSubscriptionState.fromObject = function fromObject(object) {
+        if (object instanceof $root.UserSubscriptionState)
+            return object;
+        var message = new $root.UserSubscriptionState();
+        if (object.cid != null)
+            message.cid = object.cid | 0;
+        if (object.muted != null)
+            message.muted = Boolean(object.muted);
+        if (object.seq != null)
+            message.seq = object.seq | 0;
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a UserSubscriptionState message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof UserSubscriptionState
+     * @static
+     * @param {UserSubscriptionState} message UserSubscriptionState
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    UserSubscriptionState.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.defaults) {
+            object.cid = 0;
+            object.muted = false;
+            object.seq = 0;
+        }
+        if (message.cid != null && message.hasOwnProperty("cid"))
+            object.cid = message.cid;
+        if (message.muted != null && message.hasOwnProperty("muted"))
+            object.muted = message.muted;
+        if (message.seq != null && message.hasOwnProperty("seq"))
+            object.seq = message.seq;
+        return object;
+    };
+
+    /**
+     * Converts this UserSubscriptionState to JSON.
+     * @function toJSON
+     * @memberof UserSubscriptionState
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    UserSubscriptionState.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return UserSubscriptionState;
+})();
+
+$root.UserCounterAsyncSubscriptions = (function() {
+
+    /**
+     * Properties of a UserCounterAsyncSubscriptions.
+     * @exports IUserCounterAsyncSubscriptions
+     * @interface IUserCounterAsyncSubscriptions
+     * @property {Array.<IUserSubscriptionState>|null} [subscriptions] UserCounterAsyncSubscriptions subscriptions
+     */
+
+    /**
+     * Constructs a new UserCounterAsyncSubscriptions.
+     * @exports UserCounterAsyncSubscriptions
+     * @classdesc Represents a UserCounterAsyncSubscriptions.
+     * @implements IUserCounterAsyncSubscriptions
+     * @constructor
+     * @param {IUserCounterAsyncSubscriptions=} [properties] Properties to set
+     */
+    function UserCounterAsyncSubscriptions(properties) {
+        this.subscriptions = [];
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * UserCounterAsyncSubscriptions subscriptions.
+     * @member {Array.<IUserSubscriptionState>} subscriptions
+     * @memberof UserCounterAsyncSubscriptions
+     * @instance
+     */
+    UserCounterAsyncSubscriptions.prototype.subscriptions = $util.emptyArray;
+
+    /**
+     * Creates a new UserCounterAsyncSubscriptions instance using the specified properties.
+     * @function create
+     * @memberof UserCounterAsyncSubscriptions
+     * @static
+     * @param {IUserCounterAsyncSubscriptions=} [properties] Properties to set
+     * @returns {UserCounterAsyncSubscriptions} UserCounterAsyncSubscriptions instance
+     */
+    UserCounterAsyncSubscriptions.create = function create(properties) {
+        return new UserCounterAsyncSubscriptions(properties);
+    };
+
+    /**
+     * Encodes the specified UserCounterAsyncSubscriptions message. Does not implicitly {@link UserCounterAsyncSubscriptions.verify|verify} messages.
+     * @function encode
+     * @memberof UserCounterAsyncSubscriptions
+     * @static
+     * @param {IUserCounterAsyncSubscriptions} message UserCounterAsyncSubscriptions message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    UserCounterAsyncSubscriptions.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        if (message.subscriptions != null && message.subscriptions.length)
+            for (var i = 0; i < message.subscriptions.length; ++i)
+                $root.UserSubscriptionState.encode(message.subscriptions[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+        return writer;
+    };
+
+    /**
+     * Encodes the specified UserCounterAsyncSubscriptions message, length delimited. Does not implicitly {@link UserCounterAsyncSubscriptions.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof UserCounterAsyncSubscriptions
+     * @static
+     * @param {IUserCounterAsyncSubscriptions} message UserCounterAsyncSubscriptions message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    UserCounterAsyncSubscriptions.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a UserCounterAsyncSubscriptions message from the specified reader or buffer.
+     * @function decode
+     * @memberof UserCounterAsyncSubscriptions
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {UserCounterAsyncSubscriptions} UserCounterAsyncSubscriptions
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    UserCounterAsyncSubscriptions.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.UserCounterAsyncSubscriptions();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 1:
+                if (!(message.subscriptions && message.subscriptions.length))
+                    message.subscriptions = [];
+                message.subscriptions.push($root.UserSubscriptionState.decode(reader, reader.uint32()));
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Decodes a UserCounterAsyncSubscriptions message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof UserCounterAsyncSubscriptions
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {UserCounterAsyncSubscriptions} UserCounterAsyncSubscriptions
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    UserCounterAsyncSubscriptions.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a UserCounterAsyncSubscriptions message.
+     * @function verify
+     * @memberof UserCounterAsyncSubscriptions
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    UserCounterAsyncSubscriptions.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (message.subscriptions != null && message.hasOwnProperty("subscriptions")) {
+            if (!Array.isArray(message.subscriptions))
+                return "subscriptions: array expected";
+            for (var i = 0; i < message.subscriptions.length; ++i) {
+                var error = $root.UserSubscriptionState.verify(message.subscriptions[i]);
+                if (error)
+                    return "subscriptions." + error;
+            }
+        }
+        return null;
+    };
+
+    /**
+     * Creates a UserCounterAsyncSubscriptions message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof UserCounterAsyncSubscriptions
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {UserCounterAsyncSubscriptions} UserCounterAsyncSubscriptions
+     */
+    UserCounterAsyncSubscriptions.fromObject = function fromObject(object) {
+        if (object instanceof $root.UserCounterAsyncSubscriptions)
+            return object;
+        var message = new $root.UserCounterAsyncSubscriptions();
+        if (object.subscriptions) {
+            if (!Array.isArray(object.subscriptions))
+                throw TypeError(".UserCounterAsyncSubscriptions.subscriptions: array expected");
+            message.subscriptions = [];
+            for (var i = 0; i < object.subscriptions.length; ++i) {
+                if (typeof object.subscriptions[i] !== "object")
+                    throw TypeError(".UserCounterAsyncSubscriptions.subscriptions: object expected");
+                message.subscriptions[i] = $root.UserSubscriptionState.fromObject(object.subscriptions[i]);
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a UserCounterAsyncSubscriptions message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof UserCounterAsyncSubscriptions
+     * @static
+     * @param {UserCounterAsyncSubscriptions} message UserCounterAsyncSubscriptions
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    UserCounterAsyncSubscriptions.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.arrays || options.defaults)
+            object.subscriptions = [];
+        if (message.subscriptions && message.subscriptions.length) {
+            object.subscriptions = [];
+            for (var j = 0; j < message.subscriptions.length; ++j)
+                object.subscriptions[j] = $root.UserSubscriptionState.toObject(message.subscriptions[j], options);
+        }
+        return object;
+    };
+
+    /**
+     * Converts this UserCounterAsyncSubscriptions to JSON.
+     * @function toJSON
+     * @memberof UserCounterAsyncSubscriptions
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    UserCounterAsyncSubscriptions.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return UserCounterAsyncSubscriptions;
+})();
+
 /**
  * TreeNodeType enum.
  * @exports TreeNodeType

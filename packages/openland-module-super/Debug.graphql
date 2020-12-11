@@ -59,13 +59,6 @@ type DebugUserMetrics {
     audienceCount: Int!
 }
 
-type DebugGlobalCounters {
-    allUnreadMessages: Int!
-    unreadMessagesWithoutMuted: Int!
-    allUnreadChats: Int!
-    unreadChatsWithoutMuted: Int!
-}
-
 type GqlTrace {
     id: ID!
     name: String!
@@ -79,6 +72,24 @@ type GqlTraceConnection {
     cursor: ID
 }
 
+type DebugGlobalCounter {
+    all: Int!
+    mentions: Int!
+}
+
+type DebugChatCounter {
+    all: Int!
+    mentions: Int!
+}
+
+type DebugChatState {
+    seq: Int!
+    muted: Boolean!
+    async: Boolean!
+    counter: Int!
+    mentions: Int!
+}
+
 extend type Query {
     debugParseID(id: ID!): DebugID!
     debugCrashQuery: String!
@@ -90,7 +101,6 @@ extend type Query {
     debugCheckTasksIndex: String!
     debug2WayDirectChatsCounter: Int!
     debugUserMetrics(id: ID!): DebugUserMetrics!
-    debugGlobalCounters(uid: ID): DebugGlobalCounters! #Deprecated
     debugServerId: String!
     debugGqlTraces(first: Int!, after: ID): GqlTraceConnection!
     debugGqlTrace(id: ID!): GqlTrace!
@@ -104,6 +114,10 @@ extend type Query {
     debugExperimentalCounter(cid: ID!): String!
     debugFindUser(email: String, phone: String): User
     debugSocialSharingImage(template: String!, title: String!, image: String!, subTitle: String!): String!
+
+    debugChatCounter(id: ID!): DebugChatCounter!
+    debugChatState(id: ID!): DebugChatState
+    debugGlobalCounter: DebugGlobalCounter!
 }
 
 enum SuperNotificationType {

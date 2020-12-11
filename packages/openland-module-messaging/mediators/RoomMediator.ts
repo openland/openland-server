@@ -18,6 +18,7 @@ import { MessageInput } from '../MessageInput';
 import { boldString, buildMessage, userMention, usersMention } from '../../openland-utils/MessageBuilder';
 import { Store } from 'openland-module-db/FDB';
 import { createWelcomeMessageWorker } from 'openland-module-messaging/workers/welcomeMessageWorker';
+import { UserStateRepository } from 'openland-module-messaging/repositories/UserStateRepository';
 
 @injectable()
 export class RoomMediator {
@@ -30,6 +31,8 @@ export class RoomMediator {
     private readonly delivery!: DeliveryMediator;
     @lazyInject('MessagingEventsMediator')
     readonly events!: EventsMediator;
+    @lazyInject('UserStateRepository')
+    readonly userState!: UserStateRepository;
 
     public readonly welcomeMessageWorker = createWelcomeMessageWorker();
 
@@ -638,6 +641,8 @@ export class RoomMediator {
                 await this.events.onChatCreated(ctx, res.conv.id);
                 await this.events.onChatPrivateCreated(ctx, res.conv.id, uid1);
                 await this.events.onChatPrivateCreated(ctx, res.conv.id, uid2);
+                await this.messaging.counters.subscribe(ctx, { cid: res.conv.id, uid: uid1, muted: false, seq: 0 });
+                await this.messaging.counters.subscribe(ctx, { cid: res.conv.id, uid: uid2, muted: false, seq: 0 });
             }
             return res.conv;
         });
@@ -850,6 +855,9 @@ export class RoomMediator {
     private async onRoomJoin(parent: Context, cid: number, uid: number, by: number) {
         return await inTx(parent, async (ctx) => {
             await this.events.onChatJoined(ctx, cid, uid);
+            let chatLastSeq = await Store.ConversationLastSeq.byId(cid).get(ctx);
+            let muted = (await this.userState.getRoomSettings(ctx, uid, cid)).mute;
+            await this.messaging.counters.subscribe(ctx, { cid, uid, seq: chatLastSeq, muted });
 
             EventBus.publish(`chat_join_${cid}`, { uid, cid });
             Events.MembersLog.event(ctx, { rid: cid, delta: 1 });
@@ -922,6 +930,7 @@ export class RoomMediator {
     private async onRoomLeave(parent: Context, cid: number, uid: number, wasKicked: boolean) {
         return await inTx(parent, async (ctx) => {
             await this.events.onChatLeft(ctx, cid, uid);
+            await this.messaging.counters.unsubscribe(ctx, { cid, uid });
 
             Events.MembersLog.event(ctx, { rid: cid, delta: -1 });
             let roomProfile = await Store.RoomProfile.findById(ctx, cid);

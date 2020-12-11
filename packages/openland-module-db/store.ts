@@ -4884,7 +4884,7 @@ export interface MessageShape {
     id: number;
     cid: number;
     uid: number;
-    seq: number | null;
+    seq: number;
     repeatKey: string | null;
     text: string | null;
     replyMessages: (number)[] | null;
@@ -4917,7 +4917,7 @@ export interface MessageShape {
 export interface MessageCreateShape {
     cid: number;
     uid: number;
-    seq?: number | null | undefined;
+    seq: number;
     repeatKey?: string | null | undefined;
     text?: string | null | undefined;
     replyMessages?: (number)[] | null | undefined;
@@ -4967,8 +4967,8 @@ export class Message extends Entity<MessageShape> {
             this.invalidate();
         }
     }
-    get seq(): number | null { return this._rawValue.seq; }
-    set seq(value: number | null) {
+    get seq(): number { return this._rawValue.seq; }
+    set seq(value: number) {
         let normalized = this.descriptor.codec.fields.seq.normalize(value);
         if (this._rawValue.seq !== normalized) {
             this._rawValue.seq = normalized;
@@ -5227,7 +5227,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         let subspace = await storage.resolveEntityDirectory('message');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chat'), condition: (src) => !src.deleted });
-        secondaryIndexes.push({ name: 'chatSeq', storageKey: 'chatSeq', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'seq', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chatSeq'), condition: (src) => !src.deleted });
+        secondaryIndexes.push({ name: 'chatSeq', storageKey: 'chatSeq', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chatSeq'), condition: (src) => !src.deleted });
         secondaryIndexes.push({ name: 'hasImageAttachment', storageKey: 'hasImageAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasImageAttachment'), condition: (item) => {
             if (item.deleted) {
                 return false;
@@ -5329,7 +5329,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'cid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'seq', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'seq', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'repeatKey', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'text', type: { type: 'optional', inner: { type: 'string' } }, secure: true });
         fields.push({ name: 'replyMessages', type: { type: 'optional', inner: { type: 'array', inner: { type: 'integer' } } }, secure: false });
@@ -5361,7 +5361,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
             id: c.integer,
             cid: c.integer,
             uid: c.integer,
-            seq: c.optional(c.integer),
+            seq: c.integer,
             repeatKey: c.optional(c.string),
             text: c.optional(c.string),
             replyMessages: c.optional(c.array(c.integer)),
@@ -5422,7 +5422,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         findAll: async (ctx: Context, cid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [cid])).items;
         },
-        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number | null>) => {
+        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[1], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (cid: number, opts?: StreamProps) => {

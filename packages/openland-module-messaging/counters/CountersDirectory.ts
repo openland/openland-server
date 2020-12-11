@@ -41,7 +41,7 @@ export class CountersDirectory {
         );
     }
 
-    async addOrUpdateMessage(ctx: Context, collection: TupleItem[], id: number, message: { mentions: number[], allMention: boolean, sender: number, visibleOnlyTo: number[] }) {
+    async addOrUpdateMessage(ctx: Context, collection: TupleItem[], seq: number, message: { mentions: number[], allMention: boolean, sender: number, visibleOnlyTo: number[] }) {
 
         //
         // Normalized input
@@ -74,14 +74,14 @@ export class CountersDirectory {
         }
 
         // Update max known id
-        await this.updateMaxId(ctx, collection, id);
+        await this.updateMaxId(ctx, collection, seq);
 
         // Remove existing
-        let old = await this.refs.read(ctx, [...collection, id]);
+        let old = await this.refs.read(ctx, [...collection, seq]);
         if (old) {
-            await this.removeMessage(ctx, collection, id);
+            await this.removeMessage(ctx, collection, seq);
         }
-        this.refs.write(ctx, [...collection, id], new CountersMessageRef({
+        this.refs.write(ctx, [...collection, seq], new CountersMessageRef({
             sender,
             mentions,
             allMention,
@@ -93,7 +93,7 @@ export class CountersDirectory {
         //
 
         if (visibleOnlyTo.length === 0) {
-            await this.counting.add(ctx, [...collection, COLLECTION_TOTAL], id);
+            await this.counting.add(ctx, [...collection, COLLECTION_TOTAL], seq);
         }
 
         //
@@ -102,7 +102,7 @@ export class CountersDirectory {
 
         for (let u of visibleOnlyTo) {
             if (u !== sender) {
-                await this.counting.add(ctx, [...collection, COLLECTION_PERSONAL_TOTAL, u], id);
+                await this.counting.add(ctx, [...collection, COLLECTION_PERSONAL_TOTAL, u], seq);
             }
         }
 
@@ -111,7 +111,7 @@ export class CountersDirectory {
         //
 
         if (allMention) {
-            await this.counting.add(ctx, [...collection, COLLECTION_ALL_MENTION], id);
+            await this.counting.add(ctx, [...collection, COLLECTION_ALL_MENTION], seq);
         }
 
         //
@@ -119,7 +119,7 @@ export class CountersDirectory {
         //
 
         for (let m of mentions) {
-            await this.counting.add(ctx, [...collection, COLLECTION_MENTION, m], id);
+            await this.counting.add(ctx, [...collection, COLLECTION_MENTION, m], seq);
         }
 
         //
@@ -127,7 +127,7 @@ export class CountersDirectory {
         // 
 
         if (visibleOnlyTo.length === 0) {
-            await this.counting.add(ctx, [...collection, COLLECTION_USER_TOTAL, sender], id);
+            await this.counting.add(ctx, [...collection, COLLECTION_USER_TOTAL, sender], seq);
         }
 
         //
@@ -135,27 +135,27 @@ export class CountersDirectory {
         //
 
         if (allMention) {
-            await this.counting.add(ctx, [...collection, COLLECTION_USER_ALL_MENTION, sender], id);
+            await this.counting.add(ctx, [...collection, COLLECTION_USER_ALL_MENTION, sender], seq);
         }
     }
 
-    async removeMessage(ctx: Context, collection: TupleItem[], id: number) {
+    async removeMessage(ctx: Context, collection: TupleItem[], seq: number) {
         // Update max known id
-        await this.updateMaxId(ctx, collection, id);
+        await this.updateMaxId(ctx, collection, seq);
 
         // Remove message from index
-        let old = await this.refs.read(ctx, [...collection, id]);
+        let old = await this.refs.read(ctx, [...collection, seq]);
         if (!old) {
             return;
         }
-        this.refs.write(ctx, [...collection, id], null);
+        this.refs.write(ctx, [...collection, seq], null);
 
         //
         // Remove global counter
         // 
 
         if (old.visibleOnlyTo.length === 0) {
-            await this.counting.remove(ctx, [...collection, COLLECTION_TOTAL], id);
+            await this.counting.remove(ctx, [...collection, COLLECTION_TOTAL], seq);
         }
 
         //
@@ -164,7 +164,7 @@ export class CountersDirectory {
 
         for (let u of old.visibleOnlyTo) {
             if (u !== old.sender) {
-                await this.counting.remove(ctx, [...collection, COLLECTION_PERSONAL_TOTAL, u], id);
+                await this.counting.remove(ctx, [...collection, COLLECTION_PERSONAL_TOTAL, u], seq);
             }
         }
 
@@ -173,7 +173,7 @@ export class CountersDirectory {
         //
 
         if (old.allMention) {
-            await this.counting.remove(ctx, [...collection, COLLECTION_ALL_MENTION], id);
+            await this.counting.remove(ctx, [...collection, COLLECTION_ALL_MENTION], seq);
         }
 
         //
@@ -181,7 +181,7 @@ export class CountersDirectory {
         //
 
         for (let m of old.mentions) {
-            await this.counting.remove(ctx, [...collection, COLLECTION_MENTION, m], id);
+            await this.counting.remove(ctx, [...collection, COLLECTION_MENTION, m], seq);
         }
 
         //
@@ -189,7 +189,7 @@ export class CountersDirectory {
         // 
 
         if (old.visibleOnlyTo.length === 0) {
-            await this.counting.remove(ctx, [...collection, COLLECTION_USER_TOTAL, old.sender], id);
+            await this.counting.remove(ctx, [...collection, COLLECTION_USER_TOTAL, old.sender], seq);
         }
 
         //
@@ -197,19 +197,19 @@ export class CountersDirectory {
         //
 
         if (old.allMention) {
-            await this.counting.remove(ctx, [...collection, COLLECTION_USER_ALL_MENTION, old.sender], id);
+            await this.counting.remove(ctx, [...collection, COLLECTION_USER_ALL_MENTION, old.sender], seq);
         }
     }
 
-    async count(ctx: Context, collection: TupleItem[], uid: number, id: number) {
-        let totalMessages = await this.counting.count(ctx, [...collection, COLLECTION_TOTAL], id);
-        let allMentions = await this.counting.count(ctx, [...collection, COLLECTION_ALL_MENTION], id);
+    async count(ctx: Context, collection: TupleItem[], uid: number, seq: number) {
+        let totalMessages = await this.counting.count(ctx, [...collection, COLLECTION_TOTAL], seq);
+        let allMentions = await this.counting.count(ctx, [...collection, COLLECTION_ALL_MENTION], seq);
 
-        let totalSent = await this.counting.count(ctx, [...collection, COLLECTION_USER_TOTAL, uid], id);
-        let sentAllMentions = await this.counting.count(ctx, [...collection, COLLECTION_USER_ALL_MENTION, uid], id);
+        let totalSent = await this.counting.count(ctx, [...collection, COLLECTION_USER_TOTAL, uid], seq);
+        let sentAllMentions = await this.counting.count(ctx, [...collection, COLLECTION_USER_ALL_MENTION, uid], seq);
 
-        let personalMentions = await this.counting.count(ctx, [...collection, COLLECTION_MENTION, uid], id);
-        let personalMessages = await this.counting.count(ctx, [...collection, COLLECTION_PERSONAL_TOTAL, uid], id);
+        let personalMentions = await this.counting.count(ctx, [...collection, COLLECTION_MENTION, uid], seq);
+        let personalMessages = await this.counting.count(ctx, [...collection, COLLECTION_PERSONAL_TOTAL, uid], seq);
 
         return {
             unreadMentions: allMentions - sentAllMentions + personalMentions,
@@ -221,16 +221,16 @@ export class CountersDirectory {
     // Tools
     //
 
-    private async updateMaxId(ctx: Context, collection: TupleItem[], id: number) {
+    private async updateMaxId(ctx: Context, collection: TupleItem[], seq: number) {
         let dst = encoders.tuple.pack([SUBSPACE_MAX_ID, ...collection]);
         let ex = await this.subspace.get(ctx, dst);
         if (ex) {
             let res = encoders.int32LE.unpack(ex);
-            if (id > res) {
-                this.subspace.set(ctx, dst, encoders.int32LE.pack(id));
+            if (seq > res) {
+                this.subspace.set(ctx, dst, encoders.int32LE.pack(seq));
             }
         } else {
-            this.subspace.set(ctx, dst, encoders.int32LE.pack(id));
+            this.subspace.set(ctx, dst, encoders.int32LE.pack(seq));
         }
     }
 }
