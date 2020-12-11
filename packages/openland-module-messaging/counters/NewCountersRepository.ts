@@ -3,16 +3,24 @@ import { encoders, Subspace } from '@openland/foundationdb';
 import { Message } from 'openland-module-db/store';
 import { getAllMentions, hasAllMention } from 'openland-module-messaging/resolvers/ModernMessage.resolver';
 import { CountersDirectory } from './CountersDirectory';
+import { CounterSubscribersDirectory } from './CounterSubscribersDirectory';
 
 const SUBSPACE_COUNTERS = 0;
+const SUBSPACE_SUBSCRIBERS = 1;
 
 export class NewCountersRepository {
     readonly subspace: Subspace;
     readonly counters: CountersDirectory;
+    readonly subscribers: CounterSubscribersDirectory;
 
     constructor(subspace: Subspace) {
         this.subspace = subspace;
-        this.counters = new CountersDirectory(subspace.subspace(encoders.tuple.pack([SUBSPACE_COUNTERS])));
+        this.counters = new CountersDirectory(
+            subspace.subspace(encoders.tuple.pack([SUBSPACE_COUNTERS]))
+        );
+        this.subscribers = new CounterSubscribersDirectory(
+            subspace.subspace(encoders.tuple.pack([SUBSPACE_SUBSCRIBERS]))
+        );
     }
 
     onMessage = async (ctx: Context, message: Message) => {
@@ -21,15 +29,81 @@ export class NewCountersRepository {
         let allMention = hasAllMention(message);
         let mentions = getAllMentions(message);
         let visibleOnlyTo = message.visibleOnlyForUids ? message.visibleOnlyForUids : [];
+
+        // Delete old
+        await this.counters.removeMessage(ctx, [message.cid], message.id);
+
         if (deleted) {
-            await this.counters.removeMessage(ctx, [message.cid], message.id!);
+            await this.counters.removeMessage(ctx, [message.cid], message.seq);
         } else {
-            await this.counters.addOrUpdateMessage(ctx, [message.cid], message.id!, {
+            await this.counters.addOrUpdateMessage(ctx, [message.cid], message.seq, {
                 mentions,
                 allMention,
                 sender,
                 visibleOnlyTo
             });
         }
+
+        // Update direct subscribers
+        let direct = await this.subscribers.getDirectSubscribers(ctx, message.cid);
+        for (let d of direct) {
+            let state = await this.subscribers.readState(ctx, { cid: message.cid, uid: d });
+            if (!state || state.async) {
+                throw Error('Internal error');
+            }
+            let read = await this.counters.count(ctx, [message.cid], d, state.seq);
+            await this.subscribers.updateDirect(ctx, { cid: message.cid, uid: d, counter: read.unread, mentions: read.unreadMentions });
+        }
+    }
+
+    async subscribe(ctx: Context, args: { cid: number, uid: number, seq: number, muted: boolean }) {
+        let read = await this.counters.count(ctx, [args.cid], args.uid, args.seq);
+        await this.subscribers.subscribe(ctx, { uid: args.uid, cid: args.cid, muted: args.muted, seq: args.seq, counter: read.unread, mentions: read.unreadMentions });
+    }
+
+    async unsubscribe(ctx: Context, args: { cid: number, uid: number }) {
+        await this.subscribers.unsubscribe(ctx, { uid: args.uid, cid: args.cid });
+    }
+
+    async readMessages(ctx: Context, args: { cid: number, uid: number, seq: number }) {
+        let state = await this.subscribers.readState(ctx, { cid: args.cid, uid: args.uid });
+        if (!state) {
+            return;
+        }
+        let read = await this.counters.count(ctx, [args.cid], args.uid, args.seq);
+        await this.subscribers.subscribe(ctx, { uid: args.uid, cid: args.cid, muted: state.muted, seq: args.seq, counter: read.unread, mentions: read.unreadMentions });
+    }
+
+    async updateMuted(ctx: Context, args: { cid: number, uid: number, muted: boolean }) {
+        let state = await this.subscribers.readState(ctx, { cid: args.cid, uid: args.uid });
+        if (!state) {
+            return;
+        }
+        await this.subscribers.subscribe(ctx, { uid: args.uid, cid: args.cid, muted: args.muted, seq: state.seq, counter: state.counter, mentions: state.mentions });
+    }
+
+    async getGlobalCounter(ctx: Context, uid: number, excludeMuted: boolean, counter: 'all' | 'distinct' | 'all-mentions' | 'distinct-mentions') {
+        let res = await this.subscribers.getCounter(ctx, uid, excludeMuted, counter);
+        let asyncSubscriptions = await this.subscribers.getAsyncSubscriptions(ctx, uid);
+        for (let subs of asyncSubscriptions) {
+            if (excludeMuted) {
+                continue;
+            }
+            let counters = await this.counters.count(ctx, [subs.cid], uid, subs.seq);
+            if (counter === 'all') {
+                res += counters.unread;
+            } else if (counter === 'distinct') {
+                if (counters.unread > 0) {
+                    res++;
+                }
+            } else if (counter === 'all-mentions') {
+                res += counters.unreadMentions;
+            } else if (counter === 'distinct-mentions') {
+                if (counters.unreadMentions > 0) {
+                    res++;
+                }
+            }
+        }
+        return res;
     }
 }

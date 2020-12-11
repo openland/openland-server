@@ -1090,4 +1090,15 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '161-migrate-all-counters',
+    migration: async (parent) => {
+        await Store.Message.iterateAllItems(parent, 1000, async (ctx, items) => {
+            for (let i of items) {
+                await Modules.Messaging.messaging.counters.onMessage(ctx, i);
+            }
+        });
+    }
+});
+
 export default migrations;
