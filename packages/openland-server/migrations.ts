@@ -1083,7 +1083,7 @@ migrations.push({
     key: '168-migrate-all-counters',
     migration: async (parent) => {
         let index = 0;
-        await Store.Message.iterateAllItems(parent, 500, async (ctx, items) => {
+        await Store.Message.iterateAllItems(parent, 250, async (ctx, items) => {
             logger.log(ctx, 'Iteration ' + index);
             for (let i of items) {
                 await Modules.Messaging.messaging.counters.onMessage(ctx, i);
