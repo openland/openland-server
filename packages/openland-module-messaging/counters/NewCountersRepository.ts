@@ -21,11 +21,10 @@ export class NewCountersRepository {
         let allMention = hasAllMention(message);
         let mentions = getAllMentions(message);
         let visibleOnlyTo = message.visibleOnlyForUids ? message.visibleOnlyForUids : [];
-        await this.counters.removeMessage(ctx, [message.cid], message.id); // Remove old broken index
         if (deleted) {
-            await this.counters.removeMessage(ctx, [message.cid], message.seq!);
+            await this.counters.removeMessage(ctx, [message.cid], message.id!);
         } else {
-            await this.counters.addOrUpdateMessage(ctx, [message.cid], message.seq!, {
+            await this.counters.addOrUpdateMessage(ctx, [message.cid], message.id!, {
                 mentions,
                 allMention,
                 sender,
