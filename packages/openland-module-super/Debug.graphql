@@ -82,6 +82,14 @@ type DebugChatCounter {
     mentions: Int!
 }
 
+type DebugChatState {
+    seq: Int!
+    muted: Boolean!
+    async: Boolean!
+    counter: Int!
+    mentions: Int!
+}
+
 extend type Query {
     debugParseID(id: ID!): DebugID!
     debugCrashQuery: String!
@@ -108,6 +116,7 @@ extend type Query {
     debugSocialSharingImage(template: String!, title: String!, image: String!, subTitle: String!): String!
 
     debugChatCounter(id: ID!): DebugChatCounter!
+    debugChatState(id: ID!): DebugChatState
     debugGlobalCounter: DebugGlobalCounter!
 }
 

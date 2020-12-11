@@ -130,6 +130,11 @@ export const Resolver: GQLResolver = {
                 mentions: await Modules.Messaging.messaging.counters.getLocalCounter(ctx, id, cid, 'mentions')
             };
         }),
+        debugChatState: withPermission('super-admin', async (ctx, args) => {
+            let id = ctx.auth.uid!;
+            let cid = IDs.Conversation.parse(args.id);
+            return (await Modules.Messaging.messaging.counters.subscribers.readState(ctx, { cid, uid: id }));
+        }),
         lifecheck: () => `i'm ok`,
         debugParseID: withPermission('super-admin', async (ctx, args) => {
             let id = IdsFactory.resolve(args.id);

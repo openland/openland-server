@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '47b2eb01c010aacfd64402982b56c128';
+export const GQL_SPEC_VERSION = '046506d75faa5dc2f059bef5fec82a56';
 
 export namespace GQL {
     export interface CreditCard {
@@ -490,6 +490,18 @@ export namespace GQL {
     }
     export interface DebugChatCounterAllArgs { }
     export interface DebugChatCounterMentionsArgs { }
+    export interface DebugChatState {
+        seq: number;
+        muted: boolean;
+        async: boolean;
+        counter: number;
+        mentions: number;
+    }
+    export interface DebugChatStateSeqArgs { }
+    export interface DebugChatStateMutedArgs { }
+    export interface DebugChatStateAsyncArgs { }
+    export interface DebugChatStateCounterArgs { }
+    export interface DebugChatStateMentionsArgs { }
     export type SuperNotificationTypeValues = 'ON_SIGN_UP' | 'ON_USER_PROFILE_CREATED' | 'ON_ORG_ACTIVATED_BY_ADMIN' | 'ON_ORG_ACTIVATED_VIA_INVITE' | 'ON_ORG_SUSPEND';
     export type SuperNotificationType = GQLRoots.SuperNotificationTypeRoot;
     export type DialogKindValues = 'PRIVATE' | 'INTERNAL' | 'PUBLIC' | 'GROUP';
@@ -3965,6 +3977,7 @@ export namespace GQL {
         debugFindUser: Nullable<User>;
         debugSocialSharingImage: string;
         debugChatCounter: DebugChatCounter;
+        debugChatState: Nullable<DebugChatState>;
         debugGlobalCounter: DebugGlobalCounter;
         dialogs: DialogsConnection;
         settings: Settings;
@@ -4207,6 +4220,9 @@ export namespace GQL {
         subTitle: string;
     }
     export interface QueryDebugChatCounterArgs {
+        id: string;
+    }
+    export interface QueryDebugChatStateArgs {
         id: string;
     }
     export interface QueryDebugGlobalCounterArgs { }
@@ -6666,6 +6682,19 @@ export interface GQLResolver {
         {
             all: GQL.DebugChatCounterAllArgs,
             mentions: GQL.DebugChatCounterMentionsArgs,
+        }
+    >;
+    DebugChatState?: ComplexTypedResolver<
+        GQL.DebugChatState,
+        GQLRoots.DebugChatStateRoot,
+        {
+        },
+        {
+            seq: GQL.DebugChatStateSeqArgs,
+            muted: GQL.DebugChatStateMutedArgs,
+            async: GQL.DebugChatStateAsyncArgs,
+            counter: GQL.DebugChatStateCounterArgs,
+            mentions: GQL.DebugChatStateMentionsArgs,
         }
     >;
     SuperNotificationType?: EnumTypeResolver<'ON_SIGN_UP' | 'ON_USER_PROFILE_CREATED' | 'ON_ORG_ACTIVATED_BY_ADMIN' | 'ON_ORG_ACTIVATED_VIA_INVITE' | 'ON_ORG_SUSPEND', GQLRoots.SuperNotificationTypeRoot>;
@@ -9450,6 +9479,7 @@ export interface GQLResolver {
             debugUserWallet: GQLRoots.WalletAccountRoot,
             debugFindUser: Nullable<GQLRoots.UserRoot>,
             debugChatCounter: GQLRoots.DebugChatCounterRoot,
+            debugChatState: Nullable<GQLRoots.DebugChatStateRoot>,
             debugGlobalCounter: GQLRoots.DebugGlobalCounterRoot,
             dialogs: GQLRoots.DialogsConnectionRoot,
             settings: GQLRoots.SettingsRoot,
@@ -9627,6 +9657,7 @@ export interface GQLResolver {
             debugFindUser: GQL.QueryDebugFindUserArgs,
             debugSocialSharingImage: GQL.QueryDebugSocialSharingImageArgs,
             debugChatCounter: GQL.QueryDebugChatCounterArgs,
+            debugChatState: GQL.QueryDebugChatStateArgs,
             debugGlobalCounter: GQL.QueryDebugGlobalCounterArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
