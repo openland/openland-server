@@ -1107,7 +1107,9 @@ migrations.push({
 migrations.push({
     key: '166-migrate-counters-all-private',
     migration: async (parent) => {
-        await Store.ConversationPrivate.iterateAllItems(parent, 1000, async (ctx, items) => {
+        let index = 0;
+        await Store.ConversationPrivate.iterateAllItems(parent, 10000, async (ctx, items) => {
+            logger.log(ctx, 'Iteration' + index);
             for (let i of items) {
                 let mute1 = (await Modules.Messaging.getRoomSettings(ctx, i.uid1, i.id)).mute;
                 let mute2 = (await Modules.Messaging.getRoomSettings(ctx, i.uid2, i.id)).mute;
@@ -1116,6 +1118,7 @@ migrations.push({
                 await Modules.Messaging.messaging.counters.subscribe(ctx, { cid: i.id, uid: i.uid1, seq: seq1, muted: mute1 });
                 await Modules.Messaging.messaging.counters.subscribe(ctx, { cid: i.id, uid: i.uid2, seq: seq2, muted: mute2 });
             }
+            index++;
         });
     }
 });
