@@ -29,10 +29,7 @@ export class NewCountersRepository {
         let allMention = hasAllMention(message);
         let mentions = getAllMentions(message);
         let visibleOnlyTo = message.visibleOnlyForUids ? message.visibleOnlyForUids : [];
-
-        // Delete old
-        await this.counters.removeMessage(ctx, [message.cid], message.id);
-
+        
         if (deleted) {
             await this.counters.removeMessage(ctx, [message.cid], message.seq);
         } else {
@@ -86,7 +83,7 @@ export class NewCountersRepository {
         let res = await this.subscribers.getCounter(ctx, uid, excludeMuted, counter);
         let asyncSubscriptions = await this.subscribers.getAsyncSubscriptions(ctx, uid);
         for (let subs of asyncSubscriptions) {
-            if (excludeMuted) {
+            if (subs.muted && excludeMuted) {
                 continue;
             }
             let counters = await this.counters.count(ctx, [subs.cid], uid, subs.seq);

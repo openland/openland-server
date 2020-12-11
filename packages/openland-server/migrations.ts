@@ -1080,7 +1080,21 @@ migrations.push({
 });
 
 migrations.push({
-    key: '160-migrate-all-counters',
+    key: '164-migrate-all-counters',
+    migration: async (parent) => {
+        await inTx(parent, async (ctx) => {
+            Modules.Messaging.messaging.counters.subspace.clearPrefixed(ctx, Buffer.from([]));
+        });
+        await Store.Message.iterateAllItems(parent, 1000, async (ctx, items) => {
+            for (let i of items) {
+                await Modules.Messaging.messaging.counters.onMessage(ctx, i);
+            }
+        });
+    }
+});
+
+migrations.push({
+    key: '165-migrate-all-counters',
     migration: async (parent) => {
         await Store.Message.iterateAllItems(parent, 1000, async (ctx, items) => {
             for (let i of items) {
@@ -1091,18 +1105,7 @@ migrations.push({
 });
 
 migrations.push({
-    key: '161-migrate-all-counters',
-    migration: async (parent) => {
-        await Store.Message.iterateAllItems(parent, 1000, async (ctx, items) => {
-            for (let i of items) {
-                await Modules.Messaging.messaging.counters.onMessage(ctx, i);
-            }
-        });
-    }
-});
-
-migrations.push({
-    key: '162-migrate-counters-all-private',
+    key: '166-migrate-counters-all-private',
     migration: async (parent) => {
         await Store.ConversationPrivate.iterateAllItems(parent, 1000, async (ctx, items) => {
             for (let i of items) {
@@ -1118,7 +1121,7 @@ migrations.push({
 });
 
 migrations.push({
-    key: '163-migrate-counters-rooms',
+    key: '167-migrate-counters-rooms',
     migration: async (parent) => {
         await Store.RoomParticipant.iterateAllItems(parent, 1000, async (ctx, items) => {
             for (let i of items) {
