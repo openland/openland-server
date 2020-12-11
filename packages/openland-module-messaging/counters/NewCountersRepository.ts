@@ -29,7 +29,7 @@ export class NewCountersRepository {
         let allMention = hasAllMention(message);
         let mentions = getAllMentions(message);
         let visibleOnlyTo = message.visibleOnlyForUids ? message.visibleOnlyForUids : [];
-        
+
         if (deleted) {
             await this.counters.removeMessage(ctx, [message.cid], message.seq);
         } else {
@@ -102,5 +102,20 @@ export class NewCountersRepository {
             }
         }
         return res;
+    }
+
+    async getLocalCounter(ctx: Context, uid: number, cid: number, counter: 'all' | 'mentions') {
+        let readState = await this.subscribers.readState(ctx, { cid, uid });
+        if (!readState) {
+            return 0;
+        }
+        let res = await this.counters.count(ctx, [cid], uid, readState.seq);
+        if (counter === 'all') {
+            return res.unread;
+        }
+        if (counter === 'mentions') {
+            return res.unreadMentions;
+        }
+        throw Error('Unknwon counter');
     }
 }
