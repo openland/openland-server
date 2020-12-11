@@ -14,7 +14,7 @@ import { formatMoney } from 'openland-module-wallet/repo/utils/formatMoney';
 import { countCommission } from 'openland-module-wallet/repo/utils/countCommission';
 import { Emails } from '../../openland-module-email/Emails';
 import { IDs } from '../../openland-module-api/IDs';
-import { SmsService } from '../../openland-utils/SmsService';
+import { SmsService } from '../../openland-utils/sms/SmsService';
 
 export const COMMISSION_PERCENTS = 10;
 @injectable()
