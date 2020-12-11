@@ -180,26 +180,26 @@ export class CounterSubscribersDirectory {
     async getCounter(ctx: Context, uid: number, excludeMuted: boolean, counter: 'all' | 'distinct' | 'all-mentions' | 'distinct-mentions') {
         if (excludeMuted) {
             if (counter === 'all') {
-                return await this.userCounters.get(ctx, [uid, TYPE_NORMAL_NO_MUTED, COUNTER_ALL])
+                return await this.userCounters.get(ctx, [uid, TYPE_NORMAL_NO_MUTED, COUNTER_ALL]);
             } else if (counter === 'distinct') {
-                return await this.userCounters.get(ctx, [uid, TYPE_DISTINCT_NO_MUTED, COUNTER_ALL])
+                return await this.userCounters.get(ctx, [uid, TYPE_DISTINCT_NO_MUTED, COUNTER_ALL]);
             } else if (counter === 'all-mentions') {
-                return await this.userCounters.get(ctx, [uid, TYPE_NORMAL_NO_MUTED, COUNTER_MENTIONS])
+                return await this.userCounters.get(ctx, [uid, TYPE_NORMAL_NO_MUTED, COUNTER_MENTIONS]);
             } else if (counter === 'distinct-mentions') {
-                return await this.userCounters.get(ctx, [uid, TYPE_DISTINCT_NO_MUTED, COUNTER_MENTIONS])
+                return await this.userCounters.get(ctx, [uid, TYPE_DISTINCT_NO_MUTED, COUNTER_MENTIONS]);
             } else {
                 throw Error('Unknowwn counter type ' + counter);
             }
         }
 
         if (counter === 'all') {
-            return await this.userCounters.get(ctx, [uid, TYPE_NORMAL, COUNTER_ALL])
+            return await this.userCounters.get(ctx, [uid, TYPE_NORMAL, COUNTER_ALL]);
         } else if (counter === 'distinct') {
-            return await this.userCounters.get(ctx, [uid, TYPE_DISTINCT, COUNTER_ALL])
+            return await this.userCounters.get(ctx, [uid, TYPE_DISTINCT, COUNTER_ALL]);
         } else if (counter === 'all-mentions') {
-            return await this.userCounters.get(ctx, [uid, TYPE_NORMAL, COUNTER_MENTIONS])
+            return await this.userCounters.get(ctx, [uid, TYPE_NORMAL, COUNTER_MENTIONS]);
         } else if (counter === 'distinct-mentions') {
-            return await this.userCounters.get(ctx, [uid, TYPE_DISTINCT, COUNTER_MENTIONS])
+            return await this.userCounters.get(ctx, [uid, TYPE_DISTINCT, COUNTER_MENTIONS]);
         } else {
             throw Error('Unknowwn counter type ' + counter);
         }

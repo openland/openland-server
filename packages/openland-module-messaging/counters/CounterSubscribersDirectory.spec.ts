@@ -1,6 +1,6 @@
-import { createNamedContext } from "@openland/context";
-import { Database, inTx } from "@openland/foundationdb";
-import { CounterSubscribersDirectory } from "./CounterSubscribersDirectory";
+import { createNamedContext } from '@openland/context';
+import { Database, inTx } from '@openland/foundationdb';
+import { CounterSubscribersDirectory } from './CounterSubscribersDirectory';
 let root = createNamedContext('test');
 
 describe('CounterSubscribersDirectory', () => {
