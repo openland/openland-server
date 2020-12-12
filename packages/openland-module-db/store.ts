@@ -14001,6 +14001,7 @@ export interface StickerPackShape {
     id: number;
     title: string;
     uid: number;
+    private: boolean | null;
     published: boolean;
     usesCount: number;
     emojis: ({ emoji: string, stickerId: string })[];
@@ -14009,6 +14010,7 @@ export interface StickerPackShape {
 export interface StickerPackCreateShape {
     title: string;
     uid: number;
+    private?: boolean | null | undefined;
     published: boolean;
     usesCount: number;
     emojis: ({ emoji: string, stickerId: string })[];
@@ -14031,6 +14033,15 @@ export class StickerPack extends Entity<StickerPackShape> {
         if (this._rawValue.uid !== normalized) {
             this._rawValue.uid = normalized;
             this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get private(): boolean | null { return this._rawValue.private; }
+    set private(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.private.normalize(value);
+        if (this._rawValue.private !== normalized) {
+            this._rawValue.private = normalized;
+            this._updatedValues.private = normalized;
             this.invalidate();
         }
     }
@@ -14074,6 +14085,7 @@ export class StickerPackFactory extends EntityFactory<StickerPackShape, StickerP
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'title', type: { type: 'string' }, secure: false });
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'private', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'published', type: { type: 'boolean' }, secure: false });
         fields.push({ name: 'usesCount', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'emojis', type: { type: 'array', inner: { type: 'struct', fields: { emoji: { type: 'string' }, stickerId: { type: 'string' } } } }, secure: false });
@@ -14081,6 +14093,7 @@ export class StickerPackFactory extends EntityFactory<StickerPackShape, StickerP
             id: c.integer,
             title: c.string,
             uid: c.integer,
+            private: c.optional(c.boolean),
             published: c.boolean,
             usesCount: c.integer,
             emojis: c.array(c.struct({ emoji: c.string, stickerId: c.string })),
@@ -14137,12 +14150,14 @@ export class StickerPackFactory extends EntityFactory<StickerPackShape, StickerP
 export interface UserStickersStateShape {
     uid: number;
     packIds: (number)[];
+    privatePackIds: (number)[] | null;
     favoriteIds: (string)[];
     unviewedPackIds: (number)[] | null;
 }
 
 export interface UserStickersStateCreateShape {
     packIds: (number)[];
+    privatePackIds?: (number)[] | null | undefined;
     favoriteIds: (string)[];
     unviewedPackIds?: (number)[] | null | undefined;
 }
@@ -14155,6 +14170,15 @@ export class UserStickersState extends Entity<UserStickersStateShape> {
         if (this._rawValue.packIds !== normalized) {
             this._rawValue.packIds = normalized;
             this._updatedValues.packIds = normalized;
+            this.invalidate();
+        }
+    }
+    get privatePackIds(): (number)[] | null { return this._rawValue.privatePackIds; }
+    set privatePackIds(value: (number)[] | null) {
+        let normalized = this.descriptor.codec.fields.privatePackIds.normalize(value);
+        if (this._rawValue.privatePackIds !== normalized) {
+            this._rawValue.privatePackIds = normalized;
+            this._updatedValues.privatePackIds = normalized;
             this.invalidate();
         }
     }
@@ -14187,11 +14211,13 @@ export class UserStickersStateFactory extends EntityFactory<UserStickersStateSha
         primaryKeys.push({ name: 'uid', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'packIds', type: { type: 'array', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'privatePackIds', type: { type: 'optional', inner: { type: 'array', inner: { type: 'integer' } } }, secure: false });
         fields.push({ name: 'favoriteIds', type: { type: 'array', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'unviewedPackIds', type: { type: 'optional', inner: { type: 'array', inner: { type: 'integer' } } }, secure: false });
         let codec = c.struct({
             uid: c.integer,
             packIds: c.array(c.integer),
+            privatePackIds: c.optional(c.array(c.integer)),
             favoriteIds: c.array(c.string),
             unviewedPackIds: c.optional(c.array(c.integer)),
         });
@@ -14236,6 +14262,7 @@ export interface StickerShape {
     emoji: string;
     relatedEmojis: (string)[] | null;
     packId: number;
+    order: number | null;
 }
 
 export interface StickerCreateShape {
@@ -14244,6 +14271,7 @@ export interface StickerCreateShape {
     emoji: string;
     relatedEmojis?: (string)[] | null | undefined;
     packId: number;
+    order?: number | null | undefined;
 }
 
 export class Sticker extends Entity<StickerShape> {
@@ -14293,6 +14321,15 @@ export class Sticker extends Entity<StickerShape> {
             this.invalidate();
         }
     }
+    get order(): number | null { return this._rawValue.order; }
+    set order(value: number | null) {
+        let normalized = this.descriptor.codec.fields.order.normalize(value);
+        if (this._rawValue.order !== normalized) {
+            this._rawValue.order = normalized;
+            this._updatedValues.order = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class StickerFactory extends EntityFactory<StickerShape, Sticker> {
@@ -14301,7 +14338,7 @@ export class StickerFactory extends EntityFactory<StickerShape, Sticker> {
         let subspace = await storage.resolveEntityDirectory('sticker');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'pack', storageKey: 'pack', type: { type: 'range', fields: [{ name: 'packId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('sticker', 'pack'), condition: undefined });
-        secondaryIndexes.push({ name: 'packActive', storageKey: 'packActive', type: { type: 'range', fields: [{ name: 'packId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('sticker', 'packActive'), condition: (src) => !src.deleted });
+        secondaryIndexes.push({ name: 'packActive', storageKey: 'packActive', type: { type: 'range', fields: [{ name: 'packId', type: 'integer' }, { name: 'order', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('sticker', 'packActive'), condition: (src) => !src.deleted });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -14310,6 +14347,7 @@ export class StickerFactory extends EntityFactory<StickerShape, Sticker> {
         fields.push({ name: 'emoji', type: { type: 'string' }, secure: false });
         fields.push({ name: 'relatedEmojis', type: { type: 'optional', inner: { type: 'array', inner: { type: 'string' } } }, secure: false });
         fields.push({ name: 'packId', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'order', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.string,
             image: c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) }),
@@ -14317,6 +14355,7 @@ export class StickerFactory extends EntityFactory<StickerShape, Sticker> {
             emoji: c.string,
             relatedEmojis: c.optional(c.array(c.string)),
             packId: c.integer,
+            order: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<StickerShape> = {
             name: 'Sticker',
@@ -14350,7 +14389,7 @@ export class StickerFactory extends EntityFactory<StickerShape, Sticker> {
         findAll: async (ctx: Context, packId: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [packId])).items;
         },
-        query: (ctx: Context, packId: number, opts?: RangeQueryOptions<number>) => {
+        query: (ctx: Context, packId: number, opts?: RangeQueryOptions<number | null>) => {
             return this._query(ctx, this.descriptor.secondaryIndexes[1], [packId], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (packId: number, opts?: StreamProps) => {
@@ -21819,6 +21858,39 @@ export class FeedRebuildEvent extends BaseEvent {
     get subscriberId(): number | null { return this.raw.subscriberId; }
 }
 
+const userStickersUpdateEventCodec = c.struct({
+    uid: c.integer,
+});
+
+interface UserStickersUpdateEventShape {
+    uid: number;
+}
+
+export class UserStickersUpdateEvent extends BaseEvent {
+
+    static readonly type: 'userStickersUpdateEvent' = 'userStickersUpdateEvent';
+
+    static create(data: UserStickersUpdateEventShape) {
+        return new UserStickersUpdateEvent(userStickersUpdateEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UserStickersUpdateEvent(userStickersUpdateEventCodec.decode(data));
+    }
+
+    static encode(event: UserStickersUpdateEvent) {
+        return userStickersUpdateEventCodec.encode(event.raw);
+    }
+
+    readonly type: 'userStickersUpdateEvent' = 'userStickersUpdateEvent';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+}
+
 const userLocationUpdatedEventCodec = c.struct({
     uid: c.integer,
     date: c.integer,
@@ -22834,6 +22906,41 @@ export class FeedGlobalEventStore extends EventStore {
     }
 }
 
+export class UserStickersEventStore extends EventStore {
+
+    static async open(storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory('userStickersEventStore');
+        const descriptor = {
+            name: 'UserStickersEventStore',
+            storageKey: 'userStickersEventStore',
+            subspace,
+            storage,
+            factory
+        };
+        return new UserStickersEventStore(descriptor);
+    }
+
+    private constructor(descriptor: EventStoreDescriptor) {
+        super(descriptor);
+    }
+
+    post(ctx: Context, uid: number, event: BaseEvent) {
+        this._post(ctx, [uid], event);
+    }
+
+    async findAll(ctx: Context, uid: number) {
+        return this._findAll(ctx, [uid]);
+    }
+
+    createStream(uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createStream([uid], opts);
+    }
+
+    createLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createLiveStream(ctx, [uid], opts);
+    }
+}
+
 export class UserLocationEventStore extends EventStore {
 
     static async open(storage: EntityStorage, factory: EventFactory) {
@@ -23240,6 +23347,7 @@ export interface Store extends BaseStore {
     readonly UserDialogEventStore: UserDialogEventStore;
     readonly FeedEventStore: FeedEventStore;
     readonly FeedGlobalEventStore: FeedGlobalEventStore;
+    readonly UserStickersEventStore: UserStickersEventStore;
     readonly UserLocationEventStore: UserLocationEventStore;
     readonly UserWalletUpdates: UserWalletUpdates;
     readonly StripeEventStore: StripeEventStore;
@@ -23324,6 +23432,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('feedItemUpdatedEvent', FeedItemUpdatedEvent.encode as any, FeedItemUpdatedEvent.decode);
     eventFactory.registerEventType('feedItemDeletedEvent', FeedItemDeletedEvent.encode as any, FeedItemDeletedEvent.decode);
     eventFactory.registerEventType('feedRebuildEvent', FeedRebuildEvent.encode as any, FeedRebuildEvent.decode);
+    eventFactory.registerEventType('userStickersUpdateEvent', UserStickersUpdateEvent.encode as any, UserStickersUpdateEvent.decode);
     eventFactory.registerEventType('userLocationUpdatedEvent', UserLocationUpdatedEvent.encode as any, UserLocationUpdatedEvent.decode);
     eventFactory.registerEventType('userLocationStopSharingEvent', UserLocationStopSharingEvent.encode as any, UserLocationStopSharingEvent.decode);
     eventFactory.registerEventType('walletTransactionPending', WalletTransactionPending.encode as any, WalletTransactionPending.decode);
@@ -23568,6 +23677,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserDialogEventStorePromise = UserDialogEventStore.open(storage, eventFactory);
     let FeedEventStorePromise = FeedEventStore.open(storage, eventFactory);
     let FeedGlobalEventStorePromise = FeedGlobalEventStore.open(storage, eventFactory);
+    let UserStickersEventStorePromise = UserStickersEventStore.open(storage, eventFactory);
     let UserLocationEventStorePromise = UserLocationEventStore.open(storage, eventFactory);
     let UserWalletUpdatesPromise = UserWalletUpdates.open(storage, eventFactory);
     let StripeEventStorePromise = StripeEventStore.open(storage, eventFactory);
@@ -23824,6 +23934,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserDialogEventStore: await UserDialogEventStorePromise,
         FeedEventStore: await FeedEventStorePromise,
         FeedGlobalEventStore: await FeedGlobalEventStorePromise,
+        UserStickersEventStore: await UserStickersEventStorePromise,
         UserLocationEventStore: await UserLocationEventStorePromise,
         UserWalletUpdates: await UserWalletUpdatesPromise,
         StripeEventStore: await StripeEventStorePromise,

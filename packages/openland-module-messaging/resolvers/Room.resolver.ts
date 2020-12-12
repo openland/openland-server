@@ -194,6 +194,8 @@ export const Resolver: GQLResolver = {
         description: withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? null : (profile && profile.description)),
         welcomeMessage: withAuthFallback(withConverationId(async (ctx, id, args, showPlaceholder) => showPlaceholder ? null : await Modules.Messaging.room.resolveConversationWelcomeMessage(ctx, id)), null),
 
+        stickerPack: withRoomProfile((ctx, profile) => profile?.giftStickerPackId),
+
         pinnedMessage: withAuthFallback(withRoomProfile((ctx, profile, showPlaceholder) => showPlaceholder ? null : (profile && profile.pinnedMessage && Store.Message.findById(ctx, profile.pinnedMessage))), null),
         canUnpinMessage: withAuthFallback(withRoomProfile(async (ctx, profile, showPlaceholder) => {
             if (showPlaceholder) {

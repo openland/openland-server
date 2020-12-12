@@ -1,14 +1,16 @@
 import { Context } from '@openland/context';
-import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { Modules } from 'openland-modules/Modules';
 import { withActivatedUser, withPermission } from '../openland-module-api/Resolvers';
 import { IDs } from '../openland-module-api/IDs';
 import { MaybePromise } from '../openland-module-api/schema/SchemaUtils';
-import { Sticker, StickerPack } from 'openland-module-db/store';
+import { Sticker, StickerPack, UserStickersUpdateEvent } from 'openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
 import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
 import StickerPackRoot = GQLRoots.StickerPackRoot;
 import StickerRoot = GQLRoots.StickerRoot;
+import SubscriptionMyStickersUpdatesArgs = GQL.SubscriptionMyStickersUpdatesArgs;
+import { inTx } from '@openland/foundationdb';
 
 function withStickerPackId<T, R>(handler: (ctx: Context, src: number, args: T) => MaybePromise<R>) {
     return (src: StickerPackRoot, args: T, ctx: Context) => {
@@ -59,6 +61,7 @@ export const Resolver: GQLResolver = {
             return await Store.Sticker.packActive.findAll(ctx, id);
         }),
         published: withStickerPack((ctx, pack) => pack.published),
+        private: withStickerPack((ctx, pack) => pack.private || false),
         added: withStickerPackId(async (ctx, id) => {
             if (!ctx.auth.uid) {
                 return false;
@@ -106,45 +109,65 @@ export const Resolver: GQLResolver = {
         })
     },
     Mutation: {
-        stickerPackCreate: withActivatedUser((ctx, args, uid) => {
-            return Modules.Stickers.createPack(ctx, uid, args.title, args.stickers);
+        stickerPackCreate: withActivatedUser((parent, args, uid) => {
+            return inTx(parent, ctx => Modules.Stickers.createPack(ctx, uid, args.title, args.stickers));
         }),
-        stickerPackUpdate: withActivatedUser((ctx, args) => {
+        stickerPackUpdate: withActivatedUser((parent, args) => {
             let id = IDs.StickerPack.parse(args.id);
 
-            return Modules.Stickers.updatePack(ctx, id, args.input);
+            return inTx(parent, ctx => Modules.Stickers.updatePack(ctx, id, {
+                ...args.input,
+                stickers: args.input.stickers?.map(a => IDs.Sticker.parse(a)) || null
+            }));
         }),
-        stickerPackAddSticker: withActivatedUser((ctx, args, uid) => {
+        stickerPackAddSticker: withActivatedUser((parent, args, uid) => {
             let id = IDs.StickerPack.parse(args.id);
 
-            return Modules.Stickers.addSticker(ctx, uid, id, args.input);
+            return inTx(parent, ctx => Modules.Stickers.addSticker(ctx, uid, id, args.input));
         }),
-        stickerPackRemoveSticker: withActivatedUser(async (ctx, args, uid) => {
+        stickerPackRemoveSticker: withActivatedUser(async (parent, args, uid) => {
             let id = IDs.Sticker.parse(args.id);
 
-            await Modules.Stickers.removeSticker(ctx, uid, id);
+            await inTx(parent, ctx => Modules.Stickers.removeSticker(ctx, uid, id));
             return true;
         }),
 
-        stickerPackAddToCollection: withActivatedUser(async (ctx, args, uid) => {
+        stickerPackAddToCollection: withActivatedUser(async (parent, args, uid) => {
             let id = IDs.StickerPack.parse(args.id);
 
-            return await Modules.Stickers.addToCollection(ctx, uid, id);
+            return inTx(parent, async ctx => await Modules.Stickers.addToCollection(ctx, uid, id));
         }),
-        stickerPackRemoveFromCollection: withActivatedUser(async (ctx, args, uid) => {
+        stickerPackRemoveFromCollection: withActivatedUser(async (parent, args, uid) => {
             let id = IDs.StickerPack.parse(args.id);
 
-            return await Modules.Stickers.removeFromCollection(ctx, uid, id);
+            return inTx(parent,  ctx =>  Modules.Stickers.removeFromCollection(ctx, uid, id));
         }),
-        stickerAddToFavorites: withActivatedUser(async (ctx, args, uid) => {
+        stickerAddToFavorites: withActivatedUser(async (parent, args, uid) => {
             let id = IDs.Sticker.parse(args.id);
 
-            return Modules.Stickers.addStickerToFavs(ctx, uid, id);
+            return inTx(parent, ctx => Modules.Stickers.addStickerToFavs(ctx, uid, id));
         }),
-        stickerRemoveFromFavorites: withActivatedUser(async (ctx, args, uid) => {
+        stickerRemoveFromFavorites: withActivatedUser(async (parent, args, uid) => {
             let id = IDs.Sticker.parse(args.id);
 
-            return Modules.Stickers.removeStickerFromFavs(ctx, uid, id);
+            return inTx(parent, ctx => Modules.Stickers.removeStickerFromFavs(ctx, uid, id));
         }),
+        myStickersMarkAsViewed: withActivatedUser(async (parent, args, uid) => {
+            await inTx(parent,  ctx => Modules.Stickers.markUserStickersAsViewed(ctx, uid));
+            return true;
+        })
     },
+    Subscription: {
+        myStickersUpdates: {
+            resolve: async (obj) => obj,
+            subscribe: async function * (root: any, _: SubscriptionMyStickersUpdatesArgs, ctx: Context) {
+                for await (let batch of Store.UserStickersEventStore.createLiveStream(ctx, ctx.auth.uid!)) {
+                    for (let e of batch.items) {
+                        let evt = e as UserStickersUpdateEvent;
+                        yield await Modules.Stickers.getUserStickers(ctx, evt.uid);
+                    }
+                }
+            }
+        }
+    }
 };

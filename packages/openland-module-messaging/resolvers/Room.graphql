@@ -62,6 +62,8 @@ type SharedRoom {
     canUnpinMessage: Boolean!
     welcomeMessage: WelcomeMessage
 
+    stickerPack: StickerPack
+
     organization: Organization
 
     membersCount: Int!
