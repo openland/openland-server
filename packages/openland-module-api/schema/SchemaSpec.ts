@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '136bfe82c5e4e7c8f95188c4634166f8';
+export const GQL_SPEC_VERSION = '48fff9f02d0ebb3c99e5811fccfd2e9e';
 
 export namespace GQL {
     export interface CreditCard {
@@ -460,16 +460,6 @@ export namespace GQL {
     export interface DebugUserMetricsDirectMessagesSentArgs { }
     export interface DebugUserMetricsSuccessfulInvitesCountArgs { }
     export interface DebugUserMetricsAudienceCountArgs { }
-    export interface DebugGlobalCounters {
-        allUnreadMessages: number;
-        unreadMessagesWithoutMuted: number;
-        allUnreadChats: number;
-        unreadChatsWithoutMuted: number;
-    }
-    export interface DebugGlobalCountersAllUnreadMessagesArgs { }
-    export interface DebugGlobalCountersUnreadMessagesWithoutMutedArgs { }
-    export interface DebugGlobalCountersAllUnreadChatsArgs { }
-    export interface DebugGlobalCountersUnreadChatsWithoutMutedArgs { }
     export interface GqlTrace {
         id: string;
         name: string;
@@ -488,6 +478,30 @@ export namespace GQL {
     }
     export interface GqlTraceConnectionItemsArgs { }
     export interface GqlTraceConnectionCursorArgs { }
+    export interface DebugGlobalCounter {
+        all: number;
+        mentions: number;
+    }
+    export interface DebugGlobalCounterAllArgs { }
+    export interface DebugGlobalCounterMentionsArgs { }
+    export interface DebugChatCounter {
+        all: number;
+        mentions: number;
+    }
+    export interface DebugChatCounterAllArgs { }
+    export interface DebugChatCounterMentionsArgs { }
+    export interface DebugChatState {
+        seq: number;
+        muted: boolean;
+        async: boolean;
+        counter: number;
+        mentions: number;
+    }
+    export interface DebugChatStateSeqArgs { }
+    export interface DebugChatStateMutedArgs { }
+    export interface DebugChatStateAsyncArgs { }
+    export interface DebugChatStateCounterArgs { }
+    export interface DebugChatStateMentionsArgs { }
     export type SuperNotificationTypeValues = 'ON_SIGN_UP' | 'ON_USER_PROFILE_CREATED' | 'ON_ORG_ACTIVATED_BY_ADMIN' | 'ON_ORG_ACTIVATED_VIA_INVITE' | 'ON_ORG_SUSPEND';
     export type SuperNotificationType = GQLRoots.SuperNotificationTypeRoot;
     export type DialogKindValues = 'PRIVATE' | 'INTERNAL' | 'PUBLIC' | 'GROUP';
@@ -2138,14 +2152,11 @@ export namespace GQL {
         debugFreeUnusedShortnames: boolean;
         debugFreeShortname: boolean;
         debugRemoveKickedUsersFromOrgChats: boolean;
-        debugMigrateToNewCounters: boolean;
         debugMigrateToNewLastRead: boolean;
         debugFixReadSeqs: boolean;
         debugExportUsers: boolean;
         debugMigrateUserStatus: boolean;
-        debugMigrateToExperimentalCounters: boolean;
-        debugFixCompactMessages: boolean;
-        debugMigrateToNewerCounters: boolean;
+        debugFixMessages: boolean;
         debugUserAuth: boolean;
         debugCreateOrganizationMailing: boolean;
         debugPaymentCancel: boolean;
@@ -2579,14 +2590,11 @@ export namespace GQL {
         shortname: string;
     }
     export interface MutationDebugRemoveKickedUsersFromOrgChatsArgs { }
-    export interface MutationDebugMigrateToNewCountersArgs { }
     export interface MutationDebugMigrateToNewLastReadArgs { }
     export interface MutationDebugFixReadSeqsArgs { }
     export interface MutationDebugExportUsersArgs { }
     export interface MutationDebugMigrateUserStatusArgs { }
-    export interface MutationDebugMigrateToExperimentalCountersArgs { }
-    export interface MutationDebugFixCompactMessagesArgs { }
-    export interface MutationDebugMigrateToNewerCountersArgs { }
+    export interface MutationDebugFixMessagesArgs { }
     export interface MutationDebugUserAuthArgs {
         id: string;
     }
@@ -3961,7 +3969,6 @@ export namespace GQL {
         debugCheckTasksIndex: string;
         debug2WayDirectChatsCounter: number;
         debugUserMetrics: DebugUserMetrics;
-        debugGlobalCounters: DebugGlobalCounters;
         debugServerId: string;
         debugGqlTraces: GqlTraceConnection;
         debugGqlTrace: GqlTrace;
@@ -3975,6 +3982,9 @@ export namespace GQL {
         debugExperimentalCounter: string;
         debugFindUser: Nullable<User>;
         debugSocialSharingImage: string;
+        debugChatCounter: DebugChatCounter;
+        debugChatState: Nullable<DebugChatState>;
+        debugGlobalCounter: DebugGlobalCounter;
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
@@ -4062,6 +4072,7 @@ export namespace GQL {
         me: Nullable<User>;
         user: User;
         mySuccessfulInvitesCount: number;
+        shouldAskForAppReview: boolean;
         superBadgeInRoom: Nullable<UserBadge>;
         badgeInRoom: Nullable<UserBadge>;
         userSearch: UserConnection;
@@ -4172,9 +4183,6 @@ export namespace GQL {
     export interface QueryDebugUserMetricsArgs {
         id: string;
     }
-    export interface QueryDebugGlobalCountersArgs {
-        uid: OptionalNullable<string>;
-    }
     export interface QueryDebugServerIdArgs { }
     export interface QueryDebugGqlTracesArgs {
         first: number;
@@ -4217,6 +4225,13 @@ export namespace GQL {
         image: string;
         subTitle: string;
     }
+    export interface QueryDebugChatCounterArgs {
+        id: string;
+    }
+    export interface QueryDebugChatStateArgs {
+        id: string;
+    }
+    export interface QueryDebugGlobalCounterArgs { }
     export interface QueryDialogsArgs {
         first: number;
         after: OptionalNullable<string>;
@@ -4459,6 +4474,7 @@ export namespace GQL {
         id: string;
     }
     export interface QueryMySuccessfulInvitesCountArgs { }
+    export interface QueryShouldAskForAppReviewArgs { }
     export interface QuerySuperBadgeInRoomArgs {
         roomId: string;
         userId: string;
@@ -5745,7 +5761,7 @@ export namespace GQL {
     export type SharedRoomKind = GQLRoots.SharedRoomKindRoot;
     export type SharedRoomMembershipStatusValues = 'MEMBER' | 'REQUESTED' | 'LEFT' | 'KICKED' | 'NONE';
     export type SharedRoomMembershipStatus = GQLRoots.SharedRoomMembershipStatusRoot;
-    export type RoomMemberRoleValues = 'OWNER' | 'ADMIN' | 'MEMBER';
+    export type RoomMemberRoleValues = 'OWNER' | 'ADMIN' | 'MEMBER' | 'NONE';
     export type RoomMemberRole = GQLRoots.RoomMemberRoleRoot;
     export interface WelcomeMessage {
         isOn: boolean;
@@ -5863,11 +5879,13 @@ export namespace GQL {
         featured: boolean;
         listed: boolean;
         autosubscribeRooms: Room[];
+        giftStickerPackId: Nullable<string>;
     }
     export interface RoomSuperIdArgs { }
     export interface RoomSuperFeaturedArgs { }
     export interface RoomSuperListedArgs { }
     export interface RoomSuperAutosubscribeRoomsArgs { }
+    export interface RoomSuperGiftStickerPackIdArgs { }
     export interface RoomCallSettingsInput {
         mode: RoomCallsMode;
         callLink: Nullable<string>;
@@ -6632,18 +6650,6 @@ export interface GQLResolver {
             audienceCount: GQL.DebugUserMetricsAudienceCountArgs,
         }
     >;
-    DebugGlobalCounters?: ComplexTypedResolver<
-        GQL.DebugGlobalCounters,
-        GQLRoots.DebugGlobalCountersRoot,
-        {
-        },
-        {
-            allUnreadMessages: GQL.DebugGlobalCountersAllUnreadMessagesArgs,
-            unreadMessagesWithoutMuted: GQL.DebugGlobalCountersUnreadMessagesWithoutMutedArgs,
-            allUnreadChats: GQL.DebugGlobalCountersAllUnreadChatsArgs,
-            unreadChatsWithoutMuted: GQL.DebugGlobalCountersUnreadChatsWithoutMutedArgs,
-        }
-    >;
     GqlTrace?: ComplexTypedResolver<
         GQL.GqlTrace,
         GQLRoots.GqlTraceRoot,
@@ -6666,6 +6672,39 @@ export interface GQLResolver {
         {
             items: GQL.GqlTraceConnectionItemsArgs,
             cursor: GQL.GqlTraceConnectionCursorArgs,
+        }
+    >;
+    DebugGlobalCounter?: ComplexTypedResolver<
+        GQL.DebugGlobalCounter,
+        GQLRoots.DebugGlobalCounterRoot,
+        {
+        },
+        {
+            all: GQL.DebugGlobalCounterAllArgs,
+            mentions: GQL.DebugGlobalCounterMentionsArgs,
+        }
+    >;
+    DebugChatCounter?: ComplexTypedResolver<
+        GQL.DebugChatCounter,
+        GQLRoots.DebugChatCounterRoot,
+        {
+        },
+        {
+            all: GQL.DebugChatCounterAllArgs,
+            mentions: GQL.DebugChatCounterMentionsArgs,
+        }
+    >;
+    DebugChatState?: ComplexTypedResolver<
+        GQL.DebugChatState,
+        GQLRoots.DebugChatStateRoot,
+        {
+        },
+        {
+            seq: GQL.DebugChatStateSeqArgs,
+            muted: GQL.DebugChatStateMutedArgs,
+            async: GQL.DebugChatStateAsyncArgs,
+            counter: GQL.DebugChatStateCounterArgs,
+            mentions: GQL.DebugChatStateMentionsArgs,
         }
     >;
     SuperNotificationType?: EnumTypeResolver<'ON_SIGN_UP' | 'ON_USER_PROFILE_CREATED' | 'ON_ORG_ACTIVATED_BY_ADMIN' | 'ON_ORG_ACTIVATED_VIA_INVITE' | 'ON_ORG_SUSPEND', GQLRoots.SuperNotificationTypeRoot>;
@@ -8626,14 +8665,11 @@ export interface GQLResolver {
             debugFreeUnusedShortnames: GQL.MutationDebugFreeUnusedShortnamesArgs,
             debugFreeShortname: GQL.MutationDebugFreeShortnameArgs,
             debugRemoveKickedUsersFromOrgChats: GQL.MutationDebugRemoveKickedUsersFromOrgChatsArgs,
-            debugMigrateToNewCounters: GQL.MutationDebugMigrateToNewCountersArgs,
             debugMigrateToNewLastRead: GQL.MutationDebugMigrateToNewLastReadArgs,
             debugFixReadSeqs: GQL.MutationDebugFixReadSeqsArgs,
             debugExportUsers: GQL.MutationDebugExportUsersArgs,
             debugMigrateUserStatus: GQL.MutationDebugMigrateUserStatusArgs,
-            debugMigrateToExperimentalCounters: GQL.MutationDebugMigrateToExperimentalCountersArgs,
-            debugFixCompactMessages: GQL.MutationDebugFixCompactMessagesArgs,
-            debugMigrateToNewerCounters: GQL.MutationDebugMigrateToNewerCountersArgs,
+            debugFixMessages: GQL.MutationDebugFixMessagesArgs,
             debugUserAuth: GQL.MutationDebugUserAuthArgs,
             debugCreateOrganizationMailing: GQL.MutationDebugCreateOrganizationMailingArgs,
             debugPaymentCancel: GQL.MutationDebugPaymentCancelArgs,
@@ -9450,11 +9486,13 @@ export interface GQLResolver {
             organizationChatsStats: GQLRoots.OrganizationChatStatsRoot[],
             debugEventsState: GQLRoots.DebugEventsStateRoot,
             debugUserMetrics: GQLRoots.DebugUserMetricsRoot,
-            debugGlobalCounters: GQLRoots.DebugGlobalCountersRoot,
             debugGqlTraces: GQLRoots.GqlTraceConnectionRoot,
             debugGqlTrace: GQLRoots.GqlTraceRoot,
             debugUserWallet: GQLRoots.WalletAccountRoot,
             debugFindUser: Nullable<GQLRoots.UserRoot>,
+            debugChatCounter: GQLRoots.DebugChatCounterRoot,
+            debugChatState: Nullable<GQLRoots.DebugChatStateRoot>,
+            debugGlobalCounter: GQLRoots.DebugGlobalCounterRoot,
             dialogs: GQLRoots.DialogsConnectionRoot,
             settings: GQLRoots.SettingsRoot,
             authPoints: GQLRoots.AuthPointRoot,
@@ -9617,7 +9655,6 @@ export interface GQLResolver {
             debugCheckTasksIndex: GQL.QueryDebugCheckTasksIndexArgs,
             debug2WayDirectChatsCounter: GQL.QueryDebug2WayDirectChatsCounterArgs,
             debugUserMetrics: GQL.QueryDebugUserMetricsArgs,
-            debugGlobalCounters: GQL.QueryDebugGlobalCountersArgs,
             debugServerId: GQL.QueryDebugServerIdArgs,
             debugGqlTraces: GQL.QueryDebugGqlTracesArgs,
             debugGqlTrace: GQL.QueryDebugGqlTraceArgs,
@@ -9631,6 +9668,9 @@ export interface GQLResolver {
             debugExperimentalCounter: GQL.QueryDebugExperimentalCounterArgs,
             debugFindUser: GQL.QueryDebugFindUserArgs,
             debugSocialSharingImage: GQL.QueryDebugSocialSharingImageArgs,
+            debugChatCounter: GQL.QueryDebugChatCounterArgs,
+            debugChatState: GQL.QueryDebugChatStateArgs,
+            debugGlobalCounter: GQL.QueryDebugGlobalCounterArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
             authPoints: GQL.QueryAuthPointsArgs,
@@ -9718,6 +9758,7 @@ export interface GQLResolver {
             me: GQL.QueryMeArgs,
             user: GQL.QueryUserArgs,
             mySuccessfulInvitesCount: GQL.QueryMySuccessfulInvitesCountArgs,
+            shouldAskForAppReview: GQL.QueryShouldAskForAppReviewArgs,
             superBadgeInRoom: GQL.QuerySuperBadgeInRoomArgs,
             badgeInRoom: GQL.QueryBadgeInRoomArgs,
             userSearch: GQL.QueryUserSearchArgs,
@@ -10970,7 +11011,7 @@ export interface GQLResolver {
     >;
     SharedRoomKind?: EnumTypeResolver<'INTERNAL' | 'PUBLIC' | 'GROUP', GQLRoots.SharedRoomKindRoot>;
     SharedRoomMembershipStatus?: EnumTypeResolver<'MEMBER' | 'REQUESTED' | 'LEFT' | 'KICKED' | 'NONE', GQLRoots.SharedRoomMembershipStatusRoot>;
-    RoomMemberRole?: EnumTypeResolver<'OWNER' | 'ADMIN' | 'MEMBER', GQLRoots.RoomMemberRoleRoot>;
+    RoomMemberRole?: EnumTypeResolver<'OWNER' | 'ADMIN' | 'MEMBER' | 'NONE', GQLRoots.RoomMemberRoleRoot>;
     WelcomeMessage?: ComplexTypedResolver<
         GQL.WelcomeMessage,
         GQLRoots.WelcomeMessageRoot,
@@ -11088,6 +11129,7 @@ export interface GQLResolver {
             featured: GQL.RoomSuperFeaturedArgs,
             listed: GQL.RoomSuperListedArgs,
             autosubscribeRooms: GQL.RoomSuperAutosubscribeRoomsArgs,
+            giftStickerPackId: GQL.RoomSuperGiftStickerPackIdArgs,
         }
     >;
     RoomMember?: ComplexTypedResolver<
