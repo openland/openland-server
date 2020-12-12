@@ -18,8 +18,6 @@ import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { User, ConversationRoom } from 'openland-module-db/store';
 import { smartSlice } from '../../openland-utils/string';
 import { UserGroupsRepository } from './UserGroupsRepository';
-import { FastCountersMediator } from '../mediators/FastCountersMediator';
-import { ExperimentalCountersRepository } from './ExperimentalCountersRepository';
 import { UserReadSeqsDirectory } from './UserReadSeqsDirectory';
 import { ChatsMembersListDirectory } from './ChatsMembersListDirectory';
 
@@ -44,12 +42,6 @@ export type WelcomeMessageT = {
 export class RoomRepository {
     // @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
     @lazyInject('ChatMetricsRepository') readonly metrics!: ChatMetricsRepository;
-
-    @lazyInject('FastCountersMediator')
-    readonly fastCounters!: FastCountersMediator;
-
-    @lazyInject('ExperimentalCountersRepository')
-    readonly experimentalCounters!: ExperimentalCountersRepository;
 
     @lazyInject('UserReadSeqsDirectory')
     readonly userReadSeqs!: UserReadSeqsDirectory;
@@ -602,14 +594,10 @@ export class RoomRepository {
         if (isMember) {
             dir.set(ctx, [cid, uid], false);
             this.userGroups.addGroup(ctx, uid, cid);
-            await this.fastCounters.onAddDialog(ctx, uid, cid);
-            await this.experimentalCounters.onAddDialog(ctx, uid, cid);
             await this.userReadSeqs.onAddDialog(ctx, uid, cid);
             this.chatMembers.addMember(ctx, cid, uid, async);
         } else {
             this.userGroups.removeGroup(ctx, uid, cid);
-            this.fastCounters.onRemoveDialog(ctx, uid, cid);
-            this.experimentalCounters.onRemoveDialog(ctx, uid, cid);
             await this.userReadSeqs.onRemoveDialog(ctx, uid, cid);
             this.chatMembers.removeMember(ctx, cid, uid);
             dir.clear(ctx, [cid, uid]);
@@ -709,7 +697,7 @@ export class RoomRepository {
 
     async resolveUserRole(ctx: Context, uid: number, cid: number) {
         let participant = await Store.RoomParticipant.findById(ctx, cid, uid);
-        return participant ? participant.role : 'MEMBER';
+        return participant ? participant.role : 'NONE';
     }
 
     async findActiveMembers(ctx: Context, cid: number) {
@@ -737,10 +725,6 @@ export class RoomRepository {
                 });
                 this.metrics.onChatCreated(ctx, uid1);
                 this.metrics.onChatCreated(ctx, uid2);
-                await this.fastCounters.onAddDialog(ctx, uid1, conv.id);
-                await this.fastCounters.onAddDialog(ctx, uid2, conv.id);
-                await this.experimentalCounters.onAddDialog(ctx, uid1, conv.id);
-                await this.experimentalCounters.onAddDialog(ctx, uid2, conv.id);
                 await this.userReadSeqs.onAddDialog(ctx, uid1, conv.id);
                 await this.userReadSeqs.onAddDialog(ctx, uid2, conv.id);
                 await conv.flush(ctx);

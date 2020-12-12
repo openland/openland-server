@@ -19,26 +19,11 @@ import * as Chrono from 'chrono-node';
 import { Store } from 'openland-module-db/FDB';
 import { MentionNotificationsMediator } from './MentionNotificationsMediator';
 import { DonationsMediator } from './DonationsMediator';
-import { Message } from '../../openland-module-db/store';
-import { FastCountersMediator } from './FastCountersMediator';
-import { ExperimentalCountersRepository } from '../repositories/ExperimentalCountersRepository';
 import { UserReadSeqsDirectory } from '../repositories/UserReadSeqsDirectory';
-import { AsyncCountersRepository } from '../repositories/AsyncCountersRepository';
+import { NewCountersRepository } from 'openland-module-messaging/counters/NewCountersRepository';
 
 const trace = createTracer('messaging');
 const linkifyInstance = createLinkifyInstance();
-
-function fetchMessageMentions(message: Message) {
-    let mentions: (number | 'all')[] = [];
-    for (let span of message.spans || []) {
-        if (span.type === 'user_mention') {
-            mentions.push(span.user);
-        } else if (span.type === 'all_mention') {
-            mentions.push('all');
-        }
-    }
-    return mentions;
-}
 
 const BAD_WORDS = [
     'https://t.me/siliconpravdachat',
@@ -116,16 +101,12 @@ export class MessagingMediator {
     private readonly room!: RoomMediator;
     @lazyInject('DonationsMediator')
     private readonly donations!: DonationsMediator;
-    @lazyInject('FastCountersMediator')
-    readonly fastCounters!: FastCountersMediator;
-    @lazyInject('ExperimentalCountersRepository')
-    readonly experimentalCounters!: ExperimentalCountersRepository;
-    @lazyInject('AsyncCountersRepository')
-    readonly newCounters!: AsyncCountersRepository;
     @lazyInject('UserReadSeqsDirectory')
     readonly userReadSeqs!: UserReadSeqsDirectory;
     @lazyInject('ChatMetricsRepository')
     private readonly chatMetrics!: ChatMetricsRepository;
+    // New counters
+    readonly counters = new NewCountersRepository(Store.MessageCountersDirectory);
 
     sendMessage = async (parent: Context, uid: number, cid: number, message: MessageInput, skipAccessCheck?: boolean) => {
         return trace.trace(parent, 'sendMessage', async (ctx2) => await inTx(ctx2, async (ctx) => {
@@ -245,12 +226,15 @@ export class MessagingMediator {
             // Create
             let res = await this.repo.createMessage(ctx, cid, uid, { ...msg, spans });
 
+            // Update counters
+            await this.counters.onMessage(ctx, res.message);
+
             // Post Event
             if (conv!.kind === 'private') {
                 let p = (await Store.ConversationPrivate.findById(ctx, cid))!;
-                await this.events.onPrivateMessageSent(ctx, cid, res.message.id, uid, res.message.hiddenForUids || [], [p.uid1, p.uid2]);
+                await this.events.onPrivateMessageSent(ctx, cid, res.message.id, uid, res.message.visibleOnlyForUids || [], [p.uid1, p.uid2]);
             } else {
-                await this.events.onGroupMessageSent(ctx, cid, res.message.id, uid, res.message.hiddenForUids || []);
+                await this.events.onGroupMessageSent(ctx, cid, res.message.id, uid, res.message.visibleOnlyForUids || []);
             }
 
             //
@@ -279,16 +263,8 @@ export class MessagingMediator {
 
             await this.delivery.onNewMessage(ctx, res.message);
 
-            //
-            // Fast counters
-            //
-
-            if (res.message.seq) {
-                await this.userReadSeqs.updateReadSeq(ctx, uid, cid, res.message.seq);
-                await this.fastCounters.onMessageCreated(ctx, uid, cid, res.message.seq, fetchMessageMentions(res.message), res.message.hiddenForUids || []);
-                await this.experimentalCounters.onMessageCreated(ctx, uid, cid, res.message.seq, fetchMessageMentions(res.message), res.message.hiddenForUids || []);
-                await this.newCounters.onMessageCreated(ctx, uid, cid, res.message.seq, fetchMessageMentions(res.message), res.message.hiddenForUids || []);
-            }
+            // WTF?
+            // await this.userReadSeqs.updateReadSeq(ctx, uid, cid, res.message.seq);
 
             // Mentions
             await this.mentionNotifications.onNewMessage(ctx, res.message);
@@ -321,7 +297,6 @@ export class MessagingMediator {
 
             // Permissions
             let message = (await Store.Message.findById(ctx, mid!))!;
-            let oldMentions = fetchMessageMentions(message);
 
             if (message.uid !== uid) {
                 if (await Modules.Super.superRole(ctx, uid) !== 'super-admin') {
@@ -366,24 +341,19 @@ export class MessagingMediator {
             let res = await this.repo.editMessage(ctx, mid, { ...newMessage, ... (spans ? { spans } : {}) }, markAsEdited);
             message = (await Store.Message.findById(ctx, mid!))!;
 
+            // Update counters
+            await this.counters.onMessage(ctx, message);
+
             // Post Event
             if (conv!.kind === 'private') {
                 let p = (await Store.ConversationPrivate.findById(ctx, conv.id))!;
-                await this.events.onPrivateMessageUpdated(ctx, conv.id, mid, uid, message.hiddenForUids || [], [p.uid1, p.uid2]);
+                await this.events.onPrivateMessageUpdated(ctx, conv.id, mid, uid, message.visibleOnlyForUids || [], [p.uid1, p.uid2]);
             } else {
-                await this.events.onGroupMessageUpdated(ctx, conv.id, mid, uid, message.hiddenForUids || []);
+                await this.events.onGroupMessageUpdated(ctx, conv.id, mid, uid, message.visibleOnlyForUids || []);
             }
 
             // Delivery
             await this.delivery.onUpdateMessage(ctx, message);
-
-            // Fast counters
-            if (message.seq) {
-                let newMentions = fetchMessageMentions(message);
-                await this.fastCounters.onMessageEdited(ctx, message.cid, message.seq, oldMentions, newMentions);
-                await this.experimentalCounters.onMessageEdited(ctx, message.cid, message.uid, message.seq, newMentions, message.hiddenForUids || []);
-                await this.newCounters.onMessageEdited(ctx, message.cid, message.uid, message.seq, newMentions, message.hiddenForUids || []);
-            }
 
             // Mentions
             await this.mentionNotifications.onMessageUpdated(ctx, message);
@@ -406,7 +376,7 @@ export class MessagingMediator {
             if (!message) {
                 throw new Error('Message not found');
             }
-            
+
             // Read conversation
             let conv = await Store.Conversation.findById(ctx, message.cid);
             if (!conv) {
@@ -416,9 +386,9 @@ export class MessagingMediator {
             // Post event
             if (conv!.kind === 'private') {
                 let p = (await Store.ConversationPrivate.findById(ctx, conv.id))!;
-                await this.events.onPrivateMessageUpdated(ctx, conv.id, mid, message.uid, message.hiddenForUids || [], [p.uid1, p.uid2]);
+                await this.events.onPrivateMessageUpdated(ctx, conv.id, mid, message.uid, message.visibleOnlyForUids || [], [p.uid1, p.uid2]);
             } else {
-                await this.events.onGroupMessageUpdated(ctx, conv.id, mid, message.uid, message.hiddenForUids || []);
+                await this.events.onGroupMessageUpdated(ctx, conv.id, mid, message.uid, message.visibleOnlyForUids || []);
             }
         });
     }
@@ -441,9 +411,9 @@ export class MessagingMediator {
             // Post event
             if (conv!.kind === 'private') {
                 let p = (await Store.ConversationPrivate.findById(ctx, conv.id))!;
-                await this.events.onPrivateMessageUpdated(ctx, conv.id, mid, res.uid, res.hiddenForUids || [], [p.uid1, p.uid2]);
+                await this.events.onPrivateMessageUpdated(ctx, conv.id, mid, res.uid, res.visibleOnlyForUids || [], [p.uid1, p.uid2]);
             } else {
-                await this.events.onGroupMessageUpdated(ctx, conv.id, mid, res.uid, res.hiddenForUids || []);
+                await this.events.onGroupMessageUpdated(ctx, conv.id, mid, res.uid, res.visibleOnlyForUids || []);
             }
 
             // Stats
@@ -481,21 +451,17 @@ export class MessagingMediator {
             // Post event
             if (conv!.kind === 'private') {
                 let p = (await Store.ConversationPrivate.findById(ctx, conv.id))!;
-                await this.events.onPrivateMessageDeleted(ctx, conv.id, mid, message.uid, message.hiddenForUids || [], [p.uid1, p.uid2]);
+                await this.events.onPrivateMessageDeleted(ctx, conv.id, mid, message.uid, message.visibleOnlyForUids || [], [p.uid1, p.uid2]);
             } else {
-                await this.events.onGroupMessageDeleted(ctx, conv.id, mid, message.uid, message.hiddenForUids || []);
+                await this.events.onGroupMessageDeleted(ctx, conv.id, mid, message.uid, message.visibleOnlyForUids || []);
             }
 
             // Delivery
             message = (await Store.Message.findById(ctx, mid))!;
             await this.delivery.onDeleteMessage(ctx, message);
 
-            // Fast counters
-            if (message.seq) {
-                await this.fastCounters.onMessageDeleted(ctx, message.cid, message.seq, fetchMessageMentions(message), message.hiddenForUids || []);
-                await this.experimentalCounters.onMessageDeleted(ctx, message.cid, message.seq);
-                await this.newCounters.onMessageDeleted(ctx, message.cid, message.seq);
-            }
+            // Update counters
+            await this.counters.onMessage(ctx, message);
 
             // cancel payment if it is not success/canceled
             await this.donations.onDeleteMessage(ctx, message);
@@ -524,13 +490,9 @@ export class MessagingMediator {
             if (!msg || msg.cid !== cid) {
                 throw Error('Invalid request');
             }
-            await this.delivery.onRoomRead(ctx, uid, mid);
-
-            // Fast counters
-            if (msg.seq) {
-                this.fastCounters.onMessageRead(ctx, uid, cid, msg.seq);
-                this.experimentalCounters.onMessageRead(ctx, uid, cid, msg.seq);
-                await this.userReadSeqs.updateReadSeq(ctx, uid, cid, msg.seq);
+            if (await this.userReadSeqs.updateReadSeq(ctx, uid, cid, msg.seq)) {
+                await this.delivery.onRoomRead(ctx, uid, mid);
+                await this.counters.readMessages(ctx, { cid, uid, seq: msg.seq });
             }
         });
     }

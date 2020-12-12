@@ -967,7 +967,7 @@ migrations.push({
             if (ex.length === 0) {
                 break;
             }
-            let ids = ex.map((e) => ({cid: e.key[0] as number, uid: e.key[1] as number}));
+            let ids = ex.map((e) => ({ cid: e.key[0] as number, uid: e.key[1] as number }));
             logger.log(parent, 'Apply conversation ' + after + ': ' + ids.length);
             await inTx(parent, async ctx => {
                 await Promise.all(ids.map(async (u) => {
@@ -994,7 +994,7 @@ migrations.push({
             if (ex.length === 0) {
                 break;
             }
-            let ids = ex.map((e) => ({cid: e.key[0] as number, uid: e.key[1] as number}));
+            let ids = ex.map((e) => ({ cid: e.key[0] as number, uid: e.key[1] as number }));
             logger.log(parent, 'Apply conversation ' + after + ': ' + ids.length);
             await inTx(parent, async ctx => {
                 await Promise.all(ids.map(async (u) => {
@@ -1041,7 +1041,7 @@ migrations.push({
             if (ex.length === 0) {
                 break;
             }
-            let ids = ex.map((e) => ({cid: e.key[0] as number, uid: e.key[1] as number}));
+            let ids = ex.map((e) => ({ cid: e.key[0] as number, uid: e.key[1] as number }));
             logger.log(parent, 'Apply conversation ' + after + ': ' + ids.length);
             await inTx(parent, async ctx => {
                 await Promise.all(ids.map(async (u) => {
@@ -1062,7 +1062,7 @@ migrations.push({
             if (ex.length === 0) {
                 break;
             }
-            let ids = ex.map((e) => ({cid: e.key[0] as number, uid: e.key[1] as number}));
+            let ids = ex.map((e) => ({ cid: e.key[0] as number, uid: e.key[1] as number }));
             logger.log(parent, 'Apply conversation ' + after + ': ' + ids.length);
             await inTx(parent, async ctx => {
                 await Promise.all(ids.map(async (u) => {
@@ -1076,6 +1076,59 @@ migrations.push({
 
             after = ex[ex.length - 1].key[0] as number;
         }
+    }
+});
+
+migrations.push({
+    key: '168-migrate-all-counters',
+    migration: async (parent) => {
+        let index = 0;
+        await Store.Message.iterateAllItems(parent, 250, async (ctx, items) => {
+            logger.log(ctx, 'Iteration ' + index);
+            for (let i of items) {
+                await Modules.Messaging.messaging.counters.onMessage(ctx, i);
+            }
+            index++;
+        });
+    }
+});
+
+migrations.push({
+    key: '169-migrate-counters-all-private',
+    migration: async (parent) => {
+        let index = 0;
+        await Store.ConversationPrivate.iterateAllItems(parent, 500, async (ctx, items) => {
+            logger.log(ctx, 'Iteration ' + index);
+            for (let i of items) {
+                let mute1 = (await Modules.Messaging.getRoomSettings(ctx, i.uid1, i.id)).mute;
+                let mute2 = (await Modules.Messaging.getRoomSettings(ctx, i.uid2, i.id)).mute;
+                let seq1 = await Modules.Messaging.messaging.userReadSeqs.getUserReadSeqForChat(ctx, i.uid1, i.id);
+                let seq2 = await Modules.Messaging.messaging.userReadSeqs.getUserReadSeqForChat(ctx, i.uid2, i.id);
+                await Modules.Messaging.messaging.counters.subscribe(ctx, { cid: i.id, uid: i.uid1, seq: seq1, muted: mute1 });
+                await Modules.Messaging.messaging.counters.subscribe(ctx, { cid: i.id, uid: i.uid2, seq: seq2, muted: mute2 });
+            }
+            index++;
+        });
+    }
+});
+
+migrations.push({
+    key: '170-migrate-counters-rooms',
+    migration: async (parent) => {
+        let index = 0;
+        await Store.RoomParticipant.iterateAllItems(parent, 500, async (ctx, items) => {
+            logger.log(ctx, 'Iteration ' + index);
+            for (let i of items) {
+                if (i.status === 'joined') {
+                    let muted = (await Modules.Messaging.getRoomSettings(ctx, i.uid, i.cid)).mute;
+                    let seq = await Modules.Messaging.messaging.userReadSeqs.getUserReadSeqForChat(ctx, i.uid, i.cid);
+                    await Modules.Messaging.messaging.counters.subscribe(ctx, { cid: i.cid, uid: i.uid, seq, muted });
+                } else {
+                    await Modules.Messaging.messaging.counters.unsubscribe(ctx, { cid: i.cid, uid: i.uid });
+                }
+            }
+            index++;
+        });
     }
 });
 

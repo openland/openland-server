@@ -46,6 +46,11 @@ function testAlgorithm(type: 'direct' | 'bucket' | 'bucket-optimized' | 'b-tree'
         });
 
         let counted = await inTx(root, async (ctx) => {
+            return await alg.count(ctx, COLLECTION_1, {});
+        });
+        expect(counted).toBe(4);
+
+        counted = await inTx(root, async (ctx) => {
             return await alg.count(ctx, COLLECTION_1, { from: 2, to: 5 });
         });
         expect(counted).toBe(4);

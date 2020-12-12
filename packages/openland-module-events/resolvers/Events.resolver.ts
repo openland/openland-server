@@ -17,7 +17,7 @@ export const Resolver: GQLResolver = {
                 return 'UpdateChatRead';
             } else if (src.type === 'updateChatMessage' || src.type === 'updateChatMessageUpdated') {
                 let msg = (await Store.Message.findById(ctx, src.mid))!;
-                if (!msg || msg.deleted || (msg.hiddenForUids !== null && !!msg.hiddenForUids.find((v) => v === ctx.auth.uid))) {
+                if (!msg || msg.deleted || (msg.visibleOnlyForUids !== null && msg.visibleOnlyForUids.length > 0 && !msg.visibleOnlyForUids.find((v) => v === ctx.auth.uid))) {
                     return 'UpdateChatMessageDeleted';
                 } else {
                     return 'UpdateChatMessage';

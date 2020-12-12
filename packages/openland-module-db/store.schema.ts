@@ -201,18 +201,18 @@ export default declareSchema(() => {
         field('global', boolean());
         field('creatorId', optional(integer()));
 
-        uniqueIndex('duplicates', ['emoji' , 'text']);
+        uniqueIndex('duplicates', ['emoji', 'text']);
         rangeIndex('updated', ['updatedAt']);
     });
 
     entity('UserModernBadge', () => {
-       primaryKey('uid', integer());
-       primaryKey('bid', integer());
+        primaryKey('uid', integer());
+        primaryKey('bid', integer());
 
-       field('deleted', boolean());
+        field('deleted', boolean());
 
-       rangeIndex('byBid', ['bid', 'updatedAt']).withCondition(a => !a.deleted);
-       rangeIndex('byUid', ['uid', 'updatedAt']).withCondition(a => !a.deleted);
+        rangeIndex('byBid', ['bid', 'updatedAt']).withCondition(a => !a.deleted);
+        rangeIndex('byUid', ['uid', 'updatedAt']).withCondition(a => !a.deleted);
     });
 
     //
@@ -431,12 +431,13 @@ export default declareSchema(() => {
 
     taskQueue('DeliveryFanOut');
     taskQueue('DeliveryUserBatch');
-
+    
+    customDirectory('MessageCounters');
     entity('Message', () => {
         primaryKey('id', integer());
         field('cid', integer());
         field('uid', integer());
-        field('seq', optional(integer()));
+        field('seq', integer());
         field('repeatKey', optional(string()));
 
         field('text', optional(string())).secure();
@@ -448,6 +449,7 @@ export default declareSchema(() => {
         field('edited', optional(boolean()));
         field('isMuted', boolean());
         field('isService', boolean());
+        field('visibleOnlyForUids', optional(array(integer())));
         field('hiddenForUids', optional(array(integer())));
         field('deleted', optional(boolean()));
         field('spans', optional(array(union({
@@ -861,16 +863,19 @@ export default declareSchema(() => {
     event('MessageReceivedEvent', () => {
         field('cid', integer());
         field('mid', integer());
+        field('visibleOnlyForUids', optional(array(integer())));
         field('hiddenForUids', optional(array(integer())));
     });
     event('MessageUpdatedEvent', () => {
         field('cid', integer());
         field('mid', integer());
+        field('visibleOnlyForUids', optional(array(integer())));
         field('hiddenForUids', optional(array(integer())));
     });
     event('MessageDeletedEvent', () => {
         field('cid', integer());
         field('mid', integer());
+        field('visibleOnlyForUids', optional(array(integer())));
         field('hiddenForUids', optional(array(integer())));
     });
     eventStore('ConversationEventStore', () => {

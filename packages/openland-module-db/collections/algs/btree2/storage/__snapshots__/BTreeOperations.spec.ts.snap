@@ -1,0 +1,641 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BTreeOperations should create and delete root node 1`] = `
+Object {
+  "id": 1,
+  "parent": null,
+  "type": "leaf",
+  "values": Array [
+    1,
+    2,
+    3,
+    4,
+  ],
+}
+`;
+
+exports[`BTreeOperations should create and delete root node 2`] = `
+Object {
+  "id": 1,
+  "parent": null,
+  "type": "leaf",
+  "values": Array [
+    2,
+    4,
+  ],
+}
+`;
+
+exports[`BTreeOperations should delete node 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "count": 2,
+      "max": 4,
+      "min": 3,
+      "node": Object {
+        "id": 4,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          3,
+          4,
+        ],
+      },
+    },
+    Object {
+      "count": 2,
+      "max": 6,
+      "min": 5,
+      "node": Object {
+        "id": 3,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          5,
+          6,
+        ],
+      },
+    },
+    Object {
+      "count": 2,
+      "max": 8,
+      "min": 7,
+      "node": Object {
+        "id": 5,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          7,
+          8,
+        ],
+      },
+    },
+  ],
+  "id": 2,
+  "parent": null,
+  "type": "internal",
+}
+`;
+
+exports[`BTreeOperations should insert to leaf 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "count": 4,
+      "max": 2,
+      "min": -1,
+      "node": Object {
+        "id": 1,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          -1,
+          0,
+          1,
+          2,
+        ],
+      },
+    },
+    Object {
+      "count": 2,
+      "max": 4,
+      "min": 3,
+      "node": Object {
+        "id": 4,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          3,
+          4,
+        ],
+      },
+    },
+    Object {
+      "count": 2,
+      "max": 6,
+      "min": 5,
+      "node": Object {
+        "id": 3,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          5,
+          6,
+        ],
+      },
+    },
+    Object {
+      "count": 4,
+      "max": 10,
+      "min": 7,
+      "node": Object {
+        "id": 5,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          7,
+          8,
+          9,
+          10,
+        ],
+      },
+    },
+  ],
+  "id": 2,
+  "parent": null,
+  "type": "internal",
+}
+`;
+
+exports[`BTreeOperations should move node 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "count": 4,
+      "max": 4,
+      "min": 1,
+      "node": Object {
+        "children": Array [
+          Object {
+            "count": 2,
+            "max": 2,
+            "min": 1,
+            "node": Object {
+              "id": 1,
+              "parent": 2,
+              "type": "leaf",
+              "values": Array [
+                1,
+                2,
+              ],
+            },
+          },
+          Object {
+            "count": 2,
+            "max": 4,
+            "min": 3,
+            "node": Object {
+              "id": 4,
+              "parent": 2,
+              "type": "leaf",
+              "values": Array [
+                3,
+                4,
+              ],
+            },
+          },
+        ],
+        "id": 2,
+        "parent": 6,
+        "type": "internal",
+      },
+    },
+    Object {
+      "count": 4,
+      "max": 8,
+      "min": 5,
+      "node": Object {
+        "children": Array [
+          Object {
+            "count": 2,
+            "max": 6,
+            "min": 5,
+            "node": Object {
+              "id": 3,
+              "parent": 7,
+              "type": "leaf",
+              "values": Array [
+                5,
+                6,
+              ],
+            },
+          },
+          Object {
+            "count": 2,
+            "max": 8,
+            "min": 7,
+            "node": Object {
+              "id": 5,
+              "parent": 7,
+              "type": "leaf",
+              "values": Array [
+                7,
+                8,
+              ],
+            },
+          },
+        ],
+        "id": 7,
+        "parent": 6,
+        "type": "internal",
+      },
+    },
+  ],
+  "id": 6,
+  "parent": null,
+  "type": "internal",
+}
+`;
+
+exports[`BTreeOperations should move node 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "count": 2,
+      "max": 2,
+      "min": 1,
+      "node": Object {
+        "children": Array [
+          Object {
+            "count": 2,
+            "max": 2,
+            "min": 1,
+            "node": Object {
+              "id": 1,
+              "parent": 2,
+              "type": "leaf",
+              "values": Array [
+                1,
+                2,
+              ],
+            },
+          },
+        ],
+        "id": 2,
+        "parent": 6,
+        "type": "internal",
+      },
+    },
+    Object {
+      "count": 6,
+      "max": 8,
+      "min": 3,
+      "node": Object {
+        "children": Array [
+          Object {
+            "count": 2,
+            "max": 4,
+            "min": 3,
+            "node": Object {
+              "id": 4,
+              "parent": 7,
+              "type": "leaf",
+              "values": Array [
+                3,
+                4,
+              ],
+            },
+          },
+          Object {
+            "count": 2,
+            "max": 6,
+            "min": 5,
+            "node": Object {
+              "id": 3,
+              "parent": 7,
+              "type": "leaf",
+              "values": Array [
+                5,
+                6,
+              ],
+            },
+          },
+          Object {
+            "count": 2,
+            "max": 8,
+            "min": 7,
+            "node": Object {
+              "id": 5,
+              "parent": 7,
+              "type": "leaf",
+              "values": Array [
+                7,
+                8,
+              ],
+            },
+          },
+        ],
+        "id": 7,
+        "parent": 6,
+        "type": "internal",
+      },
+    },
+  ],
+  "id": 6,
+  "parent": null,
+  "type": "internal",
+}
+`;
+
+exports[`BTreeOperations should move value 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "count": 1,
+      "max": 1,
+      "min": 1,
+      "node": Object {
+        "id": 1,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          1,
+        ],
+      },
+    },
+    Object {
+      "count": 3,
+      "max": 4,
+      "min": 2,
+      "node": Object {
+        "id": 3,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          2,
+          3,
+          4,
+        ],
+      },
+    },
+  ],
+  "id": 2,
+  "parent": null,
+  "type": "internal",
+}
+`;
+
+exports[`BTreeOperations should move value 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "count": 3,
+      "max": 3,
+      "min": 1,
+      "node": Object {
+        "id": 1,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          1,
+          2,
+          3,
+        ],
+      },
+    },
+    Object {
+      "count": 1,
+      "max": 4,
+      "min": 4,
+      "node": Object {
+        "id": 3,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          4,
+        ],
+      },
+    },
+  ],
+  "id": 2,
+  "parent": null,
+  "type": "internal",
+}
+`;
+
+exports[`BTreeOperations should split root node 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "count": 2,
+      "max": 2,
+      "min": 1,
+      "node": Object {
+        "id": 1,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          1,
+          2,
+        ],
+      },
+    },
+    Object {
+      "count": 2,
+      "max": 4,
+      "min": 3,
+      "node": Object {
+        "id": 3,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          3,
+          4,
+        ],
+      },
+    },
+  ],
+  "id": 2,
+  "parent": null,
+  "type": "internal",
+}
+`;
+
+exports[`BTreeOperations should split root node 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "count": 1,
+      "max": 1,
+      "min": 1,
+      "node": Object {
+        "id": 1,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          1,
+        ],
+      },
+    },
+    Object {
+      "count": 1,
+      "max": 2,
+      "min": 2,
+      "node": Object {
+        "id": 4,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          2,
+        ],
+      },
+    },
+    Object {
+      "count": 2,
+      "max": 4,
+      "min": 3,
+      "node": Object {
+        "id": 3,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          3,
+          4,
+        ],
+      },
+    },
+  ],
+  "id": 2,
+  "parent": null,
+  "type": "internal",
+}
+`;
+
+exports[`BTreeOperations should split root node 3`] = `
+Object {
+  "children": Array [
+    Object {
+      "count": 1,
+      "max": 1,
+      "min": 1,
+      "node": Object {
+        "id": 1,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          1,
+        ],
+      },
+    },
+    Object {
+      "count": 1,
+      "max": 2,
+      "min": 2,
+      "node": Object {
+        "id": 4,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          2,
+        ],
+      },
+    },
+    Object {
+      "count": 1,
+      "max": 3,
+      "min": 3,
+      "node": Object {
+        "id": 3,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          3,
+        ],
+      },
+    },
+    Object {
+      "count": 1,
+      "max": 4,
+      "min": 4,
+      "node": Object {
+        "id": 5,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          4,
+        ],
+      },
+    },
+  ],
+  "id": 2,
+  "parent": null,
+  "type": "internal",
+}
+`;
+
+exports[`BTreeOperations should split root node 4`] = `
+Object {
+  "children": Array [
+    Object {
+      "count": 2,
+      "max": 2,
+      "min": 1,
+      "node": Object {
+        "children": Array [
+          Object {
+            "count": 1,
+            "max": 1,
+            "min": 1,
+            "node": Object {
+              "id": 1,
+              "parent": 2,
+              "type": "leaf",
+              "values": Array [
+                1,
+              ],
+            },
+          },
+          Object {
+            "count": 1,
+            "max": 2,
+            "min": 2,
+            "node": Object {
+              "id": 4,
+              "parent": 2,
+              "type": "leaf",
+              "values": Array [
+                2,
+              ],
+            },
+          },
+        ],
+        "id": 2,
+        "parent": 6,
+        "type": "internal",
+      },
+    },
+    Object {
+      "count": 2,
+      "max": 4,
+      "min": 3,
+      "node": Object {
+        "children": Array [
+          Object {
+            "count": 1,
+            "max": 3,
+            "min": 3,
+            "node": Object {
+              "id": 3,
+              "parent": 7,
+              "type": "leaf",
+              "values": Array [
+                3,
+              ],
+            },
+          },
+          Object {
+            "count": 1,
+            "max": 4,
+            "min": 4,
+            "node": Object {
+              "id": 5,
+              "parent": 7,
+              "type": "leaf",
+              "values": Array [
+                4,
+              ],
+            },
+          },
+        ],
+        "id": 7,
+        "parent": 6,
+        "type": "internal",
+      },
+    },
+  ],
+  "id": 6,
+  "parent": null,
+  "type": "internal",
+}
+`;

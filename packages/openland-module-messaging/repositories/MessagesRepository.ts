@@ -70,7 +70,8 @@ export class MessagesRepository {
                 seq: seq,
                 isMuted: message.isMuted || false,
                 isService: message.isService || false,
-                hiddenForUids: message.hiddenForUids || [],
+                visibleOnlyForUids: message.visibleOnlyForUids || [],
+
                 text: message.message,
                 serviceMetadata: message.serviceMetadata || null,
                 replyMessages: message.replyMessages,
@@ -178,7 +179,7 @@ export class MessagesRepository {
             let msg = res[0];
             // this can be slow if we allow hidden messages for users, but ok for service purposes
             // in general we should store top message in user dialogs list & update it via delivery workers
-            while (msg.hiddenForUids && msg.hiddenForUids.includes(forUid)) {
+            while (msg.visibleOnlyForUids && msg.visibleOnlyForUids.length > 0 && !msg.visibleOnlyForUids.includes(forUid)) {
                 let res2 = (await Store.Message.chat.query(ctx, cid, { limit: 1, reverse: true, after: msg.id })).items;
                 if (res2.length === 0) {
                     return null;

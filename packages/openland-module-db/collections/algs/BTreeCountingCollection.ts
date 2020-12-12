@@ -1,9 +1,7 @@
 import { Context } from '@openland/context';
 import { Subspace } from '@openland/foundationdb';
 import { Algorithm } from './Algorithm';
-import { BPlusTreeDirectory } from './btree/BPlusTreeDirectory';
-
-const ZERO = Buffer.from([]);
+import { BPlusTreeDirectory } from './btree2/BPlusTreeDirectory';
 
 export class BTreeCountingCollection implements Algorithm {
     readonly subspace: Subspace;
@@ -15,10 +13,11 @@ export class BTreeCountingCollection implements Algorithm {
     }
 
     async add(ctx: Context, collection: Buffer, id: number) {
-        await this.btree.add(ctx, collection, id, ZERO);
+        await this.btree.add(ctx, collection, id);
     }
+    
     async remove(ctx: Context, collection: Buffer, id: number) {
-        // TODO: Implement
+        await this.btree.remove(ctx, collection, id);
     }
 
     async count(ctx: Context, collection: Buffer, cursor: { from?: number | null, to?: number | null }) {

@@ -285,7 +285,11 @@ export class DeliveryMediator {
 
     private deliverMessageToUser = async (ctx: Context, uid: number, message: Message) => {
         // Ignore message hidden for current user
-        if (message.hiddenForUids && message.hiddenForUids.includes(uid)) {
+        if (
+            message.visibleOnlyForUids &&
+            message.visibleOnlyForUids.length > 0 &&
+            !message.visibleOnlyForUids.includes(uid)
+        ) {
             return;
         }
         // Update counters

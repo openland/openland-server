@@ -37,18 +37,18 @@ export class EventsMediator {
     // Group Updates
     //
 
-    async onGroupMessageSent(ctx: Context, cid: number, mid: number, uid: number, hiddenForUids: number[]) {
-        this.messagingEvents.postMessageReceived(ctx, cid, mid, hiddenForUids);
+    async onGroupMessageSent(ctx: Context, cid: number, mid: number, uid: number, visibleOnlyForUids: number[]) {
+        this.messagingEvents.postMessageReceived(ctx, cid, mid, visibleOnlyForUids);
         await Modules.Events.postToChat(ctx, cid, UpdateChatMessage.create({ cid, mid, uid }));
     }
 
-    async onGroupMessageUpdated(ctx: Context, cid: number, mid: number, uid: number, hiddenForUids: number[]) {
-        this.messagingEvents.postMessageUpdated(ctx, cid, mid, hiddenForUids);
+    async onGroupMessageUpdated(ctx: Context, cid: number, mid: number, uid: number, visibleOnlyForUids: number[]) {
+        this.messagingEvents.postMessageUpdated(ctx, cid, mid, visibleOnlyForUids);
         await Modules.Events.postToChat(ctx, cid, UpdateChatMessageUpdated.create({ cid, mid, uid }));
     }
 
-    async onGroupMessageDeleted(ctx: Context, cid: number, mid: number, uid: number, hiddenForUids: number[]) {
-        this.messagingEvents.postMessageDeleted(ctx, cid, mid, hiddenForUids);
+    async onGroupMessageDeleted(ctx: Context, cid: number, mid: number, uid: number, visibleOnlyForUids: number[]) {
+        this.messagingEvents.postMessageDeleted(ctx, cid, mid, visibleOnlyForUids);
         await Modules.Events.postToChat(ctx, cid, UpdateChatMessageDeleted.create({ cid, mid, uid }));
     }
 
@@ -56,13 +56,13 @@ export class EventsMediator {
     // Private Updates
     //
 
-    async onPrivateMessageSent(ctx: Context, cid: number, mid: number, uid: number, hiddenForUids: number[], members: number[]) {
-        this.messagingEvents.postMessageReceived(ctx, cid, mid, hiddenForUids);
+    async onPrivateMessageSent(ctx: Context, cid: number, mid: number, uid: number, visibleOnlyForUids: number[], members: number[]) {
+        this.messagingEvents.postMessageReceived(ctx, cid, mid, visibleOnlyForUids);
 
         let update = UpdateChatMessage.create({ cid, mid, uid });
         await Modules.Events.postToChat(ctx, cid, update);
         for (let m of members) {
-            if (hiddenForUids.find((u) => u === m)) {
+            if (!visibleOnlyForUids.find((u) => u === m)) {
                 continue;
             }
             await Modules.Events.postToChatPrivate(ctx, cid, m, update);
@@ -70,13 +70,13 @@ export class EventsMediator {
         }
     }
 
-    async onPrivateMessageUpdated(ctx: Context, cid: number, mid: number, uid: number, hiddenForUids: number[], members: number[]) {
-        this.messagingEvents.postMessageUpdated(ctx, cid, mid, hiddenForUids);
+    async onPrivateMessageUpdated(ctx: Context, cid: number, mid: number, uid: number, visibleOnlyForUids: number[], members: number[]) {
+        this.messagingEvents.postMessageUpdated(ctx, cid, mid, visibleOnlyForUids);
 
         let update = UpdateChatMessageUpdated.create({ cid, mid, uid });
         await Modules.Events.postToChat(ctx, cid, update);
         for (let m of members) {
-            if (hiddenForUids.find((u) => u === m)) {
+            if (visibleOnlyForUids.length > 0 && !visibleOnlyForUids.find((u) => u === m)) {
                 continue;
             }
             await Modules.Events.postToChatPrivate(ctx, cid, m, update);
@@ -84,13 +84,13 @@ export class EventsMediator {
         }
     }
 
-    async onPrivateMessageDeleted(ctx: Context, cid: number, mid: number, uid: number, hiddenForUids: number[], members: number[]) {
-        this.messagingEvents.postMessageDeleted(ctx, cid, mid, hiddenForUids);
+    async onPrivateMessageDeleted(ctx: Context, cid: number, mid: number, uid: number, visibleOnlyForUids: number[], members: number[]) {
+        this.messagingEvents.postMessageDeleted(ctx, cid, mid, visibleOnlyForUids);
 
         let update = UpdateChatMessageDeleted.create({ cid, mid, uid });
         await Modules.Events.postToChat(ctx, cid, update);
         for (let m of members) {
-            if (hiddenForUids.find((u) => u === m)) {
+            if (visibleOnlyForUids.length > 0 && visibleOnlyForUids.length > 0 && !visibleOnlyForUids.find((u) => u === m)) {
                 continue;
             }
             await Modules.Events.postToChatPrivate(ctx, cid, m, update);

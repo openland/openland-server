@@ -142,7 +142,7 @@ export const Resolver: GQLResolver = {
                                 ev instanceof MessageUpdatedEvent ||
                                 ev instanceof MessageDeletedEvent
                             ) {
-                                if (ev.hiddenForUids?.includes(uid)) {
+                                if (ev.visibleOnlyForUids && ev.visibleOnlyForUids.length > 0 && !ev.visibleOnlyForUids.includes(uid)) {
                                     continue;
                                 }
                             }

@@ -9,8 +9,6 @@ import { PushModule } from '../openland-module-push/PushModule';
 import { PushModuleMock } from '../openland-module-push/PushModule.mock';
 import { PresenceModule } from '../openland-module-presences/PresenceModule';
 import { SearchModule } from '../openland-module-search/SearchModule';
-import { FastCountersRepository } from './repositories/FastCountersRepository';
-import { FastCountersMediator } from './mediators/FastCountersMediator';
 import { loadSocialImageModule } from '../openland-module-social-image/SocialImageModule.container';
 import { BlackListModule } from '../openland-module-blacklist/BlackListModule';
 import { BlackListRepository } from '../openland-module-blacklist/repositories/BlackListRepository';
@@ -24,8 +22,6 @@ export function loadMessagingTestModule() {
     container.bind(PushModule).to(PushModuleMock as any).inSingletonScope();
     container.bind(PresenceModule).toSelf().inSingletonScope();
     container.bind(DraftsModule).toSelf().inSingletonScope();
-    container.bind(FastCountersRepository).toSelf().inSingletonScope();
-    container.bind(FastCountersMediator).toSelf().inSingletonScope();
     loadSocialImageModule();
     loadSocialImageModule();
     container.bind(BlackListModule).toSelf().inSingletonScope();

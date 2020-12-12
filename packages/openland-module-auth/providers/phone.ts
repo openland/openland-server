@@ -3,7 +3,7 @@ import * as bodyParser from 'body-parser';
 import { createPersistenceThrottle } from '../../openland-utils/PersistenceThrottle';
 import { createNamedContext } from '@openland/context';
 import { inTx } from '@openland/foundationdb';
-import { SmsService } from '../../openland-utils/SmsService';
+import { SmsService } from '../../openland-utils/sms/SmsService';
 import { createOneTimeCodeGenerator } from '../../openland-utils/OneTimeCode';
 import { Store } from '../../openland-module-db/FDB';
 import * as base64 from '../../openland-utils/base64';

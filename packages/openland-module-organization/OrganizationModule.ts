@@ -92,6 +92,21 @@ export class OrganizationModule {
             // Add member
             await this.repo.addUserToOrganization(ctx, uid, oid, by);
 
+            let org = await Store.Organization.findById(ctx, oid);
+            if (!org) {
+                throw new UserError('Internal inconsistency');
+            }
+            if (org.autosubscribeRooms && !(await Store.AutoSubscribeWasExecutedForUser.get(ctx, uid, 'org', org.id))) {
+                for (let c of org.autosubscribeRooms) {
+                    let conv = await Store.ConversationRoom.findById(ctx, c);
+                    if (!conv || conv.isDeleted) {
+                        continue;
+                    }
+                    await Modules.Messaging.room.joinRoom(ctx, c, uid, false);
+                }
+                Store.AutoSubscribeWasExecutedForUser.set(ctx, uid, 'org', org.id, true);
+            }
+
             return (await Store.Organization.findById(ctx, oid))!;
         });
     }

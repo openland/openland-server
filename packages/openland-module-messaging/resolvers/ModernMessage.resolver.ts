@@ -50,6 +50,29 @@ export function hasMention(message: Message | RichMessage, uid: number) {
     return false;
 }
 
+export function getAllMentions(message: Message | RichMessage) {
+    let mentions: number[] = [];
+    if (message.spans) {
+        for (let s of message.spans) {
+            if (s.type === 'user_mention') {
+                mentions.push(s.user);
+            } else if (s.type === 'multi_user_mention') {
+                for (let u of s.users) {
+                    mentions.push(u);
+                }
+            }
+        }
+    }
+    return mentions;
+}
+
+export function hasAllMention(message: Message | RichMessage) {
+    if (message.spans && message.spans.find(s => s.type === 'all_mention')) {
+        return true;
+    }
+    return false;
+}
+
 export function convertMentionsToSpans(mentions: MentionInput[]) {
     let spans: MessageSpan[] = [];
 
@@ -166,7 +189,7 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
     //
     if (message.mentions) {
         for (let m of message.mentions) {
-            intermediateMentions.push({type: 'user', user: m});
+            intermediateMentions.push({ type: 'user', user: m });
         }
     }
 
@@ -176,9 +199,9 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
     if (message.complexMentions) {
         for (let m of message.complexMentions) {
             if (m.type === 'User') {
-                intermediateMentions.push({type: 'user', user: m.id});
+                intermediateMentions.push({ type: 'user', user: m.id });
             } else if (m.type === 'SharedRoom') {
-                intermediateMentions.push({type: 'room', room: m.id});
+                intermediateMentions.push({ type: 'room', room: m.id });
             } else {
                 throw new Error('Unknown mention type: ' + m.type);
             }
@@ -388,7 +411,7 @@ function isMessageHiddenForUser(message: Message | Comment | RichMessage, forUid
     if (!(message instanceof Message)) {
         return false;
     }
-    if (message.hiddenForUids && message.hiddenForUids.includes(forUid)) {
+    if (message.visibleOnlyForUids && message.visibleOnlyForUids.length > 0 && !message.visibleOnlyForUids.includes(forUid)) {
         return true;
     }
     return false;
@@ -400,17 +423,17 @@ async function fetchMessages(ctx: Context, cid: number, forUid: number, opts: Ra
         return messages;
     }
     let after = messages.items[messages.items.length - 1].id;
-    messages.items = messages.items.filter(m => !m.hiddenForUids?.includes(forUid));
+    messages.items = messages.items.filter(m => (m.visibleOnlyForUids && m.visibleOnlyForUids.length > 0) ? m.visibleOnlyForUids.includes(forUid) : true);
 
     while (messages.items.length < (opts.limit || 0) && messages.haveMore) {
-        let more = await Store.Message.chat.query(ctx, cid, {...opts, after, limit: 1});
+        let more = await Store.Message.chat.query(ctx, cid, { ...opts, after, limit: 1 });
         if (more.items.length === 0) {
             messages.haveMore = false;
             return messages;
         }
         after = more.items[more.items.length - 1].id;
 
-        let filtered = more.items.filter(m => !m.hiddenForUids?.includes(forUid));
+        let filtered = more.items.filter(m => (m.visibleOnlyForUids && m.visibleOnlyForUids.length > 0) ? m.visibleOnlyForUids.includes(forUid) : true);
         messages.items.push(...filtered);
         messages.haveMore = more.haveMore;
         messages.cursor = more.cursor;
@@ -421,34 +444,6 @@ async function fetchMessages(ctx: Context, cid: number, forUid: number, opts: Ra
 
     return messages;
 }
-
-// async function fetchMessagesFromSeq(ctx: Context, cid: number, forUid: number, opts: RangeQueryOptions<number>) {
-//     let messages = await Store.Message.chatSeq.query(ctx, cid, opts);
-//     if (messages.items.length === 0) {
-//         return messages;
-//     }
-//     let after = messages.items[messages.items.length - 1].id;
-//     messages.items = messages.items.filter(m => !m.hiddenForUids?.includes(forUid));
-//
-//     while (messages.items.length < (opts.limit || 0) && messages.haveMore) {
-//         let more = await Store.Message.chatSeq.query(ctx, cid, {...opts, after, limit: 1});
-//         if (more.items.length === 0) {
-//             messages.haveMore = false;
-//             return messages;
-//         }
-//         after = more.items[more.items.length - 1].id;
-//
-//         let filtered = more.items.filter(m => !m.hiddenForUids?.includes(forUid));
-//         messages.items.push(...filtered);
-//         messages.haveMore = more.haveMore;
-//         messages.cursor = more.cursor;
-//     }
-//     if (opts.limit) {
-//         messages.items = messages.items.slice(0, opts.limit);
-//     }
-//
-//     return messages;
-// }
 
 function resolveReactionCounters(src: GeneralMessageRoot, args: any, ctx: Context) {
     let counts = new Map<MessageReactionTypeRoot, number>();
@@ -462,7 +457,7 @@ function resolveReactionCounters(src: GeneralMessageRoot, args: any, ctx: Contex
             }
         }
     });
-    return [...counts.entries()].map(e => ({reaction: e[0], count: e[1], setByMe: setByUser.has(e[0])}));
+    return [...counts.entries()].map(e => ({ reaction: e[0], count: e[1], setByMe: setByUser.has(e[0]) }));
 }
 
 export const Resolver: GQLResolver = {
@@ -692,7 +687,7 @@ export const Resolver: GQLResolver = {
                 return [];
             }
             if (src instanceof Comment || src instanceof RichMessage) {
-                return src.attachments ? src.attachments.map(a => ({message: src, attachment: a})) : [];
+                return src.attachments ? src.attachments.map(a => ({ message: src, attachment: a })) : [];
             }
 
             let attachments: { attachment: MessageAttachment, message: Message }[] = [];
@@ -791,7 +786,7 @@ export const Resolver: GQLResolver = {
                 }
             }
             if (src.attachmentsModern) {
-                attachments.push(...(src.attachmentsModern.map(a => ({message: src, attachment: a}))));
+                attachments.push(...(src.attachmentsModern.map(a => ({ message: src, attachment: a }))));
             }
 
             return attachments;
@@ -1022,7 +1017,7 @@ export const Resolver: GQLResolver = {
         text: src => src.text,
     },
     Image: {
-        url: src => buildBaseImageUrl({uuid: src.uuid, crop: src.crop || null})!,
+        url: src => buildBaseImageUrl({ uuid: src.uuid, crop: src.crop || null })!,
         metadata: src => {
             if (src.metadata) {
                 return {
@@ -1121,7 +1116,7 @@ export const Resolver: GQLResolver = {
                 }
             }
 
-            return {buttons: src.attachment.keyboard.buttons as (MessageButton & { id: string })[][]};
+            return { buttons: src.attachment.keyboard.buttons as (MessageButton & { id: string })[][] };
         },
     },
     MessageAttachmentPurchase: {
@@ -1168,7 +1163,7 @@ export const Resolver: GQLResolver = {
                     reverse: true
                 })).items;
             }
-            return (await fetchMessages(ctx, roomId, uid, {limit: args.first!, reverse: true})).items;
+            return (await fetchMessages(ctx, roomId, uid, { limit: args.first!, reverse: true })).items;
         }),
 
         gammaMessages: withUser(async (ctx, args, uid) => {
@@ -1222,14 +1217,14 @@ export const Resolver: GQLResolver = {
                 let aroundMessage: Message | undefined | null;
                 if (aroundId) {
                     aroundMessage = await Store.Message.findById(ctx, aroundId);
-                    if (aroundMessage && aroundMessage.hiddenForUids?.includes(uid)) {
+                    if (aroundMessage && (aroundMessage.visibleOnlyForUids && aroundMessage.visibleOnlyForUids.length > 0 && !aroundMessage.visibleOnlyForUids.includes(uid))) {
                         aroundMessage = null;
                     }
                 }
                 messages = [...after, ...(aroundMessage && !aroundMessage.deleted) ? [aroundMessage] : [], ...before];
             } else {
                 haveMoreForward = false;
-                let beforeQuery = (await fetchMessages(ctx, roomId, uid, {limit: args.first!, reverse: true}));
+                let beforeQuery = (await fetchMessages(ctx, roomId, uid, { limit: args.first!, reverse: true }));
                 messages = beforeQuery.items;
                 haveMoreBackward = beforeQuery.haveMore;
             }
@@ -1414,7 +1409,7 @@ export const Resolver: GQLResolver = {
                 index: 'message',
                 type: 'message',
                 size: 0,
-                body: {query: {bool: {must: [{term: {cid: chatId}}, {term: {deleted: false}}, {term}]}}},
+                body: { query: { bool: { must: [{ term: { cid: chatId } }, { term: { deleted: false } }, { term }] } } },
             });
 
             let [
@@ -1423,10 +1418,10 @@ export const Resolver: GQLResolver = {
                 documents,
                 videos
             ] = await Promise.all([
-                mediaQuery({haveLinkAttachment: true}),
-                mediaQuery({haveImageAttachment: true}),
-                mediaQuery({haveDocumentAttachment: true}),
-                mediaQuery({haveVideoAttachment: true})
+                mediaQuery({ haveLinkAttachment: true }),
+                mediaQuery({ haveImageAttachment: true }),
+                mediaQuery({ haveDocumentAttachment: true }),
+                mediaQuery({ haveVideoAttachment: true })
             ]);
 
             return {
@@ -1484,23 +1479,23 @@ export const Resolver: GQLResolver = {
             if (args.spans) {
                 for (let span of args.spans) {
                     if (span.type === 'Bold') {
-                        spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'bold_text' });
                     } else if (span.type === 'Italic') {
-                        spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'italic_text' });
                     } else if (span.type === 'InlineCode') {
-                        spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'inline_code_text' });
                     } else if (span.type === 'CodeBlock') {
-                        spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
                     } else if (span.type === 'Irony') {
-                        spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
                     } else if (span.type === 'Insane') {
-                        spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'insane_text' });
                     } else if (span.type === 'Loud') {
-                        spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
                     } else if (span.type === 'Rotating') {
-                        spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
                     } else if (span.type === 'Link' && span.url) {
-                        spans.push({offset: span.offset, length: span.length, type: 'link', url: span.url});
+                        spans.push({ offset: span.offset, length: span.length, type: 'link', url: span.url });
                     }
                 }
             }
@@ -1603,23 +1598,23 @@ export const Resolver: GQLResolver = {
             if (args.spans) {
                 for (let span of args.spans) {
                     if (span.type === 'Bold') {
-                        spans.push({offset: span.offset, length: span.length, type: 'bold_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'bold_text' });
                     } else if (span.type === 'Italic') {
-                        spans.push({offset: span.offset, length: span.length, type: 'italic_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'italic_text' });
                     } else if (span.type === 'InlineCode') {
-                        spans.push({offset: span.offset, length: span.length, type: 'inline_code_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'inline_code_text' });
                     } else if (span.type === 'CodeBlock') {
-                        spans.push({offset: span.offset, length: span.length, type: 'code_block_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'code_block_text' });
                     } else if (span.type === 'Irony') {
-                        spans.push({offset: span.offset, length: span.length, type: 'irony_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'irony_text' });
                     } else if (span.type === 'Insane') {
-                        spans.push({offset: span.offset, length: span.length, type: 'insane_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'insane_text' });
                     } else if (span.type === 'Loud') {
-                        spans.push({offset: span.offset, length: span.length, type: 'loud_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'loud_text' });
                     } else if (span.type === 'Rotating') {
-                        spans.push({offset: span.offset, length: span.length, type: 'rotating_text'});
+                        spans.push({ offset: span.offset, length: span.length, type: 'rotating_text' });
                     } else if (span.type === 'Link' && span.url) {
-                        spans.push({offset: span.offset, length: span.length, type: 'link', url: span.url});
+                        spans.push({ offset: span.offset, length: span.length, type: 'link', url: span.url });
                     }
                 }
             }

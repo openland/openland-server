@@ -1,0 +1,312 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BPlusTreeDirectory should create root node 1`] = `
+Object {
+  "id": 1,
+  "parent": null,
+  "type": "leaf",
+  "values": Array [
+    1,
+  ],
+}
+`;
+
+exports[`BPlusTreeDirectory should expand root node 1`] = `
+Object {
+  "id": 1,
+  "parent": null,
+  "type": "leaf",
+  "values": Array [
+    1,
+    2,
+    10,
+  ],
+}
+`;
+
+exports[`BPlusTreeDirectory should shrink root node 1`] = `
+Object {
+  "id": 1,
+  "parent": null,
+  "type": "leaf",
+  "values": Array [
+    2,
+    10,
+  ],
+}
+`;
+
+exports[`BPlusTreeDirectory should shrink root node 2`] = `
+Object {
+  "id": 1,
+  "parent": null,
+  "type": "leaf",
+  "values": Array [
+    2,
+  ],
+}
+`;
+
+exports[`BPlusTreeDirectory should shrink root node 3`] = `null`;
+
+exports[`BPlusTreeDirectory should shrink splitted root node 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "count": 2,
+      "max": 10,
+      "min": 5,
+      "node": Object {
+        "id": 1,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          5,
+          10,
+        ],
+      },
+    },
+    Object {
+      "count": 2,
+      "max": 12,
+      "min": 11,
+      "node": Object {
+        "id": 3,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          11,
+          12,
+        ],
+      },
+    },
+  ],
+  "id": 2,
+  "parent": null,
+  "type": "internal",
+}
+`;
+
+exports[`BPlusTreeDirectory should shrink splitted root node 2`] = `
+Object {
+  "id": 3,
+  "parent": null,
+  "type": "leaf",
+  "values": Array [
+    5,
+    11,
+    12,
+  ],
+}
+`;
+
+exports[`BPlusTreeDirectory should shrink splitted root node 3`] = `
+Object {
+  "id": 3,
+  "parent": null,
+  "type": "leaf",
+  "values": Array [
+    11,
+    12,
+  ],
+}
+`;
+
+exports[`BPlusTreeDirectory should split internal node 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "count": 5,
+      "max": 11,
+      "min": -1,
+      "node": Object {
+        "children": Array [
+          Object {
+            "count": 3,
+            "max": 5,
+            "min": -1,
+            "node": Object {
+              "id": 1,
+              "parent": 2,
+              "type": "leaf",
+              "values": Array [
+                -1,
+                1,
+                5,
+              ],
+            },
+          },
+          Object {
+            "count": 2,
+            "max": 11,
+            "min": 10,
+            "node": Object {
+              "id": 3,
+              "parent": 2,
+              "type": "leaf",
+              "values": Array [
+                10,
+                11,
+              ],
+            },
+          },
+        ],
+        "id": 2,
+        "parent": 7,
+        "type": "internal",
+      },
+    },
+    Object {
+      "count": 7,
+      "max": 145,
+      "min": 12,
+      "node": Object {
+        "children": Array [
+          Object {
+            "count": 2,
+            "max": 113,
+            "min": 12,
+            "node": Object {
+              "id": 4,
+              "parent": 8,
+              "type": "leaf",
+              "values": Array [
+                12,
+                113,
+              ],
+            },
+          },
+          Object {
+            "count": 2,
+            "max": 115,
+            "min": 114,
+            "node": Object {
+              "id": 5,
+              "parent": 8,
+              "type": "leaf",
+              "values": Array [
+                114,
+                115,
+              ],
+            },
+          },
+          Object {
+            "count": 3,
+            "max": 145,
+            "min": 118,
+            "node": Object {
+              "id": 6,
+              "parent": 8,
+              "type": "leaf",
+              "values": Array [
+                118,
+                119,
+                145,
+              ],
+            },
+          },
+        ],
+        "id": 8,
+        "parent": 7,
+        "type": "internal",
+      },
+    },
+  ],
+  "id": 7,
+  "parent": null,
+  "type": "internal",
+}
+`;
+
+exports[`BPlusTreeDirectory should split root internal node 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "count": 3,
+      "max": 5,
+      "min": -1,
+      "node": Object {
+        "id": 1,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          -1,
+          1,
+          5,
+        ],
+      },
+    },
+    Object {
+      "count": 2,
+      "max": 11,
+      "min": 10,
+      "node": Object {
+        "id": 3,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          10,
+          11,
+        ],
+      },
+    },
+    Object {
+      "count": 3,
+      "max": 145,
+      "min": 12,
+      "node": Object {
+        "id": 4,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          12,
+          113,
+          145,
+        ],
+      },
+    },
+  ],
+  "id": 2,
+  "parent": null,
+  "type": "internal",
+}
+`;
+
+exports[`BPlusTreeDirectory should split root node 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "count": 2,
+      "max": 5,
+      "min": 1,
+      "node": Object {
+        "id": 1,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          1,
+          5,
+        ],
+      },
+    },
+    Object {
+      "count": 3,
+      "max": 12,
+      "min": 10,
+      "node": Object {
+        "id": 3,
+        "parent": 2,
+        "type": "leaf",
+        "values": Array [
+          10,
+          11,
+          12,
+        ],
+      },
+    },
+  ],
+  "id": 2,
+  "parent": null,
+  "type": "internal",
+}
+`;

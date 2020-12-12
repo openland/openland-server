@@ -650,7 +650,6 @@ export namespace GQLRoots {
     export type DebugEventRoot = DebugEvent;
     export type DebugEventsStateRoot = { state: string };
     export type DebugUserMetricsRoot = GQL.DebugUserMetrics;
-    export type DebugGlobalCountersRoot = GQL.DebugGlobalCounters;
 
     //
     //  Notification Center
@@ -856,4 +855,8 @@ export namespace GQLRoots {
 
     export type SyncChatRoot = { conversation: Conversation, sequence: SequenceRoot };
     export type SyncChatsConnectionRoot = { items: SyncChatRoot[], cursor: string | null };
+
+    export type DebugGlobalCounterRoot = GQL.DebugGlobalCounter;
+    export type DebugChatCounterRoot = GQL.DebugChatCounter;
+    export type DebugChatStateRoot = GQL.DebugChatState;
 }
