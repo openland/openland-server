@@ -1083,7 +1083,7 @@ migrations.push({
 migrations.push({
     key: '180-reindex-messages',
     migration: async (parent) => {
-        await Store.Message.iterateAllItems(parent, 1000, async (ctx, items) => {
+        await Store.Message.iterateAllItems(parent, 100, async (ctx, items) => {
             for (let item of items) {
                 item.invalidate();
             }
