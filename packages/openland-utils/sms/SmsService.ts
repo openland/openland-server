@@ -4,7 +4,7 @@ import { TwillioSmsService } from './TwillioSmsService';
 import { SmscSmsService } from './SmscSmsService';
 import { parsePhoneNumber } from 'libphonenumber-js';
 
-const USE_SMSC_FOR_RUSSIA = true;
+const USE_SMSC_FOR_RUSSIA = false;
 
 class SmsServiceImpl implements ISmsService {
     private twillioService = new TwillioSmsService();
