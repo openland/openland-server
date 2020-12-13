@@ -5,7 +5,7 @@ import { Store } from 'openland-module-db/FDB';
 import { inTx, encoders } from '@openland/foundationdb';
 import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 import uuid from 'uuid';
-// import { IDs } from 'openland-module-api/IDs';
+import { IDs } from 'openland-module-api/IDs';
 
 // @ts-ignore
 const logger = createLogger('migration');
@@ -1099,32 +1099,42 @@ migrations.push({
                 logger.log(ctx, 'Processing ' + item.id);
                 let hasInvalid = false;
                 let seq = 1;
-                let stream = Store.Message.chatAll.stream(item.id, { batchSize: 100 });
+                let stream = Store.Message.chatAll.stream(item.id, { batchSize: 10000 });
                 let hasMore = true;
                 while (hasMore) {
-                    let nextMessages = await stream.next(ctx);
-                    for (let m of nextMessages) {
-                        if (m.seq !== seq) {
-                            if (!hasInvalid) {
-                                logger.log(ctx, 'Found invalid seq: expected ' + seq + ', got: ' + m.seq);
+                    let r = await inTx(ctx, async (ctx2) => {
+                        let nextMessages = await stream.next(ctx2);
+                        let sseq = seq;
+                        for (let m of nextMessages) {
+                            if (m.seq !== sseq) {
+                                if (!hasInvalid) {
+                                    logger.log(ctx2, 'Found invalid seq: expected ' + sseq + ', got: ' + m.seq + ', at ' + IDs.Conversation.serialize(item.id) + '/' + item.id);
+                                }
+                                hasInvalid = true;
+                                m.seq = sseq;
+                                await m.flush(ctx2);
                             }
-                            hasInvalid = true;
-                            m.seq = seq;
+                            sseq++;
                         }
-                        seq++;
-                    }
-                    hasMore = nextMessages.length > 0;
-                }
 
-                // Overwrite seq if needed
-                if (hasInvalid) {
-                    let existing = await Store.ConversationSeq.findById(ctx, item.id);
-                    if (!existing) {
-                        await (await Store.ConversationSeq.create(ctx, item.id, { seq })).flush(ctx);
-                    } else {
-                        existing.seq = seq;
-                        await existing.flush(ctx);
-                    }
+                        // Overwrite seq if needed
+                        if (hasInvalid && nextMessages.length === 0) {
+                            let existing = await Store.ConversationSeq.findById(ctx2, item.id);
+                            if (!existing) {
+                                await (await Store.ConversationSeq.create(ctx2, item.id, { seq })).flush(ctx2);
+                            } else {
+                                existing.seq = seq;
+                                await existing.flush(ctx2);
+                            }
+                        }
+
+                        return {
+                            hasNext: nextMessages.length > 0,
+                            seq: sseq
+                        };
+                    });
+                    hasMore = r.hasNext;
+                    seq = r.seq;
                 }
             }
         });
