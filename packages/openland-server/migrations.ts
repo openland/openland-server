@@ -1081,7 +1081,16 @@ migrations.push({
 });
 
 migrations.push({
-    key: '168-migrate-all-counters',
+    key: '175-reset-counters',
+    migration: async (parent) => {
+        await inTx(parent, async (ctx) => {
+            Modules.Messaging.messaging.counters.subspace.clearPrefixed(ctx, Buffer.from([]));
+        });
+    }
+});
+
+migrations.push({
+    key: '176-migrate-all-counters',
     migration: async (parent) => {
         let index = 0;
         await Store.Message.iterateAllItems(parent, 250, async (ctx, items) => {
@@ -1095,14 +1104,12 @@ migrations.push({
 });
 
 migrations.push({
-    key: '174-migrate-counters-all-private',
+    key: '177-migrate-counters-all-private',
     migration: async (parent) => {
         let index = 0;
         await Store.ConversationPrivate.iterateAllItems(parent, 500, async (ctx, items) => {
             logger.log(ctx, 'Iteration ' + index);
             for (let i of items) {
-                // logger.log(ctx, 'Chat ' + IDs.Conversation.serialize(i.id) + ':' + i.uid1);
-                // logger.log(ctx, 'Chat ' + IDs.Conversation.serialize(i.id) + ':' + i.uid2);
                 let mute1 = (await Modules.Messaging.getRoomSettings(ctx, i.uid1, i.id)).mute;
                 let mute2 = (await Modules.Messaging.getRoomSettings(ctx, i.uid2, i.id)).mute;
                 let seq1 = await Modules.Messaging.messaging.userReadSeqs.getUserReadSeqForChat(ctx, i.uid1, i.id);
