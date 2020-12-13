@@ -1124,9 +1124,9 @@ migrations.push({
                         if (hasInvalid && nextMessages.length === 0) {
                             let existing = await Store.ConversationSeq.findById(ctx2, item.id);
                             if (!existing) {
-                                await (await Store.ConversationSeq.create(ctx2, item.id, { seq })).flush(ctx2);
+                                await (await Store.ConversationSeq.create(ctx2, item.id, { seq: sseq })).flush(ctx2);
                             } else {
-                                existing.seq = seq;
+                                existing.seq = sseq;
                                 await existing.flush(ctx2);
                             }
                         }
