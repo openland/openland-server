@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '046506d75faa5dc2f059bef5fec82a56';
+export const GQL_SPEC_VERSION = '48fff9f02d0ebb3c99e5811fccfd2e9e';
 
 export namespace GQL {
     export interface CreditCard {
@@ -1965,6 +1965,7 @@ export namespace GQL {
         usesCount: number;
         added: boolean;
         published: boolean;
+        private: boolean;
     }
     export interface StickerPackIdArgs { }
     export interface StickerPackTitleArgs { }
@@ -1973,6 +1974,7 @@ export namespace GQL {
     export interface StickerPackUsesCountArgs { }
     export interface StickerPackAddedArgs { }
     export interface StickerPackPublishedArgs { }
+    export interface StickerPackPrivateArgs { }
     export interface UserStickers {
         unviewedCount: number;
         packs: StickerPack[];
@@ -1988,6 +1990,8 @@ export namespace GQL {
     export interface StickerPackInput {
         title: Nullable<string>;
         published: Nullable<boolean>;
+        stickers: Nullable<string[]>;
+        private: Nullable<boolean>;
     }
     export interface MessageReaction {
         user: User;
@@ -2246,6 +2250,7 @@ export namespace GQL {
         stickerPackUpdate: StickerPack;
         stickerPackAddSticker: Sticker;
         stickerPackRemoveSticker: boolean;
+        myStickersMarkAsViewed: boolean;
         stickerPackAddToCollection: boolean;
         stickerPackRemoveFromCollection: boolean;
         stickerAddToFavorites: boolean;
@@ -2953,6 +2958,7 @@ export namespace GQL {
     export interface MutationStickerPackRemoveStickerArgs {
         id: string;
     }
+    export interface MutationMyStickersMarkAsViewedArgs { }
     export interface MutationStickerPackAddToCollectionArgs {
         id: string;
     }
@@ -4751,6 +4757,7 @@ export namespace GQL {
         myContactsUpdates: ContactsUpdateContainer;
         dialogsUpdates: DialogUpdateContainer;
         homeFeedUpdates: FeedUpdateContainer;
+        myStickersUpdates: UserStickers;
         notificationCenterUpdates: Nullable<NotificationCenterUpdateContainer>;
         alphaSubscribeOnline: OnlineEvent;
         chatOnlinesCount: ChatOnlineEvent;
@@ -4813,6 +4820,7 @@ export namespace GQL {
     export interface SubscriptionHomeFeedUpdatesArgs {
         fromState: OptionalNullable<string>;
     }
+    export interface SubscriptionMyStickersUpdatesArgs { }
     export interface SubscriptionNotificationCenterUpdatesArgs {
         fromState: OptionalNullable<string>;
     }
@@ -5788,6 +5796,7 @@ export namespace GQL {
         pinnedMessage: Nullable<ModernMessage>;
         canUnpinMessage: boolean;
         welcomeMessage: Nullable<WelcomeMessage>;
+        stickerPack: Nullable<StickerPack>;
         organization: Nullable<Organization>;
         membersCount: number;
         onlineMembersCount: number;
@@ -5826,6 +5835,7 @@ export namespace GQL {
     export interface SharedRoomPinnedMessageArgs { }
     export interface SharedRoomCanUnpinMessageArgs { }
     export interface SharedRoomWelcomeMessageArgs { }
+    export interface SharedRoomStickerPackArgs { }
     export interface SharedRoomOrganizationArgs { }
     export interface SharedRoomMembersCountArgs { }
     export interface SharedRoomOnlineMembersCountArgs { }
@@ -8356,6 +8366,7 @@ export interface GQLResolver {
             usesCount: GQL.StickerPackUsesCountArgs,
             added: GQL.StickerPackAddedArgs,
             published: GQL.StickerPackPublishedArgs,
+            private: GQL.StickerPackPrivateArgs,
         }
     >;
     UserStickers?: ComplexTypedResolver<
@@ -8752,6 +8763,7 @@ export interface GQLResolver {
             stickerPackUpdate: GQL.MutationStickerPackUpdateArgs,
             stickerPackAddSticker: GQL.MutationStickerPackAddStickerArgs,
             stickerPackRemoveSticker: GQL.MutationStickerPackRemoveStickerArgs,
+            myStickersMarkAsViewed: GQL.MutationMyStickersMarkAsViewedArgs,
             stickerPackAddToCollection: GQL.MutationStickerPackAddToCollectionArgs,
             stickerPackRemoveFromCollection: GQL.MutationStickerPackRemoveFromCollectionArgs,
             stickerAddToFavorites: GQL.MutationStickerAddToFavoritesArgs,
@@ -9852,6 +9864,7 @@ export interface GQLResolver {
             myContactsUpdates: GQLRoots.ContactsUpdateContainerRoot,
             dialogsUpdates: GQLRoots.DialogUpdateContainerRoot,
             homeFeedUpdates: GQLRoots.FeedUpdateContainerRoot,
+            myStickersUpdates: GQLRoots.UserStickersRoot,
             notificationCenterUpdates: Nullable<GQLRoots.NotificationCenterUpdateContainerRoot>,
             alphaSubscribeOnline: GQLRoots.OnlineEventRoot,
             chatOnlinesCount: GQLRoots.ChatOnlineEventRoot,
@@ -9878,6 +9891,7 @@ export interface GQLResolver {
             myContactsUpdates: GQL.SubscriptionMyContactsUpdatesArgs,
             dialogsUpdates: GQL.SubscriptionDialogsUpdatesArgs,
             homeFeedUpdates: GQL.SubscriptionHomeFeedUpdatesArgs,
+            myStickersUpdates: GQL.SubscriptionMyStickersUpdatesArgs,
             notificationCenterUpdates: GQL.SubscriptionNotificationCenterUpdatesArgs,
             alphaSubscribeOnline: GQL.SubscriptionAlphaSubscribeOnlineArgs,
             chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs,
@@ -11037,6 +11051,7 @@ export interface GQLResolver {
         {
             pinnedMessage: Nullable<GQLRoots.ModernMessageRoot>,
             welcomeMessage: Nullable<GQLRoots.WelcomeMessageRoot>,
+            stickerPack: Nullable<GQLRoots.StickerPackRoot>,
             organization: Nullable<GQLRoots.OrganizationRoot>,
             previewMembers: GQLRoots.UserRoot[],
             members: GQLRoots.RoomMemberRoot[],
@@ -11062,6 +11077,7 @@ export interface GQLResolver {
             pinnedMessage: GQL.SharedRoomPinnedMessageArgs,
             canUnpinMessage: GQL.SharedRoomCanUnpinMessageArgs,
             welcomeMessage: GQL.SharedRoomWelcomeMessageArgs,
+            stickerPack: GQL.SharedRoomStickerPackArgs,
             organization: GQL.SharedRoomOrganizationArgs,
             membersCount: GQL.SharedRoomMembersCountArgs,
             onlineMembersCount: GQL.SharedRoomOnlineMembersCountArgs,

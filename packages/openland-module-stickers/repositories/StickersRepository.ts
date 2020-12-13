@@ -9,12 +9,13 @@ import { fetchNextDBSeq } from '../../openland-utils/dbSeq';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { ImageRef } from '../../openland-module-media/ImageRef';
 import { RandomLayer } from '@openland/foundationdb-random';
-import { isDefined } from '../../openland-utils/misc';
 import { Config } from 'openland-config/Config';
 
 export interface StickerPackInput {
     title: string | null;
     published: boolean | null;
+    stickers: string[] | null;
+    private: boolean | null;
 }
 
 export interface StickerInput {
@@ -23,7 +24,7 @@ export interface StickerInput {
 }
 
 const isProd = Config.environment === 'production';
-const DEFAULT_PACK_IDS = [21, 22, 23, 24, 25];
+export const DEFAULT_PACK_IDS = [21, 22, 23, 24, 25];
 
 @injectable()
 export class StickersRepository {
@@ -32,9 +33,8 @@ export class StickersRepository {
             if (title.trim().length === 0) {
                 throw new UserError('Title mustn\'t be empty');
             }
-            let id = await this.fetchNextPackId(ctx);
 
-            return await Store.StickerPack.create(ctx, id, {
+            return await Store.StickerPack.create(ctx, await fetchNextDBSeq(ctx, 'sticker-pack-id'), {
                 uid,
                 emojis: [],
                 published: false,
@@ -43,7 +43,6 @@ export class StickersRepository {
             });
         });
     }
-
     updatePack = (parent: Context, id: number, input: StickerPackInput) => {
         return inTx(parent, async (ctx) => {
             let pack = await Store.StickerPack.findById(ctx, id);
@@ -64,12 +63,23 @@ export class StickersRepository {
                 }
                 pack.title = input.title.trim();
             }
+            if (input.stickers) {
+                if (input.stickers.length !== stickers.length) {
+                    throw new UserError('Expected stickers length to be equal with exact stickers length');
+                }
+                for (let sticker of stickers) {
+                    sticker.order = input.stickers.indexOf(sticker.id);
+                }
+            }
+            if (input.private) {
+                pack.private = input.private;
+            }
+
             await pack.flush(ctx);
 
             return pack;
         });
     }
-
     addSticker = (parent: Context, uid: number, pid: number, input: StickerInput) => {
         return inTx(parent, async (ctx) => {
             let pack = await Store.StickerPack.findById(ctx, pid);
@@ -103,7 +113,6 @@ export class StickersRepository {
             return sticker;
         });
     }
-
     removeSticker = (parent: Context, uid: number, uuid: string) => {
         return inTx(parent, async (ctx) => {
             let sticker = await Store.Sticker.findById(ctx, uuid);
@@ -130,90 +139,8 @@ export class StickersRepository {
         });
     }
 
-    addToCollection = (parent: Context, uid: number, pid: number, isUnviewed?: boolean) => {
-        return inTx(parent, async (ctx) => {
-            let pack = await Store.StickerPack.findById(ctx, pid);
-            if (!pack) {
-                throw new Error('invalid pack');
-            }
-
-            let userStickersState = await this.getUserStickersState(ctx, uid);
-            if (userStickersState.packIds.find(a => a === pid)) {
-                return false;
-            }
-            userStickersState.packIds = [pid, ...userStickersState.packIds];
-            if (isUnviewed) {
-                if (userStickersState.unviewedPackIds === undefined || userStickersState.unviewedPackIds === null) {
-                    userStickersState.unviewedPackIds = [];
-                }
-
-                if (!userStickersState.unviewedPackIds.find(a => a === pid)) {
-                    userStickersState.unviewedPackIds = [pid, ...userStickersState.unviewedPackIds];
-                }
-            }
-            await userStickersState.flush(ctx);
-
-            pack.usesCount++;
-            await pack.flush(ctx);
-
-            return true;
-        });
-    }
-
-    removeFromCollection = (parent: Context, uid: number, pid: number) => {
-        return inTx(parent, async (ctx) => {
-            let pack = await Store.StickerPack.findById(ctx, pid);
-            if (!pack) {
-                throw new Error('invalid pack');
-            }
-
-            let userStickersState = await this.getUserStickersState(ctx, uid);
-            if (!userStickersState.packIds.find(a => a === pid)) {
-                return false;
-            }
-            if (userStickersState.unviewedPackIds?.find(a => a === pid)) {
-                userStickersState.unviewedPackIds = [...userStickersState.unviewedPackIds.filter(a => a !== pid)];
-            }
-
-            userStickersState.packIds = [...userStickersState.packIds.filter(a => a !== pid)];
-            await userStickersState.flush(ctx);
-
-            pack.usesCount--;
-            await pack.flush(ctx);
-
-            return true;
-        });
-    }
-
-    getUserStickers = (parent: Context, uid: number) => {
-        return inTx(parent, async (ctx) => {
-            let state = await this.getUserStickersState(ctx, uid);
-            let packs = await Promise.all(state.packIds.map(a => Store.StickerPack.findById(ctx, a)));
-
-            return {
-                packs: packs.filter(isDefined).filter(a => a.published),
-                favoriteIds: state.favoriteIds,
-                unviewedPackIds: state.unviewedPackIds || []
-            };
-        });
-    }
-
     getPacksBy = (parent: Context, uid: number) => {
         return Store.StickerPack.author.findAll(parent, uid);
-    }
-
-    findStickers = async (parent: Context, uid: number, emoji: string) => {
-        let userStickers = await this.getUserStickers(parent, uid);
-        let stickers: string[] = [];
-
-        for (let pack of userStickers.packs) {
-            if (!pack!.published) {
-                continue;
-            }
-            stickers = stickers.concat(pack!.emojis.filter(a => a.emoji === emoji).map(a => a.stickerId));
-        }
-
-        return stickers;
     }
 
     getPack = async (parent: Context, uid: number, pid: number) => {
@@ -226,54 +153,10 @@ export class StickersRepository {
         return pack;
     }
 
-    addStickerToFavs = async (parent: Context, uid: number, uuid: string) => {
-        return await inTx(parent, async ctx => {
-            let userStickers = await this.getUserStickersState(ctx, uid);
-            if (userStickers.favoriteIds.find(a => a === uuid)) {
-                return false;
-            }
-            userStickers.favoriteIds = [uuid, ...userStickers.favoriteIds];
-
-            await userStickers.flush(ctx);
-            return true;
-        });
-    }
-
-    removeStickerFromFavs = async (parent: Context, uid: number, uuid: string) => {
-        return await inTx(parent, async ctx => {
-            let userStickers = await this.getUserStickersState(ctx, uid);
-            if (userStickers.favoriteIds.every(a => a !== uuid)) {
-                return false;
-            }
-            userStickers.favoriteIds = [...userStickers.favoriteIds.filter(a => a !== uuid)];
-
-            await userStickers.flush(ctx);
-            return true;
-        });
-    }
-
     getCatalog = async (parent: Context) => {
         if (isProd) {
             return DEFAULT_PACK_IDS;
         }
         return [];
     }
-
-    getUserStickersState = async (parent: Context, uid: number) => {
-        return inTx(parent,  async ctx => {
-            let state = await Store.UserStickersState.findById(ctx, uid);
-            if (!state) {
-                let packIds: number[] = [];
-                if (isProd) {
-                    packIds = DEFAULT_PACK_IDS;
-                }
-                state = await Store.UserStickersState.create(ctx, uid, {
-                    favoriteIds: [], packIds,
-                });
-            }
-            return state;
-        });
-    }
-
-    private fetchNextPackId = async (ctx: Context) => await fetchNextDBSeq(ctx, 'sticker-pack-id');
 }

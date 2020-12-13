@@ -9,7 +9,7 @@ import { createPersistenceThrottle } from '../../openland-utils/PersistenceThrot
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { createOneTimeCodeGenerator } from '../../openland-utils/OneTimeCode';
 import { Emails } from '../../openland-module-email/Emails';
-import { SmsService } from '../../openland-utils/SmsService';
+import { SmsService } from '../../openland-utils/sms/SmsService';
 import { Modules } from '../../openland-modules/Modules';
 import { templated } from '../../openland-module-messaging/texts/util';
 

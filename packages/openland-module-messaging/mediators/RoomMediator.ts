@@ -867,28 +867,34 @@ export class RoomMediator {
             if (!room || !roomProfile) {
                 throw new Error('Room not found');
             }
+
+            // Increment audience score
             if (await this.repo.isPublicCommunityChat(ctx, cid)) {
                 Store.UserAudienceCounter.add(ctx, uid, roomProfile.activeMembersCount ? (roomProfile.activeMembersCount) - 1 : 0);
             }
+
+            // Report metrics
+            // TODO: Check for deprecation
+            this.repo.metrics.onChatCreated(ctx, uid);
+            if (room.isChannel) {
+                this.repo.metrics.onChannelJoined(ctx, uid);
+            }
+
+            // Organization actions
             if (room.oid) {
                 let org = await Store.Organization.findById(ctx, room.oid);
 
                 if (!org) {
                     return;
                 }
-
                 //
                 //  Join community if not already
                 //
-                this.repo.metrics.onChatCreated(ctx, uid);
-                if (room.isChannel) {
-                    this.repo.metrics.onChannelJoined(ctx, uid);
-                }
-
                 if (org.kind === 'community') {
                     await Modules.Orgs.addUserToOrganization(ctx, uid, org.id, by, true);
                 }
 
+                // Autosubscribe community rooms
                 if (org.autosubscribeRooms && !(await Store.AutoSubscribeWasExecutedForUser.get(ctx, uid, 'org', org.id))) {
                     for (let c of org.autosubscribeRooms) {
                         let conv = await Store.ConversationRoom.findById(ctx, c);
@@ -900,16 +906,20 @@ export class RoomMediator {
                     Store.AutoSubscribeWasExecutedForUser.set(ctx, uid, 'org', org.id, true);
                 }
             }
+
+            // Welcome message
             const welcomeMessage = await this.resolveConversationWelcomeMessage(ctx, cid);
             if (welcomeMessage && welcomeMessage.isOn && welcomeMessage.sender) {
                 // Send welcome message after 60s
                 await this.welcomeMessageWorker.pushWork(ctx, { uid, cid }, Date.now() + 1000 * 40);
             }
 
+            // Room stickers
             if (!!roomProfile.giftStickerPackId) {
-                await Modules.Stickers.addToCollection(ctx, uid, roomProfile.giftStickerPackId, true);
+                await Modules.Stickers.addToCollection(ctx, uid, roomProfile.giftStickerPackId, true, true);
             }
 
+            // Autosubscribe rooms
             if (room.autosubscribeRooms && !(await Store.AutoSubscribeWasExecutedForUser.get(ctx, uid, 'room', room.id))) {
                 for (let c of room.autosubscribeRooms) {
                     let conv = await Store.ConversationRoom.findById(ctx, c);
@@ -921,8 +931,13 @@ export class RoomMediator {
                 Store.AutoSubscribeWasExecutedForUser.set(ctx, uid, 'room', room.id, true);
             }
 
+            // Call hooks
             await Modules.Hooks.onRoomJoin(ctx, cid, uid, by);
+
+            // Notify dialog created
             await this.delivery.onDialogGotAccess(ctx, uid, cid);
+
+            // Reindex user for search
             await Modules.Users.markForIndexing(ctx, uid);
         });
     }

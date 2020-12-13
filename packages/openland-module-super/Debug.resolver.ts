@@ -29,7 +29,7 @@ import { NotFoundError } from '../openland-errors/NotFoundError';
 import { cursorToTuple } from '@openland/foundationdb-entity/lib/indexes/utils';
 import { buildMessage, heading } from '../openland-utils/MessageBuilder';
 import { AuthContext } from '../openland-module-auth/AuthContext';
-import { SmsService } from '../openland-utils/SmsService';
+import { SmsService } from '../openland-utils/sms/SmsService';
 import uuid from 'uuid';
 import { EntityFactory } from '@openland/foundationdb-entity';
 import { findEntitiesCount } from '../openland-module-db/findEntitiesCount';
