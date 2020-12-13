@@ -74,7 +74,6 @@ export class SubscriberDirectRepository {
                     for (let subscriber of await this.getFeedSubscribers(commit, feed)) {
                         this.subspace.setTupleKey(commit, Locations.subscriber.directUpdatesWrite(subscriber, latest.vt), [feed, latest.seq]);
                     }
-                    subscriberUpdates.delete(ctx, feedKey);
                 });
             } else {
                 ex.latest = { seq, vt };

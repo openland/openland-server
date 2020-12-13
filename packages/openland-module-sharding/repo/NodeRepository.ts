@@ -1,4 +1,4 @@
-import { Subspace, encoders, inTxLeaky } from '@openland/foundationdb';
+import { Subspace, encoders, inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 
 export enum NodeState {
@@ -19,7 +19,7 @@ export class NodeRepository {
     }
 
     async registerNode(parent: Context, nodeId: string, shardId: string, registrationTimeout: number): Promise<NodeState> {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
 
             // Resolve existing node status
             let existing = await this.directory.get(ctx, encoders.tuple.pack([SUBSPACE_STATE, shardId, nodeId]));
@@ -54,7 +54,7 @@ export class NodeRepository {
     }
 
     async registerNodeLeaving(parent: Context, nodeId: string, shardId: string, registrationTimeout: number): Promise<NodeState> {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let existing = await this.directory.get(ctx, encoders.tuple.pack([SUBSPACE_STATE, shardId, nodeId]));
             if (existing) {
                 let tuple = encoders.tuple.unpack(existing);
@@ -88,7 +88,7 @@ export class NodeRepository {
     }
 
     async registerNodeLeft(parent: Context, nodeId: string, shardId: string, registrationTimeout: number) {
-        await inTxLeaky(parent, async (ctx) => {
+        await inTx(parent, async (ctx) => {
             let existing = await this.directory.get(ctx, encoders.tuple.pack([SUBSPACE_STATE, shardId, nodeId]));
             if (existing) {
                 let tuple = encoders.tuple.unpack(existing);
@@ -101,7 +101,7 @@ export class NodeRepository {
     }
 
     async getShardRegionNodes(parent: Context, shardId: string) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let nodes: { id: string, state: NodeState }[] = [];
             let allNodes = await this.directory.range(ctx, encoders.tuple.pack([SUBSPACE_STATE, shardId]));
             for (let n of allNodes) {
@@ -122,7 +122,7 @@ export class NodeRepository {
     }
 
     async getRegionNodes(parent: Context) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let nodes: { region: string, id: string, state: NodeState }[] = [];
             let allNodes = await this.directory.range(ctx, encoders.tuple.pack([SUBSPACE_STATE]));
             for (let n of allNodes) {
@@ -144,7 +144,7 @@ export class NodeRepository {
     }
 
     async handleTimeouts(parent: Context, now: number) {
-        await inTxLeaky(parent, async (ctx) => {
+        await inTx(parent, async (ctx) => {
             let allNodes = await this.directory.range(ctx, encoders.tuple.pack([SUBSPACE_TIMEOUT]));
             for (let n of allNodes) {
                 let keyTuple = encoders.tuple.unpack(n.key);

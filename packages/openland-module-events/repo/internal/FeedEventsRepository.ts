@@ -64,9 +64,6 @@ export class FeedEventsRepository {
                     );
                     this.subspace.setTupleValue(tx, referenceLocation, [seq, pending.vt]);
                 }
-                
-                // Reset cache
-                feedPostEventCollapsedCache.delete(ctx, feedKey);
             });
         }
 

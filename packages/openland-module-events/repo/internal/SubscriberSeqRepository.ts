@@ -1,5 +1,5 @@
 import { Context } from '@openland/context';
-import { Subspace, inTxLeaky, encoders } from '@openland/foundationdb';
+import { Subspace, inTx, encoders } from '@openland/foundationdb';
 import { inTxLock } from 'openland-module-db/inTxLock';
 
 const SUBSPACE_TIMEOUT = 0;
@@ -25,7 +25,7 @@ export class SubscriberSeqRepository {
      * @param subscriber subscriber id
      */
     async getCurrentSeqSnapshot(parent: Context, subscriber: Buffer) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let ex = await this.directory.snapshotGet(ctx, encoders.tuple.pack([subscriber, SUBSPACE_SEQ]));
             if (ex) {
                 return encoders.int32LE.unpack(ex);
@@ -41,7 +41,7 @@ export class SubscriberSeqRepository {
      * @param subscriber subscriber id
      */
     async getCurrentSeq(parent: Context, subscriber: Buffer) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let ex = await this.directory.get(ctx, encoders.tuple.pack([subscriber, SUBSPACE_SEQ]));
             if (ex) {
                 return encoders.int32LE.unpack(ex);
@@ -57,7 +57,7 @@ export class SubscriberSeqRepository {
      * @param subscriber subscriber id
      */
     async allocateSeq(parent: Context, subscriber: Buffer) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             return await inTxLock(ctx, 'seq-' + subscriber.toString('hex'), async () => {
                 let key = encoders.tuple.pack([subscriber, SUBSPACE_SEQ]);
                 let ex = await this.directory.get(ctx, key);
@@ -79,7 +79,7 @@ export class SubscriberSeqRepository {
      * @param blockSize size of the block
      */
     async allocateBlock(parent: Context, subscriber: Buffer, blockSize: number) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             return await inTxLock(ctx, 'seq-' + subscriber.toString('hex'), async () => {
                 let key = encoders.tuple.pack([subscriber, SUBSPACE_SEQ]);
                 let ex = await this.directory.get(ctx, key);
@@ -101,7 +101,7 @@ export class SubscriberSeqRepository {
      * @param now current time in seconds
      */
     async isOnline(parent: Context, subscriber: Buffer, now: number) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let ex = await this.directory.snapshotGet(ctx, encoders.tuple.pack([subscriber, SUBSPACE_TIMEOUT]));
             if (!ex) {
                 return false;
@@ -121,7 +121,7 @@ export class SubscriberSeqRepository {
      * @param subscriber subscriber
      */
     async getOnlineExpires(parent: Context, subscriber: Buffer) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let ex = await this.directory.snapshotGet(ctx, encoders.tuple.pack([subscriber, SUBSPACE_TIMEOUT]));
             if (!ex) {
                 return null;
@@ -138,7 +138,7 @@ export class SubscriberSeqRepository {
      * @param expires expiration time in seconds
      */
     async refreshOnline(parent: Context, subscriber: Buffer, expires: number) {
-        await inTxLeaky(parent, async (ctx) => {
+        await inTx(parent, async (ctx) => {
             this.directory.set(ctx, encoders.tuple.pack([subscriber, SUBSPACE_TIMEOUT]), encoders.int32LE.pack(expires));
         });
     }
