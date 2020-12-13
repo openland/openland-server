@@ -1081,46 +1081,89 @@ migrations.push({
 });
 
 migrations.push({
-    key: '175-reset-counters',
+    key: '180-recalculate-seq',
     migration: async (parent) => {
-        await inTx(parent, async (ctx) => {
-            Modules.Messaging.messaging.counters.subspace.clearPrefixed(ctx, Buffer.from([]));
+        await Store.Conversation.iterateAllItems(parent, 1, async (ctx, items) => {
+            for (let item of items) {
+                logger.log(ctx, 'Processing ' + item.id);
+                let hasInvalid = false;
+                let seq = 1;
+                let stream = Store.Message.chat.stream(item.id, { batchSize: 100 });
+                let hasMore = true;
+                while (hasMore) {
+                    let nextMessages = await stream.next(ctx);
+                    for (let m of nextMessages) {
+                        if (m.seq !== seq) {
+                            if (!hasInvalid) {
+                                logger.log(ctx, 'Found invalid seq: expected ' + seq + ', got: ' + m.seq);
+                            }
+                            hasInvalid = true;
+                            m.seq = seq;
+                        }
+                        seq++;
+                    }
+                    hasMore = nextMessages.length > 0;
+                }
+
+                // Overwrite seq if needed
+                if (hasInvalid) {
+                    let existing = await Store.ConversationSeq.findById(ctx, item.id);
+                    if (!existing) {
+                        await (await Store.ConversationSeq.create(ctx, item.id, { seq })).flush(ctx);
+                    } else {
+                        existing.seq = seq;
+                        await existing.flush(ctx);
+                    }
+                }
+            }
         });
+        // await inTx(parent, async (ctx) => {
+        //     Modules.Messaging.messaging.counters.subspace.clearPrefixed(ctx, Buffer.from([]));
+        // });
     }
 });
 
-migrations.push({
-    key: '176-migrate-all-counters',
-    migration: async (parent) => {
-        let index = 0;
-        await Store.Message.iterateAllItems(parent, 250, async (ctx, items) => {
-            logger.log(ctx, 'Iteration ' + index);
-            for (let i of items) {
-                await Modules.Messaging.messaging.counters.onMessage(ctx, i);
-            }
-            index++;
-        });
-    }
-});
+// migrations.push({
+//     key: '175-reset-counters',
+//     migration: async (parent) => {
+//         await inTx(parent, async (ctx) => {
+//             Modules.Messaging.messaging.counters.subspace.clearPrefixed(ctx, Buffer.from([]));
+//         });
+//     }
+// });
 
-migrations.push({
-    key: '177-migrate-counters-all-private',
-    migration: async (parent) => {
-        let index = 0;
-        await Store.ConversationPrivate.iterateAllItems(parent, 500, async (ctx, items) => {
-            logger.log(ctx, 'Iteration ' + index);
-            for (let i of items) {
-                let mute1 = (await Modules.Messaging.getRoomSettings(ctx, i.uid1, i.id)).mute;
-                let mute2 = (await Modules.Messaging.getRoomSettings(ctx, i.uid2, i.id)).mute;
-                let seq1 = await Modules.Messaging.messaging.userReadSeqs.getUserReadSeqForChat(ctx, i.uid1, i.id);
-                let seq2 = await Modules.Messaging.messaging.userReadSeqs.getUserReadSeqForChat(ctx, i.uid2, i.id);
-                await Modules.Messaging.messaging.counters.subscribe(ctx, { cid: i.id, uid: i.uid1, seq: seq1, muted: mute1 });
-                await Modules.Messaging.messaging.counters.subscribe(ctx, { cid: i.id, uid: i.uid2, seq: seq2, muted: mute2 });
-            }
-            index++;
-        });
-    }
-});
+// migrations.push({
+//     key: '176-migrate-all-counters',
+//     migration: async (parent) => {
+//         let index = 0;
+//         await Store.Message.iterateAllItems(parent, 250, async (ctx, items) => {
+//             logger.log(ctx, 'Iteration ' + index);
+//             for (let i of items) {
+//                 await Modules.Messaging.messaging.counters.onMessage(ctx, i);
+//             }
+//             index++;
+//         });
+//     }
+// });
+
+// migrations.push({
+//     key: '177-migrate-counters-all-private',
+//     migration: async (parent) => {
+//         let index = 0;
+//         await Store.ConversationPrivate.iterateAllItems(parent, 500, async (ctx, items) => {
+//             logger.log(ctx, 'Iteration ' + index);
+//             for (let i of items) {
+//                 let mute1 = (await Modules.Messaging.getRoomSettings(ctx, i.uid1, i.id)).mute;
+//                 let mute2 = (await Modules.Messaging.getRoomSettings(ctx, i.uid2, i.id)).mute;
+//                 let seq1 = await Modules.Messaging.messaging.userReadSeqs.getUserReadSeqForChat(ctx, i.uid1, i.id);
+//                 let seq2 = await Modules.Messaging.messaging.userReadSeqs.getUserReadSeqForChat(ctx, i.uid2, i.id);
+//                 await Modules.Messaging.messaging.counters.subscribe(ctx, { cid: i.id, uid: i.uid1, seq: seq1, muted: mute1 });
+//                 await Modules.Messaging.messaging.counters.subscribe(ctx, { cid: i.id, uid: i.uid2, seq: seq2, muted: mute2 });
+//             }
+//             index++;
+//         });
+//     }
+// });
 
 // migrations.push({
 //     key: '170-migrate-counters-rooms',
