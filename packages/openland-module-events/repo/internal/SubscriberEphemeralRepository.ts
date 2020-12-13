@@ -46,6 +46,9 @@ export class SubscriberEphemeralRepository {
 
                     // Write to change feed
                     this.subspace.setTupleKey(commit, Locations.subscriber.ephemeral.write(subscriber, ex!.latest.vt), [feed]);
+
+                    // Reset cache
+                    subscriberUpdates.delete(ctx, key);
                 });
             }
         });

@@ -124,6 +124,10 @@ export class BTreeRepository {
                     this.subspace.clear(commit, [collection, SUBSPACE_NODES, id]);
                 }
             }
+
+            // Reset writes
+            cache.writeHead = false;
+            cache.writes = {};
         });
     }
 
