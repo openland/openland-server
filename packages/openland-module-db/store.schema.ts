@@ -547,6 +547,7 @@ export default declareSchema(() => {
         // deprecated end
 
         rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
+        rangeIndex('chatAll', ['cid', 'id']);
         rangeIndex('chatSeq', ['cid', 'seq']).withCondition((src) => !src.deleted);
         // rangeIndex('fromSeq', ['cid', 'seq']);
         rangeIndex('hasImageAttachment', ['cid', 'id']).withCondition((item) => {

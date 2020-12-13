@@ -1081,14 +1081,25 @@ migrations.push({
 });
 
 migrations.push({
-    key: '180-recalculate-seq',
+    key: '180-reindex-messages',
+    migration: async (parent) => {
+        await Store.Message.iterateAllItems(parent, 1000, async (ctx, items) => {
+            for (let item of items) {
+                item.invalidate();
+            }
+        });
+    }
+});
+
+migrations.push({
+    key: '181-recalculate-seq',
     migration: async (parent) => {
         await Store.Conversation.iterateAllItems(parent, 1, async (ctx, items) => {
             for (let item of items) {
                 logger.log(ctx, 'Processing ' + item.id);
                 let hasInvalid = false;
                 let seq = 1;
-                let stream = Store.Message.chat.stream(item.id, { batchSize: 100 });
+                let stream = Store.Message.chatAll.stream(item.id, { batchSize: 100 });
                 let hasMore = true;
                 while (hasMore) {
                     let nextMessages = await stream.next(ctx);
