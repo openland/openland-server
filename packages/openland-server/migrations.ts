@@ -2,7 +2,7 @@ import { createLogger } from '@openland/log';
 import { Modules } from 'openland-modules/Modules';
 import { MigrationDefinition } from '@openland/foundationdb-migrations/lib/MigrationDefinition';
 import { Store } from 'openland-module-db/FDB';
-import { inTx, encoders } from '@openland/foundationdb';
+import { inTx, encoders, withoutTransaction } from '@openland/foundationdb';
 import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 import uuid from 'uuid';
 import { IDs } from 'openland-module-api/IDs';
@@ -1105,7 +1105,7 @@ migrations.push({
                 let stream = Store.Message.chatAll.stream(item.id, { batchSize: 1000 });
                 let hasMore = true;
                 while (hasMore) {
-                    let r = await inTx(ctx, async (ctx2) => {
+                    let r = await inTx(withoutTransaction(ctx), async (ctx2) => {
                         let nextMessages = await stream.next(ctx2);
                         let sseq = seq;
                         for (let m of nextMessages) {
@@ -1115,6 +1115,7 @@ migrations.push({
                                 }
                                 hasInvalid = true;
                                 m.seq = sseq;
+                                m.invalidate();
                                 await m.flush(ctx2);
                             }
                             sseq++;
