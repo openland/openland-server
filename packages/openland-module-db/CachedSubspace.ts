@@ -1,13 +1,13 @@
 import { Context } from '@openland/context';
 import { encoders, getTransaction, Subspace, TransactionCache, TupleItem } from '@openland/foundationdb';
-// import { createLogger } from '@openland/log';
+import { createLogger } from '@openland/log';
 
 const cachedCache = new TransactionCache<{
     cache: { [key: string]: any },
     writes: { [key: string]: any }
 }>('cached-subspace');
 
-// const logger = createLogger('cached-subspace');
+const logger = createLogger('cached-subspace');
 
 export class CachedSubspace<T> {
 
@@ -54,6 +54,7 @@ export class CachedSubspace<T> {
             getTransaction(ctx).beforeCommit(async (commit) => {
                 for (let w of Object.keys(cache.writes)) {
                     let writeKey = Buffer.from(w, 'hex');
+                    logger.log(commit, 'Write ' + (encoders.tuple.unpack(writeKey).join('.')), cache.writes[w]);
                     if (!cache.writes[w]) {
                         this.subspace.clear(commit, writeKey);
                     } else {
