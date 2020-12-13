@@ -125,6 +125,8 @@ export class CounterSubscribersDirectory {
             this.users.write(ctx, [args.uid, args.cid], newState);
             this.addCounters(ctx, args.uid, newState);
         }
+
+        logger.log(ctx, 'end');
     }
 
     async unsubscribe(ctx: Context, args: { uid: number, cid: number }) {

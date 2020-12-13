@@ -22,5 +22,13 @@ describe('CachedSubspace', () => {
             expect((await repo.read(ctx, [2]))).toMatch('value-2');
             expect((await repo.read(ctx, [3]))).toMatch('value-3');
         });
+
+        await inTx(root, async (ctx) => {
+            expect(await repo.read(ctx, [4])).toBeNull();
+            repo.write(ctx, [4], 'value-4');
+        });
+        await inTx(root, async (ctx) => {
+            expect((await repo.read(ctx, [4]))).toMatch('value-4');
+        });
     });
 });
