@@ -1,6 +1,6 @@
 import { Context } from '@openland/context';
 import { encoders, Subspace } from '@openland/foundationdb';
-import { createLogger } from '@openland/log';
+// import { createLogger } from '@openland/log';
 import { AtomicSubspace } from 'openland-module-db/AtomicSubspace';
 import { CachedSubspace } from 'openland-module-db/CachedSubspace';
 import { ConversationCountersState, UserCounterState, UserCounterAsyncSubscriptions } from 'openland-module-db/structs';
@@ -19,7 +19,7 @@ const TYPE_DISTINCT_NO_MUTED = 3;
 const COUNTER_ALL = 0;
 const COUNTER_MENTIONS = 1;
 
-const logger = createLogger('counters');
+// const logger = createLogger('counters');
 
 export class CounterSubscribersDirectory {
     readonly subspace: Subspace;
@@ -52,7 +52,7 @@ export class CounterSubscribersDirectory {
 
     async subscribe(ctx: Context, args: { uid: number, cid: number, seq: number, counter: number, mentions: number, muted: boolean }) {
         let existing = await this.users.read(ctx, [args.uid, args.cid]);
-        logger.log(ctx, 'subscribe', args, existing);
+        // logger.log(ctx, 'subscribe', args, existing);
 
         if (existing) {
 
@@ -84,7 +84,7 @@ export class CounterSubscribersDirectory {
         let existingSubscribers = (await this.getDirectSubscribers(ctx, args.cid));
 
         if (existingSubscribers.length > DIRECT_SUBSCRIBER_LIMIT) {
-            logger.log(ctx, 'add-async-subsccribe');
+            // logger.log(ctx, 'add-async-subsccribe');
 
             // Add async subscription
             let asyncSubscriptions = await this.getAsyncSubscriptions(ctx, args.uid);
@@ -108,7 +108,7 @@ export class CounterSubscribersDirectory {
             this.users.write(ctx, [args.uid, args.cid], newState);
 
         } else {
-            logger.log(ctx, 'add-direct-subsccribe');
+            // logger.log(ctx, 'add-direct-subsccribe');
 
             // Add direct subscriber
             let directSubscribers = await this.getDirectSubscribers(ctx, args.cid);
@@ -126,7 +126,7 @@ export class CounterSubscribersDirectory {
             this.addCounters(ctx, args.uid, newState);
         }
 
-        logger.log(ctx, 'end');
+        // logger.log(ctx, 'end');
     }
 
     async unsubscribe(ctx: Context, args: { uid: number, cid: number }) {

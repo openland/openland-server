@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '48fff9f02d0ebb3c99e5811fccfd2e9e';
+export const GQL_SPEC_VERSION = 'e58073c69a20ccd57be2b2c4282970cc';
 
 export namespace GQL {
     export interface CreditCard {
@@ -487,9 +487,21 @@ export namespace GQL {
     export interface DebugChatCounter {
         all: number;
         mentions: number;
+        totalMessages: number;
+        allMentions: number;
+        totalSent: number;
+        sentAllMentions: number;
+        personalMentions: number;
+        personalMessages: number;
     }
     export interface DebugChatCounterAllArgs { }
     export interface DebugChatCounterMentionsArgs { }
+    export interface DebugChatCounterTotalMessagesArgs { }
+    export interface DebugChatCounterAllMentionsArgs { }
+    export interface DebugChatCounterTotalSentArgs { }
+    export interface DebugChatCounterSentAllMentionsArgs { }
+    export interface DebugChatCounterPersonalMentionsArgs { }
+    export interface DebugChatCounterPersonalMessagesArgs { }
     export interface DebugChatState {
         seq: number;
         muted: boolean;
@@ -6692,6 +6704,12 @@ export interface GQLResolver {
         {
             all: GQL.DebugChatCounterAllArgs,
             mentions: GQL.DebugChatCounterMentionsArgs,
+            totalMessages: GQL.DebugChatCounterTotalMessagesArgs,
+            allMentions: GQL.DebugChatCounterAllMentionsArgs,
+            totalSent: GQL.DebugChatCounterTotalSentArgs,
+            sentAllMentions: GQL.DebugChatCounterSentAllMentionsArgs,
+            personalMentions: GQL.DebugChatCounterPersonalMentionsArgs,
+            personalMessages: GQL.DebugChatCounterPersonalMessagesArgs,
         }
     >;
     DebugChatState?: ComplexTypedResolver<

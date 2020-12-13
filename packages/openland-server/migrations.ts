@@ -5,7 +5,7 @@ import { Store } from 'openland-module-db/FDB';
 import { inTx, encoders } from '@openland/foundationdb';
 import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 import uuid from 'uuid';
-import { IDs } from 'openland-module-api/IDs';
+// import { IDs } from 'openland-module-api/IDs';
 
 // @ts-ignore
 const logger = createLogger('migration');
@@ -1098,11 +1098,11 @@ migrations.push({
     key: '174-migrate-counters-all-private',
     migration: async (parent) => {
         let index = 0;
-        await Store.ConversationPrivate.iterateAllItems(parent, 5, async (ctx, items) => {
+        await Store.ConversationPrivate.iterateAllItems(parent, 500, async (ctx, items) => {
             logger.log(ctx, 'Iteration ' + index);
             for (let i of items) {
-                logger.log(ctx, 'Chat ' + IDs.Conversation.serialize(i.id) + ':' + i.uid1);
-                logger.log(ctx, 'Chat ' + IDs.Conversation.serialize(i.id) + ':' + i.uid2);
+                // logger.log(ctx, 'Chat ' + IDs.Conversation.serialize(i.id) + ':' + i.uid1);
+                // logger.log(ctx, 'Chat ' + IDs.Conversation.serialize(i.id) + ':' + i.uid2);
                 let mute1 = (await Modules.Messaging.getRoomSettings(ctx, i.uid1, i.id)).mute;
                 let mute2 = (await Modules.Messaging.getRoomSettings(ctx, i.uid2, i.id)).mute;
                 let seq1 = await Modules.Messaging.messaging.userReadSeqs.getUserReadSeqForChat(ctx, i.uid1, i.id);
