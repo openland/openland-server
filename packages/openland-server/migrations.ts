@@ -1094,12 +1094,15 @@ migrations.push({
 migrations.push({
     key: '181-recalculate-seq',
     migration: async (parent) => {
+        let index = 0;
         await Store.Conversation.iterateAllItems(parent, 1, async (ctx, items) => {
             for (let item of items) {
-                logger.log(ctx, 'Processing ' + item.id);
+                if ((index++) % 1000 === 0) {
+                    logger.log(ctx, 'Processing ' + item.id);
+                }
                 let hasInvalid = false;
                 let seq = 1;
-                let stream = Store.Message.chatAll.stream(item.id, { batchSize: 10000 });
+                let stream = Store.Message.chatAll.stream(item.id, { batchSize: 1000 });
                 let hasMore = true;
                 while (hasMore) {
                     let r = await inTx(ctx, async (ctx2) => {
