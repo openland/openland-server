@@ -1102,7 +1102,7 @@ migrations.push({
                 }
                 let hasInvalid = false;
                 let seq = 1;
-                let stream = Store.Message.chatAll.stream(item.id, { batchSize: 1000 });
+                let stream = Store.Message.chatAll.stream(item.id, { batchSize: 100 });
                 let hasMore = true;
                 while (hasMore) {
                     let r = await inTx(withoutTransaction(ctx), async (ctx2) => {
