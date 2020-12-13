@@ -547,6 +547,7 @@ export default declareSchema(() => {
         // deprecated end
 
         rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
+        rangeIndex('chatAll', ['cid', 'id']);
         rangeIndex('chatSeq', ['cid', 'seq']).withCondition((src) => !src.deleted);
         // rangeIndex('fromSeq', ['cid', 'seq']);
         rangeIndex('hasImageAttachment', ['cid', 'id']).withCondition((item) => {
@@ -2046,6 +2047,7 @@ export default declareSchema(() => {
         primaryKey('id', integer());
         field('title', string());
         field('uid', integer());
+        field('private', optional(boolean()));
         field('published', boolean());
         field('usesCount', integer());
         field('emojis', array(struct({
@@ -2058,6 +2060,7 @@ export default declareSchema(() => {
     entity('UserStickersState', () => {
         primaryKey('uid', integer());
         field('packIds', array(integer()));
+        field('privatePackIds', optional(array(integer())));
         field('favoriteIds', array(string()));
         field('unviewedPackIds', optional(array(integer())));
     });
@@ -2069,8 +2072,17 @@ export default declareSchema(() => {
         field('emoji', string());
         field('relatedEmojis', optional(array(string())));
         field('packId', integer());
+        field('order', optional(integer()));
         rangeIndex('pack', ['packId', 'createdAt']);
-        rangeIndex('packActive', ['packId', 'createdAt']).withCondition((src) => !src.deleted);
+        rangeIndex('packActive', ['packId', 'order']).withCondition((src) => !src.deleted);
+    });
+
+    eventStore('UserStickersEventStore', () => {
+        primaryKey('uid', integer());
+    });
+
+    event('UserStickersUpdateEvent', () => {
+        field('uid', integer());
     });
 
     //

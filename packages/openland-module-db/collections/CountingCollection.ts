@@ -3,7 +3,7 @@ import { encoders, Subspace, TupleItem } from '@openland/foundationdb';
 import { BPlusTreeDirectory } from './algs/btree2/BPlusTreeDirectory';
 
 export class CountingCollection {
-    private readonly btree: BPlusTreeDirectory;
+    readonly btree: BPlusTreeDirectory;
 
     constructor(subspace: Subspace) {
         this.btree = new BPlusTreeDirectory(subspace, 4000);

@@ -1,6 +1,6 @@
 import { randomId } from 'openland-utils/randomId';
 import { Context } from '@openland/context';
-import { Subspace, inTxLeaky, encoders } from '@openland/foundationdb';
+import { Subspace, inTx, encoders } from '@openland/foundationdb';
 
 //
 // Registry is a simple collection of existing ids and there are nothing 
@@ -21,7 +21,7 @@ export class RegistryRepository {
     }
 
     async allocateSubscriberId(parent: Context) {
-        return await inTxLeaky(parent, async (ctx: Context) => {
+        return await inTx(parent, async (ctx: Context) => {
             while (true) {
                 // Create unique random id for a subscriber for even data distribution
                 let id = randomId();
@@ -42,7 +42,7 @@ export class RegistryRepository {
     }
 
     async allocateFeedId(parent: Context, mode: 'forward-only' | 'generic') {
-        return await inTxLeaky(parent, async (ctx: Context) => {
+        return await inTx(parent, async (ctx: Context) => {
             while (true) {
                 // Create unique random id for a subscriber for even data distribution
                 let id = randomId();
@@ -69,7 +69,7 @@ export class RegistryRepository {
     }
 
     async getFeed(parent: Context, feed: Buffer): Promise<null | 'generic' | 'forward-only'> {
-        return await inTxLeaky(parent, async (ctx: Context) => {
+        return await inTx(parent, async (ctx: Context) => {
             let key = encoders.tuple.pack([REGISTRY_FEED, feed]);
             let ex = await this.subspace.snapshotGet(ctx, key);
             if (!ex) {
@@ -83,7 +83,7 @@ export class RegistryRepository {
     }
 
     async subscriberExists(parent: Context, feed: Buffer) {
-        return await inTxLeaky(parent, async (ctx: Context) => {
+        return await inTx(parent, async (ctx: Context) => {
             let key = encoders.tuple.pack([REGISTRY_SUBSCRIBERS, feed]);
             return await this.subspace.snapshotExists(ctx, key);
         });

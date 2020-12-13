@@ -9,7 +9,7 @@ import { SubscriberAsyncRepository } from './internal/SubscriberAsyncRepository'
 import { SubscriberSeqRepository } from './internal/SubscriberSeqRepository';
 import { Context } from '@openland/context';
 import { RegistryRepository } from './internal/RegistryRepository';
-import { Subspace, inTxLeaky, createVersionstampRef } from '@openland/foundationdb';
+import { Subspace, createVersionstampRef, inTx } from '@openland/foundationdb';
 import { FeedSeqRepository } from './internal/FeedSeqRepository';
 import { FeedEventsRepository } from './internal/FeedEventsRepository';
 import { FeedLatestRepository } from './internal/FeedLatestRepository';
@@ -54,7 +54,7 @@ export class EventsRepository {
     //
 
     async createFeed(parent: Context, mode: 'forward-only' | 'generic') {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
 
             // Allocate feed id
             let feed = await this.registry.allocateFeedId(ctx, mode);
@@ -74,7 +74,7 @@ export class EventsRepository {
     }
 
     async createSubscriber(parent: Context) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let subs = await this.registry.allocateSubscriberId(ctx);
             this.stats.increment(ctx, 'subscribers');
             return subs;
@@ -82,7 +82,7 @@ export class EventsRepository {
     }
 
     async isSubscribed(parent: Context, subscriber: Buffer, feed: Buffer) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             if (!(await this.registry.subscriberExists(ctx, subscriber))) {
                 throw Error('Unable to find subscriber');
             }
@@ -96,7 +96,7 @@ export class EventsRepository {
     }
 
     async subscribe(parent: Context, subscriber: Buffer, feed: Buffer, mode: 'direct' | 'async') {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             if (!(await this.registry.subscriberExists(ctx, subscriber))) {
                 throw Error('Unable to find subscriber');
             }
@@ -134,7 +134,7 @@ export class EventsRepository {
     }
 
     async unsubscribe(parent: Context, subscriber: Buffer, feed: Buffer) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             if (!(await this.registry.subscriberExists(ctx, subscriber))) {
                 throw Error('Unable to find subscriber');
             }
@@ -173,25 +173,25 @@ export class EventsRepository {
     }
 
     async getFeedSubscribersCount(parent: Context, feed: Buffer) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             return await this.sub.getFeedSubscriptionsCount(ctx, feed);
         });
     }
 
     async getFeedDirectSubscribersCount(parent: Context, feed: Buffer) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             return await this.sub.getFeedDirectSubscriptionsCount(ctx, feed);
         });
     }
 
     async getFeedAsyncSubscribersCount(parent: Context, feed: Buffer) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             return await this.sub.getFeedAsyncSubscriptionsCount(ctx, feed);
         });
     }
 
     async getSubscriberFeeds(parent: Context, subscriber: Buffer) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             return await this.sub.getSubscriptions(ctx, subscriber);
         });
     }
@@ -201,7 +201,7 @@ export class EventsRepository {
     //
 
     async post(parent: Context, args: { feed: Buffer, event: Buffer, collapseKey?: string | null | undefined }) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
 
             // Allocate Seq
             let seq = await this.feedSeq.allocateSeq(ctx, args.feed);
@@ -228,7 +228,7 @@ export class EventsRepository {
     }
 
     async postEphemeral(parent: Context, args: { feed: Buffer, subscriber: Buffer, event: Buffer }) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             // Allocate index
             let vt = createVersionstampRef(ctx);
 
@@ -244,7 +244,7 @@ export class EventsRepository {
     //
 
     async getState(parent: Context, subscriber: Buffer) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
 
             // NOTE: We are adding dump write to enforce transaction commit and 
             //       resolving of a version stamp
@@ -261,7 +261,7 @@ export class EventsRepository {
     }
 
     async getChangedFeedsSeqNumbers(parent: Context, subscriber: Buffer, after: Buffer) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let set = new BufferSet();
             let changed: { feed: Buffer, seq: number, vt: Buffer }[] = [];
 
@@ -298,7 +298,7 @@ export class EventsRepository {
     }
 
     async getChangedFeeds(parent: Context, subscriber: Buffer, after: Buffer) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let set = new BufferSet();
             let events: { feed: Buffer, seq: number, vt: Buffer }[] = [];
             let changes: { feed: Buffer, seq: number, vt: Buffer, change: 'joined' | 'left' }[] = [];
@@ -356,7 +356,7 @@ export class EventsRepository {
     }
 
     async getFeedDifference(parent: Context, subscriber: Buffer, feed: Buffer, after: Buffer | number, opts: { limits: { forwardOnly: number, generic: number } }) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let state = await this.sub.getSubscriptionState(ctx, subscriber, feed);
             if (!state) {
                 throw Error('Unable to find subscription state');
@@ -436,7 +436,7 @@ export class EventsRepository {
     }
 
     async getDifference(parent: Context, subscriber: Buffer, after: Buffer, opts: { limits: { forwardOnly: number, generic: number, global: number } }) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let updates: { feed: Buffer, afterSeq: number, events: { seq: number, vt: Buffer, event: Buffer }[] }[] = [];
             let feeds: Buffer[] = [];
 
@@ -515,7 +515,7 @@ export class EventsRepository {
     async isOnline(parent: Context, subscriber: Buffer, now: number) {
         let clamped = Math.floor(now / 1000);
 
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             return await this.subSeq.isOnline(ctx, subscriber, clamped);
         });
     }
@@ -523,7 +523,7 @@ export class EventsRepository {
     async refreshOnline(parent: Context, subscriber: Buffer, expires: number) {
         let clamped = Math.floor(expires / 1000);
 
-        await inTxLeaky(parent, async (ctx) => {
+        await inTx(parent, async (ctx) => {
             let old = await this.subSeq.getOnlineExpires(ctx, subscriber);
             if (old !== null && old > clamped) {
                 return;
@@ -536,7 +536,7 @@ export class EventsRepository {
     async getFeedOnlineSubscribers(parent: Context, feed: Buffer, now: number) {
         let clamped = Math.floor(now / 1000);
 
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let directSubscribers = await this.subDirect.getFeedSubscribers(ctx, feed);
             let asyncOnlineSubscribers = await this.subAsync.getOnlineSubscribers(ctx, feed, clamped);
 
@@ -552,7 +552,7 @@ export class EventsRepository {
     }
 
     async allocateSubscriberSeq(parent: Context, subscribers: Buffer[]) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             return await Promise.all(subscribers.map((s) => this.subSeq.allocateSeq(ctx, s)));
         });
     }

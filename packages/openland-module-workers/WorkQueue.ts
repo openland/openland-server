@@ -1,5 +1,5 @@
 import { Store } from './../openland-module-db/FDB';
-import { inTx, inTxLeaky } from '@openland/foundationdb';
+import { inTx } from '@openland/foundationdb';
 import { delayBreakable, foreverBreakable } from 'openland-utils/timer';
 import { uuid } from 'openland-utils/uuid';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
@@ -31,7 +31,7 @@ export class WorkQueue<ARGS> {
     }
 
     pushWork = async (parent: Context, work: ARGS, startAt?: number) => {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             getTransaction(ctx).afterCommit(() => {
                 if (!startAt) {
                     EventBus.publish(this.pubSubTopic, {});

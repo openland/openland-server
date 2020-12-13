@@ -118,4 +118,12 @@ export class NewCountersRepository {
         }
         throw Error('Unknwon counter');
     }
+
+    async getDebugCounter(ctx: Context, uid: number, cid: number) {
+        let readState = await this.subscribers.readState(ctx, { cid, uid });
+        if (!readState) {
+            return null;
+        }
+        return await this.counters.count(ctx, [cid], uid, readState.seq);
+    }
 }

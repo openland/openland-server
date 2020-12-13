@@ -14,6 +14,7 @@ type StickerPack {
     usesCount: Int!
     added: Boolean!
     published: Boolean!
+    private: Boolean!
 }
 
 type UserStickers {
@@ -31,6 +32,8 @@ input StickerInput {
 input StickerPackInput {
     title: String
     published: Boolean
+    stickers: [ID!]
+    private: Boolean
 }
 
 extend type Query {
@@ -49,8 +52,14 @@ extend type Mutation {
     stickerPackAddSticker(id: ID!, input: StickerInput!): Sticker!
     stickerPackRemoveSticker(id: ID!): Boolean!
 
+    myStickersMarkAsViewed: Boolean!
+
     stickerPackAddToCollection(id: ID!): Boolean!
     stickerPackRemoveFromCollection(id: ID!): Boolean!
     stickerAddToFavorites(id: ID!): Boolean!
     stickerRemoveFromFavorites(id: ID!): Boolean!
+}
+
+extend type Subscription {
+    myStickersUpdates: UserStickers!
 }
