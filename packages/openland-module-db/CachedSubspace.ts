@@ -61,6 +61,7 @@ export class CachedSubspace<T> {
                         this.subspace.set(commit, writeKey, this.serialize(cache.writes[w]));
                     }
                 }
+                cache.writes = {};
             });
         }
     }
