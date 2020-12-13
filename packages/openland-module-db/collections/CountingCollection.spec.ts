@@ -35,4 +35,23 @@ describe('CountingCollection', () => {
             expect(await collection.count(ctx, ['collection-0'], 2)).toBe(0);
         });
     });
+
+    it('should count large collection correctly', async () => {
+        let root = createNamedContext('test');
+        let db = await Database.openTest({ name: 'counting-collection', layers: [] });
+        let collection = new CountingCollection(db.allKeys);
+
+        // Fill initial
+        for (let i = 0; i < 10; i++) {
+            await inTx(root, async (ctx) => {
+                for (let j = 0; j < 150; j++) {
+                    await collection.add(ctx, ['collection-0'], i * 150 + j);
+                }
+            });
+        }
+
+        await inTx(root, async (ctx) => {
+            expect(await collection.count(ctx, ['collection-0'], 1499)).toBe(0);
+        });
+    });
 });

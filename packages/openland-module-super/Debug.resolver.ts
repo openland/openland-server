@@ -137,6 +137,10 @@ export const Resolver: GQLResolver = {
             let cid = IDs.Conversation.parse(args.id);
             return (await Modules.Messaging.messaging.counters.subscribers.readState(ctx, { cid, uid: id }));
         }),
+        debugChatTree: withPermission('super-admin', async (ctx, args) => {
+            let cid = IDs.Conversation.parse(args.id);
+            return JSON.stringify((await Modules.Messaging.messaging.counters.counters.counting.btree.ops.dumpAll(ctx, encoders.tuple.pack([cid, 0]))));
+        }),
         lifecheck: () => `i'm ok`,
         debugParseID: withPermission('super-admin', async (ctx, args) => {
             let id = IdsFactory.resolve(args.id);

@@ -27,8 +27,8 @@ function filterDuplicates(src: number[]): number[] {
 }
 
 export class CountersDirectory {
-    private readonly subspace: Subspace;
-    private readonly counting: CountingCollection;
+    readonly subspace: Subspace;
+    readonly counting: CountingCollection;
     private readonly refs: CachedSubspace<CountersMessageRef>;
 
     constructor(subspace: Subspace) {
