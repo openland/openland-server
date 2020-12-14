@@ -71,7 +71,7 @@ export class StickersRepository {
                     sticker.order = input.stickers.indexOf(sticker.id);
                 }
             }
-            if (input.private) {
+            if (input.private !== null) {
                 pack.private = input.private;
             }
 
