@@ -315,9 +315,6 @@ export const Resolver: GQLResolver = {
                 cid
             });
         }),
-        debugGetCounters: withPermission('super-admin', async (ctx, args) => {
-            return JSON.stringify(await Modules.Messaging.counters.fetchUserCounters(ctx, ctx.auth.uid!));
-        }),
         debugExperimentalCounter: withPermission('super-admin', async (ctx, args) => {
             // let counters = new ExperimentalCountersRepository();
             // let cid = IDs.Conversation.parse(args.cid);

@@ -4,6 +4,7 @@ import { UserStateRepository } from '../repositories/UserStateRepository';
 import { injectable } from 'inversify';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { Store } from '../../openland-module-db/FDB';
+import { Modules } from 'openland-modules/Modules';
 
 @injectable()
 export class PrecalculatedCounterProvider implements CounterProvider {
@@ -18,25 +19,32 @@ export class PrecalculatedCounterProvider implements CounterProvider {
         return await Store.UserCounter.get(parent, uid);
     }
 
-    async fetchUserCounters(parent: Context, uid: number) {
-        return [];
-    }
-
     async fetchUserCountersForChats(ctx: Context, uid: number, cids: number[], includeAllMention: boolean) {
         return await Promise.all(cids.map(async cid => {
+            // return {
+            //     cid,
+            //     unreadCounter: await Store.UserDialogCounter.get(ctx, uid, cid),
+            //     haveMention: await Store.UserDialogHaveMention.get(ctx, uid, cid)
+            // };
+
+            let counters = await Modules.Messaging.messaging.counters.getLocalCounter(ctx, uid, cid);
             return {
                 cid,
-                unreadCounter: await Store.UserDialogCounter.get(ctx, uid, cid),
-                haveMention: await Store.UserDialogHaveMention.get(ctx, uid, cid)
+                unreadCounter: counters.unread,
+                haveMention: counters.unreadMentions > 0
             };
         }));
     }
 
     async fetchUserUnreadInChat(ctx: Context, uid: number, cid: number) {
-        return await Store.UserDialogCounter.get(ctx, uid, cid);
+        let counters = await Modules.Messaging.messaging.counters.getLocalCounter(ctx, uid, cid);
+        return counters.unread;
+        // return await Store.UserDialogCounter.get(ctx, uid, cid);
     }
 
     async fetchUserMentionedInChat(ctx: Context, uid: number, cid: number) {
-        return await Store.UserDialogHaveMention.get(ctx, uid, cid);
+        // return await Store.UserDialogHaveMention.get(ctx, uid, cid);
+        let counters = await Modules.Messaging.messaging.counters.getLocalCounter(ctx, uid, cid);
+        return counters.unreadMentions > 0;
     }
 }
