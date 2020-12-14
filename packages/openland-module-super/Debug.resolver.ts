@@ -126,9 +126,10 @@ export const Resolver: GQLResolver = {
             let id = ctx.auth.uid!;
             let cid = IDs.Conversation.parse(args.id);
             let debug = await Modules.Messaging.messaging.counters.getDebugCounter(ctx, id, cid);
+            let local = await Modules.Messaging.messaging.counters.getLocalCounter(ctx, id, cid);
             return {
-                all: await Modules.Messaging.messaging.counters.getLocalCounter(ctx, id, cid, 'all'),
-                mentions: await Modules.Messaging.messaging.counters.getLocalCounter(ctx, id, cid, 'mentions'),
+                all: local.unread,
+                mentions: local.unreadMentions,
                 ...debug!.debug
             };
         }),
