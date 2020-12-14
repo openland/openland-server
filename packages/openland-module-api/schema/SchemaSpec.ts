@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '48fff9f02d0ebb3c99e5811fccfd2e9e';
+export const GQL_SPEC_VERSION = '751c4362a80803f946419c34882963e5';
 
 export namespace GQL {
     export interface CreditCard {
@@ -487,9 +487,21 @@ export namespace GQL {
     export interface DebugChatCounter {
         all: number;
         mentions: number;
+        totalMessages: number;
+        allMentions: number;
+        totalSent: number;
+        sentAllMentions: number;
+        personalMentions: number;
+        personalMessages: number;
     }
     export interface DebugChatCounterAllArgs { }
     export interface DebugChatCounterMentionsArgs { }
+    export interface DebugChatCounterTotalMessagesArgs { }
+    export interface DebugChatCounterAllMentionsArgs { }
+    export interface DebugChatCounterTotalSentArgs { }
+    export interface DebugChatCounterSentAllMentionsArgs { }
+    export interface DebugChatCounterPersonalMentionsArgs { }
+    export interface DebugChatCounterPersonalMessagesArgs { }
     export interface DebugChatState {
         seq: number;
         muted: boolean;
@@ -3985,6 +3997,8 @@ export namespace GQL {
         debugChatCounter: DebugChatCounter;
         debugChatState: Nullable<DebugChatState>;
         debugGlobalCounter: DebugGlobalCounter;
+        debugChatTree: string;
+        debugChatMessages: ModernMessage[];
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
@@ -4232,6 +4246,12 @@ export namespace GQL {
         id: string;
     }
     export interface QueryDebugGlobalCounterArgs { }
+    export interface QueryDebugChatTreeArgs {
+        id: string;
+    }
+    export interface QueryDebugChatMessagesArgs {
+        id: string;
+    }
     export interface QueryDialogsArgs {
         first: number;
         after: OptionalNullable<string>;
@@ -6692,6 +6712,12 @@ export interface GQLResolver {
         {
             all: GQL.DebugChatCounterAllArgs,
             mentions: GQL.DebugChatCounterMentionsArgs,
+            totalMessages: GQL.DebugChatCounterTotalMessagesArgs,
+            allMentions: GQL.DebugChatCounterAllMentionsArgs,
+            totalSent: GQL.DebugChatCounterTotalSentArgs,
+            sentAllMentions: GQL.DebugChatCounterSentAllMentionsArgs,
+            personalMentions: GQL.DebugChatCounterPersonalMentionsArgs,
+            personalMessages: GQL.DebugChatCounterPersonalMessagesArgs,
         }
     >;
     DebugChatState?: ComplexTypedResolver<
@@ -9493,6 +9519,7 @@ export interface GQLResolver {
             debugChatCounter: GQLRoots.DebugChatCounterRoot,
             debugChatState: Nullable<GQLRoots.DebugChatStateRoot>,
             debugGlobalCounter: GQLRoots.DebugGlobalCounterRoot,
+            debugChatMessages: GQLRoots.ModernMessageRoot[],
             dialogs: GQLRoots.DialogsConnectionRoot,
             settings: GQLRoots.SettingsRoot,
             authPoints: GQLRoots.AuthPointRoot,
@@ -9671,6 +9698,8 @@ export interface GQLResolver {
             debugChatCounter: GQL.QueryDebugChatCounterArgs,
             debugChatState: GQL.QueryDebugChatStateArgs,
             debugGlobalCounter: GQL.QueryDebugGlobalCounterArgs,
+            debugChatTree: GQL.QueryDebugChatTreeArgs,
+            debugChatMessages: GQL.QueryDebugChatMessagesArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
             authPoints: GQL.QueryAuthPointsArgs,

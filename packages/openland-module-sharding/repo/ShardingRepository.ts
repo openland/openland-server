@@ -1,5 +1,5 @@
 import { NodeRepository, NodeState } from './NodeRepository';
-import { Subspace, encoders, inTxLeaky } from '@openland/foundationdb';
+import { Subspace, encoders, inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { randomKey } from 'openland-utils/random';
 
@@ -39,14 +39,14 @@ export class ShardingRepository {
     //
 
     async watchAllocations(parent: Context, shardRegion: ID) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let watch = this.shardVersions.watch(ctx, encoders.tuple.pack([shardRegion]));
             return watch;
         });
     }
 
     async getAllocations(parent: Context, shardRegion: ID) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
 
             // Read shard region
             let region = await this.getShardRegion(ctx, shardRegion);
@@ -94,7 +94,7 @@ export class ShardingRepository {
     }
 
     async onAllocationReady(parent: Context, region: ID, node: ID, shard: number) {
-        await inTxLeaky(parent, async (ctx) => {
+        await inTx(parent, async (ctx) => {
             let existing = await this.shards.get(ctx, encoders.tuple.pack([region, shard, node]));
             if (!existing) {
                 return;
@@ -108,7 +108,7 @@ export class ShardingRepository {
     }
 
     async onAllocationRemoved(parent: Context, region: ID, node: ID, shard: number) {
-        await inTxLeaky(parent, async (ctx) => {
+        await inTx(parent, async (ctx) => {
             let existing = await this.shards.get(ctx, encoders.tuple.pack([region, shard, node]));
             if (!existing) {
                 return;
@@ -123,7 +123,7 @@ export class ShardingRepository {
 
     async scheduleShards(parent: Context, region: ID) {
 
-        await inTxLeaky(parent, async (ctx) => {
+        await inTx(parent, async (ctx) => {
 
             // Read all active nodes
             let nodes = await this.nodes.getShardRegionNodes(ctx, region);
@@ -291,7 +291,7 @@ export class ShardingRepository {
     //
 
     async getOrCreateShardRegion(parent: Context, name: string, defaultRingSize: number) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let existing = await this.registry.get(ctx, encoders.tuple.pack([0, name]));
             if (existing) {
                 let tuple = encoders.tuple.unpack(existing);
@@ -308,7 +308,7 @@ export class ShardingRepository {
     }
 
     async getShardRegion(parent: Context, shardRegion: ID) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let shard = await this.registry.get(ctx, encoders.tuple.pack([1, shardRegion]));
             if (!shard) {
                 throw Error('Unable to find shard ' + shardRegion);
@@ -321,7 +321,7 @@ export class ShardingRepository {
     }
 
     async getShardRegions(parent: Context) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let allShards = await this.registry.range(ctx, encoders.tuple.pack([0]));
             let shards: { name: string, id: ID, ringSize: number }[] = [];
             for (let sh of allShards) {
@@ -340,7 +340,7 @@ export class ShardingRepository {
     //
 
     async registerNode(parent: Context, nodeId: ID, shardId: ID): Promise<NodeState> {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let res = await this.nodes.registerNode(ctx, nodeId, shardId, Date.now() + 15000);
             await this.scheduleShards(ctx, shardId);
             return res;
@@ -348,7 +348,7 @@ export class ShardingRepository {
     }
 
     async registerNodeLeaving(parent: Context, nodeId: ID, shardId: ID): Promise<NodeState> {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let res = await this.nodes.registerNodeLeaving(ctx, nodeId, shardId, Date.now() + 15000);
             await this.scheduleShards(ctx, shardId);
             return res;
@@ -356,7 +356,7 @@ export class ShardingRepository {
     }
 
     async registerNodeLeft(parent: Context, nodeId: ID, shardId: ID) {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let res = await this.nodes.registerNodeLeft(ctx, nodeId, shardId, Date.now() + 60 * 60 * 1000);
             await this.scheduleShards(ctx, shardId);
             return res;
@@ -364,7 +364,7 @@ export class ShardingRepository {
     }
 
     async handleScheduling(parent: Context) {
-        await inTxLeaky(parent, async (ctx) => {
+        await inTx(parent, async (ctx) => {
 
             // Handle timeouts
             await this.nodes.handleTimeouts(ctx, Date.now());

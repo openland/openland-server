@@ -2,9 +2,10 @@ import { createLogger } from '@openland/log';
 import { Modules } from 'openland-modules/Modules';
 import { MigrationDefinition } from '@openland/foundationdb-migrations/lib/MigrationDefinition';
 import { Store } from 'openland-module-db/FDB';
-import { inTx, encoders } from '@openland/foundationdb';
+import { inTx, encoders, withoutTransaction } from '@openland/foundationdb';
 import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 import uuid from 'uuid';
+import { IDs } from 'openland-module-api/IDs';
 
 // @ts-ignore
 const logger = createLogger('migration');
@@ -1080,7 +1081,81 @@ migrations.push({
 });
 
 migrations.push({
-    key: '168-migrate-all-counters',
+    key: '180-reindex-messages',
+    migration: async (parent) => {
+        await Store.Message.iterateAllItems(parent, 100, async (ctx, items) => {
+            for (let item of items) {
+                item.invalidate();
+            }
+        });
+    }
+});
+
+migrations.push({
+    key: '181-recalculate-seq',
+    migration: async (parent) => {
+        let index = 0;
+        await Store.Conversation.iterateAllItems(parent, 1, async (ctx, items) => {
+            for (let item of items) {
+                if ((index++) % 1000 === 0) {
+                    logger.log(ctx, 'Processing ' + item.id);
+                }
+                let hasInvalid = false;
+                let seq = 1;
+                let stream = Store.Message.chatAll.stream(item.id, { batchSize: 100 });
+                let hasMore = true;
+                while (hasMore) {
+                    let r = await inTx(withoutTransaction(ctx), async (ctx2) => {
+                        let nextMessages = await stream.next(ctx2);
+                        let sseq = seq;
+                        for (let m of nextMessages) {
+                            if (m.seq !== sseq) {
+                                if (!hasInvalid) {
+                                    logger.log(ctx2, 'Found invalid seq: expected ' + sseq + ', got: ' + m.seq + ', at ' + IDs.Conversation.serialize(item.id) + '/' + item.id);
+                                }
+                                hasInvalid = true;
+                                m.seq = sseq;
+                                m.invalidate();
+                                await m.flush(ctx2);
+                            }
+                            sseq++;
+                        }
+
+                        // Overwrite seq if needed
+                        if (hasInvalid && nextMessages.length === 0) {
+                            let existing = await Store.ConversationSeq.findById(ctx2, item.id);
+                            if (!existing) {
+                                await (await Store.ConversationSeq.create(ctx2, item.id, { seq: sseq })).flush(ctx2);
+                            } else {
+                                existing.seq = sseq;
+                                await existing.flush(ctx2);
+                            }
+                        }
+
+                        return {
+                            hasNext: nextMessages.length > 0,
+                            seq: sseq
+                        };
+                    });
+                    hasMore = r.hasNext;
+                    seq = r.seq;
+                }
+            }
+        });
+    }
+});
+
+migrations.push({
+    key: '182-reset-counters',
+    migration: async (parent) => {
+        await inTx(parent, async (ctx) => {
+            Modules.Messaging.messaging.counters.subspace.clearPrefixed(ctx, Buffer.from([]));
+        });
+    }
+});
+
+migrations.push({
+    key: '183-migrate-all-counters',
     migration: async (parent) => {
         let index = 0;
         await Store.Message.iterateAllItems(parent, 250, async (ctx, items) => {
@@ -1094,10 +1169,10 @@ migrations.push({
 });
 
 migrations.push({
-    key: '169-migrate-counters-all-private',
+    key: '184-migrate-counters-all-private',
     migration: async (parent) => {
         let index = 0;
-        await Store.ConversationPrivate.iterateAllItems(parent, 500, async (ctx, items) => {
+        await Store.ConversationPrivate.iterateAllItems(parent, 100, async (ctx, items) => {
             logger.log(ctx, 'Iteration ' + index);
             for (let i of items) {
                 let mute1 = (await Modules.Messaging.getRoomSettings(ctx, i.uid1, i.id)).mute;
@@ -1113,10 +1188,10 @@ migrations.push({
 });
 
 migrations.push({
-    key: '170-migrate-counters-rooms',
+    key: '185-migrate-counters-rooms',
     migration: async (parent) => {
         let index = 0;
-        await Store.RoomParticipant.iterateAllItems(parent, 500, async (ctx, items) => {
+        await Store.RoomParticipant.iterateAllItems(parent, 100, async (ctx, items) => {
             logger.log(ctx, 'Iteration ' + index);
             for (let i of items) {
                 if (i.status === 'joined') {

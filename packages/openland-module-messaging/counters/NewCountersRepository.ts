@@ -104,18 +104,30 @@ export class NewCountersRepository {
         return res;
     }
 
-    async getLocalCounter(ctx: Context, uid: number, cid: number, counter: 'all' | 'mentions') {
+    async getLocalCounter(ctx: Context, uid: number, cid: number) {
         let readState = await this.subscribers.readState(ctx, { cid, uid });
         if (!readState) {
-            return 0;
+            return {
+                unreadMentions: 0,
+                unread: 0,
+                debug: {
+                    totalMessages: 0,
+                    allMentions: 0,
+                    totalSent: 0,
+                    sentAllMentions: 0,
+                    personalMentions: 0,
+                    personalMessages: 0
+                }
+            };
         }
-        let res = await this.counters.count(ctx, [cid], uid, readState.seq);
-        if (counter === 'all') {
-            return res.unread;
+        return await this.counters.count(ctx, [cid], uid, readState.seq);
+    }
+
+    async getDebugCounter(ctx: Context, uid: number, cid: number) {
+        let readState = await this.subscribers.readState(ctx, { cid, uid });
+        if (!readState) {
+            return null;
         }
-        if (counter === 'mentions') {
-            return res.unreadMentions;
-        }
-        throw Error('Unknwon counter');
+        return await this.counters.count(ctx, [cid], uid, readState.seq);
     }
 }

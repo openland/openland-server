@@ -1,4 +1,4 @@
-import { encoders, getTransaction, inTxLeaky, keyIncrement, Subspace, TransactionCache, TupleItem } from '@openland/foundationdb';
+import { encoders, getTransaction, inTx, keyIncrement, Subspace, TransactionCache, TupleItem } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { Algorithm } from './Algorithm';
 import { binarySearch } from './utils/binarySearch';
@@ -31,7 +31,7 @@ export class BucketCountingOptimizedCollection implements Algorithm {
         if (id < 0) {
             throw Error('Id could not be less than zero');
         }
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             return await inTxLock(ctx, 'bucket-collection-' + collection.toString('hex'), async () => {
                 let bucketNo = Math.ceil(id / this.bucketSize);
 
@@ -53,7 +53,7 @@ export class BucketCountingOptimizedCollection implements Algorithm {
         if (id < 0) {
             throw Error('Id could not be less than zero');
         }
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             return await inTxLock(ctx, 'bucket-collection-' + collection.toString('hex'), async () => {
                 let bucketNo = Math.ceil(id / this.bucketSize);
 
@@ -72,7 +72,7 @@ export class BucketCountingOptimizedCollection implements Algorithm {
     }
 
     count = async (parent: Context, collection: Buffer, cursor: { from?: number | null, to?: number | null }) => {
-        return await inTxLeaky(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             return await inTxLock(ctx, 'bucket-collection-' + collection.toString('hex'), async () => {
 
                 // Flush pending writes

@@ -125,15 +125,26 @@ export const Resolver: GQLResolver = {
         debugChatCounter: withPermission('super-admin', async (ctx, args) => {
             let id = ctx.auth.uid!;
             let cid = IDs.Conversation.parse(args.id);
+            let debug = await Modules.Messaging.messaging.counters.getDebugCounter(ctx, id, cid);
+            let local = await Modules.Messaging.messaging.counters.getLocalCounter(ctx, id, cid);
             return {
-                all: await Modules.Messaging.messaging.counters.getLocalCounter(ctx, id, cid, 'all'),
-                mentions: await Modules.Messaging.messaging.counters.getLocalCounter(ctx, id, cid, 'mentions')
+                all: local.unread,
+                mentions: local.unreadMentions,
+                ...debug!.debug
             };
         }),
         debugChatState: withPermission('super-admin', async (ctx, args) => {
             let id = ctx.auth.uid!;
             let cid = IDs.Conversation.parse(args.id);
             return (await Modules.Messaging.messaging.counters.subscribers.readState(ctx, { cid, uid: id }));
+        }),
+        debugChatTree: withPermission('super-admin', async (ctx, args) => {
+            let cid = IDs.Conversation.parse(args.id);
+            return JSON.stringify((await Modules.Messaging.messaging.counters.counters.counting.btree.ops.dumpAll(ctx, encoders.tuple.pack([cid, 0]))));
+        }),
+        debugChatMessages: withPermission('super-admin', async (ctx, args) => {
+            let cid = IDs.Conversation.parse(args.id);
+            return Store.Message.chatAll.findAll(ctx, cid);
         }),
         lifecheck: () => `i'm ok`,
         debugParseID: withPermission('super-admin', async (ctx, args) => {
@@ -304,9 +315,6 @@ export const Resolver: GQLResolver = {
                 roomOid,
                 cid
             });
-        }),
-        debugGetCounters: withPermission('super-admin', async (ctx, args) => {
-            return JSON.stringify(await Modules.Messaging.counters.fetchUserCounters(ctx, ctx.auth.uid!));
         }),
         debugExperimentalCounter: withPermission('super-admin', async (ctx, args) => {
             // let counters = new ExperimentalCountersRepository();
