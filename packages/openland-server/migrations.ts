@@ -1187,24 +1187,24 @@ migrations.push({
     }
 });
 
-// migrations.push({
-//     key: '170-migrate-counters-rooms',
-//     migration: async (parent) => {
-//         let index = 0;
-//         await Store.RoomParticipant.iterateAllItems(parent, 500, async (ctx, items) => {
-//             logger.log(ctx, 'Iteration ' + index);
-//             for (let i of items) {
-//                 if (i.status === 'joined') {
-//                     let muted = (await Modules.Messaging.getRoomSettings(ctx, i.uid, i.cid)).mute;
-//                     let seq = await Modules.Messaging.messaging.userReadSeqs.getUserReadSeqForChat(ctx, i.uid, i.cid);
-//                     await Modules.Messaging.messaging.counters.subscribe(ctx, { cid: i.cid, uid: i.uid, seq, muted });
-//                 } else {
-//                     await Modules.Messaging.messaging.counters.unsubscribe(ctx, { cid: i.cid, uid: i.uid });
-//                 }
-//             }
-//             index++;
-//         });
-//     }
-// });
+migrations.push({
+    key: '185-migrate-counters-rooms',
+    migration: async (parent) => {
+        let index = 0;
+        await Store.RoomParticipant.iterateAllItems(parent, 100, async (ctx, items) => {
+            logger.log(ctx, 'Iteration ' + index);
+            for (let i of items) {
+                if (i.status === 'joined') {
+                    let muted = (await Modules.Messaging.getRoomSettings(ctx, i.uid, i.cid)).mute;
+                    let seq = await Modules.Messaging.messaging.userReadSeqs.getUserReadSeqForChat(ctx, i.uid, i.cid);
+                    await Modules.Messaging.messaging.counters.subscribe(ctx, { cid: i.cid, uid: i.uid, seq, muted });
+                } else {
+                    await Modules.Messaging.messaging.counters.unsubscribe(ctx, { cid: i.cid, uid: i.uid });
+                }
+            }
+            index++;
+        });
+    }
+});
 
 export default migrations;
