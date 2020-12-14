@@ -1172,7 +1172,7 @@ migrations.push({
     key: '184-migrate-counters-all-private',
     migration: async (parent) => {
         let index = 0;
-        await Store.ConversationPrivate.iterateAllItems(parent, 500, async (ctx, items) => {
+        await Store.ConversationPrivate.iterateAllItems(parent, 100, async (ctx, items) => {
             logger.log(ctx, 'Iteration ' + index);
             for (let i of items) {
                 let mute1 = (await Modules.Messaging.getRoomSettings(ctx, i.uid1, i.id)).mute;
