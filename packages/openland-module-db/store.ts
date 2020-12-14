@@ -1392,6 +1392,34 @@ export class RoomActiveMembersPrevWeekCounterFactory extends AtomicIntegerFactor
     }
 }
 
+export class StickerPackWasAddedFactory extends AtomicBooleanFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('stickerPackWasAdded');
+        return new StickerPackWasAddedFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number, pid: number) {
+        return this._findById([uid, pid]);
+    }
+
+    get(ctx: Context, uid: number, pid: number) {
+        return this._get(ctx, [uid, pid]);
+    }
+
+    set(ctx: Context, uid: number, pid: number, value: boolean) {
+        return this._set(ctx, [uid, pid], value);
+    }
+
+    invert(ctx: Context, uid: number, pid: number) {
+        return this._invert(ctx, [uid, pid]);
+    }
+}
+
 export class ReaderEstimateFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -14034,6 +14062,7 @@ export interface StickerPackShape {
     published: boolean;
     usesCount: number;
     emojis: ({ emoji: string, stickerId: string })[];
+    listed: boolean | null;
 }
 
 export interface StickerPackCreateShape {
@@ -14043,6 +14072,7 @@ export interface StickerPackCreateShape {
     published: boolean;
     usesCount: number;
     emojis: ({ emoji: string, stickerId: string })[];
+    listed?: boolean | null | undefined;
 }
 
 export class StickerPack extends Entity<StickerPackShape> {
@@ -14101,6 +14131,15 @@ export class StickerPack extends Entity<StickerPackShape> {
             this.invalidate();
         }
     }
+    get listed(): boolean | null { return this._rawValue.listed; }
+    set listed(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.listed.normalize(value);
+        if (this._rawValue.listed !== normalized) {
+            this._rawValue.listed = normalized;
+            this._updatedValues.listed = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class StickerPackFactory extends EntityFactory<StickerPackShape, StickerPack> {
@@ -14118,6 +14157,7 @@ export class StickerPackFactory extends EntityFactory<StickerPackShape, StickerP
         fields.push({ name: 'published', type: { type: 'boolean' }, secure: false });
         fields.push({ name: 'usesCount', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'emojis', type: { type: 'array', inner: { type: 'struct', fields: { emoji: { type: 'string' }, stickerId: { type: 'string' } } } }, secure: false });
+        fields.push({ name: 'listed', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             title: c.string,
@@ -14126,6 +14166,7 @@ export class StickerPackFactory extends EntityFactory<StickerPackShape, StickerP
             published: c.boolean,
             usesCount: c.integer,
             emojis: c.array(c.struct({ emoji: c.string, stickerId: c.string })),
+            listed: c.optional(c.boolean),
         });
         let descriptor: EntityDescriptor<StickerPackShape> = {
             name: 'StickerPack',
@@ -23229,6 +23270,7 @@ export interface Store extends BaseStore {
     readonly StatsRecords: StatsRecordsFactory;
     readonly RoomMessagesCounter: RoomMessagesCounterFactory;
     readonly RoomActiveMembersPrevWeekCounter: RoomActiveMembersPrevWeekCounterFactory;
+    readonly StickerPackWasAdded: StickerPackWasAddedFactory;
     readonly ReaderEstimate: ReaderEstimateFactory;
     readonly LastAuthEmailSentTime: LastAuthEmailSentTimeFactory;
     readonly AuthEmailsSentCount: AuthEmailsSentCountFactory;
@@ -23534,6 +23576,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let StatsRecordsPromise = StatsRecordsFactory.open(storage);
     let RoomMessagesCounterPromise = RoomMessagesCounterFactory.open(storage);
     let RoomActiveMembersPrevWeekCounterPromise = RoomActiveMembersPrevWeekCounterFactory.open(storage);
+    let StickerPackWasAddedPromise = StickerPackWasAddedFactory.open(storage);
     let ReaderEstimatePromise = ReaderEstimateFactory.open(storage);
     let LastAuthEmailSentTimePromise = LastAuthEmailSentTimeFactory.open(storage);
     let AuthEmailsSentCountPromise = AuthEmailsSentCountFactory.open(storage);
@@ -23792,6 +23835,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         StatsRecords: await StatsRecordsPromise,
         RoomMessagesCounter: await RoomMessagesCounterPromise,
         RoomActiveMembersPrevWeekCounter: await RoomActiveMembersPrevWeekCounterPromise,
+        StickerPackWasAdded: await StickerPackWasAddedPromise,
         ReaderEstimate: await ReaderEstimatePromise,
         LastAuthEmailSentTime: await LastAuthEmailSentTimePromise,
         AuthEmailsSentCount: await AuthEmailsSentCountPromise,

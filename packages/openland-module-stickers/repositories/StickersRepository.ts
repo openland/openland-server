@@ -16,6 +16,7 @@ export interface StickerPackInput {
     published: boolean | null;
     stickers: string[] | null;
     private: boolean | null;
+    listed: boolean | null;
 }
 
 export interface StickerInput {
@@ -73,6 +74,9 @@ export class StickersRepository {
             }
             if (input.private !== null) {
                 pack.private = input.private;
+            }
+            if (input.listed !== null) {
+                pack.listed = input.listed;
             }
 
             await pack.flush(ctx);

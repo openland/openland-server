@@ -62,6 +62,7 @@ export const Resolver: GQLResolver = {
         }),
         published: withStickerPack((ctx, pack) => pack.published),
         private: withStickerPack((ctx, pack) => pack.private || false),
+        listed: withStickerPack((ctx, pack) => pack.listed || false),
         added: withStickerPackId(async (ctx, id) => {
             if (!ctx.auth.uid) {
                 return false;
