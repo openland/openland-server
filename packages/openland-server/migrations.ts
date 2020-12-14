@@ -1169,7 +1169,7 @@ migrations.push({
 });
 
 migrations.push({
-    key: '177-migrate-counters-all-private',
+    key: '184-migrate-counters-all-private',
     migration: async (parent) => {
         let index = 0;
         await Store.ConversationPrivate.iterateAllItems(parent, 500, async (ctx, items) => {
