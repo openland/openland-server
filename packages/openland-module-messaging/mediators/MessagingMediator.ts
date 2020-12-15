@@ -491,8 +491,12 @@ export class MessagingMediator {
                 throw Error('Invalid request');
             }
             if (await this.userReadSeqs.updateReadSeq(ctx, uid, cid, msg.seq)) {
-                await this.delivery.onRoomRead(ctx, uid, mid);
+                // Update counters
                 await this.counters.readMessages(ctx, { cid, uid, seq: msg.seq });
+                // Send counter push
+                await Modules.Push.sendCounterPush(ctx, uid);
+                // Legacy read event
+                await this.delivery.repo.deliverMessageReadToUser(ctx, uid, mid);
             }
         });
     }

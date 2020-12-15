@@ -127,6 +127,7 @@ extend type Query {
     debugGlobalCounter: DebugGlobalCounter!
     debugChatTree(id: ID!): String!
     debugChatMessages(id: ID!): [ModernMessage!]!
+    debugUnreadChats: [String!]!
 }
 
 enum SuperNotificationType {

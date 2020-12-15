@@ -31,7 +31,7 @@ export class DeliveryRepository {
         this.userDialogs = userDialogs;
     }
 
-    async deliverMessageToUser(ctx: Context, uid: number, message: Message) {
+    deliverMessageToUser(ctx: Context, uid: number, message: Message) {
         // Count Metrics
         if (message.uid !== uid) {
             this.metrics.onMessageReceived(ctx, uid);
@@ -48,7 +48,7 @@ export class DeliveryRepository {
         }));
     }
 
-    async deliverDialogBumpToUser(ctx: Context, uid: number, cid: number, date: number) {
+    deliverDialogBumpToUser(ctx: Context, uid: number, cid: number, date: number) {
         // Update dialog and deliver update
         this.userDialogs.bumpDialog(ctx, uid, cid, date);
 
@@ -59,7 +59,7 @@ export class DeliveryRepository {
         }));
     }
 
-    async deliverMessageUpdateToUser(ctx: Context, uid: number, message: Message) {
+    deliverMessageUpdateToUser(ctx: Context, uid: number, message: Message) {
         // Persist Event
         Store.UserDialogEventStore.post(ctx, uid, UserDialogMessageUpdatedEvent.create({
             uid,
@@ -68,7 +68,7 @@ export class DeliveryRepository {
         }));
     }
 
-    async deliverMessageDeleteToUser(ctx: Context, uid: number, message: Message) {
+    deliverMessageDeleteToUser(ctx: Context, uid: number, message: Message) {
         // TODO: Update date
         Store.UserDialogEventStore.post(ctx, uid, UserDialogMessageDeletedEvent.create({
             uid,

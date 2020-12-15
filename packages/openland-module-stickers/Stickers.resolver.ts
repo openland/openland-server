@@ -118,6 +118,7 @@ export const Resolver: GQLResolver = {
 
             return inTx(parent, ctx => Modules.Stickers.updatePack(ctx, id, {
                 ...args.input,
+                listed: null,
                 stickers: args.input.stickers?.map(a => IDs.Sticker.parse(a)) || null
             }));
         }),
