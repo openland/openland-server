@@ -34,7 +34,7 @@ export class DeliveryMediator {
     });
 
     @lazyInject('DeliveryRepository') readonly repo!: DeliveryRepository;
-    @lazyInject('CountersMediator') private readonly counters!: CountersMediator;
+    @lazyInject('CountersMediator') readonly counters!: CountersMediator;
     @lazyInject('RoomMediator') private readonly room!: RoomMediator;
     @lazyInject('NeedNotificationDeliveryRepository') private readonly needNotification!: NeedNotificationDeliveryRepository;
 
