@@ -79,8 +79,12 @@ export class NewCountersRepository {
         await this.subscribers.subscribe(ctx, { uid: args.uid, cid: args.cid, muted: args.muted, seq: state.seq, counter: state.counter, mentions: state.mentions });
     }
 
-    async getGlobalCounter(ctx: Context, uid: number, excludeMuted: boolean, counter: 'all' | 'distinct' | 'all-mentions' | 'distinct-mentions') {
-        let res = await this.subscribers.getCounter(ctx, uid, excludeMuted, counter);
+    async getGlobalCounterDirect(ctx: Context, uid: number, excludeMuted: boolean, counter: 'all' | 'distinct' | 'all-mentions' | 'distinct-mentions') {
+        return await this.subscribers.getCounter(ctx, uid, excludeMuted, counter);
+    }
+
+    async getGlobalCounterAsync(ctx: Context, uid: number, excludeMuted: boolean, counter: 'all' | 'distinct' | 'all-mentions' | 'distinct-mentions') {
+        let res = 0;
         let asyncSubscriptions = await this.subscribers.getAsyncSubscriptions(ctx, uid);
         for (let subs of asyncSubscriptions) {
             if (subs.muted && excludeMuted) {
@@ -101,6 +105,13 @@ export class NewCountersRepository {
                 }
             }
         }
+        return res;
+    }
+
+    async getGlobalCounter(ctx: Context, uid: number, excludeMuted: boolean, counter: 'all' | 'distinct' | 'all-mentions' | 'distinct-mentions') {
+        let res = 0;
+        res += await this.getGlobalCounterDirect(ctx, uid, excludeMuted, counter);
+        res += await this.getGlobalCounterAsync(ctx, uid, excludeMuted, counter);
         return res;
     }
 

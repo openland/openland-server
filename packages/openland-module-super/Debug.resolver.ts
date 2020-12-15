@@ -116,17 +116,37 @@ export const Resolver: GQLResolver = {
     },
     Query: {
         debugGlobalCounter: withPermission('super-admin', async (ctx, args) => {
-            let id = ctx.auth.uid!;
+            let uid = args.user ? IDs.User.parse(args.user) : ctx.auth.uid!;
             return {
-                all: await Modules.Messaging.messaging.counters.getGlobalCounter(ctx, id, false, 'all'),
-                mentions: await Modules.Messaging.messaging.counters.getGlobalCounter(ctx, id, false, 'all-mentions')
+                all: await Modules.Messaging.messaging.counters.getGlobalCounter(ctx, uid, false, 'all'),
+                mentions: await Modules.Messaging.messaging.counters.getGlobalCounter(ctx, uid, false, 'all-mentions'),
+                distinct: await Modules.Messaging.messaging.counters.getGlobalCounter(ctx, uid, false, 'distinct'),
+                distinctMentions: await Modules.Messaging.messaging.counters.getGlobalCounter(ctx, uid, false, 'distinct'),
+            };
+        }),
+        debugGlobalCounterDirect: withPermission('super-admin', async (ctx, args) => {
+            let uid = args.user ? IDs.User.parse(args.user) : ctx.auth.uid!;
+            return {
+                all: await Modules.Messaging.messaging.counters.getGlobalCounterDirect(ctx, uid, false, 'all'),
+                mentions: await Modules.Messaging.messaging.counters.getGlobalCounterDirect(ctx, uid, false, 'all-mentions'),
+                distinct: await Modules.Messaging.messaging.counters.getGlobalCounterDirect(ctx, uid, false, 'distinct'),
+                distinctMentions: await Modules.Messaging.messaging.counters.getGlobalCounterDirect(ctx, uid, false, 'distinct'),
+            };
+        }),
+        debugGlobalCounterAsync: withPermission('super-admin', async (ctx, args) => {
+            let uid = args.user ? IDs.User.parse(args.user) : ctx.auth.uid!;
+            return {
+                all: await Modules.Messaging.messaging.counters.getGlobalCounterAsync(ctx, uid, false, 'all'),
+                mentions: await Modules.Messaging.messaging.counters.getGlobalCounterAsync(ctx, uid, false, 'all-mentions'),
+                distinct: await Modules.Messaging.messaging.counters.getGlobalCounterAsync(ctx, uid, false, 'distinct'),
+                distinctMentions: await Modules.Messaging.messaging.counters.getGlobalCounterAsync(ctx, uid, false, 'distinct'),
             };
         }),
         debugChatCounter: withPermission('super-admin', async (ctx, args) => {
-            let id = ctx.auth.uid!;
+            let uid = args.user ? IDs.User.parse(args.user) : ctx.auth.uid!;
             let cid = IDs.Conversation.parse(args.id);
-            let debug = await Modules.Messaging.messaging.counters.getDebugCounter(ctx, id, cid);
-            let local = await Modules.Messaging.messaging.counters.getLocalCounter(ctx, id, cid);
+            let debug = await Modules.Messaging.messaging.counters.getDebugCounter(ctx, uid, cid);
+            let local = await Modules.Messaging.messaging.counters.getLocalCounter(ctx, uid, cid);
             return {
                 all: local.unread,
                 mentions: local.unreadMentions,
@@ -134,9 +154,24 @@ export const Resolver: GQLResolver = {
             };
         }),
         debugChatState: withPermission('super-admin', async (ctx, args) => {
-            let id = ctx.auth.uid!;
+            let uid = args.user ? IDs.User.parse(args.user) : ctx.auth.uid!;
             let cid = IDs.Conversation.parse(args.id);
-            return (await Modules.Messaging.messaging.counters.subscribers.readState(ctx, { cid, uid: id }));
+            return { chatId: args.id, ...(await Modules.Messaging.messaging.counters.subscribers.readState(ctx, { cid, uid }))! };
+        }),
+        debugChatStates: withPermission('super-admin', async (ctx, args) => {
+            let uid = args.user ? IDs.User.parse(args.user) : ctx.auth.uid!;
+            let states = await Modules.Messaging.messaging.counters.subscribers.readAllStates(ctx, uid);
+            return states.map((s) => ({ chatId: IDs.Conversation.serialize(s.cid), ...s.state }));
+        }),
+        debugChatStatesDirect: withPermission('super-admin', async (ctx, args) => {
+            let uid = args.user ? IDs.User.parse(args.user) : ctx.auth.uid!;
+            let states = await Modules.Messaging.messaging.counters.subscribers.readAllStates(ctx, uid);
+            return states.filter((v) => !v.state.async).map((s) => ({ chatId: IDs.Conversation.serialize(s.cid), ...s.state }));
+        }),
+        debugChatStatesAsync: withPermission('super-admin', async (ctx, args) => {
+            let uid = args.user ? IDs.User.parse(args.user) : ctx.auth.uid!;
+            let states = await Modules.Messaging.messaging.counters.subscribers.readAllStates(ctx, uid);
+            return states.filter((v) => v.state.async).map((s) => ({ chatId: IDs.Conversation.serialize(s.cid), ...s.state }));
         }),
         debugChatTree: withPermission('super-admin', async (ctx, args) => {
             let cid = IDs.Conversation.parse(args.id);
@@ -147,7 +182,8 @@ export const Resolver: GQLResolver = {
             return Store.Message.chatAll.findAll(ctx, cid);
         }),
         debugUnreadChats: withPermission('super-admin', async (ctx, args) => {
-            return (await Modules.Messaging.messaging.counters.getUnreadChats(ctx, ctx.auth!.uid!)).map((v) => IDs.Conversation.serialize(v));
+            let uid = args.user ? IDs.User.parse(args.user) : ctx.auth.uid!;
+            return (await Modules.Messaging.messaging.counters.getUnreadChats(ctx, uid)).map((v) => IDs.Conversation.serialize(v));
         }),
         lifecheck: () => `i'm ok`,
         debugParseID: withPermission('super-admin', async (ctx, args) => {
