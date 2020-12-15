@@ -244,6 +244,26 @@ export class CounterSubscribersDirectory {
         return [];
     }
 
+    async setCounters(ctx: Context, uid: number, counters: {
+        chats: number,
+        chatsNoMuted: number,
+        chatsMentions: number,
+        chatsMentionsNotMuted: number,
+        messages: number,
+        messagesNotMuted: number,
+        messagesMentions: number,
+        messagesMentionsNotMuted: number
+    }) {
+        this.userCounters.set(ctx, [uid, TYPE_NORMAL, COUNTER_ALL], counters.messages);
+        this.userCounters.set(ctx, [uid, TYPE_NORMAL_NO_MUTED, COUNTER_ALL], counters.messagesNotMuted);
+        this.userCounters.set(ctx, [uid, TYPE_DISTINCT, COUNTER_ALL], counters.chats);
+        this.userCounters.set(ctx, [uid, TYPE_DISTINCT_NO_MUTED, COUNTER_ALL], counters.chatsNoMuted);
+        this.userCounters.set(ctx, [uid, TYPE_NORMAL, COUNTER_MENTIONS], counters.messagesMentions);
+        this.userCounters.set(ctx, [uid, TYPE_NORMAL_NO_MUTED, COUNTER_MENTIONS], counters.messagesMentionsNotMuted);
+        this.userCounters.set(ctx, [uid, TYPE_DISTINCT, COUNTER_MENTIONS], counters.chatsMentions);
+        this.userCounters.set(ctx, [uid, TYPE_DISTINCT_NO_MUTED, COUNTER_MENTIONS], counters.chatsMentionsNotMuted);
+    }
+
     //
     // Update counters
     //

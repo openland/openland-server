@@ -1207,4 +1207,18 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '185-rebuild-counters',
+    migration: async (parent) => {
+        let index = 0;
+        await Store.User.iterateAllItems(parent, 10, async (ctx, items) => {
+            logger.log(ctx, 'Iteration ' + index);
+            for (let i of items) {
+                await Modules.Messaging.messaging.counters.recalculateDirectCounter(ctx, i.id);
+            }
+            index++;
+        });
+    }
+});
+
 export default migrations;
