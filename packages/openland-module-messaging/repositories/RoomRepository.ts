@@ -356,7 +356,7 @@ export class RoomRepository {
                 conv.leavesMessageDisabled = !profile.serviceMessageSettings.leavesMessageEnabled;
             }
 
-            if (profile.giftStickerPackId) {
+            if (profile.giftStickerPackId !== undefined) {
                 if (!await Modules.Super.superRole(ctx, uid)) {
                     throw new AccessDeniedError();
                 }
