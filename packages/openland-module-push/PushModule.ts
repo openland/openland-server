@@ -48,7 +48,7 @@ export class PushModule {
         await this.repository.disablePushSafari(ctx, token, bundleId);
     }
 
-    async sendCounterPush(ctx: Context, uid: number) {
+    sendCounterPush(ctx: Context, uid: number) {
         return this.worker.pushWork(ctx, {
             uid: uid,
             counter: 0,
@@ -67,7 +67,7 @@ export class PushModule {
         });
     }
 
-    async pushWork(ctx: Context, push: Push) {
-        await this.worker.pushWork(ctx, push);
+    pushWork(ctx: Context, push: Push) {
+        this.worker.pushWork(ctx, push);
     }
 }

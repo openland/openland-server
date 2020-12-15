@@ -137,10 +137,13 @@ export class NewCountersRepository {
 
     async getUnreadChats(ctx: Context, uid: number) {
         let states = await this.subscribers.readAllStates(ctx, uid);
-        let direct = states
-            .filter((v) => !v.state.async && v.state.counter > 0)
-            .map((v) => v.cid);
-        let async = (await Promise.all(states.filter((v) => v.state.async).map(async (v) => ({ cid: v.cid, counter: await this.getLocalCounter(ctx, uid, v.cid) })))).filter((v) => v.counter.unread > 0).map((v) => v.cid);
-        return [...direct, ...async];
+        let allChats = states.map((v) => v.cid);
+        return (await Promise.all(allChats.map(async (v) => ({ cid: v, counter: await this.getLocalCounter(ctx, uid, v) })))).filter((v) => v.counter.unread > 0).map((v) => v.cid);
+
+        // let direct = states
+        //     .filter((v) => !v.state.async && v.state.counter > 0)
+        //     .map((v) => v.cid);
+        // let async = (await Promise.all(states.filter((v) => v.state.async).map(async (v) => ({ cid: v.cid, counter: await this.getLocalCounter(ctx, uid, v.cid) })))).filter((v) => v.counter.unread > 0).map((v) => v.cid);
+        // return [...direct, ...async];
     }
 }

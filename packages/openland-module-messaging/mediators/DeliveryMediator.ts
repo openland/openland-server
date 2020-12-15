@@ -33,7 +33,7 @@ export class DeliveryMediator {
         type: 'transactional'
     });
 
-    @lazyInject('DeliveryRepository') private readonly repo!: DeliveryRepository;
+    @lazyInject('DeliveryRepository') readonly repo!: DeliveryRepository;
     @lazyInject('CountersMediator') private readonly counters!: CountersMediator;
     @lazyInject('RoomMediator') private readonly room!: RoomMediator;
     @lazyInject('NeedNotificationDeliveryRepository') private readonly needNotification!: NeedNotificationDeliveryRepository;
@@ -132,22 +132,6 @@ export class DeliveryMediator {
         }
     }
 
-    onRoomRead = async (parent: Context, uid: number, mid: number) => {
-        await inTx(parent, async (ctx) => {
-            let message = (await Store.Message.findById(ctx, mid))!;
-
-            // Update counters
-            let res = await this.counters.onMessageRead(ctx, uid, message);
-
-            // Update dialogs
-            if (res.delta < 0) {
-                await this.repo.deliverMessageReadToUser(ctx, uid, mid);
-                // Send counter
-                await Modules.Push.sendCounterPush(ctx, uid);
-            }
-        });
-    }
-
     //
     // Dialog updates
     //
@@ -179,7 +163,7 @@ export class DeliveryMediator {
 
             log.log(ctx, 'onUserProfileUpdated', dialogs.length);
 
-            let b = batch(dialogs, 10);
+            let b = batch(dialogs, 100);
             await Promise.all(b.map(d => inTx(createNamedContext('delivery'), async (ctx2) => {
                 for (let dialog of d) {
                     let peerUid: number;
@@ -190,7 +174,7 @@ export class DeliveryMediator {
                         peerUid = dialog.uid1;
                     }
 
-                    await this.repo.deliverDialogPeerUpdatedToUser(ctx2, peerUid, dialog.id);
+                    this.repo.deliverDialogPeerUpdatedToUser(ctx2, peerUid, dialog.id);
                 }
             })));
         });
@@ -214,7 +198,7 @@ export class DeliveryMediator {
     onDialogBump = async (parent: Context, uid: number, cid: number, date: number) => {
         // Update dialogs
         await inTx(parent, async (ctx) => {
-            await this.repo.deliverDialogBumpToUser(ctx, uid, cid, date);
+            this.repo.deliverDialogBumpToUser(ctx, uid, cid, date);
         });
     }
 
@@ -222,19 +206,19 @@ export class DeliveryMediator {
         // Update dialogs
         await inTx(parent, async (ctx) => {
             await this.counters.onDialogMuteChange(ctx, uid, cid);
-            await this.repo.deliverDialogMuteChangedToUser(ctx, uid, cid, mute);
+            this.repo.deliverDialogMuteChangedToUser(ctx, uid, cid, mute);
         });
     }
 
     onDialogGotAccess = async (parent: Context, uid: number, cid: number) => {
         await inTx(parent, async (ctx) => {
-            await this.repo.deliverDialogGotAccessToUser(ctx, uid, cid);
+            this.repo.deliverDialogGotAccessToUser(ctx, uid, cid);
         });
     }
 
     onDialogLostAccess = async (parent: Context, uid: number, cid: number) => {
         await inTx(parent, async (ctx) => {
-            await this.repo.deliverDialogLostAccessToUser(ctx, uid, cid);
+            this.repo.deliverDialogLostAccessToUser(ctx, uid, cid);
         });
     }
 
@@ -296,14 +280,14 @@ export class DeliveryMediator {
         await this.counters.onMessageReceived(ctx, uid, message);
 
         // Update dialogs
-        await this.repo.deliverMessageToUser(ctx, uid, message);
+        this.repo.deliverMessageToUser(ctx, uid, message);
 
         // Mark user as needed notification delivery
         this.needNotification.setNeedNotificationDelivery(ctx, uid);
     }
 
-    private deliverMessageUpdateToUser = async (ctx: Context, uid: number, message: Message) => {
-        await this.repo.deliverMessageUpdateToUser(ctx, uid, message);
+    private deliverMessageUpdateToUser = (ctx: Context, uid: number, message: Message) => {
+        this.repo.deliverMessageUpdateToUser(ctx, uid, message);
     }
 
     private deliverMessageDeleteToUser = async (ctx: Context, uid: number, message: Message) => {
@@ -311,13 +295,13 @@ export class DeliveryMediator {
         await this.counters.onMessageDeleted(ctx, uid, message);
 
         // Update dialogs
-        await this.repo.deliverMessageDeleteToUser(ctx, uid, message);
+        this.repo.deliverMessageDeleteToUser(ctx, uid, message);
 
         // Mark user as needed notification delivery
         this.needNotification.setNeedNotificationDelivery(ctx, uid);
 
         // Send counter
-        await Modules.Push.sendCounterPush(ctx, uid);
+        Modules.Push.sendCounterPush(ctx, uid);
     }
 
     private deliverDialogDeleteToUser = async (parent: Context, uid: number, cid: number) => {
@@ -332,7 +316,7 @@ export class DeliveryMediator {
             // Mark user as needed notification delivery
             this.needNotification.setNeedNotificationDelivery(ctx, uid);
             // Send counter
-            await Modules.Push.sendCounterPush(ctx, uid);
+            Modules.Push.sendCounterPush(ctx, uid);
         });
     }
 }
