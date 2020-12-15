@@ -173,6 +173,11 @@ export const Resolver: GQLResolver = {
             let states = await Modules.Messaging.messaging.counters.subscribers.readAllStates(ctx, uid);
             return states.filter((v) => v.state.async).map((s) => ({ chatId: IDs.Conversation.serialize(s.cid), ...s.state }));
         }),
+        debugChatStatesAsync2: withPermission('super-admin', async (ctx, args) => {
+            let uid = args.user ? IDs.User.parse(args.user) : ctx.auth.uid!;
+            let states = await Modules.Messaging.messaging.counters.subscribers.getAsyncSubscriptions(ctx, uid);
+            return await Promise.all(states.map(async (v) => ({ chatId: IDs.Conversation.serialize(v.cid), ...(await Modules.Messaging.messaging.counters.subscribers.readState(ctx, { uid, cid: v.cid }))! })));
+        }),
         debugChatTree: withPermission('super-admin', async (ctx, args) => {
             let cid = IDs.Conversation.parse(args.id);
             return JSON.stringify((await Modules.Messaging.messaging.counters.counters.counting.btree.ops.dumpAll(ctx, encoders.tuple.pack([cid, 0]))));

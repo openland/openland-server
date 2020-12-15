@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5f9d7a72d4a88f8f54ece93d9e07189e';
+export const GQL_SPEC_VERSION = '8207a12dfea4943c4f84d5d553033096';
 
 export namespace GQL {
     export interface CreditCard {
@@ -511,8 +511,8 @@ export namespace GQL {
         seq: number;
         muted: boolean;
         async: boolean;
-        counter: number;
-        mentions: number;
+        counter: Nullable<number>;
+        mentions: Nullable<number>;
     }
     export interface DebugChatStateChatIdArgs { }
     export interface DebugChatStateSeqArgs { }
@@ -4006,6 +4006,7 @@ export namespace GQL {
         debugChatState: Nullable<DebugChatState>;
         debugChatStates: DebugChatState[];
         debugChatStatesAsync: DebugChatState[];
+        debugChatStatesAsync2: DebugChatState[];
         debugChatStatesDirect: DebugChatState[];
         debugGlobalCounter: DebugGlobalCounter;
         debugGlobalCounterDirect: DebugGlobalCounter;
@@ -4265,6 +4266,9 @@ export namespace GQL {
         user: OptionalNullable<string>;
     }
     export interface QueryDebugChatStatesAsyncArgs {
+        user: OptionalNullable<string>;
+    }
+    export interface QueryDebugChatStatesAsync2Args {
         user: OptionalNullable<string>;
     }
     export interface QueryDebugChatStatesDirectArgs {
@@ -9560,6 +9564,7 @@ export interface GQLResolver {
             debugChatState: Nullable<GQLRoots.DebugChatStateRoot>,
             debugChatStates: GQLRoots.DebugChatStateRoot[],
             debugChatStatesAsync: GQLRoots.DebugChatStateRoot[],
+            debugChatStatesAsync2: GQLRoots.DebugChatStateRoot[],
             debugChatStatesDirect: GQLRoots.DebugChatStateRoot[],
             debugGlobalCounter: GQLRoots.DebugGlobalCounterRoot,
             debugGlobalCounterDirect: GQLRoots.DebugGlobalCounterRoot,
@@ -9744,6 +9749,7 @@ export interface GQLResolver {
             debugChatState: GQL.QueryDebugChatStateArgs,
             debugChatStates: GQL.QueryDebugChatStatesArgs,
             debugChatStatesAsync: GQL.QueryDebugChatStatesAsyncArgs,
+            debugChatStatesAsync2: GQL.QueryDebugChatStatesAsync2Args,
             debugChatStatesDirect: GQL.QueryDebugChatStatesDirectArgs,
             debugGlobalCounter: GQL.QueryDebugGlobalCounterArgs,
             debugGlobalCounterDirect: GQL.QueryDebugGlobalCounterDirectArgs,

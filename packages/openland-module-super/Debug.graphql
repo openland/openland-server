@@ -96,8 +96,8 @@ type DebugChatState {
     seq: Int!
     muted: Boolean!
     async: Boolean!
-    counter: Int!
-    mentions: Int!
+    counter: Int
+    mentions: Int
 }
 
 extend type Query {
@@ -129,6 +129,7 @@ extend type Query {
     debugChatState(id: ID!, user: ID): DebugChatState
     debugChatStates(user: ID): [DebugChatState!]!
     debugChatStatesAsync(user: ID): [DebugChatState!]!
+    debugChatStatesAsync2(user: ID): [DebugChatState!]!
     debugChatStatesDirect(user: ID): [DebugChatState!]!
     debugGlobalCounter(user: ID): DebugGlobalCounter!
     debugGlobalCounterDirect(user: ID): DebugGlobalCounter!
