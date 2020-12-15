@@ -490,13 +490,15 @@ export class MessagingMediator {
             if (!msg || msg.cid !== cid) {
                 throw Error('Invalid request');
             }
+
+            // Update counters
+            await this.counters.readMessages(ctx, { cid, uid, seq: msg.seq });
+
+            // Legacy read event
+            await this.delivery.repo.deliverMessageReadToUser(ctx, uid, mid);
+
             if (await this.userReadSeqs.updateReadSeq(ctx, uid, cid, msg.seq)) {
-                // Update counters
-                await this.counters.readMessages(ctx, { cid, uid, seq: msg.seq });
-                // Send counter push
-                await Modules.Push.sendCounterPush(ctx, uid);
-                // Legacy read event
-                await this.delivery.repo.deliverMessageReadToUser(ctx, uid, mid);
+                Modules.Push.sendCounterPush(ctx, uid);
             }
         });
     }
