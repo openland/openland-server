@@ -63,6 +63,20 @@ export class CounterSubscribersDirectory {
                     muted: args.muted,
                     async: true
                 }));
+
+                // Update async subscriptions
+                let asyncSubscriptions = await this.getAsyncSubscriptions(ctx, args.uid);
+                this.usersAsync.write(ctx, [args.uid], new UserCounterAsyncSubscriptions({
+                    subscriptions: [
+                        ...asyncSubscriptions.filter((v) => v.cid !== args.cid),
+                        {
+                            cid: args.cid,
+                            muted: args.muted,
+                            seq: args.seq
+                        }
+                    ]
+                }));
+
                 return;
             }
 
