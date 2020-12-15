@@ -2053,6 +2053,7 @@ export default declareSchema(() => {
         field('emojis', array(struct({
             emoji: string(), stickerId: string(),
         })));
+        field('listed', optional(boolean()));
 
         rangeIndex('author', ['uid', 'id']);
     });
@@ -2083,6 +2084,11 @@ export default declareSchema(() => {
 
     event('UserStickersUpdateEvent', () => {
         field('uid', integer());
+    });
+
+    atomicBool('StickerPackWasAdded', () => {
+        primaryKey('uid', integer());
+        primaryKey('pid', integer());
     });
 
     //

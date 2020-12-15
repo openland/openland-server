@@ -2,7 +2,7 @@ import { injectable } from 'inversify';
 import { Store } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { Modules } from 'openland-modules/Modules';
-import { MessageKeyboard } from 'openland-module-messaging/MessageInput';
+import { MessageInput, MessageKeyboard } from 'openland-module-messaging/MessageInput';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { inTx } from '@openland/foundationdb';
 import { buildMessage, MessagePart } from 'openland-utils/MessageBuilder';
@@ -159,7 +159,7 @@ export class UserOnboardingModule {
     private sendWelcome = async (ctx: Context, uid: number) => {
         let state = await this.getOnboardingState(ctx, uid);
         if (!state.wellcomeSent) {
-            await this.sendMessage(ctx, uid, 'welcome');
+            await this.sendTemplatedMessage(ctx, uid, 'welcome');
             state.wellcomeSent = true;
         }
     }
@@ -181,7 +181,7 @@ export class UserOnboardingModule {
     private askInviteFriends = async (ctx: Context, uid: number) => {
         let state = await this.getOnboardingState(ctx, uid);
         if (!state.askInviteSent) {
-            await this.sendMessage(ctx, uid, 'inviteFriends');
+            await this.sendTemplatedMessage(ctx, uid, 'inviteFriends');
             state.askInviteSent = true;
         }
     }
@@ -190,7 +190,7 @@ export class UserOnboardingModule {
     private askInstallApps = async (ctx: Context, uid: number) => {
         let state = await this.getOnboardingState(ctx, uid);
         if (!state.askInstallAppsSent) {
-            await this.sendMessage(ctx, uid, 'installApps');
+            await this.sendTemplatedMessage(ctx, uid, 'installApps');
             state.askInstallAppsSent = true;
         }
     }
@@ -201,18 +201,12 @@ export class UserOnboardingModule {
     private askSendFirstMessage = async (ctx: Context, uid: number) => {
         let state = await this.getOnboardingState(ctx, uid);
         if (!state.askSendFirstMessageSent) {
-            await this.sendMessage(ctx, uid, 'writeFirstMessage');
+            await this.sendTemplatedMessage(ctx, uid, 'writeFirstMessage');
             state.askSendFirstMessageSent = true;
         }
     }
 
-    sendMessage = async (ctx: Context, uid: number, template: Template) => {
-        let billyId = await Modules.Super.getEnvVar<number>(ctx, 'onboarding-bot-id');
-        let reportChatId = await Modules.Super.getEnvVar<number>(ctx, 'onboarding-report-cid');
-        if (billyId === null || reportChatId === null) {
-            return;
-        }
-
+    sendTemplatedMessage = async (ctx: Context, uid: number, template: Template) => {
         let user = await Store.UserProfile.findById(ctx, uid);
         if (!user) {
             return;
@@ -227,11 +221,30 @@ export class UserOnboardingModule {
         // let reportMessageParts = [`${user.email} [${t.type}]\n`, ...messageParts];
         // await Modules.Messaging.sendMessage(ctx, reportChatId, billyId, buildMessage(...reportMessageParts));
 
-        let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, billyId, uid);
         let message = buildMessage(...messageParts);
         if (t.isSevice) {
             message.isService = true;
         }
+        await this.sendMessage(ctx, uid, message);
+    }
+
+    sendMessage = async (ctx: Context, uid: number, message: MessageInput) => {
+        let billyId = await Modules.Super.getEnvVar<number>(ctx, 'onboarding-bot-id');
+        let reportChatId = await Modules.Super.getEnvVar<number>(ctx, 'onboarding-report-cid');
+        if (billyId === null || reportChatId === null) {
+            return;
+        }
+
+        let user = await Store.UserProfile.findById(ctx, uid);
+        if (!user) {
+            return;
+        }
+
+        // report to super admin chat
+        // let reportMessageParts = [`${user.email} [${t.type}]\n`, ...messageParts];
+        // await Modules.Messaging.sendMessage(ctx, reportChatId, billyId, buildMessage(...reportMessageParts));
+
+        let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, billyId, uid);
         await Modules.Messaging.sendMessage(ctx, privateChat.id, billyId, message);
     }
 

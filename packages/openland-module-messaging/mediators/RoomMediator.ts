@@ -15,7 +15,7 @@ import { NotFoundError } from 'openland-errors/NotFoundError';
 import { UserError } from 'openland-errors/UserError';
 import { Context } from '@openland/context';
 import { MessageInput } from '../MessageInput';
-import { boldString, buildMessage, userMention, usersMention } from '../../openland-utils/MessageBuilder';
+import { boldString, buildMessage, roomMention, userMention, usersMention } from '../../openland-utils/MessageBuilder';
 import { Store } from 'openland-module-db/FDB';
 import { createWelcomeMessageWorker } from 'openland-module-messaging/workers/welcomeMessageWorker';
 import { UserStateRepository } from 'openland-module-messaging/repositories/UserStateRepository';
@@ -916,7 +916,17 @@ export class RoomMediator {
 
             // Room stickers
             if (!!roomProfile.giftStickerPackId) {
-                await Modules.Stickers.addToCollection(ctx, uid, roomProfile.giftStickerPackId, true, true);
+                if (await Modules.Stickers.addToCollection(ctx, uid, roomProfile.giftStickerPackId, true, true)) {
+                    let pack = await Store.Sticker.packActive.findAll(ctx, roomProfile.giftStickerPackId);
+                    await Modules.UserOnboarding.sendMessage(ctx, uid, buildMessage(
+                        'You got this sticker pack for joining ',
+                        roomMention(roomProfile.title, room.id),
+                        ' group!'
+                    ));
+                    await Modules.UserOnboarding.sendMessage(ctx, uid, {
+                        stickerId: pack[0].id
+                    });
+                }
             }
 
             // Autosubscribe rooms

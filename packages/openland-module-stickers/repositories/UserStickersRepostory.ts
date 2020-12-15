@@ -62,9 +62,14 @@ export class UserStickersRepository {
      */
     addToCollection = async (ctx: Context, uid: number, pid: number, isUnviewed?: boolean) => {
         let pack = await Store.StickerPack.findById(ctx, pid);
+        let wasAddedPreviously = Store.StickerPackWasAdded.byId(uid, pid);
         if (!pack) {
             throw new Error('invalid pack');
         }
+
+        // if (isUnviewed && await wasAddedPreviously.get(ctx)) {
+        //     return false;
+        // }
 
         let userStickersState = await this.getUserStickersState(ctx, uid);
         if (userStickersState.packIds.find(a => a === pid)) {
@@ -87,6 +92,8 @@ export class UserStickersRepository {
                 userStickersState.unviewedPackIds = [pid, ...userStickersState.unviewedPackIds];
             }
         }
+
+        wasAddedPreviously.set(ctx, true);
         await userStickersState.flush(ctx);
 
         pack.usesCount++;
