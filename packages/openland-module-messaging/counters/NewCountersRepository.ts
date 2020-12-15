@@ -130,4 +130,17 @@ export class NewCountersRepository {
         }
         return await this.counters.count(ctx, [cid], uid, readState.seq);
     }
+
+    async getChats(ctx: Context, uid: number) {
+        return await this.subscribers.readAllStates(ctx, uid);
+    }
+
+    async getUnreadChats(ctx: Context, uid: number) {
+        let states = await this.subscribers.readAllStates(ctx, uid);
+        let direct = states
+            .filter((v) => !v.state.async && v.state.counter > 0)
+            .map((v) => v.cid);
+        let async = (await Promise.all(states.filter((v) => v.state.async).map(async (v) => ({ cid: v.cid, counter: await this.getLocalCounter(ctx, uid, v.cid) })))).filter((v) => v.counter.unread > 0).map((v) => v.cid);
+        return [...direct, ...async];
+    }
 }

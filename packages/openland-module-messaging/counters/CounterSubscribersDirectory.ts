@@ -163,6 +163,10 @@ export class CounterSubscribersDirectory {
         return existing;
     }
 
+    async readAllStates(ctx: Context, uid: number) {
+        return await Promise.all((await this.users.readPrefixed(ctx, [uid])).map(async (key) => ({ cid: key[1] as number, uid: key[0] as number, state: (await this.users.read(ctx, key))! })));
+    }
+
     async updateDirect(ctx: Context, args: { cid: number, uid: number, counter: number, mentions: number }) {
         let existing = await this.users.read(ctx, [args.uid, args.cid]);
         if (!existing) {

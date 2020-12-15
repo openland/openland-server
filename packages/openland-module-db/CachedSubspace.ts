@@ -44,6 +44,11 @@ export class CachedSubspace<T> {
         return parsed;
     }
 
+    async readPrefixed(ctx: Context, key: TupleItem[]): Promise<TupleItem[][]> {
+        let allItems = await this.subspace.range(ctx, encoders.tuple.pack(key));
+        return allItems.map((v) => encoders.tuple.unpack(v.key));
+    }
+
     write(ctx: Context, key: TupleItem[], value: T | null) {
         let cache = this.getCache(ctx);
         let rawKey = encoders.tuple.pack(key).toString('hex');
