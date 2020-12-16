@@ -231,6 +231,7 @@ type MessageRichAttachment implements ModernMessageAttachment {
     socialImage: Image
     socialImagePreview: String
     keyboard: MessageKeyboard
+    featuredIcon: Boolean # used for featured orgs link augmentation
     fallback: String!
 }
 

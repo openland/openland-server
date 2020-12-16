@@ -124,7 +124,8 @@ describe('MessagingMediator', () => {
             imageFallback: urlInfo.photoFallback || null,
             socialImagePreview: null,
             socialImageInfo: null,
-            socialImage: null
+            socialImage: null,
+            featuredIcon: false
         };
 
         let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: 'boom', attachments: [richAttachment] })).id;

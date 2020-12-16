@@ -175,6 +175,7 @@ export class MatchmakingMediator {
             socialImage: null,
             socialImageInfo: null,
             socialImagePreview: null,
+            featuredIcon: false
         };
     }
 

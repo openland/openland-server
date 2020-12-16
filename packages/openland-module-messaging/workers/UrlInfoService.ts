@@ -35,6 +35,7 @@ export interface URLAugmentation {
     socialImage?: ImageRef | null;
     socialImagePreview?: string | null;
     socialImageInfo?: FileInfo | null;
+    featuredIcon?: boolean | null;
 }
 
 export class UrlInfoService {
@@ -239,7 +240,8 @@ export function createUrlInfoService() {
                 dynamic: true,
                 socialImage: profile!.socialImage,
                 socialImagePreview: profile!.socialImage ? await Modules.Media.fetchLowResPreview(ctx, profile!.socialImage.uuid) : null,
-                socialImageInfo: profile!.socialImage ? await Modules.Media.fetchFileInfo(ctx, profile!.socialImage.uuid) : null
+                socialImageInfo: profile!.socialImage ? await Modules.Media.fetchFileInfo(ctx, profile!.socialImage.uuid) : null,
+                featuredIcon: conv?.featured || false
             };
         })
         .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/(.*)/, false, async (url, data) => {
@@ -284,6 +286,7 @@ export function createUrlInfoService() {
                 let ctx = withReadOnlyTransaction(rootCtx);
                 let org = await Store.OrganizationProfile.findById(ctx, orgId);
                 let membersCount = (await Modules.Orgs.findOrganizationMembers(ctx, org!.id)).length;
+                let editorial = await Store.OrganizationEditorial.findById(ctx, org!.id);
 
                 return {
                     url,
@@ -302,6 +305,7 @@ export function createUrlInfoService() {
                         ]]
                     },
                     photoFallback: makePhotoFallback(IDs.Organization.serialize(org!.id), org!.name || 'deleted'),
+                    featuredIcon: editorial?.featured || false
                 };
             } else if (ownerType === 'room') {
                 let ctx = withReadOnlyTransaction(rootCtx);
@@ -350,7 +354,8 @@ export function createUrlInfoService() {
                     dynamic: true,
                     socialImage: profile!.socialImage,
                     socialImagePreview: profile!.socialImage ? await Modules.Media.fetchLowResPreview(ctx, profile!.socialImage.uuid) : null,
-                    socialImageInfo: profile!.socialImage ? await Modules.Media.fetchFileInfo(ctx, profile!.socialImage.uuid) : null
+                    socialImageInfo: profile!.socialImage ? await Modules.Media.fetchFileInfo(ctx, profile!.socialImage.uuid) : null,
+                    featuredIcon: conv?.featured || false
                 };
             } else {
                 return null;

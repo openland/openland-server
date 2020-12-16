@@ -511,6 +511,7 @@ export default declareSchema(() => {
                 socialImage: optional(ImageRef),
                 socialImagePreview: optional(string()),
                 socialImageInfo: optional(FileInfo),
+                featuredIcon: optional(boolean())
             }),
             purchase_attachment: struct({
                 id: string(),
@@ -727,6 +728,7 @@ export default declareSchema(() => {
                 socialImage: optional(ImageRef),
                 socialImagePreview: optional(string()),
                 socialImageInfo: optional(FileInfo),
+                featuredIcon: optional(boolean())
             }),
         }))));
 
@@ -812,6 +814,7 @@ export default declareSchema(() => {
                 socialImage: optional(ImageRef),
                 socialImagePreview: optional(string()),
                 socialImageInfo: optional(FileInfo),
+                featuredIcon: optional(boolean())
             }),
         }))));
         field('slides', optional(array(union({
