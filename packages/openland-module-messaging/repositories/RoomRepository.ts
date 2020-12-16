@@ -329,14 +329,16 @@ export class RoomRepository {
             }
 
             if (profile.kind !== undefined && profile.kind !== null) {
-                if (!await Modules.Super.superRole(ctx, uid)) {
-                    throw new AccessDeniedError();
-                }
                 let room = await Store.ConversationRoom.findById(ctx, cid);
-                room!.kind = profile.kind!;
-                room!.listed = profile.kind === 'public' && room!.listed;
+                if (room?.kind !== profile.kind) {
+                    if (!await Modules.Super.superRole(ctx, uid)) {
+                        throw new AccessDeniedError();
+                    }
+                    room!.kind = profile.kind!;
+                    room!.listed = profile.kind === 'public' && room!.listed;
 
-                kindChanged = true;
+                    kindChanged = true;
+                }
             }
 
             if (profile.repliesEnabled !== undefined && profile.repliesEnabled !== null) {
