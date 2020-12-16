@@ -917,14 +917,15 @@ export class RoomMediator {
             // Room stickers
             if (!!roomProfile.giftStickerPackId) {
                 if (await Modules.Stickers.addToCollection(ctx, uid, roomProfile.giftStickerPackId, true, true)) {
-                    let pack = await Store.Sticker.packActive.findAll(ctx, roomProfile.giftStickerPackId);
+                    let packStickers = await Store.Sticker.packActive.findAll(ctx, roomProfile.giftStickerPackId);
+                    let pack = await Store.StickerPack.findById(ctx, roomProfile.giftStickerPackId);
                     await Modules.UserOnboarding.sendMessage(ctx, uid, buildMessage(
-                        'You got this sticker pack for joining ',
+                        `You got «${pack!.title}» sticker pack for joining `,
                         roomMention(roomProfile.title, room.id),
-                        ' group!'
+                        room.isChannel ? ' channel' : ' group',
                     ));
                     await Modules.UserOnboarding.sendMessage(ctx, uid, {
-                        stickerId: pack[0].id
+                        stickerId: packStickers[0].id
                     });
                 }
             }

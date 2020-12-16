@@ -69,6 +69,26 @@ export const Resolver: GQLResolver = {
             }
             let myStickers = await Modules.Stickers.getUserStickersState(ctx, ctx.auth.uid);
             return myStickers.packIds.includes(id);
+        }),
+        canAdd: withStickerPack(async (ctx, pack) => {
+            // Cannot add pack for not authorized users
+            if (!ctx.auth.uid) {
+                return false;
+            }
+
+            // Cannot add unpublished pack
+            if (!pack.published) {
+                return false;
+            }
+
+            // Everyone can add public pack
+            if (!pack.private) {
+                return true;
+            }
+
+            // Check if it was in private pack ids
+            let myStickers = await Modules.Stickers.getUserStickersState(ctx, ctx.auth.uid);
+            return myStickers.privatePackIds?.includes(pack.id) || false;
         })
     },
     UserStickers: {

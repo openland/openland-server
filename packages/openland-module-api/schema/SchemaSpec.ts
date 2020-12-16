@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '8207a12dfea4943c4f84d5d553033096';
+export const GQL_SPEC_VERSION = 'cb777ee6fa1bb20b459d2a2a1489181c';
 
 export namespace GQL {
     export interface CreditCard {
@@ -1985,6 +1985,7 @@ export namespace GQL {
         published: boolean;
         private: boolean;
         listed: boolean;
+        canAdd: boolean;
     }
     export interface StickerPackIdArgs { }
     export interface StickerPackTitleArgs { }
@@ -1995,6 +1996,7 @@ export namespace GQL {
     export interface StickerPackPublishedArgs { }
     export interface StickerPackPrivateArgs { }
     export interface StickerPackListedArgs { }
+    export interface StickerPackCanAddArgs { }
     export interface UserStickers {
         unviewedCount: number;
         packs: StickerPack[];
@@ -8437,6 +8439,7 @@ export interface GQLResolver {
             published: GQL.StickerPackPublishedArgs,
             private: GQL.StickerPackPrivateArgs,
             listed: GQL.StickerPackListedArgs,
+            canAdd: GQL.StickerPackCanAddArgs,
         }
     >;
     UserStickers?: ComplexTypedResolver<

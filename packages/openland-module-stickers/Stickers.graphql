@@ -16,6 +16,7 @@ type StickerPack {
     published: Boolean!
     private: Boolean!
     listed: Boolean!
+    canAdd: Boolean!
 }
 
 type UserStickers {
