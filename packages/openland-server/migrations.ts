@@ -1221,4 +1221,43 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '186-migrate-counters-all-private',
+    migration: async (parent) => {
+        let index = 0;
+        await Store.ConversationPrivate.iterateAllItems(parent, 100, async (ctx, items) => {
+            logger.log(ctx, 'Iteration ' + index);
+            for (let i of items) {
+                let mute1 = (await Modules.Messaging.getRoomSettings(ctx, i.uid1, i.id)).mute;
+                let mute2 = (await Modules.Messaging.getRoomSettings(ctx, i.uid2, i.id)).mute;
+                let seq1 = await Modules.Messaging.messaging.userReadSeqs.getUserReadSeqForChat(ctx, i.uid1, i.id);
+                let seq2 = await Modules.Messaging.messaging.userReadSeqs.getUserReadSeqForChat(ctx, i.uid2, i.id);
+                await Modules.Messaging.messaging.counters.subscribe(ctx, { cid: i.id, uid: i.uid1, seq: seq1, muted: mute1 });
+                await Modules.Messaging.messaging.counters.subscribe(ctx, { cid: i.id, uid: i.uid2, seq: seq2, muted: mute2 });
+            }
+            index++;
+        });
+    }
+});
+
+migrations.push({
+    key: '187-migrate-counters-rooms',
+    migration: async (parent) => {
+        let index = 0;
+        await Store.RoomParticipant.iterateAllItems(parent, 100, async (ctx, items) => {
+            logger.log(ctx, 'Iteration ' + index);
+            for (let i of items) {
+                if (i.status === 'joined') {
+                    let muted = (await Modules.Messaging.getRoomSettings(ctx, i.uid, i.cid)).mute;
+                    let seq = await Modules.Messaging.messaging.userReadSeqs.getUserReadSeqForChat(ctx, i.uid, i.cid);
+                    await Modules.Messaging.messaging.counters.subscribe(ctx, { cid: i.cid, uid: i.uid, seq, muted });
+                } else {
+                    await Modules.Messaging.messaging.counters.unsubscribe(ctx, { cid: i.cid, uid: i.uid });
+                }
+            }
+            index++;
+        });
+    }
+});
+
 export default migrations;
