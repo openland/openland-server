@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '90fa8a0d0156a0b7de70af9bf0db2914';
+export const GQL_SPEC_VERSION = 'cb777ee6fa1bb20b459d2a2a1489181c';
 
 export namespace GQL {
     export interface CreditCard {
@@ -481,9 +481,13 @@ export namespace GQL {
     export interface DebugGlobalCounter {
         all: number;
         mentions: number;
+        distinct: number;
+        distinctMentions: number;
     }
     export interface DebugGlobalCounterAllArgs { }
     export interface DebugGlobalCounterMentionsArgs { }
+    export interface DebugGlobalCounterDistinctArgs { }
+    export interface DebugGlobalCounterDistinctMentionsArgs { }
     export interface DebugChatCounter {
         all: number;
         mentions: number;
@@ -503,12 +507,14 @@ export namespace GQL {
     export interface DebugChatCounterPersonalMentionsArgs { }
     export interface DebugChatCounterPersonalMessagesArgs { }
     export interface DebugChatState {
+        chatId: string;
         seq: number;
         muted: boolean;
         async: boolean;
-        counter: number;
-        mentions: number;
+        counter: Nullable<number>;
+        mentions: Nullable<number>;
     }
+    export interface DebugChatStateChatIdArgs { }
     export interface DebugChatStateSeqArgs { }
     export interface DebugChatStateMutedArgs { }
     export interface DebugChatStateAsyncArgs { }
@@ -4000,7 +4006,13 @@ export namespace GQL {
         debugSocialSharingImage: string;
         debugChatCounter: DebugChatCounter;
         debugChatState: Nullable<DebugChatState>;
+        debugChatStates: DebugChatState[];
+        debugChatStatesAsync: DebugChatState[];
+        debugChatStatesAsync2: DebugChatState[];
+        debugChatStatesDirect: DebugChatState[];
         debugGlobalCounter: DebugGlobalCounter;
+        debugGlobalCounterDirect: DebugGlobalCounter;
+        debugGlobalCounterAsync: DebugGlobalCounter;
         debugChatTree: string;
         debugChatMessages: ModernMessage[];
         debugUnreadChats: string[];
@@ -4246,18 +4258,42 @@ export namespace GQL {
     }
     export interface QueryDebugChatCounterArgs {
         id: string;
+        user: OptionalNullable<string>;
     }
     export interface QueryDebugChatStateArgs {
         id: string;
+        user: OptionalNullable<string>;
     }
-    export interface QueryDebugGlobalCounterArgs { }
+    export interface QueryDebugChatStatesArgs {
+        user: OptionalNullable<string>;
+    }
+    export interface QueryDebugChatStatesAsyncArgs {
+        user: OptionalNullable<string>;
+    }
+    export interface QueryDebugChatStatesAsync2Args {
+        user: OptionalNullable<string>;
+    }
+    export interface QueryDebugChatStatesDirectArgs {
+        user: OptionalNullable<string>;
+    }
+    export interface QueryDebugGlobalCounterArgs {
+        user: OptionalNullable<string>;
+    }
+    export interface QueryDebugGlobalCounterDirectArgs {
+        user: OptionalNullable<string>;
+    }
+    export interface QueryDebugGlobalCounterAsyncArgs {
+        user: OptionalNullable<string>;
+    }
     export interface QueryDebugChatTreeArgs {
         id: string;
     }
     export interface QueryDebugChatMessagesArgs {
         id: string;
     }
-    export interface QueryDebugUnreadChatsArgs { }
+    export interface QueryDebugUnreadChatsArgs {
+        user: OptionalNullable<string>;
+    }
     export interface QueryDialogsArgs {
         first: number;
         after: OptionalNullable<string>;
@@ -6708,6 +6744,8 @@ export interface GQLResolver {
         {
             all: GQL.DebugGlobalCounterAllArgs,
             mentions: GQL.DebugGlobalCounterMentionsArgs,
+            distinct: GQL.DebugGlobalCounterDistinctArgs,
+            distinctMentions: GQL.DebugGlobalCounterDistinctMentionsArgs,
         }
     >;
     DebugChatCounter?: ComplexTypedResolver<
@@ -6732,6 +6770,7 @@ export interface GQLResolver {
         {
         },
         {
+            chatId: GQL.DebugChatStateChatIdArgs,
             seq: GQL.DebugChatStateSeqArgs,
             muted: GQL.DebugChatStateMutedArgs,
             async: GQL.DebugChatStateAsyncArgs,
@@ -9526,7 +9565,13 @@ export interface GQLResolver {
             debugFindUser: Nullable<GQLRoots.UserRoot>,
             debugChatCounter: GQLRoots.DebugChatCounterRoot,
             debugChatState: Nullable<GQLRoots.DebugChatStateRoot>,
+            debugChatStates: GQLRoots.DebugChatStateRoot[],
+            debugChatStatesAsync: GQLRoots.DebugChatStateRoot[],
+            debugChatStatesAsync2: GQLRoots.DebugChatStateRoot[],
+            debugChatStatesDirect: GQLRoots.DebugChatStateRoot[],
             debugGlobalCounter: GQLRoots.DebugGlobalCounterRoot,
+            debugGlobalCounterDirect: GQLRoots.DebugGlobalCounterRoot,
+            debugGlobalCounterAsync: GQLRoots.DebugGlobalCounterRoot,
             debugChatMessages: GQLRoots.ModernMessageRoot[],
             dialogs: GQLRoots.DialogsConnectionRoot,
             settings: GQLRoots.SettingsRoot,
@@ -9705,7 +9750,13 @@ export interface GQLResolver {
             debugSocialSharingImage: GQL.QueryDebugSocialSharingImageArgs,
             debugChatCounter: GQL.QueryDebugChatCounterArgs,
             debugChatState: GQL.QueryDebugChatStateArgs,
+            debugChatStates: GQL.QueryDebugChatStatesArgs,
+            debugChatStatesAsync: GQL.QueryDebugChatStatesAsyncArgs,
+            debugChatStatesAsync2: GQL.QueryDebugChatStatesAsync2Args,
+            debugChatStatesDirect: GQL.QueryDebugChatStatesDirectArgs,
             debugGlobalCounter: GQL.QueryDebugGlobalCounterArgs,
+            debugGlobalCounterDirect: GQL.QueryDebugGlobalCounterDirectArgs,
+            debugGlobalCounterAsync: GQL.QueryDebugGlobalCounterAsyncArgs,
             debugChatTree: GQL.QueryDebugChatTreeArgs,
             debugChatMessages: GQL.QueryDebugChatMessagesArgs,
             debugUnreadChats: GQL.QueryDebugUnreadChatsArgs,
