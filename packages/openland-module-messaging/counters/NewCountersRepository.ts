@@ -120,24 +120,14 @@ export class NewCountersRepository {
         if (!readState) {
             return {
                 unreadMentions: 0,
-                unread: 0,
-                debug: {
-                    totalMessages: 0,
-                    allMentions: 0,
-                    totalSent: 0,
-                    sentAllMentions: 0,
-                    personalMentions: 0,
-                    personalMessages: 0
-                }
+                unread: 0
             };
         }
-        return await this.counters.count(ctx, [cid], uid, readState.seq);
-    }
-
-    async getDebugCounter(ctx: Context, uid: number, cid: number) {
-        let readState = await this.subscribers.readState(ctx, { cid, uid });
-        if (!readState) {
-            return null;
+        if (!readState.async) {
+            return {
+                unreadMentions: readState.mentions || 0,
+                unread: readState.counter || 0
+            }
         }
         return await this.counters.count(ctx, [cid], uid, readState.seq);
     }

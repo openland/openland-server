@@ -145,12 +145,10 @@ export const Resolver: GQLResolver = {
         debugChatCounter: withPermission('super-admin', async (ctx, args) => {
             let uid = args.user ? IDs.User.parse(args.user) : ctx.auth.uid!;
             let cid = IDs.Conversation.parse(args.id);
-            let debug = await Modules.Messaging.messaging.counters.getDebugCounter(ctx, uid, cid);
             let local = await Modules.Messaging.messaging.counters.getLocalCounter(ctx, uid, cid);
             return {
                 all: local.unread,
-                mentions: local.unreadMentions,
-                ...debug!.debug
+                mentions: local.unreadMentions
             };
         }),
         debugChatState: withPermission('super-admin', async (ctx, args) => {

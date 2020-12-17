@@ -82,13 +82,6 @@ type DebugGlobalCounter {
 type DebugChatCounter {
     all: Int!
     mentions: Int!
-
-    totalMessages: Int!
-    allMentions: Int!
-    totalSent: Int!
-    sentAllMentions: Int!
-    personalMentions: Int!
-    personalMessages: Int!
 }
 
 type DebugChatState {
