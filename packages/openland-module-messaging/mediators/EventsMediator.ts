@@ -62,7 +62,7 @@ export class EventsMediator {
         let update = UpdateChatMessage.create({ cid, mid, uid });
         await Modules.Events.postToChat(ctx, cid, update);
         for (let m of members) {
-            if (!visibleOnlyForUids.find((u) => u === m)) {
+            if (visibleOnlyForUids.length > 0 && !visibleOnlyForUids.find((u) => u === m)) {
                 continue;
             }
             await Modules.Events.postToChatPrivate(ctx, cid, m, update);
@@ -90,7 +90,7 @@ export class EventsMediator {
         let update = UpdateChatMessageDeleted.create({ cid, mid, uid });
         await Modules.Events.postToChat(ctx, cid, update);
         for (let m of members) {
-            if (visibleOnlyForUids.length > 0 && visibleOnlyForUids.length > 0 && !visibleOnlyForUids.find((u) => u === m)) {
+            if (visibleOnlyForUids.length > 0 && !visibleOnlyForUids.find((u) => u === m)) {
                 continue;
             }
             await Modules.Events.postToChatPrivate(ctx, cid, m, update);
