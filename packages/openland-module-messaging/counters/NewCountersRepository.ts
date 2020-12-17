@@ -127,7 +127,7 @@ export class NewCountersRepository {
             return {
                 unreadMentions: readState.mentions || 0,
                 unread: readState.counter || 0
-            }
+            };
         }
         return await this.counters.count(ctx, [cid], uid, readState.seq);
     }
