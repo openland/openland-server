@@ -167,6 +167,17 @@ export class MessagesRepository {
         });
     }
 
+    async getMessagesCount(parent: Context, cid: number) {
+        return await inTx(parent, async (ctx) => {
+            let existing = await Store.ConversationSeq.findById(ctx, cid);
+            if (!existing) {
+                return 0;
+            } else {
+                return existing.seq;
+            }
+        });
+    }
+
     /**
      * @deprecated top message should be persisted in dialog list
      * @param cid conversation id

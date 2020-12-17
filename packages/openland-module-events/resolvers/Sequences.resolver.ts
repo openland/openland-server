@@ -1,6 +1,7 @@
 import { FeedReference } from './../Definitions';
 import { IDs, IdsFactory } from 'openland-module-api/IDs';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
+import { Modules } from 'openland-modules/Modules';
 
 export function parseSequenceId(src: string, uid: number) {
     let sequence: FeedReference;
@@ -45,5 +46,19 @@ export const Resolver: GQLResolver = {
     SequenceChat: {
         id: (src, { }, ctx) => src.type === 'chat-private' ? IDs.SequenceChatPrivate.serialize(src.cid) : IDs.SequenceChat.serialize(src.cid),
         cid: (src, { }, ctx) => IDs.Conversation.serialize(src.cid),
+        states: async (src, { }, ctx) => {
+            if (src.type === 'chat') {
+                if (!(await Modules.Messaging.room.isRoomMember(ctx, ctx.auth.uid!, src.cid))) {
+                    return null;
+                }
+            }
+            let counter = await Modules.Messaging.counters.fetchUserUnreadInChat(ctx, ctx.auth.uid!, src.cid);
+            let mentions = await Modules.Messaging.counters.fetchUserMentionsInChat(ctx, ctx.auth.uid!, src.cid);
+            let total = await Modules.Messaging.messaging.getMessagesCount(ctx, src.cid);
+            let seq = await Modules.Messaging.messaging.getUserReadSeq(ctx, src.cid, ctx.auth.uid!);
+            return {
+                counter, mentions, total, seq
+            };
+        }
     }
 };

@@ -6,7 +6,15 @@ type SequenceCommon implements Sequence {
     id: ID!
 }
 
+type SequenceChatStates {
+    counter: Int!
+    mentions: Int!
+    total: Int!
+    seq: Int!
+}
+
 type SequenceChat implements Sequence {
     id: ID!
     cid: ID!
+    states: SequenceChatStates
 }

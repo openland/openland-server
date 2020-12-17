@@ -507,6 +507,14 @@ export class MessagingMediator {
     // Queries
     //
 
+    async getMessagesCount(parent: Context, cid: number) {
+        return await this.repo.getMessagesCount(parent, cid);
+    }
+
+    async getUserReadSeq(parent: Context, cid: number, uid: number) {
+        return await this.userReadSeqs.getUserReadSeqForChat(parent, uid, cid);
+    }
+
     findTopMessage = async (ctx: Context, cid: number, forUid: number) => {
         return await this.repo.findTopMessage(ctx, cid, forUid);
     }
