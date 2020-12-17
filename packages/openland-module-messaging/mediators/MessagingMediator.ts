@@ -498,9 +498,6 @@ export class MessagingMediator {
                 Modules.Push.sendCounterPush(ctx, uid);
             }
 
-            // Legacy events
-            await this.delivery.counters.onMessageRead(ctx, uid, msg);
-
             // Legacy read event
             await this.delivery.repo.deliverMessageReadToUser(ctx, uid, mid);
         });

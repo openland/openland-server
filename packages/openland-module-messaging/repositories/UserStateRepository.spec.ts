@@ -39,7 +39,7 @@ describe('UserStateRepository', () => {
     const sendMessage = async (cid: number, text: string) => {
         let m1 = await messagingRepo.createMessage(ctx, cid, 2, { message: text });
         await inTx(ctx, async ctx2 => {
-            await deliveryRepo.deliverMessageToUser(ctx2, 2, m1.message);
+            deliveryRepo.deliverMessageToUser(ctx2, 2, m1.message);
         });
         // let state = await Store.UserDialogEvent.user.query(ctx, 2, { limit: 1, reverse: true });
         let state = await Store.UserDialogEventStore.createStream(2, {batchSize: 1}).tail(ctx);
@@ -92,7 +92,7 @@ describe('UserStateRepository', () => {
         // edit message from chat 1
         await messagingRepo.editMessage(ctx, message.id, { message: 'kek' }, false);
         await inTx(ctx, async ctx2 => {
-            await deliveryRepo.deliverMessageUpdateToUser(ctx2, 2, message);
+            deliveryRepo.deliverMessageUpdateToUser(ctx2, 2, message);
         });
 
         // more messages to chat 1
@@ -111,7 +111,7 @@ describe('UserStateRepository', () => {
         // one more message to chat 1
         let { message: mid9Cid1, state: stateTo } = await sendMessage(1, '9');
 
-        let iterator = await userStateRepo.zipUpdatesInBatchesAfterModern(ctx, 2, stateFrom || undefined);
+        let iterator = userStateRepo.zipUpdatesInBatchesAfterModern(ctx, 2, stateFrom || undefined);
 
         let batch: { items: BaseEvent[], cursor: string|null } | undefined;
         for await (let b of iterator) {

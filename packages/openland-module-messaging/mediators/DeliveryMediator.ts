@@ -6,7 +6,6 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { DeliveryRepository } from 'openland-module-messaging/repositories/DeliveryRepository';
 import { Message } from 'openland-module-db/store';
 import { lazyInject } from 'openland-modules/Modules.container';
-import { CountersMediator } from './CountersMediator';
 import { RoomMediator } from './RoomMediator';
 import { Context, createNamedContext } from '@openland/context';
 import { ImageRef } from 'openland-module-media/ImageRef';
@@ -34,7 +33,6 @@ export class DeliveryMediator {
     });
 
     @lazyInject('DeliveryRepository') readonly repo!: DeliveryRepository;
-    @lazyInject('CountersMediator') readonly counters!: CountersMediator;
     @lazyInject('RoomMediator') private readonly room!: RoomMediator;
     @lazyInject('NeedNotificationDeliveryRepository') private readonly needNotification!: NeedNotificationDeliveryRepository;
 
@@ -43,13 +41,19 @@ export class DeliveryMediator {
             this.queueUserMultipe.addWorkers(1000, async (ctx, item) => {
                 if (item.action === 'new' || item.action === undefined) {
                     let message = (await Store.Message.findById(ctx, item.messageId))!;
-                    await Promise.all(item.uids.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
+                    for (let uid of item.uids) {
+                        this.deliverMessageToUser(ctx, uid, message);
+                    }
                 } else if (item.action === 'delete') {
                     let message = (await Store.Message.findById(ctx, item.messageId))!;
-                    await Promise.all(item.uids.map((uid) => this.deliverMessageDeleteToUser(ctx, uid, message)));
+                    for (let uid of item.uids) {
+                        this.deliverMessageDeleteToUser(ctx, uid, message);
+                    }
                 } else if (item.action === 'update') {
                     let message = (await Store.Message.findById(ctx, item.messageId))!;
-                    await Promise.all(item.uids.map((uid) => this.deliverMessageUpdateToUser(ctx, uid, message)));
+                    for (let uid of item.uids) {
+                        this.deliverMessageUpdateToUser(ctx, uid, message);
+                    }
                 } else if (item.action === 'call-active') {
                     for (let uid of item.uids) {
                         this.repo.deliverCallStateChangedToUser(ctx, uid, item.cid, true);
@@ -110,7 +114,9 @@ export class DeliveryMediator {
             this.queueFanOut.pushWork(ctx, { messageId: message.id, cid: message.cid, action: 'new' });
         } else {
             let members = await this.room.findConversationMembers(ctx, message.cid);
-            await Promise.all(members.map((uid) => this.deliverMessageToUser(ctx, uid, message)));
+            for (let member of members) {
+                this.deliverMessageToUser(ctx, member, message);
+            }
         }
     }
 
@@ -119,7 +125,9 @@ export class DeliveryMediator {
             this.queueFanOut.pushWork(ctx, { messageId: message.id, cid: message.cid, action: 'update' });
         } else {
             let members = await this.room.findConversationMembers(ctx, message.cid);
-            await Promise.all(members.map((uid) => this.deliverMessageUpdateToUser(ctx, uid, message)));
+            for (let member of members) {
+                this.deliverMessageUpdateToUser(ctx, member, message);
+            }
         }
     }
 
@@ -205,7 +213,6 @@ export class DeliveryMediator {
     onDialogMuteChanged = async (parent: Context, uid: number, cid: number, mute: boolean) => {
         // Update dialogs
         await inTx(parent, async (ctx) => {
-            await this.counters.onDialogMuteChange(ctx, uid, cid);
             this.repo.deliverDialogMuteChangedToUser(ctx, uid, cid, mute);
         });
     }
@@ -267,7 +274,7 @@ export class DeliveryMediator {
     // User Scoped Delivery
     //
 
-    private deliverMessageToUser = async (ctx: Context, uid: number, message: Message) => {
+    private deliverMessageToUser = (ctx: Context, uid: number, message: Message) => {
         // Ignore message hidden for current user
         if (
             message.visibleOnlyForUids &&
@@ -276,8 +283,6 @@ export class DeliveryMediator {
         ) {
             return;
         }
-        // Update counters
-        await this.counters.onMessageReceived(ctx, uid, message);
 
         // Update dialogs
         this.repo.deliverMessageToUser(ctx, uid, message);
@@ -290,9 +295,7 @@ export class DeliveryMediator {
         this.repo.deliverMessageUpdateToUser(ctx, uid, message);
     }
 
-    private deliverMessageDeleteToUser = async (ctx: Context, uid: number, message: Message) => {
-        // Update counters
-        await this.counters.onMessageDeleted(ctx, uid, message);
+    private deliverMessageDeleteToUser = (ctx: Context, uid: number, message: Message) => {
 
         // Update dialogs
         this.repo.deliverMessageDeleteToUser(ctx, uid, message);
@@ -306,9 +309,6 @@ export class DeliveryMediator {
 
     private deliverDialogDeleteToUser = async (parent: Context, uid: number, cid: number) => {
         await inTx(parent, async (ctx) => {
-
-            // Update counters
-            await this.counters.onDialogDeleted(ctx, uid, cid);
 
             // Update dialogs
             await this.repo.deliverDialogDeleteToUser(ctx, uid, cid);
