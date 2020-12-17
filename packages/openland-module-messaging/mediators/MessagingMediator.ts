@@ -494,12 +494,18 @@ export class MessagingMediator {
             // Update counters
             await this.counters.readMessages(ctx, { cid, uid, seq: msg.seq });
 
-            if (await this.userReadSeqs.updateReadSeq(ctx, uid, cid, msg.seq)) {
-                Modules.Push.sendCounterPush(ctx, uid);
-            }
-
             // Legacy read event
             await this.delivery.repo.deliverMessageReadToUser(ctx, uid, mid);
+
+            // Update read sequence
+            if (await this.userReadSeqs.updateReadSeq(ctx, uid, cid, msg.seq)) {
+
+                // Send push
+                Modules.Push.sendCounterPush(ctx, uid);
+
+                // New event
+                await this.events.onChatRead(ctx, cid, uid, msg.seq);
+            }
         });
     }
 

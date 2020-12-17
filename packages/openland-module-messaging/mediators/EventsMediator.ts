@@ -4,7 +4,7 @@ import { MessagesEventsRepository } from './../repositories/MessagesEventsReposi
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { Modules } from 'openland-modules/Modules';
-import { UpdateChatMessage, UpdateChatMessageDeleted, UpdateChatMessageUpdated } from 'openland-module-db/store';
+import { UpdateChatMessage, UpdateChatMessageDeleted, UpdateChatMessageUpdated, UpdateChatRead } from 'openland-module-db/store';
 
 @injectable()
 export class EventsMediator {
@@ -31,6 +31,14 @@ export class EventsMediator {
     async onChatLeft(ctx: Context, cid: number, uid: number) {
         await Modules.Events.mediator.unsubscribe(ctx, uid, { type: 'chat', cid });
         this.userActiveChats.removeChat(ctx, uid, cid);
+    }
+
+    //
+    // Chart Read
+    //
+
+    async onChatRead(ctx: Context, cid: number, uid: number, seq: number) {
+        await Modules.Events.postToCommon(ctx, uid, UpdateChatRead.create({ cid, seq, uid }));
     }
 
     //
