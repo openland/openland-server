@@ -491,9 +491,6 @@ export class MessagingMediator {
                 throw Error('Invalid request');
             }
 
-            // Update counters
-            await this.counters.readMessages(ctx, { cid, uid, seq: msg.seq });
-
             // Legacy read event
             await this.delivery.repo.deliverMessageReadToUser(ctx, uid, mid);
 
@@ -505,6 +502,9 @@ export class MessagingMediator {
 
                 // New event
                 await this.events.onChatRead(ctx, cid, uid, msg.seq);
+
+                // Update counters
+                await this.counters.readMessages(ctx, { cid, uid, seq: msg.seq });
             }
         });
     }
