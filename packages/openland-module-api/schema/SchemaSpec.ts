@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'cb777ee6fa1bb20b459d2a2a1489181c';
+export const GQL_SPEC_VERSION = 'edf63fffe080c98024d866a1683abe84';
 
 export namespace GQL {
     export interface CreditCard {
@@ -5585,6 +5585,7 @@ export namespace GQL {
         socialImage: Nullable<Image>;
         socialImagePreview: Nullable<string>;
         keyboard: Nullable<MessageKeyboard>;
+        featuredIcon: Nullable<boolean>;
         fallback: string;
     }
     export interface MessageRichAttachmentIdArgs { }
@@ -5600,6 +5601,7 @@ export namespace GQL {
     export interface MessageRichAttachmentSocialImageArgs { }
     export interface MessageRichAttachmentSocialImagePreviewArgs { }
     export interface MessageRichAttachmentKeyboardArgs { }
+    export interface MessageRichAttachmentFeaturedIconArgs { }
     export interface MessageRichAttachmentFallbackArgs { }
     export interface MessageAttachmentFile extends ModernMessageAttachment {
         id: string;
@@ -10819,6 +10821,7 @@ export interface GQLResolver {
             socialImage: GQL.MessageRichAttachmentSocialImageArgs,
             socialImagePreview: GQL.MessageRichAttachmentSocialImagePreviewArgs,
             keyboard: GQL.MessageRichAttachmentKeyboardArgs,
+            featuredIcon: GQL.MessageRichAttachmentFeaturedIconArgs,
             fallback: GQL.MessageRichAttachmentFallbackArgs,
         }
     >;

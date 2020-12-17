@@ -71,7 +71,8 @@ export class CommentAugmentationMediator {
                         keyboard: urlInfo.keyboard || null,
                         socialImagePreview: urlInfo.socialImagePreview || null,
                         socialImageInfo: urlInfo.socialImageInfo || null,
-                        socialImage: urlInfo.socialImage || null
+                        socialImage: urlInfo.socialImage || null,
+                        featuredIcon: urlInfo.featuredIcon || null,
                     };
 
                     await this.comments.editComment(

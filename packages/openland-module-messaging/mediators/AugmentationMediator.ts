@@ -86,7 +86,8 @@ export class AugmentationMediator {
                             keyboard: urlInfo.keyboard || null,
                             socialImage: urlInfo.socialImage || null,
                             socialImageInfo: urlInfo.socialImageInfo || null,
-                            socialImagePreview: urlInfo.socialImagePreview || null
+                            socialImagePreview: urlInfo.socialImagePreview || null,
+                            featuredIcon: urlInfo.featuredIcon || null
                         };
 
                         await this.messaging.editMessage(

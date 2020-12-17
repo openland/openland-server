@@ -677,7 +677,7 @@ export const Resolver: GQLResolver = {
                     repliesEnabled: args.input.repliesEnabled,
                     callSettings: args.input.callSettings,
                     serviceMessageSettings: args.input.serviceMessageSettings,
-                    giftStickerPackId: args.input.giftStickerPackId ? IDs.StickerPack.parse(args.input.giftStickerPackId) : null
+                    giftStickerPackId: args.input.giftStickerPackId ? IDs.StickerPack.parse(args.input.giftStickerPackId) : undefined
                 });
             });
         }),

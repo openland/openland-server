@@ -91,6 +91,7 @@ export type MessageRichAttachment = {
     titleLinkHostname: string | null,
     id: string,
     keyboard: MessageKeyboard | null
+    featuredIcon: boolean | null
 };
 
 export type MessageAttachmentPurchase = {
@@ -127,6 +128,7 @@ export type MessageRichAttachmentInput = {
     socialImage: ImageRef | null,
     socialImagePreview: string | null,
     socialImageInfo: FileInfo | null,
+    featuredIcon: boolean | null
 };
 
 export type MessageAttachmentPurchaseInput = {

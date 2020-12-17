@@ -741,6 +741,7 @@ export const Resolver: GQLResolver = {
                         socialImage: null,
                         socialImagePreview: null,
                         socialImageInfo: null,
+                        featuredIcon: false,
                         id: src.id + '_legacy_rich',
                     },
                 });
@@ -765,6 +766,7 @@ export const Resolver: GQLResolver = {
                         socialImage: null,
                         socialImagePreview: null,
                         socialImageInfo: null,
+                        featuredIcon: false,
                         id: src.id + '_legacy_post',
                     },
                 });
@@ -1118,6 +1120,7 @@ export const Resolver: GQLResolver = {
 
             return { buttons: src.attachment.keyboard.buttons as (MessageButton & { id: string })[][] };
         },
+        featuredIcon: src => src.attachment.featuredIcon || false
     },
     MessageAttachmentPurchase: {
         id: src => IDs.MessageAttachment.serialize('kek'),
