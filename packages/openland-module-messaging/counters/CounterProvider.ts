@@ -8,6 +8,5 @@ export interface CounterProvider {
     fetchUserCountersForChats(ctx: Context, uid: number, cids: number[], includeAllMention: boolean): Promise<{ cid: number, unreadCounter: number, haveMention: boolean }[]>;
 
     fetchUserUnreadInChat(ctx: Context, uid: number, cid: number): Promise<number>;
-
-    fetchUserMentionedInChat(ctx: Context, uid: number, cid: number): Promise<boolean>;
+    fetchUserMentionsInChat(ctx: Context, uid: number, cid: number): Promise<number>;
 }

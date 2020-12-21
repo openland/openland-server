@@ -115,9 +115,9 @@ const handleUser = async (ctx: Context, uid: number) => {
             }
         }
 
-        let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, message.cid);
+        let readMessageSeq = await Modules.Messaging.messaging.userReadSeqs.getUserReadSeqForChat(ctx, uid, message.cid);
         // Ignore read messages
-        if (readMessageId >= message.id) {
+        if (message.id <= readMessageSeq) {
             log.debug(ctx, tag, 'Ignore read messages');
             continue;
         }

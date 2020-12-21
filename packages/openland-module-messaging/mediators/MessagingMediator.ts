@@ -491,24 +491,35 @@ export class MessagingMediator {
                 throw Error('Invalid request');
             }
 
-            // Update counters
-            await this.counters.readMessages(ctx, { cid, uid, seq: msg.seq });
-
-            if (await this.userReadSeqs.updateReadSeq(ctx, uid, cid, msg.seq)) {
-                Modules.Push.sendCounterPush(ctx, uid);
-            }
-
-            // Legacy events
-            await this.delivery.counters.onMessageRead(ctx, uid, msg);
-
             // Legacy read event
             await this.delivery.repo.deliverMessageReadToUser(ctx, uid, mid);
+
+            // Update read sequence
+            if (await this.userReadSeqs.updateReadSeq(ctx, uid, cid, msg.seq)) {
+
+                // Send push
+                Modules.Push.sendCounterPush(ctx, uid);
+
+                // New event
+                await this.events.onChatRead(ctx, cid, uid, msg.seq);
+
+                // Update counters
+                await this.counters.readMessages(ctx, { cid, uid, seq: msg.seq });
+            }
         });
     }
 
     //
     // Queries
     //
+
+    async getMessagesCount(parent: Context, cid: number) {
+        return await this.repo.getMessagesCount(parent, cid);
+    }
+
+    async getUserReadSeq(parent: Context, cid: number, uid: number) {
+        return await this.userReadSeqs.getUserReadSeqForChat(parent, uid, cid);
+    }
 
     findTopMessage = async (ctx: Context, cid: number, forUid: number) => {
         return await this.repo.findTopMessage(ctx, cid, forUid);

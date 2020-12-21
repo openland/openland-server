@@ -213,15 +213,7 @@ export class CountersDirectory {
 
         return {
             unreadMentions: allMentions - sentAllMentions + personalMentions,
-            unread: totalMessages - totalSent + personalMessages,
-            debug: {
-                totalMessages,
-                allMentions,
-                totalSent,
-                sentAllMentions,
-                personalMentions,
-                personalMessages
-            }
+            unread: totalMessages - totalSent + personalMessages
         };
     }
 

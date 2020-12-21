@@ -5,7 +5,6 @@ import { Context } from '@openland/context';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { Store } from 'openland-module-db/FDB';
 import { BaseEvent } from '@openland/foundationdb-entity';
-import { Modules } from '../../openland-modules/Modules';
 
 @injectable()
 export class UserStateRepository {
@@ -167,7 +166,7 @@ export class UserStateRepository {
         if (!state) {
             return;
         }
-        let stream = await Store.UserDialogEventStore.createStream(uid, {batchSize: 100, after: state});
+        let stream = Store.UserDialogEventStore.createStream(uid, {batchSize: 100, after: state});
         while (true) {
             let res = await stream.next(parent);
             if (res.length > 0) {
@@ -175,29 +174,6 @@ export class UserStateRepository {
             } else {
                 return;
             }
-        }
-    }
-
-    async fetchUserGlobalCounter(ctx: Context, uid: number) {
-        let settings = await Modules.Users.getUserSettings(ctx, uid);
-
-        let directory = Store.UserCountersIndexDirectory
-            .withKeyEncoding(encoders.tuple)
-            .withValueEncoding(encoders.int32LE);
-
-        if (settings.globalCounterType === 'unread_messages') {
-            let all = await directory.range(ctx, [uid]);
-            return all.reduce((acc, val) => acc + val.value as number, 0);
-        } else if (settings.globalCounterType === 'unread_chats') {
-            return (await directory.range(ctx, [uid])).length;
-        } else if (settings.globalCounterType === 'unread_messages_no_muted') {
-            let unread = await directory.range(ctx, [uid, 'unmuted']);
-            return unread.reduce((acc, val) => acc + val.value as number, 0);
-        } else if (settings.globalCounterType === 'unread_chats_no_muted') {
-            return (await directory.range(ctx, [uid, 'unmuted'])).length;
-        } else {
-            let all = await directory.range(ctx, [uid]);
-            return all.reduce((acc, val) => acc + val.value as number, 0);
         }
     }
 }

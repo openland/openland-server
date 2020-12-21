@@ -1186,7 +1186,11 @@ export const Resolver: GQLResolver = {
             let aroundId = args.around ? IDs.ConversationMessage.parse(args.around) : null;
 
             if (!aroundId && !args.before && !args.after) {
-                aroundId = await Store.UserDialogReadMessageId.get(ctx, uid, roomId);
+                let seq = await Modules.Messaging.messaging.userReadSeqs.getUserReadSeqForChat(ctx, uid, roomId);
+                let message = await Store.Message.chatSeq.query(ctx, roomId, { after: seq, limit: 1 });
+                if (message.items.length > 0) {
+                    aroundId = message.items[0].id;
+                }
             }
 
             let beforeId = aroundId || (args.before ? IDs.ConversationMessage.parse(args.before) : null);
@@ -1306,25 +1310,13 @@ export const Resolver: GQLResolver = {
         }),
         lastReadedMessage: withUser(async (ctx, args, uid) => {
             let chatId = IDs.Conversation.parse(args.chatId);
-            let readMessageId = await Store.UserDialogReadMessageId.get(ctx, uid, chatId);
-            let msg = (readMessageId !== 0) && await Store.Message.findById(ctx, readMessageId);
-            if (!(await Modules.Messaging.room.canUserSeeChat(ctx, uid, chatId))) {
+            let seq = await Modules.Messaging.messaging.userReadSeqs.getUserReadSeqForChat(ctx, uid, chatId);
+            let message = await Store.Message.chatSeq.query(ctx, chatId, { after: seq + 1, limit: 1, reverse: true });
+            if (message.items.length > 0) {
+                return message.items[0];
+            } else {
                 return null;
             }
-            if (msg && msg.deleted) {
-                let msgs = (await Store.Message.chat.query(ctx, chatId, {
-                    after: readMessageId,
-                    limit: 1,
-                    reverse: true
-                })).items;
-                msg = msgs[msgs.length - 1];
-            }
-
-            if (!msg) {
-                return null;
-            }
-
-            return msg;
         }),
 
         chatSharedMedia: withUser(async (ctx, args, uid) => {

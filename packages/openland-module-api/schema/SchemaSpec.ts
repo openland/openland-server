@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'edf63fffe080c98024d866a1683abe84';
+export const GQL_SPEC_VERSION = '81ef8e4ddb9d6f896ea7b02f7c9d576b';
 
 export namespace GQL {
     export interface CreditCard {
@@ -491,21 +491,9 @@ export namespace GQL {
     export interface DebugChatCounter {
         all: number;
         mentions: number;
-        totalMessages: number;
-        allMentions: number;
-        totalSent: number;
-        sentAllMentions: number;
-        personalMentions: number;
-        personalMessages: number;
     }
     export interface DebugChatCounterAllArgs { }
     export interface DebugChatCounterMentionsArgs { }
-    export interface DebugChatCounterTotalMessagesArgs { }
-    export interface DebugChatCounterAllMentionsArgs { }
-    export interface DebugChatCounterTotalSentArgs { }
-    export interface DebugChatCounterSentAllMentionsArgs { }
-    export interface DebugChatCounterPersonalMentionsArgs { }
-    export interface DebugChatCounterPersonalMessagesArgs { }
     export interface DebugChatState {
         chatId: string;
         seq: number;
@@ -949,13 +937,25 @@ export namespace GQL {
     }
     export interface SequenceCommonIdArgs { }
     export interface SequenceCommonSettingsArgs { }
+    export interface SequenceChatStates {
+        counter: number;
+        mentions: number;
+        total: number;
+        seq: number;
+    }
+    export interface SequenceChatStatesCounterArgs { }
+    export interface SequenceChatStatesMentionsArgs { }
+    export interface SequenceChatStatesTotalArgs { }
+    export interface SequenceChatStatesSeqArgs { }
     export interface SequenceChat extends Sequence {
         id: string;
         cid: string;
+        states: Nullable<SequenceChatStates>;
         draft: Nullable<Draft>;
     }
     export interface SequenceChatIdArgs { }
     export interface SequenceChatCidArgs { }
+    export interface SequenceChatStatesArgs { }
     export interface SequenceChatDraftArgs { }
     export interface PageInfo {
         hasNextPage: boolean;
@@ -6758,12 +6758,6 @@ export interface GQLResolver {
         {
             all: GQL.DebugChatCounterAllArgs,
             mentions: GQL.DebugChatCounterMentionsArgs,
-            totalMessages: GQL.DebugChatCounterTotalMessagesArgs,
-            allMentions: GQL.DebugChatCounterAllMentionsArgs,
-            totalSent: GQL.DebugChatCounterTotalSentArgs,
-            sentAllMentions: GQL.DebugChatCounterSentAllMentionsArgs,
-            personalMentions: GQL.DebugChatCounterPersonalMentionsArgs,
-            personalMessages: GQL.DebugChatCounterPersonalMessagesArgs,
         }
     >;
     DebugChatState?: ComplexTypedResolver<
@@ -7153,15 +7147,29 @@ export interface GQLResolver {
             settings: GQL.SequenceCommonSettingsArgs,
         }
     >;
+    SequenceChatStates?: ComplexTypedResolver<
+        GQL.SequenceChatStates,
+        GQLRoots.SequenceChatStatesRoot,
+        {
+        },
+        {
+            counter: GQL.SequenceChatStatesCounterArgs,
+            mentions: GQL.SequenceChatStatesMentionsArgs,
+            total: GQL.SequenceChatStatesTotalArgs,
+            seq: GQL.SequenceChatStatesSeqArgs,
+        }
+    >;
     SequenceChat?: ComplexTypedResolver<
         GQL.SequenceChat,
         GQLRoots.SequenceChatRoot,
         {
+            states: Nullable<GQLRoots.SequenceChatStatesRoot>,
             draft: Nullable<GQLRoots.DraftRoot>,
         },
         {
             id: GQL.SequenceChatIdArgs,
             cid: GQL.SequenceChatCidArgs,
+            states: GQL.SequenceChatStatesArgs,
             draft: GQL.SequenceChatDraftArgs,
         }
     >;

@@ -71,11 +71,11 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
 
     let [
         message,
-        readMessageId,
+        readMessageSeq,
         conversation,
     ] = await Promise.all([
         Store.Message.findById(ctx, event.mid),
-        Store.UserDialogReadMessageId.get(ctx, uid, event.cid),
+        Modules.Messaging.messaging.userReadSeqs.getUserReadSeqForChat(ctx, uid, event.cid),
         Store.Conversation.findById(ctx, event.cid)
     ]);
 
@@ -93,9 +93,9 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
         return false;
     }
 
-    DEBUG && log.debug(ctx, 'readMessageId', readMessageId);
+    DEBUG && log.debug(ctx, 'readMessageId', readMessageSeq);
     // Ignore read messages
-    if (readMessageId && (readMessageId >= message.id)) {
+    if (readMessageSeq && (readMessageSeq >= message.id)) {
         DEBUG && log.debug(ctx, 'Ignore read messages');
         return false;
     }
