@@ -248,38 +248,40 @@ export const Resolver: GQLResolver = {
         })
     },
     Mutation: {
-        conferenceJoin: withUser(async (ctx, args, uid) => {
-            let cid = IDs.Conference.parse(args.id);
-            let capabilities: Capabilities | null = null;
-            if (args.input && args.input.capabilities) {
-                capabilities = args.input.capabilities;
-            }
-
-            // Not allowing join the conference is its private chat
-            // cid is room so lets fetch the room
-            let privateConv = (await Store.ConversationPrivate.findById(ctx, cid))!;
-            if (privateConv) { // this conversation is private
-                if (await Modules.BlackListModule.isUserBanned(ctx, privateConv.uid1, privateConv.uid2)) {
-                    throw Error('User is banned, could not start a call');
+        conferenceJoin: withUser(async (parent, args, uid) => {
+            return await inTx(parent, async ctx => {
+                let cid = IDs.Conference.parse(args.id);
+                let capabilities: Capabilities | null = null;
+                if (args.input && args.input.capabilities) {
+                    capabilities = args.input.capabilities;
                 }
-                if (await Modules.BlackListModule.isUserBanned(ctx, privateConv.uid2, privateConv.uid1)) {
-                    throw Error('User is banned, could not start a call');
-                }
-            }
 
-            let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 15000, args.kind === 'STREAM' ? 'stream' : 'conference', capabilities, ctx.req.ip || 'unknown');
-            let activeMembers = await Modules.Calls.repo.findActiveMembers(ctx, cid);
-            if (activeMembers.length === 1) {
-                let fullName = await Modules.Users.getUserFullName(ctx, uid);
-                await Modules.Messaging.sendMessage(ctx, cid, uid, {
-                    ...buildMessage(userMention(fullName, uid), ' started a\u00A0call'),
-                    isService: true
-                });
-            }
-            return {
-                peerId: IDs.ConferencePeer.serialize(res.id),
-                conference: await Modules.Calls.repo.getOrCreateConference(ctx, cid)
-            };
+                // Not allowing join the conference is its private chat
+                // cid is room so lets fetch the room
+                let privateConv = (await Store.ConversationPrivate.findById(ctx, cid))!;
+                if (privateConv) { // this conversation is private
+                    if (await Modules.BlackListModule.isUserBanned(ctx, privateConv.uid1, privateConv.uid2)) {
+                        throw Error('User is banned, could not start a call');
+                    }
+                    if (await Modules.BlackListModule.isUserBanned(ctx, privateConv.uid2, privateConv.uid1)) {
+                        throw Error('User is banned, could not start a call');
+                    }
+                }
+
+                let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 15000, args.kind === 'STREAM' ? 'stream' : 'conference', capabilities, ctx.req.ip || 'unknown');
+                let activeMembers = await Modules.Calls.repo.findActiveMembers(ctx, cid);
+                if (activeMembers.length === 1) {
+                    let fullName = await Modules.Users.getUserFullName(ctx, uid);
+                    await Modules.Messaging.sendMessage(ctx, cid, uid, {
+                        ...buildMessage(userMention(fullName, uid), ' started a\u00A0call'),
+                        isService: true
+                    });
+                }
+                return {
+                    peerId: IDs.ConferencePeer.serialize(res.id),
+                    conference: await Modules.Calls.repo.getOrCreateConference(ctx, cid)
+                };
+            });
         }),
         conferenceKeepAlive: withUser(async (ctx, args, uid) => {
             let coid = IDs.Conference.parse(args.id);
