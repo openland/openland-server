@@ -410,25 +410,54 @@ export class RoomMediator {
     }
 
     async checkCanSendMessage(ctx: Context, cid: number, uid: number) {
-        let conv = await Store.ConversationRoom.findById(ctx, cid);
+        let conv = await Store.Conversation.findById(ctx, cid);
         if (!conv) {
-            return false;
+            throw new AccessDeniedError();
         }
 
-        if (await this.repo.userHaveAdminPermissionsInChat(ctx, conv, uid)) {
+        if (conv.kind === 'room') {
+            let convRoom = await Store.ConversationRoom.findById(ctx, cid);
+            if (!convRoom) {
+                return false;
+            }
+
+            if (await this.repo.userHaveAdminPermissionsInChat(ctx, convRoom, uid)) {
+                return true;
+            }
+
+            //
+            // Check membership in chat
+            //
+            let existingMembership = await this.repo.findMembershipStatus(ctx, uid, cid);
+            if (!existingMembership || existingMembership.status !== 'joined') {
+                return false;
+            }
+
+            if (convRoom.isChannel) {
+                return false;
+            }
+        } else if (conv.kind === 'private') {
+            let p = await Store.ConversationPrivate.findById(ctx, cid);
+            if (!p) {
+                throw new AccessDeniedError();
+            }
+            if (p.uid1 !== uid && p.uid2 !== uid) {
+                throw new AccessDeniedError();
+            }
+            let targetUid: number;
+            if (p.uid1 === uid) {
+                targetUid = p.uid2;
+            } else {
+                targetUid = p.uid1;
+            }
+            if (await Modules.BlackListModule.isUserBanned(ctx, uid, targetUid)) {
+                return false;
+            }
+            if (await Modules.BlackListModule.isUserBanned(ctx, targetUid, uid)) {
+                return false;
+            }
+
             return true;
-        }
-
-        //
-        // Check membership in chat
-        //
-        let existingMembership = await this.repo.findMembershipStatus(ctx, uid, cid);
-        if (!existingMembership || existingMembership.status !== 'joined') {
-            return false;
-        }
-
-        if (conv.isChannel) {
-            return false;
         }
 
         return true;
