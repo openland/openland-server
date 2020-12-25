@@ -20,7 +20,7 @@ export class MentionNotificationsMediator {
                     if (!message || !message.spans) {
                         return;
                     }
-                    if (!await Modules.Messaging.room.isPublicRoom(ctx, message.cid)) {
+                    if (await Modules.Messaging.room.isPublicRoom(ctx, message.cid)) {
                         return;
                     }
 
