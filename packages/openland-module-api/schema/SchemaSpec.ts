@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '1c3e2c9cbe1983a532f360777a9904cf';
+export const GQL_SPEC_VERSION = 'a34bc8dc38d9b06f5b144bef74e65f1f';
 
 export namespace GQL {
     export interface CreditCard {
@@ -947,11 +947,13 @@ export namespace GQL {
         id: string;
         cid: string;
         states: Nullable<SequenceChatStates>;
+        room: Nullable<Room>;
         draft: Nullable<Draft>;
     }
     export interface SequenceChatIdArgs { }
     export interface SequenceChatCidArgs { }
     export interface SequenceChatStatesArgs { }
+    export interface SequenceChatRoomArgs { }
     export interface SequenceChatDraftArgs { }
     export interface PageInfo {
         hasNextPage: boolean;
@@ -7151,12 +7153,14 @@ export interface GQLResolver {
         GQLRoots.SequenceChatRoot,
         {
             states: Nullable<GQLRoots.SequenceChatStatesRoot>,
+            room: Nullable<GQLRoots.RoomRoot>,
             draft: Nullable<GQLRoots.DraftRoot>,
         },
         {
             id: GQL.SequenceChatIdArgs,
             cid: GQL.SequenceChatCidArgs,
             states: GQL.SequenceChatStatesArgs,
+            room: GQL.SequenceChatRoomArgs,
             draft: GQL.SequenceChatDraftArgs,
         }
     >;

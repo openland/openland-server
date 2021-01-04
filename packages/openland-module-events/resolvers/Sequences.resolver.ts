@@ -46,6 +46,14 @@ export const Resolver: GQLResolver = {
     SequenceChat: {
         id: (src, { }, ctx) => src.type === 'chat-private' ? IDs.SequenceChatPrivate.serialize(src.cid) : IDs.SequenceChat.serialize(src.cid),
         cid: (src, { }, ctx) => IDs.Conversation.serialize(src.cid),
+        room: async (src, { }, ctx) => {
+            if (await Modules.Messaging.room.userWasKickedFromRoom(ctx, ctx.auth.uid!, src.cid)) {
+                return src.cid;
+            } else if (!await Modules.Messaging.room.canUserSeeChat(ctx, ctx.auth.uid!, src.cid)) {
+                return null;
+            }
+            return src.cid;
+        },
         states: async (src, { }, ctx) => {
             if (src.type === 'chat') {
                 if (!(await Modules.Messaging.room.isRoomMember(ctx, ctx.auth.uid!, src.cid))) {
