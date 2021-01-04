@@ -35,6 +35,6 @@ describe('EventsMediator', () => {
         receiver.close();
 
         // Expect three events: create, subscribe and close
-        expect(callback.mock.calls.length).toBe(5);
+        expect(callback.mock.calls.length).toBe(4);
     });
 });
