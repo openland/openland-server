@@ -13,6 +13,7 @@ import { Context } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 import { EventsMediator } from './EventsMediator';
 import { EventsRepository } from 'openland-module-events/repo/EventsRepository';
+import { subsctractBuffer } from 'openland-module-events/utils/substractBuffer';
 
 export class TypedEventsMediator {
 
@@ -240,13 +241,22 @@ export class TypedEventsMediator {
     }
 
     async getDifference(parent: Context, uid: number, state: string) {
+
+        // Adjust cursor
+        // VTs generated with 10 sec delay
+        // <Buffer 00 00 06 75 de 95 ef ae 00 00>
+        // <Buffer 00 00 06 75 df 2e a5 dc 00 00>
+        const delta = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00]);
+        const cursor = Buffer.from(state, 'base64');
+        const adjusted = subsctractBuffer(cursor, delta);
+
         return await inTx(parent, async (ctx) => {
             let subscriber = await this.registry.getUserSubscriber(ctx, uid);
             if (!subscriber) {
                 throw Error('Subscriber does not exist');
             }
             await this.events.refreshOnline(ctx, subscriber);
-            let res = await this.events.repo.getDifference(ctx, subscriber, Buffer.from(state, 'base64'), { limits: { forwardOnly: 100, generic: 20, global: 300 } });
+            let res = await this.events.repo.getDifference(ctx, subscriber, adjusted, { limits: { forwardOnly: 100, generic: 20, global: 300 } });
 
             // Parse sequences
             let sequences: { sequence: FeedReference, pts: number, events: { pts: number, event: Event }[] }[] = [];
@@ -358,8 +368,6 @@ export class TypedEventsMediator {
                 receiver = this.events.receive(subscriber, (e) => {
                     if (e.type === 'started') {
                         handler({ type: 'started', state: e.state.toString('base64'), seq: e.seq });
-                    } else if (e.type === 'checkpoint') {
-                        handler({ type: 'checkpoint', state: e.state.toString('base64'), seq: e.seq });
                     } else if (e.type === 'closed') {
                         if (!closed) {
                             closed = true;

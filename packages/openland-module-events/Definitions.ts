@@ -101,7 +101,6 @@ export type UserSubscriptionHandlerEvent =
     | { type: 'started', seq: number, state: string }
     | { type: 'update', seq: number, feed: FeedReference, pts: number, event: Event }
     | { type: 'update-ephemeral', seq: number, feed: FeedReference, event: Event }
-    | { type: 'checkpoint', seq: number, state: string }
     | { type: 'closed' };
 
 //

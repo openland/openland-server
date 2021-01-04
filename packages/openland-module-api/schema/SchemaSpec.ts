@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5afebc6b85331dc056814bd9cacc780d';
+export const GQL_SPEC_VERSION = '1c3e2c9cbe1983a532f360777a9904cf';
 
 export namespace GQL {
     export interface CreditCard {
@@ -297,12 +297,6 @@ export namespace GQL {
     }
     export interface UpdateSubscriptionStartedSeqArgs { }
     export interface UpdateSubscriptionStartedStateArgs { }
-    export interface UpdateSubscriptionCheckpoint {
-        seq: number;
-        state: string;
-    }
-    export interface UpdateSubscriptionCheckpointSeqArgs { }
-    export interface UpdateSubscriptionCheckpointStateArgs { }
     export interface UpdateSubscriptionEvent {
         seq: number;
         pts: number;
@@ -321,7 +315,7 @@ export namespace GQL {
     export interface UpdateSubscriptionEphemeralEventSeqArgs { }
     export interface UpdateSubscriptionEphemeralEventEventArgs { }
     export interface UpdateSubscriptionEphemeralEventSequenceArgs { }
-    export type UpdateSubscription = UpdateSubscriptionStarted | UpdateSubscriptionCheckpoint | UpdateSubscriptionEvent | UpdateSubscriptionEphemeralEvent;
+    export type UpdateSubscription = UpdateSubscriptionStarted | UpdateSubscriptionEvent | UpdateSubscriptionEphemeralEvent;
     export interface UpdatesSequenceState {
         sequence: Sequence;
         pts: number;
@@ -6511,16 +6505,6 @@ export interface GQLResolver {
             state: GQL.UpdateSubscriptionStartedStateArgs,
         }
     >;
-    UpdateSubscriptionCheckpoint?: ComplexTypedResolver<
-        GQL.UpdateSubscriptionCheckpoint,
-        GQLRoots.UpdateSubscriptionCheckpointRoot,
-        {
-        },
-        {
-            seq: GQL.UpdateSubscriptionCheckpointSeqArgs,
-            state: GQL.UpdateSubscriptionCheckpointStateArgs,
-        }
-    >;
     UpdateSubscriptionEvent?: ComplexTypedResolver<
         GQL.UpdateSubscriptionEvent,
         GQLRoots.UpdateSubscriptionEventRoot,
@@ -6548,7 +6532,7 @@ export interface GQLResolver {
             sequence: GQL.UpdateSubscriptionEphemeralEventSequenceArgs,
         }
     >;
-    UpdateSubscription?: UnionTypeResolver<GQLRoots.UpdateSubscriptionRoot, 'UpdateSubscriptionStarted' | 'UpdateSubscriptionCheckpoint' | 'UpdateSubscriptionEvent' | 'UpdateSubscriptionEphemeralEvent'>;
+    UpdateSubscription?: UnionTypeResolver<GQLRoots.UpdateSubscriptionRoot, 'UpdateSubscriptionStarted' | 'UpdateSubscriptionEvent' | 'UpdateSubscriptionEphemeralEvent'>;
     UpdatesSequenceState?: ComplexTypedResolver<
         GQL.UpdatesSequenceState,
         GQLRoots.UpdatesSequenceStateRoot,

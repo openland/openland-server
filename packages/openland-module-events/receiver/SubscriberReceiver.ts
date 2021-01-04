@@ -46,11 +46,6 @@ export type SubscriberReceiverEvent =
         toPts: number
     }
     | {
-        type: 'checkpoint',
-        seq: number,
-        state: Buffer,
-    }
-    | {
         type: 'closed'
     };
 
@@ -73,9 +68,6 @@ export class SubscriberReceiver {
     private pending = new Map<number, BusEvent>();
     private currentSeq: number = -1;
     private deathTimer: NodeJS.Timer | null = null;
-    private startedCheckpoint = false;
-    private checkpointTimer: NodeJS.Timer | null = null;
-    private checkpointSeq = -1;
     private opts: ReceiverOpts;
 
     constructor(
@@ -147,12 +139,6 @@ export class SubscriberReceiver {
             this.deathTimer = null;
         }
 
-        // Checkpoint timer
-        if (this.checkpointTimer) {
-            clearTimeout(this.checkpointTimer);
-            this.checkpointTimer = null;
-        }
-
         this.handler({ type: 'closed' });
     }
 
@@ -160,7 +146,6 @@ export class SubscriberReceiver {
         this.started = true;
         this.handler({ type: 'started', state, seq: seq });
         this.currentSeq = seq;
-        this.checkpointSeq = seq;
         this.flushPending();
 
         // Start death timer right after start
@@ -177,9 +162,6 @@ export class SubscriberReceiver {
                 await delay(ONLINE_REFRESH);
             }
         });
-
-        // Start checkpoint generation
-        this.scheduleCheckpoint();
     }
 
     private flushPending = () => {
@@ -217,7 +199,6 @@ export class SubscriberReceiver {
             this.processEvent(event);
             this.cancelDeathTimer();
             this.flushPending();
-            this.scheduleCheckpoint();
         } else if (event.seq > this.currentSeq) {
             this.pending.set(event.seq, event);
             this.startDeathTimer();
@@ -243,77 +224,6 @@ export class SubscriberReceiver {
         if (!this.deathTimer) {
             this.deathTimer = setTimeout(this.close, random(this.opts.deathDelay.min, this.opts.deathDelay.max));
         }
-    }
-
-    private scheduleCheckpoint = () => {
-        // Checkpoint
-        if (this.currentSeq - this.checkpointSeq > this.opts.checkpointMaxUpdates) {
-            // Enforce checkpoint if there are too many updates already
-            this.startCheckpoint();
-        } else {
-            // Queue checkpoint timer for low volume events
-            this.startCheckpointTimer();
-        }
-    }
-
-    private startCheckpointTimer = () => {
-        if (this.stopped) {
-            return;
-        }
-        if (this.startedCheckpoint) {
-            return;
-        }
-        if (!this.checkpointTimer) {
-            this.checkpointTimer = setTimeout(this.startCheckpoint, random(this.opts.checkpointDelay.min, this.opts.checkpointDelay.max));
-        }
-    }
-
-    private startCheckpoint = () => {
-        if (this.stopped) {
-            return;
-        }
-        if (this.startedCheckpoint) {
-            return;
-        }
-        this.startedCheckpoint = true;
-
-        // Clear checkpoint timer
-        if (this.checkpointTimer) {
-            clearTimeout(this.checkpointTimer);
-            this.checkpointTimer = null;
-        }
-
-        // tslint:disable-next-line:no-floating-promises
-        (async () => {
-            try {
-                let checkpoint = await inTx(root, async (ctx) => {
-                    return this.mediator.repo.getState(ctx, this.subscriber);
-                });
-                let state = checkpoint.vt.resolved.value;
-                await delay(this.opts.checkpointCommitDelay);
-                if (this.stopped) {
-                    return;
-                }
-
-                // If there are still missed updates - close receiver
-                if (this.currentSeq < checkpoint.seq) {
-                    this.close();
-                    return;
-                }
-
-                if (this.currentSeq === this.checkpointSeq) {
-                    return;
-                } else {
-                    this.checkpointSeq = checkpoint.seq;
-                    this.handler({ type: 'checkpoint', state, seq: checkpoint.seq });
-                    this.scheduleCheckpoint();
-                }
-            } catch (e) {
-                this.close();
-            } finally {
-                this.startedCheckpoint = false;
-            }
-        })();
     }
 
     private processEvent(src: BusEvent) {
