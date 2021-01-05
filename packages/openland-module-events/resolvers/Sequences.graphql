@@ -19,4 +19,5 @@ type SequenceChat implements Sequence {
     cid: ID!
     states: SequenceChatStates
     room: Room
+    topMessage: ModernMessage
 }

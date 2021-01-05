@@ -2,6 +2,7 @@ import { FeedReference } from './../Definitions';
 import { IDs, IdsFactory } from 'openland-module-api/IDs';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { Modules } from 'openland-modules/Modules';
+import { Store } from 'openland-module-db/FDB';
 
 export function parseSequenceId(src: string, uid: number) {
     let sequence: FeedReference;
@@ -53,6 +54,19 @@ export const Resolver: GQLResolver = {
                 return null;
             }
             return src.cid;
+        },
+        topMessage: async (src, args, ctx) => {
+            if (src.type === 'chat') {
+                if (!(await Modules.Messaging.room.isRoomMember(ctx, ctx.auth.uid!, src.cid))) {
+                    return null;
+                }
+            }
+            let res = (await Store.Message.chat.query(ctx, src.cid!, { limit: 1, reverse: true })).items;
+            if (res.length > 0) {
+                return res[0];
+            } else {
+                return null;
+            }
         },
         states: async (src, { }, ctx) => {
             if (src.type === 'chat') {
