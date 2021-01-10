@@ -6,6 +6,7 @@ type PrivateRoom {
     settings: RoomUserNotificaionSettings!
     pinnedMessage: ModernMessage
     myBadge: UserBadge
+    hasActiveCall: Boolean!
 }
 
 enum SharedRoomKind {
@@ -62,6 +63,7 @@ type SharedRoom {
     pinnedMessage: ModernMessage
     canUnpinMessage: Boolean!
     welcomeMessage: WelcomeMessage
+    hasActiveCall: Boolean!
 
     stickerPack: StickerPack
 

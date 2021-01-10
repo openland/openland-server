@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '90e7b059d04de646c90e66e65bf8648d';
+export const GQL_SPEC_VERSION = 'e55a094dfc295b73830037e3392a42d0';
 
 export namespace GQL {
     export interface CreditCard {
@@ -5811,12 +5811,14 @@ export namespace GQL {
         settings: RoomUserNotificaionSettings;
         pinnedMessage: Nullable<ModernMessage>;
         myBadge: Nullable<UserBadge>;
+        hasActiveCall: boolean;
     }
     export interface PrivateRoomIdArgs { }
     export interface PrivateRoomUserArgs { }
     export interface PrivateRoomSettingsArgs { }
     export interface PrivateRoomPinnedMessageArgs { }
     export interface PrivateRoomMyBadgeArgs { }
+    export interface PrivateRoomHasActiveCallArgs { }
     export type SharedRoomKindValues = 'INTERNAL' | 'PUBLIC' | 'GROUP';
     export type SharedRoomKind = GQLRoots.SharedRoomKindRoot;
     export type SharedRoomMembershipStatusValues = 'MEMBER' | 'REQUESTED' | 'LEFT' | 'KICKED' | 'NONE';
@@ -5856,6 +5858,7 @@ export namespace GQL {
         pinnedMessage: Nullable<ModernMessage>;
         canUnpinMessage: boolean;
         welcomeMessage: Nullable<WelcomeMessage>;
+        hasActiveCall: boolean;
         stickerPack: Nullable<StickerPack>;
         organization: Nullable<Organization>;
         membersCount: number;
@@ -5895,6 +5898,7 @@ export namespace GQL {
     export interface SharedRoomPinnedMessageArgs { }
     export interface SharedRoomCanUnpinMessageArgs { }
     export interface SharedRoomWelcomeMessageArgs { }
+    export interface SharedRoomHasActiveCallArgs { }
     export interface SharedRoomStickerPackArgs { }
     export interface SharedRoomOrganizationArgs { }
     export interface SharedRoomMembersCountArgs { }
@@ -11100,6 +11104,7 @@ export interface GQLResolver {
             settings: GQL.PrivateRoomSettingsArgs,
             pinnedMessage: GQL.PrivateRoomPinnedMessageArgs,
             myBadge: GQL.PrivateRoomMyBadgeArgs,
+            hasActiveCall: GQL.PrivateRoomHasActiveCallArgs,
         }
     >;
     SharedRoomKind?: EnumTypeResolver<'INTERNAL' | 'PUBLIC' | 'GROUP', GQLRoots.SharedRoomKindRoot>;
@@ -11170,6 +11175,7 @@ export interface GQLResolver {
             pinnedMessage: GQL.SharedRoomPinnedMessageArgs,
             canUnpinMessage: GQL.SharedRoomCanUnpinMessageArgs,
             welcomeMessage: GQL.SharedRoomWelcomeMessageArgs,
+            hasActiveCall: GQL.SharedRoomHasActiveCallArgs,
             stickerPack: GQL.SharedRoomStickerPackArgs,
             organization: GQL.SharedRoomOrganizationArgs,
             membersCount: GQL.SharedRoomMembersCountArgs,

@@ -108,6 +108,9 @@ export const Resolver: GQLResolver = {
             }
         },
         myBadge: (root: RoomRoot, args: {}, ctx: Context) => null,
+        hasActiveCall: async (root: RoomRoot, args, ctx) => {
+            return await Modules.Calls.repo.hasActiveCall(ctx, typeof root === 'number' ? root : root.id);
+        },
     },
     SharedRoomMembershipStatus: {
         MEMBER: 'joined',
@@ -310,7 +313,10 @@ export const Resolver: GQLResolver = {
         featured: withConverationId(async (ctx, id) => {
             let room = await Store.ConversationRoom.findById(ctx, id);
             return !!room?.featured;
-        })
+        }),
+        hasActiveCall: withConverationId(async (ctx, id) => {
+            return await Modules.Calls.repo.hasActiveCall(ctx, id);
+        }),
     },
     RoomMember: {
         user: async (src, args, ctx) => (await Store.User.findById(ctx, src.uid))!,

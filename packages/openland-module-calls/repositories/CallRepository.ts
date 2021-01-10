@@ -69,6 +69,16 @@ export class CallRepository {
         });
     }
 
+    hasActiveCall = async (parent: Context, cid: number) => {
+        return await inTx(parent, async (ctx) => {
+            let res = await Store.ConferenceRoom.findById(ctx, cid);
+            if (!res) {
+                return false;
+            }
+            return res.active || false;
+        });
+    }
+
     getScheduler(kind: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null): CallScheduler {
         if (kind === 'mesh' || kind === null) {
             return this.schedulerMesh;

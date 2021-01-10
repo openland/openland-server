@@ -84,7 +84,7 @@ export const Resolver: GQLResolver = {
             return await Store.UserDialogHaveMention.byId(ctx.auth.uid!, src.cid).get(ctx);
         },
         hasActiveCall: async (src, _, ctx) => {
-            return !!(await Modules.Calls.repo.getOrCreateConference(ctx, src.cid)).active;
+            return await Modules.Calls.repo.hasActiveCall(ctx, src.cid);
         },
         featured: async (src, _, ctx) => {
             let conv = await Store.ConversationRoom.findById(ctx, src.cid);
