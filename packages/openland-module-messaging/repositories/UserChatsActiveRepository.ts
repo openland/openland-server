@@ -21,7 +21,7 @@ export class UserChatsActiveRepository {
 
     loadChats = async (ctx: Context, uid: number, after: number) => {
         return (await this.subspace
-            .range(ctx, [uid], { after: [uid, after], limit: 500 }))
+            .range(ctx, [uid], { after: [uid, after], limit: 100 }))
             .map((v) => v.key[1] as number);
     }
 }
