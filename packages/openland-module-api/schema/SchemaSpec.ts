@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9afc0cc3b1eb84296f5bb517c7070609';
+export const GQL_SPEC_VERSION = 'cb22cf947e5e5813602c747429719118';
 
 export namespace GQL {
     export interface CreditCard {
@@ -6041,7 +6041,7 @@ export namespace GQL {
     export interface RoomInviteRoomArgs { }
     export interface RoomInviteInvitedByUserArgs { }
     export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection | Channel;
-    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted | UpdateChatDraftChanged | UpdateSettingsChanged;
+    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted | UpdateChatDraftChanged | UpdateSettingsChanged | UpdateRoomChanged;
     export interface UpdateChatRead {
         cid: string;
         seq: number;
@@ -6086,6 +6086,10 @@ export namespace GQL {
         settings: Settings;
     }
     export interface UpdateSettingsChangedSettingsArgs { }
+    export interface UpdateRoomChanged {
+        room: Room;
+    }
+    export interface UpdateRoomChangedRoomArgs { }
 }
 
 export interface GQLResolver {
@@ -11325,7 +11329,7 @@ export interface GQLResolver {
         }
     >;
     ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom' | 'DiscoverChatsCollection' | 'Channel'>;
-    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged' | 'UpdateChatMessage' | 'UpdateChatMessageDeleted' | 'UpdateChatDraftChanged' | 'UpdateSettingsChanged'>;
+    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged' | 'UpdateChatMessage' | 'UpdateChatMessageDeleted' | 'UpdateChatDraftChanged' | 'UpdateSettingsChanged' | 'UpdateRoomChanged'>;
     UpdateChatRead?: ComplexTypedResolver<
         GQL.UpdateChatRead,
         GQLRoots.UpdateChatReadRoot,
@@ -11400,6 +11404,16 @@ export interface GQLResolver {
         },
         {
             settings: GQL.UpdateSettingsChangedSettingsArgs,
+        }
+    >;
+    UpdateRoomChanged?: ComplexTypedResolver<
+        GQL.UpdateRoomChanged,
+        GQLRoots.UpdateRoomChangedRoot,
+        {
+            room: GQLRoots.RoomRoot,
+        },
+        {
+            room: GQL.UpdateRoomChangedRoomArgs,
         }
     >;
 }

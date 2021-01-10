@@ -512,7 +512,7 @@ export class RoomMediator {
                 res.repliesUpdated ||
                 res.callSettingsUpdated
             ) {
-                this.markConversationAsUpdated(ctx, cid, uid);
+                await this.markConversationAsUpdated(ctx, cid, uid);
             }
             return (await Store.Conversation.findById(ctx, cid))!;
         });
@@ -538,7 +538,11 @@ export class RoomMediator {
                 throw new AccessDeniedError();
             }
             await this.checkAccess(ctx, uid, cid);
-            return await this.repo.pinMessage(ctx, cid, uid, mid);
+            let res = await this.repo.pinMessage(ctx, cid, uid, mid);
+            if (res) {
+                await this.markConversationAsUpdated(ctx, cid, uid);
+            }
+            return res;
         });
     }
 
@@ -557,7 +561,11 @@ export class RoomMediator {
                     throw new AccessDeniedError();
                 }
             }
-            return await this.repo.unpinMessage(ctx, cid, uid);
+            let res = await this.repo.unpinMessage(ctx, cid, uid);
+            if (res) {
+                await this.markConversationAsUpdated(ctx, cid, uid);
+            }
+            return res;
         });
     }
 
@@ -730,6 +738,7 @@ export class RoomMediator {
 
         // deliver updates
         await this.delivery.onDialogPeerUpdate(ctx, cid);
+
         await this.markConversationAsUpdated(ctx, cid, ctx.auth.uid!);
 
         return conv;
@@ -817,11 +826,19 @@ export class RoomMediator {
         }
     }
 
-    markConversationAsUpdated(ctx: Context, cid: number, uid: number) {
+    async markConversationAsUpdated(ctx: Context, cid: number, uid: number) {
         Store.ConversationEventStore.post(ctx, cid, ChatUpdatedEvent.create({
             cid,
             uid
         }));
+
+        let conv = (await Store.Conversation.findById(ctx, cid))!;
+        if (conv.kind === 'private') {
+            let proom = (await Store.ConversationPrivate.findById(ctx, cid))!;
+            await this.events.onPrivateChatUpdated(ctx, cid, [proom.uid1, proom.uid2]);
+        } else {
+            await this.events.onGroupChatUpdated(ctx, cid);
+        }
     }
 
     async markChatForIndexing(parent: Context, cid: number) {

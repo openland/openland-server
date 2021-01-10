@@ -1,4 +1,4 @@
-import { UpdateChatDraftUpdated, UpdateSettingsChanged } from './../openland-module-db/store';
+import { UpdateChatDraftUpdated, UpdateRoomChanged, UpdateSettingsChanged } from './../openland-module-db/store';
 import { encoders } from '@openland/foundationdb';
 import { Store } from 'openland-module-db/FDB';
 import {
@@ -60,7 +60,8 @@ export function commonEventParse(src: Buffer): CommonEvent | null {
 const ChatEvents = [
     UpdateChatMessage,
     UpdateChatMessageUpdated,
-    UpdateChatMessageDeleted
+    UpdateChatMessageDeleted,
+    UpdateRoomChanged
 ];
 
 export type ChatEvent = ReturnType<(typeof ChatEvents[number])['create']>;

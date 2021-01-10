@@ -22537,6 +22537,39 @@ export class UpdateChatMessageDeleted extends BaseEvent {
     get mid(): number { return this.raw.mid; }
 }
 
+const updateRoomChangedCodec = c.struct({
+    cid: c.integer,
+});
+
+interface UpdateRoomChangedShape {
+    cid: number;
+}
+
+export class UpdateRoomChanged extends BaseEvent {
+
+    static readonly type: 'updateRoomChanged' = 'updateRoomChanged';
+
+    static create(data: UpdateRoomChangedShape) {
+        return new UpdateRoomChanged(updateRoomChangedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateRoomChanged(updateRoomChangedCodec.decode(data));
+    }
+
+    static encode(event: UpdateRoomChanged) {
+        return updateRoomChangedCodec.encode(event.raw);
+    }
+
+    readonly type: 'updateRoomChanged' = 'updateRoomChanged';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get cid(): number { return this.raw.cid; }
+}
+
 const updateChatDraftUpdatedCodec = c.struct({
     uid: c.integer,
     cid: c.integer,
@@ -23530,6 +23563,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('updateChatMessage', UpdateChatMessage.encode as any, UpdateChatMessage.decode);
     eventFactory.registerEventType('updateChatMessageUpdated', UpdateChatMessageUpdated.encode as any, UpdateChatMessageUpdated.decode);
     eventFactory.registerEventType('updateChatMessageDeleted', UpdateChatMessageDeleted.encode as any, UpdateChatMessageDeleted.decode);
+    eventFactory.registerEventType('updateRoomChanged', UpdateRoomChanged.encode as any, UpdateRoomChanged.decode);
     eventFactory.registerEventType('updateChatDraftUpdated', UpdateChatDraftUpdated.encode as any, UpdateChatDraftUpdated.decode);
     eventFactory.registerEventType('hyperLogEvent', HyperLogEvent.encode as any, HyperLogEvent.decode);
     eventFactory.registerEventType('hyperLogUserEvent', HyperLogUserEvent.encode as any, HyperLogUserEvent.decode);

@@ -34,8 +34,11 @@ export const Resolver: GQLResolver = {
                     throw Error('Invalid update');
                 }
                 return 'UpdateSettingsChanged';
+            } else if (src.type === 'updateRoomChanged') {
+                return 'UpdateRoomChanged';
+            } else {
+                throw Error('Unknown update');
             }
-            throw Error('Unknown update');
         },
     },
     UpdateMyProfileChanged: {
@@ -68,5 +71,8 @@ export const Resolver: GQLResolver = {
         settings: withUser(async (ctx, args, uid) => {
             return Modules.Users.getUserSettings(ctx, uid);
         }),
+    },
+    UpdateRoomChanged: {
+        room: (src) => src.cid
     }
 };
