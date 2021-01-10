@@ -22,7 +22,8 @@ const CommonEvents = [
     UpdateChatRead,
     UpdateChatDraftUpdated,
     UpdateProfileChanged,
-    UpdateSettingsChanged
+    UpdateSettingsChanged,
+    UpdateRoomChanged
 ];
 
 export type CommonEvent = ReturnType<(typeof CommonEvents[number])['create']>;
@@ -61,7 +62,8 @@ const ChatEvents = [
     UpdateChatMessage,
     UpdateChatMessageUpdated,
     UpdateChatMessageDeleted,
-    UpdateRoomChanged
+    UpdateRoomChanged,
+    UpdateProfileChanged
 ];
 
 export type ChatEvent = ReturnType<(typeof ChatEvents[number])['create']>;

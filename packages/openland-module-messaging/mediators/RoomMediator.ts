@@ -513,6 +513,7 @@ export class RoomMediator {
                 res.callSettingsUpdated
             ) {
                 await this.markConversationAsUpdated(ctx, cid, uid);
+                await this.notifyRoomUpdated(ctx, cid);
             }
             return (await Store.Conversation.findById(ctx, cid))!;
         });
@@ -541,6 +542,7 @@ export class RoomMediator {
             let res = await this.repo.pinMessage(ctx, cid, uid, mid);
             if (res) {
                 await this.markConversationAsUpdated(ctx, cid, uid);
+                await this.notifyRoomUpdated(ctx, cid);
             }
             return res;
         });
@@ -564,6 +566,7 @@ export class RoomMediator {
             let res = await this.repo.unpinMessage(ctx, cid, uid);
             if (res) {
                 await this.markConversationAsUpdated(ctx, cid, uid);
+                await this.notifyRoomUpdated(ctx, cid);
             }
             return res;
         });
@@ -740,6 +743,7 @@ export class RoomMediator {
         await this.delivery.onDialogPeerUpdate(ctx, cid);
 
         await this.markConversationAsUpdated(ctx, cid, ctx.auth.uid!);
+        await this.notifyRoomUpdated(ctx, cid);
 
         return conv;
     }
@@ -831,7 +835,9 @@ export class RoomMediator {
             cid,
             uid
         }));
+    }
 
+    async notifyRoomUpdated(ctx: Context, cid: number) {
         let conv = (await Store.Conversation.findById(ctx, cid))!;
         if (conv.kind === 'private') {
             let proom = (await Store.ConversationPrivate.findById(ctx, cid))!;
@@ -839,6 +845,10 @@ export class RoomMediator {
         } else {
             await this.events.onGroupChatUpdated(ctx, cid);
         }
+    }
+
+    async notifyRoomUpdatedPersonal(ctx: Context, cid: number, uid: number) {
+        await this.events.onChatUpdatedPersonal(ctx, cid, uid);
     }
 
     async markChatForIndexing(parent: Context, cid: number) {

@@ -41,6 +41,10 @@ export class EventsMediator {
         await Modules.Events.postToCommon(ctx, uid, UpdateChatRead.create({ cid, seq, uid }));
     }
 
+    async onChatUpdatedPersonal(ctx: Context, cid: number, uid: number) {
+        await Modules.Events.postToCommon(ctx, uid, UpdateRoomChanged.create({ cid }));
+    }
+
     //
     // Group Updates
     //
