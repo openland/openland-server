@@ -96,7 +96,7 @@ export const Resolver: GQLResolver = {
         }
     },
     BadgeStatus: {
-         badge: async (root, _, ctx) => (await Store.ModernBadge.findById(ctx, root.id))!
+        badge: async (root, _, ctx) => (await Store.ModernBadge.findById(ctx, root.id))!
     },
     CustomStatus: {
         emoji: root => root.emoji,
@@ -213,7 +213,7 @@ export const Resolver: GQLResolver = {
                     continue;
                 }
 
-                res.push({cid: badge.cid, badge: (await Store.UserBadge.findById(ctx, badge.bid!))!});
+                res.push({ cid: badge.cid, badge: (await Store.UserBadge.findById(ctx, badge.bid!))! });
             }
             return res;
         })
@@ -243,6 +243,9 @@ export const Resolver: GQLResolver = {
             //     throw new NotFoundError();
             // }
             return user!;
+        }),
+        users: withAny(async (ctx, args) => {
+            return Promise.all(args.ids.map(async (u) => (await Store.User.findById(ctx, IDs.User.parse(u)))!));
         }),
         mySuccessfulInvitesCount: withUserResolver(async (ctx, args, uid) => {
             return Store.UserSuccessfulInvitesCounter.get(ctx, uid);

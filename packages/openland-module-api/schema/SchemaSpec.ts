@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'cb22cf947e5e5813602c747429719118';
+export const GQL_SPEC_VERSION = '6c624bde9944f57bf7bfda14d168af85';
 
 export namespace GQL {
     export interface CreditCard {
@@ -4074,7 +4074,6 @@ export namespace GQL {
         alphaOrganizationByPrefix: Nullable<Organization>;
         alphaComunityPrefixSearch: OrganizationsConnection;
         myPermissions: Permissions;
-        users: User[];
         discoverNewAndGrowing: SharedRoomConnection;
         discoverPopularNow: PopularNowRoomConnection;
         discoverNewAndGrowingOrganizations: NewAndGrowingOrganizationConnection;
@@ -4102,6 +4101,7 @@ export namespace GQL {
         groupScreenViews: number;
         me: Nullable<User>;
         user: User;
+        users: User[];
         mySuccessfulInvitesCount: number;
         shouldAskForAppReview: boolean;
         superBadgeInRoom: Nullable<UserBadge>;
@@ -4447,9 +4447,6 @@ export namespace GQL {
         featuredIfEmptyQuery: OptionalNullable<boolean>;
     }
     export interface QueryMyPermissionsArgs { }
-    export interface QueryUsersArgs {
-        query: string;
-    }
     export interface QueryDiscoverNewAndGrowingArgs {
         first: number;
         seed: number;
@@ -4534,6 +4531,9 @@ export namespace GQL {
     export interface QueryMeArgs { }
     export interface QueryUserArgs {
         id: string;
+    }
+    export interface QueryUsersArgs {
+        ids: string[];
     }
     export interface QueryMySuccessfulInvitesCountArgs { }
     export interface QueryShouldAskForAppReviewArgs { }
@@ -9640,7 +9640,6 @@ export interface GQLResolver {
             alphaOrganizationByPrefix: Nullable<GQLRoots.OrganizationRoot>,
             alphaComunityPrefixSearch: GQLRoots.OrganizationsConnectionRoot,
             myPermissions: GQLRoots.PermissionsRoot,
-            users: GQLRoots.UserRoot[],
             discoverNewAndGrowing: GQLRoots.SharedRoomConnectionRoot,
             discoverPopularNow: GQLRoots.PopularNowRoomConnectionRoot,
             discoverNewAndGrowingOrganizations: GQLRoots.NewAndGrowingOrganizationConnectionRoot,
@@ -9665,6 +9664,7 @@ export interface GQLResolver {
             trendingRoomsByMessages: GQLRoots.TrendingRoomRoot[],
             me: Nullable<GQLRoots.UserRoot>,
             user: GQLRoots.UserRoot,
+            users: GQLRoots.UserRoot[],
             superBadgeInRoom: Nullable<GQLRoots.UserBadgeRoot>,
             badgeInRoom: Nullable<GQLRoots.UserBadgeRoot>,
             userSearch: GQLRoots.UserConnectionRoot,
@@ -9827,7 +9827,6 @@ export interface GQLResolver {
             alphaOrganizationByPrefix: GQL.QueryAlphaOrganizationByPrefixArgs,
             alphaComunityPrefixSearch: GQL.QueryAlphaComunityPrefixSearchArgs,
             myPermissions: GQL.QueryMyPermissionsArgs,
-            users: GQL.QueryUsersArgs,
             discoverNewAndGrowing: GQL.QueryDiscoverNewAndGrowingArgs,
             discoverPopularNow: GQL.QueryDiscoverPopularNowArgs,
             discoverNewAndGrowingOrganizations: GQL.QueryDiscoverNewAndGrowingOrganizationsArgs,
@@ -9855,6 +9854,7 @@ export interface GQLResolver {
             groupScreenViews: GQL.QueryGroupScreenViewsArgs,
             me: GQL.QueryMeArgs,
             user: GQL.QueryUserArgs,
+            users: GQL.QueryUsersArgs,
             mySuccessfulInvitesCount: GQL.QueryMySuccessfulInvitesCountArgs,
             shouldAskForAppReview: GQL.QueryShouldAskForAppReviewArgs,
             superBadgeInRoom: GQL.QuerySuperBadgeInRoomArgs,
