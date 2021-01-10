@@ -19,7 +19,7 @@ export const Concurrency = {
 
     // FoundationDB operation pool. Unique per authentication token.
     FDB: new SimpleFactory(() => {
-        return new BoundedConcurrencyPool(128) as ConcurrencyPool;
+        return new BoundedConcurrencyPool(512) as ConcurrencyPool;
     }),
 
     // GQL resolve pool, unique per machine
