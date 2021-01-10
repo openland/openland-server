@@ -20,14 +20,11 @@ export class UserStateRepository {
     }
 
     async getRoomSettings(parent: Context, uid: number, cid: number) {
-        return await inTx(parent, async (ctx) => {
-            let res = await Store.UserDialogSettings.findById(parent, uid, cid);
-            if (res) {
-                return { cid, mute: res.mute };
-            }
-            await Store.UserDialogSettings.create(ctx, uid, cid, {mute: false});
-            return { cid, mute: false };
-        });
+        let res = await Store.UserDialogSettings.findById(parent, uid, cid);
+        if (res) {
+            return { cid, mute: res.mute };
+        }
+        return { cid, mute: false };
     }
 
     async isChatMuted(ctx: Context, uid: number, cid: number) {
@@ -51,7 +48,7 @@ export class UserStateRepository {
             if (res) {
                 res.mute = mute;
             } else {
-                await Store.UserDialogSettings.create(ctx, uid, cid, {mute});
+                await Store.UserDialogSettings.create(ctx, uid, cid, { mute });
             }
         });
     }
@@ -107,7 +104,7 @@ export class UserStateRepository {
                     this.metrics.onDirectChatCreated(ctx, uid);
                 }
 
-                let created = await Store.UserDialog.create(ctx, uid, cid, {unread: 0});
+                let created = await Store.UserDialog.create(ctx, uid, cid, { unread: 0 });
                 await created.flush(ctx);
                 return created;
             } else {
@@ -136,10 +133,10 @@ export class UserStateRepository {
         let cursor = state;
         let loadMore = !!cursor;
         while (loadMore) {
-            let res = await Store.UserDialogEvent.user.query(parent, uid, {limit: 1000, afterCursor: cursor});
+            let res = await Store.UserDialogEvent.user.query(parent, uid, { limit: 1000, afterCursor: cursor });
             cursor = res.cursor;
             if (res.items.length && res.cursor) {
-                yield {items: this.zipUserDialogEvents(res.items), cursor: res.cursor, fromSeq: res.items[0].seq};
+                yield { items: this.zipUserDialogEvents(res.items), cursor: res.cursor, fromSeq: res.items[0].seq };
             }
             loadMore = res.haveMore;
         }
@@ -166,11 +163,11 @@ export class UserStateRepository {
         if (!state) {
             return;
         }
-        let stream = Store.UserDialogEventStore.createStream(uid, {batchSize: 100, after: state});
+        let stream = Store.UserDialogEventStore.createStream(uid, { batchSize: 100, after: state });
         while (true) {
             let res = await stream.next(parent);
             if (res.length > 0) {
-                yield  {items: this.zipUserDialogEventsModern(res as any), cursor: stream.cursor};
+                yield { items: this.zipUserDialogEventsModern(res as any), cursor: stream.cursor };
             } else {
                 return;
             }
