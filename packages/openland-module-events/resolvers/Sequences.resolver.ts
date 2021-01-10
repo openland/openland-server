@@ -76,11 +76,9 @@ export const Resolver: GQLResolver = {
             }
             let counter = await Modules.Messaging.counters.fetchUserUnreadInChat(ctx, ctx.auth.uid!, src.cid);
             let mentions = await Modules.Messaging.counters.fetchUserMentionsInChat(ctx, ctx.auth.uid!, src.cid);
-            let total = await Modules.Messaging.messaging.getMessagesCount(ctx, src.cid);
             let readSeq = await Modules.Messaging.messaging.getUserReadSeq(ctx, src.cid, ctx.auth.uid!);
-            let top = await Modules.Messaging.messaging.findTopMessage(ctx, src.cid, ctx.auth.uid!);
             return {
-                counter, mentions, total, readSeq, seq: top ? top.seq : null
+                counter, mentions, readSeq
             };
         }
     }

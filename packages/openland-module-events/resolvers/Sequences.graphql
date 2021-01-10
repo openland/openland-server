@@ -9,9 +9,7 @@ type SequenceCommon implements Sequence {
 type SequenceChatStates {
     counter: Int!
     mentions: Int!
-    total: Int!
     readSeq: Int!
-    seq: Int
 }
 
 type SequenceChat implements Sequence {
