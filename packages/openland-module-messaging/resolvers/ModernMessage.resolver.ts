@@ -133,7 +133,7 @@ const DELETED_TEXT = {
 
 const getDeletedText = (src: Message | Comment | RichMessage) => src instanceof Comment ? DELETED_TEXT.COMMENT : DELETED_TEXT.MESSAGE;
 
-type IntermediateMention = { type: 'user', user: number } | { type: 'room', room: number };
+// type IntermediateMention = { type: 'user', user: number } | { type: 'room', room: number };
 
 export async function prepareLegacyMentionsInput(ctx: Context, messageText: string, mentions: number[]): Promise<MessageSpan[]> {
     let spans: MessageSpan[] = [];
@@ -174,133 +174,133 @@ export async function prepareLegacyMentionsInput(ctx: Context, messageText: stri
     return spans;
 }
 
-async function prepareLegacyMentions(ctx: Context, message: Message, uid: number): Promise<MessageSpan[]> {
-    let messageText = message.text || '';
+// async function prepareLegacyMentions(ctx: Context, message: Message, uid: number): Promise<MessageSpan[]> {
+//     let messageText = message.text || '';
 
-    if (messageText.length === 0) {
-        return [];
-    }
+//     if (messageText.length === 0) {
+//         return [];
+//     }
 
-    let intermediateMentions: IntermediateMention[] = [];
-    let spans: MessageSpan[] = [];
+//     let intermediateMentions: IntermediateMention[] = [];
+//     let spans: MessageSpan[] = [];
 
-    //
-    //  Legacy user mentions
-    //
-    if (message.mentions) {
-        for (let m of message.mentions) {
-            intermediateMentions.push({ type: 'user', user: m });
-        }
-    }
+//     //
+//     //  Legacy user mentions
+//     //
+//     if (message.mentions) {
+//         for (let m of message.mentions) {
+//             intermediateMentions.push({ type: 'user', user: m });
+//         }
+//     }
 
-    //
-    // Legacy complex mentions
-    //
-    if (message.complexMentions) {
-        for (let m of message.complexMentions) {
-            if (m.type === 'User') {
-                intermediateMentions.push({ type: 'user', user: m.id });
-            } else if (m.type === 'SharedRoom') {
-                intermediateMentions.push({ type: 'room', room: m.id });
-            } else {
-                throw new Error('Unknown mention type: ' + m.type);
-            }
-        }
-    }
+//     //
+//     // Legacy complex mentions
+//     //
+//     if (message.complexMentions) {
+//         for (let m of message.complexMentions) {
+//             if (m.type === 'User') {
+//                 intermediateMentions.push({ type: 'user', user: m.id });
+//             } else if (m.type === 'SharedRoom') {
+//                 intermediateMentions.push({ type: 'room', room: m.id });
+//             } else {
+//                 throw new Error('Unknown mention type: ' + m.type);
+//             }
+//         }
+//     }
 
-    //
-    // Multi-user join service message
-    //
-    let multiUserJoinRegexp = /along with (\d?) others/;
-    if (message.isService && message.serviceMetadata && message.serviceMetadata.type === 'user_invite' && multiUserJoinRegexp.test(messageText)) {
-        let [, _usersJoined] = multiUserJoinRegexp.exec(messageText)!;
-        let usersJoined = parseInt(_usersJoined, 10);
-        let othersText = usersJoined + ' others';
-        let othersMentions = intermediateMentions.splice(-usersJoined);
-        spans.push({
-            type: 'multi_user_mention',
-            offset: messageText.length - othersText.length,
-            length: othersText.length,
-            users: othersMentions.map((v: any) => v.user),
-        });
-    }
-    let offsets = new Set<number>();
+//     //
+//     // Multi-user join service message
+//     //
+//     let multiUserJoinRegexp = /along with (\d?) others/;
+//     if (message.isService && message.serviceMetadata && message.serviceMetadata.type === 'user_invite' && multiUserJoinRegexp.test(messageText)) {
+//         let [, _usersJoined] = multiUserJoinRegexp.exec(messageText)!;
+//         let usersJoined = parseInt(_usersJoined, 10);
+//         let othersText = usersJoined + ' others';
+//         let othersMentions = intermediateMentions.splice(-usersJoined);
+//         spans.push({
+//             type: 'multi_user_mention',
+//             offset: messageText.length - othersText.length,
+//             length: othersText.length,
+//             users: othersMentions.map((v: any) => v.user),
+//         });
+//     }
+//     let offsets = new Set<number>();
 
-    function getOffset(str: string, n: number = 0): number {
-        let offset = messageText.indexOf(str, n);
-        if (offset === -1) {
-            return -1;
-        }
+//     function getOffset(str: string, n: number = 0): number {
+//         let offset = messageText.indexOf(str, n);
+//         if (offset === -1) {
+//             return -1;
+//         }
 
-        if (offsets.has(offset)) {
-            return getOffset(str, n + 1);
-        }
+//         if (offsets.has(offset)) {
+//             return getOffset(str, n + 1);
+//         }
 
-        offsets.add(offset);
-        return offset;
-    }
+//         offsets.add(offset);
+//         return offset;
+//     }
 
-    //
-    //  Kick service message
-    //
-    if (message.isService && message.serviceMetadata && message.serviceMetadata.type === 'user_kick' && !message.complexMentions) {
-        let userName = await Modules.Users.getUserFullName(ctx, message.serviceMetadata.userId);
-        let kickerUserName = await Modules.Users.getUserFullName(ctx, message.serviceMetadata.kickedById);
+//     //
+//     //  Kick service message
+//     //
+//     if (message.isService && message.serviceMetadata && message.serviceMetadata.type === 'user_kick' && !message.complexMentions) {
+//         let userName = await Modules.Users.getUserFullName(ctx, message.serviceMetadata.userId);
+//         let kickerUserName = await Modules.Users.getUserFullName(ctx, message.serviceMetadata.kickedById);
 
-        let index1 = getOffset(userName);
-        if (index1 > -1) {
-            spans.push({
-                type: 'user_mention',
-                offset: index1,
-                length: userName.length,
-                user: message.serviceMetadata.userId,
-            });
-        }
-        let index2 = getOffset(kickerUserName);
-        if (index2 > -1) {
-            spans.push({
-                type: 'user_mention',
-                offset: index2,
-                length: kickerUserName.length,
-                user: message.serviceMetadata.kickedById,
-            });
-        }
-    }
+//         let index1 = getOffset(userName);
+//         if (index1 > -1) {
+//             spans.push({
+//                 type: 'user_mention',
+//                 offset: index1,
+//                 length: userName.length,
+//                 user: message.serviceMetadata.userId,
+//             });
+//         }
+//         let index2 = getOffset(kickerUserName);
+//         if (index2 > -1) {
+//             spans.push({
+//                 type: 'user_mention',
+//                 offset: index2,
+//                 length: kickerUserName.length,
+//                 user: message.serviceMetadata.kickedById,
+//             });
+//         }
+//     }
 
-    for (let mention of intermediateMentions) {
-        if (mention.type === 'user') {
-            let userName = await Modules.Users.getUserFullName(ctx, mention.user);
-            let mentionText = '@' + userName;
+//     for (let mention of intermediateMentions) {
+//         if (mention.type === 'user') {
+//             let userName = await Modules.Users.getUserFullName(ctx, mention.user);
+//             let mentionText = '@' + userName;
 
-            let index = getOffset(mentionText);
+//             let index = getOffset(mentionText);
 
-            if (index > -1) {
-                spans.push({
-                    type: 'user_mention',
-                    offset: index,
-                    length: mentionText.length,
-                    user: mention.user,
-                });
-            }
-        } else if (mention.type === 'room') {
-            let roomName = await Modules.Messaging.room.resolveConversationTitle(ctx, mention.room, uid);
-            let mentionText = '@' + roomName;
+//             if (index > -1) {
+//                 spans.push({
+//                     type: 'user_mention',
+//                     offset: index,
+//                     length: mentionText.length,
+//                     user: mention.user,
+//                 });
+//             }
+//         } else if (mention.type === 'room') {
+//             let roomName = await Modules.Messaging.room.resolveConversationTitle(ctx, mention.room, uid);
+//             let mentionText = '@' + roomName;
 
-            let index = getOffset(mentionText);
+//             let index = getOffset(mentionText);
 
-            if (index > -1) {
-                spans.push({
-                    type: 'room_mention',
-                    offset: index,
-                    length: mentionText.length,
-                    room: mention.room,
-                });
-            }
-        }
-    }
+//             if (index > -1) {
+//                 spans.push({
+//                     type: 'room_mention',
+//                     offset: index,
+//                     length: mentionText.length,
+//                     room: mention.room,
+//                 });
+//             }
+//         }
+//     }
 
-    return spans;
-}
+//     return spans;
+// }
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -495,7 +495,7 @@ export const Resolver: GQLResolver = {
             return null;
         },
         date: src => src.metadata.createdAt,
-        sender: async (src, args, ctx) => {
+        sender: (src, args, ctx) => {
             if (src.deleted || isMessageHiddenForUser(src, ctx.auth.uid!)) {
                 const deletedUserId = Modules.Users.getDeletedUserId();
                 if (deletedUserId) {
@@ -523,7 +523,7 @@ export const Resolver: GQLResolver = {
             }
             return src.text;
         },
-        spans: async (src, args, ctx) => {
+        spans: (src, args, ctx) => {
             if (src.deleted || isMessageHiddenForUser(src, ctx.auth.uid!)) {
                 return [];
             }
@@ -547,13 +547,13 @@ export const Resolver: GQLResolver = {
                     .filter(span => span.type !== 'date_text');
             }
 
-            let uid = ctx.auth.uid!;
+            // let uid = ctx.auth.uid!;
             let spans: MessageSpan[] = [];
 
             //
             //  Legacy data support
             //
-            spans.push(...await prepareLegacyMentions(ctx, src, uid));
+            // spans.push(...await prepareLegacyMentions(ctx, src, uid));
 
             //
             //  Links
@@ -594,7 +594,7 @@ export const Resolver: GQLResolver = {
             }
             return null;
         },
-        sender: async (src, args, ctx) => {
+        sender: (src, args, ctx) => {
             // message can be deleted, while sender can be alive or deleted
 
             if (src.deleted || isMessageHiddenForUser(src, ctx.auth.uid!)) {
@@ -609,7 +609,7 @@ export const Resolver: GQLResolver = {
         edited: src => src.edited || false,
         reactions: src => src.reactions || [],
         reactionCounters: resolveReactionCounters,
-        isMentioned: async (src, args, ctx) => {
+        isMentioned: (src, args, ctx) => {
             if (src instanceof Message) {
                 return hasMention(src, ctx.auth.uid!);
             }
@@ -635,7 +635,7 @@ export const Resolver: GQLResolver = {
             }
             return src.text;
         },
-        spans: async (src, args, ctx) => {
+        spans: (src, args, ctx) => {
             if (src.deleted || isMessageHiddenForUser(src, ctx.auth.uid!)) {
                 return [
                     {
@@ -667,13 +667,13 @@ export const Resolver: GQLResolver = {
                 return [];
             }
 
-            let uid = ctx.auth.uid!;
+            // let uid = ctx.auth.uid!;
             let spans: MessageSpan[] = [];
 
             //
             //  Legacy data support
             //
-            spans.push(...await prepareLegacyMentions(ctx, src, uid));
+            // spans.push(...await prepareLegacyMentions(ctx, src, uid));
 
             //
             //  Links
@@ -800,7 +800,7 @@ export const Resolver: GQLResolver = {
             if (src instanceof Comment || src instanceof RichMessage) {
                 return [];
             }
-            if (src.replyMessages) {
+            if (src.replyMessages && src.replyMessages.length > 0) {
                 let messages = await Promise.all((src.replyMessages as number[]).map(id => Store.Message.findById(ctx, id)));
                 let filtered = messages.filter(isDefined);
                 if (filtered.length > 0) {
@@ -841,7 +841,7 @@ export const Resolver: GQLResolver = {
             }
             return null;
         },
-        sender: async (src, args, ctx) => {
+        sender: (src, args, ctx) => {
             // message can be deleted, while sender can be alive or deleted
 
             if (src.deleted || isMessageHiddenForUser(src, ctx.auth.uid!)) {
@@ -871,7 +871,7 @@ export const Resolver: GQLResolver = {
             if (src instanceof Comment) {
                 return [];
             }
-            if (src.replyMessages) {
+            if (src.replyMessages && src.replyMessages.length > 0) {
                 let messages = await Promise.all((src.replyMessages as number[]).map(id => Store.Message.findById(ctx, id)));
                 let filtered = messages.filter(isDefined);
                 if (filtered.length > 0) {
