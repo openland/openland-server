@@ -1,6 +1,6 @@
 export function subsctractBuffer(src: Buffer, sub: Buffer): Buffer {
     if (src.length !== sub.length) {
-        throw Error('Buffers have different sizes');
+        throw Error('Buffers have different sizes: ' + src.length + ' and ' + sub.length);
     }
 
     // Ignore for empty

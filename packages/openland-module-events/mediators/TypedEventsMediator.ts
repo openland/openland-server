@@ -247,7 +247,7 @@ export class TypedEventsMediator {
         // <Buffer 00 00 06 75 de 95 ef ae 00 00>
         // <Buffer 00 00 06 75 df 2e a5 dc 00 00>
         // NOTE: Add two more bytes for tx-local part of versionstamp
-        const delta = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+        const delta = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00]);
         const cursor = Buffer.from(state, 'base64');
         const adjusted = subsctractBuffer(cursor, delta);
 
