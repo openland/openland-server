@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '81ef8e4ddb9d6f896ea7b02f7c9d576b';
+export const GQL_SPEC_VERSION = 'e55a094dfc295b73830037e3392a42d0';
 
 export namespace GQL {
     export interface CreditCard {
@@ -297,12 +297,6 @@ export namespace GQL {
     }
     export interface UpdateSubscriptionStartedSeqArgs { }
     export interface UpdateSubscriptionStartedStateArgs { }
-    export interface UpdateSubscriptionCheckpoint {
-        seq: number;
-        state: string;
-    }
-    export interface UpdateSubscriptionCheckpointSeqArgs { }
-    export interface UpdateSubscriptionCheckpointStateArgs { }
     export interface UpdateSubscriptionEvent {
         seq: number;
         pts: number;
@@ -321,7 +315,7 @@ export namespace GQL {
     export interface UpdateSubscriptionEphemeralEventSeqArgs { }
     export interface UpdateSubscriptionEphemeralEventEventArgs { }
     export interface UpdateSubscriptionEphemeralEventSequenceArgs { }
-    export type UpdateSubscription = UpdateSubscriptionStarted | UpdateSubscriptionCheckpoint | UpdateSubscriptionEvent | UpdateSubscriptionEphemeralEvent;
+    export type UpdateSubscription = UpdateSubscriptionStarted | UpdateSubscriptionEvent | UpdateSubscriptionEphemeralEvent;
     export interface UpdatesSequenceState {
         sequence: Sequence;
         pts: number;
@@ -940,22 +934,24 @@ export namespace GQL {
     export interface SequenceChatStates {
         counter: number;
         mentions: number;
-        total: number;
-        seq: number;
+        readSeq: number;
     }
     export interface SequenceChatStatesCounterArgs { }
     export interface SequenceChatStatesMentionsArgs { }
-    export interface SequenceChatStatesTotalArgs { }
-    export interface SequenceChatStatesSeqArgs { }
+    export interface SequenceChatStatesReadSeqArgs { }
     export interface SequenceChat extends Sequence {
         id: string;
         cid: string;
         states: Nullable<SequenceChatStates>;
+        room: Nullable<Room>;
+        topMessage: Nullable<ModernMessage>;
         draft: Nullable<Draft>;
     }
     export interface SequenceChatIdArgs { }
     export interface SequenceChatCidArgs { }
     export interface SequenceChatStatesArgs { }
+    export interface SequenceChatRoomArgs { }
+    export interface SequenceChatTopMessageArgs { }
     export interface SequenceChatDraftArgs { }
     export interface PageInfo {
         hasNextPage: boolean;
@@ -4074,7 +4070,6 @@ export namespace GQL {
         alphaOrganizationByPrefix: Nullable<Organization>;
         alphaComunityPrefixSearch: OrganizationsConnection;
         myPermissions: Permissions;
-        users: User[];
         discoverNewAndGrowing: SharedRoomConnection;
         discoverPopularNow: PopularNowRoomConnection;
         discoverNewAndGrowingOrganizations: NewAndGrowingOrganizationConnection;
@@ -4102,6 +4097,7 @@ export namespace GQL {
         groupScreenViews: number;
         me: Nullable<User>;
         user: User;
+        users: User[];
         mySuccessfulInvitesCount: number;
         shouldAskForAppReview: boolean;
         superBadgeInRoom: Nullable<UserBadge>;
@@ -4447,9 +4443,6 @@ export namespace GQL {
         featuredIfEmptyQuery: OptionalNullable<boolean>;
     }
     export interface QueryMyPermissionsArgs { }
-    export interface QueryUsersArgs {
-        query: string;
-    }
     export interface QueryDiscoverNewAndGrowingArgs {
         first: number;
         seed: number;
@@ -4534,6 +4527,9 @@ export namespace GQL {
     export interface QueryMeArgs { }
     export interface QueryUserArgs {
         id: string;
+    }
+    export interface QueryUsersArgs {
+        ids: string[];
     }
     export interface QueryMySuccessfulInvitesCountArgs { }
     export interface QueryShouldAskForAppReviewArgs { }
@@ -5815,12 +5811,14 @@ export namespace GQL {
         settings: RoomUserNotificaionSettings;
         pinnedMessage: Nullable<ModernMessage>;
         myBadge: Nullable<UserBadge>;
+        hasActiveCall: boolean;
     }
     export interface PrivateRoomIdArgs { }
     export interface PrivateRoomUserArgs { }
     export interface PrivateRoomSettingsArgs { }
     export interface PrivateRoomPinnedMessageArgs { }
     export interface PrivateRoomMyBadgeArgs { }
+    export interface PrivateRoomHasActiveCallArgs { }
     export type SharedRoomKindValues = 'INTERNAL' | 'PUBLIC' | 'GROUP';
     export type SharedRoomKind = GQLRoots.SharedRoomKindRoot;
     export type SharedRoomMembershipStatusValues = 'MEMBER' | 'REQUESTED' | 'LEFT' | 'KICKED' | 'NONE';
@@ -5860,6 +5858,7 @@ export namespace GQL {
         pinnedMessage: Nullable<ModernMessage>;
         canUnpinMessage: boolean;
         welcomeMessage: Nullable<WelcomeMessage>;
+        hasActiveCall: boolean;
         stickerPack: Nullable<StickerPack>;
         organization: Nullable<Organization>;
         membersCount: number;
@@ -5899,6 +5898,7 @@ export namespace GQL {
     export interface SharedRoomPinnedMessageArgs { }
     export interface SharedRoomCanUnpinMessageArgs { }
     export interface SharedRoomWelcomeMessageArgs { }
+    export interface SharedRoomHasActiveCallArgs { }
     export interface SharedRoomStickerPackArgs { }
     export interface SharedRoomOrganizationArgs { }
     export interface SharedRoomMembersCountArgs { }
@@ -6041,7 +6041,7 @@ export namespace GQL {
     export interface RoomInviteRoomArgs { }
     export interface RoomInviteInvitedByUserArgs { }
     export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection | Channel;
-    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted | UpdateChatDraftChanged | UpdateSettingsChanged;
+    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted | UpdateChatDraftChanged | UpdateSettingsChanged | UpdateRoomChanged;
     export interface UpdateChatRead {
         cid: string;
         seq: number;
@@ -6086,6 +6086,10 @@ export namespace GQL {
         settings: Settings;
     }
     export interface UpdateSettingsChangedSettingsArgs { }
+    export interface UpdateRoomChanged {
+        room: Room;
+    }
+    export interface UpdateRoomChangedRoomArgs { }
 }
 
 export interface GQLResolver {
@@ -6509,16 +6513,6 @@ export interface GQLResolver {
             state: GQL.UpdateSubscriptionStartedStateArgs,
         }
     >;
-    UpdateSubscriptionCheckpoint?: ComplexTypedResolver<
-        GQL.UpdateSubscriptionCheckpoint,
-        GQLRoots.UpdateSubscriptionCheckpointRoot,
-        {
-        },
-        {
-            seq: GQL.UpdateSubscriptionCheckpointSeqArgs,
-            state: GQL.UpdateSubscriptionCheckpointStateArgs,
-        }
-    >;
     UpdateSubscriptionEvent?: ComplexTypedResolver<
         GQL.UpdateSubscriptionEvent,
         GQLRoots.UpdateSubscriptionEventRoot,
@@ -6546,7 +6540,7 @@ export interface GQLResolver {
             sequence: GQL.UpdateSubscriptionEphemeralEventSequenceArgs,
         }
     >;
-    UpdateSubscription?: UnionTypeResolver<GQLRoots.UpdateSubscriptionRoot, 'UpdateSubscriptionStarted' | 'UpdateSubscriptionCheckpoint' | 'UpdateSubscriptionEvent' | 'UpdateSubscriptionEphemeralEvent'>;
+    UpdateSubscription?: UnionTypeResolver<GQLRoots.UpdateSubscriptionRoot, 'UpdateSubscriptionStarted' | 'UpdateSubscriptionEvent' | 'UpdateSubscriptionEphemeralEvent'>;
     UpdatesSequenceState?: ComplexTypedResolver<
         GQL.UpdatesSequenceState,
         GQLRoots.UpdatesSequenceStateRoot,
@@ -7155,8 +7149,7 @@ export interface GQLResolver {
         {
             counter: GQL.SequenceChatStatesCounterArgs,
             mentions: GQL.SequenceChatStatesMentionsArgs,
-            total: GQL.SequenceChatStatesTotalArgs,
-            seq: GQL.SequenceChatStatesSeqArgs,
+            readSeq: GQL.SequenceChatStatesReadSeqArgs,
         }
     >;
     SequenceChat?: ComplexTypedResolver<
@@ -7164,12 +7157,16 @@ export interface GQLResolver {
         GQLRoots.SequenceChatRoot,
         {
             states: Nullable<GQLRoots.SequenceChatStatesRoot>,
+            room: Nullable<GQLRoots.RoomRoot>,
+            topMessage: Nullable<GQLRoots.ModernMessageRoot>,
             draft: Nullable<GQLRoots.DraftRoot>,
         },
         {
             id: GQL.SequenceChatIdArgs,
             cid: GQL.SequenceChatCidArgs,
             states: GQL.SequenceChatStatesArgs,
+            room: GQL.SequenceChatRoomArgs,
+            topMessage: GQL.SequenceChatTopMessageArgs,
             draft: GQL.SequenceChatDraftArgs,
         }
     >;
@@ -9641,7 +9638,6 @@ export interface GQLResolver {
             alphaOrganizationByPrefix: Nullable<GQLRoots.OrganizationRoot>,
             alphaComunityPrefixSearch: GQLRoots.OrganizationsConnectionRoot,
             myPermissions: GQLRoots.PermissionsRoot,
-            users: GQLRoots.UserRoot[],
             discoverNewAndGrowing: GQLRoots.SharedRoomConnectionRoot,
             discoverPopularNow: GQLRoots.PopularNowRoomConnectionRoot,
             discoverNewAndGrowingOrganizations: GQLRoots.NewAndGrowingOrganizationConnectionRoot,
@@ -9666,6 +9662,7 @@ export interface GQLResolver {
             trendingRoomsByMessages: GQLRoots.TrendingRoomRoot[],
             me: Nullable<GQLRoots.UserRoot>,
             user: GQLRoots.UserRoot,
+            users: GQLRoots.UserRoot[],
             superBadgeInRoom: Nullable<GQLRoots.UserBadgeRoot>,
             badgeInRoom: Nullable<GQLRoots.UserBadgeRoot>,
             userSearch: GQLRoots.UserConnectionRoot,
@@ -9828,7 +9825,6 @@ export interface GQLResolver {
             alphaOrganizationByPrefix: GQL.QueryAlphaOrganizationByPrefixArgs,
             alphaComunityPrefixSearch: GQL.QueryAlphaComunityPrefixSearchArgs,
             myPermissions: GQL.QueryMyPermissionsArgs,
-            users: GQL.QueryUsersArgs,
             discoverNewAndGrowing: GQL.QueryDiscoverNewAndGrowingArgs,
             discoverPopularNow: GQL.QueryDiscoverPopularNowArgs,
             discoverNewAndGrowingOrganizations: GQL.QueryDiscoverNewAndGrowingOrganizationsArgs,
@@ -9856,6 +9852,7 @@ export interface GQLResolver {
             groupScreenViews: GQL.QueryGroupScreenViewsArgs,
             me: GQL.QueryMeArgs,
             user: GQL.QueryUserArgs,
+            users: GQL.QueryUsersArgs,
             mySuccessfulInvitesCount: GQL.QueryMySuccessfulInvitesCountArgs,
             shouldAskForAppReview: GQL.QueryShouldAskForAppReviewArgs,
             superBadgeInRoom: GQL.QuerySuperBadgeInRoomArgs,
@@ -11107,6 +11104,7 @@ export interface GQLResolver {
             settings: GQL.PrivateRoomSettingsArgs,
             pinnedMessage: GQL.PrivateRoomPinnedMessageArgs,
             myBadge: GQL.PrivateRoomMyBadgeArgs,
+            hasActiveCall: GQL.PrivateRoomHasActiveCallArgs,
         }
     >;
     SharedRoomKind?: EnumTypeResolver<'INTERNAL' | 'PUBLIC' | 'GROUP', GQLRoots.SharedRoomKindRoot>;
@@ -11177,6 +11175,7 @@ export interface GQLResolver {
             pinnedMessage: GQL.SharedRoomPinnedMessageArgs,
             canUnpinMessage: GQL.SharedRoomCanUnpinMessageArgs,
             welcomeMessage: GQL.SharedRoomWelcomeMessageArgs,
+            hasActiveCall: GQL.SharedRoomHasActiveCallArgs,
             stickerPack: GQL.SharedRoomStickerPackArgs,
             organization: GQL.SharedRoomOrganizationArgs,
             membersCount: GQL.SharedRoomMembersCountArgs,
@@ -11330,7 +11329,7 @@ export interface GQLResolver {
         }
     >;
     ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom' | 'DiscoverChatsCollection' | 'Channel'>;
-    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged' | 'UpdateChatMessage' | 'UpdateChatMessageDeleted' | 'UpdateChatDraftChanged' | 'UpdateSettingsChanged'>;
+    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged' | 'UpdateChatMessage' | 'UpdateChatMessageDeleted' | 'UpdateChatDraftChanged' | 'UpdateSettingsChanged' | 'UpdateRoomChanged'>;
     UpdateChatRead?: ComplexTypedResolver<
         GQL.UpdateChatRead,
         GQLRoots.UpdateChatReadRoot,
@@ -11405,6 +11404,16 @@ export interface GQLResolver {
         },
         {
             settings: GQL.UpdateSettingsChangedSettingsArgs,
+        }
+    >;
+    UpdateRoomChanged?: ComplexTypedResolver<
+        GQL.UpdateRoomChanged,
+        GQLRoots.UpdateRoomChangedRoot,
+        {
+            room: GQLRoots.RoomRoot,
+        },
+        {
+            room: GQL.UpdateRoomChangedRoomArgs,
         }
     >;
 }

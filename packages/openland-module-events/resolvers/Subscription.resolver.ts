@@ -14,8 +14,6 @@ export const Resolver: GQLResolver = {
         __resolveType: (src) => {
             if (src.type === 'started') {
                 return 'UpdateSubscriptionStarted';
-            } else if (src.type === 'checkpoint') {
-                return 'UpdateSubscriptionCheckpoint';
             } else if (src.type === 'update') {
                 return 'UpdateSubscriptionEvent';
             } else if (src.type === 'update-ephemeral') {
@@ -26,10 +24,6 @@ export const Resolver: GQLResolver = {
         }
     },
     UpdateSubscriptionStarted: {
-        seq: (src) => src.seq,
-        state: (src) => IDs.SequenceStateV1.serialize(src.state)
-    },
-    UpdateSubscriptionCheckpoint: {
         seq: (src) => src.seq,
         state: (src) => IDs.SequenceStateV1.serialize(src.state)
     },
@@ -62,8 +56,6 @@ export const Resolver: GQLResolver = {
                         iterator.push({ type: 'update', sequence: e.feed, seq: e.seq, pts: e.pts, update: e.event });
                     } else if (e.type === 'update-ephemeral') {
                         iterator.push({ type: 'update-ephemeral', sequence: e.feed, seq: e.seq, update: e.event });
-                    } else if (e.type === 'checkpoint') {
-                        iterator.push({ type: 'checkpoint', state: e.state, seq: e.seq });
                     } else {
                         // Cancel on any other event
                         if (!completed) {
@@ -136,12 +128,6 @@ export const Resolver: GQLResolver = {
             };
         }),
         updatesDifference: withUser(async (ctx, args, uid) => {
-
-            // TODO: Get difference from older events
-            // VTs generated with 10 sec delay
-            // <Buffer 00 00 06 75 de 95 ef ae 00 00>
-            // <Buffer 00 00 06 75 df 2e a5 dc 00 00>
-
             return await Modules.Events.mediator.getDifference(ctx, uid, IDs.SequenceStateV1.parse(args.state));
         }),
         sequenceDifference: withUser(async (ctx, args, uid) => {

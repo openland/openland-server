@@ -1,4 +1,4 @@
-import { UpdateChatDraftUpdated, UpdateSettingsChanged } from './../openland-module-db/store';
+import { UpdateChatDraftUpdated, UpdateRoomChanged, UpdateSettingsChanged } from './../openland-module-db/store';
 import { encoders } from '@openland/foundationdb';
 import { Store } from 'openland-module-db/FDB';
 import {
@@ -22,7 +22,8 @@ const CommonEvents = [
     UpdateChatRead,
     UpdateChatDraftUpdated,
     UpdateProfileChanged,
-    UpdateSettingsChanged
+    UpdateSettingsChanged,
+    UpdateRoomChanged
 ];
 
 export type CommonEvent = ReturnType<(typeof CommonEvents[number])['create']>;
@@ -60,7 +61,9 @@ export function commonEventParse(src: Buffer): CommonEvent | null {
 const ChatEvents = [
     UpdateChatMessage,
     UpdateChatMessageUpdated,
-    UpdateChatMessageDeleted
+    UpdateChatMessageDeleted,
+    UpdateRoomChanged,
+    UpdateProfileChanged
 ];
 
 export type ChatEvent = ReturnType<(typeof ChatEvents[number])['create']>;
@@ -101,7 +104,6 @@ export type UserSubscriptionHandlerEvent =
     | { type: 'started', seq: number, state: string }
     | { type: 'update', seq: number, feed: FeedReference, pts: number, event: Event }
     | { type: 'update-ephemeral', seq: number, feed: FeedReference, event: Event }
-    | { type: 'checkpoint', seq: number, state: string }
     | { type: 'closed' };
 
 //

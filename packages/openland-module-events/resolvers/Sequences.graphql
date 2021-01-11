@@ -9,12 +9,13 @@ type SequenceCommon implements Sequence {
 type SequenceChatStates {
     counter: Int!
     mentions: Int!
-    total: Int!
-    seq: Int!
+    readSeq: Int!
 }
 
 type SequenceChat implements Sequence {
     id: ID!
     cid: ID!
     states: SequenceChatStates
+    room: Room
+    topMessage: ModernMessage
 }

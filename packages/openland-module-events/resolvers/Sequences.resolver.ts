@@ -2,6 +2,7 @@ import { FeedReference } from './../Definitions';
 import { IDs, IdsFactory } from 'openland-module-api/IDs';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { Modules } from 'openland-modules/Modules';
+import { Store } from 'openland-module-db/FDB';
 
 export function parseSequenceId(src: string, uid: number) {
     let sequence: FeedReference;
@@ -46,6 +47,27 @@ export const Resolver: GQLResolver = {
     SequenceChat: {
         id: (src, { }, ctx) => src.type === 'chat-private' ? IDs.SequenceChatPrivate.serialize(src.cid) : IDs.SequenceChat.serialize(src.cid),
         cid: (src, { }, ctx) => IDs.Conversation.serialize(src.cid),
+        room: async (src, { }, ctx) => {
+            if (await Modules.Messaging.room.userWasKickedFromRoom(ctx, ctx.auth.uid!, src.cid)) {
+                return src.cid;
+            } else if (!await Modules.Messaging.room.canUserSeeChat(ctx, ctx.auth.uid!, src.cid)) {
+                return null;
+            }
+            return src.cid;
+        },
+        topMessage: async (src, args, ctx) => {
+            if (src.type === 'chat') {
+                if (!(await Modules.Messaging.room.isRoomMember(ctx, ctx.auth.uid!, src.cid))) {
+                    return null;
+                }
+            }
+            let res = (await Store.Message.chat.query(ctx, src.cid!, { limit: 1, reverse: true })).items;
+            if (res.length > 0) {
+                return res[0];
+            } else {
+                return null;
+            }
+        },
         states: async (src, { }, ctx) => {
             if (src.type === 'chat') {
                 if (!(await Modules.Messaging.room.isRoomMember(ctx, ctx.auth.uid!, src.cid))) {
@@ -54,10 +76,9 @@ export const Resolver: GQLResolver = {
             }
             let counter = await Modules.Messaging.counters.fetchUserUnreadInChat(ctx, ctx.auth.uid!, src.cid);
             let mentions = await Modules.Messaging.counters.fetchUserMentionsInChat(ctx, ctx.auth.uid!, src.cid);
-            let total = await Modules.Messaging.messaging.getMessagesCount(ctx, src.cid);
-            let seq = await Modules.Messaging.messaging.getUserReadSeq(ctx, src.cid, ctx.auth.uid!);
+            let readSeq = await Modules.Messaging.messaging.getUserReadSeq(ctx, src.cid, ctx.auth.uid!);
             return {
-                counter, mentions, total, seq
+                counter, mentions, readSeq
             };
         }
     }

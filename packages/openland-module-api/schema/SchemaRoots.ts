@@ -94,7 +94,7 @@ import {
     UpdateChatMessageUpdated,
     UpdateChatMessageDeleted,
     ModernBadge,
-    UpdateSettingsChanged, UpdateChatDraftUpdated,
+    UpdateSettingsChanged, UpdateChatDraftUpdated, UpdateRoomChanged,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -823,6 +823,7 @@ export namespace GQLRoots {
     export type UpdateChatMessageDeletedRoot = UpdateChatMessageDeleted;
     export type UpdateChatDraftChangedRoot = UpdateChatDraftUpdated;
     export type UpdateSettingsChangedRoot = UpdateSettingsChanged;
+    export type UpdateRoomChangedRoot = UpdateRoomChanged;
     export type UpdateEventRoot = Event;
 
     export type SequenceCommonRoot = { type: 'common', uid: number };
@@ -855,7 +856,7 @@ export namespace GQLRoots {
 
     export type SyncChatRoot = { conversation: Conversation, sequence: SequenceRoot };
     export type SyncChatsConnectionRoot = { items: SyncChatRoot[], cursor: string | null };
-    export type SequenceChatStatesRoot = { counter: number, total: number, mentions: number, seq: number };
+    export type SequenceChatStatesRoot = { counter: number, mentions: number, readSeq: number };
 
     export type DebugGlobalCounterRoot = GQL.DebugGlobalCounter;
     export type DebugChatCounterRoot = GQL.DebugChatCounter;

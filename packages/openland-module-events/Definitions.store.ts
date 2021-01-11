@@ -33,6 +33,9 @@ export function defineEvents() {
         field('cid', integer());
         field('mid', integer());
     });
+    event('UpdateRoomChanged', () => {
+        field('cid', integer());
+    });
 
     event('UpdateChatDraftUpdated', () => {
         field('uid', integer());

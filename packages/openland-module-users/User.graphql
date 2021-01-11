@@ -44,6 +44,7 @@ type UserChatWithBadge {
 extend type Query {
     me: User
     user(id: ID!): User!
+    users(ids: [ID!]!): [User!]!
     mySuccessfulInvitesCount: Int!
     shouldAskForAppReview: Boolean!
 }

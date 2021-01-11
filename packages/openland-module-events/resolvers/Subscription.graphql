@@ -7,11 +7,6 @@ type UpdateSubscriptionStarted {
     state: String!
 }
 
-type UpdateSubscriptionCheckpoint {
-    seq: Int!
-    state: String!
-}
-
 type UpdateSubscriptionEvent {
     seq: Int!
     pts: Int!
@@ -25,7 +20,7 @@ type UpdateSubscriptionEphemeralEvent {
     sequence: Sequence!
 }
 
-union UpdateSubscription = UpdateSubscriptionStarted | UpdateSubscriptionCheckpoint | UpdateSubscriptionEvent | UpdateSubscriptionEphemeralEvent
+union UpdateSubscription = UpdateSubscriptionStarted | UpdateSubscriptionEvent | UpdateSubscriptionEphemeralEvent
 
 extend type Subscription {
     watchUpdates: UpdateSubscription!

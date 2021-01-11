@@ -207,6 +207,7 @@ export class DeliveryMediator {
         // Update dialogs
         await inTx(parent, async (ctx) => {
             this.repo.deliverDialogBumpToUser(ctx, uid, cid, date);
+            await this.room.notifyRoomUpdatedPersonal(ctx, cid, uid);
         });
     }
 
@@ -214,18 +215,21 @@ export class DeliveryMediator {
         // Update dialogs
         await inTx(parent, async (ctx) => {
             this.repo.deliverDialogMuteChangedToUser(ctx, uid, cid, mute);
+            await this.room.notifyRoomUpdatedPersonal(ctx, cid, uid);
         });
     }
 
     onDialogGotAccess = async (parent: Context, uid: number, cid: number) => {
         await inTx(parent, async (ctx) => {
             this.repo.deliverDialogGotAccessToUser(ctx, uid, cid);
+            await this.room.notifyRoomUpdatedPersonal(ctx, cid, uid);
         });
     }
 
     onDialogLostAccess = async (parent: Context, uid: number, cid: number) => {
         await inTx(parent, async (ctx) => {
             this.repo.deliverDialogLostAccessToUser(ctx, uid, cid);
+            await this.room.notifyRoomUpdatedPersonal(ctx, cid, uid);
         });
     }
 
@@ -244,6 +248,7 @@ export class DeliveryMediator {
             } else {
                 this.queueFanOut.pushWork(ctx, { messageId: 0, cid, action: 'call-inactive' });
             }
+            await this.room.notifyRoomUpdated(ctx, cid);
         });
     }
 

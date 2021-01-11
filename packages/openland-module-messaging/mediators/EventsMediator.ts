@@ -4,7 +4,7 @@ import { MessagesEventsRepository } from './../repositories/MessagesEventsReposi
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { Modules } from 'openland-modules/Modules';
-import { UpdateChatMessage, UpdateChatMessageDeleted, UpdateChatMessageUpdated, UpdateChatRead } from 'openland-module-db/store';
+import { UpdateChatMessage, UpdateChatMessageDeleted, UpdateChatMessageUpdated, UpdateChatRead, UpdateRoomChanged } from 'openland-module-db/store';
 
 @injectable()
 export class EventsMediator {
@@ -41,6 +41,10 @@ export class EventsMediator {
         await Modules.Events.postToCommon(ctx, uid, UpdateChatRead.create({ cid, seq, uid }));
     }
 
+    async onChatUpdatedPersonal(ctx: Context, cid: number, uid: number) {
+        await Modules.Events.postToCommon(ctx, uid, UpdateRoomChanged.create({ cid }));
+    }
+
     //
     // Group Updates
     //
@@ -58,6 +62,10 @@ export class EventsMediator {
     async onGroupMessageDeleted(ctx: Context, cid: number, mid: number, uid: number, visibleOnlyForUids: number[]) {
         this.messagingEvents.postMessageDeleted(ctx, cid, mid, visibleOnlyForUids);
         await Modules.Events.postToChat(ctx, cid, UpdateChatMessageDeleted.create({ cid, mid, uid }));
+    }
+
+    async onGroupChatUpdated(ctx: Context, cid: number) {
+        await Modules.Events.postToChat(ctx, cid, UpdateRoomChanged.create({ cid }));
     }
 
     //
@@ -101,6 +109,15 @@ export class EventsMediator {
             if (visibleOnlyForUids.length > 0 && !visibleOnlyForUids.find((u) => u === m)) {
                 continue;
             }
+            await Modules.Events.postToChatPrivate(ctx, cid, m, update);
+            this.userActiveChats.addChat(ctx, m, cid);
+        }
+    }
+
+    async onPrivateChatUpdated(ctx: Context, cid: number, members: number[]) {
+        let update = UpdateRoomChanged.create({ cid });
+        await Modules.Events.postToChat(ctx, cid, update);
+        for (let m of members) {
             await Modules.Events.postToChatPrivate(ctx, cid, m, update);
             this.userActiveChats.addChat(ctx, m, cid);
         }

@@ -81,22 +81,20 @@ export const Resolver: GQLResolver = {
     },
     PrivateRoom: {
         id: (root: RoomRoot) => IDs.Conversation.serialize(typeof root === 'number' ? root : root.id),
-        user: async (root: RoomRoot, args: {}, parent: Context) => {
+        user: async (root: RoomRoot, args: {}, ctx: Context) => {
             // In some cases we can't get ConversationPrivate here because it's not available in previous transaction, so we create new one
-            return await inTx(parent, async (ctx) => {
-                let proom = (await Store.ConversationPrivate.findById(ctx, typeof root === 'number' ? root : root.id))!;
-                if (proom.uid1 === parent.auth.uid!) {
-                    return proom.uid2;
-                } else if (proom.uid2 === parent.auth.uid!) {
-                    return proom.uid1;
-                } else {
-                    let deletedUserId = Modules.Users.getDeletedUserId();
-                    if (deletedUserId) {
-                        return deletedUserId;
-                    }
-                    throw new AccessDeniedError();
+            let proom = (await Store.ConversationPrivate.findById(ctx, typeof root === 'number' ? root : root.id))!;
+            if (proom.uid1 === ctx.auth.uid!) {
+                return proom.uid2;
+            } else if (proom.uid2 === ctx.auth.uid!) {
+                return proom.uid1;
+            } else {
+                let deletedUserId = Modules.Users.getDeletedUserId();
+                if (deletedUserId) {
+                    return deletedUserId;
                 }
-            });
+                throw new AccessDeniedError();
+            }
         },
         settings: async (root: RoomRoot, args: {}, ctx: Context) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)),
         pinnedMessage: async (root, args, ctx) => {
@@ -108,6 +106,9 @@ export const Resolver: GQLResolver = {
             }
         },
         myBadge: (root: RoomRoot, args: {}, ctx: Context) => null,
+        hasActiveCall: async (root: RoomRoot, args, ctx) => {
+            return await Modules.Calls.repo.hasActiveCall(ctx, typeof root === 'number' ? root : root.id);
+        },
     },
     SharedRoomMembershipStatus: {
         MEMBER: 'joined',
@@ -310,7 +311,10 @@ export const Resolver: GQLResolver = {
         featured: withConverationId(async (ctx, id) => {
             let room = await Store.ConversationRoom.findById(ctx, id);
             return !!room?.featured;
-        })
+        }),
+        hasActiveCall: withConverationId(async (ctx, id) => {
+            return await Modules.Calls.repo.hasActiveCall(ctx, id);
+        }),
     },
     RoomMember: {
         user: async (src, args, ctx) => (await Store.User.findById(ctx, src.uid))!,
