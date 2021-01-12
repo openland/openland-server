@@ -13,7 +13,10 @@ export function createWelcomeMessageWorker() {
                     if (welcomeMessage && welcomeMessage.isOn && welcomeMessage.sender) {
                         const conv = await Modules.Messaging.room.resolvePrivateChat(ctx, welcomeMessage.sender.id, task.uid);
                         if (conv && welcomeMessage.message.trim().length !== 0) {
-                            await Modules.Messaging.sendMessage(ctx, conv.id, welcomeMessage.sender.id, { message: welcomeMessage.message });
+                            await Modules.Messaging.sendMessage(ctx, conv.id, welcomeMessage.sender.id, {
+                                message: welcomeMessage.message,
+                                visibleOnlyForUids: [task.uid]
+                            });
                         }
                     }
                 });
