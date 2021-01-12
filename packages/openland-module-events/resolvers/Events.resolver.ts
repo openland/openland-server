@@ -58,7 +58,7 @@ export const Resolver: GQLResolver = {
     },
     UpdateChatMessageDeleted: {
         cid: (src) => IDs.Conversation.serialize(src.cid),
-        mid: (src) => IDs.Message.serialize(src.mid),
+        mid: (src) => IDs.ConversationMessage.serialize(src.mid),
         seq: async (src, { }, ctx) => (await Store.Message.findById(ctx, src.mid))!.seq!
     },
     UpdateChatDraftChanged: {
