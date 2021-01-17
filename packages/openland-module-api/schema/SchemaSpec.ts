@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '54a50806c6b2ba77b81607de446c82b7';
+export const GQL_SPEC_VERSION = '6f14e17bdae3cb7efb716112b1e58676';
 
 export namespace GQL {
     export interface CreditCard {
@@ -2008,6 +2008,7 @@ export namespace GQL {
     export interface StickerPackInput {
         title: Nullable<string>;
         published: Nullable<boolean>;
+        listed: Nullable<boolean>;
         stickers: Nullable<string[]>;
         private: Nullable<boolean>;
     }
