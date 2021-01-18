@@ -11,8 +11,8 @@ export function subsctractBuffer(src: Buffer, sub: Buffer): Buffer {
     let overflow = 0;
     let res: number[] = [];
     for (let i = src.length - 1; i >= 0; i--) {
-        let a = src.readInt8(i);
-        let b = sub.readInt8(i) + overflow;
+        let a = src.readUInt8(i);
+        let b = sub.readUInt8(i) + overflow;
         if (b > a) {
             overflow = 1;
             res.unshift(255 + a - b);
