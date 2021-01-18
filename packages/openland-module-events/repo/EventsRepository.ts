@@ -427,7 +427,7 @@ export class EventsRepository {
             });
 
             // Resolve actual afterSeq for non-forward and non-complete results
-            if (!state.forwardOnly && res.events.length > 0 && !res.hasMore) {
+            if (!state.forwardOnly && res.events.length > 0 && res.hasMore) {
                 afterSeq = await this.feedEvents.getPreviousSeq(ctx, feed, res.events[0].vt);
             }
 
