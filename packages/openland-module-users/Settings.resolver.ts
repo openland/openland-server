@@ -369,8 +369,7 @@ export const Resolver: GQLResolver = {
             if (!ctx.auth.uid || !ctx.auth.tid) {
                 return false;
             }
-            // Disable pushes for this token
-            await Modules.Push.disablePushForToken(ctx, ctx.auth.uid, ctx.auth.tid);
+            await Modules.Auth.sessions.terminateSession(ctx, ctx.auth.uid, ctx.auth.tid);
             return true;
         },
     },

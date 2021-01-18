@@ -37,6 +37,8 @@ export class SessionsMediator {
             throw new AccessDeniedError();
         }
         await this.tokenRepo.revokeTokenById(ctx, tid);
+        // Disable pushes for token
+        await Modules.Push.disablePushForToken(ctx, uid, tid);
     }
 
     async terminateAllSessionsExcept(ctx: Context, uid: number, tid: string) {
