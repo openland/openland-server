@@ -14,7 +14,9 @@ import { Store } from 'openland-module-db/FDB';
 import { EventsMediator } from './EventsMediator';
 import { EventsRepository } from 'openland-module-events/repo/EventsRepository';
 import { subsctractBuffer } from 'openland-module-events/utils/substractBuffer';
+import { createLogger } from '@openland/log';
 
+const logger = createLogger('events');
 export class TypedEventsMediator {
 
     readonly registry = new RegistrationRepository(Store.EventRegistrationsDirectory);
@@ -247,9 +249,10 @@ export class TypedEventsMediator {
         // <Buffer 00 00 06 75 de 95 ef ae 00 00>
         // <Buffer 00 00 06 75 df 2e a5 dc 00 00>
         // NOTE: Add two more bytes for tx-local part of versionstamp
-        const delta = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00]);
+        const delta = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
         const cursor = Buffer.from(state, 'base64');
         const adjusted = subsctractBuffer(cursor, delta);
+        logger.log(parent, 'Delta: ' + cursor.toString('hex') + ' -> ' + adjusted.toString('hex'));
 
         return await inTx(parent, async (ctx) => {
             let subscriber = await this.registry.getUserSubscriber(ctx, uid);
