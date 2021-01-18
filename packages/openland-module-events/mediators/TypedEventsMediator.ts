@@ -242,7 +242,7 @@ export class TypedEventsMediator {
         });
     }
 
-    async getDifference(parent: Context, uid: number, state: string) {
+    async getDifference(parent: Context, uid: number, state: string, strict: boolean = true) {
 
         // Adjust cursor
         // VTs generated with 10 sec delay
@@ -251,7 +251,7 @@ export class TypedEventsMediator {
         // NOTE: Add two more bytes for tx-local part of versionstamp
         const delta = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
         const cursor = Buffer.from(state, 'base64');
-        const adjusted = subsctractBuffer(cursor, delta);
+        const adjusted = strict ? cursor : subsctractBuffer(cursor, delta);
         logger.log(parent, 'Delta: ' + cursor.toString('hex') + ' -> ' + adjusted.toString('hex'));
 
         return await inTx(parent, async (ctx) => {
@@ -379,7 +379,7 @@ export class TypedEventsMediator {
                         }
                     } else if (e.type === 'update') {
                         let event = unpackFeedEvent(e.event);
-                        handler({ type: 'update', feed: event.feed, seq: e.seq, event: event.event, pts: e.pts });
+                        handler({ type: 'update', feed: event.feed, seq: e.seq, event: event.event, state: e.state.toString('base64'), pts: e.pts });
                     } else if (e.type === 'update-ephemeral') {
                         let event = unpackFeedEvent(e.event);
                         handler({ type: 'update-ephemeral', feed: event.feed, seq: e.seq, event: event.event });

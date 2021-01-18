@@ -1,6 +1,6 @@
 import { inTx, getTransaction } from '@openland/foundationdb';
 import { withUser } from 'openland-module-api/Resolvers';
-import { IDs } from 'openland-module-api/IDs';
+import { IDs, IdsFactory } from 'openland-module-api/IDs';
 import { Context } from '@openland/context';
 import { GQLRoots } from 'openland-module-api/schema/SchemaRoots';
 import { GQL, GQLResolver } from 'openland-module-api/schema/SchemaSpec';
@@ -8,6 +8,26 @@ import { createIterator } from 'openland-utils/asyncIterator';
 import { UserError } from 'openland-errors/UserError';
 import { Modules } from 'openland-modules/Modules';
 import { parseSequenceId } from './Sequences.resolver';
+import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
+
+function serializeVt(src: string, strict: boolean) {
+    if (strict) {
+        return IDs.SequenceStateStrict.serialize(src);
+    } else {
+        return IDs.SequenceStateFlex.serialize(src);
+    }
+}
+
+function parseVt(src: string) {
+    let resolved = IdsFactory.resolve(src);
+    if (resolved.type === IDs.SequenceStateStrict) {
+        return { strict: true, value: resolved.id as string };
+    } else if (resolved.type === IDs.SequenceStateFlex) {
+        return { strict: false, value: resolved.id as string };
+    } else {
+        throw new AccessDeniedError();
+    }
+}
 
 export const Resolver: GQLResolver = {
     UpdateSubscription: {
@@ -25,13 +45,14 @@ export const Resolver: GQLResolver = {
     },
     UpdateSubscriptionStarted: {
         seq: (src) => src.seq,
-        state: (src) => IDs.SequenceStateV1.serialize(src.state)
+        state: (src) => serializeVt(src.state, true)
     },
     UpdateSubscriptionEvent: {
         seq: (src) => src.seq,
         pts: (src) => src.pts,
         sequence: (src) => src.sequence,
-        event: (src) => src.update
+        event: (src) => src.update,
+        state: (src) => serializeVt(src.state, false)
     },
     UpdateSubscriptionEphemeralEvent: {
         seq: (src) => src.seq,
@@ -53,7 +74,7 @@ export const Resolver: GQLResolver = {
                     if (e.type === 'started') {
                         iterator.push({ type: 'started', state: e.state, seq: e.seq });
                     } else if (e.type === 'update') {
-                        iterator.push({ type: 'update', sequence: e.feed, seq: e.seq, pts: e.pts, update: e.event });
+                        iterator.push({ type: 'update', sequence: e.feed, seq: e.seq, pts: e.pts, state: e.state, update: e.event });
                     } else if (e.type === 'update-ephemeral') {
                         iterator.push({ type: 'update-ephemeral', sequence: e.feed, seq: e.seq, update: e.event });
                     } else {
@@ -80,7 +101,7 @@ export const Resolver: GQLResolver = {
     },
     UpdatesState: {
         seq: (src) => src.seq,
-        state: (src) => IDs.SequenceStateV1.serialize(src.state),
+        state: (src) => serializeVt(src.state, true),
         sequences: (src) => src.sequences
     },
     UpdatesSequenceState: {
@@ -90,7 +111,7 @@ export const Resolver: GQLResolver = {
     },
     UpdatesDifference: {
         seq: (src) => src.seq,
-        state: (src) => IDs.SequenceStateV1.serialize(src.state),
+        state: (src) => serializeVt(src.state, true),
         sequences: (src) => src.sequences,
         hasMore: (src) => src.hasMore
     },
@@ -128,7 +149,8 @@ export const Resolver: GQLResolver = {
             };
         }),
         updatesDifference: withUser(async (ctx, args, uid) => {
-            return await Modules.Events.mediator.getDifference(ctx, uid, IDs.SequenceStateV1.parse(args.state));
+            let state = parseVt(args.state);
+            return await Modules.Events.mediator.getDifference(ctx, uid, state.value, state.strict);
         }),
         sequenceDifference: withUser(async (ctx, args, uid) => {
             let sequence = parseSequenceId(args.id, uid);

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '6f14e17bdae3cb7efb716112b1e58676';
+export const GQL_SPEC_VERSION = '482fcdf75223fc73b1c90e1201f71e1d';
 
 export namespace GQL {
     export interface CreditCard {
@@ -301,11 +301,13 @@ export namespace GQL {
         seq: number;
         pts: number;
         event: UpdateEvent;
+        state: string;
         sequence: Sequence;
     }
     export interface UpdateSubscriptionEventSeqArgs { }
     export interface UpdateSubscriptionEventPtsArgs { }
     export interface UpdateSubscriptionEventEventArgs { }
+    export interface UpdateSubscriptionEventStateArgs { }
     export interface UpdateSubscriptionEventSequenceArgs { }
     export interface UpdateSubscriptionEphemeralEvent {
         seq: number;
@@ -6529,6 +6531,7 @@ export interface GQLResolver {
             seq: GQL.UpdateSubscriptionEventSeqArgs,
             pts: GQL.UpdateSubscriptionEventPtsArgs,
             event: GQL.UpdateSubscriptionEventEventArgs,
+            state: GQL.UpdateSubscriptionEventStateArgs,
             sequence: GQL.UpdateSubscriptionEventSequenceArgs,
         }
     >;
