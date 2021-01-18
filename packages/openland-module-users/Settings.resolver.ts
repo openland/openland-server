@@ -365,6 +365,14 @@ export const Resolver: GQLResolver = {
         pairPhone: withUser(async (parent, args, uid) => {
             return await Modules.Auth.authManagement.pairPhone(parent, uid, args.sessionId, args.confirmationCode);
         }),
+        onLogOut: async (root, args, ctx) => {
+            if (!ctx.auth.uid || !ctx.auth.tid) {
+                return false;
+            }
+            // Disable pushes for this token
+            await Modules.Push.disablePushForToken(ctx, ctx.auth.uid, ctx.auth.tid);
+            return true;
+        },
     },
     Subscription: {
         watchSettings: {

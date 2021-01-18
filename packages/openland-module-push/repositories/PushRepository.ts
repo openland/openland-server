@@ -120,4 +120,26 @@ export class PushRepository {
             }
         });
     }
+
+    async disablePushForToken(parent: Context, uid: number, tid: string) {
+        await inTx(parent, async (ctx) => {
+            let [
+                apple,
+                firebase,
+                safari,
+                web
+            ] = await Promise.all([
+                this.entites.PushApple.user.findAll(ctx, uid),
+                this.entites.PushFirebase.user.findAll(ctx, uid),
+                this.entites.PushSafari.user.findAll(ctx, uid),
+                this.entites.PushWeb.user.findAll(ctx, uid),
+            ]);
+
+            for (let push of [...apple, ...firebase, ...safari, ...web]) {
+                if (push.tid === tid) {
+                    push.enabled = false;
+                }
+            }
+        });
+    }
 }
