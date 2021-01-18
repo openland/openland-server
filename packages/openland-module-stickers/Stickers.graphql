@@ -34,6 +34,7 @@ input StickerInput {
 input StickerPackInput {
     title: String
     published: Boolean
+    listed: Boolean
     stickers: [ID!]
     private: Boolean
 }

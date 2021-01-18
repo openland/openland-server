@@ -411,6 +411,13 @@ export const Resolver: GQLResolver = {
             let json = await res.json();
             return JSON.stringify(json);
         }),
+        debugUserAuthPoints: withPermission('super-admin', async (ctx, args) => {
+            let user = await Store.User.findById(ctx, IDs.User.parse(args.id));
+            return {
+                email: user?.email || null,
+                phone: user?.phone || null
+            };
+        })
     },
     Mutation: {
         debugSendSMS: withPermission('super-admin', async (ctx, args) => {

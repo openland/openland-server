@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'e55a094dfc295b73830037e3392a42d0';
+export const GQL_SPEC_VERSION = '6f14e17bdae3cb7efb716112b1e58676';
 
 export namespace GQL {
     export interface CreditCard {
@@ -2008,6 +2008,7 @@ export namespace GQL {
     export interface StickerPackInput {
         title: Nullable<string>;
         published: Nullable<boolean>;
+        listed: Nullable<boolean>;
         stickers: Nullable<string[]>;
         private: Nullable<boolean>;
     }
@@ -4012,6 +4013,7 @@ export namespace GQL {
         debugChatTree: string;
         debugChatMessages: ModernMessage[];
         debugUnreadChats: string[];
+        debugUserAuthPoints: Nullable<AuthPoint>;
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
@@ -4289,6 +4291,9 @@ export namespace GQL {
     }
     export interface QueryDebugUnreadChatsArgs {
         user: OptionalNullable<string>;
+    }
+    export interface QueryDebugUserAuthPointsArgs {
+        id: string;
     }
     export interface QueryDialogsArgs {
         first: number;
@@ -9580,6 +9585,7 @@ export interface GQLResolver {
             debugGlobalCounterDirect: GQLRoots.DebugGlobalCounterRoot,
             debugGlobalCounterAsync: GQLRoots.DebugGlobalCounterRoot,
             debugChatMessages: GQLRoots.ModernMessageRoot[],
+            debugUserAuthPoints: Nullable<GQLRoots.AuthPointRoot>,
             dialogs: GQLRoots.DialogsConnectionRoot,
             settings: GQLRoots.SettingsRoot,
             authPoints: GQLRoots.AuthPointRoot,
@@ -9767,6 +9773,7 @@ export interface GQLResolver {
             debugChatTree: GQL.QueryDebugChatTreeArgs,
             debugChatMessages: GQL.QueryDebugChatMessagesArgs,
             debugUnreadChats: GQL.QueryDebugUnreadChatsArgs,
+            debugUserAuthPoints: GQL.QueryDebugUserAuthPointsArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
             authPoints: GQL.QueryAuthPointsArgs,
