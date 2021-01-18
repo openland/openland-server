@@ -263,12 +263,13 @@ export class TypedEventsMediator {
             let res = await this.events.repo.getDifference(ctx, subscriber, adjusted, { limits: { forwardOnly: 100, generic: 20, global: 300 } });
 
             // Parse sequences
-            let sequences: { sequence: FeedReference, pts: number, events: { pts: number, event: Event }[] }[] = [];
+            let sequences: { sequence: FeedReference, pts: number, hasMore: boolean, events: { pts: number, event: Event }[] }[] = [];
             for (let f of res.updates) {
                 let update = unpackFeedEvent(f.events[0].event);
                 let sequence = update.feed;
                 sequences.push({
                     sequence,
+                    hasMore: f.hasMore,
                     pts: f.afterSeq,
                     events: f.events.map((v) => ({
                         event: unpackFeedEvent(v.event).event,

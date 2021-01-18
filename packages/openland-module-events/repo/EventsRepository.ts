@@ -437,7 +437,7 @@ export class EventsRepository {
 
     async getDifference(parent: Context, subscriber: Buffer, after: Buffer, opts: { limits: { forwardOnly: number, generic: number, global: number } }) {
         return await inTx(parent, async (ctx) => {
-            let updates: { feed: Buffer, afterSeq: number, events: { seq: number, vt: Buffer, event: Buffer }[] }[] = [];
+            let updates: { feed: Buffer, afterSeq: number, hasMore: boolean, events: { seq: number, vt: Buffer, event: Buffer }[] }[] = [];
             let feeds: Buffer[] = [];
 
             // Resolve changed feeds
@@ -465,7 +465,8 @@ export class EventsRepository {
                 updates.push({
                     feed: d.feed,
                     afterSeq: d.diff.afterSeq,
-                    events: d.diff.events
+                    events: d.diff.events,
+                    hasMore: d.diff.hasMore
                 });
 
                 // Calculate total

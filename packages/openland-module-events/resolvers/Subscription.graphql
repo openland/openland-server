@@ -61,6 +61,7 @@ type UpdatesSequenceDifference {
     after: Int!
     sequence: Sequence!
     events: [UpdatesDifferenceEvent!]!
+    hasMore: Boolean!
 }
 
 type UpdatesDifference {

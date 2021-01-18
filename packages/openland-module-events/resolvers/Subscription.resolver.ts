@@ -118,7 +118,8 @@ export const Resolver: GQLResolver = {
     UpdatesSequenceDifference: {
         events: (src) => src.events,
         after: (src) => src.pts,
-        sequence: (src) => src.sequence
+        sequence: (src) => src.sequence,
+        hasMore: (src) => src.hasMore
     },
     UpdatesDifferenceEvent: {
         pts: (src) => src.pts,
