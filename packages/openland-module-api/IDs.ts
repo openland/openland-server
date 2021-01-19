@@ -106,7 +106,9 @@ export const IDs = {
     ContactCursor2: IdsFactory.createId('ContactCursor2'),
     ContactsUpdatesCursor: IdsFactory.createStringId('ContactsUpdatesCursor'),
 
-    SequenceStateV1: IdsFactory.createStringId('SequenceState-V1'),
+    SequenceStateStrict: IdsFactory.createStringId('SequenceState-V1'),
+    SequenceStateFlex: IdsFactory.createStringId('SequenceState-V2'),
+    
     SequenceUser: IdsFactory.createId('SequenceUser'),
     SequenceChat: IdsFactory.createId('SequenceChat'),
     SequenceChatPrivate: IdsFactory.createId('SequenceChatPrivate'),

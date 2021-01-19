@@ -11,6 +11,7 @@ type UpdateSubscriptionEvent {
     seq: Int!
     pts: Int!
     event: UpdateEvent!
+    state: String!
     sequence: Sequence!
 }
 
@@ -60,6 +61,7 @@ type UpdatesSequenceDifference {
     after: Int!
     sequence: Sequence!
     events: [UpdatesDifferenceEvent!]!
+    hasMore: Boolean!
 }
 
 type UpdatesDifference {

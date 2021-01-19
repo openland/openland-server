@@ -25,7 +25,8 @@ export type SubscriberReceiverEvent =
         feed: Buffer,
         seq: number,
         pts: number,
-        event: Buffer
+        event: Buffer,
+        state: Buffer
     }
     | {
         type: 'update-ephemeral',
@@ -229,7 +230,7 @@ export class SubscriberReceiver {
     private processEvent(src: BusEvent) {
         // Call handler
         if (src.event.type === 'update') {
-            this.handler({ type: 'update', feed: src.event.feed, seq: src.seq, pts: src.event.pts!, event: src.event.event! });
+            this.handler({ type: 'update', feed: src.event.feed, seq: src.seq, pts: src.event.pts!, state: src.event.vt, event: src.event.event! });
         } else if (src.event.type === 'update-ephemeral') {
             this.handler({ type: 'update-ephemeral', feed: src.event.feed, seq: src.seq, event: src.event.event! });
         } else if (src.event.type === 'subscribe') {

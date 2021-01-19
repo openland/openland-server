@@ -102,7 +102,7 @@ export type Event = CommonEvent | ChatEvent;
 
 export type UserSubscriptionHandlerEvent =
     | { type: 'started', seq: number, state: string }
-    | { type: 'update', seq: number, feed: FeedReference, pts: number, event: Event }
+    | { type: 'update', seq: number, feed: FeedReference, pts: number, state: string, event: Event }
     | { type: 'update-ephemeral', seq: number, feed: FeedReference, event: Event }
     | { type: 'closed' };
 

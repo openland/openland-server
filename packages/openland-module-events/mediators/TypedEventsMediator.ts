@@ -14,7 +14,9 @@ import { Store } from 'openland-module-db/FDB';
 import { EventsMediator } from './EventsMediator';
 import { EventsRepository } from 'openland-module-events/repo/EventsRepository';
 import { subsctractBuffer } from 'openland-module-events/utils/substractBuffer';
+import { createLogger } from '@openland/log';
 
+const logger = createLogger('events');
 export class TypedEventsMediator {
 
     readonly registry = new RegistrationRepository(Store.EventRegistrationsDirectory);
@@ -240,16 +242,17 @@ export class TypedEventsMediator {
         });
     }
 
-    async getDifference(parent: Context, uid: number, state: string) {
+    async getDifference(parent: Context, uid: number, state: string, strict: boolean = true) {
 
         // Adjust cursor
         // VTs generated with 10 sec delay
         // <Buffer 00 00 06 75 de 95 ef ae 00 00>
         // <Buffer 00 00 06 75 df 2e a5 dc 00 00>
         // NOTE: Add two more bytes for tx-local part of versionstamp
-        const delta = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00]);
+        const delta = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
         const cursor = Buffer.from(state, 'base64');
-        const adjusted = subsctractBuffer(cursor, delta);
+        const adjusted = strict ? cursor : subsctractBuffer(cursor, delta);
+        logger.log(parent, 'Delta: ' + cursor.toString('hex') + ' -> ' + adjusted.toString('hex'));
 
         return await inTx(parent, async (ctx) => {
             let subscriber = await this.registry.getUserSubscriber(ctx, uid);
@@ -260,12 +263,13 @@ export class TypedEventsMediator {
             let res = await this.events.repo.getDifference(ctx, subscriber, adjusted, { limits: { forwardOnly: 100, generic: 20, global: 300 } });
 
             // Parse sequences
-            let sequences: { sequence: FeedReference, pts: number, events: { pts: number, event: Event }[] }[] = [];
+            let sequences: { sequence: FeedReference, pts: number, hasMore: boolean, events: { pts: number, event: Event }[] }[] = [];
             for (let f of res.updates) {
                 let update = unpackFeedEvent(f.events[0].event);
                 let sequence = update.feed;
                 sequences.push({
                     sequence,
+                    hasMore: f.hasMore,
                     pts: f.afterSeq,
                     events: f.events.map((v) => ({
                         event: unpackFeedEvent(v.event).event,
@@ -376,7 +380,7 @@ export class TypedEventsMediator {
                         }
                     } else if (e.type === 'update') {
                         let event = unpackFeedEvent(e.event);
-                        handler({ type: 'update', feed: event.feed, seq: e.seq, event: event.event, pts: e.pts });
+                        handler({ type: 'update', feed: event.feed, seq: e.seq, event: event.event, state: e.state.toString('base64'), pts: e.pts });
                     } else if (e.type === 'update-ephemeral') {
                         let event = unpackFeedEvent(e.event);
                         handler({ type: 'update-ephemeral', feed: event.feed, seq: e.seq, event: event.event });

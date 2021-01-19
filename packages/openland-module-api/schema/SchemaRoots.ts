@@ -837,7 +837,7 @@ export namespace GQLRoots {
 
     export type UpdateSubscriptionStartedRoot = { type: 'started', seq: number, state: string };
     export type UpdateSubscriptionCheckpointRoot = { type: 'checkpoint', seq: number, state: string };
-    export type UpdateSubscriptionEventRoot = { type: 'update', seq: number, pts: number, update: UpdateEventRoot, sequence: SequenceRoot };
+    export type UpdateSubscriptionEventRoot = { type: 'update', seq: number, pts: number, state: string, update: UpdateEventRoot, sequence: SequenceRoot };
     export type UpdateSubscriptionEphemeralEventRoot = { type: 'update-ephemeral', seq: number, update: UpdateEventRoot, sequence: SequenceRoot };
     export type UpdateSubscriptionRoot = UpdateSubscriptionStartedRoot | UpdateSubscriptionCheckpointRoot | UpdateSubscriptionEventRoot | UpdateSubscriptionEphemeralEventRoot;
 
@@ -845,7 +845,7 @@ export namespace GQLRoots {
     export type UpdatesStateRoot = { seq: number, state: string, sequences: UpdatesSequenceStateRoot[] };
 
     export type UpdatesDifferenceEventRoot = { pts: number, event: UpdateEventRoot };
-    export type UpdatesSequenceDifferenceRoot = { sequence: SequenceRoot, pts: number, events: UpdatesDifferenceEventRoot[] };
+    export type UpdatesSequenceDifferenceRoot = { sequence: SequenceRoot, pts: number, hasMore: boolean, events: UpdatesDifferenceEventRoot[] };
     export type UpdatesDifferenceRoot = { seq: number, state: string, hasMore: boolean, sequences: UpdatesSequenceDifferenceRoot[] };
 
     export type SequenceDifferenceRoot = { hasMore: boolean, pts: number, sequence: SequenceRoot, events: UpdatesDifferenceEventRoot[] };

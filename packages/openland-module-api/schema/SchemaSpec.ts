@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '6f14e17bdae3cb7efb716112b1e58676';
+export const GQL_SPEC_VERSION = '6093a01db1c8448f04362b482f6ed796';
 
 export namespace GQL {
     export interface CreditCard {
@@ -301,11 +301,13 @@ export namespace GQL {
         seq: number;
         pts: number;
         event: UpdateEvent;
+        state: string;
         sequence: Sequence;
     }
     export interface UpdateSubscriptionEventSeqArgs { }
     export interface UpdateSubscriptionEventPtsArgs { }
     export interface UpdateSubscriptionEventEventArgs { }
+    export interface UpdateSubscriptionEventStateArgs { }
     export interface UpdateSubscriptionEventSequenceArgs { }
     export interface UpdateSubscriptionEphemeralEvent {
         seq: number;
@@ -342,10 +344,12 @@ export namespace GQL {
         after: number;
         sequence: Sequence;
         events: UpdatesDifferenceEvent[];
+        hasMore: boolean;
     }
     export interface UpdatesSequenceDifferenceAfterArgs { }
     export interface UpdatesSequenceDifferenceSequenceArgs { }
     export interface UpdatesSequenceDifferenceEventsArgs { }
+    export interface UpdatesSequenceDifferenceHasMoreArgs { }
     export interface UpdatesDifference {
         seq: number;
         state: string;
@@ -2188,6 +2192,7 @@ export namespace GQL {
         pairEmail: boolean;
         sendPhonePairCode: string;
         pairPhone: boolean;
+        onLogOut: boolean;
         updateSettings: Settings;
         conferenceAlterMediaState: Conference;
         conferenceAddScreenShare: Conference;
@@ -2657,6 +2662,7 @@ export namespace GQL {
         sessionId: string;
         confirmationCode: string;
     }
+    export interface MutationOnLogOutArgs { }
     export interface MutationUpdateSettingsArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
     }
@@ -6529,6 +6535,7 @@ export interface GQLResolver {
             seq: GQL.UpdateSubscriptionEventSeqArgs,
             pts: GQL.UpdateSubscriptionEventPtsArgs,
             event: GQL.UpdateSubscriptionEventEventArgs,
+            state: GQL.UpdateSubscriptionEventStateArgs,
             sequence: GQL.UpdateSubscriptionEventSequenceArgs,
         }
     >;
@@ -6592,6 +6599,7 @@ export interface GQLResolver {
             after: GQL.UpdatesSequenceDifferenceAfterArgs,
             sequence: GQL.UpdatesSequenceDifferenceSequenceArgs,
             events: GQL.UpdatesSequenceDifferenceEventsArgs,
+            hasMore: GQL.UpdatesSequenceDifferenceHasMoreArgs,
         }
     >;
     UpdatesDifference?: ComplexTypedResolver<
@@ -8767,6 +8775,7 @@ export interface GQLResolver {
             pairEmail: GQL.MutationPairEmailArgs,
             sendPhonePairCode: GQL.MutationSendPhonePairCodeArgs,
             pairPhone: GQL.MutationPairPhoneArgs,
+            onLogOut: GQL.MutationOnLogOutArgs,
             updateSettings: GQL.MutationUpdateSettingsArgs,
             conferenceAlterMediaState: GQL.MutationConferenceAlterMediaStateArgs,
             conferenceAddScreenShare: GQL.MutationConferenceAddScreenShareArgs,
