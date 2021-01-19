@@ -2059,6 +2059,7 @@ export default declareSchema(() => {
         field('listed', optional(boolean()));
 
         rangeIndex('author', ['uid', 'id']);
+        rangeIndex('listed', ['createdAt']).withCondition(a => a.listed);
     });
 
     entity('UserStickersState', () => {
