@@ -28,7 +28,7 @@ import { loadAllModules, startAllModules } from 'openland-modules/loadAllModules
 import { createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { setupFdbTracing } from '../openland-module-db/fdbTracing';
-import { setupNodeJSTracing } from './nodeJSTracing';
+// import { setupNodeJSTracing } from './nodeJSTracing';
 
 const logger = createLogger('startup');
 
@@ -50,7 +50,7 @@ async function initServer() {
         await startAllModules(ctx);
         logger.log(ctx, 'Starting tracing');
         setupFdbTracing();
-        setupNodeJSTracing();
+        // setupNodeJSTracing();
         logger.log(ctx, 'Started');
     } catch (e) {
         logger.error(ctx, e, 'Unable to init server');

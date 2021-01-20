@@ -73,14 +73,14 @@ export class BucketCountingDirectory {
         let batches = await tx.getRangeAll(fromBuffer, toBuffer);
         let all = batches.map(v => encoders.tuple.unpack(v[1])).flat();
 
-        Metrics.CountingDirectoryBatchesRead.report(batches.length);
+        // Metrics.CountingDirectoryBatchesRead.report(batches.length);
         if (cursor.from !== null && cursor.from !== undefined) {
             all = all.filter(id => id! >= cursor.from!);
         }
         if (cursor.to !== null && cursor.to !== undefined) {
             all = all.filter(id => id! <= cursor.to!);
         }
-        Metrics.CountingDirectoryCountTime.report(Date.now() - start);
+        // Metrics.CountingDirectoryCountTime.report(Date.now() - start);
         return all.length;
     }
 }

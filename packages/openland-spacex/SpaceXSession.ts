@@ -1,6 +1,6 @@
 import { Modules } from 'openland-modules/Modules';
 import { SpaceXContext } from './SpaceXContext';
-import { currentRunningTime } from 'openland-utils/timer';
+// import { currentRunningTime } from 'openland-utils/timer';
 import { withReadOnlyTransaction, withoutTransaction } from '@openland/foundationdb';
 import { createTracer } from 'openland-log/createTracer';
 import { createLogger } from '@openland/log';
@@ -301,7 +301,7 @@ export class SpaceXSession {
         op: { document: DocumentNode, variables: any, operationName?: string }
     }) {
         return this._guard({ ctx: opts.ctx, type: opts.type, operationName: opts.op.operationName }, async (context) => {
-            let start = currentRunningTime();
+            // let start = currentRunningTime();
             let ctx = context;
             ctx = withCounters(ctx);
             let res = await Concurrency.Resolve.run(async () => execute({
@@ -312,30 +312,30 @@ export class SpaceXSession {
                 contextValue: ctx,
                 rootValue: opts.rootValue
             }));
-            let duration = currentRunningTime() - start;
-            let tag = opts.type + ' ' + (opts.op.operationName || 'Unknown');
-            Metrics.SpaceXOperationTime.report(duration);
-            Metrics.SpaceXOperationTimeTagged.report(tag, duration);
+            // let duration = currentRunningTime() - start;
+            // let tag = opts.type + ' ' + (opts.op.operationName || 'Unknown');
+            // Metrics.SpaceXOperationTime.report(duration);
+            // Metrics.SpaceXOperationTimeTagged.report(tag, duration);
             let counters = reportCounters(ctx);
             if (counters) {
-                Metrics.SpaceXWrites.report(counters.writeCount);
-                Metrics.SpaceXReads.report(counters.readCount);
-                Metrics.SpaceXWritesTagged.report(tag, counters.writeCount);
-                Metrics.SpaceXReadsTagged.report(tag, counters.readCount);
+                // Metrics.SpaceXWrites.report(counters.writeCount);
+                // Metrics.SpaceXReads.report(counters.readCount);
+                // Metrics.SpaceXWritesTagged.report(tag, counters.writeCount);
+                // Metrics.SpaceXReadsTagged.report(tag, counters.readCount);
 
-                if (opts.type === 'query') {
-                    Metrics.SpaceXWritesPerQuery.report(counters.writeCount);
-                    Metrics.SpaceXReadsPerQuery.report(counters.readCount);
-                } else if (opts.type === 'mutation') {
-                    Metrics.SpaceXWritesPerMutation.report(counters.writeCount);
-                    Metrics.SpaceXReadsPerMutation.report(counters.readCount);
-                } else if (opts.type === 'subscription') {
-                    Metrics.SpaceXWritesPerSubscription.report(counters.writeCount);
-                    Metrics.SpaceXReadsPerSubscription.report(counters.readCount);
-                } else if (opts.type === 'subscription-resolve') {
-                    Metrics.SpaceXWritesPerSubscriptionResolve.report(counters.writeCount);
-                    Metrics.SpaceXReadsPerSubscriptionResolve.report(counters.readCount);
-                }
+                // if (opts.type === 'query') {
+                //     Metrics.SpaceXWritesPerQuery.report(counters.writeCount);
+                //     Metrics.SpaceXReadsPerQuery.report(counters.readCount);
+                // } else if (opts.type === 'mutation') {
+                //     Metrics.SpaceXWritesPerMutation.report(counters.writeCount);
+                //     Metrics.SpaceXReadsPerMutation.report(counters.readCount);
+                // } else if (opts.type === 'subscription') {
+                //     Metrics.SpaceXWritesPerSubscription.report(counters.writeCount);
+                //     Metrics.SpaceXReadsPerSubscription.report(counters.readCount);
+                // } else if (opts.type === 'subscription-resolve') {
+                //     Metrics.SpaceXWritesPerSubscriptionResolve.report(counters.writeCount);
+                //     Metrics.SpaceXReadsPerSubscriptionResolve.report(counters.readCount);
+                // }
             }
             return res;
         });
