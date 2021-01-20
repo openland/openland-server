@@ -1,6 +1,6 @@
 import { encoders, getTransaction, inTx, Subspace, TupleItem } from '@openland/foundationdb';
 import { Context } from '@openland/context';
-import { Metrics } from '../../openland-module-monitoring/Metrics';
+// import { Metrics } from '../../openland-module-monitoring/Metrics';
 
 export class BucketCountingDirectory {
     private bucketSize: number;
@@ -50,7 +50,7 @@ export class BucketCountingDirectory {
     }
 
     count = async (ctx: Context, collectionPrefix: number[], cursor: { from?: number | null, to?: number | null }) => {
-        let start = Date.now();
+        // let start = Date.now();
         // Resolve offsets
         let fromBuffer: Buffer;
         let toBuffer: Buffer;
