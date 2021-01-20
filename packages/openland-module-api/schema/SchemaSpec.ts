@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'f4589971df878d2e8bf5307a7f47ec09';
+export const GQL_SPEC_VERSION = '6093a01db1c8448f04362b482f6ed796';
 
 export namespace GQL {
     export interface CreditCard {
@@ -2192,6 +2192,7 @@ export namespace GQL {
         pairEmail: boolean;
         sendPhonePairCode: string;
         pairPhone: boolean;
+        onLogOut: boolean;
         updateSettings: Settings;
         conferenceAlterMediaState: Conference;
         conferenceAddScreenShare: Conference;
@@ -2661,6 +2662,7 @@ export namespace GQL {
         sessionId: string;
         confirmationCode: string;
     }
+    export interface MutationOnLogOutArgs { }
     export interface MutationUpdateSettingsArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
     }
@@ -8773,6 +8775,7 @@ export interface GQLResolver {
             pairEmail: GQL.MutationPairEmailArgs,
             sendPhonePairCode: GQL.MutationSendPhonePairCodeArgs,
             pairPhone: GQL.MutationPairPhoneArgs,
+            onLogOut: GQL.MutationOnLogOutArgs,
             updateSettings: GQL.MutationUpdateSettingsArgs,
             conferenceAlterMediaState: GQL.MutationConferenceAlterMediaStateArgs,
             conferenceAddScreenShare: GQL.MutationConferenceAddScreenShareArgs,

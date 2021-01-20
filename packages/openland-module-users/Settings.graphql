@@ -142,6 +142,8 @@ extend type Mutation {
     sendPhonePairCode(phone: String!): String!
     pairPhone(sessionId: String!, confirmationCode: String!): Boolean!
 
+    onLogOut: Boolean!
+
     # Deprecated
     updateSettings(settings: UpdateSettingsInput): Settings!
 }

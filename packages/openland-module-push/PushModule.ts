@@ -48,6 +48,10 @@ export class PushModule {
         await this.repository.disablePushSafari(ctx, token, bundleId);
     }
 
+    async disablePushForToken(ctx: Context, uid: number, tid: string) {
+        await this.repository.disablePushForToken(ctx, uid, tid);
+    }
+
     sendCounterPush(ctx: Context, uid: number) {
         return this.worker.pushWork(ctx, {
             uid: uid,
