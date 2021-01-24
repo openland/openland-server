@@ -7,7 +7,7 @@ import { Organization } from 'openland-module-db/store';
 export function roomsSearchIndexer() {
     declareSearchIndexer({
         name: 'room-index',
-        version: 14,
+        version: 15,
         index: 'room',
         stream: Store.RoomProfile.updated.stream({ batchSize: 50 })
     }).withProperties({
@@ -74,7 +74,7 @@ export function roomsSearchIndexer() {
             return {
                 id: item.id,
                 doc: {
-                    title: item.title,
+                    title: item.title.replace(/./g, ' '), // Treat dot as space
                     cid: item.id,
                     createdAt: item.metadata.createdAt,
                     updatedAt: item.metadata.updatedAt,
