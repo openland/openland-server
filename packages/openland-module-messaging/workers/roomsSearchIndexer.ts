@@ -74,7 +74,7 @@ export function roomsSearchIndexer() {
             return {
                 id: item.id,
                 doc: {
-                    title: item.title.replace(/./g, ' '), // Treat dot as space
+                    title: item.title.replace(/\./g, ' '), // Treat dot as space
                     cid: item.id,
                     createdAt: item.metadata.createdAt,
                     updatedAt: item.metadata.updatedAt,
