@@ -130,17 +130,31 @@ export const Resolver: GQLResolver = {
                 }))).filter(isDefined);
             }
 
-            // Return only users if hashtag
+            // Return only users and orgs if hashtag
             if (query.match(hashtagRegex)) {
                 let hashtags = query.match(hashtagRegex);
                 query = query.replace(hashtagRegex, '');
-                let hits = await Modules.Users.searchForUsers(ctx, query, {
+                let usersHits = await Modules.Users.searchForUsers(ctx, query, {
                     byName: false,
                     limit: 10,
                     uid,
                     hashtags: hashtags || undefined
                 });
-                return (await Promise.all(hits.hits.hits.map(hit => Store.User.findById(ctx, parseInt(hit._id, 10))))).filter(isDefined);
+                let usersData = (await Promise.all(usersHits.hits.hits.map(hit => Store.User.findById(ctx, parseInt(hit._id, 10))))).filter(isDefined);
+                let orgsHits = await Modules.Search.elastic.client.search({
+                    index: 'organization',
+                    size: 50,
+                    body: {
+                        query: Es.and([
+                            {match: {_type: 'organization'}},
+                            {match_phrase: {about: {query: (hashtags || []).join(' '), boost: 0.7}}},
+                            {term: {listed: true}}
+                        ])
+                    }
+                });
+                let orgsData = (await Promise.all(orgsHits.hits.hits.map(hit => Store.Organization.findById(ctx, parseInt(hit._id, 10))))).filter(isDefined);
+
+                return (usersData as (User | Organization)[]).concat(orgsData);
             }
 
             let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
