@@ -433,6 +433,46 @@ export default declareSchema(() => {
     taskQueue('DeliveryUserBatch');
     
     customDirectory('MessageCounters');
+
+    const FileAttachment = struct({
+        id: string(),
+        fileId: string(),
+        filePreview: optional(string()),
+        fileMetadata: optional(FileInfo),
+        previewFileId: optional(string()),
+        previewFileMetadata: optional(FileInfo)
+    });
+
+    const RichAttachment = struct({
+        id: string(),
+        title: optional(string()),
+        subTitle: optional(string()),
+        titleLink: optional(string()),
+        text: optional(string()),
+        icon: optional(ImageRef),
+        image: optional(ImageRef),
+        iconInfo: optional(FileInfo),
+        imageInfo: optional(FileInfo),
+        imagePreview: optional(string()),
+        imageFallback: optional(struct({
+            photo: string(), text: string(),
+        })),
+        titleLinkHostname: optional(string()),
+        keyboard: optional(struct({
+            buttons: array(array(struct({
+                title: string(), style: enumString('DEFAULT', 'LIGHT', 'PAY'), url: optional(string()),
+            }))),
+        })),
+        socialImage: optional(ImageRef),
+        socialImagePreview: optional(string()),
+        socialImageInfo: optional(FileInfo),
+        featuredIcon: optional(boolean())
+    });
+    const PurchaseAttachment = struct({
+        id: string(),
+        pid: string()
+    });
+
     entity('Message', () => {
         primaryKey('id', integer());
         field('cid', integer());
@@ -485,38 +525,9 @@ export default declareSchema(() => {
             }),
         }))));
         field('attachmentsModern', optional(array(union({
-            file_attachment: struct({
-                id: string(), fileId: string(), filePreview: optional(string()), fileMetadata: optional(FileInfo),
-            }),
-            rich_attachment: struct({
-                id: string(),
-                title: optional(string()),
-                subTitle: optional(string()),
-                titleLink: optional(string()),
-                text: optional(string()),
-                icon: optional(ImageRef),
-                image: optional(ImageRef),
-                iconInfo: optional(FileInfo),
-                imageInfo: optional(FileInfo),
-                imagePreview: optional(string()),
-                imageFallback: optional(struct({
-                    photo: string(), text: string(),
-                })),
-                titleLinkHostname: optional(string()),
-                keyboard: optional(struct({
-                    buttons: array(array(struct({
-                        title: string(), style: enumString('DEFAULT', 'LIGHT', 'PAY'), url: optional(string()),
-                    }))),
-                })),
-                socialImage: optional(ImageRef),
-                socialImagePreview: optional(string()),
-                socialImageInfo: optional(FileInfo),
-                featuredIcon: optional(boolean())
-            }),
-            purchase_attachment: struct({
-                id: string(),
-                pid: string()
-            })
+            file_attachment: FileAttachment,
+            rich_attachment: RichAttachment,
+            purchase_attachment: PurchaseAttachment
         }))));
         field('stickerId', optional(string()));
 
@@ -703,33 +714,8 @@ export default declareSchema(() => {
             all_mention: basicSpan,
         }))));
         field('attachments', optional(array(union({
-            file_attachment: struct({
-                id: string(), fileId: string(), filePreview: optional(string()), fileMetadata: optional(FileInfo),
-            }), rich_attachment: struct({
-                id: string(),
-                title: optional(string()),
-                subTitle: optional(string()),
-                titleLink: optional(string()),
-                text: optional(string()),
-                icon: optional(ImageRef),
-                image: optional(ImageRef),
-                imagePreview: optional(string()),
-                iconInfo: optional(FileInfo),
-                imageInfo: optional(FileInfo),
-                imageFallback: optional(struct({
-                    photo: string(), text: string(),
-                })),
-                titleLinkHostname: optional(string()),
-                keyboard: optional(struct({
-                    buttons: array(array(struct({
-                        title: string(), style: enumString('DEFAULT', 'LIGHT', 'PAY'), url: optional(string()),
-                    }))),
-                })),
-                socialImage: optional(ImageRef),
-                socialImagePreview: optional(string()),
-                socialImageInfo: optional(FileInfo),
-                featuredIcon: optional(boolean())
-            }),
+            file_attachment: FileAttachment,
+            rich_attachment: RichAttachment,
         }))));
 
         // overrides
@@ -789,33 +775,8 @@ export default declareSchema(() => {
             all_mention: basicSpan,
         }))));
         field('attachments', optional(array(union({
-            file_attachment: struct({
-                id: string(), fileId: string(), filePreview: optional(string()), fileMetadata: optional(FileInfo),
-            }), rich_attachment: struct({
-                id: string(),
-                title: optional(string()),
-                subTitle: optional(string()),
-                titleLink: optional(string()),
-                text: optional(string()),
-                icon: optional(ImageRef),
-                image: optional(ImageRef),
-                iconInfo: optional(FileInfo),
-                imageInfo: optional(FileInfo),
-                imageFallback: optional(struct({
-                    photo: string(), text: string(),
-                })),
-                imagePreview: optional(string()),
-                titleLinkHostname: optional(string()),
-                keyboard: optional(struct({
-                    buttons: array(array(struct({
-                        title: string(), style: enumString('DEFAULT', 'LIGHT', 'PAY'), url: optional(string()),
-                    }))),
-                })),
-                socialImage: optional(ImageRef),
-                socialImagePreview: optional(string()),
-                socialImageInfo: optional(FileInfo),
-                featuredIcon: optional(boolean())
-            }),
+            file_attachment: FileAttachment,
+            rich_attachment: RichAttachment,
         }))));
         field('slides', optional(array(union({
             text: struct({

@@ -17,6 +17,7 @@ import MessageSpanInput = GQL.MessageSpanInput;
 import SlideInput = GQL.SlideInput;
 import { FileInfo } from '../../openland-module-media/FileInfo';
 import { UserError } from '../../openland-errors/UserError';
+import { saveFileAttachments } from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
 
 interface Input {
     message: OptionalNullable<string>;
@@ -125,21 +126,7 @@ export async function resolveRichMessageCreation(ctx: Context, input: Input): Pr
     //
     let attachments: MessageAttachmentFileInput[] = [];
     if (input.fileAttachments) {
-        for (let fileInput of input.fileAttachments) {
-            let fileMetadata = await Modules.Media.saveFile(ctx, fileInput.fileId);
-            let filePreview: string | null = null;
-
-            if (fileMetadata.isImage) {
-                filePreview = await Modules.Media.fetchLowResPreview(ctx, fileInput.fileId);
-            }
-
-            attachments.push({
-                type: 'file_attachment',
-                fileId: fileInput.fileId,
-                fileMetadata: fileMetadata || null,
-                filePreview: filePreview || null
-            });
-        }
+        attachments = await saveFileAttachments(ctx, input.fileAttachments);
     }
 
     //

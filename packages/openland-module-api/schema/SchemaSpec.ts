@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '6093a01db1c8448f04362b482f6ed796';
+export const GQL_SPEC_VERSION = '60d13a15304a1d92a878dd7de3205b45';
 
 export namespace GQL {
     export interface CreditCard {
@@ -5615,12 +5615,16 @@ export namespace GQL {
         fileId: string;
         fileMetadata: FileMetadata;
         filePreview: Nullable<string>;
+        previewFileId: Nullable<string>;
+        previewFileMetadata: Nullable<FileMetadata>;
         fallback: string;
     }
     export interface MessageAttachmentFileIdArgs { }
     export interface MessageAttachmentFileFileIdArgs { }
     export interface MessageAttachmentFileFileMetadataArgs { }
     export interface MessageAttachmentFileFilePreviewArgs { }
+    export interface MessageAttachmentFilePreviewFileIdArgs { }
+    export interface MessageAttachmentFilePreviewFileMetadataArgs { }
     export interface MessageAttachmentFileFallbackArgs { }
     export interface MessageAttachmentPost extends ModernMessageAttachment {
         id: string;
@@ -5640,6 +5644,7 @@ export namespace GQL {
     export interface MessageAttachmentPurchasePurchaseArgs { }
     export interface FileAttachmentInput {
         fileId: string;
+        previewFileId: Nullable<string>;
     }
     export interface MessageKeyboard {
         buttons: Nullable<ModernMessageButton[]>[];
@@ -10851,12 +10856,15 @@ export interface GQLResolver {
         GQLRoots.MessageAttachmentFileRoot,
         {
             fileMetadata: GQLRoots.FileMetadataRoot,
+            previewFileMetadata: Nullable<GQLRoots.FileMetadataRoot>,
         },
         {
             id: GQL.MessageAttachmentFileIdArgs,
             fileId: GQL.MessageAttachmentFileFileIdArgs,
             fileMetadata: GQL.MessageAttachmentFileFileMetadataArgs,
             filePreview: GQL.MessageAttachmentFileFilePreviewArgs,
+            previewFileId: GQL.MessageAttachmentFilePreviewFileIdArgs,
+            previewFileMetadata: GQL.MessageAttachmentFilePreviewFileMetadataArgs,
             fallback: GQL.MessageAttachmentFileFallbackArgs,
         }
     >;

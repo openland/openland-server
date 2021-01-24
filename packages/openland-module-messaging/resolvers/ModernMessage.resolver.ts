@@ -15,10 +15,11 @@ import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
 import {
     ItalicTextSpan,
     LinkSpan,
-    MessageAttachment,
-    MessageAttachmentInput, MessageButton,
+    MessageAttachment, MessageAttachmentFileInput,
+    MessageAttachmentInput,
+    MessageButton,
     MessageSpan,
-    UserMentionSpan
+    UserMentionSpan,
 } from '../MessageInput';
 import { createUrlInfoService, URLAugmentation } from '../workers/UrlInfoService';
 import { Texts } from '../texts';
@@ -36,6 +37,7 @@ import { RangeQueryOptions } from '@openland/foundationdb-entity';
 import MentionInput = GQL.MentionInput;
 import GeneralMessageRoot = GQLRoots.GeneralMessageRoot;
 import { plural } from '../../openland-utils/string';
+import { FileInfo } from '../../openland-module-media/FileInfo';
 
 export function hasMention(message: Message | RichMessage, uid: number) {
     if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
@@ -460,6 +462,38 @@ function resolveReactionCounters(src: GeneralMessageRoot, args: any, ctx: Contex
     return [...counts.entries()].map(e => ({ reaction: e[0], count: e[1], setByMe: setByUser.has(e[0]) }));
 }
 
+export const saveFileAttachments = async (ctx: Context, fileAttachments: GQL.FileAttachmentInput[]) => {
+    let attachments: MessageAttachmentFileInput[] = [];
+    for (let fileInput of fileAttachments) {
+        let fileMetadata = await Modules.Media.saveFile(ctx, fileInput.fileId);
+        let filePreview: string | null = null;
+
+        if (fileMetadata.isImage) {
+            filePreview = await Modules.Media.fetchLowResPreview(ctx, fileInput.fileId);
+        }
+
+        let previewFileMetadata: FileInfo | null = null;
+        if (fileInput.previewFileId) {
+            previewFileMetadata = await Modules.Media.saveFile(ctx, fileInput.previewFileId);
+            if (!previewFileMetadata.isImage) {
+                throw new Error('Preview file should be an image');
+            }
+
+            filePreview = await Modules.Media.fetchLowResPreview(ctx, fileInput.previewFileId);
+        }
+
+        attachments.push({
+            type: 'file_attachment',
+            fileId: fileInput.fileId,
+            fileMetadata: fileMetadata || null,
+            filePreview: filePreview || null,
+            previewFileId: fileInput.previewFileId,
+            previewFileMetadata: previewFileMetadata
+        });
+    }
+    return attachments;
+};
+
 export const Resolver: GQLResolver = {
     ModernMessage: {
         __resolveType(src: ModernMessageRoot) {
@@ -710,6 +744,8 @@ export const Resolver: GQLResolver = {
                             size: src.fileMetadata.size,
                         } : null,
                         id: src.id + '_legacy_file',
+                        previewFileId: null,
+                        previewFileMetadata: null
                     },
                 });
             }
@@ -782,6 +818,8 @@ export const Resolver: GQLResolver = {
                             filePreview: attachment.filePreview || undefined,
                             fileMetadata: attachment.fileMetadata,
                             id: src.id + '_legacy_file_' + i,
+                            previewFileMetadata: null,
+                            previewFileId: null
                         },
                     });
                     i++;
@@ -1077,6 +1115,8 @@ export const Resolver: GQLResolver = {
         },
         filePreview: src => src.attachment.filePreview,
         fallback: src => 'File attachment',
+        previewFileId: src => src.attachment.previewFileId,
+        previewFileMetadata: src => src.attachment.previewFileMetadata,
     },
     MessageRichAttachment: {
         id: src => IDs.MessageAttachment.serialize(src.attachment.id),
@@ -1500,21 +1540,7 @@ export const Resolver: GQLResolver = {
             //
             let attachments: MessageAttachmentInput[] = [];
             if (args.fileAttachments) {
-                for (let fileInput of args.fileAttachments) {
-                    let fileMetadata = await Modules.Media.saveFile(ctx, fileInput.fileId);
-                    let filePreview: string | null = null;
-
-                    if (fileMetadata.isImage) {
-                        filePreview = await Modules.Media.fetchLowResPreview(ctx, fileInput.fileId);
-                    }
-
-                    attachments.push({
-                        type: 'file_attachment',
-                        fileId: fileInput.fileId,
-                        fileMetadata: fileMetadata || null,
-                        filePreview: filePreview || null,
-                    });
-                }
+                attachments = await saveFileAttachments(ctx, args.fileAttachments);
             }
 
             //
@@ -1619,21 +1645,7 @@ export const Resolver: GQLResolver = {
             //
             let attachments: MessageAttachmentInput[] = [];
             if (args.fileAttachments) {
-                for (let fileInput of args.fileAttachments) {
-                    let fileMetadata = await Modules.Media.saveFile(ctx, fileInput.fileId);
-                    let filePreview: string | null = null;
-
-                    if (fileMetadata.isImage) {
-                        filePreview = await Modules.Media.fetchLowResPreview(ctx, fileInput.fileId);
-                    }
-
-                    attachments.push({
-                        type: 'file_attachment',
-                        fileId: fileInput.fileId,
-                        fileMetadata: fileMetadata || null,
-                        filePreview: filePreview || null,
-                    });
-                }
+                attachments = await saveFileAttachments(ctx, args.fileAttachments);
             }
 
             //
