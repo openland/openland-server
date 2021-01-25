@@ -105,6 +105,10 @@ const handleUser = async (ctx: Context, uid: number) => {
             continue;
         }
 
+        if (message.isMuted) {
+            continue;
+        }
+
         // disable email notificaitons for channels and public chats
         let conversation = (await Store.Conversation.findById(ctx, message.cid))!;
         if (conversation.kind === 'room') {
@@ -123,12 +127,12 @@ const handleUser = async (ctx: Context, uid: number) => {
         }
 
         // Ignore service messages for big rooms
-        if (message.isService) {
-            if (await Modules.Messaging.roomMembersCount(ctx, message.cid) >= 50) {
-                log.debug(ctx, tag, 'Ignore service messages for big rooms');
-                continue;
-            }
-        }
+        // if (message.isService) {
+        //     if (await Modules.Messaging.roomMembersCount(ctx, message.cid) >= 50) {
+        //         log.debug(ctx, tag, 'Ignore service messages for big rooms');
+        //         continue;
+        //     }
+        // }
 
         let userMentioned = hasMention(message, uid);
 
@@ -137,11 +141,8 @@ const handleUser = async (ctx: Context, uid: number) => {
             continue;
         }
 
-        if (!message.isMuted) {
-            hasNonMuted = true;
-        }
-
         msgs.push(message);
+        hasNonMuted = true;
     }
 
     // Send email notification if there are some
