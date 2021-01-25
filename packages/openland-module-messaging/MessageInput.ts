@@ -70,6 +70,8 @@ export type MessageAttachmentFile = {
     fileId: string,
     filePreview: string | null,
     fileMetadata: FileInfo | null,
+    previewFileId: string | null,
+    previewFileMetadata: FileInfo | null,
     id: string
 };
 
@@ -109,6 +111,8 @@ export type MessageAttachmentFileInput = {
     fileId: string,
     filePreview: string | null,
     fileMetadata: FileInfo | null,
+    previewFileId: string | null,
+    previewFileMetadata: FileInfo | null,
 };
 
 export type MessageRichAttachmentInput = {

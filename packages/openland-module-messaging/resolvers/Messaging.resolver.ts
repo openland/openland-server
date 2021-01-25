@@ -34,7 +34,9 @@ export const Resolver: GQLResolver = {
                     type: 'file_attachment',
                     fileId: args.file,
                     fileMetadata: fileInfo,
-                    filePreview
+                    filePreview,
+                    previewFileId: null,
+                    previewFileMetadata: null
                 });
             }
 
@@ -70,7 +72,9 @@ export const Resolver: GQLResolver = {
                     type: 'file_attachment',
                     fileId: args.file,
                     fileMetadata: fileInfo,
-                    filePreview
+                    filePreview,
+                    previewFileMetadata: null,
+                    previewFileId: null
                 });
             }
 

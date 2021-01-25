@@ -176,10 +176,25 @@ extend type Query {
 }
 
 extend type Mutation {
-    sendMessage(chatId: ID!, message: String, replyMessages: [ID!], mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!], repeatKey: String): Boolean!
+    sendMessage(
+        chatId: ID!,
+        message: String,
+        replyMessages: [ID!],
+        mentions: [MentionInput!],
+        fileAttachments: [FileAttachmentInput!],
+        spans: [MessageSpanInput!],
+        repeatKey: String
+    ): Boolean!
     sendSticker(chatId: ID!, stickerId: ID!, replyMessages: [ID!], repeatKey: String): Boolean!
     sendDonation(chatId: ID, userId: ID, amount: Int!, message: String, repeatKey: String): Boolean!
-    editMessage(messageId: ID!, message: String, replyMessages: [ID!], mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], spans: [MessageSpanInput!]): Boolean!
+    editMessage(
+        messageId: ID!,
+        message: String,
+        replyMessages: [ID!],
+        mentions: [MentionInput!],
+        fileAttachments: [FileAttachmentInput!],
+        spans: [MessageSpanInput!]
+    ): Boolean!
 
     pinMessage(chatId: ID!, messageId: ID!): Boolean!
     unpinMessage(chatId: ID!): Boolean!
@@ -240,6 +255,8 @@ type MessageAttachmentFile implements ModernMessageAttachment {
     fileId: String!
     fileMetadata: FileMetadata!
     filePreview: String
+    previewFileId: String
+    previewFileMetadata: FileMetadata
     fallback: String!
 }
 
@@ -257,6 +274,7 @@ type MessageAttachmentPurchase implements ModernMessageAttachment {
 
 input FileAttachmentInput {
     fileId: String!
+    previewFileId: String
 }
 
 #

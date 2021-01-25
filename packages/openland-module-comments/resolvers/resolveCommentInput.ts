@@ -3,10 +3,10 @@ import { GQL } from '../../openland-module-api/schema/SchemaSpec';
 import MutationBetaAddCommentArgs = GQL.MutationBetaAddCommentArgs;
 import { CommentInput, CommentSpan } from '../repositories/CommentsRepository';
 import { MessageAttachmentFileInput } from '../../openland-module-messaging/MessageInput';
-import { Modules } from '../../openland-modules/Modules';
 import { IDs } from '../../openland-module-api/IDs';
 import MessageSpanInput = GQL.MessageSpanInput;
 import MentionInput = GQL.MentionInput;
+import { saveFileAttachments } from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
 
 export function resolveSpansInput(input: MessageSpanInput[] = []) {
     let spans: CommentSpan[] = [];
@@ -89,21 +89,7 @@ export async function resolveCommentInput(ctx: Context, input: MutationBetaAddCo
     //
     let attachments: MessageAttachmentFileInput[] = [];
     if (input.fileAttachments) {
-        for (let fileInput of input.fileAttachments) {
-            let fileMetadata = await Modules.Media.saveFile(ctx, fileInput.fileId);
-            let filePreview: string | null = null;
-
-            if (fileMetadata.isImage) {
-                filePreview = await Modules.Media.fetchLowResPreview(ctx, fileInput.fileId);
-            }
-
-            attachments.push({
-                type: 'file_attachment',
-                fileId: fileInput.fileId,
-                fileMetadata: fileMetadata || null,
-                filePreview: filePreview || null
-            });
-        }
+        attachments = await saveFileAttachments(ctx, input.fileAttachments);
     }
 
     //

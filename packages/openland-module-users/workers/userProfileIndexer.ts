@@ -2,8 +2,7 @@ import { Store } from 'openland-module-db/FDB';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from '@openland/foundationdb';
-
-let hashtagRegex = /#[\w]+/g;
+import { hashtagRegex } from '../../openland-utils/string';
 
 export function userProfileIndexer() {
     declareSearchIndexer({

@@ -86,7 +86,9 @@ export class CommentAugmentationMediator {
                         type: 'file_attachment',
                         fileId: urlInfo.photo!.uuid,
                         fileMetadata: urlInfo.imageInfo!,
-                        filePreview: null
+                        filePreview: null,
+                        previewFileMetadata: null,
+                        previewFileId: null
                     };
 
                     await this.comments.editComment(

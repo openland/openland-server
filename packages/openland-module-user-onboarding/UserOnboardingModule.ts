@@ -33,7 +33,9 @@ const templates: { [T in Template]: (user: UserProfile) => { type: string, messa
                         mimeType: 'image/png',
                         name: 'usrSUtq.png',
                         size: 16708
-                    }
+                    },
+                    previewFileMetadata: null,
+                    previewFileId: null
                 }
             }
         ],
@@ -56,7 +58,9 @@ const templates: { [T in Template]: (user: UserProfile) => { type: string, messa
                         mimeType: 'image/png',
                         name: 'vFDKtoV.png',
                         size: 12861
-                    }
+                    },
+                    previewFileMetadata: null,
+                    previewFileId: null
                 }
             }
         ],
@@ -79,7 +83,9 @@ const templates: { [T in Template]: (user: UserProfile) => { type: string, messa
                         mimeType: 'image/png',
                         name: 'TaMhKqj.png',
                         size: 10132
-                    }
+                    },
+                    previewFileMetadata: null,
+                    previewFileId: null
                 }
             },
         ],

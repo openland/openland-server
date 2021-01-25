@@ -103,7 +103,9 @@ export class AugmentationMediator {
                             type: 'file_attachment',
                             fileId: urlInfo.photo!.uuid,
                             fileMetadata: urlInfo.imageInfo!,
-                            filePreview: urlInfo.photoPreview
+                            filePreview: urlInfo.photoPreview,
+                            previewFileMetadata: null,
+                            previewFileId: null
                         };
 
                         await this.messaging.editMessage(

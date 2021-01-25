@@ -13,6 +13,7 @@ import { UserError } from '../../openland-errors/UserError';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import CommentSubscriptionTypeRoot = GQLRoots.CommentSubscriptionTypeRoot;
 import { resolveCommentInput, resolveMentionsInput, resolveSpansInput } from './resolveCommentInput';
+import { saveFileAttachments } from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
 
 export const Resolver: GQLResolver = {
     CommentsPeer: {
@@ -175,21 +176,7 @@ export const Resolver: GQLResolver = {
             //
             let attachments: MessageAttachmentFileInput[] = [];
             if (args.fileAttachments) {
-                for (let fileInput of args.fileAttachments) {
-                    let fileMetadata = await Modules.Media.saveFile(ctx, fileInput.fileId);
-                    let filePreview: string | null = null;
-
-                    if (fileMetadata.isImage) {
-                        filePreview = await Modules.Media.fetchLowResPreview(ctx, fileInput.fileId);
-                    }
-
-                    attachments.push({
-                        type: 'file_attachment',
-                        fileId: fileInput.fileId,
-                        fileMetadata: fileMetadata || null,
-                        filePreview: filePreview || null
-                    });
-                }
+                attachments = await saveFileAttachments(ctx, args.fileAttachments);
             }
 
             await Modules.Comments.editComment(ctx, commentId, uid, {

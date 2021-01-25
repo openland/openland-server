@@ -7,7 +7,7 @@ import { Organization } from 'openland-module-db/store';
 export function roomsSearchIndexer() {
     declareSearchIndexer({
         name: 'room-index',
-        version: 14,
+        version: 16,
         index: 'room',
         stream: Store.RoomProfile.updated.stream({ batchSize: 50 })
     }).withProperties({
@@ -15,7 +15,8 @@ export function roomsSearchIndexer() {
             type: 'integer'
         },
         title: {
-            type: 'text'
+            type: 'text',
+            analyzer: 'dot_as_space'
         },
         createdAt: {
             type: 'date'
@@ -47,7 +48,23 @@ export function roomsSearchIndexer() {
         isPremium: {
             type: 'boolean'
         }
-    }).start(async (item, parent) => {
+    }).withSettings({
+        analysis: {
+            char_filter: {
+                dot_as_space: {
+                    type: 'mapping',
+                    mappings: ['. =>| ']
+                }
+            },
+            analyzer: {
+                dot_as_space: {
+                    char_filter: 'dot_as_space',
+                    tokenizer: 'standard'
+                }
+            }
+        }
+    })
+        .start(async (item, parent) => {
         return await inTx(parent, async (ctx) => {
             let room = await Store.ConversationRoom.findById(ctx, item.id);
             let conv = await Store.Conversation.findById(ctx, item.id);

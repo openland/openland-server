@@ -7,6 +7,7 @@ import { jBool, jField, json, JsonSchema, jString, validateJson, jVec } from '..
 import { createNamedContext } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 import { MessageAttachmentInput } from '../openland-module-messaging/MessageInput';
+import { saveFileAttachments } from '../openland-module-messaging/resolvers/ModernMessage.resolver';
 // import { jField, json, jString } from '../openland-utils/jsonSchema';
 
 const Errors = {
@@ -68,21 +69,7 @@ const handleChatHook = handler(
 
             let attachments: MessageAttachmentInput[] = [];
             if (fileAttachments) {
-                for (let fileId of fileAttachments) {
-                    let fileMetadata = await Modules.Media.saveFile(ctx, fileId);
-                    let filePreview: string | null = null;
-
-                    if (fileMetadata.isImage) {
-                        filePreview = await Modules.Media.fetchLowResPreview(ctx, fileId);
-                    }
-
-                    attachments.push({
-                        type: 'file_attachment',
-                        fileId: fileId,
-                        fileMetadata: fileMetadata || null,
-                        filePreview: filePreview || null,
-                    });
-                }
+                attachments = await saveFileAttachments(ctx, fileAttachments);
             }
 
             if (!message && (!fileAttachments || fileAttachments.length === 0)) {
