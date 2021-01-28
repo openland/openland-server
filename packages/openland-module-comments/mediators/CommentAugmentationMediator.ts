@@ -88,7 +88,8 @@ export class CommentAugmentationMediator {
                         fileMetadata: urlInfo.imageInfo!,
                         filePreview: null,
                         previewFileMetadata: null,
-                        previewFileId: null
+                        previewFileId: null,
+                        videoMetadata: null
                     };
 
                     await this.comments.editComment(

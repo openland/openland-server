@@ -94,7 +94,9 @@ import {
     UpdateChatMessageUpdated,
     UpdateChatMessageDeleted,
     ModernBadge,
-    UpdateSettingsChanged, UpdateChatDraftUpdated, UpdateRoomChanged,
+    UpdateSettingsChanged,
+    UpdateChatDraftUpdated,
+    UpdateRoomChanged, MessageShape,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -278,6 +280,9 @@ export namespace GQLRoots {
     export type MessageReactionRoot = { userId: number, reaction: string };
     export type ConversationMessageRoot = Message;
     export type FileMetadataRoot = any;
+    export type VideoMetadataRoot = NonNullable<
+        Extract<NonNullable<MessageShape['attachmentsModern']>[number], { type: 'file_attachment' }>['videoMetadata']
+        >;
     export type StickerPackRoot = StickerPack | number;
     export type UserStickersRoot = {
         favoriteIds: string[];

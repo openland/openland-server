@@ -44,6 +44,11 @@ export const FileInfo = struct({
     imageFormat: optional(string()),
     mimeType: string(),
 });
+
+export const VideoMetadata = struct({
+    duration: integer()
+});
+
 export const Image = struct({
     image: ImageRef, info: FileInfo,
 });
@@ -440,7 +445,8 @@ export default declareSchema(() => {
         filePreview: optional(string()),
         fileMetadata: optional(FileInfo),
         previewFileId: optional(string()),
-        previewFileMetadata: optional(FileInfo)
+        previewFileMetadata: optional(FileInfo),
+        videoMetadata: optional(VideoMetadata)
     });
 
     const RichAttachment = struct({

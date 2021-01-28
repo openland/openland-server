@@ -105,7 +105,8 @@ export class AugmentationMediator {
                             fileMetadata: urlInfo.imageInfo!,
                             filePreview: urlInfo.photoPreview,
                             previewFileMetadata: null,
-                            previewFileId: null
+                            previewFileId: null,
+                            videoMetadata: null
                         };
 
                         await this.messaging.editMessage(
