@@ -121,7 +121,7 @@ export const Resolver: GQLResolver = {
                 all: await Modules.Messaging.messaging.counters.getGlobalCounter(ctx, uid, false, 'all'),
                 mentions: await Modules.Messaging.messaging.counters.getGlobalCounter(ctx, uid, false, 'all-mentions'),
                 distinct: await Modules.Messaging.messaging.counters.getGlobalCounter(ctx, uid, false, 'distinct'),
-                distinctMentions: await Modules.Messaging.messaging.counters.getGlobalCounter(ctx, uid, false, 'distinct'),
+                distinctMentions: await Modules.Messaging.messaging.counters.getGlobalCounter(ctx, uid, false, 'distinct-mentions'),
             };
         }),
         debugGlobalCounterDirect: withPermission('super-admin', async (ctx, args) => {
