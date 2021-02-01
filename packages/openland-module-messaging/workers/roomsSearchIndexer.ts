@@ -7,7 +7,7 @@ import { Organization } from 'openland-module-db/store';
 export function roomsSearchIndexer() {
     declareSearchIndexer({
         name: 'room-index',
-        version: 16,
+        version: 17,
         index: 'room',
         stream: Store.RoomProfile.updated.stream({ batchSize: 50 })
     }).withProperties({
@@ -59,7 +59,10 @@ export function roomsSearchIndexer() {
             analyzer: {
                 dot_as_space: {
                     char_filter: 'dot_as_space',
-                    tokenizer: 'standard'
+                    tokenizer: 'standard',
+                    filter: [
+                        'lowercase'
+                    ]
                 }
             }
         }
