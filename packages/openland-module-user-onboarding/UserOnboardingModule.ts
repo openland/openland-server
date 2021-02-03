@@ -35,7 +35,8 @@ const templates: { [T in Template]: (user: UserProfile) => { type: string, messa
                         size: 16708
                     },
                     previewFileMetadata: null,
-                    previewFileId: null
+                    previewFileId: null,
+                    videoMetadata: null
                 }
             }
         ],
@@ -60,7 +61,8 @@ const templates: { [T in Template]: (user: UserProfile) => { type: string, messa
                         size: 12861
                     },
                     previewFileMetadata: null,
-                    previewFileId: null
+                    previewFileId: null,
+                    videoMetadata: null
                 }
             }
         ],
@@ -85,7 +87,8 @@ const templates: { [T in Template]: (user: UserProfile) => { type: string, messa
                         size: 10132
                     },
                     previewFileMetadata: null,
-                    previewFileId: null
+                    previewFileId: null,
+                    videoMetadata: null
                 }
             },
         ],

@@ -488,7 +488,8 @@ export const saveFileAttachments = async (ctx: Context, fileAttachments: GQL.Fil
             fileMetadata: fileMetadata || null,
             filePreview: filePreview || null,
             previewFileId: fileInput.previewFileId,
-            previewFileMetadata: previewFileMetadata
+            previewFileMetadata: previewFileMetadata,
+            videoMetadata: fileInput.videoMetadata,
         });
     }
     return attachments;
@@ -745,7 +746,8 @@ export const Resolver: GQLResolver = {
                         } : null,
                         id: src.id + '_legacy_file',
                         previewFileId: null,
-                        previewFileMetadata: null
+                        previewFileMetadata: null,
+                        videoMetadata: null
                     },
                 });
             }
@@ -819,7 +821,8 @@ export const Resolver: GQLResolver = {
                             fileMetadata: attachment.fileMetadata,
                             id: src.id + '_legacy_file_' + i,
                             previewFileMetadata: null,
-                            previewFileId: null
+                            previewFileId: null,
+                            videoMetadata: null
                         },
                     });
                     i++;
@@ -1117,6 +1120,7 @@ export const Resolver: GQLResolver = {
         fallback: src => 'File attachment',
         previewFileId: src => src.attachment.previewFileId,
         previewFileMetadata: src => src.attachment.previewFileMetadata,
+        videoMetadata: src => src.attachment.videoMetadata
     },
     MessageRichAttachment: {
         id: src => IDs.MessageAttachment.serialize(src.attachment.id),

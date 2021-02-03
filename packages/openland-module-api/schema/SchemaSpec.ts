@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '60d13a15304a1d92a878dd7de3205b45';
+export const GQL_SPEC_VERSION = '858e22b1a1e8a10a36ad4db2dabc4661';
 
 export namespace GQL {
     export interface CreditCard {
@@ -1642,6 +1642,10 @@ export namespace GQL {
     export interface FileMetadataImageWidthArgs { }
     export interface FileMetadataImageHeightArgs { }
     export interface FileMetadataImageFormatArgs { }
+    export interface VideoMetadata {
+        duration: number;
+    }
+    export interface VideoMetadataDurationArgs { }
     export interface NotificationCounter {
         id: string;
         unreadCount: number;
@@ -5617,6 +5621,7 @@ export namespace GQL {
         filePreview: Nullable<string>;
         previewFileId: Nullable<string>;
         previewFileMetadata: Nullable<FileMetadata>;
+        videoMetadata: Nullable<VideoMetadata>;
         fallback: string;
     }
     export interface MessageAttachmentFileIdArgs { }
@@ -5625,6 +5630,7 @@ export namespace GQL {
     export interface MessageAttachmentFileFilePreviewArgs { }
     export interface MessageAttachmentFilePreviewFileIdArgs { }
     export interface MessageAttachmentFilePreviewFileMetadataArgs { }
+    export interface MessageAttachmentFileVideoMetadataArgs { }
     export interface MessageAttachmentFileFallbackArgs { }
     export interface MessageAttachmentPost extends ModernMessageAttachment {
         id: string;
@@ -5642,9 +5648,13 @@ export namespace GQL {
     export interface MessageAttachmentPurchaseIdArgs { }
     export interface MessageAttachmentPurchaseFallbackArgs { }
     export interface MessageAttachmentPurchasePurchaseArgs { }
+    export interface VideoMetadataInput {
+        duration: number;
+    }
     export interface FileAttachmentInput {
         fileId: string;
         previewFileId: Nullable<string>;
+        videoMetadata: Nullable<VideoMetadataInput>;
     }
     export interface MessageKeyboard {
         buttons: Nullable<ModernMessageButton[]>[];
@@ -8021,6 +8031,15 @@ export interface GQLResolver {
             imageWidth: GQL.FileMetadataImageWidthArgs,
             imageHeight: GQL.FileMetadataImageHeightArgs,
             imageFormat: GQL.FileMetadataImageFormatArgs,
+        }
+    >;
+    VideoMetadata?: ComplexTypedResolver<
+        GQL.VideoMetadata,
+        GQLRoots.VideoMetadataRoot,
+        {
+        },
+        {
+            duration: GQL.VideoMetadataDurationArgs,
         }
     >;
     NotificationCounter?: ComplexTypedResolver<
@@ -10857,6 +10876,7 @@ export interface GQLResolver {
         {
             fileMetadata: GQLRoots.FileMetadataRoot,
             previewFileMetadata: Nullable<GQLRoots.FileMetadataRoot>,
+            videoMetadata: Nullable<GQLRoots.VideoMetadataRoot>,
         },
         {
             id: GQL.MessageAttachmentFileIdArgs,
@@ -10865,6 +10885,7 @@ export interface GQLResolver {
             filePreview: GQL.MessageAttachmentFileFilePreviewArgs,
             previewFileId: GQL.MessageAttachmentFilePreviewFileIdArgs,
             previewFileMetadata: GQL.MessageAttachmentFilePreviewFileMetadataArgs,
+            videoMetadata: GQL.MessageAttachmentFileVideoMetadataArgs,
             fallback: GQL.MessageAttachmentFileFallbackArgs,
         }
     >;

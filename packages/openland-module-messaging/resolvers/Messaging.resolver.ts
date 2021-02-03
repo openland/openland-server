@@ -36,7 +36,8 @@ export const Resolver: GQLResolver = {
                     fileMetadata: fileInfo,
                     filePreview,
                     previewFileId: null,
-                    previewFileMetadata: null
+                    previewFileMetadata: null,
+                    videoMetadata: null
                 });
             }
 
@@ -74,7 +75,8 @@ export const Resolver: GQLResolver = {
                     fileMetadata: fileInfo,
                     filePreview,
                     previewFileMetadata: null,
-                    previewFileId: null
+                    previewFileId: null,
+                    videoMetadata: null
                 });
             }
 

@@ -149,6 +149,10 @@ type FileMetadata {
     imageFormat: String
 }
 
+type VideoMetadata {
+    duration: Int!
+}
+
 type NotificationCounter {
     id: ID!
     unreadCount: Int!

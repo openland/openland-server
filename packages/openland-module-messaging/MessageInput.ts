@@ -1,5 +1,8 @@
 import { ImageRef } from '../openland-module-media/ImageRef';
 import { FileInfo } from '../openland-module-media/FileInfo';
+import { GQL } from '../openland-module-api/schema/SchemaSpec';
+import VideoMetadata = GQL.VideoMetadata;
+import VideoMetadataInput = GQL.VideoMetadataInput;
 
 export type ServiceMessageMetadataType =
     'user_invite' |
@@ -72,7 +75,8 @@ export type MessageAttachmentFile = {
     fileMetadata: FileInfo | null,
     previewFileId: string | null,
     previewFileMetadata: FileInfo | null,
-    id: string
+    id: string,
+    videoMetadata: VideoMetadata | null,
 };
 
 export type MessageRichAttachment = {
@@ -113,6 +117,7 @@ export type MessageAttachmentFileInput = {
     fileMetadata: FileInfo | null,
     previewFileId: string | null,
     previewFileMetadata: FileInfo | null,
+    videoMetadata: VideoMetadataInput | null
 };
 
 export type MessageRichAttachmentInput = {

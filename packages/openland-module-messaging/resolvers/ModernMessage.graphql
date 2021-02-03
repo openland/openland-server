@@ -257,6 +257,7 @@ type MessageAttachmentFile implements ModernMessageAttachment {
     filePreview: String
     previewFileId: String
     previewFileMetadata: FileMetadata
+    videoMetadata: VideoMetadata
     fallback: String!
 }
 
@@ -272,9 +273,14 @@ type MessageAttachmentPurchase implements ModernMessageAttachment {
     purchase: Purchase!
 }
 
+input VideoMetadataInput {
+    duration: Int!
+}
+
 input FileAttachmentInput {
     fileId: String!
     previewFileId: String
+    videoMetadata: VideoMetadataInput
 }
 
 #
