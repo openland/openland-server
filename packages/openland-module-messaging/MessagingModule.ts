@@ -104,8 +104,8 @@ export class MessagingModule {
         return this.userDialogs.findUserDialogs(ctx, uid);
     }
 
-    loadUserDialogs(ctx: Context, uid: number, after: number) {
-        return this.messaging.events.userActiveChats.loadChats(ctx, uid, after);
+    loadUserDialogs(ctx: Context, uid: number, after: number, limit: number) {
+        return this.messaging.events.userActiveChats.loadChats(ctx, uid, after, limit);
     }
 
     hasActiveDialog(ctx: Context, uid: number, cid: number) {

@@ -69,14 +69,12 @@ export class CallRepository {
         });
     }
 
-    hasActiveCall = async (parent: Context, cid: number) => {
-        return await inTx(parent, async (ctx) => {
-            let res = await Store.ConferenceRoom.findById(ctx, cid);
-            if (!res) {
-                return false;
-            }
-            return res.active || false;
-        });
+    hasActiveCall = async (ctx: Context, cid: number) => {
+        let res = await Store.ConferenceRoom.findById(ctx, cid);
+        if (!res) {
+            return false;
+        }
+        return res.active || false;
     }
 
     getScheduler(kind: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null): CallScheduler {

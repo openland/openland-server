@@ -20,7 +20,7 @@ export const Resolver: GQLResolver = {
                 after = IDs.ChatSyncAfter.parse(args.after);
             }
 
-            let dialogs = await Modules.Messaging.loadUserDialogs(ctx, uid, after);
+            let dialogs = await Modules.Messaging.loadUserDialogs(ctx, uid, after, args.first);
             let conversations = await Promise.all(dialogs.map(async (d) => (await Store.Conversation.findById(ctx, d))!));
 
             // Resolve cursor
