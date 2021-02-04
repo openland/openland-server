@@ -191,28 +191,28 @@ export class TypedEventsMediator {
         });
     }
 
-    async getFeedSubscriberPts(parent: Context, feed: FeedReference, uid: number) {
-        return await inTx(parent, async (ctx) => {
-            let feedid = await this.registry.getFeed(ctx, feed);
-            if (!feedid) {
-                throw Error('Feed does not exist of ' + JSON.stringify(feed));
-            }
-            let subscriber = await this.registry.getUserSubscriber(ctx, uid);
-            if (!subscriber) {
-                throw Error('Subscriber does not exist for ' + uid);
-            }
+    async getFeedSubscriberPts(ctx: Context, feed: FeedReference, uid: number) {
+        // return await inTx(parent, async (ctx) => {
+        let feedid = await this.registry.getFeed(ctx, feed);
+        if (!feedid) {
+            throw Error('Feed does not exist of ' + JSON.stringify(feed));
+        }
+        let subscriber = await this.registry.getUserSubscriber(ctx, uid);
+        if (!subscriber) {
+            throw Error('Subscriber does not exist for ' + uid);
+        }
 
-            let substate = await this.events.repo.sub.getSubscriptionState(ctx, subscriber, feedid);
-            if (!substate) {
-                throw Error('Subscription does not exist for ' + uid + ' of ' + JSON.stringify(feed));
-            }
-            if (substate.to) {
-                return substate.to.seq;
-            } else {
-                let latest = await this.events.repo.feedLatest.readLatest(ctx, feedid);
-                return latest.seq;
-            }
-        });
+        let substate = await this.events.repo.sub.getSubscriptionState(ctx, subscriber, feedid);
+        if (!substate) {
+            throw Error('Subscription does not exist for ' + uid + ' of ' + JSON.stringify(feed));
+        }
+        if (substate.to) {
+            return substate.to.seq;
+        } else {
+            let latest = await this.events.repo.feedLatest.readLatest(ctx, feedid);
+            return latest.seq;
+        }
+        // });
     }
 
     async getFeedDifference(parent: Context, uid: number, feed: FeedReference, seq: number) {
