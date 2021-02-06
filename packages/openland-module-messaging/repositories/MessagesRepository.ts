@@ -1,4 +1,4 @@
-import { Message } from 'openland-module-db/store';
+import { Message, PrivateMessage } from 'openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import {
     MessageAttachment,
@@ -15,6 +15,7 @@ import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { Sanitizer } from '../../openland-utils/Sanitizer';
 import uuid from 'uuid';
 import { UserError } from '../../openland-errors/UserError';
+import { isDefined } from '../../openland-utils/misc';
 
 @injectable()
 export class MessagesRepository {
@@ -104,32 +105,43 @@ export class MessagesRepository {
             if (!message) {
                 throw new Error('Message not found');
             }
+            let messagesToUpdate: (Message | PrivateMessage)[] = [message];
 
+            let privateChat = await Store.ConversationPrivate.findById(ctx, message.cid);
+            if (privateChat) {
+                let privateCopies = await Promise.all([
+                    Store.PrivateMessage.findById(ctx, mid, privateChat.uid1),
+                    Store.PrivateMessage.findById(ctx, mid, privateChat.uid2)
+                ]);
+                messagesToUpdate.push(...privateCopies.filter(isDefined));
+            }
             //
             // Update message
             //
 
             if (newMessage.message) {
-                message.text = newMessage.message;
+                messagesToUpdate.forEach(m => m.text = newMessage.message!);
             }
             if (newMessage.replyMessages) {
-                message.replyMessages = newMessage.replyMessages;
+                messagesToUpdate.forEach(m => m.replyMessages = newMessage.replyMessages!);
             }
             if (markAsEdited) {
-                message.edited = true;
+                messagesToUpdate.forEach(m => m.edited = true);
             }
             if (newMessage.attachments) {
                 if (newMessage.appendAttachments) {
-                    message.attachmentsModern = [...(message.attachmentsModern || []), ...await this.prepareAttachments(ctx, newMessage.attachments || [])];
+                    let attachments = [...(message.attachmentsModern || []), ...await this.prepareAttachments(ctx, newMessage.attachments || [])];
+                    messagesToUpdate.forEach(m => m.attachmentsModern = attachments);
                 } else {
-                    message.attachmentsModern = await this.prepareAttachments(ctx, newMessage.attachments || []);
+                    let attachments = await this.prepareAttachments(ctx, newMessage.attachments || []);
+                    messagesToUpdate.forEach(m => m.attachmentsModern = attachments);
                 }
             }
             if (newMessage.spans) {
-                message.spans = newMessage.spans;
+                messagesToUpdate.forEach(m => m.spans = newMessage.spans!);
             }
             if (newMessage.serviceMetadata) {
-                message.serviceMetadata = newMessage.serviceMetadata;
+                messagesToUpdate.forEach(m => m.serviceMetadata = newMessage.serviceMetadata!);
             }
         });
     }
