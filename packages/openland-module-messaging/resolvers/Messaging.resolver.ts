@@ -89,13 +89,14 @@ export const Resolver: GQLResolver = {
             return true;
         }),
         betaMessageDelete: withUser(async (ctx, args, uid) => {
+            let forMeOnly = args.forMeOnly || false;
             if (args.mid) {
                 let messageId = IDs.ConversationMessage.parse(args.mid);
-                await Modules.Messaging.deleteMessage(ctx, messageId, uid);
+                await Modules.Messaging.deleteMessage(ctx, messageId, uid, forMeOnly);
                 return true;
             } else if (args.mids) {
                 let messageIds = args.mids.map(mid => IDs.ConversationMessage.parse(mid));
-                await Modules.Messaging.deleteMessages(ctx, messageIds, uid);
+                await Modules.Messaging.deleteMessages(ctx, messageIds, uid, forMeOnly);
                 return true;
             }
             return false;

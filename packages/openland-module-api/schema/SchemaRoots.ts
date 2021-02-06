@@ -96,7 +96,7 @@ import {
     ModernBadge,
     UpdateSettingsChanged,
     UpdateChatDraftUpdated,
-    UpdateRoomChanged, MessageShape,
+    UpdateRoomChanged, MessageShape, PrivateMessage,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -479,11 +479,11 @@ export namespace GQLRoots {
     //
 
     export type MessageRoot = Message | number;
-    export type ModernMessageRoot = Message | Comment | RichMessage;
-    export type GeneralMessageRoot = Message | Comment | RichMessage;
-    export type StickerMessageRoot = Message | Comment;
+    export type ModernMessageRoot = Message | PrivateMessage | Comment | RichMessage;
+    export type GeneralMessageRoot = Message | PrivateMessage | Comment | RichMessage;
+    export type StickerMessageRoot = Message | PrivateMessage | Comment;
     export type DonationMessageRoot = Message;
-    export type ServiceMessageRoot = Message;
+    export type ServiceMessageRoot = Message | PrivateMessage;
     export type MessageSpanRoot = MessageSpan;
     export type MessageKeyboardRoot = { buttons: (MessageButton & { id: string })[][] };
     export type ModernMessageButtonRoot = any;
@@ -505,20 +505,20 @@ export namespace GQLRoots {
     export type MessageSpanDateRoot = DateTextSpan;
     export type MessageSpanHashTagRoot = HashTagSpan;
     export type MessageSpanAllMentionRoot = DateTextSpan;
-    export type ModernMessageAttachmentRoot = { attachment: MessageAttachment, message: Message | RichMessage | Comment };
+    export type ModernMessageAttachmentRoot = { attachment: MessageAttachment, message: Message | PrivateMessage | RichMessage | Comment };
     export type MessageAttachmentFileRoot = { attachment: MessageAttachmentFile, message: Message };
     export type MessageAttachmentPostRoot = any;
     export type MessageAttachmentPurchaseRoot = { attachment: MessageAttachmentPurchase, message: Message };
     export type MessageRichAttachmentRoot = { attachment: MessageRichAttachment, message: Message };
     export type ImageRoot = { uuid: string, metadata?: FileInfo, crop: { x: number, y: number, w: number, h: number } | null };
     export type ImageFallbackRoot = { photo: string, text: string };
-    export type MessageSourceRoot = Message | Comment;
+    export type MessageSourceRoot = Message | PrivateMessage | Comment;
     export type MessageSourceChatRoot = Message;
     export type MessageSourceCommentRoot = Comment;
     export type SilentMessageInfoRoot = { mobile: boolean, desktop: boolean };
     export type ShowNotificationMessageInfoRoot = { mobile: boolean, desktop: boolean };
-    export type GammaMessagesBatchRoot = { haveMoreForward?: boolean, haveMoreBackward?: boolean, messages: Message[] };
-    export type ModernMessagesBatchRoot = { haveMoreForward: boolean, haveMoreBackward: boolean, messages: Message[] };
+    export type GammaMessagesBatchRoot = { haveMoreForward?: boolean, haveMoreBackward?: boolean, messages: ModernMessageRoot[] };
+    export type ModernMessagesBatchRoot = { haveMoreForward: boolean, haveMoreBackward: boolean, messages: ModernMessageRoot[] };
     export type MentionPeerRoot = UserProfile | ConversationRoom | Organization;
     export type MessageWithMentionRoot = FeedEvent | Message;
     export type SharedMediaCountersRoot = GQL.SharedMediaCounters;

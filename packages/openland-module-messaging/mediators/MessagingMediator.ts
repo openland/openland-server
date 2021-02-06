@@ -429,7 +429,7 @@ export class MessagingMediator {
         });
     }
 
-    deleteMessage = async (parent: Context, mid: number, uid: number) => {
+    deleteMessage = async (parent: Context, mid: number, uid: number, forMeOnly: boolean) => {
         await inTx(parent, async (ctx) => {
 
             let message = (await Store.Message.findById(ctx, mid!))!;
@@ -440,7 +440,7 @@ export class MessagingMediator {
             }
 
             // Delete
-            await this.repo.deleteMessage(ctx, mid);
+            await this.repo.deleteMessage(ctx, uid, mid, forMeOnly);
 
             // Read conversation
             let conv = await Store.Conversation.findById(ctx, message.cid);
@@ -451,7 +451,11 @@ export class MessagingMediator {
             // Post event
             if (conv!.kind === 'private') {
                 let p = (await Store.ConversationPrivate.findById(ctx, conv.id))!;
-                await this.events.onPrivateMessageDeleted(ctx, conv.id, mid, message.uid, message.visibleOnlyForUids || [], [p.uid1, p.uid2]);
+                let visibleForOnly = message.visibleOnlyForUids || [];
+                if (forMeOnly) {
+                    visibleForOnly = [uid];
+                }
+                await this.events.onPrivateMessageDeleted(ctx, conv.id, mid, message.uid, visibleForOnly, [p.uid1, p.uid2]);
             } else {
                 await this.events.onGroupMessageDeleted(ctx, conv.id, mid, message.uid, message.visibleOnlyForUids || []);
             }
@@ -476,10 +480,10 @@ export class MessagingMediator {
         });
     }
 
-    deleteMessages = async (parent: Context, mids: number[], uid: number) => {
+    deleteMessages = async (parent: Context, mids: number[], uid: number, forMeOnly: boolean) => {
         await inTx(parent, async (ctx) => {
             for (let mid of mids) {
-                await this.deleteMessage(ctx, mid, uid);
+                await this.deleteMessage(ctx, mid, uid, forMeOnly);
             }
         });
     }

@@ -1,5 +1,5 @@
 import {
-    Organization, RichMessage, UserBadge, UserProfile, ConversationRoom, FeedEvent,
+    Organization, RichMessage, UserBadge, UserProfile, ConversationRoom, FeedEvent, PrivateMessage,
 } from 'openland-module-db/store';
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { withUser } from '../../openland-module-api/Resolvers';
@@ -33,13 +33,13 @@ import ModernMessageRoot = GQLRoots.ModernMessageRoot;
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { isDefined } from '../../openland-utils/misc';
 import MessageReactionTypeRoot = GQLRoots.MessageReactionTypeRoot;
-import { RangeQueryOptions } from '@openland/foundationdb-entity';
 import MentionInput = GQL.MentionInput;
 import GeneralMessageRoot = GQLRoots.GeneralMessageRoot;
 import { plural } from '../../openland-utils/string';
 import { FileInfo } from '../../openland-module-media/FileInfo';
+import { fetchMessages, isMessageHiddenForUser } from '../repositories/fetchMessages';
 
-export function hasMention(message: Message | RichMessage, uid: number) {
+export function hasMention(message: Message | PrivateMessage | RichMessage, uid: number) {
     if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
         return true;
     } else if (message.spans && message.spans.find(s => s.type === 'all_mention')) {
@@ -52,7 +52,7 @@ export function hasMention(message: Message | RichMessage, uid: number) {
     return false;
 }
 
-export function getAllMentions(message: Message | RichMessage) {
+export function getAllMentions(message: Message | PrivateMessage | RichMessage) {
     let mentions: number[] = [];
     if (message.spans) {
         for (let s of message.spans) {
@@ -68,7 +68,7 @@ export function getAllMentions(message: Message | RichMessage) {
     return mentions;
 }
 
-export function hasAllMention(message: Message | RichMessage) {
+export function hasAllMention(message: Message | PrivateMessage | RichMessage) {
     if (message.spans && message.spans.find(s => s.type === 'all_mention')) {
         return true;
     }
@@ -133,7 +133,7 @@ const DELETED_TEXT = {
     COMMENT: 'This comment has been deleted',
 };
 
-const getDeletedText = (src: Message | Comment | RichMessage) => src instanceof Comment ? DELETED_TEXT.COMMENT : DELETED_TEXT.MESSAGE;
+const getDeletedText = (src: Message | PrivateMessage | Comment | RichMessage) => src instanceof Comment ? DELETED_TEXT.COMMENT : DELETED_TEXT.MESSAGE;
 
 // type IntermediateMention = { type: 'user', user: number } | { type: 'room', room: number };
 
@@ -336,7 +336,7 @@ export function parseLinks(message: string): MessageSpan[] {
 
 const urlInfoService = createUrlInfoService();
 
-export function fetchMessageFallback(message: Message | Comment | RichMessage): string {
+export function fetchMessageFallback(message: Message | PrivateMessage | Comment | RichMessage): string {
     const attachFallback = (mime?: string | null, isImage?: boolean | null) => {
         if (!mime) {
             return Texts.Notifications.DOCUMENT_ATTACH;
@@ -405,46 +405,8 @@ export function fetchMessageFallback(message: Message | Comment | RichMessage): 
     return fallback.join('\n');
 }
 
-async function getMessageSenderBadge(ctx: Context, src: Message | Comment): Promise<UserBadge | null> {
+async function getMessageSenderBadge(ctx: Context, src: Message | PrivateMessage | Comment): Promise<UserBadge | null> {
     return null;
-}
-
-function isMessageHiddenForUser(message: Message | Comment | RichMessage, forUid: number) {
-    if (!(message instanceof Message)) {
-        return false;
-    }
-    if (message.visibleOnlyForUids && message.visibleOnlyForUids.length > 0 && !message.visibleOnlyForUids.includes(forUid)) {
-        return true;
-    }
-    return false;
-}
-
-async function fetchMessages(ctx: Context, cid: number, forUid: number, opts: RangeQueryOptions<number>) {
-    let messages = await Store.Message.chat.query(ctx, cid, opts);
-    if (messages.items.length === 0) {
-        return messages;
-    }
-    let after = messages.items[messages.items.length - 1].id;
-    messages.items = messages.items.filter(m => (m.visibleOnlyForUids && m.visibleOnlyForUids.length > 0) ? m.visibleOnlyForUids.includes(forUid) : true);
-
-    while (messages.items.length < (opts.limit || 0) && messages.haveMore) {
-        let more = await Store.Message.chat.query(ctx, cid, { ...opts, after, limit: 1 });
-        if (more.items.length === 0) {
-            messages.haveMore = false;
-            return messages;
-        }
-        after = more.items[more.items.length - 1].id;
-
-        let filtered = more.items.filter(m => (m.visibleOnlyForUids && m.visibleOnlyForUids.length > 0) ? m.visibleOnlyForUids.includes(forUid) : true);
-        messages.items.push(...filtered);
-        messages.haveMore = more.haveMore;
-        messages.cursor = more.cursor;
-    }
-    if (opts.limit) {
-        messages.items = messages.items.slice(0, opts.limit);
-    }
-
-    return messages;
 }
 
 function resolveReactionCounters(src: GeneralMessageRoot, args: any, ctx: Context) {
@@ -519,6 +481,8 @@ export const Resolver: GQLResolver = {
             if (src instanceof Comment) {
                 return IDs.Comment.serialize(src.id);
             } else if (src instanceof Message) {
+                return IDs.ConversationMessage.serialize(src.id);
+            } else if (src instanceof PrivateMessage) {
                 return IDs.ConversationMessage.serialize(src.id);
             }
             throw new Error('unknown message ' + src);
@@ -597,7 +561,7 @@ export const Resolver: GQLResolver = {
 
             return spans;
         },
-        serviceMetadata: (src: Message) => {
+        serviceMetadata: src => {
             if (src.serviceMetadata && (src.serviceMetadata as any).type) {
                 return src.serviceMetadata;
             }
@@ -615,7 +579,7 @@ export const Resolver: GQLResolver = {
         id: src => {
             if (src instanceof Comment) {
                 return IDs.Comment.serialize(src.id);
-            } else if (src instanceof Message) {
+            } else if (src instanceof Message || src instanceof PrivateMessage) {
                 return IDs.ConversationMessage.serialize(src.id);
             } else if (src instanceof RichMessage) {
                 return IDs.RichMessage.serialize(src.id);
@@ -725,7 +689,7 @@ export const Resolver: GQLResolver = {
                 return src.attachments ? src.attachments.map(a => ({ message: src, attachment: a })) : [];
             }
 
-            let attachments: { attachment: MessageAttachment, message: Message }[] = [];
+            let attachments: { attachment: MessageAttachment, message: Message | PrivateMessage }[] = [];
 
             if (src.fileId) {
                 attachments.push({
@@ -870,7 +834,7 @@ export const Resolver: GQLResolver = {
         id: src => {
             if (src instanceof Comment) {
                 return IDs.Comment.serialize(src.id);
-            } else if (src instanceof Message) {
+            } else if (src instanceof Message || src instanceof PrivateMessage) {
                 return IDs.ConversationMessage.serialize(src.id);
             }
             throw new Error('unknown message ' + src);
@@ -940,7 +904,7 @@ export const Resolver: GQLResolver = {
     //
     MessageSource: {
         __resolveType(src: MessageSourceRoot) {
-            if (src instanceof Message) {
+            if (src instanceof Message || src instanceof PrivateMessage) {
                 return 'MessageSourceChat';
             } else if (src instanceof Comment) {
                 return 'MessageSourceComment';
@@ -1242,11 +1206,11 @@ export const Resolver: GQLResolver = {
 
             let haveMoreForward: boolean | undefined;
             let haveMoreBackward: boolean | undefined;
-            let messages: Message[] = [];
+            let messages: (Message|PrivateMessage)[] = [];
 
             if (beforeId || afterId) {
-                let before: Message[] = [];
-                let after: Message[] = [];
+                let before: (Message|PrivateMessage)[] = [];
+                let after: (Message|PrivateMessage)[] = [];
 
                 if (beforeId && await Store.Message.findById(ctx, beforeId)) {
                     let beforeQuery = (await fetchMessages(ctx, roomId, uid, {

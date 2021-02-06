@@ -14,6 +14,7 @@ import { REACTIONS, REACTIONS_LEGACY } from '../resolvers/ModernMessage.resolver
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { Sanitizer } from '../../openland-utils/Sanitizer';
 import uuid from 'uuid';
+import { UserError } from '../../openland-errors/UserError';
 
 @injectable()
 export class MessagesRepository {
@@ -61,10 +62,12 @@ export class MessagesRepository {
             //
             // Persist Messages
             //
+            let privateChat = await Store.ConversationPrivate.findById(ctx, cid);
+
             Store.ConversationLastSeq.byId(cid).increment(ctx);
             let seq = await Store.ConversationLastSeq.byId(cid).get(ctx);
             let mid = await this.fetchNextMessageId(ctx);
-            let msg = await Store.Message.create(ctx, mid, {
+            let messageData = {
                 cid: cid,
                 uid: uid,
                 seq: seq,
@@ -82,7 +85,12 @@ export class MessagesRepository {
                 attachmentsModern: attachments.length > 0 ? attachments : null,
                 overrideAvatar: message.overrideAvatar,
                 overrideName: message.overrideName,
-            });
+            };
+            let msg = await Store.Message.create(ctx, mid, messageData);
+            if (privateChat && privateChat.uid1 !== privateChat.uid2) {
+                await Store.PrivateMessage.create(ctx, mid, privateChat.uid1, messageData);
+                await Store.PrivateMessage.create(ctx, mid, privateChat.uid2, messageData);
+            }
 
             return {
                 message: msg
@@ -126,13 +134,39 @@ export class MessagesRepository {
         });
     }
 
-    async deleteMessage(parent: Context, mid: number): Promise<void> {
+    async deleteMessage(parent: Context, byUid: number, mid: number, forMeOnly: boolean): Promise<void> {
         await inTx(parent, async (ctx) => {
             let message = (await Store.Message.findById(ctx, mid));
             if (!message || message.deleted) {
                 throw new Error('Message not found');
             }
-            message.deleted = true;
+
+            let privateChat = await Store.ConversationPrivate.findById(ctx, message.cid);
+            if (!privateChat && forMeOnly) {
+                throw new UserError('Can\'t delete message only for you in chat room');
+            }
+            if (!privateChat) {
+                message.deleted = true;
+                return;
+            }
+
+            let msgCopy1 = await Store.PrivateMessage.findById(ctx, mid, privateChat.uid1);
+            let msgCopy2 = await Store.PrivateMessage.findById(ctx, mid, privateChat.uid2);
+
+            if (!msgCopy1 || !msgCopy2) {
+                return;
+            }
+
+            if (forMeOnly) {
+                if (byUid === privateChat.uid1) {
+                    msgCopy1.deleted = true;
+                } else {
+                    msgCopy2.deleted = true;
+                }
+            } else {
+                msgCopy1.deleted = true;
+                msgCopy2.deleted = true;
+            }
         });
     }
 
@@ -159,7 +193,7 @@ export class MessagesRepository {
                     return false;
                 }
             } else {
-                reactions.push({ userId: uid, reaction });
+                reactions.push({userId: uid, reaction});
             }
             message.reactions = reactions;
 
@@ -183,7 +217,7 @@ export class MessagesRepository {
      * @param cid conversation id
      */
     async findTopMessage(ctx: Context, cid: number, forUid: number) {
-        let res = (await Store.Message.chat.query(ctx, cid, { limit: 1, reverse: true })).items;
+        let res = (await Store.Message.chat.query(ctx, cid, {limit: 1, reverse: true})).items;
         if (res.length === 0) {
             return null;
         } else {
@@ -191,7 +225,7 @@ export class MessagesRepository {
             // this can be slow if we allow hidden messages for users, but ok for service purposes
             // in general we should store top message in user dialogs list & update it via delivery workers
             while (msg.visibleOnlyForUids && msg.visibleOnlyForUids.length > 0 && !msg.visibleOnlyForUids.includes(forUid)) {
-                let res2 = (await Store.Message.chat.query(ctx, cid, { limit: 1, reverse: true, after: msg.id })).items;
+                let res2 = (await Store.Message.chat.query(ctx, cid, {limit: 1, reverse: true, after: msg.id})).items;
                 if (res2.length === 0) {
                     return null;
                 }
@@ -206,7 +240,7 @@ export class MessagesRepository {
             let existing = await Store.ConversationSeq.findById(ctx, cid);
             let seq = 1;
             if (!existing) {
-                await (await Store.ConversationSeq.create(ctx, cid, { seq: 1 })).flush(ctx);
+                await (await Store.ConversationSeq.create(ctx, cid, {seq: 1})).flush(ctx);
             } else {
                 seq = ++existing.seq;
                 await existing.flush(ctx);
@@ -223,7 +257,7 @@ export class MessagesRepository {
                 await ex.flush(ctx);
                 return res;
             } else {
-                await Store.Sequence.create(ctx, 'message-id', { value: 1 });
+                await Store.Sequence.create(ctx, 'message-id', {value: 1});
                 return 1;
             }
         });
@@ -245,7 +279,10 @@ export class MessagesRepository {
     }
 
     private prepareReactions(reactions: ({ userId: number, reaction: string })[]): ({ userId: number, reaction: string })[] {
-        return reactions.map(reaction => ({ userId: reaction.userId, reaction: this.toModernReaction(reaction.reaction) }));
+        return reactions.map(reaction => ({
+            userId: reaction.userId,
+            reaction: this.toModernReaction(reaction.reaction)
+        }));
     }
 
     private toModernReaction(reaction: string): string {
