@@ -1694,7 +1694,13 @@ export const Resolver: GQLResolver = {
 
         deleteChat: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.chatId);
-            await Modules.Messaging.room.deleteRoom(ctx, cid, uid);
+            let privateChat = await Store.ConversationPrivate.findById(ctx, cid);
+            if (privateChat) {
+                await Modules.Messaging.room.deletePrivateDialog(ctx, cid, uid, args.oneSide || false);
+            } else {
+                await Modules.Messaging.room.deleteRoom(ctx, cid, uid);
+            }
+
             return true;
         }),
         archiveChat: withUser(async (ctx, args, uid) => {

@@ -16,6 +16,7 @@ import { Sanitizer } from '../../openland-utils/Sanitizer';
 import uuid from 'uuid';
 import { UserError } from '../../openland-errors/UserError';
 import { isDefined } from '../../openland-utils/misc';
+import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 
 @injectable()
 export class MessagesRepository {
@@ -146,7 +147,7 @@ export class MessagesRepository {
         });
     }
 
-    async deleteMessage(parent: Context, byUid: number, mid: number, forMeOnly: boolean): Promise<void> {
+    async deleteMessage(parent: Context, byUid: number, mid: number, oneSide: boolean): Promise<void> {
         await inTx(parent, async (ctx) => {
             let message = (await Store.Message.findById(ctx, mid));
             if (!message || message.deleted) {
@@ -154,7 +155,7 @@ export class MessagesRepository {
             }
 
             let privateChat = await Store.ConversationPrivate.findById(ctx, message.cid);
-            if (!privateChat && forMeOnly) {
+            if (!privateChat && oneSide) {
                 throw new UserError('Can\'t delete message only for you in chat room');
             }
             if (!privateChat) {
@@ -169,7 +170,7 @@ export class MessagesRepository {
                 return;
             }
 
-            if (forMeOnly) {
+            if (oneSide) {
                 if (byUid === privateChat.uid1) {
                     msgCopy1.deleted = true;
                 } else {
@@ -224,12 +225,51 @@ export class MessagesRepository {
         });
     }
 
+    async deletePrivateChatHistory(parent: Context, byUid: number, cid: number, oneSide: boolean) {
+        return await inTx(parent, async ctx => {
+            let privateChat = await Store.ConversationPrivate.findById(ctx, cid);
+            if (!privateChat) {
+                throw new NotFoundError();
+            }
+            if (privateChat.uid1 !== byUid && privateChat.uid2 !== byUid) {
+                throw new AccessDeniedError();
+            }
+
+            // Clear from primary index
+            if (oneSide) {
+                Store.PrivateMessage.descriptor.subspace.clearPrefixed(ctx, [cid, byUid]);
+            } else {
+                Store.PrivateMessage.descriptor.subspace.clearPrefixed(ctx, [cid, privateChat.uid1]);
+                Store.PrivateMessage.descriptor.subspace.clearPrefixed(ctx, [cid, privateChat.uid2]);
+            }
+
+            // Clear from secondary indexes
+            let indexes = Store.PrivateMessage.descriptor.secondaryIndexes;
+            for (let index of indexes) {
+                if (oneSide) {
+                    index.subspace.clearPrefixed(ctx, [cid, byUid]);
+                } else {
+                    index.subspace.clearPrefixed(ctx, [cid, privateChat.uid1]);
+                    index.subspace.clearPrefixed(ctx, [cid, privateChat.uid2]);
+                }
+            }
+        });
+    }
+
     /**
      * @deprecated top message should be persisted in dialog list
      * @param cid conversation id
      */
     async findTopMessage(ctx: Context, cid: number, forUid: number) {
-        let res = (await Store.Message.chat.query(ctx, cid, {limit: 1, reverse: true})).items;
+        let isPrivateChat = !!(await Store.ConversationPrivate.findById(ctx, cid));
+
+        let res;
+        if (isPrivateChat) {
+            res = (await Store.PrivateMessage.chat.query(ctx, cid, forUid, {limit: 1, reverse: true})).items;
+        } else {
+            res = (await Store.Message.chat.query(ctx, cid, {limit: 1, reverse: true})).items;
+        }
+
         if (res.length === 0) {
             return null;
         } else {
@@ -237,7 +277,12 @@ export class MessagesRepository {
             // this can be slow if we allow hidden messages for users, but ok for service purposes
             // in general we should store top message in user dialogs list & update it via delivery workers
             while (msg.visibleOnlyForUids && msg.visibleOnlyForUids.length > 0 && !msg.visibleOnlyForUids.includes(forUid)) {
-                let res2 = (await Store.Message.chat.query(ctx, cid, {limit: 1, reverse: true, after: msg.id})).items;
+                let res2;
+                if (isPrivateChat) {
+                    res2 = (await Store.PrivateMessage.chat.query(ctx, cid, forUid, {limit: 1, reverse: true, after: msg.id})).items;
+                } else {
+                    res2 = (await Store.Message.chat.query(ctx, cid, {limit: 1, reverse: true, after: msg.id})).items;
+                }
                 if (res2.length === 0) {
                     return null;
                 }

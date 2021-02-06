@@ -140,12 +140,12 @@ export class MessagingModule {
         return await this.messaging.setReaction(ctx, mid, uid, reaction, reset);
     }
 
-    async deleteMessage(ctx: Context, mid: number, uid: number, forMeOnly: boolean): Promise<void> {
-        await this.messaging.deleteMessage(ctx, mid, uid, forMeOnly);
+    async deleteMessage(ctx: Context, mid: number, uid: number, oneSide: boolean): Promise<void> {
+        await this.messaging.deleteMessage(ctx, mid, uid, oneSide);
     }
 
-    async deleteMessages(ctx: Context, mids: number[], uid: number, forMeOnly: boolean) {
-        return await this.messaging.deleteMessages(ctx, mids, uid, forMeOnly);
+    async deleteMessages(ctx: Context, mids: number[], uid: number, oneSide: boolean) {
+        return await this.messaging.deleteMessages(ctx, mids, uid, oneSide);
     }
 
     async readRoom(ctx: Context, uid: number, cid: number, mid: number) {

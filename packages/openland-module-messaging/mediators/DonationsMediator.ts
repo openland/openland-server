@@ -133,7 +133,7 @@ export class DonationsMediator {
         } else if (product.type === 'donate_message') {
             let message = await Store.Message.findById(ctx, product.mid!);
             if (message?.deleted === false) {
-                await Modules.Messaging.deleteMessage(ctx, product.mid!, uid);
+                await Modules.Messaging.deleteMessage(ctx, product.mid!, uid, false);
             }
         }
     }

@@ -209,7 +209,7 @@ extend type Mutation {
     messageDonationReactionAdd(messageId: ID!): Boolean!
     messageReactionRemove(messageId: ID!, reaction: MessageReactionType!): Boolean!
 
-    deleteChat(chatId: ID!): Boolean!
+    deleteChat(chatId: ID!, oneSide: Boolean): Boolean!
     archiveChat(chatId: ID!): Boolean!
 }
 

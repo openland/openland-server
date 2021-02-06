@@ -6044,8 +6044,6 @@ export class PrivateMessageFactory extends EntityFactory<PrivateMessageShape, Pr
     }
     return false;
 } });
-        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'updated'), condition: undefined });
-        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'created'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         primaryKeys.push({ name: 'inboxUid', type: 'integer' });
@@ -6229,36 +6227,6 @@ export class PrivateMessageFactory extends EntityFactory<PrivateMessageShape, Pr
         },
         liveStream: (ctx: Context, cid: number, inboxUid: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[6], [cid, inboxUid], opts);
-        },
-    });
-
-    readonly updated = Object.freeze({
-        findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[7], [])).items;
-        },
-        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[7], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[7], [], opts);
-        },
-        liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[7], [], opts);
-        },
-    });
-
-    readonly created = Object.freeze({
-        findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[8], [])).items;
-        },
-        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[8], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[8], [], opts);
-        },
-        liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[8], [], opts);
         },
     });
 

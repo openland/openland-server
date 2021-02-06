@@ -646,6 +646,32 @@ export class RoomMediator {
         });
     }
 
+    async deletePrivateDialog(parent: Context, cid: number, uid: number, oneSide: boolean) {
+        await inTx(parent, async ctx => {
+            await this.checkAccess(ctx, uid, cid);
+            let chat = await Store.ConversationPrivate.findById(ctx, cid);
+            if (!chat) {
+                throw new NotFoundError();
+            }
+            await this.messaging.deletePrivateChatHistory(ctx, uid, cid, oneSide);
+            let lastMessage = (await Store.Message.chat.query(ctx, cid, { limit: 1, reverse: true })).items[0];
+
+            if (oneSide) {
+                if (lastMessage) {
+                    await this.messaging.readRoom(ctx, uid, cid, lastMessage.id);
+                }
+                await this.delivery.onDialogDelete(ctx, uid, cid);
+            } else {
+                if (lastMessage) {
+                    await this.messaging.readRoom(ctx, chat.uid1, cid, lastMessage.id);
+                    await this.messaging.readRoom(ctx, chat.uid2, cid, lastMessage.id);
+                }
+                await this.delivery.onDialogDelete(ctx, chat.uid1, cid);
+                await this.delivery.onDialogDelete(ctx, chat.uid2, cid);
+            }
+        });
+    }
+
     async onDialogDelete(parent: Context, cid: number, uid: number) {
         await this.delivery.onDialogDelete(parent, uid, cid);
     }

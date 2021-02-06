@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '6623eb2df9f929e1e2d6a45781d779bc';
+export const GQL_SPEC_VERSION = 'cd63a229be352c88f3de829d8c1ff0e7';
 
 export namespace GQL {
     export interface CreditCard {
@@ -3343,6 +3343,7 @@ export namespace GQL {
     }
     export interface MutationDeleteChatArgs {
         chatId: string;
+        oneSide: OptionalNullable<boolean>;
     }
     export interface MutationArchiveChatArgs {
         chatId: string;
