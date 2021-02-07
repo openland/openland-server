@@ -6675,6 +6675,75 @@ export class UserDialogSettingsFactory extends EntityFactory<UserDialogSettingsS
     }
 }
 
+export interface UserDialogListSettingsShape {
+    uid: number;
+    pinnedChats: (number)[];
+}
+
+export interface UserDialogListSettingsCreateShape {
+    pinnedChats: (number)[];
+}
+
+export class UserDialogListSettings extends Entity<UserDialogListSettingsShape> {
+    get uid(): number { return this._rawValue.uid; }
+    get pinnedChats(): (number)[] { return this._rawValue.pinnedChats; }
+    set pinnedChats(value: (number)[]) {
+        let normalized = this.descriptor.codec.fields.pinnedChats.normalize(value);
+        if (this._rawValue.pinnedChats !== normalized) {
+            this._rawValue.pinnedChats = normalized;
+            this._updatedValues.pinnedChats = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class UserDialogListSettingsFactory extends EntityFactory<UserDialogListSettingsShape, UserDialogListSettings> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('userDialogListSettings');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'uid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'pinnedChats', type: { type: 'array', inner: { type: 'integer' } }, secure: false });
+        let codec = c.struct({
+            uid: c.integer,
+            pinnedChats: c.array(c.integer),
+        });
+        let descriptor: EntityDescriptor<UserDialogListSettingsShape> = {
+            name: 'UserDialogListSettings',
+            storageKey: 'userDialogListSettings',
+            allowDelete: false,
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new UserDialogListSettingsFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<UserDialogListSettingsShape>) {
+        super(descriptor);
+    }
+
+    create(ctx: Context, uid: number, src: UserDialogListSettingsCreateShape): Promise<UserDialogListSettings> {
+        return this._create(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, uid: number, src: UserDialogListSettingsCreateShape): UserDialogListSettings {
+        return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
+    }
+
+    findById(ctx: Context, uid: number): Promise<UserDialogListSettings | null> {
+        return this._findById(ctx, [uid]);
+    }
+
+    watch(ctx: Context, uid: number): Watch {
+        return this._watch(ctx, [uid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserDialogListSettingsShape>): UserDialogListSettings {
+        return new UserDialogListSettings([value.uid], value, this.descriptor, this._flush, this._delete, ctx);
+    }
+}
+
 export interface UserDialogEventShape {
     uid: number;
     seq: number;
@@ -22436,6 +22505,39 @@ export class UpdateSettingsChanged extends BaseEvent {
     get uid(): number { return this.raw.uid; }
 }
 
+const updateDialogListSettingsChangedCodec = c.struct({
+    uid: c.integer,
+});
+
+interface UpdateDialogListSettingsChangedShape {
+    uid: number;
+}
+
+export class UpdateDialogListSettingsChanged extends BaseEvent {
+
+    static readonly type: 'updateDialogListSettingsChanged' = 'updateDialogListSettingsChanged';
+
+    static create(data: UpdateDialogListSettingsChangedShape) {
+        return new UpdateDialogListSettingsChanged(updateDialogListSettingsChangedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateDialogListSettingsChanged(updateDialogListSettingsChangedCodec.decode(data));
+    }
+
+    static encode(event: UpdateDialogListSettingsChanged) {
+        return updateDialogListSettingsChangedCodec.encode(event.raw);
+    }
+
+    readonly type: 'updateDialogListSettingsChanged' = 'updateDialogListSettingsChanged';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+}
+
 const updateChatMessageCodec = c.struct({
     uid: c.integer,
     cid: c.integer,
@@ -23356,6 +23458,7 @@ export interface Store extends BaseStore {
     readonly UserDialog: UserDialogFactory;
     readonly UserDialogHandledMessage: UserDialogHandledMessageFactory;
     readonly UserDialogSettings: UserDialogSettingsFactory;
+    readonly UserDialogListSettings: UserDialogListSettingsFactory;
     readonly UserDialogEvent: UserDialogEventFactory;
     readonly CommentState: CommentStateFactory;
     readonly CommentSeq: CommentSeqFactory;
@@ -23576,6 +23679,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('updateProfileChanged', UpdateProfileChanged.encode as any, UpdateProfileChanged.decode);
     eventFactory.registerEventType('updateChatAccessChanged', UpdateChatAccessChanged.encode as any, UpdateChatAccessChanged.decode);
     eventFactory.registerEventType('updateSettingsChanged', UpdateSettingsChanged.encode as any, UpdateSettingsChanged.decode);
+    eventFactory.registerEventType('updateDialogListSettingsChanged', UpdateDialogListSettingsChanged.encode as any, UpdateDialogListSettingsChanged.decode);
     eventFactory.registerEventType('updateChatMessage', UpdateChatMessage.encode as any, UpdateChatMessage.decode);
     eventFactory.registerEventType('updateChatMessageUpdated', UpdateChatMessageUpdated.encode as any, UpdateChatMessageUpdated.decode);
     eventFactory.registerEventType('updateChatMessageDeleted', UpdateChatMessageDeleted.encode as any, UpdateChatMessageDeleted.decode);
@@ -23663,6 +23767,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserDialogPromise = UserDialogFactory.open(storage);
     let UserDialogHandledMessagePromise = UserDialogHandledMessageFactory.open(storage);
     let UserDialogSettingsPromise = UserDialogSettingsFactory.open(storage);
+    let UserDialogListSettingsPromise = UserDialogListSettingsFactory.open(storage);
     let UserDialogEventPromise = UserDialogEventFactory.open(storage);
     let CommentStatePromise = CommentStateFactory.open(storage);
     let CommentSeqPromise = CommentSeqFactory.open(storage);
@@ -23922,6 +24027,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserDialog: await UserDialogPromise,
         UserDialogHandledMessage: await UserDialogHandledMessagePromise,
         UserDialogSettings: await UserDialogSettingsPromise,
+        UserDialogListSettings: await UserDialogListSettingsPromise,
         UserDialogEvent: await UserDialogEventPromise,
         CommentState: await CommentStatePromise,
         CommentSeq: await CommentSeqPromise,

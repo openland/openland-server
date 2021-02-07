@@ -36,6 +36,11 @@ export const Resolver: GQLResolver = {
                 return 'UpdateSettingsChanged';
             } else if (src.type === 'updateRoomChanged') {
                 return 'UpdateRoomChanged';
+            } else if (src.type === 'updateDialogListSettingsChanged') {
+                if (src.uid !== ctx.auth.uid) {
+                    throw Error('Invalid update');
+                }
+                return 'UpdateDialogListSettingsChanged';
             } else {
                 throw Error('Unknown update');
             }
@@ -71,6 +76,11 @@ export const Resolver: GQLResolver = {
         settings: withUser(async (ctx, args, uid) => {
             return Modules.Users.getUserSettings(ctx, uid);
         }),
+    },
+    UpdateDialogListSettingsChanged: {
+        settings: withUser(async (ctx, args, uid) => {
+            return Modules.Messaging.dialogListSettings.getUserSettings(ctx, uid);
+        })
     },
     UpdateRoomChanged: {
         room: (src) => src.cid

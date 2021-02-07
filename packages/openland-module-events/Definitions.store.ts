@@ -17,6 +17,9 @@ export function defineEvents() {
     event('UpdateSettingsChanged', () => {
         field('uid', integer());
     });
+    event('UpdateDialogListSettingsChanged', () => {
+        field('uid', integer());
+    });
 
     event('UpdateChatMessage', () => {
         field('uid', integer());

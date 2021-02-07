@@ -21,6 +21,8 @@ import { DonationsMediator } from './mediators/DonationsMediator';
 import { PrecalculatedCounterProvider } from './counters/PrecalculatedCounterProvider';
 import { UserReadSeqsDirectory } from './repositories/UserReadSeqsDirectory';
 import { ChatsMembersListDirectory } from './repositories/ChatsMembersListDirectory';
+import { DialogListSettingsRepository } from './repositories/DialogListSettingsRepository';
+import { DialogListSettingsMediator } from './mediators/DialogListSettingsMediator';
 
 export function loadMessagingModule() {
     container.bind(MessagingModule).toSelf().inSingletonScope();
@@ -45,4 +47,7 @@ export function loadMessagingModule() {
     container.bind('ChatsMembersListDirectory').to(ChatsMembersListDirectory).inSingletonScope();
     container.bind('MessagesEventsRepository').to(MessagesEventsRepository).inSingletonScope();
     container.bind('MessagingEventsMediator').to(EventsMediator).inSingletonScope();
+
+    container.bind('DialogListSettingsRepository').to(DialogListSettingsRepository).inSingletonScope();
+    container.bind('DialogListSettingsMediator').to(DialogListSettingsMediator).inSingletonScope();
 }
