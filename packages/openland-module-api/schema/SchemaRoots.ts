@@ -278,7 +278,7 @@ export namespace GQLRoots {
     export type UrlAugmentationExtraRoot = User | Organization | Conversation;
     export type UrlAugmentationRoot = URLAugmentation;
     export type MessageReactionRoot = { userId: number, reaction: string };
-    export type ConversationMessageRoot = Message;
+    export type ConversationMessageRoot = Message | PrivateMessage;
     export type FileMetadataRoot = any;
     export type VideoMetadataRoot = NonNullable<
         Extract<NonNullable<MessageShape['attachmentsModern']>[number], { type: 'file_attachment' }>['videoMetadata']

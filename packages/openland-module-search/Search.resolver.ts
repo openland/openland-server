@@ -370,7 +370,7 @@ export const Resolver: GQLResolver = {
                 let sort: any[] | undefined = undefined;
 
                 let parser = new QueryParser();
-                parser.registerText('text', 'text');
+                parser.registerPrefix('text', 'text');
                 parser.registerBoolean('isService', 'isService');
                 parser.registerText('createdAt', 'createdAt');
                 parser.registerText('updatedAt', 'updatedAt');
@@ -379,24 +379,37 @@ export const Resolver: GQLResolver = {
                 let elasticQuery = buildElasticQuery(parsed);
                 clauses.push(elasticQuery);
                 clauses.push({term: {deleted: false}});
+                clauses.push({term: {roomKind: 'room'}});
 
                 if (args.sort) {
                     sort = parser.parseSort(args.sort);
                 }
 
-                if (cid) {
-                    clauses.push({term: {cid }});
-                } else {
-                    clauses.push({terms: {cid: userDialogs.map(d => d.cid)}});
-                }
+                let chatsFilter = cid ? {term: {cid }} : {terms: {cid: userDialogs.map(d => d.cid)}};
+
+                let query = Es.and([
+                    elasticQuery,
+                    chatsFilter,
+                    {term: {deleted: false}},
+                    Es.or([
+                        Es.and([
+                            {term: {_type: 'message'}},
+                            {term: {roomKind: 'room'}}
+                        ]),
+                        Es.and([
+                            {term: {_type: 'private-message'}},
+                            {term: {inboxUid: uid}}
+                        ])
+                    ])
+                ]);
 
                 let hits = await Modules.Search.elastic.client.search({
-                    index: 'message',
-                    type: 'message',
+                    index: 'message,private-message',
                     size: args.first,
                     from: args.after ? parseInt(args.after, 10) : 0,
                     body: {
-                        sort: sort || [{createdAt: 'desc'}], query: {bool: {must: clauses}},
+                        sort: sort || [{createdAt: 'desc'}],
+                        query
                     },
                 });
 

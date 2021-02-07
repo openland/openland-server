@@ -179,6 +179,7 @@ export class MessagesRepository {
             } else {
                 msgCopy1.deleted = true;
                 msgCopy2.deleted = true;
+                message.deleted = true;
             }
         });
     }

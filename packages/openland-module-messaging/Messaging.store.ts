@@ -1,6 +1,6 @@
 import {
     array,
-    boolean, entity,
+    boolean, customDirectory, entity,
     field,
     integer,
     json,
@@ -234,7 +234,9 @@ export function messagingStore() {
         rangeIndex('hasLinkAttachment', ['cid', 'inboxUid', 'id']).withCondition(hasLinkAttachment);
         rangeIndex('hasVideoAttachment', ['cid', 'inboxUid', 'id']).withCondition(hasVideoAttachment);
         rangeIndex('hasDocumentAttachment', ['cid', 'inboxUid', 'id']).withCondition(hasDocumentAttachment);
-        // rangeIndex('updated', ['updatedAt']);
-        // rangeIndex('created', ['createdAt']);
+        rangeIndex('updated', ['updatedAt']);
+        rangeIndex('created', ['createdAt']);
     });
+
+    customDirectory('PrivateChatsDeletedTo');
 }
