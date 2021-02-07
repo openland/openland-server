@@ -1,0 +1,13 @@
+type DialogListSettings {
+    pinnedChats: [Room!]!
+}
+
+extend type Query {
+    dialogListSettings: DialogListSettings!
+}
+
+extend type Mutation {
+    dialogListPin(id: ID!): Boolean
+    dialogListUnpin(id: ID!): Boolean
+    dialogListUpdatePinned(pinned: [ID!]!): Boolean!
+}

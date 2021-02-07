@@ -929,6 +929,11 @@ export default declareSchema(() => {
         field('mute', boolean());
     });
 
+    entity('UserDialogListSettings', () => {
+        primaryKey('uid', integer());
+        field('pinnedChats', array(integer()));
+    });
+
     customDirectory('UserDialogMuteSetting');
 
     entity('UserDialogEvent', () => {

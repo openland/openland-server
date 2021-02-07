@@ -96,7 +96,10 @@ import {
     ModernBadge,
     UpdateSettingsChanged,
     UpdateChatDraftUpdated,
-    UpdateRoomChanged, MessageShape,
+    UpdateRoomChanged,
+    MessageShape,
+    UserDialogListSettings,
+    UserDialogListSettingsShape, UpdateDialogListSettingsChanged,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -465,6 +468,8 @@ export namespace GQLRoots {
 
     export type PremiumChatSettingsRoot = PremiumChatSettings | { id: number, price: number, interval?: 'WEEK' | 'MONTH' };
 
+    export type DialogListSettingsRoot = UserDialogListSettings | UserDialogListSettingsShape;
+
     //
     // Apps
     //
@@ -828,6 +833,7 @@ export namespace GQLRoots {
     export type UpdateChatMessageDeletedRoot = UpdateChatMessageDeleted;
     export type UpdateChatDraftChangedRoot = UpdateChatDraftUpdated;
     export type UpdateSettingsChangedRoot = UpdateSettingsChanged;
+    export type UpdateDialogListSettingsChangedRoot = UpdateDialogListSettingsChanged;
     export type UpdateRoomChangedRoot = UpdateRoomChanged;
     export type UpdateEventRoot = Event;
 

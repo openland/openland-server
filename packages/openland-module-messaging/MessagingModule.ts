@@ -22,6 +22,7 @@ import { PremiumChatMediator } from './mediators/PremiumChatMediator';
 import { DonationsMediator } from './mediators/DonationsMediator';
 import { CounterProvider } from './counters/CounterProvider';
 import { PrecalculatedCounterProvider } from './counters/PrecalculatedCounterProvider';
+import { DialogListSettingsMediator } from './mediators/DialogListSettingsMediator';
 
 export const USE_NEW_COUNTERS = true;
 
@@ -36,6 +37,7 @@ export class MessagingModule {
     readonly delivery: DeliveryMediator;
     readonly counters: CounterProvider = new PrecalculatedCounterProvider();
     readonly messaging: MessagingMediator;
+    readonly dialogListSettings: DialogListSettingsMediator;
     private readonly augmentation: AugmentationMediator;
     private readonly userState: UserStateRepository;
     private readonly userDialogs: UserDialogsRepository;
@@ -51,6 +53,7 @@ export class MessagingModule {
         @inject('UserDialogsRepository') userDialogs: UserDialogsRepository,
         @inject('PremiumChatMediator') proChat: PremiumChatMediator,
         @inject('DonationsMediator') donationsMediator: DonationsMediator,
+        @inject('DialogListSettingsMediator') dialogListSettingsMediator: DialogListSettingsMediator,
     ) {
         this.delivery = delivery;
         this.userState = userState;
@@ -62,6 +65,7 @@ export class MessagingModule {
         this.userDialogs = userDialogs;
         this.premiumChat = proChat;
         this.donations = donationsMediator;
+        this.dialogListSettings = dialogListSettingsMediator;
     }
 
     //

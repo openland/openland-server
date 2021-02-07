@@ -1,4 +1,4 @@
-union UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted | UpdateChatDraftChanged | UpdateSettingsChanged | UpdateRoomChanged
+union UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted | UpdateChatDraftChanged | UpdateSettingsChanged | UpdateRoomChanged | UpdateDialogListSettingsChanged
 
 type UpdateChatRead {
     cid: ID!
@@ -34,6 +34,10 @@ type UpdateChatDraftChanged {
 
 type UpdateSettingsChanged {
     settings: Settings!
+}
+
+type UpdateDialogListSettingsChanged {
+    settings: DialogListSettings!
 }
 
 type UpdateRoomChanged {
