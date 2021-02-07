@@ -385,7 +385,7 @@ export const Resolver: GQLResolver = {
                     sort = parser.parseSort(args.sort);
                 }
 
-                let chatsFilter = cid ? {term: {cid }} : {terms: {cid: userDialogs.map(d => d.cid)}};
+                let chatsFilter = cid ? {term: {cid}} : {terms: {cid: userDialogs.map(d => d.cid)}};
 
                 let query = Es.and([
                     elasticQuery,

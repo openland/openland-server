@@ -17,9 +17,11 @@ import uuid from 'uuid';
 import { UserError } from '../../openland-errors/UserError';
 import { isDefined } from '../../openland-utils/misc';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
+import { createPrivateChatCleanerWorker } from '../workers/privateChatCleanerWorker';
 
 @injectable()
 export class MessagesRepository {
+    private cleanerWorker = createPrivateChatCleanerWorker();
 
     async createMessage(parent: Context, cid: number, uid: number, message: MessageInput): Promise<{ message: Message }> {
         return await inTx(parent, async (ctx) => {
@@ -254,6 +256,9 @@ export class MessagesRepository {
                     index.subspace.clearPrefixed(ctx, [cid, privateChat.uid2]);
                 }
             }
+
+            // Update documents in elastic
+            await this.cleanerWorker.pushWork(ctx, {cid, uid: byUid, oneSide});
         });
     }
 
@@ -280,7 +285,11 @@ export class MessagesRepository {
             while (msg.visibleOnlyForUids && msg.visibleOnlyForUids.length > 0 && !msg.visibleOnlyForUids.includes(forUid)) {
                 let res2;
                 if (isPrivateChat) {
-                    res2 = (await Store.PrivateMessage.chat.query(ctx, cid, forUid, {limit: 1, reverse: true, after: msg.id})).items;
+                    res2 = (await Store.PrivateMessage.chat.query(ctx, cid, forUid, {
+                        limit: 1,
+                        reverse: true,
+                        after: msg.id
+                    })).items;
                 } else {
                     res2 = (await Store.Message.chat.query(ctx, cid, {limit: 1, reverse: true, after: msg.id})).items;
                 }
