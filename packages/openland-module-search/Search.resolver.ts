@@ -393,18 +393,16 @@ export const Resolver: GQLResolver = {
                     {term: {deleted: false}},
                     Es.or([
                         Es.and([
-                            {term: {_type: 'message'}},
                             {term: {roomKind: 'room'}}
                         ]),
                         Es.and([
-                            {term: {_type: 'private-message'}},
-                            {term: {inboxUid: uid}}
+                            {term: {privateVisibleFor: uid}}
                         ])
                     ])
                 ]);
 
                 let hits = await Modules.Search.elastic.client.search({
-                    index: 'message,private-message',
+                    index: 'message',
                     size: args.first,
                     from: args.after ? parseInt(args.after, 10) : 0,
                     body: {

@@ -22,7 +22,6 @@ import { PremiumChatMediator } from './mediators/PremiumChatMediator';
 import { DonationsMediator } from './mediators/DonationsMediator';
 import { CounterProvider } from './counters/CounterProvider';
 import { PrecalculatedCounterProvider } from './counters/PrecalculatedCounterProvider';
-import { privateMessagesIndexer } from './workers/privateMessagesIndexer';
 
 export const USE_NEW_COUNTERS = true;
 
@@ -83,7 +82,6 @@ export class MessagingModule {
         }
         if (serverRoleEnabled('workers')) {
             messagesIndexer();
-            privateMessagesIndexer();
         }
         if (serverRoleEnabled('workers')) {
             roomsSearchIndexer();
