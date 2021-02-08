@@ -22,8 +22,14 @@ export const Concurrency = {
         return new BoundedConcurrencyPool(512) as ConcurrencyPool;
     }),
 
+    // Read operation concurrency pool. Unique per transaction.
+    FDBTransacton: () => new BoundedConcurrencyPool(64),
+
+    // // FoundationDB transaction pool. Unique per process.
+    // Transaction: new BoundedConcurrencyPool(100),
+
     // GQL resolve pool, unique per machine
-    Resolve: new BoundedConcurrencyPool(1024) as ConcurrencyPool,
+    Resolve: new BoundedConcurrencyPool(100) as ConcurrencyPool,
 
     // Should be avoided
     Default: new BoundedConcurrencyPool(16) as ConcurrencyPool

@@ -1,11 +1,11 @@
 import { Modules } from 'openland-modules/Modules';
 import { SpaceXContext } from './SpaceXContext';
 // import { currentRunningTime } from 'openland-utils/timer';
-import { withReadOnlyTransaction, withoutTransaction } from '@openland/foundationdb';
+import { withReadOnlyTransaction, withoutTransaction, inTx } from '@openland/foundationdb';
 import { createTracer } from 'openland-log/createTracer';
 import { createLogger } from '@openland/log';
 import { Config } from 'openland-config/Config';
-import { ConcurrencyPool } from 'openland-utils/ConcurrencyPool';
+import { ConcurrencyPool, withConcurrentcyPool } from 'openland-utils/ConcurrencyPool';
 import { Concurrency } from './../openland-server/concurrency';
 import uuid from 'uuid/v4';
 import { Metrics } from 'openland-module-monitoring/Metrics';
@@ -16,6 +16,7 @@ import { setTracingTag } from 'openland-log/setTracingTag';
 import { isAsyncIterator } from 'openland-mtproto3/utils';
 import { isContextCancelled, withLifetime, cancelContext } from '@openland/lifetime';
 import { withCounters, reportCounters } from 'openland-module-db/FDBCounterContext';
+import { IDs } from 'openland-module-api/IDs';
 
 export type SpaceXSessionDescriptor = { type: 'anonymnous' } | { type: 'authenticated', uid: number, tid: string };
 
@@ -93,6 +94,7 @@ export class SpaceXSession {
         let id = uuid();
         let opContext = withLifetime(parentContext);
         opContext = SpaceXContext.set(opContext, true);
+        opContext = withConcurrentcyPool(opContext, Concurrency.FDBTransacton());
         let abort = () => {
             if (!isContextCancelled(opContext)) {
                 cancelContext(opContext);
@@ -193,6 +195,7 @@ export class SpaceXSession {
                             // Remove transaction and add new read one
                             let resolveContext = withoutTransaction(opContext);
                             resolveContext = withReadOnlyTransaction(resolveContext);
+                            resolveContext = withConcurrentcyPool(resolveContext, Concurrency.FDBTransacton());
 
                             // Execute
                             let resolved = await this._execute({
@@ -304,14 +307,26 @@ export class SpaceXSession {
             // let start = currentRunningTime();
             let ctx = context;
             ctx = withCounters(ctx);
-            let res = await Concurrency.Resolve.run(async () => execute({
-                schema: this.schema,
-                document: opts.op.document,
-                operationName: opts.op.operationName,
-                variableValues: opts.op.variables,
-                contextValue: ctx,
-                rootValue: opts.rootValue
-            }));
+            let res = await Concurrency.Resolve.run(async () =>
+
+                opts.type === 'mutation' ? await inTx(ctx, async (ictx) => {
+                    return execute({
+                        schema: this.schema,
+                        document: opts.op.document,
+                        operationName: opts.op.operationName,
+                        variableValues: opts.op.variables,
+                        contextValue: ictx,
+                        rootValue: opts.rootValue
+                    });
+                }) : execute({
+                    schema: this.schema,
+                    document: opts.op.document,
+                    operationName: opts.op.operationName,
+                    variableValues: opts.op.variables,
+                    contextValue: ctx,
+                    rootValue: opts.rootValue
+                })
+            );
             // let duration = currentRunningTime() - start;
             // let tag = opts.type + ' ' + (opts.op.operationName || 'Unknown');
             // Metrics.SpaceXOperationTime.report(duration);
@@ -357,6 +372,9 @@ export class SpaceXSession {
         let res = await tracer.trace(opts.ctx, opts.type, async (context) => {
             if (opts.operationName) {
                 setTracingTag(context, 'operation_name', opts.operationName);
+            }
+            if (opts.ctx.auth.uid) {
+                setTracingTag(context, 'user', IDs.User.serialize(opts.ctx.auth.uid));
             }
             return await this.concurrencyPool.run(async () => {
                 if (isContextCancelled(opts.ctx)) {

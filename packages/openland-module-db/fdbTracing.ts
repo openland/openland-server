@@ -2,11 +2,9 @@ import { setTransactionTracer, setSubspaceTracer } from '@openland/foundationdb/
 // import { LogPathContext } from '@openland/log';
 // import { createTracer } from '../openland-log/createTracer';
 // import { Context, ContextName, createContextNamespace } from '@openland/context';
-// import {
-//     seAtomicBooleanFactoryTracer,
-//     seAtomicIntegerFactoryTracer,
-//     setEntityFactoryTracer
-// } from '@openland/foundationdb-entity/lib/tracing';
+import {
+    setEntityFactoryTracer
+} from '@openland/foundationdb-entity/lib/tracing';
 // import { createZippedLogger } from '../openland-utils/ZippedLogger';
 // import { createMetric } from 'openland-module-monitoring/Metric';
 import { getConcurrencyPool } from 'openland-utils/ConcurrencyPool';
@@ -111,36 +109,26 @@ export function setupFdbTracing() {
         }
     });
 
-    // setEntityFactoryTracer({
-    //     findFromUniqueIndex: async (entityDescriptor, ctx, id, descriptor, handler) => {
-    //         opRead.increment(ctx);
-    //         // return await tracer.trace(ctx, entityDescriptor.name + '.findFromUniqueIndex', () => handler(), { tags: { contextPath: getContextPath(ctx) } }),
-    //         return handler();
-    //     },
-    //     query: async (entityDescriptor, ctx, descriptor, id, opts, handler) => {
-    //         opRead.increment(ctx);
-    //         // return await tracer.trace(ctx, entityDescriptor.name + '.query', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
-    //         return handler();
-    //     },
-    //     findAll: async (entityDescriptor, ctx, handler) => {
-    //         opRead.increment(ctx);
-    //         // return await tracer.trace(ctx, entityDescriptor.name + '.findAll', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
-    //         return handler();
-    //     },
-    //     findById: async (entityDescriptor, ctx, id, handler) => {
-    //         opRead.increment(ctx);
-    //         // return await tracer.trace(ctx, entityDescriptor.name + '.findById', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
-    //         return handler();
-    //     },
-    //     create: async (entityDescriptor, ctx, id, value, handler) => {
-    //         // return await tracer.trace(ctx, entityDescriptor.name + '.create', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
-    //         return handler();
-    //     },
-    //     flush: async (entityDescriptor, ctx, id, oldValue, newValue, handler) => {
-    //         // return await tracer.trace(ctx, entityDescriptor.name + '.flush', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
-    //         return handler();
-    //     }
-    // });
+    setEntityFactoryTracer({
+        findFromUniqueIndex: async (entityDescriptor, ctx, id, descriptor, handler) => {
+            return await tracer.trace(ctx, entityDescriptor.name + '.findFromUniqueIndex', () => handler());
+        },
+        query: async (entityDescriptor, ctx, descriptor, id, opts, handler) => {
+            return await tracer.trace(ctx, entityDescriptor.name + '.query', () => handler());
+        },
+        findAll: async (entityDescriptor, ctx, handler) => {
+            return await tracer.trace(ctx, entityDescriptor.name + '.findAll', () => handler());
+        },
+        findById: async (entityDescriptor, ctx, id, handler) => {
+            return await tracer.trace(ctx, entityDescriptor.name + '.findById', () => handler());
+        },
+        create: async (entityDescriptor, ctx, id, value, handler) => {
+            return await tracer.trace(ctx, entityDescriptor.name + '.create', () => handler());
+        },
+        flush: async (entityDescriptor, ctx, id, oldValue, newValue, handler) => {
+            return await tracer.trace(ctx, entityDescriptor.name + '.flush', () => handler());
+        }
+    });
 
     // seAtomicBooleanFactoryTracer({
     //     get: async (directory, ctx, key, handler) => await tracer.trace(ctx, 'BooleanAtomic.get', () => handler(), { tags: { contextPath: getContextPath(ctx) } }),
