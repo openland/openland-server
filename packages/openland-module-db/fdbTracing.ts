@@ -78,7 +78,7 @@ export function setupFdbTracing() {
             return await tracer.trace(ctx, 'getKey', async (child) => {
                 const path = LogPathContext.get(ctx);
                 setTracingTag(child, 'path', path.join(' -> '));
-                return await getConcurrencyPool(child).run(handler);
+                return await getConcurrencyPool(child).run(() => tracer.trace(child, 'getKey:do', () => handler()));
             });
             // return await tracer.trace(ctx, 'getKey', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
         },
@@ -99,7 +99,7 @@ export function setupFdbTracing() {
             return await tracer.trace(ctx, 'getRange', async (child) => {
                 const path = LogPathContext.get(ctx);
                 setTracingTag(child, 'path', path.join(' -> '));
-                let res = await getConcurrencyPool(ctx).run(handler);
+                let res = await getConcurrencyPool(ctx).run(() => tracer.trace(child, 'getRange:do', () => handler()));
                 let counter = counterNamespace.get(ctx);
                 if (counter && !counter.flushed) {
                     counter.readCount += res.length;
