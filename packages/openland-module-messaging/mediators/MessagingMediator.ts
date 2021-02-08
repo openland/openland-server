@@ -21,6 +21,7 @@ import { MentionNotificationsMediator } from './MentionNotificationsMediator';
 import { DonationsMediator } from './DonationsMediator';
 import { UserReadSeqsDirectory } from '../repositories/UserReadSeqsDirectory';
 import { NewCountersRepository } from 'openland-module-messaging/counters/NewCountersRepository';
+import { RangeQueryOptions } from '@openland/foundationdb-entity';
 
 const trace = createTracer('messaging');
 const linkifyInstance = createLinkifyInstance();
@@ -523,6 +524,10 @@ export class MessagingMediator {
             await this.room.checkAccess(ctx, byUid, cid);
             await this.repo.deletePrivateChatHistory(parent, byUid, cid, oneSide);
         });
+    }
+
+    fetchMessages = async (ctx: Context, cid: number, forUid: number, opts: RangeQueryOptions<number>) => {
+        return await this.repo.fetchMessages(ctx, cid, forUid, opts);
     }
 
     //

@@ -37,7 +37,6 @@ import MentionInput = GQL.MentionInput;
 import GeneralMessageRoot = GQLRoots.GeneralMessageRoot;
 import { plural } from '../../openland-utils/string';
 import { FileInfo } from '../../openland-module-media/FileInfo';
-import { fetchMessages, isMessageHiddenForUser } from '../repositories/fetchMessages';
 
 export function hasMention(message: Message | PrivateMessage | RichMessage, uid: number) {
     if (message.spans && message.spans.find(s => (s.type === 'user_mention' && s.user === uid) || (s.type === 'multi_user_mention' && s.users.indexOf(uid) > -1))) {
@@ -174,6 +173,16 @@ export async function prepareLegacyMentionsInput(ctx: Context, messageText: stri
     }
 
     return spans;
+}
+
+function isMessageHiddenForUser(message: Message | PrivateMessage | Comment | RichMessage, forUid: number) {
+    if (!(message instanceof Message)) {
+        return false;
+    }
+    if (message.visibleOnlyForUids && message.visibleOnlyForUids.length > 0 && !message.visibleOnlyForUids.includes(forUid)) {
+        return true;
+    }
+    return false;
 }
 
 // async function prepareLegacyMentions(ctx: Context, message: Message, uid: number): Promise<MessageSpan[]> {
@@ -1174,7 +1183,7 @@ export const Resolver: GQLResolver = {
                     reverse: true
                 })).items;
             }
-            return (await fetchMessages(ctx, roomId, uid, { limit: args.first!, reverse: true })).items;
+            return (await Modules.Messaging.fetchMessages(ctx, roomId, uid, { limit: args.first!, reverse: true })).items;
         }),
 
         gammaMessages: withUser(async (ctx, args, uid) => {
@@ -1213,7 +1222,7 @@ export const Resolver: GQLResolver = {
                 let after: (Message|PrivateMessage)[] = [];
 
                 if (beforeId && await Store.Message.findById(ctx, beforeId)) {
-                    let beforeQuery = (await fetchMessages(ctx, roomId, uid, {
+                    let beforeQuery = (await Modules.Messaging.fetchMessages(ctx, roomId, uid, {
                         after: beforeId,
                         limit: args.first!,
                         reverse: true
@@ -1222,7 +1231,7 @@ export const Resolver: GQLResolver = {
                     haveMoreBackward = beforeQuery.haveMore;
                 }
                 if (afterId && await Store.Message.findById(ctx, afterId)) {
-                    let afterQuery = (await fetchMessages(ctx, roomId, uid, {
+                    let afterQuery = (await Modules.Messaging.fetchMessages(ctx, roomId, uid, {
                         after: afterId,
                         limit: args.first!
                     }));
@@ -1239,7 +1248,7 @@ export const Resolver: GQLResolver = {
                 messages = [...after, ...(aroundMessage && !aroundMessage.deleted) ? [aroundMessage] : [], ...before];
             } else {
                 haveMoreForward = false;
-                let beforeQuery = (await fetchMessages(ctx, roomId, uid, { limit: args.first!, reverse: true }));
+                let beforeQuery = (await Modules.Messaging.fetchMessages(ctx, roomId, uid, { limit: args.first!, reverse: true }));
                 messages = beforeQuery.items;
                 haveMoreBackward = beforeQuery.haveMore;
             }

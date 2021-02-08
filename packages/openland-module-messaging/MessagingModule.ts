@@ -22,8 +22,10 @@ import { PremiumChatMediator } from './mediators/PremiumChatMediator';
 import { DonationsMediator } from './mediators/DonationsMediator';
 import { CounterProvider } from './counters/CounterProvider';
 import { PrecalculatedCounterProvider } from './counters/PrecalculatedCounterProvider';
+import { RangeQueryOptions } from '@openland/foundationdb-entity';
 
 export const USE_NEW_COUNTERS = true;
+export const USE_NEW_PRIVATE_CHATS = false;
 
 @injectable()
 export class MessagingModule {
@@ -126,6 +128,10 @@ export class MessagingModule {
 
     async editMessage(ctx: Context, mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean) {
         await this.messaging.editMessage(ctx, mid, uid, newMessage, markAsEdited);
+    }
+
+    async fetchMessages(ctx: Context, cid: number, forUid: number, opts: RangeQueryOptions<number>) {
+        return await this.messaging.fetchMessages(ctx, cid, forUid, opts);
     }
 
     //

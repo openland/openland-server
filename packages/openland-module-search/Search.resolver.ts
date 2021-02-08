@@ -14,6 +14,7 @@ import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { ErrorText } from '../openland-errors/ErrorText';
 import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
 import MentionSearchEntryRoot = GQLRoots.MentionSearchEntryRoot;
+import { USE_NEW_PRIVATE_CHATS } from '../openland-module-messaging/MessagingModule';
 
 const log = createLogger('search-resolver');
 let hashtagRegex = /#[\w]+/g;
@@ -387,19 +388,28 @@ export const Resolver: GQLResolver = {
 
                 let chatsFilter = cid ? {term: {cid}} : {terms: {cid: userDialogs.map(d => d.cid)}};
 
-                let query = Es.and([
-                    elasticQuery,
-                    chatsFilter,
-                    {term: {deleted: false}},
-                    Es.or([
-                        Es.and([
-                            {term: {roomKind: 'room'}}
-                        ]),
-                        Es.and([
-                            {term: {privateVisibleFor: uid}}
+                let query;
+                if (USE_NEW_PRIVATE_CHATS) {
+                    query = Es.and([
+                        elasticQuery,
+                        chatsFilter,
+                        {term: {deleted: false}},
+                        Es.or([
+                            Es.and([
+                                {term: {roomKind: 'room'}}
+                            ]),
+                            Es.and([
+                                {term: {privateVisibleFor: uid}}
+                            ])
                         ])
-                    ])
-                ]);
+                    ]);
+                } else {
+                    query = Es.and([
+                        elasticQuery,
+                        chatsFilter,
+                        {term: {deleted: false}},
+                    ]);
+                }
 
                 let hits = await Modules.Search.elastic.client.search({
                     index: 'message',
