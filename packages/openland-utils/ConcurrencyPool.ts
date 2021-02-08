@@ -21,7 +21,7 @@ export class BoundedConcurrencyPool implements ConcurrencyPool {
 
     async run<T>(src: () => Promise<T>): Promise<T> {
         if (this.inFlight >= this.concurrencyFactor) {
-            await new Promise((resolve) => this.pending.push(resolve));
+            await new Promise<void>((resolve) => this.pending.push(resolve));
         }
         this.inFlight++;
         try {
