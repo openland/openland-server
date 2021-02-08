@@ -35,14 +35,14 @@ export function createPrivateChatCleanerWorker() {
                         ];
 
                         let script = `ctx._source.privateVisibleFor = ${JSON.stringify(privateVisibleFor)};`;
-                        console.log(await client.updateByQuery({
+                        await client.updateByQuery({
                             index: 'message',
                             type: 'message',
                             body: {
                                 query: {bool: {must: clauses}},
                                 script
                             }
-                        }));
+                        });
                     }
                 });
             });
