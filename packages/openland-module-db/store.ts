@@ -5257,7 +5257,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chat'), condition: (src) => !src.deleted });
         secondaryIndexes.push({ name: 'chatAll', storageKey: 'chatAll', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chatAll'), condition: undefined });
         secondaryIndexes.push({ name: 'chatSeq', storageKey: 'chatSeq', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chatSeq'), condition: (src) => !src.deleted });
-        secondaryIndexes.push({ name: 'hasImageAttachment', storageKey: 'hasImageAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasImageAttachment'), condition: function hasImageAttachment(item) {
+        secondaryIndexes.push({ name: 'hasImageAttachment', storageKey: 'hasImageAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasImageAttachment'), condition: (item) => {
     if (item.deleted) {
         return false;
     }
@@ -5284,7 +5284,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
     }
     return false;
 } });
-        secondaryIndexes.push({ name: 'hasLinkAttachment', storageKey: 'hasLinkAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasLinkAttachment'), condition: function hasLinkAttachment(item) {
+        secondaryIndexes.push({ name: 'hasLinkAttachment', storageKey: 'hasLinkAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasLinkAttachment'), condition: (item) => {
     if (item.deleted) {
         return false;
     }
@@ -5300,7 +5300,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
     }
     return false;
 } });
-        secondaryIndexes.push({ name: 'hasVideoAttachment', storageKey: 'hasVideoAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasVideoAttachment'), condition: function hasVideoAttachment(item) {
+        secondaryIndexes.push({ name: 'hasVideoAttachment', storageKey: 'hasVideoAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasVideoAttachment'), condition: (item) => {
     if (item.deleted) {
         return false;
     }
@@ -5323,7 +5323,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
     }
     return false;
 } });
-        secondaryIndexes.push({ name: 'hasDocumentAttachment', storageKey: 'hasDocumentAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasDocumentAttachment'), condition: function hasDocumentAttachment(item) {
+        secondaryIndexes.push({ name: 'hasDocumentAttachment', storageKey: 'hasDocumentAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasDocumentAttachment'), condition: (item) => {
     if (item.deleted) {
         return false;
     }
@@ -5951,7 +5951,7 @@ export class PrivateMessageFactory extends EntityFactory<PrivateMessageShape, Pr
         secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'chat'), condition: (src) => !src.deleted });
         secondaryIndexes.push({ name: 'chatAll', storageKey: 'chatAll', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'chatAll'), condition: undefined });
         secondaryIndexes.push({ name: 'chatSeq', storageKey: 'chatSeq', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'chatSeq'), condition: (src) => !src.deleted });
-        secondaryIndexes.push({ name: 'hasImageAttachment', storageKey: 'hasImageAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'hasImageAttachment'), condition: function hasImageAttachment(item) {
+        secondaryIndexes.push({ name: 'hasImageAttachment', storageKey: 'hasImageAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'hasImageAttachment'), condition: (item) => {
     if (item.deleted) {
         return false;
     }
@@ -5978,7 +5978,7 @@ export class PrivateMessageFactory extends EntityFactory<PrivateMessageShape, Pr
     }
     return false;
 } });
-        secondaryIndexes.push({ name: 'hasLinkAttachment', storageKey: 'hasLinkAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'hasLinkAttachment'), condition: function hasLinkAttachment(item) {
+        secondaryIndexes.push({ name: 'hasLinkAttachment', storageKey: 'hasLinkAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'hasLinkAttachment'), condition: (item) => {
     if (item.deleted) {
         return false;
     }
@@ -5994,7 +5994,7 @@ export class PrivateMessageFactory extends EntityFactory<PrivateMessageShape, Pr
     }
     return false;
 } });
-        secondaryIndexes.push({ name: 'hasVideoAttachment', storageKey: 'hasVideoAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'hasVideoAttachment'), condition: function hasVideoAttachment(item) {
+        secondaryIndexes.push({ name: 'hasVideoAttachment', storageKey: 'hasVideoAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'hasVideoAttachment'), condition: (item) => {
     if (item.deleted) {
         return false;
     }
@@ -6017,7 +6017,7 @@ export class PrivateMessageFactory extends EntityFactory<PrivateMessageShape, Pr
     }
     return false;
 } });
-        secondaryIndexes.push({ name: 'hasDocumentAttachment', storageKey: 'hasDocumentAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'hasDocumentAttachment'), condition: function hasDocumentAttachment(item) {
+        secondaryIndexes.push({ name: 'hasDocumentAttachment', storageKey: 'hasDocumentAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'hasDocumentAttachment'), condition: (item) => {
     if (item.deleted) {
         return false;
     }

@@ -19,7 +19,7 @@ import {
 } from '../openland-module-db/store.schema';
 import { MessageShape } from '../openland-module-db/store';
 
-function hasImageAttachment(item: MessageShape) {
+const hasImageAttachment = (item: MessageShape) => {
     if (item.deleted) {
         return false;
     }
@@ -46,9 +46,9 @@ function hasImageAttachment(item: MessageShape) {
         }
     }
     return false;
-}
+};
 
-function hasLinkAttachment(item: MessageShape) {
+const hasLinkAttachment = (item: MessageShape) => {
     if (item.deleted) {
         return false;
     }
@@ -65,9 +65,9 @@ function hasLinkAttachment(item: MessageShape) {
         }
     }
     return false;
-}
+};
 
-function hasVideoAttachment(item: MessageShape) {
+const hasVideoAttachment = (item: MessageShape) => {
     if (item.deleted) {
         return false;
     }
@@ -90,9 +90,9 @@ function hasVideoAttachment(item: MessageShape) {
         }
     }
     return false;
-}
+};
 
-function hasDocumentAttachment(item: MessageShape) {
+const hasDocumentAttachment = (item: MessageShape) => {
     if (item.deleted) {
         return false;
     }
@@ -119,7 +119,7 @@ function hasDocumentAttachment(item: MessageShape) {
         }
     }
     return false;
-}
+};
 
 export function messagingStore() {
     const CommonMessageFields = () => {
