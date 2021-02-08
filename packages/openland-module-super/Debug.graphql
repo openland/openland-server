@@ -244,6 +244,7 @@ extend type Mutation {
     debugChangeChatPrice(cid: ID!, price: Int!): Boolean!
     debugCopyChatMembers(fromCid: ID!, toCid: ID!): Boolean!
     debugCopyOrgMembers(fromOrg: ID!, toOrg: ID!): Boolean!
+    debugMigratePrivateChatMessages: Boolean!
 }
 
 extend type Subscription {

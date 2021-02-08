@@ -2579,6 +2579,46 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
+        debugMigratePrivateChatMessages: withPermission('super-admin', async (parent, args) => {
+            debugSubspaceIterator<MessageShape>(Store.Message.descriptor.subspace, parent.auth.uid!, 'debugMigratePrivateChatMessages', async (next, log) => {
+                let res: { key: TupleItem[], value: MessageShape }[] = [];
+                let total = 0;
+
+                const handleMessage = async (ctx: Context, value: MessageShape) => {
+                    // skip deleted
+                    if (value.deleted) {
+                        return;
+                    }
+                    // save only private messages
+                    let privateChat = await Store.ConversationPrivate.findById(ctx, value.cid);
+                    if (!privateChat) {
+                        return;
+                    }
+                    // save copies
+                    await Store.PrivateMessage.create(ctx, value.id, privateChat.uid1, value);
+                    await Store.PrivateMessage.create(ctx, value.id, privateChat.uid2, value);
+                };
+
+                do {
+                    res = await next(parent, 99);
+                    total += res.length;
+
+                    try {
+                        await inTx(parent, async ctx => {
+                            await Promise.all(res.map(msg => handleMessage(ctx, msg.value)));
+                        });
+                        if (total % 9900 === 0) {
+                            await log('done: ' + total);
+                        }
+                    } catch (e) {
+                        await log('error: ' + e);
+                    }
+                } while (res.length > 0);
+
+                return 'done, total: ' + total;
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {
