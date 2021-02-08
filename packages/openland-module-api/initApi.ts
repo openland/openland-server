@@ -300,7 +300,8 @@ export async function initApi(isTest: boolean) {
                 );
                 ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `query ${opId} ${operation.name || ''}`);
-                return withConcurrentcyPool(ctx, buildConcurrencyPool(ctx));
+                // return withConcurrentcyPool(ctx, buildConcurrencyPool(ctx));
+                return ctx;
             },
             subscriptionContext: async (params, operation, req) => {
                 // let opId = firstCtx ? GqlQueryIdNamespace.get(firstCtx)! : uuid();
