@@ -317,6 +317,31 @@ export class MessagesRepository {
         return messages;
     }
 
+    async fetchMessagesWithAttachments(ctx: Context, cid: number, forUid: number, type: 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'LINK', opts: RangeQueryOptions<number>) {
+        const mediaTypeToIndex = {
+            IMAGE: Store.Message.hasImageAttachment,
+            VIDEO: Store.Message.hasVideoAttachment,
+            DOCUMENT: Store.Message.hasDocumentAttachment,
+            LINK: Store.Message.hasLinkAttachment
+        };
+        const mediaTypeToIndexPrivate = {
+            IMAGE: Store.PrivateMessage.hasImageAttachment,
+            VIDEO: Store.PrivateMessage.hasVideoAttachment,
+            DOCUMENT: Store.PrivateMessage.hasDocumentAttachment,
+            LINK: Store.PrivateMessage.hasLinkAttachment
+        };
+
+        if (!USE_NEW_PRIVATE_CHATS) {
+            return mediaTypeToIndex[type].query(ctx, cid, opts);
+        }
+        let privateChat = await Store.ConversationPrivate.findById(ctx, cid);
+        if (!privateChat) {
+            return mediaTypeToIndex[type].query(ctx, cid, opts);
+        }
+
+        return mediaTypeToIndexPrivate[type].query(ctx, cid, forUid, opts);
+    }
+
     async fetchConversationNextSeq(parent: Context, cid: number) {
         return await inTx(parent, async (ctx) => {
             let existing = await Store.ConversationSeq.findById(ctx, cid);

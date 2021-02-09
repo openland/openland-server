@@ -530,6 +530,10 @@ export class MessagingMediator {
         return await this.repo.fetchMessages(ctx, cid, forUid, opts);
     }
 
+    fetchMessagesWithAttachments = async (ctx: Context, cid: number, forUid: number, type: 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'LINK', opts: RangeQueryOptions<number>) => {
+        return await this.repo.fetchMessagesWithAttachments(ctx, cid, forUid, type, opts);
+    }
+
     //
     // Queries
     //

@@ -134,6 +134,10 @@ export class MessagingModule {
         return await this.messaging.fetchMessages(ctx, cid, forUid, opts);
     }
 
+    async fetchMessagesWithAttachments(ctx: Context, cid: number, forUid: number, type: 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'LINK', opts: RangeQueryOptions<number>) {
+        return await this.messaging.fetchMessagesWithAttachments(ctx, cid, forUid, type, opts);
+    }
+
     //
     // Sends message updated event only to chat sequence
     //

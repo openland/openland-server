@@ -1345,25 +1345,18 @@ export const Resolver: GQLResolver = {
                 cursor = IDs.ConversationMessage.parse((args.before || args.around || args.after)!);
             }
 
-            const mediaTypeToIndex = {
-                IMAGE: Store.Message.hasImageAttachment,
-                VIDEO: Store.Message.hasVideoAttachment,
-                DOCUMENT: Store.Message.hasDocumentAttachment,
-                LINK: Store.Message.hasLinkAttachment
-            };
-
             let leftSize = (args.around || args.before) ? args.first : 0;
             let rightSize = (args.around || args.after || !cursor) ? args.first : 0;
 
-            let messages: Message[] = [];
+            let messages: (Message | PrivateMessage)[] = [];
             let leftHaveMore = false;
             let rightHaveMore = false;
             if (leftSize) {
-                let left = await Promise.all(args.mediaTypes.map(a => mediaTypeToIndex[a].query(ctx, chatId, {
+                let left = await Promise.all(args.mediaTypes.map(a => Modules.Messaging.fetchMessagesWithAttachments(ctx, chatId, uid, a, {
                     after: cursor,
                     limit: leftSize
                 })));
-                let results: Message[] = [];
+                let results: (Message | PrivateMessage)[] = [];
                 for (let part of left) {
                     results = results.concat(part.items);
                     if (part.haveMore) {
@@ -1378,12 +1371,12 @@ export const Resolver: GQLResolver = {
                 messages.push(centerElement!);
             }
             if (rightSize) {
-                let right = await Promise.all(args.mediaTypes.map(a => mediaTypeToIndex[a].query(ctx, chatId, {
+                let right = await Promise.all(args.mediaTypes.map(a => Modules.Messaging.fetchMessagesWithAttachments(ctx, chatId, uid, a, {
                     after: cursor,
                     limit: rightSize,
                     reverse: true
                 })));
-                let results: Message[] = [];
+                let results: (Message | PrivateMessage)[] = [];
                 for (let part of right) {
                     results = results.concat(part.items);
                     if (part.haveMore) {
