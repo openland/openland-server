@@ -269,14 +269,7 @@ export class MessagesRepository {
      * @param cid conversation id
      */
     async findTopMessage(ctx: Context, cid: number, forUid: number) {
-        let isPrivateChat = !!(await Store.ConversationPrivate.findById(ctx, cid));
-
-        let res;
-        if (isPrivateChat) {
-            res = (await Store.PrivateMessage.chat.query(ctx, cid, forUid, {limit: 1, reverse: true})).items;
-        } else {
-            res = (await Store.Message.chat.query(ctx, cid, {limit: 1, reverse: true})).items;
-        }
+        let res = (await this.fetchMessages(ctx, cid, forUid, {limit: 1, reverse: true})).items;
 
         if (res.length === 0) {
             return null;
@@ -285,16 +278,7 @@ export class MessagesRepository {
             // this can be slow if we allow hidden messages for users, but ok for service purposes
             // in general we should store top message in user dialogs list & update it via delivery workers
             while (msg.visibleOnlyForUids && msg.visibleOnlyForUids.length > 0 && !msg.visibleOnlyForUids.includes(forUid)) {
-                let res2;
-                if (isPrivateChat) {
-                    res2 = (await Store.PrivateMessage.chat.query(ctx, cid, forUid, {
-                        limit: 1,
-                        reverse: true,
-                        after: msg.id
-                    })).items;
-                } else {
-                    res2 = (await Store.Message.chat.query(ctx, cid, {limit: 1, reverse: true, after: msg.id})).items;
-                }
+                let res2 = (await this.fetchMessages(ctx, cid, forUid, {limit: 1, reverse: true, after: msg.id})).items;
                 if (res2.length === 0) {
                     return null;
                 }
