@@ -11,6 +11,8 @@ import { calculateBase64len } from '../../openland-utils/base64';
 import { emailValidator } from '../../openland-utils/NewInputValidator';
 import { Context, createNamedContext } from '@openland/context';
 import { createPersistenceThrottle } from '../../openland-utils/PersistenceThrottle';
+import { doSimpleHash } from '../../openland-module-push/workers/PushWorker';
+import { IDs } from '../../openland-module-api/IDs';
 
 const rootCtx = createNamedContext('auth-email');
 
@@ -170,6 +172,7 @@ export async function sendCode(req: express.Request, response: express.Response)
                 session: authSession!.uid,
                 profileExists: !!profile,
                 pictureId,
+                pictureHash: profile ? doSimpleHash(IDs.User.serialize(profile.id)) : null,
                 pictureCrop: profile && profile.picture && profile.picture.crop
             });
             return;
