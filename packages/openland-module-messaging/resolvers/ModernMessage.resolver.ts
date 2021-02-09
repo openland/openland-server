@@ -1177,7 +1177,7 @@ export const Resolver: GQLResolver = {
                 return [];
             }
             if (args.before && await Store.Message.findById(ctx, beforeId!)) {
-                return (await Store.Message.chat.query(ctx, roomId, {
+                return (await Modules.Messaging.fetchMessages(ctx, roomId, uid, {
                     after: beforeId!,
                     limit: args.first!,
                     reverse: true
