@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5b256b904902e5ed93507ffc2fc7dc32';
+export const GQL_SPEC_VERSION = 'e1b12295fc3d4a50e9afa56fd7b1b32e';
 
 export namespace GQL {
     export interface CreditCard {
@@ -4027,6 +4027,8 @@ export namespace GQL {
         debugChatTree: string;
         debugChatMessages: ModernMessage[];
         debugUnreadChats: string[];
+        debugUnreadChatsAsync: string[];
+        debugUnreadChatsDirect: string[];
         debugUserAuthPoints: Nullable<AuthPoint>;
         dialogs: DialogsConnection;
         settings: Settings;
@@ -4304,6 +4306,12 @@ export namespace GQL {
         id: string;
     }
     export interface QueryDebugUnreadChatsArgs {
+        user: OptionalNullable<string>;
+    }
+    export interface QueryDebugUnreadChatsAsyncArgs {
+        user: OptionalNullable<string>;
+    }
+    export interface QueryDebugUnreadChatsDirectArgs {
         user: OptionalNullable<string>;
     }
     export interface QueryDebugUserAuthPointsArgs {
@@ -9811,6 +9819,8 @@ export interface GQLResolver {
             debugChatTree: GQL.QueryDebugChatTreeArgs,
             debugChatMessages: GQL.QueryDebugChatMessagesArgs,
             debugUnreadChats: GQL.QueryDebugUnreadChatsArgs,
+            debugUnreadChatsAsync: GQL.QueryDebugUnreadChatsAsyncArgs,
+            debugUnreadChatsDirect: GQL.QueryDebugUnreadChatsDirectArgs,
             debugUserAuthPoints: GQL.QueryDebugUserAuthPointsArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,

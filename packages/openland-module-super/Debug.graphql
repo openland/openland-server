@@ -130,6 +130,8 @@ extend type Query {
     debugChatTree(id: ID!): String!
     debugChatMessages(id: ID!): [ModernMessage!]!
     debugUnreadChats(user: ID): [String!]!
+    debugUnreadChatsAsync(user: ID): [String!]!
+    debugUnreadChatsDirect(user: ID): [String!]!
     debugUserAuthPoints(id: ID!): AuthPoint
 }
 

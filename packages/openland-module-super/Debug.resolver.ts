@@ -189,6 +189,14 @@ export const Resolver: GQLResolver = {
             let uid = args.user ? IDs.User.parse(args.user) : ctx.auth.uid!;
             return (await Modules.Messaging.messaging.counters.getUnreadChats(ctx, uid)).map((v) => IDs.Conversation.serialize(v));
         }),
+        debugUnreadChatsAsync: withPermission('super-admin', async (ctx, args) => {
+            let uid = args.user ? IDs.User.parse(args.user) : ctx.auth.uid!;
+            return (await Modules.Messaging.messaging.counters.getUnreadChatsAsync(ctx, uid)).map((v) => IDs.Conversation.serialize(v));
+        }),
+        debugUnreadChatsDirect: withPermission('super-admin', async (ctx, args) => {
+            let uid = args.user ? IDs.User.parse(args.user) : ctx.auth.uid!;
+            return (await Modules.Messaging.messaging.counters.getUnreadChatsDirect(ctx, uid)).map((v) => IDs.Conversation.serialize(v));
+        }),
         lifecheck: () => `i'm ok`,
         debugParseID: withPermission('super-admin', async (ctx, args) => {
             let id = IdsFactory.resolve(args.id);
