@@ -148,6 +148,24 @@ export class NewCountersRepository {
         // return [...direct, ...async];
     }
 
+    async getUnreadChatsDirect(ctx: Context, uid: number) {
+        let states = await this.subscribers.readAllStates(ctx, uid);
+        let allChats = states.filter((v) => !v.state.async).map((v) => v.cid);
+        return (await Promise.all(allChats.map(async (v) => ({ cid: v, counter: await this.getLocalCounter(ctx, uid, v) })))).filter((v) => v.counter.unread > 0).map((v) => v.cid);
+    }
+
+    async getUnreadChatsAsync(ctx: Context, uid: number) {
+        let res: number[] = [];
+        let asyncSubscriptions = await this.subscribers.getAsyncSubscriptions(ctx, uid);
+        for (let subs of asyncSubscriptions) {
+            let counters = await this.counters.count(ctx, [subs.cid], uid, subs.seq);
+            if (counters.unread > 0 || counters.unreadMentions > 0) {
+                res.push(subs.cid);
+            }
+        }
+        return res;
+    }
+
     async recalculateDirectCounter(ctx: Context, uid: number) {
         let states = await this.subscribers.readAllStates(ctx, uid);
         let direct = states.filter((v) => !v.state.async);
