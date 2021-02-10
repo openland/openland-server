@@ -90,7 +90,11 @@ export class NewCountersRepository {
             if (subs.muted && excludeMuted) {
                 continue;
             }
-            let counters = await this.counters.count(ctx, [subs.cid], uid, subs.seq);
+            let state = await this.subscribers.readState(ctx, { cid: subs.cid, uid });
+            if (!state) {
+                continue;
+            }
+            let counters = await this.counters.count(ctx, [subs.cid], uid, state.seq);
             if (counter === 'all') {
                 res += counters.unread;
             } else if (counter === 'distinct') {
