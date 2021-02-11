@@ -173,7 +173,8 @@ export async function sendCode(req: express.Request, response: express.Response)
                 profileExists: !!profile,
                 pictureId,
                 pictureHash: profile ? doSimpleHash(IDs.User.serialize(profile.id)) : null,
-                pictureCrop: profile && profile.picture && profile.picture.crop
+                pictureCrop: profile && profile.picture && profile.picture.crop,
+                initials: profile ? ((profile.firstName || '').slice(0, 1) + ' ' + (profile.lastName || '').slice(0, 1)).toUpperCase() : null
             });
             return;
         } else {
