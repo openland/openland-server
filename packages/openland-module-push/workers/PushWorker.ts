@@ -6,6 +6,7 @@ import { Texts } from '../../openland-module-messaging/texts';
 import { Context } from '@openland/context';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { Store } from 'openland-module-db/FDB';
+import { createLogger } from '@openland/log';
 
 export function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -173,13 +174,19 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
     }
 }
 
+const log = createLogger('push-delivery-worker');
+
 export function createPushWorker(repo: PushRepository) {
     let betterQueue = new BetterWorkerQueue<Push>(Store.PushDeliveryQueue, { type: 'transactional', maxAttempts: 3 });
 
     if (serverRoleEnabled('workers')) {
         // New
         betterQueue.addWorkers(1000, async (parent, args) => {
-            await handlePush(parent, repo, args);
+            try {
+                await handlePush(parent, repo, args);
+            } catch (e) {
+                log.log(parent, e);
+            }
         });
     }
     return betterQueue;
