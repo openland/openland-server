@@ -6,7 +6,7 @@ import { Texts } from '../../openland-module-messaging/texts';
 import { Context } from '@openland/context';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { Store } from 'openland-module-db/FDB';
-import { createLogger } from '@openland/log';
+import { createLogger, withLogPath } from '@openland/log';
 
 export function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -35,7 +35,10 @@ type Push = {
     commentId: string | null;
 };
 
-async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
+const log = createLogger('push-delivery-worker');
+
+async function handlePush(root: Context, repo: PushRepository, push: Push) {
+    let ctx = withLogPath(root, 'user ' + push.uid);
 
     let conversationId = push.conversationId ? IDs.Conversation.serialize(push.conversationId) : undefined;
     let deepLink = push.deepLink;
@@ -44,6 +47,7 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
         // Web Push
         //
         let webTokens = await repo.getUserWebPushTokens(ctx, push.uid);
+        log.log(ctx, 'found web tokens', webTokens.length);
         for (let wp of webTokens) {
             Modules.Push.webWorker.pushWork(ctx, {
                 uid: push.uid,
@@ -55,6 +59,7 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
         }
 
         let safariTokens = await repo.getUserSafariPushTokens(ctx, push.uid);
+        log.log(ctx, 'found safari tokens', safariTokens.length);
         for (let t of safariTokens) {
             Modules.Push.appleWorker.pushWork(ctx, {
                 uid: push.uid,
@@ -80,12 +85,14 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
         if (await Modules.Wallet.isLocked(ctx, push.uid)) {
             unread++;
         }
+        log.log(ctx, 'got unread', unread);
 
         let mobileBody = push.mobileIncludeText ? push.body : Texts.Notifications.NEW_MESSAGE_ANONYMOUS;
         //
         // iOS
         //
         let iosTokens = await repo.getUserApplePushTokens(ctx, push.uid);
+        log.log(ctx, 'found ios tokens', iosTokens.length);
         for (let t of iosTokens) {
             if (push.silent) {
                 Modules.Push.appleWorker.pushWork(ctx, {
@@ -131,6 +138,7 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
         //
 
         let androidTokens = await repo.getUserAndroidPushTokens(ctx, push.uid);
+        log.log(ctx, 'found android tokens', androidTokens.length);
         for (let token of androidTokens) {
             if (push.silent) {
                 Modules.Push.androidWorker.pushWork(ctx, {
@@ -173,8 +181,6 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
         }
     }
 }
-
-const log = createLogger('push-delivery-worker');
 
 export function createPushWorker(repo: PushRepository) {
     let betterQueue = new BetterWorkerQueue<Push>(Store.PushDeliveryQueue, { type: 'transactional', maxAttempts: 3 });
