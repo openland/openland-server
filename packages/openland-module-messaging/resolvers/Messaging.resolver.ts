@@ -6,6 +6,7 @@ import { MessageAttachmentInput, MessageSpan } from '../MessageInput';
 import { Store } from '../../openland-module-db/FDB';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { prepareLegacyMentionsInput } from './ModernMessage.resolver';
+import { UserError } from '../../openland-errors/UserError';
 
 export const Resolver: GQLResolver = {
     Mutation: {
@@ -90,6 +91,9 @@ export const Resolver: GQLResolver = {
         }),
         betaMessageDelete: withUser(async (ctx, args, uid) => {
             let forMeOnly = args.forMeOnly || false;
+            if (forMeOnly) {
+                throw new UserError('One side message deletion not available yet');
+            }
             if (args.mid) {
                 let messageId = IDs.ConversationMessage.parse(args.mid);
                 await Modules.Messaging.deleteMessage(ctx, messageId, uid, forMeOnly);

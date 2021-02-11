@@ -25,7 +25,7 @@ import { PrecalculatedCounterProvider } from './counters/PrecalculatedCounterPro
 import { RangeQueryOptions } from '@openland/foundationdb-entity';
 
 export const USE_NEW_COUNTERS = true;
-export const USE_NEW_PRIVATE_CHATS = false;
+export const USE_NEW_PRIVATE_CHATS = true;
 
 @injectable()
 export class MessagingModule {
