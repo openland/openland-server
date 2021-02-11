@@ -76,10 +76,11 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
         }
     }
     if (push.mobile) {
-        let unread = await Modules.Messaging.counters.fetchUserGlobalCounter(ctx, push.uid);
-        if (await Modules.Wallet.isLocked(ctx, push.uid)) {
-            unread++;
-        }
+        // let unread = await Modules.Messaging.counters.fetchUserGlobalCounter(ctx, push.uid);
+        // if (await Modules.Wallet.isLocked(ctx, push.uid)) {
+        //     unread++;
+        // }
+        let unread = 0;
 
         let mobileBody = push.mobileIncludeText ? push.body : Texts.Notifications.NEW_MESSAGE_ANONYMOUS;
         //
@@ -92,7 +93,7 @@ async function handlePush(ctx: Context, repo: PushRepository, push: Push) {
                     uid: push.uid,
                     tokenId: t.id,
                     contentAvailable: true,
-                    badge: unread,
+                    // badge: unread,
                     payload: {
                         conversationId,
                         deepLink,
