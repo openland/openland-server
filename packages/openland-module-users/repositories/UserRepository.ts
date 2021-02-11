@@ -8,12 +8,13 @@ import { ImageRef } from 'openland-module-media/ImageRef';
 import { Context } from '@openland/context';
 import { injectable } from 'inversify';
 import { Store } from 'openland-module-db/FDB';
-import { UserProfileShape } from 'openland-module-db/store';
+import { UserProfileShape, UserSettingsShape } from 'openland-module-db/store';
 import { Modules } from 'openland-modules/Modules';
 import { uuid } from '../../openland-utils/uuid';
 import { notifyFastWatch } from '../../openland-module-db/fastWatch';
 import { ensure, onlyOneOfKeys } from '../../openland-utils/InputValidator';
 import { IDs } from '../../openland-module-api/IDs';
+import { UserSettingsSnapshot } from 'openland-module-users/UsersModule';
 
 export type AuthInfo = {
     email?: string,
@@ -282,50 +283,77 @@ export class UserRepository {
      * User Settings
      */
 
-    async getUserSettings(parent: Context, uid: number) {
+    async getUserSettingsEntity(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
             let settings = await Store.UserSettings.findById(ctx, uid);
             if (!settings) {
-                let allChatEnabled = {
-                    sound: true,
-                    showNotification: true
-                };
-                let allPlatformEnabled = {
-                    comments: allChatEnabled,
-                    secretChat: allChatEnabled,
-                    direct: allChatEnabled,
-                    communityChat: allChatEnabled,
-                    organizationChat: allChatEnabled,
-                    channels: allChatEnabled,
-                    notificationPreview: 'name_text' as any,
-                };
-                settings = await Store.UserSettings.create(ctx, uid, {
-                    emailFrequency: '1hour',
-                    desktopNotifications: 'all',
-                    mobileNotifications: 'all',
-                    mobileAlert: true,
-                    mobileIncludeText: true,
-                    notificationsDelay: 'none',
-                    commentNotifications: 'all',
-                    commentNotificationsDelivery: 'all',
-                    globalCounterType: 'unread_chats',
-                    desktop: allPlatformEnabled,
-                    mobile: allPlatformEnabled,
-                    privacy: {
-                        whoCanSeeEmail: 'nobody',
-                        whoCanSeePhone: 'nobody',
-                        communityAdminsCanSeeContactInfo: true,
-                        whoCanAddToGroups: 'everyone'
-                    }
-                });
+                settings = await Store.UserSettings.create(ctx, uid, this.getDefaultSettings());
             }
             return settings;
         });
     }
 
+    async getUserSettings(ctx: Context, uid: number): Promise<UserSettingsSnapshot> {
+        let settings = await Store.UserSettings.findById(ctx, uid);
+        if (!settings) {
+            return { id: uid, ...this.getDefaultSettings(), version: 0 };
+        }
+        return {
+            id: uid,
+            emailFrequency: settings.emailFrequency,
+            desktopNotifications: settings.desktopNotifications,
+            mobileNotifications: settings.mobileNotifications,
+            mobileAlert: settings.mobileAlert,
+            mobileIncludeText: settings.mobileIncludeText,
+            notificationsDelay: settings.notificationsDelay,
+            commentNotifications: settings.commentNotifications,
+            commentNotificationsDelivery: settings.commentNotificationsDelivery,
+            globalCounterType: settings.globalCounterType,
+            desktop: settings.desktop,
+            mobile: settings.mobile,
+            privacy: settings.privacy,
+            version: settings.metadata.versionCode
+        };
+    }
+
+    private getDefaultSettings(): Omit<UserSettingsShape, 'id'> {
+        let allChatEnabled = {
+            sound: true,
+            showNotification: true
+        };
+        let allPlatformEnabled = {
+            comments: allChatEnabled,
+            secretChat: allChatEnabled,
+            direct: allChatEnabled,
+            communityChat: allChatEnabled,
+            organizationChat: allChatEnabled,
+            channels: allChatEnabled,
+            notificationPreview: 'name_text' as any,
+        };
+        return {
+            emailFrequency: '1hour',
+            desktopNotifications: 'all',
+            mobileNotifications: 'all',
+            mobileAlert: true,
+            mobileIncludeText: true,
+            notificationsDelay: 'none',
+            commentNotifications: 'all',
+            commentNotificationsDelivery: 'all',
+            globalCounterType: 'unread_chats',
+            desktop: allPlatformEnabled,
+            mobile: allPlatformEnabled,
+            privacy: {
+                whoCanSeeEmail: 'nobody',
+                whoCanSeePhone: 'nobody',
+                communityAdminsCanSeeContactInfo: true,
+                whoCanAddToGroups: 'everyone'
+            }
+        };
+    }
+
     notifyUserSettingsChanged = async (parent: Context, uid: number) => {
         await inTx(parent, async (ctx) => {
-            let settings = await this.getUserSettings(ctx, uid);
+            let settings = await this.getUserSettingsEntity(ctx, uid);
             settings.invalidate();
             notifyFastWatch(ctx, 'user-settings-' + uid);
         });

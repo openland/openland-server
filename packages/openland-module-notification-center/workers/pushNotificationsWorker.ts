@@ -8,7 +8,7 @@ import { batch } from '../../openland-utils/batch';
 import { IDs } from '../../openland-module-api/IDs';
 import { Push } from '../../openland-module-push/workers/types';
 import { Context, createNamedContext } from '@openland/context';
-import { NotificationCenterEvent, NotificationCenterState, UserSettings } from '../../openland-module-db/store';
+import { NotificationCenterEvent, NotificationCenterState, UserSettingsShape } from '../../openland-module-db/store';
 
 // const Delays = {
 //     'none': 10 * 1000,
@@ -21,7 +21,7 @@ type User = {
     lastSeen: 'online' | 'never_online' | number;
     isActive: boolean;
     state: NotificationCenterState,
-    settings: UserSettings
+    settings: UserSettingsShape
 };
 
 const log = createLogger('notification-center-push');
@@ -71,7 +71,7 @@ function shouldIgnoreUser(ctx: Context, user: User) {
     return false;
 }
 
-async function handleNotification(ctx: Context, uid: number, settings: UserSettings, event: NotificationCenterEvent) {
+async function handleNotification(ctx: Context, uid: number, settings: UserSettingsShape, event: NotificationCenterEvent) {
     let notificationId = event.notificationId!;
     let notification = await Store.Notification.findById(ctx, notificationId);
     if (!notification) {

@@ -15,9 +15,12 @@ import { createLogger } from '@openland/log';
 import { badgeIndexer } from './workers/badgeIndexer';
 import { ModernBadgeMediator } from './mediators/ModernBadgeMediator';
 import { UserMediator } from './mediators/UserMediator';
+import { UserSettingsShape } from 'openland-module-db/store';
 
 const rootCtx = createNamedContext('users_module');
 const log = createLogger('users_module');
+
+export type UserSettingsSnapshot = UserSettingsShape & { version: number };
 
 @injectable()
 export class UsersModule {
@@ -99,6 +102,10 @@ export class UsersModule {
 
     async getUserSettings(ctx: Context, uid: number) {
         return await this.users.getUserSettings(ctx, uid);
+    }
+
+    async getUserSettingsEntity(ctx: Context, uid: number) {
+        return await this.users.getUserSettingsEntity(ctx, uid);
     }
 
     async notifyUserSettingsChanged(parent: Context, uid: number) {

@@ -1,6 +1,5 @@
 import { UpdateSettingsChanged } from './../openland-module-db/store';
 import { Store } from './../openland-module-db/FDB';
-import { UserSettings } from 'openland-module-db/store';
 import { IDs } from 'openland-module-api/IDs';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
@@ -15,6 +14,7 @@ import { fastWatch } from '../openland-module-db/fastWatch';
 import { Context } from '@openland/context';
 import { OptionalNullable } from '../openland-module-api/schema/SchemaUtils';
 import UpdateSettingsInput = GQL.UpdateSettingsInput;
+import { UserSettingsSnapshot } from './UsersModule';
 
 const settingsUpdateResolver = async (parent: Context, args: { settings: OptionalNullable<UpdateSettingsInput>, uid?: string }, uid: number) => {
     return await inTx(parent, async (ctx) => {
@@ -22,9 +22,9 @@ const settingsUpdateResolver = async (parent: Context, args: { settings: Optiona
         if (args.uid && ((await Modules.Super.superRole(ctx, uid)) === 'super-admin')) {
             _uid = IDs.User.parse(args.uid);
         }
-        let settings = await Modules.Users.getUserSettings(ctx, _uid);
+        let settings = await Modules.Users.getUserSettingsEntity(ctx, _uid);
         if (!args.settings) {
-            return settings;
+            return await Modules.Users.getUserSettings(ctx, uid);
         }
         if (args.settings.emailFrequency) {
             settings.emailFrequency = args.settings.emailFrequency as any;
@@ -241,7 +241,7 @@ const settingsUpdateResolver = async (parent: Context, args: { settings: Optiona
         await Modules.Users.notifyUserSettingsChanged(ctx, uid);
         await Modules.Users.markForIndexing(ctx, uid);
         await Modules.Events.postToCommon(ctx, uid, UpdateSettingsChanged.create({ uid }));
-        return settings;
+        return await Modules.Users.getUserSettings(ctx, uid);
     });
 };
 
@@ -274,8 +274,8 @@ export const Resolver: GQLResolver = {
     },
     Settings: {
         id: src => IDs.Settings.serialize(src.id),
-        version: src => src.metadata.versionCode,
-        primaryEmail: async (src: UserSettings, args: {}, ctx: Context) => (await Store.User.findById(ctx, src.id))!.email || '',
+        version: src => src.version,
+        primaryEmail: async (src: UserSettingsSnapshot, args: {}, ctx: Context) => (await Store.User.findById(ctx, src.id))!.email || '',
         emailFrequency: src => src.emailFrequency,
         desktopNotifications: src => src.desktopNotifications,
         mobileNotifications: src => src.mobileNotifications,
@@ -387,7 +387,7 @@ export const Resolver: GQLResolver = {
 
                 while (true) {
                     let changed = await fastWatch(parent, 'user-settings-' + parent.auth.uid,
-                        async (ctx) => (await Modules.Users.getUserSettings(parent, parent.auth.uid!))!.metadata.versionCode
+                        async (ctx) => (await Modules.Users.getUserSettingsEntity(parent, parent.auth.uid!))!.metadata.versionCode
                     );
                     if (changed) {
                         yield await Modules.Users.getUserSettings(parent, parent.auth.uid);
@@ -412,7 +412,7 @@ export const Resolver: GQLResolver = {
 
                 while (true) {
                     let changed = await fastWatch(parent, 'user-settings-' + parent.auth.uid,
-                        async (ctx) => (await Modules.Users.getUserSettings(parent, parent.auth.uid!))!.metadata.versionCode
+                        async (ctx) => (await Modules.Users.getUserSettingsEntity(parent, parent.auth.uid!))!.metadata.versionCode
                     );
                     if (changed) {
                         yield await Modules.Users.getUserSettings(parent, parent.auth.uid);
