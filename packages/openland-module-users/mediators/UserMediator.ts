@@ -146,6 +146,10 @@ export class UserMediator {
         return this.repo.getUserSettings(parent, uid);
     }
 
+    async getUserSettingsEntity(parent: Context, uid: number) {
+        return this.repo.getUserSettingsEntity(parent, uid);
+    }
+
     notifyUserSettingsChanged = async (parent: Context, uid: number) => {
         return this.repo.notifyUserSettingsChanged(parent, uid);
     }

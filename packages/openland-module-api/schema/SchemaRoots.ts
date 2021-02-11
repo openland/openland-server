@@ -8,7 +8,6 @@ import {
     Organization,
     FeedEvent,
     UserStorageRecord,
-    UserSettings,
     AppHook,
     DebugEvent,
     UserBadge,
@@ -138,6 +137,7 @@ import {
 } from '../../openland-module-discussions/repositories/PostsRepository';
 import { GeoIPResponse } from '../../openland-utils/geoIP';
 import { Event } from 'openland-module-events/Definitions';
+import { UserSettingsSnapshot } from 'openland-module-users/UsersModule';
 
 //
 //  Root types
@@ -328,7 +328,7 @@ export namespace GQLRoots {
     //
     // Settings
     //
-    export type SettingsRoot = UserSettings;
+    export type SettingsRoot = UserSettingsSnapshot;
     export type ChatTypeNotificationSettingsRoot = { showNotification: boolean, sound: boolean };
     export type PlatformNotificationSettingsRoot = {
         direct: ChatTypeNotificationSettingsRoot,

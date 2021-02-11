@@ -391,14 +391,12 @@ export class RoomMediator {
         return false;
     }
 
-    async userHaveAdminPermissionsInRoom(parent: Context, uid: number, cid: number) {
-        return await inTx(parent, async (ctx) => {
-            let conv = await Store.ConversationRoom.findById(ctx, cid);
-            if (!conv) {
-                return false;
-            }
-            return this.repo.userHaveAdminPermissionsInChat(ctx, conv, uid);
-        });
+    async userHaveAdminPermissionsInRoom(ctx: Context, uid: number, cid: number) {
+        let conv = await Store.ConversationRoom.findById(ctx, cid);
+        if (!conv) {
+            return false;
+        }
+        return this.repo.userHaveAdminPermissionsInChat(ctx, conv, uid);
     }
 
     async checkCanEditChat(parent: Context, cid: number, uid: number) {
