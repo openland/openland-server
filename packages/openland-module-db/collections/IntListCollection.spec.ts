@@ -18,9 +18,24 @@ describe('IntListCollection', () => {
             await collection.add(ctx, [0], 7);
         });
 
+        // cursors
         await inTx(root, async (ctx) => {
-            expect(await collection.get(ctx, [0], 'value')).toMatchObject([1, 2, 3, 4, 5, 6, 7]);
-            expect(await collection.get(ctx, [0], 'time')).toMatchObject([1, 2, 3, 4, 5, 6, 7]);
+            let res = await collection.range(ctx, [0], 'value', {limit: 1});
+            expect(res.items.map(i => i.value)).toMatchObject([1]);
+            expect(res.haveMore).toBe(true);
+            res = await collection.range(ctx, [0], 'value', {after: res.cursor});
+            expect(res.items.map(i => i.value)).toMatchObject([2, 3, 4, 5, 6, 7]);
+
+            res = await collection.range(ctx, [0], 'time', {limit: 1});
+            expect(res.items.map(i => i.value)).toMatchObject([1]);
+            expect(res.haveMore).toBe(true);
+            res = await collection.range(ctx, [0], 'time', {after: res.cursor});
+            expect(res.items.map(i => i.value)).toMatchObject([2, 3, 4, 5, 6, 7]);
+        });
+
+        await inTx(root, async (ctx) => {
+            expect((await collection.range(ctx, [0], 'value')).items.map(v => v.value)).toMatchObject([1, 2, 3, 4, 5, 6, 7]);
+            expect((await collection.range(ctx, [0], 'time')).items.map(v => v.value)).toMatchObject([1, 2, 3, 4, 5, 6, 7]);
             expect(await collection.count(ctx, [0])).toEqual(7);
             expect(await collection.count(ctx, [1])).toEqual(0);
         });
@@ -33,8 +48,8 @@ describe('IntListCollection', () => {
         });
 
         await inTx(root, async (ctx) => {
-            expect(await collection.get(ctx, [0], 'value')).toMatchObject([5, 6, 7]);
-            expect(await collection.get(ctx, [0], 'time')).toMatchObject([5, 6, 7]);
+            expect((await collection.range(ctx, [0], 'value')).items.map(v => v.value)).toMatchObject([5, 6, 7]);
+            expect((await collection.range(ctx, [0], 'time')).items.map(v => v.value)).toMatchObject([5, 6, 7]);
             expect(await collection.count(ctx, [0])).toEqual(3);
         });
     });

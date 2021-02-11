@@ -126,6 +126,7 @@ import { phoneBookStore } from '../openland-module-phonebook/Phonebook.store';
 import { blackListStore } from '../openland-module-blacklist/BlackList.store';
 import { defineEvents } from '../openland-module-events/Definitions.store';
 import { messagingStore } from '../openland-module-messaging/Messaging.store';
+import { socialStore } from '../openland-module-social/Social.store';
 
 export default declareSchema(() => {
 
@@ -485,6 +486,11 @@ export default declareSchema(() => {
     // Messaging
     //
     messagingStore();
+
+    //
+    // Social
+    //
+    socialStore();
 
     //
     // Comments

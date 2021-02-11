@@ -1,0 +1,21 @@
+type FollowerConnection {
+    items: [User!]!
+    cursor: String
+}
+
+extend type User {
+    followingCount: Int!
+    followersCount: Int!
+
+    followedByMe: Boolean!
+}
+
+extend type Query {
+    socialUserFollowers(uid: ID!, first: Int!, after: String): FollowerConnection!
+    socialUserFollowing(uid: ID!, first: Int!, after: String): FollowerConnection!
+}
+
+extend type Mutation {
+    socialFollow(uid: ID!): Boolean!
+    socialUnfollow(uid: ID!): Boolean!
+}

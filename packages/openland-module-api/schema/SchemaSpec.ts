@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'e1b12295fc3d4a50e9afa56fd7b1b32e';
+export const GQL_SPEC_VERSION = '25ca28a5ded2d568a00503c243a7742a';
 
 export namespace GQL {
     export interface CreditCard {
@@ -1952,6 +1952,12 @@ export namespace GQL {
         homeFeed: FeedItemConnection;
     }
     export interface FeedRebuildNeededHomeFeedArgs { }
+    export interface FollowerConnection {
+        items: User[];
+        cursor: Nullable<string>;
+    }
+    export interface FollowerConnectionItemsArgs { }
+    export interface FollowerConnectionCursorArgs { }
     export interface GeoLocation {
         long: number;
         lat: number;
@@ -2275,6 +2281,8 @@ export namespace GQL {
         setEnvVarString: boolean;
         setEnvVarNumber: boolean;
         setEnvVarBoolean: boolean;
+        socialFollow: boolean;
+        socialUnfollow: boolean;
         stickerPackCreate: StickerPack;
         stickerPackUpdate: StickerPack;
         stickerPackAddSticker: Sticker;
@@ -2973,6 +2981,12 @@ export namespace GQL {
     export interface MutationSetEnvVarBooleanArgs {
         name: string;
         value: boolean;
+    }
+    export interface MutationSocialFollowArgs {
+        uid: string;
+    }
+    export interface MutationSocialUnfollowArgs {
+        uid: string;
     }
     export interface MutationStickerPackCreateArgs {
         title: string;
@@ -4066,6 +4080,8 @@ export namespace GQL {
         dialogsState: DialogUpdateState;
         envVars: Nullable<EnvVar[]>;
         envVar: Nullable<EnvVar>;
+        socialUserFollowers: FollowerConnection;
+        socialUserFollowing: FollowerConnection;
         ipLocation: Nullable<IpLocation>;
         myStickers: UserStickers;
         createdStickerPacks: StickerPack[];
@@ -4407,6 +4423,16 @@ export namespace GQL {
     export interface QueryEnvVarsArgs { }
     export interface QueryEnvVarArgs {
         name: string;
+    }
+    export interface QuerySocialUserFollowersArgs {
+        uid: string;
+        first: number;
+        after: OptionalNullable<string>;
+    }
+    export interface QuerySocialUserFollowingArgs {
+        uid: string;
+        first: number;
+        after: OptionalNullable<string>;
     }
     export interface QueryIpLocationArgs { }
     export interface QueryMyStickersArgs { }
@@ -5085,6 +5111,9 @@ export namespace GQL {
         primaryOrganization: Nullable<Organization>;
         alphaPrimaryOrganization: Nullable<Organization>;
         inContacts: boolean;
+        followingCount: number;
+        followersCount: number;
+        followedByMe: boolean;
         modernBadges: ModernBadge[];
         badges: UserBadge[];
         primaryBadge: Nullable<UserBadge>;
@@ -5130,6 +5159,9 @@ export namespace GQL {
     export interface UserPrimaryOrganizationArgs { }
     export interface UserAlphaPrimaryOrganizationArgs { }
     export interface UserInContactsArgs { }
+    export interface UserFollowingCountArgs { }
+    export interface UserFollowersCountArgs { }
+    export interface UserFollowedByMeArgs { }
     export interface UserModernBadgesArgs { }
     export interface UserBadgesArgs { }
     export interface UserPrimaryBadgeArgs { }
@@ -8440,6 +8472,17 @@ export interface GQLResolver {
             homeFeed: GQL.FeedRebuildNeededHomeFeedArgs,
         }
     >;
+    FollowerConnection?: ComplexTypedResolver<
+        GQL.FollowerConnection,
+        GQLRoots.FollowerConnectionRoot,
+        {
+            items: GQLRoots.UserRoot[],
+        },
+        {
+            items: GQL.FollowerConnectionItemsArgs,
+            cursor: GQL.FollowerConnectionCursorArgs,
+        }
+    >;
     GeoLocation?: ComplexTypedResolver<
         GQL.GeoLocation,
         GQLRoots.GeoLocationRoot,
@@ -8890,6 +8933,8 @@ export interface GQLResolver {
             setEnvVarString: GQL.MutationSetEnvVarStringArgs,
             setEnvVarNumber: GQL.MutationSetEnvVarNumberArgs,
             setEnvVarBoolean: GQL.MutationSetEnvVarBooleanArgs,
+            socialFollow: GQL.MutationSocialFollowArgs,
+            socialUnfollow: GQL.MutationSocialUnfollowArgs,
             stickerPackCreate: GQL.MutationStickerPackCreateArgs,
             stickerPackUpdate: GQL.MutationStickerPackUpdateArgs,
             stickerPackAddSticker: GQL.MutationStickerPackAddStickerArgs,
@@ -9668,6 +9713,8 @@ export interface GQLResolver {
             dialogsState: GQLRoots.DialogUpdateStateRoot,
             envVars: Nullable<GQLRoots.EnvVarRoot[]>,
             envVar: Nullable<GQLRoots.EnvVarRoot>,
+            socialUserFollowers: GQLRoots.FollowerConnectionRoot,
+            socialUserFollowing: GQLRoots.FollowerConnectionRoot,
             ipLocation: Nullable<GQLRoots.IpLocationRoot>,
             myStickers: GQLRoots.UserStickersRoot,
             createdStickerPacks: GQLRoots.StickerPackRoot[],
@@ -9858,6 +9905,8 @@ export interface GQLResolver {
             dialogsState: GQL.QueryDialogsStateArgs,
             envVars: GQL.QueryEnvVarsArgs,
             envVar: GQL.QueryEnvVarArgs,
+            socialUserFollowers: GQL.QuerySocialUserFollowersArgs,
+            socialUserFollowing: GQL.QuerySocialUserFollowingArgs,
             ipLocation: GQL.QueryIpLocationArgs,
             myStickers: GQL.QueryMyStickersArgs,
             createdStickerPacks: GQL.QueryCreatedStickerPacksArgs,
@@ -10270,6 +10319,9 @@ export interface GQLResolver {
             primaryOrganization: GQL.UserPrimaryOrganizationArgs,
             alphaPrimaryOrganization: GQL.UserAlphaPrimaryOrganizationArgs,
             inContacts: GQL.UserInContactsArgs,
+            followingCount: GQL.UserFollowingCountArgs,
+            followersCount: GQL.UserFollowersCountArgs,
+            followedByMe: GQL.UserFollowedByMeArgs,
             modernBadges: GQL.UserModernBadgesArgs,
             badges: GQL.UserBadgesArgs,
             primaryBadge: GQL.UserPrimaryBadgeArgs,

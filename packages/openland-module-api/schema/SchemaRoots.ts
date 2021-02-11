@@ -866,4 +866,9 @@ export namespace GQLRoots {
     export type DebugGlobalCounterRoot = GQL.DebugGlobalCounter;
     export type DebugChatCounterRoot = GQL.DebugChatCounter;
     export type DebugChatStateRoot = GQL.DebugChatState;
+
+    //
+    // Social
+    //
+    export type FollowerConnectionRoot = { items: UserRoot[], cursor: string | null };
 }
