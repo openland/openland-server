@@ -1,4 +1,4 @@
-import { Context, createNamedContext } from '@openland/context';
+import { Context } from '@openland/context';
 import APN from 'apn';
 import { Config } from 'openland-config/Config';
 import { ApplePushTask } from './types';
@@ -6,13 +6,10 @@ import { PushRepository } from 'openland-module-push/repositories/PushRepository
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { handleFail } from './util/handleFail';
 import { inTx } from '@openland/foundationdb';
-import { createLogger } from '@openland/log';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { Store } from 'openland-module-db/FDB';
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();
-const log = createLogger('apns');
-const rootCtx = createNamedContext('apns');
 
 export function createAppleWorker(repo: PushRepository) {
     let betterQueue = new BetterWorkerQueue<ApplePushTask>(Store.PushAppleDeliveryQueue, { type: 'external', maxAttempts: 3 });
@@ -97,7 +94,6 @@ export function createAppleWorker(repo: PushRepository) {
             betterQueue.addWorkers(1000, async (root, task) => {
                 await handlePush(task, root);
             });
-            log.log(rootCtx, 'worker started');
         }
     }
     return betterQueue;
