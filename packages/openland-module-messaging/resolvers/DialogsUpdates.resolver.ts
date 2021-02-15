@@ -19,6 +19,7 @@ import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
+import { inTx } from '@openland/foundationdb';
 
 export const Resolver: GQLResolver = {
     /*
@@ -189,9 +190,9 @@ export const Resolver: GQLResolver = {
                 }
 
                 if (isOldCursor) {
-                    fromState = await Store.UserDialogEventStore.createStream(ctx.auth.uid!).head(ctx) || undefined;
+                    fromState = await inTx(ctx, async (tx) => (await Store.UserDialogEventStore.createStream(ctx.auth.uid!).head(tx)) || undefined);
                 }
-                let zipedGenerator = await Modules.Messaging.zipUpdatesInBatchesAfterModern(ctx, ctx.auth.uid!, fromState);
+                let zipedGenerator = await inTx(ctx, async (tx) => Modules.Messaging.zipUpdatesInBatchesAfterModern(tx, ctx.auth.uid!, fromState));
                 let subscribeAfter = fromState || null;
                 for await (let event of zipedGenerator) {
                     subscribeAfter = event.cursor;

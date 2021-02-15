@@ -297,16 +297,25 @@ export class SpaceXSession {
             // let start = currentRunningTime();
             let ctx = context;
             ctx = withCounters(ctx);
-            let res = await (opts.type === 'mutation' ? inTx : inHybridTx)(ctx, async (ictx) => {
-                return execute(ictx, {
+            let res = opts.type === 'subscription' ?
+                await execute(ctx, {
                     schema: this.schema,
                     document: opts.op.document,
                     operationName: opts.op.operationName,
                     variableValues: opts.op.variables,
-                    contextValue: ictx,
+                    contextValue: ctx,
                     rootValue: opts.rootValue
+                })
+                : await (opts.type === 'mutation' ? inTx : inHybridTx)(ctx, async (ictx) => {
+                    return execute(ictx, {
+                        schema: this.schema,
+                        document: opts.op.document,
+                        operationName: opts.op.operationName,
+                        variableValues: opts.op.variables,
+                        contextValue: ictx,
+                        rootValue: opts.rootValue
+                    });
                 });
-            });
             // let duration = currentRunningTime() - start;
             // let tag = opts.type + ' ' + (opts.op.operationName || 'Unknown');
             // Metrics.SpaceXOperationTime.report(duration);
