@@ -82,6 +82,8 @@ import { SocialImageModule } from '../openland-module-social-image/SocialImageMo
 import { loadSocialImageModule } from '../openland-module-social-image/SocialImageModule.container';
 import { loadBlackListModule } from '../openland-module-blacklist/BlackListModule.container';
 import { BlackListModule } from '../openland-module-blacklist/BlackListModule';
+import { loadVoiceChatsModule } from '../openland-module-voice-chats/VoiceChats.container';
+import { VoiceChatsModule } from '../openland-module-voice-chats/VoiceChatsModule';
 
 const logger = createLogger('starting');
 
@@ -143,6 +145,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     loadNotificationCenterModule();
     loadOrganizationModule();
     loadPresenceModule();
+    loadVoiceChatsModule();
 
     container.bind(PubsubModule).toSelf().inSingletonScope();
     container.bind(ApiModule).toSelf().inSingletonScope();
@@ -277,6 +280,8 @@ export async function startAllModules(ctx: Context) {
     await container.get(SocialImageModule).start();
     logger.log(ctx, 'Starting module: BlackListModule');
     await container.get(BlackListModule).start();
+    logger.log(ctx, 'Starting module: VoiceChatsModule');
+    await container.get(VoiceChatsModule).start();
 
     // Enable API after all modules started
     logger.log(ctx, 'Starting module: API');

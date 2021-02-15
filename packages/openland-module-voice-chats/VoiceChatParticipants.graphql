@@ -1,0 +1,40 @@
+enum VoiceChatParticipantStatus {
+    LISTENER,
+    SPEAKER,
+    ADMIN,
+    LEFT,
+    KICKED
+}
+
+type VoiceChatParticipant {
+    id: ID!
+
+    user: User!
+    status: VoiceChatParticipantStatus!
+
+    # viewed only by admins
+    handRaised: Boolean
+}
+
+type VoiceChatParticipantConnection {
+    items: [VoiceChatParticipant!]!
+    cursor: String
+    haveMore: Boolean!
+}
+
+extend type Query {
+    voiceChatListeners(id: ID!, first: Int!, after: String): VoiceChatParticipantConnection!
+}
+
+extend type Mutation {
+    # Listener actions
+    voiceChatJoin(id: ID!): VoiceChat!
+    voiceChatLeave(id: ID!): Boolean!
+    voiceChatRaiseHand(id: ID!, raised: Boolean!): Boolean!
+
+    # Admin actions
+    voiceChatPromote(id: ID!, uid: ID!): Boolean!
+    voiceChatDemote(id: ID!, uid: ID!): Boolean!
+    voiceChatUpdateAdmin(id: ID!, uid: ID!, admin: Boolean!): Boolean!
+    voiceChatKick(id: ID!, uid: ID!): Boolean!
+}

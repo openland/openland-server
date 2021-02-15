@@ -44,6 +44,7 @@ import { ClickHouseModule } from '../openland-module-clickhouse/ClickHouseModule
 import { ContactsModule } from '../openland-module-contacts/ContactsModule';
 import { SocialImageModule } from '../openland-module-social-image/SocialImageModule';
 import { BlackListModule } from '../openland-module-blacklist/BlackListModule';
+import { VoiceChatsModule } from '../openland-module-voice-chats/VoiceChatsModule';
 
 class ModulesImpl {
 
@@ -181,6 +182,9 @@ class ModulesImpl {
     }
     get BlackListModule() {
         return container.get(BlackListModule);
+    }
+    get VoiceChats() {
+        return container.get(VoiceChatsModule);
     }
 }
 

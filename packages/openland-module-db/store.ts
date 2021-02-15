@@ -112,6 +112,42 @@ export class RoomParticipantsVersionFactory extends AtomicIntegerFactory {
     }
 }
 
+export class VoiceChatParticipantCounterFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('voiceChatParticipantCounter');
+        return new VoiceChatParticipantCounterFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(cid: number, status: 'listener' | 'speaker' | 'admin') {
+        return this._findById([cid, status]);
+    }
+
+    get(ctx: Context, cid: number, status: 'listener' | 'speaker' | 'admin') {
+        return this._get(ctx, [cid, status]);
+    }
+
+    set(ctx: Context, cid: number, status: 'listener' | 'speaker' | 'admin', value: number) {
+        return this._set(ctx, [cid, status], value);
+    }
+
+    add(ctx: Context, cid: number, status: 'listener' | 'speaker' | 'admin', value: number) {
+        return this._add(ctx, [cid, status], value);
+    }
+
+    increment(ctx: Context, cid: number, status: 'listener' | 'speaker' | 'admin') {
+        return this._increment(ctx, [cid, status]);
+    }
+
+    decrement(ctx: Context, cid: number, status: 'listener' | 'speaker' | 'admin') {
+        return this._decrement(ctx, [cid, status]);
+    }
+}
+
 export class UserDialogReadMessageIdFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -4263,45 +4299,23 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
 
 export interface ConversationVoiceShape {
     id: number;
-    title: string;
-    listeners: number;
-    speakers: number;
+    title: string | null;
     active: boolean;
 }
 
 export interface ConversationVoiceCreateShape {
-    title: string;
-    listeners: number;
-    speakers: number;
+    title?: string | null | undefined;
     active: boolean;
 }
 
 export class ConversationVoice extends Entity<ConversationVoiceShape> {
     get id(): number { return this._rawValue.id; }
-    get title(): string { return this._rawValue.title; }
-    set title(value: string) {
+    get title(): string | null { return this._rawValue.title; }
+    set title(value: string | null) {
         let normalized = this.descriptor.codec.fields.title.normalize(value);
         if (this._rawValue.title !== normalized) {
             this._rawValue.title = normalized;
             this._updatedValues.title = normalized;
-            this.invalidate();
-        }
-    }
-    get listeners(): number { return this._rawValue.listeners; }
-    set listeners(value: number) {
-        let normalized = this.descriptor.codec.fields.listeners.normalize(value);
-        if (this._rawValue.listeners !== normalized) {
-            this._rawValue.listeners = normalized;
-            this._updatedValues.listeners = normalized;
-            this.invalidate();
-        }
-    }
-    get speakers(): number { return this._rawValue.speakers; }
-    set speakers(value: number) {
-        let normalized = this.descriptor.codec.fields.speakers.normalize(value);
-        if (this._rawValue.speakers !== normalized) {
-            this._rawValue.speakers = normalized;
-            this._updatedValues.speakers = normalized;
             this.invalidate();
         }
     }
@@ -4325,15 +4339,11 @@ export class ConversationVoiceFactory extends EntityFactory<ConversationVoiceSha
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'title', type: { type: 'string' }, secure: false });
-        fields.push({ name: 'listeners', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'speakers', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'title', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'active', type: { type: 'boolean' }, secure: false });
         let codec = c.struct({
             id: c.integer,
-            title: c.string,
-            listeners: c.integer,
-            speakers: c.integer,
+            title: c.optional(c.string),
             active: c.boolean,
         });
         let descriptor: EntityDescriptor<ConversationVoiceShape> = {
@@ -24323,6 +24333,7 @@ export interface Store extends BaseStore {
     readonly ConversationLastSeq: ConversationLastSeqFactory;
     readonly AutoSubscribeWasExecutedForUser: AutoSubscribeWasExecutedForUserFactory;
     readonly RoomParticipantsVersion: RoomParticipantsVersionFactory;
+    readonly VoiceChatParticipantCounter: VoiceChatParticipantCounterFactory;
     readonly UserDialogReadMessageId: UserDialogReadMessageIdFactory;
     readonly FeedChannelMembersCount: FeedChannelMembersCountFactory;
     readonly FeedChannelPostsCount: FeedChannelPostsCountFactory;
@@ -24636,6 +24647,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ConversationLastSeqPromise = ConversationLastSeqFactory.open(storage);
     let AutoSubscribeWasExecutedForUserPromise = AutoSubscribeWasExecutedForUserFactory.open(storage);
     let RoomParticipantsVersionPromise = RoomParticipantsVersionFactory.open(storage);
+    let VoiceChatParticipantCounterPromise = VoiceChatParticipantCounterFactory.open(storage);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
     let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(storage);
@@ -24900,6 +24912,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ConversationLastSeq: await ConversationLastSeqPromise,
         AutoSubscribeWasExecutedForUser: await AutoSubscribeWasExecutedForUserPromise,
         RoomParticipantsVersion: await RoomParticipantsVersionPromise,
+        VoiceChatParticipantCounter: await VoiceChatParticipantCounterPromise,
         UserDialogReadMessageId: await UserDialogReadMessageIdPromise,
         FeedChannelMembersCount: await FeedChannelMembersCountPromise,
         FeedChannelPostsCount: await FeedChannelPostsCountPromise,

@@ -1,13 +1,17 @@
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { ParticipantsMediator } from './mediators/ParticipantsMediator';
-import { VoiceChatMediator } from './mediators/VoiceChatMediator';
+import { VoiceChatsMediator } from './mediators/VoiceChatsMediator';
 
 @injectable()
-export class VoiceChatModule {
+export class VoiceChatsModule {
     @lazyInject('VoiceChatParticipantsMediator')
     public readonly participants!: ParticipantsMediator;
 
-    @lazyInject('VoiceChatMediator')
-    public readonly chats!: VoiceChatMediator;
+    @lazyInject('VoiceChatsMediator')
+    public readonly chats!: VoiceChatsMediator;
+
+    start = async () => {
+        // no op
+    }
 }
