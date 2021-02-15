@@ -1,4 +1,5 @@
 // Register Modules
+Error.stackTraceLimit = Infinity;
 require('module-alias/register');
 import { Store } from 'openland-module-db/FDB';
 import { openStore } from './../openland-module-db/store';
