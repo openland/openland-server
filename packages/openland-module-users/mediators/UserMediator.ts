@@ -141,7 +141,7 @@ export class UserMediator {
     /*
      * User Settings
      */
-
+    @transactional
     async getUserSettings(parent: Context, uid: number) {
         return this.repo.getUserSettings(parent, uid);
     }
