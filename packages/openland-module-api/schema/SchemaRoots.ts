@@ -95,7 +95,11 @@ import {
     ModernBadge,
     UpdateSettingsChanged,
     UpdateChatDraftUpdated,
-    UpdateRoomChanged, MessageShape, PrivateMessage,
+    UpdateRoomChanged,
+    MessageShape,
+    PrivateMessage,
+    UserDialogListSettings,
+    UserDialogListSettingsShape, UpdateDialogListSettingsChanged,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
