@@ -72,7 +72,7 @@ export async function prepare() {
         });
 
         // Developer account
-        let uid = await createUser(rootCtx, 'bot@openland.com');
+        let uid = await inTx(rootCtx, async (ctx) => { return await createUser(ctx, 'bot@openland.com'); });
         await Modules.Super.makeSuperAdmin(rootCtx, uid, 'super-admin');
         let org = await Modules.Orgs.createOrganization(rootCtx, uid, { name: 'Developer Organization' });
         let group = await Modules.Messaging.room.createRoom(rootCtx, 'group', org.id, uid, [], { title: 'Test Group' });
