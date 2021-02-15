@@ -23,7 +23,7 @@ export function declareRouterDeleteWorker(service: MediaKitchenService, repo: Me
             }
 
             // Doing "creating" with an existing retry key to get instance
-            let worker = await Store.KitchenWorker.findById(parent, router.workerId!);
+            let worker = await inTx(parent, async (ctx) => await Store.KitchenWorker.findById(ctx, router.workerId!));
             if (worker) {
                 if (!worker.deleted) {
                     if (service.cluster.workers.find((v) => v.id === router.workerId!)) {

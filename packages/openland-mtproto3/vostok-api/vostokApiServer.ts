@@ -31,10 +31,10 @@ const makeGQLCachedQueryNotFound = (requestId: string) => ({
     body: vostok_api.GQLCachedQueryNotFound.encode({ id: requestId }).finish()
 });
 
-type Operation = { name: string|undefined, query: string, variables: string|undefined };
+type Operation = { name: string | undefined, query: string, variables: string | undefined };
 
 async function handleMessage(params: BaseVostokApiServerParams, msg: VostokIncomingMessage) {
-    let {message, session} = msg;
+    let { message, session } = msg;
 
     if (message.bodyType === VostokApiTypes.GQLRequest) {
         let request = vostok_api.GQLRequest.decode(message.body);
@@ -70,7 +70,7 @@ async function handleMessage(params: BaseVostokApiServerParams, msg: VostokIncom
         let ctx = await params.context(session.authParams, request);
         await params.onOperation(ctx, request);
 
-        let result = await execute({
+        let result = await execute(ctx, {
             schema: params.executableSchema,
             document: parse(operation.query),
             operationName: operation.name,
@@ -162,7 +162,7 @@ async function handleMessage(params: BaseVostokApiServerParams, msg: VostokIncom
             }
             session.send({
                 bodyType: VostokApiTypes.GQLSubscriptionComplete,
-                body: vostok_api.GQLSubscriptionComplete.encode({id: request.id}).finish()
+                body: vostok_api.GQLSubscriptionComplete.encode({ id: request.id }).finish()
             });
         });
         session.operations.add(request.id, () => {

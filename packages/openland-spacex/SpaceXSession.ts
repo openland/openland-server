@@ -5,7 +5,7 @@ import { withoutTransaction, inTx, inHybridTx } from '@openland/foundationdb';
 import { createTracer } from 'openland-log/createTracer';
 import { createLogger } from '@openland/log';
 import { Config } from 'openland-config/Config';
-import { ConcurrencyPool, withConcurrentcyPool } from 'openland-utils/ConcurrencyPool';
+import { ConcurrencyPool } from 'openland-utils/ConcurrencyPool';
 import { Concurrency } from './../openland-server/concurrency';
 import uuid from 'uuid/v4';
 import { Metrics } from 'openland-module-monitoring/Metrics';
@@ -72,16 +72,9 @@ export class SpaceXSession {
         activeSessions.set(this.uuid, this);
 
         // Resolve concurrency pool
-        if (this.descriptor.type === 'anonymnous') {
-            this.concurrencyPool = Concurrency.Default;
-        } else {
-            this.concurrencyPool = Concurrency.Execution.get(this.descriptor.tid);
+        this.concurrencyPool = Concurrency.Resolve();
 
-            if (Config.environment === 'debug') {
-                logger.log(spaceXCtx, 'Session started');
-            }
-        }
-
+        // Resolve keep alive
         if (params.descriptor.type === 'authenticated') {
             this.keepAlive = Modules.Events.userService.enableKeepAlive(params.descriptor.uid);
         }
@@ -95,7 +88,6 @@ export class SpaceXSession {
         let id = uuid();
         let opContext = withLifetime(parentContext);
         opContext = SpaceXContext.set(opContext, true);
-        opContext = withConcurrentcyPool(opContext, Concurrency.FDBTransacton());
         let abort = () => {
             if (!isContextCancelled(opContext)) {
                 cancelContext(opContext);
@@ -195,8 +187,6 @@ export class SpaceXSession {
 
                             // Remove transaction and add new read one
                             let resolveContext = withoutTransaction(opContext);
-                            resolveContext = withConcurrentcyPool(resolveContext, Concurrency.FDBTransacton());
-
                             // Execute
                             let resolved = await this._execute({
                                 ctx: resolveContext,
@@ -307,9 +297,17 @@ export class SpaceXSession {
             // let start = currentRunningTime();
             let ctx = context;
             ctx = withCounters(ctx);
-            let res = await Concurrency.Resolve.run(async () =>
-                await (opts.type === 'mutation' ? inTx : inHybridTx)(ctx, async (ictx) => {
-                    return execute({
+            let res = opts.type === 'subscription' ?
+                await execute(ctx, {
+                    schema: this.schema,
+                    document: opts.op.document,
+                    operationName: opts.op.operationName,
+                    variableValues: opts.op.variables,
+                    contextValue: ctx,
+                    rootValue: opts.rootValue
+                })
+                : await (opts.type === 'mutation' ? inTx : inHybridTx)(ctx, async (ictx) => {
+                    return execute(ictx, {
                         schema: this.schema,
                         document: opts.op.document,
                         operationName: opts.op.operationName,
@@ -317,8 +315,7 @@ export class SpaceXSession {
                         contextValue: ictx,
                         rootValue: opts.rootValue
                     });
-                })
-            );
+                });
             // let duration = currentRunningTime() - start;
             // let tag = opts.type + ' ' + (opts.op.operationName || 'Unknown');
             // Metrics.SpaceXOperationTime.report(duration);
