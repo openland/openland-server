@@ -1,0 +1,40 @@
+##
+## Voice chat
+##
+#
+#type VoiceChat {
+#    id: ID!
+#    title: String!
+#    listenersCount: Int!
+#    speakersCount: Int!
+#    active: Boolean!
+#    conference: Conference!
+#}
+#
+#input VoiceChatInput {
+#    title: String!
+#}
+#
+#extend type Mutation {
+#    voiceChatCreate(input: VoiceChatInput!): VoiceChat!
+#    voiceChatUpdate(id: ID!, input: VoiceChatInput!): VoiceChat!
+#}
+#
+##
+## Participants
+##
+#
+#enum VoiceChatParticipantStatus {
+#    LISTENER,
+#    SPEAKER,
+#    ADMIN,
+#    LEFT,
+#    KICKED
+#}
+#
+#type VoiceChatParticipant {
+#    user: User!
+#    status: VoiceChatParticipantStatus!
+#    handRaised: Boolean!
+#
+#}

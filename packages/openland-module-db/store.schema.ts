@@ -360,7 +360,7 @@ export default declareSchema(() => {
 
     entity('Conversation', () => {
         primaryKey('id', integer());
-        field('kind', enumString('private', 'organization', 'room'));
+        field('kind', enumString('private', 'organization', 'room', 'voice'));
         field('deleted', optional(boolean()));
         field('archived', optional(boolean()));
     });
@@ -398,6 +398,16 @@ export default declareSchema(() => {
             .withCondition((v) => (v.kind === 'public' || v.kind === 'internal') && !v.isDeleted);
         uniqueIndex('organizationPublicRooms', ['oid', 'id'])
             .withCondition((v) => v.kind === 'public' && !v.isDeleted);
+    });
+
+    entity('ConversationVoice', () => {
+       primaryKey('id', integer());
+       field('title', string());
+       field('listeners', integer());
+       field('speakers', integer());
+       field('active', boolean());
+
+       rangeIndex('active', ['createdAt']).withCondition(a => a.active);
     });
 
     atomicBool('AutoSubscribeWasExecutedForUser', () => {
@@ -481,6 +491,35 @@ export default declareSchema(() => {
     taskQueue('DeliveryUserBatch');
     
     customDirectory('MessageCounters');
+
+    //
+    // Clubhouse
+    //
+    entity('VoiceChatParticipant', () => {
+        primaryKey('cid', integer());
+        primaryKey('uid', integer());
+        field('status', enumString(
+            // In-chat status
+            'listener',
+            'speaker',
+            'admin',
+
+            // Chat left status
+            'left',
+            'kicked'
+        ));
+        field('handRaised', boolean());
+        field('promotedBy', optional(integer()));
+
+        rangeIndex('chat', ['cid', 'updatedAt'])
+            .withCondition(a => a.status !== 'left' && a.status !== 'kicked');
+        rangeIndex('handRaised', ['cid', 'updatedAt'])
+            .withCondition(a => a.status !== 'left' && a.status !== 'kicked' && a.handRaised);
+        rangeIndex('speakers', ['cid', 'updatedAt'])
+            .withCondition(a => a.status !== 'left' && a.status !== 'kicked' && (a.status === 'speaker' || a.status === 'admin'));
+        rangeIndex('listeners', ['cid', 'updatedAt'])
+            .withCondition(a => a.status !== 'left' && a.status !== 'kicked' && a.status === 'listener');
+    });
 
     //
     // Messaging
