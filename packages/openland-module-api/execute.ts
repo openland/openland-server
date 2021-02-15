@@ -10,11 +10,11 @@ export async function execute(args: ExecutionArgs): Promise<ExecutionResult<Exec
     // Forward FDB errors if needed
     if (res.errors) {
         for (let e of res.errors) {
-            if (e instanceof WriteToReadOnlyContextError) {
-                throw e;
+            if (e.originalError instanceof WriteToReadOnlyContextError) {
+                throw e.originalError;
             }
-            if (e instanceof FDBError) {
-                throw e;
+            if (e.originalError instanceof FDBError) {
+                throw e.originalError;
             }
         }
     }
