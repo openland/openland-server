@@ -36,7 +36,7 @@ import { AuthContext } from '../openland-module-auth/AuthContext';
 import { initPhoneAuthProvider } from '../openland-module-auth/providers/phone';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { createSpaceXServer } from '../openland-spacex/spaceXServer';
-import { graphql } from 'graphql';
+import { execute } from './execute';
 
 const integrationCtx = createNamedContext('integration-ctx');
 const logger = createLogger('api-module');
@@ -152,9 +152,9 @@ export async function initApi(isTest: boolean) {
         executor: async (requestContext) => {
             let isMutation = requestContext.document.definitions[0].kind === 'OperationDefinition' && requestContext.document.definitions[0].operation === 'mutation';
             return await (isMutation ? inTx : inHybridTx)(requestContext.context as any, async (ctx) => {
-                return await graphql({
+                return await execute({
                     schema: ApolloSchema,
-                    source: requestContext.request.query!,
+                    document: requestContext.document,
                     contextValue: ctx
                 });
             });

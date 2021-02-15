@@ -10,13 +10,14 @@ import { Concurrency } from './../openland-server/concurrency';
 import uuid from 'uuid/v4';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import { Context, createNamedContext } from '@openland/context';
-import { DocumentNode, GraphQLSchema, execute, createSourceEventStream } from 'graphql';
+import { DocumentNode, GraphQLSchema, createSourceEventStream } from 'graphql';
 import { getOperationType } from './utils/getOperationType';
 import { setTracingTag } from 'openland-log/setTracingTag';
 import { isAsyncIterator } from 'openland-mtproto3/utils';
 import { isContextCancelled, withLifetime, cancelContext } from '@openland/lifetime';
 import { withCounters, reportCounters } from 'openland-module-db/FDBCounterContext';
 import { IDs } from 'openland-module-api/IDs';
+import { execute } from 'openland-module-api/execute';
 
 export type SpaceXSessionDescriptor = { type: 'anonymnous' } | { type: 'authenticated', uid: number, tid: string };
 

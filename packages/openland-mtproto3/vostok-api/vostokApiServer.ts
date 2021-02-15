@@ -1,6 +1,6 @@
 import * as http from 'http';
 import * as https from 'https';
-import { execute, GraphQLSchema, parse } from 'graphql';
+import { GraphQLSchema, parse } from 'graphql';
 import { QueryCache } from '../queryCache';
 import { Context } from '@openland/context';
 import { initVostokTCPServer, initVostokWSServer, VostokIncomingMessage } from '../vostok/vostokServer';
@@ -8,6 +8,7 @@ import { asyncRun, isAsyncIterator } from '../utils';
 import { gqlSubscribe } from '../gqlSubscribe';
 import { cancelContext } from '@openland/lifetime';
 import { vostok_api } from './schema/schema';
+import { execute } from 'openland-module-api/execute';
 
 interface GQlOperation {
     operationName?: string | null | undefined;
