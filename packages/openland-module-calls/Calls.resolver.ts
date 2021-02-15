@@ -258,7 +258,7 @@ export const Resolver: GQLResolver = {
 
                 // Not allowing join the conference is its private chat
                 // cid is room so lets fetch the room
-                let privateConv = (await Store.ConversationPrivate.findById(ctx, cid))!;
+                let privateConv = await Store.ConversationPrivate.findById(ctx, cid);
                 if (privateConv) { // this conversation is private
                     if (await Modules.BlackListModule.isUserBanned(ctx, privateConv.uid1, privateConv.uid2)) {
                         throw Error('User is banned, could not start a call');
