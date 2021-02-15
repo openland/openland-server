@@ -14,7 +14,7 @@ async function fetchPermissions(ctx: Context) {
     }
     let res = await inTx(ctx, (ctx2) => Modules.Super.resolvePermissions(ctx2, { uid: ctx.auth.uid, oid: ctx.auth.oid }));
     ctx.cache.set('permissions', res);
-    return await res;
+    return res;
 }
 
 async function fetchOrganizationId(ctx: Context) {

@@ -1,11 +1,8 @@
-import { createLogger } from '@openland/log';
 import { EventBusEngine } from 'openland-module-pubsub/EventBusEngine';
 import { SubscriberReceiver, SubscriberReceiverEvent, ReceiverOpts } from './../receiver/SubscriberReceiver';
 import { inTx, getTransaction } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { EventsRepository } from './../repo/EventsRepository';
-
-const log = createLogger('feed-subscriber');
 
 const DIRECT_LIMIT = 100;
 
@@ -51,7 +48,6 @@ export class EventsMediator {
                 // NOTE: We MUST execute this within transaction to have strict delivery guarantee
                 let seq = (await this.repo.allocateSubscriberSeq(ctx, [subscriber]))[0];
                 let time = Date.now();
-                log.log(ctx, 'subscribe-to-feed');
                 getTransaction(ctx).afterCommit(async (tx) => {
                     let vt = res.vt.resolved.value;
                     this.postToBus(tx, subscriber, seq, { feed, time, type: 'subscribe', pts: res.seq, vt, event: null });
@@ -68,7 +64,6 @@ export class EventsMediator {
                 // NOTE: We MUST execute this within transaction to have strict delivery guarantee
                 let seq = (await this.repo.allocateSubscriberSeq(ctx, [subscriber]))[0];
                 let time = Date.now();
-                log.log(ctx, 'unsubscribe-from-feed');
                 getTransaction(ctx).afterCommit(async (tx) => {
                     let vt = res.vt.resolved.value;
                     this.postToBus(tx, subscriber, seq, { feed, time, type: 'unsubscribe', pts: res.seq, vt, event: null });
@@ -150,7 +145,6 @@ export class EventsMediator {
                 ...(event.event ? { event: event.event.toString('base64') } : {})
             }
         };
-        log.log(ctx, 'post', toPost);
         this.bus.publish('events-subscriber-' + subscriber.toString('hex').toLowerCase(), toPost);
     }
 }

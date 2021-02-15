@@ -9,7 +9,7 @@ import DatabaseClient from './DatabaseClient';
 import { table, TableSpace } from './TableSpace';
 import { boolean, date, integer, nullable, schema, string } from './schema';
 import { subspaceReader } from '../openland-module-workers/subspaceReader';
-import { encoders } from '@openland/foundationdb';
+import { encoders, inTx } from '@openland/foundationdb';
 
 function startPresenceExport(client: DatabaseClient) {
     updateReader('ch-exporter-reader', 3, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
@@ -47,7 +47,7 @@ function startSuperAdminsExport(client: DatabaseClient) {
         // NOTE: In analytics we are not resetting super admin flag
         //       and always treat ex-admins as super admins to remove them
         //       from our reports
-        let superAdmins = await Store.SuperAdmin.findAll(rootCtx);
+        let superAdmins = await inTx(rootCtx, async (ctx) => await Store.SuperAdmin.findAll(ctx));
         for (let u of superAdmins) {
             let count = await client.count(rootCtx, 'admins', 'uid = ' + u.id);
             if (count === 0) {
@@ -73,7 +73,7 @@ function startSignupsExport(client: DatabaseClient) {
 function startBotsExport(client: DatabaseClient) {
     let rootCtx = createNamedContext('ch-bots-export');
     forever(rootCtx, async () => {
-        let allUsers = await Store.User.findAll(rootCtx);
+        let allUsers = await inTx(rootCtx, async (ctx) => await Store.User.findAll(ctx));
         for (let u of allUsers) {
             if (!u.isBot) {
                 continue;

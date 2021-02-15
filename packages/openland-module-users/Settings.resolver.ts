@@ -387,7 +387,7 @@ export const Resolver: GQLResolver = {
 
                 while (true) {
                     let changed = await fastWatch(parent, 'user-settings-' + parent.auth.uid,
-                        async (ctx) => (await Modules.Users.getUserSettingsEntity(parent, parent.auth.uid!))!.metadata.versionCode
+                        async (ctx) => (await inTx(ctx, (ctx2) => Modules.Users.getUserSettingsEntity(ctx2, parent.auth.uid!)))!.metadata.versionCode
                     );
                     if (changed) {
                         yield await Modules.Users.getUserSettings(parent, parent.auth.uid);
@@ -412,7 +412,7 @@ export const Resolver: GQLResolver = {
 
                 while (true) {
                     let changed = await fastWatch(parent, 'user-settings-' + parent.auth.uid,
-                        async (ctx) => (await Modules.Users.getUserSettingsEntity(parent, parent.auth.uid!))!.metadata.versionCode
+                        async (ctx) => (await inTx(ctx, (ctx2) => Modules.Users.getUserSettingsEntity(ctx2, parent.auth.uid!)))!.metadata.versionCode
                     );
                     if (changed) {
                         yield await Modules.Users.getUserSettings(parent, parent.auth.uid);

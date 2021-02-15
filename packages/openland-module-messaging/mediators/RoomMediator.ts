@@ -2,7 +2,7 @@ import { Events } from 'openland-module-hyperlog/Events';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { EventsMediator } from './../mediators/EventsMediator';
 import { ChatUpdatedEvent, ConversationRoom } from 'openland-module-db/store';
-import { inTx } from '@openland/foundationdb';
+import { inTx, transactional } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { RoomRepository, WelcomeMessageT } from 'openland-module-messaging/repositories/RoomRepository';
@@ -87,7 +87,7 @@ export class RoomMediator {
             }
 
             // Send initial messages
-            let userName = await Modules.Users.getUserFullName(parent, uid);
+            let userName = await Modules.Users.getUserFullName(ctx, uid);
             let chatTypeString = channel ? 'channel' : 'group';
             await this.messaging.sendMessage(ctx, uid, res.id, {
                 ...buildMessage(userMention(userName, uid), ` created the\u00A0${chatTypeString} `, boldString(profile.title)),
@@ -744,6 +744,7 @@ export class RoomMediator {
         return await this.repo.resolveConversationOrganization(ctx, cid);
     }
 
+    @transactional
     async checkAccess(ctx: Context, uid: number, cid: number) {
         return await this.repo.checkAccess(ctx, uid, cid);
     }

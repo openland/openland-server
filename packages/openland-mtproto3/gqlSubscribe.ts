@@ -1,7 +1,8 @@
-import { createSourceEventStream, DocumentNode, execute, GraphQLSchema } from 'graphql';
+import { createSourceEventStream, DocumentNode, GraphQLSchema } from 'graphql';
 import Maybe from 'graphql/tsutils/Maybe';
 import { isAsyncIterator } from './utils';
 import { Context } from '@openland/context';
+import { execute } from 'openland-module-api/execute';
 
 export async function* gqlSubscribe(
     {
@@ -31,14 +32,14 @@ export async function* gqlSubscribe(
         operationName
     );
 
-    const mapSourceToResponse = async (eventCtx: Context, payload: any) => execute(
+    const mapSourceToResponse = async (eventCtx: Context, payload: any) => execute({
         schema,
         document,
-        payload,
-        eventCtx,
+        rootValue: payload,
+        contextValue: eventCtx,
         variableValues,
         operationName
-    );
+    });
 
     let res = await sourcePromise;
 

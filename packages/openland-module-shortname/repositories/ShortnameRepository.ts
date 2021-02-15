@@ -1,5 +1,5 @@
 import { Store } from './../../openland-module-db/FDB';
-import { inTx } from '@openland/foundationdb';
+import { transactional } from '@openland/foundationdb';
 import { UserError } from 'openland-errors/UserError';
 import { Context } from '@openland/context';
 import { Modules } from '../../openland-modules/Modules';
@@ -57,16 +57,16 @@ export class ShortnameRepository {
         'users'
     ]);
 
-    async findShortname(parent: Context, shortname: string) {
-        return await inTx(parent, async ctx => {
-            let record = await Store.ShortnameReservation.findById(ctx, shortname);
-            if (record && record.enabled) {
-                return record;
-            }
-            return null;
-        });
+    @transactional
+    async findShortname(ctx: Context, shortname: string) {
+        let record = await Store.ShortnameReservation.findById(ctx, shortname);
+        if (record && record.enabled) {
+            return record;
+        }
+        return null;
     }
 
+    @transactional
     async findShortnameByOwner(parent: Context, ownerType: OwnerType, ownerId: number) {
         let record = await Store.ShortnameReservation.fromOwner.find(parent, ownerType, ownerId);
         if (record && record.enabled) {
@@ -75,71 +75,67 @@ export class ShortnameRepository {
         return null;
     }
 
-    async setShortName(parent: Context, shortname: string, ownerType: OwnerType, ownerId: number, uid: number) {
-        return await inTx(parent, async ctx => {
-            let normalized = await this.normalizeShortname(ctx, shortname, ownerType, uid);
+    @transactional
+    async setShortName(ctx: Context, shortname: string, ownerType: OwnerType, ownerId: number, uid: number) {
+        let normalized = await this.normalizeShortname(ctx, shortname, ownerType, uid);
 
-            let oldShortname = await Store.ShortnameReservation.fromOwner.find(ctx, ownerType, ownerId);
+        let oldShortname = await Store.ShortnameReservation.fromOwner.find(ctx, ownerType, ownerId);
 
-            if (oldShortname && oldShortname.shortname === normalized) {
-                return true;
-            } else if (oldShortname) {
-                // release previous reservation
-                oldShortname.enabled = false;
-                await oldShortname.flush(ctx);
-            }
-            if (normalized === '') {
-                return true;
-            }
+        if (oldShortname && oldShortname.shortname === normalized) {
+            return true;
+        } else if (oldShortname) {
+            // release previous reservation
+            oldShortname.enabled = false;
+            await oldShortname.flush(ctx);
+        }
+        if (normalized === '') {
+            return true;
+        }
 
-            let existing = await Store.ShortnameReservation.findById(ctx, normalized);
+        let existing = await Store.ShortnameReservation.findById(ctx, normalized);
 
-            if ((existing && existing.enabled) || this.reservedNames.has(normalized)) {
-                throw new UserError(`Sorry, this ${ownerType === 'user' ? 'username' : 'shortname'} is already taken!`);
-            } else if (existing) {
-                existing.ownerId = ownerId;
-                existing.ownerType = ownerType;
-                existing.enabled = true;
-                await existing.flush(ctx);
-                return true;
-            } else {
-                await Store.ShortnameReservation.create(ctx, normalized, { ownerId, ownerType, enabled: true });
-                return true;
-            }
-        });
-    }
-
-    async freeShortName(parent: Context, ownerType: OwnerType, ownerId: number) {
-        return await inTx(parent, async ctx => {
-            let existing = await Store.ShortnameReservation.fromOwner.find(ctx, ownerType, ownerId);
-            if (!existing || !existing.enabled) {
-                return true;
-            }
-            existing.enabled = false;
+        if ((existing && existing.enabled) || this.reservedNames.has(normalized)) {
+            throw new UserError(`Sorry, this ${ownerType === 'user' ? 'username' : 'shortname'} is already taken!`);
+        } else if (existing) {
+            existing.ownerId = ownerId;
+            existing.ownerType = ownerType;
+            existing.enabled = true;
             await existing.flush(ctx);
             return true;
-        });
+        } else {
+            await Store.ShortnameReservation.create(ctx, normalized, { ownerId, ownerType, enabled: true });
+            return true;
+        }
     }
 
-    private async normalizeShortname(parent: Context, shortname: string, ownerType: OwnerType, uid: number) {
-        return await inTx(parent, async (ctx) => {
-            let role = await Modules.Super.superRole(ctx, uid);
-            let isAdmin = role === 'super-admin';
+    @transactional
+    async freeShortName(ctx: Context, ownerType: OwnerType, ownerId: number) {
+        let existing = await Store.ShortnameReservation.fromOwner.find(ctx, ownerType, ownerId);
+        if (!existing || !existing.enabled) {
+            return true;
+        }
+        existing.enabled = false;
+        await existing.flush(ctx);
+        return true;
+    }
 
-            let ownerName = ownerType === 'user' ? 'Username' : 'Shortname';
+    private async normalizeShortname(ctx: Context, shortname: string, ownerType: OwnerType, uid: number) {
+        let role = await Modules.Super.superRole(ctx, uid);
+        let isAdmin = role === 'super-admin';
 
-            // TODO: Implement correct shortname validation here
-            let normalized = shortname.trim().toLowerCase();
-            if (normalized.length > 16) {
-                throw new UserError(`${ownerName} cannot be longer than 16 characters.`);
-            }
-            if (shortname.length !== 0 && normalized.length < (isAdmin ? 3 : 5)) {
-                throw new UserError(`${ownerName} must have at least 5 characters.`);
-            }
-            if (!/^\w*$/.test(shortname)) {
-                throw new UserError(`${ownerName} can only contain a-z, 0-9, and underscores.`);
-            }
-            return normalized;
-        });
+        let ownerName = ownerType === 'user' ? 'Username' : 'Shortname';
+
+        // TODO: Implement correct shortname validation here
+        let normalized = shortname.trim().toLowerCase();
+        if (normalized.length > 16) {
+            throw new UserError(`${ownerName} cannot be longer than 16 characters.`);
+        }
+        if (shortname.length !== 0 && normalized.length < (isAdmin ? 3 : 5)) {
+            throw new UserError(`${ownerName} must have at least 5 characters.`);
+        }
+        if (!/^\w*$/.test(shortname)) {
+            throw new UserError(`${ownerName} can only contain a-z, 0-9, and underscores.`);
+        }
+        return normalized;
     }
 }

@@ -7,6 +7,9 @@ import { AuthModule } from '../../openland-module-auth/AuthModule';
 import { TokenRepository } from '../../openland-module-auth/repositories/TokenRepository';
 import { ShortnameModule } from '../../openland-module-shortname/ShortnameModule';
 import { loadShortnameModule } from '../../openland-module-shortname/ShortnameModule.container';
+import { inReadOnlyTx } from '@openland/foundationdb';
+
+const rootCtx = createNamedContext('test');
 
 describe('UserRepository', () => {
     beforeAll(async () => {
@@ -17,13 +20,13 @@ describe('UserRepository', () => {
         container.bind(ShortnameModule).toSelf().inSingletonScope();
         loadShortnameModule();
     });
-    afterAll( async () => {
-      await  testEnvironmentEnd();
+    afterAll(async () => {
+        await testEnvironmentEnd();
     });
 
     it('should create users', async () => {
         let repo = container.get<UserRepository>('UserRepository');
-        let res = await repo.createUser(createNamedContext('test'), {email: 'someemail4411@open.com'});
+        let res = await repo.createUser(rootCtx, { email: 'someemail4411@open.com' });
         expect(res.email).toEqual('someemail4411@open.com');
         expect(res.status).toEqual('activated');
     });
@@ -37,23 +40,23 @@ describe('UserRepository', () => {
 
     it('should crash on duplicate email', async () => {
         let repo = container.get<UserRepository>('UserRepository');
-        await repo.createUser(createNamedContext('test'), {email: 'someemail22@open.com'});
-        await expect(repo.createUser(createNamedContext('test'), {email: 'someemail22@open.com'}))
+        await repo.createUser(rootCtx, { email: 'someemail22@open.com' });
+        await expect(repo.createUser(rootCtx, { email: 'someemail22@open.com' }))
             .rejects.toThrowError();
     });
 
     it('should allow on duplicate email for deleted accounts', async () => {
         let repo = container.get<UserRepository>('UserRepository');
-        let r = await repo.createUser(createNamedContext('test'), {email:  'someemail@open.com'});
-        r = await repo.deleteUser(createNamedContext('test'), r.id);
+        let r = await repo.createUser(rootCtx, { email: 'someemail@open.com' });
+        r = await repo.deleteUser(rootCtx, r.id);
         expect(r.status).toEqual('deleted');
 
         // Should be deleted from index
-        let tr = await Store.User.email.find(createNamedContext('test'), 'someemail@open.com');
+        let tr = await inReadOnlyTx(rootCtx, (ctx) => Store.User.email.find(ctx, 'someemail@open.com'));
         expect(tr).toBeNull();
 
         // Should create new user
-        let r2 = await repo.createUser(createNamedContext('test'), {email:  'someemail@open.com'});
+        let r2 = await repo.createUser(rootCtx, { email: 'someemail@open.com' });
         expect(r2).not.toBe(r.id);
     });
 });

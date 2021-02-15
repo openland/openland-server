@@ -1,5 +1,5 @@
 import { ChannelInvitation } from 'openland-module-db/store';
-import { inTx } from '@openland/foundationdb';
+import { inTx, transactional } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { InvitesRoomRepository } from '../repositories/InvitesRoomRepository';
@@ -85,6 +85,7 @@ export class InvitesMediator {
         });
     }
 
+    @transactional
     async createOrganizationInvite(ctx: Context, oid: number, uid: number, inviteReq: { email: string; emailText?: string, firstName?: string; lastName?: string }) {
         let isMemberDuplicate = await Modules.Orgs.hasMemberWithEmail(ctx, oid, inviteReq.email);
         if (isMemberDuplicate) {

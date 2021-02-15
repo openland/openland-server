@@ -1,7 +1,7 @@
 import { Modules } from 'openland-modules/Modules';
 import { SpaceXContext } from './SpaceXContext';
 // import { currentRunningTime } from 'openland-utils/timer';
-import { withReadOnlyTransaction, withoutTransaction, inTx } from '@openland/foundationdb';
+import { withoutTransaction, inTx, inHybridTx } from '@openland/foundationdb';
 import { createTracer } from 'openland-log/createTracer';
 import { createLogger } from '@openland/log';
 import { Config } from 'openland-config/Config';
@@ -10,13 +10,14 @@ import { Concurrency } from './../openland-server/concurrency';
 import uuid from 'uuid/v4';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import { Context, createNamedContext } from '@openland/context';
-import { DocumentNode, GraphQLSchema, execute, createSourceEventStream } from 'graphql';
+import { DocumentNode, GraphQLSchema, createSourceEventStream } from 'graphql';
 import { getOperationType } from './utils/getOperationType';
 import { setTracingTag } from 'openland-log/setTracingTag';
 import { isAsyncIterator } from 'openland-mtproto3/utils';
 import { isContextCancelled, withLifetime, cancelContext } from '@openland/lifetime';
 import { withCounters, reportCounters } from 'openland-module-db/FDBCounterContext';
 import { IDs } from 'openland-module-api/IDs';
+import { execute } from 'openland-module-api/execute';
 
 export type SpaceXSessionDescriptor = { type: 'anonymnous' } | { type: 'authenticated', uid: number, tid: string };
 
@@ -194,7 +195,6 @@ export class SpaceXSession {
 
                             // Remove transaction and add new read one
                             let resolveContext = withoutTransaction(opContext);
-                            resolveContext = withReadOnlyTransaction(resolveContext);
                             resolveContext = withConcurrentcyPool(resolveContext, Concurrency.FDBTransacton());
 
                             // Execute
@@ -308,8 +308,7 @@ export class SpaceXSession {
             let ctx = context;
             ctx = withCounters(ctx);
             let res = await Concurrency.Resolve.run(async () =>
-
-                opts.type === 'mutation' ? await inTx(ctx, async (ictx) => {
+                await (opts.type === 'mutation' ? inTx : inHybridTx)(ctx, async (ictx) => {
                     return execute({
                         schema: this.schema,
                         document: opts.op.document,
@@ -318,13 +317,6 @@ export class SpaceXSession {
                         contextValue: ictx,
                         rootValue: opts.rootValue
                     });
-                }) : execute({
-                    schema: this.schema,
-                    document: opts.op.document,
-                    operationName: opts.op.operationName,
-                    variableValues: opts.op.variables,
-                    contextValue: ctx,
-                    rootValue: opts.rootValue
                 })
             );
             // let duration = currentRunningTime() - start;

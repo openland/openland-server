@@ -298,7 +298,8 @@ export class SubscriptionsRepository {
                 throw Error('Period is already in canceled state');
             }
             if (subscription.state === 'expired') {
-                throw Error('Payment success when subscription already expired');
+                // throw Error('Payment success when subscription already expired');
+                return;
             }
 
             // Notify about successful payment
@@ -399,7 +400,8 @@ export class SubscriptionsRepository {
                 throw Error('Period is already in canceled state');
             }
             if (subscription.state === 'expired') {
-                throw Error('Payment success when subscription already expired');
+                // throw Error('Payment success when subscription already expired');
+                return;
             }
 
             if (period.state === 'pending') {
@@ -474,7 +476,8 @@ export class SubscriptionsRepository {
                 throw Error('Period is already in success state');
             }
             if (subscription.state === 'expired') {
-                throw Error('Payment success when subscription already expired');
+                // throw Error('Payment success when subscription already expired');
+                return;
             }
             period.state = 'canceled';
 

@@ -4,7 +4,6 @@ import { UserSearch } from './search/UserSearch';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { ProfileInput } from './ProfileInput';
 import { injectable, inject } from 'inversify';
-import { withReadOnlyTransaction } from '@openland/foundationdb';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { Context, createNamedContext } from '@openland/context';
 import { NotFoundError } from '../openland-errors/NotFoundError';
@@ -16,6 +15,7 @@ import { badgeIndexer } from './workers/badgeIndexer';
 import { ModernBadgeMediator } from './mediators/ModernBadgeMediator';
 import { UserMediator } from './mediators/UserMediator';
 import { UserSettingsShape } from 'openland-module-db/store';
+import { inReadOnlyTx } from '@openland/foundationdb';
 
 const rootCtx = createNamedContext('users_module');
 const log = createLogger('users_module');
@@ -49,7 +49,7 @@ export class UsersModule {
             declareUserAudienceCalculator();
         }
 
-        this.deletedUserId = await Modules.Super.getEnvVar<number>(withReadOnlyTransaction(rootCtx), 'deleted-user-id');
+        this.deletedUserId = await inReadOnlyTx(rootCtx, async (ctx) => Modules.Super.getEnvVar<number>(ctx, 'deleted-user-id'));
 
         if (!this.deletedUserId) {
             log.warn(rootCtx, 'deleted-user-id is not set');

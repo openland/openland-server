@@ -58,7 +58,7 @@ export class BetterWorkerQueue<ARGS> {
 
             // Request version stamp
             let versionStamp = getTransaction(ctx)
-                .rawTransaction(this.queue.db)
+                .rawWriteTransaction(this.queue.db)
                 .getVersionstamp();
 
             // Send event after transaction

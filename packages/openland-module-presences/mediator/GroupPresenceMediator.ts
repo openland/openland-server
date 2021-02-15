@@ -2,7 +2,6 @@ import os from 'os';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import { Modules } from 'openland-modules/Modules';
 import { createIterator, PushableIterator } from 'openland-utils/asyncIterator';
-import { withReadOnlyTransaction } from '@openland/foundationdb';
 import { createNamedContext } from '@openland/context';
 import { asyncRun, backoff } from 'openland-utils/timer';
 import { EventBusSubcription, EventBus } from 'openland-module-pubsub/EventBus';
@@ -63,8 +62,7 @@ export class GroupPresenceMediator {
 
         // Load initial value
         asyncRun(async () => {
-            let ctx = withReadOnlyTransaction(rootCtx);
-            await backoff(ctx, async () => {
+            await backoff(rootCtx, async () => {
                 if (state.completed || state.count !== null) {
                     return;
                 }
@@ -80,7 +78,7 @@ export class GroupPresenceMediator {
                     r(online);
                 }
                 state.resolvers = [];
-                
+
                 if (!state.timer && state.iterators.length === 0 && state.resolvers.length === 0) {
                     state.timer = setTimeout(() => {
                         this.cleanupSubscription(cid);

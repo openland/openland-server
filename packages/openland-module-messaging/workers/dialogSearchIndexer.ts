@@ -34,37 +34,39 @@ export function dialogSearchIndexer() {
             return null;
         }
 
-        let item = event.raw as DialogNeedReindexEvent;
+        return await inTx(parent, async (ctx) => {
+            let item = event.raw as DialogNeedReindexEvent;
 
-        let title: string;
-        try {
-            title = await inTx(parent, async (ctx) => await Modules.Messaging.room.resolveConversationTitle(ctx, item.cid, item.uid));
-        } catch (e) {
+            let title: string;
+            try {
+                title = await Modules.Messaging.room.resolveConversationTitle(ctx, item.cid, item.uid);
+            } catch (e) {
+                return {
+                    id: item.cid + '_' + item.uid,
+                    doc: {
+                        cid: item.cid,
+                        uid: item.uid,
+                    }
+                };
+            }
+            let uid2: number | undefined;
+            let conv = await Store.Conversation.findById(ctx, item.cid);
+            if (conv && conv.kind === 'private') {
+                let privateConv = await Store.ConversationPrivate.findById(ctx, item.cid);
+                uid2 = privateConv!.uid1 === item.uid ? privateConv!.uid2 : privateConv!.uid1;
+            }
+            // console.log(title, item, uid2);
             return {
                 id: item.cid + '_' + item.uid,
                 doc: {
+                    title: title || '',
                     cid: item.cid,
                     uid: item.uid,
+                    visible: await Modules.Messaging.hasActiveDialog(ctx, item.uid, item.cid),
+                    uid2,
+                    dialog_kind: conv!.kind
                 }
             };
-        }
-        let uid2: number | undefined;
-        let conv = await inTx(parent, async (ctx) => await Store.Conversation.findById(ctx, item.cid));
-        if (conv && conv.kind === 'private') {
-            let privateConv = await inTx(parent, async (ctx) => await Store.ConversationPrivate.findById(ctx, item.cid));
-            uid2 = privateConv!.uid1 === item.uid ? privateConv!.uid2 : privateConv!.uid1;
-        }
-        // console.log(title, item, uid2);
-        return {
-            id: item.cid + '_' + item.uid,
-            doc: {
-                title: title || '',
-                cid: item.cid,
-                uid: item.uid,
-                visible: await Modules.Messaging.hasActiveDialog(parent, item.uid, item.cid),
-                uid2,
-                dialog_kind: conv!.kind
-            }
-        };
+        });
     });
 }

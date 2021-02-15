@@ -19,7 +19,7 @@ async function performMigrations(ctx: Context, db: DatabaseClient) {
     // Perform migrations
     while (true) {
         logger.log(ctx, 'Check pending migrations');
-        let existing = await Store.ClickHouseMigrations.findById(ctx, 1);
+        let existing = await inTx(ctx, async (tx) => await Store.ClickHouseMigrations.findById(tx, 1));
         let applied: string[] = [];
         if (existing) {
             applied = existing.applied;

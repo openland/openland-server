@@ -67,7 +67,7 @@ export class BucketCountingCollection implements Algorithm {
         }
 
         // Read all keys
-        let tx = getTransaction(ctx).rawTransaction(this.directory.db);
+        let tx = getTransaction(ctx).rawReadTransaction(this.directory.db);
         let batches = await tx.getRangeAll(fromBuffer, toBuffer);
         let all = ([] as TupleItem[]).concat(...(batches.map(v => encoders.tuple.unpack(v[1]))));
         if (cursor.from !== null && cursor.from !== undefined) {

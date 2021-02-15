@@ -7,6 +7,7 @@ import pino from 'pino';
 import { ZippedLoggerTimes } from '../openland-utils/ZippedLogger';
 
 const isProduction = Config.environment === 'production';
+const MAX_LOG_SIZE = 16 * 1024;
 
 const getPino = () => {
     let log = pino();
@@ -59,8 +60,8 @@ setLogProvider({
     log: (ctx, service, level, message) => {
         let obj: any;
         if (isProduction) {
-            if (message.length > 2048) {
-                message = message.slice(0, 2048) + '...';
+            if (message.length > MAX_LOG_SIZE) {
+                message = message.slice(0, MAX_LOG_SIZE) + '...';
             }
             obj = {
                 app: {

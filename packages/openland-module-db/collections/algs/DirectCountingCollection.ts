@@ -45,7 +45,7 @@ export class DirectCountingCollection implements Algorithm {
             }
 
             // Read all keys
-            let tx = getTransaction(ctx).rawTransaction(this.directory.db);
+            let tx = getTransaction(ctx).rawReadTransaction(this.directory.db);
             let all = await tx.getRangeAll(fromBuffer, toBuffer);
             return all.length;
         });

@@ -1,4 +1,5 @@
 // Register Modules
+Error.stackTraceLimit = Infinity;
 require('module-alias/register');
 import { Store } from 'openland-module-db/FDB';
 import { openStore } from './../openland-module-db/store';
@@ -19,7 +20,7 @@ async function createUser(ctx: Context, email: string) {
     if (await Modules.Users.findUserByAuthId(ctx, 'email|' + email)) {
         throw Error('User with email ' + email + ' already exists');
     }
-    let user = await Modules.Users.createUser(ctx, {email});
+    let user = await Modules.Users.createUser(ctx, { email });
     await Modules.Users.createUserProfile(ctx, user.id, {
         firstName: faker.name.firstName(),
         lastName: faker.name.lastName(),
@@ -53,36 +54,41 @@ export async function prepare() {
             .toDynamicValue(() => store)
             .inSingletonScope();
 
-        let ctx = rootCtx;
-        if (await Store.Environment.findById(ctx, 1)) {
-            throw Error('Unable to prepare production database');
-        }
+        await inTx(rootCtx, async (ctx) => {
+            if (await Store.Environment.findById(ctx, 1)) {
+                throw Error('Unable to prepare production database');
+            }
+        });
 
         // Load other modules
         await loadAllModules(rootCtx, false);
 
         // Create entities
-        await createUser(ctx, 'test1111@openland.com');
-        await createUser(ctx, 'test1112@openland.com');
-        await createUser(ctx, 'test1113@openland.com');
-        await createUser(ctx, 'test1114@openland.com');
+        await inTx(rootCtx, async (ctx) => {
+            await createUser(ctx, 'test1111@openland.com');
+            await createUser(ctx, 'test1112@openland.com');
+            await createUser(ctx, 'test1113@openland.com');
+            await createUser(ctx, 'test1114@openland.com');
+        });
 
         // Developer account
-        let uid = await createUser(ctx, 'bot@openland.com');
-        await Modules.Super.makeSuperAdmin(ctx, uid, 'super-admin');
-        let org = await Modules.Orgs.createOrganization(ctx, uid, { name: 'Developer Organization' });
-        let group = await Modules.Messaging.room.createRoom(ctx, 'group', org.id, uid, [], { title: 'Test Group' });
+        let uid = await inTx(rootCtx, async (ctx) => { return await createUser(ctx, 'bot@openland.com'); });
+        await Modules.Super.makeSuperAdmin(rootCtx, uid, 'super-admin');
+        let org = await Modules.Orgs.createOrganization(rootCtx, uid, { name: 'Developer Organization' });
+        let group = await Modules.Messaging.room.createRoom(rootCtx, 'group', org.id, uid, [], { title: 'Test Group' });
         // for (let i = 0; i < 150; i++) {
         //     console.log('create user #' + i);
         let users: number[] = [];
-        await inTx(rootCtx, async (ctx2) => {
+        await inTx(rootCtx, async (ctx) => {
             for (let j = 0; j < 10; j++) {
-                let u = await createUser(ctx2, 'testmember' + j + '@openland.com');
-                await Modules.Orgs.addUserToOrganization(ctx2, u, org.id, uid, false, false);
+                let u = await createUser(ctx, 'testmember' + j + '@openland.com');
+                await Modules.Orgs.addUserToOrganization(ctx, u, org.id, uid, false, false);
                 users.push(u);
             }
         });
-        await Modules.Messaging.room.inviteToRoom(rootCtx, group.id, uid, users);
+        await inTx(rootCtx, async (ctx) => {
+            await Modules.Messaging.room.inviteToRoom(ctx, group.id, uid, users);
+        });
         // }
 
         process.exit();
