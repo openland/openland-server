@@ -1,7 +1,7 @@
 import { Modules } from 'openland-modules/Modules';
 import { SpaceXContext } from './SpaceXContext';
 // import { currentRunningTime } from 'openland-utils/timer';
-import { withReadOnlyTransaction, withoutTransaction, inTx } from '@openland/foundationdb';
+import { withoutTransaction, inTx, inHybridTx } from '@openland/foundationdb';
 import { createTracer } from 'openland-log/createTracer';
 import { createLogger } from '@openland/log';
 import { Config } from 'openland-config/Config';
@@ -194,7 +194,6 @@ export class SpaceXSession {
 
                             // Remove transaction and add new read one
                             let resolveContext = withoutTransaction(opContext);
-                            resolveContext = withReadOnlyTransaction(resolveContext);
                             resolveContext = withConcurrentcyPool(resolveContext, Concurrency.FDBTransacton());
 
                             // Execute
@@ -308,8 +307,7 @@ export class SpaceXSession {
             let ctx = context;
             ctx = withCounters(ctx);
             let res = await Concurrency.Resolve.run(async () =>
-
-                opts.type === 'mutation' ? await inTx(ctx, async (ictx) => {
+                await (opts.type === 'mutation' ? inTx : inHybridTx)(ctx, async (ictx) => {
                     return execute({
                         schema: this.schema,
                         document: opts.op.document,
@@ -318,13 +316,6 @@ export class SpaceXSession {
                         contextValue: ictx,
                         rootValue: opts.rootValue
                     });
-                }) : execute({
-                    schema: this.schema,
-                    document: opts.op.document,
-                    operationName: opts.op.operationName,
-                    variableValues: opts.op.variables,
-                    contextValue: ctx,
-                    rootValue: opts.rootValue
                 })
             );
             // let duration = currentRunningTime() - start;

@@ -4,7 +4,7 @@ import { SubscriberEphemeralRepository } from './SubscriberEphemeralRepository';
 describe('SubscriberEphemeralRepository', () => {
     it('should register ephemeral changes', async () => {
         let root = createNamedContext('test');
-        let db = await Database.openTest({ name: 'event-subscriber-root', layers: [] });
+        let db = await Database.openTest({ name: 'event-subscriber-root-ephemeral', layers: [] });
         let repo = new SubscriberEphemeralRepository(db.allKeys);
         let subs = Buffer.from([0]);
         let feed = Buffer.from([1]);

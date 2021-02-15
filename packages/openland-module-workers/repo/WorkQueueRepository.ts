@@ -163,7 +163,7 @@ export class WorkQueueRepository {
 
         let res: Buffer[] = [];
 
-        let tx = getTransaction(ctx).rawTransaction(this.tasksSubspace.db);
+        let tx = getTransaction(ctx).rawWriteTransaction(this.tasksSubspace.db);
 
         // Read required number of work items
         let read = await this.pendingSubspace.snapshotRange(ctx, encoders.tuple.pack([kind]), { limit: limit });
@@ -250,7 +250,7 @@ export class WorkQueueRepository {
     }
 
     rescheduleTasks = async (ctx: Context, now: number) => {
-        let tx = getTransaction(ctx).rawTransaction(this.tasksSubspace.db);
+        let tx = getTransaction(ctx).rawWriteTransaction(this.tasksSubspace.db);
         let expired = await this.timeoutSubspace.snapshotRange(ctx, ZERO, { limit: 100, after: encoders.tuple.pack([now]), reverse: true });
 
         for (let exp of expired) {

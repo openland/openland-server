@@ -16,6 +16,9 @@ import { Modules } from 'openland-modules/Modules';
 import { createNamedContext } from '@openland/context';
 import { loadUsersModule } from '../../openland-module-users/UsersModule.container';
 import { Store } from 'openland-module-db/FDB';
+import { inReadOnlyTx } from '@openland/foundationdb';
+
+let rootCtx = createNamedContext('test');
 
 describe('InvitesMediator', () => {
 
@@ -36,119 +39,115 @@ describe('InvitesMediator', () => {
         orgs = container.get<OrganizationModule>(OrganizationModule);
     });
 
-    afterAll( async () => {
-      await  testEnvironmentEnd();
+    afterAll(async () => {
+        await testEnvironmentEnd();
     });
 
     it('should add to channel via invite', async () => {
-        let ctx = createNamedContext('test');
-        let USER_ID = (await randomTestUser(ctx)).uid;
-        let USER2_ID = (await users.createUser(ctx, {email: 'email112'})).id;
-        await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
-        await Modules.Events.mediator.prepareUser(ctx, USER_ID);
-        await Modules.Events.mediator.prepareUser(ctx, USER2_ID);
-        let oid = (await Modules.Orgs.createOrganization(ctx, USER_ID, { name: '1' })).id;
+        let USER_ID = (await randomTestUser(rootCtx)).uid;
+        let USER2_ID = (await users.createUser(rootCtx, { email: 'email112' })).id;
+        await users.createUserProfile(rootCtx, USER2_ID, { firstName: 'User Name' });
+        await Modules.Events.mediator.prepareUser(rootCtx, USER_ID);
+        await Modules.Events.mediator.prepareUser(rootCtx, USER2_ID);
+        let oid = (await Modules.Orgs.createOrganization(rootCtx, USER_ID, { name: '1' })).id;
 
-        let USER2_ORG_ID = (await orgs.createOrganization(ctx, USER2_ID, { name: 'ACME' })).id;
+        let USER2_ORG_ID = (await orgs.createOrganization(rootCtx, USER2_ID, { name: 'ACME' })).id;
 
         let roomMediator = container.get<RoomMediator>('RoomMediator');
-        let channel = await roomMediator.createRoom(ctx, 'public', oid, USER_ID, [], { title: 'channel' });
+        let channel = await roomMediator.createRoom(rootCtx, 'public', oid, USER_ID, [], { title: 'channel' });
 
         let repo = container.get<InvitesRoomRepository>('InvitesRoomRepository');
-        let invite = await repo.createRoomInviteLink(ctx, channel.id, USER_ID);
+        let invite = await repo.createRoomInviteLink(rootCtx, channel.id, USER_ID);
 
         let mediator = container.get<InvitesMediator>('InvitesMediator');
 
-        await mediator.joinRoomInvite(ctx, USER2_ID, invite, true);
-        let members = await roomMediator.findConversationMembers(ctx, channel.id);
+        await mediator.joinRoomInvite(rootCtx, USER2_ID, invite, true);
+        let members = await inReadOnlyTx(rootCtx, async (ctx) => await roomMediator.findConversationMembers(ctx, channel.id));
         expect(members).toContain(USER2_ID);
 
         // should activate user
-        let user = (await Store.User.findById(ctx, USER2_ID))!;
+        let user = await inReadOnlyTx(rootCtx, async (ctx) => (await Store.User.findById(ctx, USER2_ID))!);
         expect(user.status).toEqual('activated');
 
         // should activate user orgs
-        let org = (await Store.Organization.findById(ctx, USER2_ORG_ID))!;
+        let org = await inReadOnlyTx(rootCtx, async (ctx) => (await Store.Organization.findById(ctx, USER2_ORG_ID))!);
         expect(org.status).toEqual('activated');
     });
 
     it('should activate via invite', async () => {
-        let ctx = createNamedContext('test');
-        let USER_ID = (await users.createUser(ctx, {email: 'email_app_1'})).id;
-        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
-        await Modules.Events.mediator.prepareUser(ctx, USER_ID);
+        let USER_ID = (await users.createUser(rootCtx, { email: 'email_app_1' })).id;
+        await users.createUserProfile(rootCtx, USER_ID, { firstName: 'User Name' });
+        await Modules.Events.mediator.prepareUser(rootCtx, USER_ID);
 
-        let USER_ORG_ID = (await orgs.createOrganization(ctx, USER_ID, { name: 'ACME' })).id;
+        let USER_ORG_ID = (await orgs.createOrganization(rootCtx, USER_ID, { name: 'ACME' })).id;
 
         let repo = container.get<InvitesOrganizationRepository>('InvitesOrganizationRepository');
-        let invite = await repo.getAppInviteLinkKey(ctx, 1);
+        let invite = await repo.getAppInviteLinkKey(rootCtx, 1);
 
         let mediator = container.get<InvitesMediator>('InvitesMediator');
 
-        await mediator.joinAppInvite(ctx, USER_ID, invite, true);
+        await mediator.joinAppInvite(rootCtx, USER_ID, invite, true);
 
         // should activate user
-        let user = (await Store.User.findById(ctx, USER_ID))!;
+        let user = await inReadOnlyTx(rootCtx, async (ctx) => (await Store.User.findById(ctx, USER_ID))!);
         expect(user.status).toEqual('activated');
 
         // should activate user orgs
-        let org = (await Store.Organization.findById(ctx, USER_ORG_ID))!;
+        let org = await inReadOnlyTx(rootCtx, async (ctx) => (await Store.Organization.findById(ctx, USER_ORG_ID))!);
         expect(org.status).toEqual('activated');
     });
 
     it('should add to organization via email invite', async () => {
-        let ctx = createNamedContext('test');
-        let USER_ID = (await users.createUser(ctx, {email: 'email_org_1'})).id;
-        let USER2_ID = (await users.createUser(ctx, {email: 'email_org_2'})).id;
-        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
-        await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
-        await Modules.Events.mediator.prepareUser(ctx, USER_ID);
-        await Modules.Events.mediator.prepareUser(ctx, USER2_ID);
+        let USER_ID = (await users.createUser(rootCtx, { email: 'email_org_1' })).id;
+        let USER2_ID = (await users.createUser(rootCtx, { email: 'email_org_2' })).id;
+        await users.createUserProfile(rootCtx, USER_ID, { firstName: 'User Name' });
+        await users.createUserProfile(rootCtx, USER2_ID, { firstName: 'User Name' });
+        await Modules.Events.mediator.prepareUser(rootCtx, USER_ID);
+        await Modules.Events.mediator.prepareUser(rootCtx, USER2_ID);
 
-        let USER_ORG_ID = (await orgs.createOrganization(ctx, USER_ID, { name: 'ACME' })).id;
-        await orgs.activateOrganization(ctx, USER_ORG_ID, true);
+        let USER_ORG_ID = (await orgs.createOrganization(rootCtx, USER_ID, { name: 'ACME' })).id;
+        await orgs.activateOrganization(rootCtx, USER_ORG_ID, true);
 
         let repo = container.get<InvitesOrganizationRepository>('InvitesOrganizationRepository');
-        let invite = await repo.createOrganizationInvite(ctx, USER_ORG_ID, USER_ID, '', '', '', '');
+        let invite = await repo.createOrganizationInvite(rootCtx, USER_ORG_ID, USER_ID, '', '', '', '');
 
         let mediator = container.get<InvitesMediator>('InvitesMediator');
 
-        await mediator.joinOrganizationInvite(ctx, USER2_ID, invite.id, true);
+        await mediator.joinOrganizationInvite(rootCtx, USER2_ID, invite.id, true);
 
         // should add user to org
-        let members = (await Modules.Orgs.findOrganizationMembers(ctx, USER_ORG_ID)).map(u => u.id);
+        let members = await inReadOnlyTx(rootCtx, async (ctx) => (await Modules.Orgs.findOrganizationMembers(ctx, USER_ORG_ID)).map(u => u.id));
         expect(members).toContain(USER2_ID);
 
         // should activate user
-        let user = (await Store.User.findById(ctx, USER2_ID))!;
+        let user = await inReadOnlyTx(rootCtx, async (ctx) => (await Store.User.findById(ctx, USER2_ID))!);
         expect(user.status).toEqual('activated');
     });
 
     it('should add to organization via public invite', async () => {
-        let ctx = createNamedContext('test');
-        let USER_ID = (await users.createUser(ctx, {email: 'email_org_p_1'})).id;
-        let USER2_ID = (await users.createUser(ctx, {email: 'email_org_p_2'})).id;
-        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
-        await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
-        await Modules.Events.mediator.prepareUser(ctx, USER_ID);
-        await Modules.Events.mediator.prepareUser(ctx, USER2_ID);
+        let USER_ID = (await users.createUser(rootCtx, { email: 'email_org_p_1' })).id;
+        let USER2_ID = (await users.createUser(rootCtx, { email: 'email_org_p_2' })).id;
+        await users.createUserProfile(rootCtx, USER_ID, { firstName: 'User Name' });
+        await users.createUserProfile(rootCtx, USER2_ID, { firstName: 'User Name' });
+        await Modules.Events.mediator.prepareUser(rootCtx, USER_ID);
+        await Modules.Events.mediator.prepareUser(rootCtx, USER2_ID);
 
-        let USER_ORG_ID = (await orgs.createOrganization(ctx, USER_ID, { name: 'ACME' })).id;
-        await orgs.activateOrganization(ctx, USER_ORG_ID, true);
+        let USER_ORG_ID = (await orgs.createOrganization(rootCtx, USER_ID, { name: 'ACME' })).id;
+        await orgs.activateOrganization(rootCtx, USER_ORG_ID, true);
 
         let repo = container.get<InvitesOrganizationRepository>('InvitesOrganizationRepository');
-        let invite = await repo.refreshOrganizationInviteLink(ctx, USER_ORG_ID, USER_ID);
+        let invite = await repo.refreshOrganizationInviteLink(rootCtx, USER_ORG_ID, USER_ID);
 
         let mediator = container.get<InvitesMediator>('InvitesMediator');
 
-        await mediator.joinOrganizationInvite(ctx, USER2_ID, invite.id, true);
+        await mediator.joinOrganizationInvite(rootCtx, USER2_ID, invite.id, true);
 
         // should add user to org
-        let members = (await Modules.Orgs.findOrganizationMembers(ctx, USER_ORG_ID)).map(u => u.id);
+        let members = await inReadOnlyTx(rootCtx, async (ctx) => (await Modules.Orgs.findOrganizationMembers(ctx, USER_ORG_ID)).map(u => u.id));
         expect(members).toContain(USER2_ID);
 
         // should activate user
-        let user = (await Store.User.findById(ctx, USER2_ID))!;
+        let user = await inReadOnlyTx(rootCtx, async (ctx) => (await Store.User.findById(ctx, USER2_ID))!);
         expect(user.status).toEqual('activated');
     });
 

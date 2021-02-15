@@ -2,6 +2,9 @@ import { Store } from 'openland-module-db/FDB';
 import { createNamedContext } from '@openland/context';
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { PaymentsRepository } from './PaymentsRepository';
+import { inReadOnlyTx } from '@openland/foundationdb';
+
+const rootCtx = createNamedContext('test');
 
 describe('PaymentsRepository', () => {
     beforeAll(async () => {
@@ -14,9 +17,8 @@ describe('PaymentsRepository', () => {
     it('should create payment', async () => {
         let repo = new PaymentsRepository(Store);
         repo.setRouting({});
-        let ctx = createNamedContext('test');
 
-        let payment = await repo.createPayment(ctx, 'pid-1', 1, 100, { type: 'deposit', uid: 1, txid: 'txid' });
+        let payment = await repo.createPayment(rootCtx, 'pid-1', 1, 100, { type: 'deposit', uid: 1, txid: 'txid' });
         expect(payment.id).toBe('pid-1');
         expect(payment.uid).toBe(1);
         expect(payment.amount).toBe(100);
@@ -25,9 +27,9 @@ describe('PaymentsRepository', () => {
         expect((payment.operation as any).txid).toBe('txid');
 
         // Double creation
-        await expect(repo.createPayment(ctx, 'pid-1', 2, 100, { type: 'deposit', uid: 2, txid: 'txid' })).rejects.toThrowError();
-        await expect(repo.createPayment(ctx, 'pid-1', 3, 100, { type: 'deposit', uid: 2, txid: 'txid' })).rejects.toThrowError('uid mismatch');
-        await expect(repo.createPayment(ctx, 'pid-1', 3, 100, { type: 'subscription', uid: 2, subscription: 'subs', period: 1, txid: 'txid' })).rejects.toThrowError('uid mismatch');
+        await expect(repo.createPayment(rootCtx, 'pid-1', 2, 100, { type: 'deposit', uid: 2, txid: 'txid' })).rejects.toThrowError();
+        await expect(repo.createPayment(rootCtx, 'pid-1', 3, 100, { type: 'deposit', uid: 2, txid: 'txid' })).rejects.toThrowError('uid mismatch');
+        await expect(repo.createPayment(rootCtx, 'pid-1', 3, 100, { type: 'subscription', uid: 2, subscription: 'subs', period: 1, txid: 'txid' })).rejects.toThrowError('uid mismatch');
     });
 
     it('should handle payment states', async () => {
@@ -42,14 +44,13 @@ describe('PaymentsRepository', () => {
             onPaymentSuccess: routeSuccessfulPayment,
             onPaymentCanceled: routeCanceledPayment
         });
-        let ctx = createNamedContext('test');
 
         // Create payment
-        await repo.createPayment(ctx, 'pid-2', 1, 100, { type: 'deposit', uid: 1, txid: 'txid' });
+        await repo.createPayment(rootCtx, 'pid-2', 1, 100, { type: 'deposit', uid: 1, txid: 'txid' });
 
         // Failing
-        await repo.handlePaymentFailing(ctx, 'pid-2');
-        let payment = (await Store.Payment.findById(ctx, 'pid-2'))!;
+        await repo.handlePaymentFailing(rootCtx, 'pid-2');
+        let payment = (await inReadOnlyTx(rootCtx, async (ctx) => await Store.Payment.findById(ctx, 'pid-2')))!;
         expect(payment.state).toBe('failing');
         expect(routeSuccessfulPayment.mock.calls.length).toBe(0);
         expect(routeFailingPayment.mock.calls.length).toBe(1);
@@ -63,15 +64,15 @@ describe('PaymentsRepository', () => {
         expect(routeFailingPayment.mock.calls[0][4].txid).toBe('txid');
 
         // Invalid 
-        await expect(repo.handlePaymentFailing(ctx, 'pid-2-invalid')).rejects.toThrowError('Unable to find payment');
-        await expect(repo.handlePaymentActionRequired(ctx, 'pid-2-invalid')).rejects.toThrowError('Unable to find payment');
-        await expect(repo.handlePaymentIntentCanceled(ctx, 'pid-2-invalid')).rejects.toThrowError('Unable to find payment');
-        await expect(repo.handlePaymentIntentSuccess(ctx, 'pid-2-invalid')).rejects.toThrowError('Unable to find payment');
+        await expect(repo.handlePaymentFailing(rootCtx, 'pid-2-invalid')).rejects.toThrowError('Unable to find payment');
+        await expect(repo.handlePaymentActionRequired(rootCtx, 'pid-2-invalid')).rejects.toThrowError('Unable to find payment');
+        await expect(repo.handlePaymentIntentCanceled(rootCtx, 'pid-2-invalid')).rejects.toThrowError('Unable to find payment');
+        await expect(repo.handlePaymentIntentSuccess(rootCtx, 'pid-2-invalid')).rejects.toThrowError('Unable to find payment');
 
         // Second failing
         jest.clearAllMocks();
-        await repo.handlePaymentFailing(ctx, 'pid-2');
-        payment = (await Store.Payment.findById(ctx, 'pid-2'))!;
+        await repo.handlePaymentFailing(rootCtx, 'pid-2');
+        payment = (await inReadOnlyTx(rootCtx, async (ctx) => await Store.Payment.findById(ctx, 'pid-2')))!;
         expect(payment.state).toBe('failing');
         // No callbacks called
         expect(routeSuccessfulPayment.mock.calls.length).toBe(0);
@@ -81,8 +82,8 @@ describe('PaymentsRepository', () => {
 
         // Action Needed
         jest.clearAllMocks();
-        await repo.handlePaymentActionRequired(ctx, 'pid-2');
-        payment = (await Store.Payment.findById(ctx, 'pid-2'))!;
+        await repo.handlePaymentActionRequired(rootCtx, 'pid-2');
+        payment = (await inReadOnlyTx(rootCtx, async (ctx) => await Store.Payment.findById(ctx, 'pid-2')))!;
         expect(payment.state).toBe('action_required');
         expect(routeSuccessfulPayment.mock.calls.length).toBe(0);
         expect(routeFailingPayment.mock.calls.length).toBe(0);
@@ -97,8 +98,8 @@ describe('PaymentsRepository', () => {
 
         // Third failing
         jest.clearAllMocks();
-        await repo.handlePaymentFailing(ctx, 'pid-2');
-        payment = (await Store.Payment.findById(ctx, 'pid-2'))!;
+        await repo.handlePaymentFailing(rootCtx, 'pid-2');
+        payment = (await inReadOnlyTx(rootCtx, async (ctx) => await Store.Payment.findById(ctx, 'pid-2')))!;
         expect(payment.state).toBe('action_required'); // No status change
         // No callbacks called
         expect(routeSuccessfulPayment.mock.calls.length).toBe(0);
@@ -108,8 +109,8 @@ describe('PaymentsRepository', () => {
 
         // Success
         jest.clearAllMocks();
-        await repo.handlePaymentIntentSuccess(ctx, 'pid-2');
-        payment = (await Store.Payment.findById(ctx, 'pid-2'))!;
+        await repo.handlePaymentIntentSuccess(rootCtx, 'pid-2');
+        payment = (await inReadOnlyTx(rootCtx, async (ctx) => await Store.Payment.findById(ctx, 'pid-2')))!;
         expect(payment.state).toBe('success');
         expect(routeSuccessfulPayment.mock.calls.length).toBe(1);
         expect(routeFailingPayment.mock.calls.length).toBe(0);
@@ -124,8 +125,8 @@ describe('PaymentsRepository', () => {
 
         // Second Success
         jest.clearAllMocks();
-        await repo.handlePaymentIntentSuccess(ctx, 'pid-2');
-        payment = (await Store.Payment.findById(ctx, 'pid-2'))!;
+        await repo.handlePaymentIntentSuccess(rootCtx, 'pid-2');
+        payment = (await inReadOnlyTx(rootCtx, async (ctx) => await Store.Payment.findById(ctx, 'pid-2')))!;
         expect(payment.state).toBe('success');
         // No callbacks called
         expect(routeSuccessfulPayment.mock.calls.length).toBe(0);
@@ -135,8 +136,8 @@ describe('PaymentsRepository', () => {
 
         // Cancel after success: Silent ignore
         jest.clearAllMocks();
-        await repo.handlePaymentIntentCanceled(ctx, 'pid-2');
-        payment = (await Store.Payment.findById(ctx, 'pid-2'))!;
+        await repo.handlePaymentIntentCanceled(rootCtx, 'pid-2');
+        payment = (await inReadOnlyTx(rootCtx, async (ctx) => await Store.Payment.findById(ctx, 'pid-2')))!;
         expect(payment.state).toBe('success');
         // No callbacks called
         expect(routeSuccessfulPayment.mock.calls.length).toBe(0);
@@ -146,8 +147,8 @@ describe('PaymentsRepository', () => {
 
         // Failing after success: Silent ignore
         jest.clearAllMocks();
-        await repo.handlePaymentFailing(ctx, 'pid-2');
-        payment = (await Store.Payment.findById(ctx, 'pid-2'))!;
+        await repo.handlePaymentFailing(rootCtx, 'pid-2');
+        payment = (await inReadOnlyTx(rootCtx, async (ctx) => await Store.Payment.findById(ctx, 'pid-2')))!;
         expect(payment.state).toBe('success');
         // No callbacks called
         expect(routeSuccessfulPayment.mock.calls.length).toBe(0);
@@ -157,8 +158,8 @@ describe('PaymentsRepository', () => {
 
         // Action required after success: Silent ignore
         jest.clearAllMocks();
-        await repo.handlePaymentActionRequired(ctx, 'pid-2');
-        payment = (await Store.Payment.findById(ctx, 'pid-2'))!;
+        await repo.handlePaymentActionRequired(rootCtx, 'pid-2');
+        payment = (await inReadOnlyTx(rootCtx, async (ctx) => await Store.Payment.findById(ctx, 'pid-2')))!;
         expect(payment.state).toBe('success');
         // No callbacks called
         expect(routeSuccessfulPayment.mock.calls.length).toBe(0);
@@ -180,15 +181,14 @@ describe('PaymentsRepository', () => {
             onPaymentSuccess: routeSuccessfulPayment,
             onPaymentCanceled: routeCanceledPayment
         });
-        let ctx = createNamedContext('test');
 
         // Create payment
-        await repo.createPayment(ctx, 'pid-3', 1, 100, { type: 'deposit', uid: 1, txid: 'txid' });
+        await repo.createPayment(rootCtx, 'pid-3', 1, 100, { type: 'deposit', uid: 1, txid: 'txid' });
 
         // Cancel
         jest.clearAllMocks();
-        await repo.handlePaymentIntentCanceled(ctx, 'pid-3');
-        let payment = (await Store.Payment.findById(ctx, 'pid-3'))!;
+        await repo.handlePaymentIntentCanceled(rootCtx, 'pid-3');
+        let payment = (await inReadOnlyTx(rootCtx, async (ctx) => await Store.Payment.findById(ctx, 'pid-3')))!;
         expect(payment.state).toBe('canceled');
         expect(routeSuccessfulPayment.mock.calls.length).toBe(0);
         expect(routeFailingPayment.mock.calls.length).toBe(0);
@@ -202,8 +202,8 @@ describe('PaymentsRepository', () => {
 
         // Double Cancel
         jest.clearAllMocks();
-        await repo.handlePaymentIntentCanceled(ctx, 'pid-3');
-        payment = (await Store.Payment.findById(ctx, 'pid-3'))!;
+        await repo.handlePaymentIntentCanceled(rootCtx, 'pid-3');
+        payment = (await inReadOnlyTx(rootCtx, async (ctx) => await Store.Payment.findById(ctx, 'pid-3')))!;
         expect(payment.state).toBe('canceled');
         expect(routeSuccessfulPayment.mock.calls.length).toBe(0);
         expect(routeFailingPayment.mock.calls.length).toBe(0);
@@ -212,8 +212,8 @@ describe('PaymentsRepository', () => {
 
         // Success after cancel
         jest.clearAllMocks();
-        await expect(repo.handlePaymentIntentSuccess(ctx, 'pid-3')).rejects.toThrowError('Payment already canceled!');
-        payment = (await Store.Payment.findById(ctx, 'pid-3'))!;
+        await expect(repo.handlePaymentIntentSuccess(rootCtx, 'pid-3')).rejects.toThrowError('Payment already canceled!');
+        payment = (await inReadOnlyTx(rootCtx, async (ctx) => await Store.Payment.findById(ctx, 'pid-3')))!;
         expect(payment.state).toBe('canceled');
         expect(routeSuccessfulPayment.mock.calls.length).toBe(0);
         expect(routeFailingPayment.mock.calls.length).toBe(0);
@@ -222,8 +222,8 @@ describe('PaymentsRepository', () => {
 
         // Failing after cancel: Silent ignore
         jest.clearAllMocks();
-        await repo.handlePaymentFailing(ctx, 'pid-3');
-        payment = (await Store.Payment.findById(ctx, 'pid-3'))!;
+        await repo.handlePaymentFailing(rootCtx, 'pid-3');
+        payment = (await inReadOnlyTx(rootCtx, async (ctx) => await Store.Payment.findById(ctx, 'pid-3')))!;
         expect(payment.state).toBe('canceled');
         // No callbacks called
         expect(routeSuccessfulPayment.mock.calls.length).toBe(0);
@@ -233,8 +233,8 @@ describe('PaymentsRepository', () => {
 
         // Action required after cancel: Silent ignore
         jest.clearAllMocks();
-        await repo.handlePaymentActionRequired(ctx, 'pid-3');
-        payment = (await Store.Payment.findById(ctx, 'pid-3'))!;
+        await repo.handlePaymentActionRequired(rootCtx, 'pid-3');
+        payment = (await inReadOnlyTx(rootCtx, async (ctx) => await Store.Payment.findById(ctx, 'pid-3')))!;
         expect(payment.state).toBe('canceled');
         // No callbacks called
         expect(routeSuccessfulPayment.mock.calls.length).toBe(0);

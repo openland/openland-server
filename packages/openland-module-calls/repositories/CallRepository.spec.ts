@@ -4,7 +4,10 @@ import { CallRepository, DEFAULT_CAPABILITIES } from './CallRepository';
 import { Store } from 'openland-module-db/FDB';
 import { createNamedContext } from '@openland/context';
 import { DeliveryMediator } from '../../openland-module-messaging/mediators/DeliveryMediator';
+import { inReadOnlyTx } from '@openland/foundationdb';
 // jest.mock('../../openland-module-messaging/mediators/DeliveryMediator');
+
+const rootCtx = createNamedContext('test');
 
 describe('CallRepository', () => {
     beforeAll(async () => {
@@ -20,18 +23,17 @@ describe('CallRepository', () => {
     });
     it('should create conference', async () => {
         let repo = container.get<CallRepository>('CallRepository');
-        let conf1 = await repo.getOrCreateConference(createNamedContext('test'), 1);
-        let conf2 = await repo.getOrCreateConference(createNamedContext('test'), 1);
+        let conf1 = await repo.getOrCreateConference(rootCtx, 1);
+        let conf2 = await repo.getOrCreateConference(rootCtx, 1);
         expect(conf1.metadata.versionCode).toBe(0);
         expect(conf2.metadata.versionCode).toBe(0);
     });
 
     it('should add peers', async () => {
-        let ctx = createNamedContext('test');
         let CID = 2;
         let repo = container.get<CallRepository>('CallRepository');
-        let peer = await repo.addPeer(ctx, CID, 3, 'tid1', 5000, 'conference', DEFAULT_CAPABILITIES, 'unknown');
-        let peers = await Store.ConferencePeer.conference.findAll(ctx, CID);
+        let peer = await repo.addPeer(rootCtx, CID, 3, 'tid1', 5000, 'conference', DEFAULT_CAPABILITIES, 'unknown');
+        let peers = await inReadOnlyTx(rootCtx, async (ctx) => await Store.ConferencePeer.conference.findAll(ctx, CID));
         expect(peers.length).toBe(1);
         expect(peer.uid).toBe(3);
         expect(peer.cid).toBe(CID);
@@ -45,12 +47,11 @@ describe('CallRepository', () => {
     });
 
     it('should automatically connect peers', async () => {
-        let ctx = createNamedContext('test');
         let CID = 3;
         let repo = container.get<CallRepository>('CallRepository');
-        let peer1 = await repo.addPeer(createNamedContext('test'), CID, 3, 'tid1', 5000, 'conference', DEFAULT_CAPABILITIES, 'unknown');
-        let peer2 = await repo.addPeer(createNamedContext('test'), CID, 4, 'tid2', 5000, 'conference', DEFAULT_CAPABILITIES, 'unknown');
-        let peers = await Store.ConferencePeer.conference.findAll(ctx, CID);
+        let peer1 = await repo.addPeer(rootCtx, CID, 3, 'tid1', 5000, 'conference', DEFAULT_CAPABILITIES, 'unknown');
+        let peer2 = await repo.addPeer(rootCtx, CID, 4, 'tid2', 5000, 'conference', DEFAULT_CAPABILITIES, 'unknown');
+        let peers = await inReadOnlyTx(rootCtx, async (ctx) => await Store.ConferencePeer.conference.findAll(ctx, CID));
         expect(peer1.id).toBeLessThan(peer2.id);
         expect(peer1.uid).toBe(3);
         expect(peer2.uid).toBe(4);
@@ -62,13 +63,12 @@ describe('CallRepository', () => {
     });
 
     it('should remove peers and related connections', async () => {
-        let ctx = createNamedContext('test');
         let CID = 4;
         let repo = container.get<CallRepository>('CallRepository');
-        let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000, 'conference', DEFAULT_CAPABILITIES, 'unknown');
-        let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000, 'conference', DEFAULT_CAPABILITIES, 'unknown');
-        await repo.removePeer(ctx, peer1.id);
-        let peers = await Store.ConferencePeer.conference.findAll(ctx, CID);
+        let peer1 = await repo.addPeer(rootCtx, CID, 3, 'tid1', 5000, 'conference', DEFAULT_CAPABILITIES, 'unknown');
+        let peer2 = await repo.addPeer(rootCtx, CID, 4, 'tid2', 5000, 'conference', DEFAULT_CAPABILITIES, 'unknown');
+        await repo.removePeer(rootCtx, peer1.id);
+        let peers = await inReadOnlyTx(rootCtx, async (ctx) => await Store.ConferencePeer.conference.findAll(ctx, CID));
         expect(peers.length).toBe(1);
         expect(peers[0].id).toBe(peer2.id);
         // let connections = await Store.ConferenceConnection.conference.findAll(ctx, CID);

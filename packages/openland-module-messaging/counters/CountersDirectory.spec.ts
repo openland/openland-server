@@ -7,7 +7,7 @@ let root = createNamedContext('test');
 describe('CountersDirectory', () => {
     let repo: CountersDirectory;
     beforeAll(async () => {
-        let db = await Database.openTest({ name: 'counters-directory', layers: [] });
+        let db = await Database.openTest({ layers: [] });
         repo = new CountersDirectory(db.allKeys);
     });
 

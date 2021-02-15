@@ -1,4 +1,4 @@
-import { inTx, withReadOnlyTransaction } from '@openland/foundationdb';
+import { inHybridTx, inReadOnlyTx, inTx } from '@openland/foundationdb';
 import { IDs, IdsFactory } from '../../openland-module-api/IDs';
 import * as URL from 'url';
 import { CacheRepository } from 'openland-module-cache/CacheRepository';
@@ -44,10 +44,13 @@ export class UrlInfoService {
     private cache = new CacheRepository<URLAugmentation>('url_info');
 
     public async fetchURLInfo(url: string, useCached: boolean = true): Promise<URLAugmentation | null> {
-        let ctx = rootCtx;
-        let existing = await this.cache.read(ctx, url);
-        let creationTime = await this.cache.getCreationTime(ctx, url);
-        let freshnessThreshold = await Modules.Super.getEnvVar(ctx, 'url-info-freshness-threshold');
+
+        let { existing, creationTime, freshnessThreshold } = await inReadOnlyTx(rootCtx, async (ctx) => {
+            let existing2 = await this.cache.read(ctx, url);
+            let creationTime2 = await this.cache.getCreationTime(ctx, url);
+            let freshnessThreshold2 = await Modules.Super.getEnvVar(ctx, 'url-info-freshness-threshold');
+            return { existing: existing2, creationTime: creationTime2, freshnessThreshold: freshnessThreshold2 };
+        });
 
         if (useCached && existing && (creationTime! + 1000 * 60 * 60 * 24 * 7) >= Date.now() && (creationTime ? creationTime! >= freshnessThreshold! : true)) {
             return existing;
@@ -59,7 +62,7 @@ export class UrlInfoService {
                 if (info) {
                     info = { ...info, internal: true };
                     if (specialUrl.cache) {
-                        await this.cache.write(ctx, url, info);
+                        await this.cache.write(rootCtx, url, info);
                     }
                     return info;
                 }
@@ -79,8 +82,8 @@ export class UrlInfoService {
             if (info.description) {
                 info.description = info.description.replace(/\n/, ' ').trim();
             }
-            
-            await this.cache.write(ctx, url, { ...info });
+
+            await this.cache.write(rootCtx, url, { ...info });
 
             return { ...info };
         } catch (e) {
@@ -108,7 +111,7 @@ export class UrlInfoService {
 }
 
 const getURLAugmentationForUser = async ({ hostname, url, userId, user }: { hostname?: string; url: string; userId: number; user: UserProfile | null; }) => {
-    let org = user!.primaryOrganization && await Store.OrganizationProfile.findById(withReadOnlyTransaction(rootCtx), user!.primaryOrganization!);
+    let org = user!.primaryOrganization && await inReadOnlyTx(rootCtx, async (ctx) => Store.OrganizationProfile.findById(ctx, user!.primaryOrganization!));
 
     return {
         url,
@@ -201,132 +204,18 @@ export function createUrlInfoService() {
         //     };
         // })
         .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/(joinChannel|invite)\/(.*)/, false, async (url, data) => {
-            let ctx = withReadOnlyTransaction(rootCtx);
-            let [, , , , _invite] = data;
+            return await inHybridTx(rootCtx, async (ctx) => {
+                let [, , , , _invite] = data;
 
-            let chatInvite = await Modules.Invites.resolveInvite(ctx, _invite);
+                let chatInvite = await Modules.Invites.resolveInvite(ctx, _invite);
 
-            if (!chatInvite || !chatInvite.enabled) {
-                return null;
-            }
-
-            let profile = await Store.RoomProfile.findById(ctx, chatInvite.channelId);
-            let conv = await Store.ConversationRoom.findById(ctx, chatInvite.channelId);
-            let premiumChatSettings = await Store.PremiumChatSettings.findById(ctx, chatInvite.channelId);
-
-            if (!profile) {
-                return null;
-            }
-            let membersCount = profile.activeMembersCount || 0;
-            let price = premiumChatSettings && formatMoneyWithInterval(premiumChatSettings.price, premiumChatSettings.interval);
-
-            let buttonTitle = '';
-
-            if (conv?.isChannel) {
-                buttonTitle = 'Join channel';
-            } else {
-                buttonTitle = 'Join chat';
-            }
-            if (price) {
-                buttonTitle = price;
-            }
-
-            return {
-                url,
-                title: profile!.title || null,
-                subtitle: membersCount < 10 ? `New ${conv && conv.isChannel ? 'channel' : 'group'}` : (membersCount + ' members'),
-                description: profile!.description || null,
-                imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(ctx, profile!.image.uuid) : null,
-                photo: profile!.image,
-                photoPreview: profile!.image ? await Modules.Media.fetchLowResPreview(ctx, profile!.image.uuid) : null,
-                hostname: null,
-                iconRef: null,
-                iconInfo: null,
-                keyboard: {
-                    buttons: [[
-                        { title: buttonTitle, style: price ? 'PAY' : 'DEFAULT', url }
-                    ]]
-                },
-                photoFallback: makePhotoFallback(IDs.Conversation.serialize(profile.id), profile.title || 'deleted'),
-                dynamic: true,
-                socialImage: profile!.socialImage,
-                socialImagePreview: profile!.socialImage ? await Modules.Media.fetchLowResPreview(ctx, profile!.socialImage.uuid) : null,
-                socialImageInfo: profile!.socialImage ? await Modules.Media.fetchFileInfo(ctx, profile!.socialImage.uuid) : null,
-                featuredIcon: conv?.featured || false
-            };
-        })
-        .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/(.*)/, false, async (url, data) => {
-            let [, , , _shortname] = data;
-
-            let { hostname } = URL.parse(url);
-
-            _shortname = _shortname.replace('group/', '');
-
-            let ownerId;
-            let ownerType;
-            try {
-                let idInfo = IdsFactory.resolve(_shortname);
-                if (idInfo.type.typeId === IDs.User.typeId) {
-                    ownerType = 'user';
-                } else if (idInfo.type.typeId === IDs.Organization.typeId) {
-                    ownerType = 'org';
-                } else if (idInfo.type.typeId === IDs.Conversation.typeId) {
-                    ownerType = 'room';
-                }
-                ownerId = idInfo.id as number;
-            } catch {
-                let shortname = await Modules.Shortnames.findShortname(rootCtx, _shortname);
-                if (shortname) {
-                    ownerId = shortname.ownerId;
-                    ownerType = shortname.ownerType;
-                }
-            }
-
-            if (!ownerId || !ownerType) {
-                return null;
-            }
-
-            if (ownerType === 'user') {
-                let userId = ownerId;
-                let user = await Modules.Users.profileById(rootCtx, ownerId);
-
-                return await getURLAugmentationForUser({ hostname, url, userId, user });
-            } else if (ownerType === 'org') {
-                let orgId = ownerId;
-
-                let ctx = withReadOnlyTransaction(rootCtx);
-                let org = await Store.OrganizationProfile.findById(ctx, orgId);
-                let membersCount = (await Modules.Orgs.findOrganizationMembers(ctx, org!.id)).length;
-                let editorial = await Store.OrganizationEditorial.findById(ctx, org!.id);
-
-                return {
-                    url,
-                    title: org!.name || null,
-                    subtitle: `${membersCount} ${membersCount === 1 ? 'member' : 'members'}`,
-                    description: org!.about || null,
-                    imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(ctx, org!.photo.uuid) : null,
-                    photo: org!.photo || null,
-                    photoPreview: org!.photo ? await Modules.Media.fetchLowResPreview(ctx, org!.photo.uuid) : null,
-                    hostname: null,
-                    iconRef: null,
-                    iconInfo: null,
-                    keyboard: {
-                        buttons: [[
-                            { title: 'View', style: 'DEFAULT', url }
-                        ]]
-                    },
-                    photoFallback: makePhotoFallback(IDs.Organization.serialize(org!.id), org!.name || 'deleted'),
-                    featuredIcon: editorial?.featured || false
-                };
-            } else if (ownerType === 'room') {
-                let ctx = withReadOnlyTransaction(rootCtx);
-                let profile = await Store.RoomProfile.findById(ctx, ownerId);
-                let conv = await Store.ConversationRoom.findById(ctx, ownerId);
-                let premiumChatSettings = await Store.PremiumChatSettings.findById(ctx, ownerId);
-
-                if (!await Modules.Messaging.room.isPublicRoom(ctx, ownerId)) {
+                if (!chatInvite || !chatInvite.enabled) {
                     return null;
                 }
+
+                let profile = await Store.RoomProfile.findById(ctx, chatInvite.channelId);
+                let conv = await Store.ConversationRoom.findById(ctx, chatInvite.channelId);
+                let premiumChatSettings = await Store.PremiumChatSettings.findById(ctx, chatInvite.channelId);
 
                 if (!profile) {
                     return null;
@@ -368,6 +257,122 @@ export function createUrlInfoService() {
                     socialImageInfo: profile!.socialImage ? await Modules.Media.fetchFileInfo(ctx, profile!.socialImage.uuid) : null,
                     featuredIcon: conv?.featured || false
                 };
+            });
+        })
+        .specialUrl(/(localhost:3000|(app.|next.|)openland.com)\/(.*)/, false, async (url, data) => {
+            let [, , , _shortname] = data;
+
+            let { hostname } = URL.parse(url);
+
+            _shortname = _shortname.replace('group/', '');
+
+            let ownerId: number;
+            let ownerType: 'user' | 'org' | 'feed_channel' | 'room' | 'collection' | 'hub';
+            try {
+                let idInfo = IdsFactory.resolve(_shortname);
+                if (idInfo.type.typeId === IDs.User.typeId) {
+                    ownerType = 'user';
+                } else if (idInfo.type.typeId === IDs.Organization.typeId) {
+                    ownerType = 'org';
+                } else if (idInfo.type.typeId === IDs.Conversation.typeId) {
+                    ownerType = 'room';
+                } else {
+                    return null;
+                }
+                ownerId = idInfo.id as number;
+            } catch {
+                let shortname = await Modules.Shortnames.findShortname(rootCtx, _shortname);
+                if (shortname) {
+                    ownerId = shortname.ownerId;
+                    ownerType = shortname.ownerType;
+                } else {
+                    return null;
+                }
+            }
+
+            if (ownerType === 'user') {
+                let userId = ownerId;
+                let user = await inReadOnlyTx(rootCtx, async (ctx) => await Modules.Users.profileById(ctx, ownerId));
+
+                return await getURLAugmentationForUser({ hostname, url, userId, user });
+            } else if (ownerType === 'org') {
+                let orgId = ownerId;
+                return await inHybridTx(rootCtx, async (ctx) => {
+                    let org = await Store.OrganizationProfile.findById(ctx, orgId);
+                    let membersCount = (await Modules.Orgs.findOrganizationMembers(ctx, org!.id)).length;
+                    let editorial = await Store.OrganizationEditorial.findById(ctx, org!.id);
+
+                    return {
+                        url,
+                        title: org!.name || null,
+                        subtitle: `${membersCount} ${membersCount === 1 ? 'member' : 'members'}`,
+                        description: org!.about || null,
+                        imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(ctx, org!.photo.uuid) : null,
+                        photo: org!.photo || null,
+                        photoPreview: org!.photo ? await Modules.Media.fetchLowResPreview(ctx, org!.photo.uuid) : null,
+                        hostname: null,
+                        iconRef: null,
+                        iconInfo: null,
+                        keyboard: {
+                            buttons: [[
+                                { title: 'View', style: 'DEFAULT', url }
+                            ]]
+                        },
+                        photoFallback: makePhotoFallback(IDs.Organization.serialize(org!.id), org!.name || 'deleted'),
+                        featuredIcon: editorial?.featured || false
+                    };
+                });
+            } else if (ownerType === 'room') {
+                return await inHybridTx(rootCtx, async (ctx) => {
+                    let profile = await Store.RoomProfile.findById(ctx, ownerId);
+                    let conv = await Store.ConversationRoom.findById(ctx, ownerId);
+                    let premiumChatSettings = await Store.PremiumChatSettings.findById(ctx, ownerId);
+
+                    if (!await Modules.Messaging.room.isPublicRoom(ctx, ownerId)) {
+                        return null;
+                    }
+
+                    if (!profile) {
+                        return null;
+                    }
+                    let membersCount = profile.activeMembersCount || 0;
+                    let price = premiumChatSettings && formatMoneyWithInterval(premiumChatSettings.price, premiumChatSettings.interval);
+
+                    let buttonTitle = '';
+
+                    if (conv?.isChannel) {
+                        buttonTitle = 'Join channel';
+                    } else {
+                        buttonTitle = 'Join chat';
+                    }
+                    if (price) {
+                        buttonTitle = price;
+                    }
+
+                    return {
+                        url,
+                        title: profile!.title || null,
+                        subtitle: membersCount < 10 ? `New ${conv && conv.isChannel ? 'channel' : 'group'}` : (membersCount + ' members'),
+                        description: profile!.description || null,
+                        imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(ctx, profile!.image.uuid) : null,
+                        photo: profile!.image,
+                        photoPreview: profile!.image ? await Modules.Media.fetchLowResPreview(ctx, profile!.image.uuid) : null,
+                        hostname: null,
+                        iconRef: null,
+                        iconInfo: null,
+                        keyboard: {
+                            buttons: [[
+                                { title: buttonTitle, style: price ? 'PAY' : 'DEFAULT', url }
+                            ]]
+                        },
+                        photoFallback: makePhotoFallback(IDs.Conversation.serialize(profile.id), profile.title || 'deleted'),
+                        dynamic: true,
+                        socialImage: profile!.socialImage,
+                        socialImagePreview: profile!.socialImage ? await Modules.Media.fetchLowResPreview(ctx, profile!.socialImage.uuid) : null,
+                        socialImageInfo: profile!.socialImage ? await Modules.Media.fetchFileInfo(ctx, profile!.socialImage.uuid) : null,
+                        featuredIcon: conv?.featured || false
+                    };
+                });
             } else {
                 return null;
             }

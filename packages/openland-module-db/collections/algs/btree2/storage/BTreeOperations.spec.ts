@@ -18,7 +18,7 @@ describe('BTreeOperations', () => {
     let ops: BTreeOperations;
 
     beforeAll(async () => {
-        db = await Database.openTest({ name: 'bplustree-directory-ops', layers: [] });
+        db = await Database.openTest({ layers: [] });
         ops = new BTreeOperations(new BTreeRepository(db.allKeys));
     });
 

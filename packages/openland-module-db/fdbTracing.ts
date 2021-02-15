@@ -47,7 +47,7 @@ export function setupFdbTracing() {
             // return await tracer.trace(ctx, 'transaction commit', () => handler(), { tags: { contextPath: getContextPath(ctx) } })
             return handler();
         },
-        onNewReadWriteTx: (ctx) => {
+        onTx: (ctx) => {
             // newTx.increment(ctx);
         },
         onRetry: (ctx) => {
@@ -59,11 +59,6 @@ export function setupFdbTracing() {
             Metrics.FDBErrors.inc(error.code + '');
             if (error.code === 1007) {
                 Metrics.FDBTooOldErrors.inc(ContextName.get(ctx));
-            }
-        },
-        onNewEphemeralTx: (ctx) => {
-            if (isWithinSpaceX(ctx)) {
-                Metrics.SpaceXEphemeralTransactions.inc();
             }
         }
     });

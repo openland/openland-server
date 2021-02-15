@@ -26,35 +26,20 @@ import { buildConcurrencyPool } from './buildConcurrencyPool';
 import { withConcurrentcyPool } from 'openland-utils/ConcurrencyPool';
 import { createNamedContext } from '@openland/context';
 import { createLogger, withLogPath } from '@openland/log';
-import { withReadOnlyTransaction, inTx } from '@openland/foundationdb';
-// import { AuthContext } from '../openland-module-auth/AuthContext';
+import { inHybridTx, inTx } from '@openland/foundationdb';
 import { uuid } from '../openland-utils/uuid';
-// import { createMetric } from '../openland-module-monitoring/Metric';
-// import { currentRunningTime } from '../openland-utils/timer';
 import { withLifetime } from '@openland/lifetime';
-// import { initIFTTT } from '../openland-module-ifttt/http.handlers';
 import { InMemoryQueryCache } from '../openland-mtproto3/queryCache';
 import { initZapier } from '../openland-module-zapier/http.handlers';
-import { initVostokApiServer } from '../openland-mtproto3/vostok-api/vostokApiServer';
-import { EventBus } from '../openland-module-pubsub/EventBus';
 import { initOauth2 } from '../openland-module-oauth/http.handlers';
 import { AuthContext } from '../openland-module-auth/AuthContext';
 import { initPhoneAuthProvider } from '../openland-module-auth/providers/phone';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { createSpaceXServer } from '../openland-spacex/spaceXServer';
-// import { createSpaceXServer } from '../openland-spacex/spaceXServer';
-// import { Store } from '../openland-module-db/FDB';
-// import { fetchNextDBSeq } from '../openland-utils/dbSeq';
-// import { createFuckApolloWSServer } from '../openland-mtproto3';
-// import { randomKey } from '../openland-utils/random';
+import { graphql } from 'graphql';
 
-// const loggerWs = createLogger('ws');
 const integrationCtx = createNamedContext('integration-ctx');
 const logger = createLogger('api-module');
-// const authMetric = createMetric('auth-metric', 'average');
-// const authMetricCtx = createNamedContext('ws');
-
-// const onGqlQuery = createHyperlogger<{ operationName: string, duration: number }>('gql_query_tracing');
 
 export async function initApi(isTest: boolean) {
     const rootCtx = createNamedContext('init');
@@ -159,10 +144,21 @@ export async function initApi(isTest: boolean) {
         });
     }));
 
+    const ApolloSchema = Schema();
     const Server = new ApolloServer({
-        schema: Schema(),
+        schema: ApolloSchema,
         introspection: true,
         tracing: Config.environment !== 'production',
+        executor: async (requestContext) => {
+            let isMutation = requestContext.document.definitions[0].kind === 'OperationDefinition' && requestContext.document.definitions[0].operation === 'mutation';
+            return await (isMutation ? inTx : inHybridTx)(requestContext.context as any, async (ctx) => {
+                return await graphql({
+                    schema: ApolloSchema,
+                    source: requestContext.request.query!,
+                    contextValue: ctx
+                });
+            });
+        },
         formatError: (err: any) => {
             logger.warn(rootCtx, err);
             return {
@@ -225,55 +221,6 @@ export async function initApi(isTest: boolean) {
         Server.applyMiddleware({ app, path: '/api' });
 
         // const wsCtx = createNamedContext('ws-gql');
-        let vostok = initVostokApiServer({
-            server: undefined, // httpServer ,
-            path: '/api',
-            executableSchema: Schema(),
-            queryCache: new InMemoryQueryCache(),
-            onAuth: async (token) => {
-                return await fetchWebSocketParameters({ 'x-openland-token': token }, null);
-            },
-            context: async (params, operation) => {
-                let opId = uuid();
-                let ctx = buildWebSocketContext(params || {});
-                ctx = withReadOnlyTransaction(ctx);
-                ctx = withLogPath(ctx, `query ${opId} ${operation.operationName || ''}`);
-                return ctx;
-            },
-            subscriptionContext: async (params, operation, firstCtx) => {
-                let opId = uuid();
-                let ctx = buildWebSocketContext(params || {});
-                ctx = withReadOnlyTransaction(ctx);
-                ctx = withLogPath(ctx, `subscription ${opId} ${operation.operationName || ''}`);
-                ctx = withLifetime(ctx);
-                return ctx;
-            },
-            onOperation: async (ctx, operation) => {
-                // noop
-            },
-            formatResponse: async (value, operation, ctx) => {
-                let auth = AuthContext.get(ctx);
-                let uid = auth.uid;
-                let oid = auth.oid;
-
-                let queryInfo: QueryInfo = {
-                    uid,
-                    oid,
-                    transport: 'ws',
-                    query: JSON.stringify(operation)
-                };
-
-                let errors: any[] | undefined;
-                if (value.errors) {
-                    errors = value.errors && value.errors.map((e: any) => formatError(e, queryInfo));
-                }
-                return ({
-                    ...value,
-                    errors: errors,
-                });
-            }
-        });
-
         let spacex = await createSpaceXServer({
             executableSchema: Schema(),
             queryCache: new InMemoryQueryCache(),
@@ -298,7 +245,6 @@ export async function initApi(isTest: boolean) {
                     req.headers['x-client-geo-latlong'] as string,
                     req.headers['x-client-geo-location'] as string
                 );
-                ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `query ${opId} ${operation.name || ''}`);
                 // return withConcurrentcyPool(ctx, buildConcurrencyPool(ctx));
                 return ctx;
@@ -311,7 +257,6 @@ export async function initApi(isTest: boolean) {
                     req.headers['x-client-geo-latlong'] as string,
                     req.headers['x-client-geo-location'] as string,
                 );
-                ctx = withReadOnlyTransaction(ctx);
                 ctx = withLogPath(ctx, `subscription ${operation.name || ''}`);
                 ctx = withLifetime(ctx);
                 return withConcurrentcyPool(ctx, buildConcurrencyPool(ctx));
@@ -359,17 +304,6 @@ export async function initApi(isTest: boolean) {
             }
         });
 
-        EventBus.subscribe('auth_token_revoke', (data: { tokens: { uuid: string, salt: string }[] }) => {
-            for (let token of data.tokens) {
-                for (let entry of vostok.sessions.sessions.entries()) {
-                    let [, session] = entry;
-                    if (session.authParams && session.authParams.tid && session.authParams.tid === token.uuid) {
-                        session.close();
-                    }
-                }
-            }
-        });
-
         httpServer.on('upgrade', (request, socket, head) => {
             const pathname = url.parse(request.url).pathname;
 
@@ -380,10 +314,6 @@ export async function initApi(isTest: boolean) {
             } else if (pathname === '/gql_ws') {
                 spacex.ws.handleUpgrade(request, socket, head, (_ws) => {
                     spacex.ws.emit('connection', _ws, request);
-                });
-            } else if (pathname === '/vostok') {
-                vostok.ws.handleUpgrade(request, socket, head, (_ws) => {
-                    vostok.ws.emit('connection', _ws, request);
                 });
             } else {
                 socket.destroy();
@@ -398,7 +328,7 @@ export async function initApi(isTest: boolean) {
         });
         server = httpServer;
     } else {
-        server = await new Promise((resolver) => app.listen(0, () => resolver()));
+        server = await new Promise((resolver) => app.listen(0, (s) => resolver(s)));
     }
 
     return server;

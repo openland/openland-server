@@ -87,7 +87,7 @@ export class RoomMediator {
             }
 
             // Send initial messages
-            let userName = await Modules.Users.getUserFullName(parent, uid);
+            let userName = await Modules.Users.getUserFullName(ctx, uid);
             let chatTypeString = channel ? 'channel' : 'group';
             await this.messaging.sendMessage(ctx, uid, res.id, {
                 ...buildMessage(userMention(userName, uid), ` created the\u00A0${chatTypeString} `, boldString(profile.title)),

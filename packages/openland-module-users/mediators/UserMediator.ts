@@ -2,7 +2,7 @@ import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { AuthInfo, UserRepository } from '../repositories/UserRepository';
 import { Context } from '@openland/context';
-import { inTx } from '@openland/foundationdb';
+import { inTx, transactional } from '@openland/foundationdb';
 import { Store } from '../../openland-module-db/FDB';
 import { Events } from '../../openland-module-hyperlog/Events';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
@@ -32,33 +32,33 @@ export class UserMediator {
      * User
      */
 
+    @transactional
     async createUser(ctx: Context, authInfo: AuthInfo) {
         let res = await this.repo.createUser(ctx, authInfo);
-        await Events.UserCreated.event(ctx, { uid: res.id });
+        Events.UserCreated.event(ctx, { uid: res.id });
         await Modules.Hooks.onUserCreated(ctx, res.id);
         return res;
     }
 
-    async deleteUser(parent: Context, uid: number) {
-        return inTx(parent, async ctx => {
-            let res = await this.repo.deleteUser(ctx, uid);
+    @transactional
+    async deleteUser(ctx: Context, uid: number) {
+        let res = await this.repo.deleteUser(ctx, uid);
 
-            // Revoke tokens
-            await Modules.Auth.revokeUserTokens(ctx, uid);
+        // Revoke tokens
+        await Modules.Auth.revokeUserTokens(ctx, uid);
 
-            // Leave organizations
-            let membership = await Store.OrganizationMember.user.findAll(ctx, 'joined', uid);
-            await Promise.all(membership.map(m => Modules.Orgs.removeUserFromOrganiaztionWithoutAccessChecks(ctx, uid, m.oid)));
+        // Leave organizations
+        let membership = await Store.OrganizationMember.user.findAll(ctx, 'joined', uid);
+        await Promise.all(membership.map(m => Modules.Orgs.removeUserFromOrganiaztionWithoutAccessChecks(ctx, uid, m.oid)));
 
-            // Leave chats
-            let participates = await Store.RoomParticipant.userActive.findAll(ctx, uid);
-            await Promise.all(participates.map(p => Modules.Messaging.room.leaveRoom(ctx, p.cid, uid, false)));
+        // Leave chats
+        let participates = await Store.RoomParticipant.userActive.findAll(ctx, uid);
+        await Promise.all(participates.map(p => Modules.Messaging.room.leaveRoom(ctx, p.cid, uid, false)));
 
-            // Free shortname
-            await Modules.Shortnames.freeShortName(ctx, 'user', uid);
+        // Free shortname
+        await Modules.Shortnames.freeShortName(ctx, 'user', uid);
 
-            return res;
-        });
+        return res;
     }
 
     async findUser(ctx: Context, uid: number) {
