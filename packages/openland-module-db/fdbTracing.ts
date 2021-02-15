@@ -9,7 +9,7 @@ import {
 // import { createMetric } from 'openland-module-monitoring/Metric';
 import { getConcurrencyPool, withConcurrentcyPool } from 'openland-utils/ConcurrencyPool';
 import { createLogger, LogPathContext } from '@openland/log';
-import { encoders } from '@openland/foundationdb';
+import { encoders, WriteToReadOnlyContextError } from '@openland/foundationdb';
 import { createTracer } from 'openland-log/createTracer';
 import { setTracingTag } from '../openland-log/setTracingTag';
 import { Metrics } from 'openland-module-monitoring/Metrics';
@@ -17,6 +17,7 @@ import { isWithinSpaceX } from 'openland-spacex/SpaceXContext';
 import { counterNamespace } from './FDBCounterContext';
 import { ContextName } from '@openland/context';
 import { Concurrency } from 'openland-server/concurrency';
+import { FDBError } from 'foundationdb';
 // import { Context, ContextName } from '@openland/context';
 // import { LogPathContext } from '@openland/log';
 
@@ -32,7 +33,7 @@ const tracer = createTracer('FDB');
 // const opRead = createMetric('op-read', 'sum');
 // const opWrite = createMetric('op-write', 'sum');
 
-let valueLengthLimitLogger = createLogger('fdb-tracing');
+let logger = createLogger('fdb-tracing');
 
 export function setupFdbTracing() {
     setTransactionTracer({
@@ -62,6 +63,14 @@ export function setupFdbTracing() {
         onRetry: (ctx) => {
             if (isWithinSpaceX(ctx)) {
                 Metrics.SpaceXRetry.inc();
+            }
+        },
+        onError: (ctx, error) => {
+            if (error instanceof FDBError) {
+                logger.warn(ctx, error);
+            }
+            if (error instanceof WriteToReadOnlyContextError) {
+                logger.warn(ctx, error);
             }
         },
         onFDBError: (ctx, error) => {
@@ -94,7 +103,7 @@ export function setupFdbTracing() {
 
             // opWrite.increment(ctx);
             if (value.byteLength > 100000) {
-                valueLengthLimitLogger.log(ctx, 'Value length exceeds limit: ' + JSON.stringify(encoders.json.unpack(value)));
+                logger.log(ctx, 'Value length exceeds limit: ' + JSON.stringify(encoders.json.unpack(value)));
             }
             // return tracer.traceSync(ctx, 'setKey', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
             return handler();
