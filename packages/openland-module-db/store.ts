@@ -5258,101 +5258,101 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         secondaryIndexes.push({ name: 'chatAll', storageKey: 'chatAll', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chatAll'), condition: undefined });
         secondaryIndexes.push({ name: 'chatSeq', storageKey: 'chatSeq', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chatSeq'), condition: (src) => !src.deleted });
         secondaryIndexes.push({ name: 'hasImageAttachment', storageKey: 'hasImageAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasImageAttachment'), condition: (item) => {
-            if (item.deleted) {
-                return false;
+    if (item.deleted) {
+        return false;
+    }
+    if (item.fileId) {
+        if (item.fileMetadata && item.fileMetadata.isImage) {
+            return true;
+        }
+    }
+    if (item.attachments) {
+        for (let attach of item.attachments) {
+            if (attach.fileMetadata && attach.fileMetadata.isImage) {
+                return true;
             }
-            if (item.fileId) {
-                if (item.fileMetadata && item.fileMetadata.isImage) {
+        }
+    }
+    if (item.attachmentsModern) {
+        for (let attach of item.attachmentsModern) {
+            if (attach.type === 'file_attachment') {
+                if (attach.fileMetadata && attach.fileMetadata.isImage) {
                     return true;
                 }
             }
-            if (item.attachments) {
-                for (let attach of item.attachments) {
-                    if (attach.fileMetadata && attach.fileMetadata.isImage) {
-                        return true;
-                    }
-                }
-            }
-            if (item.attachmentsModern) {
-                for (let attach of item.attachmentsModern) {
-                    if (attach.type === 'file_attachment') {
-                        if (attach.fileMetadata && attach.fileMetadata.isImage) {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        } });
+        }
+    }
+    return false;
+} });
         secondaryIndexes.push({ name: 'hasLinkAttachment', storageKey: 'hasLinkAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasLinkAttachment'), condition: (item) => {
-            if (item.deleted) {
-                return false;
-            }
-            if (item.augmentation) {
+    if (item.deleted) {
+        return false;
+    }
+    if (item.augmentation) {
+        return true;
+    }
+    if (item.attachmentsModern) {
+        for (let attach of item.attachmentsModern) {
+            if (attach.type === 'rich_attachment') {
                 return true;
             }
-            if (item.attachmentsModern) {
-                for (let attach of item.attachmentsModern) {
-                    if (attach.type === 'rich_attachment') {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        } });
+        }
+    }
+    return false;
+} });
         secondaryIndexes.push({ name: 'hasVideoAttachment', storageKey: 'hasVideoAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasVideoAttachment'), condition: (item) => {
-            if (item.deleted) {
-                return false;
-            }
-            if (item.fileId && item.fileMetadata && item.fileMetadata.mimeType.startsWith('video/')) {
+    if (item.deleted) {
+        return false;
+    }
+    if (item.fileId && item.fileMetadata && item.fileMetadata.mimeType.startsWith('video/')) {
+        return true;
+    }
+    if (item.attachments) {
+        for (let attach of item.attachments) {
+            if (attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
                 return true;
             }
-            if (item.attachments) {
-                for (let attach of item.attachments) {
-                    if (attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
-                        return true;
-                    }
-                }
+        }
+    }
+    if (item.attachmentsModern) {
+        for (let attach of item.attachmentsModern) {
+            if (attach.type === 'file_attachment' && attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
+                return true;
             }
-            if (item.attachmentsModern) {
-                for (let attach of item.attachmentsModern) {
-                    if (attach.type === 'file_attachment' && attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        } });
+        }
+    }
+    return false;
+} });
         secondaryIndexes.push({ name: 'hasDocumentAttachment', storageKey: 'hasDocumentAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasDocumentAttachment'), condition: (item) => {
-            if (item.deleted) {
-                return false;
+    if (item.deleted) {
+        return false;
+    }
+    if (item.fileId) {
+        if (item.fileMetadata && !item.fileMetadata.isImage && !item.fileMetadata.mimeType.startsWith('video/')) {
+            return true;
+        }
+    }
+    if (item.attachments) {
+        for (let attach of item.attachments) {
+            if (attach.fileMetadata && !attach.fileMetadata.isImage && !attach.fileMetadata.mimeType.startsWith('video/')) {
+                return true;
             }
-            if (item.fileId) {
-                if (item.fileMetadata && !item.fileMetadata.isImage && !item.fileMetadata.mimeType.startsWith('video/')) {
+        }
+    }
+    if (item.attachmentsModern) {
+        for (let attach of item.attachmentsModern) {
+            if (attach.type === 'file_attachment') {
+                if (attach.fileMetadata && !attach.fileMetadata.isImage && !attach.fileMetadata.mimeType.startsWith('video/')) {
                     return true;
                 }
             }
-            if (item.attachments) {
-                for (let attach of item.attachments) {
-                    if (attach.fileMetadata && !attach.fileMetadata.isImage && !attach.fileMetadata.mimeType.startsWith('video/')) {
-                        return true;
-                    }
-                }
-            }
-            if (item.attachmentsModern) {
-                for (let attach of item.attachmentsModern) {
-                    if (attach.type === 'file_attachment') {
-                        if (attach.fileMetadata && !attach.fileMetadata.isImage && !attach.fileMetadata.mimeType.startsWith('video/')) {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        } });
+        }
+    }
+    return false;
+} });
+        secondaryIndexes.push({ name: 'repeat', storageKey: 'repeat', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }, { name: 'repeatKey', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'repeat'), condition: (src) => !!src.repeatKey });
         secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'updated'), condition: undefined });
         secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'created'), condition: undefined });
-        secondaryIndexes.push({ name: 'repeat', storageKey: 'repeat', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }, { name: 'repeatKey', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'repeat'), condition: (src) => !!src.repeatKey });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -5537,22 +5537,19 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         },
     });
 
-    readonly updated = Object.freeze({
-        findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[7], [])).items;
+    readonly repeat = Object.freeze({
+        find: async (ctx: Context, uid: number, cid: number, repeatKey: string | null) => {
+            return this._findFromUniqueIndex(ctx, [uid, cid, repeatKey], this.descriptor.secondaryIndexes[7]);
         },
-        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[7], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        findAll: async (ctx: Context, uid: number, cid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[7], [uid, cid])).items;
         },
-        stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[7], [], opts);
-        },
-        liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[7], [], opts);
+        query: (ctx: Context, uid: number, cid: number, opts?: RangeQueryOptions<string | null>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[7], [uid, cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
     });
 
-    readonly created = Object.freeze({
+    readonly updated = Object.freeze({
         findAll: async (ctx: Context) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[8], [])).items;
         },
@@ -5567,15 +5564,18 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         },
     });
 
-    readonly repeat = Object.freeze({
-        find: async (ctx: Context, uid: number, cid: number, repeatKey: string | null) => {
-            return this._findFromUniqueIndex(ctx, [uid, cid, repeatKey], this.descriptor.secondaryIndexes[9]);
+    readonly created = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[9], [])).items;
         },
-        findAll: async (ctx: Context, uid: number, cid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[9], [uid, cid])).items;
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[9], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
-        query: (ctx: Context, uid: number, cid: number, opts?: RangeQueryOptions<string | null>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[9], [uid, cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[9], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[9], [], opts);
         },
     });
 
@@ -5597,6 +5597,657 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<MessageShape>): Message {
         return new Message([value.id], value, this.descriptor, this._flush, this._delete, ctx);
+    }
+}
+
+export interface PrivateMessageShape {
+    id: number;
+    inboxUid: number;
+    cid: number;
+    uid: number;
+    seq: number;
+    repeatKey: string | null;
+    text: string | null;
+    replyMessages: (number)[] | null;
+    serviceMetadata: any | null;
+    reactions: ({ userId: number, reaction: string })[] | null;
+    edited: boolean | null;
+    isMuted: boolean;
+    isService: boolean;
+    visibleOnlyForUids: (number)[] | null;
+    hiddenForUids: (number)[] | null;
+    deleted: boolean | null;
+    spans: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'organization_mention', offset: number, length: number, organization: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number } | { type: 'hash_tag', offset: number, length: number, tag: string })[] | null;
+    attachmentsModern: ({ type: 'file_attachment', id: string, fileId: string, filePreview: string | null, fileMetadata: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, previewFileId: string | null, previewFileMetadata: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, videoMetadata: { duration: number } | null } | { type: 'rich_attachment', id: string, title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, iconInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, imageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, imagePreview: string | null, imageFallback: { photo: string, text: string } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT' | 'PAY', url: string | null })[])[] } | null, socialImage: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, socialImagePreview: string | null, socialImageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, featuredIcon: boolean | null } | { type: 'purchase_attachment', id: string, pid: string })[] | null;
+    stickerId: string | null;
+    overrideAvatar: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null;
+    overrideName: string | null;
+    fileId: string | null;
+    fileMetadata: { name: string, size: number, isStored: boolean | null, isImage: boolean | null, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null;
+    filePreview: string | null;
+    augmentation: any | null;
+    mentions: any | null;
+    attachments: any | null;
+    buttons: any | null;
+    type: string | null;
+    title: string | null;
+    postType: string | null;
+    complexMentions: any | null;
+}
+
+export interface PrivateMessageCreateShape {
+    cid: number;
+    uid: number;
+    seq: number;
+    repeatKey?: string | null | undefined;
+    text?: string | null | undefined;
+    replyMessages?: (number)[] | null | undefined;
+    serviceMetadata?: any | null | undefined;
+    reactions?: ({ userId: number, reaction: string })[] | null | undefined;
+    edited?: boolean | null | undefined;
+    isMuted: boolean;
+    isService: boolean;
+    visibleOnlyForUids?: (number)[] | null | undefined;
+    hiddenForUids?: (number)[] | null | undefined;
+    deleted?: boolean | null | undefined;
+    spans?: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'organization_mention', offset: number, length: number, organization: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number } | { type: 'hash_tag', offset: number, length: number, tag: string })[] | null | undefined;
+    attachmentsModern?: ({ type: 'file_attachment', id: string, fileId: string, filePreview: string | null | undefined, fileMetadata: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined, previewFileId: string | null | undefined, previewFileMetadata: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined, videoMetadata: { duration: number } | null | undefined } | { type: 'rich_attachment', id: string, title: string | null | undefined, subTitle: string | null | undefined, titleLink: string | null | undefined, text: string | null | undefined, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined, image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined, iconInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined, imageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined, imagePreview: string | null | undefined, imageFallback: { photo: string, text: string } | null | undefined, titleLinkHostname: string | null | undefined, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT' | 'PAY', url: string | null | undefined })[])[] } | null | undefined, socialImage: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined, socialImagePreview: string | null | undefined, socialImageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined, featuredIcon: boolean | null | undefined } | { type: 'purchase_attachment', id: string, pid: string })[] | null | undefined;
+    stickerId?: string | null | undefined;
+    overrideAvatar?: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null | undefined } | null | undefined;
+    overrideName?: string | null | undefined;
+    fileId?: string | null | undefined;
+    fileMetadata?: { name: string, size: number, isStored: boolean | null | undefined, isImage: boolean | null | undefined, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string } | null | undefined;
+    filePreview?: string | null | undefined;
+    augmentation?: any | null | undefined;
+    mentions?: any | null | undefined;
+    attachments?: any | null | undefined;
+    buttons?: any | null | undefined;
+    type?: string | null | undefined;
+    title?: string | null | undefined;
+    postType?: string | null | undefined;
+    complexMentions?: any | null | undefined;
+}
+
+export class PrivateMessage extends Entity<PrivateMessageShape> {
+    get id(): number { return this._rawValue.id; }
+    get inboxUid(): number { return this._rawValue.inboxUid; }
+    get cid(): number { return this._rawValue.cid; }
+    set cid(value: number) {
+        let normalized = this.descriptor.codec.fields.cid.normalize(value);
+        if (this._rawValue.cid !== normalized) {
+            this._rawValue.cid = normalized;
+            this._updatedValues.cid = normalized;
+            this.invalidate();
+        }
+    }
+    get uid(): number { return this._rawValue.uid; }
+    set uid(value: number) {
+        let normalized = this.descriptor.codec.fields.uid.normalize(value);
+        if (this._rawValue.uid !== normalized) {
+            this._rawValue.uid = normalized;
+            this._updatedValues.uid = normalized;
+            this.invalidate();
+        }
+    }
+    get seq(): number { return this._rawValue.seq; }
+    set seq(value: number) {
+        let normalized = this.descriptor.codec.fields.seq.normalize(value);
+        if (this._rawValue.seq !== normalized) {
+            this._rawValue.seq = normalized;
+            this._updatedValues.seq = normalized;
+            this.invalidate();
+        }
+    }
+    get repeatKey(): string | null { return this._rawValue.repeatKey; }
+    set repeatKey(value: string | null) {
+        let normalized = this.descriptor.codec.fields.repeatKey.normalize(value);
+        if (this._rawValue.repeatKey !== normalized) {
+            this._rawValue.repeatKey = normalized;
+            this._updatedValues.repeatKey = normalized;
+            this.invalidate();
+        }
+    }
+    get text(): string | null { return this._rawValue.text; }
+    set text(value: string | null) {
+        let normalized = this.descriptor.codec.fields.text.normalize(value);
+        if (this._rawValue.text !== normalized) {
+            this._rawValue.text = normalized;
+            this._updatedValues.text = normalized;
+            this.invalidate();
+        }
+    }
+    get replyMessages(): (number)[] | null { return this._rawValue.replyMessages; }
+    set replyMessages(value: (number)[] | null) {
+        let normalized = this.descriptor.codec.fields.replyMessages.normalize(value);
+        if (this._rawValue.replyMessages !== normalized) {
+            this._rawValue.replyMessages = normalized;
+            this._updatedValues.replyMessages = normalized;
+            this.invalidate();
+        }
+    }
+    get serviceMetadata(): any | null { return this._rawValue.serviceMetadata; }
+    set serviceMetadata(value: any | null) {
+        let normalized = this.descriptor.codec.fields.serviceMetadata.normalize(value);
+        if (this._rawValue.serviceMetadata !== normalized) {
+            this._rawValue.serviceMetadata = normalized;
+            this._updatedValues.serviceMetadata = normalized;
+            this.invalidate();
+        }
+    }
+    get reactions(): ({ userId: number, reaction: string })[] | null { return this._rawValue.reactions; }
+    set reactions(value: ({ userId: number, reaction: string })[] | null) {
+        let normalized = this.descriptor.codec.fields.reactions.normalize(value);
+        if (this._rawValue.reactions !== normalized) {
+            this._rawValue.reactions = normalized;
+            this._updatedValues.reactions = normalized;
+            this.invalidate();
+        }
+    }
+    get edited(): boolean | null { return this._rawValue.edited; }
+    set edited(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.edited.normalize(value);
+        if (this._rawValue.edited !== normalized) {
+            this._rawValue.edited = normalized;
+            this._updatedValues.edited = normalized;
+            this.invalidate();
+        }
+    }
+    get isMuted(): boolean { return this._rawValue.isMuted; }
+    set isMuted(value: boolean) {
+        let normalized = this.descriptor.codec.fields.isMuted.normalize(value);
+        if (this._rawValue.isMuted !== normalized) {
+            this._rawValue.isMuted = normalized;
+            this._updatedValues.isMuted = normalized;
+            this.invalidate();
+        }
+    }
+    get isService(): boolean { return this._rawValue.isService; }
+    set isService(value: boolean) {
+        let normalized = this.descriptor.codec.fields.isService.normalize(value);
+        if (this._rawValue.isService !== normalized) {
+            this._rawValue.isService = normalized;
+            this._updatedValues.isService = normalized;
+            this.invalidate();
+        }
+    }
+    get visibleOnlyForUids(): (number)[] | null { return this._rawValue.visibleOnlyForUids; }
+    set visibleOnlyForUids(value: (number)[] | null) {
+        let normalized = this.descriptor.codec.fields.visibleOnlyForUids.normalize(value);
+        if (this._rawValue.visibleOnlyForUids !== normalized) {
+            this._rawValue.visibleOnlyForUids = normalized;
+            this._updatedValues.visibleOnlyForUids = normalized;
+            this.invalidate();
+        }
+    }
+    get hiddenForUids(): (number)[] | null { return this._rawValue.hiddenForUids; }
+    set hiddenForUids(value: (number)[] | null) {
+        let normalized = this.descriptor.codec.fields.hiddenForUids.normalize(value);
+        if (this._rawValue.hiddenForUids !== normalized) {
+            this._rawValue.hiddenForUids = normalized;
+            this._updatedValues.hiddenForUids = normalized;
+            this.invalidate();
+        }
+    }
+    get deleted(): boolean | null { return this._rawValue.deleted; }
+    set deleted(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.deleted.normalize(value);
+        if (this._rawValue.deleted !== normalized) {
+            this._rawValue.deleted = normalized;
+            this._updatedValues.deleted = normalized;
+            this.invalidate();
+        }
+    }
+    get spans(): ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'organization_mention', offset: number, length: number, organization: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number } | { type: 'hash_tag', offset: number, length: number, tag: string })[] | null { return this._rawValue.spans; }
+    set spans(value: ({ type: 'user_mention', offset: number, length: number, user: number } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[] } | { type: 'room_mention', offset: number, length: number, room: number } | { type: 'organization_mention', offset: number, length: number, organization: number } | { type: 'link', offset: number, length: number, url: string } | { type: 'date_text', offset: number, length: number, date: number } | { type: 'bold_text', offset: number, length: number } | { type: 'italic_text', offset: number, length: number } | { type: 'irony_text', offset: number, length: number } | { type: 'inline_code_text', offset: number, length: number } | { type: 'code_block_text', offset: number, length: number } | { type: 'insane_text', offset: number, length: number } | { type: 'loud_text', offset: number, length: number } | { type: 'rotating_text', offset: number, length: number } | { type: 'all_mention', offset: number, length: number } | { type: 'hash_tag', offset: number, length: number, tag: string })[] | null) {
+        let normalized = this.descriptor.codec.fields.spans.normalize(value);
+        if (this._rawValue.spans !== normalized) {
+            this._rawValue.spans = normalized;
+            this._updatedValues.spans = normalized;
+            this.invalidate();
+        }
+    }
+    get attachmentsModern(): ({ type: 'file_attachment', id: string, fileId: string, filePreview: string | null, fileMetadata: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, previewFileId: string | null, previewFileMetadata: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, videoMetadata: { duration: number } | null } | { type: 'rich_attachment', id: string, title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, iconInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, imageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, imagePreview: string | null, imageFallback: { photo: string, text: string } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT' | 'PAY', url: string | null })[])[] } | null, socialImage: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, socialImagePreview: string | null, socialImageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, featuredIcon: boolean | null } | { type: 'purchase_attachment', id: string, pid: string })[] | null { return this._rawValue.attachmentsModern; }
+    set attachmentsModern(value: ({ type: 'file_attachment', id: string, fileId: string, filePreview: string | null, fileMetadata: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, previewFileId: string | null, previewFileMetadata: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, videoMetadata: { duration: number } | null } | { type: 'rich_attachment', id: string, title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, iconInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, imageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, imagePreview: string | null, imageFallback: { photo: string, text: string } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT' | 'PAY', url: string | null })[])[] } | null, socialImage: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null, socialImagePreview: string | null, socialImageInfo: { name: string, size: number, isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null, featuredIcon: boolean | null } | { type: 'purchase_attachment', id: string, pid: string })[] | null) {
+        let normalized = this.descriptor.codec.fields.attachmentsModern.normalize(value);
+        if (this._rawValue.attachmentsModern !== normalized) {
+            this._rawValue.attachmentsModern = normalized;
+            this._updatedValues.attachmentsModern = normalized;
+            this.invalidate();
+        }
+    }
+    get stickerId(): string | null { return this._rawValue.stickerId; }
+    set stickerId(value: string | null) {
+        let normalized = this.descriptor.codec.fields.stickerId.normalize(value);
+        if (this._rawValue.stickerId !== normalized) {
+            this._rawValue.stickerId = normalized;
+            this._updatedValues.stickerId = normalized;
+            this.invalidate();
+        }
+    }
+    get overrideAvatar(): { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null { return this._rawValue.overrideAvatar; }
+    set overrideAvatar(value: { uuid: string, crop: { x: number, y: number, w: number, h: number } | null } | null) {
+        let normalized = this.descriptor.codec.fields.overrideAvatar.normalize(value);
+        if (this._rawValue.overrideAvatar !== normalized) {
+            this._rawValue.overrideAvatar = normalized;
+            this._updatedValues.overrideAvatar = normalized;
+            this.invalidate();
+        }
+    }
+    get overrideName(): string | null { return this._rawValue.overrideName; }
+    set overrideName(value: string | null) {
+        let normalized = this.descriptor.codec.fields.overrideName.normalize(value);
+        if (this._rawValue.overrideName !== normalized) {
+            this._rawValue.overrideName = normalized;
+            this._updatedValues.overrideName = normalized;
+            this.invalidate();
+        }
+    }
+    get fileId(): string | null { return this._rawValue.fileId; }
+    set fileId(value: string | null) {
+        let normalized = this.descriptor.codec.fields.fileId.normalize(value);
+        if (this._rawValue.fileId !== normalized) {
+            this._rawValue.fileId = normalized;
+            this._updatedValues.fileId = normalized;
+            this.invalidate();
+        }
+    }
+    get fileMetadata(): { name: string, size: number, isStored: boolean | null, isImage: boolean | null, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null { return this._rawValue.fileMetadata; }
+    set fileMetadata(value: { name: string, size: number, isStored: boolean | null, isImage: boolean | null, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string } | null) {
+        let normalized = this.descriptor.codec.fields.fileMetadata.normalize(value);
+        if (this._rawValue.fileMetadata !== normalized) {
+            this._rawValue.fileMetadata = normalized;
+            this._updatedValues.fileMetadata = normalized;
+            this.invalidate();
+        }
+    }
+    get filePreview(): string | null { return this._rawValue.filePreview; }
+    set filePreview(value: string | null) {
+        let normalized = this.descriptor.codec.fields.filePreview.normalize(value);
+        if (this._rawValue.filePreview !== normalized) {
+            this._rawValue.filePreview = normalized;
+            this._updatedValues.filePreview = normalized;
+            this.invalidate();
+        }
+    }
+    get augmentation(): any | null { return this._rawValue.augmentation; }
+    set augmentation(value: any | null) {
+        let normalized = this.descriptor.codec.fields.augmentation.normalize(value);
+        if (this._rawValue.augmentation !== normalized) {
+            this._rawValue.augmentation = normalized;
+            this._updatedValues.augmentation = normalized;
+            this.invalidate();
+        }
+    }
+    get mentions(): any | null { return this._rawValue.mentions; }
+    set mentions(value: any | null) {
+        let normalized = this.descriptor.codec.fields.mentions.normalize(value);
+        if (this._rawValue.mentions !== normalized) {
+            this._rawValue.mentions = normalized;
+            this._updatedValues.mentions = normalized;
+            this.invalidate();
+        }
+    }
+    get attachments(): any | null { return this._rawValue.attachments; }
+    set attachments(value: any | null) {
+        let normalized = this.descriptor.codec.fields.attachments.normalize(value);
+        if (this._rawValue.attachments !== normalized) {
+            this._rawValue.attachments = normalized;
+            this._updatedValues.attachments = normalized;
+            this.invalidate();
+        }
+    }
+    get buttons(): any | null { return this._rawValue.buttons; }
+    set buttons(value: any | null) {
+        let normalized = this.descriptor.codec.fields.buttons.normalize(value);
+        if (this._rawValue.buttons !== normalized) {
+            this._rawValue.buttons = normalized;
+            this._updatedValues.buttons = normalized;
+            this.invalidate();
+        }
+    }
+    get type(): string | null { return this._rawValue.type; }
+    set type(value: string | null) {
+        let normalized = this.descriptor.codec.fields.type.normalize(value);
+        if (this._rawValue.type !== normalized) {
+            this._rawValue.type = normalized;
+            this._updatedValues.type = normalized;
+            this.invalidate();
+        }
+    }
+    get title(): string | null { return this._rawValue.title; }
+    set title(value: string | null) {
+        let normalized = this.descriptor.codec.fields.title.normalize(value);
+        if (this._rawValue.title !== normalized) {
+            this._rawValue.title = normalized;
+            this._updatedValues.title = normalized;
+            this.invalidate();
+        }
+    }
+    get postType(): string | null { return this._rawValue.postType; }
+    set postType(value: string | null) {
+        let normalized = this.descriptor.codec.fields.postType.normalize(value);
+        if (this._rawValue.postType !== normalized) {
+            this._rawValue.postType = normalized;
+            this._updatedValues.postType = normalized;
+            this.invalidate();
+        }
+    }
+    get complexMentions(): any | null { return this._rawValue.complexMentions; }
+    set complexMentions(value: any | null) {
+        let normalized = this.descriptor.codec.fields.complexMentions.normalize(value);
+        if (this._rawValue.complexMentions !== normalized) {
+            this._rawValue.complexMentions = normalized;
+            this._updatedValues.complexMentions = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class PrivateMessageFactory extends EntityFactory<PrivateMessageShape, PrivateMessage> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('privateMessage');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'chat'), condition: (src) => !src.deleted });
+        secondaryIndexes.push({ name: 'chatAll', storageKey: 'chatAll', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'chatAll'), condition: undefined });
+        secondaryIndexes.push({ name: 'chatSeq', storageKey: 'chatSeq', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'chatSeq'), condition: (src) => !src.deleted });
+        secondaryIndexes.push({ name: 'hasImageAttachment', storageKey: 'hasImageAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'hasImageAttachment'), condition: (item) => {
+    if (item.deleted) {
+        return false;
+    }
+    if (item.fileId) {
+        if (item.fileMetadata && item.fileMetadata.isImage) {
+            return true;
+        }
+    }
+    if (item.attachments) {
+        for (let attach of item.attachments) {
+            if (attach.fileMetadata && attach.fileMetadata.isImage) {
+                return true;
+            }
+        }
+    }
+    if (item.attachmentsModern) {
+        for (let attach of item.attachmentsModern) {
+            if (attach.type === 'file_attachment') {
+                if (attach.fileMetadata && attach.fileMetadata.isImage) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+} });
+        secondaryIndexes.push({ name: 'hasLinkAttachment', storageKey: 'hasLinkAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'hasLinkAttachment'), condition: (item) => {
+    if (item.deleted) {
+        return false;
+    }
+    if (item.augmentation) {
+        return true;
+    }
+    if (item.attachmentsModern) {
+        for (let attach of item.attachmentsModern) {
+            if (attach.type === 'rich_attachment') {
+                return true;
+            }
+        }
+    }
+    return false;
+} });
+        secondaryIndexes.push({ name: 'hasVideoAttachment', storageKey: 'hasVideoAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'hasVideoAttachment'), condition: (item) => {
+    if (item.deleted) {
+        return false;
+    }
+    if (item.fileId && item.fileMetadata && item.fileMetadata.mimeType.startsWith('video/')) {
+        return true;
+    }
+    if (item.attachments) {
+        for (let attach of item.attachments) {
+            if (attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
+                return true;
+            }
+        }
+    }
+    if (item.attachmentsModern) {
+        for (let attach of item.attachmentsModern) {
+            if (attach.type === 'file_attachment' && attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
+                return true;
+            }
+        }
+    }
+    return false;
+} });
+        secondaryIndexes.push({ name: 'hasDocumentAttachment', storageKey: 'hasDocumentAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'hasDocumentAttachment'), condition: (item) => {
+    if (item.deleted) {
+        return false;
+    }
+    if (item.fileId) {
+        if (item.fileMetadata && !item.fileMetadata.isImage && !item.fileMetadata.mimeType.startsWith('video/')) {
+            return true;
+        }
+    }
+    if (item.attachments) {
+        for (let attach of item.attachments) {
+            if (attach.fileMetadata && !attach.fileMetadata.isImage && !attach.fileMetadata.mimeType.startsWith('video/')) {
+                return true;
+            }
+        }
+    }
+    if (item.attachmentsModern) {
+        for (let attach of item.attachmentsModern) {
+            if (attach.type === 'file_attachment') {
+                if (attach.fileMetadata && !attach.fileMetadata.isImage && !attach.fileMetadata.mimeType.startsWith('video/')) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+} });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        primaryKeys.push({ name: 'inboxUid', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'cid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'seq', type: { type: 'integer' }, secure: false });
+        fields.push({ name: 'repeatKey', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'text', type: { type: 'optional', inner: { type: 'string' } }, secure: true });
+        fields.push({ name: 'replyMessages', type: { type: 'optional', inner: { type: 'array', inner: { type: 'integer' } } }, secure: false });
+        fields.push({ name: 'serviceMetadata', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
+        fields.push({ name: 'reactions', type: { type: 'optional', inner: { type: 'array', inner: { type: 'struct', fields: { userId: { type: 'integer' }, reaction: { type: 'string' } } } } }, secure: false });
+        fields.push({ name: 'edited', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'isMuted', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'isService', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'visibleOnlyForUids', type: { type: 'optional', inner: { type: 'array', inner: { type: 'integer' } } }, secure: false });
+        fields.push({ name: 'hiddenForUids', type: { type: 'optional', inner: { type: 'array', inner: { type: 'integer' } } }, secure: false });
+        fields.push({ name: 'deleted', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'spans', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, user: { type: 'integer' } }, multi_user_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, users: { type: 'array', inner: { type: 'integer' } } }, room_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, room: { type: 'integer' } }, organization_mention: { offset: { type: 'integer' }, length: { type: 'integer' }, organization: { type: 'integer' } }, link: { offset: { type: 'integer' }, length: { type: 'integer' }, url: { type: 'string' } }, date_text: { offset: { type: 'integer' }, length: { type: 'integer' }, date: { type: 'integer' } }, bold_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, italic_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, irony_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, inline_code_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, code_block_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, insane_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, loud_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, rotating_text: { offset: { type: 'integer' }, length: { type: 'integer' } }, all_mention: { offset: { type: 'integer' }, length: { type: 'integer' } }, hash_tag: { offset: { type: 'integer' }, length: { type: 'integer' }, tag: { type: 'string' } } } } } }, secure: false });
+        fields.push({ name: 'attachmentsModern', type: { type: 'optional', inner: { type: 'array', inner: { type: 'union', types: { file_attachment: { id: { type: 'string' }, fileId: { type: 'string' }, filePreview: { type: 'optional', inner: { type: 'string' } }, fileMetadata: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } }, previewFileId: { type: 'optional', inner: { type: 'string' } }, previewFileMetadata: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } }, videoMetadata: { type: 'optional', inner: { type: 'struct', fields: { duration: { type: 'integer' } } } } }, rich_attachment: { id: { type: 'string' }, title: { type: 'optional', inner: { type: 'string' } }, subTitle: { type: 'optional', inner: { type: 'string' } }, titleLink: { type: 'optional', inner: { type: 'string' } }, text: { type: 'optional', inner: { type: 'string' } }, icon: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, image: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, iconInfo: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } }, imageInfo: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } }, imagePreview: { type: 'optional', inner: { type: 'string' } }, imageFallback: { type: 'optional', inner: { type: 'struct', fields: { photo: { type: 'string' }, text: { type: 'string' } } } }, titleLinkHostname: { type: 'optional', inner: { type: 'string' } }, keyboard: { type: 'optional', inner: { type: 'struct', fields: { buttons: { type: 'array', inner: { type: 'array', inner: { type: 'struct', fields: { title: { type: 'string' }, style: { type: 'enum', values: ['DEFAULT', 'LIGHT', 'PAY'] }, url: { type: 'optional', inner: { type: 'string' } } } } } } } } }, socialImage: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, socialImagePreview: { type: 'optional', inner: { type: 'string' } }, socialImageInfo: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isImage: { type: 'boolean' }, isStored: { type: 'boolean' }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } }, featuredIcon: { type: 'optional', inner: { type: 'boolean' } } }, purchase_attachment: { id: { type: 'string' }, pid: { type: 'string' } } } } } }, secure: false });
+        fields.push({ name: 'stickerId', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'overrideAvatar', type: { type: 'optional', inner: { type: 'struct', fields: { uuid: { type: 'string' }, crop: { type: 'optional', inner: { type: 'struct', fields: { x: { type: 'integer' }, y: { type: 'integer' }, w: { type: 'integer' }, h: { type: 'integer' } } } } } } }, secure: false });
+        fields.push({ name: 'overrideName', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'fileId', type: { type: 'optional', inner: { type: 'string' } }, secure: true });
+        fields.push({ name: 'fileMetadata', type: { type: 'optional', inner: { type: 'struct', fields: { name: { type: 'string' }, size: { type: 'integer' }, isStored: { type: 'optional', inner: { type: 'boolean' } }, isImage: { type: 'optional', inner: { type: 'boolean' } }, imageWidth: { type: 'optional', inner: { type: 'integer' } }, imageHeight: { type: 'optional', inner: { type: 'integer' } }, imageFormat: { type: 'optional', inner: { type: 'string' } }, mimeType: { type: 'string' } } } }, secure: true });
+        fields.push({ name: 'filePreview', type: { type: 'optional', inner: { type: 'string' } }, secure: true });
+        fields.push({ name: 'augmentation', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
+        fields.push({ name: 'mentions', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
+        fields.push({ name: 'attachments', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
+        fields.push({ name: 'buttons', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
+        fields.push({ name: 'type', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'title', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'postType', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'complexMentions', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            inboxUid: c.integer,
+            cid: c.integer,
+            uid: c.integer,
+            seq: c.integer,
+            repeatKey: c.optional(c.string),
+            text: c.optional(c.string),
+            replyMessages: c.optional(c.array(c.integer)),
+            serviceMetadata: c.optional(c.any),
+            reactions: c.optional(c.array(c.struct({ userId: c.integer, reaction: c.string }))),
+            edited: c.optional(c.boolean),
+            isMuted: c.boolean,
+            isService: c.boolean,
+            visibleOnlyForUids: c.optional(c.array(c.integer)),
+            hiddenForUids: c.optional(c.array(c.integer)),
+            deleted: c.optional(c.boolean),
+            spans: c.optional(c.array(c.union({ user_mention: c.struct({ offset: c.integer, length: c.integer, user: c.integer }), multi_user_mention: c.struct({ offset: c.integer, length: c.integer, users: c.array(c.integer) }), room_mention: c.struct({ offset: c.integer, length: c.integer, room: c.integer }), organization_mention: c.struct({ offset: c.integer, length: c.integer, organization: c.integer }), link: c.struct({ offset: c.integer, length: c.integer, url: c.string }), date_text: c.struct({ offset: c.integer, length: c.integer, date: c.integer }), bold_text: c.struct({ offset: c.integer, length: c.integer }), italic_text: c.struct({ offset: c.integer, length: c.integer }), irony_text: c.struct({ offset: c.integer, length: c.integer }), inline_code_text: c.struct({ offset: c.integer, length: c.integer }), code_block_text: c.struct({ offset: c.integer, length: c.integer }), insane_text: c.struct({ offset: c.integer, length: c.integer }), loud_text: c.struct({ offset: c.integer, length: c.integer }), rotating_text: c.struct({ offset: c.integer, length: c.integer }), all_mention: c.struct({ offset: c.integer, length: c.integer }), hash_tag: c.struct({ offset: c.integer, length: c.integer, tag: c.string }) }))),
+            attachmentsModern: c.optional(c.array(c.union({ file_attachment: c.struct({ id: c.string, fileId: c.string, filePreview: c.optional(c.string), fileMetadata: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })), previewFileId: c.optional(c.string), previewFileMetadata: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })), videoMetadata: c.optional(c.struct({ duration: c.integer })) }), rich_attachment: c.struct({ id: c.string, title: c.optional(c.string), subTitle: c.optional(c.string), titleLink: c.optional(c.string), text: c.optional(c.string), icon: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })), image: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })), iconInfo: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })), imageInfo: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })), imagePreview: c.optional(c.string), imageFallback: c.optional(c.struct({ photo: c.string, text: c.string })), titleLinkHostname: c.optional(c.string), keyboard: c.optional(c.struct({ buttons: c.array(c.array(c.struct({ title: c.string, style: c.enum('DEFAULT', 'LIGHT', 'PAY'), url: c.optional(c.string) }))) })), socialImage: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })), socialImagePreview: c.optional(c.string), socialImageInfo: c.optional(c.struct({ name: c.string, size: c.integer, isImage: c.boolean, isStored: c.boolean, imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })), featuredIcon: c.optional(c.boolean) }), purchase_attachment: c.struct({ id: c.string, pid: c.string }) }))),
+            stickerId: c.optional(c.string),
+            overrideAvatar: c.optional(c.struct({ uuid: c.string, crop: c.optional(c.struct({ x: c.integer, y: c.integer, w: c.integer, h: c.integer })) })),
+            overrideName: c.optional(c.string),
+            fileId: c.optional(c.string),
+            fileMetadata: c.optional(c.struct({ name: c.string, size: c.integer, isStored: c.optional(c.boolean), isImage: c.optional(c.boolean), imageWidth: c.optional(c.integer), imageHeight: c.optional(c.integer), imageFormat: c.optional(c.string), mimeType: c.string })),
+            filePreview: c.optional(c.string),
+            augmentation: c.optional(c.any),
+            mentions: c.optional(c.any),
+            attachments: c.optional(c.any),
+            buttons: c.optional(c.any),
+            type: c.optional(c.string),
+            title: c.optional(c.string),
+            postType: c.optional(c.string),
+            complexMentions: c.optional(c.any),
+        });
+        let descriptor: EntityDescriptor<PrivateMessageShape> = {
+            name: 'PrivateMessage',
+            storageKey: 'privateMessage',
+            allowDelete: false,
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new PrivateMessageFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<PrivateMessageShape>) {
+        super(descriptor);
+    }
+
+    readonly chat = Object.freeze({
+        findAll: async (ctx: Context, cid: number, inboxUid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [cid, inboxUid])).items;
+        },
+        query: (ctx: Context, cid: number, inboxUid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [cid, inboxUid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (cid: number, inboxUid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [cid, inboxUid], opts);
+        },
+        liveStream: (ctx: Context, cid: number, inboxUid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [cid, inboxUid], opts);
+        },
+    });
+
+    readonly chatAll = Object.freeze({
+        findAll: async (ctx: Context, cid: number, inboxUid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [cid, inboxUid])).items;
+        },
+        query: (ctx: Context, cid: number, inboxUid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [cid, inboxUid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (cid: number, inboxUid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [cid, inboxUid], opts);
+        },
+        liveStream: (ctx: Context, cid: number, inboxUid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [cid, inboxUid], opts);
+        },
+    });
+
+    readonly chatSeq = Object.freeze({
+        findAll: async (ctx: Context, cid: number, inboxUid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [cid, inboxUid])).items;
+        },
+        query: (ctx: Context, cid: number, inboxUid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [cid, inboxUid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (cid: number, inboxUid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[2], [cid, inboxUid], opts);
+        },
+        liveStream: (ctx: Context, cid: number, inboxUid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [cid, inboxUid], opts);
+        },
+    });
+
+    readonly hasImageAttachment = Object.freeze({
+        findAll: async (ctx: Context, cid: number, inboxUid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[3], [cid, inboxUid])).items;
+        },
+        query: (ctx: Context, cid: number, inboxUid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[3], [cid, inboxUid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (cid: number, inboxUid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[3], [cid, inboxUid], opts);
+        },
+        liveStream: (ctx: Context, cid: number, inboxUid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[3], [cid, inboxUid], opts);
+        },
+    });
+
+    readonly hasLinkAttachment = Object.freeze({
+        findAll: async (ctx: Context, cid: number, inboxUid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[4], [cid, inboxUid])).items;
+        },
+        query: (ctx: Context, cid: number, inboxUid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[4], [cid, inboxUid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (cid: number, inboxUid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[4], [cid, inboxUid], opts);
+        },
+        liveStream: (ctx: Context, cid: number, inboxUid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[4], [cid, inboxUid], opts);
+        },
+    });
+
+    readonly hasVideoAttachment = Object.freeze({
+        findAll: async (ctx: Context, cid: number, inboxUid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[5], [cid, inboxUid])).items;
+        },
+        query: (ctx: Context, cid: number, inboxUid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[5], [cid, inboxUid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (cid: number, inboxUid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[5], [cid, inboxUid], opts);
+        },
+        liveStream: (ctx: Context, cid: number, inboxUid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[5], [cid, inboxUid], opts);
+        },
+    });
+
+    readonly hasDocumentAttachment = Object.freeze({
+        findAll: async (ctx: Context, cid: number, inboxUid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[6], [cid, inboxUid])).items;
+        },
+        query: (ctx: Context, cid: number, inboxUid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[6], [cid, inboxUid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (cid: number, inboxUid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[6], [cid, inboxUid], opts);
+        },
+        liveStream: (ctx: Context, cid: number, inboxUid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[6], [cid, inboxUid], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, inboxUid: number, src: PrivateMessageCreateShape): Promise<PrivateMessage> {
+        return this._create(ctx, [id, inboxUid], this.descriptor.codec.normalize({ id, inboxUid, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, inboxUid: number, src: PrivateMessageCreateShape): PrivateMessage {
+        return this._create_UNSAFE(ctx, [id, inboxUid], this.descriptor.codec.normalize({ id, inboxUid, ...src }));
+    }
+
+    findById(ctx: Context, id: number, inboxUid: number): Promise<PrivateMessage | null> {
+        return this._findById(ctx, [id, inboxUid]);
+    }
+
+    watch(ctx: Context, id: number, inboxUid: number): Watch {
+        return this._watch(ctx, [id, inboxUid]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<PrivateMessageShape>): PrivateMessage {
+        return new PrivateMessage([value.id, value.inboxUid], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -23450,6 +24101,7 @@ export interface Store extends BaseStore {
     readonly RoomProfile: RoomProfileFactory;
     readonly RoomParticipant: RoomParticipantFactory;
     readonly Message: MessageFactory;
+    readonly PrivateMessage: PrivateMessageFactory;
     readonly Comment: CommentFactory;
     readonly RichMessage: RichMessageFactory;
     readonly MessageDraft: MessageDraftFactory;
@@ -23596,6 +24248,7 @@ export interface Store extends BaseStore {
     readonly MessageDeliveryDirectory: Subspace;
     readonly MessageDeliveryBatchDirectory: Subspace;
     readonly MessageCountersDirectory: Subspace;
+    readonly FollowersDirectory: Subspace;
     readonly UserDialogIndexDirectory: Subspace;
     readonly UserCountersIndexDirectory: Subspace;
     readonly FastCountersDirectory: Subspace;
@@ -23759,6 +24412,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let RoomProfilePromise = RoomProfileFactory.open(storage);
     let RoomParticipantPromise = RoomParticipantFactory.open(storage);
     let MessagePromise = MessageFactory.open(storage);
+    let PrivateMessagePromise = PrivateMessageFactory.open(storage);
     let CommentPromise = CommentFactory.open(storage);
     let RichMessagePromise = RichMessageFactory.open(storage);
     let MessageDraftPromise = MessageDraftFactory.open(storage);
@@ -23893,6 +24547,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let MessageDeliveryDirectoryPromise = storage.resolveCustomDirectory('messageDelivery');
     let MessageDeliveryBatchDirectoryPromise = storage.resolveCustomDirectory('messageDeliveryBatch');
     let MessageCountersDirectoryPromise = storage.resolveCustomDirectory('messageCounters');
+    let FollowersDirectoryPromise = storage.resolveCustomDirectory('followers');
     let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
     let UserCountersIndexDirectoryPromise = storage.resolveCustomDirectory('userCountersIndex');
     let FastCountersDirectoryPromise = storage.resolveCustomDirectory('fastCounters');
@@ -24019,6 +24674,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         RoomProfile: await RoomProfilePromise,
         RoomParticipant: await RoomParticipantPromise,
         Message: await MessagePromise,
+        PrivateMessage: await PrivateMessagePromise,
         Comment: await CommentPromise,
         RichMessage: await RichMessagePromise,
         MessageDraft: await MessageDraftPromise,
@@ -24153,6 +24809,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         MessageDeliveryDirectory: await MessageDeliveryDirectoryPromise,
         MessageDeliveryBatchDirectory: await MessageDeliveryBatchDirectoryPromise,
         MessageCountersDirectory: await MessageCountersDirectoryPromise,
+        FollowersDirectory: await FollowersDirectoryPromise,
         UserDialogIndexDirectory: await UserDialogIndexDirectoryPromise,
         UserCountersIndexDirectory: await UserCountersIndexDirectoryPromise,
         FastCountersDirectory: await FastCountersDirectoryPromise,

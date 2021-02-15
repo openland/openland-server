@@ -131,7 +131,7 @@ export const Resolver: GQLResolver = {
         globalUnread: async (src, args, ctx) => await Modules.Messaging.counters.fetchUserGlobalCounter(ctx, ctx.auth.uid!),
         unread: async (src, args, ctx) => Modules.Messaging.counters.fetchUserUnreadInChat(ctx, src.uid, src.cid),
         topMessage: async (src, args, ctx) => {
-            return (await Store.Message.chat.query(ctx, src.cid!, { limit: 1, reverse: true })).items[0];
+            return (await Modules.Messaging.messaging.fetchMessages(ctx, src.cid!, src.uid, { limit: 1, reverse: true })).items[0];
         },
         haveMention: async (src, args, ctx) => (await Modules.Messaging.counters.fetchUserMentionsInChat(ctx, src.uid, src.cid)) > 0,
         membership: async (src, args, ctx) => ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, src.cid) : 'none'

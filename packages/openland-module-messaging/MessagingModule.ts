@@ -23,8 +23,10 @@ import { DonationsMediator } from './mediators/DonationsMediator';
 import { CounterProvider } from './counters/CounterProvider';
 import { PrecalculatedCounterProvider } from './counters/PrecalculatedCounterProvider';
 import { DialogListSettingsMediator } from './mediators/DialogListSettingsMediator';
+import { RangeQueryOptions } from '@openland/foundationdb-entity';
 
 export const USE_NEW_COUNTERS = true;
+export const USE_NEW_PRIVATE_CHATS = true;
 
 @injectable()
 export class MessagingModule {
@@ -132,6 +134,14 @@ export class MessagingModule {
         await this.messaging.editMessage(ctx, mid, uid, newMessage, markAsEdited);
     }
 
+    async fetchMessages(ctx: Context, cid: number, forUid: number, opts: RangeQueryOptions<number>) {
+        return await this.messaging.fetchMessages(ctx, cid, forUid, opts);
+    }
+
+    async fetchMessagesWithAttachments(ctx: Context, cid: number, forUid: number, type: 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'LINK', opts: RangeQueryOptions<number>) {
+        return await this.messaging.fetchMessagesWithAttachments(ctx, cid, forUid, type, opts);
+    }
+
     //
     // Sends message updated event only to chat sequence
     //
@@ -144,12 +154,12 @@ export class MessagingModule {
         return await this.messaging.setReaction(ctx, mid, uid, reaction, reset);
     }
 
-    async deleteMessage(ctx: Context, mid: number, uid: number): Promise<void> {
-        await this.messaging.deleteMessage(ctx, mid, uid);
+    async deleteMessage(ctx: Context, mid: number, uid: number, oneSide: boolean): Promise<void> {
+        await this.messaging.deleteMessage(ctx, mid, uid, oneSide);
     }
 
-    async deleteMessages(ctx: Context, mids: number[], uid: number) {
-        return await this.messaging.deleteMessages(ctx, mids, uid);
+    async deleteMessages(ctx: Context, mids: number[], uid: number, oneSide: boolean) {
+        return await this.messaging.deleteMessages(ctx, mids, uid, oneSide);
     }
 
     async readRoom(ctx: Context, uid: number, cid: number, mid: number) {

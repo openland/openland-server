@@ -6,6 +6,7 @@ import { Modules } from '../../openland-modules/Modules';
 export function messagesIndexer() {
     declareSearchIndexer({
         name: 'message-index',
+        // version: 15,
         version: 13,
         index: 'message',
         stream: Store.Message.updated.stream({ batchSize: 200 })
@@ -36,6 +37,9 @@ export function messagesIndexer() {
         },
         deleted: {
             type: 'boolean'
+        },
+        privateVisibleFor: {
+            type: 'integer'
         },
         text: {
             type: 'text',
@@ -131,6 +135,21 @@ export function messagesIndexer() {
                 }
             }
 
+            let privateVisibleFor = [];
+
+            if (room?.kind === 'private') {
+                let privateChat = (await Store.ConversationPrivate.findById(ctx, room.id))!;
+                let copy1 = await Store.PrivateMessage.findById(ctx, item.id, privateChat.uid1);
+                let copy2 = await Store.PrivateMessage.findById(ctx, item.id, privateChat.uid2);
+
+                if (!copy1?.deleted) {
+                    privateVisibleFor.push(privateChat.uid1);
+                }
+                if (!copy2?.deleted) {
+                    privateVisibleFor.push(privateChat.uid2);
+                }
+            }
+
             return {
                 id: item.id,
                 doc: {
@@ -143,6 +162,7 @@ export function messagesIndexer() {
                     isService: !!item.isService,
                     isTest: await Modules.Users.isTest(ctx, item.uid),
                     deleted: !!item.deleted,
+                    privateVisibleFor,
                     text: item.text || undefined,
                     createdAt: item.metadata.createdAt,
                     updatedAt: item.metadata.updatedAt,

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'bd80b67b17726ef5aa401684ac720715';
+export const GQL_SPEC_VERSION = '25ca28a5ded2d568a00503c243a7742a';
 
 export namespace GQL {
     export interface CreditCard {
@@ -1755,10 +1755,6 @@ export namespace GQL {
     }
     export interface AlphaSignupDataUserArgs { }
     export interface AlphaSignupDataOrganizationArgs { }
-    export interface DialogListSettings {
-        pinnedChats: Room[];
-    }
-    export interface DialogListSettingsPinnedChatsArgs { }
     export interface DialogUpdateSingle {
         seq: number;
         state: string;
@@ -1956,6 +1952,12 @@ export namespace GQL {
         homeFeed: FeedItemConnection;
     }
     export interface FeedRebuildNeededHomeFeedArgs { }
+    export interface FollowerConnection {
+        items: User[];
+        cursor: Nullable<string>;
+    }
+    export interface FollowerConnectionItemsArgs { }
+    export interface FollowerConnectionCursorArgs { }
     export interface GeoLocation {
         long: number;
         lat: number;
@@ -2195,6 +2197,7 @@ export namespace GQL {
         debugChangeChatPrice: boolean;
         debugCopyChatMembers: boolean;
         debugCopyOrgMembers: boolean;
+        debugMigratePrivateChatMessages: boolean;
         settingsUpdate: Settings;
         sendEmailPairCode: string;
         pairEmail: boolean;
@@ -2273,14 +2276,13 @@ export namespace GQL {
         removeFromContacts: boolean;
         profileCreate: Profile;
         profileUpdate: Profile;
-        dialogListPin: Nullable<boolean>;
-        dialogListUnpin: Nullable<boolean>;
-        dialogListUpdatePinned: boolean;
         conversationDraftUpdate: Draft;
         setEnvVar: boolean;
         setEnvVarString: boolean;
         setEnvVarNumber: boolean;
         setEnvVarBoolean: boolean;
+        socialFollow: boolean;
+        socialUnfollow: boolean;
         stickerPackCreate: StickerPack;
         stickerPackUpdate: StickerPack;
         stickerPackAddSticker: Sticker;
@@ -2655,6 +2657,7 @@ export namespace GQL {
         fromOrg: string;
         toOrg: string;
     }
+    export interface MutationDebugMigratePrivateChatMessagesArgs { }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
         uid: OptionalNullable<string>;
@@ -2959,15 +2962,6 @@ export namespace GQL {
         uid: OptionalNullable<string>;
         inviteKey: OptionalNullable<string>;
     }
-    export interface MutationDialogListPinArgs {
-        id: string;
-    }
-    export interface MutationDialogListUnpinArgs {
-        id: string;
-    }
-    export interface MutationDialogListUpdatePinnedArgs {
-        pinned: string[];
-    }
     export interface MutationConversationDraftUpdateArgs {
         id: string;
         message: OptionalNullable<string>;
@@ -2987,6 +2981,12 @@ export namespace GQL {
     export interface MutationSetEnvVarBooleanArgs {
         name: string;
         value: boolean;
+    }
+    export interface MutationSocialFollowArgs {
+        uid: string;
+    }
+    export interface MutationSocialUnfollowArgs {
+        uid: string;
     }
     export interface MutationStickerPackCreateArgs {
         title: string;
@@ -3041,6 +3041,7 @@ export namespace GQL {
     export interface MutationBetaMessageDeleteArgs {
         mid: OptionalNullable<string>;
         mids: OptionalNullable<string[]>;
+        forMeOnly: OptionalNullable<boolean>;
     }
     export interface MutationBetaReactionSetArgs {
         mid: string;
@@ -3358,6 +3359,7 @@ export namespace GQL {
     }
     export interface MutationDeleteChatArgs {
         chatId: string;
+        oneSide: OptionalNullable<boolean>;
     }
     export interface MutationArchiveChatArgs {
         chatId: string;
@@ -4039,6 +4041,8 @@ export namespace GQL {
         debugChatTree: string;
         debugChatMessages: ModernMessage[];
         debugUnreadChats: string[];
+        debugUnreadChatsAsync: string[];
+        debugUnreadChatsDirect: string[];
         debugUserAuthPoints: Nullable<AuthPoint>;
         dialogs: DialogsConnection;
         settings: Settings;
@@ -4073,10 +4077,11 @@ export namespace GQL {
         myContactsState: ContactsState;
         alphaNotificationCounter: NotificationCounter;
         myProfile: Nullable<Profile>;
-        dialogListSettings: DialogListSettings;
         dialogsState: DialogUpdateState;
         envVars: Nullable<EnvVar[]>;
         envVar: Nullable<EnvVar>;
+        socialUserFollowers: FollowerConnection;
+        socialUserFollowing: FollowerConnection;
         ipLocation: Nullable<IpLocation>;
         myStickers: UserStickers;
         createdStickerPacks: StickerPack[];
@@ -4319,6 +4324,12 @@ export namespace GQL {
     export interface QueryDebugUnreadChatsArgs {
         user: OptionalNullable<string>;
     }
+    export interface QueryDebugUnreadChatsAsyncArgs {
+        user: OptionalNullable<string>;
+    }
+    export interface QueryDebugUnreadChatsDirectArgs {
+        user: OptionalNullable<string>;
+    }
     export interface QueryDebugUserAuthPointsArgs {
         id: string;
     }
@@ -4408,11 +4419,20 @@ export namespace GQL {
     export interface QueryMyContactsStateArgs { }
     export interface QueryAlphaNotificationCounterArgs { }
     export interface QueryMyProfileArgs { }
-    export interface QueryDialogListSettingsArgs { }
     export interface QueryDialogsStateArgs { }
     export interface QueryEnvVarsArgs { }
     export interface QueryEnvVarArgs {
         name: string;
+    }
+    export interface QuerySocialUserFollowersArgs {
+        uid: string;
+        first: number;
+        after: OptionalNullable<string>;
+    }
+    export interface QuerySocialUserFollowingArgs {
+        uid: string;
+        first: number;
+        after: OptionalNullable<string>;
     }
     export interface QueryIpLocationArgs { }
     export interface QueryMyStickersArgs { }
@@ -5091,6 +5111,9 @@ export namespace GQL {
         primaryOrganization: Nullable<Organization>;
         alphaPrimaryOrganization: Nullable<Organization>;
         inContacts: boolean;
+        followingCount: number;
+        followersCount: number;
+        followedByMe: boolean;
         modernBadges: ModernBadge[];
         badges: UserBadge[];
         primaryBadge: Nullable<UserBadge>;
@@ -5136,6 +5159,9 @@ export namespace GQL {
     export interface UserPrimaryOrganizationArgs { }
     export interface UserAlphaPrimaryOrganizationArgs { }
     export interface UserInContactsArgs { }
+    export interface UserFollowingCountArgs { }
+    export interface UserFollowersCountArgs { }
+    export interface UserFollowedByMeArgs { }
     export interface UserModernBadgesArgs { }
     export interface UserBadgesArgs { }
     export interface UserPrimaryBadgeArgs { }
@@ -6085,7 +6111,7 @@ export namespace GQL {
     export interface RoomInviteRoomArgs { }
     export interface RoomInviteInvitedByUserArgs { }
     export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection | Channel;
-    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted | UpdateChatDraftChanged | UpdateSettingsChanged | UpdateRoomChanged | UpdateDialogListSettingsChanged;
+    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted | UpdateChatDraftChanged | UpdateSettingsChanged | UpdateRoomChanged;
     export interface UpdateChatRead {
         cid: string;
         seq: number;
@@ -6130,10 +6156,6 @@ export namespace GQL {
         settings: Settings;
     }
     export interface UpdateSettingsChangedSettingsArgs { }
-    export interface UpdateDialogListSettingsChanged {
-        settings: DialogListSettings;
-    }
-    export interface UpdateDialogListSettingsChangedSettingsArgs { }
     export interface UpdateRoomChanged {
         room: Room;
     }
@@ -8150,16 +8172,6 @@ export interface GQLResolver {
             organization: GQL.AlphaSignupDataOrganizationArgs,
         }
     >;
-    DialogListSettings?: ComplexTypedResolver<
-        GQL.DialogListSettings,
-        GQLRoots.DialogListSettingsRoot,
-        {
-            pinnedChats: GQLRoots.RoomRoot[],
-        },
-        {
-            pinnedChats: GQL.DialogListSettingsPinnedChatsArgs,
-        }
-    >;
     DialogUpdateSingle?: ComplexTypedResolver<
         GQL.DialogUpdateSingle,
         GQLRoots.DialogUpdateSingleRoot,
@@ -8458,6 +8470,17 @@ export interface GQLResolver {
         },
         {
             homeFeed: GQL.FeedRebuildNeededHomeFeedArgs,
+        }
+    >;
+    FollowerConnection?: ComplexTypedResolver<
+        GQL.FollowerConnection,
+        GQLRoots.FollowerConnectionRoot,
+        {
+            items: GQLRoots.UserRoot[],
+        },
+        {
+            items: GQL.FollowerConnectionItemsArgs,
+            cursor: GQL.FollowerConnectionCursorArgs,
         }
     >;
     GeoLocation?: ComplexTypedResolver<
@@ -8826,6 +8849,7 @@ export interface GQLResolver {
             debugChangeChatPrice: GQL.MutationDebugChangeChatPriceArgs,
             debugCopyChatMembers: GQL.MutationDebugCopyChatMembersArgs,
             debugCopyOrgMembers: GQL.MutationDebugCopyOrgMembersArgs,
+            debugMigratePrivateChatMessages: GQL.MutationDebugMigratePrivateChatMessagesArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailPairCode: GQL.MutationSendEmailPairCodeArgs,
             pairEmail: GQL.MutationPairEmailArgs,
@@ -8904,14 +8928,13 @@ export interface GQLResolver {
             removeFromContacts: GQL.MutationRemoveFromContactsArgs,
             profileCreate: GQL.MutationProfileCreateArgs,
             profileUpdate: GQL.MutationProfileUpdateArgs,
-            dialogListPin: GQL.MutationDialogListPinArgs,
-            dialogListUnpin: GQL.MutationDialogListUnpinArgs,
-            dialogListUpdatePinned: GQL.MutationDialogListUpdatePinnedArgs,
             conversationDraftUpdate: GQL.MutationConversationDraftUpdateArgs,
             setEnvVar: GQL.MutationSetEnvVarArgs,
             setEnvVarString: GQL.MutationSetEnvVarStringArgs,
             setEnvVarNumber: GQL.MutationSetEnvVarNumberArgs,
             setEnvVarBoolean: GQL.MutationSetEnvVarBooleanArgs,
+            socialFollow: GQL.MutationSocialFollowArgs,
+            socialUnfollow: GQL.MutationSocialUnfollowArgs,
             stickerPackCreate: GQL.MutationStickerPackCreateArgs,
             stickerPackUpdate: GQL.MutationStickerPackUpdateArgs,
             stickerPackAddSticker: GQL.MutationStickerPackAddStickerArgs,
@@ -9687,10 +9710,11 @@ export interface GQLResolver {
             myContactsState: GQLRoots.ContactsStateRoot,
             alphaNotificationCounter: GQLRoots.NotificationCounterRoot,
             myProfile: Nullable<GQLRoots.ProfileRoot>,
-            dialogListSettings: GQLRoots.DialogListSettingsRoot,
             dialogsState: GQLRoots.DialogUpdateStateRoot,
             envVars: Nullable<GQLRoots.EnvVarRoot[]>,
             envVar: Nullable<GQLRoots.EnvVarRoot>,
+            socialUserFollowers: GQLRoots.FollowerConnectionRoot,
+            socialUserFollowing: GQLRoots.FollowerConnectionRoot,
             ipLocation: Nullable<GQLRoots.IpLocationRoot>,
             myStickers: GQLRoots.UserStickersRoot,
             createdStickerPacks: GQLRoots.StickerPackRoot[],
@@ -9842,6 +9866,8 @@ export interface GQLResolver {
             debugChatTree: GQL.QueryDebugChatTreeArgs,
             debugChatMessages: GQL.QueryDebugChatMessagesArgs,
             debugUnreadChats: GQL.QueryDebugUnreadChatsArgs,
+            debugUnreadChatsAsync: GQL.QueryDebugUnreadChatsAsyncArgs,
+            debugUnreadChatsDirect: GQL.QueryDebugUnreadChatsDirectArgs,
             debugUserAuthPoints: GQL.QueryDebugUserAuthPointsArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
@@ -9876,10 +9902,11 @@ export interface GQLResolver {
             myContactsState: GQL.QueryMyContactsStateArgs,
             alphaNotificationCounter: GQL.QueryAlphaNotificationCounterArgs,
             myProfile: GQL.QueryMyProfileArgs,
-            dialogListSettings: GQL.QueryDialogListSettingsArgs,
             dialogsState: GQL.QueryDialogsStateArgs,
             envVars: GQL.QueryEnvVarsArgs,
             envVar: GQL.QueryEnvVarArgs,
+            socialUserFollowers: GQL.QuerySocialUserFollowersArgs,
+            socialUserFollowing: GQL.QuerySocialUserFollowingArgs,
             ipLocation: GQL.QueryIpLocationArgs,
             myStickers: GQL.QueryMyStickersArgs,
             createdStickerPacks: GQL.QueryCreatedStickerPacksArgs,
@@ -10292,6 +10319,9 @@ export interface GQLResolver {
             primaryOrganization: GQL.UserPrimaryOrganizationArgs,
             alphaPrimaryOrganization: GQL.UserAlphaPrimaryOrganizationArgs,
             inContacts: GQL.UserInContactsArgs,
+            followingCount: GQL.UserFollowingCountArgs,
+            followersCount: GQL.UserFollowersCountArgs,
+            followedByMe: GQL.UserFollowedByMeArgs,
             modernBadges: GQL.UserModernBadgesArgs,
             badges: GQL.UserBadgesArgs,
             primaryBadge: GQL.UserPrimaryBadgeArgs,
@@ -11411,7 +11441,7 @@ export interface GQLResolver {
         }
     >;
     ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom' | 'DiscoverChatsCollection' | 'Channel'>;
-    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged' | 'UpdateChatMessage' | 'UpdateChatMessageDeleted' | 'UpdateChatDraftChanged' | 'UpdateSettingsChanged' | 'UpdateRoomChanged' | 'UpdateDialogListSettingsChanged'>;
+    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged' | 'UpdateChatMessage' | 'UpdateChatMessageDeleted' | 'UpdateChatDraftChanged' | 'UpdateSettingsChanged' | 'UpdateRoomChanged'>;
     UpdateChatRead?: ComplexTypedResolver<
         GQL.UpdateChatRead,
         GQLRoots.UpdateChatReadRoot,
@@ -11486,16 +11516,6 @@ export interface GQLResolver {
         },
         {
             settings: GQL.UpdateSettingsChangedSettingsArgs,
-        }
-    >;
-    UpdateDialogListSettingsChanged?: ComplexTypedResolver<
-        GQL.UpdateDialogListSettingsChanged,
-        GQLRoots.UpdateDialogListSettingsChangedRoot,
-        {
-            settings: GQLRoots.DialogListSettingsRoot,
-        },
-        {
-            settings: GQL.UpdateDialogListSettingsChangedSettingsArgs,
         }
     >;
     UpdateRoomChanged?: ComplexTypedResolver<

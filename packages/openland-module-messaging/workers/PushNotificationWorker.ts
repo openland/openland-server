@@ -8,7 +8,7 @@ import { createLogger, withLogPath } from '@openland/log';
 import { singletonWorker } from '@openland/foundationdb-singleton';
 import { Context, createNamedContext } from '@openland/context';
 import { eventsFind } from '../../openland-module-db/eventsFind';
-import { UserDialogMessageReceivedEvent, UserSettings } from '../../openland-module-db/store';
+import { UserDialogMessageReceivedEvent, UserSettingsShape } from '../../openland-module-db/store';
 import { batch } from '../../openland-utils/batch';
 import { getShardId } from '../../openland-module-sharding/getShardId';
 
@@ -66,7 +66,7 @@ export const shouldIgnoreUser = (ctx: Context, user: {
     return false;
 };
 
-const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, settings: UserSettings, event: UserDialogMessageReceivedEvent) => {
+const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, settings: UserSettingsShape, event: UserDialogMessageReceivedEvent) => {
     DEBUG && log.log(ctx, 'handle message', event.mid);
 
     let [

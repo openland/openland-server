@@ -22,19 +22,17 @@ export class EnvironmentVariablesRepository {
         });
     }
 
-    async get<T extends EnvVarValueType>(parent: Context, name: string): Promise<T | null> {
-        return await inTx(parent, async (ctx) => {
-            let existing = await Store.EnvironmentVariable.findById(ctx, name);
+    async get<T extends EnvVarValueType>(ctx: Context, name: string): Promise<T | null> {
+        let existing = await Store.EnvironmentVariable.findById(ctx, name);
 
-            if (existing) {
-                try {
-                    return JSON.parse(existing.value);
-                } catch (e) {
-                    return null;
-                }
-            } else {
+        if (existing) {
+            try {
+                return JSON.parse(existing.value);
+            } catch (e) {
                 return null;
             }
-        });
+        } else {
+            return null;
+        }
     }
 }

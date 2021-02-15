@@ -10,6 +10,8 @@ import * as base64 from '../../openland-utils/base64';
 import { randomBytes } from 'crypto';
 import { Modules } from '../../openland-modules/Modules';
 import { createLogger } from '@openland/log';
+import { doSimpleHash } from '../../openland-module-push/workers/PushWorker';
+import { IDs } from '../../openland-module-api/IDs';
 
 const Errors = {
     wrong_arg: 'An unexpected error occurred. Please try again.',
@@ -118,7 +120,9 @@ export function initPhoneAuthProvider(app: Express) {
                     session: code.id,
                     profileExists: !!profile,
                     pictureId: profile && profile.picture && profile.picture.uuid,
-                    pictureCrop: profile && profile.picture && profile.picture.crop
+                    pictureHash: profile ? doSimpleHash(IDs.User.serialize(profile.id)) : null,
+                    pictureCrop: profile && profile.picture && profile.picture.crop,
+                    initials: profile ? ((profile.firstName || '').slice(0, 1) + ' ' + (profile.lastName || '').slice(0, 1)).toUpperCase() : null
                 };
             } else {
                 return {

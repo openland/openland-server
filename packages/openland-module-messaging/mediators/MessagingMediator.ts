@@ -21,6 +21,7 @@ import { MentionNotificationsMediator } from './MentionNotificationsMediator';
 import { DonationsMediator } from './DonationsMediator';
 import { UserReadSeqsDirectory } from '../repositories/UserReadSeqsDirectory';
 import { NewCountersRepository } from 'openland-module-messaging/counters/NewCountersRepository';
+import { RangeQueryOptions } from '@openland/foundationdb-entity';
 
 const trace = createTracer('messaging');
 const linkifyInstance = createLinkifyInstance();
@@ -159,7 +160,12 @@ export class MessagingMediator {
                 msg = {
                     message: userMentionStr + message.message.substring(3, message.message.length),
                     isService: true,
-                    spans: [{ type: 'user_mention', offset: 0, length: userMentionStr.length, user: uid }, ...(msg.spans || []).map(s => ({ ...s, offset: s.offset + lengthDiff }))],
+                    spans: [{
+                        type: 'user_mention',
+                        offset: 0,
+                        length: userMentionStr.length,
+                        user: uid
+                    }, ...(msg.spans || []).map(s => ({...s, offset: s.offset + lengthDiff}))],
                     repeatKey: msg.repeatKey
                 };
             }
@@ -224,7 +230,7 @@ export class MessagingMediator {
             }
 
             // Create
-            let res = await this.repo.createMessage(ctx, cid, uid, { ...msg, spans });
+            let res = await this.repo.createMessage(ctx, cid, uid, {...msg, spans});
 
             // Update counters
             await this.counters.onMessage(ctx, res.message);
@@ -338,7 +344,7 @@ export class MessagingMediator {
             }
 
             // Update
-            let res = await this.repo.editMessage(ctx, mid, { ...newMessage, ... (spans ? { spans } : {}) }, markAsEdited);
+            let res = await this.repo.editMessage(ctx, mid, {...newMessage, ...(spans ? {spans} : {})}, markAsEdited);
             message = (await Store.Message.findById(ctx, mid!))!;
 
             // Update counters
@@ -429,7 +435,7 @@ export class MessagingMediator {
         });
     }
 
-    deleteMessage = async (parent: Context, mid: number, uid: number) => {
+    deleteMessage = async (parent: Context, mid: number, uid: number, oneSide: boolean) => {
         await inTx(parent, async (ctx) => {
 
             let message = (await Store.Message.findById(ctx, mid!))!;
@@ -440,7 +446,7 @@ export class MessagingMediator {
             }
 
             // Delete
-            await this.repo.deleteMessage(ctx, mid);
+            await this.repo.deleteMessage(ctx, uid, mid, oneSide);
 
             // Read conversation
             let conv = await Store.Conversation.findById(ctx, message.cid);
@@ -451,7 +457,11 @@ export class MessagingMediator {
             // Post event
             if (conv!.kind === 'private') {
                 let p = (await Store.ConversationPrivate.findById(ctx, conv.id))!;
-                await this.events.onPrivateMessageDeleted(ctx, conv.id, mid, message.uid, message.visibleOnlyForUids || [], [p.uid1, p.uid2]);
+                let visibleForOnly = message.visibleOnlyForUids || [];
+                if (oneSide) {
+                    visibleForOnly = [uid];
+                }
+                await this.events.onPrivateMessageDeleted(ctx, conv.id, mid, message.uid, visibleForOnly, [p.uid1, p.uid2]);
             } else {
                 await this.events.onGroupMessageDeleted(ctx, conv.id, mid, message.uid, message.visibleOnlyForUids || []);
             }
@@ -476,10 +486,10 @@ export class MessagingMediator {
         });
     }
 
-    deleteMessages = async (parent: Context, mids: number[], uid: number) => {
+    deleteMessages = async (parent: Context, mids: number[], uid: number, oneSide: boolean) => {
         await inTx(parent, async (ctx) => {
             for (let mid of mids) {
-                await this.deleteMessage(ctx, mid, uid);
+                await this.deleteMessage(ctx, mid, uid, oneSide);
             }
         });
     }
@@ -507,6 +517,21 @@ export class MessagingMediator {
                 await this.counters.readMessages(ctx, { cid, uid, seq: msg.seq });
             }
         });
+    }
+
+    deletePrivateChatHistory = async (parent: Context, byUid: number, cid: number, oneSide: boolean) => {
+        await inTx(parent, async (ctx) => {
+            await this.room.checkAccess(ctx, byUid, cid);
+            await this.repo.deletePrivateChatHistory(parent, byUid, cid, oneSide);
+        });
+    }
+
+    fetchMessages = async (ctx: Context, cid: number, forUid: number, opts: RangeQueryOptions<number>) => {
+        return await this.repo.fetchMessages(ctx, cid, forUid, opts);
+    }
+
+    fetchMessagesWithAttachments = async (ctx: Context, cid: number, forUid: number, type: 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'LINK', opts: RangeQueryOptions<number>) => {
+        return await this.repo.fetchMessagesWithAttachments(ctx, cid, forUid, type, opts);
     }
 
     //

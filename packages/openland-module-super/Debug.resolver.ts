@@ -31,7 +31,7 @@ import { buildMessage, heading } from '../openland-utils/MessageBuilder';
 import { AuthContext } from '../openland-module-auth/AuthContext';
 import { SmsService } from '../openland-utils/sms/SmsService';
 import uuid from 'uuid';
-import { EntityFactory } from '@openland/foundationdb-entity';
+import { EntityFactory, ShapeWithMetadata } from '@openland/foundationdb-entity';
 import { findEntitiesCount } from '../openland-module-db/findEntitiesCount';
 import { asyncRun } from '../openland-mtproto3/utils';
 import { container } from '../openland-modules/Modules.container';
@@ -42,6 +42,7 @@ import { MessageAttachmentFileInput, MessageSpan } from '../openland-module-mess
 import { UserReadSeqsDirectory } from '../openland-module-messaging/repositories/UserReadSeqsDirectory';
 import fetch from 'node-fetch';
 import { CacheRepository } from '../openland-module-cache/CacheRepository';
+import { IndexMaintainer } from '@openland/foundationdb-entity/lib/indexes/IndexMaintainer';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -187,6 +188,14 @@ export const Resolver: GQLResolver = {
         debugUnreadChats: withPermission('super-admin', async (ctx, args) => {
             let uid = args.user ? IDs.User.parse(args.user) : ctx.auth.uid!;
             return (await Modules.Messaging.messaging.counters.getUnreadChats(ctx, uid)).map((v) => IDs.Conversation.serialize(v));
+        }),
+        debugUnreadChatsAsync: withPermission('super-admin', async (ctx, args) => {
+            let uid = args.user ? IDs.User.parse(args.user) : ctx.auth.uid!;
+            return (await Modules.Messaging.messaging.counters.getUnreadChatsAsync(ctx, uid)).map((v) => IDs.Conversation.serialize(v));
+        }),
+        debugUnreadChatsDirect: withPermission('super-admin', async (ctx, args) => {
+            let uid = args.user ? IDs.User.parse(args.user) : ctx.auth.uid!;
+            return (await Modules.Messaging.messaging.counters.getUnreadChatsDirect(ctx, uid)).map((v) => IDs.Conversation.serialize(v));
         }),
         lifecheck: () => `i'm ok`,
         debugParseID: withPermission('super-admin', async (ctx, args) => {
@@ -2576,6 +2585,47 @@ export const Resolver: GQLResolver = {
                     }
                 }
                 return 'ok';
+            });
+            return true;
+        }),
+        debugMigratePrivateChatMessages: withPermission('super-admin', async (parent, args) => {
+            debugTask(parent.auth.uid!, 'debugMigratePrivateChatMessages', async log => {
+                const copyRawPrivateMessage = (ctx: Context, msg: ShapeWithMetadata<MessageShape>, forUid: number) => {
+                    let copyValue = {
+                        inboxUid: forUid,
+                        ...msg
+                    };
+
+                    let indexes: IndexMaintainer[] = (Store.PrivateMessage as any)._indexMaintainers;
+                    for (let index of indexes) {
+                        index.onCreate(ctx, [msg.id, forUid], copyValue);
+                    }
+                };
+
+                await Store.Message.iterateAllItems(parent, 100, async (ctx, items) => {
+                    for (let item of items) {
+                        // skip deleted
+                        if (item.deleted) {
+                            continue;
+                        }
+
+                        // save only private messages
+                        let privateChat = await Store.ConversationPrivate.findById(ctx, item.cid);
+                        if (!privateChat) {
+                            continue;
+                        }
+
+                        let rawValue: ShapeWithMetadata<MessageShape> = (item as any)._rawValue;
+
+                        copyRawPrivateMessage(ctx, rawValue, privateChat.uid1);
+                        copyRawPrivateMessage(ctx, rawValue, privateChat.uid2);
+
+                        if (item.id % 1000 === 0) {
+                            await log('done: ' + item.id);
+                        }
+                    }
+                });
+                return 'done';
             });
             return true;
         }),
