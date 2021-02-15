@@ -848,7 +848,7 @@ migrations.push({
     migration: async (parent) => {
         let after = 0;
         while (true) {
-            let ex = await Store.Conversation.descriptor.subspace.range(parent, [], { after: [after], limit: 100 });
+            let ex = await inTx(parent, async ctx => await Store.Conversation.descriptor.subspace.range(ctx, [], { after: [after], limit: 100 }));
             if (ex.length === 0) {
                 break;
             }
@@ -875,7 +875,7 @@ migrations.push({
     migration: async (parent) => {
         let after = 0;
         while (true) {
-            let ex = await Store.Conversation.descriptor.subspace.range(parent, [], { after: [after], limit: 500 });
+            let ex = await inTx(parent, async ctx => Store.Conversation.descriptor.subspace.range(ctx, [], { after: [after], limit: 500 }));
             if (ex.length === 0) {
                 break;
             }
@@ -902,7 +902,7 @@ migrations.push({
     migration: async (parent) => {
         let after: number[] = [0, 0];
         while (true) {
-            let ex = await Store.RoomParticipant.descriptor.subspace.range(parent, [], { after: after, limit: 500 });
+            let ex = await inTx(parent, async ctx => Store.RoomParticipant.descriptor.subspace.range(ctx, [], { after: after, limit: 500 }));
             if (ex.length === 0) {
                 break;
             }
@@ -964,7 +964,7 @@ migrations.push({
 
         let after = 0;
         while (true) {
-            let ex = await Store.RoomParticipant.descriptor.subspace.range(parent, [], { after: [after], limit: 100 });
+            let ex = await inTx(parent, async ctx => await Store.RoomParticipant.descriptor.subspace.range(ctx, [], { after: [after], limit: 100 }));
             if (ex.length === 0) {
                 break;
             }
@@ -991,7 +991,7 @@ migrations.push({
 
         let after = 0;
         while (true) {
-            let ex = await Store.OrganizationMember.descriptor.subspace.range(parent, [], { after: [after], limit: 100 });
+            let ex = await inTx(parent, async ctx => await Store.OrganizationMember.descriptor.subspace.range(ctx, [], { after: [after], limit: 100 }));
             if (ex.length === 0) {
                 break;
             }
@@ -1022,7 +1022,7 @@ migrations.push({
                 }
                 let items = await index.subspace.range(ctx, []);
                 for (let item of items) {
-                    await index.subspace.clear(ctx, item.key);
+                    index.subspace.clear(ctx, item.key);
                 }
             }
             for (let index of Store.OrganizationMember.descriptor.secondaryIndexes) {
@@ -1031,14 +1031,14 @@ migrations.push({
                 }
                 let items = await index.subspace.range(ctx, []);
                 for (let item of items) {
-                    await index.subspace.clear(ctx, item.key);
+                    index.subspace.clear(ctx, item.key);
                 }
             }
         });
 
         let after = 0;
         while (true) {
-            let ex = await Store.RoomParticipant.descriptor.subspace.range(parent, [], { after: [after], limit: 100 });
+            let ex = await inTx(parent, async ctx => await Store.RoomParticipant.descriptor.subspace.range(ctx, [], { after: [after], limit: 100 }));
             if (ex.length === 0) {
                 break;
             }
@@ -1059,7 +1059,7 @@ migrations.push({
 
         after = 0;
         while (true) {
-            let ex = await Store.OrganizationMember.descriptor.subspace.range(parent, [], { after: [after], limit: 100 });
+            let ex = await inTx(parent, async ctx => await Store.OrganizationMember.descriptor.subspace.range(ctx, [], { after: [after], limit: 100 }));
             if (ex.length === 0) {
                 break;
             }
