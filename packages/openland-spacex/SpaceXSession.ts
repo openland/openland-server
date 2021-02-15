@@ -298,7 +298,7 @@ export class SpaceXSession {
             let ctx = context;
             ctx = withCounters(ctx);
             let res = await (opts.type === 'mutation' ? inTx : inHybridTx)(ctx, async (ictx) => {
-                return execute({
+                return execute(ictx, {
                     schema: this.schema,
                     document: opts.op.document,
                     operationName: opts.op.operationName,

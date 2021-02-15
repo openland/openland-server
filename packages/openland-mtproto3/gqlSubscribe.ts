@@ -32,7 +32,7 @@ export async function* gqlSubscribe(
         operationName
     );
 
-    const mapSourceToResponse = async (eventCtx: Context, payload: any) => execute({
+    const mapSourceToResponse = async (eventCtx: Context, payload: any) => execute(eventCtx, {
         schema,
         document,
         rootValue: payload,

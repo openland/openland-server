@@ -150,7 +150,7 @@ export async function initApi(isTest: boolean) {
         executor: async (requestContext) => {
             let isMutation = requestContext.document.definitions[0].kind === 'OperationDefinition' && requestContext.document.definitions[0].operation === 'mutation';
             return await (isMutation ? inTx : inHybridTx)(requestContext.context as any, async (ctx) => {
-                return await execute({
+                return await execute(ctx, {
                     schema: ApolloSchema,
                     document: requestContext.document,
                     contextValue: ctx
