@@ -232,7 +232,13 @@ export namespace GQLRoots {
     export type ConferenceJoinResultRoot = { peerId: string, conference: ConferenceRoot };
     export type ConferenceRoot = ConferenceRoom;
     export type ConferenceMediaRoot = { id: number, peerId: number };
-    export type MediaStreamStateRoot = 'need-offer' | 'wait-offer' | 'need-answer' | 'wait-answer' | 'online' | 'completed';
+    export type MediaStreamStateRoot =
+        'need-offer'
+        | 'wait-offer'
+        | 'need-answer'
+        | 'wait-answer'
+        | 'online'
+        | 'completed';
     export type ConferenceStrategyRoot = GQL.ConferenceStrategyValues;
     export type ConferenceKindRoot = GQL.ConferenceKindValues;
     export type MediaStreamIceTransportPolicyRoot = MediaStreamIceTransportPolicyValues;
@@ -243,7 +249,10 @@ export namespace GQLRoots {
     export type LocalStreamAudioConfigRoot = { type: 'audio', codec: 'default' | 'opus' };
     export type LocalStreamVideoConfigRoot = { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen' };
     export type LocalStreamDataChannelConfigRoot = { type: 'dataChannel', ordered: boolean, label: string, id: number };
-    export type LocalStreamConfigRoot = LocalStreamAudioConfigRoot | LocalStreamVideoConfigRoot | LocalStreamDataChannelConfigRoot;
+    export type LocalStreamConfigRoot =
+        LocalStreamAudioConfigRoot
+        | LocalStreamVideoConfigRoot
+        | LocalStreamDataChannelConfigRoot;
 
     export type IceTransportPolicyRoot = 'relay' | 'all' | 'none';
     export type VideoSourceRoot = 'default' | 'screen';
@@ -287,9 +296,7 @@ export namespace GQLRoots {
     export type MessageReactionRoot = { userId: number, reaction: string };
     export type ConversationMessageRoot = Message | PrivateMessage;
     export type FileMetadataRoot = any;
-    export type VideoMetadataRoot = NonNullable<
-        Extract<NonNullable<MessageShape['attachmentsModern']>[number], { type: 'file_attachment' }>['videoMetadata']
-        >;
+    export type VideoMetadataRoot = NonNullable<Extract<NonNullable<MessageShape['attachmentsModern']>[number], { type: 'file_attachment' }>['videoMetadata']>;
     export type StickerPackRoot = StickerPack | number;
     export type UserStickersRoot = {
         favoriteIds: string[];
@@ -470,7 +477,9 @@ export namespace GQLRoots {
     export type SharedRoomMentionRoot = MessageMention;
     export type PostRespondServiceMetadataRoot = any;
 
-    export type PremiumChatSettingsRoot = PremiumChatSettings | { id: number, price: number, interval?: 'WEEK' | 'MONTH' };
+    export type PremiumChatSettingsRoot =
+        PremiumChatSettings
+        | { id: number, price: number, interval?: 'WEEK' | 'MONTH' };
 
     export type DialogListSettingsRoot = UserDialogListSettings | UserDialogListSettingsShape;
 
@@ -589,7 +598,10 @@ export namespace GQLRoots {
     export type MentionSearchUserRoot = { type: 'user', user: User, fromSameChat: boolean };
     export type MentionSearchOrganizationRoot = { type: 'org', organization: Organization };
     export type MentionSearchSharedRoomRoot = { type: 'room', room: Conversation };
-    export type MentionSearchEntryRoot = MentionSearchUserRoot | MentionSearchOrganizationRoot | MentionSearchSharedRoomRoot;
+    export type MentionSearchEntryRoot =
+        MentionSearchUserRoot
+        | MentionSearchOrganizationRoot
+        | MentionSearchSharedRoomRoot;
     export type MentionSearchConnectionRoot = { items: MentionSearchEntryRoot[], cursor: string | null };
 
     //
@@ -707,7 +719,13 @@ export namespace GQLRoots {
     //
     //  Shortnames
     //
-    export type ShortNameDestinationRoot = User | Organization | FeedChannel | ConversationRoom | EditorsChoiceChatsCollection | DiscussionHub;
+    export type ShortNameDestinationRoot =
+        User
+        | Organization
+        | FeedChannel
+        | ConversationRoom
+        | EditorsChoiceChatsCollection
+        | DiscussionHub;
 
     //
     // Oauth
@@ -757,8 +775,12 @@ export namespace GQLRoots {
 
     export type WalletSubscriptionRoot = WalletSubscription;
     export type WalletProductRoot = WalletSubscriptionCreateShape['proudct'] | WalletPurchaseCreateShape['product'];
-    export type WalletProductGroupRoot = WalletSubscriptionCreateShape['proudct'] | WalletPurchaseCreateShape['product'];
-    export type WalletProductDonationRoot = WalletSubscriptionCreateShape['proudct'] | WalletPurchaseCreateShape['product'];
+    export type WalletProductGroupRoot =
+        WalletSubscriptionCreateShape['proudct']
+        | WalletPurchaseCreateShape['product'];
+    export type WalletProductDonationRoot =
+        WalletSubscriptionCreateShape['proudct']
+        | WalletPurchaseCreateShape['product'];
     export type WalletProductDonationMessageRoot = WalletPurchaseCreateShape['product'];
     export type WalletProductDonationReactionRoot = WalletPurchaseCreateShape['product'];
 
@@ -854,7 +876,11 @@ export namespace GQLRoots {
     export type UpdateSubscriptionCheckpointRoot = { type: 'checkpoint', seq: number, state: string };
     export type UpdateSubscriptionEventRoot = { type: 'update', seq: number, pts: number, state: string, update: UpdateEventRoot, sequence: SequenceRoot };
     export type UpdateSubscriptionEphemeralEventRoot = { type: 'update-ephemeral', seq: number, update: UpdateEventRoot, sequence: SequenceRoot };
-    export type UpdateSubscriptionRoot = UpdateSubscriptionStartedRoot | UpdateSubscriptionCheckpointRoot | UpdateSubscriptionEventRoot | UpdateSubscriptionEphemeralEventRoot;
+    export type UpdateSubscriptionRoot =
+        UpdateSubscriptionStartedRoot
+        | UpdateSubscriptionCheckpointRoot
+        | UpdateSubscriptionEventRoot
+        | UpdateSubscriptionEphemeralEventRoot;
 
     export type UpdatesSequenceStateRoot = { sequence: SequenceRoot, pts: number };
     export type UpdatesStateRoot = { seq: number, state: string, sequences: UpdatesSequenceStateRoot[] };
@@ -881,6 +907,7 @@ export namespace GQLRoots {
     // Voice chats
     //
     export type VoiceChatRoot = ConversationVoice;
+    export type VoiceChatConnectionRoot = { items: VoiceChatRoot[], cursor: string | null };
     export type VoiceChatParticipantRoot = VoiceChatParticipant;
     export type VoiceChatParticipantConnectionRoot = {
         items: VoiceChatParticipantRoot[],
