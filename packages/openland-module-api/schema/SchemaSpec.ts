@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'd80360fa36dd71a0890830dfb74ecafb';
+export const GQL_SPEC_VERSION = '7d0814d87b9b4925500ca8e69cecd5d2';
 
 export namespace GQL {
     export interface CreditCard {
@@ -4226,6 +4226,7 @@ export namespace GQL {
         userSearchForOrg: OrgUserConnection;
         alphaProfiles: UserConnection;
         voiceChat: VoiceChat;
+        activeVoiceChats: VoiceChatConnection;
         alphaHomeFeed: FeedItemConnection;
         alphaFeedItem: Nullable<FeedItem>;
         alphaFeedChannel: FeedChannel;
@@ -4717,6 +4718,10 @@ export namespace GQL {
     }
     export interface QueryVoiceChatArgs {
         id: string;
+    }
+    export interface QueryActiveVoiceChatsArgs {
+        first: number;
+        after: OptionalNullable<string>;
     }
     export interface QueryAlphaHomeFeedArgs {
         first: number;
@@ -5336,6 +5341,12 @@ export namespace GQL {
     export interface VoiceChatInput {
         title: string;
     }
+    export interface VoiceChatConnection {
+        items: VoiceChat[];
+        cursor: Nullable<string>;
+    }
+    export interface VoiceChatConnectionItemsArgs { }
+    export interface VoiceChatConnectionCursorArgs { }
     export type FeedItem = FeedPost;
     export type FeedPostAuthor = User;
     export type FeedPostSource = FeedChannel;
@@ -9942,6 +9953,7 @@ export interface GQLResolver {
             userSearchForOrg: GQLRoots.OrgUserConnectionRoot,
             alphaProfiles: GQLRoots.UserConnectionRoot,
             voiceChat: GQLRoots.VoiceChatRoot,
+            activeVoiceChats: GQLRoots.VoiceChatConnectionRoot,
             alphaHomeFeed: GQLRoots.FeedItemConnectionRoot,
             alphaFeedItem: Nullable<GQLRoots.FeedItemRoot>,
             alphaFeedChannel: GQLRoots.FeedChannelRoot,
@@ -10142,6 +10154,7 @@ export interface GQLResolver {
             userSearchForOrg: GQL.QueryUserSearchForOrgArgs,
             alphaProfiles: GQL.QueryAlphaProfilesArgs,
             voiceChat: GQL.QueryVoiceChatArgs,
+            activeVoiceChats: GQL.QueryActiveVoiceChatsArgs,
             alphaHomeFeed: GQL.QueryAlphaHomeFeedArgs,
             alphaFeedItem: GQL.QueryAlphaFeedItemArgs,
             alphaFeedChannel: GQL.QueryAlphaFeedChannelArgs,
@@ -10614,6 +10627,17 @@ export interface GQLResolver {
             speakersCount: GQL.VoiceChatSpeakersCountArgs,
             active: GQL.VoiceChatActiveArgs,
             speakers: GQL.VoiceChatSpeakersArgs,
+        }
+    >;
+    VoiceChatConnection?: ComplexTypedResolver<
+        GQL.VoiceChatConnection,
+        GQLRoots.VoiceChatConnectionRoot,
+        {
+            items: GQLRoots.VoiceChatRoot[],
+        },
+        {
+            items: GQL.VoiceChatConnectionItemsArgs,
+            cursor: GQL.VoiceChatConnectionCursorArgs,
         }
     >;
     FeedItem?: UnionTypeResolver<GQLRoots.FeedItemRoot, 'FeedPost'>;

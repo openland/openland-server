@@ -12,6 +12,11 @@ input VoiceChatInput {
     title: String!
 }
 
+type VoiceChatConnection {
+    items: [VoiceChat!]!
+    cursor: String
+}
+
 extend type Mutation {
     voiceChatCreate(input: VoiceChatInput!): VoiceChat!
     voiceChatUpdate(id: ID!, input: VoiceChatInput!): VoiceChat!
@@ -20,4 +25,6 @@ extend type Mutation {
 
 extend type Query {
     voiceChat(id: ID!): VoiceChat!
+
+    activeVoiceChats(first: Int!, after: String): VoiceChatConnection!
 }
