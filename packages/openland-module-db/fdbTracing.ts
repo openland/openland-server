@@ -7,7 +7,7 @@ import {
 } from '@openland/foundationdb-entity/lib/tracing';
 // import { createZippedLogger } from '../openland-utils/ZippedLogger';
 // import { createMetric } from 'openland-module-monitoring/Metric';
-import { getConcurrencyPool } from 'openland-utils/ConcurrencyPool';
+import { getConcurrencyPool, withConcurrentcyPool } from 'openland-utils/ConcurrencyPool';
 import { createLogger, LogPathContext } from '@openland/log';
 import { encoders } from '@openland/foundationdb';
 import { createTracer } from 'openland-log/createTracer';
@@ -16,6 +16,7 @@ import { Metrics } from 'openland-module-monitoring/Metrics';
 import { isWithinSpaceX } from 'openland-spacex/SpaceXContext';
 import { counterNamespace } from './FDBCounterContext';
 import { ContextName } from '@openland/context';
+import { Concurrency } from 'openland-server/concurrency';
 // import { Context, ContextName } from '@openland/context';
 // import { LogPathContext } from '@openland/log';
 
@@ -40,6 +41,14 @@ export function setupFdbTracing() {
             return await tracer.trace(ctx, 'transaction', async (child) => {
                 setTracingTag(child, 'path', path.join(' -> '));
                 return await handler(child);
+            });
+        },
+        txIteration: async (ctx, handler) => {
+            return Concurrency.Transaction.run(async () => {
+                return await tracer.trace(ctx, 'transaction:iteration', async (child) => {
+                    let txch = withConcurrentcyPool(child, Concurrency.TransactionOperations());
+                    return await handler(txch);
+                });
             });
         },
         commit: async (ctx, handler) => {

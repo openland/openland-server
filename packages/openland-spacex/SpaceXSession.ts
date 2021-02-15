@@ -5,7 +5,7 @@ import { withoutTransaction, inTx, inHybridTx } from '@openland/foundationdb';
 import { createTracer } from 'openland-log/createTracer';
 import { createLogger } from '@openland/log';
 import { Config } from 'openland-config/Config';
-import { ConcurrencyPool, withConcurrentcyPool } from 'openland-utils/ConcurrencyPool';
+import { ConcurrencyPool } from 'openland-utils/ConcurrencyPool';
 import { Concurrency } from './../openland-server/concurrency';
 import uuid from 'uuid/v4';
 import { Metrics } from 'openland-module-monitoring/Metrics';
@@ -95,7 +95,6 @@ export class SpaceXSession {
         let id = uuid();
         let opContext = withLifetime(parentContext);
         opContext = SpaceXContext.set(opContext, true);
-        opContext = withConcurrentcyPool(opContext, Concurrency.FDBTransacton());
         let abort = () => {
             if (!isContextCancelled(opContext)) {
                 cancelContext(opContext);
@@ -195,8 +194,6 @@ export class SpaceXSession {
 
                             // Remove transaction and add new read one
                             let resolveContext = withoutTransaction(opContext);
-                            resolveContext = withConcurrentcyPool(resolveContext, Concurrency.FDBTransacton());
-
                             // Execute
                             let resolved = await this._execute({
                                 ctx: resolveContext,

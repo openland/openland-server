@@ -22,8 +22,6 @@ import { parseCookies } from '../openland-utils/parseCookies';
 import { decode } from 'openland-utils/base64';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import * as url from 'url';
-import { buildConcurrencyPool } from './buildConcurrencyPool';
-import { withConcurrentcyPool } from 'openland-utils/ConcurrencyPool';
 import { createNamedContext } from '@openland/context';
 import { createLogger, withLogPath } from '@openland/log';
 import { inHybridTx, inTx } from '@openland/foundationdb';
@@ -172,14 +170,12 @@ export async function initApi(isTest: boolean) {
             // WS
             if (ctx.connection) {
                 let wsctx = ctx.connection.context;
-                let ctx2 = buildWebSocketContext(
+                return buildWebSocketContext(
                     wsctx || {},
                     context.req.header('X-Forwarded-For'),
                     context.req.header('X-Client-Geo-LatLong'),
                     context.req.header('X-Client-Geo-Location')
                 );
-
-                return withConcurrentcyPool(ctx2, buildConcurrencyPool(ctx2));
             }
             await TokenChecker(context.req, context.res);
             await callContextMiddleware(isTest, context.req, context.res);
@@ -259,7 +255,7 @@ export async function initApi(isTest: boolean) {
                 );
                 ctx = withLogPath(ctx, `subscription ${operation.name || ''}`);
                 ctx = withLifetime(ctx);
-                return withConcurrentcyPool(ctx, buildConcurrencyPool(ctx));
+                return ctx;
             },
             onOperation: async (ctx, operation) => {
                 // if (!isTest) {

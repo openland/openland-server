@@ -12,25 +12,12 @@ export const Concurrency = {
         });
     }),
 
-    // Parallel operation execution pool. Unique for each connection.
-    Execution: new SimpleFactory(() => {
-        return new BoundedConcurrencyPool(128) as ConcurrencyPool;
-    }),
-
-    // FoundationDB operation pool. Unique per authentication token.
-    FDB: new SimpleFactory(() => {
-        return new BoundedConcurrencyPool(512) as ConcurrencyPool;
-    }),
-
     // Read operation concurrency pool. Unique per transaction.
-    FDBTransacton: () => new BoundedConcurrencyPool(64),
+    TransactionOperations: () => new BoundedConcurrencyPool(64),
 
-    // // FoundationDB transaction pool. Unique per process.
-    // Transaction: new BoundedConcurrencyPool(100),
+    // FoundationDB transaction pool. Unique per process.
+    Transaction: new BoundedConcurrencyPool(100),
 
     // GQL resolve pool, unique per machine
-    Resolve: new BoundedConcurrencyPool(100) as ConcurrencyPool,
-
-    // Should be avoided
-    Default: new BoundedConcurrencyPool(16) as ConcurrencyPool
+    Resolve: new BoundedConcurrencyPool(100) as ConcurrencyPool
 };
