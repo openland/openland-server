@@ -1,4 +1,4 @@
-import { BoundedConcurrencyPool, ConcurrencyPool } from 'openland-utils/ConcurrencyPool';
+import { BoundedConcurrencyPool } from 'openland-utils/ConcurrencyPool';
 import { SimpleFactory } from 'openland-utils/SimpleFactory';
 import { TokenBucket } from 'openland-utils/TokenBucket';
 
@@ -19,5 +19,5 @@ export const Concurrency = {
     Transaction: new BoundedConcurrencyPool(100),
 
     // GQL resolve pool, unique per machine
-    Resolve: new BoundedConcurrencyPool(100) as ConcurrencyPool
+    Resolve: () => new BoundedConcurrencyPool(16),
 };

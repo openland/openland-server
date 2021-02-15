@@ -72,16 +72,9 @@ export class SpaceXSession {
         activeSessions.set(this.uuid, this);
 
         // Resolve concurrency pool
-        if (this.descriptor.type === 'anonymnous') {
-            this.concurrencyPool = Concurrency.Default;
-        } else {
-            this.concurrencyPool = Concurrency.Execution.get(this.descriptor.tid);
+        this.concurrencyPool = Concurrency.Resolve();
 
-            if (Config.environment === 'debug') {
-                logger.log(spaceXCtx, 'Session started');
-            }
-        }
-
+        // Resolve keep alive
         if (params.descriptor.type === 'authenticated') {
             this.keepAlive = Modules.Events.userService.enableKeepAlive(params.descriptor.uid);
         }
