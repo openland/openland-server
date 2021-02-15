@@ -1,4 +1,3 @@
-import { createLogger } from '@openland/log';
 import { inTx } from '@openland/foundationdb';
 import { createNamedContext } from '@openland/context';
 import { backoff, delay } from 'openland-utils/timer';
@@ -6,7 +5,6 @@ import { NatsSubscription } from 'openland-module-pubsub/NATS';
 import { EventsMediator } from './../mediators/EventsMediator';
 
 const root = createNamedContext('subscriber');
-const log = createLogger('feed-subscriber');
 
 function random(min: number, max: number) {
     return Math.floor(min + Math.random() * (max - min));
@@ -97,7 +95,6 @@ export class SubscriberReceiver {
             if (this.stopped) {
                 return;
             }
-            log.log(root, event);
             this.receiveEvent(event);
         });
 
