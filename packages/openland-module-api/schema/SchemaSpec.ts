@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '620f8540f91150fef6b47afe18f72d54';
+export const GQL_SPEC_VERSION = 'd80360fa36dd71a0890830dfb74ecafb';
 
 export namespace GQL {
     export interface CreditCard {
@@ -864,6 +864,26 @@ export namespace GQL {
     export interface SuperAdminUserArgs { }
     export interface SuperAdminRoleArgs { }
     export interface SuperAdminEmailArgs { }
+    export type VoiceChatParticipantStatusValues = 'LISTENER' | 'SPEAKER' | 'ADMIN' | 'LEFT' | 'KICKED';
+    export type VoiceChatParticipantStatus = GQLRoots.VoiceChatParticipantStatusRoot;
+    export interface VoiceChatParticipant {
+        id: string;
+        user: User;
+        status: VoiceChatParticipantStatus;
+        handRaised: Nullable<boolean>;
+    }
+    export interface VoiceChatParticipantIdArgs { }
+    export interface VoiceChatParticipantUserArgs { }
+    export interface VoiceChatParticipantStatusArgs { }
+    export interface VoiceChatParticipantHandRaisedArgs { }
+    export interface VoiceChatParticipantConnection {
+        items: VoiceChatParticipant[];
+        cursor: Nullable<string>;
+        haveMore: boolean;
+    }
+    export interface VoiceChatParticipantConnectionItemsArgs { }
+    export interface VoiceChatParticipantConnectionCursorArgs { }
+    export interface VoiceChatParticipantConnectionHaveMoreArgs { }
     export interface DiscoverChatsCollectionInput {
         title: string;
         description: Nullable<string>;
@@ -2237,6 +2257,13 @@ export namespace GQL {
         superDeleteUser: boolean;
         superAdminAdd: string;
         superAdminRemove: string;
+        voiceChatJoin: VoiceChat;
+        voiceChatLeave: boolean;
+        voiceChatRaiseHand: boolean;
+        voiceChatPromote: boolean;
+        voiceChatDemote: boolean;
+        voiceChatUpdateAdmin: boolean;
+        voiceChatKick: boolean;
         alphaAlterPublished: Organization;
         betaFixCounter: boolean;
         betaFixCountersForAll: boolean;
@@ -2358,6 +2385,9 @@ export namespace GQL {
         superBadgeDelete: User;
         superBadgeVerify: User;
         superBadgeUnverify: User;
+        voiceChatCreate: VoiceChat;
+        voiceChatUpdate: VoiceChat;
+        voiceChatEnd: VoiceChat;
         alphaCreateFeedPost: FeedItem;
         alphaEditFeedPost: FeedItem;
         alphaDeleteFeedPost: boolean;
@@ -2792,6 +2822,33 @@ export namespace GQL {
     }
     export interface MutationSuperAdminRemoveArgs {
         userId: string;
+    }
+    export interface MutationVoiceChatJoinArgs {
+        id: string;
+    }
+    export interface MutationVoiceChatLeaveArgs {
+        id: string;
+    }
+    export interface MutationVoiceChatRaiseHandArgs {
+        id: string;
+        raised: boolean;
+    }
+    export interface MutationVoiceChatPromoteArgs {
+        id: string;
+        uid: string;
+    }
+    export interface MutationVoiceChatDemoteArgs {
+        id: string;
+        uid: string;
+    }
+    export interface MutationVoiceChatUpdateAdminArgs {
+        id: string;
+        uid: string;
+        admin: boolean;
+    }
+    export interface MutationVoiceChatKickArgs {
+        id: string;
+        uid: string;
     }
     export interface MutationAlphaAlterPublishedArgs {
         id: string;
@@ -3237,6 +3294,16 @@ export namespace GQL {
     export interface MutationSuperBadgeUnverifyArgs {
         badgeId: string;
         userId: string;
+    }
+    export interface MutationVoiceChatCreateArgs {
+        input: VoiceChatInput;
+    }
+    export interface MutationVoiceChatUpdateArgs {
+        id: string;
+        input: VoiceChatInput;
+    }
+    export interface MutationVoiceChatEndArgs {
+        id: string;
     }
     export interface MutationAlphaCreateFeedPostArgs {
         channel: string;
@@ -4071,6 +4138,7 @@ export namespace GQL {
         superAccounts: SuperAccount[];
         superAccount: SuperAccount;
         superAdmins: SuperAdmin[];
+        voiceChatListeners: VoiceChatParticipantConnection;
         myBlackList: User[];
         discoverCollections: Nullable<DiscoverChatsCollectionConnection>;
         discoverCollection: Nullable<DiscoverChatsCollection>;
@@ -4157,6 +4225,7 @@ export namespace GQL {
         userSearchForChat: ChatUserConnection;
         userSearchForOrg: OrgUserConnection;
         alphaProfiles: UserConnection;
+        voiceChat: VoiceChat;
         alphaHomeFeed: FeedItemConnection;
         alphaFeedItem: Nullable<FeedItem>;
         alphaFeedChannel: FeedChannel;
@@ -4377,6 +4446,11 @@ export namespace GQL {
         viaOrgId: OptionalNullable<boolean>;
     }
     export interface QuerySuperAdminsArgs { }
+    export interface QueryVoiceChatListenersArgs {
+        id: string;
+        first: number;
+        after: OptionalNullable<string>;
+    }
     export interface QueryMyBlackListArgs { }
     export interface QueryDiscoverCollectionsArgs {
         first: number;
@@ -4640,6 +4714,9 @@ export namespace GQL {
         after: OptionalNullable<string>;
         page: OptionalNullable<number>;
         sort: OptionalNullable<string>;
+    }
+    export interface QueryVoiceChatArgs {
+        id: string;
     }
     export interface QueryAlphaHomeFeedArgs {
         first: number;
@@ -5240,6 +5317,25 @@ export namespace GQL {
     }
     export interface OrgUserConnectionEdgesArgs { }
     export interface OrgUserConnectionPageInfoArgs { }
+    export interface VoiceChat {
+        id: string;
+        title: Nullable<string>;
+        adminsCount: number;
+        listenersCount: number;
+        speakersCount: number;
+        active: boolean;
+        speakers: VoiceChatParticipant[];
+    }
+    export interface VoiceChatIdArgs { }
+    export interface VoiceChatTitleArgs { }
+    export interface VoiceChatAdminsCountArgs { }
+    export interface VoiceChatListenersCountArgs { }
+    export interface VoiceChatSpeakersCountArgs { }
+    export interface VoiceChatActiveArgs { }
+    export interface VoiceChatSpeakersArgs { }
+    export interface VoiceChatInput {
+        title: string;
+    }
     export type FeedItem = FeedPost;
     export type FeedPostAuthor = User;
     export type FeedPostSource = FeedChannel;
@@ -7181,6 +7277,32 @@ export interface GQLResolver {
             email: GQL.SuperAdminEmailArgs,
         }
     >;
+    VoiceChatParticipantStatus?: EnumTypeResolver<'LISTENER' | 'SPEAKER' | 'ADMIN' | 'LEFT' | 'KICKED', GQLRoots.VoiceChatParticipantStatusRoot>;
+    VoiceChatParticipant?: ComplexTypedResolver<
+        GQL.VoiceChatParticipant,
+        GQLRoots.VoiceChatParticipantRoot,
+        {
+            user: GQLRoots.UserRoot,
+        },
+        {
+            id: GQL.VoiceChatParticipantIdArgs,
+            user: GQL.VoiceChatParticipantUserArgs,
+            status: GQL.VoiceChatParticipantStatusArgs,
+            handRaised: GQL.VoiceChatParticipantHandRaisedArgs,
+        }
+    >;
+    VoiceChatParticipantConnection?: ComplexTypedResolver<
+        GQL.VoiceChatParticipantConnection,
+        GQLRoots.VoiceChatParticipantConnectionRoot,
+        {
+            items: GQLRoots.VoiceChatParticipantRoot[],
+        },
+        {
+            items: GQL.VoiceChatParticipantConnectionItemsArgs,
+            cursor: GQL.VoiceChatParticipantConnectionCursorArgs,
+            haveMore: GQL.VoiceChatParticipantConnectionHaveMoreArgs,
+        }
+    >;
     DiscoverChatsCollection?: ComplexTypedResolver<
         GQL.DiscoverChatsCollection,
         GQLRoots.DiscoverChatsCollectionRoot,
@@ -8682,6 +8804,7 @@ export interface GQLResolver {
             superAccountPend: GQLRoots.SuperAccountRoot,
             superAccountMemberAdd: GQLRoots.SuperAccountRoot,
             superAccountMemberRemove: GQLRoots.SuperAccountRoot,
+            voiceChatJoin: GQLRoots.VoiceChatRoot,
             alphaAlterPublished: GQLRoots.OrganizationRoot,
             discoverCollectionsCreate: GQLRoots.DiscoverChatsCollectionRoot,
             discoverCollectionsUpdate: GQLRoots.DiscoverChatsCollectionRoot,
@@ -8735,6 +8858,9 @@ export interface GQLResolver {
             superBadgeDelete: GQLRoots.UserRoot,
             superBadgeVerify: GQLRoots.UserRoot,
             superBadgeUnverify: GQLRoots.UserRoot,
+            voiceChatCreate: GQLRoots.VoiceChatRoot,
+            voiceChatUpdate: GQLRoots.VoiceChatRoot,
+            voiceChatEnd: GQLRoots.VoiceChatRoot,
             alphaCreateFeedPost: GQLRoots.FeedItemRoot,
             alphaEditFeedPost: GQLRoots.FeedItemRoot,
             alphaFeedCreateChannel: GQLRoots.FeedChannelRoot,
@@ -8917,6 +9043,13 @@ export interface GQLResolver {
             superDeleteUser: GQL.MutationSuperDeleteUserArgs,
             superAdminAdd: GQL.MutationSuperAdminAddArgs,
             superAdminRemove: GQL.MutationSuperAdminRemoveArgs,
+            voiceChatJoin: GQL.MutationVoiceChatJoinArgs,
+            voiceChatLeave: GQL.MutationVoiceChatLeaveArgs,
+            voiceChatRaiseHand: GQL.MutationVoiceChatRaiseHandArgs,
+            voiceChatPromote: GQL.MutationVoiceChatPromoteArgs,
+            voiceChatDemote: GQL.MutationVoiceChatDemoteArgs,
+            voiceChatUpdateAdmin: GQL.MutationVoiceChatUpdateAdminArgs,
+            voiceChatKick: GQL.MutationVoiceChatKickArgs,
             alphaAlterPublished: GQL.MutationAlphaAlterPublishedArgs,
             betaFixCounter: GQL.MutationBetaFixCounterArgs,
             betaFixCountersForAll: GQL.MutationBetaFixCountersForAllArgs,
@@ -9038,6 +9171,9 @@ export interface GQLResolver {
             superBadgeDelete: GQL.MutationSuperBadgeDeleteArgs,
             superBadgeVerify: GQL.MutationSuperBadgeVerifyArgs,
             superBadgeUnverify: GQL.MutationSuperBadgeUnverifyArgs,
+            voiceChatCreate: GQL.MutationVoiceChatCreateArgs,
+            voiceChatUpdate: GQL.MutationVoiceChatUpdateArgs,
+            voiceChatEnd: GQL.MutationVoiceChatEndArgs,
             alphaCreateFeedPost: GQL.MutationAlphaCreateFeedPostArgs,
             alphaEditFeedPost: GQL.MutationAlphaEditFeedPostArgs,
             alphaDeleteFeedPost: GQL.MutationAlphaDeleteFeedPostArgs,
@@ -9723,6 +9859,7 @@ export interface GQLResolver {
             superAccounts: GQLRoots.SuperAccountRoot[],
             superAccount: GQLRoots.SuperAccountRoot,
             superAdmins: GQLRoots.SuperAdminRoot[],
+            voiceChatListeners: GQLRoots.VoiceChatParticipantConnectionRoot,
             myBlackList: GQLRoots.UserRoot[],
             discoverCollections: Nullable<GQLRoots.DiscoverChatsCollectionConnectionRoot>,
             discoverCollection: Nullable<GQLRoots.DiscoverChatsCollectionRoot>,
@@ -9804,6 +9941,7 @@ export interface GQLResolver {
             userSearchForChat: GQLRoots.ChatUserConnectionRoot,
             userSearchForOrg: GQLRoots.OrgUserConnectionRoot,
             alphaProfiles: GQLRoots.UserConnectionRoot,
+            voiceChat: GQLRoots.VoiceChatRoot,
             alphaHomeFeed: GQLRoots.FeedItemConnectionRoot,
             alphaFeedItem: Nullable<GQLRoots.FeedItemRoot>,
             alphaFeedChannel: GQLRoots.FeedChannelRoot,
@@ -9916,6 +10054,7 @@ export interface GQLResolver {
             superAccounts: GQL.QuerySuperAccountsArgs,
             superAccount: GQL.QuerySuperAccountArgs,
             superAdmins: GQL.QuerySuperAdminsArgs,
+            voiceChatListeners: GQL.QueryVoiceChatListenersArgs,
             myBlackList: GQL.QueryMyBlackListArgs,
             discoverCollections: GQL.QueryDiscoverCollectionsArgs,
             discoverCollection: GQL.QueryDiscoverCollectionArgs,
@@ -10002,6 +10141,7 @@ export interface GQLResolver {
             userSearchForChat: GQL.QueryUserSearchForChatArgs,
             userSearchForOrg: GQL.QueryUserSearchForOrgArgs,
             alphaProfiles: GQL.QueryAlphaProfilesArgs,
+            voiceChat: GQL.QueryVoiceChatArgs,
             alphaHomeFeed: GQL.QueryAlphaHomeFeedArgs,
             alphaFeedItem: GQL.QueryAlphaFeedItemArgs,
             alphaFeedChannel: GQL.QueryAlphaFeedChannelArgs,
@@ -10458,6 +10598,22 @@ export interface GQLResolver {
         {
             edges: GQL.OrgUserConnectionEdgesArgs,
             pageInfo: GQL.OrgUserConnectionPageInfoArgs,
+        }
+    >;
+    VoiceChat?: ComplexTypedResolver<
+        GQL.VoiceChat,
+        GQLRoots.VoiceChatRoot,
+        {
+            speakers: GQLRoots.VoiceChatParticipantRoot[],
+        },
+        {
+            id: GQL.VoiceChatIdArgs,
+            title: GQL.VoiceChatTitleArgs,
+            adminsCount: GQL.VoiceChatAdminsCountArgs,
+            listenersCount: GQL.VoiceChatListenersCountArgs,
+            speakersCount: GQL.VoiceChatSpeakersCountArgs,
+            active: GQL.VoiceChatActiveArgs,
+            speakers: GQL.VoiceChatSpeakersArgs,
         }
     >;
     FeedItem?: UnionTypeResolver<GQLRoots.FeedItemRoot, 'FeedPost'>;

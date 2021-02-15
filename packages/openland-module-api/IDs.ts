@@ -115,5 +115,7 @@ export const IDs = {
 
     BlackListUpdatesCursor: IdsFactory.createStringId('BlackListUpdatesCursor'),
 
-    ChatSyncAfter: IdsFactory.createId('ChatSyncAfter')
+    ChatSyncAfter: IdsFactory.createId('ChatSyncAfter'),
+
+    VoiceChatParticipant: IdsFactory.createStringId('VoiceChatParticipant'),
 };

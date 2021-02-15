@@ -28,12 +28,17 @@ export class ParticipantsMediator {
     * Admin actions
     * */
     promoteParticipant = async (ctx: Context, by: number, cid: number, uid: number) => {
-        await this.#ensureParticipantIsAdmin(ctx, cid, by);
+        await this.ensureParticipantIsAdmin(ctx, cid, by);
 
         return await this.repo.promoteParticipant(ctx, cid, uid, by);
     }
+    demoteParticipant = async (ctx: Context, by: number, cid: number, uid: number) => {
+        await this.ensureParticipantIsAdmin(ctx, cid, by);
+
+        return await this.repo.demoteParticipant(ctx, cid, uid, by);
+    }
     updateAdminRights = async (ctx: Context, by: number, cid: number, uid: number, isAdmin: boolean) => {
-        await this.#ensureParticipantIsAdmin(ctx, cid, by);
+        await this.ensureParticipantIsAdmin(ctx, cid, by);
 
         if (by === uid) {
             throw new UserError('You cannot update your admin rights yourself');
@@ -41,14 +46,21 @@ export class ParticipantsMediator {
         return await this.repo.updateAdminRights(ctx, cid, uid, isAdmin);
     }
     kick = async (ctx: Context, by: number, cid: number, uid: number) => {
-        await this.#ensureParticipantIsAdmin(ctx, cid, by);
+        await this.ensureParticipantIsAdmin(ctx, cid, by);
 
         return await this.repo.kick(ctx, cid, uid);
     }
 
-    #ensureParticipantIsAdmin = async (ctx: Context, cid: number, uid: number) => {
+    isAdmin = async (ctx: Context, cid: number, uid: number) => {
         let p = await Store.VoiceChatParticipant.findById(ctx, cid, uid);
         if (!p || p.status !== 'admin') {
+            return false;
+        }
+        return true;
+    }
+
+    ensureParticipantIsAdmin = async (ctx: Context, cid: number, uid: number) => {
+        if (!await this.isAdmin(ctx, cid, uid)) {
             throw new AccessDeniedError();
         }
     }

@@ -99,7 +99,10 @@ import {
     MessageShape,
     PrivateMessage,
     UserDialogListSettings,
-    UserDialogListSettingsShape, UpdateDialogListSettingsChanged,
+    UserDialogListSettingsShape,
+    UpdateDialogListSettingsChanged,
+    ConversationVoice,
+    VoiceChatParticipant, VoiceChatParticipantShape,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -873,6 +876,18 @@ export namespace GQLRoots {
     export type DebugGlobalCounterRoot = GQL.DebugGlobalCounter;
     export type DebugChatCounterRoot = GQL.DebugChatCounter;
     export type DebugChatStateRoot = GQL.DebugChatState;
+
+    //
+    // Voice chats
+    //
+    export type VoiceChatRoot = ConversationVoice;
+    export type VoiceChatParticipantRoot = VoiceChatParticipant;
+    export type VoiceChatParticipantConnectionRoot = {
+        items: VoiceChatParticipantRoot[],
+        cursor: string | undefined,
+        haveMore: boolean
+    };
+    export type VoiceChatParticipantStatusRoot = VoiceChatParticipantShape['status'];
 
     //
     // Social

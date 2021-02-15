@@ -402,9 +402,7 @@ export default declareSchema(() => {
 
     entity('ConversationVoice', () => {
        primaryKey('id', integer());
-       field('title', string());
-       field('listeners', integer());
-       field('speakers', integer());
+       field('title', optional(string()));
        field('active', boolean());
 
        rangeIndex('active', ['createdAt']).withCondition(a => a.active);
@@ -519,6 +517,14 @@ export default declareSchema(() => {
             .withCondition(a => a.status !== 'left' && a.status !== 'kicked' && (a.status === 'speaker' || a.status === 'admin'));
         rangeIndex('listeners', ['cid', 'updatedAt'])
             .withCondition(a => a.status !== 'left' && a.status !== 'kicked' && a.status === 'listener');
+    });
+    atomicInt('VoiceChatParticipantCounter', () => {
+        primaryKey('cid', integer());
+        primaryKey('status', enumString(
+            'listener',
+            'speaker',
+            'admin'
+        ));
     });
 
     //

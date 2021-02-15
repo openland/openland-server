@@ -1,0 +1,23 @@
+type VoiceChat {
+    id: ID!
+    title: String
+    adminsCount: Int!
+    listenersCount: Int!
+    speakersCount: Int!
+    active: Boolean!
+    speakers: [VoiceChatParticipant!]!
+}
+
+input VoiceChatInput {
+    title: String!
+}
+
+extend type Mutation {
+    voiceChatCreate(input: VoiceChatInput!): VoiceChat!
+    voiceChatUpdate(id: ID!, input: VoiceChatInput!): VoiceChat!
+    voiceChatEnd(id: ID!): VoiceChat!
+}
+
+extend type Query {
+    voiceChat(id: ID!): VoiceChat!
+}
