@@ -70,10 +70,10 @@ export function setupFdbTracing() {
                 if (error.code === 1020) { // Retry
                     return;
                 }
-                logger.warn(ctx, error);
+                logger.error(ctx, error);
             }
             if (error instanceof WriteToReadOnlyContextError) {
-                logger.warn(ctx, error);
+                logger.error(ctx, error);
             }
         },
         onFDBError: (ctx, error) => {
