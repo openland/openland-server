@@ -2,7 +2,7 @@ import { createLogger } from '@openland/log';
 import { Store } from '../../openland-module-db/FDB';
 import { singletonWorker } from '@openland/foundationdb-singleton';
 import { PaymentMediator } from '../mediators/PaymentMediator';
-import { inTx } from '@openland/foundationdb';
+import { inReadOnlyTx, inTx } from '@openland/foundationdb';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 
 //
@@ -46,7 +46,7 @@ export function startPaymentScheduler(mediator: PaymentMediator) {
     });
 
     singletonWorker({ db: Store.storage.db, name: 'payment-scheduler', delay: 1000 }, async (parent) => {
-        let pending = await Store.Payment.pending.findAll(parent); // TODO: Optimize
+        let pending = await inReadOnlyTx(parent, async ctx => Store.Payment.pending.findAll(ctx)); // TODO: Optimize
 
         // log.debug(parent, 'Payments: ' + pending.length);
 

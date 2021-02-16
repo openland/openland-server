@@ -9,7 +9,7 @@ import DatabaseClient from './DatabaseClient';
 import { table, TableSpace } from './TableSpace';
 import { boolean, date, integer, nullable, schema, string } from './schema';
 import { subspaceReader } from '../openland-module-workers/subspaceReader';
-import { encoders, inTx } from '@openland/foundationdb';
+import { encoders, inReadOnlyTx, inTx } from '@openland/foundationdb';
 
 function startPresenceExport(client: DatabaseClient) {
     updateReader('ch-exporter-reader', 3, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
@@ -214,10 +214,10 @@ const rooms = table('room', schema({
     primaryKey: 'id'
 });
 function startRoomExport(client: DatabaseClient) {
-    updateReader('clickhouse-rooms', 1, Store.RoomProfile.created.stream({ batchSize: 100 }), async (values, first, ctx) => {
+    updateReader('clickhouse-rooms', 1, Store.RoomProfile.created.stream({ batchSize: 100 }), async (values, first, parent) => {
         let res = [];
         for (let a of values) {
-            let convRoom = await Store.ConversationRoom.findById(ctx, a.id);
+            let convRoom = await inReadOnlyTx(parent, async ctx => Store.ConversationRoom.findById(ctx, a.id));
             if (!convRoom) {
                 continue;
             }
@@ -229,7 +229,7 @@ function startRoomExport(client: DatabaseClient) {
                 sign: 1,
             });
         }
-        await rooms.insert(ctx, client, res);
+        await rooms.insert(parent, client, res);
     });
 }
 
