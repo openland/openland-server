@@ -6,7 +6,7 @@ import { Texts } from '../../openland-module-messaging/texts';
 import { Context } from '@openland/context';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { Store } from 'openland-module-db/FDB';
-import { createLogger, withLogPath } from '@openland/log';
+import { withLogPath } from '@openland/log';
 
 export function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
