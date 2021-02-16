@@ -5,7 +5,7 @@ import { PushRepository } from 'openland-module-push/repositories/PushRepository
 import { WebPushTask } from './types';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { handleFail } from './util/handleFail';
-import { inHybridTx, inTx } from '@openland/foundationdb';
+import { inTx } from '@openland/foundationdb';
 // import { createLogger } from '@openland/log';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { Store } from 'openland-module-db/FDB';
@@ -45,9 +45,7 @@ export function createWebWorker(repo: PushRepository) {
     if (Config.pushWeb) {
         if (serverRoleEnabled('workers')) {
             betterQueue.addWorkers(1000, async (root, task) => {
-                await inHybridTx(root, async ctx => {
-                    await deliverWebPush(ctx, task);
-                });
+                await deliverWebPush(root, task);
             });
         }
     }
