@@ -140,7 +140,7 @@ export class BetterWorkerQueue<ARGS> {
             // Acquiring tasks
             let start = currentRunningTime();
             let tasks = await inTx(root, async (ctx) => {
-                return await this.queue.acquireWork(ctx, workersToAllocate, seed, this.type === 'transactional' ? 10000 : 15000 /* Bigger initial timeout for non-transactional workers */);
+                return await this.queue.acquireWork(ctx, workersToAllocate, seed, this.type === 'transactional' ? 5000 : 10000 /* Bigger initial timeout for non-transactional workers */);
             });
             Metrics.WorkerAcquire.report(this.queue.name, currentRunningTime() - start);
 
