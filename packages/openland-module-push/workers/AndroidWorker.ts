@@ -5,7 +5,7 @@ import * as Friebase from 'firebase-admin';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { handleFail } from './util/handleFail';
-import { inTx } from '@openland/foundationdb';
+import { inHybridTx, inTx } from '@openland/foundationdb';
 // import { createLogger } from '@openland/log';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { Store } from 'openland-module-db/FDB';
@@ -81,7 +81,9 @@ export function createAndroidWorker(repo: PushRepository) {
             };
 
             betterQueue.addWorkers(1000, async (root, task) => {
-                await handlePush(root, task);
+                await inHybridTx(root, async ctx => {
+                    await handlePush(ctx, task);
+                });
             });
         }
     }

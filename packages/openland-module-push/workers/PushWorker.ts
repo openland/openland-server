@@ -35,11 +35,8 @@ type Push = {
     commentId: string | null;
 };
 
-const log = createLogger('push');
-
 async function handlePush(root: Context, repo: PushRepository, push: Push) {
     let ctx = withLogPath(root, 'user ' + push.uid);
-    log.log(ctx, 'handle');
 
     let conversationId = push.conversationId ? IDs.Conversation.serialize(push.conversationId) : undefined;
     let deepLink = push.deepLink;
