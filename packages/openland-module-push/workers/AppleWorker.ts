@@ -5,7 +5,7 @@ import { ApplePushTask } from './types';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { handleFail } from './util/handleFail';
-import { inHybridTx, inTx } from '@openland/foundationdb';
+import { inTx } from '@openland/foundationdb';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { Store } from 'openland-module-db/FDB';
 
@@ -92,9 +92,7 @@ export function createAppleWorker(repo: PushRepository) {
             };
 
             betterQueue.addWorkers(1000, async (root, task) => {
-                await inHybridTx(root, async ctx => {
-                    await handlePush(task, root);
-                });
+                await handlePush(task, root);
             });
         }
     }

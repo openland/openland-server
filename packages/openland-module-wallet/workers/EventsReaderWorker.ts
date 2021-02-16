@@ -5,7 +5,7 @@ import { PaymentMediator } from '../mediators/PaymentMediator';
 import { Store } from '../../openland-module-db/FDB';
 import { singletonWorker } from '@openland/foundationdb-singleton';
 import Stripe from 'stripe';
-import { inTx } from '@openland/foundationdb';
+import { inReadOnlyTx, inTx } from '@openland/foundationdb';
 
 //
 //
@@ -31,9 +31,10 @@ export function startEventsReaderWorker(mediator: PaymentMediator) {
         //
 
         const cursorId = (mediator.liveMode ? 'live' : 'test') + '-v2';
-        let cursorRecord = await Store.StripeEventsCursor.findById(parent, cursorId);
-
-        let cursor = cursorRecord ? cursorRecord.cursor : undefined;
+        let cursor = await inReadOnlyTx(parent, async ctx => {
+            let cursorRecord = await Store.StripeEventsCursor.findById(ctx, cursorId);
+            return  cursorRecord ? cursorRecord.cursor : undefined;
+        });
 
         //
         // Loading all events between now and cursor and sort backwards
