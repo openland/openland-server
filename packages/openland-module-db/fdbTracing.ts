@@ -67,6 +67,9 @@ export function setupFdbTracing() {
         },
         onError: (ctx, error) => {
             if (error instanceof FDBError) {
+                if (error.code === 1020) { // Retry
+                    return;
+                }
                 logger.warn(ctx, error);
             }
             if (error instanceof WriteToReadOnlyContextError) {
