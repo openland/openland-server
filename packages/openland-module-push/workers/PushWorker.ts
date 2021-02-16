@@ -6,7 +6,7 @@ import { Texts } from '../../openland-module-messaging/texts';
 import { Context } from '@openland/context';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { Store } from 'openland-module-db/FDB';
-import { withLogPath } from '@openland/log';
+import { createLogger, withLogPath } from '@openland/log';
 
 export function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -35,8 +35,11 @@ type Push = {
     commentId: string | null;
 };
 
+const log = createLogger('push');
+
 async function handlePush(root: Context, repo: PushRepository, push: Push) {
     let ctx = withLogPath(root, 'user ' + push.uid);
+    log.log(ctx, 'handle');
 
     let conversationId = push.conversationId ? IDs.Conversation.serialize(push.conversationId) : undefined;
     let deepLink = push.deepLink;
