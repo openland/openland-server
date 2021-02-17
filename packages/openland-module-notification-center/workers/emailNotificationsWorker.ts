@@ -38,11 +38,13 @@ export function startEmailNotificationWorker() {
         let batches = batch(unreadUsers, 50);
 
         for (let b of batches) {
+
+            // Apply scheduling
             await inTx(parent, async (ctx) => {
                 for (let uid of b) {
+                    let { isActive, lastSeen } = await Modules.Presence.getStatusInTx(ctx, uid);
                     let state = await Modules.NotificationCenter.getNotificationStateForUser(ctx, uid);
-                    let lastSeen = await Modules.Presence.getStatus(uid);
-                    let isActive = await Modules.Presence.isActive(uid);
+
                     let tag = 'email_notifications ' + uid;
 
                     // Ignore active users
@@ -110,7 +112,7 @@ export function startEmailNotificationWorker() {
 
                     // Fetch pending updates
                     let afterSeq = Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq ? state.readSeq : 0);
-                    let remainingUpdates = (await Store.NotificationCenterEvent.notificationCenter.query(ctx, state.ncid, {after: afterSeq})).items;
+                    let remainingUpdates = (await Store.NotificationCenterEvent.notificationCenter.query(ctx, state.ncid, { after: afterSeq })).items;
                     let notifications = remainingUpdates.filter((v) => v.kind === 'notification_received');
 
                     let unreadComments: Comment[] = [];

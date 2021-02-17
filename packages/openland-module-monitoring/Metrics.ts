@@ -24,6 +24,9 @@ export const Metrics = {
     // FDB
     //
 
+    FDBTransactionsActive: Factory.createTaggedMachineGauge('fdb_active_transactions', 'Active transactions by machine'),
+    FDBTransactionsActiveContext: Factory.createTaggedMachineGauge('fdb_active_transactions_context', 'Active transactions by context'),
+    FDBTransactions: Factory.createTaggedFrequencyGauge('fdb_transactions', 'Frequence of transaction by context'),
     FDBErrors: Factory.createTaggedFrequencyGauge('fdb_errors', 'Frequence of various errors'),
     FDBTooOldErrors: Factory.createTaggedFrequencyGauge('fdb_too_old', 'Frequence of too old transaction errors'),
 
@@ -219,7 +222,7 @@ export const Metrics = {
     OnlineUnknown: Factory.createGauge('users_online_unknwon', 'Online Unknown Users'),
 
     // Tracing
-    TracingFrequence: Factory.createFrequencyGauge('tracing_span_hz', 'Tracing spans generation frequence'),
+    // TracingFrequence: Factory.createFrequencyGauge('tracing_span_hz', 'Tracing spans generation frequence'),
 
     // Basics
     Users: Factory.createPersistedGauge('users_count', 'Total openland users', async (ctx) => {

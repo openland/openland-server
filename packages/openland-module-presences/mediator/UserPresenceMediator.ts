@@ -1,4 +1,3 @@
-import os from 'os';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import { Modules } from 'openland-modules/Modules';
 import { asyncRun, backoff } from 'openland-utils/timer';
@@ -8,10 +7,10 @@ import { inTx, getTransaction } from '@openland/foundationdb';
 import { Context, createNamedContext } from '@openland/context';
 import { EventBus, EventBusSubcription } from 'openland-module-pubsub/EventBus';
 import { PushableIterator, createIterator } from 'openland-utils/asyncIterator';
+import { Config } from 'openland-config/Config';
 
-const rootCtx = createNamedContext('presence');
+const rootCtx = createNamedContext('presence-user');
 const TIMEOUT = 60 * 1000;
-const hostname = os.hostname();
 
 export type UserOnlineStatus = ({ type: 'never-online' } | { type: 'online', active: boolean, timeout: number } | { type: 'last-seen', lastseen: number }) & { uid: number };
 
@@ -147,7 +146,7 @@ export class UserPresenceMediator {
 
         // Save state
         this.activeUserSubscriptions.set(uid, state);
-        Metrics.UserPresenceSubscriptions.inc(hostname);
+        Metrics.UserPresenceSubscriptions.inc(Config.hostname);
 
         return state;
     }
@@ -186,7 +185,7 @@ export class UserPresenceMediator {
 
             // Remove from active collection
             this.activeUserSubscriptions.delete(uid);
-            Metrics.UserPresenceSubscriptions.dec(hostname);
+            Metrics.UserPresenceSubscriptions.dec(Config.hostname);
         }
     }
 
@@ -246,6 +245,10 @@ export class UserPresenceMediator {
     async isActive(uid: number) {
         let res = await this.getStatus(uid);
         return res.type === 'online' && res.active;
+    }
+
+    async getStatusInTx(ctx: Context, uid: number): Promise<UserOnlineStatus> {
+        return convertOnlineStatus(await Modules.Presence.users.repo.getOnline(ctx, uid), uid);
     }
 
     //

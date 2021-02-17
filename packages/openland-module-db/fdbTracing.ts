@@ -18,6 +18,7 @@ import { counterNamespace } from './FDBCounterContext';
 import { ContextName } from '@openland/context';
 import { Concurrency } from 'openland-server/concurrency';
 import { FDBError } from 'foundationdb';
+import { Config } from 'openland-config/Config';
 // import { Context, ContextName } from '@openland/context';
 // import { LogPathContext } from '@openland/log';
 
@@ -45,12 +46,21 @@ export function setupFdbTracing() {
             });
         },
         txIteration: async (ctx, handler) => {
-            return Concurrency.Transaction.run(async () => {
-                return await tracer.trace(ctx, 'transaction:iteration', async (child) => {
-                    let txch = withConcurrentcyPool(child, Concurrency.TransactionOperations());
-                    return await handler(txch);
+            let ctxName = ContextName.get(ctx);
+            Metrics.FDBTransactions.inc(ctxName);
+            Metrics.FDBTransactionsActive.inc(Config.hostname);
+            Metrics.FDBTransactionsActiveContext.inc(ctxName);
+            try {
+                return await Concurrency.Transaction.run(async () => {
+                    return await tracer.trace(ctx, 'transaction:iteration', async (child) => {
+                        let txch = withConcurrentcyPool(child, Concurrency.TransactionOperations());
+                        return await handler(txch);
+                    });
                 });
-            });
+            } finally {
+                Metrics.FDBTransactionsActive.dec(Config.hostname);
+                Metrics.FDBTransactionsActiveContext.dec(ctxName);
+            }
         },
         commit: async (ctx, handler) => {
             // commitTx.increment(ctx);
@@ -67,10 +77,13 @@ export function setupFdbTracing() {
         },
         onError: (ctx, error) => {
             if (error instanceof FDBError) {
-                logger.warn(ctx, error);
+                if (error.code === 1020) { // Retry
+                    return;
+                }
+                logger.error(ctx, error);
             }
             if (error instanceof WriteToReadOnlyContextError) {
-                logger.warn(ctx, error);
+                logger.error(ctx, error);
             }
         },
         onFDBError: (ctx, error) => {

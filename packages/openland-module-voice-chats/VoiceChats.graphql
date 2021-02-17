@@ -6,6 +6,7 @@ type VoiceChat {
     speakersCount: Int!
     active: Boolean!
     speakers: [VoiceChatParticipant!]!
+    me: VoiceChatParticipant
 }
 
 input VoiceChatInput {

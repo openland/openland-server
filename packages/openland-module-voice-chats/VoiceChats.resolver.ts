@@ -1,5 +1,5 @@
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
-import { withActivatedUser } from '../openland-module-api/Resolvers';
+import { withActivatedUser, withAuthFallback } from '../openland-module-api/Resolvers';
 import { Modules } from '../openland-modules/Modules';
 import { IDs } from '../openland-module-api/IDs';
 import { Store } from '../openland-module-db/FDB';
@@ -13,12 +13,19 @@ export const Resolver: GQLResolver = {
         listenersCount: (root, _, ctx) => Store.VoiceChatParticipantCounter.byId(root.id, 'listener').get(ctx),
         speakersCount: (root, _, ctx) => Store.VoiceChatParticipantCounter.byId(root.id, 'speaker').get(ctx),
         speakers: (root, _, ctx) => Store.VoiceChatParticipant.speakers.findAll(ctx, root.id),
-        title: root => root.title
+        title: root => root.title,
+        me: withAuthFallback(async (root, args, ctx) => {
+            let p = await Store.VoiceChatParticipant.findById(ctx, root.id, ctx.auth.uid!);
+            if (p) {
+                return p;
+            }
+            return null;
+        }, null)
     },
     Mutation: {
         voiceChatCreate: withActivatedUser(async (ctx, { input }, uid) => {
             let chat = await Modules.VoiceChats.chats.createChat(ctx, input.title);
-            await Modules.VoiceChats.participants.joinChat(ctx, chat.id, uid, 'admin');
+            await Modules.VoiceChats.participants.joinChat(ctx, chat.id, uid);
             return chat;
         }),
         voiceChatUpdate: withActivatedUser(async (ctx, { id, input }, uid) => {

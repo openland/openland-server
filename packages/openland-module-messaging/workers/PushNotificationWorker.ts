@@ -131,7 +131,7 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
         chatTitle = chatTitle.slice(1);
     }
 
-    let pushTitle = Texts.Notifications.GROUP_PUSH_TITLE({senderName, chatTitle});
+    let pushTitle = Texts.Notifications.GROUP_PUSH_TITLE({ senderName, chatTitle });
 
     if (conversation.kind === 'private') {
         pushTitle = chatTitle;
@@ -171,16 +171,16 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
     return true;
 };
 
-const handleUser = async (root: Context, uid: number) =>  {
+const handleUser = async (root: Context, uid: number) => {
     let ctx = withLogPath(root, 'user ' + uid);
 
     // Loading user's settings and state
-    let [settings, state, lastSeen, isActive] = await Promise.all([
+    let [settings, state, status] = await Promise.all([
         Modules.Users.getUserSettings(ctx, uid),
         Modules.Messaging.getUserNotificationState(ctx, uid),
-        Modules.Presence.getStatus(uid),
-        Modules.Presence.isActive(uid)
+        Modules.Presence.getStatusInTx(ctx, uid),
     ]);
+    let { lastSeen, isActive } = status;
 
     const user = {
         uid,

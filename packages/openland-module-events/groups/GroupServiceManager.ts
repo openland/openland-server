@@ -72,7 +72,7 @@ export class GroupServiceManager {
         };
     }
 
-    getOnline = async (cid: number) => {
+    getOnline = async (cid: number): Promise<number> => {
         if (this.ringSize === null) {
             throw Error('Ring is not inited');
         }

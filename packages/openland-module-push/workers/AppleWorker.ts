@@ -91,7 +91,7 @@ export function createAppleWorker(repo: PushRepository) {
                 }
             };
 
-            betterQueue.addWorkers(1000, async (root, task) => {
+            betterQueue.addWorkers(200, async (root, task) => {
                 await handlePush(task, root);
             });
         }
