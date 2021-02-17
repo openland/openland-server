@@ -7,11 +7,13 @@ import { getTransaction, inTx, TransactionCache } from '@openland/foundationdb';
 import { Context, createNamedContext } from '@openland/context';
 import { QueueStorage } from './QueueStorage';
 import { Metrics } from 'openland-module-monitoring/Metrics';
+import { createTracer } from 'openland-log/createTracer';
 
 const log = createLogger('worker');
 
 const hadNotification = new TransactionCache<boolean>('work-queue-notification');
 
+const tracer = createTracer('worker');
 export class BetterWorkerQueue<ARGS> {
     private readonly queue: QueueStorage;
     private readonly maxAttempts: number | 'infinite';
@@ -216,13 +218,15 @@ export class BetterWorkerQueue<ARGS> {
     }
 
     private doWork = async (parent: Context, id: Buffer, seed: Buffer, handler: (ctx: Context, item: ARGS) => Promise<void>) => {
-        if (this.type === 'transactional') {
-            await this.doWorkTransactional(parent, id, seed, handler);
-        } else if (this.type === 'external') {
-            await this.doWorkExternal(parent, id, seed, handler);
-        } else {
-            throw Error('Unsupported type: ' + this.type);
-        }
+        return await tracer.trace(parent, this.queue.name, async (ctx) => {
+            if (this.type === 'transactional') {
+                await this.doWorkTransactional(ctx, id, seed, handler);
+            } else if (this.type === 'external') {
+                await this.doWorkExternal(ctx, id, seed, handler);
+            } else {
+                throw Error('Unsupported type: ' + this.type);
+            }
+        });
     }
 
     private doWorkTransactional = async (parent: Context, id: Buffer, seed: Buffer, handler: (ctx: Context, item: ARGS) => Promise<void>) => {
