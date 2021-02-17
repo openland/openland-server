@@ -39,7 +39,7 @@ export const Resolver: GQLResolver = {
     },
     Query: {
         voiceChatListeners: async (root, args, ctx) => {
-            let query = await Store.VoiceChatParticipant.listeners.query(ctx, IDs.Conversation.parse(root.id), { afterCursor: args.after });
+            let query = await Store.VoiceChatParticipant.listeners.query(ctx, IDs.Conversation.parse(args.id), { afterCursor: args.after });
             return {
                 cursor: query.cursor,
                 items: query.items,

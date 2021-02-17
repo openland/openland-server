@@ -3,6 +3,8 @@ import { Context } from '@openland/context';
 import { Store } from '../../openland-module-db/FDB';
 import { VoiceChatParticipantShape } from '../../openland-module-db/store';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
+import { lazyInject } from '../../openland-modules/Modules.container';
+import { VoiceChatsRepository } from './VoiceChatsRepository';
 
 export type ParticipantStatus = VoiceChatParticipantShape['status'];
 
@@ -10,31 +12,34 @@ const Status = {
     isAdmin: (p: ParticipantStatus) => p === 'admin',
     isSpeaker: (p: ParticipantStatus) => p === 'admin' || p === 'speaker',
     isListener: (p: ParticipantStatus) => p === 'listener',
+    isJoined: (p: ParticipantStatus) => p !== 'kicked' && p !== 'left',
 };
 
 @injectable()
 export class ParticipantsRepository {
-    #listenersCounter = (cid: number) => Store.VoiceChatParticipantCounter.byId(cid, 'listener');
-    #speakersCounter = (cid: number) => Store.VoiceChatParticipantCounter.byId(cid, 'speaker');
-    #adminsCounter = (cid: number) => Store.VoiceChatParticipantCounter.byId(cid, 'admin');
+    @lazyInject('VoiceChatsRepository')
+    private readonly chatsRepo!: VoiceChatsRepository;
 
-    createParticipant = async (ctx: Context, cid: number, uid: number, status: ParticipantStatus) => {
-        let participant = await Store.VoiceChatParticipant.create(ctx, cid, uid, {
-            status,
-            handRaised: false,
-            promotedBy: null,
-        });
-        if (Status.isListener(status)) {
-            await this.#listenersCounter(cid).increment(ctx);
+    joinChat = async (ctx: Context, cid: number, uid: number) => {
+        let chat = await Store.ConversationVoice.findById(ctx, cid);
+        if (!chat) {
+            throw new NotFoundError();
         }
-        if (Status.isSpeaker(status)) {
-            await this.#speakersCounter(cid).increment(ctx);
-        }
-        if (Status.isAdmin(status)) {
-            await this.#adminsCounter(cid).increment(ctx);
+        if (!chat.active) {
+            await this.chatsRepo.setChatActive(ctx, cid, true);
         }
 
-        return participant;
+        let p = await this.#getOrCreateParticipant(ctx, cid, uid);
+
+        if (!Status.isJoined(p.status)) {
+            if (await this.#counter(cid, 'admin').get(ctx) === 0) {
+                await this.#changeStatus(ctx, cid, uid, 'admin');
+            } else {
+                await this.#changeStatus(ctx, cid, uid, 'listener');
+            }
+        }
+
+        return p;
     }
 
     updateHandRaised = async (ctx: Context, cid: number, uid: number, handRaised: boolean) => {
@@ -48,6 +53,10 @@ export class ParticipantsRepository {
 
     leaveChat = async (ctx: Context, cid: number, uid: number) => {
         await this.#changeStatus(ctx, cid, uid, 'left');
+
+        if (await this.#counter(cid, 'admin').get(ctx) === 0) {
+            await this.chatsRepo.setChatActive(ctx, cid, false);
+        }
     }
 
     promoteParticipant = async (ctx: Context, cid: number, uid: number, by: number) => {
@@ -84,12 +93,8 @@ export class ParticipantsRepository {
         await this.#changeStatus(ctx, cid, uid, 'kicked');
     }
 
-    #getOrFail = async (ctx: Context, cid: number, uid: number) => {
-        let participant = await Store.VoiceChatParticipant.findById(ctx, cid, uid);
-        if (!participant) {
-            throw new NotFoundError();
-        }
-        return participant;
+    #counter = (cid: number, status: 'admin' | 'speaker' | 'listener') => {
+        return Store.VoiceChatParticipantCounter.byId(cid, status);
     }
 
     #changeStatus = async (ctx: Context, cid: number, uid: number, status: ParticipantStatus) => {
@@ -100,29 +105,49 @@ export class ParticipantsRepository {
 
         // If was listener and now not listener
         if (Status.isListener(participant.status) && !Status.isListener(status)) {
-            await this.#listenersCounter(cid).decrement(ctx);
+            this.#counter(cid, 'listener').decrement(ctx);
         }
         // If was not listener and now listener
         if (!Status.isListener(participant.status) && Status.isListener(status)) {
-            await this.#listenersCounter(cid).increment(ctx);
+            this.#counter(cid, 'listener').increment(ctx);
         }
         // If was speaker and now not speaker
         if (Status.isSpeaker(participant.status) && !Status.isSpeaker(status)) {
-            await this.#speakersCounter(cid).decrement(ctx);
+            this.#counter(cid, 'speaker').decrement(ctx);
         }
         // If was not speaker and now speaker
         if (!Status.isSpeaker(participant.status) && Status.isSpeaker(status)) {
-            await this.#speakersCounter(cid).increment(ctx);
+            this.#counter(cid, 'speaker').increment(ctx);
         }
         // If was admin and now not admin
         if (Status.isAdmin(participant.status) && !Status.isAdmin(status)) {
-            await this.#adminsCounter(cid).decrement(ctx);
+            this.#counter(cid, 'admin').decrement(ctx);
         }
         // If was not admin and now admin
         if (!Status.isAdmin(participant.status) && Status.isAdmin(status)) {
-            await this.#adminsCounter(cid).increment(ctx);
+            this.#counter(cid, 'admin').increment(ctx);
         }
 
         participant.status = status;
+    }
+
+    #getOrFail = async (ctx: Context, cid: number, uid: number) => {
+        let participant = await Store.VoiceChatParticipant.findById(ctx, cid, uid);
+        if (!participant) {
+            throw new NotFoundError();
+        }
+        return participant;
+    }
+
+    #getOrCreateParticipant = async (ctx: Context, cid: number, uid: number) => {
+        let participant = await Store.VoiceChatParticipant.findById(ctx, cid, uid);
+        if (participant) {
+            return participant;
+        }
+        return await Store.VoiceChatParticipant.create(ctx, cid, uid, {
+            status: 'listener',
+            handRaised: false,
+            promotedBy: null,
+        });
     }
 }
