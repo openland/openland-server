@@ -19,10 +19,15 @@ export class IntListCollection {
 
     async add(parent: Context, collection: TupleItem[], val: number) {
         await inTx(parent, async ctx => {
+            let ex = await this.subspace.get(ctx, encoders.tuple.pack([...collection, SUBSPACE_SORT_VALUE, val]));
+            if (ex) {
+                return false;
+            }
             let now = Math.floor(Date.now() / 1000);
             this.subspace.set(ctx, encoders.tuple.pack([...collection, SUBSPACE_SORT_VALUE, val]), encoders.int32LE.pack(now));
             this.subspace.set(ctx, encoders.tuple.pack([...collection, SUBSPACE_SORT_TIME, now, val]), encoders.int32LE.pack(now));
             this.subspace.add(ctx, encoders.tuple.pack([...collection, SUBSPACE_COUNTER]), PLUS_ONE);
+            return true;
         });
     }
 
@@ -30,12 +35,13 @@ export class IntListCollection {
         await inTx(parent, async ctx => {
             let ex = await this.subspace.get(ctx, encoders.tuple.pack([...collection, SUBSPACE_SORT_VALUE, val]));
             if (!ex) {
-                return;
+                return false;
             }
             let createdAt = encoders.int32LE.unpack(ex);
             this.subspace.clear(ctx, encoders.tuple.pack([...collection, SUBSPACE_SORT_VALUE, val]));
             this.subspace.clear(ctx, encoders.tuple.pack([...collection, SUBSPACE_SORT_TIME, createdAt, val]));
             this.subspace.add(ctx, encoders.tuple.pack([...collection, SUBSPACE_COUNTER]), MINUS_ONE);
+            return true;
         });
     }
 

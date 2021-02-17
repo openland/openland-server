@@ -21,9 +21,9 @@ export class VoiceChatsRepository {
         return chat;
     }
 
-    endChat = async (ctx: Context, id: number) => {
+    setChatActive = async (ctx: Context, id: number, active: boolean) => {
         let chat = await this.#getChatOrFail(ctx, id);
-        chat.active = false;
+        chat.active = active;
         return chat;
     }
 

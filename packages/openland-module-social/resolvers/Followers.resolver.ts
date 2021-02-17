@@ -6,9 +6,6 @@ import { withUser as withUserRes } from '../../openland-module-users/User.resolv
 
 export const Resolver: GQLResolver = {
     User: {
-        // followersCount: async (root, args, ctx) => {
-        //     return await Modules.Social.followers.getFollowersCount(ctx, typeof root === 'number' ? root : root.id );
-        // }
         followersCount: withUserRes((ctx, src) => Modules.Social.followers.getFollowersCount(ctx, src.id), true),
         followingCount: withUserRes((ctx, src) => Modules.Social.followers.getFollowingCount(ctx, src.id), true),
         followedByMe: withUserRes((ctx, src) => Modules.Social.followers.isFollowing(ctx, ctx.auth.uid!, src.id), false),

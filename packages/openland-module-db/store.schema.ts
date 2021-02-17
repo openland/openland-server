@@ -526,6 +526,9 @@ export default declareSchema(() => {
             'admin'
         ));
     });
+    atomicInt('VoiceChatParticipantActive', () => {
+        primaryKey('uid', integer());
+    });
 
     //
     // Messaging

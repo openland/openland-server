@@ -3,6 +3,7 @@ import { Context } from '@openland/context';
 import { IntListCollection } from '../../openland-module-db/collections/IntListCollection';
 import { Store } from '../../openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
+import { UserError } from '../../openland-errors/UserError';
 
 const FOLLOWING_SUBSPACE = 0;
 const FOLLOWERS_SUBSPACE = 1;
@@ -13,6 +14,9 @@ export class FollowersRepository {
 
     async follow(parent: Context, uid: number, byUid: number) {
         await inTx(parent, async ctx => {
+            if (uid === byUid) {
+                throw new UserError(`Can\'t follow yourself`);
+            }
             // Store in following list
             await this.list.add(ctx, [byUid, FOLLOWING_SUBSPACE], uid);
             // Store in followers list
@@ -22,6 +26,9 @@ export class FollowersRepository {
 
     async unfollow(parent: Context, uid: number, byUid: number) {
         await inTx(parent, async ctx => {
+            if (uid === byUid) {
+                throw new UserError(`Can\'t unfollow yourself`);
+            }
             // Remove from following list
             await this.list.remove(ctx, [byUid, FOLLOWING_SUBSPACE], uid);
             // Remove from followers list
