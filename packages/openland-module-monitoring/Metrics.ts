@@ -24,6 +24,7 @@ export const Metrics = {
     // FDB
     //
 
+    FDBTransactions: Factory.createTaggedFrequencyGauge('fdb_transactions', 'Frequence of transaction by context'),
     FDBErrors: Factory.createTaggedFrequencyGauge('fdb_errors', 'Frequence of various errors'),
     FDBTooOldErrors: Factory.createTaggedFrequencyGauge('fdb_too_old', 'Frequence of too old transaction errors'),
 

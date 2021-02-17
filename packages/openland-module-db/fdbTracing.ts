@@ -45,6 +45,8 @@ export function setupFdbTracing() {
             });
         },
         txIteration: async (ctx, handler) => {
+            Metrics.FDBTransactions.inc(ContextName.get(ctx));
+            
             return Concurrency.Transaction.run(async () => {
                 return await tracer.trace(ctx, 'transaction:iteration', async (child) => {
                     let txch = withConcurrentcyPool(child, Concurrency.TransactionOperations());
