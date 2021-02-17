@@ -44,7 +44,7 @@ export function createWebWorker(repo: PushRepository) {
     let betterQueue = new BetterWorkerQueue<WebPushTask>(Store.PushWebDeliveryQueue, { maxAttempts: 3, type: 'external' });
     if (Config.pushWeb) {
         if (serverRoleEnabled('workers')) {
-            betterQueue.addWorkers(200, async (root, task) => {
+            betterQueue.addWorkers(1000, async (root, task) => {
                 await deliverWebPush(root, task);
             });
         }
