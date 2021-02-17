@@ -18,6 +18,7 @@ import { counterNamespace } from './FDBCounterContext';
 import { ContextName } from '@openland/context';
 import { Concurrency } from 'openland-server/concurrency';
 import { FDBError } from 'foundationdb';
+import { Config } from 'openland-config/Config';
 // import { Context, ContextName } from '@openland/context';
 // import { LogPathContext } from '@openland/log';
 
@@ -46,7 +47,7 @@ export function setupFdbTracing() {
         },
         txIteration: async (ctx, handler) => {
             Metrics.FDBTransactions.inc(ContextName.get(ctx));
-            Metrics.FDBTransactionsActive.inc();
+            Metrics.FDBTransactionsActive.inc(Config.hostname);
             try {
                 return await Concurrency.Transaction.run(async () => {
                     return await tracer.trace(ctx, 'transaction:iteration', async (child) => {
@@ -55,7 +56,7 @@ export function setupFdbTracing() {
                     });
                 });
             } finally {
-                Metrics.FDBTransactionsActive.dec();
+                Metrics.FDBTransactionsActive.dec(Config.hostname);
             }
         },
         commit: async (ctx, handler) => {

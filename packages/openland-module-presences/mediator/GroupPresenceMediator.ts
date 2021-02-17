@@ -1,14 +1,13 @@
-import os from 'os';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import { Modules } from 'openland-modules/Modules';
 import { createIterator, PushableIterator } from 'openland-utils/asyncIterator';
 import { createNamedContext } from '@openland/context';
 import { asyncRun, backoff } from 'openland-utils/timer';
 import { EventBusSubcription, EventBus } from 'openland-module-pubsub/EventBus';
+import { Config } from 'openland-config/Config';
 
 const rootCtx = createNamedContext('presence');
 const TIMEOUT = 60 * 1000;
-const hostname = os.hostname();
 
 type GroupSubscription = {
     completed: boolean,
@@ -94,7 +93,7 @@ export class GroupPresenceMediator {
 
         // Save state
         this.activeGroupSubscriptions.set(cid, state);
-        Metrics.GroupPresenceSubscriptions.inc(hostname);
+        Metrics.GroupPresenceSubscriptions.inc(Config.hostname);
 
         return state;
     }
@@ -125,7 +124,7 @@ export class GroupPresenceMediator {
 
             // Remove from active collection
             this.activeGroupSubscriptions.delete(cid);
-            Metrics.GroupPresenceSubscriptions.dec(hostname);
+            Metrics.GroupPresenceSubscriptions.dec(Config.hostname);
         }
     }
 

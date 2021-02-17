@@ -2,6 +2,8 @@ import * as t from 'io-ts';
 import fs from 'fs';
 import { isRight } from 'fp-ts/lib/Either';
 import { PathReporter } from 'io-ts/lib/PathReporter';
+import os from 'os';
+const hostname = os.hostname();
 
 const codec = t.type({
     app: t.type({
@@ -210,6 +212,10 @@ class ConfigProvider {
         } else {
             return 'https://links.openlandservers.com';
         }
+    }
+
+    get hostname() {
+        return hostname;
     }
 }
 
