@@ -22,6 +22,6 @@ export class VoiceChatsMediator {
     endChat = async (ctx: Context, by: number, id: number) => {
         await Modules.VoiceChats.participants.ensureParticipantIsAdmin(ctx, id, by);
 
-        return this.repo.endChat(ctx, id);
+        return this.repo.setChatActive(ctx, id, false);
     }
 }
