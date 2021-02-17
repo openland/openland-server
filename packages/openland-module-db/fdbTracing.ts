@@ -46,8 +46,10 @@ export function setupFdbTracing() {
             });
         },
         txIteration: async (ctx, handler) => {
-            Metrics.FDBTransactions.inc(ContextName.get(ctx));
+            let ctxName = ContextName.get(ctx);
+            Metrics.FDBTransactions.inc(ctxName);
             Metrics.FDBTransactionsActive.inc(Config.hostname);
+            Metrics.FDBTransactionsActiveContext.inc(ctxName);
             try {
                 return await Concurrency.Transaction.run(async () => {
                     return await tracer.trace(ctx, 'transaction:iteration', async (child) => {
@@ -57,6 +59,7 @@ export function setupFdbTracing() {
                 });
             } finally {
                 Metrics.FDBTransactionsActive.dec(Config.hostname);
+                Metrics.FDBTransactionsActiveContext.dec(ctxName);
             }
         },
         commit: async (ctx, handler) => {
