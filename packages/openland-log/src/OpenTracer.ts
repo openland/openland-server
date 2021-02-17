@@ -1,4 +1,4 @@
-import { Metrics } from 'openland-module-monitoring/Metrics';
+// import { Metrics } from 'openland-module-monitoring/Metrics';
 import { STracer } from '../STracer';
 import { SSpan } from '../SSpan';
 import { Context } from '@openland/context';
@@ -34,12 +34,12 @@ export class OpenTracer implements STracer {
     }
 
     startSpan(name: string, parent?: SSpan) {
-        Metrics.TracingFrequence.inc();
+        // Metrics.TracingFrequence.inc();
         return new OpenSpan(this.tracer, name, parent);
     }
 
     async trace<T>(parent: Context, op: string, handler: (ctx: Context) => Promise<T>): Promise<T> {
-        Metrics.TracingFrequence.inc();
+        // Metrics.TracingFrequence.inc();
         let c = TracingContext.get(parent);
         let span = this.startSpan(op, c.span ? c.span : undefined);
         let ctx = TracingContext.set(parent, { span });

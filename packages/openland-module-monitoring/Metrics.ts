@@ -219,7 +219,7 @@ export const Metrics = {
     OnlineUnknown: Factory.createGauge('users_online_unknwon', 'Online Unknown Users'),
 
     // Tracing
-    TracingFrequence: Factory.createFrequencyGauge('tracing_span_hz', 'Tracing spans generation frequence'),
+    // TracingFrequence: Factory.createFrequencyGauge('tracing_span_hz', 'Tracing spans generation frequence'),
 
     // Basics
     Users: Factory.createPersistedGauge('users_count', 'Total openland users', async (ctx) => {

@@ -1,4 +1,4 @@
-import { Metrics } from 'openland-module-monitoring/Metrics';
+// import { Metrics } from 'openland-module-monitoring/Metrics';
 import { STracer } from '../STracer';
 import { SSpan } from '../SSpan';
 import { Context } from '@openland/context';
@@ -16,12 +16,12 @@ export class NoOpSpan implements SSpan {
 
 export class NoOpTracer implements STracer {
     startSpan(name: string, parent?: SSpan) {
-        Metrics.TracingFrequence.inc();
+        // Metrics.TracingFrequence.inc();
         return new NoOpSpan();
     }
 
     async trace<T>(ctx: Context, op: string, handler: (ctx: Context) => Promise<T>): Promise<T> {
-        Metrics.TracingFrequence.inc();
+        // Metrics.TracingFrequence.inc();
         return handler(ctx);
     }
 }
