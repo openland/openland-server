@@ -247,6 +247,10 @@ export class UserPresenceMediator {
         return res.type === 'online' && res.active;
     }
 
+    async getStatusInTx(ctx: Context, uid: number): Promise<UserOnlineStatus> {
+        return convertOnlineStatus(await Modules.Presence.users.repo.getOnline(ctx, uid), uid);
+    }
+
     //
     // Mutations
     //

@@ -18,8 +18,10 @@ import { NotificationCenterEvent, NotificationCenterState, UserSettingsShape } f
 
 type User = {
     uid: number;
-    lastSeen: 'online' | 'never_online' | number;
-    isActive: boolean;
+    status: {
+        lastSeen: 'online' | 'never_online' | number;
+        isActive: boolean;
+    },
     state: NotificationCenterState,
     settings: UserSettingsShape
 };
@@ -30,20 +32,19 @@ const DEBUG = false;
 
 function shouldIgnoreUser(ctx: Context, user: User) {
     let {
-        lastSeen,
-        isActive,
+        status,
         settings,
         state
     } = user;
 
     // Ignore never-online users
-    if (lastSeen === 'never_online') {
+    if (status.lastSeen === 'never_online') {
         DEBUG && log.debug(ctx, 'skip never-online');
         return true;
     }
 
     // Ignore active users
-    if (isActive) {
+    if (status.isActive) {
         DEBUG && log.debug(ctx, 'skip active');
         return true;
     }
@@ -146,19 +147,17 @@ async function handleUser(ctx: Context, uid: number) {
     ctx = withLogPath(ctx, 'user ' + uid);
 
     // Loading user's settings and state
-    let [settings, state, lastSeen, isActive] = await Promise.all([
+    let [settings, state, status] = await Promise.all([
         Modules.Users.getUserSettings(ctx, uid),
         Modules.NotificationCenter.getNotificationStateForUser(ctx, uid),
-        Modules.Presence.getStatus(uid),
-        Modules.Presence.isActive(uid)
+        Modules.Presence.getStatusInTx(ctx, uid),
     ]);
 
     let user = {
         uid,
         settings,
         state,
-        lastSeen,
-        isActive
+        status
     };
 
     if (shouldIgnoreUser(ctx, user)) {
@@ -169,7 +168,7 @@ async function handleUser(ctx: Context, uid: number) {
     // Scanning updates
     let afterSec = Math.max(state.lastEmailSeq || 0, state.readSeq || 0, state.lastPushSeq || 0);
 
-    let remainingUpdates = (await Store.NotificationCenterEvent.notificationCenter.query(ctx, state.ncid, {after: afterSec})).items;
+    let remainingUpdates = (await Store.NotificationCenterEvent.notificationCenter.query(ctx, state.ncid, { after: afterSec })).items;
     let notifications = remainingUpdates.filter((v) => v.kind === 'notification_received');
 
     // Handling unread notifications

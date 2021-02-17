@@ -67,6 +67,17 @@ export class PresenceModule {
         }
     }
 
+    async getStatusInTx(ctx: Context, uid: number): Promise<{ lastSeen: 'online' | 'never_online' | number, isActive: boolean }> {
+        let status = await this.users.getStatusInTx(ctx, uid);
+        if (status.type === 'online') {
+            return { lastSeen: 'online', isActive: status.active };
+        } else if (status.type === 'last-seen') {
+            return { lastSeen: status.lastseen, isActive: false };
+        } else {
+            return { lastSeen: 'never_online', isActive: false };
+        }
+    }
+
     isActive(uid: number): Promise<boolean> {
         return this.users.isActive(uid);
     }
