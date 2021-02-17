@@ -180,7 +180,7 @@ export function createPushWorker(repo: PushRepository) {
 
     if (serverRoleEnabled('workers')) {
         // New
-        betterQueue.addWorkers(200, async (parent, args) => {
+        betterQueue.addWorkers(1000, async (parent, args) => {
             await handlePush(parent, repo, args);
         });
     }
