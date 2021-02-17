@@ -1260,4 +1260,13 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '188-migrate-reset-followers',
+    migration: async (parent) => {
+        await inTx(parent, async ctx => {
+            Store.FollowersDirectory.clearPrefixed(ctx, encoders.tuple.pack([]));
+        });
+    }
+});
+
 export default migrations;
