@@ -5,7 +5,7 @@ import { InvalidateSync } from '@openland/patterns';
 import { EventBus, EventBusSubcription } from 'openland-module-pubsub/EventBus';
 import { UserService } from 'openland-module-events/users/UserService';
 
-const rootCtx = createNamedContext('presence');
+const rootCtx = createNamedContext('presence-user-service');
 
 export class PresenceUserService {
     readonly user: UserService;

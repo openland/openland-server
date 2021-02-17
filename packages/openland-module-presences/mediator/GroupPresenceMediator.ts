@@ -6,7 +6,7 @@ import { asyncRun, backoff } from 'openland-utils/timer';
 import { EventBusSubcription, EventBus } from 'openland-module-pubsub/EventBus';
 import { Config } from 'openland-config/Config';
 
-const rootCtx = createNamedContext('presence');
+const rootCtx = createNamedContext('presence-group');
 const TIMEOUT = 60 * 1000;
 
 type GroupSubscription = {

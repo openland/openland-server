@@ -9,7 +9,7 @@ import { EventBus, EventBusSubcription } from 'openland-module-pubsub/EventBus';
 import { PushableIterator, createIterator } from 'openland-utils/asyncIterator';
 import { Config } from 'openland-config/Config';
 
-const rootCtx = createNamedContext('presence');
+const rootCtx = createNamedContext('presence-user');
 const TIMEOUT = 60 * 1000;
 
 export type UserOnlineStatus = ({ type: 'never-online' } | { type: 'online', active: boolean, timeout: number } | { type: 'last-seen', lastseen: number }) & { uid: number };
