@@ -8,6 +8,7 @@ import { Context, createNamedContext } from '@openland/context';
 import { QueueStorage } from './QueueStorage';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import { createTracer } from 'openland-log/createTracer';
+import { batch } from 'openland-utils/batch';
 
 const log = createLogger('worker');
 
@@ -74,6 +75,14 @@ export class BetterWorkerQueue<ARGS> {
     }
 
     addWorkers = (parallel: number, handler: (ctx: Context, item: ARGS) => Promise<void>) => {
+        this.#addWorkers(parallel, 1, (ctx, items) => handler(ctx, items[0]));
+    }
+
+    addBatchedWorkers = (parallel: number, batchSize: number, handler: (ctx: Context, items: ARGS[]) => Promise<void>) => {
+        this.#addWorkers(parallel, batchSize, handler);
+    }
+
+    #addWorkers = (parallel: number, batchSize: number, handler: (ctx: Context, items: ARGS[]) => Promise<void>) => {
         let working = true;
 
         // Task Awaiting
@@ -134,7 +143,7 @@ export class BetterWorkerQueue<ARGS> {
             }
 
             // Resolve desired tasks limit
-            let workersToAllocate = Math.min(Math.max(parallel - activeTasks, 0), 20);
+            let workersToAllocate = Math.min(Math.max(parallel * batchSize - activeTasks, 0), 20);
             if (workersToAllocate === 0) {
                 return;
             }
@@ -156,15 +165,14 @@ export class BetterWorkerQueue<ARGS> {
             }
 
             // Start workers
-            for (let i = 0; i < tasks.length; i++) {
-                let taskId = tasks[i];
-
+            let taskBatches = batch(tasks, batchSize);
+            for (let b of taskBatches) {
                 // tslint:disable-next-line:no-floating-promises
                 (async () => {
                     let startEx = currentRunningTime();
                     try {
                         Metrics.WorkerAttemptFrequence.inc(this.queue.name);
-                        await this.doWork(rootExec, taskId, seed, handler);
+                        await this.doWork(rootExec, b, seed, handler);
                         Metrics.WorkerSuccessFrequence.inc(this.queue.name);
                     } catch (e) {
                         log.error(rootExec, e);
@@ -217,41 +225,41 @@ export class BetterWorkerQueue<ARGS> {
         Shutdown.registerWork({ name: this.queue.name, shutdown });
     }
 
-    private doWork = async (parent: Context, id: Buffer, seed: Buffer, handler: (ctx: Context, item: ARGS) => Promise<void>) => {
+    private doWork = async (parent: Context, ids: Buffer[], seed: Buffer, handler: (ctx: Context, items: ARGS[]) => Promise<void>) => {
         return await tracer.trace(parent, this.queue.name, async (ctx) => {
             if (this.type === 'transactional') {
-                await this.doWorkTransactional(ctx, id, seed, handler);
+                await this.doWorkTransactional(ctx, ids, seed, handler);
             } else if (this.type === 'external') {
-                await this.doWorkExternal(ctx, id, seed, handler);
+                await this.doWorkExternal(ctx, ids, seed, handler);
             } else {
                 throw Error('Unsupported type: ' + this.type);
             }
         });
     }
 
-    private doWorkTransactional = async (parent: Context, id: Buffer, seed: Buffer, handler: (ctx: Context, item: ARGS) => Promise<void>) => {
+    private doWorkTransactional = async (parent: Context, ids: Buffer[], seed: Buffer, handler: (ctx: Context, items: ARGS[]) => Promise<void>) => {
         await inTx(parent, async ctx => {
 
             // Getting task arguments and checking lock
-            let args = await this.queue.resolveTask(ctx, id, seed);
-            if (!args) {
+            let args = (await Promise.all(ids.map(async (id) => ({ id, args: await this.queue.resolveTask(ctx, id, seed) })))).filter((v) => !v.args);
+            if (args.length === 0) {
                 return;
             }
 
             // Mark work as completed
-            await this.queue.completeWork(ctx, id);
+            await Promise.all(args.map((i) => this.queue.completeWork(ctx, i.id)));
 
             // Perform work
-            await handler(ctx, args);
+            await handler(ctx, args.map((v) => v.args));
         });
     }
 
-    private doWorkExternal = async (parent: Context, id: Buffer, seed: Buffer, handler: (ctx: Context, item: ARGS) => Promise<void>) => {
+    private doWorkExternal = async (parent: Context, ids: Buffer[], seed: Buffer, handler: (ctx: Context, items: ARGS[]) => Promise<void>) => {
         // Getting task arguments and checking lock
         let args = await inTx(parent, async ctx => {
-            return await this.queue.resolveTask(ctx, id, seed);
+            return (await Promise.all(ids.map(async (id) => ({ id, args: await this.queue.resolveTask(ctx, id, seed) })))).filter((v) => !v.args);
         });
-        if (!args) {
+        if (args.length === 0) {
             return;
         }
 
@@ -262,7 +270,7 @@ export class BetterWorkerQueue<ARGS> {
             breakDelay = d.resolver;
             await d.promise;
             await inTx(parent, async ctx => {
-                await this.queue.refreshLock(ctx, id, seed, 15000);
+                await Promise.all(args.map((i) => this.queue.refreshLock(ctx, i.id, seed, 15000)));
             });
         });
         const stopLocking = async () => {
@@ -274,11 +282,11 @@ export class BetterWorkerQueue<ARGS> {
 
         try {
             // Execute task
-            await handler(parent, args);
+            await handler(parent, args.map((v) => v.args));
 
             // Commit work
             await inTx(parent, async (ctx) => {
-                await this.queue.completeWork(ctx, id);
+                await Promise.all(args.map((i) => this.queue.completeWork(ctx, i.id)));
             });
         } catch (e) {
             // Just log error and rely on existing timeout as retry time
