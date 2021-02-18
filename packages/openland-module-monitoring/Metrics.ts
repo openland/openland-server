@@ -145,6 +145,8 @@ export const Metrics = {
     //
 
     WorkerLoopFrequence: Factory.createTaggedFrequencyGauge('worker_loop_frequency', 'Active runtime tasks'),
+    WorkerLoopNoTasksFrequence: Factory.createTaggedFrequencyGauge('worker_loop_no_tasks_frequency', 'Loop iteration when no tasks available'),
+    WorkerLoopNoWorkersFrequence: Factory.createTaggedFrequencyGauge('worker_loop_no_workers_frequency', 'Loop iteration when no workers available'),
     WorkerActiveRuntime: Factory.createTaggedMachineGauge('worker_active_runtime', 'Active runtime tasks'),
     WorkerAttemptFrequence: Factory.createTaggedFrequencyGauge('worker_attempts', 'Frequency of delivery attempts'),
     WorkerSuccessFrequence: Factory.createTaggedFrequencyGauge('worker_success', 'Frequency of delivery success'),

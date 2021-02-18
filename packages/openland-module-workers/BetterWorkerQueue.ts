@@ -138,19 +138,20 @@ export class BetterWorkerQueue<ARGS> {
 
             // Wait for available workers
             await awaitWorker();
-
-            // Track loop
-            Metrics.WorkerLoopFrequence.inc(this.queue.name);
-
             if (!working) {
                 return;
             }
 
+            // Track loop
+            Metrics.WorkerLoopFrequence.inc(this.queue.name);
+
             // Resolve desired tasks limit
-            let workersToAllocate = Math.min(Math.max(parallel * batchSize - activeTasks, 0), 20);
+            let workersToAllocate = Math.max((parallel - activeTasks) * batchSize, 0);
             if (workersToAllocate === 0) {
+                Metrics.WorkerLoopNoWorkersFrequence.inc(this.queue.name);
                 return;
             }
+            workersToAllocate = Math.min(workersToAllocate, 20);
 
             // Acquiring tasks
             let start = currentRunningTime();
@@ -164,6 +165,7 @@ export class BetterWorkerQueue<ARGS> {
                 if (!working) {
                     return;
                 }
+                Metrics.WorkerLoopNoTasksFrequence.inc(this.queue.name);
                 await awaitTask();
                 return;
             }
@@ -172,7 +174,7 @@ export class BetterWorkerQueue<ARGS> {
             let taskBatches = batch(tasks, batchSize);
             for (let b of taskBatches) {
                 activeTasks++;
-                
+
                 // tslint:disable-next-line:no-floating-promises
                 (async () => {
                     let startEx = currentRunningTime();
