@@ -180,10 +180,8 @@ export function createPushWorker(repo: PushRepository) {
 
     if (serverRoleEnabled('workers')) {
         // New
-        betterQueue.addBatchedWorkers(10, 50, async (parent, args) => {
-            for (let arg of args) {
-                await handlePush(parent, repo, arg);
-            }
+        betterQueue.addBatchedWorkers(10, 10, async (parent, args) => {
+            await Promise.all(args.map((arg) => handlePush(parent, repo, arg)));
         });
     }
     return betterQueue;
