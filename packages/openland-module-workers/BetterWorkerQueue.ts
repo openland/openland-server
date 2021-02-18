@@ -138,6 +138,10 @@ export class BetterWorkerQueue<ARGS> {
 
             // Wait for available workers
             await awaitWorker();
+
+            // Track loop
+            Metrics.WorkerLoopFrequence.inc(this.queue.name);
+
             if (!working) {
                 return;
             }
