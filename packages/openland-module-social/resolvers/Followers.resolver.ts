@@ -14,7 +14,10 @@ export const Resolver: GQLResolver = {
     Query: {
         socialUserFollowers: withAny(async (ctx, args) => {
             let uid = IDs.User.parse(args.uid);
-            let res = await Modules.Social.followers.getFollowersList(ctx, uid, 'time');
+            let res = await Modules.Social.followers.getFollowersList(ctx, uid, 'time', {
+                limit: args.first,
+                after: args.after || undefined
+            });
             return {
                 items: res.items.map(v => v.value),
                 cursor: res.haveMore ? (res.cursor || null) : null
@@ -22,7 +25,10 @@ export const Resolver: GQLResolver = {
         }),
         socialUserFollowing: withAny(async (ctx, args) => {
             let uid = IDs.User.parse(args.uid);
-            let res = await Modules.Social.followers.getFollowingList(ctx, uid, 'time');
+            let res = await Modules.Social.followers.getFollowingList(ctx, uid, 'time', {
+                limit: args.first,
+                after: args.after || undefined
+            });
             return {
                 items: res.items.map(v => v.value),
                 cursor: res.haveMore ? (res.cursor || null) : null
