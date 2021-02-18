@@ -241,7 +241,7 @@ export class BetterWorkerQueue<ARGS> {
         await inTx(parent, async ctx => {
 
             // Getting task arguments and checking lock
-            let args = (await Promise.all(ids.map(async (id) => ({ id, args: await this.queue.resolveTask(ctx, id, seed) })))).filter((v) => !v.args);
+            let args = (await Promise.all(ids.map(async (id) => ({ id, args: await this.queue.resolveTask(ctx, id, seed) })))).filter((v) => v.args !== null);
             if (args.length === 0) {
                 return;
             }
@@ -257,7 +257,7 @@ export class BetterWorkerQueue<ARGS> {
     private doWorkExternal = async (parent: Context, ids: Buffer[], seed: Buffer, handler: (ctx: Context, items: ARGS[]) => Promise<void>) => {
         // Getting task arguments and checking lock
         let args = await inTx(parent, async ctx => {
-            return (await Promise.all(ids.map(async (id) => ({ id, args: await this.queue.resolveTask(ctx, id, seed) })))).filter((v) => !v.args);
+            return (await Promise.all(ids.map(async (id) => ({ id, args: await this.queue.resolveTask(ctx, id, seed) })))).filter((v) => v.args !== null);
         });
         if (args.length === 0) {
             return;
