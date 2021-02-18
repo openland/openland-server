@@ -171,6 +171,8 @@ export class BetterWorkerQueue<ARGS> {
             // Start workers
             let taskBatches = batch(tasks, batchSize);
             for (let b of taskBatches) {
+                activeTasks++;
+                
                 // tslint:disable-next-line:no-floating-promises
                 (async () => {
                     let startEx = currentRunningTime();
