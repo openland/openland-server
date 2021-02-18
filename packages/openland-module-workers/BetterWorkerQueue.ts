@@ -171,6 +171,7 @@ export class BetterWorkerQueue<ARGS> {
                 (async () => {
                     let startEx = currentRunningTime();
                     try {
+                        Metrics.WorkerActiveRuntime.inc(this.queue.name);
                         Metrics.WorkerAttemptFrequence.inc(this.queue.name);
                         await this.doWork(rootExec, b, seed, handler);
                         Metrics.WorkerSuccessFrequence.inc(this.queue.name);
@@ -179,6 +180,7 @@ export class BetterWorkerQueue<ARGS> {
                     } finally {
                         // Report execution time
                         Metrics.WorkerExecute.report(this.queue.name, currentRunningTime() - startEx);
+                        Metrics.WorkerActiveRuntime.dec(this.queue.name);
 
                         // Reduce active tasks count
                         activeTasks--;
