@@ -102,7 +102,11 @@ import {
     UserDialogListSettingsShape,
     UpdateDialogListSettingsChanged,
     ConversationVoice,
-    VoiceChatParticipant, VoiceChatParticipantShape,
+    VoiceChatParticipant,
+    VoiceChatParticipantShape,
+    UpdateFeedItemReceived,
+    UpdateFeedItemUpdated,
+    UpdateFeedItemDeleted,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -864,9 +868,15 @@ export namespace GQLRoots {
     export type UpdateRoomChangedRoot = UpdateRoomChanged;
     export type UpdateEventRoot = Event;
 
+    // Feed
+    export type UpdateFeedItemReceivedRoot = UpdateFeedItemReceived;
+    export type UpdateFeedItemUpdatedRoot = UpdateFeedItemUpdated;
+    export type UpdateFeedItemDeletedRoot = UpdateFeedItemDeleted;
+
     export type SequenceCommonRoot = { type: 'common', uid: number };
     export type SequenceChatRoot = { type: 'chat', cid: number } | { type: 'chat-private', cid: number, uid: number };
-    export type SequenceRoot = SequenceCommonRoot | SequenceChatRoot;
+    export type SequenceFeedTopicRoot = { type: 'feed-topic', tid: number };
+    export type SequenceRoot = SequenceCommonRoot | SequenceChatRoot | SequenceFeedTopicRoot;
     export type DraftRoot = {
         version: number;
         date: number;

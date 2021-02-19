@@ -23717,6 +23717,114 @@ export class UpdateChatDraftUpdated extends BaseEvent {
     get draft(): string | null { return this.raw.draft; }
 }
 
+const updateFeedItemReceivedCodec = c.struct({
+    tid: c.integer,
+    itemId: c.integer,
+});
+
+interface UpdateFeedItemReceivedShape {
+    tid: number;
+    itemId: number;
+}
+
+export class UpdateFeedItemReceived extends BaseEvent {
+
+    static readonly type: 'updateFeedItemReceived' = 'updateFeedItemReceived';
+
+    static create(data: UpdateFeedItemReceivedShape) {
+        return new UpdateFeedItemReceived(updateFeedItemReceivedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateFeedItemReceived(updateFeedItemReceivedCodec.decode(data));
+    }
+
+    static encode(event: UpdateFeedItemReceived) {
+        return updateFeedItemReceivedCodec.encode(event.raw);
+    }
+
+    readonly type: 'updateFeedItemReceived' = 'updateFeedItemReceived';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get tid(): number { return this.raw.tid; }
+    get itemId(): number { return this.raw.itemId; }
+}
+
+const updateFeedItemUpdatedCodec = c.struct({
+    tid: c.integer,
+    itemId: c.integer,
+});
+
+interface UpdateFeedItemUpdatedShape {
+    tid: number;
+    itemId: number;
+}
+
+export class UpdateFeedItemUpdated extends BaseEvent {
+
+    static readonly type: 'updateFeedItemUpdated' = 'updateFeedItemUpdated';
+
+    static create(data: UpdateFeedItemUpdatedShape) {
+        return new UpdateFeedItemUpdated(updateFeedItemUpdatedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateFeedItemUpdated(updateFeedItemUpdatedCodec.decode(data));
+    }
+
+    static encode(event: UpdateFeedItemUpdated) {
+        return updateFeedItemUpdatedCodec.encode(event.raw);
+    }
+
+    readonly type: 'updateFeedItemUpdated' = 'updateFeedItemUpdated';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get tid(): number { return this.raw.tid; }
+    get itemId(): number { return this.raw.itemId; }
+}
+
+const updateFeedItemDeletedCodec = c.struct({
+    tid: c.integer,
+    itemId: c.integer,
+});
+
+interface UpdateFeedItemDeletedShape {
+    tid: number;
+    itemId: number;
+}
+
+export class UpdateFeedItemDeleted extends BaseEvent {
+
+    static readonly type: 'updateFeedItemDeleted' = 'updateFeedItemDeleted';
+
+    static create(data: UpdateFeedItemDeletedShape) {
+        return new UpdateFeedItemDeleted(updateFeedItemDeletedCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UpdateFeedItemDeleted(updateFeedItemDeletedCodec.decode(data));
+    }
+
+    static encode(event: UpdateFeedItemDeleted) {
+        return updateFeedItemDeletedCodec.encode(event.raw);
+    }
+
+    readonly type: 'updateFeedItemDeleted' = 'updateFeedItemDeleted';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get tid(): number { return this.raw.tid; }
+    get itemId(): number { return this.raw.itemId; }
+}
+
 const hyperLogEventCodec = c.struct({
     id: c.string,
     eventType: c.string,
@@ -24675,6 +24783,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('updateChatMessageDeleted', UpdateChatMessageDeleted.encode as any, UpdateChatMessageDeleted.decode);
     eventFactory.registerEventType('updateRoomChanged', UpdateRoomChanged.encode as any, UpdateRoomChanged.decode);
     eventFactory.registerEventType('updateChatDraftUpdated', UpdateChatDraftUpdated.encode as any, UpdateChatDraftUpdated.decode);
+    eventFactory.registerEventType('updateFeedItemReceived', UpdateFeedItemReceived.encode as any, UpdateFeedItemReceived.decode);
+    eventFactory.registerEventType('updateFeedItemUpdated', UpdateFeedItemUpdated.encode as any, UpdateFeedItemUpdated.decode);
+    eventFactory.registerEventType('updateFeedItemDeleted', UpdateFeedItemDeleted.encode as any, UpdateFeedItemDeleted.decode);
     eventFactory.registerEventType('hyperLogEvent', HyperLogEvent.encode as any, HyperLogEvent.decode);
     eventFactory.registerEventType('hyperLogUserEvent', HyperLogUserEvent.encode as any, HyperLogUserEvent.decode);
     eventFactory.registerEventType('contactAddedEvent', ContactAddedEvent.encode as any, ContactAddedEvent.decode);

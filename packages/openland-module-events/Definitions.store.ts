@@ -47,4 +47,20 @@ export function defineEvents() {
         field('date', integer());
         field('draft', optional(string()));
     });
+
+    //
+    // Feed
+    //
+    event('UpdateFeedItemReceived', () => {
+        field('tid', integer());
+        field('itemId', integer());
+    });
+    event('UpdateFeedItemUpdated', () => {
+        field('tid', integer());
+        field('itemId', integer());
+    });
+    event('UpdateFeedItemDeleted', () => {
+        field('tid', integer());
+        field('itemId', integer());
+    });
 }

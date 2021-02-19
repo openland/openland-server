@@ -39,6 +39,8 @@ export class SessionsMediator {
         await this.tokenRepo.revokeTokenById(ctx, tid);
         // Disable pushes for token
         await Modules.Push.disablePushForToken(ctx, uid, tid);
+        // Set offline
+        await Modules.Presence.setOffline(ctx, uid, tid);
     }
 
     async terminateAllSessionsExcept(ctx: Context, uid: number, tid: string) {

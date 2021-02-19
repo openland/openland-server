@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5c4792279d5808d3bd4f1b39b58d68eb';
+export const GQL_SPEC_VERSION = 'f84c13ff61d62d35195a567b0d340814';
 
 export namespace GQL {
     export interface CreditCard {
@@ -977,6 +977,10 @@ export namespace GQL {
     export interface SequenceChatRoomArgs { }
     export interface SequenceChatTopMessageArgs { }
     export interface SequenceChatDraftArgs { }
+    export interface SequenceFeedTopic extends Sequence {
+        id: string;
+    }
+    export interface SequenceFeedTopicIdArgs { }
     export interface PageInfo {
         hasNextPage: boolean;
         hasPreviousPage: boolean;
@@ -4807,7 +4811,6 @@ export namespace GQL {
         alphaSubscribeOnline: OnlineEvent;
         chatOnlinesCount: ChatOnlineEvent;
         typings: TypingEvent;
-        voiceChatWatch: VoiceChat;
         conferenceWatch: Conference;
         conferenceMediaWatch: ConferenceMedia;
     }
@@ -4872,9 +4875,6 @@ export namespace GQL {
         chatId: string;
     }
     export interface SubscriptionTypingsArgs { }
-    export interface SubscriptionVoiceChatWatchArgs {
-        id: string;
-    }
     export interface SubscriptionConferenceWatchArgs {
         id: string;
     }
@@ -6249,7 +6249,7 @@ export namespace GQL {
     export interface RoomInviteRoomArgs { }
     export interface RoomInviteInvitedByUserArgs { }
     export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection | Channel;
-    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted | UpdateChatDraftChanged | UpdateSettingsChanged | UpdateRoomChanged | UpdateDialogListSettingsChanged;
+    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted | UpdateChatDraftChanged | UpdateSettingsChanged | UpdateRoomChanged | UpdateDialogListSettingsChanged | UpdateFeedItemReceived | UpdateFeedItemUpdated | UpdateFeedItemDeleted;
     export interface UpdateChatRead {
         cid: string;
         seq: number;
@@ -6302,6 +6302,18 @@ export namespace GQL {
         room: Room;
     }
     export interface UpdateRoomChangedRoomArgs { }
+    export interface UpdateFeedItemReceived {
+        item: FeedItem;
+    }
+    export interface UpdateFeedItemReceivedItemArgs { }
+    export interface UpdateFeedItemUpdated {
+        item: FeedItem;
+    }
+    export interface UpdateFeedItemUpdatedItemArgs { }
+    export interface UpdateFeedItemDeleted {
+        item: FeedItem;
+    }
+    export interface UpdateFeedItemDeletedItemArgs { }
 }
 
 export interface GQLResolver {
@@ -7369,7 +7381,7 @@ export interface GQLResolver {
         }
     >;
     EventPlatform?: EnumTypeResolver<'Android' | 'iOS' | 'WEB' | 'MobileWeb', GQLRoots.EventPlatformRoot>;
-    Sequence?: InterfaceTypeResolver<GQLRoots.SequenceRoot, 'SequenceCommon' | 'SequenceChat'>;
+    Sequence?: InterfaceTypeResolver<GQLRoots.SequenceRoot, 'SequenceCommon' | 'SequenceChat' | 'SequenceFeedTopic'>;
     SequenceCommon?: ComplexTypedResolver<
         GQL.SequenceCommon,
         GQLRoots.SequenceCommonRoot,
@@ -7408,6 +7420,15 @@ export interface GQLResolver {
             room: GQL.SequenceChatRoomArgs,
             topMessage: GQL.SequenceChatTopMessageArgs,
             draft: GQL.SequenceChatDraftArgs,
+        }
+    >;
+    SequenceFeedTopic?: ComplexTypedResolver<
+        GQL.SequenceFeedTopic,
+        GQLRoots.SequenceFeedTopicRoot,
+        {
+        },
+        {
+            id: GQL.SequenceFeedTopicIdArgs,
         }
     >;
     PageInfo?: ComplexTypedResolver<
@@ -10126,7 +10147,6 @@ export interface GQLResolver {
             alphaSubscribeOnline: GQLRoots.OnlineEventRoot,
             chatOnlinesCount: GQLRoots.ChatOnlineEventRoot,
             typings: GQLRoots.TypingEventRoot,
-            voiceChatWatch: GQLRoots.VoiceChatRoot,
             conferenceWatch: GQLRoots.ConferenceRoot,
             conferenceMediaWatch: GQLRoots.ConferenceMediaRoot,
         },
@@ -10154,7 +10174,6 @@ export interface GQLResolver {
             alphaSubscribeOnline: GQL.SubscriptionAlphaSubscribeOnlineArgs,
             chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs,
             typings: GQL.SubscriptionTypingsArgs,
-            voiceChatWatch: GQL.SubscriptionVoiceChatWatchArgs,
             conferenceWatch: GQL.SubscriptionConferenceWatchArgs,
             conferenceMediaWatch: GQL.SubscriptionConferenceMediaWatchArgs,
         }
@@ -11682,7 +11701,7 @@ export interface GQLResolver {
         }
     >;
     ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom' | 'DiscoverChatsCollection' | 'Channel'>;
-    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged' | 'UpdateChatMessage' | 'UpdateChatMessageDeleted' | 'UpdateChatDraftChanged' | 'UpdateSettingsChanged' | 'UpdateRoomChanged' | 'UpdateDialogListSettingsChanged'>;
+    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged' | 'UpdateChatMessage' | 'UpdateChatMessageDeleted' | 'UpdateChatDraftChanged' | 'UpdateSettingsChanged' | 'UpdateRoomChanged' | 'UpdateDialogListSettingsChanged' | 'UpdateFeedItemReceived' | 'UpdateFeedItemUpdated' | 'UpdateFeedItemDeleted'>;
     UpdateChatRead?: ComplexTypedResolver<
         GQL.UpdateChatRead,
         GQLRoots.UpdateChatReadRoot,
@@ -11777,6 +11796,36 @@ export interface GQLResolver {
         },
         {
             room: GQL.UpdateRoomChangedRoomArgs,
+        }
+    >;
+    UpdateFeedItemReceived?: ComplexTypedResolver<
+        GQL.UpdateFeedItemReceived,
+        GQLRoots.UpdateFeedItemReceivedRoot,
+        {
+            item: GQLRoots.FeedItemRoot,
+        },
+        {
+            item: GQL.UpdateFeedItemReceivedItemArgs,
+        }
+    >;
+    UpdateFeedItemUpdated?: ComplexTypedResolver<
+        GQL.UpdateFeedItemUpdated,
+        GQLRoots.UpdateFeedItemUpdatedRoot,
+        {
+            item: GQLRoots.FeedItemRoot,
+        },
+        {
+            item: GQL.UpdateFeedItemUpdatedItemArgs,
+        }
+    >;
+    UpdateFeedItemDeleted?: ComplexTypedResolver<
+        GQL.UpdateFeedItemDeleted,
+        GQLRoots.UpdateFeedItemDeletedRoot,
+        {
+            item: GQLRoots.FeedItemRoot,
+        },
+        {
+            item: GQL.UpdateFeedItemDeletedItemArgs,
         }
     >;
 }

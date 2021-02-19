@@ -41,6 +41,12 @@ export const Resolver: GQLResolver = {
                     throw Error('Invalid update');
                 }
                 return 'UpdateDialogListSettingsChanged';
+            } else if (src.type === 'updateFeedItemReceived') {
+                return 'UpdateFeedItemReceived';
+            }  else if (src.type === 'updateFeedItemUpdated') {
+                return 'UpdateFeedItemUpdated';
+            }  else if (src.type === 'updateFeedItemDeleted') {
+                return 'UpdateFeedItemDeleted';
             } else {
                 throw Error('Unknown update');
             }
@@ -84,5 +90,16 @@ export const Resolver: GQLResolver = {
     },
     UpdateRoomChanged: {
         room: (src) => src.cid
-    }
+    },
+
+    // Feed
+    UpdateFeedItemReceived: {
+        item: async (src, {}, ctx) => (await Store.FeedEvent.findById(ctx, src.itemId))!
+    },
+    UpdateFeedItemUpdated: {
+        item: async (src, {}, ctx) => (await Store.FeedEvent.findById(ctx, src.itemId))!
+    },
+    UpdateFeedItemDeleted: {
+        item: async (src, {}, ctx) => (await Store.FeedEvent.findById(ctx, src.itemId))!
+    },
 };
