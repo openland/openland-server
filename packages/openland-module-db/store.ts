@@ -148,6 +148,42 @@ export class VoiceChatParticipantCounterFactory extends AtomicIntegerFactory {
     }
 }
 
+export class VoiceChatParticipantActiveFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('voiceChatParticipantActive');
+        return new VoiceChatParticipantActiveFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(uid: number) {
+        return this._findById([uid]);
+    }
+
+    get(ctx: Context, uid: number) {
+        return this._get(ctx, [uid]);
+    }
+
+    set(ctx: Context, uid: number, value: number) {
+        return this._set(ctx, [uid], value);
+    }
+
+    add(ctx: Context, uid: number, value: number) {
+        return this._add(ctx, [uid], value);
+    }
+
+    increment(ctx: Context, uid: number) {
+        return this._increment(ctx, [uid]);
+    }
+
+    decrement(ctx: Context, uid: number) {
+        return this._decrement(ctx, [uid]);
+    }
+}
+
 export class UserDialogReadMessageIdFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -24334,6 +24370,7 @@ export interface Store extends BaseStore {
     readonly AutoSubscribeWasExecutedForUser: AutoSubscribeWasExecutedForUserFactory;
     readonly RoomParticipantsVersion: RoomParticipantsVersionFactory;
     readonly VoiceChatParticipantCounter: VoiceChatParticipantCounterFactory;
+    readonly VoiceChatParticipantActive: VoiceChatParticipantActiveFactory;
     readonly UserDialogReadMessageId: UserDialogReadMessageIdFactory;
     readonly FeedChannelMembersCount: FeedChannelMembersCountFactory;
     readonly FeedChannelPostsCount: FeedChannelPostsCountFactory;
@@ -24648,6 +24685,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let AutoSubscribeWasExecutedForUserPromise = AutoSubscribeWasExecutedForUserFactory.open(storage);
     let RoomParticipantsVersionPromise = RoomParticipantsVersionFactory.open(storage);
     let VoiceChatParticipantCounterPromise = VoiceChatParticipantCounterFactory.open(storage);
+    let VoiceChatParticipantActivePromise = VoiceChatParticipantActiveFactory.open(storage);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
     let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(storage);
@@ -24913,6 +24951,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         AutoSubscribeWasExecutedForUser: await AutoSubscribeWasExecutedForUserPromise,
         RoomParticipantsVersion: await RoomParticipantsVersionPromise,
         VoiceChatParticipantCounter: await VoiceChatParticipantCounterPromise,
+        VoiceChatParticipantActive: await VoiceChatParticipantActivePromise,
         UserDialogReadMessageId: await UserDialogReadMessageIdPromise,
         FeedChannelMembersCount: await FeedChannelMembersCountPromise,
         FeedChannelPostsCount: await FeedChannelPostsCountPromise,
