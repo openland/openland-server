@@ -4,6 +4,7 @@ import { Modules } from '../openland-modules/Modules';
 import { IDs } from '../openland-module-api/IDs';
 import { Store } from '../openland-module-db/FDB';
 import { NotFoundError } from '../openland-errors/NotFoundError';
+import { withUser as withUserFromRoot } from '../openland-module-users/User.resolver';
 
 export const Resolver: GQLResolver = {
     VoiceChat: {
@@ -22,6 +23,16 @@ export const Resolver: GQLResolver = {
             }
             return null;
         }, null),
+    },
+    User: {
+        currentVoiceChat: withUserFromRoot(async (ctx, user) => {
+            let chat = await Store.VoiceChatParticipantActive.byId(user.id).get(ctx);
+            if (chat === 0) {
+                return null;
+            }
+
+            return await Store.ConversationVoice.findById(ctx, chat);
+        }, true),
     },
     Mutation: {
         voiceChatCreate: withActivatedUser(async (ctx, { input }, uid) => {

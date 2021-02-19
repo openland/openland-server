@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'b19577b144d73ef8faa8eb9deea3c872';
+export const GQL_SPEC_VERSION = 'a9d423710aa7c3fb24ddc504f3908c61';
 
 export namespace GQL {
     export interface CreditCard {
@@ -5053,6 +5053,7 @@ export namespace GQL {
         modernBadges: ModernBadge[];
         badges: UserBadge[];
         primaryBadge: Nullable<UserBadge>;
+        currentVoiceChat: Nullable<VoiceChat>;
         shortname: Nullable<string>;
     }
     export interface UserIdArgs { }
@@ -5101,6 +5102,7 @@ export namespace GQL {
     export interface UserModernBadgesArgs { }
     export interface UserBadgesArgs { }
     export interface UserPrimaryBadgeArgs { }
+    export interface UserCurrentVoiceChatArgs { }
     export interface UserShortnameArgs { }
     export interface UserChatWithBadge {
         badge: UserBadge;
@@ -10330,6 +10332,7 @@ export interface GQLResolver {
             modernBadges: GQLRoots.ModernBadgeRoot[],
             badges: GQLRoots.UserBadgeRoot[],
             primaryBadge: Nullable<GQLRoots.UserBadgeRoot>,
+            currentVoiceChat: Nullable<GQLRoots.VoiceChatRoot>,
         },
         {
             id: GQL.UserIdArgs,
@@ -10378,6 +10381,7 @@ export interface GQLResolver {
             modernBadges: GQL.UserModernBadgesArgs,
             badges: GQL.UserBadgesArgs,
             primaryBadge: GQL.UserPrimaryBadgeArgs,
+            currentVoiceChat: GQL.UserCurrentVoiceChatArgs,
             shortname: GQL.UserShortnameArgs,
         }
     >;

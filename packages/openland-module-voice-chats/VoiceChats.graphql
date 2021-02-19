@@ -19,6 +19,10 @@ type VoiceChatConnection {
     cursor: String
 }
 
+extend type User {
+    currentVoiceChat: VoiceChat
+}
+
 extend type Mutation {
     voiceChatCreate(input: VoiceChatInput!): VoiceChat!
     voiceChatUpdate(id: ID!, input: VoiceChatInput!): VoiceChat!
