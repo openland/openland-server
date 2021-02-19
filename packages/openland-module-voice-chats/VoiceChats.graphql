@@ -6,6 +6,7 @@ type VoiceChat {
     speakersCount: Int!
     active: Boolean!
     speakers: [VoiceChatParticipant!]!
+    listeners: [VoiceChatParticipant!]!
     me: VoiceChatParticipant
 }
 
@@ -16,6 +17,10 @@ input VoiceChatInput {
 type VoiceChatConnection {
     items: [VoiceChat!]!
     cursor: String
+}
+
+extend type User {
+    currentVoiceChat: VoiceChat
 }
 
 extend type Mutation {

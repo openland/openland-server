@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9e775e8cf8b19de4f7c1f6abbe682099';
+export const GQL_SPEC_VERSION = 'a9d423710aa7c3fb24ddc504f3908c61';
 
 export namespace GQL {
     export interface CreditCard {
@@ -977,10 +977,6 @@ export namespace GQL {
     export interface SequenceChatRoomArgs { }
     export interface SequenceChatTopMessageArgs { }
     export interface SequenceChatDraftArgs { }
-    export interface SequenceFeedTopic extends Sequence {
-        id: string;
-    }
-    export interface SequenceFeedTopicIdArgs { }
     export interface PageInfo {
         hasNextPage: boolean;
         hasPreviousPage: boolean;
@@ -5057,6 +5053,7 @@ export namespace GQL {
         modernBadges: ModernBadge[];
         badges: UserBadge[];
         primaryBadge: Nullable<UserBadge>;
+        currentVoiceChat: Nullable<VoiceChat>;
         shortname: Nullable<string>;
     }
     export interface UserIdArgs { }
@@ -5105,6 +5102,7 @@ export namespace GQL {
     export interface UserModernBadgesArgs { }
     export interface UserBadgesArgs { }
     export interface UserPrimaryBadgeArgs { }
+    export interface UserCurrentVoiceChatArgs { }
     export interface UserShortnameArgs { }
     export interface UserChatWithBadge {
         badge: UserBadge;
@@ -5170,6 +5168,7 @@ export namespace GQL {
         speakersCount: number;
         active: boolean;
         speakers: VoiceChatParticipant[];
+        listeners: VoiceChatParticipant[];
         me: Nullable<VoiceChatParticipant>;
     }
     export interface VoiceChatIdArgs { }
@@ -5179,6 +5178,7 @@ export namespace GQL {
     export interface VoiceChatSpeakersCountArgs { }
     export interface VoiceChatActiveArgs { }
     export interface VoiceChatSpeakersArgs { }
+    export interface VoiceChatListenersArgs { }
     export interface VoiceChatMeArgs { }
     export interface VoiceChatInput {
         title: string;
@@ -6245,7 +6245,7 @@ export namespace GQL {
     export interface RoomInviteRoomArgs { }
     export interface RoomInviteInvitedByUserArgs { }
     export type ShortNameDestination = User | Organization | FeedChannel | SharedRoom | DiscoverChatsCollection | Channel;
-    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted | UpdateChatDraftChanged | UpdateSettingsChanged | UpdateRoomChanged | UpdateDialogListSettingsChanged | UpdateFeedItemReceived | UpdateFeedItemUpdated | UpdateFeedItemDeleted;
+    export type UpdateEvent = UpdateChatRead | UpdateProfileChanged | UpdateMyProfileChanged | UpdateChatMessage | UpdateChatMessageDeleted | UpdateChatDraftChanged | UpdateSettingsChanged | UpdateRoomChanged | UpdateDialogListSettingsChanged;
     export interface UpdateChatRead {
         cid: string;
         seq: number;
@@ -6298,18 +6298,6 @@ export namespace GQL {
         room: Room;
     }
     export interface UpdateRoomChangedRoomArgs { }
-    export interface UpdateFeedItemReceived {
-        item: FeedItem;
-    }
-    export interface UpdateFeedItemReceivedItemArgs { }
-    export interface UpdateFeedItemUpdated {
-        item: FeedItem;
-    }
-    export interface UpdateFeedItemUpdatedItemArgs { }
-    export interface UpdateFeedItemDeleted {
-        item: FeedItem;
-    }
-    export interface UpdateFeedItemDeletedItemArgs { }
 }
 
 export interface GQLResolver {
@@ -7377,7 +7365,7 @@ export interface GQLResolver {
         }
     >;
     EventPlatform?: EnumTypeResolver<'Android' | 'iOS' | 'WEB' | 'MobileWeb', GQLRoots.EventPlatformRoot>;
-    Sequence?: InterfaceTypeResolver<GQLRoots.SequenceRoot, 'SequenceCommon' | 'SequenceChat' | 'SequenceFeedTopic'>;
+    Sequence?: InterfaceTypeResolver<GQLRoots.SequenceRoot, 'SequenceCommon' | 'SequenceChat'>;
     SequenceCommon?: ComplexTypedResolver<
         GQL.SequenceCommon,
         GQLRoots.SequenceCommonRoot,
@@ -7416,15 +7404,6 @@ export interface GQLResolver {
             room: GQL.SequenceChatRoomArgs,
             topMessage: GQL.SequenceChatTopMessageArgs,
             draft: GQL.SequenceChatDraftArgs,
-        }
-    >;
-    SequenceFeedTopic?: ComplexTypedResolver<
-        GQL.SequenceFeedTopic,
-        GQLRoots.SequenceFeedTopicRoot,
-        {
-        },
-        {
-            id: GQL.SequenceFeedTopicIdArgs,
         }
     >;
     PageInfo?: ComplexTypedResolver<
@@ -10353,6 +10332,7 @@ export interface GQLResolver {
             modernBadges: GQLRoots.ModernBadgeRoot[],
             badges: GQLRoots.UserBadgeRoot[],
             primaryBadge: Nullable<GQLRoots.UserBadgeRoot>,
+            currentVoiceChat: Nullable<GQLRoots.VoiceChatRoot>,
         },
         {
             id: GQL.UserIdArgs,
@@ -10401,6 +10381,7 @@ export interface GQLResolver {
             modernBadges: GQL.UserModernBadgesArgs,
             badges: GQL.UserBadgesArgs,
             primaryBadge: GQL.UserPrimaryBadgeArgs,
+            currentVoiceChat: GQL.UserCurrentVoiceChatArgs,
             shortname: GQL.UserShortnameArgs,
         }
     >;
@@ -10504,6 +10485,7 @@ export interface GQLResolver {
         GQLRoots.VoiceChatRoot,
         {
             speakers: GQLRoots.VoiceChatParticipantRoot[],
+            listeners: GQLRoots.VoiceChatParticipantRoot[],
             me: Nullable<GQLRoots.VoiceChatParticipantRoot>,
         },
         {
@@ -10514,6 +10496,7 @@ export interface GQLResolver {
             speakersCount: GQL.VoiceChatSpeakersCountArgs,
             active: GQL.VoiceChatActiveArgs,
             speakers: GQL.VoiceChatSpeakersArgs,
+            listeners: GQL.VoiceChatListenersArgs,
             me: GQL.VoiceChatMeArgs,
         }
     >;
@@ -11693,7 +11676,7 @@ export interface GQLResolver {
         }
     >;
     ShortNameDestination?: UnionTypeResolver<GQLRoots.ShortNameDestinationRoot, 'User' | 'Organization' | 'FeedChannel' | 'SharedRoom' | 'DiscoverChatsCollection' | 'Channel'>;
-    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged' | 'UpdateChatMessage' | 'UpdateChatMessageDeleted' | 'UpdateChatDraftChanged' | 'UpdateSettingsChanged' | 'UpdateRoomChanged' | 'UpdateDialogListSettingsChanged' | 'UpdateFeedItemReceived' | 'UpdateFeedItemUpdated' | 'UpdateFeedItemDeleted'>;
+    UpdateEvent?: UnionTypeResolver<GQLRoots.UpdateEventRoot, 'UpdateChatRead' | 'UpdateProfileChanged' | 'UpdateMyProfileChanged' | 'UpdateChatMessage' | 'UpdateChatMessageDeleted' | 'UpdateChatDraftChanged' | 'UpdateSettingsChanged' | 'UpdateRoomChanged' | 'UpdateDialogListSettingsChanged'>;
     UpdateChatRead?: ComplexTypedResolver<
         GQL.UpdateChatRead,
         GQLRoots.UpdateChatReadRoot,
@@ -11788,36 +11771,6 @@ export interface GQLResolver {
         },
         {
             room: GQL.UpdateRoomChangedRoomArgs,
-        }
-    >;
-    UpdateFeedItemReceived?: ComplexTypedResolver<
-        GQL.UpdateFeedItemReceived,
-        GQLRoots.UpdateFeedItemReceivedRoot,
-        {
-            item: GQLRoots.FeedItemRoot,
-        },
-        {
-            item: GQL.UpdateFeedItemReceivedItemArgs,
-        }
-    >;
-    UpdateFeedItemUpdated?: ComplexTypedResolver<
-        GQL.UpdateFeedItemUpdated,
-        GQLRoots.UpdateFeedItemUpdatedRoot,
-        {
-            item: GQLRoots.FeedItemRoot,
-        },
-        {
-            item: GQL.UpdateFeedItemUpdatedItemArgs,
-        }
-    >;
-    UpdateFeedItemDeleted?: ComplexTypedResolver<
-        GQL.UpdateFeedItemDeleted,
-        GQLRoots.UpdateFeedItemDeletedRoot,
-        {
-            item: GQLRoots.FeedItemRoot,
-        },
-        {
-            item: GQL.UpdateFeedItemDeletedItemArgs,
         }
     >;
 }

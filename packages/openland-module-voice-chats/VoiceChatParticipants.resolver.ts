@@ -7,12 +7,12 @@ import { IDs } from '../openland-module-api/IDs';
 import { Store } from 'openland-module-db/FDB';
 import { withActivatedUser } from '../openland-module-api/Resolvers';
 
-const withAdminFallback = <TArgs, TResult>(fn: (root: VoiceChatParticipantRoot, args: TArgs, ctx: Context) => Promise<TResult>, fallback: TResult) =>
+const ensureHasAccess = <TArgs, TResult>(fn: (root: VoiceChatParticipantRoot, args: TArgs, ctx: Context) => Promise<TResult>, fallback: TResult) =>
   async (root: VoiceChatParticipantRoot, args: TArgs, ctx: Context): Promise<TResult> => {
     if (!ctx.auth.uid) {
         return fallback;
     }
-    if (!await Modules.VoiceChats.participants.isAdmin(ctx, root.cid, ctx.auth.uid)) {
+    if (ctx.auth.uid !== root.uid && !await Modules.VoiceChats.participants.isAdmin(ctx, root.cid, ctx.auth.uid)) {
         return fallback;
     }
 
@@ -29,7 +29,7 @@ export const Resolver: GQLResolver = {
     },
     VoiceChatParticipant: {
         id: root => IDs.VoiceChatParticipant.serialize(root.cid + '_' + root.uid),
-        handRaised: withAdminFallback(async (root, args, ctx) => root.handRaised, null),
+        handRaised: ensureHasAccess(async (root) => root.handRaised, null),
         status: root => root.status,
         user: root => root.uid,
     },
