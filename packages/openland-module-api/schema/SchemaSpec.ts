@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '64dbf8b503168452be03f40e5f6f04d6';
+export const GQL_SPEC_VERSION = 'b19577b144d73ef8faa8eb9deea3c872';
 
 export namespace GQL {
     export interface CreditCard {
@@ -5166,6 +5166,7 @@ export namespace GQL {
         speakersCount: number;
         active: boolean;
         speakers: VoiceChatParticipant[];
+        listeners: VoiceChatParticipant[];
         me: Nullable<VoiceChatParticipant>;
     }
     export interface VoiceChatIdArgs { }
@@ -5175,6 +5176,7 @@ export namespace GQL {
     export interface VoiceChatSpeakersCountArgs { }
     export interface VoiceChatActiveArgs { }
     export interface VoiceChatSpeakersArgs { }
+    export interface VoiceChatListenersArgs { }
     export interface VoiceChatMeArgs { }
     export interface VoiceChatInput {
         title: string;
@@ -10479,6 +10481,7 @@ export interface GQLResolver {
         GQLRoots.VoiceChatRoot,
         {
             speakers: GQLRoots.VoiceChatParticipantRoot[],
+            listeners: GQLRoots.VoiceChatParticipantRoot[],
             me: Nullable<GQLRoots.VoiceChatParticipantRoot>,
         },
         {
@@ -10489,6 +10492,7 @@ export interface GQLResolver {
             speakersCount: GQL.VoiceChatSpeakersCountArgs,
             active: GQL.VoiceChatActiveArgs,
             speakers: GQL.VoiceChatSpeakersArgs,
+            listeners: GQL.VoiceChatListenersArgs,
             me: GQL.VoiceChatMeArgs,
         }
     >;

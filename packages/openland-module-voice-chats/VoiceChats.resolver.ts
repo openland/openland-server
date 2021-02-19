@@ -13,6 +13,7 @@ export const Resolver: GQLResolver = {
         listenersCount: (root, _, ctx) => Store.VoiceChatParticipantCounter.byId(root.id, 'listener').get(ctx),
         speakersCount: (root, _, ctx) => Store.VoiceChatParticipantCounter.byId(root.id, 'speaker').get(ctx),
         speakers: (root, _, ctx) => Store.VoiceChatParticipant.speakers.findAll(ctx, root.id),
+        listeners: (root, _, ctx) => Store.VoiceChatParticipant.listeners.findAll(ctx, root.id),
         title: root => root.title,
         me: withAuthFallback(async (root, args, ctx) => {
             let p = await Store.VoiceChatParticipant.findById(ctx, root.id, ctx.auth.uid!);
@@ -20,7 +21,7 @@ export const Resolver: GQLResolver = {
                 return p;
             }
             return null;
-        }, null)
+        }, null),
     },
     Mutation: {
         voiceChatCreate: withActivatedUser(async (ctx, { input }, uid) => {

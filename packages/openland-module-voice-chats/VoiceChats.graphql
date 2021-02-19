@@ -6,6 +6,7 @@ type VoiceChat {
     speakersCount: Int!
     active: Boolean!
     speakers: [VoiceChatParticipant!]!
+    listeners: [VoiceChatParticipant!]!
     me: VoiceChatParticipant
 }
 
