@@ -11,6 +11,7 @@ import { resolveTurnServices } from './services/TURNService';
 import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
 import { GQLRoots } from 'openland-module-api/schema/SchemaRoots';
 import { fastWatch } from 'openland-module-db/fastWatch';
+import { NotFoundError } from '../openland-errors/NotFoundError';
 
 // @ts-ignore
 // const resolveNearestTurn = async (latLong: { lat: number, long: number }) => {
@@ -275,6 +276,11 @@ export const Resolver: GQLResolver = {
                     capabilities = args.input.capabilities;
                 }
 
+                let conv = await Store.Conversation.findById(ctx, cid);
+                if (!conv) {
+                    throw new NotFoundError();
+                }
+
                 // Not allowing join the conference is its private chat
                 // cid is room so lets fetch the room
                 let privateConv = await Store.ConversationPrivate.findById(ctx, cid);
@@ -289,7 +295,7 @@ export const Resolver: GQLResolver = {
 
                 let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 15000, args.kind === 'STREAM' ? 'stream' : 'conference', capabilities, ctx.req.ip || 'unknown');
                 let activeMembers = await Modules.Calls.repo.findActiveMembers(ctx, cid);
-                if (activeMembers.length === 1) {
+                if (activeMembers.length === 1 && conv.kind !== 'voice') {
                     let fullName = await Modules.Users.getUserFullName(ctx, uid);
                     await Modules.Messaging.sendMessage(ctx, cid, uid, {
                         ...buildMessage(userMention(fullName, uid), ' started a\u00A0call'),
