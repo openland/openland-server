@@ -128,6 +128,13 @@ export class ParticipantsRepository {
             this.#counter(cid, 'admin').increment(ctx);
         }
 
+        // Update atomic with current active chat
+        if (Status.isJoined(status)) {
+            Store.VoiceChatParticipantActive.byId(uid).set(ctx, cid);
+        } else {
+            Store.VoiceChatParticipantActive.byId(uid).set(ctx, 0);
+        }
+
         participant.status = status;
     }
 
