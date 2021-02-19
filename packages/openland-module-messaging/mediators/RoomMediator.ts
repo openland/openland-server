@@ -867,7 +867,7 @@ export class RoomMediator {
         if (conv.kind === 'private') {
             let proom = (await Store.ConversationPrivate.findById(ctx, cid))!;
             await this.events.onPrivateChatUpdated(ctx, cid, [proom.uid1, proom.uid2]);
-        } else {
+        } else if (conv.kind === 'room') {
             await this.events.onGroupChatUpdated(ctx, cid);
         }
     }
