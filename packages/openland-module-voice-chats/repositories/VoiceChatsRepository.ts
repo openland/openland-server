@@ -3,6 +3,7 @@ import { Context } from '@openland/context';
 import { Store } from '../../openland-module-db/FDB';
 import { fetchNextDBSeq } from '../../openland-utils/dbSeq';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
+import { notifyFastWatch } from '../../openland-module-db/fastWatch';
 
 @injectable()
 export class VoiceChatsRepository {
@@ -18,12 +19,16 @@ export class VoiceChatsRepository {
     updateChat = async (ctx: Context, id: number, title: string) => {
         let chat = await this.#getChatOrFail(ctx, id);
         chat.title = title;
+
+        this.notifyChatUpdated(ctx, id);
         return chat;
     }
 
     setChatActive = async (ctx: Context, id: number, active: boolean) => {
         let chat = await this.#getChatOrFail(ctx, id);
         chat.active = active;
+        
+        this.notifyChatUpdated(ctx, id);
         return chat;
     }
 
@@ -33,5 +38,9 @@ export class VoiceChatsRepository {
             throw new NotFoundError();
         }
         return chat;
+    }
+
+    notifyChatUpdated = (ctx: Context, id: number) => {
+        notifyFastWatch(ctx, `voice-chat-${id}`);
     }
 }

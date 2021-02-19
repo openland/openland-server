@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'a9d423710aa7c3fb24ddc504f3908c61';
+export const GQL_SPEC_VERSION = '5c4792279d5808d3bd4f1b39b58d68eb';
 
 export namespace GQL {
     export interface CreditCard {
@@ -4807,6 +4807,7 @@ export namespace GQL {
         alphaSubscribeOnline: OnlineEvent;
         chatOnlinesCount: ChatOnlineEvent;
         typings: TypingEvent;
+        voiceChatWatch: VoiceChat;
         conferenceWatch: Conference;
         conferenceMediaWatch: ConferenceMedia;
     }
@@ -4871,6 +4872,9 @@ export namespace GQL {
         chatId: string;
     }
     export interface SubscriptionTypingsArgs { }
+    export interface SubscriptionVoiceChatWatchArgs {
+        id: string;
+    }
     export interface SubscriptionConferenceWatchArgs {
         id: string;
     }
@@ -10122,6 +10126,7 @@ export interface GQLResolver {
             alphaSubscribeOnline: GQLRoots.OnlineEventRoot,
             chatOnlinesCount: GQLRoots.ChatOnlineEventRoot,
             typings: GQLRoots.TypingEventRoot,
+            voiceChatWatch: GQLRoots.VoiceChatRoot,
             conferenceWatch: GQLRoots.ConferenceRoot,
             conferenceMediaWatch: GQLRoots.ConferenceMediaRoot,
         },
@@ -10149,6 +10154,7 @@ export interface GQLResolver {
             alphaSubscribeOnline: GQL.SubscriptionAlphaSubscribeOnlineArgs,
             chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs,
             typings: GQL.SubscriptionTypingsArgs,
+            voiceChatWatch: GQL.SubscriptionVoiceChatWatchArgs,
             conferenceWatch: GQL.SubscriptionConferenceWatchArgs,
             conferenceMediaWatch: GQL.SubscriptionConferenceMediaWatchArgs,
         }
