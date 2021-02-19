@@ -1,5 +1,5 @@
 import { Capabilities } from './repositories/CallScheduler';
-import { ConferenceRoom, ConferencePeer } from './../openland-module-db/store';
+import { ConferenceRoom, ConferencePeer, Conversation } from './../openland-module-db/store';
 import { inTx } from '@openland/foundationdb';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
@@ -55,6 +55,17 @@ const resolveMeshStreamLink = async (src: { id: string, pid: number }, ctx: Cont
 };
 
 export const Resolver: GQLResolver = {
+    ConferenceParent: {
+        __resolveType(obj: Conversation) {
+            if (obj.kind === 'voice') {
+                return 'VoiceChat';
+            } else if (obj.kind === 'room' || obj.kind === 'private') {
+                return 'Room';
+            } else {
+                throw new Error('Unsupported conversation type');
+            }
+        }
+    },
     Conference: {
         id: (src: ConferenceRoom) => IDs.Conference.serialize(src.id),
         startTime: (src: ConferenceRoom) => src.startTime,
@@ -65,7 +76,13 @@ export const Resolver: GQLResolver = {
         },
         room: async (src: ConferenceRoom, args: {}, ctx: Context) => {
             let chat = await Store.Conversation.findById(ctx, src.id);
-            return chat;
+            if (chat?.kind === 'room' || chat?.kind === 'private') {
+                return chat;
+            }
+            return null;
+        },
+        parent: async (src: ConferenceRoom, args: {}, ctx: Context) => {
+            return await Store.Conversation.findById(ctx, src.id);
         },
 
         // Deprecated

@@ -230,6 +230,7 @@ export namespace GQLRoots {
     export type ConferencePeerRoot = ConferencePeer;
     export type ConferencePeerMediaStateRoot = { audioPaused: boolean, videoPaused: boolean, screencastEnabled: boolean };
     export type ConferenceJoinResultRoot = { peerId: string, conference: ConferenceRoot };
+    export type ConferenceParentRoot = Conversation;
     export type ConferenceRoot = ConferenceRoom;
     export type ConferenceMediaRoot = { id: number, peerId: number };
     export type MediaStreamStateRoot =

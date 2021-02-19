@@ -1,8 +1,11 @@
+union ConferenceParent = Room | VoiceChat
+
 type Conference {
   id: ID!
   startTime: Date
   peers: [ConferencePeer!]!
   room: Room
+  parent: ConferenceParent
 }
 
 type ConferencePeer {
@@ -108,7 +111,7 @@ type MediaStream {
   seq: Int!
   state: MediaStreamState!
   sdp: String
-  
+
   # ICE Candidates
   ice: [String!]!
   iceTransportPolicy: IceTransportPolicy!
@@ -118,7 +121,7 @@ type MediaStream {
   senders: [MediaSender!]!
 }
 
-enum MediaDirection { 
+enum MediaDirection {
   SEND
   RECEIVE
 }

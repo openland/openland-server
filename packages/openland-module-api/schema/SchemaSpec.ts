@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0b3d78baf144080873333bf1ca8a9ba0';
+export const GQL_SPEC_VERSION = 'c8535df62f045803900a3f6d52313844';
 
 export namespace GQL {
     export interface CreditCard {
@@ -1241,170 +1241,6 @@ export namespace GQL {
         type: Nullable<CommentSubscriptionType>;
     }
     export interface CommentSubscriptionTypeArgs { }
-    export interface Conference {
-        id: string;
-        startTime: Nullable<Date>;
-        peers: ConferencePeer[];
-        room: Nullable<Room>;
-        kind: ConferenceKind;
-        iceServers: ICEServer[];
-        strategy: ConferenceStrategy;
-    }
-    export interface ConferenceIdArgs { }
-    export interface ConferenceStartTimeArgs { }
-    export interface ConferencePeersArgs { }
-    export interface ConferenceRoomArgs { }
-    export interface ConferenceKindArgs { }
-    export interface ConferenceIceServersArgs { }
-    export interface ConferenceStrategyArgs { }
-    export interface ConferencePeer {
-        id: string;
-        user: User;
-        mediaState: ConferencePeerMediaState;
-    }
-    export interface ConferencePeerIdArgs { }
-    export interface ConferencePeerUserArgs { }
-    export interface ConferencePeerMediaStateArgs { }
-    export interface ConferencePeerMediaState {
-        audioPaused: boolean;
-        videoPaused: boolean;
-        screencastEnabled: boolean;
-    }
-    export interface ConferencePeerMediaStateAudioPausedArgs { }
-    export interface ConferencePeerMediaStateVideoPausedArgs { }
-    export interface ConferencePeerMediaStateScreencastEnabledArgs { }
-    export interface MediaHeaderExtension {
-        kind: string;
-        uri: string;
-        preferredId: number;
-    }
-    export interface MediaRtcpFeedback {
-        type: string;
-        value: Nullable<string>;
-    }
-    export interface CodecParameter {
-        key: string;
-        value: string;
-    }
-    export interface CodecCapabilities {
-        kind: string;
-        mimeType: string;
-        preferredPayloadType: number;
-        clockRate: number;
-        channels: Nullable<number>;
-        parameters: CodecParameter[];
-        rtcpFeedback: MediaRtcpFeedback[];
-    }
-    export interface MediaCapabilities {
-        codecs: CodecCapabilities[];
-        headerExtensions: MediaHeaderExtension[];
-    }
-    export interface ICEServer {
-        urls: string[];
-        username: Nullable<string>;
-        credential: Nullable<string>;
-    }
-    export interface ICEServerUrlsArgs { }
-    export interface ICEServerUsernameArgs { }
-    export interface ICEServerCredentialArgs { }
-    export interface ConferenceMedia {
-        id: string;
-        streams: MediaStream[];
-        iceServers: ICEServer[];
-        localMedia: LocalMediaState;
-    }
-    export interface ConferenceMediaIdArgs { }
-    export interface ConferenceMediaStreamsArgs { }
-    export interface ConferenceMediaIceServersArgs { }
-    export interface ConferenceMediaLocalMediaArgs { }
-    export type MediaStreamStateValues = 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY';
-    export type MediaStreamState = GQLRoots.MediaStreamStateRoot;
-    export type IceTransportPolicyValues = 'ALL' | 'RELAY' | 'NONE';
-    export type IceTransportPolicy = GQLRoots.IceTransportPolicyRoot;
-    export type VideoSourceValues = 'CAMERA' | 'SCREEN';
-    export type VideoSource = GQLRoots.VideoSourceRoot;
-    export type MediaKindValues = 'AUDIO' | 'VIDEO';
-    export type MediaKind = GQLRoots.MediaKindRoot;
-    export interface MediaSender {
-        kind: MediaKind;
-        videoSource: Nullable<VideoSource>;
-        codecParams: Nullable<string>;
-        mid: Nullable<string>;
-    }
-    export interface MediaSenderKindArgs { }
-    export interface MediaSenderVideoSourceArgs { }
-    export interface MediaSenderCodecParamsArgs { }
-    export interface MediaSenderMidArgs { }
-    export interface MediaReceiver {
-        peerId: Nullable<string>;
-        kind: MediaKind;
-        videoSource: Nullable<VideoSource>;
-        mid: Nullable<string>;
-    }
-    export interface MediaReceiverPeerIdArgs { }
-    export interface MediaReceiverKindArgs { }
-    export interface MediaReceiverVideoSourceArgs { }
-    export interface MediaReceiverMidArgs { }
-    export interface MediaStream {
-        id: string;
-        seq: number;
-        state: MediaStreamState;
-        sdp: Nullable<string>;
-        ice: string[];
-        iceTransportPolicy: IceTransportPolicy;
-        receivers: MediaReceiver[];
-        senders: MediaSender[];
-        settings: MediaStreamSettings;
-        mediaState: MediaStreamMediaState;
-        localStreams: LocalStreamConfig[];
-        peerId: Nullable<string>;
-    }
-    export interface MediaStreamIdArgs { }
-    export interface MediaStreamSeqArgs { }
-    export interface MediaStreamStateArgs { }
-    export interface MediaStreamSdpArgs { }
-    export interface MediaStreamIceArgs { }
-    export interface MediaStreamIceTransportPolicyArgs { }
-    export interface MediaStreamReceiversArgs { }
-    export interface MediaStreamSendersArgs { }
-    export interface MediaStreamSettingsArgs { }
-    export interface MediaStreamMediaStateArgs { }
-    export interface MediaStreamLocalStreamsArgs { }
-    export interface MediaStreamPeerIdArgs { }
-    export type MediaDirectionValues = 'SEND' | 'RECEIVE';
-    export type MediaDirection = GQLRoots.MediaDirectionRoot;
-    export interface MediaStreamHint {
-        peerId: Nullable<string>;
-        kind: MediaKind;
-        videoSource: Nullable<VideoSource>;
-        direction: MediaDirection;
-        mid: string;
-    }
-    export interface ConferenceJoinResult {
-        peerId: string;
-        conference: Conference;
-    }
-    export interface ConferenceJoinResultPeerIdArgs { }
-    export interface ConferenceJoinResultConferenceArgs { }
-    export interface ConferenceJoinInput {
-        media: LocalMediaInput;
-        capabilities: Nullable<MediaCapabilities>;
-    }
-    export interface LocalMediaInput {
-        supportsVideo: boolean;
-        supportsAudio: boolean;
-        wantSendVideo: boolean;
-        wantSendAudio: boolean;
-        wantSendScreencast: boolean;
-    }
-    export interface LocalMediaState {
-        sendVideo: boolean;
-        sendAudio: boolean;
-        sendScreencast: boolean;
-    }
-    export interface LocalMediaStateSendVideoArgs { }
-    export interface LocalMediaStateSendAudioArgs { }
-    export interface LocalMediaStateSendScreencastArgs { }
     export interface Contact {
         id: string;
         user: User;
@@ -2295,14 +2131,6 @@ export namespace GQL {
         commentReactionRemove: boolean;
         subscribeToComments: boolean;
         unsubscribeFromComments: boolean;
-        conferenceJoin: ConferenceJoinResult;
-        conferenceKeepAlive: Conference;
-        conferenceLeave: Conference;
-        conferenceRequestLocalMediaChange: Conference;
-        mediaStreamOffer: ConferenceMedia;
-        mediaStreamAnswer: ConferenceMedia;
-        mediaStreamCandidate: ConferenceMedia;
-        mediaStreamFailed: ConferenceMedia;
         addToContacts: boolean;
         removeFromContacts: boolean;
         profileCreate: Profile;
@@ -2388,6 +2216,14 @@ export namespace GQL {
         voiceChatCreate: VoiceChat;
         voiceChatUpdate: VoiceChat;
         voiceChatEnd: VoiceChat;
+        conferenceJoin: ConferenceJoinResult;
+        conferenceKeepAlive: Conference;
+        conferenceLeave: Conference;
+        conferenceRequestLocalMediaChange: Conference;
+        mediaStreamOffer: ConferenceMedia;
+        mediaStreamAnswer: ConferenceMedia;
+        mediaStreamCandidate: ConferenceMedia;
+        mediaStreamFailed: ConferenceMedia;
         alphaCreateFeedPost: FeedItem;
         alphaEditFeedPost: FeedItem;
         alphaDeleteFeedPost: boolean;
@@ -2972,45 +2808,6 @@ export namespace GQL {
     export interface MutationUnsubscribeFromCommentsArgs {
         peerId: string;
     }
-    export interface MutationConferenceJoinArgs {
-        id: string;
-        input: OptionalNullable<ConferenceJoinInput>;
-        kind: OptionalNullable<ConferenceKind>;
-    }
-    export interface MutationConferenceKeepAliveArgs {
-        id: string;
-        peerId: string;
-    }
-    export interface MutationConferenceLeaveArgs {
-        id: string;
-        peerId: string;
-    }
-    export interface MutationConferenceRequestLocalMediaChangeArgs {
-        id: string;
-        media: LocalMediaInput;
-    }
-    export interface MutationMediaStreamOfferArgs {
-        id: string;
-        peerId: string;
-        offer: string;
-        seq: OptionalNullable<number>;
-        hints: OptionalNullable<MediaStreamHint[]>;
-    }
-    export interface MutationMediaStreamAnswerArgs {
-        id: string;
-        peerId: string;
-        answer: string;
-        seq: OptionalNullable<number>;
-    }
-    export interface MutationMediaStreamCandidateArgs {
-        id: string;
-        peerId: string;
-        candidate: string;
-    }
-    export interface MutationMediaStreamFailedArgs {
-        id: string;
-        peerId: string;
-    }
     export interface MutationAddToContactsArgs {
         userId: string;
     }
@@ -3304,6 +3101,45 @@ export namespace GQL {
     }
     export interface MutationVoiceChatEndArgs {
         id: string;
+    }
+    export interface MutationConferenceJoinArgs {
+        id: string;
+        input: OptionalNullable<ConferenceJoinInput>;
+        kind: OptionalNullable<ConferenceKind>;
+    }
+    export interface MutationConferenceKeepAliveArgs {
+        id: string;
+        peerId: string;
+    }
+    export interface MutationConferenceLeaveArgs {
+        id: string;
+        peerId: string;
+    }
+    export interface MutationConferenceRequestLocalMediaChangeArgs {
+        id: string;
+        media: LocalMediaInput;
+    }
+    export interface MutationMediaStreamOfferArgs {
+        id: string;
+        peerId: string;
+        offer: string;
+        seq: OptionalNullable<number>;
+        hints: OptionalNullable<MediaStreamHint[]>;
+    }
+    export interface MutationMediaStreamAnswerArgs {
+        id: string;
+        peerId: string;
+        answer: string;
+        seq: OptionalNullable<number>;
+    }
+    export interface MutationMediaStreamCandidateArgs {
+        id: string;
+        peerId: string;
+        candidate: string;
+    }
+    export interface MutationMediaStreamFailedArgs {
+        id: string;
+        peerId: string;
     }
     export interface MutationAlphaCreateFeedPostArgs {
         channel: string;
@@ -4154,8 +3990,6 @@ export namespace GQL {
         postComments: CommentsPeer;
         comments: CommentsPeer;
         commentEntry: Nullable<CommentEntry>;
-        conference: Conference;
-        conferenceMedia: ConferenceMedia;
         myContacts: ContactConnection;
         myContactsSearch: UserConnection;
         myContactsState: ContactsState;
@@ -4227,6 +4061,8 @@ export namespace GQL {
         alphaProfiles: UserConnection;
         voiceChat: VoiceChat;
         activeVoiceChats: VoiceChatConnection;
+        conference: Conference;
+        conferenceMedia: ConferenceMedia;
         alphaHomeFeed: FeedItemConnection;
         alphaFeedItem: Nullable<FeedItem>;
         alphaFeedChannel: FeedChannel;
@@ -4491,13 +4327,6 @@ export namespace GQL {
     export interface QueryCommentEntryArgs {
         entryId: string;
     }
-    export interface QueryConferenceArgs {
-        id: string;
-    }
-    export interface QueryConferenceMediaArgs {
-        id: string;
-        peerId: string;
-    }
     export interface QueryMyContactsArgs {
         first: number;
         after: OptionalNullable<string>;
@@ -4722,6 +4551,13 @@ export namespace GQL {
     export interface QueryActiveVoiceChatsArgs {
         first: number;
         after: OptionalNullable<string>;
+    }
+    export interface QueryConferenceArgs {
+        id: string;
+    }
+    export interface QueryConferenceMediaArgs {
+        id: string;
+        peerId: string;
     }
     export interface QueryAlphaHomeFeedArgs {
         first: number;
@@ -4963,8 +4799,6 @@ export namespace GQL {
         blackListUpdates: BlackListUpdateContainer;
         chatUpdates: ChatUpdateContainer;
         commentUpdates: Nullable<CommentUpdateContainer>;
-        conferenceWatch: Conference;
-        conferenceMediaWatch: ConferenceMedia;
         myContactsUpdates: ContactsUpdateContainer;
         dialogsUpdates: DialogUpdateContainer;
         homeFeedUpdates: FeedUpdateContainer;
@@ -4973,6 +4807,8 @@ export namespace GQL {
         alphaSubscribeOnline: OnlineEvent;
         chatOnlinesCount: ChatOnlineEvent;
         typings: TypingEvent;
+        conferenceWatch: Conference;
+        conferenceMediaWatch: ConferenceMedia;
     }
     export interface SubscriptionLifecheckArgs { }
     export interface SubscriptionWalletUpdatesArgs {
@@ -5015,13 +4851,6 @@ export namespace GQL {
         peerId: string;
         fromState: OptionalNullable<string>;
     }
-    export interface SubscriptionConferenceWatchArgs {
-        id: string;
-    }
-    export interface SubscriptionConferenceMediaWatchArgs {
-        id: string;
-        peerId: string;
-    }
     export interface SubscriptionMyContactsUpdatesArgs {
         fromState: string;
     }
@@ -5042,6 +4871,13 @@ export namespace GQL {
         chatId: string;
     }
     export interface SubscriptionTypingsArgs { }
+    export interface SubscriptionConferenceWatchArgs {
+        id: string;
+    }
+    export interface SubscriptionConferenceMediaWatchArgs {
+        id: string;
+        peerId: string;
+    }
     export interface SyncChat {
         sequence: Sequence;
         pts: number;
@@ -5349,6 +5185,173 @@ export namespace GQL {
     }
     export interface VoiceChatConnectionItemsArgs { }
     export interface VoiceChatConnectionCursorArgs { }
+    export type ConferenceParent = Room | VoiceChat;
+    export interface Conference {
+        id: string;
+        startTime: Nullable<Date>;
+        peers: ConferencePeer[];
+        room: Nullable<Room>;
+        parent: Nullable<ConferenceParent>;
+        kind: ConferenceKind;
+        iceServers: ICEServer[];
+        strategy: ConferenceStrategy;
+    }
+    export interface ConferenceIdArgs { }
+    export interface ConferenceStartTimeArgs { }
+    export interface ConferencePeersArgs { }
+    export interface ConferenceRoomArgs { }
+    export interface ConferenceParentArgs { }
+    export interface ConferenceKindArgs { }
+    export interface ConferenceIceServersArgs { }
+    export interface ConferenceStrategyArgs { }
+    export interface ConferencePeer {
+        id: string;
+        user: User;
+        mediaState: ConferencePeerMediaState;
+    }
+    export interface ConferencePeerIdArgs { }
+    export interface ConferencePeerUserArgs { }
+    export interface ConferencePeerMediaStateArgs { }
+    export interface ConferencePeerMediaState {
+        audioPaused: boolean;
+        videoPaused: boolean;
+        screencastEnabled: boolean;
+    }
+    export interface ConferencePeerMediaStateAudioPausedArgs { }
+    export interface ConferencePeerMediaStateVideoPausedArgs { }
+    export interface ConferencePeerMediaStateScreencastEnabledArgs { }
+    export interface MediaHeaderExtension {
+        kind: string;
+        uri: string;
+        preferredId: number;
+    }
+    export interface MediaRtcpFeedback {
+        type: string;
+        value: Nullable<string>;
+    }
+    export interface CodecParameter {
+        key: string;
+        value: string;
+    }
+    export interface CodecCapabilities {
+        kind: string;
+        mimeType: string;
+        preferredPayloadType: number;
+        clockRate: number;
+        channels: Nullable<number>;
+        parameters: CodecParameter[];
+        rtcpFeedback: MediaRtcpFeedback[];
+    }
+    export interface MediaCapabilities {
+        codecs: CodecCapabilities[];
+        headerExtensions: MediaHeaderExtension[];
+    }
+    export interface ICEServer {
+        urls: string[];
+        username: Nullable<string>;
+        credential: Nullable<string>;
+    }
+    export interface ICEServerUrlsArgs { }
+    export interface ICEServerUsernameArgs { }
+    export interface ICEServerCredentialArgs { }
+    export interface ConferenceMedia {
+        id: string;
+        streams: MediaStream[];
+        iceServers: ICEServer[];
+        localMedia: LocalMediaState;
+    }
+    export interface ConferenceMediaIdArgs { }
+    export interface ConferenceMediaStreamsArgs { }
+    export interface ConferenceMediaIceServersArgs { }
+    export interface ConferenceMediaLocalMediaArgs { }
+    export type MediaStreamStateValues = 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY';
+    export type MediaStreamState = GQLRoots.MediaStreamStateRoot;
+    export type IceTransportPolicyValues = 'ALL' | 'RELAY' | 'NONE';
+    export type IceTransportPolicy = GQLRoots.IceTransportPolicyRoot;
+    export type VideoSourceValues = 'CAMERA' | 'SCREEN';
+    export type VideoSource = GQLRoots.VideoSourceRoot;
+    export type MediaKindValues = 'AUDIO' | 'VIDEO';
+    export type MediaKind = GQLRoots.MediaKindRoot;
+    export interface MediaSender {
+        kind: MediaKind;
+        videoSource: Nullable<VideoSource>;
+        codecParams: Nullable<string>;
+        mid: Nullable<string>;
+    }
+    export interface MediaSenderKindArgs { }
+    export interface MediaSenderVideoSourceArgs { }
+    export interface MediaSenderCodecParamsArgs { }
+    export interface MediaSenderMidArgs { }
+    export interface MediaReceiver {
+        peerId: Nullable<string>;
+        kind: MediaKind;
+        videoSource: Nullable<VideoSource>;
+        mid: Nullable<string>;
+    }
+    export interface MediaReceiverPeerIdArgs { }
+    export interface MediaReceiverKindArgs { }
+    export interface MediaReceiverVideoSourceArgs { }
+    export interface MediaReceiverMidArgs { }
+    export interface MediaStream {
+        id: string;
+        seq: number;
+        state: MediaStreamState;
+        sdp: Nullable<string>;
+        ice: string[];
+        iceTransportPolicy: IceTransportPolicy;
+        receivers: MediaReceiver[];
+        senders: MediaSender[];
+        settings: MediaStreamSettings;
+        mediaState: MediaStreamMediaState;
+        localStreams: LocalStreamConfig[];
+        peerId: Nullable<string>;
+    }
+    export interface MediaStreamIdArgs { }
+    export interface MediaStreamSeqArgs { }
+    export interface MediaStreamStateArgs { }
+    export interface MediaStreamSdpArgs { }
+    export interface MediaStreamIceArgs { }
+    export interface MediaStreamIceTransportPolicyArgs { }
+    export interface MediaStreamReceiversArgs { }
+    export interface MediaStreamSendersArgs { }
+    export interface MediaStreamSettingsArgs { }
+    export interface MediaStreamMediaStateArgs { }
+    export interface MediaStreamLocalStreamsArgs { }
+    export interface MediaStreamPeerIdArgs { }
+    export type MediaDirectionValues = 'SEND' | 'RECEIVE';
+    export type MediaDirection = GQLRoots.MediaDirectionRoot;
+    export interface MediaStreamHint {
+        peerId: Nullable<string>;
+        kind: MediaKind;
+        videoSource: Nullable<VideoSource>;
+        direction: MediaDirection;
+        mid: string;
+    }
+    export interface ConferenceJoinResult {
+        peerId: string;
+        conference: Conference;
+    }
+    export interface ConferenceJoinResultPeerIdArgs { }
+    export interface ConferenceJoinResultConferenceArgs { }
+    export interface ConferenceJoinInput {
+        media: LocalMediaInput;
+        capabilities: Nullable<MediaCapabilities>;
+    }
+    export interface LocalMediaInput {
+        supportsVideo: boolean;
+        supportsAudio: boolean;
+        wantSendVideo: boolean;
+        wantSendAudio: boolean;
+        wantSendScreencast: boolean;
+    }
+    export interface LocalMediaState {
+        sendVideo: boolean;
+        sendAudio: boolean;
+        sendScreencast: boolean;
+    }
+    export interface LocalMediaStateSendVideoArgs { }
+    export interface LocalMediaStateSendAudioArgs { }
+    export interface LocalMediaStateSendScreencastArgs { }
     export type FeedItem = FeedPost;
     export type FeedPostAuthor = User;
     export type FeedPostSource = FeedChannel;
@@ -7792,150 +7795,6 @@ export interface GQLResolver {
             type: GQL.CommentSubscriptionTypeArgs,
         }
     >;
-    Conference?: ComplexTypedResolver<
-        GQL.Conference,
-        GQLRoots.ConferenceRoot,
-        {
-            peers: GQLRoots.ConferencePeerRoot[],
-            room: Nullable<GQLRoots.RoomRoot>,
-            iceServers: GQLRoots.ICEServerRoot[],
-        },
-        {
-            id: GQL.ConferenceIdArgs,
-            startTime: GQL.ConferenceStartTimeArgs,
-            peers: GQL.ConferencePeersArgs,
-            room: GQL.ConferenceRoomArgs,
-            kind: GQL.ConferenceKindArgs,
-            iceServers: GQL.ConferenceIceServersArgs,
-            strategy: GQL.ConferenceStrategyArgs,
-        }
-    >;
-    ConferencePeer?: ComplexTypedResolver<
-        GQL.ConferencePeer,
-        GQLRoots.ConferencePeerRoot,
-        {
-            user: GQLRoots.UserRoot,
-            mediaState: GQLRoots.ConferencePeerMediaStateRoot,
-        },
-        {
-            id: GQL.ConferencePeerIdArgs,
-            user: GQL.ConferencePeerUserArgs,
-            mediaState: GQL.ConferencePeerMediaStateArgs,
-        }
-    >;
-    ConferencePeerMediaState?: ComplexTypedResolver<
-        GQL.ConferencePeerMediaState,
-        GQLRoots.ConferencePeerMediaStateRoot,
-        {
-        },
-        {
-            audioPaused: GQL.ConferencePeerMediaStateAudioPausedArgs,
-            videoPaused: GQL.ConferencePeerMediaStateVideoPausedArgs,
-            screencastEnabled: GQL.ConferencePeerMediaStateScreencastEnabledArgs,
-        }
-    >;
-    ICEServer?: ComplexTypedResolver<
-        GQL.ICEServer,
-        GQLRoots.ICEServerRoot,
-        {
-        },
-        {
-            urls: GQL.ICEServerUrlsArgs,
-            username: GQL.ICEServerUsernameArgs,
-            credential: GQL.ICEServerCredentialArgs,
-        }
-    >;
-    ConferenceMedia?: ComplexTypedResolver<
-        GQL.ConferenceMedia,
-        GQLRoots.ConferenceMediaRoot,
-        {
-            streams: GQLRoots.MediaStreamRoot[],
-            iceServers: GQLRoots.ICEServerRoot[],
-            localMedia: GQLRoots.LocalMediaStateRoot,
-        },
-        {
-            id: GQL.ConferenceMediaIdArgs,
-            streams: GQL.ConferenceMediaStreamsArgs,
-            iceServers: GQL.ConferenceMediaIceServersArgs,
-            localMedia: GQL.ConferenceMediaLocalMediaArgs,
-        }
-    >;
-    MediaStreamState?: EnumTypeResolver<'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY', GQLRoots.MediaStreamStateRoot>;
-    IceTransportPolicy?: EnumTypeResolver<'ALL' | 'RELAY' | 'NONE', GQLRoots.IceTransportPolicyRoot>;
-    VideoSource?: EnumTypeResolver<'CAMERA' | 'SCREEN', GQLRoots.VideoSourceRoot>;
-    MediaKind?: EnumTypeResolver<'AUDIO' | 'VIDEO', GQLRoots.MediaKindRoot>;
-    MediaSender?: ComplexTypedResolver<
-        GQL.MediaSender,
-        GQLRoots.MediaSenderRoot,
-        {
-        },
-        {
-            kind: GQL.MediaSenderKindArgs,
-            videoSource: GQL.MediaSenderVideoSourceArgs,
-            codecParams: GQL.MediaSenderCodecParamsArgs,
-            mid: GQL.MediaSenderMidArgs,
-        }
-    >;
-    MediaReceiver?: ComplexTypedResolver<
-        GQL.MediaReceiver,
-        GQLRoots.MediaReceiverRoot,
-        {
-        },
-        {
-            peerId: GQL.MediaReceiverPeerIdArgs,
-            kind: GQL.MediaReceiverKindArgs,
-            videoSource: GQL.MediaReceiverVideoSourceArgs,
-            mid: GQL.MediaReceiverMidArgs,
-        }
-    >;
-    MediaStream?: ComplexTypedResolver<
-        GQL.MediaStream,
-        GQLRoots.MediaStreamRoot,
-        {
-            receivers: GQLRoots.MediaReceiverRoot[],
-            senders: GQLRoots.MediaSenderRoot[],
-            settings: GQLRoots.MediaStreamSettingsRoot,
-            mediaState: GQLRoots.MediaStreamMediaStateRoot,
-            localStreams: GQLRoots.LocalStreamConfigRoot[],
-        },
-        {
-            id: GQL.MediaStreamIdArgs,
-            seq: GQL.MediaStreamSeqArgs,
-            state: GQL.MediaStreamStateArgs,
-            sdp: GQL.MediaStreamSdpArgs,
-            ice: GQL.MediaStreamIceArgs,
-            iceTransportPolicy: GQL.MediaStreamIceTransportPolicyArgs,
-            receivers: GQL.MediaStreamReceiversArgs,
-            senders: GQL.MediaStreamSendersArgs,
-            settings: GQL.MediaStreamSettingsArgs,
-            mediaState: GQL.MediaStreamMediaStateArgs,
-            localStreams: GQL.MediaStreamLocalStreamsArgs,
-            peerId: GQL.MediaStreamPeerIdArgs,
-        }
-    >;
-    MediaDirection?: EnumTypeResolver<'SEND' | 'RECEIVE', GQLRoots.MediaDirectionRoot>;
-    ConferenceJoinResult?: ComplexTypedResolver<
-        GQL.ConferenceJoinResult,
-        GQLRoots.ConferenceJoinResultRoot,
-        {
-            conference: GQLRoots.ConferenceRoot,
-        },
-        {
-            peerId: GQL.ConferenceJoinResultPeerIdArgs,
-            conference: GQL.ConferenceJoinResultConferenceArgs,
-        }
-    >;
-    LocalMediaState?: ComplexTypedResolver<
-        GQL.LocalMediaState,
-        GQLRoots.LocalMediaStateRoot,
-        {
-        },
-        {
-            sendVideo: GQL.LocalMediaStateSendVideoArgs,
-            sendAudio: GQL.LocalMediaStateSendAudioArgs,
-            sendScreencast: GQL.LocalMediaStateSendScreencastArgs,
-        }
-    >;
     Contact?: ComplexTypedResolver<
         GQL.Contact,
         GQLRoots.ContactRoot,
@@ -8831,14 +8690,6 @@ export interface GQLResolver {
             userStorageSet: GQLRoots.AppStorageValueRoot[],
             betaAddComment: GQLRoots.CommentEntryRoot,
             betaAddStickerComment: GQLRoots.CommentEntryRoot,
-            conferenceJoin: GQLRoots.ConferenceJoinResultRoot,
-            conferenceKeepAlive: GQLRoots.ConferenceRoot,
-            conferenceLeave: GQLRoots.ConferenceRoot,
-            conferenceRequestLocalMediaChange: GQLRoots.ConferenceRoot,
-            mediaStreamOffer: GQLRoots.ConferenceMediaRoot,
-            mediaStreamAnswer: GQLRoots.ConferenceMediaRoot,
-            mediaStreamCandidate: GQLRoots.ConferenceMediaRoot,
-            mediaStreamFailed: GQLRoots.ConferenceMediaRoot,
             profileCreate: GQLRoots.ProfileRoot,
             profileUpdate: GQLRoots.ProfileRoot,
             conversationDraftUpdate: GQLRoots.DraftRoot,
@@ -8874,6 +8725,14 @@ export interface GQLResolver {
             voiceChatCreate: GQLRoots.VoiceChatRoot,
             voiceChatUpdate: GQLRoots.VoiceChatRoot,
             voiceChatEnd: GQLRoots.VoiceChatRoot,
+            conferenceJoin: GQLRoots.ConferenceJoinResultRoot,
+            conferenceKeepAlive: GQLRoots.ConferenceRoot,
+            conferenceLeave: GQLRoots.ConferenceRoot,
+            conferenceRequestLocalMediaChange: GQLRoots.ConferenceRoot,
+            mediaStreamOffer: GQLRoots.ConferenceMediaRoot,
+            mediaStreamAnswer: GQLRoots.ConferenceMediaRoot,
+            mediaStreamCandidate: GQLRoots.ConferenceMediaRoot,
+            mediaStreamFailed: GQLRoots.ConferenceMediaRoot,
             alphaCreateFeedPost: GQLRoots.FeedItemRoot,
             alphaEditFeedPost: GQLRoots.FeedItemRoot,
             alphaFeedCreateChannel: GQLRoots.FeedChannelRoot,
@@ -9094,14 +8953,6 @@ export interface GQLResolver {
             commentReactionRemove: GQL.MutationCommentReactionRemoveArgs,
             subscribeToComments: GQL.MutationSubscribeToCommentsArgs,
             unsubscribeFromComments: GQL.MutationUnsubscribeFromCommentsArgs,
-            conferenceJoin: GQL.MutationConferenceJoinArgs,
-            conferenceKeepAlive: GQL.MutationConferenceKeepAliveArgs,
-            conferenceLeave: GQL.MutationConferenceLeaveArgs,
-            conferenceRequestLocalMediaChange: GQL.MutationConferenceRequestLocalMediaChangeArgs,
-            mediaStreamOffer: GQL.MutationMediaStreamOfferArgs,
-            mediaStreamAnswer: GQL.MutationMediaStreamAnswerArgs,
-            mediaStreamCandidate: GQL.MutationMediaStreamCandidateArgs,
-            mediaStreamFailed: GQL.MutationMediaStreamFailedArgs,
             addToContacts: GQL.MutationAddToContactsArgs,
             removeFromContacts: GQL.MutationRemoveFromContactsArgs,
             profileCreate: GQL.MutationProfileCreateArgs,
@@ -9187,6 +9038,14 @@ export interface GQLResolver {
             voiceChatCreate: GQL.MutationVoiceChatCreateArgs,
             voiceChatUpdate: GQL.MutationVoiceChatUpdateArgs,
             voiceChatEnd: GQL.MutationVoiceChatEndArgs,
+            conferenceJoin: GQL.MutationConferenceJoinArgs,
+            conferenceKeepAlive: GQL.MutationConferenceKeepAliveArgs,
+            conferenceLeave: GQL.MutationConferenceLeaveArgs,
+            conferenceRequestLocalMediaChange: GQL.MutationConferenceRequestLocalMediaChangeArgs,
+            mediaStreamOffer: GQL.MutationMediaStreamOfferArgs,
+            mediaStreamAnswer: GQL.MutationMediaStreamAnswerArgs,
+            mediaStreamCandidate: GQL.MutationMediaStreamCandidateArgs,
+            mediaStreamFailed: GQL.MutationMediaStreamFailedArgs,
             alphaCreateFeedPost: GQL.MutationAlphaCreateFeedPostArgs,
             alphaEditFeedPost: GQL.MutationAlphaEditFeedPostArgs,
             alphaDeleteFeedPost: GQL.MutationAlphaDeleteFeedPostArgs,
@@ -9888,8 +9747,6 @@ export interface GQLResolver {
             postComments: GQLRoots.CommentsPeerRoot,
             comments: GQLRoots.CommentsPeerRoot,
             commentEntry: Nullable<GQLRoots.CommentEntryRoot>,
-            conference: GQLRoots.ConferenceRoot,
-            conferenceMedia: GQLRoots.ConferenceMediaRoot,
             myContacts: GQLRoots.ContactConnectionRoot,
             myContactsSearch: GQLRoots.UserConnectionRoot,
             myContactsState: GQLRoots.ContactsStateRoot,
@@ -9956,6 +9813,8 @@ export interface GQLResolver {
             alphaProfiles: GQLRoots.UserConnectionRoot,
             voiceChat: GQLRoots.VoiceChatRoot,
             activeVoiceChats: GQLRoots.VoiceChatConnectionRoot,
+            conference: GQLRoots.ConferenceRoot,
+            conferenceMedia: GQLRoots.ConferenceMediaRoot,
             alphaHomeFeed: GQLRoots.FeedItemConnectionRoot,
             alphaFeedItem: Nullable<GQLRoots.FeedItemRoot>,
             alphaFeedChannel: GQLRoots.FeedChannelRoot,
@@ -10084,8 +9943,6 @@ export interface GQLResolver {
             postComments: GQL.QueryPostCommentsArgs,
             comments: GQL.QueryCommentsArgs,
             commentEntry: GQL.QueryCommentEntryArgs,
-            conference: GQL.QueryConferenceArgs,
-            conferenceMedia: GQL.QueryConferenceMediaArgs,
             myContacts: GQL.QueryMyContactsArgs,
             myContactsSearch: GQL.QueryMyContactsSearchArgs,
             myContactsState: GQL.QueryMyContactsStateArgs,
@@ -10157,6 +10014,8 @@ export interface GQLResolver {
             alphaProfiles: GQL.QueryAlphaProfilesArgs,
             voiceChat: GQL.QueryVoiceChatArgs,
             activeVoiceChats: GQL.QueryActiveVoiceChatsArgs,
+            conference: GQL.QueryConferenceArgs,
+            conferenceMedia: GQL.QueryConferenceMediaArgs,
             alphaHomeFeed: GQL.QueryAlphaHomeFeedArgs,
             alphaFeedItem: GQL.QueryAlphaFeedItemArgs,
             alphaFeedChannel: GQL.QueryAlphaFeedChannelArgs,
@@ -10251,8 +10110,6 @@ export interface GQLResolver {
             blackListUpdates: GQLRoots.BlackListUpdateContainerRoot,
             chatUpdates: GQLRoots.ChatUpdateContainerRoot,
             commentUpdates: Nullable<GQLRoots.CommentUpdateContainerRoot>,
-            conferenceWatch: GQLRoots.ConferenceRoot,
-            conferenceMediaWatch: GQLRoots.ConferenceMediaRoot,
             myContactsUpdates: GQLRoots.ContactsUpdateContainerRoot,
             dialogsUpdates: GQLRoots.DialogUpdateContainerRoot,
             homeFeedUpdates: GQLRoots.FeedUpdateContainerRoot,
@@ -10261,6 +10118,8 @@ export interface GQLResolver {
             alphaSubscribeOnline: GQLRoots.OnlineEventRoot,
             chatOnlinesCount: GQLRoots.ChatOnlineEventRoot,
             typings: GQLRoots.TypingEventRoot,
+            conferenceWatch: GQLRoots.ConferenceRoot,
+            conferenceMediaWatch: GQLRoots.ConferenceMediaRoot,
         },
         {
             lifecheck: GQL.SubscriptionLifecheckArgs,
@@ -10278,8 +10137,6 @@ export interface GQLResolver {
             blackListUpdates: GQL.SubscriptionBlackListUpdatesArgs,
             chatUpdates: GQL.SubscriptionChatUpdatesArgs,
             commentUpdates: GQL.SubscriptionCommentUpdatesArgs,
-            conferenceWatch: GQL.SubscriptionConferenceWatchArgs,
-            conferenceMediaWatch: GQL.SubscriptionConferenceMediaWatchArgs,
             myContactsUpdates: GQL.SubscriptionMyContactsUpdatesArgs,
             dialogsUpdates: GQL.SubscriptionDialogsUpdatesArgs,
             homeFeedUpdates: GQL.SubscriptionHomeFeedUpdatesArgs,
@@ -10288,6 +10145,8 @@ export interface GQLResolver {
             alphaSubscribeOnline: GQL.SubscriptionAlphaSubscribeOnlineArgs,
             chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs,
             typings: GQL.SubscriptionTypingsArgs,
+            conferenceWatch: GQL.SubscriptionConferenceWatchArgs,
+            conferenceMediaWatch: GQL.SubscriptionConferenceMediaWatchArgs,
         }
     >;
     SyncChat?: ComplexTypedResolver<
@@ -10642,6 +10501,153 @@ export interface GQLResolver {
         {
             items: GQL.VoiceChatConnectionItemsArgs,
             cursor: GQL.VoiceChatConnectionCursorArgs,
+        }
+    >;
+    ConferenceParent?: UnionTypeResolver<GQLRoots.ConferenceParentRoot, 'Room' | 'VoiceChat'>;
+    Conference?: ComplexTypedResolver<
+        GQL.Conference,
+        GQLRoots.ConferenceRoot,
+        {
+            peers: GQLRoots.ConferencePeerRoot[],
+            room: Nullable<GQLRoots.RoomRoot>,
+            parent: Nullable<GQLRoots.ConferenceParentRoot>,
+            iceServers: GQLRoots.ICEServerRoot[],
+        },
+        {
+            id: GQL.ConferenceIdArgs,
+            startTime: GQL.ConferenceStartTimeArgs,
+            peers: GQL.ConferencePeersArgs,
+            room: GQL.ConferenceRoomArgs,
+            parent: GQL.ConferenceParentArgs,
+            kind: GQL.ConferenceKindArgs,
+            iceServers: GQL.ConferenceIceServersArgs,
+            strategy: GQL.ConferenceStrategyArgs,
+        }
+    >;
+    ConferencePeer?: ComplexTypedResolver<
+        GQL.ConferencePeer,
+        GQLRoots.ConferencePeerRoot,
+        {
+            user: GQLRoots.UserRoot,
+            mediaState: GQLRoots.ConferencePeerMediaStateRoot,
+        },
+        {
+            id: GQL.ConferencePeerIdArgs,
+            user: GQL.ConferencePeerUserArgs,
+            mediaState: GQL.ConferencePeerMediaStateArgs,
+        }
+    >;
+    ConferencePeerMediaState?: ComplexTypedResolver<
+        GQL.ConferencePeerMediaState,
+        GQLRoots.ConferencePeerMediaStateRoot,
+        {
+        },
+        {
+            audioPaused: GQL.ConferencePeerMediaStateAudioPausedArgs,
+            videoPaused: GQL.ConferencePeerMediaStateVideoPausedArgs,
+            screencastEnabled: GQL.ConferencePeerMediaStateScreencastEnabledArgs,
+        }
+    >;
+    ICEServer?: ComplexTypedResolver<
+        GQL.ICEServer,
+        GQLRoots.ICEServerRoot,
+        {
+        },
+        {
+            urls: GQL.ICEServerUrlsArgs,
+            username: GQL.ICEServerUsernameArgs,
+            credential: GQL.ICEServerCredentialArgs,
+        }
+    >;
+    ConferenceMedia?: ComplexTypedResolver<
+        GQL.ConferenceMedia,
+        GQLRoots.ConferenceMediaRoot,
+        {
+            streams: GQLRoots.MediaStreamRoot[],
+            iceServers: GQLRoots.ICEServerRoot[],
+            localMedia: GQLRoots.LocalMediaStateRoot,
+        },
+        {
+            id: GQL.ConferenceMediaIdArgs,
+            streams: GQL.ConferenceMediaStreamsArgs,
+            iceServers: GQL.ConferenceMediaIceServersArgs,
+            localMedia: GQL.ConferenceMediaLocalMediaArgs,
+        }
+    >;
+    MediaStreamState?: EnumTypeResolver<'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY', GQLRoots.MediaStreamStateRoot>;
+    IceTransportPolicy?: EnumTypeResolver<'ALL' | 'RELAY' | 'NONE', GQLRoots.IceTransportPolicyRoot>;
+    VideoSource?: EnumTypeResolver<'CAMERA' | 'SCREEN', GQLRoots.VideoSourceRoot>;
+    MediaKind?: EnumTypeResolver<'AUDIO' | 'VIDEO', GQLRoots.MediaKindRoot>;
+    MediaSender?: ComplexTypedResolver<
+        GQL.MediaSender,
+        GQLRoots.MediaSenderRoot,
+        {
+        },
+        {
+            kind: GQL.MediaSenderKindArgs,
+            videoSource: GQL.MediaSenderVideoSourceArgs,
+            codecParams: GQL.MediaSenderCodecParamsArgs,
+            mid: GQL.MediaSenderMidArgs,
+        }
+    >;
+    MediaReceiver?: ComplexTypedResolver<
+        GQL.MediaReceiver,
+        GQLRoots.MediaReceiverRoot,
+        {
+        },
+        {
+            peerId: GQL.MediaReceiverPeerIdArgs,
+            kind: GQL.MediaReceiverKindArgs,
+            videoSource: GQL.MediaReceiverVideoSourceArgs,
+            mid: GQL.MediaReceiverMidArgs,
+        }
+    >;
+    MediaStream?: ComplexTypedResolver<
+        GQL.MediaStream,
+        GQLRoots.MediaStreamRoot,
+        {
+            receivers: GQLRoots.MediaReceiverRoot[],
+            senders: GQLRoots.MediaSenderRoot[],
+            settings: GQLRoots.MediaStreamSettingsRoot,
+            mediaState: GQLRoots.MediaStreamMediaStateRoot,
+            localStreams: GQLRoots.LocalStreamConfigRoot[],
+        },
+        {
+            id: GQL.MediaStreamIdArgs,
+            seq: GQL.MediaStreamSeqArgs,
+            state: GQL.MediaStreamStateArgs,
+            sdp: GQL.MediaStreamSdpArgs,
+            ice: GQL.MediaStreamIceArgs,
+            iceTransportPolicy: GQL.MediaStreamIceTransportPolicyArgs,
+            receivers: GQL.MediaStreamReceiversArgs,
+            senders: GQL.MediaStreamSendersArgs,
+            settings: GQL.MediaStreamSettingsArgs,
+            mediaState: GQL.MediaStreamMediaStateArgs,
+            localStreams: GQL.MediaStreamLocalStreamsArgs,
+            peerId: GQL.MediaStreamPeerIdArgs,
+        }
+    >;
+    MediaDirection?: EnumTypeResolver<'SEND' | 'RECEIVE', GQLRoots.MediaDirectionRoot>;
+    ConferenceJoinResult?: ComplexTypedResolver<
+        GQL.ConferenceJoinResult,
+        GQLRoots.ConferenceJoinResultRoot,
+        {
+            conference: GQLRoots.ConferenceRoot,
+        },
+        {
+            peerId: GQL.ConferenceJoinResultPeerIdArgs,
+            conference: GQL.ConferenceJoinResultConferenceArgs,
+        }
+    >;
+    LocalMediaState?: ComplexTypedResolver<
+        GQL.LocalMediaState,
+        GQLRoots.LocalMediaStateRoot,
+        {
+        },
+        {
+            sendVideo: GQL.LocalMediaStateSendVideoArgs,
+            sendAudio: GQL.LocalMediaStateSendAudioArgs,
+            sendScreencast: GQL.LocalMediaStateSendScreencastArgs,
         }
     >;
     FeedItem?: UnionTypeResolver<GQLRoots.FeedItemRoot, 'FeedPost'>;
