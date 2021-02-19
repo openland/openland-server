@@ -59,8 +59,10 @@ export const Resolver: GQLResolver = {
         __resolveType(obj: Conversation) {
             if (obj.kind === 'voice') {
                 return 'VoiceChat';
-            } else if (obj.kind === 'room' || obj.kind === 'private') {
-                return 'Room';
+            } else if (obj.kind === 'room') {
+                return 'SharedRoom';
+            } else if (obj.kind === 'private') {
+                return 'PrivateRoom';
             } else {
                 throw new Error('Unsupported conversation type');
             }
