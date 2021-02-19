@@ -84,7 +84,7 @@ export class IntListCollection {
         if (_opts.limit) {
             let items = values.slice(0, _opts.limit);
 
-            let cursor: string|null = null;
+            let cursor: string|undefined;
             if (items.length > 0) {
                 if (sort === 'value') {
                     cursor = tupleToCursor([SUBSPACE_SORT_VALUE, items[items.length - 1].value]);
