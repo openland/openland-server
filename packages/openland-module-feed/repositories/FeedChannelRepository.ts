@@ -60,7 +60,8 @@ export class FeedChannelRepository {
             });
 
             await Store.FeedChannelAdmin.create(ctx, channel.id, uid, { role: 'creator', enabled: true });
-            await this.feedRepo.resolveTopic(ctx, 'channel-' + channel.id, input.global);
+            let topic = await this.feedRepo.resolveTopic(ctx, 'channel-' + channel.id, input.global);
+            await Modules.Events.mediator.prepareFeedTopic(ctx, topic.id);
             await this.subscribeChannel(ctx, uid, channel.id);
             await this.markForIndexing(ctx, channel.id);
             return channel;
@@ -103,6 +104,10 @@ export class FeedChannelRepository {
     async subscribeChannel(parent: Context, uid: number, channelId: number, dontSendEvent: boolean = false) {
         return await inTx(parent, async ctx => {
             if (await this.feedRepo.subscribe(ctx, 'user-' + uid, 'channel-' + channelId)) {
+                let topic = await this.feedRepo.resolveTopic(ctx, 'channel-' + channelId);
+                // Subscribe to events
+                await Modules.Events.mediator.subscribe(ctx, uid, { type: 'feed-topic', tid: topic.id });
+
                 await Store.FeedChannelMembersCount.increment(ctx, channelId);
                 await this.markForIndexing(ctx, channelId);
                 let subscriber = await this.feedRepo.resolveSubscriber(ctx, 'user-' + uid);
@@ -116,6 +121,9 @@ export class FeedChannelRepository {
     async unsubscribeChannel(parent: Context, uid: number, channelId: number) {
         return await inTx(parent, async ctx => {
             if (await this.feedRepo.unsubscribe(ctx, 'user-' + uid, 'channel-' + channelId)) {
+                let topic = await this.feedRepo.resolveTopic(ctx, 'channel-' + channelId);
+                // Unsubscribe from events
+                await Modules.Events.mediator.unsubscribe(ctx, uid, { type: 'feed-topic', tid: topic.id });
                 await Store.FeedChannelMembersCount.decrement(ctx, channelId);
                 await this.markForIndexing(ctx, channelId);
                 let subscriber = await this.feedRepo.resolveSubscriber(ctx, 'user-' + uid);

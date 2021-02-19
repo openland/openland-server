@@ -4,7 +4,7 @@ import {
     packFeedEvent, unpackFeedEvent,
     UserSubscriptionHandlerEvent, FeedReference, Event, ChatEvent,
     chatEventCollapseKey,
-    chatEventSerialize
+    chatEventSerialize, FeedEvent, feedEventSerialize, feedEventCollapseKey
 } from './../Definitions';
 import { RegistrationRepository } from './../repo/RegistrationRepository';
 import { inTx, withoutTransaction } from '@openland/foundationdb';
@@ -94,6 +94,29 @@ export class TypedEventsMediator {
             }
         });
     }
+
+    //
+    // Feed
+    //
+    async prepareFeedTopic(parent: Context, tid: number) {
+        await inTx(parent, async (ctx) => {
+            await this.createFeedTopicFeedIfNeeded(ctx, tid);
+        });
+    }
+
+    async createFeedTopicFeedIfNeeded(parent: Context, tid: number) {
+        await inTx(parent, async (ctx) => {
+            let ex = await this.registry.getFeed(ctx, { type: 'feed-topic', tid });
+            if (!ex) {
+                let feed = await this.events.createFeed(ctx, 'generic');
+                this.registry.setFeed(ctx, { type: 'feed-topic', tid }, feed);
+            }
+        });
+    }
+
+    //
+    // Subscriptions
+    //
 
     async subscribe(parent: Context, uid: number, feedRef: FeedReference) {
         await inTx(parent, async (ctx) => {
@@ -339,6 +362,24 @@ export class TypedEventsMediator {
             let serialized = chatEventSerialize(event);
             let collapseKey = chatEventCollapseKey(event);
             let packed = packFeedEvent({ type: 'chat-private', cid, uid: uid }, serialized);
+
+            // Publish
+            await this.events.post(ctx, { feed, event: packed, collapseKey });
+        });
+    }
+
+    async postToFeedTopic(parent: Context, tid: number, event: FeedEvent) {
+        await inTx(parent, async (ctx) => {
+            // Load feed
+            let feed = await this.registry.getFeed(ctx, { type: 'feed-topic', tid });
+            if (!feed) {
+                throw Error('Feed does not exist');
+            }
+
+            // Pack
+            let serialized = feedEventSerialize(event);
+            let collapseKey = feedEventCollapseKey(event);
+            let packed = packFeedEvent({ type: 'feed-topic', tid }, serialized);
 
             // Publish
             await this.events.post(ctx, { feed, event: packed, collapseKey });

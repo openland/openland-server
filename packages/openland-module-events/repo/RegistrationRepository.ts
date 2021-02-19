@@ -8,6 +8,7 @@ const SUBSPACE_FEED_FORWARD = 2;
 const SUBSPACE_FEED_BACKWARD = 3;
 const SUBSPACE_CHAT = 4;
 const SUBSPACE_CHAT_PRIVATE = 5;
+const SUBSPACE_FEED_TOPIC = 6;
 
 export class RegistrationRepository {
     private readonly subspace: Subspace;
@@ -50,6 +51,8 @@ export class RegistrationRepository {
             return encoders.tuple.pack([SUBSPACE_CHAT, feed.cid]);
         } else if (feed.type === 'chat-private') {
             return encoders.tuple.pack([SUBSPACE_CHAT_PRIVATE, feed.cid, feed.uid]);
+        } else if (feed.type === 'feed-topic') {
+            return encoders.tuple.pack([SUBSPACE_FEED_TOPIC, feed.tid]);
         }
         throw Error('Unknown feed type');
     }
@@ -74,6 +77,11 @@ export class RegistrationRepository {
                 throw Error('Unknown feed type');
             }
             return { type: 'chat-private', cid: tuple[1] as number, uid: tuple[2] as number };
+        } else if (tuple[0] === SUBSPACE_FEED_TOPIC) {
+            if (typeof tuple[1] !== 'number') {
+                throw Error('Unknown feed type');
+            }
+            return { type: 'feed-topic', tid: tuple[1] as number };
         }
         throw Error('Unknown feed type');
     }

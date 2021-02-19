@@ -19,3 +19,7 @@ type SequenceChat implements Sequence {
     room: Room
     topMessage: ModernMessage
 }
+
+type SequenceFeedTopic implements Sequence {
+    id: ID!
+}
