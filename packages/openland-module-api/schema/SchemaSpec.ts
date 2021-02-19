@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'c8535df62f045803900a3f6d52313844';
+export const GQL_SPEC_VERSION = '64dbf8b503168452be03f40e5f6f04d6';
 
 export namespace GQL {
     export interface CreditCard {
@@ -5185,7 +5185,7 @@ export namespace GQL {
     }
     export interface VoiceChatConnectionItemsArgs { }
     export interface VoiceChatConnectionCursorArgs { }
-    export type ConferenceParent = Room | VoiceChat;
+    export type ConferenceParent = PrivateRoom | SharedRoom | VoiceChat;
     export interface Conference {
         id: string;
         startTime: Nullable<Date>;
@@ -10503,7 +10503,7 @@ export interface GQLResolver {
             cursor: GQL.VoiceChatConnectionCursorArgs,
         }
     >;
-    ConferenceParent?: UnionTypeResolver<GQLRoots.ConferenceParentRoot, 'Room' | 'VoiceChat'>;
+    ConferenceParent?: UnionTypeResolver<GQLRoots.ConferenceParentRoot, 'PrivateRoom' | 'SharedRoom' | 'VoiceChat'>;
     Conference?: ComplexTypedResolver<
         GQL.Conference,
         GQLRoots.ConferenceRoot,

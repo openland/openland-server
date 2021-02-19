@@ -1,4 +1,4 @@
-union ConferenceParent = Room | VoiceChat
+union ConferenceParent = PrivateRoom | SharedRoom | VoiceChat
 
 type Conference {
   id: ID!
