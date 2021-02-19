@@ -5,6 +5,10 @@ import { IDs } from '../openland-module-api/IDs';
 import { Store } from '../openland-module-db/FDB';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import { withUser as withUserFromRoot } from '../openland-module-users/User.resolver';
+import { ConversationVoice } from '../openland-module-db/store';
+import { fastWatch } from '../openland-module-db/fastWatch';
+import { inTx } from '@openland/foundationdb';
+import { Context } from '@openland/context';
 
 export const Resolver: GQLResolver = {
     VoiceChat: {
@@ -63,5 +67,26 @@ export const Resolver: GQLResolver = {
                 cursor: res.cursor || null
             };
         }),
+    },
+    Subscription: {
+        voiceChatWatch: {
+            resolve(obj: ConversationVoice) {
+                return obj;
+            },
+            subscribe: async function * (_: any, args: { id: string }, parent: Context) {
+                let cid = IDs.Conversation.parse(args.id);
+                yield await inTx(parent, async (ctx) => (await Store.ConversationVoice.findById(ctx, cid))!);
+                while (true) {
+                    let changed = await fastWatch(parent, `voice-chat-${IDs.Conversation.parse(args.id)}`,
+                        async (ctx) => (await inTx(ctx, (ctx2) => Store.ConversationVoice.findById(ctx2, cid)))!.metadata.versionCode
+                    );
+                    if (changed) {
+                        yield await inTx(parent, async (ctx) => (await Store.ConversationVoice.findById(ctx, cid))!);
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
     }
 };

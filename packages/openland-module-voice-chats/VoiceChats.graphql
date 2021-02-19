@@ -31,6 +31,9 @@ extend type Mutation {
 
 extend type Query {
     voiceChat(id: ID!): VoiceChat!
-
     activeVoiceChats(first: Int!, after: String): VoiceChatConnection!
+}
+
+extend type Subscription {
+    voiceChatWatch(id: ID!): VoiceChat!
 }

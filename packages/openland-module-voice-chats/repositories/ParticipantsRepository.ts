@@ -136,6 +136,8 @@ export class ParticipantsRepository {
         }
 
         participant.status = status;
+
+        this.chatsRepo.notifyChatUpdated(ctx, cid);
     }
 
     #getOrFail = async (ctx: Context, cid: number, uid: number) => {
