@@ -30,6 +30,9 @@ export class ParticipantsRepository {
         }
 
         let p = await this.#getOrCreateParticipant(ctx, cid, uid);
+        if (Status.isJoined(p.status)) {
+            return p;
+        }
 
         if (await this.#counter(cid, 'admin').get(ctx) === 0) {
             await this.#changeStatus(ctx, cid, uid, 'admin');
