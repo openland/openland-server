@@ -4,9 +4,14 @@ import { Store } from '../../openland-module-db/FDB';
 import { fetchNextDBSeq } from '../../openland-utils/dbSeq';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { notifyFastWatch } from '../../openland-module-db/fastWatch';
+import { lazyInject } from '../../openland-modules/Modules.container';
+import { VoiceChatEventsMediator } from '../mediators/VoiceChatEventsMediator';
 
 @injectable()
 export class VoiceChatsRepository {
+    @lazyInject('VoiceChatEventsMediator')
+    private readonly events!: VoiceChatEventsMediator;
+
     createChat = async (ctx: Context, title: string) => {
         let id = await fetchNextDBSeq(ctx, 'conversation-id');
         await Store.Conversation.create(ctx, id, { kind: 'voice' });
@@ -20,7 +25,7 @@ export class VoiceChatsRepository {
         let chat = await this.#getChatOrFail(ctx, id);
         chat.title = title;
 
-        this.notifyChatUpdated(ctx, id);
+        await this.notifyChatUpdated(ctx, id);
         return chat;
     }
 
@@ -28,7 +33,7 @@ export class VoiceChatsRepository {
         let chat = await this.#getChatOrFail(ctx, id);
         chat.active = active;
         
-        this.notifyChatUpdated(ctx, id);
+        await this.notifyChatUpdated(ctx, id);
         return chat;
     }
 
@@ -40,7 +45,8 @@ export class VoiceChatsRepository {
         return chat;
     }
 
-    notifyChatUpdated = (ctx: Context, id: number) => {
+    notifyChatUpdated = async (ctx: Context, id: number) => {
+        await this.events.postChatUpdated(ctx, id);
         notifyFastWatch(ctx, `voice-chat-${id}`);
     }
 }

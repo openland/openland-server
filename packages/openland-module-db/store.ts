@@ -22175,6 +22175,75 @@ export class PhonebookItemFactory extends EntityFactory<PhonebookItemShape, Phon
     }
 }
 
+const voiceChatParticipantUpdatedEventCodec = c.struct({
+    cid: c.integer,
+    uid: c.integer,
+});
+
+interface VoiceChatParticipantUpdatedEventShape {
+    cid: number;
+    uid: number;
+}
+
+export class VoiceChatParticipantUpdatedEvent extends BaseEvent {
+
+    static readonly type: 'voiceChatParticipantUpdatedEvent' = 'voiceChatParticipantUpdatedEvent';
+
+    static create(data: VoiceChatParticipantUpdatedEventShape) {
+        return new VoiceChatParticipantUpdatedEvent(voiceChatParticipantUpdatedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new VoiceChatParticipantUpdatedEvent(voiceChatParticipantUpdatedEventCodec.decode(data));
+    }
+
+    static encode(event: VoiceChatParticipantUpdatedEvent) {
+        return voiceChatParticipantUpdatedEventCodec.encode(event.raw);
+    }
+
+    readonly type: 'voiceChatParticipantUpdatedEvent' = 'voiceChatParticipantUpdatedEvent';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get cid(): number { return this.raw.cid; }
+    get uid(): number { return this.raw.uid; }
+}
+
+const voiceChatUpdatedEventCodec = c.struct({
+    cid: c.integer,
+});
+
+interface VoiceChatUpdatedEventShape {
+    cid: number;
+}
+
+export class VoiceChatUpdatedEvent extends BaseEvent {
+
+    static readonly type: 'voiceChatUpdatedEvent' = 'voiceChatUpdatedEvent';
+
+    static create(data: VoiceChatUpdatedEventShape) {
+        return new VoiceChatUpdatedEvent(voiceChatUpdatedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new VoiceChatUpdatedEvent(voiceChatUpdatedEventCodec.decode(data));
+    }
+
+    static encode(event: VoiceChatUpdatedEvent) {
+        return voiceChatUpdatedEventCodec.encode(event.raw);
+    }
+
+    readonly type: 'voiceChatUpdatedEvent' = 'voiceChatUpdatedEvent';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get cid(): number { return this.raw.cid; }
+}
+
 const chatUpdatedEventCodec = c.struct({
     cid: c.integer,
     uid: c.integer,
@@ -24053,6 +24122,41 @@ export class BlackListRemovedEvent extends BaseEvent {
     get bannedUid(): number { return this.raw.bannedUid; }
 }
 
+export class VoiceChatEventsStore extends EventStore {
+
+    static async open(storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory('voiceChatEventsStore');
+        const descriptor = {
+            name: 'VoiceChatEventsStore',
+            storageKey: 'voiceChatEventsStore',
+            subspace,
+            storage,
+            factory
+        };
+        return new VoiceChatEventsStore(descriptor);
+    }
+
+    private constructor(descriptor: EventStoreDescriptor) {
+        super(descriptor);
+    }
+
+    post(ctx: Context, id: number, event: BaseEvent) {
+        this._post(ctx, [id], event);
+    }
+
+    async findAll(ctx: Context, id: number) {
+        return this._findAll(ctx, [id]);
+    }
+
+    createStream(id: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createStream([id], opts);
+    }
+
+    createLiveStream(ctx: Context, id: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createLiveStream(ctx, [id], opts);
+    }
+}
+
 export class ConversationEventStore extends EventStore {
 
     static async open(storage: EntityStorage, factory: EventFactory) {
@@ -24671,6 +24775,7 @@ export interface Store extends BaseStore {
     readonly DiscussionDraft: DiscussionDraftFactory;
     readonly Contact: ContactFactory;
     readonly PhonebookItem: PhonebookItemFactory;
+    readonly VoiceChatEventsStore: VoiceChatEventsStore;
     readonly ConversationEventStore: ConversationEventStore;
     readonly DialogIndexEventStore: DialogIndexEventStore;
     readonly UserDialogEventStore: UserDialogEventStore;
@@ -24741,6 +24846,8 @@ export interface Store extends BaseStore {
 
 export async function openStore(storage: EntityStorage): Promise<Store> {
     const eventFactory = new EventFactory();
+    eventFactory.registerEventType('voiceChatParticipantUpdatedEvent', VoiceChatParticipantUpdatedEvent.encode as any, VoiceChatParticipantUpdatedEvent.decode);
+    eventFactory.registerEventType('voiceChatUpdatedEvent', VoiceChatUpdatedEvent.encode as any, VoiceChatUpdatedEvent.decode);
     eventFactory.registerEventType('chatUpdatedEvent', ChatUpdatedEvent.encode as any, ChatUpdatedEvent.decode);
     eventFactory.registerEventType('messageReceivedEvent', MessageReceivedEvent.encode as any, MessageReceivedEvent.decode);
     eventFactory.registerEventType('messageUpdatedEvent', MessageUpdatedEvent.encode as any, MessageUpdatedEvent.decode);
@@ -25017,6 +25124,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ImportedPhoneDirectoryPromise = storage.resolveCustomDirectory('importedPhone');
     let PhoneImportedByUserDirectoryPromise = storage.resolveCustomDirectory('phoneImportedByUser');
     let BlackListDirectoryDirectoryPromise = storage.resolveCustomDirectory('blackListDirectory');
+    let VoiceChatEventsStorePromise = VoiceChatEventsStore.open(storage, eventFactory);
     let ConversationEventStorePromise = ConversationEventStore.open(storage, eventFactory);
     let DialogIndexEventStorePromise = DialogIndexEventStore.open(storage, eventFactory);
     let UserDialogEventStorePromise = UserDialogEventStore.open(storage, eventFactory);
@@ -25283,6 +25391,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ImportedPhoneDirectory: await ImportedPhoneDirectoryPromise,
         PhoneImportedByUserDirectory: await PhoneImportedByUserDirectoryPromise,
         BlackListDirectoryDirectory: await BlackListDirectoryDirectoryPromise,
+        VoiceChatEventsStore: await VoiceChatEventsStorePromise,
         ConversationEventStore: await ConversationEventStorePromise,
         DialogIndexEventStore: await DialogIndexEventStorePromise,
         UserDialogEventStore: await UserDialogEventStorePromise,

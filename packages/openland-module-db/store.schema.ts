@@ -127,6 +127,7 @@ import { blackListStore } from '../openland-module-blacklist/BlackList.store';
 import { defineEvents } from '../openland-module-events/Definitions.store';
 import { messagingStore } from '../openland-module-messaging/Messaging.store';
 import { socialStore } from '../openland-module-social/Social.store';
+import { voiceChatsStore } from '../openland-module-voice-chats/VoiceChats.store';
 
 export default declareSchema(() => {
 
@@ -493,42 +494,7 @@ export default declareSchema(() => {
     //
     // Clubhouse
     //
-    entity('VoiceChatParticipant', () => {
-        primaryKey('cid', integer());
-        primaryKey('uid', integer());
-        field('status', enumString(
-            // In-chat status
-            'listener',
-            'speaker',
-            'admin',
-
-            // Chat left status
-            'left',
-            'kicked'
-        ));
-        field('handRaised', boolean());
-        field('promotedBy', optional(integer()));
-
-        rangeIndex('chat', ['cid', 'updatedAt'])
-            .withCondition(a => a.status !== 'left' && a.status !== 'kicked');
-        rangeIndex('handRaised', ['cid', 'updatedAt'])
-            .withCondition(a => a.status !== 'left' && a.status !== 'kicked' && a.handRaised);
-        rangeIndex('speakers', ['cid', 'updatedAt'])
-            .withCondition(a => a.status !== 'left' && a.status !== 'kicked' && (a.status === 'speaker' || a.status === 'admin'));
-        rangeIndex('listeners', ['cid', 'updatedAt'])
-            .withCondition(a => a.status !== 'left' && a.status !== 'kicked' && a.status === 'listener');
-    });
-    atomicInt('VoiceChatParticipantCounter', () => {
-        primaryKey('cid', integer());
-        primaryKey('status', enumString(
-            'listener',
-            'speaker',
-            'admin'
-        ));
-    });
-    atomicInt('VoiceChatParticipantActive', () => {
-        primaryKey('uid', integer());
-    });
+    voiceChatsStore();
 
     //
     // Messaging

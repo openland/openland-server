@@ -118,4 +118,6 @@ export const IDs = {
     ChatSyncAfter: IdsFactory.createId('ChatSyncAfter'),
 
     VoiceChatParticipant: IdsFactory.createStringId('VoiceChatParticipant'),
+
+    VoiceChatEventsCursor: IdsFactory.createStringId('VoiceChatEventsCursor'),
 };

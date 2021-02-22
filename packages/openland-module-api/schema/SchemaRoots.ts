@@ -106,7 +106,7 @@ import {
     VoiceChatParticipantShape,
     UpdateFeedItemReceived,
     UpdateFeedItemUpdated,
-    UpdateFeedItemDeleted,
+    UpdateFeedItemDeleted, VoiceChatParticipantUpdatedEvent, VoiceChatUpdatedEvent, VoiceChatEndedEvent,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -926,6 +926,11 @@ export namespace GQLRoots {
         haveMore: boolean
     };
     export type VoiceChatParticipantStatusRoot = VoiceChatParticipantShape['status'];
+    export type VoiceChatParticipantUpdatedEventRoot = VoiceChatParticipantUpdatedEvent;
+    export type VoiceChatUpdatedEventRoot = VoiceChatUpdatedEvent;
+    export type VoiceChatEventsStateRoot = { state: string };
+    export type VoiceChatEventsContainerRoot = LiveStreamItem<BaseEvent>;
+    export type VoiceChatEventRoot = BaseEvent;
 
     //
     // Social

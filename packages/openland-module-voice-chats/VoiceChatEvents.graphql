@@ -1,0 +1,27 @@
+type VoiceChatParticipantUpdatedEvent {
+    chat: VoiceChat!
+    participant: VoiceChatParticipant!
+}
+
+type VoiceChatUpdatedEvent {
+    chat: VoiceChat!
+}
+
+union VoiceChatEvent = VoiceChatParticipantUpdatedEvent | VoiceChatUpdatedEvent
+
+type VoiceChatEventsState {
+    state: String!
+}
+
+type VoiceChatEventsContainer {
+    events: [VoiceChatEvent!]!
+    state: String!
+}
+
+extend type Query {
+    voiceChatEventsState(id: ID!): VoiceChatEventsState!
+}
+
+extend type Subscription {
+    voiceChatEvents(id: ID!, fromState: String!): VoiceChatEventsContainer!
+}
