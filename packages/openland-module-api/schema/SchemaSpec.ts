@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'bf90ce6c0615ef43e64692e0fcda408a';
+export const GQL_SPEC_VERSION = '3e1942f51a5f91b34b449127b334694c';
 
 export namespace GQL {
     export interface CreditCard {
@@ -4065,6 +4065,7 @@ export namespace GQL {
         alphaProfiles: UserConnection;
         voiceChat: VoiceChat;
         activeVoiceChats: VoiceChatConnection;
+        voiceChatEventsState: VoiceChatEventsState;
         conference: Conference;
         conferenceMedia: ConferenceMedia;
         alphaHomeFeed: FeedItemConnection;
@@ -4556,6 +4557,9 @@ export namespace GQL {
         first: number;
         after: OptionalNullable<string>;
     }
+    export interface QueryVoiceChatEventsStateArgs {
+        id: string;
+    }
     export interface QueryConferenceArgs {
         id: string;
     }
@@ -4812,6 +4816,7 @@ export namespace GQL {
         chatOnlinesCount: ChatOnlineEvent;
         typings: TypingEvent;
         voiceChatWatch: VoiceChat;
+        voiceChatEvents: VoiceChatEventsContainer;
         conferenceWatch: Conference;
         conferenceMediaWatch: ConferenceMedia;
     }
@@ -4878,6 +4883,10 @@ export namespace GQL {
     export interface SubscriptionTypingsArgs { }
     export interface SubscriptionVoiceChatWatchArgs {
         id: string;
+    }
+    export interface SubscriptionVoiceChatEventsArgs {
+        id: string;
+        fromState: string;
     }
     export interface SubscriptionConferenceWatchArgs {
         id: string;
@@ -5197,6 +5206,27 @@ export namespace GQL {
     }
     export interface VoiceChatConnectionItemsArgs { }
     export interface VoiceChatConnectionCursorArgs { }
+    export interface VoiceChatParticipantUpdatedEvent {
+        chat: VoiceChat;
+        participant: VoiceChatParticipant;
+    }
+    export interface VoiceChatParticipantUpdatedEventChatArgs { }
+    export interface VoiceChatParticipantUpdatedEventParticipantArgs { }
+    export interface VoiceChatUpdatedEvent {
+        chat: VoiceChat;
+    }
+    export interface VoiceChatUpdatedEventChatArgs { }
+    export type VoiceChatEvent = VoiceChatParticipantUpdatedEvent | VoiceChatUpdatedEvent;
+    export interface VoiceChatEventsState {
+        state: string;
+    }
+    export interface VoiceChatEventsStateStateArgs { }
+    export interface VoiceChatEventsContainer {
+        events: VoiceChatEvent[];
+        state: string;
+    }
+    export interface VoiceChatEventsContainerEventsArgs { }
+    export interface VoiceChatEventsContainerStateArgs { }
     export type ConferenceParent = PrivateRoom | SharedRoom | VoiceChat;
     export interface Conference {
         id: string;
@@ -9846,6 +9876,7 @@ export interface GQLResolver {
             alphaProfiles: GQLRoots.UserConnectionRoot,
             voiceChat: GQLRoots.VoiceChatRoot,
             activeVoiceChats: GQLRoots.VoiceChatConnectionRoot,
+            voiceChatEventsState: GQLRoots.VoiceChatEventsStateRoot,
             conference: GQLRoots.ConferenceRoot,
             conferenceMedia: GQLRoots.ConferenceMediaRoot,
             alphaHomeFeed: GQLRoots.FeedItemConnectionRoot,
@@ -10047,6 +10078,7 @@ export interface GQLResolver {
             alphaProfiles: GQL.QueryAlphaProfilesArgs,
             voiceChat: GQL.QueryVoiceChatArgs,
             activeVoiceChats: GQL.QueryActiveVoiceChatsArgs,
+            voiceChatEventsState: GQL.QueryVoiceChatEventsStateArgs,
             conference: GQL.QueryConferenceArgs,
             conferenceMedia: GQL.QueryConferenceMediaArgs,
             alphaHomeFeed: GQL.QueryAlphaHomeFeedArgs,
@@ -10152,6 +10184,7 @@ export interface GQLResolver {
             chatOnlinesCount: GQLRoots.ChatOnlineEventRoot,
             typings: GQLRoots.TypingEventRoot,
             voiceChatWatch: GQLRoots.VoiceChatRoot,
+            voiceChatEvents: GQLRoots.VoiceChatEventsContainerRoot,
             conferenceWatch: GQLRoots.ConferenceRoot,
             conferenceMediaWatch: GQLRoots.ConferenceMediaRoot,
         },
@@ -10180,6 +10213,7 @@ export interface GQLResolver {
             chatOnlinesCount: GQL.SubscriptionChatOnlinesCountArgs,
             typings: GQL.SubscriptionTypingsArgs,
             voiceChatWatch: GQL.SubscriptionVoiceChatWatchArgs,
+            voiceChatEvents: GQL.SubscriptionVoiceChatEventsArgs,
             conferenceWatch: GQL.SubscriptionConferenceWatchArgs,
             conferenceMediaWatch: GQL.SubscriptionConferenceMediaWatchArgs,
         }
@@ -10540,6 +10574,49 @@ export interface GQLResolver {
         {
             items: GQL.VoiceChatConnectionItemsArgs,
             cursor: GQL.VoiceChatConnectionCursorArgs,
+        }
+    >;
+    VoiceChatParticipantUpdatedEvent?: ComplexTypedResolver<
+        GQL.VoiceChatParticipantUpdatedEvent,
+        GQLRoots.VoiceChatParticipantUpdatedEventRoot,
+        {
+            chat: GQLRoots.VoiceChatRoot,
+            participant: GQLRoots.VoiceChatParticipantRoot,
+        },
+        {
+            chat: GQL.VoiceChatParticipantUpdatedEventChatArgs,
+            participant: GQL.VoiceChatParticipantUpdatedEventParticipantArgs,
+        }
+    >;
+    VoiceChatUpdatedEvent?: ComplexTypedResolver<
+        GQL.VoiceChatUpdatedEvent,
+        GQLRoots.VoiceChatUpdatedEventRoot,
+        {
+            chat: GQLRoots.VoiceChatRoot,
+        },
+        {
+            chat: GQL.VoiceChatUpdatedEventChatArgs,
+        }
+    >;
+    VoiceChatEvent?: UnionTypeResolver<GQLRoots.VoiceChatEventRoot, 'VoiceChatParticipantUpdatedEvent' | 'VoiceChatUpdatedEvent'>;
+    VoiceChatEventsState?: ComplexTypedResolver<
+        GQL.VoiceChatEventsState,
+        GQLRoots.VoiceChatEventsStateRoot,
+        {
+        },
+        {
+            state: GQL.VoiceChatEventsStateStateArgs,
+        }
+    >;
+    VoiceChatEventsContainer?: ComplexTypedResolver<
+        GQL.VoiceChatEventsContainer,
+        GQLRoots.VoiceChatEventsContainerRoot,
+        {
+            events: GQLRoots.VoiceChatEventRoot[],
+        },
+        {
+            events: GQL.VoiceChatEventsContainerEventsArgs,
+            state: GQL.VoiceChatEventsContainerStateArgs,
         }
     >;
     ConferenceParent?: UnionTypeResolver<GQLRoots.ConferenceParentRoot, 'PrivateRoom' | 'SharedRoom' | 'VoiceChat'>;

@@ -5,6 +5,7 @@ import { VoiceChatParticipantShape } from '../../openland-module-db/store';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { VoiceChatsRepository } from './VoiceChatsRepository';
+import { VoiceChatEventsMediator } from '../mediators/VoiceChatEventsMediator';
 
 export type ParticipantStatus = VoiceChatParticipantShape['status'];
 
@@ -19,6 +20,8 @@ const Status = {
 export class ParticipantsRepository {
     @lazyInject('VoiceChatsRepository')
     private readonly chatsRepo!: VoiceChatsRepository;
+    @lazyInject('VoiceChatEventsMediator')
+    private readonly events!: VoiceChatEventsMediator;
 
     joinChat = async (ctx: Context, cid: number, uid: number) => {
         let chat = await Store.ConversationVoice.findById(ctx, cid);
@@ -40,6 +43,8 @@ export class ParticipantsRepository {
             await this.#changeStatus(ctx, cid, uid, 'speaker');
         }
 
+        await this.events.postParticipantUpdated(ctx, cid, uid);
+
         return p;
     }
 
@@ -49,6 +54,8 @@ export class ParticipantsRepository {
             throw new Error('You cannot raise hand if you are not listener');
         }
         participant.handRaised = handRaised;
+
+        await this.events.postParticipantUpdated(ctx, cid, uid);
         return participant;
     }
 
@@ -58,6 +65,8 @@ export class ParticipantsRepository {
         if (await this.#counter(cid, 'admin').get(ctx) === 0) {
             await this.chatsRepo.setChatActive(ctx, cid, false);
         }
+
+        await this.events.postParticipantUpdated(ctx, cid, uid);
     }
 
     promoteParticipant = async (ctx: Context, cid: number, uid: number, by: number) => {
@@ -69,6 +78,8 @@ export class ParticipantsRepository {
         await this.#changeStatus(ctx, cid, uid, 'speaker');
         participant.promotedBy = by;
         participant.handRaised = false;
+
+        await this.events.postParticipantUpdated(ctx, cid, uid);
     }
 
     demoteParticipant = async (ctx: Context, cid: number, uid: number) => {
@@ -80,6 +91,8 @@ export class ParticipantsRepository {
         await this.#changeStatus(ctx, cid, uid, 'listener');
         participant.promotedBy = null;
         participant.handRaised = false;
+
+        await this.events.postParticipantUpdated(ctx, cid, uid);
     }
 
     updateAdminRights = async (ctx: Context, cid: number, uid: number, isAdmin: boolean) => {
@@ -88,10 +101,12 @@ export class ParticipantsRepository {
             throw new Error('Only speaker can be an admin');
         }
         await this.#changeStatus(ctx, cid, uid, isAdmin ? 'admin' : 'speaker');
+        await this.events.postParticipantUpdated(ctx, cid, uid);
     }
 
     kick = async (ctx: Context, cid: number, uid: number) => {
         await this.#changeStatus(ctx, cid, uid, 'kicked');
+        await this.events.postParticipantUpdated(ctx, cid, uid);
     }
 
     #counter = (cid: number, status: 'admin' | 'speaker' | 'listener') => {
