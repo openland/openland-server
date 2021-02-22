@@ -106,7 +106,7 @@ import {
     VoiceChatParticipantShape,
     UpdateFeedItemReceived,
     UpdateFeedItemUpdated,
-    UpdateFeedItemDeleted, VoiceChatParticipantUpdatedEvent, VoiceChatUpdatedEvent, VoiceChatEndedEvent,
+    UpdateFeedItemDeleted, VoiceChatParticipantUpdatedEvent, VoiceChatUpdatedEvent,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
