@@ -37,7 +37,7 @@ export class ParticipantsRepository {
         if (await this.#counter(cid, 'admin').get(ctx) === 0) {
             await this.#changeStatus(ctx, cid, uid, 'admin');
         } else {
-            await this.#changeStatus(ctx, cid, uid, 'listener');
+            await this.#changeStatus(ctx, cid, uid, 'speaker');
         }
 
         return p;
@@ -71,7 +71,7 @@ export class ParticipantsRepository {
         participant.handRaised = false;
     }
 
-    demoteParticipant = async (ctx: Context, cid: number, uid: number, by: number) => {
+    demoteParticipant = async (ctx: Context, cid: number, uid: number) => {
         let participant = await this.#getOrFail(ctx, cid, uid);
         if (!Status.isSpeaker(participant.status)) {
             throw new Error('You can demote only current speakers');
