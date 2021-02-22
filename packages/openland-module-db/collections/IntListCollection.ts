@@ -83,12 +83,16 @@ export class IntListCollection {
 
         if (_opts.limit) {
             let items = values.slice(0, _opts.limit);
-            let cursor;
-            if (sort === 'value') {
-                cursor = tupleToCursor([SUBSPACE_SORT_VALUE, items[items.length - 1].value]);
-            } else {
-                cursor = tupleToCursor([SUBSPACE_SORT_TIME, items[items.length - 1].date, items[items.length - 1].value]);
+
+            let cursor: string|undefined;
+            if (items.length > 0) {
+                if (sort === 'value') {
+                    cursor = tupleToCursor([SUBSPACE_SORT_VALUE, items[items.length - 1].value]);
+                } else {
+                    cursor = tupleToCursor([SUBSPACE_SORT_TIME, items[items.length - 1].date, items[items.length - 1].value]);
+                }
             }
+
             return {
                 items,
                 haveMore: values.length > _opts.limit,

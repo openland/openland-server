@@ -20,6 +20,7 @@ import { smartSlice } from '../../openland-utils/string';
 import { UserGroupsRepository } from './UserGroupsRepository';
 import { UserReadSeqsDirectory } from './UserReadSeqsDirectory';
 import { ChatsMembersListDirectory } from './ChatsMembersListDirectory';
+import { createLogger } from '@openland/log';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -37,6 +38,8 @@ export type WelcomeMessageT = {
     sender: User | null,
     message: string
 };
+
+const log = createLogger('room-repository');
 
 @injectable()
 export class RoomRepository {
@@ -822,7 +825,10 @@ export class RoomRepository {
             }
             let org = (await Store.ConversationOrganization.findById(ctx, cid))!;
             return (await Store.OrganizationMember.organization.findAll(ctx, 'joined', org.oid)).map((v) => v.uid);
+        } else if (conv.kind === 'voice') {
+            return [];
         } else {
+            log.log(ctx, 'unknown conversation type', 'type:', conv.kind, 'id', conv.id);
             throw new Error('Internal error');
         }
     }
