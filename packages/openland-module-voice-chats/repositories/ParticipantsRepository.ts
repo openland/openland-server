@@ -152,7 +152,7 @@ export class ParticipantsRepository {
             return participant;
         }
         return await Store.VoiceChatParticipant.create(ctx, cid, uid, {
-            status: 'listener',
+            status: 'left',
             handRaised: false,
             promotedBy: null,
         });
