@@ -1,7 +1,6 @@
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { Store } from '../openland-module-db/FDB';
 import {
-    VoiceChatEndedEvent,
     VoiceChatParticipantUpdatedEvent,
     VoiceChatUpdatedEvent
 } from '../openland-module-db/store';
