@@ -161,7 +161,10 @@ export class ParticipantsRepository {
 
         // Update media streams if ability to speak changed
         if (Status.isSpeaker(status) !== Status.isSpeaker(participant.status) && participant.tid) {
-            await this.calls.updateMediaStreams(ctx, cid, uid, participant.tid);
+            let peer = await Store.ConferencePeer.auth.find(ctx, cid, uid, participant.tid);
+            if (peer) {
+                await this.calls.updateMediaStreams(ctx, cid, uid, participant.tid);
+            }
         }
 
         participant.status = status;
