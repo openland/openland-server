@@ -146,6 +146,10 @@ export class ParticipantsRepository {
 
         // Update atomic with current active chat
         if (Status.isJoined(status)) {
+            let prevChat = await Store.VoiceChatParticipantActive.byId(uid).get(ctx);
+            if (prevChat !== 0 && prevChat !== cid) {
+                await this.leaveChat(ctx, prevChat, uid);
+            }
             Store.VoiceChatParticipantActive.byId(uid).set(ctx, cid);
         } else {
             Store.VoiceChatParticipantActive.byId(uid).set(ctx, 0);

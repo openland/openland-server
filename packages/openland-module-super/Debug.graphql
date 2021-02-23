@@ -247,6 +247,7 @@ extend type Mutation {
     debugCopyChatMembers(fromCid: ID!, toCid: ID!): Boolean!
     debugCopyOrgMembers(fromOrg: ID!, toOrg: ID!): Boolean!
     debugMigratePrivateChatMessages: Boolean!
+    debugKickAllFromVoiceChats: Boolean!
 }
 
 extend type Subscription {

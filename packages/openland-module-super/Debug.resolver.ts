@@ -2629,6 +2629,21 @@ export const Resolver: GQLResolver = {
             });
             return true;
         }),
+        debugKickAllFromVoiceChats: withPermission('super-admin', async (parent, args) => {
+            debugTask(parent.auth.uid!, 'debugKickAllFromVoiceChats', async log => {
+                await Store.VoiceChatParticipant.iterateAllItems(parent, 100, async (ctx, items) => {
+                    for (let item of items) {
+                        if (item.status === 'kicked' || item.status === 'left') {
+                            continue;
+                        }
+
+                        item.status = 'left';
+                    }
+                });
+                return 'done';
+            });
+            return true;
+        }),
     },
     Subscription: {
         debugEvents: {
