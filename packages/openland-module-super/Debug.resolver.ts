@@ -2637,13 +2637,23 @@ export const Resolver: GQLResolver = {
                             continue;
                         }
 
-                        item.status = 'left';
+                        await Modules.VoiceChats.participants.leaveChat(ctx, item.cid, item.uid);
+                    }
+                });
+                await Store.ConversationVoice.iterateAllItems(parent, 100, async (ctx, items) => {
+                    for (let item of items) {
+                        await Store.VoiceChatParticipantCounter.byId(item.id, 'listener').set(ctx, 0);
+                        await Store.VoiceChatParticipantCounter.byId(item.id, 'speaker').set(ctx, 0);
+                        await Store.VoiceChatParticipantCounter.byId(item.id, 'admin').set(ctx, 0);
+
+                        item.active = false;
                     }
                 });
                 return 'done';
             });
             return true;
-        }),
+        })
+
     },
     Subscription: {
         debugEvents: {
