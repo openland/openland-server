@@ -4,7 +4,6 @@ import { VoiceChatsRepository } from './repositories/VoiceChatsRepository';
 import { VoiceChatsMediator } from './mediators/VoiceChatsMediator';
 import { ParticipantsMediator } from './mediators/ParticipantsMediator';
 import { ParticipantsRepository } from './repositories/ParticipantsRepository';
-import { VoiceChatEventsMediator } from './mediators/VoiceChatEventsMediator';
 import { VoiceChatEventsRepository } from './repositories/VoiceChatEventsRepository';
 
 export function loadVoiceChatsModule() {
@@ -16,5 +15,4 @@ export function loadVoiceChatsModule() {
     container.bind('VoiceChatParticipantsMediator').to(ParticipantsMediator).inSingletonScope();
 
     container.bind('VoiceChatEventsRepository').to(VoiceChatEventsRepository).inSingletonScope();
-    container.bind('VoiceChatEventsMediator').to(VoiceChatEventsMediator).inSingletonScope();
 }

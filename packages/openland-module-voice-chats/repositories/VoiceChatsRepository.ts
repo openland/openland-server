@@ -5,12 +5,12 @@ import { fetchNextDBSeq } from '../../openland-utils/dbSeq';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { notifyFastWatch } from '../../openland-module-db/fastWatch';
 import { lazyInject } from '../../openland-modules/Modules.container';
-import { VoiceChatEventsMediator } from '../mediators/VoiceChatEventsMediator';
+import { VoiceChatEventsRepository } from './VoiceChatEventsRepository';
 
 @injectable()
 export class VoiceChatsRepository {
-    @lazyInject('VoiceChatEventsMediator')
-    private readonly events!: VoiceChatEventsMediator;
+    @lazyInject('VoiceChatEventsRepository')
+    private readonly events!: VoiceChatEventsRepository;
 
     createChat = async (ctx: Context, title: string) => {
         let id = await fetchNextDBSeq(ctx, 'conversation-id');

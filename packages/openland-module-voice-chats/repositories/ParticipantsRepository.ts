@@ -5,8 +5,8 @@ import { VoiceChatParticipantShape } from '../../openland-module-db/store';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { VoiceChatsRepository } from './VoiceChatsRepository';
-import { VoiceChatEventsMediator } from '../mediators/VoiceChatEventsMediator';
 import { CallRepository } from '../../openland-module-calls/repositories/CallRepository';
+import { VoiceChatEventsRepository } from './VoiceChatEventsRepository';
 
 export type ParticipantStatus = VoiceChatParticipantShape['status'];
 
@@ -22,8 +22,8 @@ export { Status as VoiceChatParticipantStatus };
 export class ParticipantsRepository {
     @lazyInject('VoiceChatsRepository')
     private readonly chatsRepo!: VoiceChatsRepository;
-    @lazyInject('VoiceChatEventsMediator')
-    private readonly events!: VoiceChatEventsMediator;
+    @lazyInject('VoiceChatEventsRepository')
+    private readonly events!: VoiceChatEventsRepository;
     @lazyInject('CallRepository')
     private readonly calls!: CallRepository;
 
