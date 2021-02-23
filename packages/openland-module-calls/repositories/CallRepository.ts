@@ -12,6 +12,9 @@ import { CallScheduler, MediaSources, StreamHint, Capabilities } from './CallSch
 import { notifyFastWatch } from 'openland-module-db/fastWatch';
 import { DeliveryMediator } from '../../openland-module-messaging/mediators/DeliveryMediator';
 import { Events } from 'openland-module-hyperlog/Events';
+import {
+    VoiceChatParticipantStatus
+} from '../../openland-module-voice-chats/repositories/ParticipantsRepository';
 
 let log = createLogger('call-repo');
 
@@ -163,7 +166,7 @@ export class CallRepository {
             if (!cap) {
                 cap = DEFAULT_CAPABILITIES;
             }
-            await scheduler.onPeerAdded(ctx, conf.id, id, this.#getStreams(res, conf), cap);
+            await scheduler.onPeerAdded(ctx, conf.id, id, await this.#getStreams(ctx, res, conf), cap);
 
             // Notify state change
             await this.notifyConferenceChanged(ctx, cid);
@@ -186,7 +189,7 @@ export class CallRepository {
 
             // Scheduling
             let scheduler = this.getScheduler(conf.currentScheduler);
-            await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, this.#getStreams(peer, conf));
+            await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, await this.#getStreams(ctx, peer, conf));
 
             // Notify state change
             await this.notifyConferenceChanged(ctx, cid);
@@ -222,7 +225,7 @@ export class CallRepository {
 
             // Scheduling
             let scheduler = this.getScheduler(conf.currentScheduler);
-            await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, this.#getStreams(peer, conf));
+            await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, await this.#getStreams(ctx, peer, conf));
 
             // Notify state change
             await this.notifyConferenceChanged(ctx, cid);
@@ -252,7 +255,7 @@ export class CallRepository {
 
             // Scheduling
             let scheduler = this.getScheduler(conf.currentScheduler);
-            await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, this.#getStreams(peer, conf));
+            await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, await this.#getStreams(ctx, peer, conf));
 
             // Notify state change
             await this.notifyConferenceChanged(ctx, cid);
@@ -271,11 +274,31 @@ export class CallRepository {
 
             // Scheduling
             let scheduler = this.getScheduler(conf.currentScheduler);
-            await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, this.#getStreams(peer, conf));
+            await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, await this.#getStreams(ctx, peer, conf));
 
             // Notify state change
             await this.notifyConferenceChanged(ctx, peer.cid);
             return conf;
+        });
+    }
+
+    //
+    // Media streams update
+    //
+    updateMediaStreams = async (parent: Context, cid: number, uid: number, tid: string) => {
+        return await inTx(parent, async ctx => {
+            let conf = await this.getOrCreateConference(ctx, cid);
+            let peer = await Store.ConferencePeer.auth.find(ctx, cid, uid, tid);
+            if (!peer) {
+                throw Error('Unable to find peer');
+            }
+
+            // Scheduling
+            let scheduler = this.getScheduler(conf.currentScheduler);
+            await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, await this.#getStreams(ctx, peer, conf));
+
+            // Notify state change
+            await this.notifyConferenceChanged(ctx, cid);
         });
     }
 
@@ -554,12 +577,25 @@ export class CallRepository {
         });
     }
 
-    #getStreams = (peer: ConferencePeer, conference: ConferenceRoom): MediaSources => {
-        let res: MediaSources = {
+    #getStreams = async (ctx: Context, peer: ConferencePeer, conference: ConferenceRoom): Promise<MediaSources> => {
+        let voiceConv = await Store.ConversationVoice.findById(ctx, conference.id);
+        if (voiceConv) {
+            let part = await Store.VoiceChatParticipant.findById(ctx, conference.id, peer.uid);
+            let audioStream = true;
+            if (part && !VoiceChatParticipantStatus.isSpeaker(part.status)) {
+                audioStream = false;
+            }
+            return {
+                videoStream: false,
+                screenCastStream: false,
+                audioStream: audioStream
+            };
+        }
+
+        return {
             videoStream: peer.videoPaused === false,
             screenCastStream: conference.screenSharingPeerId === peer.id,
             audioStream: true
         };
-        return res;
     }
 }

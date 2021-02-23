@@ -5081,12 +5081,14 @@ export class RoomParticipantFactory extends EntityFactory<RoomParticipantShape, 
 export interface VoiceChatParticipantShape {
     cid: number;
     uid: number;
+    tid: string | null;
     status: 'listener' | 'speaker' | 'admin' | 'left' | 'kicked';
     handRaised: boolean;
     promotedBy: number | null;
 }
 
 export interface VoiceChatParticipantCreateShape {
+    tid?: string | null | undefined;
     status: 'listener' | 'speaker' | 'admin' | 'left' | 'kicked';
     handRaised: boolean;
     promotedBy?: number | null | undefined;
@@ -5095,6 +5097,15 @@ export interface VoiceChatParticipantCreateShape {
 export class VoiceChatParticipant extends Entity<VoiceChatParticipantShape> {
     get cid(): number { return this._rawValue.cid; }
     get uid(): number { return this._rawValue.uid; }
+    get tid(): string | null { return this._rawValue.tid; }
+    set tid(value: string | null) {
+        let normalized = this.descriptor.codec.fields.tid.normalize(value);
+        if (this._rawValue.tid !== normalized) {
+            this._rawValue.tid = normalized;
+            this._updatedValues.tid = normalized;
+            this.invalidate();
+        }
+    }
     get status(): 'listener' | 'speaker' | 'admin' | 'left' | 'kicked' { return this._rawValue.status; }
     set status(value: 'listener' | 'speaker' | 'admin' | 'left' | 'kicked') {
         let normalized = this.descriptor.codec.fields.status.normalize(value);
@@ -5137,12 +5148,14 @@ export class VoiceChatParticipantFactory extends EntityFactory<VoiceChatParticip
         primaryKeys.push({ name: 'cid', type: 'integer' });
         primaryKeys.push({ name: 'uid', type: 'integer' });
         let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'tid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'status', type: { type: 'enum', values: ['listener', 'speaker', 'admin', 'left', 'kicked'] }, secure: false });
         fields.push({ name: 'handRaised', type: { type: 'boolean' }, secure: false });
         fields.push({ name: 'promotedBy', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             cid: c.integer,
             uid: c.integer,
+            tid: c.optional(c.string),
             status: c.enum('listener', 'speaker', 'admin', 'left', 'kicked'),
             handRaised: c.boolean,
             promotedBy: c.optional(c.integer),

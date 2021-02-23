@@ -41,7 +41,7 @@ export const Resolver: GQLResolver = {
     Mutation: {
         voiceChatCreate: withActivatedUser(async (ctx, { input }, uid) => {
             let chat = await Modules.VoiceChats.chats.createChat(ctx, input.title);
-            await Modules.VoiceChats.participants.joinChat(ctx, chat.id, uid);
+            await Modules.VoiceChats.participants.joinChat(ctx, chat.id, uid, ctx.auth.tid!);
             return chat;
         }),
         voiceChatUpdate: withActivatedUser(async (ctx, { id, input }, uid) => {

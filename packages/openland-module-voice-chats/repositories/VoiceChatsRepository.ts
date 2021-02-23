@@ -32,7 +32,7 @@ export class VoiceChatsRepository {
     setChatActive = async (ctx: Context, id: number, active: boolean) => {
         let chat = await this.#getChatOrFail(ctx, id);
         chat.active = active;
-        
+
         await this.notifyChatUpdated(ctx, id);
         return chat;
     }

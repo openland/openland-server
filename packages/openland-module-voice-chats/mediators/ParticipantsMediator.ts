@@ -14,8 +14,8 @@ export class ParticipantsMediator {
     /*
     * Listener actions
     * */
-    joinChat = async (ctx: Context, cid: number, uid: number) => {
-        return await this.repo.joinChat(ctx, cid, uid);
+    joinChat = async (ctx: Context, cid: number, uid: number, tid: string) => {
+        return await this.repo.joinChat(ctx, cid, uid, tid);
     }
     updateHandRaised = async (ctx: Context, cid: number, uid: number, handRaised: boolean) => {
         return await this.repo.updateHandRaised(ctx, cid, uid, handRaised);
@@ -35,7 +35,7 @@ export class ParticipantsMediator {
     demoteParticipant = async (ctx: Context, by: number, cid: number, uid: number) => {
         await this.ensureParticipantIsAdmin(ctx, cid, by);
 
-        return await this.repo.demoteParticipant(ctx, cid, uid, by);
+        return await this.repo.demoteParticipant(ctx, cid, uid);
     }
     updateAdminRights = async (ctx: Context, by: number, cid: number, uid: number, isAdmin: boolean) => {
         await this.ensureParticipantIsAdmin(ctx, cid, by);
@@ -54,6 +54,9 @@ export class ParticipantsMediator {
         return await this.repo.kick(ctx, cid, uid);
     }
 
+    /*
+    * Internal tools
+    * */
     isAdmin = async (ctx: Context, cid: number, uid: number) => {
         let p = await Store.VoiceChatParticipant.findById(ctx, cid, uid);
         if (!p || p.status !== 'admin') {

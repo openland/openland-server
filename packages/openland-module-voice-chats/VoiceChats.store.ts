@@ -7,7 +7,8 @@ import {
     integer,
     optional,
     primaryKey,
-    rangeIndex
+    rangeIndex,
+    string
 } from '@openland/foundationdb-compiler';
 import { eventStore } from '@openland/foundationdb-compiler/lib/builder';
 
@@ -15,6 +16,7 @@ export function voiceChatsStore() {
     entity('VoiceChatParticipant', () => {
         primaryKey('cid', integer());
         primaryKey('uid', integer());
+        field('tid', optional(string()));
         field('status', enumString(
             // In-chat status
             'listener',

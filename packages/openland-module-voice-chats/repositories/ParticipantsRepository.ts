@@ -6,6 +6,7 @@ import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { VoiceChatsRepository } from './VoiceChatsRepository';
 import { VoiceChatEventsMediator } from '../mediators/VoiceChatEventsMediator';
+import { CallRepository } from '../../openland-module-calls/repositories/CallRepository';
 
 export type ParticipantStatus = VoiceChatParticipantShape['status'];
 
@@ -15,6 +16,7 @@ const Status = {
     isListener: (p: ParticipantStatus) => p === 'listener',
     isJoined: (p: ParticipantStatus) => p !== 'kicked' && p !== 'left',
 };
+export { Status as VoiceChatParticipantStatus };
 
 @injectable()
 export class ParticipantsRepository {
@@ -22,8 +24,10 @@ export class ParticipantsRepository {
     private readonly chatsRepo!: VoiceChatsRepository;
     @lazyInject('VoiceChatEventsMediator')
     private readonly events!: VoiceChatEventsMediator;
+    @lazyInject('CallRepository')
+    private readonly calls!: CallRepository;
 
-    joinChat = async (ctx: Context, cid: number, uid: number) => {
+    joinChat = async (ctx: Context, cid: number, uid: number, tid: string) => {
         let chat = await Store.ConversationVoice.findById(ctx, cid);
         if (!chat) {
             throw new NotFoundError();
@@ -32,7 +36,7 @@ export class ParticipantsRepository {
             await this.chatsRepo.setChatActive(ctx, cid, true);
         }
 
-        let p = await this.#getOrCreateParticipant(ctx, cid, uid);
+        let p = await this.#getOrCreateParticipant(ctx, cid, uid, tid);
         if (Status.isJoined(p.status)) {
             return p;
         }
@@ -155,6 +159,11 @@ export class ParticipantsRepository {
             Store.VoiceChatParticipantActive.byId(uid).set(ctx, 0);
         }
 
+        // Update media streams if ability to speak changed
+        if (Status.isSpeaker(status) !== Status.isSpeaker(participant.status) && participant.tid) {
+            await this.calls.updateMediaStreams(ctx, cid, uid, participant.tid);
+        }
+
         participant.status = status;
     }
 
@@ -166,7 +175,7 @@ export class ParticipantsRepository {
         return participant;
     }
 
-    #getOrCreateParticipant = async (ctx: Context, cid: number, uid: number) => {
+    #getOrCreateParticipant = async (ctx: Context, cid: number, uid: number, tid: string) => {
         let participant = await Store.VoiceChatParticipant.findById(ctx, cid, uid);
         if (participant) {
             return participant;
@@ -175,6 +184,7 @@ export class ParticipantsRepository {
             status: 'left',
             handRaised: false,
             promotedBy: null,
+            tid: tid
         });
     }
 }
