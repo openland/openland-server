@@ -168,6 +168,7 @@ export class ParticipantsRepository {
         }
 
         participant.status = status;
+        await participant.flush(ctx);
     }
 
     #getOrFail = async (ctx: Context, cid: number, uid: number) => {
