@@ -401,14 +401,6 @@ export default declareSchema(() => {
             .withCondition((v) => v.kind === 'public' && !v.isDeleted);
     });
 
-    entity('ConversationVoice', () => {
-       primaryKey('id', integer());
-       field('title', optional(string()));
-       field('active', boolean());
-
-       rangeIndex('active', ['createdAt']).withCondition(a => a.active);
-    });
-
     atomicBool('AutoSubscribeWasExecutedForUser', () => {
         primaryKey('uid', integer());
         primaryKey('targetType', enumString('room', 'org'));

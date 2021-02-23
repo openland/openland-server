@@ -13,6 +13,14 @@ import {
 import { eventStore } from '@openland/foundationdb-compiler/lib/builder';
 
 export function voiceChatsStore() {
+    entity('ConversationVoice', () => {
+        primaryKey('id', integer());
+        field('title', optional(string()));
+        field('active', boolean());
+
+        rangeIndex('active', ['createdAt']).withCondition(a => a.active);
+    });
+
     entity('VoiceChatParticipant', () => {
         primaryKey('cid', integer());
         primaryKey('uid', integer());
