@@ -1,0 +1,9 @@
+extend type Query {
+    activeVoiceChats(first: Int!, after: String): VoiceChatConnection!
+}
+
+union ActiveVoiceChatsEvent = VoiceChatUpdatedEvent
+
+extend type Subscription {
+    activeVoiceChatsEvents: [ActiveVoiceChatsEvent!]!
+}

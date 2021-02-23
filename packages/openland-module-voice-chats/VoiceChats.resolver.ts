@@ -58,15 +58,7 @@ export const Resolver: GQLResolver = {
                 throw new NotFoundError();
             }
             return res;
-        },
-
-        activeVoiceChats: withActivatedUser(async (ctx, args, uid) => {
-            let res = await Store.ConversationVoice.active.query(ctx, { limit: args.first, afterCursor: args.after });
-            return {
-                items: res.items,
-                cursor: res.cursor || null
-            };
-        }),
+        }
     },
     Subscription: {
         voiceChatWatch: {

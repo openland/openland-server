@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '41285a6a0546130e39cd8a41b0c59e5f';
+export const GQL_SPEC_VERSION = '6b26abe0759f56c7c9b8bddf73a8d90b';
 
 export namespace GQL {
     export interface CreditCard {
@@ -884,6 +884,7 @@ export namespace GQL {
     export interface VoiceChatParticipantConnectionItemsArgs { }
     export interface VoiceChatParticipantConnectionCursorArgs { }
     export interface VoiceChatParticipantConnectionHaveMoreArgs { }
+    export type ActiveVoiceChatsEvent = VoiceChatUpdatedEvent;
     export interface DiscoverChatsCollectionInput {
         title: string;
         description: Nullable<string>;
@@ -3981,6 +3982,7 @@ export namespace GQL {
         superAccount: SuperAccount;
         superAdmins: SuperAdmin[];
         voiceChatListeners: VoiceChatParticipantConnection;
+        activeVoiceChats: VoiceChatConnection;
         myBlackList: User[];
         discoverCollections: Nullable<DiscoverChatsCollectionConnection>;
         discoverCollection: Nullable<DiscoverChatsCollection>;
@@ -4066,7 +4068,6 @@ export namespace GQL {
         userSearchForOrg: OrgUserConnection;
         alphaProfiles: UserConnection;
         voiceChat: VoiceChat;
-        activeVoiceChats: VoiceChatConnection;
         voiceChatEventsState: VoiceChatEventsState;
         conference: Conference;
         conferenceMedia: ConferenceMedia;
@@ -4292,6 +4293,10 @@ export namespace GQL {
     export interface QuerySuperAdminsArgs { }
     export interface QueryVoiceChatListenersArgs {
         id: string;
+        first: number;
+        after: OptionalNullable<string>;
+    }
+    export interface QueryActiveVoiceChatsArgs {
         first: number;
         after: OptionalNullable<string>;
     }
@@ -4555,10 +4560,6 @@ export namespace GQL {
     export interface QueryVoiceChatArgs {
         id: string;
     }
-    export interface QueryActiveVoiceChatsArgs {
-        first: number;
-        after: OptionalNullable<string>;
-    }
     export interface QueryVoiceChatEventsStateArgs {
         id: string;
     }
@@ -4804,6 +4805,7 @@ export namespace GQL {
         watchSettings: Settings;
         alphaConferenceWatch: Conference;
         alphaConferenceMediaWatch: ConferenceMedia;
+        activeVoiceChatsEvents: ActiveVoiceChatsEvent[];
         userEventBus: UserEventBusMessage;
         globalEventBus: UserEventBusMessage;
         blackListUpdates: BlackListUpdateContainer;
@@ -4846,6 +4848,7 @@ export namespace GQL {
         id: string;
         peerId: string;
     }
+    export interface SubscriptionActiveVoiceChatsEventsArgs { }
     export interface SubscriptionUserEventBusArgs {
         topic: string;
     }
@@ -7375,6 +7378,7 @@ export interface GQLResolver {
             haveMore: GQL.VoiceChatParticipantConnectionHaveMoreArgs,
         }
     >;
+    ActiveVoiceChatsEvent?: UnionTypeResolver<GQLRoots.ActiveVoiceChatsEventRoot, 'VoiceChatUpdatedEvent'>;
     DiscoverChatsCollection?: ComplexTypedResolver<
         GQL.DiscoverChatsCollection,
         GQLRoots.DiscoverChatsCollectionRoot,
@@ -9798,6 +9802,7 @@ export interface GQLResolver {
             superAccount: GQLRoots.SuperAccountRoot,
             superAdmins: GQLRoots.SuperAdminRoot[],
             voiceChatListeners: GQLRoots.VoiceChatParticipantConnectionRoot,
+            activeVoiceChats: GQLRoots.VoiceChatConnectionRoot,
             myBlackList: GQLRoots.UserRoot[],
             discoverCollections: Nullable<GQLRoots.DiscoverChatsCollectionConnectionRoot>,
             discoverCollection: Nullable<GQLRoots.DiscoverChatsCollectionRoot>,
@@ -9878,7 +9883,6 @@ export interface GQLResolver {
             userSearchForOrg: GQLRoots.OrgUserConnectionRoot,
             alphaProfiles: GQLRoots.UserConnectionRoot,
             voiceChat: GQLRoots.VoiceChatRoot,
-            activeVoiceChats: GQLRoots.VoiceChatConnectionRoot,
             voiceChatEventsState: GQLRoots.VoiceChatEventsStateRoot,
             conference: GQLRoots.ConferenceRoot,
             conferenceMedia: GQLRoots.ConferenceMediaRoot,
@@ -9995,6 +9999,7 @@ export interface GQLResolver {
             superAccount: GQL.QuerySuperAccountArgs,
             superAdmins: GQL.QuerySuperAdminsArgs,
             voiceChatListeners: GQL.QueryVoiceChatListenersArgs,
+            activeVoiceChats: GQL.QueryActiveVoiceChatsArgs,
             myBlackList: GQL.QueryMyBlackListArgs,
             discoverCollections: GQL.QueryDiscoverCollectionsArgs,
             discoverCollection: GQL.QueryDiscoverCollectionArgs,
@@ -10080,7 +10085,6 @@ export interface GQLResolver {
             userSearchForOrg: GQL.QueryUserSearchForOrgArgs,
             alphaProfiles: GQL.QueryAlphaProfilesArgs,
             voiceChat: GQL.QueryVoiceChatArgs,
-            activeVoiceChats: GQL.QueryActiveVoiceChatsArgs,
             voiceChatEventsState: GQL.QueryVoiceChatEventsStateArgs,
             conference: GQL.QueryConferenceArgs,
             conferenceMedia: GQL.QueryConferenceMediaArgs,
@@ -10173,6 +10177,7 @@ export interface GQLResolver {
             watchSettings: GQLRoots.SettingsRoot,
             alphaConferenceWatch: GQLRoots.ConferenceRoot,
             alphaConferenceMediaWatch: GQLRoots.ConferenceMediaRoot,
+            activeVoiceChatsEvents: GQLRoots.ActiveVoiceChatsEventRoot[],
             userEventBus: GQLRoots.UserEventBusMessageRoot,
             globalEventBus: GQLRoots.UserEventBusMessageRoot,
             blackListUpdates: GQLRoots.BlackListUpdateContainerRoot,
@@ -10202,6 +10207,7 @@ export interface GQLResolver {
             watchSettings: GQL.SubscriptionWatchSettingsArgs,
             alphaConferenceWatch: GQL.SubscriptionAlphaConferenceWatchArgs,
             alphaConferenceMediaWatch: GQL.SubscriptionAlphaConferenceMediaWatchArgs,
+            activeVoiceChatsEvents: GQL.SubscriptionActiveVoiceChatsEventsArgs,
             userEventBus: GQL.SubscriptionUserEventBusArgs,
             globalEventBus: GQL.SubscriptionGlobalEventBusArgs,
             blackListUpdates: GQL.SubscriptionBlackListUpdatesArgs,

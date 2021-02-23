@@ -931,6 +931,7 @@ export namespace GQLRoots {
     export type VoiceChatEventsStateRoot = { state: string };
     export type VoiceChatEventsContainerRoot = LiveStreamItem<BaseEvent>;
     export type VoiceChatEventRoot = BaseEvent;
+    export type ActiveVoiceChatsEventRoot = BaseEvent;
 
     //
     // Social
