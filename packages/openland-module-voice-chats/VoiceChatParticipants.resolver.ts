@@ -50,7 +50,7 @@ export const Resolver: GQLResolver = {
     Mutation: {
         voiceChatJoin: withActivatedUser(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.id);
-            await Modules.VoiceChats.participants.joinChat(ctx, cid, uid);
+            await Modules.VoiceChats.participants.joinChat(ctx, cid, uid, ctx.auth.tid!);
             return (await Store.ConversationVoice.findById(ctx, cid))!;
         }),
         voiceChatRaiseHand: withActivatedUser(async (ctx, args, uid) => {
