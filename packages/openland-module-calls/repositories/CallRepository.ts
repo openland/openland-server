@@ -582,7 +582,7 @@ export class CallRepository {
         if (voiceConv) {
             let part = await Store.VoiceChatParticipant.findById(ctx, conference.id, peer.uid);
             let audioStream = true;
-            if (part && !VoiceChatParticipantStatus.isSpeaker(part.status)) {
+            if (part && !VoiceChatParticipantStatus.isSpeaker(part)) {
                 audioStream = false;
             }
             return {
