@@ -6,6 +6,7 @@ import { inTx, encoders, withoutTransaction } from '@openland/foundationdb';
 import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 import uuid from 'uuid';
 import { IDs } from 'openland-module-api/IDs';
+import { Context } from '@openland/context';
 
 // @ts-ignore
 const logger = createLogger('migration');
@@ -1265,6 +1266,24 @@ migrations.push({
     migration: async (parent) => {
         await inTx(parent, async ctx => {
             Store.FollowersDirectory.clearPrefixed(ctx, encoders.tuple.pack([]));
+        });
+    }
+});
+
+migrations.push({
+    key: '189-clear-voice-chat-participants',
+    migration: async (parent: Context) => {
+        await inTx(parent, async ctx => {
+            await Store.VoiceChatParticipant.descriptor.subspace.clearPrefixed(ctx, []);
+        });
+        await Store.ConversationVoice.iterateAllItems(parent, 1, async (ctx, items) => {
+            for (let item of items) {
+                await Store.VoiceChatParticipantCounter.byId(item.id, 'listener').set(ctx, 0);
+                await Store.VoiceChatParticipantCounter.byId(item.id, 'speaker').set(ctx, 0);
+                await Store.VoiceChatParticipantCounter.byId(item.id, 'admin').set(ctx, 0);
+
+                item.active = false;
+            }
         });
     }
 });

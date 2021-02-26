@@ -26,30 +26,35 @@ export function voiceChatsStore() {
         primaryKey('uid', integer());
         field('tid', optional(string()));
         field('status', enumString(
-            // In-chat status
+            'joined',
+            'left',
+            'kicked',
+
+            // Obsolete statuses
             'listener',
             'speaker',
-            'admin',
-
-            // Chat left status
-            'left',
-            'kicked'
+            'admin'
         ));
+        field('role', optional(enumString(
+            'listener',
+            'speaker',
+            'admin'
+        )));
         field('handRaised', boolean());
         field('promotedBy', optional(integer()));
 
         rangeIndex('chat', ['cid', 'updatedAt'])
-            .withCondition(a => a.status !== 'left' && a.status !== 'kicked');
+            .withCondition(a => a.status === 'joined');
         rangeIndex('handRaised', ['cid', 'updatedAt'])
-            .withCondition(a => a.status !== 'left' && a.status !== 'kicked' && a.handRaised);
+            .withCondition(a => a.status === 'joined');
         rangeIndex('speakers', ['cid', 'updatedAt'])
-            .withCondition(a => a.status !== 'left' && a.status !== 'kicked' && (a.status === 'speaker' || a.status === 'admin'));
+            .withCondition(a => a.status === 'joined' && (a.role === 'speaker' || a.role === 'admin'));
         rangeIndex('listeners', ['cid', 'updatedAt'])
-            .withCondition(a => a.status !== 'left' && a.status !== 'kicked' && a.status === 'listener');
+            .withCondition(a => a.status === 'joined' && a.role === 'listener');
     });
     atomicInt('VoiceChatParticipantCounter', () => {
         primaryKey('cid', integer());
-        primaryKey('status', enumString(
+        primaryKey('role', enumString(
             'listener',
             'speaker',
             'admin'

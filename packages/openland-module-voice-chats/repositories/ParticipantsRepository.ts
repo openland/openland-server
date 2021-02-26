@@ -1,20 +1,30 @@
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { Store } from '../../openland-module-db/FDB';
-import { VoiceChatParticipantShape } from '../../openland-module-db/store';
+import { VoiceChatParticipant } from '../../openland-module-db/store';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { VoiceChatsRepository } from './VoiceChatsRepository';
 import { CallRepository } from '../../openland-module-calls/repositories/CallRepository';
 import { VoiceChatEventsRepository } from './VoiceChatEventsRepository';
 
-export type ParticipantStatus = VoiceChatParticipantShape['status'];
+export type ParticipantStatus = 'left' | 'kicked' | NonNullable<VoiceChatParticipant['role']>;
+
+const statusChecker = (f: (p: ParticipantStatus | 'unassigned') => boolean) => (opts: ParticipantStatus | VoiceChatParticipant) => {
+    if (typeof opts === 'string') {
+        return f(opts);
+    }
+    if (opts.status === 'joined' && opts.role === null) {
+        return f('unassigned');
+    }
+    return f(opts.status === 'joined' ? opts.role! : opts.status);
+};
 
 const Status = {
-    isAdmin: (p: ParticipantStatus) => p === 'admin',
-    isSpeaker: (p: ParticipantStatus) => p === 'admin' || p === 'speaker',
-    isListener: (p: ParticipantStatus) => p === 'listener',
-    isJoined: (p: ParticipantStatus) => p !== 'kicked' && p !== 'left',
+    isAdmin: statusChecker((p) => p === 'admin'),
+    isSpeaker: statusChecker((p) => p === 'admin' || p === 'speaker'),
+    isListener: statusChecker((p) => p === 'listener'),
+    isJoined: statusChecker((p) => p !== 'kicked' && p !== 'left'),
 };
 export { Status as VoiceChatParticipantStatus };
 
@@ -37,7 +47,7 @@ export class ParticipantsRepository {
         }
 
         let p = await this.#getOrCreateParticipant(ctx, cid, uid, tid);
-        if (Status.isJoined(p.status)) {
+        if (p.status === 'joined') {
             return p;
         }
 
@@ -54,7 +64,7 @@ export class ParticipantsRepository {
 
     updateHandRaised = async (ctx: Context, cid: number, uid: number, handRaised: boolean) => {
         let participant = await this.#getOrFail(ctx, cid, uid);
-        if (!Status.isListener(participant.status)) {
+        if (!Status.isListener(participant)) {
             throw new Error('You cannot raise hand if you are not listener');
         }
         participant.handRaised = handRaised;
@@ -75,7 +85,7 @@ export class ParticipantsRepository {
 
     promoteParticipant = async (ctx: Context, cid: number, uid: number, by: number) => {
         let participant = await this.#getOrFail(ctx, cid, uid);
-        if (!Status.isListener(participant.status) && participant.handRaised) {
+        if (!Status.isListener(participant) && participant.handRaised) {
             throw new Error('You can promote only listeners who raised hand');
         }
 
@@ -88,7 +98,7 @@ export class ParticipantsRepository {
 
     demoteParticipant = async (ctx: Context, cid: number, uid: number) => {
         let participant = await this.#getOrFail(ctx, cid, uid);
-        if (!Status.isSpeaker(participant.status)) {
+        if (!Status.isSpeaker(participant)) {
             throw new Error('You can demote only current speakers');
         }
 
@@ -101,7 +111,7 @@ export class ParticipantsRepository {
 
     updateAdminRights = async (ctx: Context, cid: number, uid: number, isAdmin: boolean) => {
         let participant = await this.#getOrFail(ctx, cid, uid);
-        if (!Status.isSpeaker(participant.status)) {
+        if (!Status.isSpeaker(participant)) {
             throw new Error('Only speaker can be an admin');
         }
         await this.#changeStatus(ctx, cid, uid, isAdmin ? 'admin' : 'speaker');
@@ -119,32 +129,32 @@ export class ParticipantsRepository {
 
     #changeStatus = async (ctx: Context, cid: number, uid: number, status: ParticipantStatus) => {
         let participant = await this.#getOrFail(ctx, cid, uid);
-        if (participant.status === status) {
+        if (participant.status === status || participant.role === status) {
             return;
         }
 
         // If was listener and now not listener
-        if (Status.isListener(participant.status) && !Status.isListener(status)) {
+        if (Status.isListener(participant) && !Status.isListener(status)) {
             this.#counter(cid, 'listener').decrement(ctx);
         }
         // If was not listener and now listener
-        if (!Status.isListener(participant.status) && Status.isListener(status)) {
+        if (!Status.isListener(participant) && Status.isListener(status)) {
             this.#counter(cid, 'listener').increment(ctx);
         }
         // If was speaker and now not speaker
-        if (Status.isSpeaker(participant.status) && !Status.isSpeaker(status)) {
+        if (Status.isSpeaker(participant) && !Status.isSpeaker(status)) {
             this.#counter(cid, 'speaker').decrement(ctx);
         }
         // If was not speaker and now speaker
-        if (!Status.isSpeaker(participant.status) && Status.isSpeaker(status)) {
+        if (!Status.isSpeaker(participant) && Status.isSpeaker(status)) {
             this.#counter(cid, 'speaker').increment(ctx);
         }
         // If was admin and now not admin
-        if (Status.isAdmin(participant.status) && !Status.isAdmin(status)) {
+        if (Status.isAdmin(participant) && !Status.isAdmin(status)) {
             this.#counter(cid, 'admin').decrement(ctx);
         }
         // If was not admin and now admin
-        if (!Status.isAdmin(participant.status) && Status.isAdmin(status)) {
+        if (!Status.isAdmin(participant) && Status.isAdmin(status)) {
             this.#counter(cid, 'admin').increment(ctx);
         }
 
@@ -160,14 +170,22 @@ export class ParticipantsRepository {
         }
 
         // Update media streams if ability to speak changed
-        if (Status.isSpeaker(status) !== Status.isSpeaker(participant.status) && participant.tid) {
+        if (Status.isSpeaker(status) !== Status.isSpeaker(participant) && participant.tid) {
             let peer = await Store.ConferencePeer.auth.find(ctx, cid, uid, participant.tid);
             if (peer) {
                 await this.calls.updateMediaStreams(ctx, cid, uid, participant.tid);
             }
         }
 
-        participant.status = status;
+        if (status !== 'left' && status !== 'kicked') {
+            participant.status = 'joined';
+            participant.role = status;
+        } else if (status === 'left') {
+            participant.status = 'left';
+        } else if (status === 'kicked') {
+            participant.status = 'kicked';
+            participant.role = null;
+        }
         await participant.flush(ctx);
     }
 
@@ -186,6 +204,7 @@ export class ParticipantsRepository {
         }
         return await Store.VoiceChatParticipant.create(ctx, cid, uid, {
             status: 'left',
+            role: null,
             handRaised: false,
             promotedBy: null,
             tid: tid

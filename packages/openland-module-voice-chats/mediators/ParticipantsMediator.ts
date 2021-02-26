@@ -59,7 +59,7 @@ export class ParticipantsMediator {
     * */
     isAdmin = async (ctx: Context, cid: number, uid: number) => {
         let p = await Store.VoiceChatParticipant.findById(ctx, cid, uid);
-        if (!p || p.status !== 'admin') {
+        if (!p || p.status !== 'joined' || p.role !== 'admin') {
             return false;
         }
         return true;

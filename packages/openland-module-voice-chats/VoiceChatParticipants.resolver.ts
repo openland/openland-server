@@ -6,6 +6,7 @@ import VoiceChatParticipantRoot = GQLRoots.VoiceChatParticipantRoot;
 import { IDs } from '../openland-module-api/IDs';
 import { Store } from 'openland-module-db/FDB';
 import { withActivatedUser } from '../openland-module-api/Resolvers';
+import { VoiceChatParticipant } from '../openland-module-db/store';
 
 const ensureHasAccess = <TArgs, TResult>(fn: (root: VoiceChatParticipantRoot, args: TArgs, ctx: Context) => Promise<TResult>, fallback: TResult) =>
   async (root: VoiceChatParticipantRoot, args: TArgs, ctx: Context): Promise<TResult> => {
@@ -19,6 +20,14 @@ const ensureHasAccess = <TArgs, TResult>(fn: (root: VoiceChatParticipantRoot, ar
     return fn(root, args, ctx);
 };
 
+const resolveParticipantStatus = (p: VoiceChatParticipant) => {
+    if (p.status !== 'joined') {
+        return p.status;
+    } else {
+        return p.role || 'left';
+    }
+};
+
 export const Resolver: GQLResolver = {
     VoiceChatParticipantStatus: {
         LISTENER: 'listener',
@@ -30,7 +39,7 @@ export const Resolver: GQLResolver = {
     VoiceChatParticipant: {
         id: root => IDs.VoiceChatParticipant.serialize(root.cid + '_' + root.uid),
         handRaised: ensureHasAccess(async (root) => root.handRaised, null),
-        status: root => root.status,
+        status: root => resolveParticipantStatus(root),
         user: root => root.uid,
     },
     VoiceChatParticipantConnection: {

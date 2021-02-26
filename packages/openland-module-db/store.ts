@@ -123,28 +123,28 @@ export class VoiceChatParticipantCounterFactory extends AtomicIntegerFactory {
         super(storage, subspace);
     }
 
-    byId(cid: number, status: 'listener' | 'speaker' | 'admin') {
-        return this._findById([cid, status]);
+    byId(cid: number, role: 'listener' | 'speaker' | 'admin') {
+        return this._findById([cid, role]);
     }
 
-    get(ctx: Context, cid: number, status: 'listener' | 'speaker' | 'admin') {
-        return this._get(ctx, [cid, status]);
+    get(ctx: Context, cid: number, role: 'listener' | 'speaker' | 'admin') {
+        return this._get(ctx, [cid, role]);
     }
 
-    set(ctx: Context, cid: number, status: 'listener' | 'speaker' | 'admin', value: number) {
-        return this._set(ctx, [cid, status], value);
+    set(ctx: Context, cid: number, role: 'listener' | 'speaker' | 'admin', value: number) {
+        return this._set(ctx, [cid, role], value);
     }
 
-    add(ctx: Context, cid: number, status: 'listener' | 'speaker' | 'admin', value: number) {
-        return this._add(ctx, [cid, status], value);
+    add(ctx: Context, cid: number, role: 'listener' | 'speaker' | 'admin', value: number) {
+        return this._add(ctx, [cid, role], value);
     }
 
-    increment(ctx: Context, cid: number, status: 'listener' | 'speaker' | 'admin') {
-        return this._increment(ctx, [cid, status]);
+    increment(ctx: Context, cid: number, role: 'listener' | 'speaker' | 'admin') {
+        return this._increment(ctx, [cid, role]);
     }
 
-    decrement(ctx: Context, cid: number, status: 'listener' | 'speaker' | 'admin') {
-        return this._decrement(ctx, [cid, status]);
+    decrement(ctx: Context, cid: number, role: 'listener' | 'speaker' | 'admin') {
+        return this._decrement(ctx, [cid, role]);
     }
 }
 
@@ -4333,104 +4333,6 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
     }
 }
 
-export interface ConversationVoiceShape {
-    id: number;
-    title: string | null;
-    active: boolean;
-}
-
-export interface ConversationVoiceCreateShape {
-    title?: string | null | undefined;
-    active: boolean;
-}
-
-export class ConversationVoice extends Entity<ConversationVoiceShape> {
-    get id(): number { return this._rawValue.id; }
-    get title(): string | null { return this._rawValue.title; }
-    set title(value: string | null) {
-        let normalized = this.descriptor.codec.fields.title.normalize(value);
-        if (this._rawValue.title !== normalized) {
-            this._rawValue.title = normalized;
-            this._updatedValues.title = normalized;
-            this.invalidate();
-        }
-    }
-    get active(): boolean { return this._rawValue.active; }
-    set active(value: boolean) {
-        let normalized = this.descriptor.codec.fields.active.normalize(value);
-        if (this._rawValue.active !== normalized) {
-            this._rawValue.active = normalized;
-            this._updatedValues.active = normalized;
-            this.invalidate();
-        }
-    }
-}
-
-export class ConversationVoiceFactory extends EntityFactory<ConversationVoiceShape, ConversationVoice> {
-
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conversationVoice');
-        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationVoice', 'active'), condition: a => a.active });
-        let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'id', type: 'integer' });
-        let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'title', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'active', type: { type: 'boolean' }, secure: false });
-        let codec = c.struct({
-            id: c.integer,
-            title: c.optional(c.string),
-            active: c.boolean,
-        });
-        let descriptor: EntityDescriptor<ConversationVoiceShape> = {
-            name: 'ConversationVoice',
-            storageKey: 'conversationVoice',
-            allowDelete: false,
-            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
-        };
-        return new ConversationVoiceFactory(descriptor);
-    }
-
-    private constructor(descriptor: EntityDescriptor<ConversationVoiceShape>) {
-        super(descriptor);
-    }
-
-    readonly active = Object.freeze({
-        findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
-        },
-        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
-        },
-        liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
-        },
-    });
-
-    create(ctx: Context, id: number, src: ConversationVoiceCreateShape): Promise<ConversationVoice> {
-        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
-    }
-
-    create_UNSAFE(ctx: Context, id: number, src: ConversationVoiceCreateShape): ConversationVoice {
-        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
-    }
-
-    findById(ctx: Context, id: number): Promise<ConversationVoice | null> {
-        return this._findById(ctx, [id]);
-    }
-
-    watch(ctx: Context, id: number): Watch {
-        return this._watch(ctx, [id]);
-    }
-
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConversationVoiceShape>): ConversationVoice {
-        return new ConversationVoice([value.id], value, this.descriptor, this._flush, this._delete, ctx);
-    }
-}
-
 export interface PremiumChatSettingsShape {
     id: number;
     price: number;
@@ -5078,18 +4980,118 @@ export class RoomParticipantFactory extends EntityFactory<RoomParticipantShape, 
     }
 }
 
+export interface ConversationVoiceShape {
+    id: number;
+    title: string | null;
+    active: boolean;
+}
+
+export interface ConversationVoiceCreateShape {
+    title?: string | null | undefined;
+    active: boolean;
+}
+
+export class ConversationVoice extends Entity<ConversationVoiceShape> {
+    get id(): number { return this._rawValue.id; }
+    get title(): string | null { return this._rawValue.title; }
+    set title(value: string | null) {
+        let normalized = this.descriptor.codec.fields.title.normalize(value);
+        if (this._rawValue.title !== normalized) {
+            this._rawValue.title = normalized;
+            this._updatedValues.title = normalized;
+            this.invalidate();
+        }
+    }
+    get active(): boolean { return this._rawValue.active; }
+    set active(value: boolean) {
+        let normalized = this.descriptor.codec.fields.active.normalize(value);
+        if (this._rawValue.active !== normalized) {
+            this._rawValue.active = normalized;
+            this._updatedValues.active = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class ConversationVoiceFactory extends EntityFactory<ConversationVoiceShape, ConversationVoice> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('conversationVoice');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationVoice', 'active'), condition: a => a.active });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'title', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'active', type: { type: 'boolean' }, secure: false });
+        let codec = c.struct({
+            id: c.integer,
+            title: c.optional(c.string),
+            active: c.boolean,
+        });
+        let descriptor: EntityDescriptor<ConversationVoiceShape> = {
+            name: 'ConversationVoice',
+            storageKey: 'conversationVoice',
+            allowDelete: false,
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new ConversationVoiceFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<ConversationVoiceShape>) {
+        super(descriptor);
+    }
+
+    readonly active = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
+        },
+    });
+
+    create(ctx: Context, id: number, src: ConversationVoiceCreateShape): Promise<ConversationVoice> {
+        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, id: number, src: ConversationVoiceCreateShape): ConversationVoice {
+        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
+    }
+
+    findById(ctx: Context, id: number): Promise<ConversationVoice | null> {
+        return this._findById(ctx, [id]);
+    }
+
+    watch(ctx: Context, id: number): Watch {
+        return this._watch(ctx, [id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<ConversationVoiceShape>): ConversationVoice {
+        return new ConversationVoice([value.id], value, this.descriptor, this._flush, this._delete, ctx);
+    }
+}
+
 export interface VoiceChatParticipantShape {
     cid: number;
     uid: number;
     tid: string | null;
-    status: 'listener' | 'speaker' | 'admin' | 'left' | 'kicked';
+    status: 'joined' | 'left' | 'kicked' | 'listener' | 'speaker' | 'admin';
+    role: 'listener' | 'speaker' | 'admin' | null;
     handRaised: boolean;
     promotedBy: number | null;
 }
 
 export interface VoiceChatParticipantCreateShape {
     tid?: string | null | undefined;
-    status: 'listener' | 'speaker' | 'admin' | 'left' | 'kicked';
+    status: 'joined' | 'left' | 'kicked' | 'listener' | 'speaker' | 'admin';
+    role?: 'listener' | 'speaker' | 'admin' | null | undefined;
     handRaised: boolean;
     promotedBy?: number | null | undefined;
 }
@@ -5106,12 +5108,21 @@ export class VoiceChatParticipant extends Entity<VoiceChatParticipantShape> {
             this.invalidate();
         }
     }
-    get status(): 'listener' | 'speaker' | 'admin' | 'left' | 'kicked' { return this._rawValue.status; }
-    set status(value: 'listener' | 'speaker' | 'admin' | 'left' | 'kicked') {
+    get status(): 'joined' | 'left' | 'kicked' | 'listener' | 'speaker' | 'admin' { return this._rawValue.status; }
+    set status(value: 'joined' | 'left' | 'kicked' | 'listener' | 'speaker' | 'admin') {
         let normalized = this.descriptor.codec.fields.status.normalize(value);
         if (this._rawValue.status !== normalized) {
             this._rawValue.status = normalized;
             this._updatedValues.status = normalized;
+            this.invalidate();
+        }
+    }
+    get role(): 'listener' | 'speaker' | 'admin' | null { return this._rawValue.role; }
+    set role(value: 'listener' | 'speaker' | 'admin' | null) {
+        let normalized = this.descriptor.codec.fields.role.normalize(value);
+        if (this._rawValue.role !== normalized) {
+            this._rawValue.role = normalized;
+            this._updatedValues.role = normalized;
             this.invalidate();
         }
     }
@@ -5140,23 +5151,25 @@ export class VoiceChatParticipantFactory extends EntityFactory<VoiceChatParticip
     static async open(storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory('voiceChatParticipant');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'chat'), condition: a => a.status !== 'left' && a.status !== 'kicked' });
-        secondaryIndexes.push({ name: 'handRaised', storageKey: 'handRaised', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'handRaised'), condition: a => a.status !== 'left' && a.status !== 'kicked' && a.handRaised });
-        secondaryIndexes.push({ name: 'speakers', storageKey: 'speakers', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'speakers'), condition: a => a.status !== 'left' && a.status !== 'kicked' && (a.status === 'speaker' || a.status === 'admin') });
-        secondaryIndexes.push({ name: 'listeners', storageKey: 'listeners', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'listeners'), condition: a => a.status !== 'left' && a.status !== 'kicked' && a.status === 'listener' });
+        secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'chat'), condition: a => a.status === 'joined' });
+        secondaryIndexes.push({ name: 'handRaised', storageKey: 'handRaised', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'handRaised'), condition: a => a.status === 'joined' });
+        secondaryIndexes.push({ name: 'speakers', storageKey: 'speakers', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'speakers'), condition: a => a.status === 'joined' && (a.role === 'speaker' || a.role === 'admin') });
+        secondaryIndexes.push({ name: 'listeners', storageKey: 'listeners', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'listeners'), condition: a => a.status === 'joined' && a.role === 'listener' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'cid', type: 'integer' });
         primaryKeys.push({ name: 'uid', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'tid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'status', type: { type: 'enum', values: ['listener', 'speaker', 'admin', 'left', 'kicked'] }, secure: false });
+        fields.push({ name: 'status', type: { type: 'enum', values: ['joined', 'left', 'kicked', 'listener', 'speaker', 'admin'] }, secure: false });
+        fields.push({ name: 'role', type: { type: 'optional', inner: { type: 'enum', values: ['listener', 'speaker', 'admin'] } }, secure: false });
         fields.push({ name: 'handRaised', type: { type: 'boolean' }, secure: false });
         fields.push({ name: 'promotedBy', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             cid: c.integer,
             uid: c.integer,
             tid: c.optional(c.string),
-            status: c.enum('listener', 'speaker', 'admin', 'left', 'kicked'),
+            status: c.enum('joined', 'left', 'kicked', 'listener', 'speaker', 'admin'),
+            role: c.optional(c.enum('listener', 'speaker', 'admin')),
             handRaised: c.boolean,
             promotedBy: c.optional(c.integer),
         });
@@ -24656,11 +24669,11 @@ export interface Store extends BaseStore {
     readonly ConversationPrivate: ConversationPrivateFactory;
     readonly ConversationOrganization: ConversationOrganizationFactory;
     readonly ConversationRoom: ConversationRoomFactory;
-    readonly ConversationVoice: ConversationVoiceFactory;
     readonly PremiumChatSettings: PremiumChatSettingsFactory;
     readonly PremiumChatUserPass: PremiumChatUserPassFactory;
     readonly RoomProfile: RoomProfileFactory;
     readonly RoomParticipant: RoomParticipantFactory;
+    readonly ConversationVoice: ConversationVoiceFactory;
     readonly VoiceChatParticipant: VoiceChatParticipantFactory;
     readonly Message: MessageFactory;
     readonly PrivateMessage: PrivateMessageFactory;
@@ -24977,11 +24990,11 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ConversationPrivatePromise = ConversationPrivateFactory.open(storage);
     let ConversationOrganizationPromise = ConversationOrganizationFactory.open(storage);
     let ConversationRoomPromise = ConversationRoomFactory.open(storage);
-    let ConversationVoicePromise = ConversationVoiceFactory.open(storage);
     let PremiumChatSettingsPromise = PremiumChatSettingsFactory.open(storage);
     let PremiumChatUserPassPromise = PremiumChatUserPassFactory.open(storage);
     let RoomProfilePromise = RoomProfileFactory.open(storage);
     let RoomParticipantPromise = RoomParticipantFactory.open(storage);
+    let ConversationVoicePromise = ConversationVoiceFactory.open(storage);
     let VoiceChatParticipantPromise = VoiceChatParticipantFactory.open(storage);
     let MessagePromise = MessageFactory.open(storage);
     let PrivateMessagePromise = PrivateMessageFactory.open(storage);
@@ -25244,11 +25257,11 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ConversationPrivate: await ConversationPrivatePromise,
         ConversationOrganization: await ConversationOrganizationPromise,
         ConversationRoom: await ConversationRoomPromise,
-        ConversationVoice: await ConversationVoicePromise,
         PremiumChatSettings: await PremiumChatSettingsPromise,
         PremiumChatUserPass: await PremiumChatUserPassPromise,
         RoomProfile: await RoomProfilePromise,
         RoomParticipant: await RoomParticipantPromise,
+        ConversationVoice: await ConversationVoicePromise,
         VoiceChatParticipant: await VoiceChatParticipantPromise,
         Message: await MessagePromise,
         PrivateMessage: await PrivateMessagePromise,
