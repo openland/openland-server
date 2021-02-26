@@ -15,6 +15,7 @@ import { Events } from 'openland-module-hyperlog/Events';
 import {
     VoiceChatParticipantStatus
 } from '../../openland-module-voice-chats/repositories/ParticipantsRepository';
+import { Modules } from '../../openland-modules/Modules';
 
 let log = createLogger('call-repo');
 
@@ -372,6 +373,12 @@ export class CallRepository {
 
             // Fast watch notify
             await this.notifyConferenceChanged(ctx, existing.cid);
+
+            // Remove peer from voice chat
+            let voiceConv = await Store.ConversationVoice.findById(ctx, existing.cid);
+            if (voiceConv) {
+                await Modules.VoiceChats.participants.leaveChat(ctx, existing.cid, existing.uid);
+            }
         });
     }
 
