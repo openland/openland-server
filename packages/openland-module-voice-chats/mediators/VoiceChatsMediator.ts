@@ -4,7 +4,9 @@ import { VoiceChatsRepository } from '../repositories/VoiceChatsRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { Modules } from '../../openland-modules/Modules';
 import { VoiceChatReportsMediator } from './VoiceChatReportsMediator';
-import { inTx } from '@openland/foundationdb';
+import { inReadOnlyTx } from '@openland/foundationdb';
+import { Events } from 'openland-module-hyperlog/Events';
+import { Store } from '../../openland-module-db/FDB';
 
 @injectable()
 export class VoiceChatsMediator {
@@ -15,12 +17,8 @@ export class VoiceChatsMediator {
     private readonly reports!: VoiceChatReportsMediator;
 
     start() {
-        // Setup voice chat reports
-        this.repo.voiceChatActiveChanged.subscribe(async ({ cid, active }) => {
-            await inTx(createNamedContext('voice-chat-reports'), async (ctx) => {
-                await this.reports.sendChatActiveChangedReport(ctx, cid, active);
-            });
-        });
+        this.#enableVoiceChatReports();
+        this.#enableVoiceChatAnalytics();
     }
 
     createChat = async (ctx: Context, title: string, startedBy?: number) => {
@@ -37,5 +35,43 @@ export class VoiceChatsMediator {
         await Modules.VoiceChats.participants.ensureParticipantIsAdmin(ctx, id, by);
 
         return this.repo.setChatActive(ctx, id, false);
+    }
+
+    //
+    // Voice chat events
+    //
+    #enableVoiceChatReports = () => {
+        this.repo.voiceChatActiveChanged.subscribe(async ({ cid, active }) => {
+            await inReadOnlyTx(createNamedContext('voice-chat-reports'), async (ctx) => {
+                await this.reports.sendChatActiveChangedReport(ctx, cid, active);
+            });
+        });
+    }
+
+    #enableVoiceChatAnalytics = () => {
+        this.repo.voiceChatActiveChanged.subscribe(async ({ cid, active }) => {
+            if (active) {
+                return;
+            }
+
+            await inReadOnlyTx(createNamedContext('voice-chat-analytics'), async (ctx) => {
+                let chat = await Store.ConversationVoice.findById(ctx, cid);
+                if (!chat?.duration) {
+                    return;
+                }
+
+                let attendance = (await Store.VoiceChatParticipant.chatAll.findAll(ctx, cid)).length;
+                // if chat duration less than 1 minute or attendance < 2 -> ingore chat
+                if (chat.duration < 60 * 1000 || attendance < 2) {
+                    return;
+                }
+
+                await Events.VoiceChatEndedEvent.event(ctx, {
+                    cid: cid,
+                    attendance: attendance,
+                    duration: chat.duration,
+                });
+            });
+        });
     }
 }

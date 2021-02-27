@@ -6,6 +6,9 @@ import { ConnectionsRepository } from './repositories/ConnectionsRepository';
 import { startConnectionsIndexer } from './workers/startConnectionsIndexing';
 import { lazyInject } from '../openland-modules/Modules.container';
 import { FollowersRepository } from './repositories/FollowersRepository';
+import { inReadOnlyTx } from '@openland/foundationdb';
+import { createNamedContext } from '@openland/context';
+import { Events } from '../openland-module-hyperlog/Events';
 
 @injectable()
 export class SocialModule {
@@ -29,5 +32,18 @@ export class SocialModule {
             startInfluencerIndexer();
             startConnectionsIndexer();
         }
+
+        this.#enableFollowersAnalytics();
+    }
+
+    #enableFollowersAnalytics = () => {
+        this.followers.onFollow.subscribe(async ({ byUid, uid }) => {
+            await inReadOnlyTx(createNamedContext('followers-analytics'), async ctx => {
+                Events.FollowEvent.event(ctx, {
+                    followed: byUid,
+                    follower: uid
+                });
+            });
+        });
     }
 }

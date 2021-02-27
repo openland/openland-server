@@ -2,8 +2,9 @@ import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { IntListCollection } from '../../openland-module-db/collections/IntListCollection';
 import { Store } from '../../openland-module-db/FDB';
-import { inTx } from '@openland/foundationdb';
+import { getTransaction, inTx } from '@openland/foundationdb';
 import { UserError } from '../../openland-errors/UserError';
+import { Subject } from 'rxjs';
 
 const FOLLOWING_SUBSPACE = 0;
 const FOLLOWERS_SUBSPACE = 1;
@@ -11,6 +12,7 @@ const FOLLOWERS_SUBSPACE = 1;
 @injectable()
 export class FollowersRepository {
     public readonly list = new IntListCollection(Store.FollowersDirectory);
+    public readonly onFollow = new Subject<{ uid: number, byUid: number }>();
 
     async follow(parent: Context, uid: number, byUid: number) {
         await inTx(parent, async ctx => {
@@ -21,6 +23,10 @@ export class FollowersRepository {
             await this.list.add(ctx, [byUid, FOLLOWING_SUBSPACE], uid);
             // Store in followers list
             await this.list.add(ctx, [uid, FOLLOWERS_SUBSPACE], byUid);
+
+            getTransaction(ctx).afterCommit(() => {
+                this.onFollow.next({ uid, byUid });
+            });
         });
     }
 

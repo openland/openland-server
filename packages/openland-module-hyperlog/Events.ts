@@ -98,6 +98,19 @@ export const Events = {
         phone: string(),
     }),
 
+    /*
+    * Voice chat events
+    * */
+    FollowEvent: createModernHyperlogger('follow', {
+        follower: integer(),
+        followed: integer()
+    }),
+    VoiceChatEndedEvent: createModernHyperlogger('voice_chat_ended', {
+        cid: integer(),
+        duration: integer(),
+        attendance: integer(),
+    }),
+
     //
     // ⬇️⬇️⬇️ Old events ⬇️⬇️⬇️
     //
