@@ -2631,15 +2631,9 @@ export const Resolver: GQLResolver = {
         }),
         debugKickAllFromVoiceChats: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugKickAllFromVoiceChats', async log => {
-                await Store.VoiceChatParticipant.iterateAllItems(parent, 100, async (ctx, items) => {
-                    for (let item of items) {
-                        if (item.status === 'kicked' || item.status === 'left') {
-                            continue;
-                        }
+                await inTx(parent, async ctx => await Store.VoiceChatParticipant.descriptor.subspace.clearPrefixed(ctx, []));
+                await inTx(parent, async ctx => await Store.VoiceChatParticipantActive.directory.clearPrefixed(ctx, Buffer.from([])));
 
-                        await Modules.VoiceChats.participants.leaveChat(ctx, item.cid, item.uid);
-                    }
-                });
                 await Store.ConversationVoice.iterateAllItems(parent, 100, async (ctx, items) => {
                     for (let item of items) {
                         await Store.VoiceChatParticipantCounter.byId(item.id, 'listener').set(ctx, 0);
