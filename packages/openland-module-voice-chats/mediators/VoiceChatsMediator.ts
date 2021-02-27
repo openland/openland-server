@@ -4,7 +4,7 @@ import { VoiceChatsRepository } from '../repositories/VoiceChatsRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { Modules } from '../../openland-modules/Modules';
 import { VoiceChatReportsMediator } from './VoiceChatReportsMediator';
-import { inReadOnlyTx } from '@openland/foundationdb';
+import { inTx } from '@openland/foundationdb';
 import { Events } from 'openland-module-hyperlog/Events';
 import { Store } from '../../openland-module-db/FDB';
 
@@ -42,7 +42,7 @@ export class VoiceChatsMediator {
     //
     #enableVoiceChatReports = () => {
         this.repo.voiceChatActiveChanged.subscribe(async ({ cid, active }) => {
-            await inReadOnlyTx(createNamedContext('voice-chat-reports'), async (ctx) => {
+            await inTx(createNamedContext('voice-chat-reports'), async (ctx) => {
                 await this.reports.sendChatActiveChangedReport(ctx, cid, active);
             });
         });
@@ -54,7 +54,7 @@ export class VoiceChatsMediator {
                 return;
             }
 
-            await inReadOnlyTx(createNamedContext('voice-chat-analytics'), async (ctx) => {
+            await inTx(createNamedContext('voice-chat-analytics'), async (ctx) => {
                 let chat = await Store.ConversationVoice.findById(ctx, cid);
                 if (!chat?.duration) {
                     return;
