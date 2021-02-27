@@ -61,11 +61,6 @@ export class VoiceChatsMediator {
                 }
 
                 let attendance = (await Store.VoiceChatParticipant.chatAll.findAll(ctx, cid)).length;
-                // if chat duration less than 1 minute or attendance < 2 -> ingore chat
-                if (chat.duration < 60 * 1000 || attendance < 2) {
-                    return;
-                }
-
                 await Events.VoiceChatEndedEvent.event(ctx, {
                     cid: cid,
                     attendance: attendance,
