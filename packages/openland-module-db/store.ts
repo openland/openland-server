@@ -4984,11 +4984,19 @@ export interface ConversationVoiceShape {
     id: number;
     title: string | null;
     active: boolean;
+    startedAt: number | null;
+    startedBy: number | null;
+    endedAt: number | null;
+    duration: number | null;
 }
 
 export interface ConversationVoiceCreateShape {
     title?: string | null | undefined;
     active: boolean;
+    startedAt?: number | null | undefined;
+    startedBy?: number | null | undefined;
+    endedAt?: number | null | undefined;
+    duration?: number | null | undefined;
 }
 
 export class ConversationVoice extends Entity<ConversationVoiceShape> {
@@ -5011,6 +5019,42 @@ export class ConversationVoice extends Entity<ConversationVoiceShape> {
             this.invalidate();
         }
     }
+    get startedAt(): number | null { return this._rawValue.startedAt; }
+    set startedAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.startedAt.normalize(value);
+        if (this._rawValue.startedAt !== normalized) {
+            this._rawValue.startedAt = normalized;
+            this._updatedValues.startedAt = normalized;
+            this.invalidate();
+        }
+    }
+    get startedBy(): number | null { return this._rawValue.startedBy; }
+    set startedBy(value: number | null) {
+        let normalized = this.descriptor.codec.fields.startedBy.normalize(value);
+        if (this._rawValue.startedBy !== normalized) {
+            this._rawValue.startedBy = normalized;
+            this._updatedValues.startedBy = normalized;
+            this.invalidate();
+        }
+    }
+    get endedAt(): number | null { return this._rawValue.endedAt; }
+    set endedAt(value: number | null) {
+        let normalized = this.descriptor.codec.fields.endedAt.normalize(value);
+        if (this._rawValue.endedAt !== normalized) {
+            this._rawValue.endedAt = normalized;
+            this._updatedValues.endedAt = normalized;
+            this.invalidate();
+        }
+    }
+    get duration(): number | null { return this._rawValue.duration; }
+    set duration(value: number | null) {
+        let normalized = this.descriptor.codec.fields.duration.normalize(value);
+        if (this._rawValue.duration !== normalized) {
+            this._rawValue.duration = normalized;
+            this._updatedValues.duration = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class ConversationVoiceFactory extends EntityFactory<ConversationVoiceShape, ConversationVoice> {
@@ -5024,10 +5068,18 @@ export class ConversationVoiceFactory extends EntityFactory<ConversationVoiceSha
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'title', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'active', type: { type: 'boolean' }, secure: false });
+        fields.push({ name: 'startedAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'startedBy', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'endedAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'duration', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             title: c.optional(c.string),
             active: c.boolean,
+            startedAt: c.optional(c.integer),
+            startedBy: c.optional(c.integer),
+            endedAt: c.optional(c.integer),
+            duration: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<ConversationVoiceShape> = {
             name: 'ConversationVoice',
@@ -5151,6 +5203,7 @@ export class VoiceChatParticipantFactory extends EntityFactory<VoiceChatParticip
     static async open(storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory('voiceChatParticipant');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'chatAll', storageKey: 'chatAll', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'chatAll'), condition: undefined });
         secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'chat'), condition: a => a.status === 'joined' });
         secondaryIndexes.push({ name: 'handRaised', storageKey: 'handRaised', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'handRaised'), condition: a => a.status === 'joined' });
         secondaryIndexes.push({ name: 'speakers', storageKey: 'speakers', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'speakers'), condition: a => a.status === 'joined' && (a.role === 'speaker' || a.role === 'admin') });
@@ -5186,7 +5239,7 @@ export class VoiceChatParticipantFactory extends EntityFactory<VoiceChatParticip
         super(descriptor);
     }
 
-    readonly chat = Object.freeze({
+    readonly chatAll = Object.freeze({
         findAll: async (ctx: Context, cid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [cid])).items;
         },
@@ -5201,7 +5254,7 @@ export class VoiceChatParticipantFactory extends EntityFactory<VoiceChatParticip
         },
     });
 
-    readonly handRaised = Object.freeze({
+    readonly chat = Object.freeze({
         findAll: async (ctx: Context, cid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [cid])).items;
         },
@@ -5216,7 +5269,7 @@ export class VoiceChatParticipantFactory extends EntityFactory<VoiceChatParticip
         },
     });
 
-    readonly speakers = Object.freeze({
+    readonly handRaised = Object.freeze({
         findAll: async (ctx: Context, cid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [cid])).items;
         },
@@ -5231,7 +5284,7 @@ export class VoiceChatParticipantFactory extends EntityFactory<VoiceChatParticip
         },
     });
 
-    readonly listeners = Object.freeze({
+    readonly speakers = Object.freeze({
         findAll: async (ctx: Context, cid: number) => {
             return (await this._query(ctx, this.descriptor.secondaryIndexes[3], [cid])).items;
         },
@@ -5243,6 +5296,21 @@ export class VoiceChatParticipantFactory extends EntityFactory<VoiceChatParticip
         },
         liveStream: (ctx: Context, cid: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[3], [cid], opts);
+        },
+    });
+
+    readonly listeners = Object.freeze({
+        findAll: async (ctx: Context, cid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[4], [cid])).items;
+        },
+        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[4], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (cid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[4], [cid], opts);
+        },
+        liveStream: (ctx: Context, cid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[4], [cid], opts);
         },
     });
 

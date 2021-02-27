@@ -7,7 +7,8 @@ import { notifyFastWatch } from '../../openland-module-db/fastWatch';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { VoiceChatEventsRepository } from './VoiceChatEventsRepository';
 import { ParticipantsRepository } from './ParticipantsRepository';
-
+import { Subject } from 'rxjs';
+import { getTransaction } from '@openland/foundationdb';
 @injectable()
 export class VoiceChatsRepository {
     @lazyInject('VoiceChatParticipantsRepository')
@@ -15,13 +16,22 @@ export class VoiceChatsRepository {
     @lazyInject('VoiceChatEventsRepository')
     private readonly events!: VoiceChatEventsRepository;
 
-    createChat = async (ctx: Context, title: string) => {
+    public voiceChatActiveChanged = new Subject<{ cid: number, active: boolean }>();
+
+    createChat = async (ctx: Context, title: string, startedBy?: number) => {
         let id = await fetchNextDBSeq(ctx, 'conversation-id');
         await Store.Conversation.create(ctx, id, { kind: 'voice' });
-        return await Store.ConversationVoice.create(ctx, id, {
+        let conv = await Store.ConversationVoice.create(ctx, id, {
             active: true,
-            title: title
+            title: title,
+            startedBy,
+            startedAt: Date.now(),
         });
+
+        getTransaction(ctx).afterCommit(async () => {
+            await this.voiceChatActiveChanged.next({ cid: id, active: true });
+        });
+        return conv;
     }
 
     updateChat = async (ctx: Context, id: number, title: string) => {
@@ -34,15 +44,27 @@ export class VoiceChatsRepository {
 
     setChatActive = async (ctx: Context, id: number, active: boolean) => {
         let chat = await this.#getChatOrFail(ctx, id);
+        if (chat.active === active) {
+            return chat;
+        }
         chat.active = active;
-
-        // Force leave all members
-        if (!chat.active) {
+        if (chat.active) {
+            chat.startedAt = Date.now();
+            chat.endedAt = null;
+            chat.duration = null;
+        } else {
             let members = await Store.VoiceChatParticipant.chat.findAll(ctx, id);
             await Promise.all(members.map(a => this.participants.leaveChat(ctx, a.cid, a.uid)));
+            if (chat.startedAt) {
+                chat.endedAt = Date.now();
+                chat.duration = chat.endedAt - chat.startedAt;
+            }
         }
 
         await this.notifyChatUpdated(ctx, id);
+        getTransaction(ctx).afterCommit(async () => {
+            await this.voiceChatActiveChanged.next({ cid: id, active });
+        });
         return chat;
     }
 

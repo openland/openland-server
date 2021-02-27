@@ -16,6 +16,6 @@ export class VoiceChatsModule {
     public readonly events!: VoiceChatEventsMediator;
 
     start = async () => {
-        // no op
+        this.chats.start();
     }
 }

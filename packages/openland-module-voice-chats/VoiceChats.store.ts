@@ -17,6 +17,10 @@ export function voiceChatsStore() {
         primaryKey('id', integer());
         field('title', optional(string()));
         field('active', boolean());
+        field('startedAt', optional(integer()));
+        field('startedBy', optional(integer()));
+        field('endedAt', optional(integer()));
+        field('duration', optional(integer()));
 
         rangeIndex('active', ['createdAt']).withCondition(a => a.active);
     });
@@ -43,6 +47,7 @@ export function voiceChatsStore() {
         field('handRaised', boolean());
         field('promotedBy', optional(integer()));
 
+        rangeIndex('chatAll', ['cid', 'updatedAt']);
         rangeIndex('chat', ['cid', 'updatedAt'])
             .withCondition(a => a.status === 'joined');
         rangeIndex('handRaised', ['cid', 'updatedAt'])
