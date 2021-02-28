@@ -42,13 +42,14 @@ export class ParticipantsRepository {
         if (!chat) {
             throw new NotFoundError();
         }
-        if (!chat.active) {
-            await this.chatsRepo.setChatActive(ctx, cid, true);
-        }
 
         let p = await this.#getOrCreateParticipant(ctx, cid, uid, tid);
         if (p.status === 'joined') {
             return p;
+        }
+
+        if (!chat.active) {
+            await this.chatsRepo.setChatActive(ctx, cid, true);
         }
 
         if (await this.#counter(cid, 'admin').get(ctx) === 0) {
