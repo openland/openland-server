@@ -14,10 +14,10 @@ const statusChecker = (f: (p: ParticipantStatus | 'unassigned') => boolean) => (
     if (typeof opts === 'string') {
         return f(opts);
     }
-    if (opts.status === 'joined' && opts.role === null) {
-        return f('unassigned');
+    if (opts.role === null) {
+        return f(opts.status === 'joined' ? 'unassigned' : opts.status);
     }
-    return f(opts.status === 'joined' ? opts.role! : opts.status);
+    return f(opts.status === 'joined' ? opts.role : opts.status);
 };
 
 const Status = {
@@ -130,7 +130,10 @@ export class ParticipantsRepository {
 
     #changeStatus = async (ctx: Context, cid: number, uid: number, status: ParticipantStatus) => {
         let participant = await this.#getOrFail(ctx, cid, uid);
-        if (participant.status === status || participant.role === status) {
+        if ((status === 'left' || status === 'kicked') && participant.status === status) {
+            return;
+        }
+        if (participant.role === status && participant.status === 'joined') {
             return;
         }
 
