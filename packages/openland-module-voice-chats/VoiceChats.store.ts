@@ -35,9 +35,9 @@ export function voiceChatsStore() {
             'kicked',
 
             // Obsolete statuses
-            'listener',
-            'speaker',
-            'admin'
+            // 'listener',
+            // 'speaker',
+            // 'admin'
         ));
         field('role', optional(enumString(
             'listener',
@@ -51,7 +51,7 @@ export function voiceChatsStore() {
         rangeIndex('chat', ['cid', 'updatedAt'])
             .withCondition(a => a.status === 'joined');
         rangeIndex('handRaised', ['cid', 'updatedAt'])
-            .withCondition(a => a.status === 'joined');
+            .withCondition(a => a.status === 'joined' && !!a.handRaised);
         rangeIndex('speakers', ['cid', 'updatedAt'])
             .withCondition(a => a.status === 'joined' && (a.role === 'speaker' || a.role === 'admin'));
         rangeIndex('listeners', ['cid', 'updatedAt'])

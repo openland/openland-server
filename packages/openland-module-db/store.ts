@@ -5134,7 +5134,7 @@ export interface VoiceChatParticipantShape {
     cid: number;
     uid: number;
     tid: string | null;
-    status: 'joined' | 'left' | 'kicked' | 'listener' | 'speaker' | 'admin';
+    status: 'joined' | 'left' | 'kicked';
     role: 'listener' | 'speaker' | 'admin' | null;
     handRaised: boolean;
     promotedBy: number | null;
@@ -5142,7 +5142,7 @@ export interface VoiceChatParticipantShape {
 
 export interface VoiceChatParticipantCreateShape {
     tid?: string | null | undefined;
-    status: 'joined' | 'left' | 'kicked' | 'listener' | 'speaker' | 'admin';
+    status: 'joined' | 'left' | 'kicked';
     role?: 'listener' | 'speaker' | 'admin' | null | undefined;
     handRaised: boolean;
     promotedBy?: number | null | undefined;
@@ -5160,8 +5160,8 @@ export class VoiceChatParticipant extends Entity<VoiceChatParticipantShape> {
             this.invalidate();
         }
     }
-    get status(): 'joined' | 'left' | 'kicked' | 'listener' | 'speaker' | 'admin' { return this._rawValue.status; }
-    set status(value: 'joined' | 'left' | 'kicked' | 'listener' | 'speaker' | 'admin') {
+    get status(): 'joined' | 'left' | 'kicked' { return this._rawValue.status; }
+    set status(value: 'joined' | 'left' | 'kicked') {
         let normalized = this.descriptor.codec.fields.status.normalize(value);
         if (this._rawValue.status !== normalized) {
             this._rawValue.status = normalized;
@@ -5205,7 +5205,7 @@ export class VoiceChatParticipantFactory extends EntityFactory<VoiceChatParticip
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'chatAll', storageKey: 'chatAll', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'chatAll'), condition: undefined });
         secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'chat'), condition: a => a.status === 'joined' });
-        secondaryIndexes.push({ name: 'handRaised', storageKey: 'handRaised', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'handRaised'), condition: a => a.status === 'joined' });
+        secondaryIndexes.push({ name: 'handRaised', storageKey: 'handRaised', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'handRaised'), condition: a => a.status === 'joined' && !!a.handRaised });
         secondaryIndexes.push({ name: 'speakers', storageKey: 'speakers', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'speakers'), condition: a => a.status === 'joined' && (a.role === 'speaker' || a.role === 'admin') });
         secondaryIndexes.push({ name: 'listeners', storageKey: 'listeners', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'listeners'), condition: a => a.status === 'joined' && a.role === 'listener' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
@@ -5213,7 +5213,7 @@ export class VoiceChatParticipantFactory extends EntityFactory<VoiceChatParticip
         primaryKeys.push({ name: 'uid', type: 'integer' });
         let fields: FieldDescriptor[] = [];
         fields.push({ name: 'tid', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'status', type: { type: 'enum', values: ['joined', 'left', 'kicked', 'listener', 'speaker', 'admin'] }, secure: false });
+        fields.push({ name: 'status', type: { type: 'enum', values: ['joined', 'left', 'kicked'] }, secure: false });
         fields.push({ name: 'role', type: { type: 'optional', inner: { type: 'enum', values: ['listener', 'speaker', 'admin'] } }, secure: false });
         fields.push({ name: 'handRaised', type: { type: 'boolean' }, secure: false });
         fields.push({ name: 'promotedBy', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
@@ -5221,7 +5221,7 @@ export class VoiceChatParticipantFactory extends EntityFactory<VoiceChatParticip
             cid: c.integer,
             uid: c.integer,
             tid: c.optional(c.string),
-            status: c.enum('joined', 'left', 'kicked', 'listener', 'speaker', 'admin'),
+            status: c.enum('joined', 'left', 'kicked'),
             role: c.optional(c.enum('listener', 'speaker', 'admin')),
             handRaised: c.boolean,
             promotedBy: c.optional(c.integer),

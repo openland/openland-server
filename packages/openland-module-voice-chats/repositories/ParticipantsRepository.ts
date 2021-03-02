@@ -10,23 +10,35 @@ import { VoiceChatEventsRepository } from './VoiceChatEventsRepository';
 
 export type ParticipantStatus = 'left' | 'kicked' | NonNullable<VoiceChatParticipant['role']>;
 
-const statusChecker = (f: (p: ParticipantStatus | 'unassigned') => boolean) => (opts: ParticipantStatus | VoiceChatParticipant) => {
-    if (typeof opts === 'string') {
-        return f(opts);
-    }
-    if (opts.role === null) {
-        return f(opts.status === 'joined' ? 'unassigned' : opts.status);
-    }
-    return f(opts.status === 'joined' ? opts.role : opts.status);
-};
+type ParticipantRoleStatus = { status: VoiceChatParticipant['status'], role: VoiceChatParticipant['role'] };
 
 const Status = {
-    isAdmin: statusChecker((p) => p === 'admin'),
-    isSpeaker: statusChecker((p) => p === 'admin' || p === 'speaker'),
-    isListener: statusChecker((p) => p === 'listener'),
-    isJoined: statusChecker((p) => p !== 'kicked' && p !== 'left'),
+    isAdmin: (p: ParticipantRoleStatus) => p.status === 'joined' && p.role === 'admin',
+    isSpeaker: (p: ParticipantRoleStatus) => p.status === 'joined' && (p.role === 'speaker' || p.role === 'admin'),
+    isListener: (p: ParticipantRoleStatus) => p.status === 'joined' && p.role === 'listener',
+    isJoined: (p: ParticipantRoleStatus) => p.status === 'joined',
 };
+
 export { Status as VoiceChatParticipantStatus };
+
+type MultiListCondition<T> = (item: T) => boolean;
+type SubListDeclaration<T> = { name: string, checker: MultiListCondition<T> };
+
+function createListCounter<T>(lists: SubListDeclaration<T>[]) {
+    return (prevVal: T, newVal: T) => {
+        let operations: { list: string, add: number }[] = [];
+        for (let list of lists) {
+            if (list.checker(prevVal) && !list.checker(newVal)) {
+                operations.push({ list: list.name, add: -1 });
+            } else if (!list.checker(prevVal) && list.checker(newVal)) {
+                operations.push({ list: list.name, add: 1 });
+            } else {
+                continue;
+            }
+        }
+        return operations;
+    };
+}
 
 @injectable()
 export class ParticipantsRepository {
@@ -36,6 +48,12 @@ export class ParticipantsRepository {
     private readonly events!: VoiceChatEventsRepository;
     @lazyInject('CallRepository')
     private readonly calls!: CallRepository;
+
+    private counterCalculator = createListCounter<ParticipantRoleStatus>([
+        { name: 'listener', checker: Status.isListener },
+        { name: 'speaker', checker: Status.isSpeaker},
+        { name: 'admin', checker: Status.isAdmin }
+    ]);
 
     joinChat = async (ctx: Context, cid: number, uid: number, tid: string) => {
         let chat = await Store.ConversationVoice.findById(ctx, cid);
@@ -137,33 +155,29 @@ export class ParticipantsRepository {
             return;
         }
 
-        // If was listener and now not listener
-        if (Status.isListener(participant) && !Status.isListener(status)) {
-            this.#counter(cid, 'listener').decrement(ctx);
+        let newStatus: VoiceChatParticipant['status'] = 'joined';
+        let newRole: VoiceChatParticipant['role'] = participant.role;
+
+        if (status !== 'left' && status !== 'kicked') {
+            newStatus = 'joined';
+            newRole = status;
+        } else if (status === 'left') {
+            newStatus = 'left';
+        } else if (status === 'kicked') {
+            newStatus = 'kicked';
+            newRole = null;
         }
-        // If was not listener and now listener
-        if (!Status.isListener(participant) && Status.isListener(status)) {
-            this.#counter(cid, 'listener').increment(ctx);
-        }
-        // If was speaker and now not speaker
-        if (Status.isSpeaker(participant) && !Status.isSpeaker(status)) {
-            this.#counter(cid, 'speaker').decrement(ctx);
-        }
-        // If was not speaker and now speaker
-        if (!Status.isSpeaker(participant) && Status.isSpeaker(status)) {
-            this.#counter(cid, 'speaker').increment(ctx);
-        }
-        // If was admin and now not admin
-        if (Status.isAdmin(participant) && !Status.isAdmin(status)) {
-            this.#counter(cid, 'admin').decrement(ctx);
-        }
-        // If was not admin and now admin
-        if (!Status.isAdmin(participant) && Status.isAdmin(status)) {
-            this.#counter(cid, 'admin').increment(ctx);
+        let newStatusRole = { status: newStatus, role: newRole };
+
+        let operations = this.counterCalculator(participant, newStatusRole);
+
+        // Update counters
+        for (let op of operations) {
+            this.#counter(cid, op.list as 'admin' | 'speaker' | 'listener').add(ctx, op.add);
         }
 
         // Update atomic with current active chat
-        if (Status.isJoined(status)) {
+        if (Status.isJoined(newStatusRole)) {
             let prevChat = await Store.VoiceChatParticipantActive.byId(uid).get(ctx);
             if (prevChat !== 0 && prevChat !== cid) {
                 await this.leaveChat(ctx, prevChat, uid);
@@ -174,22 +188,16 @@ export class ParticipantsRepository {
         }
 
         // Update media streams if ability to speak changed
-        if (Status.isSpeaker(status) !== Status.isSpeaker(participant) && participant.tid) {
+        if (Status.isSpeaker(newStatusRole) !== Status.isSpeaker(participant) && participant.tid) {
             let peer = await Store.ConferencePeer.auth.find(ctx, cid, uid, participant.tid);
             if (peer) {
                 await this.calls.updateMediaStreams(ctx, cid, uid, participant.tid);
             }
         }
 
-        if (status !== 'left' && status !== 'kicked') {
-            participant.status = 'joined';
-            participant.role = status;
-        } else if (status === 'left') {
-            participant.status = 'left';
-        } else if (status === 'kicked') {
-            participant.status = 'kicked';
-            participant.role = null;
-        }
+        participant.status = newStatus;
+        participant.role = newRole;
+
         await participant.flush(ctx);
     }
 

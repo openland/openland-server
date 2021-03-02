@@ -18,7 +18,7 @@ import { Store } from '../openland-module-db/FDB';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
 import { createUrlInfoService } from '../openland-module-messaging/workers/UrlInfoService';
-import { inTx, encoders, TupleItem } from '@openland/foundationdb';
+import { inTx, encoders, TupleItem, withoutTransaction } from '@openland/foundationdb';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { ddMMYYYYFormat, delay } from '../openland-utils/timer';
 import { randomInt, randomKey } from '../openland-utils/random';
@@ -2631,10 +2631,15 @@ export const Resolver: GQLResolver = {
         }),
         debugKickAllFromVoiceChats: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugKickAllFromVoiceChats', async log => {
-                await inTx(parent, async ctx => await Store.VoiceChatParticipant.descriptor.subspace.clearPrefixed(ctx, []));
-                await inTx(parent, async ctx => await Store.VoiceChatParticipantActive.directory.clearPrefixed(ctx, Buffer.from([])));
+                await inTx(withoutTransaction(parent), async ctx => {
+                    await Store.VoiceChatParticipant.descriptor.subspace.clearPrefixed(ctx, []);
+                    for (let index of Store.VoiceChatParticipant.descriptor.secondaryIndexes) {
+                        index.subspace.clearPrefixed(ctx, []);
+                    }
+                });
+                await inTx(withoutTransaction(parent), async ctx => await Store.VoiceChatParticipantActive.directory.clearPrefixed(ctx, Buffer.from([])));
 
-                await Store.ConversationVoice.iterateAllItems(parent, 100, async (ctx, items) => {
+                await Store.ConversationVoice.iterateAllItems(withoutTransaction(parent), 100, async (ctx, items) => {
                     for (let item of items) {
                         await Store.VoiceChatParticipantCounter.byId(item.id, 'listener').set(ctx, 0);
                         await Store.VoiceChatParticipantCounter.byId(item.id, 'speaker').set(ctx, 0);
