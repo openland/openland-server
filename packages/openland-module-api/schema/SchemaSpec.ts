@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '6b26abe0759f56c7c9b8bddf73a8d90b';
+export const GQL_SPEC_VERSION = 'af1af157934cb05f287e98c5fc0a1f2f';
 
 export namespace GQL {
     export interface CreditCard {
@@ -3982,6 +3982,7 @@ export namespace GQL {
         superAccount: SuperAccount;
         superAdmins: SuperAdmin[];
         voiceChatListeners: VoiceChatParticipantConnection;
+        voiceChatHandRaised: VoiceChatParticipantConnection;
         activeVoiceChats: VoiceChatConnection;
         myBlackList: User[];
         discoverCollections: Nullable<DiscoverChatsCollectionConnection>;
@@ -4292,6 +4293,11 @@ export namespace GQL {
     }
     export interface QuerySuperAdminsArgs { }
     export interface QueryVoiceChatListenersArgs {
+        id: string;
+        first: number;
+        after: OptionalNullable<string>;
+    }
+    export interface QueryVoiceChatHandRaisedArgs {
         id: string;
         first: number;
         after: OptionalNullable<string>;
@@ -9802,6 +9808,7 @@ export interface GQLResolver {
             superAccount: GQLRoots.SuperAccountRoot,
             superAdmins: GQLRoots.SuperAdminRoot[],
             voiceChatListeners: GQLRoots.VoiceChatParticipantConnectionRoot,
+            voiceChatHandRaised: GQLRoots.VoiceChatParticipantConnectionRoot,
             activeVoiceChats: GQLRoots.VoiceChatConnectionRoot,
             myBlackList: GQLRoots.UserRoot[],
             discoverCollections: Nullable<GQLRoots.DiscoverChatsCollectionConnectionRoot>,
@@ -9999,6 +10006,7 @@ export interface GQLResolver {
             superAccount: GQL.QuerySuperAccountArgs,
             superAdmins: GQL.QuerySuperAdminsArgs,
             voiceChatListeners: GQL.QueryVoiceChatListenersArgs,
+            voiceChatHandRaised: GQL.QueryVoiceChatHandRaisedArgs,
             activeVoiceChats: GQL.QueryActiveVoiceChatsArgs,
             myBlackList: GQL.QueryMyBlackListArgs,
             discoverCollections: GQL.QueryDiscoverCollectionsArgs,

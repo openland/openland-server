@@ -54,7 +54,15 @@ export const Resolver: GQLResolver = {
                 items: query.items,
                 haveMore: query.haveMore
             };
-        }
+        },
+        voiceChatHandRaised: async (root, args, ctx) => {
+            let query = await Store.VoiceChatParticipant.handRaised.query(ctx, IDs.Conversation.parse(args.id), { afterCursor: args.after });
+            return {
+                cursor: query.cursor,
+                items: query.items,
+                haveMore: query.haveMore
+            };
+        },
     },
     Mutation: {
         voiceChatJoin: withActivatedUser(async (ctx, args, uid) => {

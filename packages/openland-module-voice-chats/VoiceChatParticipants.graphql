@@ -24,6 +24,7 @@ type VoiceChatParticipantConnection {
 
 extend type Query {
     voiceChatListeners(id: ID!, first: Int!, after: String): VoiceChatParticipantConnection!
+    voiceChatHandRaised(id: ID!, first: Int!, after: String): VoiceChatParticipantConnection!
 }
 
 extend type Mutation {
