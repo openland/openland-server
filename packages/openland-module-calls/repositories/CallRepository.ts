@@ -377,6 +377,8 @@ export class CallRepository {
             // Remove peer from voice chat
             let voiceConv = await Store.ConversationVoice.findById(ctx, existing.cid);
             if (voiceConv) {
+                let members = await Store.VoiceChatParticipant.chatAll.findAll(ctx, existing.cid);
+                log.log(ctx, 'voice-chat-leave', existing.cid, existing.uid, members.map(m => ({ role: m.role, status: m.status, uid: m.uid })));
                 await Modules.VoiceChats.participants.leaveChat(ctx, existing.cid, existing.uid);
             }
         });
