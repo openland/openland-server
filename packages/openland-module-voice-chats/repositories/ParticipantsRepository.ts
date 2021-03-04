@@ -73,7 +73,7 @@ export class ParticipantsRepository {
         if (await this.#counter(cid, 'admin').get(ctx) === 0) {
             await this.#changeStatus(ctx, cid, uid, 'admin');
         } else {
-            await this.#changeStatus(ctx, cid, uid, 'speaker');
+            await this.#changeStatus(ctx, cid, uid, 'listener');
         }
 
         await this.events.postParticipantUpdated(ctx, cid, uid);
