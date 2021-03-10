@@ -73,7 +73,9 @@ export class ParticipantsRepository {
         if (await this.#counter(cid, 'admin').get(ctx) === 0) {
             await this.#changeStatus(ctx, cid, uid, 'admin');
         } else {
-            await this.#changeStatus(ctx, cid, uid, 'listener');
+            let participant = await this.#getOrFail(ctx, cid, uid);
+            let targetRole = participant.role || 'listener';
+            await this.#changeStatus(ctx, cid, uid, targetRole);
         }
 
         await this.events.postParticipantUpdated(ctx, cid, uid);
