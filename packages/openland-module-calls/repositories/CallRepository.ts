@@ -146,7 +146,7 @@ export class CallRepository {
             // Remove peer for same auth token
             let existing = await Store.ConferencePeer.auth.find(ctx, cid, uid, tid);
             if (existing && existing.enabled) {
-                await this.#doRemovePeer(ctx, existing.id, false);
+                await this.#doRemovePeer(ctx, existing.id, false, false);
             }
 
             // Create new peer
@@ -314,7 +314,7 @@ export class CallRepository {
 
             let members = await this.findActiveMembers(ctx, cid);
             for (let m of members) {
-                await this.#doRemovePeer(ctx, m.id, false);
+                await this.#doRemovePeer(ctx, m.id, false, false);
             }
             if (members.length > 0) {
                 log.log(ctx, 'Conference ended (end conference): ' + cid);
@@ -330,14 +330,14 @@ export class CallRepository {
     // Peer Removing
     //
 
-    removePeer = async (parent: Context, pid: number) => {
+    removePeer = async (parent: Context, pid: number, byTimout = false) => {
         //
         // WARNING: Making multiple peer removal at the same transcation can yield different results!
         //
-        return await this.#doRemovePeer(parent, pid, true);
+        return await this.#doRemovePeer(parent, pid, true, byTimout);
     }
 
-    #doRemovePeer = async (parent: Context, pid: number, detectEnd: boolean) => {
+    #doRemovePeer = async (parent: Context, pid: number, detectEnd: boolean, byTimout: boolean) => {
         await inTx(parent, async (ctx) => {
 
             // Remove Peer
@@ -375,11 +375,13 @@ export class CallRepository {
             await this.notifyConferenceChanged(ctx, existing.cid);
 
             // Remove peer from voice chat
-            let voiceConv = await Store.ConversationVoice.findById(ctx, existing.cid);
-            if (voiceConv) {
-                let p = await Store.VoiceChatParticipant.findById(ctx, existing.cid, existing.uid);
-                if (p) {
-                    await Modules.VoiceChats.participants.leaveChat(ctx, existing.cid, existing.uid);
+            if (byTimout) {
+                let voiceConv = await Store.ConversationVoice.findById(ctx, existing.cid);
+                if (voiceConv) {
+                    let p = await Store.VoiceChatParticipant.findById(ctx, existing.cid, existing.uid);
+                    if (p) {
+                        await Modules.VoiceChats.participants.leaveChat(ctx, existing.cid, existing.uid);
+                    }
                 }
             }
         });
@@ -415,7 +417,7 @@ export class CallRepository {
                     let peer = (await Store.ConferencePeer.findById(ctx, a.id))!;
                     if (peer.enabled && peer.keepAliveTimeout < now) {
                         log.log(ctx, 'Call Participant Reaped: ' + a.uid + ' from ' + a.cid);
-                        await this.removePeer(ctx, a.id);
+                        await this.removePeer(ctx, a.id, true);
                         // await this.bumpVersion(ctx, a.cid, a.id);
                     }
                 });
