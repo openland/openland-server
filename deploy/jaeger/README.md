@@ -1,6 +1,7 @@
 # Test server setup
 
 sudo docker run -d --name jaeger --restart=unless-stopped \
+  -e SPAN_STORAGE_TYPE=badger \
   -e COLLECTOR_ZIPKIN_HTTP_PORT=9411 \
   -p 5775:5775/udp \
   -p 6831:6831/udp \
