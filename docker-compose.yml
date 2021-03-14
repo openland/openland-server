@@ -23,7 +23,7 @@ services:
       - "127.0.0.1:3478:3478"
       - "127.0.0.1:11000-11100:11000-11100"
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.6.2
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
     restart: always
     environment:
       - cluster.name=testing-cluster
