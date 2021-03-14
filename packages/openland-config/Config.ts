@@ -43,6 +43,9 @@ const codec = t.type({
         user: t.string,
         password: t.string
     }),
+    redis: t.union([t.type({
+        endpoint: t.string
+    }), t.null, t.undefined]),
 
     pushWeb: t.union([
         t.type({
@@ -173,6 +176,15 @@ class ConfigProvider {
         loadConfigIfNeeded();
         if (configuration!.apm) {
             return configuration!.apm!;
+        } else {
+            return null;
+        }
+    }
+
+    get redis() {
+        loadConfigIfNeeded();
+        if (configuration!.redis) {
+            return configuration!.redis;
         } else {
             return null;
         }
