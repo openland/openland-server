@@ -47,10 +47,10 @@ async function extractMentionSearchValues(ctx: Context, cid: number, hits: any[]
 }
 
 const Es = {
-    or: (terms: any[]) => ({bool: {should: terms}}),
-    and: (terms: any[]) => ({bool: {must: terms}}),
-    fn: (query: any, functions: any, extra: any = {}) => ({function_score: {query, functions, boost_mode: 'multiply', ...extra}}),
-    scriptScore: (query: any, script: string) => ({function_score: {query, script_score: {script: {source: script}}}})
+    or: (terms: any[]) => ({ bool: { should: terms } }),
+    and: (terms: any[]) => ({ bool: { must: terms } }),
+    fn: (query: any, functions: any, extra: any = {}) => ({ function_score: { query, functions, boost_mode: 'multiply', ...extra } }),
+    scriptScore: (query: any, script: string) => ({ function_score: { query, script_score: { script: { source: script } } } })
 };
 
 export const Resolver: GQLResolver = {
@@ -113,7 +113,7 @@ export const Resolver: GQLResolver = {
                 // filter chat with me
                 allDialogs = allDialogs.filter((a) => !!a.date && a.cid !== savedMessages.id);
                 // add chat with me to top
-                allDialogs.unshift({cid: savedMessages.id, date: Date.now()});
+                allDialogs.unshift({ cid: savedMessages.id, date: Date.now() });
 
                 allDialogs = allDialogs.sort((a, b) => b.date - a.date).slice(0, 25);
 
@@ -142,14 +142,14 @@ export const Resolver: GQLResolver = {
                     hashtags: hashtags || undefined
                 });
                 let usersData = (await Promise.all(usersHits.hits.hits.map(hit => Store.User.findById(ctx, parseInt(hit._id, 10))))).filter(isDefined);
-                let orgsHits = await Modules.Search.search({
+                let orgsHits = await Modules.Search.search(ctx, {
                     index: 'organization',
                     size: 50,
                     body: {
                         query: Es.and([
-                            {match: {_type: 'organization'}},
-                            {match_phrase: {about: {query: (hashtags || []).join(' '), boost: 0.7}}},
-                            {term: {listed: true}}
+                            { match: { _type: 'organization' } },
+                            { match_phrase: { about: { query: (hashtags || []).join(' '), boost: 0.7 } } },
+                            { term: { listed: true } }
                         ])
                     }
                 });
@@ -160,22 +160,22 @@ export const Resolver: GQLResolver = {
 
             let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
             let [topPrivateDialogs, topGroupDialogs] = await Promise.all([
-                Store.UserEdge.forwardWeight.query(ctx, uid, {limit: 300, reverse: true}),
-                Store.UserGroupEdge.user.query(ctx, uid, {limit: 300, reverse: true})
+                Store.UserEdge.forwardWeight.query(ctx, uid, { limit: 300, reverse: true }),
+                Store.UserGroupEdge.user.query(ctx, uid, { limit: 300, reverse: true })
             ]);
 
             let clauses: any = [];
 
             const topChatsFunctions = topGroupDialogs.items.map(d => ({
-                filter: {match: {_id: d.cid}},
+                filter: { match: { _id: d.cid } },
                 weight: d.weight || 1
             }));
             const topPrivateChatsFunctions = topPrivateDialogs.items.map(d => ({
-                filter: {match: {userId: d.uid2}},
+                filter: { match: { userId: d.uid2 } },
                 weight: d.weight || 1
             }));
             const userOrgsFunctions = userOrgs.map(oid => ({
-                filter: {match: {organizations: oid}},
+                filter: { match: { organizations: oid } },
                 weight: 2
             }));
             const maxExpansions = 1000;
@@ -183,33 +183,33 @@ export const Resolver: GQLResolver = {
             // User dialogs
             clauses.push(Es.fn(
                 Es.and([
-                    {match: {_type: 'dialog'}},
+                    { match: { _type: 'dialog' } },
                     Es.or([
-                        {match_phrase_prefix: {title: {query, max_expansions: maxExpansions}}},
+                        { match_phrase_prefix: { title: { query, max_expansions: maxExpansions } } },
                     ]),
-                    {term: {uid: uid}},
-                    {term: {visible: true}}
+                    { term: { uid: uid } },
+                    { term: { visible: true } }
                 ]),
                 [
                     ...topPrivateDialogs.items.map(d => ({
-                        filter: {match: {uid2: d.uid2}},
+                        filter: { match: { uid2: d.uid2 } },
                         weight: d.weight || 1
                     })),
                     ...topGroupDialogs.items.map(d => ({
-                        filter: {match: {cid: d.cid}},
+                        filter: { match: { cid: d.cid } },
                         weight: d.weight || 1
                     }))
                 ],
-                {boost: 10000}
+                { boost: 10000 }
             ));
 
             // Other users
             clauses.push(Es.fn(
                 Es.and([
-                    {match: {_type: 'user_profile'}},
+                    { match: { _type: 'user_profile' } },
                     Es.or([
-                        {match_phrase_prefix: {name: {query, max_expansions: maxExpansions}}},
-                        {match_phrase_prefix: {shortName: {query, max_expansions: maxExpansions}}}
+                        { match_phrase_prefix: { name: { query, max_expansions: maxExpansions } } },
+                        { match_phrase_prefix: { shortName: { query, max_expansions: maxExpansions } } }
                     ])
                 ]),
                 [...userOrgsFunctions, ...topPrivateChatsFunctions]
@@ -219,9 +219,9 @@ export const Resolver: GQLResolver = {
             clauses.push(Es.scriptScore(
                 Es.fn(
                     Es.and([
-                        {match: {_type: 'room'}},
-                        {match_phrase_prefix: {title: query}},
-                        {terms: {oid: userOrgs}}
+                        { match: { _type: 'room' } },
+                        { match_phrase_prefix: { title: query } },
+                        { terms: { oid: userOrgs } }
                     ]),
                     topChatsFunctions
                 ),
@@ -232,9 +232,9 @@ export const Resolver: GQLResolver = {
             clauses.push(Es.scriptScore(
                 Es.fn(
                     Es.and([
-                        {match: {_type: 'room'}},
-                        {match_phrase_prefix: {title: query}},
-                        {match: {listed: true}}
+                        { match: { _type: 'room' } },
+                        { match_phrase_prefix: { title: query } },
+                        { match: { listed: true } }
                     ]),
                     topChatsFunctions
                 ),
@@ -243,22 +243,22 @@ export const Resolver: GQLResolver = {
 
             // User orgs
             clauses.push(Es.and([
-                {match: {_type: 'organization'}},
-                {match_phrase_prefix: {name: query}},
-                {terms: {_id: userOrgs}}
+                { match: { _type: 'organization' } },
+                { match_phrase_prefix: { name: query } },
+                { terms: { _id: userOrgs } }
             ]));
 
             // Public orgs
             clauses.push(Es.and([
-                {match: {_type: 'organization'}},
-                {match_phrase_prefix: {name: query}},
-                {term: {listed: true}}
+                { match: { _type: 'organization' } },
+                { match_phrase_prefix: { name: query } },
+                { term: { listed: true } }
             ]));
 
-            let allHits = await Modules.Search.search({
+            let allHits = await Modules.Search.search(ctx, {
                 index: 'user_profile,room,organization,dialog',
                 size: 50,
-                body: {query: Es.or(clauses)}
+                body: { query: Es.or(clauses) }
             });
 
             let dataPromises = allHits.hits.hits.map(hit => {
@@ -340,18 +340,18 @@ export const Resolver: GQLResolver = {
             return data.filter(isDefined);
         }),
         featuredGroups: withAccount(async (ctx, args, uid, oid) => {
-            let globalRoomHits = await Modules.Search.search({
+            let globalRoomHits = await Modules.Search.search(ctx, {
                 index: 'room', type: 'room', body: {
-                    query: {bool: {must: [{term: {featured: true}}]}},
+                    query: { bool: { must: [{ term: { featured: true } }] } },
                 },
             });
             return globalRoomHits.hits.hits.map(hit => parseInt(hit._id, 10));
         }),
         featuredCommunities: withAccount(async (ctx, args, uid, oid) => {
-            let hits = await Modules.Search.search({
+            let hits = await Modules.Search.search(ctx, {
                 index: 'organization',
                 type: 'organization',
-                body: {query: {bool: {must: [{term: {kind: 'community'}}, {term: {featured: true}}]}}},
+                body: { query: { bool: { must: [{ term: { kind: 'community' } }, { term: { featured: true } }] } } },
             });
             let oids = hits.hits.hits.map(hit => parseInt(hit._id, 10));
             let orgs = oids.map(o => Store.Organization.findById(ctx, o)!);
@@ -360,7 +360,7 @@ export const Resolver: GQLResolver = {
 
         messagesSearch: withAccount(async (ctx, args, uid, oid) => {
             try {
-                let cid: number|null = null;
+                let cid: number | null = null;
                 if (args.cid) {
                     cid = IDs.Conversation.parse(args.cid);
                     await Modules.Messaging.room.checkAccess(ctx, uid, cid);
@@ -379,27 +379,27 @@ export const Resolver: GQLResolver = {
                 let parsed = parser.parseQuery(args.query);
                 let elasticQuery = buildElasticQuery(parsed);
                 clauses.push(elasticQuery);
-                clauses.push({term: {deleted: false}});
-                clauses.push({term: {roomKind: 'room'}});
+                clauses.push({ term: { deleted: false } });
+                clauses.push({ term: { roomKind: 'room' } });
 
                 if (args.sort) {
                     sort = parser.parseSort(args.sort);
                 }
 
-                let chatsFilter = cid ? {term: {cid}} : {terms: {cid: userDialogs.map(d => d.cid)}};
+                let chatsFilter = cid ? { term: { cid } } : { terms: { cid: userDialogs.map(d => d.cid) } };
 
                 let query;
                 if (USE_NEW_PRIVATE_CHATS) {
                     query = Es.and([
                         elasticQuery,
                         chatsFilter,
-                        {term: {deleted: false}},
+                        { term: { deleted: false } },
                         Es.or([
                             Es.and([
-                                {term: {roomKind: 'room'}}
+                                { term: { roomKind: 'room' } }
                             ]),
                             Es.and([
-                                {term: {privateVisibleFor: uid}}
+                                { term: { privateVisibleFor: uid } }
                             ])
                         ])
                     ]);
@@ -407,16 +407,16 @@ export const Resolver: GQLResolver = {
                     query = Es.and([
                         elasticQuery,
                         chatsFilter,
-                        {term: {deleted: false}},
+                        { term: { deleted: false } },
                     ]);
                 }
 
-                let hits = await Modules.Search.search({
+                let hits = await Modules.Search.search(ctx, {
                     index: 'message',
                     size: args.first,
                     from: args.after ? parseInt(args.after, 10) : 0,
                     body: {
-                        sort: sort || [{createdAt: 'desc'}],
+                        sort: sort || [{ createdAt: 'desc' }],
                         query
                     },
                 });
@@ -466,22 +466,22 @@ export const Resolver: GQLResolver = {
 
             let query = args.query || '';
             let clauses: any[] = [];
-            clauses.push({term: {chats: cid}});
+            clauses.push({ term: { chats: cid } });
             clauses.push({
                 bool: {
                     should: query.trim().length > 0 ? [
-                        {match_phrase_prefix: {name: {query, max_expansions: 1000}}},
-                        {match_phrase_prefix: {shortName: {query, max_expansions: 1000}}}
+                        { match_phrase_prefix: { name: { query, max_expansions: 1000 } } },
+                        { match_phrase_prefix: { shortName: { query, max_expansions: 1000 } } }
                     ] : []
                 }
             });
 
-            let hits = await Modules.Search.search({
+            let hits = await Modules.Search.search(ctx, {
                 index: 'user_profile',
                 type: 'user_profile',
                 size: args.first || 20,
                 body: {
-                    query: {bool: {must: clauses}},
+                    query: { bool: { must: clauses } },
                 },
                 from: args && args.after ? parseInt(args.after, 10) : (args && args.page ? ((args.page - 1) * (args && args.first ? args.first : 20)) : 0),
             });
@@ -577,7 +577,7 @@ export const Resolver: GQLResolver = {
             clauses.push({
                 bool: {
                     must: [
-                        {terms: {userId: members}},
+                        { terms: { userId: members } },
                         {
                             bool: {
                                 should: query.length > 0 ? localUsersQuery : [],
@@ -596,11 +596,11 @@ export const Resolver: GQLResolver = {
                     function_score: {
                         query: {
                             bool: {
-                                must: [{match_phrase_prefix: {name: query}}],
+                                must: [{ match_phrase_prefix: { name: query } }],
                             }
                         },
                         functions: userOrgs.map(_oid => ({
-                            filter: {match: {_id: _oid}}, weight: 2,
+                            filter: { match: { _id: _oid } }, weight: 2,
                         })),
                         boost_mode: 'multiply',
                     },
@@ -629,7 +629,7 @@ export const Resolver: GQLResolver = {
                 // });
                 clauses.push({
                     bool: {
-                        must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), {term: {listed: true}}],
+                        must: [...(query.length ? [{ match_phrase_prefix: { title: query } }] : []), { term: { listed: true } }],
                     }
                 });
 
@@ -637,35 +637,35 @@ export const Resolver: GQLResolver = {
                 // Organization rooms
                 //
                 let organizations = await Store.OrganizationMember.user.findAll(ctx, 'joined', uid);
-                let orgChatFilters = organizations.map(e => ({term: {oid: e.oid}}));
+                let orgChatFilters = organizations.map(e => ({ term: { oid: e.oid } }));
                 clauses.push({
-                        bool: {
-                            must: [...(query.length ? [{match_phrase_prefix: {title: query}}] : []), {term: {listed: false}}, {
-                                bool: {
-                                    should: orgChatFilters,
-                                },
-                            }],
-                        }
-                    },
+                    bool: {
+                        must: [...(query.length ? [{ match_phrase_prefix: { title: query } }] : []), { term: { listed: false } }, {
+                            bool: {
+                                should: orgChatFilters,
+                            },
+                        }],
+                    }
+                },
                 );
             }
 
             let functions: any[] = [
                 {
-                    filter: {match: {_type: 'user_profile'}},
+                    filter: { match: { _type: 'user_profile' } },
                     weight: 3
                 },
                 {
-                    filter: {match: {_type: 'room'}},
+                    filter: { match: { _type: 'room' } },
                     weight: 2
                 },
                 {
-                    filter: {match: {_type: 'organization'}},
+                    filter: { match: { _type: 'organization' } },
                     weight: 1
                 }
             ];
 
-            let hits = await Modules.Search.search({
+            let hits = await Modules.Search.search(ctx, {
                 index: 'user_profile,room,organization',
                 from: from,
                 size: args.first,
@@ -759,22 +759,22 @@ export const Resolver: GQLResolver = {
 
             let query = args.query || '';
             let clauses: any[] = [];
-            clauses.push({term: {organizations: orgId}});
+            clauses.push({ term: { organizations: orgId } });
             clauses.push({
                 bool: {
                     should: query.trim().length > 0 ? [
-                        {match_phrase_prefix: {name: {query, max_expansions: 1000}}},
-                        {match_phrase_prefix: {shortName: {query, max_expansions: 1000}}}
+                        { match_phrase_prefix: { name: { query, max_expansions: 1000 } } },
+                        { match_phrase_prefix: { shortName: { query, max_expansions: 1000 } } }
                     ] : []
                 }
             });
 
-            let hits = await Modules.Search.search({
+            let hits = await Modules.Search.search(ctx, {
                 index: 'user_profile',
                 type: 'user_profile',
                 size: args.first || 20,
                 body: {
-                    query: {bool: {must: clauses}},
+                    query: { bool: { must: clauses } },
                 },
                 from: args && args.after ? parseInt(args.after, 10) : (args && args.page ? ((args.page - 1) * (args && args.first ? args.first : 20)) : 0),
             });
@@ -816,15 +816,15 @@ export const Resolver: GQLResolver = {
 
             if (!args.query || args.query.trim().length === 0) {
                 // Users from same chat
-                let hitsLocal = await Modules.Search.search({
+                let hitsLocal = await Modules.Search.search(ctx, {
                     index: 'user_profile',
                     from,
                     size: args.first,
                     body: {
                         query: Es.and([
-                            {match: {_type: 'user_profile'}},
-                            {term: {status: 'activated'}},
-                            {term: {chats: cid}}
+                            { match: { _type: 'user_profile' } },
+                            { term: { status: 'activated' } },
+                            { term: { chats: cid } }
                         ])
                     },
                 });
@@ -839,37 +839,37 @@ export const Resolver: GQLResolver = {
             let room = await Store.ConversationRoom.findById(ctx, cid);
             let roomOid: null | number = room ? room.oid : null;
             let [topPrivateDialogs, topGroupDialogs] = await Promise.all([
-                Store.UserEdge.forwardWeight.query(ctx, uid, {limit: 300, reverse: true}),
-                Store.UserGroupEdge.user.query(ctx, uid, {limit: 300, reverse: true})
+                Store.UserEdge.forwardWeight.query(ctx, uid, { limit: 300, reverse: true }),
+                Store.UserGroupEdge.user.query(ctx, uid, { limit: 300, reverse: true })
             ]);
             const maxExpansions = 1000;
 
             let clauses: any[] = [];
 
             const topChatsFunctions = topGroupDialogs.items.map(d => ({
-                filter: {match: {_id: d.cid}},
+                filter: { match: { _id: d.cid } },
                 weight: d.weight || 1
             }));
 
             const topPrivateChatsFunctions = topPrivateDialogs.items.map(d => ({
-                filter: {match: {userId: d.uid2}},
+                filter: { match: { userId: d.uid2 } },
                 weight: d.weight || 1
             }));
 
             const userOrgsFunctions = userOrgs.map(oid => ({
-                filter: {match: {organizations: oid}},
+                filter: { match: { organizations: oid } },
                 weight: 2
             }));
 
             // Users from same chat
             clauses.push(Es.fn(
                 Es.and([
-                    {match: {_type: 'user_profile'}},
-                    {term: {status: 'activated'}},
-                    {term: {chats: cid}},
+                    { match: { _type: 'user_profile' } },
+                    { term: { status: 'activated' } },
+                    { term: { chats: cid } },
                     Es.or([
-                        {match_phrase_prefix: {name: {query: queryStr, max_expansions: maxExpansions}}},
-                        {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: maxExpansions}}}
+                        { match_phrase_prefix: { name: { query: queryStr, max_expansions: maxExpansions } } },
+                        { match_phrase_prefix: { shortName: { query: queryStr, max_expansions: maxExpansions } } }
                     ])
                 ]),
                 [],
@@ -879,10 +879,10 @@ export const Resolver: GQLResolver = {
             // Other users
             clauses.push(Es.fn(
                 Es.and([
-                    {match: {_type: 'user_profile'}},
+                    { match: { _type: 'user_profile' } },
                     Es.or([
-                        {match_phrase_prefix: {name: {query: queryStr, max_expansions: maxExpansions}}},
-                        {match_phrase_prefix: {shortName: {query: queryStr, max_expansions: maxExpansions}}}
+                        { match_phrase_prefix: { name: { query: queryStr, max_expansions: maxExpansions } } },
+                        { match_phrase_prefix: { shortName: { query: queryStr, max_expansions: maxExpansions } } }
                     ])
                 ]),
                 [...userOrgsFunctions, ...topPrivateChatsFunctions]
@@ -892,9 +892,9 @@ export const Resolver: GQLResolver = {
             if (roomOid) {
                 clauses.push(Es.fn(
                     Es.and([
-                        {match: {_type: 'room'}},
-                        {match_phrase_prefix: {title: queryStr}},
-                        {match: {oid: roomOid}}
+                        { match: { _type: 'room' } },
+                        { match_phrase_prefix: { title: queryStr } },
+                        { match: { oid: roomOid } }
                     ]),
                     topChatsFunctions
                 ));
@@ -904,9 +904,9 @@ export const Resolver: GQLResolver = {
             clauses.push(Es.scriptScore(
                 Es.fn(
                     Es.and([
-                        {match: {_type: 'room'}},
-                        {match_phrase_prefix: {title: queryStr}},
-                        {match: {listed: true}}
+                        { match: { _type: 'room' } },
+                        { match_phrase_prefix: { title: queryStr } },
+                        { match: { listed: true } }
                     ]),
                     topChatsFunctions
                 ),
@@ -915,23 +915,23 @@ export const Resolver: GQLResolver = {
 
             // User orgs
             clauses.push(Es.and([
-                {match: {_type: 'organization'}},
-                {match_phrase_prefix: {name: queryStr}},
-                {terms: {_id: userOrgs}}
+                { match: { _type: 'organization' } },
+                { match_phrase_prefix: { name: queryStr } },
+                { terms: { _id: userOrgs } }
             ]));
 
             // Public orgs
             clauses.push(Es.and([
-                {match: {_type: 'organization'}},
-                {match_phrase_prefix: {name: queryStr}},
-                {term: {listed: true}}
+                { match: { _type: 'organization' } },
+                { match_phrase_prefix: { name: queryStr } },
+                { term: { listed: true } }
             ]));
 
-            let hits = await Modules.Search.search({
+            let hits = await Modules.Search.search(ctx, {
                 index: 'user_profile,room,organization',
                 from,
                 size: args.first,
-                body: {query: Es.or(clauses)}
+                body: { query: Es.or(clauses) }
             });
 
             return {

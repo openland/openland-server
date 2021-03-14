@@ -37,17 +37,17 @@ export const Resolver: GQLResolver = {
             if (args.after) {
                 from = IDs.DiscoverTopPremiumCursor.parse(args.after);
             }
-            let roomHits = await Modules.Search.search({
+            let roomHits = await Modules.Search.search(ctx, {
                 index: 'room', type: 'room',
                 size: args.first,
                 from: from,
                 body: {
-                    sort: [{membersCount: {'order': 'desc'}}],
+                    sort: [{ membersCount: { 'order': 'desc' } }],
                     query: {
                         function_score: {
                             query: {
                                 bool: {
-                                    must: [{term: {listed: true}}, {term: {isPremium: true}}]
+                                    must: [{ term: { listed: true } }, { term: { isPremium: true } }]
                                 }
                             },
                             boost_mode: 'multiply'
@@ -66,17 +66,17 @@ export const Resolver: GQLResolver = {
             if (args.after) {
                 from = IDs.DiscoverTopFreeCursor.parse(args.after);
             }
-            let roomHits = await Modules.Search.search({
+            let roomHits = await Modules.Search.search(ctx, {
                 index: 'room', type: 'room',
                 size: args.first,
                 from: from,
                 body: {
-                    sort: [{membersCount: {'order': 'desc'}}],
+                    sort: [{ membersCount: { 'order': 'desc' } }],
                     query: {
                         function_score: {
                             query: {
                                 bool: {
-                                    must: [{term: {listed: true}}, {term: {isPremium: false}}]
+                                    must: [{ term: { listed: true } }, { term: { isPremium: false } }]
                                 }
                             },
                             boost_mode: 'multiply'
@@ -94,15 +94,15 @@ export const Resolver: GQLResolver = {
             let clauses: any[] = [];
 
             // chats with members count > 10
-            clauses.push({range: {membersCount: {gte: 10}}});
+            clauses.push({ range: { membersCount: { gte: 10 } } });
             // chats with messages count > 10
-            clauses.push({range: {messagesCount: {gte: 10}}});
+            clauses.push({ range: { messagesCount: { gte: 10 } } });
             // chats 90- days old
-            clauses.push({range: {createdAt: {gte: 'now-90d/d'}}});
+            clauses.push({ range: { createdAt: { gte: 'now-90d/d' } } });
             // only public chats
             clauses.push({ term: { listed: true } });
 
-            let query: any = {bool: {must: clauses}};
+            let query: any = { bool: { must: clauses } };
             query = {
                 function_score: {
                     query,
@@ -114,7 +114,7 @@ export const Resolver: GQLResolver = {
             };
 
             let from = args.after ? parseInt(args.after, 10) : 0;
-            let hits = await Modules.Search.search({
+            let hits = await Modules.Search.search(ctx, {
                 index: 'room',
                 type: 'room',
                 size: args.first,
@@ -133,23 +133,23 @@ export const Resolver: GQLResolver = {
             let clauses: any[] = [];
 
             // orgs with members count > 10
-            clauses.push({range: {membersCount: {gte: 10}}});
+            clauses.push({ range: { membersCount: { gte: 10 } } });
             // orgs 60- days old
-            clauses.push({range: {createdAt: {gte: 'now-60d/d'}}});
+            clauses.push({ range: { createdAt: { gte: 'now-60d/d' } } });
             // only public orgs
             clauses.push({ term: { listed: true } });
 
             clauses.push({ term: { status: 'activated' } });
 
             let from = args.after ? parseInt(args.after, 10) : 0;
-            let hits = await Modules.Search.search({
+            let hits = await Modules.Search.search(ctx, {
                 index: 'organization',
                 type: 'organization',
                 size: args.first,
                 from,
                 body: {
-                    query: {bool: {must: clauses}},
-                    sort: [{membersCount: {'order': 'desc'}}]
+                    query: { bool: { must: clauses } },
+                    sort: [{ membersCount: { 'order': 'desc' } }]
                 },
             });
 
@@ -187,20 +187,20 @@ export const Resolver: GQLResolver = {
             let clauses: any[] = [];
 
             // orgs with members count > 10
-            clauses.push({range: {membersCount: {gte: 10}}});
+            clauses.push({ range: { membersCount: { gte: 10 } } });
             // only public orgs
             clauses.push({ term: { listed: true } });
 
             clauses.push({ term: { status: 'activated' } });
 
-            let hits = await Modules.Search.search({
+            let hits = await Modules.Search.search(ctx, {
                 index: 'organization',
                 type: 'organization',
                 size: args.first,
                 from,
                 body: {
-                    query: {bool: {must: clauses}},
-                    sort: [{membersCount: {'order': 'desc'}}]
+                    query: { bool: { must: clauses } },
+                    sort: [{ membersCount: { 'order': 'desc' } }]
                 },
             });
 

@@ -230,7 +230,7 @@ export class StatsModule {
     }
 
     getTrendingRoomsByMessages = async (ctx: Context, from: number, to: number, size?: number, after?: number) => {
-        let searchReq = await Modules.Search.search({
+        let searchReq = await Modules.Search.search(ctx, {
             index: 'message',
             type: 'message', // scroll: '1m',
             body: {
@@ -298,7 +298,7 @@ export class StatsModule {
     }
 
     getTrendingOrgsByMessages = async (ctx: Context, from: number, to: number, size?: number, after?: number) => {
-        let searchReq = await Modules.Search.search({
+        let searchReq = await Modules.Search.search(ctx, {
             index: 'message',
             type: 'message', // scroll: '1m',
             body: {
@@ -386,7 +386,7 @@ export class StatsModule {
                 }
             });
         }
-        let request = await Modules.Search.search({
+        let request = await Modules.Search.search(ctx, {
             index: 'hyperlog', type: 'hyperlog',
             size: 0,
             body: {

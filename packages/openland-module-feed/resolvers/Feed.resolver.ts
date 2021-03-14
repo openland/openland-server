@@ -299,10 +299,10 @@ export const Resolver: GQLResolver = {
         alphaFeedMyChannels: withUser(async (ctx, args, uid) => {
             let afterId = args.after ? IDs.FeedChannel.parse(args.after) : null;
             if (!args.first || args.first <= 0) {
-                return {items: []};
+                return { items: [] };
             }
             let afterExists = afterId && await Store.FeedChannel.findById(ctx, afterId);
-            let {items, haveMore} = await Store.FeedChannel.owner.query(ctx, uid, {
+            let { items, haveMore } = await Store.FeedChannel.owner.query(ctx, uid, {
                 limit: args.first,
                 after: afterExists ? afterId : undefined
             });
@@ -314,7 +314,7 @@ export const Resolver: GQLResolver = {
         alphaFeedMySubscriptions: withUser(async (ctx, args, uid) => {
             let afterId = args.after ? IDs.FeedChannel.parse(args.after) : null;
             if (!args.first || args.first <= 0) {
-                return {items: []};
+                return { items: [] };
             }
             let subscriber = await Modules.Feed.resolveSubscriber(ctx, 'user-' + uid);
             let items = await Store.FeedSubscription.subscriber.findAll(ctx, subscriber.id);
@@ -334,10 +334,10 @@ export const Resolver: GQLResolver = {
         alphaWritableChannels: withUser(async (ctx, args, uid) => {
             let afterId = args.after ? IDs.FeedChannel.parse(args.after) : null;
             if (!args.first || args.first <= 0) {
-                return {items: []};
+                return { items: [] };
             }
             let afterExists = afterId && await Store.FeedChannelAdmin.findById(ctx, afterId, uid);
-            let {items, haveMore} = await Store.FeedChannelAdmin.fromUser.query(ctx, uid, {
+            let { items, haveMore } = await Store.FeedChannelAdmin.fromUser.query(ctx, uid, {
                 limit: args.first,
                 after: afterExists ? afterId : undefined
             });
@@ -399,16 +399,16 @@ export const Resolver: GQLResolver = {
                 sort = parser.parseSort(args.sort);
             }
 
-            clauses.push({term: {type: 'open'}});
-            clauses.push({term: {isHidden: false}});
+            clauses.push({ term: { type: 'open' } });
+            clauses.push({ term: { isHidden: false } });
 
-            let hits = await Modules.Search.search({
+            let hits = await Modules.Search.search(ctx, {
                 index: 'feed-channel',
                 type: 'feed-channel',
                 size: args.first,
                 from: args.after ? parseInt(args.after, 10) : 0,
                 body: {
-                    sort: sort || [{createdAt: 'desc'}], query: {bool: {must: clauses}},
+                    sort: sort || [{ createdAt: 'desc' }], query: { bool: { must: clauses } },
                 },
             });
 
@@ -447,14 +447,14 @@ export const Resolver: GQLResolver = {
             let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + uid);
             let topics: FeedTopic[] = (await Promise.all(subscriptions.map(tid => Store.FeedTopic.findById(ctx, tid)))).filter(t => !!t) as FeedTopic[];
             let channelIds = topics.filter(t => t.key.startsWith('channel-')).map(t => parseInt(t.key.replace('channel-', ''), 10));
-            let hits = await Modules.Search.search({
+            let hits = await Modules.Search.search(ctx, {
                 index: 'feed-channel',
                 type: 'feed-channel',
                 size: args.first,
                 from: args.after ? parseInt(args.after, 10) : 0,
                 body: {
-                    sort: sort || [{subscribersCount: 'desc'}],
-                    query: { bool: { must_not: [{terms: {channelId: channelIds}}], must: [{term: {type: 'open'}}, {term: {isHidden: false}}] } },
+                    sort: sort || [{ subscribersCount: 'desc' }],
+                    query: { bool: { must_not: [{ terms: { channelId: channelIds } }], must: [{ term: { type: 'open' } }, { term: { isHidden: false } }] } },
                 },
             });
             let channels: (FeedChannel | null)[] = await Promise.all(hits.hits.hits.map((v) => Store.FeedChannel.findById(ctx, parseInt(v._id, 10))));
@@ -492,7 +492,7 @@ export const Resolver: GQLResolver = {
                 }
             }
 
-            let {uids, total} = await Modules.Users.searchForUsers(ctx, args.query || '', { uid: ctx.auth.uid, limit: args.first, after: (args.after || undefined), uids: users });
+            let { uids, total } = await Modules.Users.searchForUsers(ctx, args.query || '', { uid: ctx.auth.uid, limit: args.first, after: (args.after || undefined), uids: users });
 
             if (uids.length === 0) {
                 return {

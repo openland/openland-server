@@ -1215,11 +1215,11 @@ export const Resolver: GQLResolver = {
 
             let haveMoreForward: boolean | undefined;
             let haveMoreBackward: boolean | undefined;
-            let messages: (Message|PrivateMessage)[] = [];
+            let messages: (Message | PrivateMessage)[] = [];
 
             if (beforeId || afterId) {
-                let before: (Message|PrivateMessage)[] = [];
-                let after: (Message|PrivateMessage)[] = [];
+                let before: (Message | PrivateMessage)[] = [];
+                let after: (Message | PrivateMessage)[] = [];
 
                 if (beforeId && await Store.Message.findById(ctx, beforeId)) {
                     let beforeQuery = (await Modules.Messaging.fetchMessages(ctx, roomId, uid, {
@@ -1410,7 +1410,7 @@ export const Resolver: GQLResolver = {
             let chatId = IDs.Conversation.parse(args.chatId);
             await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
 
-            const mediaQuery = (term: any) => Modules.Search.search({
+            const mediaQuery = (term: any) => Modules.Search.search(ctx, {
                 index: 'message',
                 type: 'message',
                 size: 0,

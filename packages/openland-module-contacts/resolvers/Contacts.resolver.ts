@@ -21,21 +21,21 @@ export const Resolver: GQLResolver = {
             let contactsAll = await Store.Contact.user.findAll(ctx, uid);
 
             let clauses: any[] = [];
-            clauses.push({terms: {userId: contactsAll.map(c => c.contactUid)}});
-            clauses.push({term: {status: 'activated'}});
+            clauses.push({ terms: { userId: contactsAll.map(c => c.contactUid) } });
+            clauses.push({ term: { status: 'activated' } });
 
             let from = 0;
             if (args.after) {
                 from = IDs.ContactCursor2.parse(args.after);
             }
 
-            let hits = await Modules.Search.search({
+            let hits = await Modules.Search.search(ctx, {
                 index: 'user_profile',
                 type: 'user_profile',
                 size: args.first || 20,
                 body: {
-                    query: {bool: {must: clauses}},
-                    sort: [{nameKeyword: {order: 'asc'}}]
+                    query: { bool: { must: clauses } },
+                    sort: [{ nameKeyword: { order: 'asc' } }]
                 },
                 from
             });
@@ -58,23 +58,23 @@ export const Resolver: GQLResolver = {
             let contacts = await Store.Contact.user.findAll(ctx, uid);
 
             let clauses: any[] = [];
-            clauses.push({terms: {userId: contacts.map(c => c.contactUid)}});
-            clauses.push({term: {status: 'activated'}});
+            clauses.push({ terms: { userId: contacts.map(c => c.contactUid) } });
+            clauses.push({ term: { status: 'activated' } });
             clauses.push({
                 bool: {
                     should: query.trim().length > 0 ? [
-                        {match_phrase_prefix: {name: {query, max_expansions: 1000}}},
-                        {match_phrase_prefix: {shortName: {query, max_expansions: 1000}}}
+                        { match_phrase_prefix: { name: { query, max_expansions: 1000 } } },
+                        { match_phrase_prefix: { shortName: { query, max_expansions: 1000 } } }
                     ] : []
                 }
             });
 
-            let hits = await Modules.Search.search({
+            let hits = await Modules.Search.search(ctx, {
                 index: 'user_profile',
                 type: 'user_profile',
                 size: args.first || 20,
                 body: {
-                    query: {bool: {must: clauses}},
+                    query: { bool: { must: clauses } },
                 },
                 from: args && args.after ? parseInt(args.after, 10) : (args && args.page ? ((args.page - 1) * (args && args.first ? args.first : 20)) : 0),
             });

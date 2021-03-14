@@ -579,7 +579,7 @@ export const Resolver: GQLResolver = {
                 }
             });
 
-            let hits = await Modules.Search.search({
+            let hits = await Modules.Search.search(ctx, {
                 index: 'room',
                 type: 'room',
                 size: args.first,
