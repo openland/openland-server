@@ -11,6 +11,7 @@
     "@openland/context": "0.5.2",
     "@openland/foundationdb": "10.0.4",
     "@openland/foundationdb-bus": "10.0.4",
+    "@openland/foundationdb-bus-redis": "10.0.4",
     "@openland/foundationdb-compiler": "10.0.4",
     "@openland/foundationdb-entity": "10.0.4",
     "@openland/foundationdb-locks": "10.0.4",

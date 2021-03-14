@@ -6,29 +6,37 @@ import { RandomLayer } from '@openland/foundationdb-random';
 import { MigrationsLayer } from '@openland/foundationdb-migrations';
 import { LockLayer } from '@openland/foundationdb-locks';
 import { SingletonWorkerLayer } from '@openland/foundationdb-singleton';
-import { BusLayer, NoOpBus } from '@openland/foundationdb-bus';
+import { BusLayer, BusProvider, NoOpBus } from '@openland/foundationdb-bus';
 import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
 import { NatsBusEngine } from '../openland-module-pubsub/NatsBusEngine';
 import { container } from '../openland-modules/Modules.container';
 import { Config } from 'openland-config/Config';
+import { RedisBusProvider } from '@openland/foundationdb-bus-redis';
+import { URL } from 'url';
 
-let cachedDB: Database|null = null;
+let cachedDB: Database | null = null;
 
 function createLayers(test: boolean) {
-    // For some reason container.isBound returns true even if nats is not binded
-    let natsBounded: boolean;
-    try {
-        container.get('NATS');
-        natsBounded = true;
-    } catch (e) {
-        natsBounded = false;
+    let busProvider: BusProvider = new NoOpBus();
+    if (Config.redis) {
+        let redis = new URL(Config.redis.endpoint);
+        let host = redis.hostname;
+        let port = parseInt(redis.port, 10);
+        busProvider = new RedisBusProvider(port, host);
+    } else {
+        // For some reason container.isBound returns true even if nats is not binded
+        try {
+            busProvider = new NatsBusEngine(container.get('NATS'));
+        } catch (e) {
+            // Could throw if NATS is not inited
+        }
     }
 
     let layers: Layer[] = [
         new RandomLayer(),
         new LockLayer(),
         new SingletonWorkerLayer(),
-        new BusLayer(natsBounded ? new NatsBusEngine(container.get('NATS')) : new NoOpBus())
+        new BusLayer(busProvider)
     ];
     if (serverRoleEnabled('admin') && !test) {
         layers.push(new MigrationsLayer(migrations));
