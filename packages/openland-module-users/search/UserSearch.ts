@@ -93,7 +93,7 @@ export class UserSearch {
         return await tracer.trace(parent, 'search', async (ctx) => {
             let mainQuery = await this.buildUsersQuery(ctx, query, options);
             return await tracer.trace(ctx, 'elastic', async () => {
-                let hits = await Modules.Search.elastic.client.search({
+                let hits = await Modules.Search.search({
                     index: 'user_profile',
                     type: 'user_profile',
                     size: options && options.limit ? options.limit : 20,

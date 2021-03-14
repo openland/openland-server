@@ -7,7 +7,7 @@ import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 export const Resolver: GQLResolver = {
     Query: {
         alphaOrganizationByPrefix: withAny(async (ctx, args) => {
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: 'organization',
                 type: 'organization',
                 body: {
@@ -46,7 +46,7 @@ export const Resolver: GQLResolver = {
 
             clauses.push({ term: { listed: true } });
 
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: 'organization',
                 type: 'organization',
                 size: args.first,
@@ -122,7 +122,7 @@ export const Resolver: GQLResolver = {
             clauses.push({ term: { kind: 'organization' } });
             clauses.push({ term: { status: 'activated' } });
 
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: 'organization',
                 type: 'organization',
                 size: args.first,

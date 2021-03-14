@@ -1410,7 +1410,7 @@ export const Resolver: GQLResolver = {
             let chatId = IDs.Conversation.parse(args.chatId);
             await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
 
-            const mediaQuery = (term: any) => Modules.Search.elastic.client.search({
+            const mediaQuery = (term: any) => Modules.Search.search({
                 index: 'message',
                 type: 'message',
                 size: 0,

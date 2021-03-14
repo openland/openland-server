@@ -37,7 +37,7 @@ export const Resolver: GQLResolver = {
             if (args.after) {
                 from = IDs.DiscoverTopPremiumCursor.parse(args.after);
             }
-            let roomHits = await Modules.Search.elastic.client.search({
+            let roomHits = await Modules.Search.search({
                 index: 'room', type: 'room',
                 size: args.first,
                 from: from,
@@ -66,7 +66,7 @@ export const Resolver: GQLResolver = {
             if (args.after) {
                 from = IDs.DiscoverTopFreeCursor.parse(args.after);
             }
-            let roomHits = await Modules.Search.elastic.client.search({
+            let roomHits = await Modules.Search.search({
                 index: 'room', type: 'room',
                 size: args.first,
                 from: from,
@@ -114,7 +114,7 @@ export const Resolver: GQLResolver = {
             };
 
             let from = args.after ? parseInt(args.after, 10) : 0;
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: 'room',
                 type: 'room',
                 size: args.first,
@@ -142,7 +142,7 @@ export const Resolver: GQLResolver = {
             clauses.push({ term: { status: 'activated' } });
 
             let from = args.after ? parseInt(args.after, 10) : 0;
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: 'organization',
                 type: 'organization',
                 size: args.first,
@@ -193,7 +193,7 @@ export const Resolver: GQLResolver = {
 
             clauses.push({ term: { status: 'activated' } });
 
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: 'organization',
                 type: 'organization',
                 size: args.first,

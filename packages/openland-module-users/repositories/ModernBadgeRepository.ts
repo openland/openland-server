@@ -97,7 +97,7 @@ export class ModernBadgeRepository {
     }
 
     async searchBadges(ctx: Context, text: string | null | undefined, from: number, count: number) {
-        let badges = await Modules.Search.elastic.client.search({
+        let badges = await Modules.Search.search({
             index: 'badges',
             body: {
                 query: {

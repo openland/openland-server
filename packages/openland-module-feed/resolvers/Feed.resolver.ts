@@ -402,7 +402,7 @@ export const Resolver: GQLResolver = {
             clauses.push({term: {type: 'open'}});
             clauses.push({term: {isHidden: false}});
 
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: 'feed-channel',
                 type: 'feed-channel',
                 size: args.first,
@@ -447,7 +447,7 @@ export const Resolver: GQLResolver = {
             let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + uid);
             let topics: FeedTopic[] = (await Promise.all(subscriptions.map(tid => Store.FeedTopic.findById(ctx, tid)))).filter(t => !!t) as FeedTopic[];
             let channelIds = topics.filter(t => t.key.startsWith('channel-')).map(t => parseInt(t.key.replace('channel-', ''), 10));
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: 'feed-channel',
                 type: 'feed-channel',
                 size: args.first,

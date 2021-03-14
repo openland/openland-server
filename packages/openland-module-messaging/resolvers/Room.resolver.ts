@@ -579,7 +579,7 @@ export const Resolver: GQLResolver = {
                 }
             });
 
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: 'room',
                 type: 'room',
                 size: args.first,

@@ -7,9 +7,6 @@ export class ElasticClient {
         this._client = client;
     }
 
-    msearch<T>(params: ES.MSearchParams): Promise<ES.MSearchResponse<T>> {
-        return this._client.msearch(params);
-    }
     search<T>(params: ES.SearchParams): Promise<ES.SearchResponse<T>> {
         return this._client.search(params);
     }

@@ -142,7 +142,7 @@ export const Resolver: GQLResolver = {
                     hashtags: hashtags || undefined
                 });
                 let usersData = (await Promise.all(usersHits.hits.hits.map(hit => Store.User.findById(ctx, parseInt(hit._id, 10))))).filter(isDefined);
-                let orgsHits = await Modules.Search.elastic.client.search({
+                let orgsHits = await Modules.Search.search({
                     index: 'organization',
                     size: 50,
                     body: {
@@ -255,7 +255,7 @@ export const Resolver: GQLResolver = {
                 {term: {listed: true}}
             ]));
 
-            let allHits = await Modules.Search.elastic.client.search({
+            let allHits = await Modules.Search.search({
                 index: 'user_profile,room,organization,dialog',
                 size: 50,
                 body: {query: Es.or(clauses)}
@@ -340,7 +340,7 @@ export const Resolver: GQLResolver = {
             return data.filter(isDefined);
         }),
         featuredGroups: withAccount(async (ctx, args, uid, oid) => {
-            let globalRoomHits = await Modules.Search.elastic.client.search({
+            let globalRoomHits = await Modules.Search.search({
                 index: 'room', type: 'room', body: {
                     query: {bool: {must: [{term: {featured: true}}]}},
                 },
@@ -348,7 +348,7 @@ export const Resolver: GQLResolver = {
             return globalRoomHits.hits.hits.map(hit => parseInt(hit._id, 10));
         }),
         featuredCommunities: withAccount(async (ctx, args, uid, oid) => {
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: 'organization',
                 type: 'organization',
                 body: {query: {bool: {must: [{term: {kind: 'community'}}, {term: {featured: true}}]}}},
@@ -411,7 +411,7 @@ export const Resolver: GQLResolver = {
                     ]);
                 }
 
-                let hits = await Modules.Search.elastic.client.search({
+                let hits = await Modules.Search.search({
                     index: 'message',
                     size: args.first,
                     from: args.after ? parseInt(args.after, 10) : 0,
@@ -476,7 +476,7 @@ export const Resolver: GQLResolver = {
                 }
             });
 
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: 'user_profile',
                 type: 'user_profile',
                 size: args.first || 20,
@@ -665,7 +665,7 @@ export const Resolver: GQLResolver = {
                 }
             ];
 
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: 'user_profile,room,organization',
                 from: from,
                 size: args.first,
@@ -769,7 +769,7 @@ export const Resolver: GQLResolver = {
                 }
             });
 
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: 'user_profile',
                 type: 'user_profile',
                 size: args.first || 20,
@@ -816,7 +816,7 @@ export const Resolver: GQLResolver = {
 
             if (!args.query || args.query.trim().length === 0) {
                 // Users from same chat
-                let hitsLocal = await Modules.Search.elastic.client.search({
+                let hitsLocal = await Modules.Search.search({
                     index: 'user_profile',
                     from,
                     size: args.first,
@@ -927,7 +927,7 @@ export const Resolver: GQLResolver = {
                 {term: {listed: true}}
             ]));
 
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: 'user_profile,room,organization',
                 from,
                 size: args.first,

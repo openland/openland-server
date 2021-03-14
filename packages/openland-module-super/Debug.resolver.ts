@@ -334,7 +334,7 @@ export const Resolver: GQLResolver = {
             return 0;
         }),
         debugUserSearch: withPermission('super-admin', async (ctx, args) => {
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: 'user_profile',
                 type: 'user_profile',
                 size: 100,
@@ -343,7 +343,7 @@ export const Resolver: GQLResolver = {
             return JSON.stringify(hits.hits.hits);
         }),
         debugMentionSearch: withPermission('super-admin', async (ctx, args) => {
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: args.index.replace('message', ''),
                 size: args.first,
                 body: JSON.parse(args.query),
@@ -1590,7 +1590,7 @@ export const Resolver: GQLResolver = {
         }),
         debugReindexRoomMessagesCounter: withPermission('super-admin', async (parent, args) => {
             debugTaskForAll(Store.ConversationRoom, parent.auth.uid!, 'debugReindexRoomMessagesCounter', async (ctx, cid, log) => {
-                let hits = await Modules.Search.elastic.client.search({
+                let hits = await Modules.Search.search({
                     index: 'message',
                     type: 'message',
                     size: 100,

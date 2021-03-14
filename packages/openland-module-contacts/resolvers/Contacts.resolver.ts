@@ -29,7 +29,7 @@ export const Resolver: GQLResolver = {
                 from = IDs.ContactCursor2.parse(args.after);
             }
 
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: 'user_profile',
                 type: 'user_profile',
                 size: args.first || 20,
@@ -69,7 +69,7 @@ export const Resolver: GQLResolver = {
                 }
             });
 
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: 'user_profile',
                 type: 'user_profile',
                 size: args.first || 20,

@@ -21,7 +21,7 @@ export class RoomSearch {
         };
 
         return await tracer.trace(ctx, 'search-dialog', async () => {
-            let hits = await Modules.Search.elastic.client.search({
+            let hits = await Modules.Search.search({
                 index: 'dialog',
                 type: 'dialog',
                 size: options && options.limit ? options.limit : 20,
@@ -57,7 +57,7 @@ export class RoomSearch {
 
         clauses.push({ term: { listed: true} });
 
-        let hits = await Modules.Search.elastic.client.search({
+        let hits = await Modules.Search.search({
             index: 'room',
             type: 'room',
             size: options.first,

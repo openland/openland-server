@@ -12,7 +12,7 @@ export const getEngagementReportsChatId = (ctx: Context) => Modules.Super.getEnv
 export const getLeaderboardsChatId = (ctx: Context) => Modules.Super.getEnvVar<number>(ctx, 'leaderboards-chat-id');
 
 export const getOnboardingCounters = async (startDate: number) => {
-    let activationsData = await Modules.Search.elastic.client.search({
+    let activationsData = await Modules.Search.search({
         index: 'hyperlog', type: 'hyperlog', // scroll: '1m',
         body: {
             query: {
@@ -30,7 +30,7 @@ export const getOnboardingCounters = async (startDate: number) => {
     });
     let newUserEntrances = (activationsData.hits.total as any).value;
 
-    const newMobileUsersQuery = await Modules.Search.elastic.client.search({
+    const newMobileUsersQuery = await Modules.Search.search({
         index: 'hyperlog', type: 'hyperlog', body: {
             query: {
                 bool: {
@@ -47,7 +47,7 @@ export const getOnboardingCounters = async (startDate: number) => {
     });
     const newMobileUsers = (newMobileUsersQuery.hits.total as any).value;
 
-    const newSendersQuery = await Modules.Search.elastic.client.search({
+    const newSendersQuery = await Modules.Search.search({
         index: 'hyperlog', type: 'hyperlog', body: {
             query: {
                 bool: {
@@ -64,7 +64,7 @@ export const getOnboardingCounters = async (startDate: number) => {
     });
     const newSenders = (newSendersQuery.hits.total as any).value;
 
-    const newInvitersQuery = await Modules.Search.elastic.client.search({
+    const newInvitersQuery = await Modules.Search.search({
         index: 'hyperlog', type: 'hyperlog', body: {
             query: {
                 bool: {
@@ -81,7 +81,7 @@ export const getOnboardingCounters = async (startDate: number) => {
     });
     const newInviters = (newInvitersQuery.hits.total as any).value;
 
-    const newThreeLikeGiversQuery = await Modules.Search.elastic.client.search({
+    const newThreeLikeGiversQuery = await Modules.Search.search({
         index: 'hyperlog', type: 'hyperlog', body: {
             query: {
                 bool: {
@@ -98,7 +98,7 @@ export const getOnboardingCounters = async (startDate: number) => {
     });
     const newThreeLikeGivers = (newThreeLikeGiversQuery.hits.total as any).value;
 
-    const newThreeLikeGettersQuery = await Modules.Search.elastic.client.search({
+    const newThreeLikeGettersQuery = await Modules.Search.search({
         index: 'hyperlog', type: 'hyperlog', body: {
             query: {
                 bool: {
@@ -115,7 +115,7 @@ export const getOnboardingCounters = async (startDate: number) => {
     });
     const newThreeLikeGetters = (newThreeLikeGettersQuery.hits.total as any).value;
 
-    let newAboutFillersData = await Modules.Search.elastic.client.search({
+    let newAboutFillersData = await Modules.Search.search({
         index: 'hyperlog', type: 'hyperlog', // scroll: '1m',
         body: {
             query: {
@@ -151,7 +151,7 @@ export const getOnboardingCounters = async (startDate: number) => {
 };
 
 export const getEngagementCounters =  async (startDate: number) => {
-    let activesData = await Modules.Search.elastic.client.search({
+    let activesData = await Modules.Search.search({
         index: 'hyperlog', type: 'hyperlog', // scroll: '1m',
         body: {
             query: {
@@ -176,7 +176,7 @@ export const getEngagementCounters =  async (startDate: number) => {
 
     let actives = activesData.aggregations.actives.value;
 
-    let sendersData = await Modules.Search.elastic.client.search({
+    let sendersData = await Modules.Search.search({
         index: 'message', type: 'message',
         body: {
             query: {
@@ -202,7 +202,7 @@ export const getEngagementCounters =  async (startDate: number) => {
     let senders = sendersData.aggregations.senders.value;
     let messagesSent = (sendersData.hits.total as any).value;
 
-    let todayLikersData = await Modules.Search.elastic.client.search({
+    let todayLikersData = await Modules.Search.search({
         index: 'hyperlog', type: 'hyperlog', // scroll: '1m',
         body: {
             query: {
@@ -232,7 +232,7 @@ export const getEngagementCounters =  async (startDate: number) => {
     let todayLikeGivers = todayLikersData.aggregations.givers.value;
     let todayLikeGetters = todayLikersData.aggregations.getters.value;
 
-    let callsData = await Modules.Search.elastic.client.search({
+    let callsData = await Modules.Search.search({
         index: 'hyperlog', type: 'hyperlog',
         body: {
             query: {
