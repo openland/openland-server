@@ -120,9 +120,6 @@ export const Events = {
 
     CallEnded: createHyperlogger<{ duration: number }>('call_ended'),
 
-    EmailSent: createHyperlogger<{ to: string, templateId: string }>('email_sent'),
-    EmailFailed: createHyperlogger<{ to: string, templateId: string }>('email_failed'),
-
     ProfileUpdated: createHyperlogger<{ uid: number }>('profile-updated'),
     OrganizationProfileUpdated: createHyperlogger<{ oid: number }>('organization-profile-updated'),
     OrganizationCreated: createHyperlogger<{ oid: number, uid: number }>('organization-created'),

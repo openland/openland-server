@@ -3,11 +3,10 @@ import SendGrid from '@sendgrid/mail';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { EmailTask } from 'openland-module-email/EmailTask';
 import { createLogger } from '@openland/log';
-import { inTx } from '@openland/foundationdb';
 import { Config } from 'openland-config/Config';
-import { Events } from 'openland-module-hyperlog/Events';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { Store } from 'openland-module-db/FDB';
+import { MailData } from '@sendgrid/helpers/classes/mail';
 
 export const SENDGRID_KEY = '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';
 
@@ -33,44 +32,45 @@ const log = createLogger('sendgrid');
 
 export function createEmailWorker() {
 
-    let sendMessage = async (ctx: Context, args: EmailTask) => {
+    let sendMessage = async (ctx: Context, args: EmailTask[]) => {
         if (Config.environment !== 'test') {
-            // Filter for non-production envrionments
+
+            // Map data
+            let data: MailData[] = [];
             if (Config.environment !== 'production') {
-                if (
-                    devTeamEmails.indexOf(args.to.toLowerCase()) < 0 &&
-                    !args.to.endsWith('@affecting.org')
-                ) {
-                    return;
+                for (let arg of args) {
+                    if (
+                        devTeamEmails.indexOf(arg.to.toLowerCase()) < 0 &&
+                        !arg.to.endsWith('@affecting.org')
+                    ) {
+                        continue;
+                    }
+                    if (!arg.to || (arg.to || '').trim().length === 0) {
+                        continue;
+                    }
+                    data.push({
+                        to: arg.to,
+                        from: { name: 'Openland', email: 'support@openland.com' },
+                        templateId: arg.templateId,
+                        substitutions: arg.args,
+                        subject: arg.subject,
+                        dynamicTemplateData: arg.dynamicTemplateData
+                    });
                 }
             }
 
-            if (!args.to || (args.to || '').trim().length === 0) {
-                log.warn(ctx, 'empty email receiver', args);
+            if (data.length) {
                 return;
             }
 
             try {
-                let res = await SendGrid.send({
-                    to: args.to,
-                    from: { name: 'Openland', email: 'support@openland.com' },
-                    templateId: args.templateId,
-                    substitutions: args.args,
-                    subject: args.subject,
-                    dynamicTemplateData: args.dynamicTemplateData
-                } as any);
+                let res = await SendGrid.send(data, true);
                 let statusCode = res[0].statusCode;
                 log.debug(ctx, 'response code: ', statusCode, JSON.stringify(args));
             } catch (e) {
-                log.error(ctx, 'email to', args.to);
-                await inTx(ctx, async (ctx2) => {
-                    Events.EmailFailed.event(ctx2, { templateId: args.templateId, to: args.to });
-                });
+                log.error(ctx, 'Email send faild: ' + e);
                 throw e;
             }
-            await inTx(ctx, async (ctx2) => {
-                Events.EmailSent.event(ctx2, { templateId: args.templateId, to: args.to });
-            });
         }
     };
 
@@ -79,7 +79,7 @@ export function createEmailWorker() {
 
     let beterQueue = new BetterWorkerQueue<EmailTask>(Store.EmailSendQueue, { maxAttempts: 3, type: 'external' });
     if (serverRoleEnabled('workers')) {
-        beterQueue.addWorkers(100, async (ctx, args) => {
+        beterQueue.addBatchedWorkers(10, 100, async (ctx, args) => {
             await sendMessage(ctx, args);
         });
     }
