@@ -28,6 +28,11 @@ export class VoiceChatEventsRepository {
         });
     }
 
+    @transactional
+    async postPinnedMessageUpdated(ctx: Context, cid: number) {
+        Store.VoiceChatEventsStore.post(ctx, cid, VoiceChatUpdatedEvent.create({ cid }));
+    }
+
     createActiveChatsLiveStream = (ctx: Context) => {
         return this.activeChatsEvents.createLiveStream(ctx, 'global');
     }

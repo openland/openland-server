@@ -21,6 +21,7 @@ export function voiceChatsStore() {
         field('startedBy', optional(integer()));
         field('endedAt', optional(integer()));
         field('duration', optional(integer()));
+        field('pinnedMessageId', optional(integer()));
 
         rangeIndex('active', ['createdAt']).withCondition(a => a.active);
     });

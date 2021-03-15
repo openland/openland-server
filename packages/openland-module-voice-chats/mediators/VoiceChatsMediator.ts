@@ -7,6 +7,7 @@ import { VoiceChatReportsMediator } from './VoiceChatReportsMediator';
 import { inTx } from '@openland/foundationdb';
 import { Events } from 'openland-module-hyperlog/Events';
 import { Store } from '../../openland-module-db/FDB';
+import { RichMessageInput } from '../../openland-module-rich-message/repositories/RichMessageRepository';
 
 @injectable()
 export class VoiceChatsMediator {
@@ -35,6 +36,16 @@ export class VoiceChatsMediator {
         await Modules.VoiceChats.participants.ensureParticipantIsAdmin(ctx, id, by);
 
         return this.repo.setChatActive(ctx, id, false);
+    }
+
+    setPinnedMessage = async (ctx: Context, id: number, by: number, message: RichMessageInput) => {
+        await Modules.VoiceChats.participants.ensureParticipantIsAdmin(ctx, id, by);
+        return await this.repo.setPinnedMessage(ctx, id, by, message);
+    }
+
+    deletePinnedMessage = async (ctx: Context, id: number, by: number) => {
+        await Modules.VoiceChats.participants.ensureParticipantIsAdmin(ctx, id, by);
+        return await this.repo.deletePinnedMessage(ctx, id);
     }
 
     //

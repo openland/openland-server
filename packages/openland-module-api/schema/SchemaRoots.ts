@@ -919,6 +919,7 @@ export namespace GQLRoots {
     //
     export type VoiceChatRoot = ConversationVoice;
     export type VoiceChatConnectionRoot = { items: VoiceChatRoot[], cursor: string | null };
+    export type VoiceChatPinnedMessageRoot = RichMessage;
     export type VoiceChatParticipantRoot = VoiceChatParticipant;
     export type VoiceChatParticipantConnectionRoot = {
         items: VoiceChatParticipantRoot[],
