@@ -21,7 +21,11 @@ export class ElasticService {
                 continue;
             }
             this.clusters.push(cluster.name);
-            let client = new ES.Client({ host: cluster.endpoint, apiVersion: cluster.version ? cluster.version : undefined });
+            let client = new ES.Client({
+                host: cluster.endpoint,
+                apiVersion: cluster.version ? cluster.version : undefined,
+                requestTimeout: 5000
+            });
             if (cluster.writable !== false) {
                 this.clusterMap.set(cluster.name, client);
                 log.log(ctx, 'Loaded cluster ' + cluster.name + ': ' + cluster.endpoint);
