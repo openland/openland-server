@@ -2655,55 +2655,51 @@ export const Resolver: GQLResolver = {
         debugMigrateChatCounters: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugMigrateChatCounters', async log => {
                 let processed = 0;
-                let batchSize = 10;
+                let batchSize = 100;
                 await Store.Conversation.iterateAllItems(withoutTransaction(parent), batchSize, async (ctx, items) => {
                     for (let item of items) {
-                        try {
-                            if (item.kind === 'voice' || item.kind === 'organization') {
-                                continue;
+                        if (item.kind === 'voice' || item.kind === 'organization') {
+                            continue;
+                        }
+
+                        const mediaQuery = (term: any) => Modules.Search.search(ctx, {
+                            index: 'message',
+                            type: 'message',
+                            size: 0,
+                            body: { query: { bool: { must: [{ term: { cid: item.id } }, { term: { deleted: false } }, { term }] } } },
+                        });
+
+                        let [
+                            links,
+                            images,
+                            documents,
+                            videos
+                        ] = await Promise.all([
+                            mediaQuery({ haveLinkAttachment: true }),
+                            mediaQuery({ haveImageAttachment: true }),
+                            mediaQuery({ haveDocumentAttachment: true }),
+                            mediaQuery({ haveVideoAttachment: true })
+                        ]);
+
+                        let linksCount = (links.hits.total as any).value;
+                        let imagesCount = (images.hits.total as any).value;
+                        let documentsCount = (documents.hits.total as any).value;
+                        let videosCount = (videos.hits.total as any).value;
+
+                        let forUids = [0];
+                        if (item.kind === 'private') {
+                            let privateConv = await Store.ConversationPrivate.findById(ctx, item.id);
+                            if (privateConv) {
+                                forUids.push(privateConv.uid1);
+                                forUids.push(privateConv.uid2);
                             }
+                        }
 
-                            const mediaQuery = (term: any) => Modules.Search.search(ctx, {
-                                index: 'message',
-                                type: 'message',
-                                size: 0,
-                                body: { query: { bool: { must: [{ term: { cid: item.id } }, { term: { deleted: false } }, { term }] } } },
-                            });
-
-                            let [
-                                links,
-                                images,
-                                documents,
-                                videos
-                            ] = await Promise.all([
-                                mediaQuery({ haveLinkAttachment: true }),
-                                mediaQuery({ haveImageAttachment: true }),
-                                mediaQuery({ haveDocumentAttachment: true }),
-                                mediaQuery({ haveVideoAttachment: true })
-                            ]);
-
-                            let linksCount = (links.hits.total as any).value;
-                            let imagesCount = (images.hits.total as any).value;
-                            let documentsCount = (documents.hits.total as any).value;
-                            let videosCount = (videos.hits.total as any).value;
-
-                            let forUids = [0];
-                            if (item.kind === 'private') {
-                                let privateConv = await Store.ConversationPrivate.findById(ctx, item.id);
-                                if (privateConv) {
-                                    forUids.push(privateConv.uid1);
-                                    forUids.push(privateConv.uid2);
-                                }
-                            }
-
-                            for (let uid of forUids) {
-                                await Store.ChatMediaCounter.set(ctx, item.id, 'IMAGE', uid, imagesCount);
-                                await Store.ChatMediaCounter.set(ctx, item.id, 'VIDEO', uid, videosCount);
-                                await Store.ChatMediaCounter.set(ctx, item.id, 'DOCUMENT', uid, documentsCount);
-                                await Store.ChatMediaCounter.set(ctx, item.id, 'LINK', uid, linksCount);
-                            }
-                        } catch (e) {
-                            logger.log(ctx, 'debugMigrateChatCounters', e);
+                        for (let uid of forUids) {
+                            await Store.ChatMediaCounter.set(ctx, item.id, 'IMAGE', uid, imagesCount);
+                            await Store.ChatMediaCounter.set(ctx, item.id, 'VIDEO', uid, videosCount);
+                            await Store.ChatMediaCounter.set(ctx, item.id, 'DOCUMENT', uid, documentsCount);
+                            await Store.ChatMediaCounter.set(ctx, item.id, 'LINK', uid, linksCount);
                         }
                     }
                     processed += batchSize;
