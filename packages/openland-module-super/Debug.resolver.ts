@@ -2655,11 +2655,11 @@ export const Resolver: GQLResolver = {
         debugMigrateChatCounters: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugMigrateChatCounters', async log => {
                 let processed = 0;
-                let batchSize = 10;
+                let batchSize = 100;
                 await Store.Conversation.iterateAllItems(withoutTransaction(parent), batchSize, async (ctx, items) => {
-                    for (let item of items) {
+                    await Promise.all(items.map(async item => {
                         if (item.kind === 'voice' || item.kind === 'organization') {
-                            continue;
+                            return;
                         }
 
                         const mediaQuery = (term: any) => Modules.Search.search(ctx, {
@@ -2701,9 +2701,11 @@ export const Resolver: GQLResolver = {
                             await Store.ChatMediaCounter.set(ctx, item.id, 'DOCUMENT', uid, documentsCount);
                             await Store.ChatMediaCounter.set(ctx, item.id, 'LINK', uid, linksCount);
                         }
-                    }
+                    }));
                     processed += batchSize;
-                    await log('done ' + processed);
+                    if (processed % 1000 === 0) {
+                        await log('done ' + processed);
+                    }
                 });
                 return 'done';
             });
