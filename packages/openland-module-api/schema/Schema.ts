@@ -66,13 +66,14 @@ export const Schema = (forTest: boolean = false) => {
             }
 
             if (isPromise(res)) {
-                return res.then(() => {
+                res.finally(() => {
                     span.finish();
                 }).catch(() => {
                     span.finish();
                 });
+            } else {
+                span.finish();
             }
-            span.finish();
             return res;
         }
     });
