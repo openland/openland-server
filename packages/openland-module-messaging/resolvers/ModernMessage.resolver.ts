@@ -1410,30 +1410,17 @@ export const Resolver: GQLResolver = {
             let chatId = IDs.Conversation.parse(args.chatId);
             await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
 
-            const mediaQuery = (term: any) => Modules.Search.search(ctx, {
-                index: 'message',
-                type: 'message',
-                size: 0,
-                body: { query: { bool: { must: [{ term: { cid: chatId } }, { term: { deleted: false } }, { term }] } } },
-            });
-
-            let [
-                links,
-                images,
-                documents,
-                videos
-            ] = await Promise.all([
-                mediaQuery({ haveLinkAttachment: true }),
-                mediaQuery({ haveImageAttachment: true }),
-                mediaQuery({ haveDocumentAttachment: true }),
-                mediaQuery({ haveVideoAttachment: true })
-            ]);
+            let privateConv = await Store.ConversationPrivate.findById(ctx, chatId);
+            let forUid = 0;
+            if (privateConv) {
+                forUid = uid;
+            }
 
             return {
-                links: (links.hits.total as any).value,
-                images: (images.hits.total as any).value,
-                documents: (documents.hits.total as any).value,
-                videos: (videos.hits.total as any).value
+                links: await Store.ChatMediaCounter.get(ctx, chatId, 'LINK', forUid),
+                images: await Store.ChatMediaCounter.get(ctx, chatId, 'IMAGE', forUid),
+                documents: await Store.ChatMediaCounter.get(ctx, chatId, 'DOCUMENT', forUid),
+                videos: await Store.ChatMediaCounter.get(ctx, chatId, 'VIDEO', forUid)
             };
         }),
         haveAccessToChat: withUser(async (ctx, args, uid) => {
