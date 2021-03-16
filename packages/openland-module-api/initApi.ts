@@ -324,7 +324,7 @@ export async function initApi(isTest: boolean) {
         });
         server = httpServer;
     } else {
-        server = await new Promise((resolver) => app.listen(0, (s) => resolver(s)));
+        server = app.listen(0);
     }
 
     return server;

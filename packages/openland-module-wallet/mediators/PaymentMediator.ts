@@ -26,7 +26,7 @@ export class PaymentMediator {
         this.paymentIntents = paymentIntents;
         this.payments = payments;
         this.subscription = subscription;
-        this.stripe = new Stripe(token, { apiVersion: '2019-12-03', typescript: true });
+        this.stripe = new Stripe(token, { apiVersion: '2020-08-27', typescript: true });
         this.liveMode = !token.startsWith('sk_test');
         let ctx = createNamedContext('PaymentMediator');
         log.debug(ctx, this.liveMode ? 'live' : 'test');
