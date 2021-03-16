@@ -1,5 +1,4 @@
 import { Context } from '@openland/context';
-import { Root } from 'protobufjs';
 export type MaybePromise<T> = | T | Promise<T>;
 
 export type Nullable<T> = null | T;
