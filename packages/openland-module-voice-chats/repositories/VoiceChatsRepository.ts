@@ -9,12 +9,18 @@ import { VoiceChatEventsRepository } from './VoiceChatEventsRepository';
 import { ParticipantsRepository } from './ParticipantsRepository';
 import { Subject } from 'rxjs';
 import { getTransaction } from '@openland/foundationdb';
+import {
+    RichMessageInput,
+    RichMessageRepository
+} from '../../openland-module-rich-message/repositories/RichMessageRepository';
 @injectable()
 export class VoiceChatsRepository {
     @lazyInject('VoiceChatParticipantsRepository')
     private readonly participants!: ParticipantsRepository;
     @lazyInject('VoiceChatEventsRepository')
     private readonly events!: VoiceChatEventsRepository;
+    @lazyInject('RichMessageRepository')
+    private readonly richMessageRepo!: RichMessageRepository;
 
     public voiceChatActiveChanged = new Subject<{ cid: number, active: boolean }>();
 
@@ -65,6 +71,29 @@ export class VoiceChatsRepository {
         getTransaction(ctx).afterCommit(async () => {
             await this.voiceChatActiveChanged.next({ cid: id, active });
         });
+        return chat;
+    }
+
+    setPinnedMessage = async (ctx: Context, id: number, by: number, message: RichMessageInput) => {
+        let chat = await this.#getChatOrFail(ctx, id);
+        if (chat.pinnedMessageId) {
+            await this.richMessageRepo.editRichMessage(ctx, by, chat.pinnedMessageId, message, false);
+        } else {
+            let msg = await this.richMessageRepo.createRichMessage(ctx, by, message);
+            chat.pinnedMessageId = msg.id;
+            await chat.flush(ctx);
+        }
+        await this.events.postPinnedMessageUpdated(ctx, id);
+        return chat;
+    }
+
+    deletePinnedMessage = async (ctx: Context, id: number) => {
+        let chat = await this.#getChatOrFail(ctx, id);
+        if (chat.pinnedMessageId) {
+            chat.pinnedMessageId = null;
+            await chat.flush(ctx);
+            await this.events.postPinnedMessageUpdated(ctx, id);
+        }
         return chat;
     }
 

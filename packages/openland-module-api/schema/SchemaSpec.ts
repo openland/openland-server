@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'af1af157934cb05f287e98c5fc0a1f2f';
+export const GQL_SPEC_VERSION = '885cbbe6bc21c48b9b4763b2f5d48a25';
 
 export namespace GQL {
     export interface CreditCard {
@@ -2222,6 +2222,8 @@ export namespace GQL {
         voiceChatCreate: VoiceChat;
         voiceChatUpdate: VoiceChat;
         voiceChatEnd: VoiceChat;
+        voiceChatSetPinnedMessage: VoiceChat;
+        voiceChatDeletePinnedMessage: VoiceChat;
         conferenceJoin: ConferenceJoinResult;
         conferenceKeepAlive: Conference;
         conferenceLeave: Conference;
@@ -3107,6 +3109,14 @@ export namespace GQL {
         input: VoiceChatInput;
     }
     export interface MutationVoiceChatEndArgs {
+        id: string;
+    }
+    export interface MutationVoiceChatSetPinnedMessageArgs {
+        id: string;
+        message: OptionalNullable<string>;
+        spans: OptionalNullable<MessageSpanInput[]>;
+    }
+    export interface MutationVoiceChatDeletePinnedMessageArgs {
         id: string;
     }
     export interface MutationConferenceJoinArgs {
@@ -5198,6 +5208,7 @@ export namespace GQL {
         speakers: VoiceChatParticipant[];
         listeners: VoiceChatParticipant[];
         me: Nullable<VoiceChatParticipant>;
+        pinnedMessage: Nullable<VoiceChatPinnedMessage>;
     }
     export interface VoiceChatIdArgs { }
     export interface VoiceChatTitleArgs { }
@@ -5208,6 +5219,7 @@ export namespace GQL {
     export interface VoiceChatSpeakersArgs { }
     export interface VoiceChatListenersArgs { }
     export interface VoiceChatMeArgs { }
+    export interface VoiceChatPinnedMessageArgs { }
     export interface VoiceChatInput {
         title: string;
     }
@@ -5217,6 +5229,14 @@ export namespace GQL {
     }
     export interface VoiceChatConnectionItemsArgs { }
     export interface VoiceChatConnectionCursorArgs { }
+    export interface VoiceChatPinnedMessage {
+        id: string;
+        message: Nullable<string>;
+        spans: MessageSpan[];
+    }
+    export interface VoiceChatPinnedMessageIdArgs { }
+    export interface VoiceChatPinnedMessageMessageArgs { }
+    export interface VoiceChatPinnedMessageSpansArgs { }
     export interface VoiceChatParticipantUpdatedEvent {
         chat: VoiceChat;
         participant: VoiceChatParticipant;
@@ -8800,6 +8820,8 @@ export interface GQLResolver {
             voiceChatCreate: GQLRoots.VoiceChatRoot,
             voiceChatUpdate: GQLRoots.VoiceChatRoot,
             voiceChatEnd: GQLRoots.VoiceChatRoot,
+            voiceChatSetPinnedMessage: GQLRoots.VoiceChatRoot,
+            voiceChatDeletePinnedMessage: GQLRoots.VoiceChatRoot,
             conferenceJoin: GQLRoots.ConferenceJoinResultRoot,
             conferenceKeepAlive: GQLRoots.ConferenceRoot,
             conferenceLeave: GQLRoots.ConferenceRoot,
@@ -9114,6 +9136,8 @@ export interface GQLResolver {
             voiceChatCreate: GQL.MutationVoiceChatCreateArgs,
             voiceChatUpdate: GQL.MutationVoiceChatUpdateArgs,
             voiceChatEnd: GQL.MutationVoiceChatEndArgs,
+            voiceChatSetPinnedMessage: GQL.MutationVoiceChatSetPinnedMessageArgs,
+            voiceChatDeletePinnedMessage: GQL.MutationVoiceChatDeletePinnedMessageArgs,
             conferenceJoin: GQL.MutationConferenceJoinArgs,
             conferenceKeepAlive: GQL.MutationConferenceKeepAliveArgs,
             conferenceLeave: GQL.MutationConferenceLeaveArgs,
@@ -10569,6 +10593,7 @@ export interface GQLResolver {
             speakers: GQLRoots.VoiceChatParticipantRoot[],
             listeners: GQLRoots.VoiceChatParticipantRoot[],
             me: Nullable<GQLRoots.VoiceChatParticipantRoot>,
+            pinnedMessage: Nullable<GQLRoots.VoiceChatPinnedMessageRoot>,
         },
         {
             id: GQL.VoiceChatIdArgs,
@@ -10580,6 +10605,7 @@ export interface GQLResolver {
             speakers: GQL.VoiceChatSpeakersArgs,
             listeners: GQL.VoiceChatListenersArgs,
             me: GQL.VoiceChatMeArgs,
+            pinnedMessage: GQL.VoiceChatPinnedMessageArgs,
         }
     >;
     VoiceChatConnection?: ComplexTypedResolver<
@@ -10591,6 +10617,18 @@ export interface GQLResolver {
         {
             items: GQL.VoiceChatConnectionItemsArgs,
             cursor: GQL.VoiceChatConnectionCursorArgs,
+        }
+    >;
+    VoiceChatPinnedMessage?: ComplexTypedResolver<
+        GQL.VoiceChatPinnedMessage,
+        GQLRoots.VoiceChatPinnedMessageRoot,
+        {
+            spans: GQLRoots.MessageSpanRoot[],
+        },
+        {
+            id: GQL.VoiceChatPinnedMessageIdArgs,
+            message: GQL.VoiceChatPinnedMessageMessageArgs,
+            spans: GQL.VoiceChatPinnedMessageSpansArgs,
         }
     >;
     VoiceChatParticipantUpdatedEvent?: ComplexTypedResolver<

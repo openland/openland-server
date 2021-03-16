@@ -9,6 +9,7 @@ import { ConversationVoice } from '../openland-module-db/store';
 import { fastWatch } from '../openland-module-db/fastWatch';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
+import { resolveRichMessageCreation } from '../openland-module-rich-message/resolvers/resolveRichMessageCreation';
 
 export const Resolver: GQLResolver = {
     VoiceChat: {
@@ -27,6 +28,12 @@ export const Resolver: GQLResolver = {
             }
             return null;
         }, null),
+        pinnedMessage: async (src, _, ctx) => src.pinnedMessageId ? await Store.RichMessage.findById(ctx, src.pinnedMessageId) : null
+    },
+    VoiceChatPinnedMessage: {
+        id: src => IDs.RichMessage.serialize(src.id),
+        message: src => src.text,
+        spans: src => src.spans || []
     },
     User: {
         currentVoiceChat: withUserFromRoot(async (ctx, user) => {
@@ -49,7 +56,19 @@ export const Resolver: GQLResolver = {
         }),
         voiceChatEnd: withActivatedUser(async (ctx, { id }, uid) => {
             return await Modules.VoiceChats.chats.endChat(ctx, uid, IDs.Conversation.parse(id));
-        })
+        }),
+        voiceChatSetPinnedMessage: withActivatedUser(async (ctx, { id, message, spans }, uid) => {
+            let messageInput = await resolveRichMessageCreation(ctx, {
+                message,
+                spans,
+                fileAttachments: [],
+                mentions: []
+            });
+            return await Modules.VoiceChats.chats.setPinnedMessage(ctx, IDs.Conversation.parse(id), uid, messageInput);
+        }),
+        voiceChatDeletePinnedMessage: withActivatedUser(async (ctx, { id }, uid) => {
+            return await Modules.VoiceChats.chats.deletePinnedMessage(ctx, IDs.Conversation.parse(id), uid);
+        }),
     },
     Query: {
         voiceChat: async (root, args, ctx) => {

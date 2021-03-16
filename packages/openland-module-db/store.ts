@@ -4988,6 +4988,7 @@ export interface ConversationVoiceShape {
     startedBy: number | null;
     endedAt: number | null;
     duration: number | null;
+    pinnedMessageId: number | null;
 }
 
 export interface ConversationVoiceCreateShape {
@@ -4997,6 +4998,7 @@ export interface ConversationVoiceCreateShape {
     startedBy?: number | null | undefined;
     endedAt?: number | null | undefined;
     duration?: number | null | undefined;
+    pinnedMessageId?: number | null | undefined;
 }
 
 export class ConversationVoice extends Entity<ConversationVoiceShape> {
@@ -5055,6 +5057,15 @@ export class ConversationVoice extends Entity<ConversationVoiceShape> {
             this.invalidate();
         }
     }
+    get pinnedMessageId(): number | null { return this._rawValue.pinnedMessageId; }
+    set pinnedMessageId(value: number | null) {
+        let normalized = this.descriptor.codec.fields.pinnedMessageId.normalize(value);
+        if (this._rawValue.pinnedMessageId !== normalized) {
+            this._rawValue.pinnedMessageId = normalized;
+            this._updatedValues.pinnedMessageId = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class ConversationVoiceFactory extends EntityFactory<ConversationVoiceShape, ConversationVoice> {
@@ -5072,6 +5083,7 @@ export class ConversationVoiceFactory extends EntityFactory<ConversationVoiceSha
         fields.push({ name: 'startedBy', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'endedAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'duration', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'pinnedMessageId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             title: c.optional(c.string),
@@ -5080,6 +5092,7 @@ export class ConversationVoiceFactory extends EntityFactory<ConversationVoiceSha
             startedBy: c.optional(c.integer),
             endedAt: c.optional(c.integer),
             duration: c.optional(c.integer),
+            pinnedMessageId: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<ConversationVoiceShape> = {
             name: 'ConversationVoice',
