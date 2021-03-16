@@ -20,6 +20,16 @@ import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { createPrivateChatCleanerWorker } from '../workers/privateChatCleanerWorker';
 import { RangeQueryOptions } from '@openland/foundationdb-entity';
 import { USE_NEW_PRIVATE_CHATS } from '../MessagingModule';
+import { hasDocumentAttachment, hasImageAttachment, hasLinkAttachment, hasVideoAttachment } from './mediaFilters';
+
+type MediaTypes = 'IMAGE' | 'LINK' | 'VIDEO' | 'DOCUMENT';
+
+const MEDIA_FILTERS = [
+    { type: 'IMAGE', filter: hasImageAttachment },
+    { type: 'LINK', filter: hasLinkAttachment },
+    { type: 'VIDEO', filter: hasVideoAttachment },
+    { type: 'DOCUMENT', filter: hasDocumentAttachment },
+] as const;
 
 @injectable()
 export class MessagesRepository {
@@ -98,6 +108,13 @@ export class MessagesRepository {
                 await Store.PrivateMessage.create(ctx, mid, privateChat.uid2, messageData);
             }
 
+            // Precalculate media counters
+            for (let filer of MEDIA_FILTERS) {
+                if (filer.filter(msg)) {
+                    await this.incrementChatMediaCounter(ctx, cid, filer.type);
+                }
+            }
+
             return {
                 message: msg
             };
@@ -118,8 +135,17 @@ export class MessagesRepository {
                     Store.PrivateMessage.findById(ctx, mid, privateChat.uid1),
                     Store.PrivateMessage.findById(ctx, mid, privateChat.uid2)
                 ]);
-                messagesToUpdate.push(...privateCopies.filter(isDefined));
+                messagesToUpdate.push(...privateCopies.filter(isDefined).filter(m => !m.deleted));
             }
+
+            let hadMedias = new Set<MediaTypes>();
+
+            for (let filter of MEDIA_FILTERS) {
+                if (filter.filter(message)) {
+                    hadMedias.add(filter.type);
+                }
+            }
+
             //
             // Update message
             //
@@ -133,7 +159,7 @@ export class MessagesRepository {
             if (markAsEdited) {
                 messagesToUpdate.forEach(m => m.edited = true);
             }
-            if (newMessage.attachments) {
+            if (newMessage.attachments)  {
                 if (newMessage.appendAttachments) {
                     let attachments = [...(message.attachmentsModern || []), ...await this.prepareAttachments(ctx, newMessage.attachments || [])];
                     messagesToUpdate.forEach(m => m.attachmentsModern = attachments);
@@ -147,6 +173,34 @@ export class MessagesRepository {
             }
             if (newMessage.serviceMetadata) {
                 messagesToUpdate.forEach(m => m.serviceMetadata = newMessage.serviceMetadata!);
+            }
+
+            let haveMedias = new Set<MediaTypes>();
+
+            for (let filter of MEDIA_FILTERS) {
+                if (filter.filter(message)) {
+                    haveMedias.add(filter.type);
+                }
+            }
+
+            let removedMedia = new Set([...hadMedias].filter(x => !haveMedias.has(x)));
+            let addedMedia = new Set([...haveMedias].filter(x => !hadMedias.has(x)));
+
+            let operations = [
+                ...[...removedMedia].map(m => ({ type: 'remove', mediaType: m })),
+                ...[...addedMedia].map(m => ({ type: 'add', mediaType: m }))
+            ];
+
+            for (let operation of operations) {
+                messagesToUpdate.forEach(msg => {
+                    let incBy = operation.type === 'add' ? 1 : -1;
+
+                    if (msg instanceof PrivateMessage) {
+                        Store.ChatMediaCounter.add(ctx, msg.cid, operation.mediaType, msg.inboxUid, incBy);
+                    } else {
+                        Store.ChatMediaCounter.add(ctx, msg.cid, operation.mediaType, 0, incBy);
+                    }
+                });
             }
         });
     }
@@ -174,16 +228,32 @@ export class MessagesRepository {
                 return;
             }
 
+            let hadMedias = new Set<MediaTypes>();
+
+            for (let filter of MEDIA_FILTERS) {
+                if (filter.filter(message)) {
+                    hadMedias.add(filter.type);
+                }
+            }
+
             if (oneSide) {
                 if (byUid === privateChat.uid1) {
                     msgCopy1.deleted = true;
                 } else {
                     msgCopy2.deleted = true;
                 }
+
+                for (let mediaType of hadMedias) {
+                    await this.decrementChatMediaCounter(ctx, message.cid, mediaType, [byUid]);
+                }
             } else {
                 msgCopy1.deleted = true;
                 msgCopy2.deleted = true;
                 message.deleted = true;
+
+                for (let mediaType of hadMedias) {
+                    await this.decrementChatMediaCounter(ctx, message.cid, mediaType, []);
+                }
             }
         });
     }
@@ -259,6 +329,17 @@ export class MessagesRepository {
                 }
             }
 
+            // Clear media counters
+            let mediaTypes = ['IMAGE', 'LINK', 'VIDEO', 'DOCUMENT'] as const;
+            if (oneSide) {
+                mediaTypes.forEach(type => Store.ChatMediaCounter.set(parent, cid, type, byUid, 0));
+            } else {
+                mediaTypes.forEach(type => {
+                    Store.ChatMediaCounter.set(parent, cid, type, privateChat!.uid1, 0);
+                    Store.ChatMediaCounter.set(parent, cid, type, privateChat!.uid2, 0);
+                });
+            }
+
             // Update documents in elastic
             await this.cleanerWorker.pushWork(ctx, {cid, uid: byUid, oneSide});
         });
@@ -317,7 +398,7 @@ export class MessagesRepository {
         return messages;
     }
 
-    async fetchMessagesWithAttachments(ctx: Context, cid: number, forUid: number, type: 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'LINK', opts: RangeQueryOptions<number>) {
+    async fetchMessagesWithAttachments(ctx: Context, cid: number, forUid: number, type: MediaTypes, opts: RangeQueryOptions<number>) {
         const mediaTypeToIndex = {
             IMAGE: Store.Message.hasImageAttachment,
             VIDEO: Store.Message.hasVideoAttachment,
@@ -354,6 +435,47 @@ export class MessagesRepository {
             }
             return seq;
         });
+    }
+
+    async incrementChatMediaCounter(parent: Context, cid: number, mediaType: MediaTypes) {
+        let conv = await Store.Conversation.findById(parent, cid);
+        if (!conv) {
+            return;
+        }
+        if (conv.kind === 'room') {
+            Store.ChatMediaCounter.add(parent, cid, mediaType, 0, 1);
+        } else if (conv.kind === 'private') {
+            let privateConv = await Store.ConversationPrivate.findById(parent, cid);
+            if (!privateConv) {
+                return;
+            }
+            Store.ChatMediaCounter.add(parent, cid, mediaType, privateConv.uid1, 1);
+            Store.ChatMediaCounter.add(parent, cid, mediaType, privateConv.uid2, 1);
+            Store.ChatMediaCounter.add(parent, cid, mediaType, 0, 1);
+        }
+    }
+
+    async decrementChatMediaCounter(parent: Context, cid: number, mediaType: MediaTypes, forUids: number[]) {
+        let conv = await Store.Conversation.findById(parent, cid);
+        if (!conv) {
+            return;
+        }
+
+        if (conv.kind === 'room') {
+            Store.ChatMediaCounter.add(parent, cid, mediaType, 0, -1);
+        } else if (conv.kind === 'private') {
+            let privateConv = await Store.ConversationPrivate.findById(parent, cid);
+            if (!privateConv) {
+                return;
+            }
+            if (forUids.length === 0) {
+                forUids = [privateConv.uid1, privateConv.uid2];
+            }
+
+            for (let uid of forUids) {
+                Store.ChatMediaCounter.add(parent, cid, mediaType, uid, -1);
+            }
+        }
     }
 
     private async fetchNextMessageId(parent: Context) {
