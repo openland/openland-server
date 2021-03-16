@@ -11,7 +11,7 @@ export function buildResolvers(rootPath: string, forTest: boolean = false) {
     );
     let rootResolvers: any = {};
     let processed: any = {};
-    for (let key of merged) {
+    for (let key in merged) {
         let type = merged[key];
         let { __resolveRoot, ...other } = type;
         if (__resolveRoot) {
