@@ -63,8 +63,17 @@ export function setupFdbTracing() {
                 Metrics.FDBTransactionsActiveContext.dec(ctxName);
             }
         },
-        commit: async (ctx, handler) => {
-            return await rawTracer.trace(ctx, 'commit', () => handler());
+        commit: async (parent, handler) => {
+            return await rawTracer.trace(parent, 'commit', (ctx) => handler(ctx));
+        },
+        commitPreHook: async (parent, handler) => {
+            return await rawTracer.trace(parent, 'preHook', (ctx) => handler(ctx));
+        },
+        commitFDB: async (parent, handler) => {
+            return await rawTracer.trace(parent, 'rawCommit', (ctx) => handler(ctx));
+        },
+        commitPostHook: async (parent, handler) => {
+            return await rawTracer.trace(parent, 'postHook', (ctx) => handler(ctx));
         },
         onTx: (ctx) => {
             // newTx.increment(ctx);
@@ -135,23 +144,23 @@ export function setupFdbTracing() {
     });
 
     setEntityFactoryTracer({
-        findFromUniqueIndex: async (entityDescriptor, ctx, id, descriptor, handler) => {
-            return await entityTracer.trace(ctx, entityDescriptor.name + '.findFromUniqueIndex', () => handler());
+        findFromUniqueIndex: async (entityDescriptor, parent, id, descriptor, handler) => {
+            return await entityTracer.trace(parent, entityDescriptor.name + '.findFromUniqueIndex', (ctx) => handler(ctx));
         },
-        query: async (entityDescriptor, ctx, descriptor, id, opts, handler) => {
-            return await entityTracer.trace(ctx, entityDescriptor.name + '.query', () => handler());
+        query: async (entityDescriptor, parent, descriptor, id, opts, handler) => {
+            return await entityTracer.trace(parent, entityDescriptor.name + '.query', (ctx) => handler(ctx));
         },
-        findAll: async (entityDescriptor, ctx, handler) => {
-            return await entityTracer.trace(ctx, entityDescriptor.name + '.findAll', () => handler());
+        findAll: async (entityDescriptor, parent, handler) => {
+            return await entityTracer.trace(parent, entityDescriptor.name + '.findAll', (ctx) => handler(ctx));
         },
-        findById: async (entityDescriptor, ctx, id, handler) => {
-            return await entityTracer.trace(ctx, entityDescriptor.name + '.findById', () => handler());
+        findById: async (entityDescriptor, parent, id, handler) => {
+            return await entityTracer.trace(parent, entityDescriptor.name + '.findById', (ctx) => handler(ctx));
         },
-        create: async (entityDescriptor, ctx, id, value, handler) => {
-            return await entityTracer.trace(ctx, entityDescriptor.name + '.create', () => handler());
+        create: async (entityDescriptor, parent, id, value, handler) => {
+            return await entityTracer.trace(parent, entityDescriptor.name + '.create', (ctx) => handler(ctx));
         },
-        flush: async (entityDescriptor, ctx, id, oldValue, newValue, handler) => {
-            return await entityTracer.trace(ctx, entityDescriptor.name + '.flush', () => handler());
+        flush: async (entityDescriptor, parent, id, oldValue, newValue, handler) => {
+            return await entityTracer.trace(parent, entityDescriptor.name + '.flush', (ctx) => handler(ctx));
         }
     });
 
