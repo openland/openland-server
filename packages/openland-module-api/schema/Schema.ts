@@ -34,10 +34,7 @@ export const Schema = (forTest: boolean = false) => {
 
     let executableSchema = makeExecutableSchema({
         typeDefs: schema,
-        resolvers: merge(
-            Basics.Resolvers,
-            ...resolvers
-        ),
+        resolvers: resolvers.resolvers,
         schemaDirectives: Directives
     });
 
