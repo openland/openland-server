@@ -1,16 +1,20 @@
 import { makeExecutableSchema } from 'graphql-tools';
 import * as Basics from './Date';
-
 import { Directives } from './Directives2';
-import { GraphQLField, GraphQLFieldResolver, GraphQLObjectType, GraphQLResolveInfo } from 'graphql';
-import { wrapAllResolvers } from '../Resolvers';
+import { GraphQLResolveInfo } from 'graphql';
 import { buildSchema } from 'openland-graphql/buildSchema';
 import { buildResolvers } from 'openland-graphql/buildResolvers';
 import { merge } from '../../openland-utils/merge';
 import { withLogPath } from '@openland/log';
+import { instrumentSchema } from 'openland-graphql/instrumentResolvers';
+import { createTracer } from 'openland-log/createTracer';
+import { TracingContext } from 'openland-log/src/TracingContext';
+import { isPromise } from 'openland-utils/isPromise';
 
-export function fetchResolvePath(info: GraphQLResolveInfo) {
-    let path: (string|number)[] = [];
+const tracer = createTracer('gql');
+
+function fetchResolvePath(info: GraphQLResolveInfo) {
+    let path: (string | number)[] = [];
     try {
         let current = info.path;
         path.unshift(current.key);
@@ -23,6 +27,7 @@ export function fetchResolvePath(info: GraphQLResolveInfo) {
     }
     return path;
 }
+
 export const Schema = (forTest: boolean = false) => {
     let schema = buildSchema(__dirname + '/../../');
     let resolvers = buildResolvers(__dirname + '/../../', forTest);
@@ -40,28 +45,62 @@ export const Schema = (forTest: boolean = false) => {
         return executableSchema;
     }
 
-    return wrapAllResolvers(executableSchema,
-        async (
-            type: GraphQLObjectType,
-            field: GraphQLField<any, any>,
-            originalResolver: GraphQLFieldResolver<any, any, any>,
-            root: any,
-            args: any,
-            context: any,
-            info: GraphQLResolveInfo
-        ) => {
+    instrumentSchema(executableSchema, {
+        field: (type, field, original, root, args, context, info) => {
             let path = fetchResolvePath(info);
             let ctx = context;
-            let ctx2 = withLogPath(ctx, path.join('->'));
-            // let name = 'Field:' + field.name;
-            // if (type.name === 'Query') {
-            //     name = 'Query:' + field.name;
-            // } else if (type.name === 'Mutation') {
-            //     name = 'Mutation:' + field.name;
-            // } else if (type.name === 'Subscription') {
-            //     name = 'Subscription:' + field.name;
-            // }
-            return await originalResolver(root, args, ctx2, info);
+            ctx = withLogPath(ctx, path.join('->'));
+
+            // Tracing
+            let c = TracingContext.get(ctx);
+            let span = tracer.startSpan(type.name + '.' + field.name, c.span ? c.span : undefined);
+            ctx = TracingContext.set(ctx, { span });
+
+            // Original
+            let res: any;
+            try {
+                res = original(root, args, ctx, info);
+            } catch (e) {
+                span.finish();
+                throw e;
+            }
+
+            if (isPromise(res)) {
+                return res.then(() => {
+                    span.finish();
+                }).catch(() => {
+                    span.finish();
+                });
+            }
+            span.finish();
+            return res;
         }
-    );
+    });
+
+    return executableSchema;
+
+    // return wrapAllResolvers(executableSchema,
+    //     async (
+    //         type: GraphQLObjectType,
+    //         field: GraphQLField<any, any>,
+    //         originalResolver: GraphQLFieldResolver<any, any, any>,
+    //         root: any,
+    //         args: any,
+    //         context: any,
+    //         info: GraphQLResolveInfo
+    //     ) => {
+    //         let path = fetchResolvePath(info);
+    //         let ctx = context;
+    //         let ctx2 = withLogPath(ctx, path.join('->'));
+    //         // let name = 'Field:' + field.name;
+    //         // if (type.name === 'Query') {
+    //         //     name = 'Query:' + field.name;
+    //         // } else if (type.name === 'Mutation') {
+    //         //     name = 'Mutation:' + field.name;
+    //         // } else if (type.name === 'Subscription') {
+    //         //     name = 'Subscription:' + field.name;
+    //         // }
+    //         return await originalResolver(root, args, ctx2, info);
+    //     }
+    // );
 };
