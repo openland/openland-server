@@ -155,7 +155,7 @@ export async function initApi(isTest: boolean) {
                     document: requestContext.document,
                     contextValue: ctx
                 });
-            });
+            }) as any;
         },
         formatError: (err: any) => {
             logger.warn(rootCtx, err);

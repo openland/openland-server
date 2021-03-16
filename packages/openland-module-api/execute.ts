@@ -3,10 +3,10 @@ import { WriteToReadOnlyContextError } from '@openland/foundationdb';
 import { createLogger } from '@openland/log';
 import { FDBError } from 'foundationdb';
 import { ExecutionResult, execute as nativeExecute } from 'graphql';
-import { ExecutionArgs, ExecutionResultDataDefault } from 'graphql/execution/execute';
+import { ExecutionArgs } from 'graphql/execution/execute';
 const logger = createLogger('graphql');
 
-export async function execute(ctx: Context, args: ExecutionArgs): Promise<ExecutionResult<ExecutionResultDataDefault>> {
+export async function execute(ctx: Context, args: ExecutionArgs): Promise<ExecutionResult> {
     // Perform basic execution
     let res = await nativeExecute(args);
 
