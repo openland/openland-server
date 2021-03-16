@@ -7,8 +7,7 @@ export type InstrumentationConfig = {
     field?: FieldHandler;
 };
 
-function instrumentField(field: GraphQLField<any, any, { [key: string]: any; }>, config: InstrumentationConfig) {
-    const type = field.type as GraphQLObjectType;
+function instrumentField(type: GraphQLObjectType, field: GraphQLField<any, any, { [key: string]: any; }>, config: InstrumentationConfig) {
     const fieldHandler = config.field;
 
     if (fieldHandler && field.resolve) {
@@ -37,7 +36,7 @@ function instrumentEachField(schema: GraphQLSchema, config: InstrumentationConfi
                     continue;
                 }
                 const field = fields[fieldName];
-                instrumentField(field, config);
+                instrumentField(type, field, config);
             }
         }
     }
