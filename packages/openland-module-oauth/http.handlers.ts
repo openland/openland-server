@@ -15,21 +15,21 @@ const rootCtx = createNamedContext('oauth');
 export const useOauth = (scope?: string) => async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     await inTx(rootCtx, async ctx => {
         if (!req.headers.authorization) {
-            res.status(401).json({errors: [{message: 'Invalid auth'}]});
+            res.status(401).json({ errors: [{ message: 'Invalid auth' }] });
             return;
         }
         let [bearer, token] = req.headers.authorization.split(' ');
         if (bearer !== 'Bearer') {
-            res.status(401).json({errors: [{message: 'Invalid auth'}]});
+            res.status(401).json({ errors: [{ message: 'Invalid auth' }] });
             return;
         }
         let authToken = await Store.OauthToken.salt.find(ctx, token);
         if (!authToken || !authToken.enabled) {
-            res.status(401).json({errors: [{message: 'Invalid auth'}]});
+            res.status(401).json({ errors: [{ message: 'Invalid auth' }] });
             return;
         }
         if (scope && !authToken.scopes.includes(scope)) {
-            res.status(401).json({errors: [{message: 'Invalid auth'}]});
+            res.status(401).json({ errors: [{ message: 'Invalid auth' }] });
             return;
         }
 
@@ -59,10 +59,10 @@ async function initOauth2Internal(app: Express) {
                 req.query.redirect_uri.trim().length === 0 ||
                 req.query.response_type !== 'code'
             ) {
-                res.json({errors: [{message: 'Invalid params'}]});
+                res.json({ errors: [{ message: 'Invalid params' }] });
                 return;
             }
-            let auth = await Modules.Oauth.createAuth(ctx, req.query.client_id, req.query.scope ? req.query.scope.split(',') : [], req.query.state, req.query.redirect_uri);
+            let auth = await Modules.Oauth.createAuth(ctx, req.query.client_id as string, req.query.scope ? (req.query.scope as string).split(',') : [] as any, req.query.state, req.query.redirect_uri);
             res.redirect(`${projectUrl}/oauth/${auth.code}`);
         });
     });
@@ -87,25 +87,25 @@ async function initOauth2Internal(app: Express) {
                 body.grant_type !== 'authorization_code'
             ) {
                 log.log(ctx, 'invalid params');
-                res.json({errors: [{message: 'Invalid params'}]});
+                res.json({ errors: [{ message: 'Invalid params' }] });
                 return;
             }
             let auth = await Store.OauthContext.fromCode.find(ctx, body.code);
             if (!auth || !auth.enabled || !auth.uid) {
                 log.log(ctx, 'invalid code');
-                res.json({errors: [{message: 'Invalid code'}]});
+                res.json({ errors: [{ message: 'Invalid code' }] });
                 return;
             }
             if (body.redirect_uri !== auth.redirectUrl) {
                 log.log(ctx, 'invalid redirect_uri');
-                res.json({errors: [{message: 'Invalid redirect_uri'}]});
+                res.json({ errors: [{ message: 'Invalid redirect_uri' }] });
                 return;
             }
             auth.enabled = false;
             // console.log('lol', auth.scopes);
             let token = await Modules.Oauth.createToken(ctx, auth.clientId, auth.uid, auth.scopes as OauthScope[]);
             log.log(ctx, 'token granted');
-            res.json({token_type: 'Bearer', access_token: token.salt});
+            res.json({ token_type: 'Bearer', access_token: token.salt });
         });
     });
 
