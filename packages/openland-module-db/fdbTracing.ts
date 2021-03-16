@@ -23,7 +23,8 @@ import { Config } from 'openland-config/Config';
 // import { LogPathContext } from '@openland/log';
 
 // const logger = (isProduction ? createZippedLogger : createLogger)('FDB');
-const tracer = createTracer('FDB');
+const rawTracer = createTracer('FDB');
+const entityTracer = createTracer('FDB-Entity');
 
 // const getContextPath = (ctx: Context) => ContextName.get(ctx) + ' ' + LogPathContext.get(ctx).join('->');
 
@@ -40,7 +41,7 @@ export function setupFdbTracing() {
     setTransactionTracer({
         tx: async (ctx, handler) => {
             const path = LogPathContext.get(ctx);
-            return await tracer.trace(ctx, 'transaction', async (child) => {
+            return await rawTracer.trace(ctx, 'transaction', async (child) => {
                 setTracingTag(child, 'path', path.join(' -> '));
                 return await handler(child);
             });
@@ -52,7 +53,7 @@ export function setupFdbTracing() {
             Metrics.FDBTransactionsActiveContext.inc(ctxName);
             try {
                 return await Concurrency.Transaction.run(async () => {
-                    return await tracer.trace(ctx, 'transaction:iteration', async (child) => {
+                    return await rawTracer.trace(ctx, 'transaction:iteration', async (child) => {
                         let txch = withConcurrentcyPool(child, Concurrency.TransactionOperations());
                         return await handler(txch);
                     });
@@ -63,9 +64,7 @@ export function setupFdbTracing() {
             }
         },
         commit: async (ctx, handler) => {
-            // commitTx.increment(ctx);
-            // return await tracer.trace(ctx, 'transaction commit', () => handler(), { tags: { contextPath: getContextPath(ctx) } })
-            return handler();
+            return await rawTracer.trace(ctx, 'commit', () => handler());
         },
         onTx: (ctx) => {
             // newTx.increment(ctx);
@@ -101,10 +100,10 @@ export function setupFdbTracing() {
                 counter.readCount++;
             }
 
-            return await tracer.trace(ctx, 'getKey', async (child) => {
+            return await rawTracer.trace(ctx, 'getKey', async (child) => {
                 const path = LogPathContext.get(ctx);
                 setTracingTag(child, 'path', path.join(' -> '));
-                return await getConcurrencyPool(child).run(() => tracer.trace(child, 'getKey:do', () => handler()));
+                return await getConcurrencyPool(child).run(() => rawTracer.trace(child, 'getKey:do', () => handler()));
             });
             // return await tracer.trace(ctx, 'getKey', () => handler(), { tags: { contextPath: getContextPath(ctx) } });
         },
@@ -122,10 +121,10 @@ export function setupFdbTracing() {
             return handler();
         },
         range: async (ctx, key, opts, handler) => {
-            return await tracer.trace(ctx, 'getRange', async (child) => {
+            return await rawTracer.trace(ctx, 'getRange', async (child) => {
                 const path = LogPathContext.get(ctx);
                 setTracingTag(child, 'path', path.join(' -> '));
-                let res = await getConcurrencyPool(ctx).run(() => tracer.trace(child, 'getRange:do', () => handler()));
+                let res = await getConcurrencyPool(ctx).run(() => rawTracer.trace(child, 'getRange:do', () => handler()));
                 let counter = counterNamespace.get(ctx);
                 if (counter && !counter.flushed) {
                     counter.readCount += res.length;
@@ -137,22 +136,22 @@ export function setupFdbTracing() {
 
     setEntityFactoryTracer({
         findFromUniqueIndex: async (entityDescriptor, ctx, id, descriptor, handler) => {
-            return await tracer.trace(ctx, entityDescriptor.name + '.findFromUniqueIndex', () => handler());
+            return await entityTracer.trace(ctx, entityDescriptor.name + '.findFromUniqueIndex', () => handler());
         },
         query: async (entityDescriptor, ctx, descriptor, id, opts, handler) => {
-            return await tracer.trace(ctx, entityDescriptor.name + '.query', () => handler());
+            return await entityTracer.trace(ctx, entityDescriptor.name + '.query', () => handler());
         },
         findAll: async (entityDescriptor, ctx, handler) => {
-            return await tracer.trace(ctx, entityDescriptor.name + '.findAll', () => handler());
+            return await entityTracer.trace(ctx, entityDescriptor.name + '.findAll', () => handler());
         },
         findById: async (entityDescriptor, ctx, id, handler) => {
-            return await tracer.trace(ctx, entityDescriptor.name + '.findById', () => handler());
+            return await entityTracer.trace(ctx, entityDescriptor.name + '.findById', () => handler());
         },
         create: async (entityDescriptor, ctx, id, value, handler) => {
-            return await tracer.trace(ctx, entityDescriptor.name + '.create', () => handler());
+            return await entityTracer.trace(ctx, entityDescriptor.name + '.create', () => handler());
         },
         flush: async (entityDescriptor, ctx, id, oldValue, newValue, handler) => {
-            return await tracer.trace(ctx, entityDescriptor.name + '.flush', () => handler());
+            return await entityTracer.trace(ctx, entityDescriptor.name + '.flush', () => handler());
         }
     });
 
