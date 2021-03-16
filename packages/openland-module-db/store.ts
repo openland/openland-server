@@ -184,6 +184,42 @@ export class VoiceChatParticipantActiveFactory extends AtomicIntegerFactory {
     }
 }
 
+export class ChatMediaCounterFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('chatMediaCounter');
+        return new ChatMediaCounterFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(cid: number, mediaType: 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'LINK', forUid: number) {
+        return this._findById([cid, mediaType, forUid]);
+    }
+
+    get(ctx: Context, cid: number, mediaType: 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'LINK', forUid: number) {
+        return this._get(ctx, [cid, mediaType, forUid]);
+    }
+
+    set(ctx: Context, cid: number, mediaType: 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'LINK', forUid: number, value: number) {
+        return this._set(ctx, [cid, mediaType, forUid], value);
+    }
+
+    add(ctx: Context, cid: number, mediaType: 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'LINK', forUid: number, value: number) {
+        return this._add(ctx, [cid, mediaType, forUid], value);
+    }
+
+    increment(ctx: Context, cid: number, mediaType: 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'LINK', forUid: number) {
+        return this._increment(ctx, [cid, mediaType, forUid]);
+    }
+
+    decrement(ctx: Context, cid: number, mediaType: 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'LINK', forUid: number) {
+        return this._decrement(ctx, [cid, mediaType, forUid]);
+    }
+}
+
 export class UserDialogReadMessageIdFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -24690,6 +24726,7 @@ export interface Store extends BaseStore {
     readonly RoomParticipantsVersion: RoomParticipantsVersionFactory;
     readonly VoiceChatParticipantCounter: VoiceChatParticipantCounterFactory;
     readonly VoiceChatParticipantActive: VoiceChatParticipantActiveFactory;
+    readonly ChatMediaCounter: ChatMediaCounterFactory;
     readonly UserDialogReadMessageId: UserDialogReadMessageIdFactory;
     readonly FeedChannelMembersCount: FeedChannelMembersCountFactory;
     readonly FeedChannelPostsCount: FeedChannelPostsCountFactory;
@@ -25011,6 +25048,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let RoomParticipantsVersionPromise = RoomParticipantsVersionFactory.open(storage);
     let VoiceChatParticipantCounterPromise = VoiceChatParticipantCounterFactory.open(storage);
     let VoiceChatParticipantActivePromise = VoiceChatParticipantActiveFactory.open(storage);
+    let ChatMediaCounterPromise = ChatMediaCounterFactory.open(storage);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
     let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(storage);
@@ -25278,6 +25316,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         RoomParticipantsVersion: await RoomParticipantsVersionPromise,
         VoiceChatParticipantCounter: await VoiceChatParticipantCounterPromise,
         VoiceChatParticipantActive: await VoiceChatParticipantActivePromise,
+        ChatMediaCounter: await ChatMediaCounterPromise,
         UserDialogReadMessageId: await UserDialogReadMessageIdPromise,
         FeedChannelMembersCount: await FeedChannelMembersCountPromise,
         FeedChannelPostsCount: await FeedChannelPostsCountPromise,

@@ -1,6 +1,6 @@
 import {
-    array,
-    boolean, entity,
+    array, atomicInt,
+    boolean, entity, enumString,
     field,
     integer,
     json,
@@ -17,109 +17,7 @@ import {
     PurchaseAttachment,
     RichAttachment
 } from '../openland-module-db/store.schema';
-import { MessageShape } from '../openland-module-db/store';
-
-const hasImageAttachment = (item: MessageShape) => {
-    if (item.deleted) {
-        return false;
-    }
-
-    if (item.fileId) {
-        if (item.fileMetadata && item.fileMetadata.isImage) {
-            return true;
-        }
-    }
-    if (item.attachments) {
-        for (let attach of item.attachments) {
-            if (attach.fileMetadata && attach.fileMetadata.isImage) {
-                return true;
-            }
-        }
-    }
-    if (item.attachmentsModern) {
-        for (let attach of item.attachmentsModern) {
-            if (attach.type === 'file_attachment') {
-                if (attach.fileMetadata && attach.fileMetadata.isImage) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-};
-
-const hasLinkAttachment = (item: MessageShape) => {
-    if (item.deleted) {
-        return false;
-    }
-
-    if (item.augmentation) {
-        return true;
-    }
-
-    if (item.attachmentsModern) {
-        for (let attach of item.attachmentsModern) {
-            if (attach.type === 'rich_attachment') {
-                return true;
-            }
-        }
-    }
-    return false;
-};
-
-const hasVideoAttachment = (item: MessageShape) => {
-    if (item.deleted) {
-        return false;
-    }
-
-    if (item.fileId && item.fileMetadata && item.fileMetadata.mimeType.startsWith('video/')) {
-        return true;
-    }
-    if (item.attachments) {
-        for (let attach of item.attachments) {
-            if (attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
-                return true;
-            }
-        }
-    }
-    if (item.attachmentsModern) {
-        for (let attach of item.attachmentsModern) {
-            if (attach.type === 'file_attachment' && attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
-                return true;
-            }
-        }
-    }
-    return false;
-};
-
-const hasDocumentAttachment = (item: MessageShape) => {
-    if (item.deleted) {
-        return false;
-    }
-
-    if (item.fileId) {
-        if (item.fileMetadata && !item.fileMetadata.isImage && !item.fileMetadata.mimeType.startsWith('video/')) {
-            return true;
-        }
-    }
-    if (item.attachments) {
-        for (let attach of item.attachments) {
-            if (attach.fileMetadata && !attach.fileMetadata.isImage && !attach.fileMetadata.mimeType.startsWith('video/')) {
-                return true;
-            }
-        }
-    }
-    if (item.attachmentsModern) {
-        for (let attach of item.attachmentsModern) {
-            if (attach.type === 'file_attachment') {
-                if (attach.fileMetadata && !attach.fileMetadata.isImage && !attach.fileMetadata.mimeType.startsWith('video/')) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-};
+import * as MediaFilters from './repositories/mediaFilters';
 
 export function messagingStore() {
     const CommonMessageFields = () => {
@@ -207,6 +105,12 @@ export function messagingStore() {
         // deprecated end
     };
 
+    atomicInt('ChatMediaCounter', () => {
+        primaryKey('cid', integer());
+        primaryKey('mediaType', enumString('IMAGE', 'VIDEO', 'DOCUMENT', 'LINK'));
+        primaryKey('forUid', integer()); // used for private chats, 0 for group chats
+    });
+
     entity('Message', () => {
         primaryKey('id', integer());
         CommonMessageFields();
@@ -214,10 +118,10 @@ export function messagingStore() {
         rangeIndex('chatAll', ['cid', 'id']);
         rangeIndex('chatSeq', ['cid', 'seq']).withCondition((src) => !src.deleted);
         // rangeIndex('fromSeq', ['cid', 'seq']);
-        rangeIndex('hasImageAttachment', ['cid', 'id']).withCondition(hasImageAttachment);
-        rangeIndex('hasLinkAttachment', ['cid', 'id']).withCondition(hasLinkAttachment);
-        rangeIndex('hasVideoAttachment', ['cid', 'id']).withCondition(hasVideoAttachment);
-        rangeIndex('hasDocumentAttachment', ['cid', 'id']).withCondition(hasDocumentAttachment);
+        rangeIndex('hasImageAttachment', ['cid', 'id']).withCondition(MediaFilters.hasImageAttachment);
+        rangeIndex('hasLinkAttachment', ['cid', 'id']).withCondition(MediaFilters.hasLinkAttachment);
+        rangeIndex('hasVideoAttachment', ['cid', 'id']).withCondition(MediaFilters.hasVideoAttachment);
+        rangeIndex('hasDocumentAttachment', ['cid', 'id']).withCondition(MediaFilters.hasDocumentAttachment);
         uniqueIndex('repeat', ['uid', 'cid', 'repeatKey']).withCondition((src) => !!src.repeatKey);
         rangeIndex('updated', ['updatedAt']);
         rangeIndex('created', ['createdAt']);
@@ -230,9 +134,9 @@ export function messagingStore() {
         rangeIndex('chat', ['cid', 'inboxUid', 'id']).withCondition((src) => !src.deleted);
         rangeIndex('chatAll', ['cid', 'inboxUid', 'id']);
         rangeIndex('chatSeq', ['cid', 'inboxUid', 'seq']).withCondition((src) => !src.deleted);
-        rangeIndex('hasImageAttachment', ['cid', 'inboxUid', 'id']).withCondition(hasImageAttachment);
-        rangeIndex('hasLinkAttachment', ['cid', 'inboxUid', 'id']).withCondition(hasLinkAttachment);
-        rangeIndex('hasVideoAttachment', ['cid', 'inboxUid', 'id']).withCondition(hasVideoAttachment);
-        rangeIndex('hasDocumentAttachment', ['cid', 'inboxUid', 'id']).withCondition(hasDocumentAttachment);
+        rangeIndex('hasImageAttachment', ['cid', 'inboxUid', 'id']).withCondition(MediaFilters.hasImageAttachment);
+        rangeIndex('hasLinkAttachment', ['cid', 'inboxUid', 'id']).withCondition(MediaFilters.hasLinkAttachment);
+        rangeIndex('hasVideoAttachment', ['cid', 'inboxUid', 'id']).withCondition(MediaFilters.hasVideoAttachment);
+        rangeIndex('hasDocumentAttachment', ['cid', 'inboxUid', 'id']).withCondition(MediaFilters.hasDocumentAttachment);
     });
 }
