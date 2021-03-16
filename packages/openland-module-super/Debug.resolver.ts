@@ -2654,7 +2654,9 @@ export const Resolver: GQLResolver = {
         }),
         debugMigrateChatCounters: withPermission('super-admin', async (parent, args) => {
             debugTask(parent.auth.uid!, 'debugMigrateChatCounters', async log => {
-                 await Store.Conversation.iterateAllItems(withoutTransaction(parent), 50, async (ctx, items) => {
+                let processed = 0;
+                let batchSize = 10;
+                await Store.Conversation.iterateAllItems(withoutTransaction(parent), batchSize, async (ctx, items) => {
                     for (let item of items) {
                         if (item.kind === 'voice' || item.kind === 'organization') {
                             continue;
@@ -2700,6 +2702,8 @@ export const Resolver: GQLResolver = {
                             await Store.ChatMediaCounter.set(ctx, item.id, 'LINK', uid, linksCount);
                         }
                     }
+                    processed += batchSize;
+                    await log('done ' + processed);
                 });
                 return 'done';
             });
