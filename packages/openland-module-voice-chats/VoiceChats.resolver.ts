@@ -10,6 +10,7 @@ import { fastWatch } from '../openland-module-db/fastWatch';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { resolveRichMessageCreation } from '../openland-module-rich-message/resolvers/resolveRichMessageCreation';
+import { Capabilities } from '../openland-module-calls/repositories/CallScheduler';
 
 export const Resolver: GQLResolver = {
     VoiceChat: {
@@ -50,6 +51,22 @@ export const Resolver: GQLResolver = {
             let chat = await Modules.VoiceChats.chats.createChat(ctx, input.title, uid);
             await Modules.VoiceChats.participants.joinChat(ctx, chat.id, uid, ctx.auth.tid!);
             return chat;
+        }),
+        voiceChatCreateWithMedia: withActivatedUser(async (ctx, { input, mediaInput, mediaKind  }, uid) => {
+            let chat = await Modules.VoiceChats.chats.createChat(ctx, input.title, uid);
+            await Modules.VoiceChats.participants.joinChat(ctx, chat.id, uid, ctx.auth.tid!);
+
+            let capabilities: Capabilities | null = null;
+            if (mediaInput && mediaInput.capabilities) {
+                capabilities = mediaInput.capabilities;
+            }
+            let res = await Modules.Calls.repo.addPeer(ctx, chat.id, uid, ctx.auth.tid!, 15000, mediaKind === 'STREAM' ? 'stream' : 'conference', capabilities, ctx.req.ip || 'unknown');
+
+            return {
+                peerId: IDs.ConferencePeer.serialize(res.id),
+                conference: await Modules.Calls.repo.getOrCreateConference(ctx, chat.id),
+                chat: chat
+            };
         }),
         voiceChatUpdate: withActivatedUser(async (ctx, { id, input }, uid) => {
             return await Modules.VoiceChats.chats.updateChat(ctx, uid, IDs.Conversation.parse(id), input.title);

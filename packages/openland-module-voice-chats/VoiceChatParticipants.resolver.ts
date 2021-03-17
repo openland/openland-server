@@ -7,6 +7,7 @@ import { IDs } from '../openland-module-api/IDs';
 import { Store } from 'openland-module-db/FDB';
 import { withActivatedUser } from '../openland-module-api/Resolvers';
 import { VoiceChatParticipant } from '../openland-module-db/store';
+import { Capabilities } from '../openland-module-calls/repositories/CallScheduler';
 
 const ensureHasAccess = <TArgs, TResult>(fn: (root: VoiceChatParticipantRoot, args: TArgs, ctx: Context) => Promise<TResult>, fallback: TResult) =>
   async (root: VoiceChatParticipantRoot, args: TArgs, ctx: Context): Promise<TResult> => {
@@ -69,6 +70,22 @@ export const Resolver: GQLResolver = {
             let cid = IDs.Conversation.parse(args.id);
             await Modules.VoiceChats.participants.joinChat(ctx, cid, uid, ctx.auth.tid!);
             return (await Store.ConversationVoice.findById(ctx, cid))!;
+        }),
+        voiceChatJoinWithMedia: withActivatedUser(async (ctx, {id, mediaInput, mediaKind}, uid) => {
+            let cid = IDs.Conversation.parse(id);
+            await Modules.VoiceChats.participants.joinChat(ctx, cid, uid, ctx.auth.tid!);
+
+            let capabilities: Capabilities | null = null;
+            if (mediaInput && mediaInput.capabilities) {
+                capabilities = mediaInput.capabilities;
+            }
+            let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 15000, mediaKind === 'STREAM' ? 'stream' : 'conference', capabilities, ctx.req.ip || 'unknown');
+
+            return {
+                peerId: IDs.ConferencePeer.serialize(res.id),
+                conference: await Modules.Calls.repo.getOrCreateConference(ctx, cid),
+                chat: (await Store.ConversationVoice.findById(ctx, cid))!
+            };
         }),
         voiceChatRaiseHand: withActivatedUser(async (ctx, args, uid) => {
             await Modules.VoiceChats.participants.updateHandRaised(

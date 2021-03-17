@@ -11,6 +11,12 @@ type VoiceChat {
     pinnedMessage: VoiceChatPinnedMessage
 }
 
+type VoiceChatJoinResult {
+    chat: VoiceChat!
+    peerId: ID!
+    conference: Conference!
+}
+
 input VoiceChatInput {
     title: String!
 }
@@ -32,6 +38,7 @@ extend type User {
 
 extend type Mutation {
     voiceChatCreate(input: VoiceChatInput!): VoiceChat!
+    voiceChatCreateWithMedia(input: VoiceChatInput!, mediaInput: ConferenceJoinInput, mediaKind: ConferenceKind): VoiceChatJoinResult!
     voiceChatUpdate(id: ID!, input: VoiceChatInput!): VoiceChat!
     voiceChatEnd(id: ID!): VoiceChat!
     voiceChatSetPinnedMessage(id: ID!, message: String, spans: [MessageSpanInput!]): VoiceChat!

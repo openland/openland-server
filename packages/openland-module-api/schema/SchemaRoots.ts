@@ -926,6 +926,7 @@ export namespace GQLRoots {
         cursor: string | undefined,
         haveMore: boolean
     };
+    export type VoiceChatJoinResultRoot = { peerId: string, conference: ConferenceRoot, chat: VoiceChatRoot };
     export type VoiceChatParticipantStatusRoot = Exclude<VoiceChatParticipantShape['status'], 'joined'> | VoiceChatParticipant['role'];
     export type VoiceChatParticipantUpdatedEventRoot = VoiceChatParticipantUpdatedEvent;
     export type VoiceChatUpdatedEventRoot = VoiceChatUpdatedEvent;

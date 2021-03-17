@@ -30,6 +30,7 @@ extend type Query {
 extend type Mutation {
     # Listener actions
     voiceChatJoin(id: ID!): VoiceChat!
+    voiceChatJoinWithMedia(id: ID!, mediaInput: ConferenceJoinInput, mediaKind: ConferenceKind): VoiceChatJoinResult!
     voiceChatLeave(id: ID!): Boolean!
     voiceChatRaiseHand(id: ID!, raised: Boolean!): Boolean!
 

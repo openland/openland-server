@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '4e03a3c2ce70a83cc48bb3ad49e13e32';
+export const GQL_SPEC_VERSION = '1e9f8bcf99ed45de30d34062265d9555';
 
 export namespace GQL {
     export interface CreditCard {
@@ -2101,6 +2101,7 @@ export namespace GQL {
         superAdminAdd: string;
         superAdminRemove: string;
         voiceChatJoin: VoiceChat;
+        voiceChatJoinWithMedia: VoiceChatJoinResult;
         voiceChatLeave: boolean;
         voiceChatRaiseHand: boolean;
         voiceChatPromote: boolean;
@@ -2221,6 +2222,7 @@ export namespace GQL {
         superBadgeVerify: User;
         superBadgeUnverify: User;
         voiceChatCreate: VoiceChat;
+        voiceChatCreateWithMedia: VoiceChatJoinResult;
         voiceChatUpdate: VoiceChat;
         voiceChatEnd: VoiceChat;
         voiceChatSetPinnedMessage: VoiceChat;
@@ -2673,6 +2675,11 @@ export namespace GQL {
     export interface MutationVoiceChatJoinArgs {
         id: string;
     }
+    export interface MutationVoiceChatJoinWithMediaArgs {
+        id: string;
+        mediaInput: OptionalNullable<ConferenceJoinInput>;
+        mediaKind: OptionalNullable<ConferenceKind>;
+    }
     export interface MutationVoiceChatLeaveArgs {
         id: string;
     }
@@ -3105,6 +3112,11 @@ export namespace GQL {
     }
     export interface MutationVoiceChatCreateArgs {
         input: VoiceChatInput;
+    }
+    export interface MutationVoiceChatCreateWithMediaArgs {
+        input: VoiceChatInput;
+        mediaInput: OptionalNullable<ConferenceJoinInput>;
+        mediaKind: OptionalNullable<ConferenceKind>;
     }
     export interface MutationVoiceChatUpdateArgs {
         id: string;
@@ -5222,6 +5234,14 @@ export namespace GQL {
     export interface VoiceChatListenersArgs { }
     export interface VoiceChatMeArgs { }
     export interface VoiceChatPinnedMessageArgs { }
+    export interface VoiceChatJoinResult {
+        chat: VoiceChat;
+        peerId: string;
+        conference: Conference;
+    }
+    export interface VoiceChatJoinResultChatArgs { }
+    export interface VoiceChatJoinResultPeerIdArgs { }
+    export interface VoiceChatJoinResultConferenceArgs { }
     export interface VoiceChatInput {
         title: string;
     }
@@ -8774,6 +8794,7 @@ export interface GQLResolver {
             superAccountMemberAdd: GQLRoots.SuperAccountRoot,
             superAccountMemberRemove: GQLRoots.SuperAccountRoot,
             voiceChatJoin: GQLRoots.VoiceChatRoot,
+            voiceChatJoinWithMedia: GQLRoots.VoiceChatJoinResultRoot,
             alphaAlterPublished: GQLRoots.OrganizationRoot,
             discoverCollectionsCreate: GQLRoots.DiscoverChatsCollectionRoot,
             discoverCollectionsUpdate: GQLRoots.DiscoverChatsCollectionRoot,
@@ -8820,6 +8841,7 @@ export interface GQLResolver {
             superBadgeVerify: GQLRoots.UserRoot,
             superBadgeUnverify: GQLRoots.UserRoot,
             voiceChatCreate: GQLRoots.VoiceChatRoot,
+            voiceChatCreateWithMedia: GQLRoots.VoiceChatJoinResultRoot,
             voiceChatUpdate: GQLRoots.VoiceChatRoot,
             voiceChatEnd: GQLRoots.VoiceChatRoot,
             voiceChatSetPinnedMessage: GQLRoots.VoiceChatRoot,
@@ -9017,6 +9039,7 @@ export interface GQLResolver {
             superAdminAdd: GQL.MutationSuperAdminAddArgs,
             superAdminRemove: GQL.MutationSuperAdminRemoveArgs,
             voiceChatJoin: GQL.MutationVoiceChatJoinArgs,
+            voiceChatJoinWithMedia: GQL.MutationVoiceChatJoinWithMediaArgs,
             voiceChatLeave: GQL.MutationVoiceChatLeaveArgs,
             voiceChatRaiseHand: GQL.MutationVoiceChatRaiseHandArgs,
             voiceChatPromote: GQL.MutationVoiceChatPromoteArgs,
@@ -9137,6 +9160,7 @@ export interface GQLResolver {
             superBadgeVerify: GQL.MutationSuperBadgeVerifyArgs,
             superBadgeUnverify: GQL.MutationSuperBadgeUnverifyArgs,
             voiceChatCreate: GQL.MutationVoiceChatCreateArgs,
+            voiceChatCreateWithMedia: GQL.MutationVoiceChatCreateWithMediaArgs,
             voiceChatUpdate: GQL.MutationVoiceChatUpdateArgs,
             voiceChatEnd: GQL.MutationVoiceChatEndArgs,
             voiceChatSetPinnedMessage: GQL.MutationVoiceChatSetPinnedMessageArgs,
@@ -10609,6 +10633,19 @@ export interface GQLResolver {
             listeners: GQL.VoiceChatListenersArgs,
             me: GQL.VoiceChatMeArgs,
             pinnedMessage: GQL.VoiceChatPinnedMessageArgs,
+        }
+    >;
+    VoiceChatJoinResult?: ComplexTypedResolver<
+        GQL.VoiceChatJoinResult,
+        GQLRoots.VoiceChatJoinResultRoot,
+        {
+            chat: GQLRoots.VoiceChatRoot,
+            conference: GQLRoots.ConferenceRoot,
+        },
+        {
+            chat: GQL.VoiceChatJoinResultChatArgs,
+            peerId: GQL.VoiceChatJoinResultPeerIdArgs,
+            conference: GQL.VoiceChatJoinResultConferenceArgs,
         }
     >;
     VoiceChatConnection?: ComplexTypedResolver<
