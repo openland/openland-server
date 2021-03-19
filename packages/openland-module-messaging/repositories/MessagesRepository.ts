@@ -267,6 +267,17 @@ export class MessagesRepository {
                 throw new Error('Message not found');
             }
 
+            let messagesToUpdate: (Message | PrivateMessage)[] = [message];
+
+            let privateChat = await Store.ConversationPrivate.findById(ctx, message.cid);
+            if (privateChat) {
+                let privateCopies = await Promise.all([
+                    Store.PrivateMessage.findById(ctx, mid, privateChat.uid1),
+                    Store.PrivateMessage.findById(ctx, mid, privateChat.uid2)
+                ]);
+                messagesToUpdate.push(...privateCopies.filter(isDefined).filter(m => !m.deleted));
+            }
+
             //
             // Update message
             //
@@ -283,7 +294,7 @@ export class MessagesRepository {
             } else {
                 reactions.push({userId: uid, reaction});
             }
-            message.reactions = reactions;
+            messagesToUpdate.forEach(m => m.reactions = reactions);
 
             return message;
         });
