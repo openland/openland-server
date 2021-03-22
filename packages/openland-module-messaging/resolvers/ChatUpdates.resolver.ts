@@ -12,6 +12,7 @@ import { delay } from '../../openland-utils/timer';
 import { EventBus } from '../../openland-module-pubsub/EventBus';
 import { BaseEvent } from '@openland/foundationdb-entity';
 import { MessageReceivedEvent, MessageUpdatedEvent } from 'openland-module-db/store';
+import { onContextCancel } from '@openland/lifetime';
 
 export const Resolver: GQLResolver = {
     ChatUpdateContainer: {
@@ -131,6 +132,9 @@ export const Resolver: GQLResolver = {
                     if (ev.uid === uid) {
                         haveAccess = false;
                     }
+                });
+                onContextCancel(ctx, () => {
+                    subscription.cancel();
                 });
 
                 for await (let event of generator) {
