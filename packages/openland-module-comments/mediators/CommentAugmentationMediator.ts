@@ -10,6 +10,7 @@ import { Context } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 import * as URL from 'url';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
+import { inTx } from '@openland/foundationdb';
 
 const linkifyInstance = createLinkifyInstance();
 
@@ -29,77 +30,79 @@ export class CommentAugmentationMediator {
 
         if (serverRoleEnabled('workers')) {
             let service = createUrlInfoService();
-            this.queue.addWorkers(100, async (ctx, item) => {
-                let message = await Store.Comment.findById(ctx, item.commentId);
+            this.queue.addWorkers(100, async (parent, item) => {
+                await inTx(parent, async ctx => {
+                    let message = await Store.Comment.findById(ctx, item.commentId);
 
-                if (!message || !message.text) {
+                    if (!message || !message.text) {
+                        return;
+                    }
+
+                    let urls = this.resolveLinks(message);
+                    if (urls.length === 0) {
+                        return;
+                    }
+                    let firstUrl = urls[0];
+                    if (message.attachments?.find(a => a.type === 'rich_attachment' && a.titleLink === firstUrl.url)) {
+                        return;
+                    }
+
+                    let urlInfo = await service.fetchURLInfo(firstUrl.url);
+
+                    if (!urlInfo) {
+                        return;
+                    }
+
+                    let haveContent = (urlInfo.title && urlInfo.description) || (urlInfo.title && urlInfo.imageInfo) || (urlInfo.description && urlInfo.imageInfo);
+                    let isImage = !urlInfo.title && !urlInfo.description && urlInfo.imageInfo;
+
+                    if (haveContent || urlInfo.internal) {
+                        let richAttachment: MessageRichAttachmentInput = {
+                            type: 'rich_attachment',
+                            title: urlInfo.title || null,
+                            titleLink: urlInfo.url,
+                            titleLinkHostname: urlInfo.hostname || null,
+                            subTitle: urlInfo.subtitle || null,
+                            text: urlInfo.description || null,
+                            icon: urlInfo.iconRef || null,
+                            iconInfo: urlInfo.iconInfo || null,
+                            image: urlInfo.photo || null,
+                            imagePreview: urlInfo.photoPreview || null,
+                            imageInfo: urlInfo.imageInfo || null,
+                            imageFallback: urlInfo.photoFallback || null,
+                            keyboard: urlInfo.keyboard || null,
+                            socialImagePreview: urlInfo.socialImagePreview || null,
+                            socialImageInfo: urlInfo.socialImageInfo || null,
+                            socialImage: urlInfo.socialImage || null,
+                            featuredIcon: urlInfo.featuredIcon || null,
+                        };
+
+                        await this.comments.editComment(
+                            ctx,
+                            item.commentId,
+                            { attachments: [richAttachment], appendAttachments: true },
+                            false
+                        );
+                    } else if (isImage) {
+                        let fileAttachment: MessageAttachmentFileInput = {
+                            type: 'file_attachment',
+                            fileId: urlInfo.photo!.uuid,
+                            fileMetadata: urlInfo.imageInfo!,
+                            filePreview: null,
+                            previewFileMetadata: null,
+                            previewFileId: null,
+                            videoMetadata: null
+                        };
+
+                        await this.comments.editComment(
+                            ctx,
+                            item.commentId,
+                            { attachments: [fileAttachment], appendAttachments: true },
+                            false
+                        );
+                    }
                     return;
-                }
-
-                let urls = this.resolveLinks(message);
-                if (urls.length === 0) {
-                    return;
-                }
-                let firstUrl = urls[0];
-                if (message.attachments?.find(a => a.type === 'rich_attachment' && a.titleLink === firstUrl.url)) {
-                    return;
-                }
-
-                let urlInfo = await service.fetchURLInfo(firstUrl.url);
-
-                if (!urlInfo) {
-                    return;
-                }
-
-                let haveContent = (urlInfo.title && urlInfo.description) || (urlInfo.title && urlInfo.imageInfo) || (urlInfo.description && urlInfo.imageInfo);
-                let isImage = !urlInfo.title && !urlInfo.description && urlInfo.imageInfo;
-
-                if (haveContent || urlInfo.internal) {
-                    let richAttachment: MessageRichAttachmentInput = {
-                        type: 'rich_attachment',
-                        title: urlInfo.title || null,
-                        titleLink: urlInfo.url,
-                        titleLinkHostname: urlInfo.hostname || null,
-                        subTitle: urlInfo.subtitle || null,
-                        text: urlInfo.description || null,
-                        icon: urlInfo.iconRef || null,
-                        iconInfo: urlInfo.iconInfo || null,
-                        image: urlInfo.photo || null,
-                        imagePreview: urlInfo.photoPreview || null,
-                        imageInfo: urlInfo.imageInfo || null,
-                        imageFallback: urlInfo.photoFallback || null,
-                        keyboard: urlInfo.keyboard || null,
-                        socialImagePreview: urlInfo.socialImagePreview || null,
-                        socialImageInfo: urlInfo.socialImageInfo || null,
-                        socialImage: urlInfo.socialImage || null,
-                        featuredIcon: urlInfo.featuredIcon || null,
-                    };
-
-                    await this.comments.editComment(
-                        ctx,
-                        item.commentId,
-                        { attachments: [richAttachment], appendAttachments: true },
-                        false
-                    );
-                } else if (isImage) {
-                    let fileAttachment: MessageAttachmentFileInput = {
-                        type: 'file_attachment',
-                        fileId: urlInfo.photo!.uuid,
-                        fileMetadata: urlInfo.imageInfo!,
-                        filePreview: null,
-                        previewFileMetadata: null,
-                        previewFileId: null,
-                        videoMetadata: null
-                    };
-
-                    await this.comments.editComment(
-                        ctx,
-                        item.commentId,
-                        { attachments: [fileAttachment], appendAttachments: true },
-                        false
-                    );
-                }
-                return;
+                });
             });
         }
     }
