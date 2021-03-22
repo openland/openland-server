@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import { Context, createNamedContext } from '@openland/context';
-import { VoiceChatsRepository } from '../repositories/VoiceChatsRepository';
+import { VoiceChatInput, VoiceChatsRepository } from '../repositories/VoiceChatsRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { Modules } from '../../openland-modules/Modules';
 import { VoiceChatReportsMediator } from './VoiceChatReportsMediator';
@@ -22,14 +22,14 @@ export class VoiceChatsMediator {
         this.#enableVoiceChatAnalytics();
     }
 
-    createChat = async (ctx: Context, title: string, startedBy?: number) => {
-        return this.repo.createChat(ctx, title, startedBy);
+    createChat = async (ctx: Context, input: VoiceChatInput) => {
+        return this.repo.createChat(ctx, input);
     }
 
-    updateChat = async (ctx: Context, by: number, id: number, title: string) => {
+    updateChat = async (ctx: Context, by: number, id: number, input: VoiceChatInput) => {
         await Modules.VoiceChats.participants.ensureParticipantIsAdmin(ctx, id, by);
 
-        return this.repo.updateChat(ctx, id, title);
+        return this.repo.updateChat(ctx, id, input);
     }
 
     endChat = async (ctx: Context, by: number, id: number) => {

@@ -22,8 +22,10 @@ export function voiceChatsStore() {
         field('endedAt', optional(integer()));
         field('duration', optional(integer()));
         field('pinnedMessageId', optional(integer()));
+        field('isPrivate', optional(boolean()));
+        field('parentChat', optional(integer()));
 
-        rangeIndex('active', ['createdAt']).withCondition(a => a.active);
+        rangeIndex('active', ['createdAt']).withCondition(a => a.active && !a.isPrivate);
     });
 
     entity('VoiceChatParticipant', () => {

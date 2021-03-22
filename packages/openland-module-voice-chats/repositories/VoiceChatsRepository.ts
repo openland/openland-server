@@ -13,6 +13,13 @@ import {
     RichMessageInput,
     RichMessageRepository
 } from '../../openland-module-rich-message/repositories/RichMessageRepository';
+
+export type VoiceChatInput = {
+    title: string
+    startedBy?: number
+    isPrivate?: boolean
+};
+
 @injectable()
 export class VoiceChatsRepository {
     @lazyInject('VoiceChatParticipantsRepository')
@@ -24,7 +31,13 @@ export class VoiceChatsRepository {
 
     public voiceChatActiveChanged = new Subject<{ cid: number, active: boolean }>();
 
-    createChat = async (ctx: Context, title: string, startedBy?: number) => {
+    createChat = async (ctx: Context, input: VoiceChatInput) => {
+        let {
+            title,
+            startedBy,
+            isPrivate
+        } = input;
+
         let id = await fetchNextDBSeq(ctx, 'conversation-id');
         await Store.Conversation.create(ctx, id, { kind: 'voice' });
         let conv = await Store.ConversationVoice.create(ctx, id, {
@@ -32,6 +45,7 @@ export class VoiceChatsRepository {
             title: title,
             startedBy,
             startedAt: Date.now(),
+            isPrivate: isPrivate || false
         });
 
         getTransaction(ctx).afterCommit(async () => {
@@ -40,9 +54,15 @@ export class VoiceChatsRepository {
         return conv;
     }
 
-    updateChat = async (ctx: Context, id: number, title: string) => {
+    updateChat = async (ctx: Context, id: number, input: VoiceChatInput) => {
+        let {
+            title,
+            isPrivate
+        } = input;
+
         let chat = await this.#getChatOrFail(ctx, id);
         chat.title = title;
+        chat.isPrivate = isPrivate || false;
 
         await this.notifyChatUpdated(ctx, id);
         return chat;

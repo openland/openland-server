@@ -48,12 +48,18 @@ export const Resolver: GQLResolver = {
     },
     Mutation: {
         voiceChatCreate: withActivatedUser(async (ctx, { input }, uid) => {
-            let chat = await Modules.VoiceChats.chats.createChat(ctx, input.title, uid);
+            let chat = await Modules.VoiceChats.chats.createChat(ctx, {
+                title: input.title,
+                startedBy: uid
+            });
             await Modules.VoiceChats.participants.joinChat(ctx, chat.id, uid, ctx.auth.tid!);
             return chat;
         }),
         voiceChatCreateWithMedia: withActivatedUser(async (ctx, { input, mediaInput, mediaKind  }, uid) => {
-            let chat = await Modules.VoiceChats.chats.createChat(ctx, input.title, uid);
+            let chat = await Modules.VoiceChats.chats.createChat(ctx, {
+                title: input.title,
+                startedBy: uid
+            });
             await Modules.VoiceChats.participants.joinChat(ctx, chat.id, uid, ctx.auth.tid!);
 
             let capabilities: Capabilities | null = null;
@@ -69,7 +75,9 @@ export const Resolver: GQLResolver = {
             };
         }),
         voiceChatUpdate: withActivatedUser(async (ctx, { id, input }, uid) => {
-            return await Modules.VoiceChats.chats.updateChat(ctx, uid, IDs.Conversation.parse(id), input.title);
+            return await Modules.VoiceChats.chats.updateChat(ctx, uid, IDs.Conversation.parse(id), {
+                title: input.title
+            });
         }),
         voiceChatEnd: withActivatedUser(async (ctx, { id }, uid) => {
             return await Modules.VoiceChats.chats.endChat(ctx, uid, IDs.Conversation.parse(id));

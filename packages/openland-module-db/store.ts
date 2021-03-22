@@ -5025,6 +5025,8 @@ export interface ConversationVoiceShape {
     endedAt: number | null;
     duration: number | null;
     pinnedMessageId: number | null;
+    isPrivate: boolean | null;
+    parentChat: number | null;
 }
 
 export interface ConversationVoiceCreateShape {
@@ -5035,6 +5037,8 @@ export interface ConversationVoiceCreateShape {
     endedAt?: number | null | undefined;
     duration?: number | null | undefined;
     pinnedMessageId?: number | null | undefined;
+    isPrivate?: boolean | null | undefined;
+    parentChat?: number | null | undefined;
 }
 
 export class ConversationVoice extends Entity<ConversationVoiceShape> {
@@ -5102,6 +5106,24 @@ export class ConversationVoice extends Entity<ConversationVoiceShape> {
             this.invalidate();
         }
     }
+    get isPrivate(): boolean | null { return this._rawValue.isPrivate; }
+    set isPrivate(value: boolean | null) {
+        let normalized = this.descriptor.codec.fields.isPrivate.normalize(value);
+        if (this._rawValue.isPrivate !== normalized) {
+            this._rawValue.isPrivate = normalized;
+            this._updatedValues.isPrivate = normalized;
+            this.invalidate();
+        }
+    }
+    get parentChat(): number | null { return this._rawValue.parentChat; }
+    set parentChat(value: number | null) {
+        let normalized = this.descriptor.codec.fields.parentChat.normalize(value);
+        if (this._rawValue.parentChat !== normalized) {
+            this._rawValue.parentChat = normalized;
+            this._updatedValues.parentChat = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class ConversationVoiceFactory extends EntityFactory<ConversationVoiceShape, ConversationVoice> {
@@ -5109,7 +5131,7 @@ export class ConversationVoiceFactory extends EntityFactory<ConversationVoiceSha
     static async open(storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory('conversationVoice');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationVoice', 'active'), condition: a => a.active });
+        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationVoice', 'active'), condition: a => a.active && !a.isPrivate });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -5120,6 +5142,8 @@ export class ConversationVoiceFactory extends EntityFactory<ConversationVoiceSha
         fields.push({ name: 'endedAt', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'duration', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'pinnedMessageId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'isPrivate', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
+        fields.push({ name: 'parentChat', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             title: c.optional(c.string),
@@ -5129,6 +5153,8 @@ export class ConversationVoiceFactory extends EntityFactory<ConversationVoiceSha
             endedAt: c.optional(c.integer),
             duration: c.optional(c.integer),
             pinnedMessageId: c.optional(c.integer),
+            isPrivate: c.optional(c.boolean),
+            parentChat: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<ConversationVoiceShape> = {
             name: 'ConversationVoice',

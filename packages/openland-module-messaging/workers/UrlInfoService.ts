@@ -294,7 +294,7 @@ export function createUrlInfoService() {
                 let userId = ownerId;
                 let user = await inReadOnlyTx(rootCtx, async (ctx) => await Modules.Users.profileById(ctx, ownerId));
 
-                return await getURLAugmentationForUser({ hostname, url, userId, user });
+                return await getURLAugmentationForUser({ hostname: hostname || null, url, userId, user });
             } else if (ownerType === 'org') {
                 let orgId = ownerId;
                 return await inHybridTx(rootCtx, async (ctx) => {
