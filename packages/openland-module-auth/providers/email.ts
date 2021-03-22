@@ -80,7 +80,7 @@ export function withAudit(handler: (req: express.Request, response: express.Resp
 
         (response.end as any) = (chunk: any, ...rest: any[]) => {
             //  data = chunk;
-            oldEnd.call(response, chunk, ...rest);
+            (oldEnd as any).call(response, chunk, ...rest);
         };
 
         await handler(req, response);

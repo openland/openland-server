@@ -110,7 +110,7 @@ export class UrlInfoService {
     }
 }
 
-const getURLAugmentationForUser = async ({ hostname, url, userId, user }: { hostname?: string; url: string; userId: number; user: UserProfile | null; }) => {
+const getURLAugmentationForUser = async ({ hostname, url, userId, user }: { hostname: string | null; url: string; userId: number; user: UserProfile | null; }) => {
     let org = user!.primaryOrganization && await inReadOnlyTx(rootCtx, async (ctx) => Store.OrganizationProfile.findById(ctx, user!.primaryOrganization!));
 
     return {
