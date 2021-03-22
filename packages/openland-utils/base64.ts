@@ -12,11 +12,11 @@ function escape(str: string) {
         .replace(/=/g, '');
 }
 
-export function encode(str: string, encoding?: string) {
+export function encode(str: string, encoding?: BufferEncoding) {
     return escape(Buffer.from(str, encoding || 'utf8').toString('base64'));
 }
 
-export function decode(str: string, encoding?: string) {
+export function decode(str: string, encoding?: BufferEncoding) {
     return Buffer.from(unescape(str), 'base64').toString(encoding || 'utf8');
 }
 
