@@ -11,6 +11,7 @@ import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { resolveRichMessageCreation } from '../openland-module-rich-message/resolvers/resolveRichMessageCreation';
 import { Capabilities } from '../openland-module-calls/repositories/CallScheduler';
+import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
 export const Resolver: GQLResolver = {
     VoiceChat: {
@@ -29,7 +30,8 @@ export const Resolver: GQLResolver = {
             }
             return null;
         }, null),
-        pinnedMessage: async (src, _, ctx) => src.pinnedMessageId ? await Store.RichMessage.findById(ctx, src.pinnedMessageId) : null
+        pinnedMessage: async (src, _, ctx) => src.pinnedMessageId ? await Store.RichMessage.findById(ctx, src.pinnedMessageId) : null,
+        parentRoom: src => src.parentChat
     },
     VoiceChatPinnedMessage: {
         id: src => IDs.RichMessage.serialize(src.id),
@@ -55,10 +57,29 @@ export const Resolver: GQLResolver = {
             await Modules.VoiceChats.participants.joinChat(ctx, chat.id, uid, ctx.auth.tid!);
             return chat;
         }),
-        voiceChatCreateWithMedia: withActivatedUser(async (ctx, { input, mediaInput, mediaKind  }, uid) => {
+        voiceChatCreateWithMedia: withActivatedUser(async (ctx, { input, mediaInput, mediaKind, roomId  }, uid) => {
+            let cid = roomId ? IDs.Conversation.parse(roomId) : null;
+            let isPrivate = false;
+
+            if (cid) {
+                let isAdmin = await Modules.Messaging.room.userHaveAdminPermissionsInRoom(ctx, uid, cid);
+                if (!isAdmin) {
+                    throw new AccessDeniedError();
+                }
+                let room = await Store.ConversationRoom.findById(ctx, cid);
+                if (!room) {
+                    throw new NotFoundError();
+                }
+                if (room.kind === 'group') {
+                    isPrivate = true;
+                }
+            }
+
             let chat = await Modules.VoiceChats.chats.createChat(ctx, {
                 title: input.title,
-                startedBy: uid
+                startedBy: uid,
+                parentChatId: cid || undefined,
+                isPrivate
             });
             await Modules.VoiceChats.participants.joinChat(ctx, chat.id, uid, ctx.auth.tid!);
 

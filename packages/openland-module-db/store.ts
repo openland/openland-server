@@ -4568,6 +4568,7 @@ export interface RoomProfileShape {
     joinsMessageDisabled: boolean | null;
     leavesMessageDisabled: boolean | null;
     activeMembersCount: number | null;
+    voiceChat: number | null;
 }
 
 export interface RoomProfileCreateShape {
@@ -4587,6 +4588,7 @@ export interface RoomProfileCreateShape {
     joinsMessageDisabled?: boolean | null | undefined;
     leavesMessageDisabled?: boolean | null | undefined;
     activeMembersCount?: number | null | undefined;
+    voiceChat?: number | null | undefined;
 }
 
 export class RoomProfile extends Entity<RoomProfileShape> {
@@ -4735,6 +4737,15 @@ export class RoomProfile extends Entity<RoomProfileShape> {
             this.invalidate();
         }
     }
+    get voiceChat(): number | null { return this._rawValue.voiceChat; }
+    set voiceChat(value: number | null) {
+        let normalized = this.descriptor.codec.fields.voiceChat.normalize(value);
+        if (this._rawValue.voiceChat !== normalized) {
+            this._rawValue.voiceChat = normalized;
+            this._updatedValues.voiceChat = normalized;
+            this.invalidate();
+        }
+    }
 }
 
 export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProfile> {
@@ -4763,6 +4774,7 @@ export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProf
         fields.push({ name: 'joinsMessageDisabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'leavesMessageDisabled', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         fields.push({ name: 'activeMembersCount', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
+        fields.push({ name: 'voiceChat', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
             title: c.string,
@@ -4781,6 +4793,7 @@ export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProf
             joinsMessageDisabled: c.optional(c.boolean),
             leavesMessageDisabled: c.optional(c.boolean),
             activeMembersCount: c.optional(c.integer),
+            voiceChat: c.optional(c.integer),
         });
         let descriptor: EntityDescriptor<RoomProfileShape> = {
             name: 'RoomProfile',

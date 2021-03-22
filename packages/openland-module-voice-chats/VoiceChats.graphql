@@ -9,6 +9,7 @@ type VoiceChat {
     listeners: [VoiceChatParticipant!]!
     me: VoiceChatParticipant
     pinnedMessage: VoiceChatPinnedMessage
+    parentRoom: SharedRoom
 }
 
 type VoiceChatJoinResult {
@@ -38,7 +39,7 @@ extend type User {
 
 extend type Mutation {
     voiceChatCreate(input: VoiceChatInput!): VoiceChat!
-    voiceChatCreateWithMedia(input: VoiceChatInput!, mediaInput: ConferenceJoinInput, mediaKind: ConferenceKind): VoiceChatJoinResult!
+    voiceChatCreateWithMedia(input: VoiceChatInput!, mediaInput: ConferenceJoinInput, mediaKind: ConferenceKind, roomId: ID): VoiceChatJoinResult!
     voiceChatUpdate(id: ID!, input: VoiceChatInput!): VoiceChat!
     voiceChatEnd(id: ID!): VoiceChat!
     voiceChatSetPinnedMessage(id: ID!, message: String, spans: [MessageSpanInput!]): VoiceChat!

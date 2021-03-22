@@ -18,6 +18,7 @@ export type VoiceChatInput = {
     title: string
     startedBy?: number
     isPrivate?: boolean
+    parentChatId?: number
 };
 
 @injectable()
@@ -35,7 +36,8 @@ export class VoiceChatsRepository {
         let {
             title,
             startedBy,
-            isPrivate
+            isPrivate,
+            parentChatId
         } = input;
 
         let id = await fetchNextDBSeq(ctx, 'conversation-id');
@@ -45,7 +47,8 @@ export class VoiceChatsRepository {
             title: title,
             startedBy,
             startedAt: Date.now(),
-            isPrivate: isPrivate || false
+            isPrivate: isPrivate || false,
+            parentChat: parentChatId || null
         });
 
         getTransaction(ctx).afterCommit(async () => {

@@ -315,6 +315,17 @@ export const Resolver: GQLResolver = {
         hasActiveCall: withConverationId(async (ctx, id) => {
             return await Modules.Calls.repo.hasActiveCall(ctx, id);
         }),
+        activeVoiceChat: withRoomProfile(async (ctx, profile, showPlaceholder) => {
+            if (showPlaceholder) {
+                return null;
+            }
+
+            if (profile?.voiceChat) {
+                return await Store.ConversationVoice.findById(ctx, profile.voiceChat);
+            }
+
+            return null;
+        })
     },
     RoomMember: {
         user: async (src, args, ctx) => (await Store.User.findById(ctx, src.uid))!,

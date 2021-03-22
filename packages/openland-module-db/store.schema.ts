@@ -449,6 +449,8 @@ export default declareSchema(() => {
 
         field('activeMembersCount', optional(integer()));
 
+        field('voiceChat', optional(integer()));
+
         rangeIndex('updated', ['updatedAt']);
         rangeIndex('created', ['createdAt']);
     });

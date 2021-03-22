@@ -98,6 +98,8 @@ type SharedRoom {
     featured: Boolean!
 
     owner: User
+
+    activeVoiceChat: VoiceChat
 }
 
 type PremiumChatSettings {

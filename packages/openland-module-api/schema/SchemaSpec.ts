@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '1e9f8bcf99ed45de30d34062265d9555';
+export const GQL_SPEC_VERSION = '9923c74944a8f45c4ada3e1317920722';
 
 export namespace GQL {
     export interface CreditCard {
@@ -3117,6 +3117,7 @@ export namespace GQL {
         input: VoiceChatInput;
         mediaInput: OptionalNullable<ConferenceJoinInput>;
         mediaKind: OptionalNullable<ConferenceKind>;
+        roomId: OptionalNullable<string>;
     }
     export interface MutationVoiceChatUpdateArgs {
         id: string;
@@ -5223,6 +5224,7 @@ export namespace GQL {
         listeners: VoiceChatParticipant[];
         me: Nullable<VoiceChatParticipant>;
         pinnedMessage: Nullable<VoiceChatPinnedMessage>;
+        parentRoom: Nullable<SharedRoom>;
     }
     export interface VoiceChatIdArgs { }
     export interface VoiceChatTitleArgs { }
@@ -5234,6 +5236,7 @@ export namespace GQL {
     export interface VoiceChatListenersArgs { }
     export interface VoiceChatMeArgs { }
     export interface VoiceChatPinnedMessageArgs { }
+    export interface VoiceChatParentRoomArgs { }
     export interface VoiceChatJoinResult {
         chat: VoiceChat;
         peerId: string;
@@ -6179,6 +6182,7 @@ export namespace GQL {
         callSettings: RoomCallSettings;
         featured: boolean;
         owner: Nullable<User>;
+        activeVoiceChat: Nullable<VoiceChat>;
         externalSocialImage: Nullable<string>;
         linkedFeedChannels: FeedChannel[];
         shortname: Nullable<string>;
@@ -6222,6 +6226,7 @@ export namespace GQL {
     export interface SharedRoomCallSettingsArgs { }
     export interface SharedRoomFeaturedArgs { }
     export interface SharedRoomOwnerArgs { }
+    export interface SharedRoomActiveVoiceChatArgs { }
     export interface SharedRoomExternalSocialImageArgs { }
     export interface SharedRoomLinkedFeedChannelsArgs { }
     export interface SharedRoomShortnameArgs { }
@@ -10621,6 +10626,7 @@ export interface GQLResolver {
             listeners: GQLRoots.VoiceChatParticipantRoot[],
             me: Nullable<GQLRoots.VoiceChatParticipantRoot>,
             pinnedMessage: Nullable<GQLRoots.VoiceChatPinnedMessageRoot>,
+            parentRoom: Nullable<GQLRoots.SharedRoomRoot>,
         },
         {
             id: GQL.VoiceChatIdArgs,
@@ -10633,6 +10639,7 @@ export interface GQLResolver {
             listeners: GQL.VoiceChatListenersArgs,
             me: GQL.VoiceChatMeArgs,
             pinnedMessage: GQL.VoiceChatPinnedMessageArgs,
+            parentRoom: GQL.VoiceChatParentRoomArgs,
         }
     >;
     VoiceChatJoinResult?: ComplexTypedResolver<
@@ -11712,6 +11719,7 @@ export interface GQLResolver {
             serviceMessageSettings: GQLRoots.RoomServiceMessageSettingsRoot,
             callSettings: GQLRoots.RoomCallSettingsRoot,
             owner: Nullable<GQLRoots.UserRoot>,
+            activeVoiceChat: Nullable<GQLRoots.VoiceChatRoot>,
             linkedFeedChannels: GQLRoots.FeedChannelRoot[],
         },
         {
@@ -11751,6 +11759,7 @@ export interface GQLResolver {
             callSettings: GQL.SharedRoomCallSettingsArgs,
             featured: GQL.SharedRoomFeaturedArgs,
             owner: GQL.SharedRoomOwnerArgs,
+            activeVoiceChat: GQL.SharedRoomActiveVoiceChatArgs,
             externalSocialImage: GQL.SharedRoomExternalSocialImageArgs,
             linkedFeedChannels: GQL.SharedRoomLinkedFeedChannelsArgs,
             shortname: GQL.SharedRoomShortnameArgs,
