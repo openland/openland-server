@@ -25,6 +25,8 @@ export function setupNodeJSTracing() {
         Metrics.MemoryHeapTotal.add(hostname, memoryUsage.heapTotal, hostname, 5000);
         Metrics.MemoryRss.add(hostname, memoryUsage.rss, hostname, 5000);
         Metrics.MemoryExternal.add(hostname, memoryUsage.external, hostname, 5000);
+        Metrics.MemoryArrayBuffers.add(hostname, memoryUsage.arrayBuffers, hostname, 5000);
+        Metrics.MemoryNative.add(hostname, memoryUsage.rss - memoryUsage.arrayBuffers - memoryUsage.heapTotal - memoryUsage.external, hostname, 5000);
     }, 1000);
 
     let timer = setInterval(async () => {

@@ -63,8 +63,8 @@ Useful calculator for splitting network to subnets: http://www.davidc.net/sites/
 
 * Kubernetes Base Blocks:
 * 10.32.0.0/14 (used)
-* 10.36.0.0/14
-* 10.40.0.0/14
+* 10.36.0.0/14 (lb)
+* 10.40.0.0/14 (lb?)
 * 10.44.0.0/14
 * 10.48.0.0/14
 * 10.52.0.0/14
