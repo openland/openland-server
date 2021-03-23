@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9923c74944a8f45c4ada3e1317920722';
+export const GQL_SPEC_VERSION = '205388fde67c7326d260ca70906280ae';
 
 export namespace GQL {
     export interface CreditCard {
@@ -2223,6 +2223,7 @@ export namespace GQL {
         superBadgeUnverify: User;
         voiceChatCreate: VoiceChat;
         voiceChatCreateWithMedia: VoiceChatJoinResult;
+        voiceChatCreateInChat: VoiceChatJoinResult;
         voiceChatUpdate: VoiceChat;
         voiceChatEnd: VoiceChat;
         voiceChatSetPinnedMessage: VoiceChat;
@@ -3117,7 +3118,12 @@ export namespace GQL {
         input: VoiceChatInput;
         mediaInput: OptionalNullable<ConferenceJoinInput>;
         mediaKind: OptionalNullable<ConferenceKind>;
-        roomId: OptionalNullable<string>;
+    }
+    export interface MutationVoiceChatCreateInChatArgs {
+        input: VoiceChatInput;
+        cid: string;
+        mediaInput: OptionalNullable<ConferenceJoinInput>;
+        mediaKind: OptionalNullable<ConferenceKind>;
     }
     export interface MutationVoiceChatUpdateArgs {
         id: string;
@@ -5247,6 +5253,7 @@ export namespace GQL {
     export interface VoiceChatJoinResultConferenceArgs { }
     export interface VoiceChatInput {
         title: string;
+        isPrivate: Nullable<boolean>;
     }
     export interface VoiceChatConnection {
         items: VoiceChat[];
@@ -8847,6 +8854,7 @@ export interface GQLResolver {
             superBadgeUnverify: GQLRoots.UserRoot,
             voiceChatCreate: GQLRoots.VoiceChatRoot,
             voiceChatCreateWithMedia: GQLRoots.VoiceChatJoinResultRoot,
+            voiceChatCreateInChat: GQLRoots.VoiceChatJoinResultRoot,
             voiceChatUpdate: GQLRoots.VoiceChatRoot,
             voiceChatEnd: GQLRoots.VoiceChatRoot,
             voiceChatSetPinnedMessage: GQLRoots.VoiceChatRoot,
@@ -9166,6 +9174,7 @@ export interface GQLResolver {
             superBadgeUnverify: GQL.MutationSuperBadgeUnverifyArgs,
             voiceChatCreate: GQL.MutationVoiceChatCreateArgs,
             voiceChatCreateWithMedia: GQL.MutationVoiceChatCreateWithMediaArgs,
+            voiceChatCreateInChat: GQL.MutationVoiceChatCreateInChatArgs,
             voiceChatUpdate: GQL.MutationVoiceChatUpdateArgs,
             voiceChatEnd: GQL.MutationVoiceChatEndArgs,
             voiceChatSetPinnedMessage: GQL.MutationVoiceChatSetPinnedMessageArgs,

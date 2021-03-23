@@ -12,6 +12,7 @@ import { Context } from '@openland/context';
 import { resolveRichMessageCreation } from '../openland-module-rich-message/resolvers/resolveRichMessageCreation';
 import { Capabilities } from '../openland-module-calls/repositories/CallScheduler';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
+import { UserError } from '../openland-errors/UserError';
 
 export const Resolver: GQLResolver = {
     VoiceChat: {
@@ -57,30 +58,60 @@ export const Resolver: GQLResolver = {
             await Modules.VoiceChats.participants.joinChat(ctx, chat.id, uid, ctx.auth.tid!);
             return chat;
         }),
-        voiceChatCreateWithMedia: withActivatedUser(async (ctx, { input, mediaInput, mediaKind, roomId  }, uid) => {
-            let cid = roomId ? IDs.Conversation.parse(roomId) : null;
+        voiceChatCreateWithMedia: withActivatedUser(async (ctx, { input, mediaInput, mediaKind  }, uid) => {
+            let chat = await Modules.VoiceChats.chats.createChat(ctx, {
+                title: input.title,
+                startedBy: uid,
+                isPrivate: input.isPrivate || false
+            });
+
+            await Modules.VoiceChats.participants.joinChat(ctx, chat.id, uid, ctx.auth.tid!);
+
+            let capabilities: Capabilities | null = null;
+            if (mediaInput && mediaInput.capabilities) {
+                capabilities = mediaInput.capabilities;
+            }
+            let res = await Modules.Calls.repo.addPeer(ctx, chat.id, uid, ctx.auth.tid!, 60000, mediaKind === 'STREAM' ? 'stream' : 'conference', capabilities, ctx.req.ip || 'unknown');
+
+            return {
+                peerId: IDs.ConferencePeer.serialize(res.id),
+                conference: await Modules.Calls.repo.getOrCreateConference(ctx, chat.id),
+                chat: chat
+            };
+        }),
+        voiceChatCreateInChat: withActivatedUser(async (ctx, { input, mediaInput, mediaKind, cid  }, uid) => {
+            let chatId = IDs.Conversation.parse(cid);
             let isPrivate = false;
 
-            if (cid) {
-                let isAdmin = await Modules.Messaging.room.userHaveAdminPermissionsInRoom(ctx, uid, cid);
-                if (!isAdmin) {
-                    throw new AccessDeniedError();
-                }
-                let room = await Store.ConversationRoom.findById(ctx, cid);
-                if (!room) {
-                    throw new NotFoundError();
-                }
-                if (room.kind === 'group') {
-                    isPrivate = true;
-                }
+            let isAdmin = await Modules.Messaging.room.userHaveAdminPermissionsInRoom(ctx, uid, chatId);
+            if (!isAdmin) {
+                throw new AccessDeniedError();
+            }
+            let room = await Store.ConversationRoom.findById(ctx, chatId);
+            let roomProfile = await Store.RoomProfile.findById(ctx, chatId);
+
+            if (!room || !roomProfile) {
+                throw new NotFoundError();
+            }
+            if (room.kind === 'group') {
+                isPrivate = true;
+            }
+            if (roomProfile.voiceChat) {
+                throw new UserError(`This chat already have voice room`);
+            }
+
+            if (input.isPrivate) {
+                isPrivate = true;
             }
 
             let chat = await Modules.VoiceChats.chats.createChat(ctx, {
                 title: input.title,
                 startedBy: uid,
-                parentChatId: cid || undefined,
                 isPrivate
             });
+            roomProfile.voiceChat = chat.id;
+            await roomProfile.flush(ctx);
+
             await Modules.VoiceChats.participants.joinChat(ctx, chat.id, uid, ctx.auth.tid!);
 
             let capabilities: Capabilities | null = null;
@@ -97,7 +128,8 @@ export const Resolver: GQLResolver = {
         }),
         voiceChatUpdate: withActivatedUser(async (ctx, { id, input }, uid) => {
             return await Modules.VoiceChats.chats.updateChat(ctx, uid, IDs.Conversation.parse(id), {
-                title: input.title
+                title: input.title,
+                isPrivate: input.isPrivate || false
             });
         }),
         voiceChatEnd: withActivatedUser(async (ctx, { id }, uid) => {
