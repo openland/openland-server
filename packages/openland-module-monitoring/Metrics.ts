@@ -213,6 +213,8 @@ export const Metrics = {
     MemoryExternal: Factory.createTaggedGauge('nodejs_memory_external', 'Usage of an external memory'),
     MemoryHeapTotal: Factory.createTaggedGauge('nodejs_memory_heap_total', 'Total size of a heap'),
     MemoryHeapUsed: Factory.createTaggedGauge('nodejs_memory_heap_used', 'Used size of a heap'),
+    MemoryArrayBuffers: Factory.createTaggedGauge('nodejs_memory_array_buffers', 'Usage of an array buffers'),
+    MemoryNative: Factory.createTaggedGauge('nodejs_memory_other', 'Usage of native memory'),
 
     // Hyperlog
     HyperLogSent: Factory.createFrequencyGauge('hyperlog_writes', 'Frequence of writes to a hyperlog'),
