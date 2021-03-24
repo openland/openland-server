@@ -79,7 +79,17 @@ export const Resolver: GQLResolver = {
             if (mediaInput && mediaInput.capabilities) {
                 capabilities = mediaInput.capabilities;
             }
-            let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 60000, mediaKind === 'STREAM' ? 'stream' : 'conference', capabilities, ctx.req.ip || 'unknown');
+            let res = await Modules.Calls.repo.addPeer(
+                ctx,
+                cid,
+                uid,
+                ctx.auth.tid!,
+                60000,
+                mediaKind === 'STREAM' ? 'stream' : 'conference',
+                capabilities,
+                mediaInput?.media,
+                ctx.req.ip || 'unknown'
+            );
 
             return {
                 peerId: IDs.ConferencePeer.serialize(res.id),

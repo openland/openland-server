@@ -293,7 +293,17 @@ export const Resolver: GQLResolver = {
                     }
                 }
 
-                let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 60000, args.kind === 'STREAM' ? 'stream' : 'conference', capabilities, ctx.req.ip || 'unknown');
+                let res = await Modules.Calls.repo.addPeer(
+                    ctx,
+                    cid,
+                    uid,
+                    ctx.auth.tid!,
+                    60000,
+                    args.kind === 'STREAM' ? 'stream' : 'conference',
+                    capabilities,
+                    args.input?.media,
+                    ctx.req.ip || 'unknown'
+                );
                 let activeMembers = await Modules.Calls.repo.findActiveMembers(ctx, cid);
                 if (activeMembers.length === 1 && conv.kind !== 'voice') {
                     let fullName = await Modules.Users.getUserFullName(ctx, uid);

@@ -48,6 +48,14 @@ export let DEFAULT_CAPABILITIES: Capabilities = {
     headerExtensions: []
 };
 
+type MediaSettings = {
+    supportsVideo: boolean;
+    supportsAudio: boolean;
+    wantSendVideo: boolean;
+    wantSendAudio: boolean;
+    wantSendScreencast: boolean;
+};
+
 @injectable()
 export class CallRepository {
 
@@ -93,7 +101,7 @@ export class CallRepository {
         }
     }
 
-    addPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number, kind: 'conference' | 'stream' = 'conference', capabilities: Capabilities | null, ip: string) => {
+    addPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number, kind: 'conference' | 'stream' = 'conference', capabilities: Capabilities | null, media: MediaSettings | undefined, ip: string) => {
         return await inTx(parent, async (ctx) => {
             // let room = await this.entities.ConferenceRoom.findById(ctx, cid);
             // if (!room) {
@@ -160,6 +168,8 @@ export class CallRepository {
                 cid, uid, tid,
                 keepAliveTimeout: Date.now() + timeout,
                 enabled: true,
+                audioPaused: !media?.wantSendAudio,
+                videoPaused: !media?.wantSendVideo
             });
 
             // Handle scheduling
@@ -198,15 +208,7 @@ export class CallRepository {
         });
     }
 
-    conferenceRequestLocalMediaChange = async (
-        parent: Context, cid: number, uid: number, tid: string,
-        media: {
-            supportsVideo: boolean;
-            supportsAudio: boolean;
-            wantSendVideo: boolean;
-            wantSendAudio: boolean;
-            wantSendScreencast: boolean;
-        }) => {
+    conferenceRequestLocalMediaChange = async (parent: Context, cid: number, uid: number, tid: string, media: MediaSettings) => {
         return await inTx(parent, async (ctx) => {
             let peer = await Store.ConferencePeer.auth.find(ctx, cid, uid, tid);
             let conf = await this.getOrCreateConference(ctx, cid);
