@@ -6,9 +6,9 @@ export const Concurrency = {
     // Operation rate limiting. Unique for each connection.
     Operation: new SimpleFactory(() => {
         return new TokenBucket({
-            maxTokens: 64,
+            maxTokens: 64 * 2,
             refillDelay: 100,
-            refillAmount: 10
+            refillAmount: 10 * 2
         });
     }),
 
@@ -16,7 +16,7 @@ export const Concurrency = {
     TransactionOperations: () => new BoundedConcurrencyPool(64 * 3),
 
     // FoundationDB transaction pool. Unique per process.
-    Transaction: new BoundedConcurrencyPool(256 * 3),
+    Transaction: new BoundedConcurrencyPool(256 * 2),
 
     // GQL resolve pool, unique per process
     Resolve: () => new BoundedConcurrencyPool(16 * 3),
