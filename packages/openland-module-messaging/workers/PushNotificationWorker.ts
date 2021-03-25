@@ -20,7 +20,7 @@ import { getShardId } from '../../openland-module-sharding/getShardId';
 
 const log = createLogger('push');
 const rootCtx = createNamedContext('push');
-const DEBUG = true;
+const DEBUG = false;
 
 export const shouldIgnoreUser = (ctx: Context, user: {
     lastSeen: 'online' | 'never_online' | number,
