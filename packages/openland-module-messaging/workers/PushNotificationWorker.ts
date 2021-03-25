@@ -90,6 +90,7 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
         return false;
     }
     if (message.isMuted) {
+        DEBUG && log.debug(ctx, 'Ignore muted message');
         return false;
     }
 
@@ -262,8 +263,12 @@ function createWorker(shardId: number) {
         startDelay: 3000,
         db: Store.storage.db
     }, async (parent) => {
-        log.log(parent, 'push_notification_shard_worker', shardId, 'started');
-        await handleUsersForShard(parent, shardId);
+        log.log(parent, 'push_notification_shard_worker', shardId, 'loop');
+        try {
+            await handleUsersForShard(parent, shardId);
+        } catch (e) {
+            log.log(rootCtx, 'push_worker_error', e);
+        }
     });
 }
 
