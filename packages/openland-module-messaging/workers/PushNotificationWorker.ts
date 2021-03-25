@@ -20,7 +20,7 @@ import { getShardId } from '../../openland-module-sharding/getShardId';
 
 const log = createLogger('push');
 const rootCtx = createNamedContext('push');
-const DEBUG = false;
+const DEBUG = true;
 
 export const shouldIgnoreUser = (ctx: Context, user: {
     lastSeen: 'online' | 'never_online' | number,
@@ -236,7 +236,7 @@ async function handleUsersForShard(parent: Context, shardId: number) {
     unreadUsers = unreadUsers.filter(uid => getShardId(uid, RING_SIZE) === shardId);
 
     if (unreadUsers.length > 0) {
-        log.debug(parent, 'unread users: ' + unreadUsers.length, JSON.stringify(unreadUsers));
+        log.log(parent, 'unread users: ' + unreadUsers.length, JSON.stringify(unreadUsers));
     } else {
         return;
     }
