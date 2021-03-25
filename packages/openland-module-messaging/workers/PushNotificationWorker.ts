@@ -230,7 +230,7 @@ const handleUser = async (root: Context, uid: number) => {
     }
 };
 
-const RING_SIZE = 30;
+const RING_SIZE = 50;
 
 async function handleUsersForShard(parent: Context, shardId: number) {
     let unreadUsers = await inTx(parent, async (ctx) => await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push'));
