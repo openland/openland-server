@@ -243,7 +243,7 @@ async function handleUsersForShard(parent: Context, shardId: number) {
     }
     log.log(parent, 'found', unreadUsers.length, 'users');
 
-    let batches = batch(unreadUsers.slice(0, 1000), 20);
+    let batches = batch(unreadUsers, 20);
 
     for (let b of batches) {
         try {
