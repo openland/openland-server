@@ -11,6 +11,7 @@ import { eventsFind } from '../../openland-module-db/eventsFind';
 import { UserDialogMessageReceivedEvent, UserSettingsShape } from '../../openland-module-db/store';
 import { batch } from '../../openland-utils/batch';
 import { getShardId } from '../../openland-module-sharding/getShardId';
+import { createTracer } from 'openland-log/createTracer';
 
 // const Delays = {
 //     'none': 10 * 1000,
@@ -20,6 +21,7 @@ import { getShardId } from '../../openland-module-sharding/getShardId';
 
 const log = createLogger('push');
 const rootCtx = createNamedContext('push');
+const trace = createTracer('push');
 const DEBUG = false;
 
 export const shouldIgnoreUser = (ctx: Context, user: {
@@ -263,12 +265,14 @@ function createWorker(shardId: number) {
         startDelay: 3000,
         db: Store.storage.db
     }, async (parent) => {
-        DEBUG && log.log(parent, 'push_notification_shard_worker', shardId, 'loop');
-        try {
-            await handleUsersForShard(parent, shardId);
-        } catch (e) {
-            log.log(rootCtx, 'push_worker_error', e);
-        }
+        await trace.trace(parent, 'work', async (ctx) => {
+            DEBUG && log.log(ctx, 'push_notification_shard_worker', shardId, 'loop');
+            try {
+                await handleUsersForShard(ctx, shardId);
+            } catch (e) {
+                log.log(ctx, 'push_worker_error', e);
+            }
+        });
     });
 }
 
