@@ -478,7 +478,7 @@ export const Resolver: GQLResolver = {
 
                 while (true) {
                     let changed = await fastWatch(parent, 'conference-' + cid,
-                        async (ctx) => (await inTx(ctx, (ctx2) => Store.ConferenceRoom.findById(ctx2, cid)))!.metadata.versionCode
+                        async (ctx) => (await inTx(ctx, async (ctx2) => Store.ConferenceRoom.findById(ctx2, cid)))!.metadata.versionCode
                     );
                     if (changed) {
                         yield await inTx(parent, async (ctx) => (await Store.ConferenceRoom.findById(ctx, cid))!);
@@ -500,7 +500,7 @@ export const Resolver: GQLResolver = {
 
                 while (true) {
                     let changed = await fastWatch(parent, 'conference-' + cid,
-                        async (ctx) => (await inTx(ctx, (ctx2) => Store.ConferenceRoom.findById(ctx2, cid)))!.metadata.versionCode
+                        async (ctx) => (await inTx(ctx, async (ctx2) => Store.ConferenceRoom.findById(ctx2, cid)))!.metadata.versionCode
                     );
                     if (changed) {
                         yield { id: cid, peerId: pid };

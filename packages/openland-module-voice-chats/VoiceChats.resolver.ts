@@ -58,7 +58,7 @@ export const Resolver: GQLResolver = {
             await Modules.VoiceChats.participants.joinChat(ctx, chat.id, uid, ctx.auth.tid!);
             return chat;
         }),
-        voiceChatCreateWithMedia: withActivatedUser(async (ctx, { input, mediaInput, mediaKind  }, uid) => {
+        voiceChatCreateWithMedia: withActivatedUser(async (ctx, { input, mediaInput, mediaKind }, uid) => {
             let chat = await Modules.VoiceChats.chats.createChat(ctx, {
                 title: input.title,
                 startedBy: uid,
@@ -89,7 +89,7 @@ export const Resolver: GQLResolver = {
                 chat: chat
             };
         }),
-        voiceChatCreateInChat: withActivatedUser(async (ctx, { input, mediaInput, mediaKind, cid  }, uid) => {
+        voiceChatCreateInChat: withActivatedUser(async (ctx, { input, mediaInput, mediaKind, cid }, uid) => {
             let chatId = IDs.Conversation.parse(cid);
             let isPrivate = false;
 
@@ -182,12 +182,12 @@ export const Resolver: GQLResolver = {
             resolve(obj: ConversationVoice) {
                 return obj;
             },
-            subscribe: async function * (_: any, args: { id: string }, parent: Context) {
+            subscribe: async function* (_: any, args: { id: string }, parent: Context) {
                 let cid = IDs.Conversation.parse(args.id);
                 yield await inTx(parent, async (ctx) => (await Store.ConversationVoice.findById(ctx, cid))!);
                 while (true) {
                     let changed = await fastWatch(parent, `voice-chat-${IDs.Conversation.parse(args.id)}`,
-                        async (ctx) => (await inTx(ctx, (ctx2) => Store.ConversationVoice.findById(ctx2, cid)))!.metadata.versionCode
+                        async (ctx) => (await inTx(ctx, async (ctx2) => Store.ConversationVoice.findById(ctx2, cid)))!.metadata.versionCode
                     );
                     if (changed) {
                         yield await inTx(parent, async (ctx) => (await Store.ConversationVoice.findById(ctx, cid))!);

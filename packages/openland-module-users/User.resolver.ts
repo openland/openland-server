@@ -73,20 +73,20 @@ export function withProfile(handler: (ctx: Context, user: User, profile: UserPro
         // Slow track
         return (async () => {
             if (typeof src === 'number') {
-                let user = (await (Store.User.findById(ctx, src)))!;
+                let user = await Store.User.findByIdOrFail(ctx, src);
                 if (user.status === 'deleted') {
                     return handler(ctx, user, null, authorized);
                 }
-                let profile = (await (Store.UserProfile.findById(ctx, src)))!;
+                let profile = await Store.UserProfile.findByIdOrFail(ctx, src);
                 return handler(ctx, user, profile, authorized);
             } else if (src instanceof User) {
                 if (src.status === 'deleted') {
                     return handler(ctx, src, null, authorized);
                 }
-                let profile = (await (Store.UserProfile.findById(ctx, src.id)))!;
+                let profile = await Store.UserProfile.findByIdOrFail(ctx, src.id);
                 return handler(ctx, src, profile, authorized);
             } else {
-                let user = (await (Store.User.findById(ctx, src.id)))!;
+                let user = await Store.User.findByIdOrFail(ctx, src.id);
                 if (user.status === 'deleted') {
                     return handler(ctx, user, null, authorized);
                 }
