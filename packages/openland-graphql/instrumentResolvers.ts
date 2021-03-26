@@ -1,8 +1,8 @@
 import { Context } from '@openland/context';
-import { GraphQLField, GraphQLFieldResolver, GraphQLObjectType, GraphQLOutputType, GraphQLResolveInfo, GraphQLSchema } from 'graphql';
+import { GraphQLField, GraphQLFieldResolver, GraphQLObjectType, GraphQLResolveInfo, GraphQLSchema } from 'graphql';
 
 export type FieldHandler = (type: GraphQLObjectType, field: GraphQLField<any, any>, originalResolver: GraphQLFieldResolver<any, any, any>, root: any, args: any, context: Context, info: any) => any;
-export type ObjectHandler = (type: GraphQLOutputType, value: any, context: Context, info: any) => any;
+export type ObjectHandler = (type: GraphQLObjectType, value: any, context: Context, info: any) => any;
 
 export type InstrumentationConfig = {
     field?: FieldHandler;
