@@ -1,4 +1,4 @@
-import { inTx, getTransaction } from '@openland/foundationdb';
+import { inTx, getTransaction, withoutTransaction } from '@openland/foundationdb';
 import { withUser } from 'openland-module-api/Resolvers';
 import { IDs, IdsFactory } from 'openland-module-api/IDs';
 import { Context } from '@openland/context';
@@ -134,7 +134,7 @@ export const Resolver: GQLResolver = {
     },
     Query: {
         updatesState: withUser(async (ctx, args, uid) => {
-            let init = await inTx(ctx, async (ctx2) => {
+            let init = await inTx(withoutTransaction(ctx), async (ctx2) => {
                 let state = await Modules.Events.mediator.getState(ctx2, uid);
                 return { state, version: getTransaction(ctx2).getCommittedVersion() };
             });
