@@ -8,7 +8,6 @@ import { User, UserProfile, UserBadge } from 'openland-module-db/store';
 import { buildMessage, MessagePart, roomMention, userMention } from '../openland-utils/MessageBuilder';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { Context } from '@openland/context';
-import { isPromise } from 'openland-utils/isPromise';
 
 type UserRoot = User | UserProfile | number | UserFullRoot;
 
