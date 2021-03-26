@@ -1933,8 +1933,12 @@ export class UserFactory extends EntityFactory<UserShape, User> {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<User | null> {
+    findById(ctx: Context, id: number): Promise<User | null> | User | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<User> | User {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -2268,8 +2272,12 @@ export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProf
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<UserProfile | null> {
+    findById(ctx: Context, id: number): Promise<UserProfile | null> | UserProfile | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<UserProfile> | UserProfile {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -2363,8 +2371,12 @@ export class UserProfilePrefilFactory extends EntityFactory<UserProfilePrefilSha
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<UserProfilePrefil | null> {
+    findById(ctx: Context, id: number): Promise<UserProfilePrefil | null> | UserProfilePrefil | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<UserProfilePrefil> | UserProfilePrefil {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -2575,8 +2587,12 @@ export class UserSettingsFactory extends EntityFactory<UserSettingsShape, UserSe
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<UserSettings | null> {
+    findById(ctx: Context, id: number): Promise<UserSettings | null> | UserSettings | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<UserSettings> | UserSettings {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -2647,8 +2663,12 @@ export class UserIndexingQueueFactory extends EntityFactory<UserIndexingQueueSha
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<UserIndexingQueue | null> {
+    findById(ctx: Context, id: number): Promise<UserIndexingQueue | null> | UserIndexingQueue | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<UserIndexingQueue> | UserIndexingQueue {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -2797,8 +2817,12 @@ export class ModernBadgeFactory extends EntityFactory<ModernBadgeShape, ModernBa
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<ModernBadge | null> {
+    findById(ctx: Context, id: number): Promise<ModernBadge | null> | ModernBadge | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<ModernBadge> | ModernBadge {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -2902,8 +2926,12 @@ export class UserModernBadgeFactory extends EntityFactory<UserModernBadgeShape, 
         return this._create_UNSAFE(ctx, [uid, bid], this.descriptor.codec.normalize({ uid, bid, ...src }));
     }
 
-    findById(ctx: Context, uid: number, bid: number): Promise<UserModernBadge | null> {
+    findById(ctx: Context, uid: number, bid: number): Promise<UserModernBadge | null> | UserModernBadge | null {
         return this._findById(ctx, [uid, bid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number, bid: number): Promise<UserModernBadge> | UserModernBadge {
+        return this._findByIdOrFail(ctx, [uid, bid]);
     }
 
     watch(ctx: Context, uid: number, bid: number): Watch {
@@ -3075,8 +3103,12 @@ export class OrganizationFactory extends EntityFactory<OrganizationShape, Organi
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<Organization | null> {
+    findById(ctx: Context, id: number): Promise<Organization | null> | Organization | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<Organization> | Organization {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -3287,8 +3319,12 @@ export class OrganizationProfileFactory extends EntityFactory<OrganizationProfil
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<OrganizationProfile | null> {
+    findById(ctx: Context, id: number): Promise<OrganizationProfile | null> | OrganizationProfile | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<OrganizationProfile> | OrganizationProfile {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -3369,8 +3405,12 @@ export class OrganizationEditorialFactory extends EntityFactory<OrganizationEdit
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<OrganizationEditorial | null> {
+    findById(ctx: Context, id: number): Promise<OrganizationEditorial | null> | OrganizationEditorial | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<OrganizationEditorial> | OrganizationEditorial {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -3561,8 +3601,12 @@ export class OrganizationMemberFactory extends EntityFactory<OrganizationMemberS
         return this._create_UNSAFE(ctx, [oid, uid], this.descriptor.codec.normalize({ oid, uid, ...src }));
     }
 
-    findById(ctx: Context, oid: number, uid: number): Promise<OrganizationMember | null> {
+    findById(ctx: Context, oid: number, uid: number): Promise<OrganizationMember | null> | OrganizationMember | null {
         return this._findById(ctx, [oid, uid]);
+    }
+
+    findByIdOrFail(ctx: Context, oid: number, uid: number): Promise<OrganizationMember> | OrganizationMember {
+        return this._findByIdOrFail(ctx, [oid, uid]);
     }
 
     watch(ctx: Context, oid: number, uid: number): Watch {
@@ -3633,8 +3677,12 @@ export class OrganizationIndexingQueueFactory extends EntityFactory<Organization
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<OrganizationIndexingQueue | null> {
+    findById(ctx: Context, id: number): Promise<OrganizationIndexingQueue | null> | OrganizationIndexingQueue | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<OrganizationIndexingQueue> | OrganizationIndexingQueue {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -3728,8 +3776,12 @@ export class OnlineFactory extends EntityFactory<OnlineShape, Online> {
         return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
-    findById(ctx: Context, uid: number): Promise<Online | null> {
+    findById(ctx: Context, uid: number): Promise<Online | null> | Online | null {
         return this._findById(ctx, [uid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number): Promise<Online> | Online {
+        return this._findByIdOrFail(ctx, [uid]);
     }
 
     watch(ctx: Context, uid: number): Watch {
@@ -3856,8 +3908,12 @@ export class PresenceFactory extends EntityFactory<PresenceShape, Presence> {
         return this._create_UNSAFE(ctx, [uid, tid], this.descriptor.codec.normalize({ uid, tid, ...src }));
     }
 
-    findById(ctx: Context, uid: number, tid: string): Promise<Presence | null> {
+    findById(ctx: Context, uid: number, tid: string): Promise<Presence | null> | Presence | null {
         return this._findById(ctx, [uid, tid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number, tid: string): Promise<Presence> | Presence {
+        return this._findByIdOrFail(ctx, [uid, tid]);
     }
 
     watch(ctx: Context, uid: number, tid: string): Watch {
@@ -3951,8 +4007,12 @@ export class ConversationFactory extends EntityFactory<ConversationShape, Conver
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<Conversation | null> {
+    findById(ctx: Context, id: number): Promise<Conversation | null> | Conversation | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<Conversation> | Conversation {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -4072,8 +4132,12 @@ export class ConversationPrivateFactory extends EntityFactory<ConversationPrivat
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<ConversationPrivate | null> {
+    findById(ctx: Context, id: number): Promise<ConversationPrivate | null> | ConversationPrivate | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<ConversationPrivate> | ConversationPrivate {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -4154,8 +4218,12 @@ export class ConversationOrganizationFactory extends EntityFactory<ConversationO
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<ConversationOrganization | null> {
+    findById(ctx: Context, id: number): Promise<ConversationOrganization | null> | ConversationOrganization | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<ConversationOrganization> | ConversationOrganization {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -4356,8 +4424,12 @@ export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<ConversationRoom | null> {
+    findById(ctx: Context, id: number): Promise<ConversationRoom | null> | ConversationRoom | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<ConversationRoom> | ConversationRoom {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -4451,8 +4523,12 @@ export class PremiumChatSettingsFactory extends EntityFactory<PremiumChatSetting
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<PremiumChatSettings | null> {
+    findById(ctx: Context, id: number): Promise<PremiumChatSettings | null> | PremiumChatSettings | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<PremiumChatSettings> | PremiumChatSettings {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -4537,8 +4613,12 @@ export class PremiumChatUserPassFactory extends EntityFactory<PremiumChatUserPas
         return this._create_UNSAFE(ctx, [cid, uid], this.descriptor.codec.normalize({ cid, uid, ...src }));
     }
 
-    findById(ctx: Context, cid: number, uid: number): Promise<PremiumChatUserPass | null> {
+    findById(ctx: Context, cid: number, uid: number): Promise<PremiumChatUserPass | null> | PremiumChatUserPass | null {
         return this._findById(ctx, [cid, uid]);
+    }
+
+    findByIdOrFail(ctx: Context, cid: number, uid: number): Promise<PremiumChatUserPass> | PremiumChatUserPass {
+        return this._findByIdOrFail(ctx, [cid, uid]);
     }
 
     watch(ctx: Context, cid: number, uid: number): Watch {
@@ -4846,8 +4926,12 @@ export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProf
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<RoomProfile | null> {
+    findById(ctx: Context, id: number): Promise<RoomProfile | null> | RoomProfile | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<RoomProfile> | RoomProfile {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -5016,8 +5100,12 @@ export class RoomParticipantFactory extends EntityFactory<RoomParticipantShape, 
         return this._create_UNSAFE(ctx, [cid, uid], this.descriptor.codec.normalize({ cid, uid, ...src }));
     }
 
-    findById(ctx: Context, cid: number, uid: number): Promise<RoomParticipant | null> {
+    findById(ctx: Context, cid: number, uid: number): Promise<RoomParticipant | null> | RoomParticipant | null {
         return this._findById(ctx, [cid, uid]);
+    }
+
+    findByIdOrFail(ctx: Context, cid: number, uid: number): Promise<RoomParticipant> | RoomParticipant {
+        return this._findByIdOrFail(ctx, [cid, uid]);
     }
 
     watch(ctx: Context, cid: number, uid: number): Watch {
@@ -5205,8 +5293,12 @@ export class ConversationVoiceFactory extends EntityFactory<ConversationVoiceSha
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<ConversationVoice | null> {
+    findById(ctx: Context, id: number): Promise<ConversationVoice | null> | ConversationVoice | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<ConversationVoice> | ConversationVoice {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -5410,8 +5502,12 @@ export class VoiceChatParticipantFactory extends EntityFactory<VoiceChatParticip
         return this._create_UNSAFE(ctx, [cid, uid], this.descriptor.codec.normalize({ cid, uid, ...src }));
     }
 
-    findById(ctx: Context, cid: number, uid: number): Promise<VoiceChatParticipant | null> {
+    findById(ctx: Context, cid: number, uid: number): Promise<VoiceChatParticipant | null> | VoiceChatParticipant | null {
         return this._findById(ctx, [cid, uid]);
+    }
+
+    findByIdOrFail(ctx: Context, cid: number, uid: number): Promise<VoiceChatParticipant> | VoiceChatParticipant {
+        return this._findByIdOrFail(ctx, [cid, uid]);
     }
 
     watch(ctx: Context, cid: number, uid: number): Watch {
@@ -6102,8 +6198,12 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<Message | null> {
+    findById(ctx: Context, id: number): Promise<Message | null> | Message | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<Message> | Message {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -6753,8 +6853,12 @@ export class PrivateMessageFactory extends EntityFactory<PrivateMessageShape, Pr
         return this._create_UNSAFE(ctx, [id, inboxUid], this.descriptor.codec.normalize({ id, inboxUid, ...src }));
     }
 
-    findById(ctx: Context, id: number, inboxUid: number): Promise<PrivateMessage | null> {
+    findById(ctx: Context, id: number, inboxUid: number): Promise<PrivateMessage | null> | PrivateMessage | null {
         return this._findById(ctx, [id, inboxUid]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number, inboxUid: number): Promise<PrivateMessage> | PrivateMessage {
+        return this._findByIdOrFail(ctx, [id, inboxUid]);
     }
 
     watch(ctx: Context, id: number, inboxUid: number): Watch {
@@ -7049,8 +7153,12 @@ export class CommentFactory extends EntityFactory<CommentShape, Comment> {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<Comment | null> {
+    findById(ctx: Context, id: number): Promise<Comment | null> | Comment | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<Comment> | Comment {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -7264,8 +7372,12 @@ export class RichMessageFactory extends EntityFactory<RichMessageShape, RichMess
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<RichMessage | null> {
+    findById(ctx: Context, id: number): Promise<RichMessage | null> | RichMessage | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<RichMessage> | RichMessage {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -7337,8 +7449,12 @@ export class MessageDraftFactory extends EntityFactory<MessageDraftShape, Messag
         return this._create_UNSAFE(ctx, [uid, cid], this.descriptor.codec.normalize({ uid, cid, ...src }));
     }
 
-    findById(ctx: Context, uid: number, cid: number): Promise<MessageDraft | null> {
+    findById(ctx: Context, uid: number, cid: number): Promise<MessageDraft | null> | MessageDraft | null {
         return this._findById(ctx, [uid, cid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number, cid: number): Promise<MessageDraft> | MessageDraft {
+        return this._findByIdOrFail(ctx, [uid, cid]);
     }
 
     watch(ctx: Context, uid: number, cid: number): Watch {
@@ -7406,8 +7522,12 @@ export class ConversationSeqFactory extends EntityFactory<ConversationSeqShape, 
         return this._create_UNSAFE(ctx, [cid], this.descriptor.codec.normalize({ cid, ...src }));
     }
 
-    findById(ctx: Context, cid: number): Promise<ConversationSeq | null> {
+    findById(ctx: Context, cid: number): Promise<ConversationSeq | null> | ConversationSeq | null {
         return this._findById(ctx, [cid]);
+    }
+
+    findByIdOrFail(ctx: Context, cid: number): Promise<ConversationSeq> | ConversationSeq {
+        return this._findByIdOrFail(ctx, [cid]);
     }
 
     watch(ctx: Context, cid: number): Watch {
@@ -7521,8 +7641,12 @@ export class ConversationEventFactory extends EntityFactory<ConversationEventSha
         return this._create_UNSAFE(ctx, [cid, seq], this.descriptor.codec.normalize({ cid, seq, ...src }));
     }
 
-    findById(ctx: Context, cid: number, seq: number): Promise<ConversationEvent | null> {
+    findById(ctx: Context, cid: number, seq: number): Promise<ConversationEvent | null> | ConversationEvent | null {
         return this._findById(ctx, [cid, seq]);
+    }
+
+    findByIdOrFail(ctx: Context, cid: number, seq: number): Promise<ConversationEvent> | ConversationEvent {
+        return this._findByIdOrFail(ctx, [cid, seq]);
     }
 
     watch(ctx: Context, cid: number, seq: number): Watch {
@@ -7691,8 +7815,12 @@ export class UserDialogFactory extends EntityFactory<UserDialogShape, UserDialog
         return this._create_UNSAFE(ctx, [uid, cid], this.descriptor.codec.normalize({ uid, cid, ...src }));
     }
 
-    findById(ctx: Context, uid: number, cid: number): Promise<UserDialog | null> {
+    findById(ctx: Context, uid: number, cid: number): Promise<UserDialog | null> | UserDialog | null {
         return this._findById(ctx, [uid, cid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number, cid: number): Promise<UserDialog> | UserDialog {
+        return this._findByIdOrFail(ctx, [uid, cid]);
     }
 
     watch(ctx: Context, uid: number, cid: number): Watch {
@@ -7755,8 +7883,12 @@ export class UserDialogHandledMessageFactory extends EntityFactory<UserDialogHan
         return this._create_UNSAFE(ctx, [uid, cid, mid], this.descriptor.codec.normalize({ uid, cid, mid, ...src }));
     }
 
-    findById(ctx: Context, uid: number, cid: number, mid: number): Promise<UserDialogHandledMessage | null> {
+    findById(ctx: Context, uid: number, cid: number, mid: number): Promise<UserDialogHandledMessage | null> | UserDialogHandledMessage | null {
         return this._findById(ctx, [uid, cid, mid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number, cid: number, mid: number): Promise<UserDialogHandledMessage> | UserDialogHandledMessage {
+        return this._findByIdOrFail(ctx, [uid, cid, mid]);
     }
 
     watch(ctx: Context, uid: number, cid: number, mid: number): Watch {
@@ -7828,8 +7960,12 @@ export class UserDialogSettingsFactory extends EntityFactory<UserDialogSettingsS
         return this._create_UNSAFE(ctx, [uid, cid], this.descriptor.codec.normalize({ uid, cid, ...src }));
     }
 
-    findById(ctx: Context, uid: number, cid: number): Promise<UserDialogSettings | null> {
+    findById(ctx: Context, uid: number, cid: number): Promise<UserDialogSettings | null> | UserDialogSettings | null {
         return this._findById(ctx, [uid, cid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number, cid: number): Promise<UserDialogSettings> | UserDialogSettings {
+        return this._findByIdOrFail(ctx, [uid, cid]);
     }
 
     watch(ctx: Context, uid: number, cid: number): Watch {
@@ -7897,8 +8033,12 @@ export class UserDialogListSettingsFactory extends EntityFactory<UserDialogListS
         return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
-    findById(ctx: Context, uid: number): Promise<UserDialogListSettings | null> {
+    findById(ctx: Context, uid: number): Promise<UserDialogListSettings | null> | UserDialogListSettings | null {
         return this._findById(ctx, [uid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number): Promise<UserDialogListSettings> | UserDialogListSettings {
+        return this._findByIdOrFail(ctx, [uid]);
     }
 
     watch(ctx: Context, uid: number): Watch {
@@ -8090,8 +8230,12 @@ export class UserDialogEventFactory extends EntityFactory<UserDialogEventShape, 
         return this._create_UNSAFE(ctx, [uid, seq], this.descriptor.codec.normalize({ uid, seq, ...src }));
     }
 
-    findById(ctx: Context, uid: number, seq: number): Promise<UserDialogEvent | null> {
+    findById(ctx: Context, uid: number, seq: number): Promise<UserDialogEvent | null> | UserDialogEvent | null {
         return this._findById(ctx, [uid, seq]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number, seq: number): Promise<UserDialogEvent> | UserDialogEvent {
+        return this._findByIdOrFail(ctx, [uid, seq]);
     }
 
     watch(ctx: Context, uid: number, seq: number): Watch {
@@ -8163,8 +8307,12 @@ export class CommentStateFactory extends EntityFactory<CommentStateShape, Commen
         return this._create_UNSAFE(ctx, [peerType, peerId], this.descriptor.codec.normalize({ peerType, peerId, ...src }));
     }
 
-    findById(ctx: Context, peerType: string, peerId: number): Promise<CommentState | null> {
+    findById(ctx: Context, peerType: string, peerId: number): Promise<CommentState | null> | CommentState | null {
         return this._findById(ctx, [peerType, peerId]);
+    }
+
+    findByIdOrFail(ctx: Context, peerType: string, peerId: number): Promise<CommentState> | CommentState {
+        return this._findByIdOrFail(ctx, [peerType, peerId]);
     }
 
     watch(ctx: Context, peerType: string, peerId: number): Watch {
@@ -8236,8 +8384,12 @@ export class CommentSeqFactory extends EntityFactory<CommentSeqShape, CommentSeq
         return this._create_UNSAFE(ctx, [peerType, peerId], this.descriptor.codec.normalize({ peerType, peerId, ...src }));
     }
 
-    findById(ctx: Context, peerType: string, peerId: number): Promise<CommentSeq | null> {
+    findById(ctx: Context, peerType: string, peerId: number): Promise<CommentSeq | null> | CommentSeq | null {
         return this._findById(ctx, [peerType, peerId]);
+    }
+
+    findByIdOrFail(ctx: Context, peerType: string, peerId: number): Promise<CommentSeq> | CommentSeq {
+        return this._findByIdOrFail(ctx, [peerType, peerId]);
     }
 
     watch(ctx: Context, peerType: string, peerId: number): Watch {
@@ -8355,8 +8507,12 @@ export class CommentEventFactory extends EntityFactory<CommentEventShape, Commen
         return this._create_UNSAFE(ctx, [peerType, peerId, seq], this.descriptor.codec.normalize({ peerType, peerId, seq, ...src }));
     }
 
-    findById(ctx: Context, peerType: string, peerId: number, seq: number): Promise<CommentEvent | null> {
+    findById(ctx: Context, peerType: string, peerId: number, seq: number): Promise<CommentEvent | null> | CommentEvent | null {
         return this._findById(ctx, [peerType, peerId, seq]);
+    }
+
+    findByIdOrFail(ctx: Context, peerType: string, peerId: number, seq: number): Promise<CommentEvent> | CommentEvent {
+        return this._findByIdOrFail(ctx, [peerType, peerId, seq]);
     }
 
     watch(ctx: Context, peerType: string, peerId: number, seq: number): Watch {
@@ -8461,8 +8617,12 @@ export class CommentsSubscriptionFactory extends EntityFactory<CommentsSubscript
         return this._create_UNSAFE(ctx, [peerType, peerId, uid], this.descriptor.codec.normalize({ peerType, peerId, uid, ...src }));
     }
 
-    findById(ctx: Context, peerType: string, peerId: number, uid: number): Promise<CommentsSubscription | null> {
+    findById(ctx: Context, peerType: string, peerId: number, uid: number): Promise<CommentsSubscription | null> | CommentsSubscription | null {
         return this._findById(ctx, [peerType, peerId, uid]);
+    }
+
+    findByIdOrFail(ctx: Context, peerType: string, peerId: number, uid: number): Promise<CommentsSubscription> | CommentsSubscription {
+        return this._findByIdOrFail(ctx, [peerType, peerId, uid]);
     }
 
     watch(ctx: Context, peerType: string, peerId: number, uid: number): Watch {
@@ -8576,8 +8736,12 @@ export class CommentEventGlobalFactory extends EntityFactory<CommentEventGlobalS
         return this._create_UNSAFE(ctx, [uid, seq], this.descriptor.codec.normalize({ uid, seq, ...src }));
     }
 
-    findById(ctx: Context, uid: number, seq: number): Promise<CommentEventGlobal | null> {
+    findById(ctx: Context, uid: number, seq: number): Promise<CommentEventGlobal | null> | CommentEventGlobal | null {
         return this._findById(ctx, [uid, seq]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number, seq: number): Promise<CommentEventGlobal> | CommentEventGlobal {
+        return this._findByIdOrFail(ctx, [uid, seq]);
     }
 
     watch(ctx: Context, uid: number, seq: number): Watch {
@@ -8723,8 +8887,12 @@ export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, Co
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<ConferenceRoom | null> {
+    findById(ctx: Context, id: number): Promise<ConferenceRoom | null> | ConferenceRoom | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<ConferenceRoom> | ConferenceRoom {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -8915,8 +9083,12 @@ export class ConferencePeerFactory extends EntityFactory<ConferencePeerShape, Co
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<ConferencePeer | null> {
+    findById(ctx: Context, id: number): Promise<ConferencePeer | null> | ConferencePeer | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<ConferencePeer> | ConferencePeer {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -9117,8 +9289,12 @@ export class ConferenceEndStreamFactory extends EntityFactory<ConferenceEndStrea
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<ConferenceEndStream | null> {
+    findById(ctx: Context, id: string): Promise<ConferenceEndStream | null> | ConferenceEndStream | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<ConferenceEndStream> | ConferenceEndStream {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -9219,8 +9395,12 @@ export class ConferenceMeshPeerFactory extends EntityFactory<ConferenceMeshPeerS
         return this._create_UNSAFE(ctx, [cid, pid], this.descriptor.codec.normalize({ cid, pid, ...src }));
     }
 
-    findById(ctx: Context, cid: number, pid: number): Promise<ConferenceMeshPeer | null> {
+    findById(ctx: Context, cid: number, pid: number): Promise<ConferenceMeshPeer | null> | ConferenceMeshPeer | null {
         return this._findById(ctx, [cid, pid]);
+    }
+
+    findByIdOrFail(ctx: Context, cid: number, pid: number): Promise<ConferenceMeshPeer> | ConferenceMeshPeer {
+        return this._findByIdOrFail(ctx, [cid, pid]);
     }
 
     watch(ctx: Context, cid: number, pid: number): Watch {
@@ -9408,8 +9588,12 @@ export class ConferenceMeshLinkFactory extends EntityFactory<ConferenceMeshLinkS
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<ConferenceMeshLink | null> {
+    findById(ctx: Context, id: string): Promise<ConferenceMeshLink | null> | ConferenceMeshLink | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<ConferenceMeshLink> | ConferenceMeshLink {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -9503,8 +9687,12 @@ export class ConferenceKitchenRouterFactory extends EntityFactory<ConferenceKitc
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<ConferenceKitchenRouter | null> {
+    findById(ctx: Context, id: string): Promise<ConferenceKitchenRouter | null> | ConferenceKitchenRouter | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<ConferenceKitchenRouter> | ConferenceKitchenRouter {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -9640,8 +9828,12 @@ export class ConferenceKitchenPeerFactory extends EntityFactory<ConferenceKitche
         return this._create_UNSAFE(ctx, [pid], this.descriptor.codec.normalize({ pid, ...src }));
     }
 
-    findById(ctx: Context, pid: number): Promise<ConferenceKitchenPeer | null> {
+    findById(ctx: Context, pid: number): Promise<ConferenceKitchenPeer | null> | ConferenceKitchenPeer | null {
         return this._findById(ctx, [pid]);
+    }
+
+    findByIdOrFail(ctx: Context, pid: number): Promise<ConferenceKitchenPeer> | ConferenceKitchenPeer {
+        return this._findByIdOrFail(ctx, [pid]);
     }
 
     watch(ctx: Context, pid: number): Watch {
@@ -9855,8 +10047,12 @@ export class ConferenceKitchenProducerTransportFactory extends EntityFactory<Con
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<ConferenceKitchenProducerTransport | null> {
+    findById(ctx: Context, id: string): Promise<ConferenceKitchenProducerTransport | null> | ConferenceKitchenProducerTransport | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<ConferenceKitchenProducerTransport> | ConferenceKitchenProducerTransport {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -10005,8 +10201,12 @@ export class ConferenceKitchenConsumerTransportFactory extends EntityFactory<Con
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<ConferenceKitchenConsumerTransport | null> {
+    findById(ctx: Context, id: string): Promise<ConferenceKitchenConsumerTransport | null> | ConferenceKitchenConsumerTransport | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<ConferenceKitchenConsumerTransport> | ConferenceKitchenConsumerTransport {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -10103,8 +10303,12 @@ export class KitchenWorkerFactory extends EntityFactory<KitchenWorkerShape, Kitc
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<KitchenWorker | null> {
+    findById(ctx: Context, id: string): Promise<KitchenWorker | null> | KitchenWorker | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<KitchenWorker> | KitchenWorker {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -10201,8 +10405,12 @@ export class KitchenRouterFactory extends EntityFactory<KitchenRouterShape, Kitc
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<KitchenRouter | null> {
+    findById(ctx: Context, id: string): Promise<KitchenRouter | null> | KitchenRouter | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<KitchenRouter> | KitchenRouter {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -10325,8 +10533,12 @@ export class KitchenTransportFactory extends EntityFactory<KitchenTransportShape
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<KitchenTransport | null> {
+    findById(ctx: Context, id: string): Promise<KitchenTransport | null> | KitchenTransport | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<KitchenTransport> | KitchenTransport {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -10504,8 +10716,12 @@ export class KitchenProducerFactory extends EntityFactory<KitchenProducerShape, 
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<KitchenProducer | null> {
+    findById(ctx: Context, id: string): Promise<KitchenProducer | null> | KitchenProducer | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<KitchenProducer> | KitchenProducer {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -10699,8 +10915,12 @@ export class KitchenConsumerFactory extends EntityFactory<KitchenConsumerShape, 
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<KitchenConsumer | null> {
+    findById(ctx: Context, id: string): Promise<KitchenConsumer | null> | KitchenConsumer | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<KitchenConsumer> | KitchenConsumer {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -10836,8 +11056,12 @@ export class UserEdgeFactory extends EntityFactory<UserEdgeShape, UserEdge> {
         return this._create_UNSAFE(ctx, [uid1, uid2], this.descriptor.codec.normalize({ uid1, uid2, ...src }));
     }
 
-    findById(ctx: Context, uid1: number, uid2: number): Promise<UserEdge | null> {
+    findById(ctx: Context, uid1: number, uid2: number): Promise<UserEdge | null> | UserEdge | null {
         return this._findById(ctx, [uid1, uid2]);
+    }
+
+    findByIdOrFail(ctx: Context, uid1: number, uid2: number): Promise<UserEdge> | UserEdge {
+        return this._findByIdOrFail(ctx, [uid1, uid2]);
     }
 
     watch(ctx: Context, uid1: number, uid2: number): Watch {
@@ -10925,8 +11149,12 @@ export class UserGroupEdgeFactory extends EntityFactory<UserGroupEdgeShape, User
         return this._create_UNSAFE(ctx, [uid, cid], this.descriptor.codec.normalize({ uid, cid, ...src }));
     }
 
-    findById(ctx: Context, uid: number, cid: number): Promise<UserGroupEdge | null> {
+    findById(ctx: Context, uid: number, cid: number): Promise<UserGroupEdge | null> | UserGroupEdge | null {
         return this._findById(ctx, [uid, cid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number, cid: number): Promise<UserGroupEdge> | UserGroupEdge {
+        return this._findByIdOrFail(ctx, [uid, cid]);
     }
 
     watch(ctx: Context, uid: number, cid: number): Watch {
@@ -10994,8 +11222,12 @@ export class UserInfluencerUserIndexFactory extends EntityFactory<UserInfluencer
         return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
-    findById(ctx: Context, uid: number): Promise<UserInfluencerUserIndex | null> {
+    findById(ctx: Context, uid: number): Promise<UserInfluencerUserIndex | null> | UserInfluencerUserIndex | null {
         return this._findById(ctx, [uid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number): Promise<UserInfluencerUserIndex> | UserInfluencerUserIndex {
+        return this._findByIdOrFail(ctx, [uid]);
     }
 
     watch(ctx: Context, uid: number): Watch {
@@ -11063,8 +11295,12 @@ export class UserInfluencerIndexFactory extends EntityFactory<UserInfluencerInde
         return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
-    findById(ctx: Context, uid: number): Promise<UserInfluencerIndex | null> {
+    findById(ctx: Context, uid: number): Promise<UserInfluencerIndex | null> | UserInfluencerIndex | null {
         return this._findById(ctx, [uid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number): Promise<UserInfluencerIndex> | UserInfluencerIndex {
+        return this._findByIdOrFail(ctx, [uid]);
     }
 
     watch(ctx: Context, uid: number): Watch {
@@ -11203,8 +11439,12 @@ export class UserBadgeFactory extends EntityFactory<UserBadgeShape, UserBadge> {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<UserBadge | null> {
+    findById(ctx: Context, id: number): Promise<UserBadge | null> | UserBadge | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<UserBadge> | UserBadge {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -11308,8 +11548,12 @@ export class UserRoomBadgeFactory extends EntityFactory<UserRoomBadgeShape, User
         return this._create_UNSAFE(ctx, [uid, cid], this.descriptor.codec.normalize({ uid, cid, ...src }));
     }
 
-    findById(ctx: Context, uid: number, cid: number): Promise<UserRoomBadge | null> {
+    findById(ctx: Context, uid: number, cid: number): Promise<UserRoomBadge | null> | UserRoomBadge | null {
         return this._findById(ctx, [uid, cid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number, cid: number): Promise<UserRoomBadge> | UserRoomBadge {
+        return this._findByIdOrFail(ctx, [uid, cid]);
     }
 
     watch(ctx: Context, uid: number, cid: number): Watch {
@@ -11442,8 +11686,12 @@ export class ShortnameReservationFactory extends EntityFactory<ShortnameReservat
         return this._create_UNSAFE(ctx, [shortname], this.descriptor.codec.normalize({ shortname, ...src }));
     }
 
-    findById(ctx: Context, shortname: string): Promise<ShortnameReservation | null> {
+    findById(ctx: Context, shortname: string): Promise<ShortnameReservation | null> | ShortnameReservation | null {
         return this._findById(ctx, [shortname]);
+    }
+
+    findByIdOrFail(ctx: Context, shortname: string): Promise<ShortnameReservation> | ShortnameReservation {
+        return this._findByIdOrFail(ctx, [shortname]);
     }
 
     watch(ctx: Context, shortname: string): Watch {
@@ -11511,8 +11759,12 @@ export class NotificationCenterFactory extends EntityFactory<NotificationCenterS
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<NotificationCenter | null> {
+    findById(ctx: Context, id: number): Promise<NotificationCenter | null> | NotificationCenter | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<NotificationCenter> | NotificationCenter {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -11593,8 +11845,12 @@ export class UserNotificationCenterFactory extends EntityFactory<UserNotificatio
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<UserNotificationCenter | null> {
+    findById(ctx: Context, id: number): Promise<UserNotificationCenter | null> | UserNotificationCenter | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<UserNotificationCenter> | UserNotificationCenter {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -11717,8 +11973,12 @@ export class NotificationFactory extends EntityFactory<NotificationShape, Notifi
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<Notification | null> {
+    findById(ctx: Context, id: number): Promise<Notification | null> | Notification | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<Notification> | Notification {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -11864,8 +12124,12 @@ export class NotificationCenterStateFactory extends EntityFactory<NotificationCe
         return this._create_UNSAFE(ctx, [ncid], this.descriptor.codec.normalize({ ncid, ...src }));
     }
 
-    findById(ctx: Context, ncid: number): Promise<NotificationCenterState | null> {
+    findById(ctx: Context, ncid: number): Promise<NotificationCenterState | null> | NotificationCenterState | null {
         return this._findById(ctx, [ncid]);
+    }
+
+    findByIdOrFail(ctx: Context, ncid: number): Promise<NotificationCenterState> | NotificationCenterState {
+        return this._findByIdOrFail(ctx, [ncid]);
     }
 
     watch(ctx: Context, ncid: number): Watch {
@@ -11979,8 +12243,12 @@ export class NotificationCenterEventFactory extends EntityFactory<NotificationCe
         return this._create_UNSAFE(ctx, [ncid, seq], this.descriptor.codec.normalize({ ncid, seq, ...src }));
     }
 
-    findById(ctx: Context, ncid: number, seq: number): Promise<NotificationCenterEvent | null> {
+    findById(ctx: Context, ncid: number, seq: number): Promise<NotificationCenterEvent | null> | NotificationCenterEvent | null {
         return this._findById(ctx, [ncid, seq]);
+    }
+
+    findByIdOrFail(ctx: Context, ncid: number, seq: number): Promise<NotificationCenterEvent> | NotificationCenterEvent {
+        return this._findByIdOrFail(ctx, [ncid, seq]);
     }
 
     watch(ctx: Context, ncid: number, seq: number): Watch {
@@ -12048,8 +12316,12 @@ export class UserMessagingStateFactory extends EntityFactory<UserMessagingStateS
         return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
-    findById(ctx: Context, uid: number): Promise<UserMessagingState | null> {
+    findById(ctx: Context, uid: number): Promise<UserMessagingState | null> | UserMessagingState | null {
         return this._findById(ctx, [uid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number): Promise<UserMessagingState> | UserMessagingState {
+        return this._findByIdOrFail(ctx, [uid]);
     }
 
     watch(ctx: Context, uid: number): Watch {
@@ -12195,8 +12467,12 @@ export class UserNotificationsStateFactory extends EntityFactory<UserNotificatio
         return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
-    findById(ctx: Context, uid: number): Promise<UserNotificationsState | null> {
+    findById(ctx: Context, uid: number): Promise<UserNotificationsState | null> | UserNotificationsState | null {
         return this._findById(ctx, [uid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number): Promise<UserNotificationsState> | UserNotificationsState {
+        return this._findByIdOrFail(ctx, [uid]);
     }
 
     watch(ctx: Context, uid: number): Watch {
@@ -12277,8 +12553,12 @@ export class FeedSubscriberFactory extends EntityFactory<FeedSubscriberShape, Fe
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<FeedSubscriber | null> {
+    findById(ctx: Context, id: number): Promise<FeedSubscriber | null> | FeedSubscriber | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<FeedSubscriber> | FeedSubscriber {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -12382,8 +12662,12 @@ export class FeedSubscriptionFactory extends EntityFactory<FeedSubscriptionShape
         return this._create_UNSAFE(ctx, [sid, tid], this.descriptor.codec.normalize({ sid, tid, ...src }));
     }
 
-    findById(ctx: Context, sid: number, tid: number): Promise<FeedSubscription | null> {
+    findById(ctx: Context, sid: number, tid: number): Promise<FeedSubscription | null> | FeedSubscription | null {
         return this._findById(ctx, [sid, tid]);
+    }
+
+    findByIdOrFail(ctx: Context, sid: number, tid: number): Promise<FeedSubscription> | FeedSubscription {
+        return this._findByIdOrFail(ctx, [sid, tid]);
     }
 
     watch(ctx: Context, sid: number, tid: number): Watch {
@@ -12509,8 +12793,12 @@ export class FeedTopicFactory extends EntityFactory<FeedTopicShape, FeedTopic> {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<FeedTopic | null> {
+    findById(ctx: Context, id: number): Promise<FeedTopic | null> | FeedTopic | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<FeedTopic> | FeedTopic {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -12704,8 +12992,12 @@ export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<FeedEvent | null> {
+    findById(ctx: Context, id: number): Promise<FeedEvent | null> | FeedEvent | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<FeedEvent> | FeedEvent {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -12896,8 +13188,12 @@ export class FeedChannelFactory extends EntityFactory<FeedChannelShape, FeedChan
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<FeedChannel | null> {
+    findById(ctx: Context, id: number): Promise<FeedChannel | null> | FeedChannel | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<FeedChannel> | FeedChannel {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -13027,8 +13323,12 @@ export class FeedChannelAdminFactory extends EntityFactory<FeedChannelAdminShape
         return this._create_UNSAFE(ctx, [channelId, uid], this.descriptor.codec.normalize({ channelId, uid, ...src }));
     }
 
-    findById(ctx: Context, channelId: number, uid: number): Promise<FeedChannelAdmin | null> {
+    findById(ctx: Context, channelId: number, uid: number): Promise<FeedChannelAdmin | null> | FeedChannelAdmin | null {
         return this._findById(ctx, [channelId, uid]);
+    }
+
+    findByIdOrFail(ctx: Context, channelId: number, uid: number): Promise<FeedChannelAdmin> | FeedChannelAdmin {
+        return this._findByIdOrFail(ctx, [channelId, uid]);
     }
 
     watch(ctx: Context, channelId: number, uid: number): Watch {
@@ -13099,8 +13399,12 @@ export class FeedChannelIndexingQueueFactory extends EntityFactory<FeedChannelIn
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<FeedChannelIndexingQueue | null> {
+    findById(ctx: Context, id: number): Promise<FeedChannelIndexingQueue | null> | FeedChannelIndexingQueue | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<FeedChannelIndexingQueue> | FeedChannelIndexingQueue {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -13168,8 +13472,12 @@ export class UserFeedStateFactory extends EntityFactory<UserFeedStateShape, User
         return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
-    findById(ctx: Context, uid: number): Promise<UserFeedState | null> {
+    findById(ctx: Context, uid: number): Promise<UserFeedState | null> | UserFeedState | null {
         return this._findById(ctx, [uid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number): Promise<UserFeedState> | UserFeedState {
+        return this._findByIdOrFail(ctx, [uid]);
     }
 
     watch(ctx: Context, uid: number): Watch {
@@ -13290,8 +13598,12 @@ export class FeedChannelAutoSubscriptionFactory extends EntityFactory<FeedChanne
         return this._create_UNSAFE(ctx, [channelId, peerType, peerId], this.descriptor.codec.normalize({ channelId, peerType, peerId, ...src }));
     }
 
-    findById(ctx: Context, channelId: number, peerType: string, peerId: number): Promise<FeedChannelAutoSubscription | null> {
+    findById(ctx: Context, channelId: number, peerType: string, peerId: number): Promise<FeedChannelAutoSubscription | null> | FeedChannelAutoSubscription | null {
         return this._findById(ctx, [channelId, peerType, peerId]);
+    }
+
+    findByIdOrFail(ctx: Context, channelId: number, peerType: string, peerId: number): Promise<FeedChannelAutoSubscription> | FeedChannelAutoSubscription {
+        return this._findByIdOrFail(ctx, [channelId, peerType, peerId]);
     }
 
     watch(ctx: Context, channelId: number, peerType: string, peerId: number): Watch {
@@ -13388,8 +13700,12 @@ export class ChatAudienceCalculatingQueueFactory extends EntityFactory<ChatAudie
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<ChatAudienceCalculatingQueue | null> {
+    findById(ctx: Context, id: number): Promise<ChatAudienceCalculatingQueue | null> | ChatAudienceCalculatingQueue | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<ChatAudienceCalculatingQueue> | ChatAudienceCalculatingQueue {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -13499,8 +13815,12 @@ export class ChannelLinkFactory extends EntityFactory<ChannelLinkShape, ChannelL
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<ChannelLink | null> {
+    findById(ctx: Context, id: string): Promise<ChannelLink | null> | ChannelLink | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<ChannelLink> | ChannelLink {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -13581,8 +13901,12 @@ export class AppInviteLinkFactory extends EntityFactory<AppInviteLinkShape, AppI
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<AppInviteLink | null> {
+    findById(ctx: Context, id: string): Promise<AppInviteLink | null> | AppInviteLink | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<AppInviteLink> | AppInviteLink {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -13689,8 +14013,12 @@ export class OrganizationPublicInviteLinkFactory extends EntityFactory<Organizat
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<OrganizationPublicInviteLink | null> {
+    findById(ctx: Context, id: string): Promise<OrganizationPublicInviteLink | null> | OrganizationPublicInviteLink | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<OrganizationPublicInviteLink> | OrganizationPublicInviteLink {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -13901,8 +14229,12 @@ export class OrganizationInviteLinkFactory extends EntityFactory<OrganizationInv
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<OrganizationInviteLink | null> {
+    findById(ctx: Context, id: string): Promise<OrganizationInviteLink | null> | OrganizationInviteLink | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<OrganizationInviteLink> | OrganizationInviteLink {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -14093,8 +14425,12 @@ export class ChannelInvitationFactory extends EntityFactory<ChannelInvitationSha
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<ChannelInvitation | null> {
+    findById(ctx: Context, id: string): Promise<ChannelInvitation | null> | ChannelInvitation | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<ChannelInvitation> | ChannelInvitation {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -14179,8 +14515,12 @@ export class DiscoverUserPickedTagsFactory extends EntityFactory<DiscoverUserPic
         return this._create_UNSAFE(ctx, [uid, id], this.descriptor.codec.normalize({ uid, id, ...src }));
     }
 
-    findById(ctx: Context, uid: number, id: string): Promise<DiscoverUserPickedTags | null> {
+    findById(ctx: Context, uid: number, id: string): Promise<DiscoverUserPickedTags | null> | DiscoverUserPickedTags | null {
         return this._findById(ctx, [uid, id]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number, id: string): Promise<DiscoverUserPickedTags> | DiscoverUserPickedTags {
+        return this._findByIdOrFail(ctx, [uid, id]);
     }
 
     watch(ctx: Context, uid: number, id: string): Watch {
@@ -14248,8 +14588,12 @@ export class DiscoverStateFactory extends EntityFactory<DiscoverStateShape, Disc
         return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
-    findById(ctx: Context, uid: number): Promise<DiscoverState | null> {
+    findById(ctx: Context, uid: number): Promise<DiscoverState | null> | DiscoverState | null {
         return this._findById(ctx, [uid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number): Promise<DiscoverState> | DiscoverState {
+        return this._findByIdOrFail(ctx, [uid]);
     }
 
     watch(ctx: Context, uid: number): Watch {
@@ -14369,8 +14713,12 @@ export class UserOnboardingStateFactory extends EntityFactory<UserOnboardingStat
         return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
-    findById(ctx: Context, uid: number): Promise<UserOnboardingState | null> {
+    findById(ctx: Context, uid: number): Promise<UserOnboardingState | null> | UserOnboardingState | null {
         return this._findById(ctx, [uid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number): Promise<UserOnboardingState> | UserOnboardingState {
+        return this._findByIdOrFail(ctx, [uid]);
     }
 
     watch(ctx: Context, uid: number): Watch {
@@ -14584,8 +14932,12 @@ export class PushFirebaseFactory extends EntityFactory<PushFirebaseShape, PushFi
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<PushFirebase | null> {
+    findById(ctx: Context, id: string): Promise<PushFirebase | null> | PushFirebase | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<PushFirebase> | PushFirebase {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -14799,8 +15151,12 @@ export class PushAppleFactory extends EntityFactory<PushAppleShape, PushApple> {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<PushApple | null> {
+    findById(ctx: Context, id: string): Promise<PushApple | null> | PushApple | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<PushApple> | PushApple {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -15001,8 +15357,12 @@ export class PushSafariFactory extends EntityFactory<PushSafariShape, PushSafari
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<PushSafari | null> {
+    findById(ctx: Context, id: string): Promise<PushSafari | null> | PushSafari | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<PushSafari> | PushSafari {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -15190,8 +15550,12 @@ export class PushWebFactory extends EntityFactory<PushWebShape, PushWeb> {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<PushWeb | null> {
+    findById(ctx: Context, id: string): Promise<PushWeb | null> | PushWeb | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<PushWeb> | PushWeb {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -15276,8 +15640,12 @@ export class AppHookFactory extends EntityFactory<AppHookShape, AppHook> {
         return this._create_UNSAFE(ctx, [appId, chatId], this.descriptor.codec.normalize({ appId, chatId, ...src }));
     }
 
-    findById(ctx: Context, appId: number, chatId: number): Promise<AppHook | null> {
+    findById(ctx: Context, appId: number, chatId: number): Promise<AppHook | null> | AppHook | null {
         return this._findById(ctx, [appId, chatId]);
+    }
+
+    findByIdOrFail(ctx: Context, appId: number, chatId: number): Promise<AppHook> | AppHook {
+        return this._findByIdOrFail(ctx, [appId, chatId]);
     }
 
     watch(ctx: Context, appId: number, chatId: number): Watch {
@@ -15455,8 +15823,12 @@ export class StickerPackFactory extends EntityFactory<StickerPackShape, StickerP
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<StickerPack | null> {
+    findById(ctx: Context, id: number): Promise<StickerPack | null> | StickerPack | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<StickerPack> | StickerPack {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -15563,8 +15935,12 @@ export class UserStickersStateFactory extends EntityFactory<UserStickersStateSha
         return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
-    findById(ctx: Context, uid: number): Promise<UserStickersState | null> {
+    findById(ctx: Context, uid: number): Promise<UserStickersState | null> | UserStickersState | null {
         return this._findById(ctx, [uid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number): Promise<UserStickersState> | UserStickersState {
+        return this._findByIdOrFail(ctx, [uid]);
     }
 
     watch(ctx: Context, uid: number): Watch {
@@ -15729,8 +16105,12 @@ export class StickerFactory extends EntityFactory<StickerShape, Sticker> {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<Sticker | null> {
+    findById(ctx: Context, id: string): Promise<Sticker | null> | Sticker | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<Sticker> | Sticker {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -15815,8 +16195,12 @@ export class MatchmakingRoomFactory extends EntityFactory<MatchmakingRoomShape, 
         return this._create_UNSAFE(ctx, [peerId, peerType], this.descriptor.codec.normalize({ peerId, peerType, ...src }));
     }
 
-    findById(ctx: Context, peerId: number, peerType: string): Promise<MatchmakingRoom | null> {
+    findById(ctx: Context, peerId: number, peerType: string): Promise<MatchmakingRoom | null> | MatchmakingRoom | null {
         return this._findById(ctx, [peerId, peerType]);
+    }
+
+    findByIdOrFail(ctx: Context, peerId: number, peerType: string): Promise<MatchmakingRoom> | MatchmakingRoom {
+        return this._findByIdOrFail(ctx, [peerId, peerType]);
     }
 
     watch(ctx: Context, peerId: number, peerType: string): Watch {
@@ -15908,8 +16292,12 @@ export class MatchmakingProfileFactory extends EntityFactory<MatchmakingProfileS
         return this._create_UNSAFE(ctx, [peerId, peerType, uid], this.descriptor.codec.normalize({ peerId, peerType, uid, ...src }));
     }
 
-    findById(ctx: Context, peerId: number, peerType: string, uid: number): Promise<MatchmakingProfile | null> {
+    findById(ctx: Context, peerId: number, peerType: string, uid: number): Promise<MatchmakingProfile | null> | MatchmakingProfile | null {
         return this._findById(ctx, [peerId, peerType, uid]);
+    }
+
+    findByIdOrFail(ctx: Context, peerId: number, peerType: string, uid: number): Promise<MatchmakingProfile> | MatchmakingProfile {
+        return this._findByIdOrFail(ctx, [peerId, peerType, uid]);
     }
 
     watch(ctx: Context, peerId: number, peerType: string, uid: number): Watch {
@@ -16097,8 +16485,12 @@ export class OauthApplicationFactory extends EntityFactory<OauthApplicationShape
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<OauthApplication | null> {
+    findById(ctx: Context, id: number): Promise<OauthApplication | null> | OauthApplication | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<OauthApplication> | OauthApplication {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -16257,8 +16649,12 @@ export class OauthContextFactory extends EntityFactory<OauthContextShape, OauthC
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<OauthContext | null> {
+    findById(ctx: Context, id: string): Promise<OauthContext | null> | OauthContext | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<OauthContext> | OauthContext {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -16423,8 +16819,12 @@ export class OauthTokenFactory extends EntityFactory<OauthTokenShape, OauthToken
         return this._create_UNSAFE(ctx, [uuid], this.descriptor.codec.normalize({ uuid, ...src }));
     }
 
-    findById(ctx: Context, uuid: string): Promise<OauthToken | null> {
+    findById(ctx: Context, uuid: string): Promise<OauthToken | null> | OauthToken | null {
         return this._findById(ctx, [uuid]);
+    }
+
+    findByIdOrFail(ctx: Context, uuid: string): Promise<OauthToken> | OauthToken {
+        return this._findByIdOrFail(ctx, [uuid]);
     }
 
     watch(ctx: Context, uuid: string): Watch {
@@ -16505,8 +16905,12 @@ export class UserLocationFactory extends EntityFactory<UserLocationShape, UserLo
         return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
-    findById(ctx: Context, uid: number): Promise<UserLocation | null> {
+    findById(ctx: Context, uid: number): Promise<UserLocation | null> | UserLocation | null {
         return this._findById(ctx, [uid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number): Promise<UserLocation> | UserLocation {
+        return this._findByIdOrFail(ctx, [uid]);
     }
 
     watch(ctx: Context, uid: number): Watch {
@@ -16652,8 +17056,12 @@ export class PowerupFactory extends EntityFactory<PowerupShape, Powerup> {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<Powerup | null> {
+    findById(ctx: Context, id: number): Promise<Powerup | null> | Powerup | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<Powerup> | Powerup {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -16770,8 +17178,12 @@ export class ChatPowerupFactory extends EntityFactory<ChatPowerupShape, ChatPowe
         return this._create_UNSAFE(ctx, [pid, cid], this.descriptor.codec.normalize({ pid, cid, ...src }));
     }
 
-    findById(ctx: Context, pid: number, cid: number): Promise<ChatPowerup | null> {
+    findById(ctx: Context, pid: number, cid: number): Promise<ChatPowerup | null> | ChatPowerup | null {
         return this._findById(ctx, [pid, cid]);
+    }
+
+    findByIdOrFail(ctx: Context, pid: number, cid: number): Promise<ChatPowerup> | ChatPowerup {
+        return this._findByIdOrFail(ctx, [pid, cid]);
     }
 
     watch(ctx: Context, pid: number, cid: number): Watch {
@@ -16994,8 +17406,12 @@ export class PermissionRequestFactory extends EntityFactory<PermissionRequestSha
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<PermissionRequest | null> {
+    findById(ctx: Context, id: string): Promise<PermissionRequest | null> | PermissionRequest | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<PermissionRequest> | PermissionRequest {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -17076,8 +17492,12 @@ export class UserStorageNamespaceFactory extends EntityFactory<UserStorageNamesp
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<UserStorageNamespace | null> {
+    findById(ctx: Context, id: number): Promise<UserStorageNamespace | null> | UserStorageNamespace | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<UserStorageNamespace> | UserStorageNamespace {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -17188,8 +17608,12 @@ export class UserStorageRecordFactory extends EntityFactory<UserStorageRecordSha
         return this._create_UNSAFE(ctx, [uid, id], this.descriptor.codec.normalize({ uid, id, ...src }));
     }
 
-    findById(ctx: Context, uid: number, id: number): Promise<UserStorageRecord | null> {
+    findById(ctx: Context, uid: number, id: number): Promise<UserStorageRecord | null> | UserStorageRecord | null {
         return this._findById(ctx, [uid, id]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number, id: number): Promise<UserStorageRecord> | UserStorageRecord {
+        return this._findByIdOrFail(ctx, [uid, id]);
     }
 
     watch(ctx: Context, uid: number, id: number): Watch {
@@ -17283,8 +17707,12 @@ export class UserStripeCustomerFactory extends EntityFactory<UserStripeCustomerS
         return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
-    findById(ctx: Context, uid: number): Promise<UserStripeCustomer | null> {
+    findById(ctx: Context, uid: number): Promise<UserStripeCustomer | null> | UserStripeCustomer | null {
         return this._findById(ctx, [uid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number): Promise<UserStripeCustomer> | UserStripeCustomer {
+        return this._findByIdOrFail(ctx, [uid]);
     }
 
     watch(ctx: Context, uid: number): Watch {
@@ -17502,8 +17930,12 @@ export class UserStripeCardFactory extends EntityFactory<UserStripeCardShape, Us
         return this._create_UNSAFE(ctx, [uid, pmid], this.descriptor.codec.normalize({ uid, pmid, ...src }));
     }
 
-    findById(ctx: Context, uid: number, pmid: string): Promise<UserStripeCard | null> {
+    findById(ctx: Context, uid: number, pmid: string): Promise<UserStripeCard | null> | UserStripeCard | null {
         return this._findById(ctx, [uid, pmid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number, pmid: string): Promise<UserStripeCard> | UserStripeCard {
+        return this._findByIdOrFail(ctx, [uid, pmid]);
     }
 
     watch(ctx: Context, uid: number, pmid: string): Watch {
@@ -17597,8 +18029,12 @@ export class WalletFactory extends EntityFactory<WalletShape, Wallet> {
         return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
-    findById(ctx: Context, uid: number): Promise<Wallet | null> {
+    findById(ctx: Context, uid: number): Promise<Wallet | null> | Wallet | null {
         return this._findById(ctx, [uid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number): Promise<Wallet> | Wallet {
+        return this._findByIdOrFail(ctx, [uid]);
     }
 
     watch(ctx: Context, uid: number): Watch {
@@ -17766,8 +18202,12 @@ export class WalletTransactionFactory extends EntityFactory<WalletTransactionSha
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<WalletTransaction | null> {
+    findById(ctx: Context, id: string): Promise<WalletTransaction | null> | WalletTransaction | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<WalletTransaction> | WalletTransaction {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -17839,8 +18279,12 @@ export class WalletDepositRequestFactory extends EntityFactory<WalletDepositRequ
         return this._create_UNSAFE(ctx, [uid, retryKey], this.descriptor.codec.normalize({ uid, retryKey, ...src }));
     }
 
-    findById(ctx: Context, uid: number, retryKey: string): Promise<WalletDepositRequest | null> {
+    findById(ctx: Context, uid: number, retryKey: string): Promise<WalletDepositRequest | null> | WalletDepositRequest | null {
         return this._findById(ctx, [uid, retryKey]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number, retryKey: string): Promise<WalletDepositRequest> | WalletDepositRequest {
+        return this._findByIdOrFail(ctx, [uid, retryKey]);
     }
 
     watch(ctx: Context, uid: number, retryKey: string): Watch {
@@ -17916,8 +18360,12 @@ export class WalletTransferRequestFactory extends EntityFactory<WalletTransferRe
         return this._create_UNSAFE(ctx, [fromUid, toUid, retryKey], this.descriptor.codec.normalize({ fromUid, toUid, retryKey, ...src }));
     }
 
-    findById(ctx: Context, fromUid: number, toUid: number, retryKey: string): Promise<WalletTransferRequest | null> {
+    findById(ctx: Context, fromUid: number, toUid: number, retryKey: string): Promise<WalletTransferRequest | null> | WalletTransferRequest | null {
         return this._findById(ctx, [fromUid, toUid, retryKey]);
+    }
+
+    findByIdOrFail(ctx: Context, fromUid: number, toUid: number, retryKey: string): Promise<WalletTransferRequest> | WalletTransferRequest {
+        return this._findByIdOrFail(ctx, [fromUid, toUid, retryKey]);
     }
 
     watch(ctx: Context, fromUid: number, toUid: number, retryKey: string): Watch {
@@ -18095,8 +18543,12 @@ export class WalletPurchaseFactory extends EntityFactory<WalletPurchaseShape, Wa
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<WalletPurchase | null> {
+    findById(ctx: Context, id: string): Promise<WalletPurchase | null> | WalletPurchase | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<WalletPurchase> | WalletPurchase {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -18261,8 +18713,12 @@ export class WalletSubscriptionFactory extends EntityFactory<WalletSubscriptionS
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<WalletSubscription | null> {
+    findById(ctx: Context, id: string): Promise<WalletSubscription | null> | WalletSubscription | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<WalletSubscription> | WalletSubscription {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -18330,8 +18786,12 @@ export class WalletSubscriptionSchedulingFactory extends EntityFactory<WalletSub
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<WalletSubscriptionScheduling | null> {
+    findById(ctx: Context, id: string): Promise<WalletSubscriptionScheduling | null> | WalletSubscriptionScheduling | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<WalletSubscriptionScheduling> | WalletSubscriptionScheduling {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -18471,8 +18931,12 @@ export class WalletSubscriptionPeriodFactory extends EntityFactory<WalletSubscri
         return this._create_UNSAFE(ctx, [id, index], this.descriptor.codec.normalize({ id, index, ...src }));
     }
 
-    findById(ctx: Context, id: string, index: number): Promise<WalletSubscriptionPeriod | null> {
+    findById(ctx: Context, id: string, index: number): Promise<WalletSubscriptionPeriod | null> | WalletSubscriptionPeriod | null {
         return this._findById(ctx, [id, index]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string, index: number): Promise<WalletSubscriptionPeriod> | WalletSubscriptionPeriod {
+        return this._findByIdOrFail(ctx, [id, index]);
     }
 
     watch(ctx: Context, id: string, index: number): Watch {
@@ -18566,8 +19030,12 @@ export class PaymentIntentFactory extends EntityFactory<PaymentIntentShape, Paym
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<PaymentIntent | null> {
+    findById(ctx: Context, id: string): Promise<PaymentIntent | null> | PaymentIntent | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<PaymentIntent> | PaymentIntent {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -18735,8 +19203,12 @@ export class PaymentFactory extends EntityFactory<PaymentShape, Payment> {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<Payment | null> {
+    findById(ctx: Context, id: string): Promise<Payment | null> | Payment | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<Payment> | Payment {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -18843,8 +19315,12 @@ export class PaymentSchedulingFactory extends EntityFactory<PaymentSchedulingSha
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<PaymentScheduling | null> {
+    findById(ctx: Context, id: string): Promise<PaymentScheduling | null> | PaymentScheduling | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<PaymentScheduling> | PaymentScheduling {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -18912,8 +19388,12 @@ export class StripeEventsCursorFactory extends EntityFactory<StripeEventsCursorS
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<StripeEventsCursor | null> {
+    findById(ctx: Context, id: string): Promise<StripeEventsCursor | null> | StripeEventsCursor | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<StripeEventsCursor> | StripeEventsCursor {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -19020,8 +19500,12 @@ export class StripeEventFactory extends EntityFactory<StripeEventShape, StripeEv
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<StripeEvent | null> {
+    findById(ctx: Context, id: string): Promise<StripeEvent | null> | StripeEvent | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<StripeEvent> | StripeEvent {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -19089,8 +19573,12 @@ export class SequenceFactory extends EntityFactory<SequenceShape, Sequence> {
         return this._create_UNSAFE(ctx, [sequence], this.descriptor.codec.normalize({ sequence, ...src }));
     }
 
-    findById(ctx: Context, sequence: string): Promise<Sequence | null> {
+    findById(ctx: Context, sequence: string): Promise<Sequence | null> | Sequence | null {
         return this._findById(ctx, [sequence]);
+    }
+
+    findByIdOrFail(ctx: Context, sequence: string): Promise<Sequence> | Sequence {
+        return this._findByIdOrFail(ctx, [sequence]);
     }
 
     watch(ctx: Context, sequence: string): Watch {
@@ -19158,8 +19646,12 @@ export class EnvironmentFactory extends EntityFactory<EnvironmentShape, Environm
         return this._create_UNSAFE(ctx, [production], this.descriptor.codec.normalize({ production, ...src }));
     }
 
-    findById(ctx: Context, production: number): Promise<Environment | null> {
+    findById(ctx: Context, production: number): Promise<Environment | null> | Environment | null {
         return this._findById(ctx, [production]);
+    }
+
+    findByIdOrFail(ctx: Context, production: number): Promise<Environment> | Environment {
+        return this._findByIdOrFail(ctx, [production]);
     }
 
     watch(ctx: Context, production: number): Watch {
@@ -19227,8 +19719,12 @@ export class EnvironmentVariableFactory extends EntityFactory<EnvironmentVariabl
         return this._create_UNSAFE(ctx, [name], this.descriptor.codec.normalize({ name, ...src }));
     }
 
-    findById(ctx: Context, name: string): Promise<EnvironmentVariable | null> {
+    findById(ctx: Context, name: string): Promise<EnvironmentVariable | null> | EnvironmentVariable | null {
         return this._findById(ctx, [name]);
+    }
+
+    findByIdOrFail(ctx: Context, name: string): Promise<EnvironmentVariable> | EnvironmentVariable {
+        return this._findByIdOrFail(ctx, [name]);
     }
 
     watch(ctx: Context, name: string): Watch {
@@ -19316,8 +19812,12 @@ export class ServiceCacheFactory extends EntityFactory<ServiceCacheShape, Servic
         return this._create_UNSAFE(ctx, [service, key], this.descriptor.codec.normalize({ service, key, ...src }));
     }
 
-    findById(ctx: Context, service: string, key: string): Promise<ServiceCache | null> {
+    findById(ctx: Context, service: string, key: string): Promise<ServiceCache | null> | ServiceCache | null {
         return this._findById(ctx, [service, key]);
+    }
+
+    findByIdOrFail(ctx: Context, service: string, key: string): Promise<ServiceCache> | ServiceCache {
+        return this._findByIdOrFail(ctx, [service, key]);
     }
 
     watch(ctx: Context, service: string, key: string): Watch {
@@ -19398,8 +19898,12 @@ export class ReaderStateFactory extends EntityFactory<ReaderStateShape, ReaderSt
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<ReaderState | null> {
+    findById(ctx: Context, id: string): Promise<ReaderState | null> | ReaderState | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<ReaderState> | ReaderState {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -19480,8 +19984,12 @@ export class SuperAdminFactory extends EntityFactory<SuperAdminShape, SuperAdmin
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<SuperAdmin | null> {
+    findById(ctx: Context, id: number): Promise<SuperAdmin | null> | SuperAdmin | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<SuperAdmin> | SuperAdmin {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -19630,8 +20138,12 @@ export class AuthTokenFactory extends EntityFactory<AuthTokenShape, AuthToken> {
         return this._create_UNSAFE(ctx, [uuid], this.descriptor.codec.normalize({ uuid, ...src }));
     }
 
-    findById(ctx: Context, uuid: string): Promise<AuthToken | null> {
+    findById(ctx: Context, uuid: string): Promise<AuthToken | null> | AuthToken | null {
         return this._findById(ctx, [uuid]);
+    }
+
+    findByIdOrFail(ctx: Context, uuid: string): Promise<AuthToken> | AuthToken {
+        return this._findByIdOrFail(ctx, [uuid]);
     }
 
     watch(ctx: Context, uuid: string): Watch {
@@ -19764,8 +20276,12 @@ export class AuthCodeSessionFactory extends EntityFactory<AuthCodeSessionShape, 
         return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
-    findById(ctx: Context, uid: string): Promise<AuthCodeSession | null> {
+    findById(ctx: Context, uid: string): Promise<AuthCodeSession | null> | AuthCodeSession | null {
         return this._findById(ctx, [uid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: string): Promise<AuthCodeSession> | AuthCodeSession {
+        return this._findByIdOrFail(ctx, [uid]);
     }
 
     watch(ctx: Context, uid: string): Watch {
@@ -19833,8 +20349,12 @@ export class FeatureFlagFactory extends EntityFactory<FeatureFlagShape, FeatureF
         return this._create_UNSAFE(ctx, [key], this.descriptor.codec.normalize({ key, ...src }));
     }
 
-    findById(ctx: Context, key: string): Promise<FeatureFlag | null> {
+    findById(ctx: Context, key: string): Promise<FeatureFlag | null> | FeatureFlag | null {
         return this._findById(ctx, [key]);
+    }
+
+    findByIdOrFail(ctx: Context, key: string): Promise<FeatureFlag> | FeatureFlag {
+        return this._findByIdOrFail(ctx, [key]);
     }
 
     watch(ctx: Context, key: string): Watch {
@@ -19941,8 +20461,12 @@ export class OrganizationFeaturesFactory extends EntityFactory<OrganizationFeatu
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<OrganizationFeatures | null> {
+    findById(ctx: Context, id: string): Promise<OrganizationFeatures | null> | OrganizationFeatures | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<OrganizationFeatures> | OrganizationFeatures {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -20088,8 +20612,12 @@ export class HyperLogFactory extends EntityFactory<HyperLogShape, HyperLog> {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<HyperLog | null> {
+    findById(ctx: Context, id: string): Promise<HyperLog | null> | HyperLog | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<HyperLog> | HyperLog {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -20173,8 +20701,12 @@ export class HyperLogTypeFactory extends EntityFactory<HyperLogTypeShape, HyperL
         return this._create_UNSAFE(ctx, [name], this.descriptor.codec.normalize({ name, ...src }));
     }
 
-    findById(ctx: Context, name: string): Promise<HyperLogType | null> {
+    findById(ctx: Context, name: string): Promise<HyperLogType | null> | HyperLogType | null {
         return this._findById(ctx, [name]);
+    }
+
+    findByIdOrFail(ctx: Context, name: string): Promise<HyperLogType> | HyperLogType {
+        return this._findByIdOrFail(ctx, [name]);
     }
 
     watch(ctx: Context, name: string): Watch {
@@ -20431,8 +20963,12 @@ export class TaskFactory extends EntityFactory<TaskShape, Task> {
         return this._create_UNSAFE(ctx, [taskType, uid], this.descriptor.codec.normalize({ taskType, uid, ...src }));
     }
 
-    findById(ctx: Context, taskType: string, uid: string): Promise<Task | null> {
+    findById(ctx: Context, taskType: string, uid: string): Promise<Task | null> | Task | null {
         return this._findById(ctx, [taskType, uid]);
+    }
+
+    findByIdOrFail(ctx: Context, taskType: string, uid: string): Promise<Task> | Task {
+        return this._findByIdOrFail(ctx, [taskType, uid]);
     }
 
     watch(ctx: Context, taskType: string, uid: string): Watch {
@@ -20601,8 +21137,12 @@ export class DelayedTaskFactory extends EntityFactory<DelayedTaskShape, DelayedT
         return this._create_UNSAFE(ctx, [taskType, uid], this.descriptor.codec.normalize({ taskType, uid, ...src }));
     }
 
-    findById(ctx: Context, taskType: string, uid: string): Promise<DelayedTask | null> {
+    findById(ctx: Context, taskType: string, uid: string): Promise<DelayedTask | null> | DelayedTask | null {
         return this._findById(ctx, [taskType, uid]);
+    }
+
+    findByIdOrFail(ctx: Context, taskType: string, uid: string): Promise<DelayedTask> | DelayedTask {
+        return this._findByIdOrFail(ctx, [taskType, uid]);
     }
 
     watch(ctx: Context, taskType: string, uid: string): Watch {
@@ -20687,8 +21227,12 @@ export class ServiceThrottleFactory extends EntityFactory<ServiceThrottleShape, 
         return this._create_UNSAFE(ctx, [service, key], this.descriptor.codec.normalize({ service, key, ...src }));
     }
 
-    findById(ctx: Context, service: string, key: string): Promise<ServiceThrottle | null> {
+    findById(ctx: Context, service: string, key: string): Promise<ServiceThrottle | null> | ServiceThrottle | null {
         return this._findById(ctx, [service, key]);
+    }
+
+    findByIdOrFail(ctx: Context, service: string, key: string): Promise<ServiceThrottle> | ServiceThrottle {
+        return this._findByIdOrFail(ctx, [service, key]);
     }
 
     watch(ctx: Context, service: string, key: string): Watch {
@@ -20825,8 +21369,12 @@ export class OneTimeCodeFactory extends EntityFactory<OneTimeCodeShape, OneTimeC
         return this._create_UNSAFE(ctx, [service, id], this.descriptor.codec.normalize({ service, id, ...src }));
     }
 
-    findById(ctx: Context, service: string, id: string): Promise<OneTimeCode | null> {
+    findById(ctx: Context, service: string, id: string): Promise<OneTimeCode | null> | OneTimeCode | null {
         return this._findById(ctx, [service, id]);
+    }
+
+    findByIdOrFail(ctx: Context, service: string, id: string): Promise<OneTimeCode> | OneTimeCode {
+        return this._findByIdOrFail(ctx, [service, id]);
     }
 
     watch(ctx: Context, service: string, id: string): Watch {
@@ -20914,8 +21462,12 @@ export class DebugEventFactory extends EntityFactory<DebugEventShape, DebugEvent
         return this._create_UNSAFE(ctx, [uid, seq], this.descriptor.codec.normalize({ uid, seq, ...src }));
     }
 
-    findById(ctx: Context, uid: number, seq: number): Promise<DebugEvent | null> {
+    findById(ctx: Context, uid: number, seq: number): Promise<DebugEvent | null> | DebugEvent | null {
         return this._findById(ctx, [uid, seq]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number, seq: number): Promise<DebugEvent> | DebugEvent {
+        return this._findByIdOrFail(ctx, [uid, seq]);
     }
 
     watch(ctx: Context, uid: number, seq: number): Watch {
@@ -20983,8 +21535,12 @@ export class DebugEventStateFactory extends EntityFactory<DebugEventStateShape, 
         return this._create_UNSAFE(ctx, [uid], this.descriptor.codec.normalize({ uid, ...src }));
     }
 
-    findById(ctx: Context, uid: number): Promise<DebugEventState | null> {
+    findById(ctx: Context, uid: number): Promise<DebugEventState | null> | DebugEventState | null {
         return this._findById(ctx, [uid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number): Promise<DebugEventState> | DebugEventState {
+        return this._findByIdOrFail(ctx, [uid]);
     }
 
     watch(ctx: Context, uid: number): Watch {
@@ -21091,8 +21647,12 @@ export class EntityCounterStateFactory extends EntityFactory<EntityCounterStateS
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<EntityCounterState | null> {
+    findById(ctx: Context, id: string): Promise<EntityCounterState | null> | EntityCounterState | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<EntityCounterState> | EntityCounterState {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -21176,8 +21736,12 @@ export class GqlTraceFactory extends EntityFactory<GqlTraceShape, GqlTrace> {
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<GqlTrace | null> {
+    findById(ctx: Context, id: number): Promise<GqlTrace | null> | GqlTrace | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<GqlTrace> | GqlTrace {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -21284,8 +21848,12 @@ export class EntityCleanerStateFactory extends EntityFactory<EntityCleanerStateS
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: string): Promise<EntityCleanerState | null> {
+    findById(ctx: Context, id: string): Promise<EntityCleanerState | null> | EntityCleanerState | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: string): Promise<EntityCleanerState> | EntityCleanerState {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: string): Watch {
@@ -21450,8 +22018,12 @@ export class EditorsChoiceChatsCollectionFactory extends EntityFactory<EditorsCh
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<EditorsChoiceChatsCollection | null> {
+    findById(ctx: Context, id: number): Promise<EditorsChoiceChatsCollection | null> | EditorsChoiceChatsCollection | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<EditorsChoiceChatsCollection> | EditorsChoiceChatsCollection {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -21571,8 +22143,12 @@ export class EditorsChoiceChatFactory extends EntityFactory<EditorsChoiceChatSha
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<EditorsChoiceChat | null> {
+    findById(ctx: Context, id: number): Promise<EditorsChoiceChat | null> | EditorsChoiceChat | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<EditorsChoiceChat> | EditorsChoiceChat {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -21640,8 +22216,12 @@ export class ClickHouseMigrationsFactory extends EntityFactory<ClickHouseMigrati
         return this._create_UNSAFE(ctx, [version], this.descriptor.codec.normalize({ version, ...src }));
     }
 
-    findById(ctx: Context, version: number): Promise<ClickHouseMigrations | null> {
+    findById(ctx: Context, version: number): Promise<ClickHouseMigrations | null> | ClickHouseMigrations | null {
         return this._findById(ctx, [version]);
+    }
+
+    findByIdOrFail(ctx: Context, version: number): Promise<ClickHouseMigrations> | ClickHouseMigrations {
+        return this._findByIdOrFail(ctx, [version]);
     }
 
     watch(ctx: Context, version: number): Watch {
@@ -21709,8 +22289,12 @@ export class DiscussionHubFactory extends EntityFactory<DiscussionHubShape, Disc
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<DiscussionHub | null> {
+    findById(ctx: Context, id: number): Promise<DiscussionHub | null> | DiscussionHub | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<DiscussionHub> | DiscussionHub {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -21918,8 +22502,12 @@ export class DiscussionFactory extends EntityFactory<DiscussionShape, Discussion
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<Discussion | null> {
+    findById(ctx: Context, id: number): Promise<Discussion | null> | Discussion | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<Discussion> | Discussion {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -22098,8 +22686,12 @@ export class DiscussionDraftFactory extends EntityFactory<DiscussionDraftShape, 
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<DiscussionDraft | null> {
+    findById(ctx: Context, id: number): Promise<DiscussionDraft | null> | DiscussionDraft | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<DiscussionDraft> | DiscussionDraft {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
@@ -22191,8 +22783,12 @@ export class ContactFactory extends EntityFactory<ContactShape, Contact> {
         return this._create_UNSAFE(ctx, [uid, contactUid], this.descriptor.codec.normalize({ uid, contactUid, ...src }));
     }
 
-    findById(ctx: Context, uid: number, contactUid: number): Promise<Contact | null> {
+    findById(ctx: Context, uid: number, contactUid: number): Promise<Contact | null> | Contact | null {
         return this._findById(ctx, [uid, contactUid]);
+    }
+
+    findByIdOrFail(ctx: Context, uid: number, contactUid: number): Promise<Contact> | Contact {
+        return this._findByIdOrFail(ctx, [uid, contactUid]);
     }
 
     watch(ctx: Context, uid: number, contactUid: number): Watch {
@@ -22344,8 +22940,12 @@ export class PhonebookItemFactory extends EntityFactory<PhonebookItemShape, Phon
         return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
     }
 
-    findById(ctx: Context, id: number): Promise<PhonebookItem | null> {
+    findById(ctx: Context, id: number): Promise<PhonebookItem | null> | PhonebookItem | null {
         return this._findById(ctx, [id]);
+    }
+
+    findByIdOrFail(ctx: Context, id: number): Promise<PhonebookItem> | PhonebookItem {
+        return this._findByIdOrFail(ctx, [id]);
     }
 
     watch(ctx: Context, id: number): Watch {
