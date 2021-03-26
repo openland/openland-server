@@ -73,6 +73,11 @@ export const Schema = (forTest: boolean = false) => {
             return value;
         }
 
+        // Handle promise
+        if (isPromise(value)) {
+            return value.then((v) => resolveObject(type, v, context, info));
+        }
+
         // Unwrap non-null
         if (type instanceof GraphQLNonNull) {
             return resolveObject(type.ofType, value, context, info);
