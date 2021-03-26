@@ -6,7 +6,7 @@ import { Texts } from '../texts';
 import { fetchMessageFallback } from 'openland-module-messaging/resolvers/ModernMessage.resolver';
 import { createLogger, withLogPath } from '@openland/log';
 import { singletonWorker } from '@openland/foundationdb-singleton';
-import { Context, createNamedContext } from '@openland/context';
+import { Context } from '@openland/context';
 import { eventsFind } from '../../openland-module-db/eventsFind';
 import { UserDialogMessageReceivedEvent, UserSettingsShape } from '../../openland-module-db/store';
 import { batch } from '../../openland-utils/batch';
@@ -20,7 +20,6 @@ import { createTracer } from 'openland-log/createTracer';
 // };
 
 const log = createLogger('push');
-const rootCtx = createNamedContext('push');
 const trace = createTracer('push');
 const DEBUG = false;
 
@@ -249,11 +248,11 @@ async function handleUsersForShard(parent: Context, shardId: number) {
 
     for (let b of batches) {
         try {
-            await inTx(rootCtx, async ctx => {
+            await inTx(parent, async ctx => {
                 await Promise.all(b.map(uid => handleUser(ctx, uid)));
             });
         } catch (e) {
-            log.log(rootCtx, 'push_error', e);
+            log.log(parent, 'push_error', e);
         }
     }
 }
