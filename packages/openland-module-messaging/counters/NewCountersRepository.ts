@@ -1,5 +1,6 @@
 import { Context } from '@openland/context';
 import { encoders, Subspace } from '@openland/foundationdb';
+import { createTracer } from 'openland-log/createTracer';
 import { Message } from 'openland-module-db/store';
 import { getAllMentions, hasAllMention } from 'openland-module-messaging/resolvers/ModernMessage.resolver';
 import { CountersDirectory } from './CountersDirectory';
@@ -7,6 +8,8 @@ import { CounterSubscribersDirectory } from './CounterSubscribersDirectory';
 
 const SUBSPACE_COUNTERS = 0;
 const SUBSPACE_SUBSCRIBERS = 1;
+
+const tracer = createTracer('counters');
 
 export class NewCountersRepository {
     readonly subspace: Subspace;
@@ -79,37 +82,39 @@ export class NewCountersRepository {
         await this.subscribers.subscribe(ctx, { uid: args.uid, cid: args.cid, muted: args.muted, seq: state.seq, counter: state.counter, mentions: state.mentions });
     }
 
-    async getGlobalCounterDirect(ctx: Context, uid: number, excludeMuted: boolean, counter: 'all' | 'distinct' | 'all-mentions' | 'distinct-mentions') {
-        return await this.subscribers.getCounter(ctx, uid, excludeMuted, counter);
+    getGlobalCounterDirect(ctx: Context, uid: number, excludeMuted: boolean, counter: 'all' | 'distinct' | 'all-mentions' | 'distinct-mentions') {
+        return tracer.trace(ctx, 'direct-' + counter, (ctx2) => this.subscribers.getCounter(ctx2, uid, excludeMuted, counter));
     }
 
     async getGlobalCounterAsync(ctx: Context, uid: number, excludeMuted: boolean, counter: 'all' | 'distinct' | 'all-mentions' | 'distinct-mentions') {
-        let res = 0;
-        let asyncSubscriptions = await this.subscribers.getAsyncSubscriptions(ctx, uid);
-        for (let subs of asyncSubscriptions) {
-            if (subs.muted && excludeMuted) {
-                continue;
-            }
-            let state = await this.subscribers.readState(ctx, { cid: subs.cid, uid });
-            if (!state) {
-                continue;
-            }
-            let counters = await this.counters.count(ctx, [subs.cid], uid, state.seq);
-            if (counter === 'all') {
-                res += counters.unread;
-            } else if (counter === 'distinct') {
-                if (counters.unread > 0) {
-                    res++;
+        return tracer.trace(ctx, 'async-' + counter, async (ctx2) => {
+            let res = 0;
+            let asyncSubscriptions = await this.subscribers.getAsyncSubscriptions(ctx2, uid);
+            for (let subs of asyncSubscriptions) {
+                if (subs.muted && excludeMuted) {
+                    continue;
                 }
-            } else if (counter === 'all-mentions') {
-                res += counters.unreadMentions;
-            } else if (counter === 'distinct-mentions') {
-                if (counters.unreadMentions > 0) {
-                    res++;
+                const state = await this.subscribers.readState(ctx2, { cid: subs.cid, uid });
+                if (!state) {
+                    continue;
+                }
+                let counters = await tracer.trace(ctx, 'chat', async (ctx3) => this.counters.count(ctx3, [subs.cid], uid, state.seq));
+                if (counter === 'all') {
+                    res += counters.unread;
+                } else if (counter === 'distinct') {
+                    if (counters.unread > 0) {
+                        res++;
+                    }
+                } else if (counter === 'all-mentions') {
+                    res += counters.unreadMentions;
+                } else if (counter === 'distinct-mentions') {
+                    if (counters.unreadMentions > 0) {
+                        res++;
+                    }
                 }
             }
-        }
-        return res;
+            return res;
+        });
     }
 
     async getGlobalCounter(ctx: Context, uid: number, excludeMuted: boolean, counter: 'all' | 'distinct' | 'all-mentions' | 'distinct-mentions') {
