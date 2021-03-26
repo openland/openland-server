@@ -20,7 +20,7 @@ export type InterfaceTypeResolver<Root, ReturnType> = {
 };
 
 export type ObjectRootResolver<Root> = {
-    __resolveRoot?: (obj: Root, ctx: Context) => MaybePromise<Root>
+    __resolveObject?: (obj: Root, ctx: Context) => MaybePromise<Root>
 };
 
 export type ComplexTypedResolver<T, Root, ReturnTypesMap extends any, ArgTypesMap extends any> = {

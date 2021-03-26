@@ -1,6 +1,6 @@
 import { makeExecutableSchema } from 'graphql-tools';
 import { Directives } from './Directives2';
-import { GraphQLResolveInfo } from 'graphql';
+import { GraphQLEnumType, GraphQLInterfaceType, GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLOutputType, GraphQLResolveInfo, GraphQLScalarType, GraphQLUnionType } from 'graphql';
 import { buildSchema } from 'openland-graphql/buildSchema';
 import { buildResolvers } from 'openland-graphql/buildResolvers';
 import { withLogPath } from '@openland/log';
@@ -8,6 +8,7 @@ import { instrumentSchema } from 'openland-graphql/instrumentResolvers';
 import { createTracer } from 'openland-log/createTracer';
 import { TracingContext } from 'openland-log/src/TracingContext';
 import { isPromise } from 'openland-utils/isPromise';
+import { Context } from 'node:vm';
 
 const tracer = createTracer('gql');
 
@@ -40,7 +41,65 @@ export const Schema = (forTest: boolean = false) => {
         return executableSchema;
     }
 
+    function resolveObjectValue(type: string, value: any, context: Context, info: any) {
+        return value;
+    }
+
+    function resolveObject(type: GraphQLOutputType, value: any, context: Context, info: any): any {
+
+        // Nullable values
+        // NOTE: We are handling nullability checks in executor
+        if (value === null || value === undefined) {
+            return value;
+        }
+
+        // Unwrap non-null
+        if (type instanceof GraphQLNonNull) {
+            return resolveObject(type.ofType, value, context, info);
+        }
+
+        // Scalar
+        if (type instanceof GraphQLScalarType) {
+            return value;
+        }
+
+        // Enum
+        if (type instanceof GraphQLEnumType) {
+            return value;
+        }
+
+        // List
+        if (type instanceof GraphQLList) {
+            let res: any[] = [];
+            // TODO: Optimize
+            for (let item of value) {
+                res.push(resolveObject(type.ofType, item, context, info));
+            }
+            return Promise.all(res);
+        }
+
+        // Abstract types
+        if (type instanceof GraphQLUnionType || type instanceof GraphQLInterfaceType) {
+            const resolvedType = type.resolveType!(value, context, info, type);
+            if (isPromise(resolvedType)) {
+                return resolvedType.then((v) => resolveObjectValue(typeof v === 'string' ? v : v!.name, value, context, info));
+            }
+            return resolveObjectValue(typeof resolvedType === 'string' ? resolvedType : resolvedType!.name, value, context, info);
+        }
+
+        // Object type
+        if (type instanceof GraphQLObjectType) {
+            return resolveObjectValue(type.name, value, context, info);
+        }
+
+        // Invalid
+        throw Error('Invalid object type');
+    }
+
     instrumentSchema(executableSchema, {
+        object: (type, value, context, info) => {
+            return resolveObject(type, value, context, info);
+        },
         field: (type, field, original, root, args, context, info) => {
             let path = fetchResolvePath(info);
             let ctx = context;

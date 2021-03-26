@@ -1,19 +1,32 @@
 import { Context } from '@openland/context';
-import { GraphQLField, GraphQLFieldResolver, GraphQLObjectType, GraphQLSchema } from 'graphql';
+import { GraphQLField, GraphQLFieldResolver, GraphQLObjectType, GraphQLOutputType, GraphQLSchema } from 'graphql';
+import { isPromise } from 'openland-utils/isPromise';
 
-export type FieldHandler = (type: GraphQLObjectType, field: GraphQLField<any, any>, originalResolver: GraphQLFieldResolver<any, any, any>, root: any, args: any, context: any, info: any) => any;
+export type FieldHandler = (type: GraphQLObjectType, field: GraphQLField<any, any>, originalResolver: GraphQLFieldResolver<any, any, any>, root: any, args: any, context: Context, info: any) => any;
+export type ObjectHandler = (type: GraphQLOutputType, value: any, context: Context, info: any) => any;
 
 export type InstrumentationConfig = {
     field?: FieldHandler;
+    object?: ObjectHandler;
 };
 
 function instrumentField(type: GraphQLObjectType, field: GraphQLField<any, any, { [key: string]: any; }>, config: InstrumentationConfig) {
     const fieldHandler = config.field;
+    const objectHandler = config.object;
 
     if (fieldHandler && field.resolve) {
         const originalResolve = field.resolve;
         field.resolve = (root: any, args: any, context: Context, info: any) => {
-            return fieldHandler(type, field, originalResolve, root, args, context, info);
+            let res = fieldHandler(type, field, originalResolve, root, args, context, info);
+            if (objectHandler) {
+                if (isPromise(res)) {
+                    return res.then((v) => objectHandler(field.type, v, context, info));
+                } else {
+                    return objectHandler(field.type, res, context, info);
+                }
+            } else {
+                return res;
+            }
         };
     }
 }
