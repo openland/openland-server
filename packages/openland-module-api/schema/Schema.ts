@@ -8,7 +8,7 @@ import { instrumentSchema } from 'openland-graphql/instrumentResolvers';
 import { createTracer } from 'openland-log/createTracer';
 import { TracingContext } from 'openland-log/src/TracingContext';
 import { isPromise } from 'openland-utils/isPromise';
-import { Context } from 'node:vm';
+import { Context } from '@openland/context';
 
 const tracer = createTracer('gql');
 
@@ -41,7 +41,27 @@ export const Schema = (forTest: boolean = false) => {
         return executableSchema;
     }
 
-    function resolveObjectValue(type: string, value: any, context: Context, info: any) {
+    function resolveObjectValue(type: string, value: any, ctx: Context, info: any) {
+        if (resolvers.rootResolvers[type]) {
+            let c = TracingContext.get(ctx);
+            let span = tracer.startSpan(type + '.__resolveObject', c.span ? c.span : undefined);
+            ctx = TracingContext.set(ctx, { span });
+            let res: any;
+            try {
+                res = resolvers.rootResolvers[type](value, ctx);
+            } catch (e) {
+                span.finish();
+                throw e;
+            }
+            if (isPromise(res)) {
+                return res.finally(() => {
+                    span.finish();
+                });
+            } else {
+                span.finish();
+                return res;
+            }
+        }
         return value;
     }
 
@@ -71,11 +91,19 @@ export const Schema = (forTest: boolean = false) => {
         // List
         if (type instanceof GraphQLList) {
             let res: any[] = [];
-            // TODO: Optimize
+            let hasPromise = false;
             for (let item of value) {
-                res.push(resolveObject(type.ofType, item, context, info));
+                let resolved = resolveObject(type.ofType, item, context, info);
+                if (isPromise(resolved)) {
+                    hasPromise = true;
+                }
+                res.push(resolved);
             }
-            return Promise.all(res);
+            if (hasPromise) {
+                return Promise.all(res);
+            } else {
+                return res;
+            }
         }
 
         // Abstract types
@@ -120,15 +148,13 @@ export const Schema = (forTest: boolean = false) => {
             }
 
             if (isPromise(res)) {
-                res.finally(() => {
-                    span.finish();
-                }).catch(() => {
+                return res.finally(() => {
                     span.finish();
                 });
             } else {
                 span.finish();
+                return res;
             }
-            return res;
         }
     });
 

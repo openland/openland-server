@@ -116,6 +116,16 @@ export const Resolver: GQLResolver = {
         text: root => root.text
     },
     User: {
+        __resolveObject: (src, ctx) => {
+            if (typeof src === 'number') {
+                return userRootFull(ctx, src);
+            } else if (src instanceof User) {
+                return userRootFull(ctx, src.id);
+            } else if (src instanceof UserProfile) {
+                return userRootFull(ctx, src.id);
+            }
+            return src;
+        },
         id: (src) => {
             if (typeof src === 'number') {
                 return IDs.User.serialize(src);
