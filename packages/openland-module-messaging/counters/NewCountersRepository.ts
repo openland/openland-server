@@ -90,37 +90,47 @@ export class NewCountersRepository {
         return tracer.trace(ctx, 'async-' + counter, async (ctx2) => {
             let res = 0;
             let asyncSubscriptions = await this.subscribers.getAsyncSubscriptions(ctx2, uid);
+            let pending: Promise<number>[] = [];
             for (let subs of asyncSubscriptions) {
                 if (subs.muted && excludeMuted) {
                     continue;
                 }
-                const state = await this.subscribers.readState(ctx2, { cid: subs.cid, uid });
-                if (!state) {
-                    continue;
-                }
-                let counters = await tracer.trace(ctx, 'chat', async (ctx3) => this.counters.count(ctx3, [subs.cid], uid, state.seq));
-                if (counter === 'all') {
-                    res += counters.unread;
-                } else if (counter === 'distinct') {
-                    if (counters.unread > 0) {
-                        res++;
+                pending.push((async () => {
+                    const state = await this.subscribers.readState(ctx2, { cid: subs.cid, uid });
+                    if (!state) {
+                        return 0;
                     }
-                } else if (counter === 'all-mentions') {
-                    res += counters.unreadMentions;
-                } else if (counter === 'distinct-mentions') {
-                    if (counters.unreadMentions > 0) {
-                        res++;
+                    let counters = await tracer.trace(ctx, 'chat', async (ctx3) => this.counters.count(ctx3, [subs.cid], uid, state.seq));
+                    if (counter === 'all') {
+                        return counters.unread;
+                    } else if (counter === 'distinct') {
+                        if (counters.unread > 0) {
+                            return 1;
+                        }
+                    } else if (counter === 'all-mentions') {
+                        return counters.unreadMentions;
+                    } else if (counter === 'distinct-mentions') {
+                        if (counters.unreadMentions > 0) {
+                            return 1;
+                        }
                     }
-                }
+                    return 0;
+                })());
+            }
+            let resolved = await Promise.all(pending);
+            for (let r of resolved) {
+                res += r;
             }
             return res;
         });
     }
 
     async getGlobalCounter(ctx: Context, uid: number, excludeMuted: boolean, counter: 'all' | 'distinct' | 'all-mentions' | 'distinct-mentions') {
+        const direct = this.getGlobalCounterDirect(ctx, uid, excludeMuted, counter);
+        const async = this.getGlobalCounterAsync(ctx, uid, excludeMuted, counter);
         let res = 0;
-        res += await this.getGlobalCounterDirect(ctx, uid, excludeMuted, counter);
-        res += await this.getGlobalCounterAsync(ctx, uid, excludeMuted, counter);
+        res += await direct;
+        res += await async;
         return res;
     }
 
