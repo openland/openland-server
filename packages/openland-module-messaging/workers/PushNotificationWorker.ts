@@ -5,13 +5,15 @@ import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Texts } from '../texts';
 import { fetchMessageFallback } from 'openland-module-messaging/resolvers/ModernMessage.resolver';
 import { createLogger, withLogPath } from '@openland/log';
-import { singletonWorker } from '@openland/foundationdb-singleton';
-import { Context } from '@openland/context';
+// import { singletonWorker } from '@openland/foundationdb-singleton';
+import { Context, createNamedContext } from '@openland/context';
 import { eventsFind } from '../../openland-module-db/eventsFind';
 import { UserDialogMessageReceivedEvent, UserSettingsShape } from '../../openland-module-db/store';
 import { batch } from '../../openland-utils/batch';
 import { getShardId } from '../../openland-module-sharding/getShardId';
 import { createTracer } from 'openland-log/createTracer';
+import { ShardRegion } from 'openland-module-sharding/ShardRegion';
+import { delay, foreverBreakable } from 'openland-utils/timer';
 
 // const Delays = {
 //     'none': 10 * 1000,
@@ -257,26 +259,45 @@ async function handleUsersForShard(parent: Context, shardId: number) {
     }
 }
 
-function createWorker(shardId: number) {
-    singletonWorker({
-        name: `push_notifications_shard_${shardId}`,
-        delay: 1000,
-        startDelay: 3000,
-        db: Store.storage.db
-    }, async (parent) => {
-        await trace.trace(parent, 'work', async (ctx) => {
-            DEBUG && log.log(ctx, 'push_notification_shard_worker', shardId, 'loop');
-            try {
-                await handleUsersForShard(ctx, shardId);
-            } catch (e) {
-                log.log(ctx, 'push_worker_error', e);
-            }
-        });
-    });
-}
+// function createWorker(shardId: number) {
+//     singletonWorker({
+//         name: `push_notifications_shard_${shardId}`,
+//         delay: 1000,
+//         startDelay: 3000,
+//         db: Store.storage.db
+//     }, async (parent) => {
+//         await trace.trace(parent, 'work', async (ctx) => {
+//             DEBUG && log.log(ctx, 'push_notification_shard_worker', shardId, 'loop');
+//             try {
+//                 await handleUsersForShard(ctx, shardId);
+//             } catch (e) {
+//                 log.log(ctx, 'push_worker_error', e);
+//             }
+//         });
+//     });
+// }
 
 export function startPushNotificationWorker() {
-    for (let i = 0; i <= RING_SIZE; i++) {
-        createWorker(i);
-    }
+    const shard = new ShardRegion('push', RING_SIZE);
+    shard.startShard(async (shardId) => {
+        const root = createNamedContext('push-' + shardId);
+        const worker = foreverBreakable(root, async () => {
+            await trace.trace(root, 'work', async (ctx) => {
+                DEBUG && log.log(ctx, 'push_notification_shard_worker', shardId, 'loop');
+                try {
+                    await handleUsersForShard(ctx, shardId);
+                } catch (e) {
+                    log.log(ctx, 'push_worker_error', e);
+                }
+            });
+            await delay(1000);
+        });
+        return async () => {
+            await worker.stop();
+        };
+    });
+    shard.start();
+    // for (let i = 0; i <= RING_SIZE; i++) {
+    //     createWorker(i);
+    // }
 }
