@@ -34,21 +34,24 @@ export function withUser<T>(handler: (ctx: Context, user: User, authorized: Bool
         if (!authorized && !noAuthNeeded) {
             throw new AccessDeniedError();
         }
-        if (typeof src === 'number') {
-            return (async () => {
-                let user = (await (Store.User.findById(ctx, src)))!;
-                return handler(ctx, user, authorized);
-            })();
-        } else if (src instanceof UserFullRoot) {
+
+        // Fast track
+        if (src instanceof UserFullRoot) {
             return handler(ctx, src.user, authorized);
         } else if (src instanceof User) {
             return handler(ctx, src, authorized);
-        } else {
-            return (async () => {
+        }
+
+        // Slow track
+        return (async () => {
+            if (typeof src === 'number') {
+                let user = (await (Store.User.findById(ctx, src)))!;
+                return handler(ctx, user, authorized);
+            } else {
                 let user = (await (Store.User.findById(ctx, src.id)))!;
                 return handler(ctx, user, authorized);
-            })();
-        }
+            }
+        })();
     };
 }
 
@@ -58,40 +61,38 @@ export function withProfile(handler: (ctx: Context, user: User, profile: UserPro
         if (!authorized && !noAuthNeeded) {
             throw new AccessDeniedError();
         }
-        if (typeof src === 'number') {
-            return (async () => {
+
+        // Fast track
+        if (src instanceof UserFullRoot) {
+            if (src.user.status === 'deleted') {
+                return handler(ctx, src.user, null, authorized);
+            }
+            return handler(ctx, src.user, src.profile, authorized);
+        }
+
+        // Slow track
+        return (async () => {
+            if (typeof src === 'number') {
                 let user = (await (Store.User.findById(ctx, src)))!;
                 if (user.status === 'deleted') {
                     return handler(ctx, user, null, authorized);
                 }
                 let profile = (await (Store.UserProfile.findById(ctx, src)))!;
                 return handler(ctx, user, profile, authorized);
-            })();
-        } else if (src instanceof UserFullRoot) {
-            return (async () => {
-                if (src.user.status === 'deleted') {
-                    return handler(ctx, src.user, null, authorized);
-                }
-                return handler(ctx, src.user, src.profile, authorized);
-            })();
-        } else if (src instanceof User) {
-            return (async () => {
+            } else if (src instanceof User) {
                 if (src.status === 'deleted') {
                     return handler(ctx, src, null, authorized);
                 }
                 let profile = (await (Store.UserProfile.findById(ctx, src.id)))!;
                 return handler(ctx, src, profile, authorized);
-            })();
-        } else {
-            return (async () => {
+            } else {
                 let user = (await (Store.User.findById(ctx, src.id)))!;
                 if (user.status === 'deleted') {
                     return handler(ctx, user, null, authorized);
                 }
                 return handler(ctx, user, src, authorized);
-            })();
-        }
-
+            }
+        })();
     };
 }
 
