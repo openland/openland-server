@@ -9,7 +9,6 @@ import { createLogger, withLogPath } from '@openland/log';
 import { Context, createNamedContext } from '@openland/context';
 import { eventsFind } from '../../openland-module-db/eventsFind';
 import { UserDialogMessageReceivedEvent, UserSettingsShape } from '../../openland-module-db/store';
-import { batch } from '../../openland-utils/batch';
 import { getShardId } from '../../openland-module-sharding/getShardId';
 import { createTracer } from 'openland-log/createTracer';
 import { ShardRegion } from 'openland-module-sharding/ShardRegion';
@@ -246,12 +245,10 @@ async function handleUsersForShard(parent: Context, shardId: number) {
     }
     log.log(parent, 'found', unreadUsers.length, 'users');
 
-    let batches = batch(unreadUsers, 20);
-
-    for (let b of batches) {
+    for (let uid of unreadUsers) {
         try {
             await inTx(parent, async ctx => {
-                await Promise.all(b.map(uid => handleUser(ctx, uid)));
+                await handleUser(ctx, uid);
             });
         } catch (e) {
             log.log(parent, 'push_error', e);
