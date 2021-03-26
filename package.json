@@ -118,6 +118,7 @@
     "node-fetch": "^1.7.1",
     "nodemon": "^1.11.0",
     "opentracing": "^0.14.4",
+    "patch-package": "^6.4.7",
     "pino": "^5.13.1",
     "prom-client": "^12.0.0",
     "protobufjs": "^6.10.2",
@@ -179,7 +180,8 @@
     "benchmark": "ts-node ./packages/openland-module-db/collections/algs/Algorithm.benchmark.ts",
     "proto": "pbjs -t static-module -w commonjs -o ./packages/openland-module-db/structs.js ./packages/openland-module-db/structs.proto && pbts -o ./packages/openland-module-db/structs.d.ts ./packages/openland-module-db/structs.js",
     "cli": ". ./scripts/set_testing_config.sh && ./node_modules/.bin/ts-node ./packages/openland-cli/index.ts",
-    "ch:gen": ". ./scripts/set_dev_config.sh && ./node_modules/.bin/ts-node packages/openland-module-clickhouse/generateMigrations.ts"
+    "ch:gen": ". ./scripts/set_dev_config.sh && ./node_modules/.bin/ts-node packages/openland-module-clickhouse/generateMigrations.ts",
+    "postinstall": "patch-package"
   },
   "devDependencies": {
     "@types/geoip-lite": "^1.1.31",
