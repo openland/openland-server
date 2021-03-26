@@ -13,7 +13,7 @@ export const Concurrency = {
     }),
 
     // Read operation concurrency pool. Unique per transaction.
-    TransactionOperations: () => new BoundedConcurrencyPool(64 * 3),
+    TransactionOperations: () => new BoundedConcurrencyPool(512),
 
     // FoundationDB transaction pool. Unique per process.
     Transaction: new BoundedConcurrencyPool(256 * 2),
