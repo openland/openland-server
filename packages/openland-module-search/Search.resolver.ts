@@ -62,13 +62,13 @@ export const Resolver: GQLResolver = {
                 return 'User';
             } else if (obj instanceof Conversation) {
                 if (obj.kind === 'private') {
-                    throw new Error('Unknown search entry' + obj);
+                    throw new Error('Unknown search entry: ' + JSON.stringify(obj));
                 } else {
                     return 'SharedRoom';
                 }
             }
 
-            throw new Error('Unknown search entry' + obj);
+            throw new Error('Unknown search entry: ' + JSON.stringify(obj));
         },
     },
     MessageWithChat: {
