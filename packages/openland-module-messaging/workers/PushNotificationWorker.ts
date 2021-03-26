@@ -263,7 +263,7 @@ function createWorker(shardId: number) {
         startDelay: 3000,
         db: Store.storage.db
     }, async (parent) => {
-        log.log(parent, 'push_notification_shard_worker', shardId, 'loop');
+        DEBUG && log.log(parent, 'push_notification_shard_worker', shardId, 'loop');
         try {
             await handleUsersForShard(parent, shardId);
         } catch (e) {
