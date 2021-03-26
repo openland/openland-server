@@ -177,9 +177,9 @@ export const Resolver: GQLResolver = {
         badges: withUser((ctx, src) => Store.UserBadge.user.findAll(ctx, src.id)),
         primaryBadge: withProfile((ctx, src, profile) => profile && profile.primaryBadge ? Store.UserBadge.findById(ctx, profile.primaryBadge) : null),
         audienceSize: withUser(async (ctx, src) => await Store.UserAudienceCounter.get(ctx, src.id), true),
-        joinDate: withUser(async (ctx, src) => src.metadata.createdAt, true),
-        birthDay: withProfile(async (ctx, src, profile) => profile?.birthDay, true),
-        status: withProfile(async (ctx, src, profile) => profile?.modernStatus, true),
+        joinDate: withUser((ctx, src) => src.metadata.createdAt, true),
+        birthDay: withProfile((ctx, src, profile) => profile?.birthDay, true),
+        status: withProfile((ctx, src, profile) => profile?.modernStatus, true),
 
         // Deprecated
         picture: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null, true),
@@ -245,7 +245,7 @@ export const Resolver: GQLResolver = {
             return user!;
         }),
         users: withAny(async (ctx, args) => {
-            return Promise.all(args.ids.map(async (u) => (await Store.User.findById(ctx, IDs.User.parse(u)))!));
+            return Promise.all(args.ids.map(async (u) => (await userRootFull(ctx, IDs.User.parse(u)))!));
         }),
         mySuccessfulInvitesCount: withUserResolver(async (ctx, args, uid) => {
             return Store.UserSuccessfulInvitesCounter.get(ctx, uid);
