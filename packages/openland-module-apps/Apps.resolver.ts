@@ -151,7 +151,7 @@ export const Resolver: GQLResolver = {
             return true;
         }),
         globalEventBusPublish: withAccount(async (parent, args, uid) => {
-            EventBus.publish(`public_bus.${args.topic}`, { message: args.message });
+            // EventBus.publish(`public_bus.${args.topic}`, { message: args.message });
             return true;
         }),
     },
@@ -185,8 +185,8 @@ export const Resolver: GQLResolver = {
                 }
 
                 let iterator = createIterator<any>(() => 0);
-                let sub = EventBus.subscribe(`public_bus.${args.topic}`, data => iterator.push(data));
-                onContextCancel(ctx, () => sub.cancel());
+                // let sub = EventBus.subscribe(`public_bus.${args.topic}`, data => iterator.push(data));
+                // onContextCancel(ctx, () => sub.cancel());
 
                 return iterator;
             }
