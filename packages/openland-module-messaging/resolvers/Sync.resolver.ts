@@ -23,6 +23,11 @@ export const Resolver: GQLResolver = {
             let dialogs = await Modules.Messaging.loadUserDialogs(ctx, uid, after, args.first);
             let conversations = await Promise.all(dialogs.map(async (d) => (await Store.Conversation.findById(ctx, d))!));
 
+            // Preload membership
+            await Promise.all(conversations.map((conv) => conv.kind !== 'private' ?
+                Modules.Messaging.room.isRoomMember(ctx, ctx.auth.uid!, conv.id) :
+                null));
+
             // Resolve cursor
             let cursor: string | null = null;
             if (dialogs.length > 0) {
