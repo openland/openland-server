@@ -1,0 +1,1 @@
+export type ObjMap<T> = Record<string, T>;
