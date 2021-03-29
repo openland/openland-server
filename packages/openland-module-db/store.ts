@@ -25591,6 +25591,7 @@ export interface Store extends BaseStore {
     readonly UserReadSeqsDirectory: Subspace;
     readonly ChatMembersDirectory: Subspace;
     readonly UserDialogMuteSettingDirectory: Subspace;
+    readonly ConferencePeerKeepAliveDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
     readonly EventStorageDirectory: Subspace;
@@ -25900,6 +25901,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserReadSeqsDirectoryPromise = storage.resolveCustomDirectory('userReadSeqs');
     let ChatMembersDirectoryPromise = storage.resolveCustomDirectory('chatMembers');
     let UserDialogMuteSettingDirectoryPromise = storage.resolveCustomDirectory('userDialogMuteSetting');
+    let ConferencePeerKeepAliveDirectoryPromise = storage.resolveCustomDirectory('conferencePeerKeepAlive');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
     let EventStorageDirectoryPromise = storage.resolveCustomDirectory('eventStorage');
@@ -26168,6 +26170,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserReadSeqsDirectory: await UserReadSeqsDirectoryPromise,
         ChatMembersDirectory: await ChatMembersDirectoryPromise,
         UserDialogMuteSettingDirectory: await UserDialogMuteSettingDirectoryPromise,
+        ConferencePeerKeepAliveDirectory: await ConferencePeerKeepAliveDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
         EventStorageDirectory: await EventStorageDirectoryPromise,

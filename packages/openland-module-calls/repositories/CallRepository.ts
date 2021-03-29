@@ -16,6 +16,7 @@ import {
     VoiceChatParticipantStatus
 } from '../../openland-module-voice-chats/repositories/ParticipantsRepository';
 import { Modules } from '../../openland-modules/Modules';
+import { KeepAliveCollection } from '../../openland-module-db/collections/KeepAliveCollection';
 
 let log = createLogger('call-repo');
 
@@ -67,6 +68,8 @@ export class CallRepository {
     readonly schedulerKitchen!: CallSchedulerKitchen;
     @lazyInject('DeliveryMediator')
     readonly delivery!: DeliveryMediator;
+
+    private keepAlive = new KeepAliveCollection(Store.ConferencePeerKeepAliveDirectory);
 
     getOrCreateConference = async (parent: Context, cid: number) => {
         return await inTx(parent, async (ctx) => {
@@ -171,6 +174,8 @@ export class CallRepository {
                 audioPaused: !media?.wantSendAudio,
                 videoPaused: !media?.wantSendVideo
             });
+
+            this.keepAlive.keepAlive(ctx, [cid, id], timeout);
 
             // Handle scheduling
             let cap = capabilities;
@@ -395,29 +400,18 @@ export class CallRepository {
 
     peerKeepAlive = async (parent: Context, cid: number, pid: number, timeout: number) => {
         return await inTx(parent, async (ctx) => {
-            let peer = await Store.ConferencePeer.findById(ctx, pid);
-            if (!peer) {
-                return false;
-            }
-            if (peer.cid !== cid) {
-                throw Error('Conference id mismatch');
-            }
-            if (!peer.enabled) {
-                return false;
-            }
-            peer.keepAliveTimeout = Date.now() + timeout;
+            this.keepAlive.keepAlive(ctx, [cid, pid], timeout);
             return true;
         });
     }
 
     checkTimeouts = async (parent: Context) => {
-        let now = Date.now();
         let active = await Store.ConferencePeer.active.findAll(parent);
         for (let a of active) {
-            if (a.keepAliveTimeout < now) {
+            if (!(await this.keepAlive.isAlive(parent, [a.cid, a.id]))) {
                 await inTx(parent, async (ctx) => {
                     let peer = (await Store.ConferencePeer.findById(ctx, a.id))!;
-                    if (peer.enabled && peer.keepAliveTimeout < now) {
+                    if (peer.enabled && !(await this.keepAlive.isAlive(ctx, [peer.cid, peer.id]))) {
                         log.log(ctx, 'Call Participant Reaped: ' + a.uid + ' from ' + a.cid);
                         await this.removePeer(ctx, a.id, true);
                         // await this.bumpVersion(ctx, a.cid, a.id);
