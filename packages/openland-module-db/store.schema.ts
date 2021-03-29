@@ -911,7 +911,7 @@ export default declareSchema(() => {
         field('cid', integer());
         field('uid', integer());
         field('tid', string());
-        field('keepAliveTimeout', integer());
+        field('keepAliveTimeout', integer()); // deprecated
         field('enabled', boolean());
         field('videoPaused', optional(boolean()));
         field('audioPaused', optional(boolean()));
@@ -919,6 +919,8 @@ export default declareSchema(() => {
         rangeIndex('conference', ['cid', 'keepAliveTimeout']).withCondition((src) => src.enabled);
         rangeIndex('active', ['keepAliveTimeout']).withCondition((src) => src.enabled);
     });
+
+    customDirectory('ConferencePeerKeepAlive');
 
     //
     // Media End Stream

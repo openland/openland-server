@@ -325,7 +325,7 @@ export const Resolver: GQLResolver = {
             if (peer.uid !== uid) {
                 throw Error('Invalid user id');
             }
-            await Modules.Calls.repo.peerKeepAlive(ctx, coid, pid, 15000);
+            await Modules.Calls.repo.peerKeepAlive(ctx, coid, pid, 60000);
             return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         }),
         conferenceLeave: withUser(async (ctx, args, uid) => {
