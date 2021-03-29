@@ -18,7 +18,6 @@ import { delay } from '../openland-utils/timer';
 import { asyncRun } from './utils/asyncRun';
 import { EventBus } from '../openland-module-pubsub/EventBus';
 
-const operationResolver = new SpaceXOperationResolver();
 export const SpaceXConnections = new Map<string, SpaceXConnection>();
 
 async function handleAuth(params: SpaceXServerParams, req: http.IncomingMessage, connection: SpaceXConnection, message: unknown) {
@@ -71,7 +70,7 @@ async function handleAuth(params: SpaceXServerParams, req: http.IncomingMessage,
     connection.setConnected();
 }
 
-async function handleOperation(params: SpaceXServerParams, req: http.IncomingMessage, connection: SpaceXConnection, operation: GQlServerOperation, id: string) {
+async function handleOperation(params: SpaceXServerParams, req: http.IncomingMessage, connection: SpaceXConnection, operation: GQlServerOperation, id: string, resolver: SpaceXOperationResolver) {
     let ctx = await params.context(connection.authParams, operation, req);
     if (!connection.operationBucket.tryTake()) {
         // handle error
@@ -81,8 +80,13 @@ async function handleOperation(params: SpaceXServerParams, req: http.IncomingMes
     }
     await params.onOperation(ctx, operation);
     let opStartTime = Date.now();
-    let query = await operationResolver.resolve(operation.query);
-    let {id: opId} = connection.session.operation(ctx, { document: query, variables: operation.variables, operationName: operation.name }, (res) => {
+    const query = resolver.resolve(operation.query);
+    if (Array.isArray(query)) {
+        connection.sendData(id, params.formatResponse({ errors: query }, operation, ctx));
+        connection.sendComplete(id);
+        return;
+    }
+    let { id: opId } = connection.session.operation(ctx, { document: (query as any).document /* TS, WTF? */, variables: operation.variables, operationName: operation.name }, (res) => {
         if (res.type === 'data') {
             connection.sendData(id, params.formatResponse({ data: res.data }, operation, ctx));
         } else if (res.type === 'errors') {
@@ -100,7 +104,7 @@ async function handleOperation(params: SpaceXServerParams, req: http.IncomingMes
     connection.sessionOperationIds.set(id, opId);
 }
 
-async function handleMessage(params: SpaceXServerParams, socket: WebSocket, req: http.IncomingMessage, connection: SpaceXConnection, message: unknown) {
+async function handleMessage(params: SpaceXServerParams, socket: WebSocket, req: http.IncomingMessage, connection: SpaceXConnection, message: unknown, resolver: SpaceXOperationResolver) {
     if (connection.state === 'init') {
         await handleAuth(params, req, connection, message);
     } else if (connection.state === 'connected' || connection.state === 'connecting') {
@@ -109,7 +113,7 @@ async function handleMessage(params: SpaceXServerParams, socket: WebSocket, req:
 
         let startOp = decode(StartMessageCodec, message);
         if (startOp) {
-            await handleOperation(params, req, connection, startOp.payload, startOp.id);
+            await handleOperation(params, req, connection, startOp.payload, startOp.id, resolver);
         }
 
         let stopOp = decode(StopMessageCodec, message);
@@ -132,7 +136,7 @@ async function handleMessage(params: SpaceXServerParams, socket: WebSocket, req:
     }
 }
 
-async function handleConnection(params: SpaceXServerParams, socket: WebSocket, req: http.IncomingMessage) {
+async function handleConnection(params: SpaceXServerParams, socket: WebSocket, req: http.IncomingMessage, resolver: SpaceXOperationResolver) {
     let connection = new SpaceXConnection(socket, () => {
         SpaceXConnections.delete(connection.id);
     });
@@ -140,7 +144,7 @@ async function handleConnection(params: SpaceXServerParams, socket: WebSocket, r
 
     socket.on('message', async data => {
         try {
-            await handleMessage(params, socket, req, connection, JSON.parse(data.toString()));
+            await handleMessage(params, socket, req, connection, JSON.parse(data.toString()), resolver);
         } catch (e) {
             connection.close();
         }
@@ -155,9 +159,10 @@ async function handleConnection(params: SpaceXServerParams, socket: WebSocket, r
 
 export async function createSpaceXServer(params: SpaceXServerParams) {
     let working = true;
+    const operationResolver = new SpaceXOperationResolver(params.executableSchema);
     const ws = new WebSocket.Server(params.server ? { server: params.server, path: params.path } : { noServer: true });
     ws.on('connection', async (socket, req) => {
-        await handleConnection(params, socket, req);
+        await handleConnection(params, socket, req, operationResolver);
     });
 
     //

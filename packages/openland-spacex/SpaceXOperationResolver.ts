@@ -1,17 +1,28 @@
-import { DocumentNode } from 'graphql';
+import { DocumentNode, GraphQLError, GraphQLSchema, validate } from 'graphql';
 import { parse } from 'graphql';
 
 export class SpaceXOperationResolver {
 
-    private cache = new Map<string, DocumentNode>();
+    private schema: GraphQLSchema;
+    private cache = new Map<string, { document: DocumentNode } | readonly GraphQLError[]>();
 
-    async resolve(body: string): Promise<DocumentNode> {
+    constructor(schema: GraphQLSchema) {
+        this.schema = schema;
+    }
+
+    resolve(body: string): { document: DocumentNode } | readonly GraphQLError[] {
         let cached = this.cache.get(body);
         if (cached) {
             return cached;
         }
         let parsed = parse(body);
-        this.cache.set(body, parsed);
-        return parsed;
+        let errors = validate(this.schema, parsed);
+        if (errors.length > 0) {
+            this.cache.set(body, errors);
+            return errors;
+        }
+        let res = { document: parsed };
+        this.cache.set(body, res);
+        return res;
     }
 }

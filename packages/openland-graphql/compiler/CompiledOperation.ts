@@ -1,4 +1,4 @@
-import { FieldNode, FragmentDefinitionNode, GraphQLEnumType, GraphQLObjectType, GraphQLScalarType, GraphQLSchema, OperationDefinitionNode } from 'graphql';
+import { ArgumentNode, FieldNode, FragmentDefinitionNode, GraphQLEnumType, GraphQLObjectType, GraphQLScalarType, GraphQLSchema, OperationDefinitionNode } from 'graphql';
 import { ObjMap } from 'openland-graphql/utils/objMap';
 
 export interface NonNullSelector {
@@ -23,6 +23,7 @@ export interface CompiledEnumSelector {
 
 export interface CompiledField {
     nodes: Array<FieldNode>;
+    arguments?: ReadonlyArray<ArgumentNode>;
     selector: CompiledSelector;
 }
 

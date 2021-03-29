@@ -9,7 +9,6 @@ import {
     SelectionNode,
     isListType,
     GraphQLList,
-    GraphQLType,
     isNonNullType,
     isObjectType,
     isAbstractType,
@@ -51,9 +50,24 @@ export function prepareField(context: CompilerContext, type: GraphQLObjectType, 
     if (!def) {
         throw Error('Invalid field');
     }
+
+    let selections: SelectionNode[] | undefined;
+    for (let node of nodes) {
+        if (!node.selectionSet) {
+            continue;
+        }
+        if (!selections) {
+            selections = [];
+        }
+        for (let s of node.selectionSet.selections) {
+            selections.push(s); // Note: Duplicates are filtered out in later stages via collectFields
+        }
+    }
+
     return {
         nodes,
-        selector: prepareType(context, def.type, nodes[0].selectionSet?.selections)
+        arguments: nodes[0].arguments,
+        selector: prepareType(context, def.type, selections)
     };
 }
 

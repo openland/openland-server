@@ -7,6 +7,6 @@ describe('compileQuery', () => {
         if (Array.isArray(compiled)) {
             throw Error('');
         }
-        // console.warn(compiled.selection.fields.me.selector);
+        // console.warn(JSON.stringify(compiled.selection.fields.me.selector, undefined, 2));
     });
 });

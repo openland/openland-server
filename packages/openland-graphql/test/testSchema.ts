@@ -5,6 +5,8 @@ const schema = `
         id: ID!
         firstName: String!
         lastName: String!
+        username: String
+        friends: User
     }
 
     type Query { 
@@ -17,9 +19,19 @@ const meMultiple = `{
     me {
         id
         firstName
+        friends {
+            id
+            lastName
+        }
     }
     me {
+        id
         lastName
+        username
+        friends {
+            id
+            firstName
+        }
     }
 }`;
 
