@@ -1,7 +1,7 @@
 import { Modules } from 'openland-modules/Modules';
 import { SpaceXContext } from './SpaceXContext';
 import { currentRunningTime } from 'openland-utils/timer';
-import { withoutTransaction, inTx, inHybridTx } from '@openland/foundationdb';
+import { withoutTransaction, inTx, inHybridTx, getTransaction } from '@openland/foundationdb';
 import { createTracer } from 'openland-log/createTracer';
 import { createLogger } from '@openland/log';
 import { Config } from 'openland-config/Config';
@@ -307,6 +307,8 @@ export class SpaceXSession {
                     rootValue: opts.rootValue
                 })
                 : await (opts.type === 'mutation' ? inTx : inHybridTx)(ctx, async (ictx) => {
+                    getTransaction(ictx).setOptions({ retry_limit: 3, timeout: 10000 });
+
                     return execute(ictx, {
                         schema: this.schema,
                         document: opts.op.document,
