@@ -9,7 +9,6 @@ import {
     SelectionNode,
     isListType,
     GraphQLList,
-    GraphQLType,
     isNonNullType,
     isObjectType,
     isAbstractType,
