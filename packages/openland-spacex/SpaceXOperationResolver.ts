@@ -1,6 +1,8 @@
 import { DocumentNode, GraphQLError, GraphQLSchema, validate } from 'graphql';
 import { parse } from 'graphql';
 
+const VALIDATION_ENABLED = false;
+
 export class SpaceXOperationResolver {
 
     private schema: GraphQLSchema;
@@ -16,11 +18,14 @@ export class SpaceXOperationResolver {
             return cached;
         }
         let parsed = parse(body);
-        let errors = validate(this.schema, parsed);
-        if (errors.length > 0) {
-            this.cache.set(body, errors);
-            return errors;
+        if (VALIDATION_ENABLED) {
+            let errors = validate(this.schema, parsed);
+            if (errors.length > 0) {
+                this.cache.set(body, errors);
+                return errors;
+            }
         }
+
         let res = { document: parsed };
         this.cache.set(body, res);
         return res;
