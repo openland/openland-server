@@ -79,6 +79,13 @@ export class CountersDirectory {
         // Remove existing
         let old = await this.refs.read(ctx, [...collection, seq]);
         if (old) {
+            // Ignore if not changed
+            if (
+                old.allMention === allMention &&
+                old.mentions === mentions &&
+                old.visibleOnlyTo === visibleOnlyTo) {
+                return;
+            }
             await this.removeMessage(ctx, collection, seq);
         }
         this.refs.write(ctx, [...collection, seq], new CountersMessageRef({
