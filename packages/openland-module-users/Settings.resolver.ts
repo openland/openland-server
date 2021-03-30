@@ -383,13 +383,17 @@ export const Resolver: GQLResolver = {
                     throw new AccessDeniedError();
                 }
 
+                let version = await inTx(parent, async (ctx) => {
+                    return (await Modules.Users.getUserSettingsEntity(ctx, ctx.auth.uid!)).metadata.versionCode;
+                });
                 yield await Modules.Users.getUserSettings(parent, parent.auth.uid);
 
                 while (true) {
-                    let changed = await fastWatch(parent, 'user-settings-' + parent.auth.uid,
+                    let changed = await fastWatch(parent, 'user-settings-' + parent.auth.uid, version,
                         async (ctx) => (await inTx(ctx, (ctx2) => Modules.Users.getUserSettingsEntity(ctx2, parent.auth.uid!)))!.metadata.versionCode
                     );
-                    if (changed) {
+                    if (changed.result) {
+                        version = changed.version;
                         yield await Modules.Users.getUserSettings(parent, parent.auth.uid);
                     } else {
                         break;
@@ -408,13 +412,17 @@ export const Resolver: GQLResolver = {
                     throw new AccessDeniedError();
                 }
 
+                let version = await inTx(parent, async (ctx) => {
+                    return (await Modules.Users.getUserSettingsEntity(ctx, ctx.auth.uid!)).metadata.versionCode;
+                });
                 yield await Modules.Users.getUserSettings(parent, parent.auth.uid);
 
                 while (true) {
-                    let changed = await fastWatch(parent, 'user-settings-' + parent.auth.uid,
+                    let changed = await fastWatch(parent, 'user-settings-' + parent.auth.uid, version,
                         async (ctx) => (await inTx(ctx, (ctx2) => Modules.Users.getUserSettingsEntity(ctx2, parent.auth.uid!)))!.metadata.versionCode
                     );
-                    if (changed) {
+                    if (changed.result) {
+                        version = changed.version;
                         yield await Modules.Users.getUserSettings(parent, parent.auth.uid);
                     } else {
                         break;
