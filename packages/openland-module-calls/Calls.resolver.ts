@@ -499,13 +499,12 @@ export const Resolver: GQLResolver = {
                 let cid = IDs.Conference.parse(args.id);
                 let pid = IDs.ConferencePeer.parse(args.peerId);
 
-                const initial = await inTx(parent, async (ctx) => (await Store.ConferenceRoom.findById(ctx, cid))!);
-                let version = initial.metadata.versionCode;
+                let version = await inTx(parent, async (ctx) => Modules.Calls.repo.getPeerVersion(ctx, pid));
                 yield { id: cid, peerId: pid };
 
                 while (true) {
-                    let changed = await fastWatch(parent, 'conference-' + cid, version,
-                        async (ctx) => (await inTx(ctx, async (ctx2) => Store.ConferenceRoom.findById(ctx2, cid)))!.metadata.versionCode
+                    let changed = await fastWatch(parent, 'conference-peer-' + pid, version,
+                        (ctx) => inTx(ctx, async (ctx2) => Modules.Calls.repo.getPeerVersion(ctx2, pid))
                     );
                     if (changed.result) {
                         version = changed.version;
