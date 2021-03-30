@@ -6,9 +6,9 @@ export const Concurrency = {
     // Operation rate limiting. Unique for each connection.
     Operation: new SimpleFactory(() => {
         return new TokenBucket({
-            maxTokens: 64,
-            refillDelay: 100,
-            refillAmount: 10
+            maxTokens: 64 * 3,
+            refillDelay: 100 / 3,
+            refillAmount: 10 * 3
         });
     }),
 
