@@ -117,7 +117,8 @@ export const Resolver: GQLResolver = {
             let chat = await Modules.VoiceChats.chats.createChat(ctx, {
                 title: input.title,
                 startedBy: uid,
-                isPrivate
+                isPrivate,
+                parentChatId: room.id
             });
             roomProfile.voiceChat = chat.id;
             await roomProfile.flush(ctx);
