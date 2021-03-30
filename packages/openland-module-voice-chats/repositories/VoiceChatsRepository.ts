@@ -67,7 +67,7 @@ export class VoiceChatsRepository {
         chat.title = title;
         chat.isPrivate = isPrivate || false;
 
-        await this.notifyChatUpdated(ctx, id);
+        await this.notifyChatUpdated(ctx, id, chat.isPrivate || false);
         return chat;
     }
 
@@ -90,7 +90,7 @@ export class VoiceChatsRepository {
             }
         }
 
-        await this.notifyChatUpdated(ctx, id);
+        await this.notifyChatUpdated(ctx, id, chat.isPrivate || false);
         getTransaction(ctx).afterCommit(async () => {
             await this.voiceChatActiveChanged.next({ cid: id, active });
         });
@@ -128,8 +128,8 @@ export class VoiceChatsRepository {
         return chat;
     }
 
-    notifyChatUpdated = async (ctx: Context, id: number) => {
-        await this.events.postChatUpdated(ctx, id);
+    notifyChatUpdated = async (ctx: Context, id: number, isPrivate: boolean) => {
+        await this.events.postChatUpdated(ctx, id, isPrivate);
         notifyFastWatch(ctx, `voice-chat-${id}`);
     }
 }

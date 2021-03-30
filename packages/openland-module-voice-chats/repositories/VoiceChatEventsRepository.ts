@@ -21,11 +21,13 @@ export class VoiceChatEventsRepository {
     }
 
     @transactional
-    async postChatUpdated(ctx: Context, cid: number) {
+    async postChatUpdated(ctx: Context, cid: number, isPrivate: boolean) {
         Store.VoiceChatEventsStore.post(ctx, cid, VoiceChatUpdatedEvent.create({ cid }));
-        getTransaction(ctx).afterCommit(() => {
-            this.activeChatsEvents.post('global', VoiceChatUpdatedEvent.create({ cid }));
-        });
+        if (!isPrivate) {
+            getTransaction(ctx).afterCommit(() => {
+                this.activeChatsEvents.post('global', VoiceChatUpdatedEvent.create({ cid }));
+            });
+        }
     }
 
     @transactional
