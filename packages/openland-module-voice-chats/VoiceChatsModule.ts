@@ -3,6 +3,8 @@ import { lazyInject } from 'openland-modules/Modules.container';
 import { ParticipantsMediator } from './mediators/ParticipantsMediator';
 import { VoiceChatsMediator } from './mediators/VoiceChatsMediator';
 import { VoiceChatEventsMediator } from './mediators/VoiceChatEventsMediator';
+import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
+import { startVoiceChatsCleanupWorker } from './workers/voiceChatsCleanupWorker';
 
 @injectable()
 export class VoiceChatsModule {
@@ -17,5 +19,9 @@ export class VoiceChatsModule {
 
     start = async () => {
         this.chats.start();
+
+        if (serverRoleEnabled('workers')) {
+            startVoiceChatsCleanupWorker();
+        }
     }
 }
