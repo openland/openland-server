@@ -9,7 +9,7 @@ import { ConcurrencyPool } from 'openland-utils/ConcurrencyPool';
 import { Concurrency } from './../openland-server/concurrency';
 import uuid from 'uuid/v4';
 import { Metrics } from 'openland-module-monitoring/Metrics';
-import { Context, createNamedContext } from '@openland/context';
+import { Context, ContextName, createNamedContext } from '@openland/context';
 import { DocumentNode, GraphQLSchema, createSourceEventStream } from 'graphql';
 import { getOperationType } from './utils/getOperationType';
 import { setTracingTag } from 'openland-log/setTracingTag';
@@ -88,6 +88,8 @@ export class SpaceXSession {
         let id = uuid();
         let opContext = withLifetime(parentContext);
         opContext = SpaceXContext.set(opContext, true);
+        let name = op.operationName || '<unknown-' + docOp + '->';
+        opContext = ContextName.set(opContext, name);
         let abort = () => {
             if (!isContextCancelled(opContext)) {
                 cancelContext(opContext);
@@ -187,6 +189,7 @@ export class SpaceXSession {
 
                             // Remove transaction and add new read one
                             let resolveContext = withoutTransaction(opContext);
+
                             // Execute
                             let resolved = await this._execute({
                                 ctx: resolveContext,
