@@ -122,6 +122,10 @@ export const Resolver: GQLResolver = {
             roomProfile.voiceChat = chat.id;
             await roomProfile.flush(ctx);
 
+            // Send events
+            await Modules.Messaging.room.markConversationAsUpdated(ctx, room.id, uid);
+            await Modules.Messaging.room.notifyRoomUpdated(ctx, room.id);
+
             await Modules.VoiceChats.participants.joinChat(ctx, chat.id, uid, ctx.auth.tid!);
 
             let capabilities: Capabilities | null = null;
