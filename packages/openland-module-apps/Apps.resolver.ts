@@ -56,10 +56,10 @@ export const Resolver: GQLResolver = {
     },
 
     Query: {
-        myApps: withAccount(async (ctx, args, uid, orgId) => {
+        myApps: withAccount(async (ctx, args, uid) => {
             return await Modules.Bots.findAppsCreatedByUser(ctx, uid);
         }),
-        userStorage: withAccount(async (ctx, args, uid, orgId) => {
+        userStorage: withAccount(async (ctx, args, uid) => {
             return await Modules.Bots.fetchKeys(ctx, uid, args.namespace, args.keys);
         })
     },
@@ -71,14 +71,14 @@ export const Resolver: GQLResolver = {
         createSuperApp: withPermission('super-admin', async (ctx, args) => {
             return await Modules.Bots.createApp(ctx, ctx.auth.uid!, args.name, { about: args.about || undefined, shortname: args.shortname || undefined, photo: Sanitizer.sanitizeImageRef(args.photoRef) || undefined, isSuperBot: true });
         }),
-        refreshAppToken: withAccount(async (ctx, args, uid, orgId) => {
+        refreshAppToken: withAccount(async (ctx, args, uid) => {
             let botId = IDs.User.parse(args.appId);
 
             await Modules.Bots.refreshAppToken(ctx, uid, botId);
 
             return (await Store.User.findById(ctx, botId))!;
         }),
-        updateAppProfile: withAccount(async (parent, args, uid, orgId) => {
+        updateAppProfile: withAccount(async (parent, args, uid) => {
             return await inTx(parent, async (ctx) => {
                 let botId = IDs.User.parse(args.appId);
 
@@ -121,11 +121,11 @@ export const Resolver: GQLResolver = {
                 return (await Store.User.findById(ctx, botId))!;
             });
         }),
-        deleteApp: withAccount(async (ctx, args, uid, orgId) => {
+        deleteApp: withAccount(async (ctx, args, uid) => {
             let appId = IDs.User.parse(args.appId);
             return Modules.Bots.deleteApp(ctx, uid, appId);
         }),
-        addAppToChat: withAccount(async (parent, args, uid, orgId) => {
+        addAppToChat: withAccount(async (parent, args, uid) => {
             return await inTx(parent, async (ctx) => {
                 let chatId = IDs.Conversation.parse(args.chatId);
                 let appId = IDs.User.parse(args.appId);

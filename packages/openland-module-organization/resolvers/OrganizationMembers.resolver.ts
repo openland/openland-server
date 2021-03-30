@@ -34,7 +34,7 @@ export const Resolver: GQLResolver = {
         joinedAt: src => src.metadata.createdAt.toString(10)
     },
     Query: {
-        alphaOrganizationMembers: withAccount(async (ctx, args, uid, orgId) => {
+        alphaOrganizationMembers: withAccount(async (ctx, args, uid) => {
             let targetOrgId = IDs.Organization.parse(args.orgId);
 
             let isMember = await Modules.Orgs.isUserMember(ctx, uid, targetOrgId);
@@ -62,13 +62,19 @@ export const Resolver: GQLResolver = {
 
             return result;
         }),
-        alphaOrganizationInviteLink: withAccount(async (ctx, args, uid, organizationId) => {
-            organizationId = args.organizationId ? IDs.Organization.parse(args.organizationId) : organizationId;
+        alphaOrganizationInviteLink: withAccount(async (ctx, args, uid) => {
+            if (!args.organizationId) {
+                throw new UserError(`Please provide org id`);
+            }
+            let organizationId = IDs.Organization.parse(args.organizationId);
             return await Modules.Invites.orgInvitesRepo.getOrganizationInviteLink(ctx, organizationId, uid);
         }),
         // deperecated
-        alphaOrganizationPublicInvite: withAccount(async (ctx, args, uid, organizationId) => {
-            organizationId = args.organizationId ? IDs.Organization.parse(args.organizationId) : organizationId;
+        alphaOrganizationPublicInvite: withAccount(async (ctx, args, uid) => {
+            if (!args.organizationId) {
+                throw new UserError(`Please provide org id`);
+            }
+            let organizationId = IDs.Organization.parse(args.organizationId);
             return await Modules.Invites.orgInvitesRepo.getOrganizationInviteLink(ctx, organizationId, uid);
         }),
     },
@@ -132,8 +138,12 @@ export const Resolver: GQLResolver = {
             return 'ok';
         }),
 
-        alphaOrganizationInviteMembers: withAccount(async (parent, args, uid, oid) => {
-            oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
+        alphaOrganizationInviteMembers: withAccount(async (parent, args, uid) => {
+            if (!args.organizationId) {
+                throw new UserError(`Please provide org id`);
+            }
+
+            let oid = IDs.Organization.parse(args.organizationId);
             await validate({ inviteRequests: [{ email: defined(emailValidator) }] }, args);
 
             return await inTx(parent, async (ctx) => {
@@ -143,9 +153,13 @@ export const Resolver: GQLResolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationRefreshInviteLink: withAccount(async (parent, args, uid, oid) => {
+        alphaOrganizationRefreshInviteLink: withAccount(async (parent, args, uid) => {
             return inTx(parent, async (ctx) => {
-                oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
+                if (!args.organizationId) {
+                    throw new UserError(`Please provide org id`);
+                }
+
+                let oid = IDs.Organization.parse(args.organizationId);
                 let isOwner = await Modules.Orgs.isUserAdmin(ctx, uid, oid);
 
                 if (!isOwner) {
@@ -156,9 +170,13 @@ export const Resolver: GQLResolver = {
             });
         }),
         // deperecated
-        alphaOrganizationCreatePublicInvite: withAccount(async (parent, args, uid, oid) => {
+        alphaOrganizationCreatePublicInvite: withAccount(async (parent, args, uid) => {
             return inTx(parent, async (ctx) => {
-                oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
+                if (!args.organizationId) {
+                    throw new UserError(`Please provide org id`);
+                }
+
+                let oid = IDs.Organization.parse(args.organizationId);
                 let isOwner = await Modules.Orgs.isUserAdmin(ctx, uid, oid);
 
                 if (!isOwner) {
@@ -169,7 +187,7 @@ export const Resolver: GQLResolver = {
             });
         }),
         // deprecated
-        alphaOrganizationDeletePublicInvite: withAccount(async (ctx, args, uid, oid) => {
+        alphaOrganizationDeletePublicInvite: withAccount(async (ctx, args, uid) => {
             // oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
             // return inTx(async () => {
             //     let isOwner = await Modules.Orgs.isUserAdmin(uid, oid);

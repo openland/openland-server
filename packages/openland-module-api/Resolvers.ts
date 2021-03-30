@@ -17,10 +17,6 @@ async function fetchPermissions(ctx: Context) {
     return res;
 }
 
-async function fetchOrganizationId(ctx: Context) {
-    return ctx.auth.oid;
-}
-
 export function withPermission<T, R, F>(permission: string | string[], resolver: (ctx: Context, args: T, root: F) => Promise<R>): (root: F, args: T, ctx: Context) => MaybePromise<R> {
     return async function (root: F, args: T, ctx: Context) {
         let permissions = await fetchPermissions(ctx);
@@ -39,17 +35,12 @@ export function withPermission<T, R, F>(permission: string | string[], resolver:
     };
 }
 
-export function withAccount<T, R>(resolver: (ctx: Context, args: T, uid: number, org: number) => Promise<R>): (_: any, args: T, ctx: Context) => MaybePromise<R> {
+export function withAccount<T, R>(resolver: (ctx: Context, args: T, uid: number) => Promise<R>): (_: any, args: T, ctx: Context) => MaybePromise<R> {
     return async function (_: any, args: T, ctx: Context) {
         if (!ctx.auth.uid) {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
-        let res = await fetchOrganizationId(ctx);
-        if (!res) {
-            throw new AccessDeniedError(ErrorText.permissionDenied);
-        }
-
-        return await resolver(ctx, args, ctx.auth.uid, res);
+        return await resolver(ctx, args, ctx.auth.uid);
     };
 }
 

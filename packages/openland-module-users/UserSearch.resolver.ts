@@ -60,7 +60,7 @@ export const Resolver: GQLResolver = {
                 },
             };
         }),
-        userSearchForChat: withAccount(async (ctx, args, uid, oid) => {
+        userSearchForChat: withAccount(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.chatId);
             await Modules.Messaging.room.checkAccess(ctx, uid, cid);
 

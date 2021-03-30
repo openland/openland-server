@@ -105,7 +105,7 @@ export const Resolver: GQLResolver = {
         },
     },
     Mutation: {
-        alphaSetUserShortName: withAccount(async (ctx, args, uid, orgId) => {
+        alphaSetUserShortName: withAccount(async (ctx, args, uid) => {
             let userId = uid;
             if (args.id && (await Modules.Super.superRole(ctx, uid)) === 'super-admin') {
                 userId = IDs.User.parse(args.id);

@@ -390,7 +390,7 @@ export const Resolver: GQLResolver = {
         cursor: src => src.cursor
     },
     Query: {
-        room: withAccount(async (ctx, args, uid, oid) => {
+        room: withAccount(async (ctx, args, uid) => {
             let id = IdsFactory.resolve(args.id);
             if (id.type === IDs.Conversation) {
                 if (await Modules.Messaging.room.userWasKickedFromRoom(ctx, uid, id.id as number)) {
@@ -411,7 +411,7 @@ export const Resolver: GQLResolver = {
                 return null;
             }
         }),
-        rooms: withAccount(async (ctx, args, uid, oid) => {
+        rooms: withAccount(async (ctx, args, uid) => {
             let res: RoomRoot[] = [];
             for (let idRaw of args.ids) {
                 let id = IdsFactory.resolve(idRaw);

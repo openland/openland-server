@@ -339,7 +339,7 @@ export const Resolver: GQLResolver = {
             });
             return data.filter(isDefined);
         }),
-        featuredGroups: withAccount(async (ctx, args, uid, oid) => {
+        featuredGroups: withAccount(async (ctx, args, uid) => {
             let globalRoomHits = await Modules.Search.search(ctx, {
                 index: 'room', type: 'room', body: {
                     query: { bool: { must: [{ term: { featured: true } }] } },
@@ -347,7 +347,7 @@ export const Resolver: GQLResolver = {
             });
             return globalRoomHits.hits.hits.map(hit => parseInt(hit._id, 10));
         }),
-        featuredCommunities: withAccount(async (ctx, args, uid, oid) => {
+        featuredCommunities: withAccount(async (ctx, args, uid) => {
             let hits = await Modules.Search.search(ctx, {
                 index: 'organization',
                 type: 'organization',
@@ -358,7 +358,7 @@ export const Resolver: GQLResolver = {
             return (await Promise.all(orgs)).filter(isDefined);
         }),
 
-        messagesSearch: withAccount(async (ctx, args, uid, oid) => {
+        messagesSearch: withAccount(async (ctx, args, uid) => {
             try {
                 let cid: number | null = null;
                 if (args.cid) {
@@ -460,7 +460,7 @@ export const Resolver: GQLResolver = {
                 };
             }
         }),
-        chatMembersSearch: withAccount(async (ctx, args, uid, oid) => {
+        chatMembersSearch: withAccount(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.cid);
             await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, cid);
 
@@ -750,7 +750,7 @@ export const Resolver: GQLResolver = {
                 cursor: (from + args.first >= (hits.hits.total as any).value) ? undefined : IDs.MentionSearchCursor.serialize(from + hits.hits.hits.length),
             };
         }),
-        orgMembersSearch: withAccount(async (ctx, args, uid, oid) => {
+        orgMembersSearch: withAccount(async (ctx, args, uid) => {
             let orgId = IDs.Organization.parse(args.orgId);
             let isMember = await Modules.Orgs.isUserMember(ctx, uid, orgId);
             if (!isMember) {

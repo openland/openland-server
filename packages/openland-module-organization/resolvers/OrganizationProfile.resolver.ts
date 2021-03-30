@@ -77,13 +77,12 @@ export const Resolver: GQLResolver = {
         }),
     },
     Mutation: {
-        updateOrganizationProfile: withAccount(async (parent, args, uid, oid) => {
+        updateOrganizationProfile: withAccount(async (parent, args, uid) => {
             log.log(parent, 'updateOrganizationProfile', args.input);
-
-            let orgId = oid;
-            if (args.id) {
-                orgId = IDs.Organization.parse(args.id);
+            if (!args.id) {
+                throw new UserError(`Please provide org id`);
             }
+            let orgId = IDs.Organization.parse(args.id);
 
             let isSuper = ['super-admin', 'editor'].indexOf((await Modules.Super.superRole(parent, uid)) || 'none') > -1;
 
@@ -200,7 +199,7 @@ export const Resolver: GQLResolver = {
                 return existing;
             });
         }),
-        deleteOrganization: withAccount(async (parent, args, uid, oid) => {
+        deleteOrganization: withAccount(async (parent, args, uid) => {
             return Modules.Orgs.deleteOrganization(parent, uid, IDs.Organization.parse(args.id));
         }),
         createOrganization: withUser(async (ctx, args, uid) => {
