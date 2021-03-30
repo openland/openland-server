@@ -474,13 +474,16 @@ export const Resolver: GQLResolver = {
             subscribe: async function* (_: any, args: { id: string }, parent: Context) {
                 let cid = IDs.Conference.parse(args.id);
 
-                yield await inTx(parent, async (ctx) => (await Store.ConferenceRoom.findById(ctx, cid))!);
+                const initial = await inTx(parent, async (ctx) => (await Store.ConferenceRoom.findById(ctx, cid))!);
+                let version = initial.metadata.versionCode;
+                yield initial;
 
                 while (true) {
-                    let changed = await fastWatch(parent, 'conference-' + cid,
+                    let changed = await fastWatch(parent, 'conference-' + cid, version,
                         async (ctx) => (await inTx(ctx, async (ctx2) => Store.ConferenceRoom.findById(ctx2, cid)))!.metadata.versionCode
                     );
-                    if (changed) {
+                    if (changed.result) {
+                        version = changed.version;
                         yield await inTx(parent, async (ctx) => (await Store.ConferenceRoom.findById(ctx, cid))!);
                     } else {
                         break;
@@ -496,13 +499,15 @@ export const Resolver: GQLResolver = {
                 let cid = IDs.Conference.parse(args.id);
                 let pid = IDs.ConferencePeer.parse(args.peerId);
 
+                let version = await inTx(parent, async (ctx) => Modules.Calls.repo.getPeerVersion(ctx, pid));
                 yield { id: cid, peerId: pid };
 
                 while (true) {
-                    let changed = await fastWatch(parent, 'conference-' + cid,
-                        async (ctx) => (await inTx(ctx, async (ctx2) => Store.ConferenceRoom.findById(ctx2, cid)))!.metadata.versionCode
+                    let changed = await fastWatch(parent, 'conference-peer-' + pid, version,
+                        (ctx) => inTx(ctx, async (ctx2) => Modules.Calls.repo.getPeerVersion(ctx2, pid))
                     );
-                    if (changed) {
+                    if (changed.result) {
+                        version = changed.version;
                         yield { id: cid, peerId: pid };
                     } else {
                         break;

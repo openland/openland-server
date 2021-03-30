@@ -96,6 +96,7 @@ export function setupFdbTracing() {
         },
         onFDBError: (ctx, error) => {
             Metrics.FDBErrors.inc(error.code + '');
+            Metrics.FDBContextErrors.inc(ContextName.get(ctx));
             if (error.code === 1007) {
                 Metrics.FDBTooOldErrors.inc(ContextName.get(ctx));
             }

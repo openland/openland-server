@@ -273,6 +273,7 @@ export class CallSchedulerKitchenTransport {
         });
 
         // Bump
+        this.callRepo.notifyPeerChanged(ctx, pid);
         await this.callRepo.bumpVersion(ctx, cid, pid);
 
         return id;
@@ -364,6 +365,7 @@ export class CallSchedulerKitchenTransport {
             remoteStreams: [],
             iceTransportPolicy: allowAll ? 'all' : ICE_TRANSPORT_POLICY
         });
+        this.callRepo.notifyPeerChanged(ctx, pid);
 
         // Create offer if needed
         await this.#createConsumerOfferIfNeeded(ctx, id);
@@ -405,6 +407,7 @@ export class CallSchedulerKitchenTransport {
         stream.state = 'need-offer';
         stream.localStreams = localStreams;
         stream.seq++;
+        this.callRepo.notifyPeerChanged(ctx, stream.pid);
 
         // Update consumers
         let consumers = await Store.ConferenceKitchenConsumerTransport.fromConference.findAll(ctx, producer.cid);
@@ -449,6 +452,7 @@ export class CallSchedulerKitchenTransport {
         stream.remoteSdp = null;
         stream.localStreams = [];
         stream.remoteStreams = [];
+        this.callRepo.notifyPeerChanged(ctx, stream.pid);
 
         // Remove consumes
         let consumers = await Store.ConferenceKitchenConsumerTransport.fromConference.findAll(ctx, producerTransport.cid);
@@ -493,6 +497,8 @@ export class CallSchedulerKitchenTransport {
         // Delete transport
         // Not deleting producer transports until we figure out how to deal with eventual consistency
         // await this.repo.deleteTransport(ctx, id);
+
+        this.callRepo.notifyPeerChanged(ctx, stream.pid);
     }
 
     //
@@ -707,6 +713,7 @@ export class CallSchedulerKitchenTransport {
         endStream.state = 'online';
         endStream.remoteSdp = JSON.stringify({ type: 'answer', sdp: answer });
         producerTransport.state = 'ready';
+        this.callRepo.notifyPeerChanged(ctx, endStream.pid);
         await this.callRepo.bumpVersion(ctx, producerTransport.cid, producerTransport.pid);
     }
 
@@ -921,6 +928,7 @@ export class CallSchedulerKitchenTransport {
         endStream.remoteSdp = JSON.stringify({ type: 'offer', sdp: answer });
         endStream.remoteStreams = remoteStreams;
         consumerTransport.state = 'negotiation-need-answer';
+        this.callRepo.notifyPeerChanged(ctx, endStream.pid);
         await this.callRepo.bumpVersion(ctx, consumerTransport.cid, consumerTransport.pid);
     }
 

@@ -277,7 +277,7 @@ async function handleUsersForShard(parent: Context, shardId: number) {
 export function startPushNotificationWorker() {
     const shard = new ShardRegion('push', RING_SIZE);
     shard.startShard(async (shardId) => {
-        const root = createNamedContext('push-' + shardId);
+        const root = createNamedContext('push');
         const worker = foreverBreakable(root, async () => {
             await trace.trace(root, 'work', async (ctx) => {
                 DEBUG && log.log(ctx, 'push_notification_shard_worker', shardId, 'loop');

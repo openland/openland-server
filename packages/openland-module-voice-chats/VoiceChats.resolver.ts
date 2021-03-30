@@ -184,12 +184,15 @@ export const Resolver: GQLResolver = {
             },
             subscribe: async function* (_: any, args: { id: string }, parent: Context) {
                 let cid = IDs.Conversation.parse(args.id);
-                yield await inTx(parent, async (ctx) => (await Store.ConversationVoice.findById(ctx, cid))!);
+                const initial = await inTx(parent, async (ctx) => (await Store.ConversationVoice.findById(ctx, cid))!);
+                let version = initial.metadata.versionCode;
+                yield initial;
                 while (true) {
-                    let changed = await fastWatch(parent, `voice-chat-${IDs.Conversation.parse(args.id)}`,
+                    let changed = await fastWatch(parent, `voice-chat-${IDs.Conversation.parse(args.id)}`, version,
                         async (ctx) => (await inTx(ctx, async (ctx2) => Store.ConversationVoice.findById(ctx2, cid)))!.metadata.versionCode
                     );
-                    if (changed) {
+                    if (changed.result) {
+                        version = changed.version;
                         yield await inTx(parent, async (ctx) => (await Store.ConversationVoice.findById(ctx, cid))!);
                     } else {
                         break;
