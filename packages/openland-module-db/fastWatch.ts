@@ -1,11 +1,22 @@
 import { backoff } from 'openland-utils/timer';
 import { Context } from '@openland/context';
-import { withoutTransaction } from '@openland/foundationdb';
+import { getTransaction, TransactionCache, withoutTransaction } from '@openland/foundationdb';
 import { onContextCancel, delayBreakable } from '@openland/lifetime';
 import { Store } from './FDB';
 
-export function notifyFastWatch(parent: Context, key: string) {
-    Store.storage.eventBus.publish(parent, 'fast-watch-' + key, {});
+const cache = new TransactionCache<Set<string>>('fast-watc-notify');
+
+export function notifyFastWatch(ctx: Context, key: string) {
+    let notifications = cache.get(ctx, 'fast-watch');
+    if (!notifications) {
+        notifications = new Set();
+        getTransaction(ctx).beforeCommit((ctx2) => {
+            for (let n of notifications!) {
+                Store.storage.eventBus.publish(ctx2, 'fast-watch-' + n, {});
+            }
+        });
+    }
+    notifications.add(key);
 }
 
 export async function fastWatch(parent: Context, key: string, lastVersion: number, entity: (ctx: Context) => Promise<number>): Promise<{ result: false } | { result: true, version: number }> {

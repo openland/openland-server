@@ -256,6 +256,42 @@ export class UserDialogReadMessageIdFactory extends AtomicIntegerFactory {
     }
 }
 
+export class ConferencePeerVersionFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('conferencePeerVersion');
+        return new ConferencePeerVersionFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(id: number) {
+        return this._findById([id]);
+    }
+
+    get(ctx: Context, id: number) {
+        return this._get(ctx, [id]);
+    }
+
+    set(ctx: Context, id: number, value: number) {
+        return this._set(ctx, [id], value);
+    }
+
+    add(ctx: Context, id: number, value: number) {
+        return this._add(ctx, [id], value);
+    }
+
+    increment(ctx: Context, id: number) {
+        return this._increment(ctx, [id]);
+    }
+
+    decrement(ctx: Context, id: number) {
+        return this._decrement(ctx, [id]);
+    }
+}
+
 export class FeedChannelMembersCountFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -25367,6 +25403,7 @@ export interface Store extends BaseStore {
     readonly VoiceChatParticipantActive: VoiceChatParticipantActiveFactory;
     readonly ChatMediaCounter: ChatMediaCounterFactory;
     readonly UserDialogReadMessageId: UserDialogReadMessageIdFactory;
+    readonly ConferencePeerVersion: ConferencePeerVersionFactory;
     readonly FeedChannelMembersCount: FeedChannelMembersCountFactory;
     readonly FeedChannelPostsCount: FeedChannelPostsCountFactory;
     readonly UserCounter: UserCounterFactory;
@@ -25690,6 +25727,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let VoiceChatParticipantActivePromise = VoiceChatParticipantActiveFactory.open(storage);
     let ChatMediaCounterPromise = ChatMediaCounterFactory.open(storage);
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
+    let ConferencePeerVersionPromise = ConferencePeerVersionFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
     let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(storage);
     let UserCounterPromise = UserCounterFactory.open(storage);
@@ -25959,6 +25997,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         VoiceChatParticipantActive: await VoiceChatParticipantActivePromise,
         ChatMediaCounter: await ChatMediaCounterPromise,
         UserDialogReadMessageId: await UserDialogReadMessageIdPromise,
+        ConferencePeerVersion: await ConferencePeerVersionPromise,
         FeedChannelMembersCount: await FeedChannelMembersCountPromise,
         FeedChannelPostsCount: await FeedChannelPostsCountPromise,
         UserCounter: await UserCounterPromise,

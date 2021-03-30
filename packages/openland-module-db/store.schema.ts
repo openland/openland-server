@@ -482,7 +482,7 @@ export default declareSchema(() => {
 
     taskQueue('DeliveryFanOut');
     taskQueue('DeliveryUserBatch');
-    
+
     customDirectory('MessageCounters');
 
     //
@@ -918,6 +918,10 @@ export default declareSchema(() => {
         uniqueIndex('auth', ['cid', 'uid', 'tid']).withCondition((src) => src.enabled);
         rangeIndex('conference', ['cid', 'keepAliveTimeout']).withCondition((src) => src.enabled);
         rangeIndex('active', ['keepAliveTimeout']).withCondition((src) => src.enabled);
+    });
+
+    atomicInt('ConferencePeerVersion', () => {
+        primaryKey('id', integer());
     });
 
     customDirectory('ConferencePeerKeepAlive');

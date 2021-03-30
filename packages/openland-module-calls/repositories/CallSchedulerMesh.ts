@@ -5,6 +5,7 @@ import { CallScheduler, MediaSources, StreamHint, ProducerDescriptor, Capabiliti
 import uuid from 'uuid/v4';
 import { ConferenceMeshLink } from 'openland-module-db/store';
 import { parseSDP } from 'openland-module-calls/sdp/parseSDP';
+import { CallRepository } from './CallRepository';
 
 const logger = createLogger('calls-mesh');
 type LinkKind = 'generic' | 'screencast';
@@ -17,9 +18,11 @@ function hasGenericSources(source: MediaSources) {
 
 export class CallSchedulerMesh implements CallScheduler {
     private iceTransportPolicy: 'all' | 'relay' | 'none';
+    private repo: CallRepository;
 
-    constructor(iceTransportPolicy: 'all' | 'relay' | 'none') {
+    constructor(iceTransportPolicy: 'all' | 'relay' | 'none', repo: CallRepository) {
         this.iceTransportPolicy = iceTransportPolicy;
+        this.repo = repo;
     }
 
     //
@@ -62,7 +65,6 @@ export class CallSchedulerMesh implements CallScheduler {
             if (ex.sources.screenCastStream) {
                 await this.#createScreencastLink(ctx, cid, ex.pid, pid, ex.sources);
             }
-
         }
     }
 
@@ -239,6 +241,10 @@ export class CallSchedulerMesh implements CallScheduler {
             });
             logger.log(ctx, 'Link ' + id + ' created');
         }
+
+        // Notify peers
+        this.repo.notifyPeerChanged(ctx, pid1);
+        this.repo.notifyPeerChanged(ctx, pid2);
     }
 
     #updateGenericLink = async (ctx: Context,
@@ -294,6 +300,10 @@ export class CallSchedulerMesh implements CallScheduler {
             stream1.localStreams = this.#getStreamGenericConfig(sources2);
             stream1.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources1), pid1);
         }
+
+        // Notify peers
+        this.repo.notifyPeerChanged(ctx, pid1);
+        this.repo.notifyPeerChanged(ctx, pid2);
     }
 
     #removeGenericLink = async (ctx: Context, cid: number, _pid1: number, _pid2: number) => {
@@ -384,6 +394,10 @@ export class CallSchedulerMesh implements CallScheduler {
             kind: KIND_SCREENCAST
         });
         logger.log(ctx, 'Link ' + id + ' created');
+
+        // Notify peers
+        this.repo.notifyPeerChanged(ctx, producerPid);
+        this.repo.notifyPeerChanged(ctx, consumerPid);
     }
 
     #removeScreenCastLink = async (ctx: Context, cid: number, producerPid: number, consumerPid: number) => {
@@ -392,6 +406,10 @@ export class CallSchedulerMesh implements CallScheduler {
             return;
         }
         await this.#cleanUpLink(ctx, link);
+
+        // Notify peers
+        this.repo.notifyPeerChanged(ctx, producerPid);
+        this.repo.notifyPeerChanged(ctx, consumerPid);
     }
 
     #cleanUpLink = async (ctx: Context, link: ConferenceMeshLink) => {
@@ -414,6 +432,10 @@ export class CallSchedulerMesh implements CallScheduler {
         stream2.remoteSdp = null;
         stream2.localStreams = [];
         stream2.remoteStreams = [];
+
+        // Notify peers
+        this.repo.notifyPeerChanged(ctx, stream1.pid);
+        this.repo.notifyPeerChanged(ctx, stream2.pid);
     }
 
     #getStreamScreenCastConfig = (streams: MediaSources): ProducerDescriptor[] => {
@@ -448,6 +470,10 @@ export class CallSchedulerMesh implements CallScheduler {
             stream2.state = 'need-offer';
             stream1.state = 'wait-offer';
         }
+
+        // Notify peers
+        this.repo.notifyPeerChanged(ctx, stream1.pid);
+        this.repo.notifyPeerChanged(ctx, stream2.pid);
     }
 
     onStreamCandidate = async (ctx: Context, cid: number, pid: number, sid: string, candidate: string) => {
@@ -466,6 +492,9 @@ export class CallSchedulerMesh implements CallScheduler {
         }
 
         otherStream.remoteCandidates = [...otherStream.remoteCandidates, candidate];
+
+        // Notify peer
+        this.repo.notifyPeerChanged(ctx, otherStream.pid);
     }
 
     onStreamOffer = async (ctx: Context, cid: number, pid: number, sid: string, offer: string, hints: StreamHint[] | null) => {
@@ -489,6 +518,9 @@ export class CallSchedulerMesh implements CallScheduler {
         otherStream.seq++;
         otherStream.remoteSdp = offer;
         otherStream.state = 'need-answer';
+
+        // Notify
+        this.repo.notifyPeerChanged(ctx, otherStream.pid);
 
         //
         // Resolving MIDs
@@ -629,11 +661,9 @@ export class CallSchedulerMesh implements CallScheduler {
             return;
         }
 
-        // move current stream to READY state
         let stream = await Store.ConferenceEndStream.findById(ctx, sid);
-        if (stream) {
-            stream.seq++;
-            stream.state = 'online';
+        if (!stream) {
+            return;
         }
 
         let otherStreamId = link.esid1 === sid ? link.esid2 : link.esid1;
@@ -644,9 +674,17 @@ export class CallSchedulerMesh implements CallScheduler {
         }
 
         link.state = 'online';
+
+        // move current stream to READY state
+        stream.seq++;
+        stream.state = 'online';
+
         // still need to increment for back compatibility
         otherStream.seq++;
         otherStream.remoteSdp = answer;
         otherStream.state = 'online';
+
+        this.repo.notifyPeerChanged(ctx, otherStream.pid);
+        this.repo.notifyPeerChanged(ctx, stream.pid);
     }
 }

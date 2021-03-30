@@ -85,6 +85,7 @@ export class CallSchedulerKitchen implements CallScheduler {
                 if (e.consumerTransport) {
                     let ct = (await Store.ConferenceKitchenConsumerTransport.findById(ctx, e.consumerTransport))!;
                     await this.transport.updateConsumerTransport(ctx, e.consumerTransport, [...ct.consumes, producerTransport]);
+                    this.callRepo.notifyPeerChanged(ctx, e.pid);
                 }
             }
         }
@@ -99,6 +100,7 @@ export class CallSchedulerKitchen implements CallScheduler {
         }
         if (peer.producerTransport) {
             await this.transport.updateProducerTransport(ctx, peer.producerTransport, sources);
+            this.callRepo.notifyPeerChanged(ctx, pid);
         }
     }
 

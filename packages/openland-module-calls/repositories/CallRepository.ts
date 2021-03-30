@@ -61,8 +61,8 @@ type MediaSettings = {
 export class CallRepository {
 
     readonly defaultScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' = Config.environment === 'production' ? 'basic-sfu' : 'mesh';
-    readonly schedulerMesh = new CallSchedulerMesh('relay');
-    readonly schedulerMeshNoRelay = new CallSchedulerMesh('all');
+    readonly schedulerMesh = new CallSchedulerMesh('relay', this);
+    readonly schedulerMeshNoRelay = new CallSchedulerMesh('all', this);
 
     @lazyInject('CallSchedulerKitchen')
     readonly schedulerKitchen!: CallSchedulerKitchen;
@@ -577,12 +577,22 @@ export class CallRepository {
         await this.notifyConferenceChanged(parent, cid);
     }
 
+    // Deprecated
     notifyConferenceChanged = async (parent: Context, cid: number) => {
         await inTx(parent, async (ctx) => {
             let conf = await this.getOrCreateConference(ctx, cid);
             conf.invalidate();
             notifyFastWatch(ctx, 'conference-' + cid);
         });
+    }
+
+    notifyPeerChanged = (ctx: Context, pid: number) => {
+        Store.ConferencePeerVersion.increment(ctx, pid);
+        notifyFastWatch(ctx, 'conference-peer-' + pid);
+    }
+
+    getPeerVersion = (ctx: Context, pid: number) => {
+        return Store.ConferencePeerVersion.get(ctx, pid);
     }
 
     #getStreams = async (ctx: Context, peer: ConferencePeer, conference: ConferenceRoom): Promise<MediaSources> => {
