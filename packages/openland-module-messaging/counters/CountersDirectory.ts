@@ -26,6 +26,38 @@ function filterDuplicates(src: number[]): number[] {
     return res;
 }
 
+function arraySetEqual(a: number[], b: number[]) {
+    if (a.length !== b.length) {
+        return false;
+    }
+    const n = a.length;
+    for (let i = 0; i < n; i++) {
+        let ex = false;
+        for (let j = 0; j < n; i++) {
+            if (b[j] === a[i]) {
+                ex = true;
+                break;
+            }
+        }
+        if (!ex) {
+            return false;
+        }
+    }
+    for (let i = 0; i < n; i++) {
+        let ex = false;
+        for (let j = 0; j < n; i++) {
+            if (a[j] === b[i]) {
+                ex = true;
+                break;
+            }
+        }
+        if (!ex) {
+            return false;
+        }
+    }
+    return true;
+}
+
 export class CountersDirectory {
     readonly subspace: Subspace;
     readonly counting: CountingCollection;
@@ -82,8 +114,8 @@ export class CountersDirectory {
             // Ignore if not changed
             if (
                 old.allMention === allMention &&
-                old.mentions === mentions &&
-                old.visibleOnlyTo === visibleOnlyTo) {
+                arraySetEqual(old.mentions, mentions) &&
+                arraySetEqual(old.visibleOnlyTo, visibleOnlyTo)) {
                 return;
             }
             await this.removeMessage(ctx, collection, seq);
