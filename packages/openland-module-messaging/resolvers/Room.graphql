@@ -64,6 +64,7 @@ type SharedRoom {
     canUnpinMessage: Boolean!
     welcomeMessage: WelcomeMessage
     hasActiveCall: Boolean!
+    hasActiveVoiceChat: Boolean!
 
     stickerPack: StickerPack
 
@@ -99,7 +100,8 @@ type SharedRoom {
 
     owner: User
 
-    activeVoiceChat: VoiceChat
+    activeVoiceChat: VoiceChat # deprecated
+    voiceChat: VoiceChat
 }
 
 type PremiumChatSettings {

@@ -15,7 +15,7 @@ import {
     UserDialogMuteChangedEvent,
     UserDialogPeerUpdatedEvent,
     UserDialogPhotoUpdatedEvent,
-    UserDialogTitleUpdatedEvent,
+    UserDialogTitleUpdatedEvent, UserDialogVoiceChatStateChangedEvent,
 } from 'openland-module-db/store';
 
 @injectable()
@@ -184,6 +184,14 @@ export class DeliveryRepository {
             uid,
             cid,
             hasActiveCall
+        }));
+    }
+
+    deliverVoiceChatStateChangedToUser(ctx: Context, uid: number, cid: number, hasActiveVoiceChat: boolean) {
+        Store.UserDialogEventStore.post(ctx, uid, UserDialogVoiceChatStateChangedEvent.create({
+            uid,
+            cid,
+            hasActiveVoiceChat
         }));
     }
 }

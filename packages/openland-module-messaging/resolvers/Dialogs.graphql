@@ -22,6 +22,7 @@ type Dialog {
     isMuted: Boolean!
     haveMention: Boolean!
     hasActiveCall: Boolean!
+    hasActiveVoiceChat: Boolean!
     membership: SharedRoomMembershipStatus!
 }
 

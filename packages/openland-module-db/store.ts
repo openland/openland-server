@@ -23680,6 +23680,45 @@ export class UserDialogCallStateChangedEvent extends BaseEvent {
     get hasActiveCall(): boolean { return this.raw.hasActiveCall; }
 }
 
+const userDialogVoiceChatStateChangedEventCodec = c.struct({
+    uid: c.integer,
+    cid: c.integer,
+    hasActiveVoiceChat: c.boolean,
+});
+
+interface UserDialogVoiceChatStateChangedEventShape {
+    uid: number;
+    cid: number;
+    hasActiveVoiceChat: boolean;
+}
+
+export class UserDialogVoiceChatStateChangedEvent extends BaseEvent {
+
+    static readonly type: 'userDialogVoiceChatStateChangedEvent' = 'userDialogVoiceChatStateChangedEvent';
+
+    static create(data: UserDialogVoiceChatStateChangedEventShape) {
+        return new UserDialogVoiceChatStateChangedEvent(userDialogVoiceChatStateChangedEventCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new UserDialogVoiceChatStateChangedEvent(userDialogVoiceChatStateChangedEventCodec.decode(data));
+    }
+
+    static encode(event: UserDialogVoiceChatStateChangedEvent) {
+        return userDialogVoiceChatStateChangedEventCodec.encode(event.raw);
+    }
+
+    readonly type: 'userDialogVoiceChatStateChangedEvent' = 'userDialogVoiceChatStateChangedEvent';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get uid(): number { return this.raw.uid; }
+    get cid(): number { return this.raw.cid; }
+    get hasActiveVoiceChat(): boolean { return this.raw.hasActiveVoiceChat; }
+}
+
 const userDialogGotAccessEventCodec = c.struct({
     uid: c.integer,
     cid: c.integer,
@@ -25685,6 +25724,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('userDialogMuteChangedEvent', UserDialogMuteChangedEvent.encode as any, UserDialogMuteChangedEvent.decode);
     eventFactory.registerEventType('userDialogPeerUpdatedEvent', UserDialogPeerUpdatedEvent.encode as any, UserDialogPeerUpdatedEvent.decode);
     eventFactory.registerEventType('userDialogCallStateChangedEvent', UserDialogCallStateChangedEvent.encode as any, UserDialogCallStateChangedEvent.decode);
+    eventFactory.registerEventType('userDialogVoiceChatStateChangedEvent', UserDialogVoiceChatStateChangedEvent.encode as any, UserDialogVoiceChatStateChangedEvent.decode);
     eventFactory.registerEventType('userDialogGotAccessEvent', UserDialogGotAccessEvent.encode as any, UserDialogGotAccessEvent.decode);
     eventFactory.registerEventType('userDialogLostAccessEvent', UserDialogLostAccessEvent.encode as any, UserDialogLostAccessEvent.decode);
     eventFactory.registerEventType('feedItemReceivedEvent', FeedItemReceivedEvent.encode as any, FeedItemReceivedEvent.decode);
