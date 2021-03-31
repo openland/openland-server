@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '205388fde67c7326d260ca70906280ae';
+export const GQL_SPEC_VERSION = '00280086deb3d067edbd046c0ce2fc8e';
 
 export namespace GQL {
     export interface CreditCard {
@@ -525,6 +525,7 @@ export namespace GQL {
         isMuted: boolean;
         haveMention: boolean;
         hasActiveCall: boolean;
+        hasActiveVoiceChat: boolean;
         membership: SharedRoomMembershipStatus;
     }
     export interface DialogIdArgs { }
@@ -541,6 +542,7 @@ export namespace GQL {
     export interface DialogIsMutedArgs { }
     export interface DialogHaveMentionArgs { }
     export interface DialogHasActiveCallArgs { }
+    export interface DialogHasActiveVoiceChatArgs { }
     export interface DialogMembershipArgs { }
     export interface DialogsConnection {
         items: Dialog[];
@@ -5313,10 +5315,12 @@ export namespace GQL {
         id: string;
         user: User;
         mediaState: ConferencePeerMediaState;
+        keepAlive: number;
     }
     export interface ConferencePeerIdArgs { }
     export interface ConferencePeerUserArgs { }
     export interface ConferencePeerMediaStateArgs { }
+    export interface ConferencePeerKeepAliveArgs { }
     export interface ConferencePeerMediaState {
         audioPaused: boolean;
         videoPaused: boolean;
@@ -6164,6 +6168,7 @@ export namespace GQL {
         canUnpinMessage: boolean;
         welcomeMessage: Nullable<WelcomeMessage>;
         hasActiveCall: boolean;
+        hasActiveVoiceChat: boolean;
         stickerPack: Nullable<StickerPack>;
         organization: Nullable<Organization>;
         membersCount: number;
@@ -6190,6 +6195,7 @@ export namespace GQL {
         featured: boolean;
         owner: Nullable<User>;
         activeVoiceChat: Nullable<VoiceChat>;
+        voiceChat: Nullable<VoiceChat>;
         externalSocialImage: Nullable<string>;
         linkedFeedChannels: FeedChannel[];
         shortname: Nullable<string>;
@@ -6205,6 +6211,7 @@ export namespace GQL {
     export interface SharedRoomCanUnpinMessageArgs { }
     export interface SharedRoomWelcomeMessageArgs { }
     export interface SharedRoomHasActiveCallArgs { }
+    export interface SharedRoomHasActiveVoiceChatArgs { }
     export interface SharedRoomStickerPackArgs { }
     export interface SharedRoomOrganizationArgs { }
     export interface SharedRoomMembersCountArgs { }
@@ -6234,6 +6241,7 @@ export namespace GQL {
     export interface SharedRoomFeaturedArgs { }
     export interface SharedRoomOwnerArgs { }
     export interface SharedRoomActiveVoiceChatArgs { }
+    export interface SharedRoomVoiceChatArgs { }
     export interface SharedRoomExternalSocialImageArgs { }
     export interface SharedRoomLinkedFeedChannelsArgs { }
     export interface SharedRoomShortnameArgs { }
@@ -7116,6 +7124,7 @@ export interface GQLResolver {
             isMuted: GQL.DialogIsMutedArgs,
             haveMention: GQL.DialogHaveMentionArgs,
             hasActiveCall: GQL.DialogHasActiveCallArgs,
+            hasActiveVoiceChat: GQL.DialogHasActiveVoiceChatArgs,
             membership: GQL.DialogMembershipArgs,
         }
     >;
@@ -10762,6 +10771,7 @@ export interface GQLResolver {
             id: GQL.ConferencePeerIdArgs,
             user: GQL.ConferencePeerUserArgs,
             mediaState: GQL.ConferencePeerMediaStateArgs,
+            keepAlive: GQL.ConferencePeerKeepAliveArgs,
         }
     >;
     ConferencePeerMediaState?: ComplexTypedResolver<
@@ -11729,6 +11739,7 @@ export interface GQLResolver {
             callSettings: GQLRoots.RoomCallSettingsRoot,
             owner: Nullable<GQLRoots.UserRoot>,
             activeVoiceChat: Nullable<GQLRoots.VoiceChatRoot>,
+            voiceChat: Nullable<GQLRoots.VoiceChatRoot>,
             linkedFeedChannels: GQLRoots.FeedChannelRoot[],
         },
         {
@@ -11743,6 +11754,7 @@ export interface GQLResolver {
             canUnpinMessage: GQL.SharedRoomCanUnpinMessageArgs,
             welcomeMessage: GQL.SharedRoomWelcomeMessageArgs,
             hasActiveCall: GQL.SharedRoomHasActiveCallArgs,
+            hasActiveVoiceChat: GQL.SharedRoomHasActiveVoiceChatArgs,
             stickerPack: GQL.SharedRoomStickerPackArgs,
             organization: GQL.SharedRoomOrganizationArgs,
             membersCount: GQL.SharedRoomMembersCountArgs,
@@ -11769,6 +11781,7 @@ export interface GQLResolver {
             featured: GQL.SharedRoomFeaturedArgs,
             owner: GQL.SharedRoomOwnerArgs,
             activeVoiceChat: GQL.SharedRoomActiveVoiceChatArgs,
+            voiceChat: GQL.SharedRoomVoiceChatArgs,
             externalSocialImage: GQL.SharedRoomExternalSocialImageArgs,
             linkedFeedChannels: GQL.SharedRoomLinkedFeedChannelsArgs,
             shortname: GQL.SharedRoomShortnameArgs,

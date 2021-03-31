@@ -106,6 +106,7 @@ export const Resolver: GQLResolver = {
                 audioPaused: !!src.audioPaused,
             };
         },
+        keepAlive: async (src, _, ctx) => (await Modules.Calls.repo.getPeerKeepAlive(ctx, src.cid, src.id)) || 0
     },
 
     //
@@ -370,7 +371,7 @@ export const Resolver: GQLResolver = {
                 })) : null);
 
                 // Result
-                return { id: peer.cid, peerId: peer.id };
+                return {id: peer.cid, peerId: peer.id};
             });
         }),
 
@@ -388,7 +389,7 @@ export const Resolver: GQLResolver = {
                 await Modules.Calls.repo.streamAnswer(ctx, id, pid, args.answer, args.seq === null ? undefined : args.seq);
 
                 // Result
-                return { id: peer.cid, peerId: peer.id };
+                return {id: peer.cid, peerId: peer.id};
             });
         }),
         mediaStreamCandidate: withUser(async (parent, args, uid) => {
@@ -405,7 +406,7 @@ export const Resolver: GQLResolver = {
                 await Modules.Calls.repo.streamCandidate(ctx, id, pid, args.candidate);
 
                 // Result
-                return { id: peer.cid, peerId: peer.id };
+                return {id: peer.cid, peerId: peer.id};
             });
         }),
         mediaStreamFailed: withUser(async (parent, args, uid) => {
@@ -413,7 +414,7 @@ export const Resolver: GQLResolver = {
                 let pid = IDs.ConferencePeer.parse(args.peerId);
                 let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
                 await Modules.Calls.repo.streamFailed(ctx, args.id, peer.id);
-                return { id: peer.cid, peerId: peer.id };
+                return {id: peer.cid, peerId: peer.id};
             });
         }),
 
@@ -427,7 +428,7 @@ export const Resolver: GQLResolver = {
                 if (peer.videoPaused === null) {
                     await Modules.Calls.repo.alterConferencePeerMediaState(ctx, peer.cid, uid, parent.auth.tid!, null, false);
                 }
-                return { id: peer.cid, peerId: peer.id };
+                return {id: peer.cid, peerId: peer.id};
             });
         }),
         // Deprecated
@@ -517,7 +518,7 @@ export const Resolver: GQLResolver = {
                 let pid = IDs.ConferencePeer.parse(args.peerId);
 
                 let version = await inTx(parent, async (ctx) => Modules.Calls.repo.getPeerVersion(ctx, pid));
-                yield { id: cid, peerId: pid };
+                yield {id: cid, peerId: pid};
 
                 while (true) {
                     let changed = await fastWatch(parent, 'conference-peer-' + pid, version,
@@ -525,7 +526,7 @@ export const Resolver: GQLResolver = {
                     );
                     if (changed.result) {
                         version = changed.version;
-                        yield { id: cid, peerId: pid };
+                        yield {id: cid, peerId: pid};
                     } else {
                         break;
                     }

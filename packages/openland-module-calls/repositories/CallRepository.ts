@@ -405,6 +405,10 @@ export class CallRepository {
         });
     }
 
+    getPeerKeepAlive = async (parent: Context, cid: number, pid: number) => {
+        return await this.keepAlive.getLastSeen(parent, [cid, pid]);
+    }
+
     checkTimeouts = async (parent: Context) => {
         let active = await Store.ConferencePeer.active.findAll(parent);
         for (let a of active) {
