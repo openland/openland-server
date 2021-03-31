@@ -1,6 +1,6 @@
 import { Capabilities } from './repositories/CallScheduler';
 import { ConferenceRoom, ConferencePeer, Conversation } from './../openland-module-db/store';
-import { inTx, withoutTransaction } from '@openland/foundationdb';
+import { inTx } from '@openland/foundationdb';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
@@ -270,7 +270,7 @@ export const Resolver: GQLResolver = {
     },
     Mutation: {
         conferenceJoin: withUser(async (parent, args, uid) => {
-            return await inTx(withoutTransaction(parent), async (ctx) => {
+            return await inTx(parent, async ctx => {
                 let cid = IDs.Conference.parse(args.id);
                 let capabilities: Capabilities | null = null;
                 if (args.input && args.input.capabilities) {
@@ -319,108 +319,99 @@ export const Resolver: GQLResolver = {
                 };
             });
         }),
-        conferenceKeepAlive: withUser(async (parent, args, uid) => {
-            return await inTx(withoutTransaction(parent), async (ctx) => {
-                let coid = IDs.Conference.parse(args.id);
-                let pid = IDs.ConferencePeer.parse(args.peerId);
-                let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
-                if (peer.uid !== uid) {
-                    throw Error('Invalid user id');
-                }
-                await Modules.Calls.repo.peerKeepAlive(ctx, coid, pid, 60000);
-                return Modules.Calls.repo.getOrCreateConference(ctx, coid);
-            });
+        conferenceKeepAlive: withUser(async (ctx, args, uid) => {
+            let coid = IDs.Conference.parse(args.id);
+            let pid = IDs.ConferencePeer.parse(args.peerId);
+            let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
+            if (peer.uid !== uid) {
+                throw Error('Invalid user id');
+            }
+            await Modules.Calls.repo.peerKeepAlive(ctx, coid, pid, 60000);
+            return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         }),
-        conferenceLeave: withUser(async (parent, args, uid) => {
-            return await inTx(withoutTransaction(parent), async (ctx) => {
-                let coid = IDs.Conference.parse(args.id);
-                let pid = IDs.ConferencePeer.parse(args.peerId);
-                let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
-                if (peer.uid !== uid) {
-                    throw Error('Invalid user id');
-                }
+        conferenceLeave: withUser(async (ctx, args, uid) => {
+            let coid = IDs.Conference.parse(args.id);
+            let pid = IDs.ConferencePeer.parse(args.peerId);
+            let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
+            if (peer.uid !== uid) {
+                throw Error('Invalid user id');
+            }
 
-                let chat = await Store.Conversation.findById(ctx, coid);
-                if (chat && chat.kind === 'private') {
-                    await Modules.Calls.repo.endConference(ctx, coid);
-                } else {
-                    await Modules.Calls.repo.removePeer(ctx, pid);
-                }
+            let chat = await Store.Conversation.findById(ctx, coid);
+            if (chat && chat.kind === 'private') {
+                await Modules.Calls.repo.endConference(ctx, coid);
+            } else {
+                await Modules.Calls.repo.removePeer(ctx, pid);
+            }
 
-                return Modules.Calls.repo.getOrCreateConference(ctx, coid);
-            });
+            return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         }),
 
-        mediaStreamOffer: withUser(async (parent, args, uid) => {
-            return await inTx(withoutTransaction(parent), async (ctx) => {
-                // Resolve
-                let id = IDs.MediaStream.parse(args.id);
-                let pid = IDs.ConferencePeer.parse(args.peerId);
-                let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
-                if (peer.uid !== uid) {
-                    throw Error('Invalid user id');
-                }
+        mediaStreamOffer: withUser(async (ctx, args, uid) => {
 
-                // Update
-                await Modules.Calls.repo.streamOffer(ctx, id, pid, args.offer, args.seq, args.hints ? args.hints.map((v) => ({
-                    peerId: v.peerId ? IDs.ConferencePeer.parse(v.peerId) : null,
-                    kind: v.kind,
-                    direction: v.direction,
-                    mid: v.mid,
-                    videoSource: v.videoSource
-                })) : null);
+            // Resolve
+            let id = IDs.MediaStream.parse(args.id);
+            let pid = IDs.ConferencePeer.parse(args.peerId);
+            let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
+            if (peer.uid !== uid) {
+                throw Error('Invalid user id');
+            }
 
-                // Result
-                return {id: peer.cid, peerId: peer.id};
-            });
+            // Update
+            await Modules.Calls.repo.streamOffer(ctx, id, pid, args.offer, args.seq, args.hints ? args.hints.map((v) => ({
+                peerId: v.peerId ? IDs.ConferencePeer.parse(v.peerId) : null,
+                kind: v.kind,
+                direction: v.direction,
+                mid: v.mid,
+                videoSource: v.videoSource
+            })) : null);
+
+            // Result
+            return { id: peer.cid, peerId: peer.id };
         }),
 
-        mediaStreamAnswer: withUser(async (parent, args, uid) => {
-            return await inTx(withoutTransaction(parent), async (ctx) => {
-                // Resolve
-                let id = IDs.MediaStream.parse(args.id);
-                let pid = IDs.ConferencePeer.parse(args.peerId);
-                let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
-                if (peer.uid !== uid) {
-                    throw Error('Invalid user id');
-                }
+        mediaStreamAnswer: withUser(async (ctx, args, uid) => {
 
-                // Update
-                await Modules.Calls.repo.streamAnswer(ctx, id, pid, args.answer, args.seq === null ? undefined : args.seq);
+            // Resolve
+            let id = IDs.MediaStream.parse(args.id);
+            let pid = IDs.ConferencePeer.parse(args.peerId);
+            let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
+            if (peer.uid !== uid) {
+                throw Error('Invalid user id');
+            }
 
-                // Result
-                return {id: peer.cid, peerId: peer.id};
-            });
+            // Update
+            await Modules.Calls.repo.streamAnswer(ctx, id, pid, args.answer, args.seq === null ? undefined : args.seq);
+
+            // Result
+            return { id: peer.cid, peerId: peer.id };
         }),
-        mediaStreamCandidate: withUser(async (parent, args, uid) => {
-            return await inTx(withoutTransaction(parent), async (ctx) => {
-                // Resolve
-                let id = IDs.MediaStream.parse(args.id);
-                let pid = IDs.ConferencePeer.parse(args.peerId);
-                let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
-                if (peer.uid !== uid) {
-                    throw Error('Invalid user id');
-                }
+        mediaStreamCandidate: withUser(async (ctx, args, uid) => {
 
-                // Update
-                await Modules.Calls.repo.streamCandidate(ctx, id, pid, args.candidate);
+            // Resolve
+            let id = IDs.MediaStream.parse(args.id);
+            let pid = IDs.ConferencePeer.parse(args.peerId);
+            let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
+            if (peer.uid !== uid) {
+                throw Error('Invalid user id');
+            }
 
-                // Result
-                return {id: peer.cid, peerId: peer.id};
-            });
+            // Update
+            await Modules.Calls.repo.streamCandidate(ctx, id, pid, args.candidate);
+
+            // Result
+            return { id: peer.cid, peerId: peer.id };
         }),
-        mediaStreamFailed: withUser(async (parent, args, uid) => {
-            return await inTx(withoutTransaction(parent), async (ctx) => {
-                let pid = IDs.ConferencePeer.parse(args.peerId);
-                let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
-                await Modules.Calls.repo.streamFailed(ctx, args.id, peer.id);
-                return {id: peer.cid, peerId: peer.id};
-            });
+        mediaStreamFailed: withUser(async (ctx, args, uid) => {
+            let pid = IDs.ConferencePeer.parse(args.peerId);
+            let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
+            await Modules.Calls.repo.streamFailed(ctx, args.id, peer.id);
+            return { id: peer.cid, peerId: peer.id };
         }),
 
         // Deprecated
         mediaStreamNegotiationNeeded: withUser(async (parent, args, uid) => {
-            return await inTx(withoutTransaction(parent), async (ctx) => {
+            return await inTx(parent, async (ctx) => {
                 let pid = IDs.ConferencePeer.parse(args.peerId);
                 let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
                 // elder client mb turned video on
@@ -428,40 +419,32 @@ export const Resolver: GQLResolver = {
                 if (peer.videoPaused === null) {
                     await Modules.Calls.repo.alterConferencePeerMediaState(ctx, peer.cid, uid, parent.auth.tid!, null, false);
                 }
-                return {id: peer.cid, peerId: peer.id};
+                return { id: peer.cid, peerId: peer.id };
             });
         }),
         // Deprecated
-        conferenceAddScreenShare: withUser(async (parent, args, uid) => {
-            return await inTx(withoutTransaction(parent), async (ctx) => {
-                let cid = IDs.Conference.parse(args.id);
-                return await Modules.Calls.repo.addScreenShare(ctx, cid, uid, ctx.auth.tid!);
-            });
+        conferenceAddScreenShare: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conference.parse(args.id);
+            return await Modules.Calls.repo.addScreenShare(ctx, cid, uid, ctx.auth.tid!);
         }),
         // Deprecated
-        conferenceRemoveScreenShare: withUser(async (parent, args, uid) => {
-            return await inTx(withoutTransaction(parent), async (ctx) => {
-                let cid = IDs.Conference.parse(args.id);
-                let peer = await Store.ConferencePeer.auth.find(ctx, cid, uid, ctx.auth.tid!);
-                if (!peer) {
-                    throw Error('Unable to find peer');
-                }
-                return await Modules.Calls.repo.removeScreenShare(ctx, peer);
-            });
+        conferenceRemoveScreenShare: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conference.parse(args.id);
+            let peer = await Store.ConferencePeer.auth.find(ctx, cid, uid, ctx.auth.tid!);
+            if (!peer) {
+                throw Error('Unable to find peer');
+            }
+            return await Modules.Calls.repo.removeScreenShare(ctx, peer);
         }),
         // Deprecated
-        conferenceAlterMediaState: withUser(async (parent, args, uid) => {
-            return await inTx(withoutTransaction(parent), async (ctx) => {
-                let cid = IDs.Conference.parse(args.id);
-                return await Modules.Calls.repo.alterConferencePeerMediaState(ctx, cid, uid, ctx.auth.tid!, args.state.audioPaused, args.state.videoPaused);
-            });
+        conferenceAlterMediaState: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conference.parse(args.id);
+            return await Modules.Calls.repo.alterConferencePeerMediaState(ctx, cid, uid, ctx.auth.tid!, args.state.audioPaused, args.state.videoPaused);
         }),
 
-        conferenceRequestLocalMediaChange: withUser(async (parent, args, uid) => {
-            return await inTx(withoutTransaction(parent), async (ctx) => {
-                let cid = IDs.Conference.parse(args.id);
-                return await Modules.Calls.repo.conferenceRequestLocalMediaChange(ctx, cid, uid, ctx.auth.tid!, args.media);
-            });
+        conferenceRequestLocalMediaChange: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conference.parse(args.id);
+            return await Modules.Calls.repo.conferenceRequestLocalMediaChange(ctx, cid, uid, ctx.auth.tid!, args.media);
         }),
 
         // Deprecated
