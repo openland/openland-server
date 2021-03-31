@@ -93,7 +93,7 @@ export async function createClient(ctx: Context) {
     TableSpace.lock();
 
     // perform migrations only on admin
-    if (serverRoleEnabled('admin')) {
+    if (serverRoleEnabled('admin') && false) {
         await performMigrations(ctx, db);
     }
 
