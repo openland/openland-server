@@ -118,7 +118,7 @@ function loadConfigIfNeeded() {
         throw Error('Error in config: ' + JSON.stringify(PathReporter.report(decoded)));
     }
 
-    if (process.env.JAEGER_AGENT_HOST || process.env.JAEGER_ENDPOINT) {
+    if ((process.env.JAEGER_AGENT_HOST || process.env.JAEGER_ENDPOINT) && (process.env.JAEGER_DISABLE !== 'true')) {
         enableTracing = true;
     }
 }
