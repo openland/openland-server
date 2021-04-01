@@ -12,7 +12,7 @@ import { delay } from '../../openland-utils/timer';
 import { EventBus } from '../../openland-module-pubsub/EventBus';
 import { BaseEvent } from '@openland/foundationdb-entity';
 import { MessageReceivedEvent, MessageUpdatedEvent } from 'openland-module-db/store';
-import { onContextCancel } from '@openland/lifetime';
+import { isContextCancelled, onContextCancel } from '@openland/lifetime';
 
 export const Resolver: GQLResolver = {
     ChatUpdateContainer: {
@@ -113,10 +113,11 @@ export const Resolver: GQLResolver = {
                 try {
                     await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
                 } catch (e) {
-                    while (true) {
-                        yield lostAccessEvent;
+                    yield lostAccessEvent;
+                    while (!isContextCancelled(ctx)) {
                         await delay(5000);
                     }
+                    return;
                 }
 
                 // Fallback cursor
@@ -157,8 +158,11 @@ export const Resolver: GQLResolver = {
                             cursor: event.cursor
                         };
                     } else {
-                        yield lostAccessEvent;
                         subscription.cancel();
+                        yield lostAccessEvent;
+                        while (!isContextCancelled(ctx)) {
+                            await delay(5000);
+                        }
                         return;
                     }
                 }
