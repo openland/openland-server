@@ -26,6 +26,7 @@ union DialogUpdate =
     | DialogBump
     | DialogPeerUpdated
     | DialogCallStateChanged
+    | DialogVoiceChatStateChanged
     | DialogGotAccess
     | DialogLostAccess
 
@@ -122,6 +123,11 @@ type DialogPeerUpdated {
 type DialogCallStateChanged {
     cid: ID!
     hasActiveCall: Boolean!
+}
+
+type DialogVoiceChatStateChanged {
+    cid: ID!
+    hasActiveVoiceChat: Boolean!
 }
 
 # depricated

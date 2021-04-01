@@ -13,6 +13,7 @@ import {
     RichMessageInput,
     RichMessageRepository
 } from '../../openland-module-rich-message/repositories/RichMessageRepository';
+import { DeliveryMediator } from '../../openland-module-messaging/mediators/DeliveryMediator';
 
 export type VoiceChatInput = {
     title: string
@@ -29,6 +30,8 @@ export class VoiceChatsRepository {
     private readonly events!: VoiceChatEventsRepository;
     @lazyInject('RichMessageRepository')
     private readonly richMessageRepo!: RichMessageRepository;
+    @lazyInject('DeliveryMediator')
+    readonly delivery!: DeliveryMediator;
 
     public voiceChatActiveChanged = new Subject<{ cid: number, active: boolean }>();
 
@@ -67,7 +70,7 @@ export class VoiceChatsRepository {
         chat.title = title;
         chat.isPrivate = isPrivate || false;
 
-        await this.notifyChatUpdated(ctx, id);
+        await this.notifyChatUpdated(ctx, id, chat.isPrivate || false);
         return chat;
     }
 
@@ -81,6 +84,7 @@ export class VoiceChatsRepository {
             chat.startedAt = Date.now();
             chat.endedAt = null;
             chat.duration = null;
+            await this.#onChatActive(ctx, id);
         } else {
             let members = await Store.VoiceChatParticipant.chat.findAll(ctx, id);
             await Promise.all(members.map(a => this.participants.leaveChat(ctx, a.cid, a.uid)));
@@ -88,13 +92,28 @@ export class VoiceChatsRepository {
                 chat.endedAt = Date.now();
                 chat.duration = chat.endedAt - chat.startedAt;
             }
+            await this.#onChatInactive(ctx, id);
         }
 
-        await this.notifyChatUpdated(ctx, id);
+        await this.notifyChatUpdated(ctx, id, chat.isPrivate || false);
         getTransaction(ctx).afterCommit(async () => {
             await this.voiceChatActiveChanged.next({ cid: id, active });
         });
         return chat;
+    }
+
+    #onChatActive = async (ctx: Context, id: number) => {
+        let chat = await this.#getChatOrFail(ctx, id);
+        if (chat.parentChat) {
+            await this.delivery.onVoiceChatStateChanged(ctx, chat.parentChat, true);
+        }
+    }
+
+    #onChatInactive = async (ctx: Context, id: number) => {
+        let chat = await this.#getChatOrFail(ctx, id);
+        if (chat.parentChat) {
+            await this.delivery.onVoiceChatStateChanged(ctx, chat.parentChat, false);
+        }
     }
 
     setPinnedMessage = async (ctx: Context, id: number, by: number, message: RichMessageInput) => {
@@ -128,8 +147,8 @@ export class VoiceChatsRepository {
         return chat;
     }
 
-    notifyChatUpdated = async (ctx: Context, id: number) => {
-        await this.events.postChatUpdated(ctx, id);
+    notifyChatUpdated = async (ctx: Context, id: number, isPrivate: boolean) => {
+        await this.events.postChatUpdated(ctx, id, isPrivate);
         notifyFastWatch(ctx, `voice-chat-${id}`);
     }
 }

@@ -89,3 +89,10 @@ export function buildMessage(...parts: MessagePart[]): MessageInput {
         attachments: attachments.length ? attachments : undefined,
     };
 }
+
+export function buildServiceMessage(...parts: MessagePart[]): MessageInput {
+    return {
+        isService: true,
+        ...buildMessage(...parts)
+    };
+}

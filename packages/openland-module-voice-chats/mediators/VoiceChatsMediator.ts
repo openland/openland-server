@@ -48,6 +48,18 @@ export class VoiceChatsMediator {
         return await this.repo.deletePinnedMessage(ctx, id);
     }
 
+    chatHasActiveVoiceChat = async (ctx: Context, cid: number) => {
+        let profile = await Store.RoomProfile.findById(ctx, cid);
+        if (!profile || !profile.voiceChat) {
+            return false;
+        }
+        let voiceChat = await Store.ConversationVoice.findById(ctx, profile.voiceChat);
+        if (!voiceChat) {
+            return false;
+        }
+        return voiceChat.active;
+    }
+
     //
     // Voice chat events
     //

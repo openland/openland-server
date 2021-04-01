@@ -15,6 +15,14 @@ export class KeepAliveCollection {
         this.subspace.max(ctx, encoders.tuple.pack(key), encoders.int32LE.pack(lastSeen));
     }
 
+    async getLastSeen(ctx: Context, key: TupleItem[]) {
+        let lastSeen = await this.subspace.snapshotGet(ctx, encoders.tuple.pack(key));
+        if (!lastSeen) {
+            return null;
+        }
+        return encoders.int32LE.unpack(lastSeen);
+    }
+
     async isAlive(ctx: Context, key: TupleItem[]) {
         let lastSeen = await this.subspace.snapshotGet(ctx, encoders.tuple.pack(key));
         if (!lastSeen) {

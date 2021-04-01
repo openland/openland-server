@@ -12,7 +12,7 @@ import {
     UserDialogMuteChangedEvent,
     UserDialogPeerUpdatedEvent,
     UserDialogPhotoUpdatedEvent,
-    UserDialogTitleUpdatedEvent,
+    UserDialogTitleUpdatedEvent, UserDialogVoiceChatStateChangedEvent,
 } from 'openland-module-db/store';
 import { GQLResolver, GQL } from '../../openland-module-api/schema/SchemaSpec';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
@@ -72,6 +72,8 @@ export const Resolver: GQLResolver = {
                 return 'DialogPeerUpdated';
             } else if (obj instanceof UserDialogCallStateChangedEvent) {
                 return 'DialogCallStateChanged';
+            } else if (obj instanceof UserDialogVoiceChatStateChangedEvent) {
+                return 'DialogVoiceChatStateChanged';
             } else if (obj instanceof UserDialogGotAccessEvent) {
                 return 'DialogGotAccess';
             } else if (obj instanceof UserDialogLostAccessEvent) {
@@ -148,6 +150,10 @@ export const Resolver: GQLResolver = {
     },
     DialogCallStateChanged: {
         hasActiveCall: src => src.hasActiveCall,
+        cid: src => IDs.Conversation.serialize(src.cid),
+    },
+    DialogVoiceChatStateChanged: {
+        hasActiveVoiceChat: src => src.hasActiveVoiceChat,
         cid: src => IDs.Conversation.serialize(src.cid),
     },
     DialogGotAccess: {

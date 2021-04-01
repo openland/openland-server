@@ -832,6 +832,11 @@ export default declareSchema(() => {
         field('cid', integer());
         field('hasActiveCall', boolean());
     });
+    event('UserDialogVoiceChatStateChangedEvent', () => {
+        field('uid', integer());
+        field('cid', integer());
+        field('hasActiveVoiceChat', boolean());
+    });
     event('UserDialogGotAccessEvent', () => {
         field('uid', integer());
         field('cid', integer());

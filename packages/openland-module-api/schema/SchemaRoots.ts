@@ -106,7 +106,10 @@ import {
     VoiceChatParticipantShape,
     UpdateFeedItemReceived,
     UpdateFeedItemUpdated,
-    UpdateFeedItemDeleted, VoiceChatParticipantUpdatedEvent, VoiceChatUpdatedEvent,
+    UpdateFeedItemDeleted,
+    VoiceChatParticipantUpdatedEvent,
+    VoiceChatUpdatedEvent,
+    UserDialogVoiceChatStateChangedEvent,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -588,6 +591,7 @@ export namespace GQLRoots {
     export type DialogMentionedChangedRoot = any;
     export type DialogPeerUpdatedRoot = UserDialogPeerUpdatedEvent;
     export type DialogCallStateChangedRoot = UserDialogCallStateChangedEvent;
+    export type DialogVoiceChatStateChangedRoot = UserDialogVoiceChatStateChangedEvent;
 
     //
     //  Search

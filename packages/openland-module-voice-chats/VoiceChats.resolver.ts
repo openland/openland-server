@@ -117,10 +117,15 @@ export const Resolver: GQLResolver = {
             let chat = await Modules.VoiceChats.chats.createChat(ctx, {
                 title: input.title,
                 startedBy: uid,
-                isPrivate
+                isPrivate,
+                parentChatId: room.id
             });
             roomProfile.voiceChat = chat.id;
             await roomProfile.flush(ctx);
+
+            // Send events
+            await Modules.Messaging.room.markConversationAsUpdated(ctx, room.id, uid);
+            await Modules.Messaging.room.notifyRoomUpdated(ctx, room.id);
 
             await Modules.VoiceChats.participants.joinChat(ctx, chat.id, uid, ctx.auth.tid!);
 

@@ -124,13 +124,16 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
             .toConstantValue(store);
 
         // Load clickhouse
-        asyncRun(async () => {
-            await backoff(ctx, async () => {
-                let chClient = await createClient(ctx);
-                container.bind('ClickHouse').toConstantValue(chClient);
-                logger.log(ctx, 'ClickHouse connected');
+        if (Config.environment !== 'debug') {
+            asyncRun(async () => {
+                await backoff(ctx, async () => {
+                    let chClient = await createClient(ctx);
+                    container.bind('ClickHouse').toConstantValue(chClient);
+                    logger.log(ctx, 'ClickHouse connected');
+                });
             });
-        });
+        }
+
     }
 
     logger.log(ctx, 'Loading modules...');

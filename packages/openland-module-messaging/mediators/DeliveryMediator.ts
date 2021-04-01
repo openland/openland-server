@@ -18,7 +18,17 @@ import { createLogger } from '@openland/log';
 const tracer = createTracer('message-delivery');
 const log = createLogger('delivery');
 
-type DeliveryAction = 'new' | 'update' | 'delete' | 'call-active' | 'call-inactive' | 'dialog-title-update' | 'dialog-peer-update' | 'dialog-photo-update';
+type DeliveryAction =
+    'new' |
+    'update' |
+    'delete' |
+    'call-active' |
+    'call-inactive' |
+    'voice-chat-active' |
+    'voice-chat-inactive' |
+    'dialog-title-update' |
+    'dialog-peer-update' |
+    'dialog-photo-update';
 
 @injectable()
 export class DeliveryMediator {
@@ -62,6 +72,14 @@ export class DeliveryMediator {
                     for (let uid of item.uids) {
                         this.repo.deliverCallStateChangedToUser(ctx, uid, item.cid, false);
                     }
+                }  else if (item.action === 'voice-chat-active') {
+                    for (let uid of item.uids) {
+                        this.repo.deliverVoiceChatStateChangedToUser(ctx, uid, item.cid, true);
+                    }
+                } else if (item.action === 'voice-chat-inactive') {
+                    for (let uid of item.uids) {
+                        this.repo.deliverVoiceChatStateChangedToUser(ctx, uid, item.cid, false);
+                    }
                 } else if (item.action === 'dialog-peer-update') {
                     for (let uid of item.uids) {
                         this.repo.deliverDialogPeerUpdatedToUser(ctx, uid, item.cid);
@@ -92,6 +110,10 @@ export class DeliveryMediator {
                     await this.fanOutDelivery(ctx, item.messageId, item.cid, 'call-active');
                 } else if (item.action === 'call-inactive') {
                     await this.fanOutDelivery(ctx, item.messageId, item.cid, 'call-inactive');
+                } else if (item.action === 'voice-chat-active') {
+                    await this.fanOutDelivery(ctx, item.messageId, item.cid, 'voice-chat-active');
+                } else if (item.action === 'voice-chat-inactive') {
+                    await this.fanOutDelivery(ctx, item.messageId, item.cid, 'voice-chat-inactive');
                 } else if (item.action === 'dialog-peer-update') {
                     await this.fanOutDelivery(ctx, item.messageId, item.cid, 'dialog-peer-update');
                 } else if (item.action === 'dialog-title-update') {
@@ -247,6 +269,17 @@ export class DeliveryMediator {
                 this.queueFanOut.pushWork(ctx, { messageId: 0, cid, action: 'call-active' });
             } else {
                 this.queueFanOut.pushWork(ctx, { messageId: 0, cid, action: 'call-inactive' });
+            }
+            await this.room.notifyRoomUpdated(ctx, cid);
+        });
+    }
+
+    onVoiceChatStateChanged = async (parent: Context, cid: number, hasActiveVoiceChat: boolean) => {
+        await inTx(parent, async ctx => {
+            if (hasActiveVoiceChat) {
+                this.queueFanOut.pushWork(ctx, { messageId: 0, cid, action: 'voice-chat-active' });
+            } else {
+                this.queueFanOut.pushWork(ctx, { messageId: 0, cid, action: 'voice-chat-inactive' });
             }
             await this.room.notifyRoomUpdated(ctx, cid);
         });

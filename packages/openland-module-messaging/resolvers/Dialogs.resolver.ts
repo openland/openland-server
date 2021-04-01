@@ -86,6 +86,9 @@ export const Resolver: GQLResolver = {
         hasActiveCall: async (src, _, ctx) => {
             return await Modules.Calls.repo.hasActiveCall(ctx, src.cid);
         },
+        hasActiveVoiceChat: async (src, _, ctx) => {
+            return await Modules.VoiceChats.chats.chatHasActiveVoiceChat(ctx, src.cid);
+        },
         featured: async (src, _, ctx) => {
             let conv = await Store.ConversationRoom.findById(ctx, src.cid);
             return conv?.featured || false;
