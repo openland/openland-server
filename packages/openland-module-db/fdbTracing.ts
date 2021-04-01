@@ -66,8 +66,16 @@ export function setupFdbTracing() {
             Metrics.FDBTransactions.inc(ctxName);
             Metrics.FDBTransactionsActive.inc(Config.hostname);
             Metrics.FDBTransactionsActiveContext.inc(ctxName);
+            let start = Date.now();
+            Metrics.FDBQueueSize.inc();
+            let wasStopped = false;
             try {
                 return await Concurrency.Transaction.run(async () => {
+                    Metrics.FDBQueueDelay.report(Date.now() - start);
+                    if (!wasStopped) {
+                        wasStopped = true;
+                        Metrics.FDBQueueSize.dec();
+                    }
                     return await rawTracer.trace(ctx, 'transaction:iteration', async (child) => {
                         let txch = withConcurrentcyPool(child, Concurrency.TransactionOperations());
                         return await handler(txch);
@@ -76,6 +84,10 @@ export function setupFdbTracing() {
             } finally {
                 Metrics.FDBTransactionsActive.dec(Config.hostname);
                 Metrics.FDBTransactionsActiveContext.dec(ctxName);
+                if (!wasStopped) {
+                    wasStopped = true;
+                    Metrics.FDBQueueSize.dec();
+                }
             }
         },
         commit: async (parent, handler) => {

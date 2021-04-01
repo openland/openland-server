@@ -34,6 +34,8 @@ export const Metrics = {
     FDBWrites: Factory.createTaggedSummary('fdb_writes', 'Summary of write operations per context', DEFAULT_QUANTILES),
     FDBReadsFrequency: Factory.createTaggedFrequencyGauge('fdb_reads_fq', 'Frequency of reads per context'),
     FDBWritesFrequency: Factory.createTaggedFrequencyGauge('fdb_writes_fq', 'Frequency of writes per context'),
+    FDBQueueDelay: Factory.createSummary('fdb_queue_delay', 'Summary of transaction delay', DEFAULT_QUANTILES),
+    FDBQueueSize: Factory.createMachineGauge('fdb_queue_size', 'Size of queue'),
 
     // SpaceX
     WebSocketConnections: Factory.createMachineGauge('connections', 'Active WebSocket connections'),
