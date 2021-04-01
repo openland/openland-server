@@ -112,7 +112,7 @@ export class VoiceChatsRepository {
     #onChatInactive = async (ctx: Context, id: number) => {
         let chat = await this.#getChatOrFail(ctx, id);
         if (chat.parentChat) {
-            await this.delivery.onVoiceChatStateChanged(ctx, chat.parentChat, true);
+            await this.delivery.onVoiceChatStateChanged(ctx, chat.parentChat, false);
         }
     }
 
