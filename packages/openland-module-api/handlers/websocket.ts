@@ -18,7 +18,7 @@ export async function fetchWebSocketParameters(args: any, websocket: any) {
     if (token) {
         const uid = await Modules.Auth.findToken(token);
         if (uid !== null) {
-            return await inTx(rootContext, async (ctx) => {
+            await inTx(rootContext, async (ctx) => {
                 res.uid = uid.uid;
                 res.tid = uid.uuid;
                 let accounts = await Modules.Orgs.findUserOrganizations(ctx, res.uid);
