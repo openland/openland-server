@@ -33,7 +33,7 @@ function arraySetEqual(a: number[], b: number[]) {
     const n = a.length;
     for (let i = 0; i < n; i++) {
         let ex = false;
-        for (let j = 0; j < n; i++) {
+        for (let j = 0; j < n; j++) {
             if (b[j] === a[i]) {
                 ex = true;
                 break;
