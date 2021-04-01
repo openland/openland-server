@@ -16,7 +16,7 @@ export const Concurrency = {
     TransactionOperations: () => new BoundedConcurrencyPool(512),
 
     // FoundationDB transaction pool. Unique per process.
-    Transaction: new BoundedConcurrencyPool(256 * 2),
+    Transaction: new BoundedConcurrencyPool(512),
 
     // GQL resolve pool, unique per process
     Resolve: () => new BoundedConcurrencyPool(16 * 3),

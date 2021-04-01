@@ -13,8 +13,10 @@ import { Context, createNamedContext } from '@openland/context';
 import { createPersistenceThrottle } from '../../openland-utils/PersistenceThrottle';
 import { doSimpleHash } from '../../openland-module-push/workers/PushWorker';
 import { IDs } from '../../openland-module-api/IDs';
+import { createTracer } from 'openland-log/createTracer';
 
 const rootCtx = createNamedContext('auth-email');
+const tracer = createTracer('auth-email');
 
 const Errors = {
     wrong_arg: 'An unexpected error occurred. Please try again.',
@@ -100,218 +102,224 @@ async function findUserByEmail(ctx: Context, email: string) {
 }
 
 export async function sendCode(req: express.Request, response: express.Response) {
-    let {
-        email,
-        phone,
-        session
-    } = req.body;
+    await tracer.trace(rootCtx, 'send-code', async (parent) => {
+        let {
+            email,
+            phone,
+            session
+        } = req.body;
 
-    await inTx(rootCtx, async (ctx) => {
-        let authSession: AuthCodeSession | undefined;
-        if (session) {
-            if (!checkSession(session)) {
-                sendError(response, 'session_not_found');
+        await inTx(parent, async (ctx) => {
+            let authSession: AuthCodeSession | undefined;
+            if (session) {
+                if (!checkSession(session)) {
+                    sendError(response, 'session_not_found');
+                    return;
+                }
+
+                let existing = await Modules.Auth.findEmailAuthSession(ctx, session);
+                if (!existing) {
+                    sendError(response, 'session_not_found');
+                    return;
+                }
+                authSession = existing;
+            }
+
+            if (!email && !phone) {
+                sendError(response, 'no_email_or_phone');
                 return;
             }
 
-            let existing = await Modules.Auth.findEmailAuthSession(ctx, session);
-            if (!existing) {
-                sendError(response, 'session_not_found');
+            let code = randomNumbersString(CODE_LEN);
+
+            if (email) {
+                if (!checkEmail(email)) {
+                    sendError(response, 'invalid_email');
+                    return;
+                }
+
+                email = (email as string).toLowerCase().trim();
+
+                let nextEmailTime = await emailThrottle.nextFireTimeout(ctx, email);
+                if (nextEmailTime > 0) {
+                    sendError(response, 'too_many_attempts', { can_send_next_email_at: nextEmailTime });
+                    return;
+                }
+
+                let isTest = isTestEmail(email);
+                let existing = await findUserByEmail(ctx, email);
+
+                if (!isTest) {
+                    await Emails.sendActivationCodeEmail(ctx, email, code, !!existing);
+                    await emailThrottle.onFire(ctx, email);
+                } else {
+                    code = testEmailCode(email);
+                }
+
+                if (!authSession) {
+                    authSession = await Modules.Auth.createEmailAuthSession(ctx, email, code);
+                } else {
+                    authSession.code = code;
+                    authSession.attemptsCount = 0;
+                }
+
+                let pictureId: string | undefined;
+                let profile: UserProfile | null | undefined;
+                if (existing) {
+                    profile = await Store.UserProfile.findById(ctx, existing.id);
+                    pictureId = profile && profile.picture && profile.picture.uuid;
+                }
+
+                response.json({
+                    ok: true,
+                    session: authSession!.uid,
+                    profileExists: !!profile,
+                    pictureId,
+                    pictureHash: profile ? doSimpleHash(IDs.User.serialize(profile.id)) : null,
+                    pictureCrop: profile && profile.picture && profile.picture.crop,
+                    initials: profile ? ((profile.firstName || '').slice(0, 1) + ' ' + (profile.lastName || '').slice(0, 1)).toUpperCase() : null
+                });
                 return;
-            }
-            authSession = existing;
-        }
-
-        if (!email && !phone) {
-            sendError(response, 'no_email_or_phone');
-            return;
-        }
-
-        let code = randomNumbersString(CODE_LEN);
-
-        if (email) {
-            if (!checkEmail(email)) {
-                sendError(response, 'invalid_email');
-                return;
-            }
-
-            email = (email as string).toLowerCase().trim();
-
-            let nextEmailTime = await emailThrottle.nextFireTimeout(ctx, email);
-            if (nextEmailTime > 0) {
-                sendError(response, 'too_many_attempts', { can_send_next_email_at: nextEmailTime });
-                return;
-            }
-
-            let isTest = isTestEmail(email);
-            let existing = await findUserByEmail(ctx, email);
-
-            if (!isTest) {
-                await Emails.sendActivationCodeEmail(ctx, email, code, !!existing);
-                await emailThrottle.onFire(ctx, email);
             } else {
-                code = testEmailCode(email);
+                sendError(response, 'server_error');
             }
-
-            if (!authSession) {
-                authSession = await Modules.Auth.createEmailAuthSession(ctx, email, code);
-            } else {
-                authSession.code = code;
-                authSession.attemptsCount = 0;
-            }
-
-            let pictureId: string | undefined;
-            let profile: UserProfile | null | undefined;
-            if (existing) {
-                profile = await Store.UserProfile.findById(ctx, existing.id);
-                pictureId = profile && profile.picture && profile.picture.uuid;
-            }
-
-            response.json({
-                ok: true,
-                session: authSession!.uid,
-                profileExists: !!profile,
-                pictureId,
-                pictureHash: profile ? doSimpleHash(IDs.User.serialize(profile.id)) : null,
-                pictureCrop: profile && profile.picture && profile.picture.crop,
-                initials: profile ? ((profile.firstName || '').slice(0, 1) + ' ' + (profile.lastName || '').slice(0, 1)).toUpperCase() : null
-            });
-            return;
-        } else {
-            sendError(response, 'server_error');
-        }
+        });
     });
 }
 
 export async function checkCode(req: express.Request, response: express.Response) {
-    let {
-        session,
-        code
-    } = req.body;
+    await tracer.trace(rootCtx, 'check-code', async (parent) => {
+        let {
+            session,
+            code
+        } = req.body;
 
-    if (!session) {
-        sendError(response, 'no_session');
-        return;
-    } else if (!checkSession(session)) {
-        sendError(response, 'session_not_found');
-        return;
-    }
-
-    if (!code) {
-        sendError(response, 'no_code');
-        return;
-    }
-
-    if (typeof code !== 'string') {
-        sendError(response, 'wrong_code');
-        return;
-    }
-
-    code = code.trim();
-    if (code.length !== CODE_LEN) {
-        sendError(response, 'wrong_code_length');
-        return;
-    }
-
-    let res = await inTx(rootCtx, async (ctx) => {
-        let authSession = await Modules.Auth.findEmailAuthSession(ctx, session);
-
-        // No session found
-        if (!authSession) {
+        if (!session) {
+            sendError(response, 'no_session');
+            return;
+        } else if (!checkSession(session)) {
             sendError(response, 'session_not_found');
             return;
         }
 
-        // Code expired
-        if (Date.now() > authSession.expires) {
-            sendError(response, 'code_expired');
+        if (!code) {
+            sendError(response, 'no_code');
             return;
         }
 
-        // max 5 attempts
-        if (authSession.attemptsCount && authSession.attemptsCount >= 5) {
-            sendError(response, 'code_expired');
-            return;
-        }
-
-        // Wrong code
-        if (authSession.code! !== code) {
-            if (authSession.attemptsCount) {
-                authSession.attemptsCount++;
-            } else {
-                authSession.attemptsCount = 1;
-            }
+        if (typeof code !== 'string') {
             sendError(response, 'wrong_code');
             return;
         }
 
-        authSession.tokenId = base64.encodeBuffer(randomBytes(64));
-
-        return authSession;
-    });
-
-    response.json({ ok: true, authToken: res!.tokenId });
-}
-
-export async function getAccessToken(req: express.Request, response: express.Response) {
-    let {
-        session,
-        authToken
-    } = req.body;
-
-    if (!session) {
-        sendError(response, 'no_session');
-        return;
-    } else if (!checkSession(session)) {
-        sendError(response, 'no_session');
-        return;
-    }
-
-    if (!authToken) {
-        sendError(response, 'no_auth_token');
-        return;
-    } else if (!checkAuthToken(authToken)) {
-        sendError(response, 'invalid_auth_token');
-        return;
-    }
-
-    await inTx(rootCtx, async (ctx) => {
-        let authSession = await Modules.Auth.findEmailAuthSession(ctx, session);
-
-        // No session found
-        if (!authSession) {
-            sendError(response, 'session_not_found');
+        code = code.trim();
+        if (code.length !== CODE_LEN) {
+            sendError(response, 'wrong_code_length');
             return;
         }
 
-        if (!authSession.enabled) {
-            sendError(response, 'session_expired');
+        let res = await inTx(parent, async (ctx) => {
+            let authSession = await Modules.Auth.findEmailAuthSession(ctx, session);
+
+            // No session found
+            if (!authSession) {
+                sendError(response, 'session_not_found');
+                return;
+            }
+
+            // Code expired
+            if (Date.now() > authSession.expires) {
+                sendError(response, 'code_expired');
+                return;
+            }
+
+            // max 5 attempts
+            if (authSession.attemptsCount && authSession.attemptsCount >= 5) {
+                sendError(response, 'code_expired');
+                return;
+            }
+
+            // Wrong code
+            if (authSession.code! !== code) {
+                if (authSession.attemptsCount) {
+                    authSession.attemptsCount++;
+                } else {
+                    authSession.attemptsCount = 1;
+                }
+                sendError(response, 'wrong_code');
+                return;
+            }
+
+            authSession.tokenId = base64.encodeBuffer(randomBytes(64));
+
+            return authSession;
+        });
+
+        response.json({ ok: true, authToken: res!.tokenId });
+    });
+}
+
+export async function getAccessToken(req: express.Request, response: express.Response) {
+    await tracer.trace(rootCtx, 'get-token', async (parent) => {
+        let {
+            session,
+            authToken
+        } = req.body;
+
+        if (!session) {
+            sendError(response, 'no_session');
+            return;
+        } else if (!checkSession(session)) {
+            sendError(response, 'no_session');
+            return;
         }
 
-        // Wrong auth token
-        if (authSession.tokenId !== authToken) {
+        if (!authToken) {
+            sendError(response, 'no_auth_token');
+            return;
+        } else if (!checkAuthToken(authToken)) {
             sendError(response, 'invalid_auth_token');
             return;
         }
 
-        if (authSession.email) {
-            let email = authSession.email.toLowerCase();
-            await emailThrottle.release(ctx, email);
-            let existing = await findUserByEmail(ctx, email);
-            if (existing) {
-                let token = await Modules.Auth.createToken(ctx, existing.id!);
-                response.json({ ok: true, accessToken: token.salt });
-                authSession.enabled = false;
-                return;
-            } else {
-                let user = await Modules.Users.createUser(ctx, {email: authSession.email.toLowerCase()});
-                let token = await Modules.Auth.createToken(ctx, user.id!);
-                response.json({ ok: true, accessToken: token.salt });
-                authSession.enabled = false;
+        await inTx(parent, async (ctx) => {
+            let authSession = await Modules.Auth.findEmailAuthSession(ctx, session);
+
+            // No session found
+            if (!authSession) {
+                sendError(response, 'session_not_found');
                 return;
             }
-        } else {
-            sendError(response, 'server_error');
-        }
+
+            if (!authSession.enabled) {
+                sendError(response, 'session_expired');
+            }
+
+            // Wrong auth token
+            if (authSession.tokenId !== authToken) {
+                sendError(response, 'invalid_auth_token');
+                return;
+            }
+
+            if (authSession.email) {
+                let email = authSession.email.toLowerCase();
+                await emailThrottle.release(ctx, email);
+                let existing = await findUserByEmail(ctx, email);
+                if (existing) {
+                    let token = await Modules.Auth.createToken(ctx, existing.id!);
+                    response.json({ ok: true, accessToken: token.salt });
+                    authSession.enabled = false;
+                    return;
+                } else {
+                    let user = await Modules.Users.createUser(ctx, { email: authSession.email.toLowerCase() });
+                    let token = await Modules.Auth.createToken(ctx, user.id!);
+                    response.json({ ok: true, accessToken: token.salt });
+                    authSession.enabled = false;
+                    return;
+                }
+            } else {
+                sendError(response, 'server_error');
+            }
+        });
     });
 }

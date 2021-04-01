@@ -15,7 +15,6 @@ import { getOperationType } from './utils/getOperationType';
 import { setTracingTag } from 'openland-log/setTracingTag';
 import { isAsyncIterator } from 'openland-mtproto3/utils';
 import { isContextCancelled, withLifetime, cancelContext } from '@openland/lifetime';
-import { withCounters, reportCounters } from 'openland-module-db/FDBCounterContext';
 import { IDs } from 'openland-module-api/IDs';
 import { execute } from 'openland-module-api/execute';
 
@@ -88,7 +87,7 @@ export class SpaceXSession {
         let id = uuid();
         let opContext = withLifetime(parentContext);
         opContext = SpaceXContext.set(opContext, true);
-        let name = op.operationName || '<unknown-' + docOp + '->';
+        let name = op.operationName ? docOp + '-' + op.operationName : '<unknown-' + docOp + '>';
         opContext = ContextName.set(opContext, name);
         let abort = () => {
             if (!isContextCancelled(opContext)) {
@@ -299,7 +298,6 @@ export class SpaceXSession {
         return this._guard({ ctx: opts.ctx, type: opts.type, operationName: opts.op.operationName }, async (context) => {
             let start = currentRunningTime();
             let ctx = context;
-            ctx = withCounters(ctx);
             let res = opts.type === 'subscription' ?
                 await execute(ctx, {
                     schema: this.schema,
@@ -325,27 +323,6 @@ export class SpaceXSession {
             let tag = opts.type + ' ' + (opts.op.operationName || 'Unknown');
             Metrics.SpaceXOperationTime.report(duration);
             Metrics.SpaceXOperationTimeTagged.report(tag, duration);
-            let counters = reportCounters(ctx);
-            if (counters) {
-                Metrics.SpaceXWrites.report(counters.writeCount);
-                Metrics.SpaceXReads.report(counters.readCount);
-                Metrics.SpaceXWritesTagged.report(tag, counters.writeCount);
-                Metrics.SpaceXReadsTagged.report(tag, counters.readCount);
-
-                if (opts.type === 'query') {
-                    Metrics.SpaceXWritesPerQuery.report(counters.writeCount);
-                    Metrics.SpaceXReadsPerQuery.report(counters.readCount);
-                } else if (opts.type === 'mutation') {
-                    Metrics.SpaceXWritesPerMutation.report(counters.writeCount);
-                    Metrics.SpaceXReadsPerMutation.report(counters.readCount);
-                } else if (opts.type === 'subscription') {
-                    Metrics.SpaceXWritesPerSubscription.report(counters.writeCount);
-                    Metrics.SpaceXReadsPerSubscription.report(counters.readCount);
-                } else if (opts.type === 'subscription-resolve') {
-                    Metrics.SpaceXWritesPerSubscriptionResolve.report(counters.writeCount);
-                    Metrics.SpaceXReadsPerSubscriptionResolve.report(counters.readCount);
-                }
-            }
             return res;
         });
     }

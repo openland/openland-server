@@ -45,7 +45,7 @@ export const TokenChecker = async function (req: express.Request, response: expr
     try {
         let accessToken = fetchKeyFromRequest(req, 'x-openland-token');
         if (accessToken) {
-            let uid = await inTx(rootContext, async (ctx) => await Modules.Auth.findToken(ctx, accessToken as string));
+            let uid = await Modules.Auth.findToken(accessToken as string);
             if (uid !== null) {
                 (req as any).user = { uid: uid.uid, tid: uid.uuid };
             }

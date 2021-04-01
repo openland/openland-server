@@ -12,6 +12,9 @@ import { Modules } from '../../openland-modules/Modules';
 import { createLogger } from '@openland/log';
 import { doSimpleHash } from '../../openland-module-push/workers/PushWorker';
 import { IDs } from '../../openland-module-api/IDs';
+import { createTracer } from 'openland-log/createTracer';
+
+const tracer = createTracer('phone-auth');
 
 const Errors = {
     wrong_arg: 'An unexpected error occurred. Please try again.',
@@ -81,127 +84,133 @@ function httpHandler(handler: (req: express.Request) => Promise<any>) {
 
 export function initPhoneAuthProvider(app: Express) {
     app.post('/auth/phone/sendCode', bodyParser.json(), httpHandler(async req => {
-        return await inTx(rootCtx, async (ctx) => {
-            let {phone} = req.body;
-            if (!phone || typeof phone !== 'string') {
-                throw new HttpError('wrong_arg');
-            }
-            phone = phone.trim();
-            if (!phoneRegexp.test(phone)) {
-                throw new HttpError('wrong_arg');
-            }
-
-            // Handle throttle
-            let nextEmailTime = await phoneThrottle.nextFireTimeout(ctx, phone);
-            if (nextEmailTime > 0) {
-                throw new HttpError('too_many_attempts', {can_send_next_email_at: nextEmailTime});
-            }
-
-            // Fire throttler
-            await phoneThrottle.onFire(ctx, phone);
-
-            // Create one time code
-            let code = await phoneCode.create(ctx, { phone, authToken: base64.encodeBuffer(randomBytes(64)) });
-            try {
-                await SmsService.sendSms(ctx, phone, `Openland code: ${code.code}. Valid for 5 minutes.`);
-            } catch (e) {
-                if (e.code && e.code === 21211) {
-                    throw new HttpError('wrong_phone');
-                } else {
-                    throw e;
+        return await tracer.trace(rootCtx, 'send-code', async (parent) => {
+            return await inTx(parent, async (ctx) => {
+                let { phone } = req.body;
+                if (!phone || typeof phone !== 'string') {
+                    throw new HttpError('wrong_arg');
                 }
-            }
+                phone = phone.trim();
+                if (!phoneRegexp.test(phone)) {
+                    throw new HttpError('wrong_arg');
+                }
 
-            let existingUser = await Store.User.fromPhone.find(ctx, phone);
-            if (existingUser) {
-                let profile = await Store.UserProfile.findById(ctx, existingUser.id);
-                return {
-                    ok: true,
-                    session: code.id,
-                    profileExists: !!profile,
-                    pictureId: profile && profile.picture && profile.picture.uuid,
-                    pictureHash: profile ? doSimpleHash(IDs.User.serialize(profile.id)) : null,
-                    pictureCrop: profile && profile.picture && profile.picture.crop,
-                    initials: profile ? ((profile.firstName || '').slice(0, 1) + ' ' + (profile.lastName || '').slice(0, 1)).toUpperCase() : null
-                };
-            } else {
-                return {
-                    ok: true,
-                    session: code.id
-                };
-            }
+                // Handle throttle
+                let nextEmailTime = await phoneThrottle.nextFireTimeout(ctx, phone);
+                if (nextEmailTime > 0) {
+                    throw new HttpError('too_many_attempts', { can_send_next_email_at: nextEmailTime });
+                }
+
+                // Fire throttler
+                await phoneThrottle.onFire(ctx, phone);
+
+                // Create one time code
+                let code = await phoneCode.create(ctx, { phone, authToken: base64.encodeBuffer(randomBytes(64)) });
+                try {
+                    await SmsService.sendSms(ctx, phone, `Openland code: ${code.code}. Valid for 5 minutes.`);
+                } catch (e) {
+                    if (e.code && e.code === 21211) {
+                        throw new HttpError('wrong_phone');
+                    } else {
+                        throw e;
+                    }
+                }
+
+                let existingUser = await Store.User.fromPhone.find(ctx, phone);
+                if (existingUser) {
+                    let profile = await Store.UserProfile.findById(ctx, existingUser.id);
+                    return {
+                        ok: true,
+                        session: code.id,
+                        profileExists: !!profile,
+                        pictureId: profile && profile.picture && profile.picture.uuid,
+                        pictureHash: profile ? doSimpleHash(IDs.User.serialize(profile.id)) : null,
+                        pictureCrop: profile && profile.picture && profile.picture.crop,
+                        initials: profile ? ((profile.firstName || '').slice(0, 1) + ' ' + (profile.lastName || '').slice(0, 1)).toUpperCase() : null
+                    };
+                } else {
+                    return {
+                        ok: true,
+                        session: code.id
+                    };
+                }
+            });
         });
     }));
     app.post('/auth/phone/checkCode', bodyParser.json(), httpHandler(async req => {
-        let {
-            session,
-            code
-        } = req.body;
+        return await tracer.trace(rootCtx, 'check-code', async (parent) => {
+            let {
+                session,
+                code
+            } = req.body;
 
-        if (!session || !code || typeof session !== 'string' || typeof code !== 'string') {
-            throw new HttpError('wrong_arg');
-        }
-        // Store use attempt
-        await inTx(rootCtx, async (ctx) => {
-            await phoneCode.onUseAttempt(ctx, session);
-        });
+            if (!session || !code || typeof session !== 'string' || typeof code !== 'string') {
+                throw new HttpError('wrong_arg');
+            }
+            // Store use attempt
+            await inTx(parent, async (ctx) => {
+                await phoneCode.onUseAttempt(ctx, session);
+            });
 
-        return await inTx(rootCtx, async (ctx) => {
-            session = session.trim();
-            code = code.trim();
+            return await inTx(parent, async (ctx) => {
+                session = session.trim();
+                code = code.trim();
 
-            let authCode = await phoneCode.findById(ctx, session);
+                let authCode = await phoneCode.findById(ctx, session);
 
-            if (!authCode) {
-                if (await phoneCode.isExpired(ctx, session)) {
-                    throw new HttpError('code_expired');
+                if (!authCode) {
+                    if (await phoneCode.isExpired(ctx, session)) {
+                        throw new HttpError('code_expired');
+                    }
+                    throw new HttpError('session_not_found');
                 }
-                throw new HttpError('session_not_found');
-            }
 
-            if (authCode.code !== code) {
-                throw new HttpError('wrong_code');
-            }
+                if (authCode.code !== code) {
+                    throw new HttpError('wrong_code');
+                }
 
-            return { ok: true, authToken: authCode.data.authToken };
+                return { ok: true, authToken: authCode.data.authToken };
+            });
         });
     }));
     app.post('/auth/phone/getAccessToken', bodyParser.json(), httpHandler(async req => {
-        let {
-            session,
-            authToken
-        } = req.body;
+        return await tracer.trace(rootCtx, 'get-token', async (parent) => {
+            let {
+                session,
+                authToken
+            } = req.body;
 
-        if (!session || !authToken || typeof session !== 'string' || typeof authToken !== 'string') {
-            throw new HttpError('wrong_arg');
-        }
-
-        return await inTx(rootCtx, async (ctx) => {
-            let authCode = await phoneCode.findById(ctx, session);
-            if (!authCode) {
-                throw new HttpError('session_not_found');
+            if (!session || !authToken || typeof session !== 'string' || typeof authToken !== 'string') {
+                throw new HttpError('wrong_arg');
             }
 
-            if (authCode.data.authToken !== authToken) {
-                throw new HttpError('invalid_auth_token');
-            }
-            let phone = authCode.data.phone;
+            return await inTx(parent, async (ctx) => {
+                let authCode = await phoneCode.findById(ctx, session);
+                if (!authCode) {
+                    throw new HttpError('session_not_found');
+                }
 
-            // Release throttle
-            await phoneThrottle.release(ctx, phone);
-            // Mark code used
-            await phoneCode.onUse(ctx, authCode.code);
+                if (authCode.data.authToken !== authToken) {
+                    throw new HttpError('invalid_auth_token');
+                }
+                let phone = authCode.data.phone;
 
-            let existingUser = await Store.User.fromPhone.find(ctx, phone);
+                // Release throttle
+                await phoneThrottle.release(ctx, phone);
+                // Mark code used
+                await phoneCode.onUse(ctx, authCode.code);
 
-            if (existingUser) {
-                let token = await Modules.Auth.createToken(ctx, existingUser.id);
-                return { ok: true, accessToken: token.salt };
-            } else {
-                let user = await Modules.Users.createUser(ctx, {phone});
-                let token = await Modules.Auth.createToken(ctx, user.id);
-                return { ok: true, accessToken: token.salt };
-            }
+                let existingUser = await Store.User.fromPhone.find(ctx, phone);
+
+                if (existingUser) {
+                    let token = await Modules.Auth.createToken(ctx, existingUser.id);
+                    return { ok: true, accessToken: token.salt };
+                } else {
+                    let user = await Modules.Users.createUser(ctx, { phone });
+                    let token = await Modules.Auth.createToken(ctx, user.id);
+                    return { ok: true, accessToken: token.salt };
+                }
+            });
         });
     }));
 }

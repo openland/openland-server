@@ -39,7 +39,7 @@ export class AuthModule {
         return await this.tokenRepo.createToken(ctx, uid);
     }
 
-    async findToken(ctx: Context, token: string) {
+    async findToken(token: string) {
         return await this.tokenRepo.findToken(token);
     }
 

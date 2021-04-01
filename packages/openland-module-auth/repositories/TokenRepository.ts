@@ -15,16 +15,18 @@ const rootCtx = createNamedContext('token-loader');
 export class TokenRepository {
 
     private readonly loader = new DataLoader<string, AuthToken | null>(async (tokens) => {
-        let res: (AuthToken | null)[] = [];
-        for (let i of tokens) {
-            let token = await inTx(rootCtx, async (ctx) => await Store.AuthToken.salt.find(ctx, i));
-            if (token && token.enabled !== false) {
-                res.push(token);
-            } else {
-                res.push(null);
+        return await inTx(rootCtx, async (ctx) => {
+            let res: (AuthToken | null)[] = [];
+            for (let i of tokens) {
+                let token = await Store.AuthToken.salt.find(ctx, i);
+                if (token && token.enabled !== false) {
+                    res.push(token);
+                } else {
+                    res.push(null);
+                }
             }
-        }
-        return res;
+            return res;
+        });
     });
 
     async createToken(parent: Context, uid: number) {
@@ -53,7 +55,7 @@ export class TokenRepository {
 
             if (authToken) {
                 authToken.enabled = false;
-                await EventBus.publish('auth_token_revoke', { tokens: [{ uuid: authToken.uuid, salt: authToken.salt }] });
+                EventBus.publish('auth_token_revoke', { tokens: [{ uuid: authToken.uuid, salt: authToken.salt }] });
             }
             this.loader.clear(token);
         });
@@ -77,7 +79,7 @@ export class TokenRepository {
             tokens = tokens.filter(a => a.uuid !== exceptId);
             tokens.forEach(t => t.enabled = false);
             tokens.forEach(t => this.loader.clear(t.salt));
-            await EventBus.publish('auth_token_revoke', { tokens: tokens.map(t => ({ uuid: t.uuid, salt: t.salt})) });
+            await EventBus.publish('auth_token_revoke', { tokens: tokens.map(t => ({ uuid: t.uuid, salt: t.salt })) });
         });
     }
 }

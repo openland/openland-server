@@ -9,7 +9,7 @@ export class DistributedTaggedFrequencyGauge {
     readonly name: string;
     readonly gauge: DistributedTaggedMachineGauge;
 
-    private tags = new Map<string, { ops: number[], lastOpsTime: number }>();
+    private tags = new Map<string, { ops: { time: number, size: number }[], lastOpsTime: number }>();
 
     constructor(gauge: DistributedTaggedMachineGauge) {
         this.name = gauge.name;
@@ -28,7 +28,11 @@ export class DistributedTaggedFrequencyGauge {
                 if (time - v.lastOpsTime < MIN_OPS_TIME) {
                     continue;
                 }
-                let hz = Math.floor(v.ops.length / ((time - v.lastOpsTime) / 1000));
+                let sum = 0;
+                for (let o of v.ops) {
+                    sum += o.size;
+                }
+                let hz = Math.floor(sum / ((time - v.lastOpsTime) / 1000));
                 this.gauge.set(k, hz);
             }
         }, REPORT_WINDOW);
@@ -38,9 +42,19 @@ export class DistributedTaggedFrequencyGauge {
         let time = currentRunningTime();
         let ex = this.tags.get(tag);
         if (!ex) {
-            this.tags.set(tag, { ops: [currentRunningTime()], lastOpsTime: time });
+            this.tags.set(tag, { ops: [{ time: currentRunningTime(), size: 1 }], lastOpsTime: time });
         } else {
-            ex.ops.push(currentRunningTime());
+            ex.ops.push({ time: currentRunningTime(), size: 1 });
+        }
+    }
+
+    add = (tag: string, size: number) => {
+        let time = currentRunningTime();
+        let ex = this.tags.get(tag);
+        if (!ex) {
+            this.tags.set(tag, { ops: [{ time: currentRunningTime(), size }], lastOpsTime: time });
+        } else {
+            ex.ops.push({ time: currentRunningTime(), size });
         }
     }
 
@@ -50,7 +64,7 @@ export class DistributedTaggedFrequencyGauge {
             let time = currentRunningTime();
             let cleanUntil = time - AVERAGE_WINDOW;
             v.lastOpsTime = cleanUntil;
-            while (v.ops.length > 0 && v.ops[0] <= cleanUntil) {
+            while (v.ops.length > 0 && v.ops[0].time <= cleanUntil) {
                 v.ops.shift();
             }
         }

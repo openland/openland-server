@@ -36,7 +36,7 @@ export async function fastWatch(parent: Context, key: string, lastVersion: numbe
         while (!aborted && !changed) {
 
             // Fetch new version
-            let v = await backoff(ctx, () => entity(ctx));
+            let v = await backoff(ctx, () => Store.storage.db.microtasks.execute((c) => entity(c)));
             if (v > lastVersion) {
                 changed = true;
                 version = v;
