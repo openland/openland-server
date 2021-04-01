@@ -1,3 +1,4 @@
+import { Config } from 'openland-config/Config';
 import uuid from 'uuid/v4';
 import { DistributedGauge } from './DistributedGauge';
 
@@ -18,21 +19,29 @@ export class DistributedMachineGauge {
     }
 
     set = (value: number) => {
-        this.#value = value;
+        if (Config.enableReporting) {
+            this.#value = value;
+        }
     }
 
     inc = () => {
-        this.#value++;
+        if (Config.enableReporting) {
+            this.#value++;
+        }
     }
 
     dec = () => {
-        this.#value--;
+        if (Config.enableReporting) {
+            this.#value--;
+        }
     }
 
     // @private
     start = () => {
-        setInterval(() => {
-            this.#gauge.add(this.#value, this.#id, 10000);
-        }, 1000);
+        if (Config.enableReporting) {
+            setInterval(() => {
+                this.#gauge.add(this.#value, this.#id, 10000);
+            }, 1000);
+        }
     }
 }

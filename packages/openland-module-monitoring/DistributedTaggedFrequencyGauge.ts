@@ -1,5 +1,6 @@
 import { DistributedTaggedMachineGauge } from './DistributedTaggedMachineGauge';
 import { currentRunningTime } from 'openland-utils/timer';
+import { Config } from 'openland-config/Config';
 
 const AVERAGE_WINDOW = 5000;
 const REPORT_WINDOW = 1000;
@@ -17,44 +18,50 @@ export class DistributedTaggedFrequencyGauge {
     }
 
     start = () => {
-        setInterval(() => {
-            this.cleanup();
-        }, AVERAGE_WINDOW);
+        if (Config.enableReporting) {
+            setInterval(() => {
+                this.cleanup();
+            }, AVERAGE_WINDOW);
 
-        setInterval(() => {
-            for (let k of [...this.tags.keys()]) {
-                let v = this.tags.get(k)!;
-                let time = currentRunningTime();
-                if (time - v.lastOpsTime < MIN_OPS_TIME) {
-                    continue;
+            setInterval(() => {
+                for (let k of [...this.tags.keys()]) {
+                    let v = this.tags.get(k)!;
+                    let time = currentRunningTime();
+                    if (time - v.lastOpsTime < MIN_OPS_TIME) {
+                        continue;
+                    }
+                    let sum = 0;
+                    for (let o of v.ops) {
+                        sum += o.size;
+                    }
+                    let hz = Math.floor(sum / ((time - v.lastOpsTime) / 1000));
+                    this.gauge.set(k, hz);
                 }
-                let sum = 0;
-                for (let o of v.ops) {
-                    sum += o.size;
-                }
-                let hz = Math.floor(sum / ((time - v.lastOpsTime) / 1000));
-                this.gauge.set(k, hz);
-            }
-        }, REPORT_WINDOW);
+            }, REPORT_WINDOW);
+        }
     }
 
     inc = (tag: string) => {
-        let time = currentRunningTime();
-        let ex = this.tags.get(tag);
-        if (!ex) {
-            this.tags.set(tag, { ops: [{ time: currentRunningTime(), size: 1 }], lastOpsTime: time });
-        } else {
-            ex.ops.push({ time: currentRunningTime(), size: 1 });
+        if (Config.enableReporting) {
+            let time = currentRunningTime();
+            let ex = this.tags.get(tag);
+            if (!ex) {
+                this.tags.set(tag, { ops: [{ time: currentRunningTime(), size: 1 }], lastOpsTime: time });
+            } else {
+                ex.ops.push({ time: currentRunningTime(), size: 1 });
+            }
         }
     }
 
     add = (tag: string, size: number) => {
-        let time = currentRunningTime();
-        let ex = this.tags.get(tag);
-        if (!ex) {
-            this.tags.set(tag, { ops: [{ time: currentRunningTime(), size }], lastOpsTime: time });
-        } else {
-            ex.ops.push({ time: currentRunningTime(), size });
+        if (Config.enableReporting) {
+            let time = currentRunningTime();
+            let ex = this.tags.get(tag);
+            if (!ex) {
+                this.tags.set(tag, { ops: [{ time: currentRunningTime(), size }], lastOpsTime: time });
+            } else {
+                ex.ops.push({ time: currentRunningTime(), size });
+            }
         }
     }
 

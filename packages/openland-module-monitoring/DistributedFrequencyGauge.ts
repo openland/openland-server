@@ -1,3 +1,4 @@
+import { Config } from 'openland-config/Config';
 import { currentRunningTime } from 'openland-utils/timer';
 import { DistributedMachineGauge } from './DistributedMachineGauge';
 
@@ -17,29 +18,33 @@ export class DistributedFrequencyGauge {
     }
 
     start = () => {
-        setInterval(() => {
-            this.cleanup();
-        }, AVERAGE_WINDOW);
+        if (Config.enableReporting) {
+            setInterval(() => {
+                this.cleanup();
+            }, AVERAGE_WINDOW);
 
-        setInterval(() => {
-            if (this.lastOpsTime === 0) {
-                return;
-            }
-            let time = currentRunningTime();
-            if (time - this.lastOpsTime < MIN_OPS_TIME) {
-                return;
-            }
-            let hz = Math.floor(this.ops.length / ((time - this.lastOpsTime) / 1000));
-            this.gauge.set(hz);
-        }, REPORT_WINDOW);
+            setInterval(() => {
+                if (this.lastOpsTime === 0) {
+                    return;
+                }
+                let time = currentRunningTime();
+                if (time - this.lastOpsTime < MIN_OPS_TIME) {
+                    return;
+                }
+                let hz = Math.floor(this.ops.length / ((time - this.lastOpsTime) / 1000));
+                this.gauge.set(hz);
+            }, REPORT_WINDOW);
+        }
     }
 
     inc = () => {
-        let time = currentRunningTime();
-        if (this.lastOpsTime === 0) {
-            this.lastOpsTime = time;
+        if (Config.enableReporting) {
+            let time = currentRunningTime();
+            if (this.lastOpsTime === 0) {
+                this.lastOpsTime = time;
+            }
+            this.ops.push(currentRunningTime());
         }
-        this.ops.push(currentRunningTime());
     }
 
     private cleanup = () => {

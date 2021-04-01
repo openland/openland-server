@@ -1,3 +1,4 @@
+import { Config } from 'openland-config/Config';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 
 export class DistributedSummary {
@@ -16,12 +17,14 @@ export class DistributedSummary {
      * Report value to be included in summary
      */
     report = (value: number) => {
-        let time = Date.now();
-        EventBus.publish('metric', {
-            type: 'summary',
-            name: this.name,
-            value: value,
-            time: time
-        });
+        if (Config.enableReporting) {
+            let time = Date.now();
+            EventBus.publish('metric', {
+                type: 'summary',
+                name: this.name,
+                value: value,
+                time: time
+            });
+        }
     }
 }
