@@ -12,7 +12,7 @@ RUN apt-get install imagemagick
 WORKDIR /app
 ADD package.json /app/
 ADD yarn.lock /app/
-COPY patches/ /app/patches/
+#COPY patches/ /app/patches/
 RUN yarn install
 
 ADD tsconfig.json /app/
