@@ -53,7 +53,8 @@ export const Resolver: GQLResolver = {
         voiceChatCreate: withActivatedUser(async (ctx, { input }, uid) => {
             let chat = await Modules.VoiceChats.chats.createChat(ctx, {
                 title: input.title,
-                startedBy: uid
+                startedBy: uid,
+                isPrivate: input.isPrivate || false
             });
             await Modules.VoiceChats.participants.joinChat(ctx, chat.id, uid, ctx.auth.tid!);
             return chat;
