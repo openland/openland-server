@@ -45,7 +45,7 @@ function arraySetEqual(a: number[], b: number[]) {
     }
     for (let i = 0; i < n; i++) {
         let ex = false;
-        for (let j = 0; j < n; i++) {
+        for (let j = 0; j < n; j++) {
             if (a[j] === b[i]) {
                 ex = true;
                 break;
