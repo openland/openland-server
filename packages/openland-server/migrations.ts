@@ -7,6 +7,7 @@ import { fetchNextDBSeq } from '../openland-utils/dbSeq';
 import uuid from 'uuid';
 import { IDs } from 'openland-module-api/IDs';
 import { Context } from '@openland/context';
+import { ContactAddedEvent, ContactRemovedEvent } from '../openland-module-db/store';
 
 // @ts-ignore
 const logger = createLogger('migration');
@@ -1283,6 +1284,41 @@ migrations.push({
                 await Store.VoiceChatParticipantCounter.byId(item.id, 'admin').set(ctx, 0);
 
                 item.active = false;
+            }
+        });
+    }
+});
+
+migrations.push({
+    key: '190-clear-invalid-contacts',
+    migration: async (parent: Context) => {
+        const ZERO = Buffer.alloc(0);
+
+        await Store.User.iterateAllItems(parent, 10, async (ctx, items) => {
+            for (let item of items) {
+                let subspace = Store.UserContactsEventStore.descriptor.subspace.subspace(encoders.tuple.pack([item.id]));
+                let events = await subspace.range(ctx, ZERO);
+
+                for (let rawEvent of events) {
+                    let event = Store.eventFactory.decode(rawEvent.value);
+                    if (!(event instanceof ContactAddedEvent || event instanceof ContactRemovedEvent)) {
+                        continue;
+                    }
+
+                    let profile = await Store.UserProfile.findById(ctx, event.contactUid);
+                    if (profile) {
+                        continue;
+                    }
+
+                    // delete event
+                    subspace.clear(ctx, rawEvent.key);
+
+                    // delete contact
+                    let contact = await Store.Contact.findById(ctx, item.id, event.contactUid);
+                    if (contact) {
+                        contact.state = 'deleted';
+                    }
+                }
             }
         });
     }

@@ -14,9 +14,14 @@ export function addPhoneBookContactsImportWorker(queue: WorkQueue<{ uid: number,
             await Promise.all(item.phones.map(async (phone) => {
                 await inTx(ctx, async (ctx2) => {
                     let exitingUser = await Store.User.fromPhone.find(ctx2, phone);
-                    if (exitingUser) {
-                        await Modules.Contacts.addContact(ctx2, item.uid, exitingUser.id);
+                    if (!exitingUser) {
+                        return;
                     }
+                    let profile = await Store.UserProfile.findById(ctx2, exitingUser.id);
+                    if (!profile) {
+                        return;
+                    }
+                    await Modules.Contacts.addContact(ctx2, item.uid, exitingUser.id);
                 });
             }));
         });
