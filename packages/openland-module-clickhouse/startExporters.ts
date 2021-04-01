@@ -71,19 +71,17 @@ function startSignupsExport(client: DatabaseClient) {
 }
 
 function startBotsExport(client: DatabaseClient) {
-    let rootCtx = createNamedContext('ch-bots-export');
-    forever(rootCtx, async () => {
-        let allUsers = await inTx(rootCtx, async (ctx) => await Store.User.findAll(ctx));
-        for (let u of allUsers) {
+    updateReader('ch-exporter-bots', 1, Store.User.created.stream({ batchSize: 1000 }), async (src, first, ctx) => {
+        for (let u of src) {
             if (!u.isBot) {
                 continue;
             }
-            let count = await client.count(rootCtx, 'bots', 'uid = ' + u.id);
+
+            let count = await client.count(ctx, 'bots', 'uid = ' + u.id);
             if (count === 0) {
-                await client.insert(rootCtx, 'bots', ['uid'], [[u.id]]);
+                await client.insert(ctx, 'bots', ['uid'], [[u.id]]);
             }
         }
-        await delay(15000);
     });
 }
 
