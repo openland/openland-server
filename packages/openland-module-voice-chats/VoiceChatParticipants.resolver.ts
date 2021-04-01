@@ -8,6 +8,8 @@ import { Store } from 'openland-module-db/FDB';
 import { withActivatedUser } from '../openland-module-api/Resolvers';
 import { VoiceChatParticipant } from '../openland-module-db/store';
 import { Capabilities } from '../openland-module-calls/repositories/CallScheduler';
+import { NotFoundError } from '../openland-errors/NotFoundError';
+import { buildServiceMessage, userMention } from '../openland-utils/MessageBuilder';
 
 const ensureHasAccess = <TArgs, TResult>(fn: (root: VoiceChatParticipantRoot, args: TArgs, ctx: Context) => Promise<TResult>, fallback: TResult) =>
   async (root: VoiceChatParticipantRoot, args: TArgs, ctx: Context): Promise<TResult> => {
@@ -68,6 +70,20 @@ export const Resolver: GQLResolver = {
     Mutation: {
         voiceChatJoin: withActivatedUser(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.id);
+            let chat = await Store.ConversationVoice.findById(ctx, cid);
+            if (!chat) {
+                throw new NotFoundError();
+            }
+            if (!chat.active && chat.parentChat) {
+                let userName = await Modules.Users.getUserFullName(ctx, uid);
+                await Modules.Messaging.sendMessage(
+                    ctx,
+                    chat.parentChat,
+                    uid,
+                    buildServiceMessage(userMention(userName, uid), ' started live room')
+                );
+            }
+
             await Modules.VoiceChats.participants.joinChat(ctx, cid, uid, ctx.auth.tid!);
             return (await Store.ConversationVoice.findById(ctx, cid))!;
         }),

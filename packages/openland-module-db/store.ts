@@ -1849,6 +1849,7 @@ export class UserFactory extends EntityFactory<UserShape, User> {
         secondaryIndexes.push({ name: 'fromPhone', storageKey: 'fromPhone', type: { type: 'unique', fields: [{ name: 'phone', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'fromPhone'), condition: src => (!!src.phone) && src.status !== 'deleted' });
         secondaryIndexes.push({ name: 'owner', storageKey: 'owner', type: { type: 'range', fields: [{ name: 'botOwner', type: 'opt_integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'owner'), condition: src => src.botOwner });
         secondaryIndexes.push({ name: 'superBots', storageKey: 'superBots', type: { type: 'range', fields: [] }, subspace: await storage.resolveEntityIndexDirectory('user', 'superBots'), condition: src => src.isBot === true && src.isSuperBot });
+        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'created'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -1958,6 +1959,21 @@ export class UserFactory extends EntityFactory<UserShape, User> {
         },
         liveStream: (ctx: Context, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[5], [], opts);
+        },
+    });
+
+    readonly created = Object.freeze({
+        findAll: async (ctx: Context) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[6], [])).items;
+        },
+        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[6], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[6], [], opts);
+        },
+        liveStream: (ctx: Context, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[6], [], opts);
         },
     });
 

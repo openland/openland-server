@@ -6,8 +6,6 @@ import { UserError } from '../../openland-errors/UserError';
 import { Store } from 'openland-module-db/FDB';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
-import { Modules } from '../../openland-modules/Modules';
-import { buildServiceMessage, userMention } from '../../openland-utils/MessageBuilder';
 
 @injectable()
 export class ParticipantsMediator {
@@ -22,15 +20,6 @@ export class ParticipantsMediator {
         let chat = await Store.ConversationVoice.findById(ctx, cid);
         if (!chat) {
             throw new NotFoundError();
-        }
-        if (chat.parentChat && chat.active) {
-            let userName = await Modules.Users.getUserFullName(ctx, uid);
-            await Modules.Messaging.sendMessage(
-                ctx,
-                chat.parentChat,
-                uid,
-                buildServiceMessage(userMention(userName, uid), ' started live room')
-            );
         }
         return res;
     }

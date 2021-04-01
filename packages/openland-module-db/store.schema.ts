@@ -160,6 +160,7 @@ export default declareSchema(() => {
         // uniqueIndex('phone', ['phone']).withCondition(src => (!!src.googleId) && src.status !== 'deleted');
         rangeIndex('owner', ['botOwner', 'id']).withCondition(src => src.botOwner);
         rangeIndex('superBots', []).withCondition(src => src.isBot === true && src.isSuperBot);
+        rangeIndex('created', ['createdAt']);
     });
 
     entity('UserProfile', () => {
