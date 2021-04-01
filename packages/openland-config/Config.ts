@@ -128,7 +128,7 @@ function loadConfigIfNeeded() {
         enableReporting = false;
     }
 
-    if (process.env.LOGGING_ENABLE = 'false') {
+    if (process.env.LOGGING_ENABLE === 'false') {
         enableLogging = false;
     }
 }
