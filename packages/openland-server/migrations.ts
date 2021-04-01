@@ -1324,4 +1324,15 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '191-reindex-users',
+    migration: async (parent) => {
+        await Store.User.iterateAllItems(parent, 100, async (ctx, items) => {
+            for (let item of items) {
+                item.invalidate();
+            }
+        });
+    }
+});
+
 export default migrations;
