@@ -1,3 +1,4 @@
+import { Config } from 'openland-config/Config';
 import uuid from 'uuid/v4';
 import { DistributedTaggedGauge } from './DistributedTaggedGauge';
 
@@ -18,25 +19,33 @@ export class DistributedTaggedMachineGauge {
     }
 
     set = (tag: string, value: number) => {
-        this.#values.set(tag, value);
+        if (Config.enableReporting) {
+            this.#values.set(tag, value);
+        }
     }
 
     inc = (tag: string) => {
-        let ex = this.#values.get(tag) || 0;
-        this.#values.set(tag, ex + 1);
+        if (Config.enableReporting) {
+            let ex = this.#values.get(tag) || 0;
+            this.#values.set(tag, ex + 1);
+        }
     }
 
     dec = (tag: string) => {
-        let ex = this.#values.get(tag) || 0;
-        this.#values.set(tag, ex - 1);
+        if (Config.enableReporting) {
+            let ex = this.#values.get(tag) || 0;
+            this.#values.set(tag, ex - 1);
+        }
     }
 
     // @private
     start = () => {
-        setInterval(() => {
-            for (let e of this.#values) {
-                this.#gauge.add(e[0], e[1], this.#id, 10000);
-            }
-        }, 5000);
+        if (Config.enableReporting) {
+            setInterval(() => {
+                for (let e of this.#values) {
+                    this.#gauge.add(e[0], e[1], this.#id, 10000);
+                }
+            }, 5000);
+        }
     }
 }

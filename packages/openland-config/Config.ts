@@ -100,6 +100,7 @@ const codec = t.type({
 
 let configuration: t.TypeOf<typeof codec> | undefined = undefined;
 let enableTracing: boolean = false;
+let enableReporting: boolean = true;
 
 function loadConfigIfNeeded() {
     if (configuration) {
@@ -120,6 +121,10 @@ function loadConfigIfNeeded() {
 
     if ((process.env.JAEGER_AGENT_HOST || process.env.JAEGER_ENDPOINT) && (process.env.JAEGER_DISABLE !== 'true')) {
         enableTracing = true;
+    }
+
+    if (process.env.METRICS_ENABLE === 'false') {
+        enableReporting = false;
     }
 }
 
@@ -228,6 +233,10 @@ class ConfigProvider {
 
     get hostname() {
         return hostname;
+    }
+
+    get enableReporting() {
+        return enableReporting;
     }
 }
 

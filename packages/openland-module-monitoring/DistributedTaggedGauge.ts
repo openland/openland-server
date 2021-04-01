@@ -1,3 +1,4 @@
+import { Config } from 'openland-config/Config';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 
 /**
@@ -22,15 +23,17 @@ export class DistributedTaggedGauge {
      * is passed.
      */
     add = (tag: string, value: number, key: string, timeout: number) => {
-        let time = Date.now();
-        EventBus.publish('metric', {
-            type: 'gauge-tagged',
-            name: this.name,
-            key: key,
-            tag: tag,
-            timeout: timeout,
-            value: value,
-            time: time
-        });
+        if (Config.enableReporting) {
+            let time = Date.now();
+            EventBus.publish('metric', {
+                type: 'gauge-tagged',
+                name: this.name,
+                key: key,
+                tag: tag,
+                timeout: timeout,
+                value: value,
+                time: time
+            });
+        }
     }
 }
