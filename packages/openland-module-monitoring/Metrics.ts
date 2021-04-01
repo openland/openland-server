@@ -32,6 +32,8 @@ export const Metrics = {
     FDBContextErrors: Factory.createTaggedFrequencyGauge('fdb_errors_context', 'Frequence of transaction errors per context'),
     FDBReads: Factory.createTaggedSummary('fdb_reads', 'Summary of read operations per context', DEFAULT_QUANTILES),
     FDBWrites: Factory.createTaggedSummary('fdb_writes', 'Summary of write operations per context', DEFAULT_QUANTILES),
+    FDBReadsFrequency: Factory.createTaggedFrequencyGauge('fdb_reads_fq', 'Frequency of reads per context'),
+    FDBWritesFrequency: Factory.createTaggedFrequencyGauge('fdb_writes_fq', 'Frequency of writes per context'),
 
     // SpaceX
     WebSocketConnections: Factory.createMachineGauge('connections', 'Active WebSocket connections'),
@@ -46,10 +48,10 @@ export const Metrics = {
     SpaceXOperationTimeTagged: Factory.createTaggedSummary('spacex_operation_duration_tagged', 'Duration of SpaceX operation', DEFAULT_QUANTILES),
     SpaceXSubscriptions: Factory.createMachineGauge('spacex_sub', 'Number of active SpaceX subscriptions'),
     SpaceXSubscriptionEvents: Factory.createFrequencyGauge('spacex_sub_hz', 'Frequency of SpaceX subscription events'),
-    SpaceXEphemeralTransactions: Factory.createFrequencyGauge('spacex_ephemeral_hz', 'Frequency of ephemeral transactions'),
+    // SpaceXEphemeralTransactions: Factory.createFrequencyGauge('spacex_ephemeral_hz', 'Frequency of ephemeral transactions'),
     SpaceXRetry: Factory.createFrequencyGauge('spacex_retry_hz', 'Frequency of transaction retry'),
-    SpaceXReads: Factory.createSummary('spacex_reads', 'Summary of read operations', DEFAULT_QUANTILES),
-    SpaceXReadsTagged: Factory.createTaggedSummary('spacex_reads_tagged', 'Summary of read operations per tag', DEFAULT_QUANTILES),
+    // SpaceXReads: Factory.createSummary('spacex_reads', 'Summary of read operations', DEFAULT_QUANTILES),
+    // SpaceXReadsTagged: Factory.createTaggedSummary('spacex_reads_tagged', 'Summary of read operations per tag', DEFAULT_QUANTILES),
     // SpaceXReadsPerQuery: Factory.createSummary('spacex_reads_query', 'Summary of read operations per query', DEFAULT_QUANTILES),
     // SpaceXReadsPerSubscription: Factory.createSummary('spacex_reads_subscription', 'Summary of read operations per subscription', DEFAULT_QUANTILES),
     // SpaceXReadsPerSubscriptionResolve: Factory.createSummary('spacex_reads_subscription_resolve', 'Summary of read operations per subscription resolve', DEFAULT_QUANTILES),

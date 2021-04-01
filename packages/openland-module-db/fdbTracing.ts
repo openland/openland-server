@@ -55,6 +55,8 @@ export function setupFdbTracing() {
             if (counters) {
                 Metrics.FDBReads.report(ctxName, counters.readCount);
                 Metrics.FDBWrites.report(ctxName, counters.writeCount);
+                Metrics.FDBReadsFrequency.add(ctxName, counters.readCount);
+                Metrics.FDBWritesFrequency.add(ctxName, counters.writeCount);
             }
 
             return res;
