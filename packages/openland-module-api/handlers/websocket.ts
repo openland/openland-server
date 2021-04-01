@@ -13,12 +13,12 @@ let rootContextResolve = createNamedContext('resolve');
 let logger = createLogger('ws');
 
 export async function fetchWebSocketParameters(args: any, websocket: any) {
-    return await inTx(rootContext, async (ctx) => {
-        let res: any = {};
-        let token = args['x-openland-token'] as string | undefined;
-        if (token) {
-            let uid = await Modules.Auth.findToken(ctx, token);
-            if (uid !== null) {
+    let res: any = {};
+    let token = args['x-openland-token'] as string | undefined;
+    if (token) {
+        const uid = await Modules.Auth.findToken(token);
+        if (uid !== null) {
+            return await inTx(rootContext, async (ctx) => {
                 res.uid = uid.uid;
                 res.tid = uid.uuid;
                 let accounts = await Modules.Orgs.findUserOrganizations(ctx, res.uid);
@@ -50,10 +50,10 @@ export async function fetchWebSocketParameters(args: any, websocket: any) {
                         res.oid = (profile && profile.primaryOrganization) || res.oid;
                     }
                 }
-            }
+            });
         }
-        return res;
-    });
+    }
+    return res;
 }
 
 export function buildWebSocketContext(args: any, ipHeader?: string, latLongHeader?: string, locationHeader?: string) {
