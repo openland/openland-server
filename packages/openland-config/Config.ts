@@ -101,6 +101,7 @@ const codec = t.type({
 let configuration: t.TypeOf<typeof codec> | undefined = undefined;
 let enableTracing: boolean = false;
 let enableReporting: boolean = true;
+let enableLogging: boolean = true;
 
 function loadConfigIfNeeded() {
     if (configuration) {
@@ -125,6 +126,10 @@ function loadConfigIfNeeded() {
 
     if (process.env.METRICS_ENABLE === 'false') {
         enableReporting = false;
+    }
+
+    if (process.env.LOGGING_ENABLE = 'false') {
+        enableLogging = false;
     }
 }
 
@@ -174,6 +179,7 @@ class ConfigProvider {
     }
 
     get enableTracing() {
+        loadConfigIfNeeded();
         return enableTracing;
     }
 
@@ -236,7 +242,13 @@ class ConfigProvider {
     }
 
     get enableReporting() {
+        loadConfigIfNeeded();
         return enableReporting;
+    }
+
+    get enableLogging() {
+        loadConfigIfNeeded();
+        return enableLogging;
     }
 }
 

@@ -58,6 +58,9 @@ function formatMessage(ctx: Context, name: string, message: string) {
 
 setLogProvider({
     log: (ctx, service, level, message) => {
+        if (!Config.enableLogging) {
+            return;
+        }
         let obj: any;
         if (isProduction) {
             if (message.length > MAX_LOG_SIZE) {
@@ -91,6 +94,9 @@ setLogProvider({
         }
     },
     metric: (ctx: Context, service, name, value, dimension) => {
+        if (!Config.enableLogging) {
+            return;
+        }
         if (isProduction) {
             logger.info({
                 app: {
