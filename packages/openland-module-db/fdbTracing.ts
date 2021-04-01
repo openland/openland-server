@@ -14,7 +14,7 @@ import { createTracer } from 'openland-log/createTracer';
 import { setTracingTag } from '../openland-log/setTracingTag';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import { isWithinSpaceX } from 'openland-spacex/SpaceXContext';
-import { counterNamespace } from './FDBCounterContext';
+import { counterNamespace, reportCounters, withCounters } from './FDBCounterContext';
 import { ContextName } from '@openland/context';
 import { Concurrency } from 'openland-server/concurrency';
 import { FDBError } from 'foundationdb';
@@ -39,12 +39,25 @@ let logger = createLogger('fdb-tracing');
 
 export function setupFdbTracing() {
     setTransactionTracer({
-        tx: async (ctx, handler) => {
+        tx: async (parent, handler) => {
+            let ctx = parent;
             const path = LogPathContext.get(ctx);
-            return await rawTracer.trace(ctx, 'transaction', async (child) => {
+            if (!counterNamespace.get(ctx)) {
+                ctx = withCounters(ctx);
+            }
+            let res = await rawTracer.trace(ctx, 'transaction', async (child) => {
                 setTracingTag(child, 'path', path.join(' -> '));
                 return await handler(child);
             });
+
+            let ctxName = ContextName.get(ctx);
+            const counters = reportCounters(ctx);
+            if (counters) {
+                Metrics.FDBReads.report(ctxName, counters.readCount);
+                Metrics.FDBWrites.report(ctxName, counters.writeCount);
+            }
+
+            return res;
         },
         txIteration: async (ctx, handler) => {
             let ctxName = ContextName.get(ctx);
@@ -106,7 +119,7 @@ export function setupFdbTracing() {
     setSubspaceTracer({
         get: async (ctx, key, handler) => {
             let counter = counterNamespace.get(ctx);
-            if (counter && !counter.flushed) {
+            if (counter) {
                 counter.readCount++;
             }
 
@@ -119,7 +132,7 @@ export function setupFdbTracing() {
         },
         set: (ctx, key, value, handler) => {
             let counter = counterNamespace.get(ctx);
-            if (counter && !counter.flushed) {
+            if (counter) {
                 counter.writeCount++;
             }
 
@@ -136,7 +149,7 @@ export function setupFdbTracing() {
                 setTracingTag(child, 'path', path.join(' -> '));
                 let res = await getConcurrencyPool(ctx).run(() => rawTracer.trace(child, 'getRange:do', () => handler()));
                 let counter = counterNamespace.get(ctx);
-                if (counter && !counter.flushed) {
+                if (counter) {
                     counter.readCount += res.length;
                 }
                 return res;

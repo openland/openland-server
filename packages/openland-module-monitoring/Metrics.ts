@@ -30,6 +30,8 @@ export const Metrics = {
     FDBErrors: Factory.createTaggedFrequencyGauge('fdb_errors', 'Frequence of various errors'),
     FDBTooOldErrors: Factory.createTaggedFrequencyGauge('fdb_too_old', 'Frequence of too old transaction errors'),
     FDBContextErrors: Factory.createTaggedFrequencyGauge('fdb_errors_context', 'Frequence of transaction errors per context'),
+    FDBReads: Factory.createTaggedSummary('fdb_reads', 'Summary of read operations per context', DEFAULT_QUANTILES),
+    FDBWrites: Factory.createTaggedSummary('fdb_writes', 'Summary of write operations per context', DEFAULT_QUANTILES),
 
     // SpaceX
     WebSocketConnections: Factory.createMachineGauge('connections', 'Active WebSocket connections'),
@@ -48,16 +50,16 @@ export const Metrics = {
     SpaceXRetry: Factory.createFrequencyGauge('spacex_retry_hz', 'Frequency of transaction retry'),
     SpaceXReads: Factory.createSummary('spacex_reads', 'Summary of read operations', DEFAULT_QUANTILES),
     SpaceXReadsTagged: Factory.createTaggedSummary('spacex_reads_tagged', 'Summary of read operations per tag', DEFAULT_QUANTILES),
-    SpaceXReadsPerQuery: Factory.createSummary('spacex_reads_query', 'Summary of read operations per query', DEFAULT_QUANTILES),
-    SpaceXReadsPerSubscription: Factory.createSummary('spacex_reads_subscription', 'Summary of read operations per subscription', DEFAULT_QUANTILES),
-    SpaceXReadsPerSubscriptionResolve: Factory.createSummary('spacex_reads_subscription_resolve', 'Summary of read operations per subscription resolve', DEFAULT_QUANTILES),
-    SpaceXReadsPerMutation: Factory.createSummary('spacex_reads_mutation', 'Summary of read operations per mutation', DEFAULT_QUANTILES),
-    SpaceXWrites: Factory.createSummary('spacex_writes', 'Summary of write operations', DEFAULT_QUANTILES),
-    SpaceXWritesTagged: Factory.createTaggedSummary('spacex_writes_tagged', 'Summary of read operations per tag', DEFAULT_QUANTILES),
-    SpaceXWritesPerQuery: Factory.createSummary('spacex_writes_query', 'Summary of read operations per query', DEFAULT_QUANTILES),
-    SpaceXWritesPerSubscription: Factory.createSummary('spacex_writes_subscription', 'Summary of read operations per subscription', DEFAULT_QUANTILES),
-    SpaceXWritesPerSubscriptionResolve: Factory.createSummary('spacex_writes_subscription_resolve', 'Summary of read operations per subscription resolve', DEFAULT_QUANTILES),
-    SpaceXWritesPerMutation: Factory.createSummary('spacex_writes_mutation', 'Summary of read operations per mutation', DEFAULT_QUANTILES),
+    // SpaceXReadsPerQuery: Factory.createSummary('spacex_reads_query', 'Summary of read operations per query', DEFAULT_QUANTILES),
+    // SpaceXReadsPerSubscription: Factory.createSummary('spacex_reads_subscription', 'Summary of read operations per subscription', DEFAULT_QUANTILES),
+    // SpaceXReadsPerSubscriptionResolve: Factory.createSummary('spacex_reads_subscription_resolve', 'Summary of read operations per subscription resolve', DEFAULT_QUANTILES),
+    // SpaceXReadsPerMutation: Factory.createSummary('spacex_reads_mutation', 'Summary of read operations per mutation', DEFAULT_QUANTILES),
+    // SpaceXWrites: Factory.createSummary('spacex_writes', 'Summary of write operations', DEFAULT_QUANTILES),
+    // SpaceXWritesTagged: Factory.createTaggedSummary('spacex_writes_tagged', 'Summary of read operations per tag', DEFAULT_QUANTILES),
+    // SpaceXWritesPerQuery: Factory.createSummary('spacex_writes_query', 'Summary of read operations per query', DEFAULT_QUANTILES),
+    // SpaceXWritesPerSubscription: Factory.createSummary('spacex_writes_subscription', 'Summary of read operations per subscription', DEFAULT_QUANTILES),
+    // SpaceXWritesPerSubscriptionResolve: Factory.createSummary('spacex_writes_subscription_resolve', 'Summary of read operations per subscription resolve', DEFAULT_QUANTILES),
+    // SpaceXWritesPerMutation: Factory.createSummary('spacex_writes_mutation', 'Summary of read operations per mutation', DEFAULT_QUANTILES),
 
     //
     // Feed Event Engine
