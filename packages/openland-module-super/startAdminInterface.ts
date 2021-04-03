@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import morgan from 'morgan';
+// import morgan from 'morgan';
 import compression from 'compression';
 import { ApolloServer } from 'apollo-server-express';
 import { Modules } from 'openland-modules/Modules';
@@ -22,7 +22,7 @@ export async function startAdminInterface() {
 
     // Basic Configuration
     app.use(cors());
-    app.use(morgan('tiny'));
+    // app.use(morgan('tiny'));
     app.use(compression());
 
     app.get('/', (req, res) => res.send('Welcome to Closedland API!'));
