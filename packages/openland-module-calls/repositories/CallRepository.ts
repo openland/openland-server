@@ -578,7 +578,7 @@ export class CallRepository {
         //     let conf = await this.getOrCreateConference(ctx, cid);
         //     conf.invalidate();
         // });
-        await this.notifyConferenceChanged(parent, cid);
+        // await this.notifyConferenceChanged(parent, cid);
     }
 
     // Deprecated
