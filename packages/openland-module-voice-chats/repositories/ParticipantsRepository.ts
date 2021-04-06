@@ -56,10 +56,7 @@ export class ParticipantsRepository {
     ]);
 
     joinChat = async (ctx: Context, cid: number, uid: number, tid: string) => {
-        let chat = await Store.ConversationVoice.findById(ctx, cid);
-        if (!chat) {
-            throw new NotFoundError();
-        }
+        let chat = await this.#getChatOrFail(ctx, cid);
 
         let p = await this.#getOrCreateParticipant(ctx, cid, uid, tid);
         if (p.status === 'joined') {
@@ -78,33 +75,38 @@ export class ParticipantsRepository {
             await this.#changeStatus(ctx, cid, uid, targetRole);
         }
 
-        await this.events.postParticipantUpdated(ctx, cid, uid);
+        await this.events.postParticipantUpdated(ctx, cid, uid, chat.isPrivate || false);
 
         return p;
     }
 
     updateHandRaised = async (ctx: Context, cid: number, uid: number, handRaised: boolean) => {
+        let chat = await this.#getChatOrFail(ctx, cid);
+
         let participant = await this.#getOrFail(ctx, cid, uid);
         if (!Status.isListener(participant)) {
             throw new Error('You cannot raise hand if you are not listener');
         }
         participant.handRaised = handRaised;
 
-        await this.events.postParticipantUpdated(ctx, cid, uid);
+        await this.events.postParticipantUpdated(ctx, cid, uid, chat.isPrivate || false);
         return participant;
     }
 
     leaveChat = async (ctx: Context, cid: number, uid: number) => {
+        let chat = await this.#getChatOrFail(ctx, cid);
+
         await this.#changeStatus(ctx, cid, uid, 'left');
 
         if (await this.#counter(cid, 'admin').get(ctx) === 0) {
             await this.chatsRepo.setChatActive(ctx, cid, false);
         }
 
-        await this.events.postParticipantUpdated(ctx, cid, uid);
+        await this.events.postParticipantUpdated(ctx, cid, uid, chat.isPrivate || false);
     }
 
     promoteParticipant = async (ctx: Context, cid: number, uid: number, by: number) => {
+        let chat = await this.#getChatOrFail(ctx, cid);
         let participant = await this.#getOrFail(ctx, cid, uid);
         if (!Status.isListener(participant) && participant.handRaised) {
             throw new Error('You can promote only listeners who raised hand');
@@ -114,10 +116,11 @@ export class ParticipantsRepository {
         participant.promotedBy = by;
         participant.handRaised = false;
 
-        await this.events.postParticipantUpdated(ctx, cid, uid);
+        await this.events.postParticipantUpdated(ctx, cid, uid, chat.isPrivate || false);
     }
 
     demoteParticipant = async (ctx: Context, cid: number, uid: number) => {
+        let chat = await this.#getChatOrFail(ctx, cid);
         let participant = await this.#getOrFail(ctx, cid, uid);
         if (!Status.isSpeaker(participant)) {
             throw new Error('You can demote only current speakers');
@@ -127,21 +130,23 @@ export class ParticipantsRepository {
         participant.promotedBy = null;
         participant.handRaised = false;
 
-        await this.events.postParticipantUpdated(ctx, cid, uid);
+        await this.events.postParticipantUpdated(ctx, cid, uid, chat.isPrivate || false);
     }
 
     updateAdminRights = async (ctx: Context, cid: number, uid: number, isAdmin: boolean) => {
+        let chat = await this.#getChatOrFail(ctx, cid);
         let participant = await this.#getOrFail(ctx, cid, uid);
         if (!Status.isSpeaker(participant)) {
             throw new Error('Only speaker can be an admin');
         }
         await this.#changeStatus(ctx, cid, uid, isAdmin ? 'admin' : 'speaker');
-        await this.events.postParticipantUpdated(ctx, cid, uid);
+        await this.events.postParticipantUpdated(ctx, cid, uid, chat.isPrivate || false);
     }
 
     kick = async (ctx: Context, cid: number, uid: number) => {
+        let chat = await this.#getChatOrFail(ctx, cid);
         await this.#changeStatus(ctx, cid, uid, 'kicked');
-        await this.events.postParticipantUpdated(ctx, cid, uid);
+        await this.events.postParticipantUpdated(ctx, cid, uid, chat.isPrivate || false);
     }
 
     #counter = (cid: number, status: 'admin' | 'speaker' | 'listener') => {
@@ -209,6 +214,14 @@ export class ParticipantsRepository {
             throw new NotFoundError();
         }
         return participant;
+    }
+
+    #getChatOrFail = async (ctx: Context, cid: number) => {
+        let chat = await Store.ConversationVoice.findById(ctx, cid);
+        if (!chat) {
+            throw new NotFoundError();
+        }
+        return chat;
     }
 
     #getOrCreateParticipant = async (ctx: Context, cid: number, uid: number, tid: string) => {
