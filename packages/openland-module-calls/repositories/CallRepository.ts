@@ -185,7 +185,7 @@ export class CallRepository {
             await scheduler.onPeerAdded(ctx, conf.id, id, await this.#getStreams(ctx, res, conf), cap);
 
             // Notify state change
-            await this.notifyConferenceChanged(ctx, cid);
+            this.notifyConferenceChanged(ctx, cid);
             return res;
         });
     }
@@ -208,7 +208,7 @@ export class CallRepository {
             await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, await this.#getStreams(ctx, peer, conf));
 
             // Notify state change
-            await this.notifyConferenceChanged(ctx, cid);
+            this.notifyConferenceChanged(ctx, cid);
             return await this.getOrCreateConference(ctx, cid);
         });
     }
@@ -236,7 +236,7 @@ export class CallRepository {
             await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, await this.#getStreams(ctx, peer, conf));
 
             // Notify state change
-            await this.notifyConferenceChanged(ctx, cid);
+            this.notifyConferenceChanged(ctx, cid);
             return await this.getOrCreateConference(ctx, cid);
         });
     }
@@ -266,7 +266,7 @@ export class CallRepository {
             await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, await this.#getStreams(ctx, peer, conf));
 
             // Notify state change
-            await this.notifyConferenceChanged(ctx, cid);
+            this.notifyConferenceChanged(ctx, cid);
             return conf;
         });
     }
@@ -285,7 +285,7 @@ export class CallRepository {
             await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, await this.#getStreams(ctx, peer, conf));
 
             // Notify state change
-            await this.notifyConferenceChanged(ctx, peer.cid);
+            this.notifyConferenceChanged(ctx, peer.cid);
             return conf;
         });
     }
@@ -306,7 +306,7 @@ export class CallRepository {
             await scheduler.onPeerStreamsChanged(ctx, conf.id, peer.id, await this.#getStreams(ctx, peer, conf));
 
             // Notify state change
-            await this.notifyConferenceChanged(ctx, cid);
+            this.notifyConferenceChanged(ctx, cid);
         });
     }
 
@@ -379,7 +379,7 @@ export class CallRepository {
             }
 
             // Fast watch notify
-            await this.notifyConferenceChanged(ctx, existing.cid);
+            this.notifyConferenceChanged(ctx, existing.cid);
 
             // Remove peer from voice chat
             if (byTimout) {
@@ -479,9 +479,6 @@ export class CallRepository {
             // Schedule
             await scheduler.onStreamOffer(ctx, peer.cid, peer.id, streamId, offer, hints ? hints : null);
             await stream.flush(ctx);
-
-            // Notify state change
-            await this.bumpVersion(ctx, peer.cid, peer.id);
         });
     }
 
@@ -511,9 +508,6 @@ export class CallRepository {
             // Schedule
             await scheduler.onStreamAnswer(ctx, peer.cid, peer.id, streamId, answer);
             await stream.flush(ctx);
-
-            // Bump version
-            await this.bumpVersion(ctx, peer.cid, peer.id);
         });
     }
 
@@ -542,9 +536,6 @@ export class CallRepository {
             // Scheduling
             await scheduler.onStreamCandidate(ctx, peer.cid, peer.id, streamId, candidate);
             await stream.flush(ctx);
-
-            // Bump version
-            await this.bumpVersion(ctx, peer.cid, peer.id);
         });
     }
 
@@ -558,9 +549,6 @@ export class CallRepository {
             let scheduler = this.getScheduler(conf.currentScheduler);
 
             await scheduler.onStreamFailed(ctx, peer.cid, peer.id, streamId);
-
-            // Bump version
-            await this.bumpVersion(ctx, peer.cid, peer.id);
         });
     }
 
@@ -572,22 +560,13 @@ export class CallRepository {
         return await Store.ConferencePeer.conference.findAll(parent, cid);
     }
 
-    // Deprecated
-    bumpVersion = async (parent: Context, cid: number, pid: number) => {
-        // await inTx(parent, async (ctx) => {
-        //     let conf = await this.getOrCreateConference(ctx, cid);
-        //     conf.invalidate();
-        // });
-        // await this.notifyConferenceChanged(parent, cid);
+    getConferenceVersion = (ctx: Context, cid: number) => {
+        return Store.ConferenceRoomVersion.get(ctx, cid);
     }
 
-    // Deprecated
-    notifyConferenceChanged = async (parent: Context, cid: number) => {
-        await inTx(parent, async (ctx) => {
-            let conf = await this.getOrCreateConference(ctx, cid);
-            conf.invalidate();
-            notifyFastWatch(ctx, 'conference-' + cid);
-        });
+    notifyConferenceChanged = (ctx: Context, cid: number) => {
+        Store.ConferenceRoomVersion.increment(ctx, cid);
+        notifyFastWatch(ctx, 'conference-' + cid);
     }
 
     notifyPeerChanged = (ctx: Context, pid: number) => {

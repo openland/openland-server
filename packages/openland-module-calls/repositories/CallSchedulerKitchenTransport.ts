@@ -274,7 +274,6 @@ export class CallSchedulerKitchenTransport {
 
         // Bump
         this.callRepo.notifyPeerChanged(ctx, pid);
-        await this.callRepo.bumpVersion(ctx, cid, pid);
 
         return id;
     }
@@ -467,9 +466,6 @@ export class CallSchedulerKitchenTransport {
         // Delete transport
         // Not deleting producer transports until we figure out how to deal with eventual consistency
         // await this.repo.deleteTransport(ctx, id);
-
-        // Bump
-        await this.callRepo.bumpVersion(ctx, producerTransport.cid, producerTransport.pid);
     }
 
     removeConsumerTransport = async (ctx: Context, id: string) => {
@@ -714,7 +710,6 @@ export class CallSchedulerKitchenTransport {
         endStream.remoteSdp = JSON.stringify({ type: 'answer', sdp: answer });
         producerTransport.state = 'ready';
         this.callRepo.notifyPeerChanged(ctx, endStream.pid);
-        await this.callRepo.bumpVersion(ctx, producerTransport.cid, producerTransport.pid);
     }
 
     #refreshConsumerIfNeeded = async (ctx: Context, transportId: string) => {
@@ -929,7 +924,6 @@ export class CallSchedulerKitchenTransport {
         endStream.remoteStreams = remoteStreams;
         consumerTransport.state = 'negotiation-need-answer';
         this.callRepo.notifyPeerChanged(ctx, endStream.pid);
-        await this.callRepo.bumpVersion(ctx, consumerTransport.cid, consumerTransport.pid);
     }
 
     #consumerTransportAnswer = async (ctx: Context, transportId: string, answer: string) => {

@@ -912,6 +912,10 @@ export default declareSchema(() => {
         field('active', optional(boolean()));
     });
 
+    atomicInt('ConferenceRoomVersion', () => {
+        primaryKey('id', integer());
+    });
+
     entity('ConferencePeer', () => {
         primaryKey('id', integer());
         field('cid', integer());

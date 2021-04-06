@@ -371,7 +371,7 @@ export const Resolver: GQLResolver = {
                 })) : null);
 
                 // Result
-                return {id: peer.cid, peerId: peer.id};
+                return { id: peer.cid, peerId: peer.id };
             });
         }),
 
@@ -389,7 +389,7 @@ export const Resolver: GQLResolver = {
                 await Modules.Calls.repo.streamAnswer(ctx, id, pid, args.answer, args.seq === null ? undefined : args.seq);
 
                 // Result
-                return {id: peer.cid, peerId: peer.id};
+                return { id: peer.cid, peerId: peer.id };
             });
         }),
         mediaStreamCandidate: withUser(async (parent, args, uid) => {
@@ -406,7 +406,7 @@ export const Resolver: GQLResolver = {
                 await Modules.Calls.repo.streamCandidate(ctx, id, pid, args.candidate);
 
                 // Result
-                return {id: peer.cid, peerId: peer.id};
+                return { id: peer.cid, peerId: peer.id };
             });
         }),
         mediaStreamFailed: withUser(async (parent, args, uid) => {
@@ -414,7 +414,7 @@ export const Resolver: GQLResolver = {
                 let pid = IDs.ConferencePeer.parse(args.peerId);
                 let peer = (await Store.ConferencePeer.findById(ctx, pid))!;
                 await Modules.Calls.repo.streamFailed(ctx, args.id, peer.id);
-                return {id: peer.cid, peerId: peer.id};
+                return { id: peer.cid, peerId: peer.id };
             });
         }),
 
@@ -428,7 +428,7 @@ export const Resolver: GQLResolver = {
                 if (peer.videoPaused === null) {
                     await Modules.Calls.repo.alterConferencePeerMediaState(ctx, peer.cid, uid, parent.auth.tid!, null, false);
                 }
-                return {id: peer.cid, peerId: peer.id};
+                return { id: peer.cid, peerId: peer.id };
             });
         }),
         // Deprecated
@@ -492,13 +492,17 @@ export const Resolver: GQLResolver = {
             subscribe: async function* (_: any, args: { id: string }, parent: Context) {
                 let cid = IDs.Conference.parse(args.id);
 
-                const initial = await inTx(parent, async (ctx) => (await Store.ConferenceRoom.findById(ctx, cid))!);
-                let version = initial.metadata.versionCode;
-                yield initial;
+                const initial = await inTx(parent, async (ctx) => {
+                    let initVersion = await Modules.Calls.repo.getConferenceVersion(ctx, cid);
+                    let value = (await Store.ConferenceRoom.findById(ctx, cid))!;
+                    return { initVersion, value };
+                });
+                let version = initial.initVersion;
+                yield initial.value;
 
                 while (true) {
                     let changed = await fastWatch(parent, 'conference-' + cid, version,
-                        async (ctx) => (await inTx(ctx, async (ctx2) => Store.ConferenceRoom.findById(ctx2, cid)))!.metadata.versionCode
+                        async (ctx) => (await inTx(ctx, async (ctx2) => Modules.Calls.repo.getConferenceVersion(ctx2, cid)))
                     );
                     if (changed.result) {
                         version = changed.version;
@@ -518,7 +522,7 @@ export const Resolver: GQLResolver = {
                 let pid = IDs.ConferencePeer.parse(args.peerId);
 
                 let version = await inTx(parent, async (ctx) => Modules.Calls.repo.getPeerVersion(ctx, pid));
-                yield {id: cid, peerId: pid};
+                yield { id: cid, peerId: pid };
 
                 while (true) {
                     let changed = await fastWatch(parent, 'conference-peer-' + pid, version,
@@ -526,7 +530,7 @@ export const Resolver: GQLResolver = {
                     );
                     if (changed.result) {
                         version = changed.version;
-                        yield {id: cid, peerId: pid};
+                        yield { id: cid, peerId: pid };
                     } else {
                         break;
                     }
