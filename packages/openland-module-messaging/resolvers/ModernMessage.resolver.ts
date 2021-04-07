@@ -365,13 +365,13 @@ export function fetchMessageFallback(message: Message | PrivateMessage | Comment
     if (message.text) {
         fallback.push(message.text);
     }
-    if ((message instanceof Message || message instanceof Comment) && message.stickerId) {
+    if ((message instanceof Message || message instanceof Comment || message instanceof PrivateMessage) && message.stickerId) {
         fallback.push(Texts.Notifications.STICKER);
     }
-    if (message instanceof Message && message.fileMetadata) {
+    if ((message instanceof Message || message instanceof PrivateMessage) && message.fileMetadata) {
         fallback.push(attachFallback(message.fileMetadata && message.fileMetadata.mimeType, message.fileMetadata && message.fileMetadata.isImage));
     }
-    let attachments = message instanceof Message ? message.attachmentsModern : message.attachments;
+    let attachments = (message instanceof Message || message instanceof PrivateMessage) ? message.attachmentsModern : message.attachments;
     if (attachments) {
         let attachmentsByType = new Map<string, number>();
         for (let attach of attachments) {
@@ -407,7 +407,7 @@ export function fetchMessageFallback(message: Message | PrivateMessage | Comment
         }
     }
 
-    if (message instanceof Message && message.replyMessages && message.replyMessages.length > 0) {
+    if ((message instanceof Message || message instanceof PrivateMessage) && message.replyMessages && message.replyMessages.length > 0) {
         fallback.push(Texts.Notifications.REPLY_ATTACH);
     }
 
