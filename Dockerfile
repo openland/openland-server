@@ -1,4 +1,4 @@
-FROM node:14.16.0
+FROM nodesource/nsolid:fermium-latest
 
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
