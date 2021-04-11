@@ -1,11 +1,11 @@
 import { MediaKitchenService } from '../kitchen/MediaKitchenService';
 import { Store } from 'openland-module-db/FDB';
-import { inTx } from '@openland/foundationdb';
+import { inReadOnlyTx } from '@openland/foundationdb';
 import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 
 export function declareConsumerUnpauseWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
     repo.consumerUnpauseQueue.addWorkers(100, async (parent, args) => {
-        let r = await inTx(parent, async (ctx) => {
+        let r = await inReadOnlyTx(parent, async (ctx) => {
             let cr = await Store.KitchenConsumer.findById(ctx, args.id);
             if (!cr) {
                 throw Error('Unable to find consumer');
