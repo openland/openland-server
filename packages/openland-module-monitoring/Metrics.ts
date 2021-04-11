@@ -215,7 +215,7 @@ export const Metrics = {
     EventsTaggedReceived: Factory.createTaggedFrequencyGauge('events_received_tagged', 'Frequency of a sent events to event bus tagged by prefix'),
 
     // NodeJS
-    EventLoopLag: Factory.createTaggedSummary('nodejs_event_loop_lag', 'Summary of event loop lags', DEFAULT_QUANTILES),
+    // EventLoopLag: Factory.createTaggedSummary('nodejs_event_loop_lag', 'Summary of event loop lags', DEFAULT_QUANTILES),
     MemoryRss: Factory.createTaggedGauge('nodejs_memory_rss', 'Usage of a memory'),
     MemoryExternal: Factory.createTaggedGauge('nodejs_memory_external', 'Usage of an external memory'),
     MemoryHeapTotal: Factory.createTaggedGauge('nodejs_memory_heap_total', 'Total size of a heap'),
