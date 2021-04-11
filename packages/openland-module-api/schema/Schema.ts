@@ -8,8 +8,11 @@ import { instrumentSchema } from 'openland-graphql/instrumentResolvers';
 import { createTracer } from 'openland-log/createTracer';
 import { TracingContext } from 'openland-log/src/TracingContext';
 import { isPromise } from 'openland-utils/isPromise';
+import { Config } from 'openland-config/Config';
 
 const tracer = createTracer('gql');
+
+const ENABLE_LOG_PATH = false;
 
 function fetchResolvePath(info: GraphQLResolveInfo) {
     let path: (string | number)[] = [];
@@ -65,9 +68,18 @@ export const Schema = (forTest: boolean = false) => {
             return value;
         },
         field: (type, field, original, root, args, context, info) => {
-            let path = fetchResolvePath(info);
             let ctx = context;
-            ctx = withLogPath(ctx, path.join('->'));
+
+            // Enable log path
+            if (ENABLE_LOG_PATH) {
+                let path = fetchResolvePath(info);
+                ctx = withLogPath(ctx, path.join('->'));
+            }
+
+            // Enable tracing if needed
+            if (!Config.enableTracing) {
+                return original(root, args, ctx, info);
+            }
 
             // Tracing
             let c = TracingContext.get(ctx);
