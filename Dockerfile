@@ -6,7 +6,7 @@ RUN chmod +x /tini
 
 WORKDIR /
 ADD https://foundationdb-origin.apple.com/downloads/6.2.20/ubuntu/installers/foundationdb-clients_6.2.20-1_amd64.deb ./foundationdb-clients_6.2.20-1_amd64.deb
-RUN apt-get update && dpkg -i foundationdb-clients_6.2.20-1_amd64.deb && apt-get install python imagemagick && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && dpkg -i foundationdb-clients_6.2.20-1_amd64.deb && apt-get install -Y python imagemagick && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 ADD package.json /app/
