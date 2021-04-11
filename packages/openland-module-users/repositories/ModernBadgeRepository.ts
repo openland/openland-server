@@ -4,7 +4,7 @@ import { Store } from '../../openland-module-db/FDB';
 import { fetchNextDBSeq } from '../../openland-utils/dbSeq';
 import { UserError } from '../../openland-errors/UserError';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
-import { hasEmoji } from 'node-emoji';
+// import { hasEmoji } from 'node-emoji';
 import { Modules } from '../../openland-modules/Modules';
 import { ModernBadge } from '../../openland-module-db/store';
 
@@ -27,9 +27,9 @@ export class ModernBadgeRepository {
         if (input.text.trim().length > 40) {
             throw new UserError('Invalid text length');
         }
-        if (!hasEmoji(input.emoji)) {
-            throw new UserError('Invalid emoji');
-        }
+        // if (!hasEmoji(input.emoji)) {
+        //     throw new UserError('Invalid emoji');
+        // }
 
         return await Store.ModernBadge.create(ctx, await fetchNextDBSeq(ctx, 'modern-badge-id'), {
             emoji: input.emoji,
