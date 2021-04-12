@@ -99,7 +99,8 @@ export class MediaKitchenRepository {
 
                 // Remove routers
                 let routers = await Store.KitchenRouter.workerActive.findAll(ctx, id);
-                for (let r of routers) {
+                if (routers.length > 0) {
+                    let r = routers[0];
                     if (r.state !== 'deleted' && r.state !== 'deleting') {
 
                         // Fast delete of a router
