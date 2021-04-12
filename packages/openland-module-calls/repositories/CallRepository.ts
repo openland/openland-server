@@ -413,14 +413,18 @@ export class CallRepository {
         let active = await Store.ConferencePeer.active.findAll(parent);
         for (let a of active) {
             if (!(await this.keepAlive.isAlive(parent, [a.cid, a.id]))) {
-                await inTx(parent, async (ctx) => {
-                    let peer = (await Store.ConferencePeer.findById(ctx, a.id))!;
-                    if (peer.enabled && !(await this.keepAlive.isAlive(ctx, [peer.cid, peer.id]))) {
-                        log.log(ctx, 'Call Participant Reaped: ' + a.uid + ' from ' + a.cid);
-                        await this.removePeer(ctx, a.id, true);
-                        // await this.bumpVersion(ctx, a.cid, a.id);
-                    }
-                });
+                try {
+                    await inTx(parent, async (ctx) => {
+                        let peer = (await Store.ConferencePeer.findById(ctx, a.id))!;
+                        if (peer.enabled && !(await this.keepAlive.isAlive(ctx, [peer.cid, peer.id]))) {
+                            log.log(ctx, 'Call Participant Reaped: ' + a.uid + ' from ' + a.cid);
+                            await this.removePeer(ctx, a.id, true);
+                            // await this.bumpVersion(ctx, a.cid, a.id);
+                        }
+                    });
+                } catch (e) {
+                    log.log(parent, 'kick_error', e);
+                }
             }
         }
     }
