@@ -407,18 +407,22 @@ export class MediaKitchenRepository {
 
             // Remove transports
             let transports = await Store.KitchenTransport.routerActive.findAll(ctx, id);
+            let promises: Promise<void>[] = [];
             for (let t of transports) {
                 if (t.state === 'deleting') {
                     t.state = 'deleted';
-                    await t.flush(ctx);
-                    await this.onTransportRemoved(ctx, t.id);
+                    promises.push(t.flush(ctx));
+                    promises.push(this.onTransportRemoved(ctx, t.id));
                 } else {
                     t.state = 'deleted';
-                    await t.flush(ctx);
-                    await this.onTransportRemoving(ctx, t.id);
-                    await this.onTransportRemoved(ctx, t.id);
+                    promises.push(t.flush(ctx));
+                    promises.push((async () => {
+                        await this.onTransportRemoving(ctx, t.id);
+                        await this.onTransportRemoved(ctx, t.id);
+                    })());
                 }
             }
+            await Promise.all(promises);
         });
     }
 

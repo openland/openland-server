@@ -3,8 +3,10 @@ import { MediaKitchenService } from '../kitchen/MediaKitchenService';
 import { createNamedContext } from '@openland/context';
 import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 import { InvalidateSync } from '@openland/patterns';
+import { createTracer } from 'openland-log/createTracer';
 
 const logger = createLogger('mediakitchen');
+const tracer = createTracer('calls');
 
 export function startWorkerTracker(service: MediaKitchenService, repo: MediaKitchenRepository) {
     let ctx = createNamedContext('mediakitchen-worker-tracker');
@@ -30,7 +32,7 @@ export function startWorkerTracker(service: MediaKitchenService, repo: MediaKitc
             }
         }
         try {
-            await repo.onWorkersChanged(ctx, service.cluster.workers);
+            await tracer.trace(ctx, 'workers-changed', (c) => repo.onWorkersChanged(ctx, service.cluster.workers));
         } catch (e) {
             logger.warn(ctx, e);
             throw e;
