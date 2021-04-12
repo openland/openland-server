@@ -134,6 +134,10 @@ export const Resolver: GQLResolver = {
                         haveAccess = false;
                     }
                 });
+                if (isContextCancelled(ctx)) {
+                    subscription.cancel();
+                    return;
+                }
                 onContextCancel(ctx, () => {
                     subscription.cancel();
                 });

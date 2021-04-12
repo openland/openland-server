@@ -1,7 +1,7 @@
-import { backoff } from 'openland-utils/timer';
+import { backoff, delayBreakable } from 'openland-utils/timer';
 import { Context } from '@openland/context';
 import { getTransaction, TransactionCache, withoutTransaction } from '@openland/foundationdb';
-import { onContextCancel, delayBreakable } from '@openland/lifetime';
+import { onContextCancel, isContextCancelled } from '@openland/lifetime';
 import { Store } from './FDB';
 
 const cache = new TransactionCache<Set<string>>('fast-watc-notify');
@@ -30,7 +30,17 @@ export async function fastWatch(parent: Context, key: string, lastVersion: numbe
         }
     });
     let ctx = withoutTransaction(parent); // Clear transaction information since live stream manage transactions by itself
-    onContextCancel(ctx, () => aborted = true);
+    if (isContextCancelled(ctx)) {
+        return { result: false };
+    }
+    onContextCancel(ctx, () => {
+        aborted = true;
+        let a = awaiter;
+        if (a) {
+            awaiter = undefined;
+            a();
+        }
+    });
     let version = lastVersion;
     try {
         while (!aborted && !changed) {
@@ -44,9 +54,9 @@ export async function fastWatch(parent: Context, key: string, lastVersion: numbe
 
             // Refetch entity
             if (!changed && !aborted) {
-                let w = delayBreakable(ctx, 10000 + Math.random() * 15000);
-                awaiter = w.cancel;
-                await w.wait;
+                let w = delayBreakable(10000 + Math.random() * 15000);
+                awaiter = w.resolver;
+                await w.promise;
                 awaiter = undefined;
             }
         }
