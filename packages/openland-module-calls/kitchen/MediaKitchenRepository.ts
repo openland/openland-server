@@ -13,6 +13,7 @@ import { convertRtpCapabilitiesToStore, convertRtpParamsToStore } from 'openland
 import { pickClosest } from 'openland-utils/geo';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { createTracer } from 'openland-log/createTracer';
+import { setTracingTag } from 'openland-log/setTracingTag';
 
 const logger = createLogger('mediakitchen');
 const tracer = createTracer('calls');
@@ -88,6 +89,8 @@ export class MediaKitchenRepository {
 
     async onWorkerRemoved(c: Context, id: string) {
         await tracer.trace(c, 'onWorkerRemoved', async (parent) => {
+            setTracingTag(parent, 'id', id);
+
             logger.log(parent, 'Worker unregistered: ' + id);
 
             // Unregister worker one by one
@@ -391,12 +394,15 @@ export class MediaKitchenRepository {
 
     async onRouterCreating(parent: Context, id: string) {
         await tracer.trace(parent, 'onRouterCreating', (c) => inTx(c, async (ctx) => {
+            setTracingTag(ctx, 'id', id);
             logger.log(ctx, 'Creating router: ' + id);
         }));
     }
 
     async onRouterCreated(parent: Context, id: string) {
         await tracer.trace(parent, 'onRouterCreated', (c) => inTx(c, async (ctx) => {
+            setTracingTag(ctx, 'id', id);
+
             logger.log(ctx, 'Created router: ' + id);
 
             // Create transports
@@ -413,6 +419,8 @@ export class MediaKitchenRepository {
 
     async onRouterRemoving(parent: Context, id: string) {
         await tracer.trace(parent, 'onRouterRemoving', (c) => inTx(c, async (ctx) => {
+            setTracingTag(ctx, 'id', id);
+
             logger.log(ctx, 'Removing router: ' + id);
 
             // Remove transports
@@ -502,6 +510,7 @@ export class MediaKitchenRepository {
     async onTransportRemoving(parent: Context, id: string) {
         await tracer.trace(parent, 'onTransportRemoving', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Removing transport: ' + id);
+            setTracingTag(ctx, 'id', id);
 
             // Remove producers
             let producers = await Store.KitchenProducer.transportActive.findAll(ctx, id);
@@ -559,6 +568,7 @@ export class MediaKitchenRepository {
     async onProducerRemoving(parent: Context, transportId: string, id: string) {
         await tracer.trace(parent, 'onProducerRemoving', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Removing producer: ' + id);
+            setTracingTag(ctx, 'id', id);
 
             // Remove consumers
             let consumers = await Store.KitchenConsumer.producerActive.findAll(ctx, id);
