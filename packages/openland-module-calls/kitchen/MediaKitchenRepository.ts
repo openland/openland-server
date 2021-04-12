@@ -86,35 +86,43 @@ export class MediaKitchenRepository {
         }
     }
 
-    async onWorkerRemoved(parent: Context, id: string) {
-        await tracer.trace(parent, 'onWorkerRemoved', (c) => inTx(c, async (ctx) => {
-            logger.log(ctx, 'Worker unregistered: ' + id);
+    async onWorkerRemoved(c: Context, id: string) {
+        await tracer.trace(c, 'onWorkerRemoved', async (parent) => {
+            logger.log(parent, 'Worker unregistered: ' + id);
 
-            // Unregister worker
-            let ex = await Store.KitchenWorker.findById(ctx, id);
-            if (!ex || ex.deleted) {
-                throw Error('Internal error');
-            }
-            ex.deleted = true;
-            await ex.flush(ctx);
-
-            // Remove routers
-            let routers = await Store.KitchenRouter.workerActive.findAll(ctx, id);
-            for (let r of routers) {
-                if (r.state !== 'deleted' && r.state !== 'deleting') {
-
-                    // Fast delete of a router
-                    r.state = 'deleted';
-                    await r.flush(ctx);
-
-                    // Handle event
-                    await this.onRouterRemoving(ctx, r.id);
-                    await this.onRouterRemoved(ctx, r.id);
-
-                    // TODO: Notify scheduler or recreate router?
+            // Unregister worker one by one
+            while (await inTx(parent, async (ctx) => {
+                let ex = await Store.KitchenWorker.findById(ctx, id);
+                if (!ex || ex.deleted) {
+                    return;
                 }
-            }
-        }));
+
+                // Remove routers
+                let routers = await Store.KitchenRouter.workerActive.findAll(ctx, id);
+                for (let r of routers) {
+                    if (r.state !== 'deleted' && r.state !== 'deleting') {
+
+                        // Fast delete of a router
+                        r.state = 'deleted';
+                        await r.flush(ctx);
+
+                        // Handle event
+                        await this.onRouterRemoving(ctx, r.id);
+                        this.onRouterRemoved(ctx, r.id);
+
+                        // TODO: Notify scheduler or recreate router?
+                    }
+                }
+
+                if (routers.length === 0) {
+                    ex.deleted = true;
+                    await ex.flush(ctx);
+                    return false;
+                }
+
+                return true;
+            })) { /* */ }
+        });
     }
 
     async onWorkerAdded(parent: Context, id: string, appData: any) {
@@ -279,7 +287,7 @@ export class MediaKitchenRepository {
                     keyFrameRequestDelay: parameters.keyFrameRequestDelay
                 }
             });
-            await this.onProducerCreating(ctx, transport.id, id);
+            this.onProducerCreating(ctx, transport.id, id);
             if (transport.state !== 'creating') {
                 this.producerCreateQueue.pushWork(ctx, { id });
             }
@@ -338,7 +346,7 @@ export class MediaKitchenRepository {
                     paused: params.paused
                 }
             });
-            await this.onConsumerCreating(ctx, transportId, id);
+            this.onConsumerCreating(ctx, transportId, id);
             if (producer.state !== 'creating' && transport.state !== 'creating') {
                 this.consumerCreateQueue.pushWork(ctx, { id });
             }
@@ -371,7 +379,7 @@ export class MediaKitchenRepository {
             if (consumer.state === 'deleted' || consumer.state === 'deleting') {
                 return;
             }
-            await this.onConsumerRemoving(ctx, consumer.transportId, consumerId);
+            this.onConsumerRemoving(ctx, consumer.transportId, consumerId);
             this.consumerDeleteQueue.pushWork(ctx, { id: consumerId });
         }));
     }
@@ -408,29 +416,25 @@ export class MediaKitchenRepository {
 
             // Remove transports
             let transports = await Store.KitchenTransport.routerActive.findAll(ctx, id);
-            let promises: Promise<void>[] = [];
-            for (let t of transports) {
+            await Promise.all(transports.map(async (t) => {
                 if (t.state === 'deleting') {
                     t.state = 'deleted';
-                    promises.push(t.flush(ctx));
-                    promises.push(this.onTransportRemoved(ctx, t.id));
+                    await t.flush(ctx);
+                    this.onTransportRemoved(ctx, t.id);
                 } else {
                     t.state = 'deleted';
-                    promises.push(t.flush(ctx));
-                    promises.push((async () => {
-                        await this.onTransportRemoving(ctx, t.id);
-                        await this.onTransportRemoved(ctx, t.id);
-                    })());
+                    await t.flush(ctx);
+                    await this.onTransportRemoving(ctx, t.id);
+                    this.onTransportRemoved(ctx, t.id);
                 }
-            }
-            await Promise.all(promises);
+            }));
         }));
     }
 
-    async onRouterRemoved(parent: Context, id: string) {
-        await tracer.trace(parent, 'onRouterRemoved', (c) => inTx(c, async (ctx) => {
-            logger.log(ctx, 'Removed router: ' + id);
-        }));
+    onRouterRemoved(parent: Context, id: string) {
+        // return tracer.trace(parent, 'onRouterRemoved', (c) => inTx(c, async (ctx) => {
+        //     logger.log(ctx, 'Removed router: ' + id);
+        // }));
     }
 
     //
@@ -500,35 +504,35 @@ export class MediaKitchenRepository {
 
             // Remove producers
             let producers = await Store.KitchenProducer.transportActive.findAll(ctx, id);
-            for (let p of producers) {
+            await Promise.all(producers.map(async (p) => {
                 if (p.state === 'deleting') {
                     p.state = 'deleted';
                     await p.flush(ctx);
-                    await this.onProducerRemoved(ctx, id, p.id);
+                    this.onProducerRemoved(ctx, id, p.id);
                 } else {
                     p.state = 'deleted';
                     await p.flush(ctx);
                     await this.onProducerRemoving(ctx, id, p.id);
-                    await this.onProducerRemoved(ctx, id, p.id);
+                    this.onProducerRemoved(ctx, id, p.id);
                 }
-            }
+            }));
         }));
     }
 
-    async onTransportRemoved(parent: Context, id: string) {
-        await tracer.trace(parent, 'onTransportRemoved', (c) => inTx(c, async (ctx) => {
-            logger.log(ctx, 'Removed transport: ' + id);
-        }));
+    onTransportRemoved(parent: Context, id: string) {
+        // return tracer.trace(parent, 'onTransportRemoved', (c) => inTx(c, async (ctx) => {
+        //     logger.log(ctx, 'Removed transport: ' + id);
+        // }));
     }
 
     //
     // Producer Events
     //
 
-    async onProducerCreating(parent: Context, transportId: string, producerId: string) {
-        await tracer.trace(parent, 'onProducerCreating', (c) => inTx(c, async (ctx) => {
-            logger.log(ctx, 'Creating producer: ' + producerId);
-        }));
+    onProducerCreating(parent: Context, transportId: string, producerId: string) {
+        // return tracer.trace(parent, 'onProducerCreating', (c) => inTx(c, async (ctx) => {
+        //     logger.log(ctx, 'Creating producer: ' + producerId);
+        // }));
     }
 
     async onProducerCreated(parent: Context, transportId: string, producerId: string) {
@@ -537,14 +541,14 @@ export class MediaKitchenRepository {
 
             // Create dependent consumers
             let consumers = await Store.KitchenConsumer.producerActive.findAll(ctx, producerId);
-            for (let cons of consumers) {
+            await Promise.all(consumers.map(async (cons) => {
                 if (cons.state === 'creating') {
                     let transport = (await Store.KitchenTransport.findById(ctx, cons.transportId))!;
                     if (transport.state === 'created' || transport.state === 'connected' || transport.state === 'connecting') {
                         this.consumerCreateQueue.pushWork(ctx, { id: cons.id });
                     }
                 }
-            }
+            }));
 
             // Notify scheduler
             await this.scheduler.onProducerCreated(ctx, transportId, producerId);
@@ -557,35 +561,35 @@ export class MediaKitchenRepository {
 
             // Remove consumers
             let consumers = await Store.KitchenConsumer.producerActive.findAll(ctx, id);
-            for (let cons of consumers) {
+            await Promise.all(consumers.map(async (cons) => {
                 if (cons.state === 'deleting') {
                     cons.state = 'deleted';
                     await cons.flush(ctx);
-                    await this.onConsumerRemoved(ctx, transportId, cons.id);
+                    this.onConsumerRemoved(ctx, transportId, cons.id);
                 } else {
                     cons.state = 'deleted';
                     await cons.flush(ctx);
-                    await this.onConsumerRemoving(ctx, transportId, cons.id);
-                    await this.onConsumerRemoved(ctx, transportId, cons.id);
+                    this.onConsumerRemoving(ctx, transportId, cons.id);
+                    this.onConsumerRemoved(ctx, transportId, cons.id);
                 }
-            }
+            }));
         }));
     }
 
-    async onProducerRemoved(parent: Context, transportId: string, id: string) {
-        await tracer.trace(parent, 'onProducerRemoved', (c) => inTx(c, async (ctx) => {
-            logger.log(ctx, 'Removed producer: ' + id);
-        }));
+    onProducerRemoved(parent: Context, transportId: string, id: string) {
+        // return tracer.trace(parent, 'onProducerRemoved', (c) => inTx(c, async (ctx) => {
+        //     logger.log(ctx, 'Removed producer: ' + id);
+        // }));
     }
 
     //
     // Consumer Events
     //
 
-    async onConsumerCreating(parent: Context, transportId: string, consumerId: string) {
-        await tracer.trace(parent, 'onConsumerCreating', (c) => inTx(c, async (ctx) => {
-            logger.log(ctx, 'Creating consumer: ' + transportId + '/' + consumerId);
-        }));
+    onConsumerCreating(parent: Context, transportId: string, consumerId: string) {
+        // return tracer.trace(parent, 'onConsumerCreating', (c) => inTx(c, async (ctx) => {
+        //     logger.log(ctx, 'Creating consumer: ' + transportId + '/' + consumerId);
+        // }));
     }
 
     async onConsumerCreated(parent: Context, transportId: string, consumerId: string) {
@@ -597,16 +601,16 @@ export class MediaKitchenRepository {
         }));
     }
 
-    async onConsumerRemoving(parent: Context, transportId: string, consumerId: string) {
-        await tracer.trace(parent, 'onConsumerRemoving', (c) => inTx(c, async (ctx) => {
-            logger.log(ctx, 'Removing consumer: ' + consumerId);
-        }));
+    onConsumerRemoving(parent: Context, transportId: string, consumerId: string) {
+        // return tracer.trace(parent, 'onConsumerRemoving', (c) => inTx(c, async (ctx) => {
+        //     logger.log(ctx, 'Removing consumer: ' + consumerId);
+        // }));
     }
 
-    async onConsumerRemoved(parent: Context, transportId: string, consumerId: string) {
-        await tracer.trace(parent, 'onConsumerRemoved', (c) => inTx(c, async (ctx) => {
-            logger.log(ctx, 'Removed consumer: ' + consumerId);
-        }));
+    onConsumerRemoved(parent: Context, transportId: string, consumerId: string) {
+        // return tracer.trace(parent, 'onConsumerRemoved', (c) => inTx(c, async (ctx) => {
+        //     logger.log(ctx, 'Removed consumer: ' + consumerId);
+        // }));
     }
 
 }
