@@ -46,19 +46,19 @@ export class MediaKitchenRepository {
     async onWorkersChanged(parent: Context, workers: Worker[]) {
 
         // Remove unhealthy
-        await inTx(parent, async (ctx) => {
-            let allActive = await Store.KitchenWorker.active.findAll(ctx);
-
-            // Find removed
-            for (let w of allActive) {
-                let existing = workers.find((v) => v.id === w.id && v.status === 'healthy');
-                if (existing) {
-                    continue;
-                } else {
-                    await this.onWorkerRemoved(ctx, w.id);
-                }
-            }
+        let allActive = await inTx(parent, async (ctx) => {
+            return await Store.KitchenWorker.active.findAll(ctx);
         });
+
+        // Find removed
+        for (let w of allActive) {
+            let existing = workers.find((v) => v.id === w.id && v.status === 'healthy');
+            if (existing) {
+                continue;
+            } else {
+                await this.onWorkerRemoved(parent, w.id);
+            }
+        }
 
         // Add healthy
         for (let w of workers) {
