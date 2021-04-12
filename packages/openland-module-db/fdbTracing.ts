@@ -45,21 +45,22 @@ export function setupFdbTracing() {
             if (!counterNamespace.get(ctx)) {
                 ctx = withCounters(ctx);
             }
-            let res = await rawTracer.trace(ctx, 'transaction', async (child) => {
-                setTracingTag(child, 'path', path.join(' -> '));
-                return await handler(child);
-            });
-
-            let ctxName = ContextName.get(ctx);
-            const counters = reportCounters(ctx);
-            if (counters) {
-                Metrics.FDBReads.report(ctxName, counters.readCount);
-                Metrics.FDBWrites.report(ctxName, counters.writeCount);
-                Metrics.FDBReadsFrequency.add(ctxName, counters.readCount);
-                Metrics.FDBWritesFrequency.add(ctxName, counters.writeCount);
+            try {
+                let res = await rawTracer.trace(ctx, 'transaction', async (child) => {
+                    setTracingTag(child, 'path', path.join(' -> '));
+                    return await handler(child);
+                });
+                return res;
+            } finally {
+                let ctxName = ContextName.get(ctx);
+                const counters = reportCounters(ctx);
+                if (counters) {
+                    Metrics.FDBReads.report(ctxName, counters.readCount);
+                    Metrics.FDBWrites.report(ctxName, counters.writeCount);
+                    Metrics.FDBReadsFrequency.add(ctxName, counters.readCount);
+                    Metrics.FDBWritesFrequency.add(ctxName, counters.writeCount);
+                }
             }
-
-            return res;
         },
         txIteration: async (ctx, handler) => {
             let ctxName = ContextName.get(ctx);
