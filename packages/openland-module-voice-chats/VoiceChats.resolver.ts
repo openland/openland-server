@@ -155,7 +155,7 @@ export const Resolver: GQLResolver = {
         voiceChatUpdate: withActivatedUser(async (ctx, { id, input }, uid) => {
             return await Modules.VoiceChats.chats.updateChat(ctx, uid, IDs.Conversation.parse(id), {
                 title: input.title,
-                isPrivate: input.isPrivate || false
+                isPrivate: input.isPrivate === null ? undefined : input.isPrivate
             });
         }),
         voiceChatEnd: withActivatedUser(async (ctx, { id }, uid) => {

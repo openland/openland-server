@@ -68,7 +68,9 @@ export class VoiceChatsRepository {
 
         let chat = await this.#getChatOrFail(ctx, id);
         chat.title = title;
-        chat.isPrivate = isPrivate || false;
+        if (isPrivate !== undefined) {
+            chat.isPrivate = isPrivate;
+        }
 
         await this.notifyChatUpdated(ctx, id, chat.isPrivate || false);
         return chat;

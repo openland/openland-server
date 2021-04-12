@@ -2,7 +2,7 @@ import { Config } from 'openland-config/Config';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { CallSchedulerKitchen } from './CallSchedulerKitchen';
 import { CallSchedulerMesh } from './CallSchedulerMesh';
-import { inTx, withoutTransaction } from '@openland/foundationdb';
+import { inTx } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { createLogger } from '@openland/log';
@@ -413,7 +413,7 @@ export class CallRepository {
         let active = await inTx(parent, async ctx => await Store.ConferencePeer.active.findAll(ctx));
         for (let a of active) {
             try {
-                await inTx(withoutTransaction(parent), async (ctx) => {
+                await inTx(parent, async (ctx) => {
                     let peer = (await Store.ConferencePeer.findById(ctx, a.id))!;
                     if (peer.enabled && !(await this.keepAlive.isAlive(ctx, [peer.cid, peer.id]))) {
                         log.log(ctx, 'Call Participant Reaped: ' + a.uid + ' from ' + a.cid);
