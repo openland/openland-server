@@ -32,7 +32,7 @@ export function startWorkerTracker(service: MediaKitchenService, repo: MediaKitc
             }
         }
         try {
-            await tracer.trace(ctx, 'workers-changed', (c) => repo.onWorkersChanged(ctx, service.cluster.workers));
+            await tracer.trace(ctx, 'workers-changed', (c) => repo.onWorkersChanged(c, service.cluster.workers));
         } catch (e) {
             logger.warn(ctx, e);
             throw e;
