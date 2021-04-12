@@ -20,6 +20,9 @@ const tracer = createTracer('calls');
 @injectable()
 export class MediaKitchenRepository {
 
+    // Worker tasks
+    readonly workerDeleteQueue = new BetterWorkerQueue<{ id: string }>(Store.KitchenWorkerDeleteQueue, { maxAttempts: 'infinite', type: 'external' });
+
     // Router tasks
     readonly routerCreateQueue = new BetterWorkerQueue<{ id: string, ip: string | undefined }>(Store.KitchenRouterCreateQueue, { maxAttempts: 'infinite', type: 'external' });
     readonly routerDeleteQueue = new BetterWorkerQueue<{ id: string }>(Store.KitchenRouterDeleteQueue, { maxAttempts: 'infinite', type: 'external' });
@@ -58,7 +61,9 @@ export class MediaKitchenRepository {
             if (existing) {
                 continue;
             } else {
-                await this.onWorkerRemoved(parent, w.id);
+                await inTx(parent, async (ctx) => {
+                    await this.onWorkerRemoved(ctx, w.id);
+                });
             }
         }
 
@@ -88,44 +93,18 @@ export class MediaKitchenRepository {
     }
 
     async onWorkerRemoved(c: Context, id: string) {
-        await tracer.trace(c, 'onWorkerRemoved', async (parent) => {
-            setTracingTag(parent, 'id', id);
-
-            logger.log(parent, 'Worker unregistered: ' + id);
+        await tracer.trace(c, 'onWorkerRemoved', async (ctx) => {
+            setTracingTag(ctx, 'id', id);
+            logger.log(ctx, 'Worker unregistered: ' + id);
 
             // Unregister worker one by one
-            while (await inTx(parent, async (ctx) => {
-                let ex = await Store.KitchenWorker.findById(ctx, id);
-                if (!ex || ex.deleted) {
-                    return;
-                }
-
-                // Remove routers
-                let routers = await Store.KitchenRouter.workerActive.findAll(ctx, id);
-                if (routers.length > 0) {
-                    let r = routers[0];
-                    if (r.state !== 'deleted' && r.state !== 'deleting') {
-
-                        // Fast delete of a router
-                        r.state = 'deleted';
-                        await r.flush(ctx);
-
-                        // Handle event
-                        await this.onRouterRemoving(ctx, r.id);
-                        this.onRouterRemoved(ctx, r.id);
-
-                        // TODO: Notify scheduler or recreate router?
-                    }
-                }
-
-                if (routers.length === 0) {
-                    ex.deleted = true;
-                    await ex.flush(ctx);
-                    return false;
-                }
-
-                return true;
-            })) { /* */ }
+            let ex = await Store.KitchenWorker.findById(ctx, id);
+            if (!ex || ex.deleted) {
+                return;
+            }
+            ex.deleted = true;
+            await ex.flush(ctx);
+            this.workerDeleteQueue.pushWork(ctx, { id });
         });
     }
 
@@ -136,6 +115,33 @@ export class MediaKitchenRepository {
             // Register worker
             await Store.KitchenWorker.create(ctx, id, { deleted: false, appData });
         }));
+    }
+
+    async doWorkerCleanup(cc: Context, id: string) {
+        await tracer.trace(cc, 'doWorkerCleanup', async (parent) => {
+            setTracingTag(parent, 'id', id);
+
+            let routers = await inTx(parent, async (ctx) => { return await Store.KitchenRouter.workerActive.findAll(ctx, id); });
+            if (routers.length === 0) {
+                return;
+            }
+            for (let r of routers) {
+                await inTx(parent, async (ctx) => {
+
+                    // Delete router
+                    let router = await Store.KitchenRouter.findById(ctx, r.id);
+                    if (!router || router.state === 'deleted' || router.state === 'deleting') {
+                        return;
+                    }
+                    router.state = 'deleted';
+                    await router.flush(ctx);
+
+                    // Cleanup
+                    await this.onRouterRemoving(ctx, router.id);
+                    this.onRouterRemoved(ctx, r.id);
+                });
+            }
+        });
     }
 
     async pickWorker(parent: Context, ip: string | undefined) {
