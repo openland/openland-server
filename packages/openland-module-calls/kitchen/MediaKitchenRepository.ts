@@ -12,9 +12,10 @@ import uuid from 'uuid/v4';
 import { convertRtpCapabilitiesToStore, convertRtpParamsToStore } from 'openland-module-calls/kitchen/convert';
 import { pickClosest } from 'openland-utils/geo';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
+import { createTracer } from 'openland-log/createTracer';
 
 const logger = createLogger('mediakitchen');
-
+const tracer = createTracer('calls');
 @injectable()
 export class MediaKitchenRepository {
 
@@ -86,7 +87,7 @@ export class MediaKitchenRepository {
     }
 
     async onWorkerRemoved(parent: Context, id: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onWorkerRemoved', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Worker unregistered: ' + id);
 
             // Unregister worker
@@ -113,16 +114,16 @@ export class MediaKitchenRepository {
                     // TODO: Notify scheduler or recreate router?
                 }
             }
-        });
+        }));
     }
 
     async onWorkerAdded(parent: Context, id: string, appData: any) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onWorkerAdded', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Worker registered: ' + id);
 
             // Register worker
             await Store.KitchenWorker.create(ctx, id, { deleted: false, appData });
-        });
+        }));
     }
 
     async pickWorker(parent: Context, ip: string | undefined) {
@@ -158,7 +159,7 @@ export class MediaKitchenRepository {
     //
 
     async createRouter(parent: Context, ip: string | undefined) {
-        return await inTx(parent, async (ctx) => {
+        return await tracer.trace(parent, 'createRouter', (c) => inTx(c, async (ctx) => {
             let id = uuid();
             await Store.KitchenRouter.create(ctx, id, {
                 state: 'creating'
@@ -166,11 +167,11 @@ export class MediaKitchenRepository {
             await this.onRouterCreating(ctx, id);
             this.routerCreateQueue.pushWork(ctx, { id, ip });
             return id;
-        });
+        }));
     }
 
     async deleteRouter(parent: Context, id: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'deleteRouter', (c) => inTx(c, async (ctx) => {
             let router = await Store.KitchenRouter.findById(ctx, id);
             if (!router) {
                 throw Error('Unable to find router');
@@ -182,7 +183,7 @@ export class MediaKitchenRepository {
             await router.flush(ctx);
             await this.onRouterRemoving(ctx, id);
             this.routerDeleteQueue.pushWork(ctx, { id });
-        });
+        }));
     }
 
     //
@@ -190,7 +191,7 @@ export class MediaKitchenRepository {
     //
 
     async createTransport(parent: Context, id: string, routerId: string) {
-        return await inTx(parent, async (ctx) => {
+        return await tracer.trace(parent, 'createTransport', (c) => inTx(c, async (ctx) => {
             let router = await Store.KitchenRouter.findById(ctx, routerId);
             if (!router) {
                 throw Error('Unable to find router');
@@ -209,11 +210,11 @@ export class MediaKitchenRepository {
                 logger.log(ctx, 'Not scheduling transport creation: ' + id);
             }
             return id;
-        });
+        }));
     }
 
     async connectTransport(parent: Context, transportId: string, dtlsRole: 'server' | 'client', fingerprints: { algorithm: string, value: string }[]) {
-        return await inTx(parent, async (ctx) => {
+        return await tracer.trace(parent, 'connectTransport', (c) => inTx(c, async (ctx) => {
             let transport = await Store.KitchenTransport.findById(ctx, transportId);
             if (!transport) {
                 throw Error('Unable to find transport');
@@ -230,11 +231,11 @@ export class MediaKitchenRepository {
             }
 
             await transport.flush(ctx);
-        });
+        }));
     }
 
     async deleteTransport(parent: Context, transportId: string) {
-        return await inTx(parent, async (ctx) => {
+        return await tracer.trace(parent, 'deleteTransport', (c) => inTx(c, async (ctx) => {
             let transport = await Store.KitchenTransport.findById(ctx, transportId);
             if (!transport) {
                 throw Error('Unable to find transport');
@@ -246,7 +247,7 @@ export class MediaKitchenRepository {
             await transport.flush(ctx);
             await this.onTransportRemoving(ctx, transportId);
             this.transportDeleteQueue.pushWork(ctx, { id: transportId });
-        });
+        }));
     }
 
     //
@@ -257,7 +258,7 @@ export class MediaKitchenRepository {
         transportId: string,
         parameters: KitchenProducerParams
     ) {
-        return await inTx(parent, async (ctx) => {
+        return await tracer.trace(parent, 'createProducer', (c) => inTx(c, async (ctx) => {
             let transport = await Store.KitchenTransport.findById(ctx, transportId);
             if (!transport) {
                 throw Error('Unable to find transport');
@@ -283,11 +284,11 @@ export class MediaKitchenRepository {
                 this.producerCreateQueue.pushWork(ctx, { id });
             }
             return id;
-        });
+        }));
     }
 
     async deleteProducer(parent: Context, producerId: string) {
-        return await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'deleteProducer', (c) => inTx(c, async (ctx) => {
             let producer = await Store.KitchenProducer.findById(ctx, producerId);
             if (!producer) {
                 throw Error('Unable to find producer');
@@ -298,7 +299,7 @@ export class MediaKitchenRepository {
             producer.state = 'deleting';
             await this.onProducerRemoving(ctx, producer.transportId, producerId);
             this.producerDeleteQueue.pushWork(ctx, { id: producerId });
-        });
+        }));
     }
 
     //
@@ -306,7 +307,7 @@ export class MediaKitchenRepository {
     //
 
     async createConsumer(parent: Context, transportId: string, producerId: string, params: KitchenConsumerParams) {
-        return await inTx(parent, async (ctx) => {
+        return await tracer.trace(parent, 'createConsumer', (c) => inTx(c, async (ctx) => {
             let transport = await Store.KitchenTransport.findById(ctx, transportId);
             if (!transport) {
                 throw Error('Unable to find transport');
@@ -342,11 +343,11 @@ export class MediaKitchenRepository {
                 this.consumerCreateQueue.pushWork(ctx, { id });
             }
             return id;
-        });
+        }));
     }
 
     async unpauseConsumer(parent: Context, consumerId: string) {
-        return await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'unpauseConsumer', (c) => inTx(c, async (ctx) => {
             let consumer = await Store.KitchenConsumer.findById(ctx, consumerId);
             if (!consumer) {
                 throw Error('Unable to find consumer');
@@ -358,11 +359,11 @@ export class MediaKitchenRepository {
                 return;
             }
             this.consumerUnpauseQueue.pushWork(ctx, { id: consumerId });
-        });
+        }));
     }
 
     async deleteConsumer(parent: Context, consumerId: string) {
-        return await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'deleteConsumer', (c) => inTx(c, async (ctx) => {
             let consumer = await Store.KitchenConsumer.findById(ctx, consumerId);
             if (!consumer) {
                 throw Error('Unable to find consumer');
@@ -372,7 +373,7 @@ export class MediaKitchenRepository {
             }
             await this.onConsumerRemoving(ctx, consumer.transportId, consumerId);
             this.consumerDeleteQueue.pushWork(ctx, { id: consumerId });
-        });
+        }));
     }
 
     //
@@ -380,13 +381,13 @@ export class MediaKitchenRepository {
     //
 
     async onRouterCreating(parent: Context, id: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onRouterCreating', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Creating router: ' + id);
-        });
+        }));
     }
 
     async onRouterCreated(parent: Context, id: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onRouterCreated', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Created router: ' + id);
 
             // Create transports
@@ -398,11 +399,11 @@ export class MediaKitchenRepository {
                     this.transportCreateQueue.pushWork(ctx, { id: t.id });
                 }
             }
-        });
+        }));
     }
 
     async onRouterRemoving(parent: Context, id: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onRouterRemoving', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Removing router: ' + id);
 
             // Remove transports
@@ -423,13 +424,13 @@ export class MediaKitchenRepository {
                 }
             }
             await Promise.all(promises);
-        });
+        }));
     }
 
     async onRouterRemoved(parent: Context, id: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onRouterRemoved', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Removed router: ' + id);
-        });
+        }));
     }
 
     //
@@ -437,13 +438,13 @@ export class MediaKitchenRepository {
     //
 
     async onTransportCreating(parent: Context, id: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onTransportCreating', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Creating transport: ' + id);
-        });
+        }));
     }
 
     async onTransportCreated(parent: Context, id: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onTransportCreated', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Created transport: ' + id);
             let transport = await Store.KitchenTransport.findById(ctx, id);
             if (!transport) {
@@ -477,11 +478,11 @@ export class MediaKitchenRepository {
                     }
                 }
             }
-        });
+        }));
     }
 
     async onTransportConnected(parent: Context, id: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onTransportConnected', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Connected transport: ' + id);
             let transport = await Store.KitchenTransport.findById(ctx, id);
             if (!transport) {
@@ -490,11 +491,11 @@ export class MediaKitchenRepository {
 
             // Notify scheduler
             await this.scheduler.onTransportConnected(ctx, id);
-        });
+        }));
     }
 
     async onTransportRemoving(parent: Context, id: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onTransportRemoving', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Removing transport: ' + id);
 
             // Remove producers
@@ -511,13 +512,13 @@ export class MediaKitchenRepository {
                     await this.onProducerRemoved(ctx, id, p.id);
                 }
             }
-        });
+        }));
     }
 
     async onTransportRemoved(parent: Context, id: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onTransportRemoved', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Removed transport: ' + id);
-        });
+        }));
     }
 
     //
@@ -525,56 +526,56 @@ export class MediaKitchenRepository {
     //
 
     async onProducerCreating(parent: Context, transportId: string, producerId: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onProducerCreating', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Creating producer: ' + producerId);
-        });
+        }));
     }
 
     async onProducerCreated(parent: Context, transportId: string, producerId: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onProducerCreated', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Created producer: ' + producerId);
 
             // Create dependent consumers
             let consumers = await Store.KitchenConsumer.producerActive.findAll(ctx, producerId);
-            for (let c of consumers) {
-                if (c.state === 'creating') {
-                    let transport = (await Store.KitchenTransport.findById(ctx, c.transportId))!;
+            for (let cons of consumers) {
+                if (cons.state === 'creating') {
+                    let transport = (await Store.KitchenTransport.findById(ctx, cons.transportId))!;
                     if (transport.state === 'created' || transport.state === 'connected' || transport.state === 'connecting') {
-                        await this.consumerCreateQueue.pushWork(ctx, { id: c.id });
+                        this.consumerCreateQueue.pushWork(ctx, { id: cons.id });
                     }
                 }
             }
 
             // Notify scheduler
             await this.scheduler.onProducerCreated(ctx, transportId, producerId);
-        });
+        }));
     }
 
     async onProducerRemoving(parent: Context, transportId: string, id: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onProducerRemoving', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Removing producer: ' + id);
 
             // Remove consumers
             let consumers = await Store.KitchenConsumer.producerActive.findAll(ctx, id);
-            for (let c of consumers) {
-                if (c.state === 'deleting') {
-                    c.state = 'deleted';
-                    await c.flush(ctx);
-                    await this.onConsumerRemoved(ctx, transportId, c.id);
+            for (let cons of consumers) {
+                if (cons.state === 'deleting') {
+                    cons.state = 'deleted';
+                    await cons.flush(ctx);
+                    await this.onConsumerRemoved(ctx, transportId, cons.id);
                 } else {
-                    c.state = 'deleted';
-                    await c.flush(ctx);
-                    await this.onConsumerRemoving(ctx, transportId, c.id);
-                    await this.onConsumerRemoved(ctx, transportId, c.id);
+                    cons.state = 'deleted';
+                    await cons.flush(ctx);
+                    await this.onConsumerRemoving(ctx, transportId, cons.id);
+                    await this.onConsumerRemoved(ctx, transportId, cons.id);
                 }
             }
-        });
+        }));
     }
 
     async onProducerRemoved(parent: Context, transportId: string, id: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onProducerRemoved', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Removed producer: ' + id);
-        });
+        }));
     }
 
     //
@@ -582,30 +583,30 @@ export class MediaKitchenRepository {
     //
 
     async onConsumerCreating(parent: Context, transportId: string, consumerId: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onConsumerCreating', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Creating consumer: ' + transportId + '/' + consumerId);
-        });
+        }));
     }
 
     async onConsumerCreated(parent: Context, transportId: string, consumerId: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onConsumerCreated', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Created consumer: ' + transportId + '/' + consumerId);
 
             // Notify scheduler
             await this.scheduler.onConsumerCreated(ctx, transportId, consumerId);
-        });
+        }));
     }
 
     async onConsumerRemoving(parent: Context, transportId: string, consumerId: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onConsumerRemoving', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Removing consumer: ' + consumerId);
-        });
+        }));
     }
 
     async onConsumerRemoved(parent: Context, transportId: string, consumerId: string) {
-        await inTx(parent, async (ctx) => {
+        await tracer.trace(parent, 'onConsumerRemoved', (c) => inTx(c, async (ctx) => {
             logger.log(ctx, 'Removed consumer: ' + consumerId);
-        });
+        }));
     }
 
 }
