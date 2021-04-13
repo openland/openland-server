@@ -86,6 +86,7 @@ export class VoiceChatsRepository {
             chat.startedAt = Date.now();
             chat.endedAt = null;
             chat.duration = null;
+            chat.startedAt = Date.now();
             await this.#onChatActive(ctx, id);
         } else {
             let members = await Store.VoiceChatParticipant.chat.findAll(ctx, id);
