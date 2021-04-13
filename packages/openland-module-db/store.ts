@@ -25735,6 +25735,7 @@ export interface Store extends BaseStore {
     readonly CommentNotificationDeliveryQueue: QueueStorage;
     readonly MessageAugmentationQueue: QueueStorage;
     readonly MessageMentionNotificationQueue: QueueStorage;
+    readonly KitchenWorkerDeleteQueue: QueueStorage;
     readonly KitchenRouterCreateQueue: QueueStorage;
     readonly KitchenRouterDeleteQueue: QueueStorage;
     readonly KitchenTransportCreateQueue: QueueStorage;
@@ -26061,6 +26062,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let CommentNotificationDeliveryQueuePromise = QueueStorage.open('CommentNotificationDelivery', storage);
     let MessageAugmentationQueuePromise = QueueStorage.open('MessageAugmentation', storage);
     let MessageMentionNotificationQueuePromise = QueueStorage.open('MessageMentionNotification', storage);
+    let KitchenWorkerDeleteQueuePromise = QueueStorage.open('KitchenWorkerDelete', storage);
     let KitchenRouterCreateQueuePromise = QueueStorage.open('KitchenRouterCreate', storage);
     let KitchenRouterDeleteQueuePromise = QueueStorage.open('KitchenRouterDelete', storage);
     let KitchenTransportCreateQueuePromise = QueueStorage.open('KitchenTransportCreate', storage);
@@ -26332,6 +26334,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         CommentNotificationDeliveryQueue: await CommentNotificationDeliveryQueuePromise,
         MessageAugmentationQueue: await MessageAugmentationQueuePromise,
         MessageMentionNotificationQueue: await MessageMentionNotificationQueuePromise,
+        KitchenWorkerDeleteQueue: await KitchenWorkerDeleteQueuePromise,
         KitchenRouterCreateQueue: await KitchenRouterCreateQueuePromise,
         KitchenRouterDeleteQueue: await KitchenRouterDeleteQueuePromise,
         KitchenTransportCreateQueue: await KitchenTransportCreateQueuePromise,

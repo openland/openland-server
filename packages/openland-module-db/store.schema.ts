@@ -1266,6 +1266,8 @@ export default declareSchema(() => {
     //
     // Kitchen Queue
     //
+    
+    taskQueue('KitchenWorkerDelete');
     taskQueue('KitchenRouterCreate');
     taskQueue('KitchenRouterDelete');
     taskQueue('KitchenTransportCreate');
