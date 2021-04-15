@@ -46,7 +46,11 @@ export const Resolver: GQLResolver = {
                 return null;
             }
 
-            return await Store.ConversationVoice.findById(ctx, chat);
+            let voiceChat = await Store.ConversationVoice.findById(ctx, chat);
+            if (voiceChat?.isPrivate) {
+                return null;
+            }
+            return voiceChat;
         }, true),
     },
     Mutation: {
