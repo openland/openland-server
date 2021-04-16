@@ -2710,6 +2710,21 @@ export const Resolver: GQLResolver = {
                 return 'done';
             });
             return true;
+        }),
+        debugActivateUser: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async ctx => {
+                let user = await Store.User.findById(ctx, IDs.User.parse(args.id));
+                if (!user) {
+                    return false;
+                }
+                if (user.status === 'activated') {
+                    return false;
+                }
+                user.status = 'activated';
+                await user.flush(ctx);
+                await Modules.Users.markForIndexing(ctx, user.id);
+                return true;
+            });
         })
     },
     Subscription: {

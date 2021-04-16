@@ -249,6 +249,7 @@ extend type Mutation {
     debugMigratePrivateChatMessages: Boolean!
     debugKickAllFromVoiceChats: Boolean!
     debugMigrateChatCounters: Boolean!
+    debugActivateUser(id: ID!): Boolean!
 }
 
 extend type Subscription {
