@@ -1001,6 +1001,8 @@ export default declareSchema(() => {
         rangeIndex('peer', ['pid', 'id']).withCondition((s) => s.state !== 'completed');
     });
 
+    customDirectory('EndStream');
+
     //
     // Mesh Scheduler
     //

@@ -17,6 +17,7 @@ import {
 } from '../../openland-module-voice-chats/repositories/ParticipantsRepository';
 import { Modules } from '../../openland-modules/Modules';
 import { KeepAliveCollection } from '../../openland-module-db/collections/KeepAliveCollection';
+import { EndStreamDirectory } from './EndStreamDirectory';
 
 let log = createLogger('call-repo');
 
@@ -63,6 +64,7 @@ export class CallRepository {
     readonly defaultScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' = Config.environment === 'production' ? 'basic-sfu' : 'mesh';
     readonly schedulerMesh = new CallSchedulerMesh('relay', this);
     readonly schedulerMeshNoRelay = new CallSchedulerMesh('all', this);
+    readonly endStreamDirectory = new EndStreamDirectory(Store.EndStreamDirectory);
 
     @lazyInject('CallSchedulerKitchen')
     readonly schedulerKitchen!: CallSchedulerKitchen;
@@ -465,22 +467,26 @@ export class CallRepository {
             let scheduler = this.getScheduler(conf.currentScheduler);
 
             // Update Stream
-            let stream = await Store.ConferenceEndStream.findById(ctx, streamId);
-            if (!stream) {
+            let [streamState, streamSeq] = await Promise.all([
+                this.endStreamDirectory.getState(ctx, streamId),
+                this.endStreamDirectory.getSeq(ctx, streamId)
+            ]);
+            if (!streamState || !streamSeq) {
                 throw Error('Unable to find stream');
             }
-            if (seq !== undefined && seq !== stream.seq) {
+            if (seq !== undefined && seq !== streamSeq) {
                 return;
             }
-            if (stream.state !== 'need-offer') {
+            if (streamState !== 'need-offer') {
                 return;
             }
-            stream.localSdp = offer;
-            stream.state = 'wait-answer';
+            this.endStreamDirectory.updateStream(ctx, streamId, {
+                localSdp: offer,
+                state: 'wait-answer'
+            });
 
             // Schedule
             await scheduler.onStreamOffer(ctx, peer.cid, peer.id, streamId, offer, hints ? hints : null);
-            await stream.flush(ctx);
         });
     }
 
@@ -494,22 +500,27 @@ export class CallRepository {
             let scheduler = this.getScheduler(conf.currentScheduler);
 
             // Update Stream
-            let stream = await Store.ConferenceEndStream.findById(ctx, streamId);
-            if (!stream) {
+            let [streamState, streamSeq] = await Promise.all([
+                this.endStreamDirectory.getState(ctx, streamId),
+                this.endStreamDirectory.getSeq(ctx, streamId)
+            ]);
+            if (!streamState || !streamSeq) {
                 throw Error('Unable to find stream');
             }
-            if (seq !== undefined && seq !== stream.seq) {
+            if (seq !== undefined && seq !== streamSeq) {
                 return;
             }
-            if (stream.state !== 'need-answer') {
+            if (streamState !== 'need-answer') {
                 return;
             }
-            stream.localSdp = answer;
-            stream.state = 'online';
+
+            this.endStreamDirectory.updateStream(ctx, streamId, {
+                localSdp: answer,
+                state: 'online'
+            });
 
             // Schedule
             await scheduler.onStreamAnswer(ctx, peer.cid, peer.id, streamId, answer);
-            await stream.flush(ctx);
         });
     }
 
@@ -523,21 +534,25 @@ export class CallRepository {
             let scheduler = this.getScheduler(conf.currentScheduler);
 
             // Update Stream
-            let stream = await Store.ConferenceEndStream.findById(ctx, streamId);
-            if (!stream) {
+            let [streamState, streamLocalCandidates] = await Promise.all([
+                this.endStreamDirectory.getState(ctx, streamId),
+                this.endStreamDirectory.getLocalCandidates(ctx, streamId)
+            ]);
+            if (!streamState || !streamLocalCandidates) {
                 throw Error('Unable to find stream');
             }
-            if (stream.state === 'completed') {
+            if (streamState === 'completed') {
                 return;
             }
-            if (stream.localCandidates.find((v) => v === candidate)) {
+            if (streamLocalCandidates.find((v) => v === candidate)) {
                 return;
             }
-            stream.localCandidates = [...stream.localCandidates, candidate];
+            this.endStreamDirectory.updateStream(ctx, streamId, {
+                localCandidates: [...streamLocalCandidates, candidate]
+            });
 
             // Scheduling
             await scheduler.onStreamCandidate(ctx, peer.cid, peer.id, streamId, candidate);
-            await stream.flush(ctx);
         });
     }
 

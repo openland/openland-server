@@ -18,6 +18,7 @@ import { extractFingerprints } from 'openland-module-calls/sdp/extractFingerprin
 import { extractOpusRtpParameters, extractH264RtpParameters, convertParameters, convertIceCandidate, extractVP8RtpParameters, isSupportedHeaderExtension } from 'openland-module-calls/kitchen/extract';
 import { MediaDescription } from 'sdp-transform';
 import { Modules } from 'openland-modules/Modules';
+import { EndStreamDirectory } from './EndStreamDirectory';
 
 const logger = createLogger('mediakitchen');
 
@@ -219,6 +220,8 @@ export class CallSchedulerKitchenTransport {
     @lazyInject('CallRepository')
     readonly callRepo!: CallRepository;
 
+    readonly endStreamDirectory = new EndStreamDirectory(Store.EndStreamDirectory);
+
     //
     // Create
     //
@@ -244,7 +247,7 @@ export class CallSchedulerKitchenTransport {
             localStreams.push({ type: 'audio', codec: 'opus', mid: null });
         }
         let allowAll = await Modules.Super.getEnvVar<boolean>(ctx, 'kitchen-allow-all') || false;
-        await Store.ConferenceEndStream.create(ctx, id, {
+        this.endStreamDirectory.createStream(ctx, id, {
             pid,
             seq: 1,
             state: 'need-offer',
@@ -352,7 +355,7 @@ export class CallSchedulerKitchenTransport {
 
         // End stream
         let allowAll = await Modules.Super.getEnvVar<boolean>(ctx, 'kitchen-allow-all') || false;
-        await Store.ConferenceEndStream.create(ctx, id, {
+        this.endStreamDirectory.createStream(ctx, id, {
             pid,
             seq: 1,
             state: 'wait-offer',
@@ -392,7 +395,7 @@ export class CallSchedulerKitchenTransport {
         producer.produces = { ...produces };
 
         // Update Conference End Stream
-        let stream = (await Store.ConferenceEndStream.findById(ctx, id))!;
+        let streamPid = (await this.endStreamDirectory.getPid(ctx, id))!;
         let localStreams: ProducerDescriptor[] = [];
         if (produces.videoStream) {
             localStreams.push({ type: 'video', codec: 'h264', source: 'default', mid: null });
@@ -403,10 +406,12 @@ export class CallSchedulerKitchenTransport {
         if (produces.audioStream) {
             localStreams.push({ type: 'audio', codec: 'opus', mid: null });
         }
-        stream.state = 'need-offer';
-        stream.localStreams = localStreams;
-        stream.seq++;
-        this.callRepo.notifyPeerChanged(ctx, stream.pid);
+        this.endStreamDirectory.updateStream(ctx, id, {
+            state: 'need-offer',
+            localStreams
+        });
+        this.endStreamDirectory.incrementSeq(ctx, id, 1);
+        this.callRepo.notifyPeerChanged(ctx, streamPid);
 
         // Update consumers
         let consumers = await Store.ConferenceKitchenConsumerTransport.fromConference.findAll(ctx, producer.cid);
@@ -442,16 +447,19 @@ export class CallSchedulerKitchenTransport {
         logger.log(ctx, 'ProducerTransport Remove: ' + producerTransport.pid);
 
         // Close End Stream
-        let stream = (await Store.ConferenceEndStream.findById(ctx, id))!;
-        stream.seq++;
-        stream.state = 'completed';
-        stream.remoteCandidates = [];
-        stream.localCandidates = [];
-        stream.localSdp = null;
-        stream.remoteSdp = null;
-        stream.localStreams = [];
-        stream.remoteStreams = [];
-        this.callRepo.notifyPeerChanged(ctx, stream.pid);
+        let streamPid = (await this.endStreamDirectory.getPid(ctx, id))!;
+        this.endStreamDirectory.updateStream(ctx, id, {
+            state: 'completed',
+            remoteCandidates: [],
+            localCandidates: [],
+            localSdp: null,
+            remoteSdp: null,
+            localStreams: [],
+            remoteStreams: []
+        });
+        this.endStreamDirectory.incrementSeq(ctx, id, 1);
+
+        this.callRepo.notifyPeerChanged(ctx, streamPid);
 
         // Remove consumes
         let consumers = await Store.ConferenceKitchenConsumerTransport.fromConference.findAll(ctx, producerTransport.cid);
@@ -480,21 +488,22 @@ export class CallSchedulerKitchenTransport {
         logger.log(ctx, 'ConsumerTransport Remove: ' + consumerTransport.pid);
 
         // Close End Stream
-        let stream = (await Store.ConferenceEndStream.findById(ctx, id))!;
-        stream.seq++;
-        stream.state = 'completed';
-        stream.remoteCandidates = [];
-        stream.localCandidates = [];
-        stream.localSdp = null;
-        stream.remoteSdp = null;
-        stream.localStreams = [];
-        stream.remoteStreams = [];
-
+        let streamPid = (await this.endStreamDirectory.getPid(ctx, id))!;
+        this.endStreamDirectory.updateStream(ctx, id, {
+            state: 'completed',
+            remoteCandidates: [],
+            localCandidates: [],
+            localSdp: null,
+            remoteSdp: null,
+            localStreams: [],
+            remoteStreams: []
+        });
+        this.endStreamDirectory.incrementSeq(ctx, id, 1);
         // Delete transport
         // Not deleting producer transports until we figure out how to deal with eventual consistency
         // await this.repo.deleteTransport(ctx, id);
 
-        this.callRepo.notifyPeerChanged(ctx, stream.pid);
+        this.callRepo.notifyPeerChanged(ctx, streamPid);
     }
 
     //
@@ -623,7 +632,8 @@ export class CallSchedulerKitchenTransport {
         if (!producerTransport || producerTransport.state !== 'negotiation-wait-answer') {
             return;
         }
-        let endStream = (await Store.ConferenceEndStream.findById(ctx, transportId))!;
+        let streamLocalSdb = (await this.endStreamDirectory.getLocalSdp(ctx, transportId))!;
+        let streamPid = (await this.endStreamDirectory.getPid(ctx, transportId))!;
         let transport = (await Store.KitchenTransport.findById(ctx, transportId))!;
         if (transport.state !== 'connected') {
             return;
@@ -664,7 +674,7 @@ export class CallSchedulerKitchenTransport {
         //
         // Read Offer
         //
-        let data = JSON.parse(endStream.localSdp!);
+        let data = JSON.parse(streamLocalSdb);
         if (data.type !== 'offer') {
             throw Error('SDP is not an offer!');
         }
@@ -705,11 +715,13 @@ export class CallSchedulerKitchenTransport {
             transport.serverParameters!.iceParameters,
             media
         );
-        endStream.seq++;
-        endStream.state = 'online';
-        endStream.remoteSdp = JSON.stringify({ type: 'answer', sdp: answer });
+        this.endStreamDirectory.updateStream(ctx, transportId, {
+            state: 'online',
+            remoteSdp: JSON.stringify({ type: 'answer', sdp: answer }),
+        });
+        this.endStreamDirectory.incrementSeq(ctx, transportId, 1);
         producerTransport.state = 'ready';
-        this.callRepo.notifyPeerChanged(ctx, endStream.pid);
+        this.callRepo.notifyPeerChanged(ctx, streamPid);
     }
 
     #refreshConsumerIfNeeded = async (ctx: Context, transportId: string) => {
@@ -854,7 +866,7 @@ export class CallSchedulerKitchenTransport {
         if (!consumerTransport || consumerTransport.state !== 'negotiation-wait-offer') {
             return;
         }
-        let endStream = (await Store.ConferenceEndStream.findById(ctx, transportId))!;
+        let streamPid = (await this.endStreamDirectory.getPid(ctx, transportId))!;
         let transport = (await Store.KitchenTransport.findById(ctx, transportId))!;
         if (transport.state !== 'created' && transport.state !== 'connecting' && transport.state !== 'connected') {
             return;
@@ -918,12 +930,14 @@ export class CallSchedulerKitchenTransport {
             transport.serverParameters!.iceParameters,
             media
         );
-        endStream.seq++;
-        endStream.state = 'need-answer';
-        endStream.remoteSdp = JSON.stringify({ type: 'offer', sdp: answer });
-        endStream.remoteStreams = remoteStreams;
+        this.endStreamDirectory.incrementSeq(ctx, transportId, 1);
+        this.endStreamDirectory.updateStream(ctx, transportId, {
+            state: 'need-answer',
+            remoteSdp: JSON.stringify({ type: 'offer', sdp: answer }),
+            remoteStreams
+        });
         consumerTransport.state = 'negotiation-need-answer';
-        this.callRepo.notifyPeerChanged(ctx, endStream.pid);
+        this.callRepo.notifyPeerChanged(ctx, streamPid);
     }
 
     #consumerTransportAnswer = async (ctx: Context, transportId: string, answer: string) => {
