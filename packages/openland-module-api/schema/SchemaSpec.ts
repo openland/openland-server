@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'a6610a7fc0bf72c6f1e0e12bf78e6552';
+export const GQL_SPEC_VERSION = '31834b95e2cc1f1351584a6064b4f214';
 
 export namespace GQL {
     export interface CreditCard {
@@ -834,6 +834,18 @@ export namespace GQL {
     }
     export interface JoinedOrganizationMembersConnectionEdgesArgs { }
     export interface JoinedOrganizationMembersConnectionPageInfoArgs { }
+    export type ReleasePlatformValues = 'IOS' | 'ANDROID';
+    export type ReleasePlatform = GQLRoots.ReleasePlatformRoot;
+    export interface AppRelease {
+        platform: ReleasePlatform;
+        version: string;
+        notes: Nullable<string>;
+        date: Date;
+    }
+    export interface AppReleasePlatformArgs { }
+    export interface AppReleaseVersionArgs { }
+    export interface AppReleaseNotesArgs { }
+    export interface AppReleaseDateArgs { }
     export type SuperAccountStateValues = 'PENDING' | 'ACTIVATED' | 'SUSPENDED' | 'DELETED';
     export type SuperAccountState = GQLRoots.SuperAccountStateRoot;
     export interface SuperAccount {
@@ -2098,6 +2110,7 @@ export namespace GQL {
         alphaOrganizationCreatePublicInvite: Invite;
         alphaOrganizationRemoveMember: string;
         alphaOrganizationDeletePublicInvite: string;
+        superAddAppRelease: AppRelease;
         superAccountAdd: SuperAccount;
         superAccountRename: SuperAccount;
         superAccountActivate: SuperAccount;
@@ -2646,6 +2659,11 @@ export namespace GQL {
     }
     export interface MutationAlphaOrganizationDeletePublicInviteArgs {
         organizationId: OptionalNullable<string>;
+    }
+    export interface MutationSuperAddAppReleaseArgs {
+        platform: ReleasePlatform;
+        version: string;
+        notes: string;
     }
     export interface MutationSuperAccountAddArgs {
         title: string;
@@ -4021,6 +4039,8 @@ export namespace GQL {
         alphaOrganizationMembers: OrganizationMember[];
         alphaOrganizationInviteLink: Nullable<Invite>;
         alphaOrganizationPublicInvite: Nullable<Invite>;
+        latestAppRelease: Nullable<AppRelease>;
+        appReleases: AppRelease[];
         superAccounts: SuperAccount[];
         superAccount: SuperAccount;
         superAdmins: SuperAdmin[];
@@ -4328,6 +4348,12 @@ export namespace GQL {
     }
     export interface QueryAlphaOrganizationPublicInviteArgs {
         organizationId: OptionalNullable<string>;
+    }
+    export interface QueryLatestAppReleaseArgs {
+        platform: ReleasePlatform;
+    }
+    export interface QueryAppReleasesArgs {
+        platform: ReleasePlatform;
     }
     export interface QuerySuperAccountsArgs { }
     export interface QuerySuperAccountArgs {
@@ -7398,6 +7424,19 @@ export interface GQLResolver {
             pageInfo: GQL.JoinedOrganizationMembersConnectionPageInfoArgs,
         }
     >;
+    ReleasePlatform?: EnumTypeResolver<'IOS' | 'ANDROID', GQLRoots.ReleasePlatformRoot>;
+    AppRelease?: ComplexTypedResolver<
+        GQL.AppRelease,
+        GQLRoots.AppReleaseRoot,
+        {
+        },
+        {
+            platform: GQL.AppReleasePlatformArgs,
+            version: GQL.AppReleaseVersionArgs,
+            notes: GQL.AppReleaseNotesArgs,
+            date: GQL.AppReleaseDateArgs,
+        }
+    >;
     SuperAccountState?: EnumTypeResolver<'PENDING' | 'ACTIVATED' | 'SUSPENDED' | 'DELETED', GQLRoots.SuperAccountStateRoot>;
     SuperAccount?: ComplexTypedResolver<
         GQL.SuperAccount,
@@ -8827,6 +8866,7 @@ export interface GQLResolver {
             alphaOrganizationMemberAdd: GQLRoots.OrganizationJoinedMemberRoot[],
             alphaOrganizationRefreshInviteLink: GQLRoots.InviteRoot,
             alphaOrganizationCreatePublicInvite: GQLRoots.InviteRoot,
+            superAddAppRelease: GQLRoots.AppReleaseRoot,
             superAccountAdd: GQLRoots.SuperAccountRoot,
             superAccountRename: GQLRoots.SuperAccountRoot,
             superAccountActivate: GQLRoots.SuperAccountRoot,
@@ -9070,6 +9110,7 @@ export interface GQLResolver {
             alphaOrganizationCreatePublicInvite: GQL.MutationAlphaOrganizationCreatePublicInviteArgs,
             alphaOrganizationRemoveMember: GQL.MutationAlphaOrganizationRemoveMemberArgs,
             alphaOrganizationDeletePublicInvite: GQL.MutationAlphaOrganizationDeletePublicInviteArgs,
+            superAddAppRelease: GQL.MutationSuperAddAppReleaseArgs,
             superAccountAdd: GQL.MutationSuperAccountAddArgs,
             superAccountRename: GQL.MutationSuperAccountRenameArgs,
             superAccountActivate: GQL.MutationSuperAccountActivateArgs,
@@ -9899,6 +9940,8 @@ export interface GQLResolver {
             alphaOrganizationMembers: GQLRoots.OrganizationMemberRoot[],
             alphaOrganizationInviteLink: Nullable<GQLRoots.InviteRoot>,
             alphaOrganizationPublicInvite: Nullable<GQLRoots.InviteRoot>,
+            latestAppRelease: Nullable<GQLRoots.AppReleaseRoot>,
+            appReleases: GQLRoots.AppReleaseRoot[],
             superAccounts: GQLRoots.SuperAccountRoot[],
             superAccount: GQLRoots.SuperAccountRoot,
             superAdmins: GQLRoots.SuperAdminRoot[],
@@ -10097,6 +10140,8 @@ export interface GQLResolver {
             alphaOrganizationMembers: GQL.QueryAlphaOrganizationMembersArgs,
             alphaOrganizationInviteLink: GQL.QueryAlphaOrganizationInviteLinkArgs,
             alphaOrganizationPublicInvite: GQL.QueryAlphaOrganizationPublicInviteArgs,
+            latestAppRelease: GQL.QueryLatestAppReleaseArgs,
+            appReleases: GQL.QueryAppReleasesArgs,
             superAccounts: GQL.QuerySuperAccountsArgs,
             superAccount: GQL.QuerySuperAccountArgs,
             superAdmins: GQL.QuerySuperAdminsArgs,

@@ -109,7 +109,7 @@ import {
     UpdateFeedItemDeleted,
     VoiceChatParticipantUpdatedEvent,
     VoiceChatUpdatedEvent,
-    UserDialogVoiceChatStateChangedEvent,
+    UserDialogVoiceChatStateChangedEvent, AppRelease,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -192,6 +192,7 @@ export namespace GQLRoots {
     import PurchaseStateValues = GQL.PurchaseStateValues;
     import PostContentTypeValues = GQL.PostContentTypeValues;
     import PostSpanTypeValues = GQL.PostSpanTypeValues;
+    import ReleasePlatformValues = GQL.ReleasePlatformValues;
     export type MutationRoot = any;
     export type QueryRoot = any;
     export type SubscriptionRoot = any;
@@ -943,4 +944,10 @@ export namespace GQLRoots {
     // Social
     //
     export type FollowerConnectionRoot = { items: UserRoot[], cursor: string | null };
+
+    //
+    // Apps releases
+    //
+    export type ReleasePlatformRoot = ReleasePlatformValues;
+    export type AppReleaseRoot = AppRelease;
 }

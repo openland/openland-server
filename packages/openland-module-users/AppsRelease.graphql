@@ -1,0 +1,20 @@
+enum ReleasePlatform {
+    IOS,
+    ANDROID
+}
+
+type AppRelease {
+    platform: ReleasePlatform!
+    version: String!
+    notes: String
+    date: Date!
+}
+
+extend type Query {
+    latestAppRelease(platform: ReleasePlatform!): AppRelease
+    appReleases(platform: ReleasePlatform!): [AppRelease!]!
+}
+
+extend type Mutation {
+    superAddAppRelease(platform: ReleasePlatform!, version: String!, notes: String!): AppRelease!
+}

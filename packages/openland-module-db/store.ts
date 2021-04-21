@@ -2476,6 +2476,125 @@ export class UserProfilePrefilFactory extends EntityFactory<UserProfilePrefilSha
     }
 }
 
+export interface AppReleaseShape {
+    platform: string;
+    id: number;
+    version: string;
+    releaseNotes: string | null;
+    releaseDate: number;
+}
+
+export interface AppReleaseCreateShape {
+    version: string;
+    releaseNotes?: string | null | undefined;
+    releaseDate: number;
+}
+
+export class AppRelease extends Entity<AppReleaseShape> {
+    get platform(): string { return this._rawValue.platform; }
+    get id(): number { return this._rawValue.id; }
+    get version(): string { return this._rawValue.version; }
+    set version(value: string) {
+        let normalized = this.descriptor.codec.fields.version.normalize(value);
+        if (this._rawValue.version !== normalized) {
+            this._rawValue.version = normalized;
+            this._updatedValues.version = normalized;
+            this.invalidate();
+        }
+    }
+    get releaseNotes(): string | null { return this._rawValue.releaseNotes; }
+    set releaseNotes(value: string | null) {
+        let normalized = this.descriptor.codec.fields.releaseNotes.normalize(value);
+        if (this._rawValue.releaseNotes !== normalized) {
+            this._rawValue.releaseNotes = normalized;
+            this._updatedValues.releaseNotes = normalized;
+            this.invalidate();
+        }
+    }
+    get releaseDate(): number { return this._rawValue.releaseDate; }
+    set releaseDate(value: number) {
+        let normalized = this.descriptor.codec.fields.releaseDate.normalize(value);
+        if (this._rawValue.releaseDate !== normalized) {
+            this._rawValue.releaseDate = normalized;
+            this._updatedValues.releaseDate = normalized;
+            this.invalidate();
+        }
+    }
+}
+
+export class AppReleaseFactory extends EntityFactory<AppReleaseShape, AppRelease> {
+
+    static async open(storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory('appRelease');
+        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
+        secondaryIndexes.push({ name: 'platform', storageKey: 'platform', type: { type: 'range', fields: [{ name: 'platform', type: 'string' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('appRelease', 'platform'), condition: undefined });
+        let primaryKeys: PrimaryKeyDescriptor[] = [];
+        primaryKeys.push({ name: 'platform', type: 'string' });
+        primaryKeys.push({ name: 'id', type: 'integer' });
+        let fields: FieldDescriptor[] = [];
+        fields.push({ name: 'version', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'releaseNotes', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
+        fields.push({ name: 'releaseDate', type: { type: 'integer' }, secure: false });
+        let codec = c.struct({
+            platform: c.string,
+            id: c.integer,
+            version: c.string,
+            releaseNotes: c.optional(c.string),
+            releaseDate: c.integer,
+        });
+        let descriptor: EntityDescriptor<AppReleaseShape> = {
+            name: 'AppRelease',
+            storageKey: 'appRelease',
+            allowDelete: false,
+            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
+        };
+        return new AppReleaseFactory(descriptor);
+    }
+
+    private constructor(descriptor: EntityDescriptor<AppReleaseShape>) {
+        super(descriptor);
+    }
+
+    readonly platform = Object.freeze({
+        findAll: async (ctx: Context, platform: string) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [platform])).items;
+        },
+        query: (ctx: Context, platform: string, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[0], [platform], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (platform: string, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[0], [platform], opts);
+        },
+        liveStream: (ctx: Context, platform: string, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [platform], opts);
+        },
+    });
+
+    create(ctx: Context, platform: string, id: number, src: AppReleaseCreateShape): Promise<AppRelease> {
+        return this._create(ctx, [platform, id], this.descriptor.codec.normalize({ platform, id, ...src }));
+    }
+
+    create_UNSAFE(ctx: Context, platform: string, id: number, src: AppReleaseCreateShape): AppRelease {
+        return this._create_UNSAFE(ctx, [platform, id], this.descriptor.codec.normalize({ platform, id, ...src }));
+    }
+
+    findById(ctx: Context, platform: string, id: number): Promise<AppRelease | null> | AppRelease | null {
+        return this._findById(ctx, [platform, id]);
+    }
+
+    findByIdOrFail(ctx: Context, platform: string, id: number): Promise<AppRelease> | AppRelease {
+        return this._findByIdOrFail(ctx, [platform, id]);
+    }
+
+    watch(ctx: Context, platform: string, id: number): Watch {
+        return this._watch(ctx, [platform, id]);
+    }
+
+    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<AppReleaseShape>): AppRelease {
+        return new AppRelease([value.platform, value.id], value, this.descriptor, this._flush, this._delete, ctx);
+    }
+}
+
 export interface UserSettingsShape {
     id: number;
     emailFrequency: '1hour' | '15min' | 'never' | '24hour' | '1week';
@@ -25540,6 +25659,7 @@ export interface Store extends BaseStore {
     readonly User: UserFactory;
     readonly UserProfile: UserProfileFactory;
     readonly UserProfilePrefil: UserProfilePrefilFactory;
+    readonly AppRelease: AppReleaseFactory;
     readonly UserSettings: UserSettingsFactory;
     readonly UserIndexingQueue: UserIndexingQueueFactory;
     readonly ModernBadge: ModernBadgeFactory;
@@ -25867,6 +25987,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserPromise = UserFactory.open(storage);
     let UserProfilePromise = UserProfileFactory.open(storage);
     let UserProfilePrefilPromise = UserProfilePrefilFactory.open(storage);
+    let AppReleasePromise = AppReleaseFactory.open(storage);
     let UserSettingsPromise = UserSettingsFactory.open(storage);
     let UserIndexingQueuePromise = UserIndexingQueueFactory.open(storage);
     let ModernBadgePromise = ModernBadgeFactory.open(storage);
@@ -26139,6 +26260,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         User: await UserPromise,
         UserProfile: await UserProfilePromise,
         UserProfilePrefil: await UserProfilePrefilPromise,
+        AppRelease: await AppReleasePromise,
         UserSettings: await UserSettingsPromise,
         UserIndexingQueue: await UserIndexingQueuePromise,
         ModernBadge: await ModernBadgePromise,
