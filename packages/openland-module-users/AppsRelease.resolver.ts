@@ -5,11 +5,13 @@ import { withPermission, withUser } from '../openland-module-api/Resolvers';
 import { Store } from '../openland-module-db/FDB';
 import { UserError } from '../openland-errors/UserError';
 import { fetchNextDBSeq } from '../openland-utils/dbSeq';
+import { IDs } from '../openland-module-api/IDs';
 
 const versionToInt = (v: string) => parseInt(v.replace(/\./g, ''), 10);
 
 export const Resolver: GQLResolver = {
     AppRelease: {
+        id: src => IDs.AppRelease.serialize(src.id),
         platform: src => src.platform.toUpperCase() as ReleasePlatformRoot,
         version: src => src.version,
         notes: src => src.releaseNotes,

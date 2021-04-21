@@ -120,4 +120,6 @@ export const IDs = {
     VoiceChatParticipant: IdsFactory.createStringId('VoiceChatParticipant'),
 
     VoiceChatEventsCursor: IdsFactory.createStringId('VoiceChatEventsCursor'),
+
+    AppRelease: IdsFactory.createId('AppRelease')
 };

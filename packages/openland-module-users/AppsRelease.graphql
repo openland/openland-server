@@ -1,9 +1,12 @@
 enum ReleasePlatform {
     IOS,
-    ANDROID
+    ANDROID,
+
+    TEST
 }
 
 type AppRelease {
+    id: ID!
     platform: ReleasePlatform!
     version: String!
     notes: String

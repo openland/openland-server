@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '31834b95e2cc1f1351584a6064b4f214';
+export const GQL_SPEC_VERSION = '90b27c9f94a757178a66d68d62a58350';
 
 export namespace GQL {
     export interface CreditCard {
@@ -834,14 +834,16 @@ export namespace GQL {
     }
     export interface JoinedOrganizationMembersConnectionEdgesArgs { }
     export interface JoinedOrganizationMembersConnectionPageInfoArgs { }
-    export type ReleasePlatformValues = 'IOS' | 'ANDROID';
+    export type ReleasePlatformValues = 'IOS' | 'ANDROID' | 'TEST';
     export type ReleasePlatform = GQLRoots.ReleasePlatformRoot;
     export interface AppRelease {
+        id: string;
         platform: ReleasePlatform;
         version: string;
         notes: Nullable<string>;
         date: Date;
     }
+    export interface AppReleaseIdArgs { }
     export interface AppReleasePlatformArgs { }
     export interface AppReleaseVersionArgs { }
     export interface AppReleaseNotesArgs { }
@@ -7424,13 +7426,14 @@ export interface GQLResolver {
             pageInfo: GQL.JoinedOrganizationMembersConnectionPageInfoArgs,
         }
     >;
-    ReleasePlatform?: EnumTypeResolver<'IOS' | 'ANDROID', GQLRoots.ReleasePlatformRoot>;
+    ReleasePlatform?: EnumTypeResolver<'IOS' | 'ANDROID' | 'TEST', GQLRoots.ReleasePlatformRoot>;
     AppRelease?: ComplexTypedResolver<
         GQL.AppRelease,
         GQLRoots.AppReleaseRoot,
         {
         },
         {
+            id: GQL.AppReleaseIdArgs,
             platform: GQL.AppReleasePlatformArgs,
             version: GQL.AppReleaseVersionArgs,
             notes: GQL.AppReleaseNotesArgs,
