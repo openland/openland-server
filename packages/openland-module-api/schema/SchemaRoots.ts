@@ -74,7 +74,6 @@ import {
     EditorsChoiceChat,
     WalletPurchaseCreateShape,
     GqlTrace,
-    ConferenceEndStream,
     DiscussionHub,
     Discussion,
     DiscussionDraft,
@@ -233,7 +232,7 @@ export namespace GQLRoots {
     // Calls
     //
     export type ICEServerRoot = GQL.ICEServer;
-    export type MediaStreamRoot = ConferenceEndStream;
+    export type MediaStreamRoot = string;
     export type ConversationUpdateStateRoot = any;
     export type ConferencePeerRoot = ConferencePeer;
     export type ConferencePeerMediaStateRoot = { audioPaused: boolean, videoPaused: boolean, screencastEnabled: boolean };

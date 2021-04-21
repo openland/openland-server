@@ -6,6 +6,7 @@ import uuid from 'uuid/v4';
 import { ConferenceMeshLink } from 'openland-module-db/store';
 import { parseSDP } from 'openland-module-calls/sdp/parseSDP';
 import { CallRepository } from './CallRepository';
+import { EndStreamDirectory } from './EndStreamDirectory';
 
 const logger = createLogger('calls-mesh');
 type LinkKind = 'generic' | 'screencast';
@@ -19,6 +20,8 @@ function hasGenericSources(source: MediaSources) {
 export class CallSchedulerMesh implements CallScheduler {
     private iceTransportPolicy: 'all' | 'relay' | 'none';
     private repo: CallRepository;
+
+    readonly endStreamDirectory = new EndStreamDirectory(Store.EndStreamDirectory);
 
     constructor(iceTransportPolicy: 'all' | 'relay' | 'none', repo: CallRepository) {
         this.iceTransportPolicy = iceTransportPolicy;
@@ -164,8 +167,8 @@ export class CallSchedulerMesh implements CallScheduler {
     //
 
     #createGenericLink = async (ctx: Context,
-        cid: number, pid1: number, pid2: number,
-        sources1: MediaSources, sources2: MediaSources
+                                cid: number, pid1: number, pid2: number,
+                                sources1: MediaSources, sources2: MediaSources
     ) => {
         let streamId1 = uuid();
         let stream1Config = this.#getStreamGenericConfig(sources1);
@@ -173,7 +176,7 @@ export class CallSchedulerMesh implements CallScheduler {
         let stream2Config = this.#getStreamGenericConfig(sources2);
 
         // Create First Stream
-        await Store.ConferenceEndStream.create(ctx, streamId1, {
+        this.endStreamDirectory.createStream(ctx, streamId1, {
             pid: pid1,
             seq: 1,
             state: 'need-offer',
@@ -190,7 +193,7 @@ export class CallSchedulerMesh implements CallScheduler {
         });
 
         // Create Second Stream
-        await Store.ConferenceEndStream.create(ctx, streamId2, {
+        this.endStreamDirectory.createStream(ctx, streamId2, {
             pid: pid2,
             seq: 1,
             state: 'wait-offer',
@@ -248,11 +251,11 @@ export class CallSchedulerMesh implements CallScheduler {
     }
 
     #updateGenericLink = async (ctx: Context,
-        cid: number,
-        pid1: number,
-        pid2: number,
-        sources1: MediaSources,
-        sources2: MediaSources
+                                cid: number,
+                                pid1: number,
+                                pid2: number,
+                                sources1: MediaSources,
+                                sources2: MediaSources
     ) => {
         let link = await Store.ConferenceMeshLink.active.find(ctx, cid, Math.min(pid1, pid2), Math.max(pid1, pid2), KIND_GENERIC);
         if (!link || link.state === 'completed') {
@@ -260,45 +263,49 @@ export class CallSchedulerMesh implements CallScheduler {
         }
         link.state = 'wait-offer';
 
-        let stream1 = (await Store.ConferenceEndStream.findById(ctx, link.esid1))!;
-        let stream2 = (await Store.ConferenceEndStream.findById(ctx, link.esid2))!;
-
         // Reset negotiation
-        stream1.seq++;
-        stream2.seq++;
-        stream2.localSdp = null;
-        stream2.remoteSdp = null;
-        stream1.localSdp = null;
-        stream1.remoteSdp = null;
+        this.endStreamDirectory.incrementSeq(ctx, link.esid1, 1);
+        this.endStreamDirectory.incrementSeq(ctx, link.esid2, 1);
+        this.endStreamDirectory.updateStream(ctx, link.esid1, {localSdp: null, remoteSdp: null});
+        this.endStreamDirectory.updateStream(ctx, link.esid2, {localSdp: null, remoteSdp: null});
+
         if (link.leader === pid1) {
             if (link.pid1 === pid1) {
-                stream1.state = 'need-offer';
-                stream2.state = 'wait-offer';
+                this.endStreamDirectory.updateStream(ctx, link.esid1, {state: 'need-offer'});
+                this.endStreamDirectory.updateStream(ctx, link.esid2, {state: 'wait-offer'});
             } else {
-                stream2.state = 'need-offer';
-                stream1.state = 'wait-offer';
+                this.endStreamDirectory.updateStream(ctx, link.esid2, {state: 'need-offer'});
+                this.endStreamDirectory.updateStream(ctx, link.esid1, {state: 'wait-offer'});
             }
         } else {
             if (link.pid1 === pid1) {
-                stream2.state = 'need-offer';
-                stream1.state = 'wait-offer';
+                this.endStreamDirectory.updateStream(ctx, link.esid2, {state: 'need-offer'});
+                this.endStreamDirectory.updateStream(ctx, link.esid1, {state: 'wait-offer'});
             } else {
-                stream1.state = 'need-offer';
-                stream2.state = 'wait-offer';
+                this.endStreamDirectory.updateStream(ctx, link.esid1, {state: 'need-offer'});
+                this.endStreamDirectory.updateStream(ctx, link.esid2, {state: 'wait-offer'});
             }
         }
 
         // Update streams
         if (link.pid1 === pid1) {
-            stream1.localStreams = this.#getStreamGenericConfig(sources1);
-            stream1.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources2), pid2);
-            stream2.localStreams = this.#getStreamGenericConfig(sources2);
-            stream2.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources1), pid1);
+            this.endStreamDirectory.updateStream(ctx, link.esid1, {
+                localStreams: this.#getStreamGenericConfig(sources1),
+                remoteStreams: this.#assignConfigPeer(this.#getStreamGenericConfig(sources2), pid2)
+            });
+            this.endStreamDirectory.updateStream(ctx, link.esid2, {
+                localStreams: this.#getStreamGenericConfig(sources2),
+                remoteStreams: this.#assignConfigPeer(this.#getStreamGenericConfig(sources1), pid1)
+            });
         } else {
-            stream2.localStreams = this.#getStreamGenericConfig(sources1);
-            stream2.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources2), pid2);
-            stream1.localStreams = this.#getStreamGenericConfig(sources2);
-            stream1.remoteStreams = this.#assignConfigPeer(this.#getStreamGenericConfig(sources1), pid1);
+            this.endStreamDirectory.updateStream(ctx, link.esid2, {
+                localStreams: this.#getStreamGenericConfig(sources1),
+                remoteStreams: this.#assignConfigPeer(this.#getStreamGenericConfig(sources2), pid2)
+            });
+            this.endStreamDirectory.updateStream(ctx, link.esid1, {
+                localStreams: this.#getStreamGenericConfig(sources2),
+                remoteStreams: this.#assignConfigPeer(this.#getStreamGenericConfig(sources1), pid1)
+            });
         }
 
         // Notify peers
@@ -317,10 +324,10 @@ export class CallSchedulerMesh implements CallScheduler {
     #getStreamGenericConfig = (streams: MediaSources): ProducerDescriptor[] => {
         let res: ProducerDescriptor[] = [];
         if (streams.videoStream) {
-            res.push({ type: 'video', codec: 'h264', source: 'default', mid: null });
+            res.push({type: 'video', codec: 'h264', source: 'default', mid: null});
         }
         if (streams.audioStream) {
-            res.push({ type: 'audio', codec: 'opus', mid: null });
+            res.push({type: 'audio', codec: 'opus', mid: null});
         }
         return res;
     }
@@ -336,15 +343,15 @@ export class CallSchedulerMesh implements CallScheduler {
     //
 
     #createScreencastLink = async (ctx: Context,
-        cid: number, producerPid: number, consumerPid: number,
-        sources: MediaSources
+                                   cid: number, producerPid: number, consumerPid: number,
+                                   sources: MediaSources
     ) => {
         let streamProducerId = uuid();
         let streamProducerConfig = this.#getStreamScreenCastConfig(sources);
         let streamConsumerId = uuid();
 
         // Create First Stream
-        await Store.ConferenceEndStream.create(ctx, streamProducerId, {
+        this.endStreamDirectory.createStream(ctx, streamProducerId, {
             pid: producerPid,
             seq: 1,
             state: 'need-offer',
@@ -361,7 +368,7 @@ export class CallSchedulerMesh implements CallScheduler {
         });
 
         // Create Second Stream
-        await Store.ConferenceEndStream.create(ctx, streamConsumerId, {
+        this.endStreamDirectory.createStream(ctx, streamConsumerId, {
             pid: consumerPid,
             seq: 1,
             state: 'wait-offer',
@@ -416,30 +423,37 @@ export class CallSchedulerMesh implements CallScheduler {
         link.state = 'completed';
 
         // Stop streams
-        let stream1 = (await Store.ConferenceEndStream.findById(ctx, link.esid1))!;
-        let stream2 = (await Store.ConferenceEndStream.findById(ctx, link.esid2))!;
-        stream1.state = 'completed';
-        stream1.remoteCandidates = [];
-        stream1.localCandidates = [];
-        stream1.localSdp = null;
-        stream1.remoteSdp = null;
-        stream1.localStreams = [];
-        stream1.remoteStreams = [];
-        stream2.state = 'completed';
-        stream2.remoteCandidates = [];
-        stream2.localCandidates = [];
-        stream2.localSdp = null;
-        stream2.remoteSdp = null;
-        stream2.localStreams = [];
-        stream2.remoteStreams = [];
+        let [stream1pid, stream2pid] = await Promise.all([
+            this.endStreamDirectory.getPid(ctx, link.esid1),
+            this.endStreamDirectory.getPid(ctx, link.esid2),
+        ]);
+
+        this.endStreamDirectory.updateStream(ctx, link.esid1, {
+            state: 'completed',
+            remoteCandidates: [],
+            localCandidates: [],
+            localSdp: null,
+            remoteSdp: null,
+            localStreams: [],
+            remoteStreams: []
+        });
+        this.endStreamDirectory.updateStream(ctx, link.esid2, {
+            state: 'completed',
+            remoteCandidates: [],
+            localCandidates: [],
+            localSdp: null,
+            remoteSdp: null,
+            localStreams: [],
+            remoteStreams: []
+        });
 
         // Notify peers
-        this.repo.notifyPeerChanged(ctx, stream1.pid);
-        this.repo.notifyPeerChanged(ctx, stream2.pid);
+        this.repo.notifyPeerChanged(ctx, stream1pid!);
+        this.repo.notifyPeerChanged(ctx, stream2pid!);
     }
 
     #getStreamScreenCastConfig = (streams: MediaSources): ProducerDescriptor[] => {
-        return [{ type: 'video', codec: 'h264', source: 'screen', mid: null }];
+        return [{type: 'video', codec: 'h264', source: 'screen', mid: null}];
     }
 
     //
@@ -453,27 +467,34 @@ export class CallSchedulerMesh implements CallScheduler {
             return;
         }
 
-        let stream1 = (await Store.ConferenceEndStream.findById(ctx, link.esid1))!;
-        let stream2 = (await Store.ConferenceEndStream.findById(ctx, link.esid2))!;
+        let [stream1pid, stream2pid] = await Promise.all([
+            this.endStreamDirectory.getPid(ctx, link.esid1),
+            this.endStreamDirectory.getPid(ctx, link.esid2),
+        ]);
 
         // Reset negotiation
-        stream1.seq++;
-        stream2.seq++;
-        stream2.localSdp = null;
-        stream2.remoteSdp = null;
-        stream1.localSdp = null;
-        stream1.remoteSdp = null;
+        this.endStreamDirectory.incrementSeq(ctx, link.esid1, 1);
+        this.endStreamDirectory.incrementSeq(ctx, link.esid2, 1);
+        this.endStreamDirectory.updateStream(ctx, link.esid1, {
+            localSdp: null,
+            remoteSdp: null
+        });
+        this.endStreamDirectory.updateStream(ctx, link.esid2, {
+            localSdp: null,
+            remoteSdp: null
+        });
+
         if (link.leader === link.pid1) {
-            stream1.state = 'need-offer';
-            stream2.state = 'wait-offer';
+            this.endStreamDirectory.updateStream(ctx, link.esid1, { state: 'need-offer' });
+            this.endStreamDirectory.updateStream(ctx, link.esid2, { state: 'wait-offer' });
         } else {
-            stream2.state = 'need-offer';
-            stream1.state = 'wait-offer';
+            this.endStreamDirectory.updateStream(ctx, link.esid2, { state: 'need-offer' });
+            this.endStreamDirectory.updateStream(ctx, link.esid1, { state: 'wait-offer' });
         }
 
         // Notify peers
-        this.repo.notifyPeerChanged(ctx, stream1.pid);
-        this.repo.notifyPeerChanged(ctx, stream2.pid);
+        this.repo.notifyPeerChanged(ctx, stream1pid!);
+        this.repo.notifyPeerChanged(ctx, stream2pid!);
     }
 
     onStreamCandidate = async (ctx: Context, cid: number, pid: number, sid: string, candidate: string) => {
@@ -486,15 +507,24 @@ export class CallSchedulerMesh implements CallScheduler {
         }
 
         let otherStreamId = link.esid1 === sid ? link.esid2 : link.esid1;
-        let otherStream = await Store.ConferenceEndStream.findById(ctx, otherStreamId);
-        if (!otherStream || otherStream.state === 'completed') {
+        let [
+            otherStreamPid,
+            otherStreamRemoteCandidates,
+            otherStreamState
+        ] = await Promise.all([
+            this.endStreamDirectory.getPid(ctx, otherStreamId),
+            this.endStreamDirectory.getRemoteCandidates(ctx, otherStreamId),
+            this.endStreamDirectory.getState(ctx, otherStreamId),
+        ]);
+
+        if (!otherStreamPid || otherStreamState === 'completed') {
             return;
         }
 
-        otherStream.remoteCandidates = [...otherStream.remoteCandidates, candidate];
+        this.endStreamDirectory.updateStream(ctx, otherStreamId, { remoteCandidates: [...otherStreamRemoteCandidates!, candidate] });
 
         // Notify peer
-        this.repo.notifyPeerChanged(ctx, otherStream.pid);
+        this.repo.notifyPeerChanged(ctx, otherStreamPid);
     }
 
     onStreamOffer = async (ctx: Context, cid: number, pid: number, sid: string, offer: string, hints: StreamHint[] | null) => {
@@ -507,27 +537,40 @@ export class CallSchedulerMesh implements CallScheduler {
             return;
         }
         let otherStreamId = link.esid1 === sid ? link.esid2 : link.esid1;
-        let otherStream = await Store.ConferenceEndStream.findById(ctx, otherStreamId);
-        if (!otherStream || otherStream.state === 'completed') {
+        let [
+            otherStreamPid,
+            otherStreamState,
+            otherStreamRemoteStreams,
+            otherStreamLocalStreams
+        ] = await Promise.all([
+            this.endStreamDirectory.getPid(ctx, otherStreamId),
+            this.endStreamDirectory.getState(ctx, otherStreamId),
+            this.endStreamDirectory.getRemoteStreams(ctx, otherStreamId),
+            this.endStreamDirectory.getLocalStreams(ctx, otherStreamId),
+        ]);
+
+        if (!otherStreamPid || otherStreamState === 'completed') {
             logger.log(ctx, 'exit2');
             return;
         }
 
         link.state = 'wait-answer';
         // still need to increment for back compatibility
-        otherStream.seq++;
-        otherStream.remoteSdp = offer;
-        otherStream.state = 'need-answer';
+        this.endStreamDirectory.incrementSeq(ctx, otherStreamId, 1);
+        this.endStreamDirectory.updateStream(ctx, otherStreamId, {
+            remoteSdp: offer,
+            state: 'need-answer'
+        });
 
         // Notify
-        this.repo.notifyPeerChanged(ctx, otherStream.pid);
+        this.repo.notifyPeerChanged(ctx, otherStreamPid);
 
         //
         // Resolving MIDs
         //
 
         if (hints) {
-            let remoteStreams = [...otherStream.remoteStreams];
+            let remoteStreams = [...otherStreamRemoteStreams!];
             for (let i = 0; i < remoteStreams.length; i++) {
                 if (remoteStreams[i].media.mid) {
                     continue;
@@ -560,9 +603,8 @@ export class CallSchedulerMesh implements CallScheduler {
                     };
                 }
             }
-            otherStream.remoteStreams = remoteStreams;
 
-            let localStreams = [...otherStream.localStreams];
+            let localStreams = [...otherStreamLocalStreams!];
             for (let i = 0; i < localStreams.length; i++) {
                 if (localStreams[i].mid) {
                     continue;
@@ -570,17 +612,17 @@ export class CallSchedulerMesh implements CallScheduler {
                 let media = localStreams[i];
                 let hint: StreamHint | null = null;
                 if (media.type === 'audio') {
-                    let m = hints.find((v) => v.kind === 'audio' && v.direction === 'RECEIVE' && v.peerId === otherStream?.pid);
+                    let m = hints.find((v) => v.kind === 'audio' && v.direction === 'RECEIVE' && v.peerId === otherStreamPid);
                     if (m) {
                         hint = m;
                     }
                 } else if (media.type === 'video' && media.source === 'default') {
-                    let m = hints.find((v) => v.kind === 'video' && v.direction === 'RECEIVE' && v.peerId === otherStream?.pid && (v.videoSource === null || v.videoSource === 'default'));
+                    let m = hints.find((v) => v.kind === 'video' && v.direction === 'RECEIVE' && v.peerId === otherStreamPid && (v.videoSource === null || v.videoSource === 'default'));
                     if (m) {
                         hint = m;
                     }
                 } else if (media.type === 'video' && media.source === 'screen') {
-                    let m = hints.find((v) => v.kind === 'video' && v.direction === 'RECEIVE' && v.peerId === otherStream?.pid && v.videoSource === 'screen');
+                    let m = hints.find((v) => v.kind === 'video' && v.direction === 'RECEIVE' && v.peerId === otherStreamPid && v.videoSource === 'screen');
                     if (m) {
                         hint = m;
                     }
@@ -592,28 +634,32 @@ export class CallSchedulerMesh implements CallScheduler {
                     };
                 }
             }
-            otherStream.localStreams = localStreams;
+
+            this.endStreamDirectory.updateStream(ctx, otherStreamId, {
+                remoteStreams,
+                localStreams
+            });
         } else {
 
             // Only at most stream of audio/video kind is supported
-            if (otherStream.remoteStreams.filter((v) => v.media.type === 'audio').length > 1) {
+            if (otherStreamRemoteStreams!.filter((v) => v.media.type === 'audio').length > 1) {
                 throw Error('Internal error');
             }
-            if (otherStream.remoteStreams.filter((v) => v.media.type === 'video').length > 1) {
+            if (otherStreamRemoteStreams!.filter((v) => v.media.type === 'video').length > 1) {
                 throw Error('Internal error');
             }
             // Only at most stream of audio/video kind is supported
-            if (otherStream.localStreams.filter((v) => v.type === 'audio').length > 1) {
+            if (otherStreamLocalStreams!.filter((v) => v.type === 'audio').length > 1) {
                 throw Error('Internal error');
             }
-            if (otherStream.localStreams.filter((v) => v.type === 'video').length > 1) {
+            if (otherStreamLocalStreams!.filter((v) => v.type === 'video').length > 1) {
                 throw Error('Internal error');
             }
 
             let session = parseSDP(JSON.parse(offer).sdp);
 
             // Remote Streams
-            let remoteStreams = [...otherStream.remoteStreams];
+            let remoteStreams = [...otherStreamRemoteStreams!];
             for (let i = 0; i < remoteStreams.length; i++) {
                 if (remoteStreams[i].media.mid) {
                     continue;
@@ -630,10 +676,9 @@ export class CallSchedulerMesh implements CallScheduler {
                     };
                 }
             }
-            otherStream.remoteStreams = remoteStreams;
 
             // Local Streams
-            let localStreams = [...otherStream.localStreams];
+            let localStreams = [...otherStreamLocalStreams!];
             for (let i = 0; i < localStreams.length; i++) {
                 if (localStreams[i].mid) {
                     continue;
@@ -647,7 +692,11 @@ export class CallSchedulerMesh implements CallScheduler {
                     };
                 }
             }
-            otherStream.localStreams = localStreams;
+
+            this.endStreamDirectory.updateStream(ctx, otherStreamId, {
+                remoteStreams,
+                localStreams
+            });
         }
     }
 
@@ -661,14 +710,20 @@ export class CallSchedulerMesh implements CallScheduler {
             return;
         }
 
-        let stream = await Store.ConferenceEndStream.findById(ctx, sid);
-        if (!stream) {
+        let [streamState, streamPid] = await Promise.all([
+            this.endStreamDirectory.getState(ctx, sid),
+            this.endStreamDirectory.getPid(ctx, sid)
+        ]);
+        if (!streamState) {
             return;
         }
 
         let otherStreamId = link.esid1 === sid ? link.esid2 : link.esid1;
-        let otherStream = await Store.ConferenceEndStream.findById(ctx, otherStreamId);
-        if (!otherStream || otherStream.state === 'completed') {
+        let [otherStreamState, otherStreamPid] = await Promise.all([
+            this.endStreamDirectory.getState(ctx, otherStreamId),
+            this.endStreamDirectory.getPid(ctx, otherStreamId),
+        ]);
+        if (!otherStreamState || otherStreamState === 'completed') {
             logger.log(ctx, 'exit2');
             return;
         }
@@ -676,15 +731,14 @@ export class CallSchedulerMesh implements CallScheduler {
         link.state = 'online';
 
         // move current stream to READY state
-        stream.seq++;
-        stream.state = 'online';
+        this.endStreamDirectory.incrementSeq(ctx, sid, 1);
+        this.endStreamDirectory.updateStream(ctx, sid, { state: 'online' });
 
         // still need to increment for back compatibility
-        otherStream.seq++;
-        otherStream.remoteSdp = answer;
-        otherStream.state = 'online';
+        this.endStreamDirectory.incrementSeq(ctx, otherStreamId, 1);
+        this.endStreamDirectory.updateStream(ctx, otherStreamId, { remoteSdp: answer, state: 'online' });
 
-        this.repo.notifyPeerChanged(ctx, otherStream.pid);
-        this.repo.notifyPeerChanged(ctx, stream.pid);
+        this.repo.notifyPeerChanged(ctx, otherStreamPid!);
+        this.repo.notifyPeerChanged(ctx, streamPid!);
     }
 }

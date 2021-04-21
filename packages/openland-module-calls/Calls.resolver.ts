@@ -117,7 +117,7 @@ export const Resolver: GQLResolver = {
         id: (src) => IDs.ConferenceMedia.serialize(src.id),
         iceServers: resolveIce,
         streams: async (src, args: {}, ctx: Context) => {
-            return await Store.ConferenceEndStream.peer.findAll(ctx, src.peerId);
+            return await Modules.Calls.repo.endStreamDirectory.getPeerStreams(ctx, src.peerId);
         },
         localMedia: async (src, args: {}, ctx: Context) => {
             let conf = await Store.ConferenceRoom.findById(ctx, src.id);
@@ -160,47 +160,60 @@ export const Resolver: GQLResolver = {
         CAMERA: 'default'
     },
     MediaStream: {
-        id: (src) => IDs.MediaStream.serialize(src.id),
-        state: (src) => src.state,
-        seq: (src) => src.seq,
-        sdp: (src) => src.remoteSdp,
-        ice: (src) => src.remoteCandidates,
-        iceTransportPolicy: (src) => src.iceTransportPolicy,
-        senders: (src) => src.localStreams.map((v) => ({
-            kind: v.type,
-            codecParams: (v.type === 'video' || v.type === 'audio') ? v.codec : undefined,
-            videoSource: v.type === 'video' ? v.source : undefined,
-            mid: v.mid
-        })),
-        receivers: (src) => src.remoteStreams.map((v) => ({
-            pid: v.pid,
-            kind: v.media.type,
-            videoSource: v.media.type === 'video' ? v.media.source : undefined,
-            mid: v.media.mid
-        })),
+        id: (src) => IDs.MediaStream.serialize(src),
+        state: async (src, _, ctx) => (await Modules.Calls.repo.endStreamDirectory.getState(ctx, src))!,
+        seq: async (src, _, ctx) => (await Modules.Calls.repo.endStreamDirectory.getSeq(ctx, src))!,
+        sdp: async (src, _, ctx) => (await Modules.Calls.repo.endStreamDirectory.getRemoteSdp(ctx, src))!,
+        ice: async (src, _, ctx) => (await Modules.Calls.repo.endStreamDirectory.getRemoteCandidates(ctx, src))!,
+        iceTransportPolicy: async (src, _, ctx) => (await Modules.Calls.repo.endStreamDirectory.getIceTransportPolicy(ctx, src))!,
+        senders: async (src, _, ctx) => {
+            let localStreams = (await Modules.Calls.repo.endStreamDirectory.getLocalStreams(ctx, src))!;
+            return localStreams.map((v) => ({
+                kind: v.type,
+                codecParams: (v.type === 'video' || v.type === 'audio') ? v.codec : undefined,
+                videoSource: v.type === 'video' ? v.source : undefined,
+                mid: v.mid
+            }));
+        },
+        receivers: async (src, _, ctx) => {
+            let remoteStreams = (await Modules.Calls.repo.endStreamDirectory.getRemoteStreams(ctx, src))!;
+            return remoteStreams.map((v) => ({
+                pid: v.pid,
+                kind: v.media.type,
+                videoSource: v.media.type === 'video' ? v.media.source : undefined,
+                mid: v.media.mid
+            }));
+        },
 
         // Deprecated
         peerId: async (src, args, ctx) => {
             // peer state is bound to stream in old clients
-            let link = await resolveMeshStreamLink(src, ctx);
+            let pid = (await Modules.Calls.repo.endStreamDirectory.getPid(ctx, src))!;
+            let link = await resolveMeshStreamLink({ id: src, pid }, ctx);
             if (!link) {
                 return null;
             }
-            return IDs.ConferencePeer.serialize(src.pid === link.pid1 ? link.pid2 : link.pid1);
+            return IDs.ConferencePeer.serialize(pid === link.pid1 ? link.pid2 : link.pid1);
         },
         // Deprecated
-        settings: (src, arg, ctx) => {
-            let localVideo = src.localStreams.find(s => s.type === 'video');
+        settings: async (src, arg, ctx) => {
+            let localStreams = (await Modules.Calls.repo.endStreamDirectory.getLocalStreams(ctx, src))!;
+
+            let localVideo = localStreams.find(s => s.type === 'video');
             return {
-                audioOut: !!src.localStreams.find(s => s.type === 'audio'),
+                audioOut: !!localStreams.find(s => s.type === 'audio'),
                 audioIn: true,
                 videoIn: true,
                 videoOut: !!localVideo,
-                videoOutSource: (localVideo && localVideo.type === 'video' && localVideo.source === 'screen') ? 'screen_share' : 'camera'
+                videoOutSource: (localVideo && localVideo.type === 'video' && localVideo.source === 'screen') ? 'screen_share' : 'camera' as 'screen_share' | 'camera'
             };
         },
         // Deprecated
         mediaState: async (src, args, ctx) => {
+            let [pid, remoteStreams] = await Promise.all([
+                Modules.Calls.repo.endStreamDirectory.getPid(ctx, src),
+                Modules.Calls.repo.endStreamDirectory.getRemoteStreams(ctx, src),
+            ]);
             let res = {
                 videoPaused: false,
                 audioPaused: false,
@@ -208,24 +221,24 @@ export const Resolver: GQLResolver = {
                 audioOut: true,
                 videoOut: false
             };
-            let link = await resolveMeshStreamLink(src, ctx);
+            let link = await resolveMeshStreamLink({ id: src, pid: pid! }, ctx);
             if (!link) {
                 return res;
             }
-            let otherPeerId = src.pid === link.pid1 ? link.pid2 : link.pid1;
+            let otherPeerId = pid === link.pid1 ? link.pid2 : link.pid1;
             let otherPeer = await Store.ConferencePeer.findById(ctx, otherPeerId);
             if (!otherPeer) {
                 return res;
             }
             res.audioPaused = !!otherPeer.audioPaused;
             res.videoPaused = !!otherPeer.videoPaused;
-            let remoteVideo = src.remoteStreams?.find(s => s.media.type === 'video');
+            let remoteVideo = remoteStreams?.find(s => s.media.type === 'video');
             res.videoSource = remoteVideo?.media.type === 'video' && remoteVideo.media.source === 'screen' ? 'screen_share' : 'camera';
             return res;
         },
         // Deprecated
-        localStreams: (src) => {
-            return src.localStreams;
+        localStreams: async (src, _, ctx) => {
+            return (await Modules.Calls.repo.endStreamDirectory.getLocalStreams(ctx, src))!;
         }
     },
     // Deprecated
