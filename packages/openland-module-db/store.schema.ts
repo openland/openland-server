@@ -852,11 +852,13 @@ export default declareSchema(() => {
         field('cid', integer());
         field('uid', integer());
         field('tid', string());
+        field('role', optional(enumString('speaker', 'listener'))); // default is speaker
         field('keepAliveTimeout', integer()); // deprecated
         field('enabled', boolean());
         field('videoPaused', optional(boolean()));
         field('audioPaused', optional(boolean()));
         uniqueIndex('auth', ['cid', 'uid', 'tid']).withCondition((src) => src.enabled);
+        rangeIndex('user', ['cid', 'uid', 'tid']).withCondition((src) => src.enabled);
         rangeIndex('conference', ['cid', 'keepAliveTimeout']).withCondition((src) => src.enabled);
         rangeIndex('active', ['keepAliveTimeout']).withCondition((src) => src.enabled);
     });

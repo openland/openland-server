@@ -76,17 +76,16 @@ export const Resolver: GQLResolver = {
             if (mediaInput && mediaInput.capabilities) {
                 capabilities = mediaInput.capabilities;
             }
-            let res = await Modules.Calls.repo.addPeer(
-                ctx,
-                chat.id,
+            let res = await Modules.Calls.repo.addPeer(ctx, {
+                cid: chat.id,
                 uid,
-                ctx.auth.tid!,
-                60000,
-                mediaKind === 'STREAM' ? 'stream' : 'conference',
+                tid: ctx.auth.tid!,
+                timeout: 60000,
+                kind: mediaKind === 'STREAM' ? 'stream' : 'conference',
                 capabilities,
-                mediaInput?.media,
-                ctx.req.ip || 'unknown'
-            );
+                media: mediaInput?.media,
+                ip: ctx.req.ip || 'unknown'
+            });
 
             return {
                 peerId: IDs.ConferencePeer.serialize(res.id),
@@ -138,17 +137,16 @@ export const Resolver: GQLResolver = {
             if (mediaInput && mediaInput.capabilities) {
                 capabilities = mediaInput.capabilities;
             }
-            let res = await Modules.Calls.repo.addPeer(
-                ctx,
-                chat.id,
+            let res = await Modules.Calls.repo.addPeer(ctx, {
+                cid: chat.id,
                 uid,
-                ctx.auth.tid!,
-                60000,
-                mediaKind === 'STREAM' ? 'stream' : 'conference',
+                tid: ctx.auth.tid!,
+                timeout: 60000,
+                kind: mediaKind === 'STREAM' ? 'stream' : 'conference',
                 capabilities,
-                mediaInput?.media,
-                ctx.req.ip || 'unknown'
-            );
+                media: mediaInput?.media,
+                ip: ctx.req.ip || 'unknown'
+            });
 
             return {
                 peerId: IDs.ConferencePeer.serialize(res.id),

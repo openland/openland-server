@@ -6,6 +6,7 @@ import { UserError } from '../../openland-errors/UserError';
 import { Store } from 'openland-module-db/FDB';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
+import { Modules } from '../../openland-modules/Modules';
 
 @injectable()
 export class ParticipantsMediator {
@@ -36,10 +37,16 @@ export class ParticipantsMediator {
     promoteParticipant = async (ctx: Context, by: number, cid: number, uid: number) => {
         await this.ensureParticipantIsAdmin(ctx, cid, by);
 
+        // notify calls
+        await Modules.Calls.repo.changeUserPeersRole(ctx, cid, uid, 'speaker');
+
         return await this.repo.promoteParticipant(ctx, cid, uid, by);
     }
     demoteParticipant = async (ctx: Context, by: number, cid: number, uid: number) => {
         await this.ensureParticipantIsAdmin(ctx, cid, by);
+
+        // notify calls
+        await Modules.Calls.repo.changeUserPeersRole(ctx, cid, uid, 'listener');
 
         return await this.repo.demoteParticipant(ctx, cid, uid);
     }

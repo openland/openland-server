@@ -58,6 +58,18 @@ type MediaSettings = {
     wantSendScreencast: boolean;
 };
 
+type AddPeerInput = {
+    cid: number,
+    uid: number,
+    tid: string,
+    timeout: number,
+    kind: 'conference' | 'stream',
+    capabilities: Capabilities | null,
+    media?: MediaSettings | undefined,
+    ip: string,
+    role?: 'speaker' | 'listener'
+};
+
 @injectable()
 export class CallRepository {
 
@@ -106,8 +118,20 @@ export class CallRepository {
         }
     }
 
-    addPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number, kind: 'conference' | 'stream' = 'conference', capabilities: Capabilities | null, media: MediaSettings | undefined, ip: string) => {
+    addPeer = async (parent: Context, input: AddPeerInput) => {
         return await inTx(parent, async (ctx) => {
+            let {
+                cid,
+                uid,
+                tid,
+                timeout,
+                kind,
+                capabilities,
+                media,
+                ip,
+                role
+            } = input;
+
             // let room = await this.entities.ConferenceRoom.findById(ctx, cid);
             // if (!room) {
             //     throw Error('Unable to find room');
@@ -171,10 +195,11 @@ export class CallRepository {
             await seq.flush(ctx);
             let res = await Store.ConferencePeer.create(ctx, id, {
                 cid, uid, tid,
+                role: role || 'speaker',
                 keepAliveTimeout: Date.now() + timeout,
                 enabled: true,
                 audioPaused: !media?.wantSendAudio,
-                videoPaused: !media?.wantSendVideo
+                videoPaused: !media?.wantSendVideo,
             });
 
             this.keepAlive.keepAlive(ctx, [cid, id], timeout);
@@ -184,11 +209,38 @@ export class CallRepository {
             if (!cap) {
                 cap = DEFAULT_CAPABILITIES;
             }
-            await scheduler.onPeerAdded(ctx, conf.id, id, await this.#getStreams(ctx, res, conf), cap);
+            await scheduler.onPeerAdded(ctx, conf.id, id, await this.#getStreams(ctx, res, conf), cap, res.role!);
 
             // Notify state change
             this.notifyConferenceChanged(ctx, cid);
             return res;
+        });
+    }
+
+    changeUserPeersRole = async (parent: Context, cid: number, uid: number, newRole: 'speaker' | 'listener') => {
+        return await inTx(parent, async (ctx) => {
+            let userPeers = await Store.ConferencePeer.user.findAll(ctx, cid, uid);
+            let conf = await this.getOrCreateConference(ctx, cid);
+
+            // Apply for all user peers
+            for (let peer of userPeers) {
+
+                if (!peer) {
+                    throw Error('Unable to find peer');
+                }
+                if (!peer.enabled) {
+                    return;
+                }
+                if (peer.role === newRole) {
+                    return;
+                }
+
+                peer.role = newRole;
+                await peer.flush(ctx);
+
+                let scheduler = this.getScheduler(conf.currentScheduler);
+                await scheduler.onPeerRoleChanged(ctx, cid, peer.id, newRole);
+            }
         });
     }
 

@@ -1335,4 +1335,15 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '192-reindex-conference-peers',
+    migration: async (parent) => {
+        await Store.ConferencePeer.iterateAllItems(parent, 100, async (ctx, items) => {
+            for (let item of items) {
+                item.invalidate();
+            }
+        });
+    }
+});
+
 export default migrations;

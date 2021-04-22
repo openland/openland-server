@@ -9116,6 +9116,7 @@ export interface ConferencePeerShape {
     cid: number;
     uid: number;
     tid: string;
+    role: 'speaker' | 'listener' | null;
     keepAliveTimeout: number;
     enabled: boolean;
     videoPaused: boolean | null;
@@ -9126,6 +9127,7 @@ export interface ConferencePeerCreateShape {
     cid: number;
     uid: number;
     tid: string;
+    role?: 'speaker' | 'listener' | null | undefined;
     keepAliveTimeout: number;
     enabled: boolean;
     videoPaused?: boolean | null | undefined;
@@ -9158,6 +9160,15 @@ export class ConferencePeer extends Entity<ConferencePeerShape> {
         if (this._rawValue.tid !== normalized) {
             this._rawValue.tid = normalized;
             this._updatedValues.tid = normalized;
+            this.invalidate();
+        }
+    }
+    get role(): 'speaker' | 'listener' | null { return this._rawValue.role; }
+    set role(value: 'speaker' | 'listener' | null) {
+        let normalized = this.descriptor.codec.fields.role.normalize(value);
+        if (this._rawValue.role !== normalized) {
+            this._rawValue.role = normalized;
+            this._updatedValues.role = normalized;
             this.invalidate();
         }
     }
@@ -9205,6 +9216,7 @@ export class ConferencePeerFactory extends EntityFactory<ConferencePeerShape, Co
         let subspace = await storage.resolveEntityDirectory('conferencePeer');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'auth', storageKey: 'auth', type: { type: 'unique', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }, { name: 'tid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('conferencePeer', 'auth'), condition: (src) => src.enabled });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }, { name: 'tid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('conferencePeer', 'user'), condition: (src) => src.enabled });
         secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'keepAliveTimeout', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferencePeer', 'conference'), condition: (src) => src.enabled });
         secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'keepAliveTimeout', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferencePeer', 'active'), condition: (src) => src.enabled });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
@@ -9213,6 +9225,7 @@ export class ConferencePeerFactory extends EntityFactory<ConferencePeerShape, Co
         fields.push({ name: 'cid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'uid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'tid', type: { type: 'string' }, secure: false });
+        fields.push({ name: 'role', type: { type: 'optional', inner: { type: 'enum', values: ['speaker', 'listener'] } }, secure: false });
         fields.push({ name: 'keepAliveTimeout', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'enabled', type: { type: 'boolean' }, secure: false });
         fields.push({ name: 'videoPaused', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
@@ -9222,6 +9235,7 @@ export class ConferencePeerFactory extends EntityFactory<ConferencePeerShape, Co
             cid: c.integer,
             uid: c.integer,
             tid: c.string,
+            role: c.optional(c.enum('speaker', 'listener')),
             keepAliveTimeout: c.integer,
             enabled: c.boolean,
             videoPaused: c.optional(c.boolean),
@@ -9252,33 +9266,48 @@ export class ConferencePeerFactory extends EntityFactory<ConferencePeerShape, Co
         },
     });
 
+    readonly user = Object.freeze({
+        findAll: async (ctx: Context, cid: number, uid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [cid, uid])).items;
+        },
+        query: (ctx: Context, cid: number, uid: number, opts?: RangeQueryOptions<string>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [cid, uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (cid: number, uid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [cid, uid], opts);
+        },
+        liveStream: (ctx: Context, cid: number, uid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [cid, uid], opts);
+        },
+    });
+
     readonly conference = Object.freeze({
         findAll: async (ctx: Context, cid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [cid])).items;
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [cid])).items;
         },
         query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+            return this._query(ctx, this.descriptor.secondaryIndexes[2], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (cid: number, opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[1], [cid], opts);
+            return this._createStream(this.descriptor.secondaryIndexes[2], [cid], opts);
         },
         liveStream: (ctx: Context, cid: number, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [cid], opts);
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [cid], opts);
         },
     });
 
     readonly active = Object.freeze({
         findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[3], [])).items;
         },
         query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+            return this._query(ctx, this.descriptor.secondaryIndexes[3], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
         },
         stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[2], [], opts);
+            return this._createStream(this.descriptor.secondaryIndexes[3], [], opts);
         },
         liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [], opts);
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[3], [], opts);
         },
     });
 

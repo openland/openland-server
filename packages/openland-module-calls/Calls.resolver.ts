@@ -12,6 +12,7 @@ import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
 import { GQLRoots } from 'openland-module-api/schema/SchemaRoots';
 import { fastWatch } from 'openland-module-db/fastWatch';
 import { NotFoundError } from '../openland-errors/NotFoundError';
+import { UserError } from '../openland-errors/UserError';
 
 // @ts-ignore
 // const resolveNearestTurn = async (latLong: { lat: number, long: number }) => {
@@ -307,17 +308,32 @@ export const Resolver: GQLResolver = {
                     }
                 }
 
-                let res = await Modules.Calls.repo.addPeer(
-                    ctx,
+                let role: 'speaker' | 'listener' = 'speaker';
+
+                // Determine role for voice chats
+                if (conv.kind === 'voice') {
+                    let voiceChatMember = await Store.VoiceChatParticipant.findById(ctx, conv.id, uid);
+                    if (!voiceChatMember || voiceChatMember.status !== 'joined') {
+                        throw new UserError(`User is not member of voice chat`);
+                    }
+                    if (voiceChatMember.role === 'speaker' || voiceChatMember.role === 'admin') {
+                        role = 'speaker';
+                    } else if (voiceChatMember.role === 'listener') {
+                        role = 'listener';
+                    }
+                }
+
+                let res = await Modules.Calls.repo.addPeer(ctx, {
                     cid,
                     uid,
-                    ctx.auth.tid!,
-                    60000,
-                    args.kind === 'STREAM' ? 'stream' : 'conference',
+                    tid: ctx.auth.tid!,
+                    timeout: 60000,
+                    kind: args.kind === 'STREAM' ? 'stream' : 'conference',
                     capabilities,
-                    args.input?.media,
-                    ctx.req.ip || 'unknown'
-                );
+                    media: args.input?.media,
+                    ip: ctx.req.ip || 'unknown',
+                    role
+                });
                 let activeMembers = await Modules.Calls.repo.findActiveMembers(ctx, cid);
                 if (activeMembers.length === 1 && conv.kind !== 'voice') {
                     let fullName = await Modules.Users.getUserFullName(ctx, uid);

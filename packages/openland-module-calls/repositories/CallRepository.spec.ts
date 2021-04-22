@@ -32,7 +32,15 @@ describe('CallRepository', () => {
     it('should add peers', async () => {
         let CID = 2;
         let repo = container.get<CallRepository>('CallRepository');
-        let peer = await repo.addPeer(rootCtx, CID, 3, 'tid1', 5000, 'conference', DEFAULT_CAPABILITIES, undefined, 'unknown');
+        let peer = await repo.addPeer(rootCtx, {
+            cid: CID,
+            uid: 3,
+            tid: 'tid1',
+            timeout: 5000,
+            kind: 'conference',
+            capabilities: DEFAULT_CAPABILITIES,
+            ip: 'unknown'
+        });
         let peers = await inReadOnlyTx(rootCtx, async (ctx) => await Store.ConferencePeer.conference.findAll(ctx, CID));
         expect(peers.length).toBe(1);
         expect(peer.uid).toBe(3);
@@ -49,8 +57,24 @@ describe('CallRepository', () => {
     it('should automatically connect peers', async () => {
         let CID = 3;
         let repo = container.get<CallRepository>('CallRepository');
-        let peer1 = await repo.addPeer(rootCtx, CID, 3, 'tid1', 5000, 'conference', DEFAULT_CAPABILITIES, undefined, 'unknown');
-        let peer2 = await repo.addPeer(rootCtx, CID, 4, 'tid2', 5000, 'conference', DEFAULT_CAPABILITIES, undefined, 'unknown');
+        let peer1 = await repo.addPeer(rootCtx, {
+            cid: CID,
+            uid: 3,
+            tid: 'tid1',
+            timeout: 5000,
+            kind: 'conference',
+            capabilities: DEFAULT_CAPABILITIES,
+            ip: 'unknown'
+        });
+        let peer2 = await repo.addPeer(rootCtx, {
+            cid: CID,
+            uid: 4,
+            tid: 'tid2',
+            timeout: 5000,
+            kind: 'conference',
+            capabilities: DEFAULT_CAPABILITIES,
+            ip: 'unknown'
+        });
         let peers = await inReadOnlyTx(rootCtx, async (ctx) => await Store.ConferencePeer.conference.findAll(ctx, CID));
         expect(peer1.id).toBeLessThan(peer2.id);
         expect(peer1.uid).toBe(3);
@@ -65,8 +89,24 @@ describe('CallRepository', () => {
     it('should remove peers and related connections', async () => {
         let CID = 4;
         let repo = container.get<CallRepository>('CallRepository');
-        let peer1 = await repo.addPeer(rootCtx, CID, 3, 'tid1', 5000, 'conference', DEFAULT_CAPABILITIES, undefined, 'unknown');
-        let peer2 = await repo.addPeer(rootCtx, CID, 4, 'tid2', 5000, 'conference', DEFAULT_CAPABILITIES, undefined, 'unknown');
+        let peer1 = await repo.addPeer(rootCtx, {
+            cid: CID,
+            uid: 3,
+            tid: 'tid1',
+            timeout: 5000,
+            kind: 'conference',
+            capabilities: DEFAULT_CAPABILITIES,
+            ip: 'unknown'
+        });
+        let peer2 = await repo.addPeer(rootCtx, {
+            cid: CID,
+            uid: 4,
+            tid: 'tid2',
+            timeout: 5000,
+            kind: 'conference',
+            capabilities: DEFAULT_CAPABILITIES,
+            ip: 'unknown'
+        });
         await repo.removePeer(rootCtx, peer1.id);
         let peers = await inReadOnlyTx(rootCtx, async (ctx) => await Store.ConferencePeer.conference.findAll(ctx, CID));
         expect(peers.length).toBe(1);

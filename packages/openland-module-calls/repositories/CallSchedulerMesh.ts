@@ -44,7 +44,7 @@ export class CallSchedulerMesh implements CallScheduler {
     // Peer States
     //
 
-    onPeerAdded = async (ctx: Context, cid: number, pid: number, sources: MediaSources, capabilities: Capabilities) => {
+    onPeerAdded = async (ctx: Context, cid: number, pid: number, sources: MediaSources, capabilities: Capabilities, role: 'speaker' | 'listener') => {
         logger.log(ctx, 'Peer added: ' + pid + ', ' + JSON.stringify(sources));
 
         // Find existing peers
@@ -160,6 +160,10 @@ export class CallSchedulerMesh implements CallScheduler {
             }
         }
 
+    }
+
+    onPeerRoleChanged = async (ctx: Context, cid: number, pid: number, currentRole: 'speaker' | 'listener') => {
+        // noop
     }
 
     //

@@ -57,7 +57,7 @@ export class CallSchedulerKitchen implements CallScheduler {
     // Peer Events
     //
 
-    onPeerAdded = async (ctx: Context, cid: number, pid: number, sources: MediaSources, capabilities: Capabilities) => {
+    onPeerAdded = async (ctx: Context, cid: number, pid: number, sources: MediaSources, capabilities: Capabilities, role: 'speaker' | 'listener') => {
 
         logger.log(ctx, 'Add peer');
         let router = await Store.ConferenceKitchenRouter.conference.find(ctx, cid);
@@ -119,6 +119,10 @@ export class CallSchedulerKitchen implements CallScheduler {
         }
         peer.active = false;
         await peer.flush(ctx);
+    }
+
+    onPeerRoleChanged = async (ctx: Context, cid: number, pid: number, currentRole: 'speaker' | 'listener') => {
+        // noop
     }
 
     //
