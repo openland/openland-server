@@ -43,7 +43,10 @@ export class ParticipantsMediator {
         return await this.repo.promoteParticipant(ctx, cid, uid, by);
     }
     demoteParticipant = async (ctx: Context, by: number, cid: number, uid: number) => {
-        await this.ensureParticipantIsAdmin(ctx, cid, by);
+        // Allow to demote yourself
+        if (by !== uid) {
+            await this.ensureParticipantIsAdmin(ctx, cid, by);
+        }
 
         // notify calls
         await Modules.Calls.repo.changeUserPeersRole(ctx, cid, uid, 'listener');
