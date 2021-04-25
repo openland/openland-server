@@ -9945,6 +9945,7 @@ export interface ConferenceKitchenPeerShape {
     cid: number;
     active: boolean;
     capabilities: { codecs: ({ kind: string, mimeType: string, preferredPayloadType: number, clockRate: number, channels: number | null, parameters: ({ key: string, value: string })[], rtcpFeedback: ({ type: string, value: string | null })[] })[], headerExtensions: ({ kind: string, uri: string, preferredId: number })[] } | null;
+    sources: { audioStream: boolean, videoStream: boolean, screenCastStream: boolean };
     producerTransport: string | null;
     consumerTransport: string | null;
 }
@@ -9953,6 +9954,7 @@ export interface ConferenceKitchenPeerCreateShape {
     cid: number;
     active: boolean;
     capabilities?: { codecs: ({ kind: string, mimeType: string, preferredPayloadType: number, clockRate: number, channels: number | null | undefined, parameters: ({ key: string, value: string })[], rtcpFeedback: ({ type: string, value: string | null | undefined })[] })[], headerExtensions: ({ kind: string, uri: string, preferredId: number })[] } | null | undefined;
+    sources: { audioStream: boolean, videoStream: boolean, screenCastStream: boolean };
     producerTransport?: string | null | undefined;
     consumerTransport?: string | null | undefined;
 }
@@ -9983,6 +9985,15 @@ export class ConferenceKitchenPeer extends Entity<ConferenceKitchenPeerShape> {
         if (this._rawValue.capabilities !== normalized) {
             this._rawValue.capabilities = normalized;
             this._updatedValues.capabilities = normalized;
+            this.invalidate();
+        }
+    }
+    get sources(): { audioStream: boolean, videoStream: boolean, screenCastStream: boolean } { return this._rawValue.sources; }
+    set sources(value: { audioStream: boolean, videoStream: boolean, screenCastStream: boolean }) {
+        let normalized = this.descriptor.codec.fields.sources.normalize(value);
+        if (this._rawValue.sources !== normalized) {
+            this._rawValue.sources = normalized;
+            this._updatedValues.sources = normalized;
             this.invalidate();
         }
     }
@@ -10018,6 +10029,7 @@ export class ConferenceKitchenPeerFactory extends EntityFactory<ConferenceKitche
         fields.push({ name: 'cid', type: { type: 'integer' }, secure: false });
         fields.push({ name: 'active', type: { type: 'boolean' }, secure: false });
         fields.push({ name: 'capabilities', type: { type: 'optional', inner: { type: 'struct', fields: { codecs: { type: 'array', inner: { type: 'struct', fields: { kind: { type: 'string' }, mimeType: { type: 'string' }, preferredPayloadType: { type: 'integer' }, clockRate: { type: 'integer' }, channels: { type: 'optional', inner: { type: 'integer' } }, parameters: { type: 'array', inner: { type: 'struct', fields: { key: { type: 'string' }, value: { type: 'string' } } } }, rtcpFeedback: { type: 'array', inner: { type: 'struct', fields: { type: { type: 'string' }, value: { type: 'optional', inner: { type: 'string' } } } } } } } }, headerExtensions: { type: 'array', inner: { type: 'struct', fields: { kind: { type: 'string' }, uri: { type: 'string' }, preferredId: { type: 'integer' } } } } } } }, secure: false });
+        fields.push({ name: 'sources', type: { type: 'struct', fields: { audioStream: { type: 'boolean' }, videoStream: { type: 'boolean' }, screenCastStream: { type: 'boolean' } } }, secure: false });
         fields.push({ name: 'producerTransport', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         fields.push({ name: 'consumerTransport', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
         let codec = c.struct({
@@ -10025,6 +10037,7 @@ export class ConferenceKitchenPeerFactory extends EntityFactory<ConferenceKitche
             cid: c.integer,
             active: c.boolean,
             capabilities: c.optional(c.struct({ codecs: c.array(c.struct({ kind: c.string, mimeType: c.string, preferredPayloadType: c.integer, clockRate: c.integer, channels: c.optional(c.integer), parameters: c.array(c.struct({ key: c.string, value: c.string })), rtcpFeedback: c.array(c.struct({ type: c.string, value: c.optional(c.string) })) })), headerExtensions: c.array(c.struct({ kind: c.string, uri: c.string, preferredId: c.integer })) })),
+            sources: c.struct({ audioStream: c.boolean, videoStream: c.boolean, screenCastStream: c.boolean }),
             producerTransport: c.optional(c.string),
             consumerTransport: c.optional(c.string),
         });

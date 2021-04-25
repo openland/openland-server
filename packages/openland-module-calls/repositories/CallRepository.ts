@@ -239,7 +239,7 @@ export class CallRepository {
                 await peer.flush(ctx);
 
                 let scheduler = this.getScheduler(conf.currentScheduler);
-                await scheduler.onPeerRoleChanged(ctx, cid, peer.id, await this.#getStreams(ctx, peer, conf), newRole);
+                await scheduler.onPeerRoleChanged(ctx, cid, peer.id, newRole);
             }
         });
     }

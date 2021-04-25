@@ -995,6 +995,7 @@ export default declareSchema(() => {
         field('cid', integer());
         field('active', boolean());
         field('capabilities', optional(capabilities));
+        field('sources', localSources);
         field('producerTransport', optional(string()));
         field('consumerTransport', optional(string()));
         rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.active);

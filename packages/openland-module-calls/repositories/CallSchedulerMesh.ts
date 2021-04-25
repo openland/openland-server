@@ -162,7 +162,7 @@ export class CallSchedulerMesh implements CallScheduler {
 
     }
 
-    onPeerRoleChanged = async (ctx: Context, cid: number, pid: number, sources: MediaSources, role: 'speaker' | 'listener') => {
+    onPeerRoleChanged = async (ctx: Context, cid: number, pid: number, role: 'speaker' | 'listener') => {
         // noop
     }
 

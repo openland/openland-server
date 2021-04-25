@@ -72,6 +72,7 @@ export class CallSchedulerKitchen implements CallScheduler {
             capabilities,
             producerTransport,
             consumerTransport,
+            sources,
             active: true
         });
 
@@ -100,6 +101,8 @@ export class CallSchedulerKitchen implements CallScheduler {
         if (!peer || !peer.active) {
             return;
         }
+        peer.sources = sources;
+        await peer.flush(ctx);
         if (peer.producerTransport) {
             await this.transport.updateProducerTransport(ctx, peer.producerTransport, sources);
             this.callRepo.notifyPeerChanged(ctx, pid);
@@ -123,7 +126,7 @@ export class CallSchedulerKitchen implements CallScheduler {
         await peer.flush(ctx);
     }
 
-    onPeerRoleChanged = async (ctx: Context, cid: number, pid: number, sources: MediaSources, role: 'speaker' | 'listener') => {
+    onPeerRoleChanged = async (ctx: Context, cid: number, pid: number, role: 'speaker' | 'listener') => {
         let peer = await Store.ConferenceKitchenPeer.findById(ctx, pid);
         if (!peer || !peer.active) {
             return;
@@ -137,7 +140,7 @@ export class CallSchedulerKitchen implements CallScheduler {
 
                 // Create new producer
                 let existing = (await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid)).filter((v) => !!v.producerTransport);
-                const producer = await this.transport.createProducerTransport(ctx, router.id, cid, pid, sources, peer.capabilities!);
+                const producer = await this.transport.createProducerTransport(ctx, router.id, cid, pid, peer.sources, peer.capabilities!);
                 peer.producerTransport = producer;
                 await peer.flush(ctx);
 
@@ -159,13 +162,13 @@ export class CallSchedulerKitchen implements CallScheduler {
                 }
             }
         }
-        // if (role === 'listener') {
-        //     if (peer.producerTransport) {
-        //         await this.transport.removeProducerTransport(ctx, peer.producerTransport);
-        //         peer.producerTransport = null;
-        //         await peer.flush(ctx);
-        //     }
-        // }
+        if (role === 'listener') {
+            if (peer.producerTransport) {
+                await this.transport.removeProducerTransport(ctx, peer.producerTransport);
+                peer.producerTransport = null;
+                await peer.flush(ctx);
+            }
+        }
     }
 
     //

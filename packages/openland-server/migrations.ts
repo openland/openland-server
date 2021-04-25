@@ -1346,4 +1346,35 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '193-drop-old-calls',
+    migration: async (parent) => {
+        await inTx(parent, async (ctx) => {
+            // Producer transport
+            Store.ConferenceKitchenConsumerTransport.descriptor.subspace.clearPrefixed(ctx, []);
+            for (let i of Store.ConferenceKitchenConsumerTransport.descriptor.secondaryIndexes) {
+                i.subspace.clearPrefixed(ctx, []);
+            }
+
+            // Consumer transport
+            Store.ConferenceKitchenProducerTransport.descriptor.subspace.clearPrefixed(ctx, []);
+            for (let i of Store.ConferenceKitchenProducerTransport.descriptor.secondaryIndexes) {
+                i.subspace.clearPrefixed(ctx, []);
+            }
+
+            // Peers
+            Store.ConferenceKitchenPeer.descriptor.subspace.clearPrefixed(ctx, []);
+            for (let i of Store.ConferenceKitchenPeer.descriptor.secondaryIndexes) {
+                i.subspace.clearPrefixed(ctx, []);
+            }
+
+            // Peers
+            Store.ConferenceKitchenRouter.descriptor.subspace.clearPrefixed(ctx, []);
+            for (let i of Store.ConferenceKitchenRouter.descriptor.secondaryIndexes) {
+                i.subspace.clearPrefixed(ctx, []);
+            }
+        });
+    }
+});
+
 export default migrations;
