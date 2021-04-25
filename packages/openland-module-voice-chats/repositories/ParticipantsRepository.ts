@@ -5,7 +5,7 @@ import { VoiceChatParticipant } from '../../openland-module-db/store';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { VoiceChatsRepository } from './VoiceChatsRepository';
-import { CallRepository } from '../../openland-module-calls/repositories/CallRepository';
+// import { CallRepository } from '../../openland-module-calls/repositories/CallRepository';
 import { VoiceChatEventsRepository } from './VoiceChatEventsRepository';
 
 export type ParticipantStatus = 'left' | 'kicked' | NonNullable<VoiceChatParticipant['role']>;
@@ -46,8 +46,8 @@ export class ParticipantsRepository {
     private readonly chatsRepo!: VoiceChatsRepository;
     @lazyInject('VoiceChatEventsRepository')
     private readonly events!: VoiceChatEventsRepository;
-    @lazyInject('CallRepository')
-    private readonly calls!: CallRepository;
+    // @lazyInject('CallRepository')
+    // private readonly calls!: CallRepository;
 
     private counterCalculator = createListCounter<ParticipantRoleStatus>([
         { name: 'listener', checker: Status.isListener },
@@ -195,12 +195,12 @@ export class ParticipantsRepository {
         }
 
         // Update media streams if ability to speak changed
-        if (Status.isSpeaker(newStatusRole) !== Status.isSpeaker(participant) && participant.tid) {
-            let peer = await Store.ConferencePeer.auth.find(ctx, cid, uid, participant.tid);
-            if (peer) {
-                await this.calls.updateMediaStreams(ctx, cid, uid, participant.tid);
-            }
-        }
+        // if (Status.isSpeaker(newStatusRole) !== Status.isSpeaker(participant) && participant.tid) {
+        //     let peer = await Store.ConferencePeer.auth.find(ctx, cid, uid, participant.tid);
+        //     if (peer) {
+        //         await this.calls.updateMediaStreams(ctx, cid, uid, participant.tid);
+        //     }
+        // }
 
         participant.status = newStatus;
         participant.role = newRole;
