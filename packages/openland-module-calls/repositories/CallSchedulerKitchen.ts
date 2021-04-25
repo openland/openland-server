@@ -159,13 +159,13 @@ export class CallSchedulerKitchen implements CallScheduler {
                 }
             }
         }
-        if (role === 'listener') {
-            if (peer.producerTransport) {
-                await this.transport.removeProducerTransport(ctx, peer.producerTransport);
-                peer.producerTransport = null;
-                await peer.flush(ctx);
-            }
-        }
+        // if (role === 'listener') {
+        //     if (peer.producerTransport) {
+        //         await this.transport.removeProducerTransport(ctx, peer.producerTransport);
+        //         peer.producerTransport = null;
+        //         await peer.flush(ctx);
+        //     }
+        // }
     }
 
     //
