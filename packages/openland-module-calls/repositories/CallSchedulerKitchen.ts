@@ -143,6 +143,7 @@ export class CallSchedulerKitchen implements CallScheduler {
                 const producer = await this.transport.createProducerTransport(ctx, router.id, cid, pid, peer.sources, peer.capabilities!);
                 peer.producerTransport = producer;
                 await peer.flush(ctx);
+                this.callRepo.notifyPeerChanged(ctx, peer.pid);
 
                 for (let e of existing) {
                     // If active
@@ -167,6 +168,7 @@ export class CallSchedulerKitchen implements CallScheduler {
                 await this.transport.removeProducerTransport(ctx, peer.producerTransport);
                 peer.producerTransport = null;
                 await peer.flush(ctx);
+                this.callRepo.notifyPeerChanged(ctx, peer.pid);
             }
         }
     }
