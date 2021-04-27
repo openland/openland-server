@@ -51,7 +51,7 @@ export class ParticipantsRepository {
 
     private counterCalculator = createListCounter<ParticipantRoleStatus>([
         { name: 'listener', checker: Status.isListener },
-        { name: 'speaker', checker: Status.isSpeaker},
+        { name: 'speaker', checker: Status.isSpeaker },
         { name: 'admin', checker: Status.isAdmin }
     ]);
 
@@ -85,7 +85,7 @@ export class ParticipantsRepository {
 
         let participant = await this.#getOrFail(ctx, cid, uid);
         if (!Status.isListener(participant)) {
-            throw new Error('You cannot raise hand if you are not listener');
+            return participant;
         }
         participant.handRaised = handRaised;
 
