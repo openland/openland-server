@@ -1347,7 +1347,7 @@ migrations.push({
 });
 
 migrations.push({
-    key: '193-drop-old-calls',
+    key: '194-drop-old-calls',
     migration: async (parent) => {
         await inTx(parent, async (ctx) => {
             // Producer transport
@@ -1355,7 +1355,6 @@ migrations.push({
             for (let i of Store.ConferenceKitchenConsumerTransport.descriptor.secondaryIndexes) {
                 i.subspace.clearPrefixed(ctx, []);
             }
-
             // Consumer transport
             Store.ConferenceKitchenProducerTransport.descriptor.subspace.clearPrefixed(ctx, []);
             for (let i of Store.ConferenceKitchenProducerTransport.descriptor.secondaryIndexes) {
@@ -1371,6 +1370,28 @@ migrations.push({
             // Peers
             Store.ConferenceKitchenRouter.descriptor.subspace.clearPrefixed(ctx, []);
             for (let i of Store.ConferenceKitchenRouter.descriptor.secondaryIndexes) {
+                i.subspace.clearPrefixed(ctx, []);
+            }
+
+            // Kitchen entities
+            Store.KitchenProducer.descriptor.subspace.clearPrefixed(ctx, []);
+            for (let i of Store.KitchenProducer.descriptor.secondaryIndexes) {
+                i.subspace.clearPrefixed(ctx, []);
+            }
+            Store.KitchenConsumer.descriptor.subspace.clearPrefixed(ctx, []);
+            for (let i of Store.KitchenConsumer.descriptor.secondaryIndexes) {
+                i.subspace.clearPrefixed(ctx, []);
+            }
+            Store.KitchenRouter.descriptor.subspace.clearPrefixed(ctx, []);
+            for (let i of Store.KitchenRouter.descriptor.secondaryIndexes) {
+                i.subspace.clearPrefixed(ctx, []);
+            }
+            Store.KitchenWorker.descriptor.subspace.clearPrefixed(ctx, []);
+            for (let i of Store.KitchenWorker.descriptor.secondaryIndexes) {
+                i.subspace.clearPrefixed(ctx, []);
+            }
+            Store.KitchenTransport.descriptor.subspace.clearPrefixed(ctx, []);
+            for (let i of Store.KitchenTransport.descriptor.secondaryIndexes) {
                 i.subspace.clearPrefixed(ctx, []);
             }
         });
