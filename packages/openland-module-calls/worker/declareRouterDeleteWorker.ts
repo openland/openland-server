@@ -6,10 +6,10 @@ import { MediaKitchenService } from '../kitchen/MediaKitchenService';
 export function declareRouterDeleteWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
     repo.
         routerDeleteQueue.addWorkers(10, async (parent, args) => {
-            let router = await inTx(parent, async (ctx) => {
+            const router = await inTx(parent, async (ctx) => {
                 let r = await Store.KitchenRouter.findById(ctx, args.id);
                 if (!r) {
-                    throw Error('Unable to find router');
+                    return null;
                 }
 
                 // Fast exit if no workers was assigned
@@ -18,7 +18,7 @@ export function declareRouterDeleteWorker(service: MediaKitchenService, repo: Me
                 }
                 return r;
             });
-            if (router.state === 'deleted') {
+            if (!router || router.state === 'deleted') {
                 return;
             }
 

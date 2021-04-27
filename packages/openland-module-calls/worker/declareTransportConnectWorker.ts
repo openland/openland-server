@@ -5,21 +5,21 @@ import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
 
 export function declareTransportConnectWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
     repo.transportConnectQueue.addWorkers(100, async (parent, args) => {
-        let r = await inTx(parent, async (ctx) => {
+        const r = await inTx(parent, async (ctx) => {
             let ts = await Store.KitchenTransport.findById(ctx, args.id);
             if (!ts) {
-                throw Error('Unable to find transport');
+                return null;
             }
             let router = await Store.KitchenRouter.findById(ctx, ts.routerId);
             if (!router) {
-                throw Error('Unable to find router');
+                return null;
             }
             if (!router.workerId) {
-                throw Error('Unable to find worker');
+                return null;
             }
             return { router, ts };
         });
-        if (r.ts.state !== 'connecting') {
+        if (!r || r.ts.state !== 'connecting') {
             return;
         }
 

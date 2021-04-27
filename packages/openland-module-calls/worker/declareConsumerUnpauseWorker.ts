@@ -8,27 +8,27 @@ export function declareConsumerUnpauseWorker(service: MediaKitchenService, repo:
         let r = await inReadOnlyTx(parent, async (ctx) => {
             let cr = await Store.KitchenConsumer.findById(ctx, args.id);
             if (!cr) {
-                throw Error('Unable to find consumer');
+                return null;
             }
             let pr = await Store.KitchenProducer.findById(ctx, cr.producerId);
             if (!pr) {
-                throw Error('Unable to find producer');
+                return null;
             }
             let ts = await Store.KitchenTransport.findById(ctx, pr.transportId);
             if (!ts) {
-                throw Error('Unable to find transport');
+                return null;
             }
             let router = await Store.KitchenRouter.findById(ctx, pr.routerId);
             if (!router) {
-                throw Error('Unable to find router');
+                return null;
             }
             if (!router.workerId) {
-                throw Error('Unable to find worker');
+                return null;
             }
             return { router, ts, pr, cr };
         });
 
-        if (r.pr.state === 'deleted' || r.pr.state === 'deleting') {
+        if (!r || r.pr.state === 'deleted' || r.pr.state === 'deleting') {
             return;
         }
 

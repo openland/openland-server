@@ -6,32 +6,32 @@ import { convertRtpParamsToStore } from 'openland-module-calls/kitchen/convert';
 
 export function declareConsumerCreateWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
     repo.consumerCreateQueue.addWorkers(100, async (parent, args) => {
-        let r = await inTx(parent, async (ctx) => {
+        const r = await inTx(parent, async (ctx) => {
             let cr = await Store.KitchenConsumer.findById(ctx, args.id);
             if (!cr) {
-                throw Error('Unable to find consumer');
+                return null;
             }
             let pr = await Store.KitchenProducer.findById(ctx, cr.producerId);
             if (!pr) {
-                throw Error('Unable to find producer');
+                return null;
             }
             if (!pr.rawId) {
-                throw Error('Producer not ready');
+                return null;
             }
             let ts = await Store.KitchenTransport.findById(ctx, cr.transportId);
             if (!ts) {
-                throw Error('Unable to find transport');
+                return null;
             }
             let router = await Store.KitchenRouter.findById(ctx, pr.routerId);
             if (!router) {
-                throw Error('Unable to find router');
+                return null;
             }
             if (!router.workerId) {
-                throw Error('Unable to find worker');
+                return null;
             }
             return { router, ts, pr, cr };
         });
-        if (r.cr.state !== 'creating') {
+        if (!r || r.cr.state !== 'creating') {
             return;
         }
 
