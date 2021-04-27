@@ -8,18 +8,18 @@ export function declareTransportDeleteWorker(service: MediaKitchenService, repo:
         let r = await inTx(parent, async (ctx) => {
             let ts = await Store.KitchenTransport.findById(ctx, args.id);
             if (!ts) {
-                throw Error('Unable to find transport');
+                return null;
             }
             let router = await Store.KitchenRouter.findById(ctx, ts.routerId);
             if (!router) {
-                throw Error('Unable to find router');
+                return null;
             }
             if (!router.workerId) {
-                throw Error('Unable to find worker');
+                return null;
             }
             return { router, ts };
         });
-        if (r.ts.state === 'deleted') {
+        if (!r || r.ts.state === 'deleted') {
             return;
         }
 

@@ -37,10 +37,12 @@ export class ParticipantsMediator {
     promoteParticipant = async (ctx: Context, by: number, cid: number, uid: number) => {
         await this.ensureParticipantIsAdmin(ctx, cid, by);
 
+        let res = await this.repo.promoteParticipant(ctx, cid, uid, by);
+
         // notify calls
         await Modules.Calls.repo.changeUserPeersRole(ctx, cid, uid, 'speaker');
 
-        return await this.repo.promoteParticipant(ctx, cid, uid, by);
+        return res;
     }
     demoteParticipant = async (ctx: Context, by: number, cid: number, uid: number) => {
         // Allow to demote yourself
@@ -48,10 +50,12 @@ export class ParticipantsMediator {
             await this.ensureParticipantIsAdmin(ctx, cid, by);
         }
 
+        let res = await this.repo.demoteParticipant(ctx, cid, uid);
+
         // notify calls
         await Modules.Calls.repo.changeUserPeersRole(ctx, cid, uid, 'listener');
-
-        return await this.repo.demoteParticipant(ctx, cid, uid);
+        
+        return res;
     }
     updateAdminRights = async (ctx: Context, by: number, cid: number, uid: number, isAdmin: boolean) => {
         await this.ensureParticipantIsAdmin(ctx, cid, by);

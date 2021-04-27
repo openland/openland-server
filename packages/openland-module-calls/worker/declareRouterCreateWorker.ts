@@ -10,10 +10,10 @@ export function declareRouterCreateWorker(service: MediaKitchenService, repo: Me
     repo.routerCreateQueue.addWorkers(100, async (parent, args) => {
 
         // Assign Worker
-        let router = await inTx(parent, async (ctx) => {
+        const router = await inTx(parent, async (ctx) => {
             let r = await Store.KitchenRouter.findById(ctx, args.id);
             if (!r) {
-                throw Error('Unable to find router');
+                return null;
             }
             if (r.state !== 'creating') {
                 return r;
@@ -24,6 +24,9 @@ export function declareRouterCreateWorker(service: MediaKitchenService, repo: Me
             }
             return r;
         });
+        if (!router) {
+            return;
+        }
         let workerId = router.workerId;
         if (router.state !== 'creating' || !workerId) {
             return;

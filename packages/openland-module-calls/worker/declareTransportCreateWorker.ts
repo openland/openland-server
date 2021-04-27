@@ -10,24 +10,24 @@ export function declareTransportCreateWorker(service: MediaKitchenService, repo:
     repo.transportCreateQueue.addWorkers(100, async (parent, args) => {
         logger.log(parent, 'Trying to create transport: ' + args.id);
         try {
-            let r = await inTx(parent, async (ctx) => {
+            const r = await inTx(parent, async (ctx) => {
                 let ts = await Store.KitchenTransport.findById(ctx, args.id);
                 if (!ts) {
-                    throw Error('Unable to find transport');
+                    return null;
                 }
                 let router = await Store.KitchenRouter.findById(ctx, ts.routerId);
                 if (!router) {
-                    throw Error('Unable to find router');
+                    return null;
                 }
                 if (ts.state !== 'creating') {
                     return { router, ts };
                 }
                 if (!router.workerId) {
-                    throw Error('Unable to find worker');
+                    return null;
                 }
                 return { router, ts };
             });
-            if (r.ts.state !== 'creating') {
+            if (!r || r.ts.state !== 'creating') {
                 return;
             }
 

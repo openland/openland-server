@@ -12,9 +12,9 @@ import { CallScheduler, MediaSources, StreamHint, Capabilities } from './CallSch
 import { notifyFastWatch } from 'openland-module-db/fastWatch';
 import { DeliveryMediator } from '../../openland-module-messaging/mediators/DeliveryMediator';
 import { Events } from 'openland-module-hyperlog/Events';
-import {
-    VoiceChatParticipantStatus
-} from '../../openland-module-voice-chats/repositories/ParticipantsRepository';
+// import {
+//     VoiceChatParticipantStatus
+// } from '../../openland-module-voice-chats/repositories/ParticipantsRepository';
 import { Modules } from '../../openland-modules/Modules';
 import { KeepAliveCollection } from '../../openland-module-db/collections/KeepAliveCollection';
 import { EndStreamDirectory } from './EndStreamDirectory';
@@ -650,11 +650,11 @@ export class CallRepository {
     #getStreams = async (ctx: Context, peer: ConferencePeer, conference: ConferenceRoom): Promise<MediaSources> => {
         let voiceConv = await Store.ConversationVoice.findById(ctx, conference.id);
         if (voiceConv) {
-            let part = await Store.VoiceChatParticipant.findById(ctx, conference.id, peer.uid);
+            // let part = await Store.VoiceChatParticipant.findById(ctx, conference.id, peer.uid);
             let audioStream = true;
-            if (part && !VoiceChatParticipantStatus.isSpeaker(part)) {
-                audioStream = false;
-            }
+            // if (part && !VoiceChatParticipantStatus.isSpeaker(part)) {
+            //     audioStream = false;
+            // }
             return {
                 videoStream: false,
                 screenCastStream: false,

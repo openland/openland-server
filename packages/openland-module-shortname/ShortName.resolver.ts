@@ -70,7 +70,13 @@ export const Resolver: GQLResolver = {
             let authorized = !!ctx.auth.uid;
 
             if (ownerType === 'user') {
-                return await Store.User.findById(ctx, ownerId);
+                const res = await Store.User.findById(ctx, ownerId);
+                if (res) {
+                    if (!await Store.UserProfile.findById(ctx, ownerId)) {
+                        return null;
+                    }
+                }
+                return res;
             } else if (ownerType === 'org') {
                 return await Store.Organization.findById(ctx, ownerId);
             } else if (ownerType === 'feed_channel' && authorized) {

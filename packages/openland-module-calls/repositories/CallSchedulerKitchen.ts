@@ -65,28 +65,31 @@ export class CallSchedulerKitchen implements CallScheduler {
             throw Error('Unknown error');
         }
         let existing = (await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid)).filter((v) => !!v.producerTransport);
-        let producerTransport = await this.transport.createProducerTransport(ctx, router.id, cid, pid, sources, capabilities);
+        let producerTransport = role === 'speaker' ? await this.transport.createProducerTransport(ctx, router.id, cid, pid, sources, capabilities) : null;
         let consumerTransport = await this.transport.createConsumerTransport(ctx, router.id, cid, pid, existing.map((v) => v.producerTransport!), capabilities);
         await Store.ConferenceKitchenPeer.create(ctx, pid, {
             cid,
             capabilities,
             producerTransport,
             consumerTransport,
+            sources,
             active: true
         });
 
         // Update existing connections
         if (producerTransport) {
             for (let e of existing) {
-                if (!e.active) { // Just in case
+                // Just in case
+                if (!e.active) {
                     continue;
                 }
                 // Add new connection
-                if (e.consumerTransport) {
-                    let ct = (await Store.ConferenceKitchenConsumerTransport.findById(ctx, e.consumerTransport))!;
-                    await this.transport.updateConsumerTransport(ctx, e.consumerTransport, [...ct.consumes, producerTransport]);
-                    this.callRepo.notifyPeerChanged(ctx, e.pid);
+                if (!e.consumerTransport) {
+                    continue;
                 }
+                let ct = (await Store.ConferenceKitchenConsumerTransport.findById(ctx, e.consumerTransport))!;
+                await this.transport.updateConsumerTransport(ctx, e.consumerTransport, [...ct.consumes, producerTransport]);
+                this.callRepo.notifyPeerChanged(ctx, e.pid);
             }
         }
 
@@ -98,6 +101,8 @@ export class CallSchedulerKitchen implements CallScheduler {
         if (!peer || !peer.active) {
             return;
         }
+        peer.sources = sources;
+        await peer.flush(ctx);
         if (peer.producerTransport) {
             await this.transport.updateProducerTransport(ctx, peer.producerTransport, sources);
             this.callRepo.notifyPeerChanged(ctx, pid);
@@ -121,8 +126,51 @@ export class CallSchedulerKitchen implements CallScheduler {
         await peer.flush(ctx);
     }
 
-    onPeerRoleChanged = async (ctx: Context, cid: number, pid: number, currentRole: 'speaker' | 'listener') => {
-        // noop
+    onPeerRoleChanged = async (ctx: Context, cid: number, pid: number, role: 'speaker' | 'listener') => {
+        let peer = await Store.ConferenceKitchenPeer.findById(ctx, pid);
+        if (!peer || !peer.active) {
+            return;
+        }
+        let router = await Store.ConferenceKitchenRouter.conference.find(ctx, cid);
+        if (!router || router.deleted) {
+            return;
+        }
+        if (role === 'speaker') {
+            if (!peer.producerTransport) {
+
+                // Create new producer
+                let existing = (await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid)).filter((v) => !!v.producerTransport);
+                const producer = await this.transport.createProducerTransport(ctx, router.id, cid, pid, peer.sources, peer.capabilities!);
+                peer.producerTransport = producer;
+                await peer.flush(ctx);
+                this.callRepo.notifyPeerChanged(ctx, pid);
+
+                for (let e of existing) {
+                    // If active
+                    if (!e.active) {
+                        continue;
+                    }
+
+                    // If have consumer
+                    if (!e.consumerTransport) {
+                        continue;
+                    }
+
+                    // Udpate consumer
+                    let ct = (await Store.ConferenceKitchenConsumerTransport.findById(ctx, e.consumerTransport))!;
+                    await this.transport.updateConsumerTransport(ctx, e.consumerTransport, [...ct.consumes, producer]);
+                    this.callRepo.notifyPeerChanged(ctx, e.pid);
+                }
+            }
+        }
+        // if (role === 'listener') {
+        //     if (peer.producerTransport) {
+        //         await this.transport.removeProducerTransport(ctx, peer.producerTransport);
+        //         peer.producerTransport = null;
+        //         await peer.flush(ctx);
+        //         this.callRepo.notifyPeerChanged(ctx, pid);
+        //     }
+        // }
     }
 
     //

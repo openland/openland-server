@@ -68,7 +68,7 @@ export interface CallScheduler {
     onPeerRemoved(ctx: Context, cid: number, pid: number): Promise<void>;
     onPeerStreamsChanged(ctx: Context, cid: number, pid: number, sources: MediaSources): Promise<void>;
     onPeerAdded(ctx: Context, cid: number, pid: number, sources: MediaSources, capabilities: Capabilities, role: 'speaker' | 'listener'): Promise<void>;
-    onPeerRoleChanged(ctx: Context, cid: number, pid: number, currentRole: 'speaker' | 'listener'): Promise<void>;
+    onPeerRoleChanged(ctx: Context, cid: number, pid: number, role: 'speaker' | 'listener'): Promise<void>;
 
     onStreamCandidate(ctx: Context, cid: number, pid: number, sid: string, candidate: string): Promise<void>;
     onStreamOffer(ctx: Context, cid: number, pid: number, sid: string, offer: string, hints: StreamHint[] | null): Promise<void>;

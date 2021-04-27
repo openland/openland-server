@@ -5,7 +5,7 @@ ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
 
 WORKDIR /
-ADD https://foundationdb-origin.apple.com/downloads/6.2.20/ubuntu/installers/foundationdb-clients_6.2.20-1_amd64.deb ./foundationdb-clients_6.2.20-1_amd64.deb
+ADD https://storage.googleapis.com/openland-distrib/foundationdb-clients_6.2.20-1_amd64.deb ./foundationdb-clients_6.2.20-1_amd64.deb
 RUN apt-get update && dpkg -i foundationdb-clients_6.2.20-1_amd64.deb && apt-get install -y python imagemagick gnupg2 && rm -rf /var/lib/apt/lists/*
 
 ENV YARN_VERSION 1.22.5
