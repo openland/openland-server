@@ -7,10 +7,10 @@ import { InvalidInputError } from './InvalidInputError';
 // import Raven from 'raven';
 import { DoubleInvokeError } from './DoubleInvokeError';
 import { AccessDeniedError } from './AccessDeniedError';
-import { IDs } from '../openland-module-api/IDs';
-import { Modules } from '../openland-modules/Modules';
-import { createNamedContext } from '@openland/context';
-import { createLogger } from '@openland/log';
+// import { IDs } from '../openland-module-api/IDs';
+// import { Modules } from '../openland-modules/Modules';
+// import { createNamedContext } from '@openland/context';
+// import { createLogger } from '@openland/log';
 
 interface FormattedError {
     uuid: string;
@@ -29,40 +29,40 @@ export interface QueryInfo {
     transport: 'http' | 'ws';
 }
 
-const ctx = createNamedContext('unexpected-error');
-const logger = createLogger('error-formatter');
+// const ctx = createNamedContext('unexpected-error');
+// const logger = createLogger('error-formatter');
 
-const handleUnexpectedError = (uuid: string, error: { message: string, originalError: any }, info?: QueryInfo) => {
-    // Raven.captureException(error.originalError);
-    logger.warn(ctx, error.originalError, 'unexpected_error', uuid, error, info);
+// const handleUnexpectedError = (uuid: string, error: { message: string, originalError: any }, info?: QueryInfo) => {
+//     // Raven.captureException(error.originalError);
+//     logger.warn(ctx, error.originalError, 'unexpected_error', uuid, error, info);
 
-    // tslint:disable:no-floating-promises
-    (async () => {
-        if (!await Modules.Super.getEnvVar<boolean>(ctx, 'api-error-reporting-enabled')) {
-            return;
-        }
+//     // tslint:disable:no-floating-promises
+//     (async () => {
+//         if (!await Modules.Super.getEnvVar<boolean>(ctx, 'api-error-reporting-enabled')) {
+//             return;
+//         }
 
-        let chatId = await Modules.Super.getEnvVar<number>(ctx, 'api-error-reporting-chat-id');
-        let botId = await Modules.Super.getEnvVar<number>(ctx, 'api-error-reporting-bot-id');
+//         let chatId = await Modules.Super.getEnvVar<number>(ctx, 'api-error-reporting-chat-id');
+//         let botId = await Modules.Super.getEnvVar<number>(ctx, 'api-error-reporting-bot-id');
 
-        if (!chatId || !botId) {
-            return;
-        }
+//         if (!chatId || !botId) {
+//             return;
+//         }
 
-        let report =
-            ':rotating_light: API Error:\n' +
-            '\n' +
-            ('User: ' + (info && info.uid && 'https://next.openland.com/directory/u/' + IDs.User.serialize(info.uid)) || 'ANON') + '\n' +
-            ('Org: ' + (info && info.oid && 'https://next.openland.com/directory/o/' + IDs.Organization.serialize(info.oid)) || 'ANON') + '\n' +
-            'Query: ' + ((info && info.query) || 'null') + '\n' +
-            'Transport: ' + ((info && info.transport) || 'unknown') + '\n' +
-            '\n' +
-            'Error: ' + error.originalError.message + '\n' +
-            'UUID: ' + uuid;
+//         let report =
+//             ':rotating_light: API Error:\n' +
+//             '\n' +
+//             ('User: ' + (info && info.uid && 'https://next.openland.com/directory/u/' + IDs.User.serialize(info.uid)) || 'ANON') + '\n' +
+//             ('Org: ' + (info && info.oid && 'https://next.openland.com/directory/o/' + IDs.Organization.serialize(info.oid)) || 'ANON') + '\n' +
+//             'Query: ' + ((info && info.query) || 'null') + '\n' +
+//             'Transport: ' + ((info && info.transport) || 'unknown') + '\n' +
+//             '\n' +
+//             'Error: ' + error.originalError.message + '\n' +
+//             'UUID: ' + uuid;
 
-        await Modules.Messaging.sendMessage(ctx, chatId, botId, { message: report, ignoreAugmentation: true });
-    })();
-};
+//         await Modules.Messaging.sendMessage(ctx, chatId, botId, { message: report, ignoreAugmentation: true });
+//     })();
+// };
 
 export function errorHandler(error: { message: string, originalError: any }, info?: QueryInfo): FormattedError {
     let uuid = UUID();
@@ -107,14 +107,14 @@ export function errorHandler(error: { message: string, originalError: any }, inf
             uuid: uuid,
         };
     } else if ((error as any).extensions) {
-        handleUnexpectedError(uuid, error, info);
+        // handleUnexpectedError(uuid, error, info);
         return {
             message: error.message,
             uuid: uuid,
         };
     }
 
-    handleUnexpectedError(uuid, error, info);
+    // handleUnexpectedError(uuid, error, info);
 
     return {
         message: 'An unexpected error occurred. Please, try again. If the problem persists, please contact support@openland.com.',
