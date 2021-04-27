@@ -107,7 +107,6 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
             name: 'nats',
             shutdown: async () => {
                 await client.drain();
-                client.close();
             }
         });
         logger.log(ctx, 'NATS connected');
