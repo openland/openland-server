@@ -54,7 +54,14 @@ export class EndStreamDirectory {
 
         if (input.pid !== undefined) {
             this.subspace.set(ctx, Subspaces.pid(id), encoders.int32LE.pack(input.pid));
-            this.subspace.set(ctx, Subspaces.peerIndex(id, input.pid), ONE);
+        }
+
+        if (input.pid !== undefined && input.state !== undefined) {
+            if (input.state !== 'completed') {
+                this.subspace.set(ctx, Subspaces.peerIndex(id, input.pid), ONE);
+            } else {
+                this.subspace.clear(ctx, Subspaces.peerIndex(id, input.pid));
+            }
         }
 
         if (input.state !== undefined) {
