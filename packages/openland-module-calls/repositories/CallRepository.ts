@@ -532,7 +532,7 @@ export class CallRepository {
             if (streamState !== 'need-offer') {
                 return;
             }
-            this.endStreamDirectory.updateStream(ctx, streamId, {
+            await this.endStreamDirectory.updateStream(ctx, streamId, {
                 localSdp: offer,
                 state: 'wait-answer'
             });
@@ -566,7 +566,7 @@ export class CallRepository {
                 return;
             }
 
-            this.endStreamDirectory.updateStream(ctx, streamId, {
+            await this.endStreamDirectory.updateStream(ctx, streamId, {
                 localSdp: answer,
                 state: 'online'
             });
@@ -599,7 +599,7 @@ export class CallRepository {
             if (streamLocalCandidates.find((v) => v === candidate)) {
                 return;
             }
-            this.endStreamDirectory.updateStream(ctx, streamId, {
+            await this.endStreamDirectory.updateStream(ctx, streamId, {
                 localCandidates: [...streamLocalCandidates, candidate]
             });
 

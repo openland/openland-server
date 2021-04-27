@@ -49,18 +49,25 @@ export class EndStreamDirectory {
         this.subspace = subspace;
     }
 
-    updateStream(ctx: Context, id: string, input: StreamInput) {
+    async updateStream(ctx: Context, id: string, input: StreamInput) {
         // TODO: json validation via codecs
 
         if (input.pid !== undefined) {
             this.subspace.set(ctx, Subspaces.pid(id), encoders.int32LE.pack(input.pid));
         }
 
-        if (input.pid !== undefined && input.state !== undefined) {
-            if (input.state !== 'completed') {
-                this.subspace.set(ctx, Subspaces.peerIndex(id, input.pid), ONE);
+        if (input.state !== undefined) {
+            let pid: number;
+            if (input.pid === undefined) {
+                pid = (await this.getPid(ctx, id))!;
             } else {
-                this.subspace.clear(ctx, Subspaces.peerIndex(id, input.pid));
+                pid = input.pid;
+            }
+
+            if (input.state !== 'completed') {
+                this.subspace.set(ctx, Subspaces.peerIndex(id, pid), ONE);
+            } else {
+                this.subspace.clear(ctx, Subspaces.peerIndex(id, pid));
             }
         }
 
@@ -101,8 +108,8 @@ export class EndStreamDirectory {
         }
     }
 
-    createStream(ctx: Context, id: string, input: Required<StreamInput>) {
-        this.updateStream(ctx, id, input);
+    async createStream(ctx: Context, id: string, input: Required<StreamInput>) {
+        await this.updateStream(ctx, id, input);
     }
 
     incrementSeq(ctx: Context, id: string, by: number) {
