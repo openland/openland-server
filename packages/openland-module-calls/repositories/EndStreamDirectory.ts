@@ -49,26 +49,12 @@ export class EndStreamDirectory {
         this.subspace = subspace;
     }
 
-    async updateStream(ctx: Context, id: string, input: StreamInput) {
+    updateStream(ctx: Context, id: string, input: StreamInput) {
         // TODO: json validation via codecs
 
         if (input.pid !== undefined) {
             this.subspace.set(ctx, Subspaces.pid(id), encoders.int32LE.pack(input.pid));
-        }
-
-        if (input.state !== undefined) {
-            let pid: number;
-            if (input.pid === undefined) {
-                pid = (await this.getPid(ctx, id))!;
-            } else {
-                pid = input.pid;
-            }
-
-            if (input.state !== 'completed') {
-                this.subspace.set(ctx, Subspaces.peerIndex(id, pid), ONE);
-            } else {
-                this.subspace.clear(ctx, Subspaces.peerIndex(id, pid));
-            }
+            this.subspace.set(ctx, Subspaces.peerIndex(id, input.pid), ONE);
         }
 
         if (input.state !== undefined) {
@@ -108,8 +94,8 @@ export class EndStreamDirectory {
         }
     }
 
-    async createStream(ctx: Context, id: string, input: Required<StreamInput>) {
-        await this.updateStream(ctx, id, input);
+    createStream(ctx: Context, id: string, input: Required<StreamInput>) {
+        this.updateStream(ctx, id, input);
     }
 
     incrementSeq(ctx: Context, id: string, by: number) {
@@ -205,6 +191,15 @@ export class EndStreamDirectory {
 
     async getPeerStreams(ctx: Context, pid: number): Promise<string[]> {
         let res = await this.subspace.range(ctx, encoders.tuple.pack([SUBSPACE_PEER_INDEX, pid]));
-        return res.map(i => encoders.tuple.unpack(i.key)[2] as string);
+        let peerIds = res.map(i => encoders.tuple.unpack(i.key)[2] as string);
+
+        let states = await Promise.all(peerIds.map(async id => {
+            return {
+                id,
+                state: await this.getState(ctx, id)
+            };
+        }));
+
+        return states.filter(s => s.state !== 'completed').map(s => s.id);
     }
 }
