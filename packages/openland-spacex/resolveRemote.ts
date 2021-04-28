@@ -12,11 +12,17 @@ export function resolveRemote(document: DocumentNode): string | null {
         return null;
     }
 
-    switch (field) {
-        case 'typingCancel':
-        case 'typingSend':
-            return 'events';
-        default:
-            return null;
+    if (op.operation === 'mutation') {
+        switch (field) {
+            case 'presenceReportOnline':
+            case 'presenceReportOffline':
+            case 'typingCancel':
+            case 'typingSend':
+                return 'events';
+            default:
+                return null;
+        }
     }
+
+    return null;
 }
