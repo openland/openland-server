@@ -1,3 +1,4 @@
+import { UnboundedConcurrencyPool } from './../openland-utils/ConcurrencyPool';
 import { Modules } from 'openland-modules/Modules';
 import { SpaceXContext } from './SpaceXContext';
 import { currentRunningTime } from 'openland-utils/timer';
@@ -6,7 +7,7 @@ import { createTracer } from 'openland-log/createTracer';
 import { createLogger } from '@openland/log';
 import { Config } from 'openland-config/Config';
 import { ConcurrencyPool } from 'openland-utils/ConcurrencyPool';
-import { Concurrency } from './../openland-server/concurrency';
+// import { Concurrency } from './../openland-server/concurrency';
 import uuid from 'uuid/v4';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import { Context, ContextName, createNamedContext } from '@openland/context';
@@ -76,7 +77,7 @@ export class SpaceXSession {
         activeSessions.set(this.uuid, this);
 
         // Resolve concurrency pool
-        this.concurrencyPool = Concurrency.Resolve();
+        this.concurrencyPool = UnboundedConcurrencyPool;
 
         // Resolve keep alive
         if (params.descriptor.type === 'authenticated') {
