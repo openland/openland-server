@@ -19,6 +19,8 @@ import { isContextCancelled, withLifetime, cancelContext } from '@openland/lifet
 import { IDs } from 'openland-module-api/IDs';
 import { execute } from 'openland-module-api/execute';
 import { getOperationField } from './utils/getOperationField';
+import { resolveRemote } from './resolveRemote';
+import { callRemoteQueryExecutor } from 'openland-module-api/remoteExecutor';
 
 export type SpaceXSessionDescriptor = { type: 'anonymnous' } | { type: 'authenticated', uid: number, tid: string };
 
@@ -85,7 +87,7 @@ export class SpaceXSession {
         }
     }
 
-    operation(parentContext: Context, op: { document: DocumentNode, variables: any, operationName?: string }, handler: (result: OpResult) => void): OpRef {
+    operation(parentContext: Context, op: { raw: string, document: DocumentNode, variables: any, operationName?: string }, handler: (result: OpResult) => void): OpRef {
         if (this.closed) {
             throw Error('Session already closed');
         }
@@ -119,6 +121,7 @@ export class SpaceXSession {
         } else {
             Metrics.SpaceXOperations.inc();
         }
+        const remote = resolveRemote(op.document);
 
         // tslint:disable-next-line:no-floating-promises
         (async () => {
@@ -134,13 +137,23 @@ export class SpaceXSession {
 
                 if (docOp === 'query' || docOp === 'mutation') {
 
-                    // Executing in concurrency pool
-                    let res = await this._execute({
-                        ctx: opContext,
-                        type: docOp,
-                        op,
-                        field: docField
-                    });
+                    let res: ExecutionResult | null;
+                    if (remote) {
+                        // Execute in remote pool
+                        res = await callRemoteQueryExecutor(remote,
+                            opContext,
+                            op.raw,
+                            op.variables,
+                            op.operationName ? op.operationName : null);
+                    } else {
+                        // Executing in concurrency pool
+                        res = await this._execute({
+                            ctx: opContext,
+                            type: docOp,
+                            op,
+                            field: docField
+                        });
+                    }
 
                     // Complete if is not already
                     if (!res) {
@@ -304,7 +317,7 @@ export class SpaceXSession {
         rootValue?: any,
         type: 'mutation' | 'query' | 'subscription' | 'subscription-resolve',
         field: string | null,
-        op: { document: DocumentNode, variables: any, operationName?: string }
+        op: { raw: string, document: DocumentNode, variables: any, operationName?: string }
     }) {
         return this._guard({ ctx: opts.ctx, type: opts.type, operationName: opts.op.operationName, field: opts.field }, async (context) => {
             let start = currentRunningTime();
@@ -351,6 +364,10 @@ export class SpaceXSession {
                     });
                     break;
                 case 'query':
+                    const remote = resolveRemote(opts.op.document);
+                    if (remote) {
+                        return await callRemoteQueryExecutor(remote, ctx, opts.op.raw, opts.op.variables, opts.op.operationName ? opts.op.operationName : null);
+                    }
                     res = await inHybridTx(ctx, async (ictx) => {
                         getTransaction(ictx).setOptions({ retry_limit: 3, timeout: 10000 });
                         return execute(ictx, {

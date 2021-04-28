@@ -86,7 +86,7 @@ async function handleOperation(params: SpaceXServerParams, req: http.IncomingMes
         connection.sendComplete(id);
         return;
     }
-    let { id: opId } = connection.session.operation(ctx, { document: (query as any).document /* TS, WTF? */, variables: operation.variables, operationName: operation.name }, (res) => {
+    let { id: opId } = connection.session.operation(ctx, { raw: operation.query, document: (query as any).document /* TS, WTF? */, variables: operation.variables, operationName: operation.name }, (res) => {
         if (res.type === 'data') {
             connection.sendData(id, params.formatResponse({ data: res.data }, operation, ctx));
         } else if (res.type === 'errors') {
