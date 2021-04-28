@@ -5,11 +5,13 @@ import { Metrics } from '../openland-module-monitoring/Metrics';
 import { Concurrency } from '../openland-server/concurrency';
 import uuid from 'uuid';
 import { PingPong } from './PingPong';
+import os from 'os';
+const hostname = os.hostname();
 
 export class SpaceXConnection {
     readonly id = randomKey();
     public protocolVersion = 1;
-    private socket:  WebSocket | null;
+    private socket: WebSocket | null;
     public createdAt = Date.now();
     public state: 'init' | 'connecting' | 'connected' = 'init';
     public pinger: PingPong | null = null;
@@ -28,6 +30,7 @@ export class SpaceXConnection {
         this.socket = socket;
         this.onClose = onClose;
         Metrics.WebSocketConnections.inc();
+        Metrics.WebSocketConnectionsProcess.inc(hostname);
     }
 
     setConnecting = () => {
@@ -80,6 +83,7 @@ export class SpaceXConnection {
         this.socket = null;
         this.session?.close();
         Metrics.WebSocketConnections.dec();
+        Metrics.WebSocketConnectionsProcess.dec(hostname);
         this.onClose();
     }
 
@@ -87,7 +91,7 @@ export class SpaceXConnection {
         if (this.state === 'connected') {
             return;
         }
-        await new Promise(resolve => {
+        await new Promise<void>(resolve => {
             this.authWaiters.push(resolve);
         });
     }
