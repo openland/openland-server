@@ -1,7 +1,7 @@
 import { Modules } from 'openland-modules/Modules';
 import { SpaceXContext } from './SpaceXContext';
 import { currentRunningTime } from 'openland-utils/timer';
-import { withoutTransaction, inTx, inHybridTx } from '@openland/foundationdb';
+import { withoutTransaction, inTx, inHybridTx, createDefaultTaskExecutor, TransactionContext } from '@openland/foundationdb';
 import { createTracer } from 'openland-log/createTracer';
 import { createLogger } from '@openland/log';
 import { Config } from 'openland-config/Config';
@@ -10,7 +10,7 @@ import { Concurrency } from './../openland-server/concurrency';
 import uuid from 'uuid/v4';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import { Context, ContextName, createNamedContext } from '@openland/context';
-import { DocumentNode, GraphQLSchema, createSourceEventStream } from 'graphql';
+import { DocumentNode, GraphQLSchema, createSourceEventStream, ExecutionResult } from 'graphql';
 import { getOperationType } from './utils/getOperationType';
 import { setTracingTag } from 'openland-log/setTracingTag';
 import { isAsyncIterator } from 'openland-mtproto3/utils';
@@ -55,6 +55,7 @@ export class SpaceXSession {
     private closed = false;
     private activeOperations = new Map<string, () => void>();
     private keepAlive: (() => void) | null = null;
+    private taskExecutor = createDefaultTaskExecutor('subscriptions', 10, 50);
 
     constructor(params: SpaceXSessionParams) {
         this.descriptor = params.descriptor;
@@ -298,27 +299,62 @@ export class SpaceXSession {
         return this._guard({ ctx: opts.ctx, type: opts.type, operationName: opts.op.operationName }, async (context) => {
             let start = currentRunningTime();
             let ctx = context;
-            let res = opts.type === 'subscription' ?
-                await execute(ctx, {
-                    schema: this.schema,
-                    document: opts.op.document,
-                    operationName: opts.op.operationName,
-                    variableValues: opts.op.variables,
-                    contextValue: ctx,
-                    rootValue: opts.rootValue
-                })
-                : await (opts.type === 'mutation' ? inTx : inHybridTx)(ctx, async (ictx) => {
-                    // getTransaction(ictx).setOptions({ retry_limit: 3, timeout: 10000 });
 
-                    return execute(ictx, {
+            let res: ExecutionResult<{
+                [key: string]: any;
+            }, {
+                [key: string]: any;
+            }>;
+            switch (opts.type) {
+                case 'subscription':
+                    res = await execute(ctx, {
                         schema: this.schema,
                         document: opts.op.document,
                         operationName: opts.op.operationName,
                         variableValues: opts.op.variables,
-                        contextValue: ictx,
+                        contextValue: ctx,
                         rootValue: opts.rootValue
                     });
-                });
+                    break;
+                case 'subscription-resolve':
+                    res = await this.taskExecutor.execute(async (ictx) => {
+                        return execute(ictx, {
+                            schema: this.schema,
+                            document: opts.op.document,
+                            operationName: opts.op.operationName,
+                            variableValues: opts.op.variables,
+                            contextValue: TransactionContext.set(ctx, TransactionContext.get(ictx)!),
+                            rootValue: opts.rootValue
+                        });
+                    });
+                    break;
+                case 'query':
+                    res = await inHybridTx(ctx, async (ictx) => {
+                        return execute(ictx, {
+                            schema: this.schema,
+                            document: opts.op.document,
+                            operationName: opts.op.operationName,
+                            variableValues: opts.op.variables,
+                            contextValue: ictx,
+                            rootValue: opts.rootValue
+                        });
+                    });
+                    break;
+                case 'mutation':
+                    res = await inTx(ctx, async (ictx) => {
+                        return execute(ictx, {
+                            schema: this.schema,
+                            document: opts.op.document,
+                            operationName: opts.op.operationName,
+                            variableValues: opts.op.variables,
+                            contextValue: ictx,
+                            rootValue: opts.rootValue
+                        });
+                    });
+                    break;
+                default:
+                    throw Error('Unknown ops type');
+            }
             let duration = currentRunningTime() - start;
             let tag = opts.type + ' ' + (opts.op.operationName || 'Unknown');
             Metrics.SpaceXOperationTime.report(duration);
