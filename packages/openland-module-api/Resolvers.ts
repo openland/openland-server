@@ -12,7 +12,7 @@ async function fetchPermissions(ctx: Context) {
     if (ctx.cache.has('permissions')) {
         return (await ctx.cache.get('permissions')) as Set<string>;
     }
-    let res = await inTx(ctx, (ctx2) => Modules.Super.resolvePermissions(ctx2, { uid: ctx.auth.uid, oid: ctx.auth.oid }));
+    let res = await inTx(ctx, (ctx2) => Modules.Super.resolvePermissions(ctx2, { uid: ctx.auth.uid }));
     ctx.cache.set('permissions', res);
     return res;
 }

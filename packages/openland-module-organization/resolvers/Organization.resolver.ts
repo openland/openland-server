@@ -11,7 +11,7 @@ import { Organization } from 'openland-module-db/store';
 import { isDefined } from '../../openland-utils/misc';
 
 const resolveOrganizationRooms = async (src: Organization, args: {}, ctx: Context) => {
-    let haveAccess = src.kind === 'community' ? true : (ctx.auth.uid && ctx.auth.oid && await Modules.Orgs.isUserMember(ctx, ctx.auth.uid, src.id));
+    let haveAccess = src.kind === 'community' ? true : (ctx.auth.uid && await Modules.Orgs.isUserMember(ctx, ctx.auth.uid, src.id));
     if (!haveAccess) {
         return [];
     }

@@ -1,7 +1,7 @@
 import { Config } from 'openland-config/Config';
 import {
     Organization,
-    Message,
+    // Message,
     Comment,
     DialogNeedReindexEvent,
     OrganizationProfile,
@@ -13,7 +13,7 @@ import {
 } from './../openland-module-db/store';
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission, withUser } from '../openland-module-api/Resolvers';
-import { Emails } from '../openland-module-email/Emails';
+// import { Emails } from '../openland-module-email/Emails';
 import { Store } from '../openland-module-db/FDB';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
@@ -434,96 +434,96 @@ export const Resolver: GQLResolver = {
             return true;
         }),
         lifecheck: () => `i'm still ok`,
-        debugSendEmail: withPermission('super-admin', async (parent, args) => {
-            return await inTx(parent, async ctx => {
-                let uid = ctx.auth.uid!;
-                let oid = ctx.auth.oid!;
-                let type = args.type;
-                let user = await Store.User.findById(ctx, uid);
-                let email = user!.email!;
-                let isProd = Config.environment === 'production';
+        // debugSendEmail: withPermission('super-admin', async (parent, args) => {
+        //     return await inTx(parent, async ctx => {
+        //         let uid = ctx.auth.uid!;
+        //         let oid = ctx.auth.oid!;
+        //         let type = args.type;
+        //         let user = await Store.User.findById(ctx, uid);
+        //         let email = user!.email!;
+        //         let isProd = Config.environment === 'production';
 
-                if (type === 'WELCOME') {
-                    await Emails.sendWelcomeEmail(ctx, uid);
-                } else if (type === 'ACCOUNT_ACTIVATED') {
-                    await Emails.sendAccountActivatedEmail(ctx, oid, uid);
-                } else if (type === 'ACCOUNT_DEACTIVATED') {
-                    await Emails.sendAccountDeactivatedEmail(ctx, oid, uid);
-                } else if (type === 'MEMBER_REMOVED') {
-                    await Emails.sendMemberRemovedEmail(ctx, oid, uid);
-                } else if (type === 'MEMBERSHIP_LEVEL_CHANGED') {
-                    await Emails.sendMembershipLevelChangedEmail(ctx, oid, uid);
-                } else if (type === 'INVITE') {
-                    let invite = {
-                        firstName: 'Test',
-                        lastName: 'Test',
-                        uid,
-                        email: email,
-                        entityName: '',
-                        id: -1,
-                        oid,
-                        text: 'test',
-                        ttl: -1,
-                        enabled: true,
-                        joined: false,
-                        role: 'MEMBER',
-                    };
+        //         if (type === 'WELCOME') {
+        //             await Emails.sendWelcomeEmail(ctx, uid);
+        //         } else if (type === 'ACCOUNT_ACTIVATED') {
+        //             await Emails.sendAccountActivatedEmail(ctx, oid, uid);
+        //         } else if (type === 'ACCOUNT_DEACTIVATED') {
+        //             await Emails.sendAccountDeactivatedEmail(ctx, oid, uid);
+        //         } else if (type === 'MEMBER_REMOVED') {
+        //             await Emails.sendMemberRemovedEmail(ctx, oid, uid);
+        //         } else if (type === 'MEMBERSHIP_LEVEL_CHANGED') {
+        //             await Emails.sendMembershipLevelChangedEmail(ctx, oid, uid);
+        //         } else if (type === 'INVITE') {
+        //             let invite = {
+        //                 firstName: 'Test',
+        //                 lastName: 'Test',
+        //                 uid,
+        //                 email: email,
+        //                 entityName: '',
+        //                 id: -1,
+        //                 oid,
+        //                 text: 'test',
+        //                 ttl: -1,
+        //                 enabled: true,
+        //                 joined: false,
+        //                 role: 'MEMBER',
+        //             };
 
-                    await Emails.sendInviteEmail(ctx, oid, invite as any);
-                } else if (type === 'MEMBER_JOINED') {
-                    await Emails.sendMemberJoinedEmails(ctx, oid, uid, uid, true);
-                } else if (type === 'SIGNUP_CODE') {
-                    await Emails.sendActivationCodeEmail(ctx, email, '00000', false);
-                } else if (type === 'SIGIN_CODE') {
-                    await Emails.sendActivationCodeEmail(ctx, email, '00000', true);
-                } else if (type === 'UNREAD_MESSAGE') {
-                    let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
-                    let dialog = dialogs[0];
-                    let messages = await Store.Message.chat.query(ctx, dialog.cid, { limit: 1, reverse: true });
+        //             await Emails.sendInviteEmail(ctx, oid, invite as any);
+        //         } else if (type === 'MEMBER_JOINED') {
+        //             await Emails.sendMemberJoinedEmails(ctx, oid, uid, uid, true);
+        //         } else if (type === 'SIGNUP_CODE') {
+        //             await Emails.sendActivationCodeEmail(ctx, email, '00000', false);
+        //         } else if (type === 'SIGIN_CODE') {
+        //             await Emails.sendActivationCodeEmail(ctx, email, '00000', true);
+        //         } else if (type === 'UNREAD_MESSAGE') {
+        //             let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
+        //             let dialog = dialogs[0];
+        //             let messages = await Store.Message.chat.query(ctx, dialog.cid, { limit: 1, reverse: true });
 
-                    await Emails.sendUnreadMessages(ctx, uid, messages.items);
-                } else if (type === 'UNREAD_MESSAGES') {
-                    let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
-                    let messages: Message[] = [];
+        //             await Emails.sendUnreadMessages(ctx, uid, messages.items);
+        //         } else if (type === 'UNREAD_MESSAGES') {
+        //             let dialogs = await Modules.Messaging.findUserDialogs(ctx, uid);
+        //             let messages: Message[] = [];
 
-                    for (let dialog of dialogs) {
-                        let msgs = await Store.Message.chat.query(ctx, dialog.cid, { limit: 1, reverse: true });
-                        messages.push(msgs.items[0]);
-                    }
+        //             for (let dialog of dialogs) {
+        //                 let msgs = await Store.Message.chat.query(ctx, dialog.cid, { limit: 1, reverse: true });
+        //                 messages.push(msgs.items[0]);
+        //             }
 
-                    await Emails.sendUnreadMessages(ctx, uid, messages);
-                } else if (type === 'PUBLIC_ROOM_INVITE') {
-                    let cid = IDs.Conversation.parse(isProd ? 'AL1ZPXB9Y0iq3yp4rx03cvMk9d' : 'd5z2ppJy6JSXx4OA00lxSJXmp6');
+        //             await Emails.sendUnreadMessages(ctx, uid, messages);
+        //         } else if (type === 'PUBLIC_ROOM_INVITE') {
+        //             let cid = IDs.Conversation.parse(isProd ? 'AL1ZPXB9Y0iq3yp4rx03cvMk9d' : 'd5z2ppJy6JSXx4OA00lxSJXmp6');
 
-                    await Emails.sendRoomInviteEmail(ctx, uid, email, cid, { id: 'xxxxx' } as any);
-                } else if (type === 'PRIVATE_ROOM_INVITE') {
-                    let cid = IDs.Conversation.parse(isProd ? 'qljZr9WbMKSRlBZWbDo5U9qZW4' : 'vBDpxxEQREhQyOBB6l7LUDMwPE');
+        //             await Emails.sendRoomInviteEmail(ctx, uid, email, cid, { id: 'xxxxx' } as any);
+        //         } else if (type === 'PRIVATE_ROOM_INVITE') {
+        //             let cid = IDs.Conversation.parse(isProd ? 'qljZr9WbMKSRlBZWbDo5U9qZW4' : 'vBDpxxEQREhQyOBB6l7LUDMwPE');
 
-                    await Emails.sendRoomInviteEmail(ctx, uid, email, cid, { id: 'xxxxx' } as any);
-                } else if (type === 'ROOM_INVITE_ACCEPTED') {
-                    let cid = IDs.Conversation.parse(isProd ? 'AL1ZPXB9Y0iq3yp4rx03cvMk9d' : 'd5z2ppJy6JSXx4OA00lxSJXmp6');
+        //             await Emails.sendRoomInviteEmail(ctx, uid, email, cid, { id: 'xxxxx' } as any);
+        //         } else if (type === 'ROOM_INVITE_ACCEPTED') {
+        //             let cid = IDs.Conversation.parse(isProd ? 'AL1ZPXB9Y0iq3yp4rx03cvMk9d' : 'd5z2ppJy6JSXx4OA00lxSJXmp6');
 
-                    let invite = {
-                        creatorId: uid,
-                        channelId: cid,
-                    };
+        //             let invite = {
+        //                 creatorId: uid,
+        //                 channelId: cid,
+        //             };
 
-                    await Emails.sendRoomInviteAcceptedEmail(ctx, uid, invite as any);
-                } else if (type === 'WEEKLY_DIGEST') {
-                    await Emails.sendWeeklyDigestEmail(ctx, uid);
-                } else if (type === 'GENERIC') {
-                    await Emails.sendGenericEmail(ctx, uid, {
-                        subject: 'Generic subject',
-                        title: 'Generic title',
-                        text: 'Generic text',
-                        link: 'https://openland.com/',
-                        buttonText: 'Button caption'
-                    });
-                }
+        //             await Emails.sendRoomInviteAcceptedEmail(ctx, uid, invite as any);
+        //         } else if (type === 'WEEKLY_DIGEST') {
+        //             await Emails.sendWeeklyDigestEmail(ctx, uid);
+        //         } else if (type === 'GENERIC') {
+        //             await Emails.sendGenericEmail(ctx, uid, {
+        //                 subject: 'Generic subject',
+        //                 title: 'Generic title',
+        //                 text: 'Generic text',
+        //                 link: 'https://openland.com/',
+        //                 buttonText: 'Button caption'
+        //             });
+        //         }
 
-                return true;
-            });
-        }),
+        //         return true;
+        //     });
+        // }),
         debugSerializeId: withPermission('super-admin', async (ctx, args) => {
             if (!(IDs as any)[args.type]) {
                 throw new NotFoundError();

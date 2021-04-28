@@ -8,7 +8,7 @@ export const Resolver: GQLResolver = {
     Query: {
         myPermissions: async (r, args, ctx) => {
             return {
-                roles: Array.from(await Modules.Super.resolvePermissions(ctx, { uid: ctx.auth.uid, oid: ctx.auth.oid }))
+                roles: Array.from(await Modules.Super.resolvePermissions(ctx, { uid: ctx.auth.uid }))
             };
         },
         // users: withPermission('super-admin', async (ctx, args) => {
