@@ -2,7 +2,7 @@ import { UnboundedConcurrencyPool } from './../openland-utils/ConcurrencyPool';
 import { Modules } from 'openland-modules/Modules';
 import { SpaceXContext } from './SpaceXContext';
 import { currentRunningTime } from 'openland-utils/timer';
-import { withoutTransaction, inTx, inHybridTx, createDefaultTaskExecutor, TransactionContext } from '@openland/foundationdb';
+import { withoutTransaction, inTx, inHybridTx, createDefaultTaskExecutor, TransactionContext, getTransaction } from '@openland/foundationdb';
 import { createTracer } from 'openland-log/createTracer';
 import { createLogger } from '@openland/log';
 import { Config } from 'openland-config/Config';
@@ -352,6 +352,7 @@ export class SpaceXSession {
                     break;
                 case 'query':
                     res = await inHybridTx(ctx, async (ictx) => {
+                        getTransaction(ictx).setOptions({ retry_limit: 3, timeout: 10000 });
                         return execute(ictx, {
                             schema: this.schema,
                             document: opts.op.document,
@@ -364,6 +365,7 @@ export class SpaceXSession {
                     break;
                 case 'mutation':
                     res = await inTx(ctx, async (ictx) => {
+                        getTransaction(ictx).setOptions({ retry_limit: 3, timeout: 10000 });
                         return execute(ictx, {
                             schema: this.schema,
                             document: opts.op.document,
