@@ -140,11 +140,19 @@ export class SpaceXSession {
                     let res: ExecutionResult | null;
                     if (remote) {
                         // Execute in remote pool
-                        res = await callRemoteQueryExecutor(remote,
-                            opContext,
-                            op.raw,
-                            op.variables,
-                            op.operationName ? op.operationName : null);
+                        res = await tracer.trace(opContext, docOp, async (context) => {
+                            if (op.operationName) {
+                                setTracingTag(context, 'operation_name', op.operationName);
+                            }
+                            if (context.auth.uid) {
+                                setTracingTag(context, 'user', IDs.User.serialize(context.auth.uid));
+                            }
+                            return await callRemoteQueryExecutor(remote,
+                                context,
+                                op.raw,
+                                op.variables,
+                                op.operationName ? op.operationName : null);
+                        });
                     } else {
                         // Executing in concurrency pool
                         res = await this._execute({

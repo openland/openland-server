@@ -61,7 +61,7 @@ export function declareRemoteQueryExecutor(tag: string) {
 }
 
 export function callRemoteQueryExecutor(tag: string, ctx: Context, query: string, variables: any, operationName: string | null): Promise<ExecutionResult> {
-    return tracer.trace(ctx, 'call', async (ctx2) => {
+    return tracer.trace(ctx, operationName ? operationName : '<call>', async (ctx2) => {
         return {
             data: await Modules.Broker.call('graphql-' + tag + '.execute', { ctx: contextSerialize(ctx2), query, operationName, variables })
         };
