@@ -280,11 +280,9 @@ export async function initApi(isTest: boolean) {
             formatResponse: (value, operation, ctx) => {
                 let auth = AuthContext.get(ctx);
                 let uid = auth.uid;
-                let oid = auth.oid;
 
                 let queryInfo: QueryInfo = {
                     uid,
-                    oid,
                     transport: 'ws',
                     query: JSON.stringify(operation)
                 };
