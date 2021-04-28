@@ -1,3 +1,4 @@
+import { createTracer } from 'openland-log/createTracer';
 import { DocumentNode } from '@apollo/client/core';
 import { Context, createNamedContext } from '@openland/context';
 import { getTransaction, inTx } from '@openland/foundationdb';
@@ -6,6 +7,8 @@ import { Modules } from 'openland-modules/Modules';
 import { contextParse, contextSerialize } from 'openland-server/context';
 import { getOperation } from 'openland-spacex/utils/getOperation';
 import { execute } from './execute';
+
+const tracer = createTracer('remote');
 
 export function declareRemoteQueryExecutor(tag: string) {
     const rootCtx = createNamedContext('graphql-' + tag);
@@ -57,8 +60,10 @@ export function declareRemoteQueryExecutor(tag: string) {
     });
 }
 
-export async function callRemoteQueryExecutor(tag: string, ctx: Context, query: string, variables: any, operationName: string | null): Promise<ExecutionResult> {
-    return {
-        data: await Modules.Broker.call('graphql-' + tag + '.execute', { ctx: contextSerialize(ctx), query, operationName, variables })
-    };
+export function callRemoteQueryExecutor(tag: string, ctx: Context, query: string, variables: any, operationName: string | null): Promise<ExecutionResult> {
+    return tracer.trace(ctx, 'call', async (ctx2) => {
+        return {
+            data: await Modules.Broker.call('graphql-' + tag + '.execute', { ctx: contextSerialize(ctx2), query, operationName, variables })
+        };
+    });
 }
