@@ -48,6 +48,9 @@ const spaceXCtx = createNamedContext('spacex');
 const logger = createLogger('spacex');
 const tracer = createTracer('spacex');
 const typingsExecutor = createDefaultTaskExecutor('typings-task-executor', 10, 50);
+const chatOnlineExecutor = createDefaultTaskExecutor('chat-online-task-executor', 10, 100);
+const userOnlineExecutor = createDefaultTaskExecutor('user-online-task-executor', 10, 100);
+
 export class SpaceXSession {
     readonly uuid = uuid();
     readonly descriptor: SpaceXSessionDescriptor;
@@ -328,8 +331,12 @@ export class SpaceXSession {
                     let executor = this.taskExecutor;
                     if (opts.field === 'typings') {
                         executor = typingsExecutor;
+                    } else if (opts.field === 'chatOnlinesCount') {
+                        executor = chatOnlineExecutor;
+                    } else if (opts.field === 'alphaSubscribeOnline') {
+                        executor = userOnlineExecutor;
                     }
-                    
+
                     // Execute
                     res = await executor.execute(async (ictx) => {
                         return execute(ictx, {
