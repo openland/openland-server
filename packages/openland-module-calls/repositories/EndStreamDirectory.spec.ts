@@ -31,7 +31,7 @@ describe('EndStreamDirectory', () => {
                 remoteCandidates: ['3', '2', '1']
             };
 
-            await directory.createStream(ctx, '1', input);
+            directory.createStream(ctx, '1', input);
 
             let stream = {
                 pid: await directory.getPid(ctx, '1'),
@@ -48,7 +48,7 @@ describe('EndStreamDirectory', () => {
 
             expect(stream).toMatchObject(input);
 
-            await directory.updateStream(ctx, '1', { state: 'completed' });
+            directory.updateStream(ctx, '1', { state: 'completed' });
 
             expect(await directory.getState(ctx, '1')).toBe('completed');
         });
@@ -59,7 +59,7 @@ describe('EndStreamDirectory', () => {
             let savedStreamIds: string[] = [];
             for (let i = 0; i < 10; i++) {
                 let id = 'stream-' + i;
-                await directory.createStream(ctx, id, {
+                directory.createStream(ctx, id, {
                     pid: 7,
                     seq: 2,
                     state: 'need-offer',

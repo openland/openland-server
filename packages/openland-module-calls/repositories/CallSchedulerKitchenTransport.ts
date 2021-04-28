@@ -247,7 +247,7 @@ export class CallSchedulerKitchenTransport {
             localStreams.push({ type: 'audio', codec: 'opus', mid: null });
         }
         let allowAll = await Modules.Super.getEnvVar<boolean>(ctx, 'kitchen-allow-all') || false;
-        await this.endStreamDirectory.createStream(ctx, id, {
+        this.endStreamDirectory.createStream(ctx, id, {
             pid,
             seq: 1,
             state: 'need-offer',
@@ -355,7 +355,7 @@ export class CallSchedulerKitchenTransport {
 
         // End stream
         let allowAll = await Modules.Super.getEnvVar<boolean>(ctx, 'kitchen-allow-all') || false;
-        await this.endStreamDirectory.createStream(ctx, id, {
+        this.endStreamDirectory.createStream(ctx, id, {
             pid,
             seq: 1,
             state: 'wait-offer',
@@ -406,7 +406,7 @@ export class CallSchedulerKitchenTransport {
         if (produces.audioStream) {
             localStreams.push({ type: 'audio', codec: 'opus', mid: null });
         }
-        await this.endStreamDirectory.updateStream(ctx, id, {
+        this.endStreamDirectory.updateStream(ctx, id, {
             state: 'need-offer',
             localStreams
         });
@@ -448,7 +448,7 @@ export class CallSchedulerKitchenTransport {
 
         // Close End Stream
         let streamPid = (await this.endStreamDirectory.getPid(ctx, id))!;
-        await this.endStreamDirectory.updateStream(ctx, id, {
+        this.endStreamDirectory.updateStream(ctx, id, {
             state: 'completed',
             remoteCandidates: [],
             localCandidates: [],
@@ -489,7 +489,7 @@ export class CallSchedulerKitchenTransport {
 
         // Close End Stream
         let streamPid = (await this.endStreamDirectory.getPid(ctx, id))!;
-        await this.endStreamDirectory.updateStream(ctx, id, {
+        this.endStreamDirectory.updateStream(ctx, id, {
             state: 'completed',
             remoteCandidates: [],
             localCandidates: [],
@@ -715,7 +715,7 @@ export class CallSchedulerKitchenTransport {
             transport.serverParameters!.iceParameters,
             media
         );
-        await this.endStreamDirectory.updateStream(ctx, transportId, {
+        this.endStreamDirectory.updateStream(ctx, transportId, {
             state: 'online',
             remoteSdp: JSON.stringify({ type: 'answer', sdp: answer }),
         });
@@ -931,7 +931,7 @@ export class CallSchedulerKitchenTransport {
             media
         );
         this.endStreamDirectory.incrementSeq(ctx, transportId, 1);
-        await this.endStreamDirectory.updateStream(ctx, transportId, {
+        this.endStreamDirectory.updateStream(ctx, transportId, {
             state: 'need-answer',
             remoteSdp: JSON.stringify({ type: 'offer', sdp: answer }),
             remoteStreams
