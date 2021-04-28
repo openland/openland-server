@@ -1,7 +1,7 @@
 import { OperationDefinitionNode } from 'graphql';
 
 export function getOperationField(src: OperationDefinitionNode) {
-    if (src.selectionSet.selections.length !== 0) {
+    if (src.selectionSet.selections.length !== 1) {
         return null;
     }
     const selection = src.selectionSet.selections[0];
