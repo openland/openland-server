@@ -11,12 +11,13 @@ import uuid from 'uuid/v4';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import { Context, ContextName, createNamedContext } from '@openland/context';
 import { DocumentNode, GraphQLSchema, createSourceEventStream, ExecutionResult } from 'graphql';
-import { getOperationType } from './utils/getOperationType';
+import { getOperation } from './utils/getOperation';
 import { setTracingTag } from 'openland-log/setTracingTag';
 import { isAsyncIterator } from 'openland-mtproto3/utils';
 import { isContextCancelled, withLifetime, cancelContext } from '@openland/lifetime';
 import { IDs } from 'openland-module-api/IDs';
 import { execute } from 'openland-module-api/execute';
+import { getOperationField } from './utils/getOperationField';
 
 export type SpaceXSessionDescriptor = { type: 'anonymnous' } | { type: 'authenticated', uid: number, tid: string };
 
@@ -46,7 +47,7 @@ let activeSessions = new Map<string, SpaceXSession>();
 const spaceXCtx = createNamedContext('spacex');
 const logger = createLogger('spacex');
 const tracer = createTracer('spacex');
-
+const typingsExecutor = createDefaultTaskExecutor('typings-task-executor', 10, 50);
 export class SpaceXSession {
     readonly uuid = uuid();
     readonly descriptor: SpaceXSessionDescriptor;
@@ -55,7 +56,7 @@ export class SpaceXSession {
     private closed = false;
     private activeOperations = new Map<string, () => void>();
     private keepAlive: (() => void) | null = null;
-    private taskExecutor = createDefaultTaskExecutor('subscriptions', 10, 50);
+    private taskExecutor = createDefaultTaskExecutor('subscriptions-task-executor', 10, 50);
 
     constructor(params: SpaceXSessionParams) {
         this.descriptor = params.descriptor;
@@ -84,7 +85,9 @@ export class SpaceXSession {
         if (this.closed) {
             throw Error('Session already closed');
         }
-        let docOp = getOperationType(op.document, op.operationName);
+        let doc = getOperation(op.document, op.operationName);
+        let docOp = doc.operation;
+        let docField = getOperationField(doc);
         let id = uuid();
         let opContext = withLifetime(parentContext);
         opContext = SpaceXContext.set(opContext, true);
@@ -131,7 +134,8 @@ export class SpaceXSession {
                     let res = await this._execute({
                         ctx: opContext,
                         type: docOp,
-                        op
+                        op,
+                        field: docField
                     });
 
                     // Complete if is not already
@@ -155,7 +159,7 @@ export class SpaceXSession {
                 } else {
 
                     // Subscription
-                    let eventStream = await this._guard({ ctx: opContext, type: 'subscription', operationName: op.operationName }, async (context) => {
+                    let eventStream = await this._guard({ ctx: opContext, type: 'subscription', operationName: op.operationName, field: docField }, async (context) => {
                         return await createSourceEventStream(
                             this.schema,
                             op.document,
@@ -195,7 +199,8 @@ export class SpaceXSession {
                                 ctx: resolveContext,
                                 type: 'subscription-resolve',
                                 op,
-                                rootValue: event
+                                rootValue: event,
+                                field: docField
                             });
                             Metrics.SpaceXSubscriptionEvents.inc();
 
@@ -294,9 +299,10 @@ export class SpaceXSession {
         ctx: Context,
         rootValue?: any,
         type: 'mutation' | 'query' | 'subscription' | 'subscription-resolve',
+        field: string | null,
         op: { document: DocumentNode, variables: any, operationName?: string }
     }) {
-        return this._guard({ ctx: opts.ctx, type: opts.type, operationName: opts.op.operationName }, async (context) => {
+        return this._guard({ ctx: opts.ctx, type: opts.type, operationName: opts.op.operationName, field: opts.field }, async (context) => {
             let start = currentRunningTime();
             let ctx = context;
 
@@ -317,7 +323,15 @@ export class SpaceXSession {
                     });
                     break;
                 case 'subscription-resolve':
-                    res = await this.taskExecutor.execute(async (ictx) => {
+
+                    // Resolve executor
+                    let executor = this.taskExecutor;
+                    if (opts.field === 'typings') {
+                        executor = typingsExecutor;
+                    }
+                    
+                    // Execute
+                    res = await executor.execute(async (ictx) => {
                         return execute(ictx, {
                             schema: this.schema,
                             document: opts.op.document,
@@ -371,6 +385,7 @@ export class SpaceXSession {
     private async _guard<T>(opts: {
         ctx: Context,
         type: 'mutation' | 'query' | 'subscription' | 'subscription-resolve',
+        field: string | null,
         operationName?: string
     }, handler: (context: Context) => Promise<T>): Promise<T | null> {
         if (isContextCancelled(opts.ctx)) {
