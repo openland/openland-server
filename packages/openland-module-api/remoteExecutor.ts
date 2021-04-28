@@ -10,7 +10,7 @@ import { execute } from './execute';
 export function declareRemoteQueryExecutor(tag: string) {
     const rootCtx = createNamedContext('graphql-' + tag);
     Modules.Broker.createService({
-        name: 'graphql.' + tag,
+        name: 'graphql-' + tag,
         actions: {
             execute: async (args) => {
                 // Resolve context
@@ -59,6 +59,6 @@ export function declareRemoteQueryExecutor(tag: string) {
 
 export async function callRemoteQueryExecutor(tag: string, ctx: Context, query: string, variables: any, operationName: string | null): Promise<ExecutionResult> {
     return {
-        data: await Modules.Broker.call('graphql.' + tag, { ctx: contextSerialize(ctx), query, operationName, variables })
+        data: await Modules.Broker.call('graphql-' + tag + '.execute', { ctx: contextSerialize(ctx), query, operationName, variables })
     };
 }
