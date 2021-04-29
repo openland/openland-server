@@ -1347,7 +1347,7 @@ migrations.push({
 });
 
 migrations.push({
-    key: '194-drop-old-calls',
+    key: '195-drop-old-calls',
     migration: async (parent) => {
         await inTx(parent, async (ctx) => {
             // Producer transport
@@ -1394,6 +1394,12 @@ migrations.push({
             for (let i of Store.KitchenTransport.descriptor.secondaryIndexes) {
                 i.subspace.clearPrefixed(ctx, []);
             }
+
+            // Counters
+            Store.ConferenceKitchenTransportsCount.directory.clearPrefixed(ctx, Buffer.from([]));
+            Store.ConferenceKitchenConsumersCount.directory.clearPrefixed(ctx, Buffer.from([]));
+            Store.ConferenceKitchenProducersCount.directory.clearPrefixed(ctx, Buffer.from([]));
+            Store.ConferenceKitchenPeersCount.directory.clearPrefixed(ctx, Buffer.from([]));
         });
     }
 });

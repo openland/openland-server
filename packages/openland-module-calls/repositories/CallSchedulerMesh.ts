@@ -29,18 +29,6 @@ export class CallSchedulerMesh implements CallScheduler {
     }
 
     //
-    // Conference State
-    //
-
-    onConferenceStarted = async (ctx: Context, cid: number) => {
-        logger.log(ctx, 'Conference started: ' + cid);
-    }
-
-    onConferenceStopped = async (ctx: Context, cid: number) => {
-        logger.log(ctx, 'Conference stopped: ' + cid);
-    }
-
-    //
     // Peer States
     //
 

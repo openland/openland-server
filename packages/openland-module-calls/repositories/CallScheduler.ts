@@ -62,8 +62,6 @@ export type Capabilities = {
 };
 
 export interface CallScheduler {
-    onConferenceStarted(ctx: Context, cid: number): Promise<void>;
-    onConferenceStopped(ctx: Context, cid: number): Promise<void>;
 
     onPeerRemoved(ctx: Context, cid: number, pid: number): Promise<void>;
     onPeerStreamsChanged(ctx: Context, cid: number, pid: number, sources: MediaSources): Promise<void>;

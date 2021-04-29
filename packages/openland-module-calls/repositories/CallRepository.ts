@@ -179,10 +179,8 @@ export class CallRepository {
 
             // Detect call start
             if (justStarted) {
-                log.log(ctx, 'Conference started: ' + cid);
-                await scheduler.onConferenceStarted(ctx, cid);
-
                 // Notify all about call state
+                log.log(ctx, 'Conference started: ' + cid);
                 await this.delivery.onCallStateChanged(ctx, cid, true);
             }
 
@@ -371,16 +369,12 @@ export class CallRepository {
     endConference = async (parent: Context, cid: number) => {
         await inTx(parent, async (ctx) => {
             let conf = await this.getOrCreateConference(ctx, cid);
-            let scheduler = this.getScheduler(conf.currentScheduler);
-
             let members = await this.findActiveMembers(ctx, cid);
             for (let m of members) {
                 await this.#doRemovePeer(ctx, m.id, false, false);
             }
             if (members.length > 0) {
                 log.log(ctx, 'Conference ended (end conference): ' + cid);
-                await scheduler.onConferenceStopped(ctx, cid);
-
                 conf.active = false;
                 await this.onConferenceEnded(ctx, conf);
             }
@@ -425,7 +419,6 @@ export class CallRepository {
             if (detectEnd) {
                 if ((await this.findActiveMembers(ctx, existing.cid)).length === 0) {
                     log.log(ctx, 'Conference ended (remove): ' + existing.cid);
-                    await scheduler.onConferenceStopped(ctx, existing.cid);
 
                     conf.active = false;
                     await this.onConferenceEnded(ctx, conf);

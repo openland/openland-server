@@ -23,50 +23,27 @@ export class CallSchedulerKitchen implements CallScheduler {
     readonly transport!: CallSchedulerKitchenTransport;
 
     //
-    // Conference Events
-    //
-
-    onConferenceStarted = async (ctx: Context, cid: number) => {
-        logger.log(ctx, 'Conference Started: ' + cid);
-        let routerId = await this.repo.createRouter(ctx, ctx.req.ip ? ctx.req.ip : undefined);
-        logger.log(ctx, 'Router created: ' + cid + '->' + routerId);
-
-        // Delete kitchen router if exists (due to bug)
-        let existing = await Store.ConferenceKitchenRouter.conference.find(ctx, cid);
-        if (existing) {
-            existing.deleted = true;
-            await existing.flush(ctx);
-            await this.repo.deleteRouter(ctx, existing.id);
-        }
-
-        await Store.ConferenceKitchenRouter.create(ctx, routerId, { cid, deleted: false });
-    }
-
-    onConferenceStopped = async (ctx: Context, cid: number) => {
-        logger.log(ctx, 'Conference Stopped: ' + cid);
-        let router = await Store.ConferenceKitchenRouter.conference.find(ctx, cid);
-        if (!router || router.deleted) {
-            return;
-        }
-        router.deleted = true;
-        logger.log(ctx, 'Router deleted: ' + cid + '->' + router.id);
-        await this.repo.deleteRouter(ctx, router.id);
-    }
-
-    //
     // Peer Events
     //
 
     onPeerAdded = async (ctx: Context, cid: number, pid: number, sources: MediaSources, capabilities: Capabilities, role: 'speaker' | 'listener') => {
 
         logger.log(ctx, 'Add peer');
+
+        // Resolve router
+        let routerId: string;
         let router = await Store.ConferenceKitchenRouter.conference.find(ctx, cid);
         if (!router || router.deleted) {
-            throw Error('Unknown error');
+            routerId = await this.repo.createRouter(ctx, ctx.req.ip ? ctx.req.ip : undefined);
+            await Store.ConferenceKitchenRouter.create(ctx, routerId, { cid, deleted: false });
+        } else {
+            routerId = router.id;
         }
+
+        // Create peer
         let existing = (await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid)).filter((v) => !!v.producerTransport);
-        let producerTransport = role === 'speaker' ? await this.transport.createProducerTransport(ctx, router.id, cid, pid, sources, capabilities) : null;
-        let consumerTransport = await this.transport.createConsumerTransport(ctx, router.id, cid, pid, existing.map((v) => v.producerTransport!), capabilities);
+        let producerTransport = role === 'speaker' ? await this.transport.createProducerTransport(ctx, routerId, cid, pid, sources, capabilities) : null;
+        let consumerTransport = await this.transport.createConsumerTransport(ctx, routerId, cid, pid, existing.map((v) => v.producerTransport!), capabilities);
         await Store.ConferenceKitchenPeer.create(ctx, pid, {
             cid,
             capabilities,
@@ -75,6 +52,17 @@ export class CallSchedulerKitchen implements CallScheduler {
             sources,
             active: true
         });
+
+        // Update stats
+        Store.ConferenceKitchenPeersCount.increment(ctx, routerId);
+        if (producerTransport) {
+            Store.ConferenceKitchenTransportsCount.increment(ctx, routerId);
+            Store.ConferenceKitchenProducersCount.increment(ctx, routerId);
+        }
+        if (consumerTransport) {
+            Store.ConferenceKitchenTransportsCount.increment(ctx, routerId);
+            Store.ConferenceKitchenConsumersCount.increment(ctx, routerId);
+        }
 
         // Update existing connections
         if (producerTransport) {
@@ -115,15 +103,30 @@ export class CallSchedulerKitchen implements CallScheduler {
         if (!peer || !peer.active) {
             return;
         }
-
+        let router = await Store.ConferenceKitchenRouter.conference.find(ctx, cid);
+        if (!router || router.deleted) {
+            return;
+        }
+        Store.ConferenceKitchenPeersCount.decrement(ctx, router.id);
         if (peer.producerTransport) {
             await this.transport.removeProducerTransport(ctx, peer.producerTransport);
+            Store.ConferenceKitchenTransportsCount.decrement(ctx, router.id);
+            Store.ConferenceKitchenProducersCount.decrement(ctx, router.id);
         }
         if (peer.consumerTransport) {
             await this.transport.removeConsumerTransport(ctx, peer.consumerTransport);
+            Store.ConferenceKitchenTransportsCount.decrement(ctx, router.id);
+            Store.ConferenceKitchenConsumersCount.decrement(ctx, router.id);
         }
         peer.active = false;
         await peer.flush(ctx);
+
+        // Delete router on last peer removed
+        if (await Store.ConferenceKitchenPeersCount.get(ctx, router.id) === 0) {
+            router.deleted = true;
+            await router.flush(ctx);
+            await this.repo.deleteRouter(ctx, router.id);
+        }
     }
 
     onPeerRoleChanged = async (ctx: Context, cid: number, pid: number, role: 'speaker' | 'listener') => {
@@ -144,6 +147,10 @@ export class CallSchedulerKitchen implements CallScheduler {
                 peer.producerTransport = producer;
                 await peer.flush(ctx);
                 this.callRepo.notifyPeerChanged(ctx, pid);
+
+                // Update counters
+                Store.ConferenceKitchenTransportsCount.increment(ctx, router.id);
+                Store.ConferenceKitchenProducersCount.increment(ctx, router.id);
 
                 for (let e of existing) {
                     // If active
