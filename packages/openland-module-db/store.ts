@@ -25884,6 +25884,7 @@ export interface Store extends BaseStore {
     readonly UserDialogMuteSettingDirectory: Subspace;
     readonly ConferencePeerKeepAliveDirectory: Subspace;
     readonly EndStreamDirectory: Subspace;
+    readonly ConferenceSchedulingDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
     readonly EventStorageDirectory: Subspace;
@@ -25898,6 +25899,9 @@ export interface Store extends BaseStore {
     readonly CommentNotificationDeliveryQueue: QueueStorage;
     readonly MessageAugmentationQueue: QueueStorage;
     readonly MessageMentionNotificationQueue: QueueStorage;
+    readonly ConferencePeerAddQueue: QueueStorage;
+    readonly ConferencePeerUpdateQueue: QueueStorage;
+    readonly ConferencePeerRemoveQueue: QueueStorage;
     readonly KitchenWorkerDeleteQueue: QueueStorage;
     readonly KitchenRouterCreateQueue: QueueStorage;
     readonly KitchenRouterDeleteQueue: QueueStorage;
@@ -26200,6 +26204,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserDialogMuteSettingDirectoryPromise = storage.resolveCustomDirectory('userDialogMuteSetting');
     let ConferencePeerKeepAliveDirectoryPromise = storage.resolveCustomDirectory('conferencePeerKeepAlive');
     let EndStreamDirectoryPromise = storage.resolveCustomDirectory('endStream');
+    let ConferenceSchedulingDirectoryPromise = storage.resolveCustomDirectory('conferenceScheduling');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
     let EventStorageDirectoryPromise = storage.resolveCustomDirectory('eventStorage');
@@ -26227,6 +26232,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let CommentNotificationDeliveryQueuePromise = QueueStorage.open('CommentNotificationDelivery', storage);
     let MessageAugmentationQueuePromise = QueueStorage.open('MessageAugmentation', storage);
     let MessageMentionNotificationQueuePromise = QueueStorage.open('MessageMentionNotification', storage);
+    let ConferencePeerAddQueuePromise = QueueStorage.open('ConferencePeerAdd', storage);
+    let ConferencePeerUpdateQueuePromise = QueueStorage.open('ConferencePeerUpdate', storage);
+    let ConferencePeerRemoveQueuePromise = QueueStorage.open('ConferencePeerRemove', storage);
     let KitchenWorkerDeleteQueuePromise = QueueStorage.open('KitchenWorkerDelete', storage);
     let KitchenRouterCreateQueuePromise = QueueStorage.open('KitchenRouterCreate', storage);
     let KitchenRouterDeleteQueuePromise = QueueStorage.open('KitchenRouterDelete', storage);
@@ -26474,6 +26482,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserDialogMuteSettingDirectory: await UserDialogMuteSettingDirectoryPromise,
         ConferencePeerKeepAliveDirectory: await ConferencePeerKeepAliveDirectoryPromise,
         EndStreamDirectory: await EndStreamDirectoryPromise,
+        ConferenceSchedulingDirectory: await ConferenceSchedulingDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
         EventStorageDirectory: await EventStorageDirectoryPromise,
@@ -26501,6 +26510,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         CommentNotificationDeliveryQueue: await CommentNotificationDeliveryQueuePromise,
         MessageAugmentationQueue: await MessageAugmentationQueuePromise,
         MessageMentionNotificationQueue: await MessageMentionNotificationQueuePromise,
+        ConferencePeerAddQueue: await ConferencePeerAddQueuePromise,
+        ConferencePeerUpdateQueue: await ConferencePeerUpdateQueuePromise,
+        ConferencePeerRemoveQueue: await ConferencePeerRemoveQueuePromise,
         KitchenWorkerDeleteQueue: await KitchenWorkerDeleteQueuePromise,
         KitchenRouterCreateQueue: await KitchenRouterCreateQueuePromise,
         KitchenRouterDeleteQueue: await KitchenRouterDeleteQueuePromise,

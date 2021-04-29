@@ -935,6 +935,10 @@ export default declareSchema(() => {
     });
 
     customDirectory('EndStream');
+    customDirectory('ConferenceScheduling');
+    taskQueue('ConferencePeerAdd');
+    taskQueue('ConferencePeerUpdate');
+    taskQueue('ConferencePeerRemove');
 
     //
     // Mesh Scheduler

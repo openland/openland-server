@@ -18,6 +18,7 @@ import { Events } from 'openland-module-hyperlog/Events';
 import { Modules } from '../../openland-modules/Modules';
 import { KeepAliveCollection } from '../../openland-module-db/collections/KeepAliveCollection';
 import { EndStreamDirectory } from './EndStreamDirectory';
+import { SchedulingDirectory } from './SchedulingDirectory';
 
 let log = createLogger('call-repo');
 
@@ -77,6 +78,7 @@ export class CallRepository {
     readonly schedulerMesh = new CallSchedulerMesh('relay', this);
     readonly schedulerMeshNoRelay = new CallSchedulerMesh('all', this);
     readonly endStreamDirectory = new EndStreamDirectory(Store.EndStreamDirectory);
+    readonly directory = new SchedulingDirectory(Store.ConferenceSchedulingDirectory);
 
     @lazyInject('CallSchedulerKitchen')
     readonly schedulerKitchen!: CallSchedulerKitchen;
@@ -120,6 +122,10 @@ export class CallRepository {
 
     addPeer = async (parent: Context, input: AddPeerInput) => {
         return await inTx(parent, async (ctx) => {
+
+            // Allocate id
+            const id = await this.directory.allocatePeerId(ctx);
+
             let {
                 cid,
                 uid,
@@ -187,12 +193,6 @@ export class CallRepository {
             }
 
             // Create new peer
-            let seq = (await Store.Sequence.findById(ctx, 'conference-peer-id'));
-            if (!seq) {
-                seq = await Store.Sequence.create(ctx, 'conference-peer-id', { value: 0 });
-            }
-            let id = ++seq.value;
-            await seq.flush(ctx);
             let res = await Store.ConferencePeer.create(ctx, id, {
                 cid, uid, tid,
                 role: role || 'speaker',
