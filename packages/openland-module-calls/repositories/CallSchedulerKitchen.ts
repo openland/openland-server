@@ -41,9 +41,9 @@ export class CallSchedulerKitchen implements CallScheduler {
         }
 
         // Create peer
-        let existing = (await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid)).filter((v) => !!v.producerTransport);
+        let existing = (await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid));
         let producerTransport = role === 'speaker' ? await this.transport.createProducerTransport(ctx, routerId, cid, pid, sources, capabilities) : null;
-        let consumerTransport = await this.transport.createConsumerTransport(ctx, routerId, cid, pid, existing.map((v) => v.producerTransport!), capabilities);
+        let consumerTransport = await this.transport.createConsumerTransport(ctx, routerId, cid, pid, existing.filter((v) => !!v.producerTransport).map((v) => v.producerTransport!), capabilities);
         await Store.ConferenceKitchenPeer.create(ctx, pid, {
             cid,
             capabilities,
@@ -142,7 +142,7 @@ export class CallSchedulerKitchen implements CallScheduler {
             if (!peer.producerTransport) {
 
                 // Create new producer
-                let existing = (await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid)).filter((v) => !!v.producerTransport);
+                let existing = (await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid));
                 const producer = await this.transport.createProducerTransport(ctx, router.id, cid, pid, peer.sources, peer.capabilities!);
                 peer.producerTransport = producer;
                 await peer.flush(ctx);

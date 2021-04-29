@@ -10167,6 +10167,7 @@ export class ConferenceKitchenPeerFactory extends EntityFactory<ConferenceKitche
         let subspace = await storage.resolveEntityDirectory('conferenceKitchenPeer');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceKitchenPeer', 'conference'), condition: (src) => src.active });
+        secondaryIndexes.push({ name: 'conferenceProducers', storageKey: 'conferenceProducers', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceKitchenPeer', 'conferenceProducers'), condition: (src) => !!src.producerTransport });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'pid', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -10210,6 +10211,21 @@ export class ConferenceKitchenPeerFactory extends EntityFactory<ConferenceKitche
         },
         liveStream: (ctx: Context, cid: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [cid], opts);
+        },
+    });
+
+    readonly conferenceProducers = Object.freeze({
+        findAll: async (ctx: Context, cid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [cid])).items;
+        },
+        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (cid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [cid], opts);
+        },
+        liveStream: (ctx: Context, cid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [cid], opts);
         },
     });
 

@@ -1015,6 +1015,7 @@ export default declareSchema(() => {
         field('producerTransport', optional(string()));
         field('consumerTransport', optional(string()));
         rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.active);
+        rangeIndex('conferenceProducers', ['cid', 'createdAt']).withCondition((src) => !!src.producerTransport);
     });
 
     entity('ConferenceKitchenProducerTransport', () => {
