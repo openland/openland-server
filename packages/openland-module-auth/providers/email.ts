@@ -46,7 +46,7 @@ const sendError = (response: express.Response, error: ErrorsEnum, extra: any = {
     response.json({ ok: false, errorCode: error, errorText: Errors[error], ...extra });
 };
 
-const TEST_EMAIL_REGEX = /^test(\d{4})@openland.com$/;
+const TEST_EMAIL_REGEX = /^test(\d{6})@openland.com$/;
 
 const isTestEmail = (email: string) => {
     if (email === 'appstore@apple.com') {
