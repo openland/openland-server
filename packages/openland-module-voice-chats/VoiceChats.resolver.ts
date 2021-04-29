@@ -107,8 +107,19 @@ export const Resolver: GQLResolver = {
             if (!room || !roomProfile) {
                 throw new NotFoundError();
             }
+            // Private for private chats
             if (room.kind === 'group') {
                 isPrivate = true;
+            }
+            // Private for private communities & organizations
+            if (room.oid) {
+                let org = (await Store.Organization.findById(ctx, room.oid))!;
+                if (org.private) {
+                    isPrivate = true;
+                }
+                if (org.kind === 'organization') {
+                    isPrivate = true;
+                }
             }
             if (roomProfile.voiceChat) {
                 throw new UserError(`This chat already have voice room`);
