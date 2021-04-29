@@ -57,6 +57,8 @@ export class VoiceChatsRepository {
             parentChat: parentChatId || null
         });
 
+        await this.#onChatActive(ctx, id);
+
         getTransaction(ctx).afterCommit(async () => {
             await this.voiceChatActiveChanged.next({ cid: id, active: true });
         });
@@ -147,7 +149,18 @@ export class VoiceChatsRepository {
             // Call ended  · 1 h 23 m with Elon Musk and 714 others
             // Send service message
 
-            let duration = moment.utc(chat.duration).format('H[h] m[m]');
+            if (!chat.duration) {
+                return;
+            }
+
+            let duration;
+
+            if (chat.duration < 1000 * 60 * 60) {
+                duration = moment.utc(chat.duration).format('m[m]');
+            } else {
+                moment.utc(chat.duration).format('H[h] m[m]');
+            }
+
             let participants = await Store.VoiceChatParticipant.chat.query(ctx, chat.id, { reverse: true });
             let speakersCount = await Store.VoiceChatParticipantCounter.get(ctx, chat.id, 'speaker');
             let listenersCount = await Store.VoiceChatParticipantCounter.get(ctx, chat.id, 'listener');
@@ -160,6 +173,10 @@ export class VoiceChatsRepository {
             } else {
                 let userName = await Modules.Users.getUserFullName(ctx, participants.items[0].uid);
                 message = buildServiceMessage(`Call ended · ${duration} with `, userMention(userName, participants.items[0].uid), ` and ${totalCount - 1} others`);
+            }
+
+            if (chat.duration < 1000 * 60) {
+                message = buildServiceMessage(`Call ended`);
             }
 
             await Modules.Messaging.sendMessage(
