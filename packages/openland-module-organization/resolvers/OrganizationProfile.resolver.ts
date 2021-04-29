@@ -59,9 +59,6 @@ export const Resolver: GQLResolver = {
     },
     Query: {
         myOrganizationProfile: async (_: any, args: {}, ctx: Context) => {
-            if (ctx.auth.oid) {
-                return await Store.Organization.findById(ctx, ctx.auth.oid);
-            }
             return null;
         },
         organizationProfile: withUser(async (ctx, args, uid) => {

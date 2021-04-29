@@ -21,7 +21,6 @@ async function context(src: express.Request): Promise<Context> {
         let res = rootContext;
         let uid: number | undefined;
         let tid: string | undefined;
-        let oid: number | undefined;
 
         res = setRequestContextFrom(
             res,
@@ -41,21 +40,8 @@ async function context(src: express.Request): Promise<Context> {
             }
         }
 
-        // Organization
-        if (uid) {
-            let accounts = await Modules.Orgs.findUserOrganizations(ctx, uid);
-
-            // Default behaviour: pick the default one
-            if (accounts.length >= 1) {
-                oid = accounts[0];
-
-                let profile = await Modules.Users.profileById(ctx, uid);
-                oid = (profile && profile.primaryOrganization) || oid;
-            }
-        }
-
         // Auth Context
-        res = AuthContext.set(res, { tid, uid, oid });
+        res = AuthContext.set(res, { tid, uid });
         if (uid && tid) {
             ctx = withLogMeta(ctx, { uid: uid, tid: tid });
         }

@@ -1,3 +1,4 @@
+import { ServiceBroker } from 'moleculer';
 import { EventsModule } from './../openland-module-events/EventsModule';
 import { ShardingModule } from './../openland-module-sharding/ShardingModule';
 import { Client } from 'ts-nats';
@@ -170,6 +171,9 @@ class ModulesImpl {
     }
     get NATS() {
         return container.get<Client>('NATS');
+    }
+    get Broker() {
+        return container.get<ServiceBroker>('Broker');
     }
     get Contacts() {
         return container.get(ContactsModule);

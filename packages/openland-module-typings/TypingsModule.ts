@@ -6,12 +6,17 @@ import { injectable } from 'inversify';
 import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
 import TypingTypeRoot = GQLRoots.TypingTypeRoot;
 import { Context } from '@openland/context';
+import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { declareRemoteQueryExecutor } from 'openland-module-api/remoteExecutor';
 
 @injectable()
 export class TypingsModule {
 
     start = async () => {
         // Nothing to do
+        if (serverRoleEnabled('events')) {
+            declareRemoteQueryExecutor('events');
+        }
     }
 
     public async setTyping(parent: Context, uid: number, cid: number, type: TypingTypeRoot) {

@@ -1,22 +1,26 @@
+import { UnboundedConcurrencyPool } from './../openland-utils/ConcurrencyPool';
 import { Modules } from 'openland-modules/Modules';
 import { SpaceXContext } from './SpaceXContext';
 import { currentRunningTime } from 'openland-utils/timer';
-import { withoutTransaction, inTx, inHybridTx } from '@openland/foundationdb';
+import { withoutTransaction, inTx, inHybridTx, createDefaultTaskExecutor, TransactionContext, getTransaction } from '@openland/foundationdb';
 import { createTracer } from 'openland-log/createTracer';
 import { createLogger } from '@openland/log';
 import { Config } from 'openland-config/Config';
 import { ConcurrencyPool } from 'openland-utils/ConcurrencyPool';
-import { Concurrency } from './../openland-server/concurrency';
+// import { Concurrency } from './../openland-server/concurrency';
 import uuid from 'uuid/v4';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import { Context, ContextName, createNamedContext } from '@openland/context';
-import { DocumentNode, GraphQLSchema, createSourceEventStream } from 'graphql';
-import { getOperationType } from './utils/getOperationType';
+import { DocumentNode, GraphQLSchema, createSourceEventStream, ExecutionResult } from 'graphql';
+import { getOperation } from './utils/getOperation';
 import { setTracingTag } from 'openland-log/setTracingTag';
 import { isAsyncIterator } from 'openland-mtproto3/utils';
 import { isContextCancelled, withLifetime, cancelContext } from '@openland/lifetime';
 import { IDs } from 'openland-module-api/IDs';
 import { execute } from 'openland-module-api/execute';
+import { getOperationField } from './utils/getOperationField';
+import { resolveRemote } from './resolveRemote';
+import { callRemoteQueryExecutor } from 'openland-module-api/remoteExecutor';
 
 export type SpaceXSessionDescriptor = { type: 'anonymnous' } | { type: 'authenticated', uid: number, tid: string };
 
@@ -46,6 +50,9 @@ let activeSessions = new Map<string, SpaceXSession>();
 const spaceXCtx = createNamedContext('spacex');
 const logger = createLogger('spacex');
 const tracer = createTracer('spacex');
+const typingsExecutor = createDefaultTaskExecutor('typings-task-executor', 10, 50);
+const chatOnlineExecutor = createDefaultTaskExecutor('chat-online-task-executor', 10, 100);
+const userOnlineExecutor = createDefaultTaskExecutor('user-online-task-executor', 10, 100);
 
 export class SpaceXSession {
     readonly uuid = uuid();
@@ -55,6 +62,7 @@ export class SpaceXSession {
     private closed = false;
     private activeOperations = new Map<string, () => void>();
     private keepAlive: (() => void) | null = null;
+    private taskExecutor = createDefaultTaskExecutor('subscriptions-task-executor', 10, 50);
 
     constructor(params: SpaceXSessionParams) {
         this.descriptor = params.descriptor;
@@ -71,7 +79,7 @@ export class SpaceXSession {
         activeSessions.set(this.uuid, this);
 
         // Resolve concurrency pool
-        this.concurrencyPool = Concurrency.Resolve();
+        this.concurrencyPool = UnboundedConcurrencyPool;
 
         // Resolve keep alive
         if (params.descriptor.type === 'authenticated') {
@@ -79,11 +87,13 @@ export class SpaceXSession {
         }
     }
 
-    operation(parentContext: Context, op: { document: DocumentNode, variables: any, operationName?: string }, handler: (result: OpResult) => void): OpRef {
+    operation(parentContext: Context, op: { raw: string, document: DocumentNode, variables: any, operationName?: string }, handler: (result: OpResult) => void): OpRef {
         if (this.closed) {
             throw Error('Session already closed');
         }
-        let docOp = getOperationType(op.document, op.operationName);
+        let doc = getOperation(op.document, op.operationName);
+        let docOp = doc.operation;
+        let docField = getOperationField(doc);
         let id = uuid();
         let opContext = withLifetime(parentContext);
         opContext = SpaceXContext.set(opContext, true);
@@ -111,6 +121,7 @@ export class SpaceXSession {
         } else {
             Metrics.SpaceXOperations.inc();
         }
+        const remote = resolveRemote(op.document);
 
         // tslint:disable-next-line:no-floating-promises
         (async () => {
@@ -126,12 +137,31 @@ export class SpaceXSession {
 
                 if (docOp === 'query' || docOp === 'mutation') {
 
-                    // Executing in concurrency pool
-                    let res = await this._execute({
-                        ctx: opContext,
-                        type: docOp,
-                        op
-                    });
+                    let res: ExecutionResult | null;
+                    if (remote) {
+                        // Execute in remote pool
+                        res = await tracer.trace(opContext, docOp, async (context) => {
+                            if (op.operationName) {
+                                setTracingTag(context, 'operation_name', op.operationName);
+                            }
+                            if (context.auth.uid) {
+                                setTracingTag(context, 'user', IDs.User.serialize(context.auth.uid));
+                            }
+                            return await callRemoteQueryExecutor(remote,
+                                context,
+                                op.raw,
+                                op.variables,
+                                op.operationName ? op.operationName : null);
+                        });
+                    } else {
+                        // Executing in concurrency pool
+                        res = await this._execute({
+                            ctx: opContext,
+                            type: docOp,
+                            op,
+                            field: docField
+                        });
+                    }
 
                     // Complete if is not already
                     if (!res) {
@@ -154,7 +184,7 @@ export class SpaceXSession {
                 } else {
 
                     // Subscription
-                    let eventStream = await this._guard({ ctx: opContext, type: 'subscription', operationName: op.operationName }, async (context) => {
+                    let eventStream = await this._guard({ ctx: opContext, type: 'subscription', operationName: op.operationName, field: docField }, async (context) => {
                         return await createSourceEventStream(
                             this.schema,
                             op.document,
@@ -194,7 +224,8 @@ export class SpaceXSession {
                                 ctx: resolveContext,
                                 type: 'subscription-resolve',
                                 op,
-                                rootValue: event
+                                rootValue: event,
+                                field: docField
                             });
                             Metrics.SpaceXSubscriptionEvents.inc();
 
@@ -293,32 +324,86 @@ export class SpaceXSession {
         ctx: Context,
         rootValue?: any,
         type: 'mutation' | 'query' | 'subscription' | 'subscription-resolve',
-        op: { document: DocumentNode, variables: any, operationName?: string }
+        field: string | null,
+        op: { raw: string, document: DocumentNode, variables: any, operationName?: string }
     }) {
-        return this._guard({ ctx: opts.ctx, type: opts.type, operationName: opts.op.operationName }, async (context) => {
+        return this._guard({ ctx: opts.ctx, type: opts.type, operationName: opts.op.operationName, field: opts.field }, async (context) => {
             let start = currentRunningTime();
             let ctx = context;
-            let res = opts.type === 'subscription' ?
-                await execute(ctx, {
-                    schema: this.schema,
-                    document: opts.op.document,
-                    operationName: opts.op.operationName,
-                    variableValues: opts.op.variables,
-                    contextValue: ctx,
-                    rootValue: opts.rootValue
-                })
-                : await (opts.type === 'mutation' ? inTx : inHybridTx)(ctx, async (ictx) => {
-                    // getTransaction(ictx).setOptions({ retry_limit: 3, timeout: 10000 });
 
-                    return execute(ictx, {
+            let res: ExecutionResult<{
+                [key: string]: any;
+            }, {
+                [key: string]: any;
+            }>;
+            switch (opts.type) {
+                case 'subscription':
+                    res = await execute(ctx, {
                         schema: this.schema,
                         document: opts.op.document,
                         operationName: opts.op.operationName,
                         variableValues: opts.op.variables,
-                        contextValue: ictx,
+                        contextValue: ctx,
                         rootValue: opts.rootValue
                     });
-                });
+                    break;
+                case 'subscription-resolve':
+
+                    // Resolve executor
+                    let executor = this.taskExecutor;
+                    if (opts.field === 'typings') {
+                        executor = typingsExecutor;
+                    } else if (opts.field === 'chatOnlinesCount') {
+                        executor = chatOnlineExecutor;
+                    } else if (opts.field === 'alphaSubscribeOnline') {
+                        executor = userOnlineExecutor;
+                    }
+
+                    // Execute
+                    res = await executor.execute(async (ictx) => {
+                        return execute(ictx, {
+                            schema: this.schema,
+                            document: opts.op.document,
+                            operationName: opts.op.operationName,
+                            variableValues: opts.op.variables,
+                            contextValue: TransactionContext.set(ctx, TransactionContext.get(ictx)!),
+                            rootValue: opts.rootValue
+                        });
+                    });
+                    break;
+                case 'query':
+                    const remote = resolveRemote(opts.op.document);
+                    if (remote) {
+                        return await callRemoteQueryExecutor(remote, ctx, opts.op.raw, opts.op.variables, opts.op.operationName ? opts.op.operationName : null);
+                    }
+                    res = await inHybridTx(ctx, async (ictx) => {
+                        getTransaction(ictx).setOptions({ retry_limit: 3, timeout: 10000 });
+                        return execute(ictx, {
+                            schema: this.schema,
+                            document: opts.op.document,
+                            operationName: opts.op.operationName,
+                            variableValues: opts.op.variables,
+                            contextValue: ictx,
+                            rootValue: opts.rootValue
+                        });
+                    });
+                    break;
+                case 'mutation':
+                    res = await inTx(ctx, async (ictx) => {
+                        getTransaction(ictx).setOptions({ retry_limit: 3, timeout: 10000 });
+                        return execute(ictx, {
+                            schema: this.schema,
+                            document: opts.op.document,
+                            operationName: opts.op.operationName,
+                            variableValues: opts.op.variables,
+                            contextValue: ictx,
+                            rootValue: opts.rootValue
+                        });
+                    });
+                    break;
+                default:
+                    throw Error('Unknown ops type');
+            }
             let duration = currentRunningTime() - start;
             let tag = opts.type + ' ' + (opts.op.operationName || 'Unknown');
             Metrics.SpaceXOperationTime.report(duration);
@@ -335,6 +420,7 @@ export class SpaceXSession {
     private async _guard<T>(opts: {
         ctx: Context,
         type: 'mutation' | 'query' | 'subscription' | 'subscription-resolve',
+        field: string | null,
         operationName?: string
     }, handler: (context: Context) => Promise<T>): Promise<T | null> {
         if (isContextCancelled(opts.ctx)) {

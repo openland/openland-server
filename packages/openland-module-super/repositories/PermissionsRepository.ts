@@ -7,7 +7,7 @@ import { Store } from 'openland-module-db/FDB';
 
 export class PermissionsRepository {
 
-    async resolvePermissions(ctx: Context, args: { uid: number | null | undefined, oid: number | null | undefined }) {
+    async resolvePermissions(ctx: Context, args: { uid: number | null | undefined }) {
         let permissions = new Set<string>();
 
         //
@@ -33,7 +33,7 @@ export class PermissionsRepository {
         //
         // Organization Based Permissions
         //
-        if (args.uid && args.oid) {
+        if (args.uid) {
 
             //
             // Membership

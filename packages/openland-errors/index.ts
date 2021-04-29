@@ -64,7 +64,7 @@ export interface QueryInfo {
 //     })();
 // };
 
-export function errorHandler(error: { message: string, originalError: any }, info?: QueryInfo): FormattedError {
+export function errorHandler(error: { message: string, originalError: any }): FormattedError {
     let uuid = UUID();
     if (error.originalError instanceof IDMailformedError || error.originalError instanceof SecIDMalformedError) {
         return {

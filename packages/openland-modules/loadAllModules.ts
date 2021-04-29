@@ -84,6 +84,7 @@ import { loadBlackListModule } from '../openland-module-blacklist/BlackListModul
 import { BlackListModule } from '../openland-module-blacklist/BlackListModule';
 import { loadVoiceChatsModule } from '../openland-module-voice-chats/VoiceChats.container';
 import { VoiceChatsModule } from '../openland-module-voice-chats/VoiceChatsModule';
+import { createBroker } from 'openland-server/broker';
 
 const logger = createLogger('starting');
 
@@ -134,6 +135,9 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
         }
 
     }
+
+    // Load broker
+    await createBroker();
 
     logger.log(ctx, 'Loading modules...');
     loadMonitoringModule();

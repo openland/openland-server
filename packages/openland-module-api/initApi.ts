@@ -27,7 +27,6 @@ import { createLogger, withLogPath } from '@openland/log';
 import { inHybridTx, inTx } from '@openland/foundationdb';
 import { uuid } from '../openland-utils/uuid';
 import { withLifetime } from '@openland/lifetime';
-import { InMemoryQueryCache } from '../openland-mtproto3/queryCache';
 import { initZapier } from '../openland-module-zapier/http.handlers';
 import { initOauth2 } from '../openland-module-oauth/http.handlers';
 import { AuthContext } from '../openland-module-auth/AuthContext';
@@ -204,7 +203,7 @@ export async function initApi(isTest: boolean) {
         let formatError = (err: any, info?: QueryInfo) => {
             logger.warn(rootCtx, 'api_error', err, info);
             return {
-                ...errorHandler(err, info),
+                ...errorHandler(err),
                 locations: err.locations,
                 path: err.path
             };
@@ -218,8 +217,8 @@ export async function initApi(isTest: boolean) {
 
         // const wsCtx = createNamedContext('ws-gql');
         let spacex = await createSpaceXServer({
-            executableSchema: Schema(),
-            queryCache: new InMemoryQueryCache(),
+            executableSchema: Modules.API.schema,
+            queryCache: Modules.API.queryCache,
             onAuth: async (params, req) => {
                 // const start = currentRunningTime();
                 try {
@@ -280,11 +279,9 @@ export async function initApi(isTest: boolean) {
             formatResponse: (value, operation, ctx) => {
                 let auth = AuthContext.get(ctx);
                 let uid = auth.uid;
-                let oid = auth.oid;
 
                 let queryInfo: QueryInfo = {
                     uid,
-                    oid,
                     transport: 'ws',
                     query: JSON.stringify(operation)
                 };

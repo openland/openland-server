@@ -19,6 +19,7 @@ import { declareConsumerCreateWorker } from './worker/declareConsumerCreateWorke
 import { declareConsumerDeleteWorker } from './worker/declareConsumerDeleteWorker';
 import { declareConsumerUnpauseWorker } from './worker/declareConsumerUnpauseWorker';
 import { declareWorkerCleanerWorker } from './worker/declareWorkerCleaner';
+import { declareRemoteQueryExecutor } from 'openland-module-api/remoteExecutor';
 
 @injectable()
 export class CallsModule {
@@ -38,6 +39,7 @@ export class CallsModule {
         this.mediaKitchen = new MediaKitchenService(await connectToCluster({ nc: this.nats }));
 
         if (serverRoleEnabled('calls')) {
+            declareRemoteQueryExecutor('calls');
             startCallReaper();
             startWorkerTracker(this.mediaKitchen, this.mediaKitchenRepo);
             for (let i = 0; i < 40; i++) {

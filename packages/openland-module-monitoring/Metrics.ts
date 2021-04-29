@@ -38,6 +38,7 @@ export const Metrics = {
     FDBQueueSize: Factory.createMachineGauge('fdb_queue_size', 'Size of queue'),
 
     // SpaceX
+    WebSocketConnectionsProcess: Factory.createTaggedMachineGauge('connections_machine', 'Active WebSocket connections per process'),
     WebSocketConnections: Factory.createMachineGauge('connections', 'Active WebSocket connections'),
     WebSocketPacketsIn: Factory.createFrequencyGauge('ws_in_hz', 'WebSocket incoming packets frequency'),
     WebSocketPacketsOut: Factory.createFrequencyGauge('ws_out_hz', 'WebSocket outgoing packets frequency'),

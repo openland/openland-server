@@ -37,7 +37,7 @@ export class SuperModule {
         });
     }
 
-    async resolvePermissions(ctx: Context, args: { uid: number | null | undefined, oid: number | null | undefined }) {
+    async resolvePermissions(ctx: Context, args: { uid: number | null | undefined }) {
         return this.permissionsRepo.resolvePermissions(ctx, args);
     }
 

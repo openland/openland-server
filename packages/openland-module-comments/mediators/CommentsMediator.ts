@@ -80,7 +80,7 @@ export class CommentsMediator {
             // Allow overrides only for super admins
             //
             if (commentInput.overrideAvatar || commentInput.overrideName) {
-                let permissions = await Modules.Super.resolvePermissions(ctx, { uid: uid, oid: null });
+                let permissions = await Modules.Super.resolvePermissions(ctx, { uid: uid });
                 if (!permissions.has('super-admin')) {
                     commentInput.overrideName = null;
                     commentInput.overrideAvatar = null;
@@ -127,7 +127,7 @@ export class CommentsMediator {
             // Allow overrides only for super admins
             //
             if (commentInput.overrideAvatar || commentInput.overrideName) {
-                let permissions = await Modules.Super.resolvePermissions(ctx, { uid: uid, oid: null });
+                let permissions = await Modules.Super.resolvePermissions(ctx, { uid: uid });
                 if (!permissions.has('super-admin')) {
                     commentInput.overrideName = null;
                     commentInput.overrideAvatar = null;
