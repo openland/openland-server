@@ -14,6 +14,7 @@ import {
     RichMessageRepository
 } from '../../openland-module-rich-message/repositories/RichMessageRepository';
 import { DeliveryMediator } from '../../openland-module-messaging/mediators/DeliveryMediator';
+import { Modules } from '../../openland-modules/Modules';
 
 export type VoiceChatInput = {
     title: string
@@ -108,14 +109,29 @@ export class VoiceChatsRepository {
     #onChatActive = async (ctx: Context, id: number) => {
         let chat = await this.#getChatOrFail(ctx, id);
         if (chat.parentChat) {
+            // Deliver event to users
             await this.delivery.onVoiceChatStateChanged(ctx, chat.parentChat, true);
+
+            // Deliver event to chat
+            await Modules.Messaging.room.markConversationAsUpdated(ctx, chat.parentChat, chat.startedBy!);
+            await Modules.Messaging.room.notifyRoomUpdated(ctx, chat.parentChat);
         }
     }
 
     #onChatInactive = async (ctx: Context, id: number) => {
         let chat = await this.#getChatOrFail(ctx, id);
         if (chat.parentChat) {
+            // Delete voice chat from parent chat
+            let room = await Store.RoomProfile.findById(ctx, chat.parentChat);
+            room!.voiceChat = null;
+            room!.flush(ctx);
+
+            // Deliver event to users
             await this.delivery.onVoiceChatStateChanged(ctx, chat.parentChat, false);
+
+            // Deliver event to chat
+            await Modules.Messaging.room.markConversationAsUpdated(ctx, chat.parentChat, chat.startedBy!);
+            await Modules.Messaging.room.notifyRoomUpdated(ctx, chat.parentChat);
         }
     }
 

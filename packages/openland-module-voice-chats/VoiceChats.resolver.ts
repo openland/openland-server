@@ -101,6 +101,7 @@ export const Resolver: GQLResolver = {
             if (!isAdmin) {
                 throw new AccessDeniedError();
             }
+
             let room = await Store.ConversationRoom.findById(ctx, chatId);
             let roomProfile = await Store.RoomProfile.findById(ctx, chatId);
 
@@ -121,6 +122,7 @@ export const Resolver: GQLResolver = {
                     isPrivate = true;
                 }
             }
+
             if (roomProfile.voiceChat) {
                 throw new UserError(`This chat already have voice room`);
             }
@@ -138,30 +140,11 @@ export const Resolver: GQLResolver = {
             roomProfile.voiceChat = chat.id;
             await roomProfile.flush(ctx);
 
-            // Send events
-            await Modules.Messaging.room.markConversationAsUpdated(ctx, room.id, uid);
-            await Modules.Messaging.room.notifyRoomUpdated(ctx, room.id);
-
             await Modules.VoiceChats.participants.joinChat(ctx, chat.id, uid, ctx.auth.tid!);
 
-            let capabilities: Capabilities | null = null;
-            if (mediaInput && mediaInput.capabilities) {
-                capabilities = mediaInput.capabilities;
-            }
-            let res = await Modules.Calls.repo.addPeer(ctx, {
-                cid: chat.id,
-                uid,
-                tid: ctx.auth.tid!,
-                timeout: 60000,
-                kind: mediaKind === 'STREAM' ? 'stream' : 'conference',
-                capabilities,
-                media: mediaInput?.media,
-                ip: ctx.req.ip || 'unknown'
-            });
-
             return {
-                peerId: IDs.ConferencePeer.serialize(res.id),
-                conference: await Modules.Calls.repo.getOrCreateConference(ctx, chat.id),
+                peerId: IDs.ConferencePeer.serialize(1), // deprecated
+                conference: await Modules.Calls.repo.getOrCreateConference(ctx, chat.id), // deprecated
                 chat: chat
             };
         }),

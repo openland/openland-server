@@ -16,6 +16,10 @@ export function startVoiceChatsCleanupWorker() {
                 continue;
             }
             await inTx(parent, async ctx => {
+                // Ignore new chats
+                if ((Date.now() - voiceChat.metadata.createdAt) < 1000 * 60) {
+                    return;
+                }
                 let peers = await Store.ConferencePeer.conference.findAll(ctx, voiceChat.id);
                 if (peers.length > 0) {
                     return;
