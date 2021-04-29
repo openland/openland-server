@@ -328,6 +328,150 @@ export class ConferencePeerVersionFactory extends AtomicIntegerFactory {
     }
 }
 
+export class ConferenceKitchenPeersCountFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('conferenceKitchenPeersCount');
+        return new ConferenceKitchenPeersCountFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(id: string) {
+        return this._findById([id]);
+    }
+
+    get(ctx: Context, id: string) {
+        return this._get(ctx, [id]);
+    }
+
+    set(ctx: Context, id: string, value: number) {
+        return this._set(ctx, [id], value);
+    }
+
+    add(ctx: Context, id: string, value: number) {
+        return this._add(ctx, [id], value);
+    }
+
+    increment(ctx: Context, id: string) {
+        return this._increment(ctx, [id]);
+    }
+
+    decrement(ctx: Context, id: string) {
+        return this._decrement(ctx, [id]);
+    }
+}
+
+export class ConferenceKitchenConsumersCountFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('conferenceKitchenConsumersCount');
+        return new ConferenceKitchenConsumersCountFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(id: string) {
+        return this._findById([id]);
+    }
+
+    get(ctx: Context, id: string) {
+        return this._get(ctx, [id]);
+    }
+
+    set(ctx: Context, id: string, value: number) {
+        return this._set(ctx, [id], value);
+    }
+
+    add(ctx: Context, id: string, value: number) {
+        return this._add(ctx, [id], value);
+    }
+
+    increment(ctx: Context, id: string) {
+        return this._increment(ctx, [id]);
+    }
+
+    decrement(ctx: Context, id: string) {
+        return this._decrement(ctx, [id]);
+    }
+}
+
+export class ConferenceKitchenProducersCountFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('conferenceKitchenProducersCount');
+        return new ConferenceKitchenProducersCountFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(id: string) {
+        return this._findById([id]);
+    }
+
+    get(ctx: Context, id: string) {
+        return this._get(ctx, [id]);
+    }
+
+    set(ctx: Context, id: string, value: number) {
+        return this._set(ctx, [id], value);
+    }
+
+    add(ctx: Context, id: string, value: number) {
+        return this._add(ctx, [id], value);
+    }
+
+    increment(ctx: Context, id: string) {
+        return this._increment(ctx, [id]);
+    }
+
+    decrement(ctx: Context, id: string) {
+        return this._decrement(ctx, [id]);
+    }
+}
+
+export class ConferenceKitchenTransportsCountFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('conferenceKitchenTransportsCount');
+        return new ConferenceKitchenTransportsCountFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(id: string) {
+        return this._findById([id]);
+    }
+
+    get(ctx: Context, id: string) {
+        return this._get(ctx, [id]);
+    }
+
+    set(ctx: Context, id: string, value: number) {
+        return this._set(ctx, [id], value);
+    }
+
+    add(ctx: Context, id: string, value: number) {
+        return this._add(ctx, [id], value);
+    }
+
+    increment(ctx: Context, id: string) {
+        return this._increment(ctx, [id]);
+    }
+
+    decrement(ctx: Context, id: string) {
+        return this._decrement(ctx, [id]);
+    }
+}
+
 export class FeedChannelMembersCountFactory extends AtomicIntegerFactory {
 
     static async open(storage: EntityStorage) {
@@ -25657,6 +25801,10 @@ export interface Store extends BaseStore {
     readonly UserDialogReadMessageId: UserDialogReadMessageIdFactory;
     readonly ConferenceRoomVersion: ConferenceRoomVersionFactory;
     readonly ConferencePeerVersion: ConferencePeerVersionFactory;
+    readonly ConferenceKitchenPeersCount: ConferenceKitchenPeersCountFactory;
+    readonly ConferenceKitchenConsumersCount: ConferenceKitchenConsumersCountFactory;
+    readonly ConferenceKitchenProducersCount: ConferenceKitchenProducersCountFactory;
+    readonly ConferenceKitchenTransportsCount: ConferenceKitchenTransportsCountFactory;
     readonly FeedChannelMembersCount: FeedChannelMembersCountFactory;
     readonly FeedChannelPostsCount: FeedChannelPostsCountFactory;
     readonly UserCounter: UserCounterFactory;
@@ -25990,6 +26138,10 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
     let ConferenceRoomVersionPromise = ConferenceRoomVersionFactory.open(storage);
     let ConferencePeerVersionPromise = ConferencePeerVersionFactory.open(storage);
+    let ConferenceKitchenPeersCountPromise = ConferenceKitchenPeersCountFactory.open(storage);
+    let ConferenceKitchenConsumersCountPromise = ConferenceKitchenConsumersCountFactory.open(storage);
+    let ConferenceKitchenProducersCountPromise = ConferenceKitchenProducersCountFactory.open(storage);
+    let ConferenceKitchenTransportsCountPromise = ConferenceKitchenTransportsCountFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
     let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(storage);
     let UserCounterPromise = UserCounterFactory.open(storage);
@@ -26268,6 +26420,10 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserDialogReadMessageId: await UserDialogReadMessageIdPromise,
         ConferenceRoomVersion: await ConferenceRoomVersionPromise,
         ConferencePeerVersion: await ConferencePeerVersionPromise,
+        ConferenceKitchenPeersCount: await ConferenceKitchenPeersCountPromise,
+        ConferenceKitchenConsumersCount: await ConferenceKitchenConsumersCountPromise,
+        ConferenceKitchenProducersCount: await ConferenceKitchenProducersCountPromise,
+        ConferenceKitchenTransportsCount: await ConferenceKitchenTransportsCountPromise,
         FeedChannelMembersCount: await FeedChannelMembersCountPromise,
         FeedChannelPostsCount: await FeedChannelPostsCountPromise,
         UserCounter: await UserCounterPromise,

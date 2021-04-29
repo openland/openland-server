@@ -976,6 +976,18 @@ export default declareSchema(() => {
         field('deleted', boolean());
         uniqueIndex('conference', ['cid']).withCondition((s) => !s.deleted);
     });
+    atomicInt('ConferenceKitchenPeersCount', () => {
+        primaryKey('id', string());
+    });
+    atomicInt('ConferenceKitchenConsumersCount', () => {
+        primaryKey('id', string());
+    });
+    atomicInt('ConferenceKitchenProducersCount', () => {
+        primaryKey('id', string());
+    });
+    atomicInt('ConferenceKitchenTransportsCount', () => {
+        primaryKey('id', string());
+    });
 
     const capabilities = struct({
         codecs: array(struct({
@@ -1206,7 +1218,7 @@ export default declareSchema(() => {
     //
     // Kitchen Queue
     //
-    
+
     taskQueue('KitchenWorkerDelete');
     taskQueue('KitchenRouterCreate');
     taskQueue('KitchenRouterDelete');
