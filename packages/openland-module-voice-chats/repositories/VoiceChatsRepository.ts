@@ -124,7 +124,7 @@ export class VoiceChatsRepository {
             // Delete voice chat from parent chat
             let room = await Store.RoomProfile.findById(ctx, chat.parentChat);
             room!.voiceChat = null;
-            room!.flush(ctx);
+            await room!.flush(ctx);
 
             // Deliver event to users
             await this.delivery.onVoiceChatStateChanged(ctx, chat.parentChat, false);
