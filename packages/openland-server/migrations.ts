@@ -1347,7 +1347,7 @@ migrations.push({
 });
 
 migrations.push({
-    key: '195-drop-old-calls',
+    key: '196-drop-old-calls',
     migration: async (parent) => {
         await inTx(parent, async (ctx) => {
             // Producer transport
