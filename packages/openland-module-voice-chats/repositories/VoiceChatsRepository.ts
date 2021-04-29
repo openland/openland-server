@@ -15,6 +15,7 @@ import {
 } from '../../openland-module-rich-message/repositories/RichMessageRepository';
 import { DeliveryMediator } from '../../openland-module-messaging/mediators/DeliveryMediator';
 import { Modules } from '../../openland-modules/Modules';
+import { buildServiceMessage, userMention } from '../../openland-utils/MessageBuilder';
 
 export type VoiceChatInput = {
     title: string
@@ -115,6 +116,15 @@ export class VoiceChatsRepository {
             // Deliver event to chat
             await Modules.Messaging.room.markConversationAsUpdated(ctx, chat.parentChat, chat.startedBy!);
             await Modules.Messaging.room.notifyRoomUpdated(ctx, chat.parentChat);
+
+            // Send service message
+            let userName = await Modules.Users.getUserFullName(ctx, chat.startedBy!);
+            await Modules.Messaging.sendMessage(
+                ctx,
+                chat.parentChat,
+                chat.startedBy!,
+                buildServiceMessage(userMention(userName, chat.startedBy!), ' started live room')
+            );
         }
     }
 
