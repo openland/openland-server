@@ -16,6 +16,7 @@ import {
 import { DeliveryMediator } from '../../openland-module-messaging/mediators/DeliveryMediator';
 import { Modules } from '../../openland-modules/Modules';
 import { buildServiceMessage, userMention } from '../../openland-utils/MessageBuilder';
+import moment from 'moment';
 
 export type VoiceChatInput = {
     title: string
@@ -142,6 +143,31 @@ export class VoiceChatsRepository {
             // Deliver event to chat
             await Modules.Messaging.room.markConversationAsUpdated(ctx, chat.parentChat, chat.startedBy!);
             await Modules.Messaging.room.notifyRoomUpdated(ctx, chat.parentChat);
+
+            // Call ended  · 1 h 23 m with Elon Musk and 714 others
+            // Send service message
+
+            let duration = moment.utc(chat.duration).format('H[h] m[m]');
+            let participants = await Store.VoiceChatParticipant.chat.query(ctx, chat.id, { reverse: true });
+            let speakersCount = await Store.VoiceChatParticipantCounter.get(ctx, chat.id, 'speaker');
+            let listenersCount = await Store.VoiceChatParticipantCounter.get(ctx, chat.id, 'listener');
+            let totalCount = listenersCount + speakersCount;
+
+            let message;
+
+            if (totalCount < 2) {
+                message = buildServiceMessage(`Call ended · ${duration}`);
+            } else {
+                let userName = await Modules.Users.getUserFullName(ctx, participants.items[0].uid);
+                message = buildServiceMessage(`Call ended · ${duration} with `, userMention(userName, participants.items[0].uid), ` and ${totalCount - 1} others`);
+            }
+
+            await Modules.Messaging.sendMessage(
+                ctx,
+                chat.parentChat,
+                chat.startedBy!,
+                message
+            );
         }
     }
 
