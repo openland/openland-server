@@ -16,8 +16,8 @@ export class ParticipantsMediator {
     /*
     * Listener actions
     * */
-    joinChat = async (ctx: Context, cid: number, uid: number, tid: string) => {
-        let res = await this.repo.joinChat(ctx, cid, uid, tid);
+    joinChat = async (ctx: Context, cid: number, uid: number, tid: string, role: 'admin' | 'speaker' | 'listener' | null = null) => {
+        let res = await this.repo.joinChat(ctx, cid, uid, tid, role);
         let chat = await Store.ConversationVoice.findById(ctx, cid);
         if (!chat) {
             throw new NotFoundError();

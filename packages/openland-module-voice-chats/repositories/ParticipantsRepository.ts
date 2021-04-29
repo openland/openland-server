@@ -55,7 +55,7 @@ export class ParticipantsRepository {
         { name: 'admin', checker: Status.isAdmin }
     ]);
 
-    joinChat = async (ctx: Context, cid: number, uid: number, tid: string) => {
+    joinChat = async (ctx: Context, cid: number, uid: number, tid: string, role: 'admin' | 'speaker' | 'listener' | null = null) => {
         let chat = await this.#getChatOrFail(ctx, cid);
 
         let p = await this.#getOrCreateParticipant(ctx, cid, uid, tid);
@@ -71,7 +71,7 @@ export class ParticipantsRepository {
             await this.#changeStatus(ctx, cid, uid, 'admin');
         } else {
             let participant = await this.#getOrFail(ctx, cid, uid);
-            let targetRole = participant.role || 'listener';
+            let targetRole = participant.role || role || 'listener';
             await this.#changeStatus(ctx, cid, uid, targetRole);
         }
 

@@ -73,8 +73,12 @@ export const Resolver: GQLResolver = {
             if (!chat) {
                 throw new NotFoundError();
             }
+            let joinAsAdmin = false;
+            if (chat.parentChat) {
+                joinAsAdmin = await Modules.Messaging.room.userHaveAdminPermissionsInRoom(ctx, uid, chat.parentChat);
+            }
 
-            await Modules.VoiceChats.participants.joinChat(ctx, cid, uid, ctx.auth.tid!);
+            await Modules.VoiceChats.participants.joinChat(ctx, cid, uid, ctx.auth.tid!, joinAsAdmin ? 'admin' : null);
             return (await Store.ConversationVoice.findById(ctx, cid))!;
         }),
         voiceChatJoinWithMedia: withActivatedUser(async (ctx, {id, mediaInput, mediaKind}, uid) => {
