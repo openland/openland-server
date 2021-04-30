@@ -156,19 +156,6 @@ export const Resolver: GQLResolver = {
                 IDs.User.parse(args.uid)
             );
             return true;
-        }),
-        voiceChatAlterMediaState: withActivatedUser(async (ctx, args, uid) => {
-            let cid = IDs.Conversation.parse(args.id);
-            let peerUid = IDs.User.parse(args.uid);
-
-            await Modules.VoiceChats.participants.ensureParticipantIsAdmin(ctx, cid, uid);
-
-            let peers = await Store.ConferencePeer.user.findAll(ctx, cid, peerUid);
-            for (let peer of peers) {
-                await Modules.Calls.repo.alterConferencePeerMediaState(ctx, cid, peerUid, peer.tid, args.audioPaused, null);
-            }
-
-            return true;
-        }),
+        })
     }
 };
