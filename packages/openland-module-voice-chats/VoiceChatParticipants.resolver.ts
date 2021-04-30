@@ -156,6 +156,6 @@ export const Resolver: GQLResolver = {
                 IDs.User.parse(args.uid)
             );
             return true;
-        }),
+        })
     }
 };
