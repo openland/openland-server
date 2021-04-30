@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '90b27c9f94a757178a66d68d62a58350';
+export const GQL_SPEC_VERSION = '01be51f0d5d4a93205c9b355dba9af59';
 
 export namespace GQL {
     export interface CreditCard {
@@ -2132,6 +2132,7 @@ export namespace GQL {
         voiceChatDemote: boolean;
         voiceChatUpdateAdmin: boolean;
         voiceChatKick: boolean;
+        voiceChatAlterMediaState: boolean;
         alphaAlterPublished: Organization;
         betaFixCounter: boolean;
         betaFixCountersForAll: boolean;
@@ -2736,6 +2737,11 @@ export namespace GQL {
     export interface MutationVoiceChatKickArgs {
         id: string;
         uid: string;
+    }
+    export interface MutationVoiceChatAlterMediaStateArgs {
+        id: string;
+        uid: string;
+        audioPaused: boolean;
     }
     export interface MutationAlphaAlterPublishedArgs {
         id: string;
@@ -9133,6 +9139,7 @@ export interface GQLResolver {
             voiceChatDemote: GQL.MutationVoiceChatDemoteArgs,
             voiceChatUpdateAdmin: GQL.MutationVoiceChatUpdateAdminArgs,
             voiceChatKick: GQL.MutationVoiceChatKickArgs,
+            voiceChatAlterMediaState: GQL.MutationVoiceChatAlterMediaStateArgs,
             alphaAlterPublished: GQL.MutationAlphaAlterPublishedArgs,
             betaFixCounter: GQL.MutationBetaFixCounterArgs,
             betaFixCountersForAll: GQL.MutationBetaFixCountersForAllArgs,

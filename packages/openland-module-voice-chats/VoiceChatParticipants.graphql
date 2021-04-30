@@ -39,4 +39,5 @@ extend type Mutation {
     voiceChatDemote(id: ID!, uid: ID!): Boolean!
     voiceChatUpdateAdmin(id: ID!, uid: ID!, admin: Boolean!): Boolean!
     voiceChatKick(id: ID!, uid: ID!): Boolean!
+    voiceChatAlterMediaState(id: ID!, uid: ID!, audioPaused: Boolean!): Boolean!
 }
