@@ -126,7 +126,7 @@ export class CallRepository {
         } else if (kind === 'mesh-no-relay') {
             return this.schedulerMeshNoRelay;
         } else if (kind === 'basic-sfu') {
-            return this.asyncKitchen;
+            return this.schedulerKitchen;
         } else {
             throw Error('Unsupported scheduler: ' + kind);
         }
