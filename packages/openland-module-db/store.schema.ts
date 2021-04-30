@@ -832,8 +832,8 @@ export default declareSchema(() => {
     entity('ConferenceRoom', () => {
         primaryKey('id', integer());
 
-        field('scheduler', optional(enumString('mesh', 'mesh-no-relay', 'basic-sfu')));
-        field('currentScheduler', optional(enumString('mesh', 'mesh-no-relay', 'basic-sfu')));
+        field('scheduler', optional(enumString('mesh', 'mesh-no-relay', 'basic-sfu', 'async-sfu')));
+        field('currentScheduler', optional(enumString('mesh', 'mesh-no-relay', 'basic-sfu', 'async-sfu')));
 
         // state
         field('startTime', optional(integer()));

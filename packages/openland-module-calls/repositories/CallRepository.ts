@@ -76,7 +76,7 @@ type AddPeerInput = {
 @injectable()
 export class CallRepository {
 
-    readonly defaultScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' = Config.environment === 'production' ? 'basic-sfu' : 'mesh';
+    readonly defaultScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' = Config.environment === 'production' ? 'basic-sfu' : 'mesh';
     readonly schedulerMesh = new CallSchedulerMesh('relay', this);
     readonly schedulerMeshNoRelay = new CallSchedulerMesh('all', this);
     readonly endStreamDirectory = new EndStreamDirectory(Store.EndStreamDirectory);
@@ -120,13 +120,15 @@ export class CallRepository {
         return res.active || false;
     }
 
-    getScheduler(kind: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null): CallScheduler {
+    getScheduler(kind: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null): CallScheduler {
         if (kind === 'mesh' || kind === null) {
             return this.schedulerMesh;
         } else if (kind === 'mesh-no-relay') {
             return this.schedulerMeshNoRelay;
         } else if (kind === 'basic-sfu') {
             return this.schedulerKitchen;
+        } else if (kind === 'async-sfu') {
+            return this.asyncKitchen;
         } else {
             throw Error('Unsupported scheduler: ' + kind);
         }

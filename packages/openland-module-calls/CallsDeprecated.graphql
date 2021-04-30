@@ -68,8 +68,9 @@ extend type Conference {
 }
 
 enum ConferenceStrategy {
-  MASH
+  MESH
   SFU
+  ASYNC
 }
 
 extend type Conference {

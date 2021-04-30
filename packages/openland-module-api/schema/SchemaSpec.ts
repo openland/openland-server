@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '90b27c9f94a757178a66d68d62a58350';
+export const GQL_SPEC_VERSION = '652a933baf777d645352fb6576b5d8d7';
 
 export namespace GQL {
     export interface CreditCard {
@@ -723,7 +723,7 @@ export namespace GQL {
     export type LocalStreamConfig = LocalStreamAudioConfig | LocalStreamVideoConfig | LocalStreamDataChannelConfig;
     export type ConferenceKindValues = 'CONFERENCE' | 'STREAM';
     export type ConferenceKind = GQLRoots.ConferenceKindRoot;
-    export type ConferenceStrategyValues = 'MASH' | 'SFU';
+    export type ConferenceStrategyValues = 'MESH' | 'SFU' | 'ASYNC';
     export type ConferenceStrategy = GQLRoots.ConferenceStrategyRoot;
     export interface ConferenceSettingsInput {
         strategy: Nullable<ConferenceStrategy>;
@@ -7316,7 +7316,7 @@ export interface GQLResolver {
     >;
     LocalStreamConfig?: UnionTypeResolver<GQLRoots.LocalStreamConfigRoot, 'LocalStreamAudioConfig' | 'LocalStreamVideoConfig' | 'LocalStreamDataChannelConfig'>;
     ConferenceKind?: EnumTypeResolver<'CONFERENCE' | 'STREAM', GQLRoots.ConferenceKindRoot>;
-    ConferenceStrategy?: EnumTypeResolver<'MASH' | 'SFU', GQLRoots.ConferenceStrategyRoot>;
+    ConferenceStrategy?: EnumTypeResolver<'MESH' | 'SFU' | 'ASYNC', GQLRoots.ConferenceStrategyRoot>;
     OauthScope?: EnumTypeResolver<'All' | 'Zapier', GQLRoots.OauthScopeRoot>;
     OauthApp?: ComplexTypedResolver<
         GQL.OauthApp,
