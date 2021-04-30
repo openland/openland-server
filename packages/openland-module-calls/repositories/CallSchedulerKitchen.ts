@@ -86,6 +86,9 @@ export class CallSchedulerKitchen implements CallScheduler {
                     }
                     let existing = await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid);
                     let allConsumers = existing.filter((v) => v.consumerTransport);
+                    if (peer.consumerTransport) {
+                        allConsumers = allConsumers.filter((v) => v.consumerTransport !== peer.consumerTransport);
+                    }
                     const consumers = await Promise.all(allConsumers.map(async (consumer) => (await Store.ConferenceKitchenConsumerTransport.findById(ctx, consumer.consumerTransport!))!));
                     const consumersWithoutProducer = consumers.filter((v) => !v.consumes.find((c) => c === peer.producerTransport));
                     if (consumersWithoutProducer.length === 0) {
