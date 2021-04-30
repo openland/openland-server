@@ -1,3 +1,4 @@
+import { batch } from './../../openland-utils/batch';
 import { inTx } from '@openland/foundationdb';
 import { CallSchedulerKitchenTransport } from './CallSchedulerKitchenTransport';
 import { createLogger } from '@openland/log';
@@ -28,7 +29,7 @@ export class CallSchedulerKitchen implements CallScheduler {
     //
 
     onPeerAdded = async (parent: Context, cid: number, pid: number, sources: MediaSources, capabilities: Capabilities, role: 'speaker' | 'listener') => {
-        await inTx(parent, async (ctx) => {
+        const peerProducer = await inTx(parent, async (ctx) => {
             logger.log(ctx, 'Add peer');
 
             // Resolve router
@@ -42,48 +43,78 @@ export class CallSchedulerKitchen implements CallScheduler {
             }
 
             // Create peer
-            let existing = role === 'speaker' ? (await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid)) : (await Store.ConferenceKitchenPeer.conferenceProducers.findAll(ctx, cid));
-            let producerTransport = role === 'speaker' ? await this.transport.createProducerTransport(ctx, routerId, cid, pid, sources, capabilities) : null;
-            let consumerTransport = await this.transport.createConsumerTransport(ctx, routerId, cid, pid, existing.filter((v) => !!v.producerTransport).map((v) => v.producerTransport!), capabilities);
-            await Store.ConferenceKitchenPeer.create(ctx, pid, {
-                cid,
-                capabilities,
-                producerTransport,
-                consumerTransport,
-                sources,
-                active: true
-            });
+            const existingPeer = (await Store.ConferenceKitchenPeer.findById(ctx, pid));
+            if (!existingPeer) {
+                // Create peer
+                let existing = await Store.ConferenceKitchenPeer.conferenceProducers.findAll(ctx, cid);
+                let producerTransport = role === 'speaker' ? await this.transport.createProducerTransport(ctx, routerId, cid, pid, sources, capabilities) : null;
+                let consumerTransport = await this.transport.createConsumerTransport(ctx, routerId, cid, pid, existing.filter((v) => !!v.producerTransport).map((v) => v.producerTransport!), capabilities);
+                await Store.ConferenceKitchenPeer.create(ctx, pid, {
+                    cid,
+                    capabilities,
+                    producerTransport,
+                    consumerTransport,
+                    sources,
+                    active: true
+                });
 
-            // Update stats
-            Store.ConferenceKitchenPeersCount.increment(ctx, routerId);
-            if (producerTransport) {
-                Store.ConferenceKitchenTransportsCount.increment(ctx, routerId);
-                Store.ConferenceKitchenProducersCount.increment(ctx, routerId);
-            }
-            if (consumerTransport) {
-                Store.ConferenceKitchenTransportsCount.increment(ctx, routerId);
-                Store.ConferenceKitchenConsumersCount.increment(ctx, routerId);
-            }
-
-            // Update existing connections
-            if (producerTransport) {
-                for (let e of existing) {
-                    // Just in case
-                    if (!e.active) {
-                        continue;
-                    }
-                    // Add new connection
-                    if (!e.consumerTransport) {
-                        continue;
-                    }
-                    let ct = (await Store.ConferenceKitchenConsumerTransport.findById(ctx, e.consumerTransport))!;
-                    await this.transport.updateConsumerTransport(ctx, e.consumerTransport, [...ct.consumes, producerTransport]);
-                    this.callRepo.notifyPeerChanged(ctx, e.pid);
+                // Update stats
+                Store.ConferenceKitchenPeersCount.increment(ctx, routerId);
+                if (producerTransport) {
+                    Store.ConferenceKitchenTransportsCount.increment(ctx, routerId);
+                    Store.ConferenceKitchenProducersCount.increment(ctx, routerId);
                 }
+                if (consumerTransport) {
+                    Store.ConferenceKitchenTransportsCount.increment(ctx, routerId);
+                    Store.ConferenceKitchenConsumersCount.increment(ctx, routerId);
+                }
+                return !!producerTransport;
+            } else {
+                return !!existingPeer.producerTransport;
             }
-
-            logger.log(ctx, 'Add peer: end');
         });
+
+        // Connect producer to existing nodes
+        if (peerProducer) {
+            while (true) {
+
+                // Resolve consumers without producer
+                const consumersForUpdate = await inTx(parent, async (ctx) => {
+                    const peer = (await Store.ConferenceKitchenPeer.findById(ctx, pid));
+                    if (!peer || !peer.active) {
+                        return null;
+                    }
+                    let existing = await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid);
+                    let allConsumers = existing.filter((v) => v.consumerTransport);
+                    const consumers = await Promise.all(allConsumers.map(async (consumer) => (await Store.ConferenceKitchenConsumerTransport.findById(ctx, consumer.consumerTransport!))!));
+                    const consumersWithoutProducer = consumers.filter((v) => !v.consumes.find((c) => c === peer.producerTransport));
+                    if (consumersWithoutProducer.length === 0) {
+                        return null;
+                    }
+                    return consumersWithoutProducer.map((v) => v.id);
+                });
+
+                if (consumersForUpdate === null) {
+                    return;
+                }
+
+                // Perform in batches
+                await Promise.all(batch(consumersForUpdate, 50).map((consumers) => inTx(parent, async (ctx) => {
+                    const peer = (await Store.ConferenceKitchenPeer.findById(ctx, pid));
+                    if (!peer || !peer.active || !peer.producerTransport) {
+                        return;
+                    }
+                    await Promise.all((consumers.map(async (consumer) => {
+                        let ct = (await Store.ConferenceKitchenConsumerTransport.findById(ctx, consumer))!;
+                        if (ct.consumes.find((c) => c === peer.producerTransport)) {
+                            return;
+                        }
+                        await this.transport.updateConsumerTransport(ctx, consumer, [...ct.consumes, peer.producerTransport!]);
+                        this.callRepo.notifyPeerChanged(ctx, ct.pid);
+                    })));
+                })));
+            }
+        }
     }
 
     onPeerStreamsChanged = async (parent: Context, cid: number, pid: number, sources: MediaSources) => {
