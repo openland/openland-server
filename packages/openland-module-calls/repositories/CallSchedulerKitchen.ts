@@ -76,47 +76,7 @@ export class CallSchedulerKitchen implements CallScheduler {
 
         // Connect producer to existing nodes
         if (peerProducer) {
-            while (true) {
-
-                // Resolve consumers without producer
-                const consumersForUpdate = await inTx(parent, async (ctx) => {
-                    const peer = (await Store.ConferenceKitchenPeer.findById(ctx, pid));
-                    if (!peer || !peer.active) {
-                        return null;
-                    }
-                    let existing = await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid);
-                    let allConsumers = existing.filter((v) => v.consumerTransport);
-                    if (peer.consumerTransport) {
-                        allConsumers = allConsumers.filter((v) => v.consumerTransport !== peer.consumerTransport);
-                    }
-                    const consumers = await Promise.all(allConsumers.map(async (consumer) => (await Store.ConferenceKitchenConsumerTransport.findById(ctx, consumer.consumerTransport!))!));
-                    const consumersWithoutProducer = consumers.filter((v) => !v.consumes.find((c) => c === peer.producerTransport));
-                    if (consumersWithoutProducer.length === 0) {
-                        return null;
-                    }
-                    return consumersWithoutProducer.map((v) => v.id);
-                });
-
-                if (consumersForUpdate === null) {
-                    return;
-                }
-
-                // Perform in batches
-                await Promise.all(batch(consumersForUpdate, 50).map((consumers) => inTx(parent, async (ctx) => {
-                    const peer = (await Store.ConferenceKitchenPeer.findById(ctx, pid));
-                    if (!peer || !peer.active || !peer.producerTransport) {
-                        return;
-                    }
-                    await Promise.all((consumers.map(async (consumer) => {
-                        let ct = (await Store.ConferenceKitchenConsumerTransport.findById(ctx, consumer))!;
-                        if (ct.consumes.find((c) => c === peer.producerTransport)) {
-                            return;
-                        }
-                        await this.transport.updateConsumerTransport(ctx, consumer, [...ct.consumes, peer.producerTransport!]);
-                        this.callRepo.notifyPeerChanged(ctx, ct.pid);
-                    })));
-                })));
-            }
+            await this.connectProducer(parent, cid, pid);
         }
     }
 
@@ -170,20 +130,20 @@ export class CallSchedulerKitchen implements CallScheduler {
     }
 
     onPeerRoleChanged = async (parent: Context, cid: number, pid: number, role: 'speaker' | 'listener') => {
-        await inTx(parent, async (ctx) => {
+        const hasProducers = await inTx(parent, async (ctx) => {
             let peer = await Store.ConferenceKitchenPeer.findById(ctx, pid);
             if (!peer || !peer.active) {
-                return;
+                return false;
             }
             let router = await Store.ConferenceKitchenRouter.conference.find(ctx, cid);
             if (!router || router.deleted) {
-                return;
+                return false;
             }
+            
             if (role === 'speaker') {
                 if (!peer.producerTransport) {
 
                     // Create new producer
-                    let existing = (await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid));
                     const producer = await this.transport.createProducerTransport(ctx, router.id, cid, pid, peer.sources, peer.capabilities!);
                     peer.producerTransport = producer;
                     await peer.flush(ctx);
@@ -192,34 +152,59 @@ export class CallSchedulerKitchen implements CallScheduler {
                     // Update counters
                     Store.ConferenceKitchenTransportsCount.increment(ctx, router.id);
                     Store.ConferenceKitchenProducersCount.increment(ctx, router.id);
-
-                    for (let e of existing) {
-                        // If active
-                        if (!e.active) {
-                            continue;
-                        }
-
-                        // If have consumer
-                        if (!e.consumerTransport) {
-                            continue;
-                        }
-
-                        // Udpate consumer
-                        let ct = (await Store.ConferenceKitchenConsumerTransport.findById(ctx, e.consumerTransport))!;
-                        await this.transport.updateConsumerTransport(ctx, e.consumerTransport, [...ct.consumes, producer]);
-                        this.callRepo.notifyPeerChanged(ctx, e.pid);
-                    }
                 }
+                return true;
             }
-            // if (role === 'listener') {
-            //     if (peer.producerTransport) {
-            //         await this.transport.removeProducerTransport(ctx, peer.producerTransport);
-            //         peer.producerTransport = null;
-            //         await peer.flush(ctx);
-            //         this.callRepo.notifyPeerChanged(ctx, pid);
-            //     }
-            // }
+
+            return !!peer.producerTransport;
         });
+        if (hasProducers) {
+            await this.connectProducer(parent, cid, pid);
+        }
+    }
+
+    private connectProducer = async (parent: Context, cid: number, pid: number) => {
+        while (true) {
+
+            // Resolve consumers without producer
+            const consumersForUpdate = await inTx(parent, async (ctx) => {
+                const peer = (await Store.ConferenceKitchenPeer.findById(ctx, pid));
+                if (!peer || !peer.active) {
+                    return null;
+                }
+                let existing = await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid);
+                let allConsumers = existing.filter((v) => v.consumerTransport);
+                if (peer.consumerTransport) {
+                    allConsumers = allConsumers.filter((v) => v.consumerTransport !== peer.consumerTransport);
+                }
+                const consumers = await Promise.all(allConsumers.map(async (consumer) => (await Store.ConferenceKitchenConsumerTransport.findById(ctx, consumer.consumerTransport!))!));
+                const consumersWithoutProducer = consumers.filter((v) => !v.consumes.find((c) => c === peer.producerTransport));
+                if (consumersWithoutProducer.length === 0) {
+                    return null;
+                }
+                return consumersWithoutProducer.map((v) => v.id);
+            });
+
+            if (consumersForUpdate === null) {
+                return;
+            }
+
+            // Perform in batches
+            await Promise.all(batch(consumersForUpdate, 50).map((consumers) => inTx(parent, async (ctx) => {
+                const peer = (await Store.ConferenceKitchenPeer.findById(ctx, pid));
+                if (!peer || !peer.active || !peer.producerTransport) {
+                    return;
+                }
+                await Promise.all((consumers.map(async (consumer) => {
+                    let ct = (await Store.ConferenceKitchenConsumerTransport.findById(ctx, consumer))!;
+                    if (ct.consumes.find((c) => c === peer.producerTransport)) {
+                        return;
+                    }
+                    await this.transport.updateConsumerTransport(ctx, consumer, [...ct.consumes, peer.producerTransport!]);
+                    this.callRepo.notifyPeerChanged(ctx, ct.pid);
+                })));
+            })));
+        }
     }
 
     //
