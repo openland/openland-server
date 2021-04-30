@@ -9106,8 +9106,8 @@ export class CommentEventGlobalFactory extends EntityFactory<CommentEventGlobalS
 
 export interface ConferenceRoomShape {
     id: number;
-    scheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null;
-    currentScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null;
+    scheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null;
+    currentScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null;
     startTime: number | null;
     kind: 'conference' | 'stream' | null;
     screenSharingPeerId: number | null;
@@ -9116,8 +9116,8 @@ export interface ConferenceRoomShape {
 }
 
 export interface ConferenceRoomCreateShape {
-    scheduler?: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null | undefined;
-    currentScheduler?: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null | undefined;
+    scheduler?: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null | undefined;
+    currentScheduler?: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null | undefined;
     startTime?: number | null | undefined;
     kind?: 'conference' | 'stream' | null | undefined;
     screenSharingPeerId?: number | null | undefined;
@@ -9127,8 +9127,8 @@ export interface ConferenceRoomCreateShape {
 
 export class ConferenceRoom extends Entity<ConferenceRoomShape> {
     get id(): number { return this._rawValue.id; }
-    get scheduler(): 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null { return this._rawValue.scheduler; }
-    set scheduler(value: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null) {
+    get scheduler(): 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null { return this._rawValue.scheduler; }
+    set scheduler(value: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null) {
         let normalized = this.descriptor.codec.fields.scheduler.normalize(value);
         if (this._rawValue.scheduler !== normalized) {
             this._rawValue.scheduler = normalized;
@@ -9136,8 +9136,8 @@ export class ConferenceRoom extends Entity<ConferenceRoomShape> {
             this.invalidate();
         }
     }
-    get currentScheduler(): 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null { return this._rawValue.currentScheduler; }
-    set currentScheduler(value: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null) {
+    get currentScheduler(): 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null { return this._rawValue.currentScheduler; }
+    set currentScheduler(value: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null) {
         let normalized = this.descriptor.codec.fields.currentScheduler.normalize(value);
         if (this._rawValue.currentScheduler !== normalized) {
             this._rawValue.currentScheduler = normalized;
@@ -9200,8 +9200,8 @@ export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, Co
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'scheduler', type: { type: 'optional', inner: { type: 'enum', values: ['mesh', 'mesh-no-relay', 'basic-sfu'] } }, secure: false });
-        fields.push({ name: 'currentScheduler', type: { type: 'optional', inner: { type: 'enum', values: ['mesh', 'mesh-no-relay', 'basic-sfu'] } }, secure: false });
+        fields.push({ name: 'scheduler', type: { type: 'optional', inner: { type: 'enum', values: ['mesh', 'mesh-no-relay', 'basic-sfu', 'async-sfu'] } }, secure: false });
+        fields.push({ name: 'currentScheduler', type: { type: 'optional', inner: { type: 'enum', values: ['mesh', 'mesh-no-relay', 'basic-sfu', 'async-sfu'] } }, secure: false });
         fields.push({ name: 'startTime', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'kind', type: { type: 'optional', inner: { type: 'enum', values: ['conference', 'stream'] } }, secure: false });
         fields.push({ name: 'screenSharingPeerId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
@@ -9209,8 +9209,8 @@ export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, Co
         fields.push({ name: 'active', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
-            scheduler: c.optional(c.enum('mesh', 'mesh-no-relay', 'basic-sfu')),
-            currentScheduler: c.optional(c.enum('mesh', 'mesh-no-relay', 'basic-sfu')),
+            scheduler: c.optional(c.enum('mesh', 'mesh-no-relay', 'basic-sfu', 'async-sfu')),
+            currentScheduler: c.optional(c.enum('mesh', 'mesh-no-relay', 'basic-sfu', 'async-sfu')),
             startTime: c.optional(c.integer),
             kind: c.optional(c.enum('conference', 'stream')),
             screenSharingPeerId: c.optional(c.integer),
@@ -10167,6 +10167,7 @@ export class ConferenceKitchenPeerFactory extends EntityFactory<ConferenceKitche
         let subspace = await storage.resolveEntityDirectory('conferenceKitchenPeer');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceKitchenPeer', 'conference'), condition: (src) => src.active });
+        secondaryIndexes.push({ name: 'conferenceProducers', storageKey: 'conferenceProducers', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceKitchenPeer', 'conferenceProducers'), condition: (src) => !!src.producerTransport });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'pid', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -10210,6 +10211,21 @@ export class ConferenceKitchenPeerFactory extends EntityFactory<ConferenceKitche
         },
         liveStream: (ctx: Context, cid: number, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [cid], opts);
+        },
+    });
+
+    readonly conferenceProducers = Object.freeze({
+        findAll: async (ctx: Context, cid: number) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [cid])).items;
+        },
+        query: (ctx: Context, cid: number, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[1], [cid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (cid: number, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[1], [cid], opts);
+        },
+        liveStream: (ctx: Context, cid: number, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [cid], opts);
         },
     });
 
@@ -26047,6 +26063,7 @@ export interface Store extends BaseStore {
     readonly CommentNotificationDeliveryQueue: QueueStorage;
     readonly MessageAugmentationQueue: QueueStorage;
     readonly MessageMentionNotificationQueue: QueueStorage;
+    readonly ConferencePeerSyncQueue: QueueStorage;
     readonly ConferencePeerAddQueue: QueueStorage;
     readonly ConferencePeerUpdateQueue: QueueStorage;
     readonly ConferencePeerRemoveQueue: QueueStorage;
@@ -26384,6 +26401,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let CommentNotificationDeliveryQueuePromise = QueueStorage.open('CommentNotificationDelivery', storage);
     let MessageAugmentationQueuePromise = QueueStorage.open('MessageAugmentation', storage);
     let MessageMentionNotificationQueuePromise = QueueStorage.open('MessageMentionNotification', storage);
+    let ConferencePeerSyncQueuePromise = QueueStorage.open('ConferencePeerSync', storage);
     let ConferencePeerAddQueuePromise = QueueStorage.open('ConferencePeerAdd', storage);
     let ConferencePeerUpdateQueuePromise = QueueStorage.open('ConferencePeerUpdate', storage);
     let ConferencePeerRemoveQueuePromise = QueueStorage.open('ConferencePeerRemove', storage);
@@ -26666,6 +26684,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         CommentNotificationDeliveryQueue: await CommentNotificationDeliveryQueuePromise,
         MessageAugmentationQueue: await MessageAugmentationQueuePromise,
         MessageMentionNotificationQueue: await MessageMentionNotificationQueuePromise,
+        ConferencePeerSyncQueue: await ConferencePeerSyncQueuePromise,
         ConferencePeerAddQueue: await ConferencePeerAddQueuePromise,
         ConferencePeerUpdateQueue: await ConferencePeerUpdateQueuePromise,
         ConferencePeerRemoveQueue: await ConferencePeerRemoveQueuePromise,

@@ -92,7 +92,7 @@ export const Resolver: GQLResolver = {
         // Deprecated
         iceServers: resolveIce,
         // Deprecated
-        strategy: (src) => 'MASH' /* TODO: Fix Me */,
+        strategy: (src) => 'MESH' /* TODO: Fix Me */,
         // Deprecated
         kind: (src) => src.kind === 'conference' ? 'CONFERENCE' : 'STREAM',
     },
@@ -499,7 +499,7 @@ export const Resolver: GQLResolver = {
                 let coid = IDs.Conversation.parse(args.id);
                 let conf = await Modules.Calls.repo.getOrCreateConference(ctx, coid);
                 if (args.settings.strategy) {
-                    if (args.settings.strategy === 'MASH' && args.settings.iceTransportPolicy) {
+                    if (args.settings.strategy === 'MESH' && args.settings.iceTransportPolicy) {
                         if (args.settings.iceTransportPolicy === 'all') {
                             conf.scheduler = 'mesh-no-relay';
                         } else {
@@ -507,6 +507,8 @@ export const Resolver: GQLResolver = {
                         }
                     } else if (args.settings.strategy === 'SFU') {
                         conf.scheduler = 'basic-sfu';
+                    } else if (args.settings.strategy === 'ASYNC') {
+                        conf.scheduler = 'async-sfu';
                     }
                 }
                 return conf;

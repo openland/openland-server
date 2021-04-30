@@ -19,6 +19,8 @@ import { Modules } from '../../openland-modules/Modules';
 import { KeepAliveCollection } from '../../openland-module-db/collections/KeepAliveCollection';
 import { EndStreamDirectory } from './EndStreamDirectory';
 import { SchedulingDirectory } from './SchedulingDirectory';
+import { SyncWorkerQueue } from 'openland-module-workers/SyncWorkerQueue';
+import { AsyncCallScheduler, AsyncPeerTask } from './AsyncCallScheduler';
 
 let log = createLogger('call-repo');
 
@@ -74,16 +76,26 @@ type AddPeerInput = {
 @injectable()
 export class CallRepository {
 
-    readonly defaultScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' = Config.environment === 'production' ? 'basic-sfu' : 'mesh';
+    readonly defaultScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' = Config.environment === 'production' ? 'basic-sfu' : 'mesh';
     readonly schedulerMesh = new CallSchedulerMesh('relay', this);
     readonly schedulerMeshNoRelay = new CallSchedulerMesh('all', this);
     readonly endStreamDirectory = new EndStreamDirectory(Store.EndStreamDirectory);
     readonly directory = new SchedulingDirectory(Store.ConferenceSchedulingDirectory);
+    readonly peerSyncQueue = new SyncWorkerQueue<number, AsyncPeerTask>(Store.ConferencePeerSyncQueue, { maxAttempts: 'infinite', type: 'external' });
 
     @lazyInject('CallSchedulerKitchen')
     readonly schedulerKitchen!: CallSchedulerKitchen;
     @lazyInject('DeliveryMediator')
     readonly delivery!: DeliveryMediator;
+
+    // Async kitchen
+    private _asyncKitchen: AsyncCallScheduler | null = null;
+    get asyncKitchen(): AsyncCallScheduler {
+        if (!this._asyncKitchen) {
+            this._asyncKitchen = new AsyncCallScheduler(Config.environment === 'production' ? this.schedulerKitchen : this.schedulerMesh, this);
+        }
+        return this._asyncKitchen;
+    }
 
     private keepAlive = new KeepAliveCollection(Store.ConferencePeerKeepAliveDirectory);
 
@@ -108,13 +120,15 @@ export class CallRepository {
         return res.active || false;
     }
 
-    getScheduler(kind: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | null): CallScheduler {
+    getScheduler(kind: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null): CallScheduler {
         if (kind === 'mesh' || kind === null) {
             return this.schedulerMesh;
         } else if (kind === 'mesh-no-relay') {
             return this.schedulerMeshNoRelay;
         } else if (kind === 'basic-sfu') {
             return this.schedulerKitchen;
+        } else if (kind === 'async-sfu') {
+            return this.asyncKitchen;
         } else {
             throw Error('Unsupported scheduler: ' + kind);
         }

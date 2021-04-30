@@ -832,8 +832,8 @@ export default declareSchema(() => {
     entity('ConferenceRoom', () => {
         primaryKey('id', integer());
 
-        field('scheduler', optional(enumString('mesh', 'mesh-no-relay', 'basic-sfu')));
-        field('currentScheduler', optional(enumString('mesh', 'mesh-no-relay', 'basic-sfu')));
+        field('scheduler', optional(enumString('mesh', 'mesh-no-relay', 'basic-sfu', 'async-sfu')));
+        field('currentScheduler', optional(enumString('mesh', 'mesh-no-relay', 'basic-sfu', 'async-sfu')));
 
         // state
         field('startTime', optional(integer()));
@@ -862,6 +862,8 @@ export default declareSchema(() => {
         rangeIndex('conference', ['cid', 'keepAliveTimeout']).withCondition((src) => src.enabled);
         rangeIndex('active', ['keepAliveTimeout']).withCondition((src) => src.enabled);
     });
+
+    taskQueue('ConferencePeerSync');
 
     atomicInt('ConferencePeerVersion', () => {
         primaryKey('id', integer());
@@ -1015,6 +1017,7 @@ export default declareSchema(() => {
         field('producerTransport', optional(string()));
         field('consumerTransport', optional(string()));
         rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.active);
+        rangeIndex('conferenceProducers', ['cid', 'createdAt']).withCondition((src) => !!src.producerTransport);
     });
 
     entity('ConferenceKitchenProducerTransport', () => {

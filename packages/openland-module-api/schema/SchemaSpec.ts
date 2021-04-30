@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '01be51f0d5d4a93205c9b355dba9af59';
+export const GQL_SPEC_VERSION = '652a933baf777d645352fb6576b5d8d7';
 
 export namespace GQL {
     export interface CreditCard {
@@ -723,7 +723,7 @@ export namespace GQL {
     export type LocalStreamConfig = LocalStreamAudioConfig | LocalStreamVideoConfig | LocalStreamDataChannelConfig;
     export type ConferenceKindValues = 'CONFERENCE' | 'STREAM';
     export type ConferenceKind = GQLRoots.ConferenceKindRoot;
-    export type ConferenceStrategyValues = 'MASH' | 'SFU';
+    export type ConferenceStrategyValues = 'MESH' | 'SFU' | 'ASYNC';
     export type ConferenceStrategy = GQLRoots.ConferenceStrategyRoot;
     export interface ConferenceSettingsInput {
         strategy: Nullable<ConferenceStrategy>;
@@ -2132,7 +2132,6 @@ export namespace GQL {
         voiceChatDemote: boolean;
         voiceChatUpdateAdmin: boolean;
         voiceChatKick: boolean;
-        voiceChatAlterMediaState: boolean;
         alphaAlterPublished: Organization;
         betaFixCounter: boolean;
         betaFixCountersForAll: boolean;
@@ -2737,11 +2736,6 @@ export namespace GQL {
     export interface MutationVoiceChatKickArgs {
         id: string;
         uid: string;
-    }
-    export interface MutationVoiceChatAlterMediaStateArgs {
-        id: string;
-        uid: string;
-        audioPaused: boolean;
     }
     export interface MutationAlphaAlterPublishedArgs {
         id: string;
@@ -7322,7 +7316,7 @@ export interface GQLResolver {
     >;
     LocalStreamConfig?: UnionTypeResolver<GQLRoots.LocalStreamConfigRoot, 'LocalStreamAudioConfig' | 'LocalStreamVideoConfig' | 'LocalStreamDataChannelConfig'>;
     ConferenceKind?: EnumTypeResolver<'CONFERENCE' | 'STREAM', GQLRoots.ConferenceKindRoot>;
-    ConferenceStrategy?: EnumTypeResolver<'MASH' | 'SFU', GQLRoots.ConferenceStrategyRoot>;
+    ConferenceStrategy?: EnumTypeResolver<'MESH' | 'SFU' | 'ASYNC', GQLRoots.ConferenceStrategyRoot>;
     OauthScope?: EnumTypeResolver<'All' | 'Zapier', GQLRoots.OauthScopeRoot>;
     OauthApp?: ComplexTypedResolver<
         GQL.OauthApp,
@@ -9139,7 +9133,6 @@ export interface GQLResolver {
             voiceChatDemote: GQL.MutationVoiceChatDemoteArgs,
             voiceChatUpdateAdmin: GQL.MutationVoiceChatUpdateAdminArgs,
             voiceChatKick: GQL.MutationVoiceChatKickArgs,
-            voiceChatAlterMediaState: GQL.MutationVoiceChatAlterMediaStateArgs,
             alphaAlterPublished: GQL.MutationAlphaAlterPublishedArgs,
             betaFixCounter: GQL.MutationBetaFixCounterArgs,
             betaFixCountersForAll: GQL.MutationBetaFixCountersForAllArgs,

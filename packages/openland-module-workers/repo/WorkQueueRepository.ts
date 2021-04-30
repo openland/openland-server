@@ -1,6 +1,6 @@
 import uuid from 'uuid/v4';
 import { Context } from '@openland/context';
-import { Subspace, encoders, getTransaction, TransactionCache, TupleItem, Database, inTx } from '@openland/foundationdb';
+import { Subspace, encoders, getTransaction, TransactionCache, TupleItem, Database, inTx, createVersionstampRef } from '@openland/foundationdb';
 
 const PREFIX_PENDING = Buffer.from([0x01]);
 const PREFIX_ACTIVE = Buffer.from([0x02]);
@@ -9,12 +9,16 @@ const PREFIX_ARGUMENTS = Buffer.from([0x04]);
 const PREFIX_FAILURES = Buffer.from([0x05]);
 const PREFIX_STATS = Buffer.from([0x06]);
 const PREFIX_PENDING_DELAYED = Buffer.from([0x07]);
+const PREFIX_TASK_STORE = Buffer.from([0x08]);
 const ZERO = Buffer.alloc(0);
 const STATS_TOTAL = 0;
 const STATS_ACTIVE = 1;
 const STATS_FAILURES = 2;
 const STATS_COMPLETED = 3;
 const STATS_SCHEDULED = 4;
+const STORE_COUNTER = 0;
+const STORE_ENQUEUED = 1;
+const STORE_TASKS = 2;
 
 const workIndexCache = new TransactionCache<number>('work-queue-cache');
 
@@ -39,6 +43,7 @@ export class WorkQueueRepository {
     private readonly timeoutSubspace: Subspace;
     private readonly failuresSubspace: Subspace;
     private readonly statsSubspace: Subspace<TupleItem[], number>;
+    private readonly tasksStore: Subspace<TupleItem[]>;
 
     constructor(db: Database, tasksSubspace: Subspace, registrySubspace: Subspace) {
         this.db = db;
@@ -62,6 +67,9 @@ export class WorkQueueRepository {
             .withValueEncoding(encoders.int32LE);
         this.pendingDelayedSubspace = this.tasksSubspace
             .subspace(encoders.tuple.pack([PREFIX_PENDING_DELAYED]));
+        this.tasksStore = this.tasksSubspace
+            .subspace(encoders.tuple.pack([PREFIX_TASK_STORE]))
+            .withKeyEncoding(encoders.tuple);
     }
 
     getTotal = async (ctx: Context, kind: number) => {
@@ -359,5 +367,56 @@ export class WorkQueueRepository {
         // Update counter
         this.statsSubspace.add(ctx, [STATS_ACTIVE, kind], -1);
         this.statsSubspace.add(ctx, [STATS_COMPLETED, kind], 1);
+    }
+
+    //
+    // Task Store
+    //
+
+    async writePendingTask(ctx: Context, id: string | number, task: any) {
+
+        // Increment counter
+        this.tasksStore.add(ctx, [id, STORE_COUNTER], encoders.int32LE.pack(1));
+
+        // Append task
+        this.tasksStore.setTupleKey(ctx, [id, STORE_TASKS, createVersionstampRef(ctx)], encoders.json.pack(task));
+
+        // Check if enqueued
+        if (!(await this.tasksStore.get(ctx, [id, STORE_ENQUEUED]))) {
+            this.tasksStore.set(ctx, [id, STORE_ENQUEUED], encoders.boolean.pack(true));
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    async readPendingTasks(ctx: Context, id: string | number) {
+        let counterRaw = await this.tasksStore.get(ctx, [id, STORE_COUNTER]);
+        if (!counterRaw) {
+            return null;
+        }
+        const counter = encoders.int32LE.unpack(counterRaw);
+        const tasksRaw = await this.tasksStore.range(ctx, [id, STORE_TASKS]);
+        if (tasksRaw.length === 0) {
+            return null;
+        }
+        const tasks = tasksRaw.map((v) => encoders.json.unpack(v.value));
+        const offset = tasksRaw[tasksRaw.length - 1].key;
+        return { counter, tasks, offset };
+    }
+
+    async commitTasks(ctx: Context, id: string | number, counter: number, offset: TupleItem[]) {
+        let counterRaw = await this.tasksStore.get(ctx, [id, STORE_COUNTER]);
+        if (!counterRaw) {
+            return true; // Might not be possible
+        }
+        const excounter = encoders.int32LE.unpack(counterRaw);
+        if (excounter !== counter) {
+            // Delete processed tasks
+            this.tasksStore.clearRange(ctx, [id, STORE_TASKS], [...offset, 0]);
+            return false;
+        }
+        this.tasksStore.clearPrefixed(ctx, [id]);
+        return true;
     }
 }

@@ -1,6 +1,6 @@
 import { createNamedContext, Context } from '@openland/context';
 import { EntityStorage } from '@openland/foundationdb-entity';
-import { inTx, Database } from '@openland/foundationdb';
+import { inTx, Database, TupleItem } from '@openland/foundationdb';
 import { WorkQueueRepository } from './repo/WorkQueueRepository';
 
 export class QueueStorage {
@@ -68,5 +68,17 @@ export class QueueStorage {
 
     completeWork = async (ctx: Context, id: Buffer) => {
         await this.repo.completeWork(ctx, id);
+    }
+
+    writePendingTask(ctx: Context, id: string | number, task: any) {
+        return this.repo.writePendingTask(ctx, id, task);
+    }
+
+    readPendingTasks(ctx: Context, id: string | number) {
+        return this.repo.readPendingTasks(ctx, id);
+    }
+
+    commitTasks(ctx: Context, id: string | number, counter: number, offset: TupleItem[]) {
+        return this.repo.commitTasks(ctx, id, counter, offset);
     }
 }
