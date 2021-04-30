@@ -19,6 +19,8 @@ import { Modules } from '../../openland-modules/Modules';
 import { KeepAliveCollection } from '../../openland-module-db/collections/KeepAliveCollection';
 import { EndStreamDirectory } from './EndStreamDirectory';
 import { SchedulingDirectory } from './SchedulingDirectory';
+import { SyncWorkerQueue } from 'openland-module-workers/SyncWorkerQueue';
+import { AsyncCallScheduler, AsyncPeerTask } from './AsyncCallScheduler';
 
 let log = createLogger('call-repo');
 
@@ -79,11 +81,21 @@ export class CallRepository {
     readonly schedulerMeshNoRelay = new CallSchedulerMesh('all', this);
     readonly endStreamDirectory = new EndStreamDirectory(Store.EndStreamDirectory);
     readonly directory = new SchedulingDirectory(Store.ConferenceSchedulingDirectory);
+    readonly peerSyncQueue = new SyncWorkerQueue<number, AsyncPeerTask>(Store.ConferencePeerSyncQueue, { maxAttempts: 'infinite', type: 'external' });
 
     @lazyInject('CallSchedulerKitchen')
     readonly schedulerKitchen!: CallSchedulerKitchen;
     @lazyInject('DeliveryMediator')
     readonly delivery!: DeliveryMediator;
+
+    // Async kitchen
+    private _asyncKitchen: AsyncCallScheduler | null = null;
+    get asyncKitchen(): AsyncCallScheduler {
+        if (!this._asyncKitchen) {
+            this._asyncKitchen = new AsyncCallScheduler(Config.environment === 'production' ? this.schedulerKitchen : this.schedulerMesh, this);
+        }
+        return this._asyncKitchen;
+    }
 
     private keepAlive = new KeepAliveCollection(Store.ConferencePeerKeepAliveDirectory);
 
@@ -114,7 +126,7 @@ export class CallRepository {
         } else if (kind === 'mesh-no-relay') {
             return this.schedulerMeshNoRelay;
         } else if (kind === 'basic-sfu') {
-            return this.schedulerKitchen;
+            return this.asyncKitchen;
         } else {
             throw Error('Unsupported scheduler: ' + kind);
         }

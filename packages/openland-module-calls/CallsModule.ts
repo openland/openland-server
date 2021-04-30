@@ -20,6 +20,7 @@ import { declareConsumerDeleteWorker } from './worker/declareConsumerDeleteWorke
 import { declareConsumerUnpauseWorker } from './worker/declareConsumerUnpauseWorker';
 import { declareWorkerCleanerWorker } from './worker/declareWorkerCleaner';
 import { declareRemoteQueryExecutor } from 'openland-module-api/remoteExecutor';
+import { declarePeerWorker } from './worker/declarePeerWorker';
 
 @injectable()
 export class CallsModule {
@@ -54,6 +55,7 @@ export class CallsModule {
                 declareConsumerDeleteWorker(this.mediaKitchen, this.mediaKitchenRepo);
                 declareConsumerUnpauseWorker(this.mediaKitchen, this.mediaKitchenRepo);
                 declareWorkerCleanerWorker(this.mediaKitchen, this.mediaKitchenRepo);
+                declarePeerWorker(this.repo);
             }
         }
     }

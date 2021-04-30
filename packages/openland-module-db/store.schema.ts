@@ -863,6 +863,8 @@ export default declareSchema(() => {
         rangeIndex('active', ['keepAliveTimeout']).withCondition((src) => src.enabled);
     });
 
+    taskQueue('ConferencePeerSync');
+
     atomicInt('ConferencePeerVersion', () => {
         primaryKey('id', integer());
     });

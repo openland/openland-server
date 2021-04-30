@@ -26063,6 +26063,7 @@ export interface Store extends BaseStore {
     readonly CommentNotificationDeliveryQueue: QueueStorage;
     readonly MessageAugmentationQueue: QueueStorage;
     readonly MessageMentionNotificationQueue: QueueStorage;
+    readonly ConferencePeerSyncQueue: QueueStorage;
     readonly ConferencePeerAddQueue: QueueStorage;
     readonly ConferencePeerUpdateQueue: QueueStorage;
     readonly ConferencePeerRemoveQueue: QueueStorage;
@@ -26400,6 +26401,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let CommentNotificationDeliveryQueuePromise = QueueStorage.open('CommentNotificationDelivery', storage);
     let MessageAugmentationQueuePromise = QueueStorage.open('MessageAugmentation', storage);
     let MessageMentionNotificationQueuePromise = QueueStorage.open('MessageMentionNotification', storage);
+    let ConferencePeerSyncQueuePromise = QueueStorage.open('ConferencePeerSync', storage);
     let ConferencePeerAddQueuePromise = QueueStorage.open('ConferencePeerAdd', storage);
     let ConferencePeerUpdateQueuePromise = QueueStorage.open('ConferencePeerUpdate', storage);
     let ConferencePeerRemoveQueuePromise = QueueStorage.open('ConferencePeerRemove', storage);
@@ -26682,6 +26684,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         CommentNotificationDeliveryQueue: await CommentNotificationDeliveryQueuePromise,
         MessageAugmentationQueue: await MessageAugmentationQueuePromise,
         MessageMentionNotificationQueue: await MessageMentionNotificationQueuePromise,
+        ConferencePeerSyncQueue: await ConferencePeerSyncQueuePromise,
         ConferencePeerAddQueue: await ConferencePeerAddQueuePromise,
         ConferencePeerUpdateQueue: await ConferencePeerUpdateQueuePromise,
         ConferencePeerRemoveQueue: await ConferencePeerRemoveQueuePromise,
