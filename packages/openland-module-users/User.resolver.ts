@@ -239,6 +239,19 @@ export const Resolver: GQLResolver = {
                 res.push({ cid: badge.cid, badge: (await Store.UserBadge.findById(ctx, badge.bid!))! });
             }
             return res;
+        }),
+
+        // Badge
+        systemBadge: withUser((ctx, src) => {
+            const id = IDs.User.serialize(src.id);
+            if (id === 'LOaDEWDj9zselQMZPY9oIEx7OQ') {
+                return 'max';
+            } else if (id === 'LOaDEWDj9zsVv999DDpJiEj05K') {
+                return 'yury';
+            } else if (id === 'rAOV7EVRLzSR5KD4Oozxs1gBXg') {
+                return 'steve';
+            }
+            return null;
         })
     },
     UserChatWithBadge: {

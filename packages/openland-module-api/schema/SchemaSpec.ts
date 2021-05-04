@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '652a933baf777d645352fb6576b5d8d7';
+export const GQL_SPEC_VERSION = '9b89224395267f0f14d846c95dcb4c11';
 
 export namespace GQL {
     export interface CreditCard {
@@ -5127,6 +5127,7 @@ export namespace GQL {
         joinDate: Date;
         birthDay: Nullable<Date>;
         status: Nullable<Status>;
+        systemBadge: Nullable<string>;
         channelsJoined: ChannelConversation[];
         photoRef: Nullable<ImageRef>;
         picture: Nullable<string>;
@@ -5176,6 +5177,7 @@ export namespace GQL {
     export interface UserJoinDateArgs { }
     export interface UserBirthDayArgs { }
     export interface UserStatusArgs { }
+    export interface UserSystemBadgeArgs { }
     export interface UserChannelsJoinedArgs { }
     export interface UserPhotoRefArgs { }
     export interface UserPictureArgs { }
@@ -10581,6 +10583,7 @@ export interface GQLResolver {
             joinDate: GQL.UserJoinDateArgs,
             birthDay: GQL.UserBirthDayArgs,
             status: GQL.UserStatusArgs,
+            systemBadge: GQL.UserSystemBadgeArgs,
             channelsJoined: GQL.UserChannelsJoinedArgs,
             photoRef: GQL.UserPhotoRefArgs,
             picture: GQL.UserPictureArgs,

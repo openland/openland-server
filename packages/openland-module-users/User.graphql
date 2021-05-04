@@ -21,6 +21,8 @@ type User {
     birthDay: Date
     status: Status
 
+    systemBadge: String
+
     # TODO: Refactor
     channelsJoined: [ChannelConversation!]! @disabled
 
