@@ -75,7 +75,6 @@ export const Resolver: GQLResolver = {
                 }
 
                 let generator = Store.CommentEvent.user.liveStream(ctx, peerType, peerId, { batchSize: 20, after: args.fromState || undefined });
-
                 for await (let event of generator) {
                     yield event;
                 }

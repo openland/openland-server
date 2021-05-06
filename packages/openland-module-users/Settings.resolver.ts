@@ -375,8 +375,8 @@ export const Resolver: GQLResolver = {
     },
     Subscription: {
         watchSettings: {
-            resolve: async (msg: any) => {
-                return msg;
+            resolve: async (uid: any, args: SubscriptionWatchSettingsArgs, ctx: Context) => {
+                return await Modules.Users.getUserSettings(ctx, uid);
             },
             subscribe: async function* (_: any, args: SubscriptionWatchSettingsArgs, parent: Context) {
                 if (!parent.auth.uid) {
@@ -386,7 +386,7 @@ export const Resolver: GQLResolver = {
                 let version = await inTx(parent, async (ctx) => {
                     return (await Modules.Users.getUserSettingsEntity(ctx, ctx.auth.uid!)).metadata.versionCode;
                 });
-                yield await Modules.Users.getUserSettings(parent, parent.auth.uid);
+                yield parent.auth.uid;
 
                 while (true) {
                     let changed = await fastWatch(parent, 'user-settings-' + parent.auth.uid, version,
@@ -394,7 +394,7 @@ export const Resolver: GQLResolver = {
                     );
                     if (changed.result) {
                         version = changed.version;
-                        yield await Modules.Users.getUserSettings(parent, parent.auth.uid);
+                        yield parent.auth.uid as any;
                     } else {
                         break;
                     }
@@ -404,8 +404,8 @@ export const Resolver: GQLResolver = {
             }
         },
         settingsWatch: {
-            resolve: async (msg: any) => {
-                return msg;
+            resolve: async (uid: any, args: SubscriptionSettingsWatchArgs, ctx: Context) => {
+                return await Modules.Users.getUserSettings(ctx, uid);
             },
             subscribe: async function* (_: any, args: SubscriptionSettingsWatchArgs, parent: Context) {
                 if (!parent.auth.uid) {
@@ -415,7 +415,7 @@ export const Resolver: GQLResolver = {
                 let version = await inTx(parent, async (ctx) => {
                     return (await Modules.Users.getUserSettingsEntity(ctx, ctx.auth.uid!)).metadata.versionCode;
                 });
-                yield await Modules.Users.getUserSettings(parent, parent.auth.uid);
+                yield parent.auth.uid as any;
 
                 while (true) {
                     let changed = await fastWatch(parent, 'user-settings-' + parent.auth.uid, version,
@@ -423,7 +423,7 @@ export const Resolver: GQLResolver = {
                     );
                     if (changed.result) {
                         version = changed.version;
-                        yield await Modules.Users.getUserSettings(parent, parent.auth.uid);
+                        yield parent.auth.uid as any;
                     } else {
                         break;
                     }

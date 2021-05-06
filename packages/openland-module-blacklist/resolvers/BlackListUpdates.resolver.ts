@@ -55,7 +55,7 @@ export const Resolver: GQLResolver = {
                 if (!uid) {
                     throw new AccessDeniedError();
                 }
-                let userCursor: undefined|string;
+                let userCursor: undefined | string;
                 if (args.fromState) {
                     userCursor = IDs.BlackListUpdatesCursor.parse(args.fromState);
                 }
