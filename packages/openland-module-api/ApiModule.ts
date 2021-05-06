@@ -19,6 +19,7 @@ import { Shutdown } from '../openland-utils/Shutdown';
 import { GraphQLSchema } from 'graphql';
 import { InMemoryQueryCache } from 'openland-mtproto3/queryCache';
 import { SpaceXOperationResolver } from 'openland-spacex/SpaceXOperationResolver';
+import { declareRemoteQueryExecutor } from './remoteExecutor';
 
 const defaultCtx = createNamedContext('ctx');
 const logger = createLogger('api-module');
@@ -71,6 +72,10 @@ export class ApiModule {
                     });
                 }
             }
+        }
+
+        if (serverRoleEnabled('executor')) {
+            declareRemoteQueryExecutor('default');
         }
     }
 
