@@ -47,7 +47,7 @@ export class PaymentsRepository {
     // Handle Payment State change
     //
 
-    handlePaymentIntentSuccess = async (parent: Context, pid: string) => {
+    handlePaymentSuccess = async (parent: Context, pid: string) => {
         log.debug(parent, 'Success');
         await inTx(parent, async (ctx) => {
             let payment = await this.store.Payment.findById(ctx, pid);
@@ -73,7 +73,7 @@ export class PaymentsRepository {
         });
     }
 
-    handlePaymentIntentCanceled = async (parent: Context, pid: string) => {
+    handlePaymentCanceled = async (parent: Context, pid: string) => {
         log.debug(parent, 'canceled');
         await inTx(parent, async (ctx) => {
             let payment = await this.store.Payment.findById(ctx, pid);

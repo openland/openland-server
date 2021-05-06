@@ -39,7 +39,7 @@ export class RoutingRepositoryImpl {
     //
 
     onPaymentSuccess = async (ctx: Context, uid: number, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
-        await Events.PaymentEvent.event(ctx, { type: 'payment_success', uid, amount, pid, operation });
+        Events.PaymentEvent.event(ctx, { type: 'payment_success', uid, amount, pid, operation });
 
         if (operation.type === 'deposit') {
             await this.wallet.depositAsyncCommit(ctx, operation.uid, operation.txid);
@@ -60,7 +60,7 @@ export class RoutingRepositoryImpl {
     }
 
     onPaymentFailing = async (ctx: Context, uid: number, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
-        await Events.PaymentEvent.event(ctx, { type: 'payment_failing', uid, amount, pid, operation });
+        Events.PaymentEvent.event(ctx, { type: 'payment_failing', uid, amount, pid, operation });
 
         if (operation.type === 'deposit') {
             await this.wallet.depositAsyncFailing(ctx, operation.uid, operation.txid);
@@ -81,7 +81,7 @@ export class RoutingRepositoryImpl {
     }
 
     onPaymentActionNeeded = async (ctx: Context, uid: number, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
-        await Events.PaymentEvent.event(ctx, { type: 'payment_action_needed',  uid, amount, pid, operation });
+        Events.PaymentEvent.event(ctx, { type: 'payment_action_needed',  uid, amount, pid, operation });
 
         if (operation.type === 'deposit') {
             await this.wallet.depositAsyncActionNeeded(ctx, operation.uid, operation.txid);
@@ -102,7 +102,7 @@ export class RoutingRepositoryImpl {
     }
 
     onPaymentCanceled = async (ctx: Context, uid: number, amount: number, pid: string, operation: PaymentCreateShape['operation']) => {
-        await Events.PaymentEvent.event(ctx, { type: 'payment_canceled', uid, amount, pid, operation });
+        Events.PaymentEvent.event(ctx, { type: 'payment_canceled', uid, amount, pid, operation });
 
         if (operation.type === 'deposit') {
             await this.wallet.depositAsyncCancel(ctx, operation.uid, operation.txid);
@@ -127,7 +127,7 @@ export class RoutingRepositoryImpl {
     //
 
     onPurchaseCreated = async (ctx: Context, pid: string, txid: string, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
-        await Events.PurchaseEvent.event(ctx, { type: 'purchase_created', pid, uid, amount, product });
+        Events.PurchaseEvent.event(ctx, { type: 'purchase_created', pid, uid, amount, product });
         if (product.type === 'group') {
             await Modules.Messaging.premiumChat.onPurchaseCreated(ctx, pid, txid, uid, amount, product.gid);
         } else if (product.type === 'donate_reaction' || product.type === 'donate_message') {
@@ -136,7 +136,7 @@ export class RoutingRepositoryImpl {
     }
 
     onPurchaseSuccessful = async (ctx: Context, pid: string, txid: string, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
-        await Events.PurchaseEvent.event(ctx, { type: 'purchase_successful', pid, uid, amount, product });
+        Events.PurchaseEvent.event(ctx, { type: 'purchase_successful', pid, uid, amount, product });
         if (product.type === 'group') {
             await Modules.Messaging.premiumChat.onPurchaseSuccess(ctx, pid, txid, product.gid, uid, amount);
         } else if (product.type === 'donate_reaction' || product.type === 'donate_message') {
@@ -146,7 +146,7 @@ export class RoutingRepositoryImpl {
     }
 
     onPurchaseFailing = async (ctx: Context, pid: string, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
-        await Events.PurchaseEvent.event(ctx, { type: 'purchase_failing', pid, uid, amount, product });
+        Events.PurchaseEvent.event(ctx, { type: 'purchase_failing', pid, uid, amount, product });
         if (product.type === 'group') {
             await Modules.Messaging.premiumChat.onPurchaseFailing(ctx, pid, product.gid, uid, amount);
         } else if (product.type === 'donate_reaction' || product.type === 'donate_message') {
@@ -155,7 +155,7 @@ export class RoutingRepositoryImpl {
     }
 
     onPurchaseNeedAction = async (ctx: Context, pid: string, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
-        await Events.PurchaseEvent.event(ctx, { type: 'purchase_need_action', pid, uid, amount, product });
+        Events.PurchaseEvent.event(ctx, { type: 'purchase_need_action', pid, uid, amount, product });
         if (product.type === 'group') {
             await Modules.Messaging.premiumChat.onPurchaseNeedAction(ctx, pid, product.gid, uid, amount);
         } else if (product.type === 'donate_reaction' || product.type === 'donate_message') {
@@ -164,7 +164,7 @@ export class RoutingRepositoryImpl {
     }
 
     onPurchaseCanceled = async (ctx: Context, pid: string, uid: number, amount: number, product: WalletPurchaseCreateShape['product']) => {
-        await Events.PurchaseEvent.event(ctx, { type: 'purchase_canceled', pid, uid, amount, product });
+        Events.PurchaseEvent.event(ctx, { type: 'purchase_canceled', pid, uid, amount, product });
         if (product.type === 'group') {
             await Modules.Messaging.premiumChat.onPurchaseCanceled(ctx, pid, product.gid, uid, amount);
         } else if (product.type === 'donate_reaction' || product.type === 'donate_message') {
@@ -182,7 +182,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionStarted = async (ctx: Context, id: string, txid: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription) {
-            await Events.SubscriptionEvent.event(ctx, { type: 'subscription_started', ...subscriptionToEvent(subscription) });
+            Events.SubscriptionEvent.event(ctx, { type: 'subscription_started', ...subscriptionToEvent(subscription) });
         }
         if (subscription && subscription.proudct.type === 'group') {
             await Modules.Messaging.premiumChat.onSubscriptionStarted(ctx, subscription.id, txid, subscription.proudct.gid, subscription.uid);
@@ -195,7 +195,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionFailing = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription) {
-            await Events.SubscriptionEvent.event(ctx, { type: 'subscription_failing', ...subscriptionToEvent(subscription) });
+            Events.SubscriptionEvent.event(ctx, { type: 'subscription_failing', ...subscriptionToEvent(subscription) });
         }
         if (subscription && subscription.proudct.type === 'group') {
             await Modules.Messaging.premiumChat.onSubscriptionFailing(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
@@ -210,7 +210,7 @@ export class RoutingRepositoryImpl {
         if (!subscription) {
             return;
         }
-        await Events.SubscriptionEvent.event(ctx, {
+        Events.SubscriptionEvent.event(ctx, {
             type: 'subscription_payment_success',
             ...subscriptionToEvent(subscription)
         });
@@ -226,7 +226,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionRecovered = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription) {
-            await Events.SubscriptionEvent.event(ctx, { type: 'subscription_recovered', ...subscriptionToEvent(subscription) });
+            Events.SubscriptionEvent.event(ctx, { type: 'subscription_recovered', ...subscriptionToEvent(subscription) });
         }
         if (subscription && subscription.proudct.type === 'group') {
             await Modules.Messaging.premiumChat.onSubscriptionRecovered(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
@@ -253,7 +253,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionRestarted = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription) {
-            await Events.SubscriptionEvent.event(ctx, { type: 'subscription_restarted', ...subscriptionToEvent(subscription) });
+            Events.SubscriptionEvent.event(ctx, { type: 'subscription_restarted', ...subscriptionToEvent(subscription) });
         }
         if (subscription && subscription.proudct.type === 'group') {
             await Modules.Messaging.premiumChat.onSubscriptionRestarted(ctx, subscription.id, subscription.proudct.gid, subscription.uid);
@@ -266,7 +266,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionExpired = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription) {
-            await Events.SubscriptionEvent.event(ctx, { type: 'subscription_expired', ...subscriptionToEvent(subscription) });
+            Events.SubscriptionEvent.event(ctx, { type: 'subscription_expired', ...subscriptionToEvent(subscription) });
         }
 
         if (subscription && subscription.proudct.type === 'group') {
@@ -280,7 +280,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionCanceled = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription) {
-            await Events.SubscriptionEvent.event(ctx, { type: 'subscription_canceled', ...subscriptionToEvent(subscription) });
+            Events.SubscriptionEvent.event(ctx, { type: 'subscription_canceled', ...subscriptionToEvent(subscription) });
         }
 
         if (subscription && subscription.proudct.type === 'group') {
@@ -293,11 +293,11 @@ export class RoutingRepositoryImpl {
     //
 
     onPaymentIntentSuccess = async (ctx: Context, amount: number, operation: PaymentIntentCreateShape['operation']) => {
-        await Events.PaymentIntentEvent.event(ctx, { type: 'payment_intent_success', amount, operation });
+        Events.PaymentIntentEvent.event(ctx, { type: 'payment_intent_success', amount, operation });
         if (operation.type === 'deposit') {
             await this.wallet.depositInstant(ctx, operation.uid, amount);
         } else if (operation.type === 'payment') {
-            await this.payments.handlePaymentIntentSuccess(ctx, operation.id);
+            await this.payments.handlePaymentSuccess(ctx, operation.id);
         } else if (operation.type === 'purchase') {
             // Obsolete
             // await this.purchases.onPurchaseSuccessful(ctx, operation.id);
@@ -307,11 +307,11 @@ export class RoutingRepositoryImpl {
     }
 
     onPaymentIntentCanceled = async (ctx: Context, amount: number, operation: PaymentIntentCreateShape['operation']) => {
-        await Events.PaymentIntentEvent.event(ctx, { type: 'payment_intent_canceled', amount, operation });
+        Events.PaymentIntentEvent.event(ctx, { type: 'payment_intent_canceled', amount, operation });
         if (operation.type === 'deposit') {
             // Nothing To Do
         } else if (operation.type === 'payment') {
-            await this.payments.handlePaymentIntentCanceled(ctx, operation.id);
+            await this.payments.handlePaymentCanceled(ctx, operation.id);
         } else if (operation.type === 'purchase') {
             // Obsolete
             // await this.purchases.onPurchaseCanceled(ctx, operation.id);
@@ -321,7 +321,7 @@ export class RoutingRepositoryImpl {
     }
 
     onPaymentIntentNeedAction = async (ctx: Context, amount: number, operation: PaymentIntentCreateShape['operation']) => {
-        await Events.PaymentIntentEvent.event(ctx, { type: 'payment_intent_need_action', amount, operation });
+        Events.PaymentIntentEvent.event(ctx, { type: 'payment_intent_need_action', amount, operation });
         if (operation.type === 'deposit') {
             // Nothing To Do
         } else if (operation.type === 'payment') {
@@ -334,7 +334,7 @@ export class RoutingRepositoryImpl {
     }
 
     onPaymentIntentFailing = async (ctx: Context, amount: number, operation: PaymentIntentCreateShape['operation']) => {
-        await Events.PaymentIntentEvent.event(ctx, { type: 'payment_intent_failing', amount, operation });
+        Events.PaymentIntentEvent.event(ctx, { type: 'payment_intent_failing', amount, operation });
         if (operation.type === 'deposit') {
             // Nothing To Do
         } else if (operation.type === 'payment') {

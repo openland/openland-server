@@ -42,7 +42,7 @@ export class WalletRepository {
             this.store.UserWalletUpdates.post(ctx, uid, WalletLockedChanged.create({ isLocked, failingPaymentsCount }));
             if (oldState !== isLocked) {
                 if (isLocked) {
-                    await Modules.Push.pushWork(ctx, {
+                    Modules.Push.pushWork(ctx, {
                         uid: uid,
                         counter: null,
                         conversationId: null,
@@ -67,7 +67,7 @@ export class WalletRepository {
                         buttonText: 'Update payment method'
                     });
                 } else {
-                    await Modules.Push.sendCounterPush(ctx, uid);
+                    Modules.Push.sendCounterPush(ctx, uid);
                 }
 
             }

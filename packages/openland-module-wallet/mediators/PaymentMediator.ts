@@ -412,7 +412,7 @@ export class PaymentMediator {
                     await this.paymentIntents.paymentIntentNeedAction(ctx, piid);
                 });
                 return true; /* Completed: Need user input */
-            } else if (err.code === 'requires_payment_method' || err.code === 'card_declined') {
+            } else if (err.code === 'requires_payment_method' || err.code === 'card_declined' || err.code === 'card_decline_rate_limit_exceeded') {
 
                 // Notify about failing payment
                 await inTx(parent, async (ctx) => {
@@ -522,7 +522,7 @@ export class PaymentMediator {
         let piid = await inTx(parent, async (ctx) => {
             let p = (await Store.Payment.findById(parent, id))!;
             if (!p.piid) {
-                await this.payments.handlePaymentIntentCanceled(ctx, id);
+                await this.payments.handlePaymentCanceled(ctx, id);
                 return null;
             }
             return p.piid;
