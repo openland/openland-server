@@ -20,7 +20,7 @@ export class NoOpTracer implements STracer {
         return new NoOpSpan();
     }
 
-    async trace<T>(ctx: Context, op: string, handler: (ctx: Context) => Promise<T>): Promise<T> {
+    trace<T>(ctx: Context, op: string, handler: (ctx: Context) => Promise<T>): Promise<T> {
         // Metrics.TracingFrequence.inc();
         return handler(ctx);
     }

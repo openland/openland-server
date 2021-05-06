@@ -23,6 +23,7 @@ export function declareRemoteQueryExecutor(tag: string) {
                 const opName = args.params.operationName as string | null;
                 const variables = args.params.variables as any;
                 const query = Modules.API.queryResolver.resolve(op);
+                const rootValue = (args.params.root as any) || undefined;
                 if (Array.isArray(query)) {
                     // TODO: Implement
                     // return {
@@ -49,6 +50,7 @@ export function declareRemoteQueryExecutor(tag: string) {
                             operationName: opName,
                             variableValues: variables,
                             contextValue: ictx,
+                            rootValue
                         });
                     });
 
@@ -64,10 +66,10 @@ export function declareRemoteQueryExecutor(tag: string) {
     });
 }
 
-export function callRemoteQueryExecutor(tag: string, ctx: Context, query: string, variables: any, operationName: string | null): Promise<ExecutionResult> {
+export function callRemoteQueryExecutor(tag: string, ctx: Context, query: string, variables: any, operationName: string | null, rootValue: any | undefined): Promise<ExecutionResult> {
     return tracer.trace(ctx, operationName ? operationName : '<call>', async (ctx2) => {
         return {
-            data: await Modules.Broker.call('graphql-' + tag + '.execute', { ctx: contextSerialize(ctx2), query, operationName, variables })
+            data: await Modules.Broker.call('graphql-' + tag + '.execute', { ctx: contextSerialize(ctx2), query, operationName, variables, rootValue })
         };
     });
 }

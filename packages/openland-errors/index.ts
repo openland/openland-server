@@ -12,7 +12,7 @@ import { AccessDeniedError } from './AccessDeniedError';
 // import { createNamedContext } from '@openland/context';
 // import { createLogger } from '@openland/log';
 
-interface FormattedError {
+export interface FormattedError {
     uuid: string;
     message: string;
     invalidFields?: { key: string, message: string }[] | null;

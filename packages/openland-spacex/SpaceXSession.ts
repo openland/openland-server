@@ -1,3 +1,4 @@
+import { FormattedError } from './../openland-errors/index';
 import { UnboundedConcurrencyPool } from './../openland-utils/ConcurrencyPool';
 import { Modules } from 'openland-modules/Modules';
 import { SpaceXContext } from './SpaceXContext';
@@ -21,6 +22,7 @@ import { execute } from 'openland-module-api/execute';
 import { getOperationField } from './utils/getOperationField';
 import { resolveRemote } from './resolveRemote';
 import { callRemoteQueryExecutor } from 'openland-module-api/remoteExecutor';
+import { spaceFormatError } from './spaceFormatError';
 
 export type SpaceXSessionDescriptor = { type: 'anonymnous' } | { type: 'authenticated', uid: number, tid: string };
 
@@ -34,7 +36,7 @@ export type OpResult = {
     data: any;
 } | {
     type: 'errors';
-    errors: any[];
+    errors: (FormattedError & { locations: any, path: any })[];
 } | {
     type: 'aborted';
 } | {
@@ -151,7 +153,9 @@ export class SpaceXSession {
                                 context,
                                 op.raw,
                                 op.variables,
-                                op.operationName ? op.operationName : null);
+                                op.operationName ? op.operationName : null,
+                                undefined
+                            );
                         });
                     } else {
                         // Executing in concurrency pool
@@ -175,7 +179,7 @@ export class SpaceXSession {
                     // This handlers could throw errors, but they are ignored since we are already 
                     // in completed state
                     if (res.errors && res.errors.length > 0) {
-                        handler({ type: 'errors', errors: [...res.errors!] });
+                        handler({ type: 'errors', errors: [...res.errors!].map((v) => spaceFormatError(v)) });
                         handler({ type: 'completed' });
                     } else {
                         handler({ type: 'data', data: res.data });
@@ -240,7 +244,7 @@ export class SpaceXSession {
                             // Handle event or error
                             if (resolved.errors && resolved.errors.length > 0) {
                                 cancelContext(opContext);
-                                handler({ type: 'errors', errors: [...resolved.errors!] });
+                                handler({ type: 'errors', errors: [...resolved.errors!].map((v) => spaceFormatError(v)) });
                                 handler({ type: 'completed' });
                                 break;
                             } else {
@@ -257,7 +261,7 @@ export class SpaceXSession {
                         if (!isContextCancelled(opContext)) {
                             cancelContext(opContext);
                             if (eventStream.errors && eventStream.errors.length > 0) {
-                                handler({ type: 'errors', errors: [...eventStream.errors!] });
+                                handler({ type: 'errors', errors: [...eventStream.errors!].map((v) => spaceFormatError(v)) });
                                 handler({ type: 'completed' });
                             } else {
                                 handler({ type: 'data', data: eventStream.data });
@@ -374,7 +378,13 @@ export class SpaceXSession {
                 case 'query':
                     const remote = resolveRemote(opts.op.document);
                     if (remote) {
-                        return await callRemoteQueryExecutor(remote, ctx, opts.op.raw, opts.op.variables, opts.op.operationName ? opts.op.operationName : null);
+                        return await callRemoteQueryExecutor(remote,
+                            ctx,
+                            opts.op.raw,
+                            opts.op.variables,
+                            opts.op.operationName ? opts.op.operationName : null,
+                            undefined
+                        );
                     }
                     res = await inHybridTx(ctx, async (ictx) => {
                         getTransaction(ictx).setOptions({ retry_limit: 3, timeout: 10000 });
