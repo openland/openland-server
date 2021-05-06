@@ -1,3 +1,4 @@
+import { createLogger } from '@openland/log';
 import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
 import { withUser } from 'openland-module-api/Resolvers';
@@ -6,7 +7,7 @@ import { TypingEvent } from './TypingEvent';
 import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
-import { Context } from '@openland/context';
+import { Context, createNamedContext } from '@openland/context';
 
 const TypingType = {
     TEXT: 'text',
@@ -17,6 +18,8 @@ const TypingType = {
 };
 
 const TypingTypeValues = Object.values(TypingType);
+const rootCtx = createNamedContext('typing');
+const logger = createLogger('typing');
 
 export const Resolver: GQLResolver = {
     TypingType: {
@@ -48,8 +51,9 @@ export const Resolver: GQLResolver = {
     },
     Subscription: {
         typings: {
-            resolve: async (msg: any) => {
-                return msg;
+            resolve: (...msg: any) => {
+                logger.debug(rootCtx, msg);
+                return msg[0];
             },
             subscribe: async (r, args, ctx) => {
                 if (!ctx.auth.uid) {

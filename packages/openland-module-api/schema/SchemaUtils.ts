@@ -7,7 +7,7 @@ export type OptionalNullable<T> = undefined | null | T;
 export type Resolver<Root, Args, C, ReturnType> = (root: Root, args: Args, context: C) => MaybePromise<ReturnType>;
 
 export type SubscriptionResolver<Root, Args, C, ReturnType> = {
-    resolve: (obj: ReturnType) => MaybePromise<ReturnType>,
+    resolve: (obj: ReturnType, args: any, ctx: Context) => MaybePromise<ReturnType>,
     subscribe: Resolver<Root, Args, C, AsyncIterable<ReturnType> | AsyncIterator<ReturnType>>
 };
 

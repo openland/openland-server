@@ -517,7 +517,7 @@ export const Resolver: GQLResolver = {
     },
     Subscription: {
         alphaConferenceWatch: {
-            resolve: async (msg: any) => {
+            resolve: (msg: any) => {
                 return msg;
             },
             subscribe: async function* (_: any, args: { id: string }, parent: Context) {
