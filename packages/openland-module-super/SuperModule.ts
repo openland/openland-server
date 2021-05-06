@@ -61,6 +61,15 @@ export class SuperModule {
         return this.envVarsRepo.getCached(name);
     }
 
+    getBoolean(name: string, fallback: boolean) {
+        const res = this.getCached<boolean>(name);
+        if (res === null) {
+            return fallback;
+        } else {
+            return res;
+        }
+    }
+
     prepare = async () => {
         await this.envVarsRepo.start();
     }

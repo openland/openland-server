@@ -1,3 +1,4 @@
+import { Modules } from './../openland-modules/Modules';
 import { DocumentNode } from 'graphql';
 import { getOperation } from './utils/getOperation';
 import { getOperationField } from './utils/getOperationField';
@@ -22,6 +23,11 @@ export function resolveRemote(document: DocumentNode): string | null {
             default:
                 return null;
         }
+    }
+
+    // Route everything to default
+    if (Modules.Super.getBoolean('spacex-route-all', false)) {
+        return 'default';
     }
 
     return null;
