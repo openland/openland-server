@@ -52,11 +52,11 @@ export const Resolver: GQLResolver = {
     Subscription: {
         typings: {
             resolve: (...msg: any) => {
-                logger.debug(rootCtx, 'Typing sent...');
-                logger.debug(rootCtx, 'item0', msg[0]);
-                logger.debug(rootCtx, 'item1', msg[1]);
-                logger.debug(rootCtx, 'item2', msg[2]);
-                logger.debug(rootCtx, msg);
+                logger.log(rootCtx, 'Typing sent...');
+                logger.log(rootCtx, 'item0', msg[0]);
+                logger.log(rootCtx, 'item1', msg[1]);
+                logger.log(rootCtx, 'item2', msg[2]);
+                logger.log(rootCtx, msg);
                 return msg[0];
             },
             subscribe: async (r, args, ctx) => {
