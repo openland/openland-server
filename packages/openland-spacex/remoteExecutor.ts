@@ -68,6 +68,6 @@ export function declareRemoteQueryExecutor(tag: string) {
 
 export function callRemoteQueryExecutor(tag: string, ctx: Context, query: string, variables: any, operationName: string | null, rootValue: any | null): Promise<{ data: any } | { errors: SpaceXFormattedError[] }> {
     return tracer.trace(ctx, operationName ? operationName : '<call>', async (ctx2) => {
-        return await Modules.Broker.call('graphql-' + tag + '.execute', { ctx: contextSerialize(ctx2), query, operationName, variables, rootValue });
+        return await Modules.Broker.call('graphql-' + tag + '.execute', { ctx: contextSerialize(ctx2), query, operationName, variables, rootValue }, { timeout: 10000 });
     });
 }
