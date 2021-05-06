@@ -300,7 +300,7 @@ export class SpaceXSession {
                         if (!isContextCancelled(opContext)) {
                             cancelContext(opContext);
                             if (eventStream.errors && eventStream.errors.length > 0) {
-                                handler({ type: 'errors', errors: [...eventStream.errors] as any });
+                                handler({ type: 'errors', errors: [...eventStream.errors].map((v) => spaceFormatError(v)) });
                                 handler({ type: 'completed' });
                             } else {
                                 handler({ type: 'data', data: eventStream.data });
@@ -310,6 +310,8 @@ export class SpaceXSession {
                     }
                 }
             } catch (e) {
+                logger.warn(parentContext, e);
+                Metrics.SpaceXOperationTaggedErrors.inc(name);
                 if (isContextCancelled(opContext)) {
                     return;
                 }

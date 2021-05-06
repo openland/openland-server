@@ -49,6 +49,7 @@ export const Metrics = {
     SpaceXOperationsFrequence: Factory.createFrequencyGauge('spacex_ops_hz', 'Frequency of SpaceX operations'),
     SpaceXOperationsTaggedFrequence: Factory.createTaggedFrequencyGauge('spacex_ops_hz_tagged', 'Frequency of SpaceX operations'),
     SpaceXOperationsNamedFrequence: Factory.createTaggedFrequencyGauge('spacex_ops_hz_named', 'Frequency of SpaceX operations'),
+    SpaceXOperationTaggedErrors: Factory.createTaggedFrequencyGauge('spacex_errors', 'Frequency of errors SpaceX operations'),
 
     SpaceXOperationTime: Factory.createSummary('spacex_operation_duration', 'Duration of SpaceX operation', DEFAULT_QUANTILES),
     SpaceXOperationTimeTagged: Factory.createTaggedSummary('spacex_operation_duration_tagged', 'Duration of SpaceX operation', DEFAULT_QUANTILES),
