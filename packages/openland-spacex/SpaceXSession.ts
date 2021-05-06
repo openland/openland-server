@@ -154,7 +154,7 @@ export class SpaceXSession {
                                 op.raw,
                                 op.variables,
                                 op.operationName ? op.operationName : null,
-                                undefined
+                                null
                             );
                         });
                     } else {
@@ -383,7 +383,7 @@ export class SpaceXSession {
                             opts.op.raw,
                             opts.op.variables,
                             opts.op.operationName ? opts.op.operationName : null,
-                            undefined
+                            null
                         );
                     }
                     res = await inHybridTx(ctx, async (ictx) => {
