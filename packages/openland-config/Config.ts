@@ -184,7 +184,7 @@ class ConfigProvider {
     }
 
     get enableGraphqlTracing() {
-        return require('./../openland-modules/Modules.Super').getBoolean('graphql-enable-tracing', false) as boolean;
+        return require('./../openland-modules/Modules').Super.getBoolean('graphql-enable-tracing', false) as boolean;
     }
 
     get apm() {
