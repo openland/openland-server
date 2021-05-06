@@ -1,4 +1,3 @@
-import { Modules } from './../openland-modules/Modules';
 import * as t from 'io-ts';
 import fs from 'fs';
 import { isRight } from 'fp-ts/lib/Either';
@@ -185,7 +184,7 @@ class ConfigProvider {
     }
 
     get enableGraphqlTracing() {
-        return Modules.Super.getBoolean('graphql-enable-tracing', false);
+        return require('./../openland-modules/Modules.Super').getBoolean('graphql-enable-tracing', false) as boolean;
     }
 
     get apm() {
