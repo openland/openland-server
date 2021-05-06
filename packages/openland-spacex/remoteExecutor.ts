@@ -15,6 +15,11 @@ export function declareRemoteQueryExecutor(tag: string) {
     const tracerExecutor = createTracer('executor-' + tag);
     Modules.Broker.createService({
         name: 'graphql-' + tag,
+        bulkhead: {
+            enabled: true,
+            concurrency: 10,
+            maxQueueSize: 50,
+        },
         actions: {
             execute: async (args) => {
                 // Resolve context
