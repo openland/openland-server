@@ -9,7 +9,7 @@ export interface QueryCache {
     get(queryId: string): Promise<{ query: string, name: string | undefined } | null>;
 }
 
-const sha256 = (data: string) => createHash('sha256').update(data).digest('hex');
+export const sha256 = (data: string) => createHash('sha256').update(data).digest('hex');
 
 export class InMemoryQueryCache implements QueryCache {
     private cache = new Map<string, string>();

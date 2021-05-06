@@ -187,6 +187,10 @@ class ConfigProvider {
         return require('./../openland-modules/Modules').Modules.Super.getBoolean('graphql-enable-tracing', false) as boolean;
     }
 
+    get enableGraphqlJit() {
+        return require('./../openland-modules/Modules').Modules.Super.getBoolean('graphql-enable-jit', false) as boolean;
+    }
+
     get apm() {
         loadConfigIfNeeded();
         if (configuration!.apm) {
