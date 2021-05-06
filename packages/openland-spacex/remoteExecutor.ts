@@ -57,7 +57,9 @@ export function declareRemoteQueryExecutor(tag: string) {
                             errors: res.errors.map((e) => spaceFormatError(e))
                         };
                     }
-                    return res.data;
+                    return {
+                        data: res.data
+                    };
                 });
             }
         }
