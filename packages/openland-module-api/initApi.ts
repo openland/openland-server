@@ -141,6 +141,7 @@ export async function initApi(isTest: boolean) {
         });
     }));
 
+    // NOTE: Create separate since apollo hacks it
     const ApolloSchema = Schema();
     const Server = new ApolloServer({
         schema: ApolloSchema,

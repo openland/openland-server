@@ -77,7 +77,7 @@ export const Schema = (forTest: boolean = false) => {
             }
 
             // Enable tracing if needed
-            if (!Config.enableTracing) {
+            if (!Config.enableTracing || !Config.enableGraphqlTracing) {
                 return original(root, args, ctx, info);
             }
 
