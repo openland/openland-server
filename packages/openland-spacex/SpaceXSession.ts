@@ -154,20 +154,11 @@ export class SpaceXSession {
                     let res: InternalOpResult | null;
                     if (remote) {
                         // Execute in remote pool
-                        res = await tracer.trace(opContext, docOp, async (context) => {
-                            if (op.operationName) {
-                                setTracingTag(context, 'operation_name', op.operationName);
-                            }
-                            if (context.auth.uid) {
-                                setTracingTag(context, 'user', IDs.User.serialize(context.auth.uid));
-                            }
-                            return await callRemoteQueryExecutor(remote,
-                                context,
-                                op.raw,
-                                op.variables,
-                                op.operationName ? op.operationName : null,
-                                null
-                            );
+                        res = await this._executeRemote(remote, {
+                            ctx: opContext,
+                            type: docOp,
+                            op,
+                            field: docField
                         });
                     } else {
                         // Executing in concurrency pool
@@ -250,13 +241,13 @@ export class SpaceXSession {
                             // Execute
                             let resolved: InternalOpResult;
                             if (remote) {
-                                resolved = await callRemoteQueryExecutor(remote,
-                                    resolveContext,
-                                    op.raw,
-                                    op.variables,
-                                    op.operationName ? op.operationName : null,
-                                    null
-                                );
+                                resolved = await this._executeRemote(remote, {
+                                    ctx: resolveContext,
+                                    type: 'subscription-resolve',
+                                    op,
+                                    rootValue: event,
+                                    field: docField
+                                });
                             } else {
                                 let executed = await this._execute({
                                     ctx: resolveContext,
@@ -368,6 +359,42 @@ export class SpaceXSession {
         }
     }
 
+    private async _executeRemote(remote: string, opts: {
+        ctx: Context,
+        rootValue?: any,
+        type: 'mutation' | 'query' | 'subscription' | 'subscription-resolve',
+        field: string | null,
+        op: { raw: string, document: DocumentNode, variables: any, operationName?: string }
+    }) {
+        let start = currentRunningTime();
+        let res = await tracer.trace(opts.ctx, 'remote-' + opts.type, async (context) => {
+            if (opts.op.operationName) {
+                setTracingTag(context, 'operation_name', opts.op.operationName);
+            }
+            if (context.auth.uid) {
+                setTracingTag(context, 'user', IDs.User.serialize(context.auth.uid));
+            }
+            return await callRemoteQueryExecutor(remote,
+                context,
+                opts.op.raw,
+                opts.op.variables,
+                opts.op.operationName ? opts.op.operationName : null,
+                opts.rootValue ? opts.rootValue : null
+            );
+        });
+        let duration = currentRunningTime() - start;
+        let tag = opts.type + ' ' + (opts.op.operationName || 'Unknown');
+        if (opts.type === 'query' || opts.type === 'mutation') {
+            Metrics.SpaceXOperationTime.report(duration);
+            Metrics.SpaceXOperationTimeTagged.report(tag, duration);
+        } else {
+            Metrics.SpaceXOperationSubscriptionTime.report(duration);
+            Metrics.SpaceXOperationSubscriptionTimeTagged.report(tag, duration);
+        }
+
+        return res;
+    }
+
     private async _execute(opts: {
         ctx: Context,
         rootValue?: any,
@@ -450,8 +477,13 @@ export class SpaceXSession {
             }
             let duration = currentRunningTime() - start;
             let tag = opts.type + ' ' + (opts.op.operationName || 'Unknown');
-            Metrics.SpaceXOperationTime.report(duration);
-            Metrics.SpaceXOperationTimeTagged.report(tag, duration);
+            if (opts.type === 'query' || opts.type === 'mutation') {
+                Metrics.SpaceXOperationTime.report(duration);
+                Metrics.SpaceXOperationTimeTagged.report(tag, duration);
+            } else {
+                Metrics.SpaceXOperationSubscriptionTime.report(duration);
+                Metrics.SpaceXOperationSubscriptionTimeTagged.report(tag, duration);
+            }
 
             // Format responses
             return res;
