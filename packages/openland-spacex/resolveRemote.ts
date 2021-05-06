@@ -18,7 +18,7 @@ export function resolveRemote(document: DocumentNode): string | null {
             case 'typingSend':
                 return 'events';
             default:
-                return null;
+                /* Nothing */
         }
     }
 
