@@ -2,11 +2,11 @@ import { createTracer } from 'openland-log/createTracer';
 import { DocumentNode } from '@apollo/client/core';
 import { Context, createNamedContext } from '@openland/context';
 import { getTransaction, inTx } from '@openland/foundationdb';
-import { ExecutionResult } from 'graphql';
 import { Modules } from 'openland-modules/Modules';
 import { contextParse, contextSerialize } from 'openland-server/context';
-import { getOperation } from 'openland-spacex/utils/getOperation';
-import { execute } from './execute';
+import { execute } from '../openland-module-api/execute';
+import { spaceFormatError } from './spaceFormatError';
+import { SpaceXFormattedError } from './SpaceXSession';
 
 const tracer = createTracer('remote');
 
@@ -36,10 +36,7 @@ export function declareRemoteQueryExecutor(tag: string) {
 
                     // Resolve operation
                     const doc = (query as any).document as DocumentNode; /* TS, WTF? */
-                    let operation = getOperation((query as any).document /* TS, WTF? */, opName ? opName : undefined);
-                    if (operation.operation === 'subscription') {
-                        throw Error('Subscriptions are not supported');
-                    }
+                    // let operation = getOperation((query as any).document /* TS, WTF? */, opName ? opName : undefined);
 
                     // Execute
                     const res = await inTx(ctx, async (ictx) => {
@@ -54,11 +51,12 @@ export function declareRemoteQueryExecutor(tag: string) {
                         });
                     });
 
+                    // Format response
                     if (res.errors && res.errors.length > 0) {
-                        // TODO: Handle
-                        throw Error('Unknwon error');
+                        return {
+                            errors: res.errors.map((e) => spaceFormatError(e))
+                        };
                     }
-
                     return res.data;
                 });
             }
@@ -66,10 +64,8 @@ export function declareRemoteQueryExecutor(tag: string) {
     });
 }
 
-export function callRemoteQueryExecutor(tag: string, ctx: Context, query: string, variables: any, operationName: string | null, rootValue: any | null): Promise<ExecutionResult> {
+export function callRemoteQueryExecutor(tag: string, ctx: Context, query: string, variables: any, operationName: string | null, rootValue: any | null): Promise<{ data: any } | { errors: SpaceXFormattedError[] }> {
     return tracer.trace(ctx, operationName ? operationName : '<call>', async (ctx2) => {
-        return {
-            data: await Modules.Broker.call('graphql-' + tag + '.execute', { ctx: contextSerialize(ctx2), query, operationName, variables, rootValue })
-        };
+        return await Modules.Broker.call('graphql-' + tag + '.execute', { ctx: contextSerialize(ctx2), query, operationName, variables, rootValue });
     });
 }

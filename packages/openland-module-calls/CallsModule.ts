@@ -19,7 +19,7 @@ import { declareConsumerCreateWorker } from './worker/declareConsumerCreateWorke
 import { declareConsumerDeleteWorker } from './worker/declareConsumerDeleteWorker';
 import { declareConsumerUnpauseWorker } from './worker/declareConsumerUnpauseWorker';
 import { declareWorkerCleanerWorker } from './worker/declareWorkerCleaner';
-import { declareRemoteQueryExecutor } from 'openland-module-api/remoteExecutor';
+import { declareRemoteQueryExecutor } from 'openland-spacex/remoteExecutor';
 import { declarePeerWorker } from './worker/declarePeerWorker';
 
 @injectable()

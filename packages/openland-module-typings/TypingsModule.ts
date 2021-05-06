@@ -7,7 +7,7 @@ import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
 import TypingTypeRoot = GQLRoots.TypingTypeRoot;
 import { Context } from '@openland/context';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
-import { declareRemoteQueryExecutor } from 'openland-module-api/remoteExecutor';
+import { declareRemoteQueryExecutor } from 'openland-spacex/remoteExecutor';
 
 @injectable()
 export class TypingsModule {

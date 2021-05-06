@@ -21,7 +21,7 @@ import { IDs } from 'openland-module-api/IDs';
 import { execute } from 'openland-module-api/execute';
 import { getOperationField } from './utils/getOperationField';
 import { resolveRemote } from './resolveRemote';
-import { callRemoteQueryExecutor } from 'openland-module-api/remoteExecutor';
+import { callRemoteQueryExecutor } from './remoteExecutor';
 import { spaceFormatError } from './spaceFormatError';
 
 export type SpaceXSessionDescriptor = { type: 'anonymnous' } | { type: 'authenticated', uid: number, tid: string };
@@ -31,12 +31,24 @@ export interface SpaceXSessionParams {
     schema: GraphQLSchema;
 }
 
+export type SpaceXFormattedError = (FormattedError & { locations: any, path: any });
+
+type InternalOpResult = {
+    data: any;
+} | {
+    errors: SpaceXFormattedError[];
+};
+
+function isErrored(src: InternalOpResult): src is { errors: SpaceXFormattedError[] } {
+    return !!(src as any).errors;
+}
+
 export type OpResult = {
     type: 'data';
     data: any;
 } | {
     type: 'errors';
-    errors: (FormattedError & { locations: any, path: any })[];
+    errors: SpaceXFormattedError[];
 } | {
     type: 'aborted';
 } | {
@@ -139,7 +151,7 @@ export class SpaceXSession {
 
                 if (docOp === 'query' || docOp === 'mutation') {
 
-                    let res: ExecutionResult | null;
+                    let res: InternalOpResult | null;
                     if (remote) {
                         // Execute in remote pool
                         res = await tracer.trace(opContext, docOp, async (context) => {
@@ -159,12 +171,24 @@ export class SpaceXSession {
                         });
                     } else {
                         // Executing in concurrency pool
-                        res = await this._execute({
+                        let rr = await this._execute({
                             ctx: opContext,
                             type: docOp,
                             op,
                             field: docField
                         });
+                        if (!rr) {
+                            return;
+                        }
+                        if (rr.errors && rr.errors.length > 0) {
+                            res = {
+                                errors: rr.errors.map((v) => spaceFormatError(v))
+                            };
+                        } else {
+                            res = {
+                                data: rr.data
+                            };
+                        }
                     }
 
                     // Complete if is not already
@@ -178,8 +202,8 @@ export class SpaceXSession {
 
                     // This handlers could throw errors, but they are ignored since we are already 
                     // in completed state
-                    if (res.errors && res.errors.length > 0) {
-                        handler({ type: 'errors', errors: [...res.errors!].map((v) => spaceFormatError(v)) });
+                    if (isErrored(res)) {
+                        handler({ type: 'errors', errors: res.errors });
                         handler({ type: 'completed' });
                     } else {
                         handler({ type: 'data', data: res.data });
@@ -224,27 +248,47 @@ export class SpaceXSession {
                             let resolveContext = withoutTransaction(opContext);
 
                             // Execute
-                            let resolved = await this._execute({
-                                ctx: resolveContext,
-                                type: 'subscription-resolve',
-                                op,
-                                rootValue: event,
-                                field: docField
-                            });
+                            let resolved: InternalOpResult;
+                            if (remote) {
+                                resolved = await callRemoteQueryExecutor(remote,
+                                    resolveContext,
+                                    op.raw,
+                                    op.variables,
+                                    op.operationName ? op.operationName : null,
+                                    null
+                                );
+                            } else {
+                                let executed = await this._execute({
+                                    ctx: resolveContext,
+                                    type: 'subscription-resolve',
+                                    op,
+                                    rootValue: event,
+                                    field: docField
+                                });
+                                if (!executed) {
+                                    return;
+                                }
+                                if (executed.errors && executed.errors.length > 0) {
+                                    resolved = {
+                                        errors: executed.errors.map((v) => spaceFormatError(v))
+                                    };
+                                } else {
+                                    resolved = {
+                                        data: executed.data
+                                    };
+                                }
+                            }
                             Metrics.SpaceXSubscriptionEvents.inc();
 
                             // Check if canceled
-                            if (!resolved) {
-                                return;
-                            }
                             if (isContextCancelled(opContext)) {
                                 return;
                             }
 
                             // Handle event or error
-                            if (resolved.errors && resolved.errors.length > 0) {
+                            if (isErrored(resolved)) {
                                 cancelContext(opContext);
-                                handler({ type: 'errors', errors: [...resolved.errors!].map((v) => spaceFormatError(v)) });
+                                handler({ type: 'errors', errors: resolved.errors });
                                 handler({ type: 'completed' });
                                 break;
                             } else {
@@ -261,7 +305,7 @@ export class SpaceXSession {
                         if (!isContextCancelled(opContext)) {
                             cancelContext(opContext);
                             if (eventStream.errors && eventStream.errors.length > 0) {
-                                handler({ type: 'errors', errors: [...eventStream.errors!].map((v) => spaceFormatError(v)) });
+                                handler({ type: 'errors', errors: [...eventStream.errors] as any });
                                 handler({ type: 'completed' });
                             } else {
                                 handler({ type: 'data', data: eventStream.data });
@@ -376,16 +420,6 @@ export class SpaceXSession {
                     });
                     break;
                 case 'query':
-                    const remote = resolveRemote(opts.op.document);
-                    if (remote) {
-                        return await callRemoteQueryExecutor(remote,
-                            ctx,
-                            opts.op.raw,
-                            opts.op.variables,
-                            opts.op.operationName ? opts.op.operationName : null,
-                            null
-                        );
-                    }
                     res = await inHybridTx(ctx, async (ictx) => {
                         getTransaction(ictx).setOptions({ retry_limit: 3, timeout: 10000 });
                         return execute(ictx, {
@@ -418,6 +452,8 @@ export class SpaceXSession {
             let tag = opts.type + ' ' + (opts.op.operationName || 'Unknown');
             Metrics.SpaceXOperationTime.report(duration);
             Metrics.SpaceXOperationTimeTagged.report(tag, duration);
+
+            // Format responses
             return res;
         });
     }

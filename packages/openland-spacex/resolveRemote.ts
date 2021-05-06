@@ -8,12 +8,10 @@ export function resolveRemote(document: DocumentNode): string | null {
     if (op.operation === 'subscription') {
         return null;
     }
-    const field = getOperationField(op);
-    if (!field) {
-        return null;
-    }
 
-    if (op.operation === 'mutation') {
+    // Resolve specific mutations
+    const field = getOperationField(op);
+    if (field && op.operation === 'mutation') {
         switch (field) {
             case 'presenceReportOnline':
             case 'presenceReportOffline':
