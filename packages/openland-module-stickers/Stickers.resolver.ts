@@ -11,6 +11,7 @@ import StickerPackRoot = GQLRoots.StickerPackRoot;
 import StickerRoot = GQLRoots.StickerRoot;
 import SubscriptionMyStickersUpdatesArgs = GQL.SubscriptionMyStickersUpdatesArgs;
 import { inTx } from '@openland/foundationdb';
+import { isPromise } from 'openland-utils/isPromise';
 
 function withStickerPackId<T, R>(handler: (ctx: Context, src: number, args: T) => MaybePromise<R>) {
     return (src: StickerPackRoot, args: T, ctx: Context) => {
@@ -19,13 +20,26 @@ function withStickerPackId<T, R>(handler: (ctx: Context, src: number, args: T) =
 }
 
 function withStickerPack<T, R>(handler: (ctx: Context, pack: StickerPack, args: T) => MaybePromise<R>) {
-    return async (src: StickerPackRoot, args: T, ctx: Context) => {
+    return (src: StickerPackRoot, args: T, ctx: Context) => {
         if (typeof src === 'number') {
-            let pack = await Store.StickerPack.findById(ctx, src);
+
+            // Fast path
+            const pack = Store.StickerPack.findById(ctx, src);
             if (!pack) {
                 throw new Error('Invalid sticker pack id');
             }
-            return handler(ctx, pack, args);
+            if (!isPromise(pack)) {
+                return handler(ctx, pack, args);
+            }
+
+            // Slow path
+            return (async () => {
+                const awaited = await pack;
+                if (!awaited) {
+                    throw new Error('Invalid sticker pack id');
+                }
+                return handler(ctx, awaited, args);
+            })();
         } else {
             return handler(ctx, src, args);
         }
@@ -33,13 +47,24 @@ function withStickerPack<T, R>(handler: (ctx: Context, pack: StickerPack, args: 
 }
 
 function withSticker<T, R>(handler: (ctx: Context, sticker: Sticker, args: T) => MaybePromise<R>) {
-    return async (src: StickerRoot, args: T, ctx: Context) => {
+    return (src: StickerRoot, args: T, ctx: Context) => {
         if (typeof src === 'string') {
-            let sticker = await Store.Sticker.findById(ctx, src);
+            const sticker = Store.Sticker.findById(ctx, src);
             if (!sticker) {
                 throw new Error('Invalid sticker id');
             }
-            return handler(ctx, sticker, args);
+            if (!isPromise(sticker)) {
+                return handler(ctx, sticker, args);
+            }
+
+            // Slow path
+            return (async () => {
+                const awaited = await sticker;
+                if (!awaited) {
+                    throw new Error('Invalid sticker id');
+                }
+                return handler(ctx, awaited, args);
+            })();
         } else {
             return handler(ctx, src, args);
         }
@@ -161,7 +186,7 @@ export const Resolver: GQLResolver = {
         stickerPackRemoveFromCollection: withActivatedUser(async (parent, args, uid) => {
             let id = IDs.StickerPack.parse(args.id);
 
-            return inTx(parent,  ctx =>  Modules.Stickers.removeFromCollection(ctx, uid, id));
+            return inTx(parent, ctx => Modules.Stickers.removeFromCollection(ctx, uid, id));
         }),
         stickerAddToFavorites: withActivatedUser(async (parent, args, uid) => {
             let id = IDs.Sticker.parse(args.id);
@@ -174,14 +199,14 @@ export const Resolver: GQLResolver = {
             return inTx(parent, ctx => Modules.Stickers.removeStickerFromFavs(ctx, uid, id));
         }),
         myStickersMarkAsViewed: withActivatedUser(async (parent, args, uid) => {
-            await inTx(parent,  ctx => Modules.Stickers.markUserStickersAsViewed(ctx, uid));
+            await inTx(parent, ctx => Modules.Stickers.markUserStickersAsViewed(ctx, uid));
             return true;
         })
     },
     Subscription: {
         myStickersUpdates: {
             resolve: async (obj) => obj,
-            subscribe: async function * (root: any, _: SubscriptionMyStickersUpdatesArgs, ctx: Context) {
+            subscribe: async function* (root: any, _: SubscriptionMyStickersUpdatesArgs, ctx: Context) {
                 for await (let batch of Store.UserStickersEventStore.createLiveStream(ctx, ctx.auth.uid!)) {
                     for (let e of batch.items) {
                         let evt = e as UserStickersUpdateEvent;
