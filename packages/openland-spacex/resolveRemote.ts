@@ -18,17 +18,33 @@ export function resolveRemote(document: DocumentNode): string | null {
             case 'typingSend':
                 return 'events';
             default:
-                /* Nothing */
+            /* Nothing */
         }
     }
 
     // Subscriptions
     if (op.operation === 'subscription') {
         if (Modules.Super.getBoolean('spacex-route-subscriptions', false)) {
-            return 'default';
+            switch (field) {
+                case 'alphaSubscribeOnline':
+                case 'chatOnlinesCount':
+                case 'typings':
+                case 'watchSettings':
+                case 'settingsWatch':
+                case 'alphaConferenceMediaWatch':
+                case 'alphaConferenceWatch':
+                    return 'default';
+                default:
+                    return null;
+            }
         } else {
             return null;
         }
+        // if (Modules.Super.getBoolean('spacex-route-subscriptions', false)) {
+        //     return 'default';
+        // } else {
+        //     return null;
+        // }
     }
 
     // Route everything to default

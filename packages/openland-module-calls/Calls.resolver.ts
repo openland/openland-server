@@ -517,8 +517,8 @@ export const Resolver: GQLResolver = {
     },
     Subscription: {
         alphaConferenceWatch: {
-            resolve: (msg: any) => {
-                return msg;
+            resolve: (cid: any, args: { id: string }, parent: Context) => {
+                return inTx(parent, async (ctx) => (await Store.ConferenceRoom.findById(ctx, cid))!);
             },
             subscribe: async function* (_: any, args: { id: string }, parent: Context) {
                 let cid = IDs.Conference.parse(args.id);
@@ -529,7 +529,7 @@ export const Resolver: GQLResolver = {
                     return { initVersion, value };
                 });
                 let version = initial.initVersion;
-                yield initial.value;
+                yield cid as any;
 
                 while (true) {
                     let changed = await fastWatch(parent, 'conference-' + cid, version,
@@ -537,7 +537,7 @@ export const Resolver: GQLResolver = {
                     );
                     if (changed.result) {
                         version = changed.version;
-                        yield await inTx(parent, async (ctx) => (await Store.ConferenceRoom.findById(ctx, cid))!);
+                        yield cid as any;
                     } else {
                         break;
                     }
