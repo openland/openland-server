@@ -130,6 +130,7 @@ export class SpaceXSession {
 
         Metrics.SpaceXOperationsFrequence.inc();
         Metrics.SpaceXOperationsTaggedFrequence.inc(docOp);
+        Metrics.SpaceXOperationsNamedFrequence.inc(name);
         this.activeOperations.set(id, abort);
         if (docOp === 'subscription') {
             Metrics.SpaceXSubscriptions.inc();
