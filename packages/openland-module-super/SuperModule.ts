@@ -57,7 +57,16 @@ export class SuperModule {
         return this.envVarsRepo.set<T>(ctx, name, value, rawValue);
     }
 
+    getCached<T extends EnvVarValueType>(name: string): T | null {
+        return this.envVarsRepo.getCached(name);
+    }
+
+    prepare = async () => {
+        await this.envVarsRepo.start();
+    }
+
     start = async () => {
+
         if (serverRoleEnabled('admin')) {
             await startAdminInterface();
 

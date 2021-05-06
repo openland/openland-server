@@ -139,6 +139,11 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     // Load broker
     await createBroker();
 
+    // Load super
+    logger.log(ctx, 'Loading super module');
+    container.bind(SuperModule).toSelf().inSingletonScope();
+    await container.get(SuperModule).prepare();
+
     logger.log(ctx, 'Loading modules...');
     loadMonitoringModule();
     loadMessagingModule();
@@ -165,7 +170,6 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
     container.bind('EmailModule').to(EmailModuleImpl).inSingletonScope();
     container.bind(UsersModule).toSelf().inSingletonScope();
     container.bind(SearchModule).toSelf().inSingletonScope();
-    container.bind(SuperModule).toSelf().inSingletonScope();
     container.bind(ShortnameModule).toSelf().inSingletonScope();
     container.bind(HyperlogModule).toSelf().inSingletonScope();
     container.bind(DraftsModule).toSelf().inSingletonScope();
