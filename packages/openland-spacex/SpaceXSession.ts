@@ -120,6 +120,7 @@ export class SpaceXSession {
             }
             if (this.activeOperations.has(id)) {
                 if (docOp === 'subscription') {
+                    Metrics.SpaceXSubscriptionsTagged.dec(op.operationName || '<unknown>');
                     Metrics.SpaceXSubscriptions.dec();
                 } else {
                     Metrics.SpaceXOperations.dec();
@@ -133,6 +134,7 @@ export class SpaceXSession {
         Metrics.SpaceXOperationsNamedFrequence.inc(name);
         this.activeOperations.set(id, abort);
         if (docOp === 'subscription') {
+            Metrics.SpaceXSubscriptionsTagged.inc(op.operationName || '<unknown>');
             Metrics.SpaceXSubscriptions.inc();
         } else {
             Metrics.SpaceXOperations.inc();
