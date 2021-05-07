@@ -109,7 +109,7 @@ export class ParticipantsRepository {
         let chat = await this.#getChatOrFail(ctx, cid);
         let participant = await this.#getOrFail(ctx, cid, uid);
         if (!Status.isListener(participant) && participant.handRaised) {
-            throw new Error('You can promote only listeners who raised hand');
+            return false;
         }
 
         await this.#changeStatus(ctx, cid, uid, 'speaker');
@@ -117,13 +117,15 @@ export class ParticipantsRepository {
         participant.handRaised = false;
 
         await this.events.postParticipantUpdated(ctx, cid, uid, chat.isPrivate || false);
+
+        return true;
     }
 
     demoteParticipant = async (ctx: Context, cid: number, uid: number) => {
         let chat = await this.#getChatOrFail(ctx, cid);
         let participant = await this.#getOrFail(ctx, cid, uid);
         if (!Status.isSpeaker(participant)) {
-            throw new Error('You can demote only current speakers');
+            return false;
         }
 
         await this.#changeStatus(ctx, cid, uid, 'listener');
@@ -131,6 +133,8 @@ export class ParticipantsRepository {
         participant.handRaised = false;
 
         await this.events.postParticipantUpdated(ctx, cid, uid, chat.isPrivate || false);
+
+        return true;
     }
 
     updateAdminRights = async (ctx: Context, cid: number, uid: number, isAdmin: boolean) => {
