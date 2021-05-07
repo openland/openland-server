@@ -279,7 +279,7 @@ export const Metrics = {
         }
         return res;
     }),
-    CallRouterConsumers: Factory.createPersistedTaggedGauge('calls_routers_producers', 'Number of active workers', async (ctx) => {
+    CallRouterConsumers: Factory.createPersistedTaggedGauge('calls_routers_consumers', 'Number of active workers', async (ctx) => {
         let res: { tag: string, value: number }[] = [];
         let workers = (await Store.KitchenWorker.active.findAll(ctx));
         for (let w of workers) {
