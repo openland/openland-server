@@ -209,7 +209,7 @@ export class MessagesRepository {
         await inTx(parent, async (ctx) => {
             let message = (await Store.Message.findById(ctx, mid));
             if (!message || message.deleted) {
-                throw new Error('Message not found');
+                return;
             }
 
             let privateChat = await Store.ConversationPrivate.findById(ctx, message.cid);
