@@ -167,6 +167,7 @@ export const Metrics = {
     WorkerActiveRuntime: Factory.createTaggedMachineGauge('worker_active_runtime', 'Active runtime tasks'),
     WorkerAttemptFrequence: Factory.createTaggedFrequencyGauge('worker_attempts', 'Frequency of delivery attempts'),
     WorkerSuccessFrequence: Factory.createTaggedFrequencyGauge('worker_success', 'Frequency of delivery success'),
+    WorkerFailureFrequence: Factory.createTaggedFrequencyGauge('worker_failure', 'Frequency of delivery success'),
     WorkerAcquire: Factory.createTaggedSummary('worker_acquire', 'Summary of acquire duration', DEFAULT_QUANTILES),
     WorkerExecute: Factory.createTaggedSummary('worker_execute', 'Summary of execute duration', DEFAULT_QUANTILES),
     WorkerTotal: Factory.createPersistedTaggedGauge('worker_total', 'Total tasks per kind', async (ctx) => {

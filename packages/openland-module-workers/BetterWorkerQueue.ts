@@ -184,6 +184,7 @@ export class BetterWorkerQueue<ARGS> {
                         await this.doWork(rootExec, b, seed, handler);
                         Metrics.WorkerSuccessFrequence.inc(this.queue.name);
                     } catch (e) {
+                        Metrics.WorkerFailureFrequence.inc(this.queue.name);
                         log.error(rootExec, e);
                     } finally {
                         // Report execution time
