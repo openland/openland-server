@@ -36,9 +36,9 @@ async function initServer() {
     let ctx = createNamedContext('launcher');
     process.on('unhandledRejection', (reason, promise) => {
         logger.error(ctx, 'unhandledRejection', reason, promise);
+        logger.error(ctx, 'unhandledRejection', (reason as any).stack);
     });
-    // WTF with typings?
-    process.on('uncaughtException' as any, (err: any, origin: any) => {
+    process.on('uncaughtException', (err: any, origin: any) => {
         logger.error(ctx, 'uncaughtException', err, origin);
         process.exit(1);
     });

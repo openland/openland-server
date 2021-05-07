@@ -42,4 +42,4 @@ EXPOSE 9000
 WORKDIR /app/build
 ENV NODE_ENV=production
 ENTRYPOINT ["/tini", "-e", "2", "--"]
-CMD [ "nsolid", "--max-old-space-size=1024", "--max-semi-space-size=256", "--inspect=0.0.0.0:9229", "openland-server/index.js" ]
+CMD [ "nsolid", "--max-old-space-size=1024", "--max-semi-space-size=256", "--inspect=0.0.0.0:9229", "--async-stack-traces", "openland-server/index.js" ]
