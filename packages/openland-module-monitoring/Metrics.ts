@@ -269,6 +269,50 @@ export const Metrics = {
         }
         return res;
     }),
+    CallRouterProducers: Factory.createPersistedTaggedGauge('calls_routers_producers', 'Number of active workers', async (ctx) => {
+        let res: { tag: string, value: number }[] = [];
+        let workers = (await Store.KitchenWorker.active.findAll(ctx));
+        for (let w of workers) {
+            for (let router of (await Store.KitchenRouter.workerActive.findAll(ctx, w.id))) {
+                res.push({ tag: router.id, value: await Store.ConferenceKitchenProducersCount.get(ctx, router.id) });
+            }
+        }
+        return res;
+    }),
+    CallRouterConsumers: Factory.createPersistedTaggedGauge('calls_routers_producers', 'Number of active workers', async (ctx) => {
+        let res: { tag: string, value: number }[] = [];
+        let workers = (await Store.KitchenWorker.active.findAll(ctx));
+        for (let w of workers) {
+            for (let router of (await Store.KitchenRouter.workerActive.findAll(ctx, w.id))) {
+                res.push({ tag: router.id, value: await Store.ConferenceKitchenConsumersCount.get(ctx, router.id) });
+            }
+        }
+        return res;
+    }),
+    CallWorkerProducers: Factory.createPersistedTaggedGauge('calls_workers_producers', 'Number of active workers producers per worker', async (ctx) => {
+        let res: { tag: string, value: number }[] = [];
+        let workers = (await Store.KitchenWorker.active.findAll(ctx));
+        for (let w of workers) {
+            let count = 0;
+            for (let router of (await Store.KitchenRouter.workerActive.findAll(ctx, w.id))) {
+                count += await Store.ConferenceKitchenProducersCount.get(ctx, router.id);
+            }
+            res.push({ tag: w.id, value: count });
+        }
+        return res;
+    }),
+    CallWorkerConsumers: Factory.createPersistedTaggedGauge('calls_workers_consumers', 'Number of active workers consumers per worker', async (ctx) => {
+        let res: { tag: string, value: number }[] = [];
+        let workers = (await Store.KitchenWorker.active.findAll(ctx));
+        for (let w of workers) {
+            let count = 0;
+            for (let router of (await Store.KitchenRouter.workerActive.findAll(ctx, w.id))) {
+                count += await Store.ConferenceKitchenConsumersCount.get(ctx, router.id);
+            }
+            res.push({ tag: w.id, value: count });
+        }
+        return res;
+    }),
 
     // Debug
     TasksDeletionProgress: Factory.createPersistedGauge('tasks_deletion', 'Completed tasks deletion progress', async ctx => {

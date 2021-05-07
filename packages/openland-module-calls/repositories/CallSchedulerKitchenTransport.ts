@@ -459,8 +459,6 @@ export class CallSchedulerKitchenTransport {
         });
         this.endStreamDirectory.incrementSeq(ctx, id, 1);
 
-        this.callRepo.notifyPeerChanged(ctx, streamPid);
-
         // Remove consumes
         let consumers = await Store.ConferenceKitchenConsumerTransport.fromConference.findAll(ctx, producerTransport.cid);
         for (let c of consumers) {
@@ -472,8 +470,9 @@ export class CallSchedulerKitchenTransport {
         }
 
         // Delete transport
-        // Not deleting producer transports until we figure out how to deal with eventual consistency
-        // await this.repo.deleteTransport(ctx, id);
+        await this.repo.deleteTransport(ctx, id);
+
+        this.callRepo.notifyPeerChanged(ctx, streamPid);
     }
 
     removeConsumerTransport = async (ctx: Context, id: string) => {
@@ -499,9 +498,9 @@ export class CallSchedulerKitchenTransport {
             remoteStreams: []
         });
         this.endStreamDirectory.incrementSeq(ctx, id, 1);
+
         // Delete transport
-        // Not deleting producer transports until we figure out how to deal with eventual consistency
-        // await this.repo.deleteTransport(ctx, id);
+        await this.repo.deleteTransport(ctx, id);
 
         this.callRepo.notifyPeerChanged(ctx, streamPid);
     }
