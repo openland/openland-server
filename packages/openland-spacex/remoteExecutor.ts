@@ -1,3 +1,4 @@
+import { createLogger } from '@openland/log';
 import { createTracer } from 'openland-log/createTracer';
 import { DocumentNode } from '@apollo/client/core';
 import { Context, createNamedContext } from '@openland/context';
@@ -8,6 +9,7 @@ import { execute } from '../openland-module-api/execute';
 import { spaceFormatError } from './spaceFormatError';
 import { SpaceXFormattedError } from './SpaceXSession';
 
+const logger = createLogger('graphql');
 const tracer = createTracer('remote');
 
 export function declareRemoteQueryExecutor(tag: string) {
@@ -58,6 +60,13 @@ export function declareRemoteQueryExecutor(tag: string) {
 
                     // Format response
                     if (res.errors && res.errors.length > 0) {
+
+                        // Log errors
+                        for (let e of res.errors) {
+                            logger.error(ctx, e);
+                        }
+
+                        // Convert errors
                         return {
                             errors: res.errors.map((e) => spaceFormatError(e))
                         };
