@@ -1386,10 +1386,10 @@ migrations.push({
             for (let i of Store.KitchenRouter.descriptor.secondaryIndexes) {
                 i.subspace.clearPrefixed(ctx, []);
             }
-            // Store.KitchenWorker.descriptor.subspace.clearPrefixed(ctx, []);
-            // for (let i of Store.KitchenWorker.descriptor.secondaryIndexes) {
-            //     i.subspace.clearPrefixed(ctx, []);
-            // }
+            Store.KitchenWorker.descriptor.subspace.clearPrefixed(ctx, []);
+            for (let i of Store.KitchenWorker.descriptor.secondaryIndexes) {
+                i.subspace.clearPrefixed(ctx, []);
+            }
             Store.KitchenTransport.descriptor.subspace.clearPrefixed(ctx, []);
             for (let i of Store.KitchenTransport.descriptor.secondaryIndexes) {
                 i.subspace.clearPrefixed(ctx, []);
