@@ -81,10 +81,10 @@ export class CallSchedulerKitchen implements CallScheduler {
 
                 // Add producer to consumer
                 let ct = (await Store.ConferenceKitchenConsumerTransport.findById(ctx, peer.consumerTransport))!;
-                if (ct.consumes.find((c) => c === peer.producerTransport)) {
+                if (ct.consumes.find((c) => c === producerTransport)) {
                     continue;
                 }
-                await this.transport.updateConsumerTransport(ctx, peer.consumerTransport, [...ct.consumes, peer.producerTransport!]);
+                await this.transport.updateConsumerTransport(ctx, peer.consumerTransport, [...ct.consumes, producerTransport!]);
                 this.callRepo.notifyPeerChanged(ctx, ct.pid);
             }
         }
@@ -141,11 +141,11 @@ export class CallSchedulerKitchen implements CallScheduler {
 
     onPeerRoleChanged = async (parent: Context, cid: number, pid: number, role: 'speaker' | 'listener') => {
         await inTx(parent, async (ctx) => {
-            let peer = await Store.ConferenceKitchenPeer.findById(ctx, pid);
+            const peer = await Store.ConferenceKitchenPeer.findById(ctx, pid);
             if (!peer || !peer.active) {
                 return false;
             }
-            let router = await Store.ConferenceKitchenRouter.conference.find(ctx, cid);
+            const router = await Store.ConferenceKitchenRouter.conference.find(ctx, cid);
             if (!router || router.deleted) {
                 return false;
             }
@@ -179,7 +179,7 @@ export class CallSchedulerKitchen implements CallScheduler {
 
                     // Add producer to consumer
                     let ct = (await Store.ConferenceKitchenConsumerTransport.findById(ctx, cosumerPeer.consumerTransport))!;
-                    if (ct.consumes.find((c) => c === cosumerPeer.producerTransport)) {
+                    if (ct.consumes.find((c) => c === peer.producerTransport)) {
                         continue;
                     }
                     await this.transport.updateConsumerTransport(ctx, cosumerPeer.consumerTransport, [...ct.consumes, peer.producerTransport!]);
