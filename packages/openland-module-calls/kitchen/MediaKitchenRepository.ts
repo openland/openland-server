@@ -356,7 +356,6 @@ export class MediaKitchenRepository {
                     paused: params.paused
                 }
             });
-            this.onConsumerCreating(ctx, transportId, id);
             if (producer.state !== 'creating' && transport.state !== 'creating') {
                 this.consumerCreateQueue.pushWork(ctx, { id });
             }
@@ -389,7 +388,6 @@ export class MediaKitchenRepository {
             if (consumer.state === 'deleted' || consumer.state === 'deleting') {
                 return;
             }
-            this.onConsumerRemoving(ctx, consumer.transportId, consumerId);
             this.consumerDeleteQueue.pushWork(ctx, { id: consumerId });
         }));
     }
@@ -524,12 +522,22 @@ export class MediaKitchenRepository {
                 if (p.state === 'deleting') {
                     p.state = 'deleted';
                     await p.flush(ctx);
-                    this.onProducerRemoved(ctx, id, p.id);
                 } else {
                     p.state = 'deleted';
                     await p.flush(ctx);
                     await this.onProducerRemoving(ctx, id, p.id);
-                    this.onProducerRemoved(ctx, id, p.id);
+                }
+            }));
+
+            // Remove consumers
+            let consumers = await Store.KitchenConsumer.transportActive.findAll(ctx, id);
+            await Promise.all(consumers.map(async (p) => {
+                if (p.state === 'deleting') {
+                    p.state = 'deleted';
+                    await p.flush(ctx);
+                } else {
+                    p.state = 'deleted';
+                    await p.flush(ctx);
                 }
             }));
         }));
@@ -582,32 +590,17 @@ export class MediaKitchenRepository {
                 if (cons.state === 'deleting') {
                     cons.state = 'deleted';
                     await cons.flush(ctx);
-                    this.onConsumerRemoved(ctx, transportId, cons.id);
                 } else {
                     cons.state = 'deleted';
                     await cons.flush(ctx);
-                    this.onConsumerRemoving(ctx, transportId, cons.id);
-                    this.onConsumerRemoved(ctx, transportId, cons.id);
                 }
             }));
         }));
     }
 
-    onProducerRemoved(parent: Context, transportId: string, id: string) {
-        // return tracer.trace(parent, 'onProducerRemoved', (c) => inTx(c, async (ctx) => {
-        //     logger.log(ctx, 'Removed producer: ' + id);
-        // }));
-    }
-
     //
     // Consumer Events
     //
-
-    onConsumerCreating(parent: Context, transportId: string, consumerId: string) {
-        // return tracer.trace(parent, 'onConsumerCreating', (c) => inTx(c, async (ctx) => {
-        //     logger.log(ctx, 'Creating consumer: ' + transportId + '/' + consumerId);
-        // }));
-    }
 
     async onConsumerCreated(parent: Context, transportId: string, consumerId: string) {
         await tracer.trace(parent, 'onConsumerCreated', (c) => inTx(c, async (ctx) => {
@@ -617,17 +610,4 @@ export class MediaKitchenRepository {
             await this.scheduler.onConsumerCreated(ctx, transportId, consumerId);
         }));
     }
-
-    onConsumerRemoving(parent: Context, transportId: string, consumerId: string) {
-        // return tracer.trace(parent, 'onConsumerRemoving', (c) => inTx(c, async (ctx) => {
-        //     logger.log(ctx, 'Removing consumer: ' + consumerId);
-        // }));
-    }
-
-    onConsumerRemoved(parent: Context, transportId: string, consumerId: string) {
-        // return tracer.trace(parent, 'onConsumerRemoved', (c) => inTx(c, async (ctx) => {
-        //     logger.log(ctx, 'Removed consumer: ' + consumerId);
-        // }));
-    }
-
 }

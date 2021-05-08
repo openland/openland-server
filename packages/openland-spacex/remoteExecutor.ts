@@ -17,64 +17,66 @@ export function declareRemoteQueryExecutor(tag: string) {
     const tracerExecutor = createTracer('executor-' + tag);
     Modules.Broker.createService({
         name: 'graphql-' + tag,
-        bulkhead: {
-            enabled: true,
-            concurrency: 10,
-            maxQueueSize: 50,
-        },
         actions: {
-            execute: async (args) => {
-                // Resolve context
-                const parent = contextParse(rootCtx, (args.params.ctx as string));
-                const op = args.params.query as string;
-                const opName = args.params.operationName as string | null;
-                const variables = args.params.variables as any;
-                const query = Modules.API.queryResolver.resolve(op);
-                const rootValue = (args.params.rootValue as any) || null;
-                if (Array.isArray(query)) {
-                    // TODO: Implement
-                    // return {
-                    //     errors: query.map((e: any) => formatError(e))
-                    // };
-                    throw Error('Unknwon error');
-                }
-
-                return await tracerExecutor.trace(parent, opName ? opName : '<call>', async (ctx) => {
-
-                    // Resolve operation
-                    const doc = (query as any).document as DocumentNode; /* TS, WTF? */
-                    // let operation = getOperation((query as any).document /* TS, WTF? */, opName ? opName : undefined);
-
-                    // Execute
-                    const res = await inTx(ctx, async (ictx) => {
-                        getTransaction(ictx).setOptions({ retry_limit: 3, timeout: 10000 });
-                        return execute(ictx, {
-                            schema: Modules.API.schema,
-                            document: doc,
-                            operationName: opName,
-                            variableValues: variables,
-                            contextValue: ictx,
-                            rootValue: rootValue ? rootValue : undefined
-                        });
-                    });
-
-                    // Format response
-                    if (res.errors && res.errors.length > 0) {
-
-                        // Log errors
-                        for (let e of res.errors) {
-                            logger.error(ctx, e);
-                        }
-
-                        // Convert errors
-                        return {
-                            errors: res.errors.map((e) => spaceFormatError(e))
-                        };
+            execute: {
+                bulkhead: {
+                    enabled: true,
+                    concurrency: 10,
+                    maxQueueSize: 50,
+                },
+                handler: async (args) => {
+                    // Resolve context
+                    const parent = contextParse(rootCtx, (args.params.ctx as string));
+                    const op = args.params.query as string;
+                    const opName = args.params.operationName as string | null;
+                    const variables = args.params.variables as any;
+                    const query = Modules.API.queryResolver.resolve(op);
+                    const rootValue = (args.params.rootValue as any) || null;
+                    if (Array.isArray(query)) {
+                        // TODO: Implement
+                        // return {
+                        //     errors: query.map((e: any) => formatError(e))
+                        // };
+                        throw Error('Unknwon error');
                     }
-                    return {
-                        data: res.data
-                    };
-                });
+
+                    return await tracerExecutor.trace(parent, opName ? opName : '<call>', async (ctx) => {
+
+                        // Resolve operation
+                        const doc = (query as any).document as DocumentNode; /* TS, WTF? */
+                        // let operation = getOperation((query as any).document /* TS, WTF? */, opName ? opName : undefined);
+
+                        // Execute
+                        const res = await inTx(ctx, async (ictx) => {
+                            getTransaction(ictx).setOptions({ retry_limit: 3, timeout: 10000 });
+                            return execute(ictx, {
+                                schema: Modules.API.schema,
+                                document: doc,
+                                operationName: opName,
+                                variableValues: variables,
+                                contextValue: ictx,
+                                rootValue: rootValue ? rootValue : undefined
+                            });
+                        });
+
+                        // Format response
+                        if (res.errors && res.errors.length > 0) {
+
+                            // Log errors
+                            for (let e of res.errors) {
+                                logger.error(ctx, e);
+                            }
+
+                            // Convert errors
+                            return {
+                                errors: res.errors.map((e) => spaceFormatError(e))
+                            };
+                        }
+                        return {
+                            data: res.data
+                        };
+                    });
+                }
             }
         }
     });
