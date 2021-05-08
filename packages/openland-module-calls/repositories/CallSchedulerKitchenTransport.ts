@@ -470,7 +470,7 @@ export class CallSchedulerKitchenTransport {
         }
 
         // Delete transport
-        await this.repo.deleteTransport(ctx, id);
+        // await this.repo.deleteTransport(ctx, id);
 
         this.callRepo.notifyPeerChanged(ctx, streamPid);
     }
@@ -500,7 +500,7 @@ export class CallSchedulerKitchenTransport {
         this.endStreamDirectory.incrementSeq(ctx, id, 1);
 
         // Delete transport
-        await this.repo.deleteTransport(ctx, id);
+        // await this.repo.deleteTransport(ctx, id);
 
         this.callRepo.notifyPeerChanged(ctx, streamPid);
     }
