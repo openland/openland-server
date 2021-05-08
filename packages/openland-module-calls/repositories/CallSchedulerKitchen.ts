@@ -27,67 +27,68 @@ export class CallSchedulerKitchen implements CallScheduler {
     // Peer Events
     //
 
-    onPeerAdded = async (ctx: Context, cid: number, pid: number, sources: MediaSources, capabilities: Capabilities, role: 'speaker' | 'listener') => {
+    onPeerAdded = async (parent: Context, cid: number, pid: number, sources: MediaSources, capabilities: Capabilities, role: 'speaker' | 'listener') => {
+        await inTx(parent, async (ctx) => {
+            logger.log(ctx, 'Add peer');
 
-        logger.log(ctx, 'Add peer');
-
-        // Resolve router
-        let routerId: string;
-        let router = await Store.ConferenceKitchenRouter.conference.find(ctx, cid);
-        if (!router || router.deleted) {
-            routerId = await this.repo.createRouter(ctx, ctx.req.ip ? ctx.req.ip : undefined);
-            await Store.ConferenceKitchenRouter.create(ctx, routerId, { cid, deleted: false });
-        } else {
-            routerId = router.id;
-        }
-
-        // Create peer
-        let existing = await Store.ConferenceKitchenPeer.conferenceProducers.findAll(ctx, cid);
-        let producerTransport = role === 'speaker' ? await this.transport.createProducerTransport(ctx, routerId, cid, pid, sources, capabilities) : null;
-        let consumerTransport = await this.transport.createConsumerTransport(ctx, routerId, cid, pid, existing.filter((v) => !!v.producerTransport).map((v) => v.producerTransport!), capabilities);
-        await Store.ConferenceKitchenPeer.create(ctx, pid, {
-            cid,
-            capabilities,
-            producerTransport,
-            consumerTransport,
-            sources,
-            active: true
-        });
-
-        // Update stats
-        Store.ConferenceKitchenPeersCount.increment(ctx, routerId);
-        if (producerTransport) {
-            Store.ConferenceKitchenTransportsCount.increment(ctx, routerId);
-            Store.ConferenceKitchenProducersCount.increment(ctx, routerId);
-        }
-        if (consumerTransport) {
-            Store.ConferenceKitchenTransportsCount.increment(ctx, routerId);
-            Store.ConferenceKitchenConsumersCount.increment(ctx, routerId);
-        }
-
-        // Connect producers
-        if (producerTransport) {
-            let peerConsumers = (await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid));
-            for (let peer of peerConsumers) {
-                if (peer.pid === pid) {
-                    continue;
-                }
-                if (!peer.active) {
-                    continue;
-                }
-                if (!peer.consumerTransport) {
-                    continue;
-                }
-
-                // Add producer to consumer
-                let ct = (await Store.ConferenceKitchenConsumerTransport.findById(ctx, peer.consumerTransport))!;
-                if (ct.consumes.find((c) => c === producerTransport)) {
-                    continue;
-                }
-                await this.transport.updateConsumerTransport(ctx, peer.consumerTransport, [...ct.consumes, producerTransport!]);
-                this.callRepo.notifyPeerChanged(ctx, ct.pid);
+            // Resolve router
+            let routerId: string;
+            let router = await Store.ConferenceKitchenRouter.conference.find(ctx, cid);
+            if (!router || router.deleted) {
+                routerId = await this.repo.createRouter(ctx, ctx.req.ip ? ctx.req.ip : undefined);
+                await Store.ConferenceKitchenRouter.create(ctx, routerId, { cid, deleted: false });
+            } else {
+                routerId = router.id;
             }
-        }
+
+            // Create peer
+            let existing = await Store.ConferenceKitchenPeer.conferenceProducers.findAll(ctx, cid);
+            let producerTransport = role === 'speaker' ? await this.transport.createProducerTransport(ctx, routerId, cid, pid, sources, capabilities) : null;
+            let consumerTransport = await this.transport.createConsumerTransport(ctx, routerId, cid, pid, existing.filter((v) => !!v.producerTransport).map((v) => v.producerTransport!), capabilities);
+            await Store.ConferenceKitchenPeer.create(ctx, pid, {
+                cid,
+                capabilities,
+                producerTransport,
+                consumerTransport,
+                sources,
+                active: true
+            });
+
+            // Update stats
+            Store.ConferenceKitchenPeersCount.increment(ctx, routerId);
+            if (producerTransport) {
+                Store.ConferenceKitchenTransportsCount.increment(ctx, routerId);
+                Store.ConferenceKitchenProducersCount.increment(ctx, routerId);
+            }
+            if (consumerTransport) {
+                Store.ConferenceKitchenTransportsCount.increment(ctx, routerId);
+                Store.ConferenceKitchenConsumersCount.increment(ctx, routerId);
+            }
+
+            // Connect producers
+            if (producerTransport) {
+                let peerConsumers = (await Store.ConferenceKitchenPeer.conference.findAll(ctx, cid));
+                for (let peer of peerConsumers) {
+                    if (peer.pid === pid) {
+                        continue;
+                    }
+                    if (!peer.active) {
+                        continue;
+                    }
+                    if (!peer.consumerTransport) {
+                        continue;
+                    }
+
+                    // Add producer to consumer
+                    let ct = (await Store.ConferenceKitchenConsumerTransport.findById(ctx, peer.consumerTransport))!;
+                    if (ct.consumes.find((c) => c === producerTransport)) {
+                        continue;
+                    }
+                    await this.transport.updateConsumerTransport(ctx, peer.consumerTransport, [...ct.consumes, producerTransport!]);
+                    this.callRepo.notifyPeerChanged(ctx, ct.pid);
+                }
+            }
+        });
     }
 
     onPeerStreamsChanged = async (parent: Context, cid: number, pid: number, sources: MediaSources) => {
