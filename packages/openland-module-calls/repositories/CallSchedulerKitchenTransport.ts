@@ -470,7 +470,8 @@ export class CallSchedulerKitchenTransport {
         }
 
         // Delete transport
-        await this.repo.deleteTransport(ctx, id);
+        // NOTE: For some reason deleting producer transport makes streams inoperable. Investigate this and fix when possible.
+        // await this.repo.deleteTransport(ctx, id);
 
         this.callRepo.notifyPeerChanged(ctx, streamPid);
     }
