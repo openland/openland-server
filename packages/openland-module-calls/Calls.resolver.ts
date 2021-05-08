@@ -498,8 +498,8 @@ export const Resolver: GQLResolver = {
             return await inTx(parent, async (ctx) => {
                 let coid = IDs.Conversation.parse(args.id);
                 let conf = await Modules.Calls.repo.getOrCreateConference(ctx, coid);
-                if (args.settings.strategy) {
-                    if (args.settings.strategy === 'MESH' && args.settings.iceTransportPolicy) {
+                if (args.settings.strategy !== undefined) {
+                    if (args.settings.strategy === 'MESH') {
                         if (args.settings.iceTransportPolicy === 'all') {
                             conf.scheduler = 'mesh-no-relay';
                         } else {
@@ -509,6 +509,8 @@ export const Resolver: GQLResolver = {
                         conf.scheduler = 'basic-sfu';
                     } else if (args.settings.strategy === 'ASYNC') {
                         conf.scheduler = 'async-sfu';
+                    } else {
+                        conf.scheduler = null;
                     }
                 }
                 return conf;
