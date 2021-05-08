@@ -21,8 +21,8 @@ export function declareRemoteQueryExecutor(tag: string) {
             execute: {
                 bulkhead: {
                     enabled: true,
-                    concurrency: 10,
-                    maxQueueSize: 50,
+                    concurrency: 100,
+                    maxQueueSize: 500,
                 },
                 handler: async (args) => {
                     // Resolve context
