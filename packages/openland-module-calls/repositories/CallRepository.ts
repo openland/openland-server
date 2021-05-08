@@ -22,6 +22,7 @@ import { EndStreamDirectory } from './EndStreamDirectory';
 import { SchedulingDirectory } from './SchedulingDirectory';
 import { SyncWorkerQueue } from 'openland-module-workers/SyncWorkerQueue';
 import { AsyncCallScheduler, AsyncPeerTask } from './AsyncCallScheduler';
+import { LoggedCallScheduler } from './LoggedCallScheduler';
 
 let log = createLogger('call-repo');
 
@@ -100,6 +101,14 @@ export class CallRepository {
         return this._asyncKitchen;
     }
 
+    private _loggedKitchen: CallScheduler | null = null;
+    get loggedKitchen(): CallScheduler {
+        if (!this._loggedKitchen) {
+            this._loggedKitchen = new LoggedCallScheduler(Config.environment === 'production' ? this.schedulerKitchen : this.schedulerMesh);
+        }
+        return this._loggedKitchen;
+    }
+
     private keepAlive = new KeepAliveCollection(Store.ConferencePeerKeepAliveDirectory);
 
     getOrCreateConference = async (parent: Context, cid: number) => {
@@ -129,7 +138,7 @@ export class CallRepository {
         } else if (kind === 'mesh-no-relay') {
             return this.schedulerMeshNoRelay;
         } else if (kind === 'basic-sfu') {
-            return this.schedulerKitchen;
+            return this.loggedKitchen;
         } else if (kind === 'async-sfu') {
             return this.asyncKitchen;
         } else {

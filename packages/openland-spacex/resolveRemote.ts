@@ -31,6 +31,7 @@ export function resolveRemote(document: DocumentNode): string | null {
                 case 'typings':
                 case 'watchSettings':
                 case 'settingsWatch':
+                    return 'events';
                 case 'alphaConferenceMediaWatch':
                 case 'alphaConferenceWatch':
                     return 'default';

@@ -22,35 +22,35 @@ export class AsyncCallScheduler implements CallScheduler {
         this.repo = repo;
     }
 
-    async onPeerAdded(ctx: Context, cid: number, pid: number, sources: MediaSources, capabilities: Capabilities, role: 'speaker' | 'listener'): Promise<void> {
-        await this.repo.peerSyncQueue.pushWork(ctx, pid, { type: 'add', cid, pid, sources, capabilities, role });
+    onPeerAdded(ctx: Context, cid: number, pid: number, sources: MediaSources, capabilities: Capabilities, role: 'speaker' | 'listener'): Promise<void> {
+        return this.repo.peerSyncQueue.pushWork(ctx, pid, { type: 'add', cid, pid, sources, capabilities, role });
     }
 
-    async onPeerRemoved(ctx: Context, cid: number, pid: number): Promise<void> {
-        await this.repo.peerSyncQueue.pushWork(ctx, pid, { type: 'remove', cid, pid });
+    onPeerRemoved(ctx: Context, cid: number, pid: number): Promise<void> {
+        return this.repo.peerSyncQueue.pushWork(ctx, pid, { type: 'remove', cid, pid });
     }
 
-    async onPeerStreamsChanged(ctx: Context, cid: number, pid: number, sources: MediaSources): Promise<void> {
-        await this.repo.peerSyncQueue.pushWork(ctx, pid, { type: 'changed-streams', cid, pid, sources });
+    onPeerStreamsChanged(ctx: Context, cid: number, pid: number, sources: MediaSources): Promise<void> {
+        return this.repo.peerSyncQueue.pushWork(ctx, pid, { type: 'changed-streams', cid, pid, sources });
     }
 
-    async onPeerRoleChanged(ctx: Context, cid: number, pid: number, role: 'speaker' | 'listener'): Promise<void> {
-        await this.repo.peerSyncQueue.pushWork(ctx, pid, { type: 'changed-role', cid, pid, role });
+    onPeerRoleChanged(ctx: Context, cid: number, pid: number, role: 'speaker' | 'listener'): Promise<void> {
+        return this.repo.peerSyncQueue.pushWork(ctx, pid, { type: 'changed-role', cid, pid, role });
     }
 
-    async onStreamCandidate(ctx: Context, cid: number, pid: number, sid: string, candidate: string): Promise<void> {
-        await this.repo.peerSyncQueue.pushWork(ctx, pid, { type: 'candidate', cid, pid, sid, candidate });
+    onStreamCandidate(ctx: Context, cid: number, pid: number, sid: string, candidate: string): Promise<void> {
+        return this.repo.peerSyncQueue.pushWork(ctx, pid, { type: 'candidate', cid, pid, sid, candidate });
     }
 
-    async onStreamOffer(ctx: Context, cid: number, pid: number, sid: string, offer: string, hints: StreamHint[] | null): Promise<void> {
-        await this.repo.peerSyncQueue.pushWork(ctx, pid, { type: 'offer', cid, pid, sid, offer, hints });
+    onStreamOffer(ctx: Context, cid: number, pid: number, sid: string, offer: string, hints: StreamHint[] | null): Promise<void> {
+        return this.repo.peerSyncQueue.pushWork(ctx, pid, { type: 'offer', cid, pid, sid, offer, hints });
     }
 
-    async onStreamAnswer(ctx: Context, cid: number, pid: number, sid: string, answer: string): Promise<void> {
-        await this.repo.peerSyncQueue.pushWork(ctx, pid, { type: 'answer', cid, pid, sid, answer });
+    onStreamAnswer(ctx: Context, cid: number, pid: number, sid: string, answer: string): Promise<void> {
+        return this.repo.peerSyncQueue.pushWork(ctx, pid, { type: 'answer', cid, pid, sid, answer });
     }
 
-    async onStreamFailed(ctx: Context, cid: number, pid: number, sid: string): Promise<void> {
-        await this.repo.peerSyncQueue.pushWork(ctx, pid, { type: 'failed', cid, pid, sid });
+    onStreamFailed(ctx: Context, cid: number, pid: number, sid: string): Promise<void> {
+        return this.repo.peerSyncQueue.pushWork(ctx, pid, { type: 'failed', cid, pid, sid });
     }
 }
