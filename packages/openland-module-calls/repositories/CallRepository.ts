@@ -1,3 +1,4 @@
+import { CallSchedulerKitchenGen2 } from './CallSchedulerKitchenGen2';
 import { Config } from 'openland-config/Config';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { CallSchedulerKitchen } from './CallSchedulerKitchen';
@@ -85,6 +86,8 @@ export class CallRepository {
 
     @lazyInject('CallSchedulerKitchen')
     readonly schedulerKitchen!: CallSchedulerKitchen;
+    @lazyInject('CallSchedulerKitchenGen2')
+    readonly schedulerKitchenGen2!: CallSchedulerKitchenGen2;
     @lazyInject('DeliveryMediator')
     readonly delivery!: DeliveryMediator;
 
