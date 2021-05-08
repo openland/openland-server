@@ -244,6 +244,7 @@ export const Metrics = {
     OnlineIOS: Factory.createGauge('users_online_ios', 'Online iOS Users'),
     OnlineAndroid: Factory.createGauge('users_online_android', 'Online Android Users'),
     OnlineUnknown: Factory.createGauge('users_online_unknwon', 'Online Unknown Users'),
+    OnlineConnected: Factory.createGauge('users_online_connected', 'Total online connected users'),
 
     // Tracing
     // TracingFrequence: Factory.createFrequencyGauge('tracing_span_hz', 'Tracing spans generation frequence'),

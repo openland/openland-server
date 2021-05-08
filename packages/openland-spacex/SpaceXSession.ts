@@ -27,8 +27,8 @@ import { spaceFormatError } from './spaceFormatError';
 export type SpaceXSessionDescriptor = { type: 'anonymnous' } | { type: 'authenticated', uid: number, tid: string };
 
 export interface SpaceXSessionParams {
-    descriptor: SpaceXSessionDescriptor;
-    schema: GraphQLSchema;
+    readonly descriptor: SpaceXSessionDescriptor;
+    readonly schema: GraphQLSchema;
 }
 
 export type SpaceXFormattedError = (FormattedError & { locations: any, path: any });
@@ -76,9 +76,10 @@ export class SpaceXSession {
     private closed = false;
     private activeOperations = new Map<string, () => void>();
     private keepAlive: (() => void) | null = null;
+    private report: any | null;
     private taskExecutor = createDefaultTaskExecutor('subscriptions-task-executor', 10, 50);
 
-    constructor(params: SpaceXSessionParams) {
+    constructor(readonly params: SpaceXSessionParams) {
         this.descriptor = params.descriptor;
         this.schema = params.schema;
         Metrics.SpaceXSessions.inc();
@@ -97,7 +98,11 @@ export class SpaceXSession {
 
         // Resolve keep alive
         if (params.descriptor.type === 'authenticated') {
-            this.keepAlive = Modules.Events.userService.enableKeepAlive(params.descriptor.uid);
+            const uid = params.descriptor.uid;
+            this.keepAlive = Modules.Events.userService.enableKeepAlive(uid);
+            this.report = setInterval(() => {
+                Metrics.OnlineConnected.add(1, 'uid-' + uid, 15000);
+            }, 10000);
         }
     }
 
@@ -351,6 +356,10 @@ export class SpaceXSession {
         if (this.keepAlive) {
             this.keepAlive();
             this.keepAlive = null;
+        }
+        if (this.report) {
+            clearInterval(this.report);
+            this.report = null;
         }
         if (this.descriptor.type === 'authenticated') {
             Metrics.SpaceXSessionsAuthenticated.dec();
