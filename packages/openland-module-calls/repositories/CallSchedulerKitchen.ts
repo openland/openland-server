@@ -9,7 +9,7 @@ import { CallScheduler, MediaSources, StreamHint, Capabilities } from './CallSch
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 
-const logger = createLogger('mediakitchen');
+const logger = createLogger('calls:mediakitchen');
 
 @injectable()
 export class CallSchedulerKitchen implements CallScheduler {

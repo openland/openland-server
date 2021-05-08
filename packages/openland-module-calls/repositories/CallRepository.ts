@@ -24,7 +24,7 @@ import { SyncWorkerQueue } from 'openland-module-workers/SyncWorkerQueue';
 import { AsyncCallScheduler, AsyncPeerTask } from './AsyncCallScheduler';
 import { LoggedCallScheduler } from './LoggedCallScheduler';
 
-let log = createLogger('call-repo');
+const logger = createLogger('calls:root');
 
 export let DEFAULT_CAPABILITIES: Capabilities = {
     codecs: [{
@@ -169,7 +169,7 @@ export class CallRepository {
             //     throw Error('Unable to find room');
             // }
 
-            log.log(ctx, 'Add peer: ' + cid + ': ' + uid + ' (ip: ' + ip + ')');
+            logger.log(ctx, 'Add peer: ' + cid + ': ' + uid + ' (ip: ' + ip + ')');
 
             // Handle Call Restart
             let confPeers = await Store.ConferencePeer.conference.findAll(ctx, cid);
@@ -206,7 +206,7 @@ export class CallRepository {
             // Detect call start
             if (justStarted) {
                 // Notify all about call state
-                log.log(ctx, 'Conference started: ' + cid);
+                logger.log(ctx, 'Conference started: ' + cid);
                 await this.delivery.onCallStateChanged(ctx, cid, true);
             }
 
@@ -400,7 +400,7 @@ export class CallRepository {
                 await this.#doRemovePeer(ctx, m.id, false, false);
             }
             if (members.length > 0) {
-                log.log(ctx, 'Conference ended (end conference): ' + cid);
+                logger.log(ctx, 'Conference ended (end conference): ' + cid);
                 conf.active = false;
                 await this.onConferenceEnded(ctx, conf);
             }
@@ -432,7 +432,7 @@ export class CallRepository {
             existing.enabled = false;
             await existing.flush(ctx);
 
-            log.log(ctx, 'Remove peer: ' + existing.cid + ': ' + existing.uid);
+            logger.log(ctx, 'Remove peer: ' + existing.cid + ': ' + existing.uid);
 
             // Handle media scheduling
             let conf = await this.getOrCreateConference(ctx, existing.cid);
@@ -444,7 +444,7 @@ export class CallRepository {
             // Detect call end
             if (detectEnd) {
                 if ((await this.findActiveMembers(ctx, existing.cid)).length === 0) {
-                    log.log(ctx, 'Conference ended (remove): ' + existing.cid);
+                    logger.log(ctx, 'Conference ended (remove): ' + existing.cid);
 
                     conf.active = false;
                     await this.onConferenceEnded(ctx, conf);
@@ -489,13 +489,13 @@ export class CallRepository {
                 await inTx(parent, async (ctx) => {
                     let peer = (await Store.ConferencePeer.findById(ctx, a.id))!;
                     if (peer.enabled && !(await this.keepAlive.isAlive(ctx, [peer.cid, peer.id]))) {
-                        log.log(ctx, 'Call Participant Reaped: ' + a.uid + ' from ' + a.cid);
+                        logger.log(ctx, 'Call Participant Reaped: ' + a.uid + ' from ' + a.cid);
                         await this.removePeer(ctx, a.id, true);
                         // await this.bumpVersion(ctx, a.cid, a.id);
                     }
                 });
             } catch (e) {
-                log.log(parent, 'kick_error', e);
+                logger.log(parent, 'kick_error', e);
             }
         }
     }

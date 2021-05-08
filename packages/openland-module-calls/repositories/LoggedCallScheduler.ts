@@ -2,7 +2,7 @@ import { createLogger } from '@openland/log';
 import { Context } from '@openland/context';
 import { CallScheduler, Capabilities, MediaSources, StreamHint } from './CallScheduler';
 
-const logger = createLogger('calls-logger');
+const logger = createLogger('calls:logger');
 
 export class LoggedCallScheduler implements CallScheduler {
     readonly inner: CallScheduler;

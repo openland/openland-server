@@ -20,7 +20,7 @@ import { MediaDescription } from 'sdp-transform';
 import { Modules } from 'openland-modules/Modules';
 import { EndStreamDirectory } from './EndStreamDirectory';
 
-const logger = createLogger('mediakitchen');
+const logger = createLogger('calls:mediakitchen:transport');
 
 function getAudioRtpCapabilities(src: Capabilities): KitchenRtpCapabilities {
     let codec = src.codecs.find((v) => v.mimeType === 'audio/opus');
