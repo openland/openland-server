@@ -55,6 +55,9 @@ export function createIterator<T>(onExit?: () => void): PushableIterator<T> {
             };
         },
         push(data: T) {
+            if (data === null) {
+                throw Error('data could not be null'); // Used as completion thombstone
+            }
             if (resolvers.length > 0) {
                 resolvers.shift()({
                     value: data,
