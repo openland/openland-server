@@ -254,7 +254,7 @@ export const Resolver: GQLResolver = {
                 return 'narek';
             }
             return null;
-        })
+        }, true)
     },
     UserChatWithBadge: {
         badge: src => src.badge,
