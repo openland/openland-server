@@ -250,6 +250,8 @@ export const Resolver: GQLResolver = {
                 return 'yury';
             } else if (id === 'rAOV7EVRLzSR5KD4Oozxs1gBXg') {
                 return 'steve';
+            } else if (id === 'rAOV7EVRLzSOMqmmaQBRUo7rdq') {
+                return 'narek';
             }
             return null;
         })
