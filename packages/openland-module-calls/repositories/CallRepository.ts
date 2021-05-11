@@ -138,6 +138,9 @@ export class CallRepository {
         } else if (kind === 'mesh-no-relay') {
             return this.schedulerMeshNoRelay;
         } else if (kind === 'basic-sfu') {
+            if (Modules.Super.getBoolean('calls-enforce-async', false)) {
+                return this.asyncKitchen;
+            }
             return this.loggedKitchen;
         } else if (kind === 'async-sfu') {
             return this.asyncKitchen;
