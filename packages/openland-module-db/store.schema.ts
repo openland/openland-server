@@ -861,6 +861,7 @@ export default declareSchema(() => {
         rangeIndex('user', ['cid', 'uid', 'tid']).withCondition((src) => src.enabled);
         rangeIndex('conference', ['cid', 'keepAliveTimeout']).withCondition((src) => src.enabled);
         rangeIndex('active', ['keepAliveTimeout']).withCondition((src) => src.enabled);
+        rangeIndex('byRole', ['cid', 'role', 'id']).withCondition((src) => src.enabled && !!src.role);
     });
 
     taskQueue('ConferencePeerSync');

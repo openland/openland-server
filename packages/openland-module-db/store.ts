@@ -9363,6 +9363,7 @@ export class ConferencePeerFactory extends EntityFactory<ConferencePeerShape, Co
         secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }, { name: 'tid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('conferencePeer', 'user'), condition: (src) => src.enabled });
         secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'keepAliveTimeout', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferencePeer', 'conference'), condition: (src) => src.enabled });
         secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'keepAliveTimeout', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferencePeer', 'active'), condition: (src) => src.enabled });
+        secondaryIndexes.push({ name: 'byRole', storageKey: 'byRole', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'role', type: 'opt_string' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferencePeer', 'byRole'), condition: (src) => src.enabled && !!src.role });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -9452,6 +9453,21 @@ export class ConferencePeerFactory extends EntityFactory<ConferencePeerShape, Co
         },
         liveStream: (ctx: Context, opts?: StreamProps) => {
             return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[3], [], opts);
+        },
+    });
+
+    readonly byRole = Object.freeze({
+        findAll: async (ctx: Context, cid: number, role: 'speaker' | 'listener' | null) => {
+            return (await this._query(ctx, this.descriptor.secondaryIndexes[4], [cid, role])).items;
+        },
+        query: (ctx: Context, cid: number, role: 'speaker' | 'listener' | null, opts?: RangeQueryOptions<number>) => {
+            return this._query(ctx, this.descriptor.secondaryIndexes[4], [cid, role], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
+        },
+        stream: (cid: number, role: 'speaker' | 'listener' | null, opts?: StreamProps) => {
+            return this._createStream(this.descriptor.secondaryIndexes[4], [cid, role], opts);
+        },
+        liveStream: (ctx: Context, cid: number, role: 'speaker' | 'listener' | null, opts?: StreamProps) => {
+            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[4], [cid, role], opts);
         },
     });
 

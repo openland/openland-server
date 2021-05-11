@@ -1,3 +1,4 @@
+import { createTracer } from 'openland-log/createTracer';
 import { Context } from '@openland/context';
 import { encoders, inTx, Subspace, withoutTransaction } from '@openland/foundationdb';
 import { Store } from 'openland-module-db/FDB';
@@ -9,6 +10,8 @@ const SUBSPACE_CID = 0;
 const SUBSPACE_ALLOCATOR = 1;
 
 type PeerState = 'adding' | 'ready' | 'removing' | 'removed';
+
+const tracer = createTracer('peer-allocator');
 
 export class SchedulingDirectory {
     readonly subspace: Subspace;
@@ -66,19 +69,21 @@ export class SchedulingDirectory {
         }
     }
 
-    async allocatePeerId(ctx: Context) {
-        while (true) {
-            const res = await inTx(withoutTransaction(ctx), async (c) => {
-                const latest = ((await Store.Sequence.findById(ctx, 'conference-peer-id')))?.value || 0;
-                const allocated = await this.allocator.allocate(c);
-                if (allocated <= latest) {
-                    return null;
+    async allocatePeerId(parent: Context) {
+        return await tracer.trace(parent, 'allocatePeerId', async (ctx) => {
+            while (true) {
+                const res = await inTx(withoutTransaction(ctx), async (c) => {
+                    const latest = ((await Store.Sequence.findById(ctx, 'conference-peer-id')))?.value || 0;
+                    const allocated = await this.allocator.allocate(c);
+                    if (allocated <= latest) {
+                        return null;
+                    }
+                    return allocated;
+                });
+                if (res !== null) {
+                    return res;
                 }
-                return allocated;
-            });
-            if (res !== null) {
-                return res;
             }
-        }
+        });
     }
 }
