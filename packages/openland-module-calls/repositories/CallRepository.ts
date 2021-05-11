@@ -172,10 +172,9 @@ export class CallRepository {
             logger.log(ctx, 'Add peer: ' + cid + ': ' + uid + ' (ip: ' + ip + ')');
 
             // Handle Call Restart
-            let confPeers = await Store.ConferencePeer.conference.findAll(ctx, cid);
             let conf = await this.getOrCreateConference(ctx, cid);
             let justStarted = false;
-            if (confPeers.length === 0) {
+            if (!conf.active) {
 
                 // Reset Start Time
                 conf.startTime = Date.now();
