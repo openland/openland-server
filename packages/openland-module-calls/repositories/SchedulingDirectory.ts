@@ -73,7 +73,7 @@ export class SchedulingDirectory {
         return await tracer.trace(parent, 'allocatePeerId', async (ctx) => {
             while (true) {
                 const res = await inTx(withoutTransaction(ctx), async (c) => {
-                    const latest = ((await Store.Sequence.findById(ctx, 'conference-peer-id')))?.value || 0;
+                    const latest = ((await Store.Sequence.findById(c, 'conference-peer-id')))?.value || 0;
                     const allocated = await this.allocator.allocate(c);
                     if (allocated <= latest) {
                         return null;
