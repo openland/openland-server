@@ -334,8 +334,7 @@ export const Resolver: GQLResolver = {
                     ip: ctx.req.ip || 'unknown',
                     role
                 });
-                let activeMembers = await Modules.Calls.repo.findActiveMembers(ctx, cid);
-                if (activeMembers.length === 1 && conv.kind !== 'voice') {
+                if (res.justStarted && conv.kind !== 'voice') {
                     let fullName = await Modules.Users.getUserFullName(ctx, uid);
                     await Modules.Messaging.sendMessage(ctx, cid, uid, {
                         ...buildMessage(userMention(fullName, uid), ' started a\u00A0call'),
@@ -343,7 +342,7 @@ export const Resolver: GQLResolver = {
                     });
                 }
                 return {
-                    peerId: IDs.ConferencePeer.serialize(res.id),
+                    peerId: IDs.ConferencePeer.serialize(res.peer.id),
                     conference: await Modules.Calls.repo.getOrCreateConference(ctx, cid)
                 };
             });

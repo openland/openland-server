@@ -239,7 +239,7 @@ export class CallRepository {
 
             // Notify state change
             this.notifyConferenceChanged(ctx, cid);
-            return res;
+            return { peer: res, justStarted };
         });
     }
 
