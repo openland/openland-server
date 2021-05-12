@@ -43,13 +43,13 @@ describe('CallRepository', () => {
         });
         let peers = await inReadOnlyTx(rootCtx, async (ctx) => await Store.ConferencePeer.conference.findAll(ctx, CID));
         expect(peers.length).toBe(1);
-        expect(peer.uid).toBe(3);
-        expect(peer.cid).toBe(CID);
-        expect(peer.tid).toBe('tid1');
-        expect(peers[0].id).toBe(peer.id);
-        expect(peers[0].uid).toBe(peer.uid);
-        expect(peers[0].cid).toBe(peer.cid);
-        expect(peers[0].tid).toBe(peer.tid);
+        expect(peer.peer.uid).toBe(3);
+        expect(peer.peer.cid).toBe(CID);
+        expect(peer.peer.tid).toBe('tid1');
+        expect(peers[0].id).toBe(peer.peer.id);
+        expect(peers[0].uid).toBe(peer.peer.uid);
+        expect(peers[0].cid).toBe(peer.peer.cid);
+        expect(peers[0].tid).toBe(peer.peer.tid);
         // let connections = await Store.ConferenceConnection.conference.findAll(ctx, CID);
         // expect(connections.length).toBe(0);
     });
@@ -77,8 +77,8 @@ describe('CallRepository', () => {
         });
         let peers = await inReadOnlyTx(rootCtx, async (ctx) => await Store.ConferencePeer.conference.findAll(ctx, CID));
         // expect(peer1.id).toBeLessThan(peer2.id);
-        expect(peer1.uid).toBe(3);
-        expect(peer2.uid).toBe(4);
+        expect(peer1.peer.uid).toBe(3);
+        expect(peer2.peer.uid).toBe(4);
         expect(peers.length).toBe(2);
         // let connections = await Store.ConferenceConnection.conference.findAll(ctx, CID);
         // expect(connections.length).toBe(1);
@@ -107,10 +107,10 @@ describe('CallRepository', () => {
             capabilities: DEFAULT_CAPABILITIES,
             ip: 'unknown'
         });
-        await repo.removePeer(rootCtx, peer1.id);
+        await repo.removePeer(rootCtx, peer1.peer.id);
         let peers = await inReadOnlyTx(rootCtx, async (ctx) => await Store.ConferencePeer.conference.findAll(ctx, CID));
         expect(peers.length).toBe(1);
-        expect(peers[0].id).toBe(peer2.id);
+        expect(peers[0].id).toBe(peer2.peer.id);
         // let connections = await Store.ConferenceConnection.conference.findAll(ctx, CID);
         // expect(connections.length).toBe(0);
     });

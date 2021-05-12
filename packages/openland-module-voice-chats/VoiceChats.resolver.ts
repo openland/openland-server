@@ -88,7 +88,7 @@ export const Resolver: GQLResolver = {
             });
 
             return {
-                peerId: IDs.ConferencePeer.serialize(res.id),
+                peerId: IDs.ConferencePeer.serialize(res.peer.id),
                 conference: await Modules.Calls.repo.getOrCreateConference(ctx, chat.id),
                 chat: chat
             };

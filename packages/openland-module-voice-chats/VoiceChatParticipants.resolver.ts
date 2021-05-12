@@ -101,7 +101,7 @@ export const Resolver: GQLResolver = {
             });
 
             return {
-                peerId: IDs.ConferencePeer.serialize(res.id),
+                peerId: IDs.ConferencePeer.serialize(res.peer.id),
                 conference: await Modules.Calls.repo.getOrCreateConference(ctx, cid),
                 chat: (await Store.ConversationVoice.findById(ctx, cid))!
             };
