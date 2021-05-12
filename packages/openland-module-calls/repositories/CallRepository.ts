@@ -237,8 +237,10 @@ export class CallRepository {
             }
             await scheduler.onPeerAdded(ctx, conf.id, id, await this.#getStreams(ctx, res, conf), cap, res.role!);
 
-            // Notify state change
-            this.notifyConferenceChanged(ctx, cid);
+            // Notify state change if speaker joined
+            if (res.role === 'speaker') {
+                this.notifyConferenceChanged(ctx, cid);
+            }
             return { peer: res, justStarted };
         });
     }
@@ -267,6 +269,9 @@ export class CallRepository {
                 let scheduler = this.getScheduler(conf.currentScheduler);
                 await scheduler.onPeerRoleChanged(ctx, cid, peer.id, newRole);
             }
+
+            // Notify state change
+            this.notifyConferenceChanged(ctx, cid);
         });
     }
 
@@ -647,7 +652,7 @@ export class CallRepository {
     //
 
     findActiveMembers = async (parent: Context, cid: number) => {
-        return await Store.ConferencePeer.conference.findAll(parent, cid);
+        return await Store.ConferencePeer.byRole.findAll(parent, cid, 'speaker');
     }
 
     getConferenceVersion = (ctx: Context, cid: number) => {
