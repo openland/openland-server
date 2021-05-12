@@ -9,11 +9,11 @@ import { Modules } from '../../openland-modules/Modules';
 
 export function startVoiceChatsCleanupWorker() {
     singletonWorker({db: Store.storage.db, name: 'voice-chats-cleaner', delay: 1000 * 60}, async (parent) => {
-        let voiceChats = await inTx(parent, async ctx => Store.ConversationVoice.findAll(ctx));
+        let voiceChats = await inTx(parent, async ctx => Store.ConversationVoice.active.findAll(ctx));
 
         for (let voiceChat of voiceChats) {
             if (!voiceChat.active) {
-                continue;
+                continue; // Might not happen
             }
             await inTx(parent, async ctx => {
                 // Ignore new chats
