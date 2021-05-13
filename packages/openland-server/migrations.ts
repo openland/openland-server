@@ -1410,4 +1410,15 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '198-fix-wallets-lock',
+    migration: async (parent) => {
+        await Store.Wallet.iterateAllItems(parent, 100, async (ctx, items) => {
+            for (let item of items) {
+                await Modules.Wallet.updateIsLocked(ctx, item.uid);
+            }
+        });
+    }
+});
+
 export default migrations;

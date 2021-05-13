@@ -65,7 +65,8 @@ export function voiceChatsStore() {
         primaryKey('role', enumString(
             'listener',
             'speaker',
-            'admin'
+            'admin',
+            'handRaised'
         ));
     });
     atomicInt('VoiceChatParticipantActive', () => {

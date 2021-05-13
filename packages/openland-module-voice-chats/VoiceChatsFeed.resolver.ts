@@ -21,7 +21,7 @@ export const Resolver: GQLResolver = {
 
     Query: {
         activeVoiceChats: withActivatedUser(async (ctx, args, uid) => {
-            let res = await Store.ConversationVoice.active.query(ctx, { limit: args.first, afterCursor: args.after, reverse: true });
+            let res = await Store.ConversationVoice.active.query(ctx, { limit: args.first, afterCursor: args.after });
             return {
                 items: res.items,
                 cursor: res.cursor || null
@@ -38,7 +38,7 @@ export const Resolver: GQLResolver = {
                     throw new AccessDeniedError();
                 }
 
-                let iterator = Modules.VoiceChats.events.createActiveChatsLiveStream(ctx);
+                let iterator = Modules.VoiceChats.events.createActiveChatsCollapsingLiveStream(ctx);
 
                 for await (let ev of iterator) {
                      yield [ev];

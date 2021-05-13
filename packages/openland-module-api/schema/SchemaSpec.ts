@@ -2,7 +2,11 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
+<<<<<<< HEAD
 export const GQL_SPEC_VERSION = 'b2e276128675bc1b5e92dc6b179c4369';
+=======
+export const GQL_SPEC_VERSION = 'bf7bb2ed3e2dc0e5b12c97f082c23590';
+>>>>>>> 4474a304d11bdbe7a025a177c180b34d2e1aab07
 
 export namespace GQL {
     export interface CreditCard {
@@ -5267,6 +5271,7 @@ export namespace GQL {
         adminsCount: number;
         listenersCount: number;
         speakersCount: number;
+        handRaisedCount: number;
         active: boolean;
         speakers: VoiceChatParticipant[];
         listeners: VoiceChatParticipant[];
@@ -5279,6 +5284,7 @@ export namespace GQL {
     export interface VoiceChatAdminsCountArgs { }
     export interface VoiceChatListenersCountArgs { }
     export interface VoiceChatSpeakersCountArgs { }
+    export interface VoiceChatHandRaisedCountArgs { }
     export interface VoiceChatActiveArgs { }
     export interface VoiceChatSpeakersArgs { }
     export interface VoiceChatListenersArgs { }
@@ -10726,6 +10732,7 @@ export interface GQLResolver {
             adminsCount: GQL.VoiceChatAdminsCountArgs,
             listenersCount: GQL.VoiceChatListenersCountArgs,
             speakersCount: GQL.VoiceChatSpeakersCountArgs,
+            handRaisedCount: GQL.VoiceChatHandRaisedCountArgs,
             active: GQL.VoiceChatActiveArgs,
             speakers: GQL.VoiceChatSpeakersArgs,
             listeners: GQL.VoiceChatListenersArgs,

@@ -21,6 +21,7 @@ export const Resolver: GQLResolver = {
         adminsCount: (root, _, ctx) => Store.VoiceChatParticipantCounter.byId(root.id, 'admin').get(ctx),
         listenersCount: (root, _, ctx) => Store.VoiceChatParticipantCounter.byId(root.id, 'listener').get(ctx),
         speakersCount: (root, _, ctx) => Store.VoiceChatParticipantCounter.byId(root.id, 'speaker').get(ctx),
+        handRaisedCount: (root, _, ctx) => Store.VoiceChatParticipantCounter.byId(root.id, 'handRaised').get(ctx),
         speakers: (root, _, ctx) => Store.VoiceChatParticipant.speakers.findAll(ctx, root.id),
         listeners: (root, _, ctx) => Store.VoiceChatParticipant.listeners.findAll(ctx, root.id),
         title: root => root.title,
@@ -121,6 +122,10 @@ export const Resolver: GQLResolver = {
                 if (org.kind === 'organization') {
                     isPrivate = true;
                 }
+            }
+            // Private for premium chats
+            if (room.isPremium) {
+                isPrivate = true;
             }
 
             if (roomProfile.voiceChat) {

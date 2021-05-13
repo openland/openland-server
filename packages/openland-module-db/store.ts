@@ -123,27 +123,27 @@ export class VoiceChatParticipantCounterFactory extends AtomicIntegerFactory {
         super(storage, subspace);
     }
 
-    byId(cid: number, role: 'listener' | 'speaker' | 'admin') {
+    byId(cid: number, role: 'listener' | 'speaker' | 'admin' | 'handRaised') {
         return this._findById([cid, role]);
     }
 
-    get(ctx: Context, cid: number, role: 'listener' | 'speaker' | 'admin') {
+    get(ctx: Context, cid: number, role: 'listener' | 'speaker' | 'admin' | 'handRaised') {
         return this._get(ctx, [cid, role]);
     }
 
-    set(ctx: Context, cid: number, role: 'listener' | 'speaker' | 'admin', value: number) {
+    set(ctx: Context, cid: number, role: 'listener' | 'speaker' | 'admin' | 'handRaised', value: number) {
         return this._set(ctx, [cid, role], value);
     }
 
-    add(ctx: Context, cid: number, role: 'listener' | 'speaker' | 'admin', value: number) {
+    add(ctx: Context, cid: number, role: 'listener' | 'speaker' | 'admin' | 'handRaised', value: number) {
         return this._add(ctx, [cid, role], value);
     }
 
-    increment(ctx: Context, cid: number, role: 'listener' | 'speaker' | 'admin') {
+    increment(ctx: Context, cid: number, role: 'listener' | 'speaker' | 'admin' | 'handRaised') {
         return this._increment(ctx, [cid, role]);
     }
 
-    decrement(ctx: Context, cid: number, role: 'listener' | 'speaker' | 'admin') {
+    decrement(ctx: Context, cid: number, role: 'listener' | 'speaker' | 'admin' | 'handRaised') {
         return this._decrement(ctx, [cid, role]);
     }
 }
