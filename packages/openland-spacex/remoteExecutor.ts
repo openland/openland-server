@@ -12,24 +12,21 @@ import { createIterator } from 'openland-utils/asyncIterator';
 import { RemoteTransport } from 'openland-module-pubsub/RemoteTransport';
 import { createSourceEventStream } from 'graphql';
 import { isAsyncIterator } from 'openland-mtproto3/utils';
+import { BulkheadOptions } from 'moleculer';
 
 const logger = createLogger('graphql');
 const tracer = createTracer('remote');
 
 type RemoteResponse = { data: any } | { errors: SpaceXFormattedError[] };
 
-export function declareRemoteQueryExecutor(tag: string) {
+export function declareRemoteQueryExecutor(tag: string, options: { bulkhead?: BulkheadOptions }) {
     const rootCtx = createNamedContext('graphql-' + tag);
     const tracerExecutor = createTracer('executor-' + tag);
     Modules.Broker.createService({
         name: 'graphql-' + tag,
         actions: {
             execute: {
-                bulkhead: {
-                    enabled: true,
-                    concurrency: 100,
-                    maxQueueSize: 500,
-                },
+                ...options,
                 handler: async (args) => {
                     // Resolve context
                     const parent = contextParse(rootCtx, (args.params.ctx as string));
@@ -127,7 +124,7 @@ export function declareRemoteQueryExecutor(tag: string) {
                                 }
 
                                 // Resolve event
-                                
+
                                 const executed = await inTx(parent, async (ictx) => {
                                     getTransaction(ictx).setOptions({ retry_limit: 3, timeout: 10000 });
                                     return execute(ictx, {
