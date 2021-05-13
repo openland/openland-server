@@ -139,8 +139,10 @@ export class RoutingRepositoryImpl {
         Events.PurchaseEvent.event(ctx, { type: 'purchase_successful', pid, uid, amount, product });
         if (product.type === 'group') {
             await Modules.Messaging.premiumChat.onPurchaseSuccess(ctx, pid, txid, product.gid, uid, amount);
+            await this.wallet.updateIsLocked(ctx, uid);
         } else if (product.type === 'donate_reaction' || product.type === 'donate_message') {
             await Modules.Messaging.donations.onPurchaseSuccess(ctx, pid, txid, uid, amount, product);
+            await this.wallet.updateIsLocked(ctx, uid);
         }
         await Modules.Hooks.onPurchaseSuccess(ctx, uid, amount, product);
     }
@@ -149,8 +151,10 @@ export class RoutingRepositoryImpl {
         Events.PurchaseEvent.event(ctx, { type: 'purchase_failing', pid, uid, amount, product });
         if (product.type === 'group') {
             await Modules.Messaging.premiumChat.onPurchaseFailing(ctx, pid, product.gid, uid, amount);
+            await this.wallet.updateIsLocked(ctx, uid);
         } else if (product.type === 'donate_reaction' || product.type === 'donate_message') {
             await Modules.Messaging.donations.onPurchaseFailing(ctx, pid, uid, amount, product.uid);
+            await this.wallet.updateIsLocked(ctx, uid);
         }
     }
 
@@ -158,8 +162,10 @@ export class RoutingRepositoryImpl {
         Events.PurchaseEvent.event(ctx, { type: 'purchase_need_action', pid, uid, amount, product });
         if (product.type === 'group') {
             await Modules.Messaging.premiumChat.onPurchaseNeedAction(ctx, pid, product.gid, uid, amount);
+            await this.wallet.updateIsLocked(ctx, uid);
         } else if (product.type === 'donate_reaction' || product.type === 'donate_message') {
             await Modules.Messaging.donations.onPurchaseNeedAction(ctx, pid, uid, amount, product.uid);
+            await this.wallet.updateIsLocked(ctx, uid);
         }
     }
 
@@ -167,8 +173,10 @@ export class RoutingRepositoryImpl {
         Events.PurchaseEvent.event(ctx, { type: 'purchase_canceled', pid, uid, amount, product });
         if (product.type === 'group') {
             await Modules.Messaging.premiumChat.onPurchaseCanceled(ctx, pid, product.gid, uid, amount);
+            await this.wallet.updateIsLocked(ctx, uid);
         } else if (product.type === 'donate_reaction' || product.type === 'donate_message') {
             await Modules.Messaging.donations.onPurchaseCanceled(ctx, pid, uid, amount, product);
+            await this.wallet.updateIsLocked(ctx, uid);
         }
     }
 
