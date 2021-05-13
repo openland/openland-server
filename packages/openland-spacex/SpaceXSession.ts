@@ -20,8 +20,8 @@ import { isContextCancelled, withLifetime, cancelContext } from '@openland/lifet
 import { IDs } from 'openland-module-api/IDs';
 import { execute } from 'openland-module-api/execute';
 import { getOperationField } from './utils/getOperationField';
-import { resolveRemote } from './resolveRemote';
-import { callRemoteQueryExecutor } from './remoteExecutor';
+import { resolveRemote, resolveRemoteSubscription } from './resolveRemote';
+import { callRemoteQueryExecutor, callRemoteSubscription } from './remoteExecutor';
 import { spaceFormatError } from './spaceFormatError';
 
 export type SpaceXSessionDescriptor = { type: 'anonymnous' } | { type: 'authenticated', uid: number, tid: string };
@@ -212,104 +212,127 @@ export class SpaceXSession {
                 } else {
 
                     // Subscription
-                    let eventStream = await this._guard({ ctx: opContext, type: 'subscription', operationName: op.operationName, field: docField }, async (context) => {
-                        return await createSourceEventStream(
-                            this.schema,
-                            op.document,
-                            undefined /* Root Value */,
-                            context,
-                            op.variables,
-                            op.operationName
-                        );
-                    });
+                    const remoteSubscription = resolveRemoteSubscription(op.document);
 
-                    // If already completed
-                    if (!eventStream) {
-                        return;
-                    }
-                    if (isContextCancelled(opContext)) {
-                        return;
-                    }
+                    if (remoteSubscription) {
+                        const response = await callRemoteSubscription(remoteSubscription, opContext, op.raw, op.variables, op.operationName ? op.operationName : null);
+                        for await (let event of response) {
+                            // Check if canceled
+                            if (isContextCancelled(opContext)) {
+                                return;
+                            }
 
-                    if (isAsyncIterator(eventStream)) {
+                            // Handle Error
+                            if (isErrored(event)) {
+                                cancelContext(opContext);
+                                handler({ type: 'errors', errors: event.errors });
+                                handler({ type: 'completed' });
+                                return;
+                            } else {
+                                handler({ type: 'data', data: event.data });
+                            }
+                        }
+                        handler({ type: 'completed' });
+                    } else {
+                        let eventStream = await this._guard({ ctx: opContext, type: 'subscription', operationName: op.operationName, field: docField }, async (context) => {
+                            return await createSourceEventStream(
+                                this.schema,
+                                op.document,
+                                undefined /* Root Value */,
+                                context,
+                                op.variables,
+                                op.operationName
+                            );
+                        });
+
+                        // If already completed
+                        if (!eventStream) {
+                            return;
+                        }
                         if (isContextCancelled(opContext)) {
                             return;
                         }
 
-                        // Iterate all events
-                        for await (let event of eventStream) {
-
-                            // Check if canceled
+                        if (isAsyncIterator(eventStream)) {
                             if (isContextCancelled(opContext)) {
                                 return;
                             }
 
-                            // Remove transaction and add new read one
-                            let resolveContext = withoutTransaction(opContext);
+                            // Iterate all events
+                            for await (let event of eventStream) {
 
-                            // Execute
-                            let resolved: InternalOpResult;
-                            if (remote) {
-                                resolved = await this._executeRemote(remote, {
-                                    ctx: resolveContext,
-                                    type: 'subscription-resolve',
-                                    op,
-                                    rootValue: event,
-                                    field: docField
-                                });
-                            } else {
-                                let executed = await this._execute({
-                                    ctx: resolveContext,
-                                    type: 'subscription-resolve',
-                                    op,
-                                    rootValue: event,
-                                    field: docField
-                                });
-                                if (!executed) {
+                                // Check if canceled
+                                if (isContextCancelled(opContext)) {
                                     return;
                                 }
-                                if (executed.errors && executed.errors.length > 0) {
-                                    resolved = {
-                                        errors: executed.errors.map((v) => spaceFormatError(v))
-                                    };
+
+                                // Remove transaction and add new read one
+                                let resolveContext = withoutTransaction(opContext);
+
+                                // Execute
+                                let resolved: InternalOpResult;
+                                if (remote) {
+                                    resolved = await this._executeRemote(remote, {
+                                        ctx: resolveContext,
+                                        type: 'subscription-resolve',
+                                        op,
+                                        rootValue: event,
+                                        field: docField
+                                    });
                                 } else {
-                                    resolved = {
-                                        data: executed.data
-                                    };
+                                    let executed = await this._execute({
+                                        ctx: resolveContext,
+                                        type: 'subscription-resolve',
+                                        op,
+                                        rootValue: event,
+                                        field: docField
+                                    });
+                                    if (!executed) {
+                                        return;
+                                    }
+                                    if (executed.errors && executed.errors.length > 0) {
+                                        resolved = {
+                                            errors: executed.errors.map((v) => spaceFormatError(v))
+                                        };
+                                    } else {
+                                        resolved = {
+                                            data: executed.data
+                                        };
+                                    }
+                                }
+                                Metrics.SpaceXSubscriptionEvents.inc();
+
+                                // Check if canceled
+                                if (isContextCancelled(opContext)) {
+                                    return;
+                                }
+
+                                // Handle event or error
+                                if (isErrored(resolved)) {
+                                    cancelContext(opContext);
+                                    handler({ type: 'errors', errors: resolved.errors });
+                                    handler({ type: 'completed' });
+                                    break;
+                                } else {
+                                    handler({ type: 'data', data: resolved.data });
                                 }
                             }
-                            Metrics.SpaceXSubscriptionEvents.inc();
 
-                            // Check if canceled
-                            if (isContextCancelled(opContext)) {
-                                return;
-                            }
-
-                            // Handle event or error
-                            if (isErrored(resolved)) {
+                            if (!isContextCancelled(opContext)) {
                                 cancelContext(opContext);
-                                handler({ type: 'errors', errors: resolved.errors });
                                 handler({ type: 'completed' });
-                                break;
-                            } else {
-                                handler({ type: 'data', data: resolved.data });
                             }
-                        }
-
-                        if (!isContextCancelled(opContext)) {
-                            cancelContext(opContext);
-                            handler({ type: 'completed' });
-                        }
-                    } else {
-                        // Weird branch. Probabbly just to handle errors.
-                        if (!isContextCancelled(opContext)) {
-                            cancelContext(opContext);
-                            if (eventStream.errors && eventStream.errors.length > 0) {
-                                handler({ type: 'errors', errors: [...eventStream.errors].map((v) => spaceFormatError(v)) });
-                                handler({ type: 'completed' });
-                            } else {
-                                handler({ type: 'data', data: eventStream.data });
-                                handler({ type: 'completed' });
+                        } else {
+                            // Weird branch. Probabbly just to handle errors.
+                            if (!isContextCancelled(opContext)) {
+                                cancelContext(opContext);
+                                if (eventStream.errors && eventStream.errors.length > 0) {
+                                    handler({ type: 'errors', errors: [...eventStream.errors].map((v) => spaceFormatError(v)) });
+                                    handler({ type: 'completed' });
+                                } else {
+                                    handler({ type: 'data', data: eventStream.data });
+                                    handler({ type: 'completed' });
+                                }
                             }
                         }
                     }

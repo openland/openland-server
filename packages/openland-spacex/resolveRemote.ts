@@ -3,6 +3,25 @@ import { DocumentNode } from 'graphql';
 import { getOperation } from './utils/getOperation';
 import { getOperationField } from './utils/getOperationField';
 
+export function resolveRemoteSubscription(document: DocumentNode): string | null {
+    const op = getOperation(document);
+    const field = getOperationField(op);
+    if (op.operation !== 'subscription') {
+        return null;
+    }
+
+    if (Modules.Super.getBoolean('spacex-route-remote-subscriptions', false)) {
+        switch (field) {
+            case 'typings':
+                return 'default';
+            default:
+            /* Nothing */
+        }
+    }
+
+    return null;
+}
+
 export function resolveRemote(document: DocumentNode): string | null {
 
     // Get operation
