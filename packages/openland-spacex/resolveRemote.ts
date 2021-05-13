@@ -51,8 +51,11 @@ export function resolveRemote(document: DocumentNode): string | null {
                 case 'watchSettings':
                 case 'settingsWatch':
                     return 'events';
+                case 'myStickersUpdates':
                 case 'alphaConferenceMediaWatch':
                 case 'alphaConferenceWatch':
+                case 'blackListUpdates':
+                case 'notificationCenterUpdates':
                     return 'default';
                 default:
                 /* Nothing */
@@ -61,7 +64,12 @@ export function resolveRemote(document: DocumentNode): string | null {
 
         if (Modules.Super.getBoolean('spacex-route-subscriptions-critical', false)) {
             switch (field) {
+                case 'walletUpdates':
                 case 'dialogsUpdates':
+                case 'voiceChatEvents':
+                case 'voiceChatWatch':
+                case 'activeVoiceChatsEvents':
+                case 'chatUpdates':
                     return 'default';
                 default:
                 /* Nothing */

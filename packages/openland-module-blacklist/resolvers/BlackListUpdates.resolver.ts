@@ -49,7 +49,7 @@ export const Resolver: GQLResolver = {
     },
     Subscription: {
         blackListUpdates: {
-            resolve: (msg: any) => msg,
+            resolve: (msg: any) => Store.BlackListEventStore.decodeRawLiveStreamItem(msg),
             subscribe: async function (r: any, args: GQL.SubscriptionBlackListUpdatesArgs, ctx: Context) {
                 let uid = ctx.auth.uid;
                 if (!uid) {
@@ -59,7 +59,7 @@ export const Resolver: GQLResolver = {
                 if (args.fromState) {
                     userCursor = IDs.BlackListUpdatesCursor.parse(args.fromState);
                 }
-                return Store.BlackListEventStore.createLiveStream(ctx, uid, { batchSize: 50, after: userCursor });
+                return Store.BlackListEventStore.createRawLiveStream(ctx, uid, { batchSize: 50, after: userCursor });
             }
         }
     }

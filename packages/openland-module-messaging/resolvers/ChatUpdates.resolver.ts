@@ -1,5 +1,5 @@
 import { Context } from '@openland/context';
-import { MessageDeletedEvent, ChatUpdatedEvent } from './../../openland-module-db/store';
+import { MessageDeletedEvent, ChatUpdatedEvent, ChatLostAccess } from './../../openland-module-db/store';
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import ChatUpdateContainerRoot = GQLRoots.ChatUpdateContainerRoot;
@@ -96,7 +96,7 @@ export const Resolver: GQLResolver = {
     Subscription: {
         chatUpdates: {
             resolve: async msg => {
-                return msg;
+                return Store.ConversationEventStore.decodeRawLiveStreamItem(msg);
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionChatUpdatesArgs, ctx: Context) {
                 if (!ctx.auth.uid) {
@@ -107,7 +107,7 @@ export const Resolver: GQLResolver = {
                     throw new AccessDeniedError();
                 }
                 let chatId = IDs.Conversation.parse(args.chatId);
-                const lostAccessEvent = { cursor: '', items: [{ kind: 'lost_access', seq: -1, type: 'ChatLostAccess', raw: '' }] };
+                const lostAccessEvent = Store.ConversationEventStore.encodeRawLiveStreamItem({ cursor: '', items: [ChatLostAccess.create({ cid: chatId })] } as any);
 
                 // Can't trow error, current clients will retry connection in infinite loop
                 try {
@@ -157,10 +157,10 @@ export const Resolver: GQLResolver = {
                             }
                             events.push(ev);
                         }
-                        yield {
+                        yield Store.ConversationEventStore.encodeRawLiveStreamItem({
                             items: events,
                             cursor: event.cursor
-                        };
+                        });
                     } else {
                         subscription.cancel();
                         yield lostAccessEvent;

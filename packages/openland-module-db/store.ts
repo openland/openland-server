@@ -23451,6 +23451,39 @@ export class VoiceChatUpdatedEvent extends BaseEvent {
     get cid(): number { return this.raw.cid; }
 }
 
+const chatLostAccessCodec = c.struct({
+    cid: c.integer,
+});
+
+interface ChatLostAccessShape {
+    cid: number;
+}
+
+export class ChatLostAccess extends BaseEvent {
+
+    static readonly type: 'chatLostAccess' = 'chatLostAccess';
+
+    static create(data: ChatLostAccessShape) {
+        return new ChatLostAccess(chatLostAccessCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new ChatLostAccess(chatLostAccessCodec.decode(data));
+    }
+
+    static encode(event: ChatLostAccess) {
+        return chatLostAccessCodec.encode(event.raw);
+    }
+
+    readonly type: 'chatLostAccess' = 'chatLostAccess';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get cid(): number { return this.raw.cid; }
+}
+
 const chatUpdatedEventCodec = c.struct({
     cid: c.integer,
     uid: c.integer,
@@ -26214,6 +26247,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     const eventFactory = new EventFactory();
     eventFactory.registerEventType('voiceChatParticipantUpdatedEvent', VoiceChatParticipantUpdatedEvent.encode as any, VoiceChatParticipantUpdatedEvent.decode);
     eventFactory.registerEventType('voiceChatUpdatedEvent', VoiceChatUpdatedEvent.encode as any, VoiceChatUpdatedEvent.decode);
+    eventFactory.registerEventType('chatLostAccess', ChatLostAccess.encode as any, ChatLostAccess.decode);
     eventFactory.registerEventType('chatUpdatedEvent', ChatUpdatedEvent.encode as any, ChatUpdatedEvent.decode);
     eventFactory.registerEventType('messageReceivedEvent', MessageReceivedEvent.encode as any, MessageReceivedEvent.decode);
     eventFactory.registerEventType('messageUpdatedEvent', MessageUpdatedEvent.encode as any, MessageUpdatedEvent.decode);
