@@ -55,11 +55,20 @@ export function resolveRemote(document: DocumentNode): string | null {
                 case 'alphaConferenceWatch':
                     return 'default';
                 default:
-                    return null;
+                /* Nothing */
             }
-        } else {
-            return null;
         }
+
+        if (Modules.Super.getBoolean('spacex-route-subscriptions-critical', false)) {
+            switch (field) {
+                case 'dialogsUpdates':
+                    return 'default';
+                default:
+                /* Nothing */
+            }
+        }
+
+        return null;
         // if (Modules.Super.getBoolean('spacex-route-subscriptions', false)) {
         //     return 'default';
         // } else {

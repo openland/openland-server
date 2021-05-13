@@ -182,8 +182,8 @@ export const Resolver: GQLResolver = {
      */
     Subscription: {
         dialogsUpdates: {
-            resolve: async (msg: any) => {
-                return msg;
+            resolve: (msg: any) => {
+                return Store.UserDialogEventStore.decodeRawLiveStreamItem(msg);
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionDialogsUpdatesArgs, ctx: Context) {
                 if (!ctx.auth.uid) {
@@ -202,11 +202,11 @@ export const Resolver: GQLResolver = {
                 let subscribeAfter = fromState || null;
                 for await (let event of zipedGenerator) {
                     subscribeAfter = event.cursor;
-                    yield event;
+                    yield Store.UserDialogEventStore.encodeRawLiveStreamItem(event);
                 }
                 let stream = Store.UserDialogEventStore.createLiveStream(ctx, ctx.auth.uid!, { batchSize: 20, after: subscribeAfter || undefined });
                 for await (let event of stream) {
-                    yield event;
+                    yield Store.UserDialogEventStore.encodeRawLiveStreamItem(event);
                 }
             }
         },

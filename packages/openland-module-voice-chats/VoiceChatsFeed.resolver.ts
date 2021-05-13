@@ -31,8 +31,8 @@ export const Resolver: GQLResolver = {
 
     Subscription: {
         activeVoiceChatsEvents: {
-            resolve: (msg: any) => msg,
-            subscribe: async function * (r: any, args: GQL.SubscriptionActiveVoiceChatsEventsArgs, ctx: Context) {
+            resolve: (msg: any[]) => msg.map((v) => Store.eventFactory.decode(v)),
+            subscribe: async function* (r: any, args: GQL.SubscriptionActiveVoiceChatsEventsArgs, ctx: Context) {
                 let uid = ctx.auth.uid;
                 if (!uid) {
                     throw new AccessDeniedError();
@@ -41,7 +41,7 @@ export const Resolver: GQLResolver = {
                 let iterator = Modules.VoiceChats.events.createActiveChatsCollapsingLiveStream(ctx);
 
                 for await (let ev of iterator) {
-                     yield [ev];
+                    yield [Store.eventFactory.encode(ev) as any];
                 }
             }
         }

@@ -5,7 +5,6 @@ import { IDs } from '../openland-module-api/IDs';
 import { Store } from '../openland-module-db/FDB';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import { withUser as withUserFromRoot } from '../openland-module-users/User.resolver';
-import { ConversationVoice } from '../openland-module-db/store';
 import { fastWatch } from '../openland-module-db/fastWatch';
 import { inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
@@ -186,21 +185,21 @@ export const Resolver: GQLResolver = {
     },
     Subscription: {
         voiceChatWatch: {
-            resolve(obj: ConversationVoice) {
-                return obj;
+            resolve: async (cid: any, _, ctx: Context) => {
+                return await Store.ConversationVoice.findByIdOrFail(ctx, cid);
             },
             subscribe: async function* (_: any, args: { id: string }, parent: Context) {
                 let cid = IDs.Conversation.parse(args.id);
                 const initial = await inTx(parent, async (ctx) => (await Store.ConversationVoice.findById(ctx, cid))!);
                 let version = initial.metadata.versionCode;
-                yield initial;
+                yield cid as any;
                 while (true) {
                     let changed = await fastWatch(parent, `voice-chat-${IDs.Conversation.parse(args.id)}`, version,
                         async (ctx) => (await inTx(ctx, async (ctx2) => Store.ConversationVoice.findById(ctx2, cid)))!.metadata.versionCode
                     );
                     if (changed.result) {
                         version = changed.version;
-                        yield await inTx(parent, async (ctx) => (await Store.ConversationVoice.findById(ctx, cid))!);
+                        yield cid as any;
                     } else {
                         break;
                     }
