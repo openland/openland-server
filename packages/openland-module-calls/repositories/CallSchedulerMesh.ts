@@ -23,6 +23,9 @@ export class CallSchedulerMesh implements CallScheduler {
 
     readonly endStreamDirectory = new EndStreamDirectory(Store.EndStreamDirectory);
 
+    // Candidates are ignored
+    supportsCandidates = true;
+
     constructor(iceTransportPolicy: 'all' | 'relay' | 'none', repo: CallRepository) {
         this.iceTransportPolicy = iceTransportPolicy;
         this.repo = repo;

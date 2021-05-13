@@ -7,6 +7,10 @@ const logger = createLogger('calls:logger');
 export class LoggedCallScheduler implements CallScheduler {
     readonly inner: CallScheduler;
 
+    get supportsCandidates() {
+        return this.inner.supportsCandidates;
+    }
+
     constructor(inner: CallScheduler) {
         this.inner = inner;
     }

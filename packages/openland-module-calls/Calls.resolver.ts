@@ -167,6 +167,7 @@ export const Resolver: GQLResolver = {
         sdp: async (src, _, ctx) => (await Modules.Calls.repo.endStreamDirectory.getRemoteSdp(ctx, src))!,
         ice: async (src, _, ctx) => (await Modules.Calls.repo.endStreamDirectory.getRemoteCandidates(ctx, src))!,
         iceTransportPolicy: async (src, _, ctx) => (await Modules.Calls.repo.endStreamDirectory.getIceTransportPolicy(ctx, src))!,
+        needCandidates: () => false,
         senders: async (src, _, ctx) => {
             let localStreams = (await Modules.Calls.repo.endStreamDirectory.getLocalStreams(ctx, src))!;
             return localStreams.map((v) => ({

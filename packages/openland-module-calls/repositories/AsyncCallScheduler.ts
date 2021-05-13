@@ -17,6 +17,10 @@ export class AsyncCallScheduler implements CallScheduler {
     readonly inner: CallScheduler;
     readonly repo: CallRepository;
 
+    get supportsCandidates() {
+        return this.inner.supportsCandidates;
+    }
+
     constructor(inner: CallScheduler, repo: CallRepository) {
         this.inner = inner;
         this.repo = repo;

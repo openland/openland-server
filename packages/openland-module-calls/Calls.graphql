@@ -116,6 +116,7 @@ type MediaStream {
     # ICE Candidates
     ice: [String!]!
     iceTransportPolicy: IceTransportPolicy!
+    needCandidates: Boolean!
 
     # Tracks
     receivers: [MediaReceiver!]!
