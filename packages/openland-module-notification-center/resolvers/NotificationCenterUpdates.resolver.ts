@@ -88,7 +88,7 @@ export const Resolver: GQLResolver = {
             resolve: async (msg, args, ctx) => {
                 return {
                     cursor: msg!.cursor,
-                    items: (msg!.items as any[]).map((v) => Store.NotificationCenterEvent.findByIdOrFail(ctx, v.ncid, v.seq))
+                    items: await Promise.all((msg!.items as any[]).map((v) => Store.NotificationCenterEvent.findByIdOrFail(ctx, v.ncid, v.seq)))
                 } as any;
             },
             subscribe: async function* (r: any, args: GQL.SubscriptionNotificationCenterUpdatesArgs, ctx: Context) {
