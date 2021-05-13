@@ -498,7 +498,7 @@ export const Resolver: GQLResolver = {
             resolve: async (msg: any) => {
                 return Store.UserWalletUpdates.decodeRawLiveStreamItem(msg);
             },
-            subscribe: async function* (r: any, args: GQL.SubscriptionWalletUpdatesArgs, ctx: Context) {
+            subscribe: async (r: any, args: GQL.SubscriptionWalletUpdatesArgs, ctx: Context) => {
                 return Store.UserWalletUpdates.createRawLiveStream(ctx, ctx.auth.uid!, { batchSize: 20, after: IDs.WalletUpdatesCursor.parse(args.fromState) });
             }
         }
