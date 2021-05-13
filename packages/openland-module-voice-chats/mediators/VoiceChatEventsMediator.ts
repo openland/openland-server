@@ -11,4 +11,8 @@ export class VoiceChatEventsMediator {
     createActiveChatsLiveStream = (ctx: Context) => {
         return this.repo.createActiveChatsLiveStream(ctx);
     }
+
+    createActiveChatsCollapsingLiveStream = (ctx: Context) => {
+        return this.repo.createActiveChatsCollapsingLiveStream(ctx);
+    }
 }

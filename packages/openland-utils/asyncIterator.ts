@@ -1,4 +1,5 @@
 import { Observable } from 'rxjs';
+import { throttle } from './timer';
 
 export type PushableIterator<T> = AsyncIterable<T> & {
     onExit: (() => void) | undefined,
@@ -76,6 +77,28 @@ export function createIterator<T>(onExit?: () => void): PushableIterator<T> {
             } else {
                 events.push(null);
             }
+        }
+    };
+}
+
+export function createCollapsingIterator<T>(config: { getCollapseKey: (ev: T) => string, delay?: number }, onExit?: () => void): PushableIterator<T> {
+    let iterator = createIterator<T>(onExit);
+    let originalPush = iterator.push;
+    let throttles = new Map<string, (data: T) =>  void>();
+    let delay = config.delay || 1000;
+
+    return {
+        ...iterator,
+        push(data: T) {
+            let collapseKey = config.getCollapseKey(data);
+
+            let push = throttles.get(collapseKey);
+            if (!push) {
+                push = throttle(delay, originalPush);
+                throttles.set(collapseKey, push);
+            }
+
+            push(data);
         }
     };
 }

@@ -40,4 +40,11 @@ export class VoiceChatEventsRepository {
     createActiveChatsLiveStream = (ctx: Context) => {
         return this.activeChatsEvents.createLiveStream(ctx, 'global');
     }
+
+    createActiveChatsCollapsingLiveStream = (ctx: Context) => {
+        return this.activeChatsEvents.createCollapsingLiveStream(ctx, 'global', {
+            getCollapseKey: ev => ev.type,
+            delay: 2000
+        });
+    }
 }

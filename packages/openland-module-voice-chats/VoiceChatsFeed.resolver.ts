@@ -38,7 +38,7 @@ export const Resolver: GQLResolver = {
                     throw new AccessDeniedError();
                 }
 
-                let iterator = Modules.VoiceChats.events.createActiveChatsLiveStream(ctx);
+                let iterator = Modules.VoiceChats.events.createActiveChatsCollapsingLiveStream(ctx);
 
                 for await (let ev of iterator) {
                      yield [ev];
