@@ -70,5 +70,14 @@ export class ApiModule {
         if (serverRoleEnabled('executor')) {
             declareRemoteQueryExecutor('default');
         }
+        if (serverRoleEnabled('executor-calls')) {
+            declareRemoteQueryExecutor('calls-resolver');
+        }
+        if (serverRoleEnabled('events-calls')) {
+            declareRemoteQueryExecutor('calls-events');
+        }
+        if (serverRoleEnabled('events-chat')) {
+            declareRemoteQueryExecutor('chat-events');
+        }
     }
 }

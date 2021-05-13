@@ -45,43 +45,36 @@ export function resolveRemote(document: DocumentNode): string | null {
     if (op.operation === 'subscription') {
         if (Modules.Super.getBoolean('spacex-route-subscriptions', false)) {
             switch (field) {
+                // Ephemeral events
                 case 'alphaSubscribeOnline':
                 case 'chatOnlinesCount':
                 case 'typings':
                 case 'watchSettings':
                 case 'settingsWatch':
                     return 'events';
+                // Generic
                 case 'myStickersUpdates':
+                case 'blackListUpdates':
+                case 'walletUpdates':
+                    return 'default';
+                // Calls
                 case 'alphaConferenceMediaWatch':
                 case 'alphaConferenceWatch':
-                case 'blackListUpdates':
-                case 'notificationCenterUpdates':
-                    return 'default';
-                default:
-                /* Nothing */
-            }
-        }
-
-        if (Modules.Super.getBoolean('spacex-route-subscriptions-critical', false)) {
-            switch (field) {
-                case 'walletUpdates':
-                case 'dialogsUpdates':
                 case 'voiceChatEvents':
                 case 'voiceChatWatch':
                 case 'activeVoiceChatsEvents':
+                    return 'calls-events';
+                // Chat
+                case 'notificationCenterUpdates':
+                case 'dialogsUpdates':
                 case 'chatUpdates':
-                    return 'default';
+                    return 'chat-events';
                 default:
                 /* Nothing */
             }
         }
 
         return null;
-        // if (Modules.Super.getBoolean('spacex-route-subscriptions', false)) {
-        //     return 'default';
-        // } else {
-        //     return null;
-        // }
     }
 
     // Route everything to default
