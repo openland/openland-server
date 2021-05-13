@@ -122,6 +122,10 @@ export const Resolver: GQLResolver = {
                     isPrivate = true;
                 }
             }
+            // Private for premium chats
+            if (room.isPremium) {
+                isPrivate = true;
+            }
 
             if (roomProfile.voiceChat) {
                 throw new UserError(`This chat already have voice room`);
