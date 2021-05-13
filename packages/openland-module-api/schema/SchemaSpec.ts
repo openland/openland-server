@@ -2,11 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-<<<<<<< HEAD
-export const GQL_SPEC_VERSION = 'b2e276128675bc1b5e92dc6b179c4369';
-=======
-export const GQL_SPEC_VERSION = 'bf7bb2ed3e2dc0e5b12c97f082c23590';
->>>>>>> 4474a304d11bdbe7a025a177c180b34d2e1aab07
+export const GQL_SPEC_VERSION = '32f0653d42a4c424d39e95ebe9dabc0c';
 
 export namespace GQL {
     export interface CreditCard {
