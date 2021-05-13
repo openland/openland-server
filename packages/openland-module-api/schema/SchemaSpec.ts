@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9b89224395267f0f14d846c95dcb4c11';
+export const GQL_SPEC_VERSION = 'bf7bb2ed3e2dc0e5b12c97f082c23590';
 
 export namespace GQL {
     export interface CreditCard {
@@ -5267,6 +5267,7 @@ export namespace GQL {
         adminsCount: number;
         listenersCount: number;
         speakersCount: number;
+        handRaisedCount: number;
         active: boolean;
         speakers: VoiceChatParticipant[];
         listeners: VoiceChatParticipant[];
@@ -5279,6 +5280,7 @@ export namespace GQL {
     export interface VoiceChatAdminsCountArgs { }
     export interface VoiceChatListenersCountArgs { }
     export interface VoiceChatSpeakersCountArgs { }
+    export interface VoiceChatHandRaisedCountArgs { }
     export interface VoiceChatActiveArgs { }
     export interface VoiceChatSpeakersArgs { }
     export interface VoiceChatListenersArgs { }
@@ -10724,6 +10726,7 @@ export interface GQLResolver {
             adminsCount: GQL.VoiceChatAdminsCountArgs,
             listenersCount: GQL.VoiceChatListenersCountArgs,
             speakersCount: GQL.VoiceChatSpeakersCountArgs,
+            handRaisedCount: GQL.VoiceChatHandRaisedCountArgs,
             active: GQL.VoiceChatActiveArgs,
             speakers: GQL.VoiceChatSpeakersArgs,
             listeners: GQL.VoiceChatListenersArgs,

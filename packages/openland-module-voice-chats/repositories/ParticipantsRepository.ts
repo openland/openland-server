@@ -87,6 +87,16 @@ export class ParticipantsRepository {
         if (!Status.isListener(participant)) {
             return participant;
         }
+        if (participant.handRaised === handRaised) {
+            return;
+        }
+
+        if (!participant.handRaised && handRaised) {
+            await this.#counter(cid, 'handRaised').increment(ctx);
+        } else if (participant.handRaised && !handRaised) {
+            await this.#counter(cid, 'handRaised').decrement(ctx);
+        }
+
         participant.handRaised = handRaised;
 
         await this.events.postParticipantUpdated(ctx, cid, uid, chat.isPrivate || false);
@@ -115,6 +125,7 @@ export class ParticipantsRepository {
         await this.#changeStatus(ctx, cid, uid, 'speaker');
         participant.promotedBy = by;
         participant.handRaised = false;
+        await this.#counter(cid, 'handRaised').decrement(ctx);
 
         await this.events.postParticipantUpdated(ctx, cid, uid, chat.isPrivate || false);
 
@@ -130,7 +141,10 @@ export class ParticipantsRepository {
 
         await this.#changeStatus(ctx, cid, uid, 'listener');
         participant.promotedBy = null;
-        participant.handRaised = false;
+        if (participant.handRaised) {
+            participant.handRaised = false;
+            await this.#counter(cid, 'handRaised').decrement(ctx);
+        }
 
         await this.events.postParticipantUpdated(ctx, cid, uid, chat.isPrivate || false);
 
@@ -153,7 +167,7 @@ export class ParticipantsRepository {
         await this.events.postParticipantUpdated(ctx, cid, uid, chat.isPrivate || false);
     }
 
-    #counter = (cid: number, status: 'admin' | 'speaker' | 'listener') => {
+    #counter = (cid: number, status: 'admin' | 'speaker' | 'listener' | 'handRaised') => {
         return Store.VoiceChatParticipantCounter.byId(cid, status);
     }
 
