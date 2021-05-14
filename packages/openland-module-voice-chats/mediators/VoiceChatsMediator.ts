@@ -84,7 +84,7 @@ export class VoiceChatsMediator {
                 }
 
                 let attendance = (await Store.VoiceChatParticipant.chatAll.findAll(ctx, cid)).length;
-                await Events.VoiceChatEndedEvent.event(ctx, {
+                Events.VoiceChatEndedEvent.event(ctx, {
                     cid: cid,
                     attendance: attendance,
                     duration: chat.duration,

@@ -59,8 +59,8 @@ export class VoiceChatsRepository {
 
         await this.#onChatActive(ctx, id);
 
-        getTransaction(ctx).afterCommit(async () => {
-            await this.voiceChatActiveChanged.next({ cid: id, active: true });
+        getTransaction(ctx).afterCommit(() => {
+            this.voiceChatActiveChanged.next({ cid: id, active: true });
         });
         return conv;
     }
@@ -104,8 +104,8 @@ export class VoiceChatsRepository {
         }
 
         await this.notifyChatUpdated(ctx, id, chat.isPrivate || false);
-        getTransaction(ctx).afterCommit(async () => {
-            await this.voiceChatActiveChanged.next({ cid: id, active });
+        getTransaction(ctx).afterCommit(() => {
+            this.voiceChatActiveChanged.next({ cid: id, active });
         });
         return chat;
     }

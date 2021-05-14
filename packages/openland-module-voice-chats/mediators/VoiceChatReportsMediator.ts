@@ -37,6 +37,8 @@ export class VoiceChatReportsMediator {
             parts.push(' · ', userMention(creatorName, conv.startedBy));
         }
 
+        parts.push('id: ' + conv.id);
+
         await Modules.Messaging.sendMessage(
             ctx,
             reportsCid,
