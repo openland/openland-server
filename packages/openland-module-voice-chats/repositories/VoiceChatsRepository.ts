@@ -150,6 +150,12 @@ export class VoiceChatsRepository {
             // Send service message
 
             if (!chat.duration) {
+                await Modules.Messaging.sendMessage(
+                    ctx,
+                    chat.parentChat,
+                    chat.startedBy!,
+                    buildServiceMessage(`Call ended`)
+                );
                 return;
             }
 
