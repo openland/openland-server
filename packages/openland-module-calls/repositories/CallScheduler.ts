@@ -63,6 +63,8 @@ export type Capabilities = {
 
 export interface CallScheduler {
 
+    readonly supportsCandidates: boolean;
+
     onPeerRemoved(ctx: Context, cid: number, pid: number): Promise<void>;
     onPeerStreamsChanged(ctx: Context, cid: number, pid: number, sources: MediaSources): Promise<void>;
     onPeerAdded(ctx: Context, cid: number, pid: number, sources: MediaSources, capabilities: Capabilities, role: 'speaker' | 'listener'): Promise<void>;

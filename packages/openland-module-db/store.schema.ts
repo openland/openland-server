@@ -588,6 +588,10 @@ export default declareSchema(() => {
     // Conversation Event
     //
 
+    event('ChatLostAccess', () => {
+        field('cid', integer());
+    });
+
     event('ChatUpdatedEvent', () => {
         field('cid', integer());
         field('uid', integer());

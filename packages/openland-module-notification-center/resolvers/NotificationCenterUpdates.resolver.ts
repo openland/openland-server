@@ -85,17 +85,23 @@ export const Resolver: GQLResolver = {
 
     Subscription: {
         notificationCenterUpdates: {
-            resolve: async msg => {
-                return msg;
+            resolve: async (msg, args, ctx) => {
+                return {
+                    cursor: msg!.cursor,
+                    items: await Promise.all((msg!.items as any[]).map((v) => Store.NotificationCenterEvent.findByIdOrFail(ctx, v.ncid, v.seq)))
+                } as any;
             },
-            subscribe: async function (r: any, args: GQL.SubscriptionNotificationCenterUpdatesArgs, ctx: Context) {
+            subscribe: async function* (r: any, args: GQL.SubscriptionNotificationCenterUpdatesArgs, ctx: Context) {
                 let uid = ctx.auth.uid;
                 if (!uid) {
                     throw new AccessDeniedError();
                 }
                 let center = await Modules.NotificationCenter.notificationCenterForUser(ctx, uid);
 
-                return Store.NotificationCenterEvent.notificationCenter.liveStream(ctx, center.id, { batchSize: 20, after: args.fromState || undefined });
+                const stream = Store.NotificationCenterEvent.notificationCenter.liveStream(ctx, center.id, { batchSize: 20, after: args.fromState || undefined });
+                for await (let b of stream) {
+                    yield { cursror: b.cursor, items: b.items.map((v) => ({ ncid: v.ncid, seq: v.seq })) } as any;
+                }
             }
         }
     }

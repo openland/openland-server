@@ -14,6 +14,9 @@ const logger = createLogger('calls:mediakitchen');
 @injectable()
 export class CallSchedulerKitchen implements CallScheduler {
 
+    // Candidates are ignored
+    supportsCandidates = false;
+
     @lazyInject('CallRepository')
     readonly callRepo!: CallRepository;
 

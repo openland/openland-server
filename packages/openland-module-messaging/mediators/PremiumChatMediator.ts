@@ -84,7 +84,8 @@ export class PremiumChatMediator {
             let userPass = await Store.PremiumChatUserPass.findById(ctx, chat.id, uid);
             if (userPass && userPass.isActive) {
                 // nothing to do, user already have access
-                throw new Error('User already have access to this chat');
+                // throw new Error('User already have access to this chat');
+                return;
             }
 
             await Modules.Wallet.createPurchase(ctx, uid, paidChatSettings.price, { type: 'group', gid: cid });

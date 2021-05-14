@@ -68,7 +68,50 @@ export class ApiModule {
         }
 
         if (serverRoleEnabled('executor')) {
-            declareRemoteQueryExecutor('default');
+            declareRemoteQueryExecutor('default', {
+                bulkhead: {
+                    enabled: true,
+                    concurrency: 100,
+                    maxQueueSize: 50,
+                },
+            });
+        }
+        if (serverRoleEnabled('executor-calls')) {
+            declareRemoteQueryExecutor('calls-resolver', {
+                bulkhead: {
+                    enabled: true,
+                    concurrency: 100,
+                    maxQueueSize: 50,
+                },
+            });
+        }
+        if (serverRoleEnabled('events-calls')) {
+            declareRemoteQueryExecutor('calls-events', {
+                bulkhead: {
+                    enabled: true,
+                    concurrency: 1000,
+                    maxQueueSize: 1000,
+                },
+            });
+        }
+        if (serverRoleEnabled('events-chat')) {
+            declareRemoteQueryExecutor('chat-events', {
+                bulkhead: {
+                    enabled: true,
+                    concurrency: 20,
+                    maxQueueSize: 1000,
+                },
+            });
+        }
+
+        if (serverRoleEnabled('events')) {
+            declareRemoteQueryExecutor('events', {
+                bulkhead: {
+                    enabled: true,
+                    concurrency: 100,
+                    maxQueueSize: 50,
+                },
+            });
         }
     }
 }

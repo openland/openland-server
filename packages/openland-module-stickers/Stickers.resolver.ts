@@ -205,12 +205,14 @@ export const Resolver: GQLResolver = {
     },
     Subscription: {
         myStickersUpdates: {
-            resolve: async (obj) => obj,
+            resolve: async (obj: any, _, ctx) => {
+                return await Modules.Stickers.getUserStickers(ctx, obj as number);
+            },
             subscribe: async function* (root: any, _: SubscriptionMyStickersUpdatesArgs, ctx: Context) {
                 for await (let batch of Store.UserStickersEventStore.createLiveStream(ctx, ctx.auth.uid!)) {
                     for (let e of batch.items) {
                         let evt = e as UserStickersUpdateEvent;
-                        yield await Modules.Stickers.getUserStickers(ctx, evt.uid);
+                        yield evt.uid as any;
                     }
                 }
             }

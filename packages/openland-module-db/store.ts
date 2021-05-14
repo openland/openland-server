@@ -23451,6 +23451,39 @@ export class VoiceChatUpdatedEvent extends BaseEvent {
     get cid(): number { return this.raw.cid; }
 }
 
+const chatLostAccessCodec = c.struct({
+    cid: c.integer,
+});
+
+interface ChatLostAccessShape {
+    cid: number;
+}
+
+export class ChatLostAccess extends BaseEvent {
+
+    static readonly type: 'chatLostAccess' = 'chatLostAccess';
+
+    static create(data: ChatLostAccessShape) {
+        return new ChatLostAccess(chatLostAccessCodec.normalize(data));
+    }
+
+    static decode(data: any) {
+        return new ChatLostAccess(chatLostAccessCodec.decode(data));
+    }
+
+    static encode(event: ChatLostAccess) {
+        return chatLostAccessCodec.encode(event.raw);
+    }
+
+    readonly type: 'chatLostAccess' = 'chatLostAccess';
+
+    private constructor(data: any) {
+        super(data);
+    }
+
+    get cid(): number { return this.raw.cid; }
+}
+
 const chatUpdatedEventCodec = c.struct({
     cid: c.integer,
     uid: c.integer,
@@ -25401,6 +25434,14 @@ export class VoiceChatEventsStore extends EventStore {
     createLiveStream(ctx: Context, id: number, opts?: { batchSize?: number, after?: string }) {
         return this._createLiveStream(ctx, [id], opts);
     }
+
+    createRawStream(id: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawStream([id], opts);
+    }
+
+    createRawLiveStream(ctx: Context, id: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawLiveStream(ctx, [id], opts);
+    }
 }
 
 export class ConversationEventStore extends EventStore {
@@ -25435,6 +25476,14 @@ export class ConversationEventStore extends EventStore {
 
     createLiveStream(ctx: Context, cid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createLiveStream(ctx, [cid], opts);
+    }
+
+    createRawStream(cid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawStream([cid], opts);
+    }
+
+    createRawLiveStream(ctx: Context, cid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawLiveStream(ctx, [cid], opts);
     }
 }
 
@@ -25471,6 +25520,14 @@ export class DialogIndexEventStore extends EventStore {
     createLiveStream(ctx: Context, opts?: { batchSize?: number, after?: string }) {
         return this._createLiveStream(ctx, [], opts);
     }
+
+    createRawStream(opts?: { batchSize?: number, after?: string }) {
+        return this._createRawStream([], opts);
+    }
+
+    createRawLiveStream(ctx: Context, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawLiveStream(ctx, [], opts);
+    }
 }
 
 export class UserDialogEventStore extends EventStore {
@@ -25505,6 +25562,14 @@ export class UserDialogEventStore extends EventStore {
 
     createLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createLiveStream(ctx, [uid], opts);
+    }
+
+    createRawStream(uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawStream([uid], opts);
+    }
+
+    createRawLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawLiveStream(ctx, [uid], opts);
     }
 }
 
@@ -25541,6 +25606,14 @@ export class FeedEventStore extends EventStore {
     createLiveStream(ctx: Context, subscriberId: number, opts?: { batchSize?: number, after?: string }) {
         return this._createLiveStream(ctx, [subscriberId], opts);
     }
+
+    createRawStream(subscriberId: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawStream([subscriberId], opts);
+    }
+
+    createRawLiveStream(ctx: Context, subscriberId: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawLiveStream(ctx, [subscriberId], opts);
+    }
 }
 
 export class FeedGlobalEventStore extends EventStore {
@@ -25575,6 +25648,14 @@ export class FeedGlobalEventStore extends EventStore {
 
     createLiveStream(ctx: Context, opts?: { batchSize?: number, after?: string }) {
         return this._createLiveStream(ctx, [], opts);
+    }
+
+    createRawStream(opts?: { batchSize?: number, after?: string }) {
+        return this._createRawStream([], opts);
+    }
+
+    createRawLiveStream(ctx: Context, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawLiveStream(ctx, [], opts);
     }
 }
 
@@ -25611,6 +25692,14 @@ export class UserStickersEventStore extends EventStore {
     createLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createLiveStream(ctx, [uid], opts);
     }
+
+    createRawStream(uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawStream([uid], opts);
+    }
+
+    createRawLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawLiveStream(ctx, [uid], opts);
+    }
 }
 
 export class UserLocationEventStore extends EventStore {
@@ -25645,6 +25734,14 @@ export class UserLocationEventStore extends EventStore {
 
     createLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createLiveStream(ctx, [uid], opts);
+    }
+
+    createRawStream(uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawStream([uid], opts);
+    }
+
+    createRawLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawLiveStream(ctx, [uid], opts);
     }
 }
 
@@ -25681,6 +25778,14 @@ export class UserWalletUpdates extends EventStore {
     createLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createLiveStream(ctx, [uid], opts);
     }
+
+    createRawStream(uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawStream([uid], opts);
+    }
+
+    createRawLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawLiveStream(ctx, [uid], opts);
+    }
 }
 
 export class StripeEventStore extends EventStore {
@@ -25715,6 +25820,14 @@ export class StripeEventStore extends EventStore {
 
     createLiveStream(ctx: Context, liveMode: boolean, opts?: { batchSize?: number, after?: string }) {
         return this._createLiveStream(ctx, [liveMode], opts);
+    }
+
+    createRawStream(liveMode: boolean, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawStream([liveMode], opts);
+    }
+
+    createRawLiveStream(ctx: Context, liveMode: boolean, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawLiveStream(ctx, [liveMode], opts);
     }
 }
 
@@ -25751,6 +25864,14 @@ export class HyperLogStore extends EventStore {
     createLiveStream(ctx: Context, opts?: { batchSize?: number, after?: string }) {
         return this._createLiveStream(ctx, [], opts);
     }
+
+    createRawStream(opts?: { batchSize?: number, after?: string }) {
+        return this._createRawStream([], opts);
+    }
+
+    createRawLiveStream(ctx: Context, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawLiveStream(ctx, [], opts);
+    }
 }
 
 export class UserContactsEventStore extends EventStore {
@@ -25786,6 +25907,14 @@ export class UserContactsEventStore extends EventStore {
     createLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createLiveStream(ctx, [uid], opts);
     }
+
+    createRawStream(uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawStream([uid], opts);
+    }
+
+    createRawLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawLiveStream(ctx, [uid], opts);
+    }
 }
 
 export class BlackListEventStore extends EventStore {
@@ -25820,6 +25949,14 @@ export class BlackListEventStore extends EventStore {
 
     createLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createLiveStream(ctx, [uid], opts);
+    }
+
+    createRawStream(uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawStream([uid], opts);
+    }
+
+    createRawLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
+        return this._createRawLiveStream(ctx, [uid], opts);
     }
 }
 
@@ -26110,6 +26247,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     const eventFactory = new EventFactory();
     eventFactory.registerEventType('voiceChatParticipantUpdatedEvent', VoiceChatParticipantUpdatedEvent.encode as any, VoiceChatParticipantUpdatedEvent.decode);
     eventFactory.registerEventType('voiceChatUpdatedEvent', VoiceChatUpdatedEvent.encode as any, VoiceChatUpdatedEvent.decode);
+    eventFactory.registerEventType('chatLostAccess', ChatLostAccess.encode as any, ChatLostAccess.decode);
     eventFactory.registerEventType('chatUpdatedEvent', ChatUpdatedEvent.encode as any, ChatUpdatedEvent.decode);
     eventFactory.registerEventType('messageReceivedEvent', MessageReceivedEvent.encode as any, MessageReceivedEvent.decode);
     eventFactory.registerEventType('messageUpdatedEvent', MessageUpdatedEvent.encode as any, MessageUpdatedEvent.decode);

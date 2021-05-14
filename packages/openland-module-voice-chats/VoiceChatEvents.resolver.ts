@@ -13,11 +13,11 @@ import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 
 export const Resolver: GQLResolver = {
     VoiceChatParticipantUpdatedEvent: {
-        chat: async (src, {}, ctx) => (await Store.ConversationVoice.findById(ctx, src.cid))!,
-        participant: async (src, {}, ctx) => (await Store.VoiceChatParticipant.findById(ctx, src.cid, src.uid))!,
+        chat: async (src, { }, ctx) => (await Store.ConversationVoice.findById(ctx, src.cid))!,
+        participant: async (src, { }, ctx) => (await Store.VoiceChatParticipant.findById(ctx, src.cid, src.uid))!,
     },
     VoiceChatUpdatedEvent: {
-        chat: async (src, {}, ctx) => (await Store.ConversationVoice.findById(ctx, src.cid))!,
+        chat: async (src, { }, ctx) => (await Store.ConversationVoice.findById(ctx, src.cid))!,
     },
     VoiceChatEvent: {
         __resolveType(src: VoiceChatEventRoot) {
@@ -48,17 +48,19 @@ export const Resolver: GQLResolver = {
 
     Subscription: {
         voiceChatEvents: {
-            resolve: (msg: any) => msg,
+            resolve: (src: any) => {
+                return Store.VoiceChatEventsStore.decodeRawLiveStreamItem(src);
+            },
             subscribe: async function (r: any, args: GQL.SubscriptionVoiceChatEventsArgs, ctx: Context) {
                 let uid = ctx.auth.uid;
                 if (!uid) {
                     throw new AccessDeniedError();
                 }
-                let cursor: undefined|string;
+                let cursor: undefined | string;
                 if (args.fromState) {
                     cursor = IDs.VoiceChatEventsCursor.parse(args.fromState);
                 }
-                return Store.VoiceChatEventsStore.createLiveStream(ctx, IDs.Conversation.parse(args.id), { batchSize: 50, after: cursor });
+                return Store.VoiceChatEventsStore.createRawLiveStream(ctx, IDs.Conversation.parse(args.id), { batchSize: 50, after: cursor }) as any;
             }
         }
     }

@@ -496,13 +496,10 @@ export const Resolver: GQLResolver = {
     Subscription: {
         walletUpdates: {
             resolve: async (msg: any) => {
-                return msg;
+                return Store.UserWalletUpdates.decodeRawLiveStreamItem(msg);
             },
-            subscribe: async function* (r: any, args: GQL.SubscriptionWalletUpdatesArgs, ctx: Context) {
-                let stream = Store.UserWalletUpdates.createLiveStream(ctx, ctx.auth.uid!, { batchSize: 20, after: IDs.WalletUpdatesCursor.parse(args.fromState) });
-                for await (let event of stream) {
-                    yield event;
-                }
+            subscribe: async (r: any, args: GQL.SubscriptionWalletUpdatesArgs, ctx: Context) => {
+                return Store.UserWalletUpdates.createRawLiveStream(ctx, ctx.auth.uid!, { batchSize: 20, after: IDs.WalletUpdatesCursor.parse(args.fromState) });
             }
         }
     }

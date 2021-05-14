@@ -102,6 +102,7 @@ let configuration: t.TypeOf<typeof codec> | undefined = undefined;
 let enableTracing: boolean = false;
 let enableReporting: boolean = true;
 let enableLogging: boolean = true;
+let superModule: any | null = null;
 
 function loadConfigIfNeeded() {
     if (configuration) {
@@ -184,11 +185,17 @@ class ConfigProvider {
     }
 
     get enableGraphqlTracing() {
-        return require('./../openland-modules/Modules').Modules.Super.getBoolean('graphql-enable-tracing', false) as boolean;
+        if (superModule === null) {
+            superModule = require('./../openland-modules/Modules').Modules.Super;
+        }
+        return superModule.getBoolean('graphql-enable-tracing', false) as boolean;
     }
 
     get enableGraphqlJit() {
-        return require('./../openland-modules/Modules').Modules.Super.getBoolean('graphql-enable-jit', false) as boolean;
+        if (superModule === null) {
+            superModule = require('./../openland-modules/Modules').Modules.Super;
+        }
+        return superModule.getBoolean('graphql-enable-jit', false) as boolean;
     }
 
     get apm() {

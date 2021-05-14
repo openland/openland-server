@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'bf7bb2ed3e2dc0e5b12c97f082c23590';
+export const GQL_SPEC_VERSION = '32f0653d42a4c424d39e95ebe9dabc0c';
 
 export namespace GQL {
     export interface CreditCard {
@@ -5450,6 +5450,7 @@ export namespace GQL {
         sdp: Nullable<string>;
         ice: string[];
         iceTransportPolicy: IceTransportPolicy;
+        needCandidates: boolean;
         receivers: MediaReceiver[];
         senders: MediaSender[];
         settings: MediaStreamSettings;
@@ -5463,6 +5464,7 @@ export namespace GQL {
     export interface MediaStreamSdpArgs { }
     export interface MediaStreamIceArgs { }
     export interface MediaStreamIceTransportPolicyArgs { }
+    export interface MediaStreamNeedCandidatesArgs { }
     export interface MediaStreamReceiversArgs { }
     export interface MediaStreamSendersArgs { }
     export interface MediaStreamSettingsArgs { }
@@ -10931,6 +10933,7 @@ export interface GQLResolver {
             sdp: GQL.MediaStreamSdpArgs,
             ice: GQL.MediaStreamIceArgs,
             iceTransportPolicy: GQL.MediaStreamIceTransportPolicyArgs,
+            needCandidates: GQL.MediaStreamNeedCandidatesArgs,
             receivers: GQL.MediaStreamReceiversArgs,
             senders: GQL.MediaStreamSendersArgs,
             settings: GQL.MediaStreamSettingsArgs,
