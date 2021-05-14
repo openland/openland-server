@@ -89,7 +89,7 @@ export class ApiModule {
             declareRemoteQueryExecutor('calls-events', {
                 bulkhead: {
                     enabled: true,
-                    concurrency: 20,
+                    concurrency: 1000,
                     maxQueueSize: 1000,
                 },
             });
