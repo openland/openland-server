@@ -174,12 +174,12 @@ export class MessagingModule {
         return await this.userState.getUserDialogState(parent, uid, cid);
     }
 
-    async zipUpdatesInBatchesAfter(parent: Context, uid: number, state: string | undefined) {
-        return await this.userState.zipUpdatesInBatchesAfter(parent, uid, state);
+    zipUpdatesInBatchesAfter(parent: Context, uid: number, state: string | undefined) {
+        return this.userState.zipUpdatesInBatchesAfter(parent, uid, state);
     }
 
-    async zipUpdatesInBatchesAfterModern(parent: Context, uid: number, state: string | undefined) {
-        return await this.userState.zipUpdatesInBatchesAfterModern(parent, uid, state);
+    zipUpdatesInBatchesAfterModern(parent: Context, uid: number, state: string | undefined) {
+        return this.userState.zipUpdatesInBatchesAfterModern(parent, uid, state);
     }
 
     //
