@@ -9,18 +9,19 @@ import { withActivatedUser } from '../openland-module-api/Resolvers';
 import { VoiceChatParticipant } from '../openland-module-db/store';
 import { Capabilities } from '../openland-module-calls/repositories/CallScheduler';
 import { NotFoundError } from '../openland-errors/NotFoundError';
+import { userRootFull } from 'openland-module-users/User.resolver';
 
 const ensureHasAccess = <TArgs, TResult>(fn: (root: VoiceChatParticipantRoot, args: TArgs, ctx: Context) => Promise<TResult>, fallback: TResult) =>
-  async (root: VoiceChatParticipantRoot, args: TArgs, ctx: Context): Promise<TResult> => {
-    if (!ctx.auth.uid) {
-        return fallback;
-    }
-    if (ctx.auth.uid !== root.uid && !await Modules.VoiceChats.participants.isAdmin(ctx, root.cid, ctx.auth.uid)) {
-        return fallback;
-    }
+    async (root: VoiceChatParticipantRoot, args: TArgs, ctx: Context): Promise<TResult> => {
+        if (!ctx.auth.uid) {
+            return fallback;
+        }
+        if (ctx.auth.uid !== root.uid && !await Modules.VoiceChats.participants.isAdmin(ctx, root.cid, ctx.auth.uid)) {
+            return fallback;
+        }
 
-    return fn(root, args, ctx);
-};
+        return fn(root, args, ctx);
+    };
 
 const resolveParticipantStatus = (p: VoiceChatParticipant) => {
     if (p.status !== 'joined') {
@@ -42,7 +43,7 @@ export const Resolver: GQLResolver = {
         id: root => IDs.VoiceChatParticipant.serialize(root.cid + '_' + root.uid),
         handRaised: ensureHasAccess(async (root) => root.handRaised, null),
         status: root => resolveParticipantStatus(root),
-        user: root => root.uid,
+        user: (root, _, ctx) => userRootFull(ctx, root.uid),
     },
     VoiceChatParticipantConnection: {
         items: root => root.items,
@@ -81,7 +82,7 @@ export const Resolver: GQLResolver = {
             await Modules.VoiceChats.participants.joinChat(ctx, cid, uid, ctx.auth.tid!, joinAsAdmin ? 'admin' : null);
             return (await Store.ConversationVoice.findById(ctx, cid))!;
         }),
-        voiceChatJoinWithMedia: withActivatedUser(async (ctx, {id, mediaInput, mediaKind}, uid) => {
+        voiceChatJoinWithMedia: withActivatedUser(async (ctx, { id, mediaInput, mediaKind }, uid) => {
             let cid = IDs.Conversation.parse(id);
             await Modules.VoiceChats.participants.joinChat(ctx, cid, uid, ctx.auth.tid!);
 
