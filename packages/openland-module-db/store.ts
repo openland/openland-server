@@ -25427,6 +25427,14 @@ export class VoiceChatEventsStore extends EventStore {
         return this._findAll(ctx, [id]);
     }
 
+    async findAllWithKeys(ctx: Context, id: number) {
+        return this._findAllWithKeys(ctx, [id]);
+    }
+
+    find(ctx: Context, id: number, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [id], opts);
+    }
+
     createStream(id: number, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([id], opts);
     }
@@ -25441,6 +25449,10 @@ export class VoiceChatEventsStore extends EventStore {
 
     createRawLiveStream(ctx: Context, id: number, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [id], opts);
+    }
+
+    deleteKey(ctx: Context, id: number, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [id], eventKey);
     }
 }
 
@@ -25470,6 +25482,14 @@ export class ConversationEventStore extends EventStore {
         return this._findAll(ctx, [cid]);
     }
 
+    async findAllWithKeys(ctx: Context, cid: number) {
+        return this._findAllWithKeys(ctx, [cid]);
+    }
+
+    find(ctx: Context, cid: number, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [cid], opts);
+    }
+
     createStream(cid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([cid], opts);
     }
@@ -25484,6 +25504,10 @@ export class ConversationEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, cid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [cid], opts);
+    }
+
+    deleteKey(ctx: Context, cid: number, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [cid], eventKey);
     }
 }
 
@@ -25513,6 +25537,14 @@ export class DialogIndexEventStore extends EventStore {
         return this._findAll(ctx, []);
     }
 
+    async findAllWithKeys(ctx: Context) {
+        return this._findAllWithKeys(ctx, []);
+    }
+
+    find(ctx: Context, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [], opts);
+    }
+
     createStream(opts?: { batchSize?: number, after?: string }) {
         return this._createStream([], opts);
     }
@@ -25527,6 +25559,10 @@ export class DialogIndexEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [], opts);
+    }
+
+    deleteKey(ctx: Context, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [], eventKey);
     }
 }
 
@@ -25556,6 +25592,14 @@ export class UserDialogEventStore extends EventStore {
         return this._findAll(ctx, [uid]);
     }
 
+    async findAllWithKeys(ctx: Context, uid: number) {
+        return this._findAllWithKeys(ctx, [uid]);
+    }
+
+    find(ctx: Context, uid: number, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [uid], opts);
+    }
+
     createStream(uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([uid], opts);
     }
@@ -25570,6 +25614,10 @@ export class UserDialogEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [uid], opts);
+    }
+
+    deleteKey(ctx: Context, uid: number, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [uid], eventKey);
     }
 }
 
@@ -25599,6 +25647,14 @@ export class FeedEventStore extends EventStore {
         return this._findAll(ctx, [subscriberId]);
     }
 
+    async findAllWithKeys(ctx: Context, subscriberId: number) {
+        return this._findAllWithKeys(ctx, [subscriberId]);
+    }
+
+    find(ctx: Context, subscriberId: number, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [subscriberId], opts);
+    }
+
     createStream(subscriberId: number, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([subscriberId], opts);
     }
@@ -25613,6 +25669,10 @@ export class FeedEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, subscriberId: number, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [subscriberId], opts);
+    }
+
+    deleteKey(ctx: Context, subscriberId: number, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [subscriberId], eventKey);
     }
 }
 
@@ -25642,6 +25702,14 @@ export class FeedGlobalEventStore extends EventStore {
         return this._findAll(ctx, []);
     }
 
+    async findAllWithKeys(ctx: Context) {
+        return this._findAllWithKeys(ctx, []);
+    }
+
+    find(ctx: Context, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [], opts);
+    }
+
     createStream(opts?: { batchSize?: number, after?: string }) {
         return this._createStream([], opts);
     }
@@ -25656,6 +25724,10 @@ export class FeedGlobalEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [], opts);
+    }
+
+    deleteKey(ctx: Context, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [], eventKey);
     }
 }
 
@@ -25685,6 +25757,14 @@ export class UserStickersEventStore extends EventStore {
         return this._findAll(ctx, [uid]);
     }
 
+    async findAllWithKeys(ctx: Context, uid: number) {
+        return this._findAllWithKeys(ctx, [uid]);
+    }
+
+    find(ctx: Context, uid: number, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [uid], opts);
+    }
+
     createStream(uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([uid], opts);
     }
@@ -25699,6 +25779,10 @@ export class UserStickersEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [uid], opts);
+    }
+
+    deleteKey(ctx: Context, uid: number, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [uid], eventKey);
     }
 }
 
@@ -25728,6 +25812,14 @@ export class UserLocationEventStore extends EventStore {
         return this._findAll(ctx, [uid]);
     }
 
+    async findAllWithKeys(ctx: Context, uid: number) {
+        return this._findAllWithKeys(ctx, [uid]);
+    }
+
+    find(ctx: Context, uid: number, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [uid], opts);
+    }
+
     createStream(uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([uid], opts);
     }
@@ -25742,6 +25834,10 @@ export class UserLocationEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [uid], opts);
+    }
+
+    deleteKey(ctx: Context, uid: number, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [uid], eventKey);
     }
 }
 
@@ -25771,6 +25867,14 @@ export class UserWalletUpdates extends EventStore {
         return this._findAll(ctx, [uid]);
     }
 
+    async findAllWithKeys(ctx: Context, uid: number) {
+        return this._findAllWithKeys(ctx, [uid]);
+    }
+
+    find(ctx: Context, uid: number, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [uid], opts);
+    }
+
     createStream(uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([uid], opts);
     }
@@ -25785,6 +25889,10 @@ export class UserWalletUpdates extends EventStore {
 
     createRawLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [uid], opts);
+    }
+
+    deleteKey(ctx: Context, uid: number, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [uid], eventKey);
     }
 }
 
@@ -25814,6 +25922,14 @@ export class StripeEventStore extends EventStore {
         return this._findAll(ctx, [liveMode]);
     }
 
+    async findAllWithKeys(ctx: Context, liveMode: boolean) {
+        return this._findAllWithKeys(ctx, [liveMode]);
+    }
+
+    find(ctx: Context, liveMode: boolean, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [liveMode], opts);
+    }
+
     createStream(liveMode: boolean, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([liveMode], opts);
     }
@@ -25828,6 +25944,10 @@ export class StripeEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, liveMode: boolean, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [liveMode], opts);
+    }
+
+    deleteKey(ctx: Context, liveMode: boolean, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [liveMode], eventKey);
     }
 }
 
@@ -25857,6 +25977,14 @@ export class HyperLogStore extends EventStore {
         return this._findAll(ctx, []);
     }
 
+    async findAllWithKeys(ctx: Context) {
+        return this._findAllWithKeys(ctx, []);
+    }
+
+    find(ctx: Context, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [], opts);
+    }
+
     createStream(opts?: { batchSize?: number, after?: string }) {
         return this._createStream([], opts);
     }
@@ -25871,6 +25999,10 @@ export class HyperLogStore extends EventStore {
 
     createRawLiveStream(ctx: Context, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [], opts);
+    }
+
+    deleteKey(ctx: Context, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [], eventKey);
     }
 }
 
@@ -25900,6 +26032,14 @@ export class UserContactsEventStore extends EventStore {
         return this._findAll(ctx, [uid]);
     }
 
+    async findAllWithKeys(ctx: Context, uid: number) {
+        return this._findAllWithKeys(ctx, [uid]);
+    }
+
+    find(ctx: Context, uid: number, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [uid], opts);
+    }
+
     createStream(uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([uid], opts);
     }
@@ -25914,6 +26054,10 @@ export class UserContactsEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [uid], opts);
+    }
+
+    deleteKey(ctx: Context, uid: number, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [uid], eventKey);
     }
 }
 
@@ -25943,6 +26087,14 @@ export class BlackListEventStore extends EventStore {
         return this._findAll(ctx, [uid]);
     }
 
+    async findAllWithKeys(ctx: Context, uid: number) {
+        return this._findAllWithKeys(ctx, [uid]);
+    }
+
+    find(ctx: Context, uid: number, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [uid], opts);
+    }
+
     createStream(uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([uid], opts);
     }
@@ -25957,6 +26109,10 @@ export class BlackListEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [uid], opts);
+    }
+
+    deleteKey(ctx: Context, uid: number, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [uid], eventKey);
     }
 }
 
