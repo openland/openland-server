@@ -4,7 +4,7 @@ import { Store } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
 
 export function declareDialogCompactorWorker() {
-    singletonWorker({ db: Store.storage.db, name: 'call-reaper', delay: 10000 }, async (parent) => {
+    singletonWorker({ db: Store.storage.db, name: 'dialog-compactor', delay: 10000 }, async (parent) => {
         // Iterate for each user
         await Store.User.iterateAllItems(parent, 100, async (ictx, items) => {
             const root = withoutTransaction(ictx);
