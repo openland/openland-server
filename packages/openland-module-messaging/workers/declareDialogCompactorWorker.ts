@@ -55,10 +55,13 @@ export function declareDialogCompactorWorker() {
                             }
                         }
 
-                        return { added, next: bb[bb.length - 1].key };
+                        return { added, deleted, next: bb[bb.length - 1].key };
                     });
                     if (!nextCursor) {
                         break;
+                    }
+                    if (nextCursor.deleted.size > 0) {
+                        logger.log(root, 'Deleted from user ' + u.id + ' ' + nextCursor.deleted + ' events');
                     }
                     cursor = nextCursor.next;
                     for (let a of nextCursor.added) {
