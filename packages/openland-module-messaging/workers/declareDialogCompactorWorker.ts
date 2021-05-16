@@ -19,6 +19,7 @@ export function declareDialogCompactorWorker() {
                 //
 
                 let totalEvents = 0;
+                let totalDeleted = 0;
                 let cursor: Buffer | undefined;
                 const previous = new Map<string, Buffer>();
 
@@ -39,40 +40,52 @@ export function declareDialogCompactorWorker() {
                         //
 
                         let addedEvents = 0;
+                        let deletedEvents = 0;
                         const added = new Map<string, Buffer>();
                         const deleted = new Set<string>();
                         for (let e of bb) {
                             const eventKey = Modules.Messaging.userState.calculateDialogEventKey(e.event);
                             addedEvents++;
-                            
+
                             if (eventKey !== null) {
+
+                                // Delete event from current transaction
+                                if (added.has(eventKey)) {
+                                    addedEvents--;
+                                    deletedEvents++;
+                                    Store.UserDialogEventStore.deleteKey(ctx, u.id, added.get(eventKey)!);
+                                }
+
+                                // Save event
                                 added.set(eventKey, e.key);
 
-                                // Delete previous
+                                // Delete previous if exists
                                 if (deleted.has(eventKey)) {
                                     continue;
                                 }
+                                deleted.add(eventKey);
                                 if (previous.has(eventKey)) {
                                     addedEvents--;
-                                    deleted.add(eventKey);
+                                    deletedEvents++;
                                     Store.UserDialogEventStore.deleteKey(ctx, u.id, previous.get(eventKey)!);
                                 }
                             }
                         }
 
-                        return { added, deleted, addedEvents, next: bb[bb.length - 1].key };
+                        return { added, deleted, addedEvents, deletedEvents, next: bb[bb.length - 1].key };
                     });
                     if (!nextCursor) {
-                        logger.log(root, 'Compacting user completed ' + u.id + ' with ' + totalEvents + ' events');
+                        logger.log(root, 'Compacting user completed ' + u.id + ' with ' + totalEvents + ' events and deleted ' + totalDeleted + ' events');
                         break;
                     }
                     totalEvents += nextCursor.addedEvents;
-                    if (nextCursor.deleted.size > 0) {
-                        logger.log(root, 'Deleted from user ' + u.id + ' ' + nextCursor.deleted.size + ' events');
+                    totalDeleted += nextCursor.deletedEvents;
+                    if (nextCursor.deletedEvents > 0) {
+                        logger.log(root, 'Deleted from user ' + u.id + ' ' + nextCursor.deletedEvents + ' events');
                     }
                     cursor = nextCursor.next;
-                    for (let a of nextCursor.added) {
-                        previous.set(a[0], a[1]);
+                    for (let key in nextCursor.added) {
+                        previous.set(key, nextCursor.added.get(key)!);
                     }
                 }
             }
