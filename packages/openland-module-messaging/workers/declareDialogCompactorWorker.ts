@@ -67,7 +67,7 @@ export function declareDialogCompactorWorker() {
                     }
                     totalEvents += nextCursor.addedEvents;
                     if (nextCursor.deleted.size > 0) {
-                        logger.log(root, 'Deleted from user ' + u.id + ' ' + nextCursor.deleted + ' events');
+                        logger.log(root, 'Deleted from user ' + u.id + ' ' + nextCursor.deleted.size + ' events');
                     }
                     cursor = nextCursor.next;
                     for (let a of nextCursor.added) {
