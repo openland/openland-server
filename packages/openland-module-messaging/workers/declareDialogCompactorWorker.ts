@@ -18,6 +18,7 @@ export function declareDialogCompactorWorker() {
                 // For each user
                 //
 
+                let totalEvents = 0;
                 let cursor: Buffer | undefined;
                 const previous = new Map<string, Buffer>();
 
@@ -37,17 +38,20 @@ export function declareDialogCompactorWorker() {
                         // and mark current
                         //
 
+                        let addedEvents = 0;
                         const added = new Map<string, Buffer>();
                         const deleted = new Set<string>();
                         for (let e of bb) {
                             const eventKey = Modules.Messaging.userState.calculateDialogEventKey(e.event);
                             if (eventKey !== null) {
                                 added.set(eventKey, e.key);
+                                addedEvents++;
 
                                 // Delete previous
                                 if (deleted.has(eventKey)) {
                                     continue;
                                 }
+                                addedEvents--;
                                 if (previous.has(eventKey)) {
                                     deleted.add(eventKey);
                                     Store.UserDialogEventStore.deleteKey(ctx, u.id, previous.get(eventKey)!);
@@ -55,11 +59,13 @@ export function declareDialogCompactorWorker() {
                             }
                         }
 
-                        return { added, deleted, next: bb[bb.length - 1].key };
+                        return { added, deleted, addedEvents, next: bb[bb.length - 1].key };
                     });
                     if (!nextCursor) {
+                        logger.log(root, 'Compacting user completed ' + u.id + ' with ' + totalEvents + ' events');
                         break;
                     }
+                    totalEvents += nextCursor.addedEvents;
                     if (nextCursor.deleted.size > 0) {
                         logger.log(root, 'Deleted from user ' + u.id + ' ' + nextCursor.deleted + ' events');
                     }
