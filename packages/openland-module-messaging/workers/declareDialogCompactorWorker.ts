@@ -51,8 +51,8 @@ export function declareDialogCompactorWorker() {
                                 if (deleted.has(eventKey)) {
                                     continue;
                                 }
-                                addedEvents--;
                                 if (previous.has(eventKey)) {
+                                    addedEvents--;
                                     deleted.add(eventKey);
                                     Store.UserDialogEventStore.deleteKey(ctx, u.id, previous.get(eventKey)!);
                                 }
