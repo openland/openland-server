@@ -43,9 +43,10 @@ export function declareDialogCompactorWorker() {
                         const deleted = new Set<string>();
                         for (let e of bb) {
                             const eventKey = Modules.Messaging.userState.calculateDialogEventKey(e.event);
+                            addedEvents++;
+                            
                             if (eventKey !== null) {
                                 added.set(eventKey, e.key);
-                                addedEvents++;
 
                                 // Delete previous
                                 if (deleted.has(eventKey)) {
