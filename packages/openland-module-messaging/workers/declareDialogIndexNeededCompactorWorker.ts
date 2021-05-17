@@ -24,8 +24,8 @@ export function declareDialogIndexNeededCompactorWorker() {
                 let deletedKeys = 0;
                 for (let b of bb) {
                     let eventKey: string | null = null;
-                    if (b instanceof DialogNeedReindexEvent) {
-                        eventKey = b.uid + '-' + b.cid;
+                    if (b.event instanceof DialogNeedReindexEvent) {
+                        eventKey = b.event.uid + '-' + b.event.cid;
                     }
                     if (!eventKey) {
                         continue;
