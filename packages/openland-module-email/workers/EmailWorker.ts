@@ -3,9 +3,7 @@ import SendGrid from '@sendgrid/mail';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { EmailTask } from 'openland-module-email/EmailTask';
 import { createLogger } from '@openland/log';
-import { inTx } from '@openland/foundationdb';
 import { Config } from 'openland-config/Config';
-import { Events } from 'openland-module-hyperlog/Events';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { Store } from 'openland-module-db/FDB';
 
@@ -63,14 +61,8 @@ export function createEmailWorker() {
                 log.debug(ctx, 'response code: ', statusCode, JSON.stringify(args));
             } catch (e) {
                 log.error(ctx, 'email to', args.to);
-                await inTx(ctx, async (ctx2) => {
-                    Events.EmailFailed.event(ctx2, { templateId: args.templateId, to: args.to });
-                });
                 throw e;
             }
-            await inTx(ctx, async (ctx2) => {
-                Events.EmailSent.event(ctx2, { templateId: args.templateId, to: args.to });
-            });
         }
     };
 

@@ -3,7 +3,7 @@ import { Store } from 'openland-module-db/FDB';
 import { updateReader } from 'openland-module-workers/updateReader';
 import { createNamedContext } from '@openland/context';
 import { forever, delay } from 'openland-utils/timer';
-import { HyperLog, HyperLogEvent } from '../openland-module-db/store';
+import { HyperLogEvent } from '../openland-module-db/store';
 import { container } from '../openland-modules/Modules.container';
 import DatabaseClient from './DatabaseClient';
 import { table, TableSpace } from './TableSpace';
@@ -11,14 +11,14 @@ import { boolean, date, integer, nullable, schema, string } from './schema';
 import { subspaceReader } from '../openland-module-workers/subspaceReader';
 import { encoders, inReadOnlyTx, inTx } from '@openland/foundationdb';
 
-function startPresenceExport(client: DatabaseClient) {
-    updateReader('ch-exporter-reader', 3, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
-        let presences = src.filter((v) => v.type === 'presence' && v.body.online === true);
-        if (presences.length > 0) {
-            await client.insert(ctx, 'presences', ['time', 'eid', 'uid', 'platform'], presences.map((v) => [Math.round(v.date / 1000), v.id, v.body.uid, v.body.platform]));
-        }
-    });
-}
+// function startPresenceExport(client: DatabaseClient) {
+//     updateReader('ch-exporter-reader', 3, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
+//         let presences = src.filter((v) => v.type === 'presence' && v.body.online === true);
+//         if (presences.length > 0) {
+//             await client.insert(ctx, 'presences', ['time', 'eid', 'uid', 'platform'], presences.map((v) => [Math.round(v.date / 1000), v.id, v.body.uid, v.body.platform]));
+//         }
+//     });
+// }
 
 function startMessagesExport(client: DatabaseClient) {
     updateReader('ch-exporter-messages', 1, Store.Message.created.stream({ batchSize: 1000 }), async (src, first, ctx) => {
@@ -80,57 +80,6 @@ function startBotsExport(client: DatabaseClient) {
             let count = await client.count(ctx, 'bots', 'uid = ' + u.id);
             if (count === 0) {
                 await client.insert(ctx, 'bots', ['uid'], [[u.id]]);
-            }
-        }
-    });
-}
-
-function startAnalyticsExport(client: DatabaseClient) {
-    updateReader('ch-analytics-exporter-reader', 1, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
-        // common fields: time, uid
-        let simpleTypes = [
-            'user_activated', 'new-mobile-user', 'new-sender',
-            'new-about-filler', 'new-three-like-giver', 'new-three-like-getter'
-        ];
-        let complexTypes = ['new-inviter', 'new-reaction', 'call_ended'];
-
-        let analyticsTypes = simpleTypes.concat(complexTypes);
-
-        let eventsToIndex = src.filter((v) => analyticsTypes.includes(v.type) && (v.body.isTest === null || v.body.isTest === undefined || !v.body.isTest));
-        if (eventsToIndex.length > 0) {
-            let eventsByType = eventsToIndex.reduce((map, a) => {
-                map.has(a.type) ? map.get(a.type)!.push(a) : map.set(a.type, [a]);
-                return map;
-            }, new Map<string, HyperLog[]>());
-            for (let [type, values] of eventsByType.entries()) {
-                let clickhouseTableName = type.replace(/-/g, '_');
-                if (simpleTypes.includes(type)) {
-                    await client.insert(ctx, clickhouseTableName, ['time', 'uid'], values.map((v) => [Math.round(v.date / 1000), v.body.uid]));
-                }
-                if (type === 'new-inviter') {
-                    await client.insert(
-                        ctx,
-                        clickhouseTableName,
-                        ['time', 'uid', 'invitee_id'],
-                        values.map((v) => [Math.round(v.date / 1000), v.body.uid, v.body.inviteeId])
-                    );
-                }
-                if (type === 'new-reaction') {
-                    await client.insert(
-                        ctx,
-                        'reaction',
-                        ['time', 'id', 'uid', 'mid', 'message_author_id'],
-                        values.map((v) => [Math.round(v.date / 1000), v.id, v.body.uid, v.body.mid, v.body.messageAuthorId])
-                    );
-                }
-                if (type === 'call_ended') {
-                    await client.insert(
-                        ctx,
-                        'call_ended',
-                        ['time', 'duration', 'id'],
-                        values.map((v) => [Math.round(v.date / 1000), v.body.duration, v.id])
-                    );
-                }
             }
         }
     });
@@ -248,12 +197,11 @@ export function startExporters(parent: Context) {
     // tslint:disable-next-line:no-floating-promises
     (async () => {
         let client = container.get<DatabaseClient>('ClickHouse');
-        startPresenceExport(client);
+        // startPresenceExport(client);
         startMessagesExport(client);
         startSuperAdminsExport(client);
         startBotsExport(client);
         startSignupsExport(client);
-        startAnalyticsExport(client);
         startHyperlogExport(client);
         startOrgUsersExport(client);
         startRoomParticipantsExport(client);

@@ -12,7 +12,7 @@ import { ConferencePeer, ConferenceRoom } from '../../openland-module-db/store';
 import { CallScheduler, MediaSources, StreamHint, Capabilities } from './CallScheduler';
 import { notifyFastWatch } from 'openland-module-db/fastWatch';
 import { DeliveryMediator } from '../../openland-module-messaging/mediators/DeliveryMediator';
-import { Events } from 'openland-module-hyperlog/Events';
+// import { Events } from 'openland-module-hyperlog/Events';
 // import {
 //     VoiceChatParticipantStatus
 // } from '../../openland-module-voice-chats/repositories/ParticipantsRepository';
@@ -515,9 +515,9 @@ export class CallRepository {
         // Show conference in dialogs list
         await this.delivery.onCallStateChanged(ctx, conf.id, false);
 
-        if (conf.startTime) {
-            Events.CallEnded.event(ctx, { duration: Date.now() - conf.startTime! });
-        }
+        // if (conf.startTime) {
+        //     Events.CallEnded.event(ctx, { duration: Date.now() - conf.startTime! });
+        // }
     }
 
     onConferenceStarted = async (ctx: Context, conf: ConferenceRoom) => {

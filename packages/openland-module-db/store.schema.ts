@@ -682,12 +682,6 @@ export default declareSchema(() => {
     customDirectory('UserReadSeqs');
     customDirectory('ChatMembers');
 
-    entity('UserDialogHandledMessage', () => {
-        primaryKey('uid', integer());
-        primaryKey('cid', integer());
-        primaryKey('mid', integer());
-    });
-
     entity('UserDialogSettings', () => {
         primaryKey('uid', integer());
         primaryKey('cid', integer());
@@ -700,21 +694,6 @@ export default declareSchema(() => {
     });
 
     customDirectory('UserDialogMuteSetting');
-
-    entity('UserDialogEvent', () => {
-        primaryKey('uid', integer());
-        primaryKey('seq', integer());
-        field('cid', optional(integer()));
-        field('mid', optional(integer()));
-        field('allUnread', optional(integer()));
-        field('unread', optional(integer()));
-        field('title', optional(string()));
-        field('photo', optional(json()));
-        field('mute', optional(boolean()));
-        field('haveMention', optional(boolean()));
-        field('kind', enumString('message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed'));
-        rangeIndex('user', ['uid', 'seq']);
-    });
 
     event('UserDialogMessageReceivedEvent', () => {
         field('uid', integer());
@@ -2457,24 +2436,6 @@ export default declareSchema(() => {
         field('organizationId', integer());
         field('enabled', boolean());
         uniqueIndex('organization', ['organizationId', 'featureKey']);
-    });
-
-    entity('HyperLog', () => {
-        primaryKey('id', string());
-        field('type', string());
-        field('date', integer());
-        field('body', json());
-        rangeIndex('created', ['createdAt']);
-        rangeIndex('userEvents', ['createdAt']).withCondition((src) => src.type === 'track');
-        rangeIndex('onlineChangeEvents', ['createdAt']).withCondition((src) => src.type === 'online_status');
-
-        allowDelete();
-    });
-    entity('HyperLogType', () => {
-        primaryKey('name', string());
-        field('count', integer());
-
-        rangeIndex('name', ['name']);
     });
 
     eventStore('HyperLogStore', () => {

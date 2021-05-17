@@ -1,4 +1,4 @@
-import { UserDialogEvent } from 'openland-module-db/store';
+import { UserDialogBumpEvent, UserDialogCallStateChangedEvent, UserDialogGotAccessEvent, UserDialogLostAccessEvent, UserDialogMessageReadEvent, UserDialogMessageReceivedEvent, UserDialogMessageUpdatedEvent, UserDialogMuteChangedEvent, UserDialogPeerUpdatedEvent, UserDialogPhotoUpdatedEvent, UserDialogTitleUpdatedEvent, UserDialogVoiceChatStateChangedEvent } from 'openland-module-db/store';
 import { encoders, inTx, Subspace, TupleItem } from '@openland/foundationdb';
 import { injectable, inject } from 'inversify';
 import { Context } from '@openland/context';
@@ -113,47 +113,71 @@ export class UserStateRepository {
         });
     }
 
-    zipUserDialogEvents = (events: UserDialogEvent[]) => {
-        let zipedEvents = [];
-        let latestChatsUpdatesByType = new Map<string, UserDialogEvent>();
-        let currentEvent: UserDialogEvent;
-        let currentEventKey: string;
-        for (let i = events.length - 1; i >= 0; i--) {
-            currentEvent = events[i];
-            currentEventKey = currentEvent.cid + '_' + currentEvent.kind;
-            if (!latestChatsUpdatesByType.get(currentEventKey)) {
-                zipedEvents.unshift(currentEvent);
-                latestChatsUpdatesByType.set(currentEventKey, currentEvent);
-            }
+    calculateDialogEventKey = (src: BaseEvent) => {
+
+        //
+        // Messages
+        //
+
+        if (src instanceof UserDialogMessageReceivedEvent) {
+            return 'dialog$received$' + src.cid;
         }
-        return zipedEvents;
+        if (src instanceof UserDialogMessageUpdatedEvent) {
+            return 'message$updated$' + src.mid;
+        }
+        if (src instanceof UserDialogMessageReadEvent) {
+            return 'dialog$read$' + src.cid;
+        }
+        if (src instanceof UserDialogBumpEvent) {
+            return 'dialog$bump$' + src.cid;
+        }
+
+        //
+        // Dialogs
+        //
+
+        if (src instanceof UserDialogTitleUpdatedEvent) {
+            return 'dialog$title$' + src.cid;
+        }
+        if (src instanceof UserDialogPhotoUpdatedEvent) {
+            return 'dialog$photo$' + src.cid;
+        }
+        if (src instanceof UserDialogPeerUpdatedEvent) {
+            return 'dialog$peer$' + src.cid;
+        }
+        if (src instanceof UserDialogGotAccessEvent) {
+            return 'dialog$access$' + src.cid;
+        }
+        if (src instanceof UserDialogLostAccessEvent) {
+            return 'dialog$access$' + src.cid;
+        }
+        if (src instanceof UserDialogMuteChangedEvent) {
+            return 'dialog$mute$' + src.cid;
+        }
+        if (src instanceof UserDialogCallStateChangedEvent) {
+            return 'dialog$calls$' + src.cid;
+        }
+        if (src instanceof UserDialogVoiceChatStateChangedEvent) {
+            return 'dialog$voice$' + src.cid;
+        }
+
+        return null;
     }
 
-    async* zipUpdatesInBatchesAfter(parent: Context, uid: number, state: string | undefined) {
-        let cursor = state;
-        let loadMore = !!cursor;
-        while (loadMore) {
-            let res = await Store.UserDialogEvent.user.query(parent, uid, { limit: 1000, afterCursor: cursor });
-            cursor = res.cursor;
-            if (res.items.length && res.cursor) {
-                yield { items: this.zipUserDialogEvents(res.items), cursor: res.cursor, fromSeq: res.items[0].seq };
-            }
-            loadMore = res.haveMore;
-        }
-        return;
-    }
+    zipUserDialogEventsModern(events: BaseEvent[]): BaseEvent[] {
+        let zipedEvents: BaseEvent[] = [];
+        let latestChatsUpdatesByType = new Map<string, BaseEvent>();
 
-    zipUserDialogEventsModern(events: (BaseEvent & { type: string, cid: number })[]): BaseEvent[] {
-        let zipedEvents: (BaseEvent & { type: string, cid: number })[] = [];
-        let latestChatsUpdatesByType = new Map<string, { type: string, cid: number }>();
-        let currentEvent: (BaseEvent & { type: string, cid: number });
-        let currentEventKey: string;
         for (let i = events.length - 1; i >= 0; i--) {
-            currentEvent = events[i];
-            currentEventKey = currentEvent.cid + '_' + currentEvent.type;
-            if (!latestChatsUpdatesByType.get(currentEventKey)) {
+            const currentEvent = events[i];
+            const currentEventKey = this.calculateDialogEventKey(currentEvent);
+            if (currentEventKey !== null) {
+                if (!latestChatsUpdatesByType.get(currentEventKey)) {
+                    zipedEvents.unshift(currentEvent);
+                    latestChatsUpdatesByType.set(currentEventKey, currentEvent);
+                }
+            } else {
                 zipedEvents.unshift(currentEvent);
-                latestChatsUpdatesByType.set(currentEventKey, currentEvent);
             }
         }
         return zipedEvents;
@@ -167,7 +191,7 @@ export class UserStateRepository {
         while (true) {
             let res = await stream.next(parent);
             if (res.length > 0) {
-                yield { items: this.zipUserDialogEventsModern(res as any), cursor: stream.cursor };
+                yield { items: this.zipUserDialogEventsModern(res), cursor: stream.cursor };
             } else {
                 return;
             }

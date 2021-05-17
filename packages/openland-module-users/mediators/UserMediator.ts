@@ -4,7 +4,6 @@ import { AuthInfo, UserRepository } from '../repositories/UserRepository';
 import { Context } from '@openland/context';
 import { inTx, transactional } from '@openland/foundationdb';
 import { Store } from '../../openland-module-db/FDB';
-import { Events } from '../../openland-module-hyperlog/Events';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { Modules } from '../../openland-modules/Modules';
 import { ProfileInput } from '../ProfileInput';
@@ -35,7 +34,7 @@ export class UserMediator {
     @transactional
     async createUser(ctx: Context, authInfo: AuthInfo) {
         let res = await this.repo.createUser(ctx, authInfo);
-        Events.UserCreated.event(ctx, { uid: res.id });
+        // Events.UserCreated.event(ctx, { uid: res.id });
         await Modules.Hooks.onUserCreated(ctx, res.id);
         return res;
     }
@@ -77,7 +76,7 @@ export class UserMediator {
         return await inTx(parent, async (ctx) => {
             let res = this.repo.createUserProfile(ctx, uid, input);
 
-            Events.UserProfileCreated.event(ctx, { uid: uid });
+            // Events.UserProfileCreated.event(ctx, { uid: uid });
             await Emails.sendWelcomeEmail(ctx, uid);
             await Modules.Hooks.onUserActivated(ctx, uid);
 

@@ -24,6 +24,8 @@ import { CounterProvider } from './counters/CounterProvider';
 import { PrecalculatedCounterProvider } from './counters/PrecalculatedCounterProvider';
 import { DialogListSettingsMediator } from './mediators/DialogListSettingsMediator';
 import { RangeQueryOptions } from '@openland/foundationdb-entity';
+import { declareDialogCompactorWorker } from './workers/declareDialogCompactorWorker';
+import { declareDialogIndexNeededCompactorWorker } from './workers/declareDialogIndexNeededCompactorWorker';
 
 export const USE_NEW_COUNTERS = true;
 export const USE_NEW_PRIVATE_CHATS = true;
@@ -41,7 +43,7 @@ export class MessagingModule {
     readonly messaging: MessagingMediator;
     readonly dialogListSettings: DialogListSettingsMediator;
     private readonly augmentation: AugmentationMediator;
-    private readonly userState: UserStateRepository;
+    readonly userState: UserStateRepository;
     private readonly userDialogs: UserDialogsRepository;
 
     constructor(
@@ -91,6 +93,12 @@ export class MessagingModule {
         }
         if (serverRoleEnabled('workers')) {
             roomsSearchIndexer();
+        }
+        if (serverRoleEnabled('workers')) {
+            declareDialogCompactorWorker();
+        }
+        if (serverRoleEnabled('workers')) {
+            declareDialogIndexNeededCompactorWorker();
         }
     }
 
@@ -174,12 +182,8 @@ export class MessagingModule {
         return await this.userState.getUserDialogState(parent, uid, cid);
     }
 
-    async zipUpdatesInBatchesAfter(parent: Context, uid: number, state: string | undefined) {
-        return await this.userState.zipUpdatesInBatchesAfter(parent, uid, state);
-    }
-
-    async zipUpdatesInBatchesAfterModern(parent: Context, uid: number, state: string | undefined) {
-        return await this.userState.zipUpdatesInBatchesAfterModern(parent, uid, state);
+    zipUpdatesInBatchesAfterModern(parent: Context, uid: number, state: string | undefined) {
+        return this.userState.zipUpdatesInBatchesAfterModern(parent, uid, state);
     }
 
     //

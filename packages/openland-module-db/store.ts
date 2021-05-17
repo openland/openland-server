@@ -8183,74 +8183,6 @@ export class UserDialogFactory extends EntityFactory<UserDialogShape, UserDialog
     }
 }
 
-export interface UserDialogHandledMessageShape {
-    uid: number;
-    cid: number;
-    mid: number;
-}
-
-export interface UserDialogHandledMessageCreateShape {
-}
-
-export class UserDialogHandledMessage extends Entity<UserDialogHandledMessageShape> {
-    get uid(): number { return this._rawValue.uid; }
-    get cid(): number { return this._rawValue.cid; }
-    get mid(): number { return this._rawValue.mid; }
-}
-
-export class UserDialogHandledMessageFactory extends EntityFactory<UserDialogHandledMessageShape, UserDialogHandledMessage> {
-
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userDialogHandledMessage');
-        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'uid', type: 'integer' });
-        primaryKeys.push({ name: 'cid', type: 'integer' });
-        primaryKeys.push({ name: 'mid', type: 'integer' });
-        let fields: FieldDescriptor[] = [];
-        let codec = c.struct({
-            uid: c.integer,
-            cid: c.integer,
-            mid: c.integer,
-        });
-        let descriptor: EntityDescriptor<UserDialogHandledMessageShape> = {
-            name: 'UserDialogHandledMessage',
-            storageKey: 'userDialogHandledMessage',
-            allowDelete: false,
-            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
-        };
-        return new UserDialogHandledMessageFactory(descriptor);
-    }
-
-    private constructor(descriptor: EntityDescriptor<UserDialogHandledMessageShape>) {
-        super(descriptor);
-    }
-
-    create(ctx: Context, uid: number, cid: number, mid: number, src: UserDialogHandledMessageCreateShape): Promise<UserDialogHandledMessage> {
-        return this._create(ctx, [uid, cid, mid], this.descriptor.codec.normalize({ uid, cid, mid, ...src }));
-    }
-
-    create_UNSAFE(ctx: Context, uid: number, cid: number, mid: number, src: UserDialogHandledMessageCreateShape): UserDialogHandledMessage {
-        return this._create_UNSAFE(ctx, [uid, cid, mid], this.descriptor.codec.normalize({ uid, cid, mid, ...src }));
-    }
-
-    findById(ctx: Context, uid: number, cid: number, mid: number): Promise<UserDialogHandledMessage | null> | UserDialogHandledMessage | null {
-        return this._findById(ctx, [uid, cid, mid]);
-    }
-
-    findByIdOrFail(ctx: Context, uid: number, cid: number, mid: number): Promise<UserDialogHandledMessage> | UserDialogHandledMessage {
-        return this._findByIdOrFail(ctx, [uid, cid, mid]);
-    }
-
-    watch(ctx: Context, uid: number, cid: number, mid: number): Watch {
-        return this._watch(ctx, [uid, cid, mid]);
-    }
-
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserDialogHandledMessageShape>): UserDialogHandledMessage {
-        return new UserDialogHandledMessage([value.uid, value.cid, value.mid], value, this.descriptor, this._flush, this._delete, ctx);
-    }
-}
-
 export interface UserDialogSettingsShape {
     uid: number;
     cid: number;
@@ -8398,203 +8330,6 @@ export class UserDialogListSettingsFactory extends EntityFactory<UserDialogListS
 
     protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserDialogListSettingsShape>): UserDialogListSettings {
         return new UserDialogListSettings([value.uid], value, this.descriptor, this._flush, this._delete, ctx);
-    }
-}
-
-export interface UserDialogEventShape {
-    uid: number;
-    seq: number;
-    cid: number | null;
-    mid: number | null;
-    allUnread: number | null;
-    unread: number | null;
-    title: string | null;
-    photo: any | null;
-    mute: boolean | null;
-    haveMention: boolean | null;
-    kind: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed';
-}
-
-export interface UserDialogEventCreateShape {
-    cid?: number | null | undefined;
-    mid?: number | null | undefined;
-    allUnread?: number | null | undefined;
-    unread?: number | null | undefined;
-    title?: string | null | undefined;
-    photo?: any | null | undefined;
-    mute?: boolean | null | undefined;
-    haveMention?: boolean | null | undefined;
-    kind: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed';
-}
-
-export class UserDialogEvent extends Entity<UserDialogEventShape> {
-    get uid(): number { return this._rawValue.uid; }
-    get seq(): number { return this._rawValue.seq; }
-    get cid(): number | null { return this._rawValue.cid; }
-    set cid(value: number | null) {
-        let normalized = this.descriptor.codec.fields.cid.normalize(value);
-        if (this._rawValue.cid !== normalized) {
-            this._rawValue.cid = normalized;
-            this._updatedValues.cid = normalized;
-            this.invalidate();
-        }
-    }
-    get mid(): number | null { return this._rawValue.mid; }
-    set mid(value: number | null) {
-        let normalized = this.descriptor.codec.fields.mid.normalize(value);
-        if (this._rawValue.mid !== normalized) {
-            this._rawValue.mid = normalized;
-            this._updatedValues.mid = normalized;
-            this.invalidate();
-        }
-    }
-    get allUnread(): number | null { return this._rawValue.allUnread; }
-    set allUnread(value: number | null) {
-        let normalized = this.descriptor.codec.fields.allUnread.normalize(value);
-        if (this._rawValue.allUnread !== normalized) {
-            this._rawValue.allUnread = normalized;
-            this._updatedValues.allUnread = normalized;
-            this.invalidate();
-        }
-    }
-    get unread(): number | null { return this._rawValue.unread; }
-    set unread(value: number | null) {
-        let normalized = this.descriptor.codec.fields.unread.normalize(value);
-        if (this._rawValue.unread !== normalized) {
-            this._rawValue.unread = normalized;
-            this._updatedValues.unread = normalized;
-            this.invalidate();
-        }
-    }
-    get title(): string | null { return this._rawValue.title; }
-    set title(value: string | null) {
-        let normalized = this.descriptor.codec.fields.title.normalize(value);
-        if (this._rawValue.title !== normalized) {
-            this._rawValue.title = normalized;
-            this._updatedValues.title = normalized;
-            this.invalidate();
-        }
-    }
-    get photo(): any | null { return this._rawValue.photo; }
-    set photo(value: any | null) {
-        let normalized = this.descriptor.codec.fields.photo.normalize(value);
-        if (this._rawValue.photo !== normalized) {
-            this._rawValue.photo = normalized;
-            this._updatedValues.photo = normalized;
-            this.invalidate();
-        }
-    }
-    get mute(): boolean | null { return this._rawValue.mute; }
-    set mute(value: boolean | null) {
-        let normalized = this.descriptor.codec.fields.mute.normalize(value);
-        if (this._rawValue.mute !== normalized) {
-            this._rawValue.mute = normalized;
-            this._updatedValues.mute = normalized;
-            this.invalidate();
-        }
-    }
-    get haveMention(): boolean | null { return this._rawValue.haveMention; }
-    set haveMention(value: boolean | null) {
-        let normalized = this.descriptor.codec.fields.haveMention.normalize(value);
-        if (this._rawValue.haveMention !== normalized) {
-            this._rawValue.haveMention = normalized;
-            this._updatedValues.haveMention = normalized;
-            this.invalidate();
-        }
-    }
-    get kind(): 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed' { return this._rawValue.kind; }
-    set kind(value: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed') {
-        let normalized = this.descriptor.codec.fields.kind.normalize(value);
-        if (this._rawValue.kind !== normalized) {
-            this._rawValue.kind = normalized;
-            this._updatedValues.kind = normalized;
-            this.invalidate();
-        }
-    }
-}
-
-export class UserDialogEventFactory extends EntityFactory<UserDialogEventShape, UserDialogEvent> {
-
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userDialogEvent');
-        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userDialogEvent', 'user'), condition: undefined });
-        let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'uid', type: 'integer' });
-        primaryKeys.push({ name: 'seq', type: 'integer' });
-        let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'cid', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
-        fields.push({ name: 'mid', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
-        fields.push({ name: 'allUnread', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
-        fields.push({ name: 'unread', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
-        fields.push({ name: 'title', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'photo', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
-        fields.push({ name: 'mute', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
-        fields.push({ name: 'haveMention', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
-        fields.push({ name: 'kind', type: { type: 'enum', values: ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed'] }, secure: false });
-        let codec = c.struct({
-            uid: c.integer,
-            seq: c.integer,
-            cid: c.optional(c.integer),
-            mid: c.optional(c.integer),
-            allUnread: c.optional(c.integer),
-            unread: c.optional(c.integer),
-            title: c.optional(c.string),
-            photo: c.optional(c.any),
-            mute: c.optional(c.boolean),
-            haveMention: c.optional(c.boolean),
-            kind: c.enum('message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed'),
-        });
-        let descriptor: EntityDescriptor<UserDialogEventShape> = {
-            name: 'UserDialogEvent',
-            storageKey: 'userDialogEvent',
-            allowDelete: false,
-            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
-        };
-        return new UserDialogEventFactory(descriptor);
-    }
-
-    private constructor(descriptor: EntityDescriptor<UserDialogEventShape>) {
-        super(descriptor);
-    }
-
-    readonly user = Object.freeze({
-        findAll: async (ctx: Context, uid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
-        },
-        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (uid: number, opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
-        },
-        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
-        },
-    });
-
-    create(ctx: Context, uid: number, seq: number, src: UserDialogEventCreateShape): Promise<UserDialogEvent> {
-        return this._create(ctx, [uid, seq], this.descriptor.codec.normalize({ uid, seq, ...src }));
-    }
-
-    create_UNSAFE(ctx: Context, uid: number, seq: number, src: UserDialogEventCreateShape): UserDialogEvent {
-        return this._create_UNSAFE(ctx, [uid, seq], this.descriptor.codec.normalize({ uid, seq, ...src }));
-    }
-
-    findById(ctx: Context, uid: number, seq: number): Promise<UserDialogEvent | null> | UserDialogEvent | null {
-        return this._findById(ctx, [uid, seq]);
-    }
-
-    findByIdOrFail(ctx: Context, uid: number, seq: number): Promise<UserDialogEvent> | UserDialogEvent {
-        return this._findByIdOrFail(ctx, [uid, seq]);
-    }
-
-    watch(ctx: Context, uid: number, seq: number): Watch {
-        return this._watch(ctx, [uid, seq]);
-    }
-
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserDialogEventShape>): UserDialogEvent {
-        return new UserDialogEvent([value.uid, value.seq], value, this.descriptor, this._flush, this._delete, ctx);
     }
 }
 
@@ -20903,246 +20638,6 @@ export class OrganizationFeaturesFactory extends EntityFactory<OrganizationFeatu
     }
 }
 
-export interface HyperLogShape {
-    id: string;
-    type: string;
-    date: number;
-    body: any;
-}
-
-export interface HyperLogCreateShape {
-    type: string;
-    date: number;
-    body: any;
-}
-
-export class HyperLog extends Entity<HyperLogShape> {
-    get id(): string { return this._rawValue.id; }
-    get type(): string { return this._rawValue.type; }
-    set type(value: string) {
-        let normalized = this.descriptor.codec.fields.type.normalize(value);
-        if (this._rawValue.type !== normalized) {
-            this._rawValue.type = normalized;
-            this._updatedValues.type = normalized;
-            this.invalidate();
-        }
-    }
-    get date(): number { return this._rawValue.date; }
-    set date(value: number) {
-        let normalized = this.descriptor.codec.fields.date.normalize(value);
-        if (this._rawValue.date !== normalized) {
-            this._rawValue.date = normalized;
-            this._updatedValues.date = normalized;
-            this.invalidate();
-        }
-    }
-    get body(): any { return this._rawValue.body; }
-    set body(value: any) {
-        let normalized = this.descriptor.codec.fields.body.normalize(value);
-        if (this._rawValue.body !== normalized) {
-            this._rawValue.body = normalized;
-            this._updatedValues.body = normalized;
-            this.invalidate();
-        }
-    }
-
-    delete(ctx: Context) {
-        return this._delete(ctx);
-    }
-}
-
-export class HyperLogFactory extends EntityFactory<HyperLogShape, HyperLog> {
-
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('hyperLog');
-        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('hyperLog', 'created'), condition: undefined });
-        secondaryIndexes.push({ name: 'userEvents', storageKey: 'userEvents', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('hyperLog', 'userEvents'), condition: (src) => src.type === 'track' });
-        secondaryIndexes.push({ name: 'onlineChangeEvents', storageKey: 'onlineChangeEvents', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('hyperLog', 'onlineChangeEvents'), condition: (src) => src.type === 'online_status' });
-        let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'id', type: 'string' });
-        let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'type', type: { type: 'string' }, secure: false });
-        fields.push({ name: 'date', type: { type: 'integer' }, secure: false });
-        fields.push({ name: 'body', type: { type: 'json' }, secure: false });
-        let codec = c.struct({
-            id: c.string,
-            type: c.string,
-            date: c.integer,
-            body: c.any,
-        });
-        let descriptor: EntityDescriptor<HyperLogShape> = {
-            name: 'HyperLog',
-            storageKey: 'hyperLog',
-            allowDelete: true,
-            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
-        };
-        return new HyperLogFactory(descriptor);
-    }
-
-    private constructor(descriptor: EntityDescriptor<HyperLogShape>) {
-        super(descriptor);
-    }
-
-    readonly created = Object.freeze({
-        findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
-        },
-        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
-        },
-        liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
-        },
-    });
-
-    readonly userEvents = Object.freeze({
-        findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[1], [])).items;
-        },
-        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[1], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[1], [], opts);
-        },
-        liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[1], [], opts);
-        },
-    });
-
-    readonly onlineChangeEvents = Object.freeze({
-        findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[2], [])).items;
-        },
-        query: (ctx: Context, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[2], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[2], [], opts);
-        },
-        liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[2], [], opts);
-        },
-    });
-
-    create(ctx: Context, id: string, src: HyperLogCreateShape): Promise<HyperLog> {
-        return this._create(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
-    }
-
-    create_UNSAFE(ctx: Context, id: string, src: HyperLogCreateShape): HyperLog {
-        return this._create_UNSAFE(ctx, [id], this.descriptor.codec.normalize({ id, ...src }));
-    }
-
-    findById(ctx: Context, id: string): Promise<HyperLog | null> | HyperLog | null {
-        return this._findById(ctx, [id]);
-    }
-
-    findByIdOrFail(ctx: Context, id: string): Promise<HyperLog> | HyperLog {
-        return this._findByIdOrFail(ctx, [id]);
-    }
-
-    watch(ctx: Context, id: string): Watch {
-        return this._watch(ctx, [id]);
-    }
-
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<HyperLogShape>): HyperLog {
-        return new HyperLog([value.id], value, this.descriptor, this._flush, this._delete, ctx);
-    }
-}
-
-export interface HyperLogTypeShape {
-    name: string;
-    count: number;
-}
-
-export interface HyperLogTypeCreateShape {
-    count: number;
-}
-
-export class HyperLogType extends Entity<HyperLogTypeShape> {
-    get name(): string { return this._rawValue.name; }
-    get count(): number { return this._rawValue.count; }
-    set count(value: number) {
-        let normalized = this.descriptor.codec.fields.count.normalize(value);
-        if (this._rawValue.count !== normalized) {
-            this._rawValue.count = normalized;
-            this._updatedValues.count = normalized;
-            this.invalidate();
-        }
-    }
-}
-
-export class HyperLogTypeFactory extends EntityFactory<HyperLogTypeShape, HyperLogType> {
-
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('hyperLogType');
-        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'name', storageKey: 'name', type: { type: 'range', fields: [{ name: 'name', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('hyperLogType', 'name'), condition: undefined });
-        let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'name', type: 'string' });
-        let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'count', type: { type: 'integer' }, secure: false });
-        let codec = c.struct({
-            name: c.string,
-            count: c.integer,
-        });
-        let descriptor: EntityDescriptor<HyperLogTypeShape> = {
-            name: 'HyperLogType',
-            storageKey: 'hyperLogType',
-            allowDelete: false,
-            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
-        };
-        return new HyperLogTypeFactory(descriptor);
-    }
-
-    private constructor(descriptor: EntityDescriptor<HyperLogTypeShape>) {
-        super(descriptor);
-    }
-
-    readonly name = Object.freeze({
-        findAll: async (ctx: Context) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [])).items;
-        },
-        query: (ctx: Context, opts?: RangeQueryOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[0], [], opts);
-        },
-        liveStream: (ctx: Context, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [], opts);
-        },
-    });
-
-    create(ctx: Context, name: string, src: HyperLogTypeCreateShape): Promise<HyperLogType> {
-        return this._create(ctx, [name], this.descriptor.codec.normalize({ name, ...src }));
-    }
-
-    create_UNSAFE(ctx: Context, name: string, src: HyperLogTypeCreateShape): HyperLogType {
-        return this._create_UNSAFE(ctx, [name], this.descriptor.codec.normalize({ name, ...src }));
-    }
-
-    findById(ctx: Context, name: string): Promise<HyperLogType | null> | HyperLogType | null {
-        return this._findById(ctx, [name]);
-    }
-
-    findByIdOrFail(ctx: Context, name: string): Promise<HyperLogType> | HyperLogType {
-        return this._findByIdOrFail(ctx, [name]);
-    }
-
-    watch(ctx: Context, name: string): Watch {
-        return this._watch(ctx, [name]);
-    }
-
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<HyperLogTypeShape>): HyperLogType {
-        return new HyperLogType([value.name], value, this.descriptor, this._flush, this._delete, ctx);
-    }
-}
-
 export interface TaskShape {
     taskType: string;
     uid: string;
@@ -25427,6 +24922,14 @@ export class VoiceChatEventsStore extends EventStore {
         return this._findAll(ctx, [id]);
     }
 
+    async findAllWithKeys(ctx: Context, id: number) {
+        return this._findAllWithKeys(ctx, [id]);
+    }
+
+    find(ctx: Context, id: number, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [id], opts);
+    }
+
     createStream(id: number, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([id], opts);
     }
@@ -25441,6 +24944,10 @@ export class VoiceChatEventsStore extends EventStore {
 
     createRawLiveStream(ctx: Context, id: number, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [id], opts);
+    }
+
+    deleteKey(ctx: Context, id: number, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [id], eventKey);
     }
 }
 
@@ -25470,6 +24977,14 @@ export class ConversationEventStore extends EventStore {
         return this._findAll(ctx, [cid]);
     }
 
+    async findAllWithKeys(ctx: Context, cid: number) {
+        return this._findAllWithKeys(ctx, [cid]);
+    }
+
+    find(ctx: Context, cid: number, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [cid], opts);
+    }
+
     createStream(cid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([cid], opts);
     }
@@ -25484,6 +24999,10 @@ export class ConversationEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, cid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [cid], opts);
+    }
+
+    deleteKey(ctx: Context, cid: number, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [cid], eventKey);
     }
 }
 
@@ -25513,6 +25032,14 @@ export class DialogIndexEventStore extends EventStore {
         return this._findAll(ctx, []);
     }
 
+    async findAllWithKeys(ctx: Context) {
+        return this._findAllWithKeys(ctx, []);
+    }
+
+    find(ctx: Context, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [], opts);
+    }
+
     createStream(opts?: { batchSize?: number, after?: string }) {
         return this._createStream([], opts);
     }
@@ -25527,6 +25054,10 @@ export class DialogIndexEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [], opts);
+    }
+
+    deleteKey(ctx: Context, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [], eventKey);
     }
 }
 
@@ -25556,6 +25087,14 @@ export class UserDialogEventStore extends EventStore {
         return this._findAll(ctx, [uid]);
     }
 
+    async findAllWithKeys(ctx: Context, uid: number) {
+        return this._findAllWithKeys(ctx, [uid]);
+    }
+
+    find(ctx: Context, uid: number, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [uid], opts);
+    }
+
     createStream(uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([uid], opts);
     }
@@ -25570,6 +25109,10 @@ export class UserDialogEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [uid], opts);
+    }
+
+    deleteKey(ctx: Context, uid: number, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [uid], eventKey);
     }
 }
 
@@ -25599,6 +25142,14 @@ export class FeedEventStore extends EventStore {
         return this._findAll(ctx, [subscriberId]);
     }
 
+    async findAllWithKeys(ctx: Context, subscriberId: number) {
+        return this._findAllWithKeys(ctx, [subscriberId]);
+    }
+
+    find(ctx: Context, subscriberId: number, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [subscriberId], opts);
+    }
+
     createStream(subscriberId: number, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([subscriberId], opts);
     }
@@ -25613,6 +25164,10 @@ export class FeedEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, subscriberId: number, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [subscriberId], opts);
+    }
+
+    deleteKey(ctx: Context, subscriberId: number, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [subscriberId], eventKey);
     }
 }
 
@@ -25642,6 +25197,14 @@ export class FeedGlobalEventStore extends EventStore {
         return this._findAll(ctx, []);
     }
 
+    async findAllWithKeys(ctx: Context) {
+        return this._findAllWithKeys(ctx, []);
+    }
+
+    find(ctx: Context, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [], opts);
+    }
+
     createStream(opts?: { batchSize?: number, after?: string }) {
         return this._createStream([], opts);
     }
@@ -25656,6 +25219,10 @@ export class FeedGlobalEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [], opts);
+    }
+
+    deleteKey(ctx: Context, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [], eventKey);
     }
 }
 
@@ -25685,6 +25252,14 @@ export class UserStickersEventStore extends EventStore {
         return this._findAll(ctx, [uid]);
     }
 
+    async findAllWithKeys(ctx: Context, uid: number) {
+        return this._findAllWithKeys(ctx, [uid]);
+    }
+
+    find(ctx: Context, uid: number, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [uid], opts);
+    }
+
     createStream(uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([uid], opts);
     }
@@ -25699,6 +25274,10 @@ export class UserStickersEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [uid], opts);
+    }
+
+    deleteKey(ctx: Context, uid: number, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [uid], eventKey);
     }
 }
 
@@ -25728,6 +25307,14 @@ export class UserLocationEventStore extends EventStore {
         return this._findAll(ctx, [uid]);
     }
 
+    async findAllWithKeys(ctx: Context, uid: number) {
+        return this._findAllWithKeys(ctx, [uid]);
+    }
+
+    find(ctx: Context, uid: number, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [uid], opts);
+    }
+
     createStream(uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([uid], opts);
     }
@@ -25742,6 +25329,10 @@ export class UserLocationEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [uid], opts);
+    }
+
+    deleteKey(ctx: Context, uid: number, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [uid], eventKey);
     }
 }
 
@@ -25771,6 +25362,14 @@ export class UserWalletUpdates extends EventStore {
         return this._findAll(ctx, [uid]);
     }
 
+    async findAllWithKeys(ctx: Context, uid: number) {
+        return this._findAllWithKeys(ctx, [uid]);
+    }
+
+    find(ctx: Context, uid: number, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [uid], opts);
+    }
+
     createStream(uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([uid], opts);
     }
@@ -25785,6 +25384,10 @@ export class UserWalletUpdates extends EventStore {
 
     createRawLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [uid], opts);
+    }
+
+    deleteKey(ctx: Context, uid: number, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [uid], eventKey);
     }
 }
 
@@ -25814,6 +25417,14 @@ export class StripeEventStore extends EventStore {
         return this._findAll(ctx, [liveMode]);
     }
 
+    async findAllWithKeys(ctx: Context, liveMode: boolean) {
+        return this._findAllWithKeys(ctx, [liveMode]);
+    }
+
+    find(ctx: Context, liveMode: boolean, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [liveMode], opts);
+    }
+
     createStream(liveMode: boolean, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([liveMode], opts);
     }
@@ -25828,6 +25439,10 @@ export class StripeEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, liveMode: boolean, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [liveMode], opts);
+    }
+
+    deleteKey(ctx: Context, liveMode: boolean, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [liveMode], eventKey);
     }
 }
 
@@ -25857,6 +25472,14 @@ export class HyperLogStore extends EventStore {
         return this._findAll(ctx, []);
     }
 
+    async findAllWithKeys(ctx: Context) {
+        return this._findAllWithKeys(ctx, []);
+    }
+
+    find(ctx: Context, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [], opts);
+    }
+
     createStream(opts?: { batchSize?: number, after?: string }) {
         return this._createStream([], opts);
     }
@@ -25871,6 +25494,10 @@ export class HyperLogStore extends EventStore {
 
     createRawLiveStream(ctx: Context, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [], opts);
+    }
+
+    deleteKey(ctx: Context, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [], eventKey);
     }
 }
 
@@ -25900,6 +25527,14 @@ export class UserContactsEventStore extends EventStore {
         return this._findAll(ctx, [uid]);
     }
 
+    async findAllWithKeys(ctx: Context, uid: number) {
+        return this._findAllWithKeys(ctx, [uid]);
+    }
+
+    find(ctx: Context, uid: number, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [uid], opts);
+    }
+
     createStream(uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([uid], opts);
     }
@@ -25914,6 +25549,10 @@ export class UserContactsEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [uid], opts);
+    }
+
+    deleteKey(ctx: Context, uid: number, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [uid], eventKey);
     }
 }
 
@@ -25943,6 +25582,14 @@ export class BlackListEventStore extends EventStore {
         return this._findAll(ctx, [uid]);
     }
 
+    async findAllWithKeys(ctx: Context, uid: number) {
+        return this._findAllWithKeys(ctx, [uid]);
+    }
+
+    find(ctx: Context, uid: number, opts?: { batchSize?: number, after?: Buffer }) {
+        return this._find(ctx, [uid], opts);
+    }
+
     createStream(uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createStream([uid], opts);
     }
@@ -25957,6 +25604,10 @@ export class BlackListEventStore extends EventStore {
 
     createRawLiveStream(ctx: Context, uid: number, opts?: { batchSize?: number, after?: string }) {
         return this._createRawLiveStream(ctx, [uid], opts);
+    }
+
+    deleteKey(ctx: Context, uid: number, eventKey: Buffer) {
+        return this._deleteEvent(ctx, [uid], eventKey);
     }
 }
 
@@ -26048,10 +25699,8 @@ export interface Store extends BaseStore {
     readonly ConversationSeq: ConversationSeqFactory;
     readonly ConversationEvent: ConversationEventFactory;
     readonly UserDialog: UserDialogFactory;
-    readonly UserDialogHandledMessage: UserDialogHandledMessageFactory;
     readonly UserDialogSettings: UserDialogSettingsFactory;
     readonly UserDialogListSettings: UserDialogListSettingsFactory;
-    readonly UserDialogEvent: UserDialogEventFactory;
     readonly CommentState: CommentStateFactory;
     readonly CommentSeq: CommentSeqFactory;
     readonly CommentEvent: CommentEventFactory;
@@ -26147,8 +25796,6 @@ export interface Store extends BaseStore {
     readonly AuthCodeSession: AuthCodeSessionFactory;
     readonly FeatureFlag: FeatureFlagFactory;
     readonly OrganizationFeatures: OrganizationFeaturesFactory;
-    readonly HyperLog: HyperLogFactory;
-    readonly HyperLogType: HyperLogTypeFactory;
     readonly Task: TaskFactory;
     readonly DelayedTask: DelayedTaskFactory;
     readonly ServiceThrottle: ServiceThrottleFactory;
@@ -26387,10 +26034,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ConversationSeqPromise = ConversationSeqFactory.open(storage);
     let ConversationEventPromise = ConversationEventFactory.open(storage);
     let UserDialogPromise = UserDialogFactory.open(storage);
-    let UserDialogHandledMessagePromise = UserDialogHandledMessageFactory.open(storage);
     let UserDialogSettingsPromise = UserDialogSettingsFactory.open(storage);
     let UserDialogListSettingsPromise = UserDialogListSettingsFactory.open(storage);
-    let UserDialogEventPromise = UserDialogEventFactory.open(storage);
     let CommentStatePromise = CommentStateFactory.open(storage);
     let CommentSeqPromise = CommentSeqFactory.open(storage);
     let CommentEventPromise = CommentEventFactory.open(storage);
@@ -26486,8 +26131,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let AuthCodeSessionPromise = AuthCodeSessionFactory.open(storage);
     let FeatureFlagPromise = FeatureFlagFactory.open(storage);
     let OrganizationFeaturesPromise = OrganizationFeaturesFactory.open(storage);
-    let HyperLogPromise = HyperLogFactory.open(storage);
-    let HyperLogTypePromise = HyperLogTypeFactory.open(storage);
     let TaskPromise = TaskFactory.open(storage);
     let DelayedTaskPromise = DelayedTaskFactory.open(storage);
     let ServiceThrottlePromise = ServiceThrottleFactory.open(storage);
@@ -26670,10 +26313,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ConversationSeq: await ConversationSeqPromise,
         ConversationEvent: await ConversationEventPromise,
         UserDialog: await UserDialogPromise,
-        UserDialogHandledMessage: await UserDialogHandledMessagePromise,
         UserDialogSettings: await UserDialogSettingsPromise,
         UserDialogListSettings: await UserDialogListSettingsPromise,
-        UserDialogEvent: await UserDialogEventPromise,
         CommentState: await CommentStatePromise,
         CommentSeq: await CommentSeqPromise,
         CommentEvent: await CommentEventPromise,
@@ -26769,8 +26410,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         AuthCodeSession: await AuthCodeSessionPromise,
         FeatureFlag: await FeatureFlagPromise,
         OrganizationFeatures: await OrganizationFeaturesPromise,
-        HyperLog: await HyperLogPromise,
-        HyperLogType: await HyperLogTypePromise,
         Task: await TaskPromise,
         DelayedTask: await DelayedTaskPromise,
         ServiceThrottle: await ServiceThrottlePromise,

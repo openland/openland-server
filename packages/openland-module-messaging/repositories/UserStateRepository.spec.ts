@@ -57,17 +57,6 @@ describe('UserStateRepository', () => {
         expect(state.readMessageId).toBeNull();
     });
 
-    it('should not zip updates for initial dialog load', async () => {
-        await sendMessage(1, '1');
-        let iterator = await userStateRepo.zipUpdatesInBatchesAfter(ctx, 2, undefined);
-        let batch;
-        for await (let b of iterator) {
-            batch = b;
-        }
-        expect(batch).toBe(undefined);
-
-    });
-
     it('should handle old updates then return last state to subscribe for live updates', async () => {
         let { state } = await sendMessage(1, '2');
         let { state: state2 } = await sendMessage(1, '3');
