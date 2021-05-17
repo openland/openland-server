@@ -15,7 +15,7 @@ export function declareDialogIndexNeededCompactorWorker() {
 
         while (true) {
             let r = await inTx(root, async (ctx) => {
-                let bb = await Store.DialogIndexEventStore.find(ctx, { batchSize: 10000, after: cursor });
+                let bb = await Store.DialogIndexEventStore.find(ctx, { batchSize: 1000, after: cursor });
                 if (bb.length === 0) {
                     return null;
                 }
