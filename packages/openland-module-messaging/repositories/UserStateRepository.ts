@@ -193,38 +193,6 @@ export class UserStateRepository {
         return null;
     }
 
-    zipUserDialogEvents = (events: UserDialogEvent[]) => {
-        let zipedEvents = [];
-        let latestChatsUpdatesByType = new Map<string, UserDialogEvent>();
-        for (let i = events.length - 1; i >= 0; i--) {
-            const currentEvent = events[i];
-            const currentEventKey = this.calculateDialogOldEventKey(currentEvent);
-            if (currentEventKey !== null) {
-                if (!latestChatsUpdatesByType.get(currentEventKey)) {
-                    zipedEvents.unshift(currentEvent);
-                    latestChatsUpdatesByType.set(currentEventKey, currentEvent);
-                }
-            } else {
-                zipedEvents.unshift(currentEvent);
-            }
-        }
-        return zipedEvents;
-    }
-
-    async* zipUpdatesInBatchesAfter(parent: Context, uid: number, state: string | undefined) {
-        let cursor = state;
-        let loadMore = !!cursor;
-        while (loadMore) {
-            let res = await Store.UserDialogEvent.user.query(parent, uid, { limit: 1000, afterCursor: cursor });
-            cursor = res.cursor;
-            if (res.items.length && res.cursor) {
-                yield { items: this.zipUserDialogEvents(res.items), cursor: res.cursor, fromSeq: res.items[0].seq };
-            }
-            loadMore = res.haveMore;
-        }
-        return;
-    }
-
     zipUserDialogEventsModern(events: BaseEvent[]): BaseEvent[] {
         let zipedEvents: BaseEvent[] = [];
         let latestChatsUpdatesByType = new Map<string, BaseEvent>();

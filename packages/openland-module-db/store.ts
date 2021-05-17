@@ -8401,203 +8401,6 @@ export class UserDialogListSettingsFactory extends EntityFactory<UserDialogListS
     }
 }
 
-export interface UserDialogEventShape {
-    uid: number;
-    seq: number;
-    cid: number | null;
-    mid: number | null;
-    allUnread: number | null;
-    unread: number | null;
-    title: string | null;
-    photo: any | null;
-    mute: boolean | null;
-    haveMention: boolean | null;
-    kind: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed';
-}
-
-export interface UserDialogEventCreateShape {
-    cid?: number | null | undefined;
-    mid?: number | null | undefined;
-    allUnread?: number | null | undefined;
-    unread?: number | null | undefined;
-    title?: string | null | undefined;
-    photo?: any | null | undefined;
-    mute?: boolean | null | undefined;
-    haveMention?: boolean | null | undefined;
-    kind: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed';
-}
-
-export class UserDialogEvent extends Entity<UserDialogEventShape> {
-    get uid(): number { return this._rawValue.uid; }
-    get seq(): number { return this._rawValue.seq; }
-    get cid(): number | null { return this._rawValue.cid; }
-    set cid(value: number | null) {
-        let normalized = this.descriptor.codec.fields.cid.normalize(value);
-        if (this._rawValue.cid !== normalized) {
-            this._rawValue.cid = normalized;
-            this._updatedValues.cid = normalized;
-            this.invalidate();
-        }
-    }
-    get mid(): number | null { return this._rawValue.mid; }
-    set mid(value: number | null) {
-        let normalized = this.descriptor.codec.fields.mid.normalize(value);
-        if (this._rawValue.mid !== normalized) {
-            this._rawValue.mid = normalized;
-            this._updatedValues.mid = normalized;
-            this.invalidate();
-        }
-    }
-    get allUnread(): number | null { return this._rawValue.allUnread; }
-    set allUnread(value: number | null) {
-        let normalized = this.descriptor.codec.fields.allUnread.normalize(value);
-        if (this._rawValue.allUnread !== normalized) {
-            this._rawValue.allUnread = normalized;
-            this._updatedValues.allUnread = normalized;
-            this.invalidate();
-        }
-    }
-    get unread(): number | null { return this._rawValue.unread; }
-    set unread(value: number | null) {
-        let normalized = this.descriptor.codec.fields.unread.normalize(value);
-        if (this._rawValue.unread !== normalized) {
-            this._rawValue.unread = normalized;
-            this._updatedValues.unread = normalized;
-            this.invalidate();
-        }
-    }
-    get title(): string | null { return this._rawValue.title; }
-    set title(value: string | null) {
-        let normalized = this.descriptor.codec.fields.title.normalize(value);
-        if (this._rawValue.title !== normalized) {
-            this._rawValue.title = normalized;
-            this._updatedValues.title = normalized;
-            this.invalidate();
-        }
-    }
-    get photo(): any | null { return this._rawValue.photo; }
-    set photo(value: any | null) {
-        let normalized = this.descriptor.codec.fields.photo.normalize(value);
-        if (this._rawValue.photo !== normalized) {
-            this._rawValue.photo = normalized;
-            this._updatedValues.photo = normalized;
-            this.invalidate();
-        }
-    }
-    get mute(): boolean | null { return this._rawValue.mute; }
-    set mute(value: boolean | null) {
-        let normalized = this.descriptor.codec.fields.mute.normalize(value);
-        if (this._rawValue.mute !== normalized) {
-            this._rawValue.mute = normalized;
-            this._updatedValues.mute = normalized;
-            this.invalidate();
-        }
-    }
-    get haveMention(): boolean | null { return this._rawValue.haveMention; }
-    set haveMention(value: boolean | null) {
-        let normalized = this.descriptor.codec.fields.haveMention.normalize(value);
-        if (this._rawValue.haveMention !== normalized) {
-            this._rawValue.haveMention = normalized;
-            this._updatedValues.haveMention = normalized;
-            this.invalidate();
-        }
-    }
-    get kind(): 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed' { return this._rawValue.kind; }
-    set kind(value: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed') {
-        let normalized = this.descriptor.codec.fields.kind.normalize(value);
-        if (this._rawValue.kind !== normalized) {
-            this._rawValue.kind = normalized;
-            this._updatedValues.kind = normalized;
-            this.invalidate();
-        }
-    }
-}
-
-export class UserDialogEventFactory extends EntityFactory<UserDialogEventShape, UserDialogEvent> {
-
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userDialogEvent');
-        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userDialogEvent', 'user'), condition: undefined });
-        let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'uid', type: 'integer' });
-        primaryKeys.push({ name: 'seq', type: 'integer' });
-        let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'cid', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
-        fields.push({ name: 'mid', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
-        fields.push({ name: 'allUnread', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
-        fields.push({ name: 'unread', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
-        fields.push({ name: 'title', type: { type: 'optional', inner: { type: 'string' } }, secure: false });
-        fields.push({ name: 'photo', type: { type: 'optional', inner: { type: 'json' } }, secure: false });
-        fields.push({ name: 'mute', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
-        fields.push({ name: 'haveMention', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
-        fields.push({ name: 'kind', type: { type: 'enum', values: ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed'] }, secure: false });
-        let codec = c.struct({
-            uid: c.integer,
-            seq: c.integer,
-            cid: c.optional(c.integer),
-            mid: c.optional(c.integer),
-            allUnread: c.optional(c.integer),
-            unread: c.optional(c.integer),
-            title: c.optional(c.string),
-            photo: c.optional(c.any),
-            mute: c.optional(c.boolean),
-            haveMention: c.optional(c.boolean),
-            kind: c.enum('message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed'),
-        });
-        let descriptor: EntityDescriptor<UserDialogEventShape> = {
-            name: 'UserDialogEvent',
-            storageKey: 'userDialogEvent',
-            allowDelete: false,
-            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
-        };
-        return new UserDialogEventFactory(descriptor);
-    }
-
-    private constructor(descriptor: EntityDescriptor<UserDialogEventShape>) {
-        super(descriptor);
-    }
-
-    readonly user = Object.freeze({
-        findAll: async (ctx: Context, uid: number) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [uid])).items;
-        },
-        query: (ctx: Context, uid: number, opts?: RangeQueryOptions<number>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [uid], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-        stream: (uid: number, opts?: StreamProps) => {
-            return this._createStream(this.descriptor.secondaryIndexes[0], [uid], opts);
-        },
-        liveStream: (ctx: Context, uid: number, opts?: StreamProps) => {
-            return this._createLiveStream(ctx, this.descriptor.secondaryIndexes[0], [uid], opts);
-        },
-    });
-
-    create(ctx: Context, uid: number, seq: number, src: UserDialogEventCreateShape): Promise<UserDialogEvent> {
-        return this._create(ctx, [uid, seq], this.descriptor.codec.normalize({ uid, seq, ...src }));
-    }
-
-    create_UNSAFE(ctx: Context, uid: number, seq: number, src: UserDialogEventCreateShape): UserDialogEvent {
-        return this._create_UNSAFE(ctx, [uid, seq], this.descriptor.codec.normalize({ uid, seq, ...src }));
-    }
-
-    findById(ctx: Context, uid: number, seq: number): Promise<UserDialogEvent | null> | UserDialogEvent | null {
-        return this._findById(ctx, [uid, seq]);
-    }
-
-    findByIdOrFail(ctx: Context, uid: number, seq: number): Promise<UserDialogEvent> | UserDialogEvent {
-        return this._findByIdOrFail(ctx, [uid, seq]);
-    }
-
-    watch(ctx: Context, uid: number, seq: number): Watch {
-        return this._watch(ctx, [uid, seq]);
-    }
-
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserDialogEventShape>): UserDialogEvent {
-        return new UserDialogEvent([value.uid, value.seq], value, this.descriptor, this._flush, this._delete, ctx);
-    }
-}
-
 export interface CommentStateShape {
     peerType: string;
     peerId: number;
@@ -25967,7 +25770,6 @@ export interface Store extends BaseStore {
     readonly UserDialogHandledMessage: UserDialogHandledMessageFactory;
     readonly UserDialogSettings: UserDialogSettingsFactory;
     readonly UserDialogListSettings: UserDialogListSettingsFactory;
-    readonly UserDialogEvent: UserDialogEventFactory;
     readonly CommentState: CommentStateFactory;
     readonly CommentSeq: CommentSeqFactory;
     readonly CommentEvent: CommentEventFactory;
@@ -26304,7 +26106,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let UserDialogHandledMessagePromise = UserDialogHandledMessageFactory.open(storage);
     let UserDialogSettingsPromise = UserDialogSettingsFactory.open(storage);
     let UserDialogListSettingsPromise = UserDialogListSettingsFactory.open(storage);
-    let UserDialogEventPromise = UserDialogEventFactory.open(storage);
     let CommentStatePromise = CommentStateFactory.open(storage);
     let CommentSeqPromise = CommentSeqFactory.open(storage);
     let CommentEventPromise = CommentEventFactory.open(storage);
@@ -26585,7 +26386,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         UserDialogHandledMessage: await UserDialogHandledMessagePromise,
         UserDialogSettings: await UserDialogSettingsPromise,
         UserDialogListSettings: await UserDialogListSettingsPromise,
-        UserDialogEvent: await UserDialogEventPromise,
         CommentState: await CommentStatePromise,
         CommentSeq: await CommentSeqPromise,
         CommentEvent: await CommentEventPromise,

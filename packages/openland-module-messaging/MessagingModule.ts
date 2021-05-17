@@ -178,10 +178,6 @@ export class MessagingModule {
         return await this.userState.getUserDialogState(parent, uid, cid);
     }
 
-    zipUpdatesInBatchesAfter(parent: Context, uid: number, state: string | undefined) {
-        return this.userState.zipUpdatesInBatchesAfter(parent, uid, state);
-    }
-
     zipUpdatesInBatchesAfterModern(parent: Context, uid: number, state: string | undefined) {
         return this.userState.zipUpdatesInBatchesAfterModern(parent, uid, state);
     }
