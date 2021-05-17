@@ -1428,11 +1428,16 @@ migrations.push({
             await Store.storage.db.directories.raw.remove(getTransaction(ctx).rawWriteTransaction(Store.storage.db), ['com.openland.layers', 'layers', 'app', 'entity', 'hyperLog']);
             await Store.storage.db.directories.raw.remove(getTransaction(ctx).rawWriteTransaction(Store.storage.db), ['com.openland.layers', 'layers', 'app', 'entity', 'hyperLogType']);
         });
-        // await Store.Wallet.iterateAllItems(parent, 100, async (ctx, items) => {
-        //     for (let item of items) {
-        //         await Modules.Wallet.updateIsLocked(ctx, item.uid);
-        //     }
-        // });
+    }
+});
+
+migrations.push({
+    key: '201-delete-old-dialog-events',
+    migration: async (parent) => {
+        await inTx(parent, async (ctx) => {
+            await Store.storage.db.directories.raw.remove(getTransaction(ctx).rawWriteTransaction(Store.storage.db), ['com.openland.layers', 'layers', 'app', 'entity', 'userDialogEvent']);
+            await Store.storage.db.directories.raw.remove(getTransaction(ctx).rawWriteTransaction(Store.storage.db), ['com.openland.layers', 'layers', 'app', 'entity', 'userDialogHandledMessage']);
+        });
     }
 });
 
