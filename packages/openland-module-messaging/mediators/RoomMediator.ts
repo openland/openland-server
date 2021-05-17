@@ -1,4 +1,4 @@
-import { Events } from 'openland-module-hyperlog/Events';
+// import { Events } from 'openland-module-hyperlog/Events';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { EventsMediator } from './../mediators/EventsMediator';
 import { ChatUpdatedEvent, ConversationRoom } from 'openland-module-db/store';
@@ -941,7 +941,7 @@ export class RoomMediator {
             await this.messaging.counters.subscribe(ctx, { cid, uid, seq: chatLastSeq, muted });
 
             EventBus.publish(`chat_join_${cid}`, { uid, cid });
-            Events.MembersLog.event(ctx, { rid: cid, delta: 1 });
+            // Events.MembersLog.event(ctx, { rid: cid, delta: 1 });
 
             let room = await Store.ConversationRoom.findById(ctx, cid);
             let roomProfile = await Store.RoomProfile.findById(ctx, cid);
@@ -1039,7 +1039,7 @@ export class RoomMediator {
             await this.events.onChatLeft(ctx, cid, uid);
             await this.messaging.counters.unsubscribe(ctx, { cid, uid });
 
-            Events.MembersLog.event(ctx, { rid: cid, delta: -1 });
+            // Events.MembersLog.event(ctx, { rid: cid, delta: -1 });
             let roomProfile = await Store.RoomProfile.findById(ctx, cid);
             if (await this.repo.isPublicCommunityChat(ctx, cid)) {
                 Store.UserAudienceCounter.add(ctx, uid, (roomProfile!.activeMembersCount ? (roomProfile!.activeMembersCount) : 0) * -1);

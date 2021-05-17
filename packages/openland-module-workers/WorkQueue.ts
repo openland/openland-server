@@ -8,7 +8,7 @@ import { Shutdown } from '../openland-utils/Shutdown';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
 import { getTransaction } from '@openland/foundationdb';
-import { Events } from '../openland-module-hyperlog/Events';
+// import { Events } from '../openland-module-hyperlog/Events';
 // import { createMetric } from 'openland-module-monitoring/Metric';
 
 const log = createLogger('worker');
@@ -110,7 +110,7 @@ export class WorkQueue<ARGS> {
                 tsk.taskLockSeed = lockSeed;
                 tsk.taskLockTimeout = Date.now() + 15000;
                 tsk.taskStatus = 'executing';
-                Events.TaskScheduled.event(ctx, { taskId: tsk.uid, taskType: tsk.taskType, duration: Date.now() - (tsk.startAt ||  tsk.metadata.createdAt) });
+                // Events.TaskScheduled.event(ctx, { taskId: tsk.uid, taskType: tsk.taskType, duration: Date.now() - (tsk.startAt ||  tsk.metadata.createdAt) });
                 return true;
             });
 
@@ -184,7 +184,7 @@ export class WorkQueue<ARGS> {
                     if (res2) {
                         if (res2.taskLockSeed === lockSeed && res2.taskStatus === 'executing') {
                             await res2.delete(ctx);
-                            Events.TaskCompleted.event(ctx, { taskId: res2.uid, taskType: res2.taskType, duration: Date.now() - res2.metadata.createdAt });
+                            // Events.TaskCompleted.event(ctx, { taskId: res2.uid, taskType: res2.taskType, duration: Date.now() - res2.metadata.createdAt });
                             return true;
                         }
                     }

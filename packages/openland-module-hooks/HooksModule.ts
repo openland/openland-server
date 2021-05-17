@@ -1,5 +1,5 @@
 import { UpdateProfileChanged } from './../openland-module-db/store';
-import { Events } from 'openland-module-hyperlog/Events';
+// import { Events } from 'openland-module-hyperlog/Events';
 import { Modules } from 'openland-modules/Modules';
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
@@ -58,19 +58,19 @@ export class HooksModule {
     onUserProfileUpdated = async (ctx: Context, uid: number) => {
 
         // Events
-        Events.ProfileUpdated.event(ctx, { uid }); // Old
+        // Events.ProfileUpdated.event(ctx, { uid }); // Old
         await Modules.Events.postToCommon(ctx, uid, UpdateProfileChanged.create({ uid })); // New
 
         await Modules.Messaging.onUserProfileUpdated(ctx, uid);
     }
 
     onOrganizationProfileUpdated = async (ctx: Context, oid: number) => {
-        Events.OrganizationProfileUpdated.event(ctx, { oid });
+        // Events.OrganizationProfileUpdated.event(ctx, { oid });
         await Modules.Messaging.onOrganizationProfileUpdated(ctx, oid);
     }
 
     onOrganizationCreated = async (ctx: Context, uid: number, oid: number) => {
-        Events.OrganizationCreated.event(ctx, { uid, oid });
+        // Events.OrganizationCreated.event(ctx, { uid, oid });
         // let chat = await Repos.Chats.loadOrganizationalChat(oid, oid, tx);
         // let profile = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx });
         // await Repos.Chats.sendMessage(tx, chat.id, uid, { message: `${profile!.firstName} has joined organization`, isService: true, isMuted: true });
@@ -116,7 +116,7 @@ export class HooksModule {
         const user = await Store.User.findById(ctx, uid);
         if (user!.invitedBy) {
             Store.UserSuccessfulInvitesCounter.byId(user!.invitedBy).increment(ctx);
-            Events.SuccessfulInvite.event(ctx, { uid: uid, invitedBy: user!.invitedBy });
+            // Events.SuccessfulInvite.event(ctx, { uid: uid, invitedBy: user!.invitedBy });
             await Modules.Stats.onSuccessfulInvite(ctx, user!);
         }
         await this.reportNewUser(ctx, uid, user?.invitedBy);
