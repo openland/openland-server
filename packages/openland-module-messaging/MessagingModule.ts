@@ -25,6 +25,7 @@ import { PrecalculatedCounterProvider } from './counters/PrecalculatedCounterPro
 import { DialogListSettingsMediator } from './mediators/DialogListSettingsMediator';
 import { RangeQueryOptions } from '@openland/foundationdb-entity';
 import { declareDialogCompactorWorker } from './workers/declareDialogCompactorWorker';
+import { declareDialogIndexNeededCompactorWorker } from './workers/declareDialogIndexNeededCompactorWorker';
 
 export const USE_NEW_COUNTERS = true;
 export const USE_NEW_PRIVATE_CHATS = true;
@@ -95,6 +96,9 @@ export class MessagingModule {
         }
         if (serverRoleEnabled('workers')) {
             declareDialogCompactorWorker();
+        }
+        if (serverRoleEnabled('workers')) {
+            declareDialogIndexNeededCompactorWorker();
         }
     }
 

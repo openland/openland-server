@@ -682,12 +682,6 @@ export default declareSchema(() => {
     customDirectory('UserReadSeqs');
     customDirectory('ChatMembers');
 
-    entity('UserDialogHandledMessage', () => {
-        primaryKey('uid', integer());
-        primaryKey('cid', integer());
-        primaryKey('mid', integer());
-    });
-
     entity('UserDialogSettings', () => {
         primaryKey('uid', integer());
         primaryKey('cid', integer());

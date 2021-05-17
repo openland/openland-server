@@ -8183,74 +8183,6 @@ export class UserDialogFactory extends EntityFactory<UserDialogShape, UserDialog
     }
 }
 
-export interface UserDialogHandledMessageShape {
-    uid: number;
-    cid: number;
-    mid: number;
-}
-
-export interface UserDialogHandledMessageCreateShape {
-}
-
-export class UserDialogHandledMessage extends Entity<UserDialogHandledMessageShape> {
-    get uid(): number { return this._rawValue.uid; }
-    get cid(): number { return this._rawValue.cid; }
-    get mid(): number { return this._rawValue.mid; }
-}
-
-export class UserDialogHandledMessageFactory extends EntityFactory<UserDialogHandledMessageShape, UserDialogHandledMessage> {
-
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userDialogHandledMessage');
-        let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        let primaryKeys: PrimaryKeyDescriptor[] = [];
-        primaryKeys.push({ name: 'uid', type: 'integer' });
-        primaryKeys.push({ name: 'cid', type: 'integer' });
-        primaryKeys.push({ name: 'mid', type: 'integer' });
-        let fields: FieldDescriptor[] = [];
-        let codec = c.struct({
-            uid: c.integer,
-            cid: c.integer,
-            mid: c.integer,
-        });
-        let descriptor: EntityDescriptor<UserDialogHandledMessageShape> = {
-            name: 'UserDialogHandledMessage',
-            storageKey: 'userDialogHandledMessage',
-            allowDelete: false,
-            subspace, codec, secondaryIndexes, storage, primaryKeys, fields
-        };
-        return new UserDialogHandledMessageFactory(descriptor);
-    }
-
-    private constructor(descriptor: EntityDescriptor<UserDialogHandledMessageShape>) {
-        super(descriptor);
-    }
-
-    create(ctx: Context, uid: number, cid: number, mid: number, src: UserDialogHandledMessageCreateShape): Promise<UserDialogHandledMessage> {
-        return this._create(ctx, [uid, cid, mid], this.descriptor.codec.normalize({ uid, cid, mid, ...src }));
-    }
-
-    create_UNSAFE(ctx: Context, uid: number, cid: number, mid: number, src: UserDialogHandledMessageCreateShape): UserDialogHandledMessage {
-        return this._create_UNSAFE(ctx, [uid, cid, mid], this.descriptor.codec.normalize({ uid, cid, mid, ...src }));
-    }
-
-    findById(ctx: Context, uid: number, cid: number, mid: number): Promise<UserDialogHandledMessage | null> | UserDialogHandledMessage | null {
-        return this._findById(ctx, [uid, cid, mid]);
-    }
-
-    findByIdOrFail(ctx: Context, uid: number, cid: number, mid: number): Promise<UserDialogHandledMessage> | UserDialogHandledMessage {
-        return this._findByIdOrFail(ctx, [uid, cid, mid]);
-    }
-
-    watch(ctx: Context, uid: number, cid: number, mid: number): Watch {
-        return this._watch(ctx, [uid, cid, mid]);
-    }
-
-    protected _createEntityInstance(ctx: Context, value: ShapeWithMetadata<UserDialogHandledMessageShape>): UserDialogHandledMessage {
-        return new UserDialogHandledMessage([value.uid, value.cid, value.mid], value, this.descriptor, this._flush, this._delete, ctx);
-    }
-}
-
 export interface UserDialogSettingsShape {
     uid: number;
     cid: number;
@@ -25767,7 +25699,6 @@ export interface Store extends BaseStore {
     readonly ConversationSeq: ConversationSeqFactory;
     readonly ConversationEvent: ConversationEventFactory;
     readonly UserDialog: UserDialogFactory;
-    readonly UserDialogHandledMessage: UserDialogHandledMessageFactory;
     readonly UserDialogSettings: UserDialogSettingsFactory;
     readonly UserDialogListSettings: UserDialogListSettingsFactory;
     readonly CommentState: CommentStateFactory;
@@ -26103,7 +26034,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ConversationSeqPromise = ConversationSeqFactory.open(storage);
     let ConversationEventPromise = ConversationEventFactory.open(storage);
     let UserDialogPromise = UserDialogFactory.open(storage);
-    let UserDialogHandledMessagePromise = UserDialogHandledMessageFactory.open(storage);
     let UserDialogSettingsPromise = UserDialogSettingsFactory.open(storage);
     let UserDialogListSettingsPromise = UserDialogListSettingsFactory.open(storage);
     let CommentStatePromise = CommentStateFactory.open(storage);
@@ -26383,7 +26313,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ConversationSeq: await ConversationSeqPromise,
         ConversationEvent: await ConversationEventPromise,
         UserDialog: await UserDialogPromise,
-        UserDialogHandledMessage: await UserDialogHandledMessagePromise,
         UserDialogSettings: await UserDialogSettingsPromise,
         UserDialogListSettings: await UserDialogListSettingsPromise,
         CommentState: await CommentStatePromise,
