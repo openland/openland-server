@@ -15,7 +15,6 @@ import {
     NotificationCenter,
     UserNotificationCenter,
     NotificationCenterEvent,
-    UserDialogEvent,
     Conversation,
     ConversationRoom,
     CommentEvent,
@@ -108,7 +107,7 @@ import {
     UpdateFeedItemDeleted,
     VoiceChatParticipantUpdatedEvent,
     VoiceChatUpdatedEvent,
-    UserDialogVoiceChatStateChangedEvent, AppRelease,
+    UserDialogVoiceChatStateChangedEvent, AppRelease, UserDialogDeletedEvent,
 } from './../../openland-module-db/store';
 import { GQL } from './SchemaSpec';
 import {
@@ -286,7 +285,6 @@ export namespace GQLRoots {
     // Dialogs Updates
     //
     export type DialogUpdateStateRoot = GQL.DialogUpdateState;
-    export type DialogDeletedRoot = UserDialogEvent;
 
     export type ConversationSettingsRoot = { cid: number, mute: boolean };
     export type ConversationRoot = Conversation;
@@ -585,6 +583,7 @@ export namespace GQLRoots {
     export type DialogTitleUpdatedRoot = UserDialogTitleUpdatedEvent;
     export type DialogPhotoUpdatedRoot = UserDialogPhotoUpdatedEvent;
     export type DialogMuteChangedRoot = UserDialogMuteChangedEvent;
+    export type DialogDeletedRoot = UserDialogDeletedEvent;
     export type DialogBumpRoot = UserDialogBumpEvent;
     export type DialogGotAccessRoot = UserDialogGotAccessEvent;
     export type DialogLostAccessRoot = UserDialogLostAccessEvent;
