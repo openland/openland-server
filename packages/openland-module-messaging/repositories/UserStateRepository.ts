@@ -1,4 +1,4 @@
-import { UserDialogBumpEvent, UserDialogCallStateChangedEvent, UserDialogEvent, UserDialogGotAccessEvent, UserDialogLostAccessEvent, UserDialogMessageReadEvent, UserDialogMessageReceivedEvent, UserDialogMessageUpdatedEvent, UserDialogMuteChangedEvent, UserDialogPeerUpdatedEvent, UserDialogPhotoUpdatedEvent, UserDialogTitleUpdatedEvent, UserDialogVoiceChatStateChangedEvent } from 'openland-module-db/store';
+import { UserDialogBumpEvent, UserDialogCallStateChangedEvent, UserDialogGotAccessEvent, UserDialogLostAccessEvent, UserDialogMessageReadEvent, UserDialogMessageReceivedEvent, UserDialogMessageUpdatedEvent, UserDialogMuteChangedEvent, UserDialogPeerUpdatedEvent, UserDialogPhotoUpdatedEvent, UserDialogTitleUpdatedEvent, UserDialogVoiceChatStateChangedEvent } from 'openland-module-db/store';
 import { encoders, inTx, Subspace, TupleItem } from '@openland/foundationdb';
 import { injectable, inject } from 'inversify';
 import { Context } from '@openland/context';
@@ -111,35 +111,6 @@ export class UserStateRepository {
                 return existing;
             }
         });
-    }
-
-    calculateDialogOldEventKey = (src: UserDialogEvent) => {
-        switch (src.kind) {
-            case 'dialog_bump':
-            case 'dialog_deleted':
-            case 'dialog_mentioned_changed':
-            case 'dialog_mute_changed':
-            case 'photo_updated':
-            case 'title_updated':
-            case 'message_read':
-            case 'message_received':
-                if (src.cid === null /* Wtf? */) {
-                    return null;
-                }
-                return 'dialog$' + src.kind + '-' + src.cid;
-            case 'message_deleted':
-                if (src.mid === null/* Wtf? */) {
-                    return null;
-                }
-                return 'message$deleted' + src.mid;
-            case 'message_updated':
-                if (src.mid === null/* Wtf? */) {
-                    return null;
-                }
-                return 'message$updated' + src.mid;
-            default:
-                return null;
-        }
     }
 
     calculateDialogEventKey = (src: BaseEvent) => {
