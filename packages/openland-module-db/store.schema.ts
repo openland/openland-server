@@ -2459,24 +2459,6 @@ export default declareSchema(() => {
         uniqueIndex('organization', ['organizationId', 'featureKey']);
     });
 
-    entity('HyperLog', () => {
-        primaryKey('id', string());
-        field('type', string());
-        field('date', integer());
-        field('body', json());
-        rangeIndex('created', ['createdAt']);
-        rangeIndex('userEvents', ['createdAt']).withCondition((src) => src.type === 'track');
-        rangeIndex('onlineChangeEvents', ['createdAt']).withCondition((src) => src.type === 'online_status');
-
-        allowDelete();
-    });
-    entity('HyperLogType', () => {
-        primaryKey('name', string());
-        field('count', integer());
-
-        rangeIndex('name', ['name']);
-    });
-
     eventStore('HyperLogStore', () => {
         //
     });
