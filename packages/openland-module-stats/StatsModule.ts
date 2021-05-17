@@ -1,4 +1,3 @@
-import { Events } from 'openland-module-hyperlog/Events';
 import { injectable } from 'inversify';
 import { Context } from '@openland/context';
 import { Store } from '../openland-module-db/FDB';
@@ -18,13 +17,13 @@ export class StatsModule {
     }
 
     onNewMobileUser = async (ctx: Context, uid: number) => {
-        Events.StatsNewMobileUserLog.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, uid) });
+        // Events.StatsNewMobileUserLog.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, uid) });
     }
 
     onMessageSent = async (ctx: Context, uid: number) => {
-        if (await Store.UserMessagesSentCounter.get(ctx, uid) === 1) {
-            Events.StatsNewSenderLog.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, uid) });
-        }
+        // if (await Store.UserMessagesSentCounter.get(ctx, uid) === 1) {
+        //     Events.StatsNewSenderLog.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, uid) });
+        // }
     }
 
     onRoomMessageSent = async (ctx: Context, rid: number) => {
@@ -42,16 +41,16 @@ export class StatsModule {
     onSuccessfulInvite = async (ctx: Context, user: User) => {
         Store.GlobalStatisticsCounters.byId('successful-invites').increment(ctx);
 
-        let invitesCnt = await Store.UserSuccessfulInvitesCounter.byId(user.invitedBy!).get(ctx);
-        if (invitesCnt === 1) {
-            Events.StatsNewInvitersLog.event(ctx, { uid: user.invitedBy!, inviteeId: user.id, isTest: await Modules.Users.isTest(ctx, user.invitedBy!) });
-        }
+        // let invitesCnt = await Store.UserSuccessfulInvitesCounter.byId(user.invitedBy!).get(ctx);
+        // if (invitesCnt === 1) {
+        //     Events.StatsNewInvitersLog.event(ctx, { uid: user.invitedBy!, inviteeId: user.id, isTest: await Modules.Users.isTest(ctx, user.invitedBy!) });
+        // }
     }
 
     onAboutChange = async (ctx: Context, uid: number) => {
         if (!await Store.UserHasFilledAbout.byId(uid).get(ctx)) {
             Store.UserHasFilledAbout.byId(uid).set(ctx, true);
-            Events.StatsNewAboutFillerLog.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, uid) });
+            // Events.StatsNewAboutFillerLog.event(ctx, { uid, isTest: await Modules.Users.isTest(ctx, uid) });
         }
     }
 
@@ -59,25 +58,25 @@ export class StatsModule {
         Store.UserReactionsGot.byId(message.uid).increment(ctx);
         Store.UserReactionsGiven.byId(uid).increment(ctx);
 
-        Events.StatsNewReactionLog.event(ctx, {
-            uid,
-            messageAuthorId: message.uid,
-            mid: message.id,
-            isTest: await Modules.Users.isTest(ctx, uid)
-        });
+        // Events.StatsNewReactionLog.event(ctx, {
+        //     uid,
+        //     messageAuthorId: message.uid,
+        //     mid: message.id,
+        //     isTest: await Modules.Users.isTest(ctx, uid)
+        // });
 
-        if (await Store.UserReactionsGiven.byId(uid).get(ctx) === 3) {
-            Events.StatsNewThreeLikeGiverLog.event(ctx, {
-                uid,
-                isTest: await Modules.Users.isTest(ctx, uid)
-            });
-        }
-        if (await Store.UserReactionsGot.byId(message.uid).get(ctx) === 3) {
-            Events.StatsNewThreeLikeGetterLog.event(ctx, {
-                uid: message.uid,
-                isTest: await Modules.Users.isTest(ctx, uid)
-            });
-        }
+        // if (await Store.UserReactionsGiven.byId(uid).get(ctx) === 3) {
+        //     Events.StatsNewThreeLikeGiverLog.event(ctx, {
+        //         uid,
+        //         isTest: await Modules.Users.isTest(ctx, uid)
+        //     });
+        // }
+        // if (await Store.UserReactionsGot.byId(message.uid).get(ctx) === 3) {
+        //     Events.StatsNewThreeLikeGetterLog.event(ctx, {
+        //         uid: message.uid,
+        //         isTest: await Modules.Users.isTest(ctx, uid)
+        //     });
+        // }
     }
 
     getTopPosts = async (ctx: Context, uid: number, cid: number) => {

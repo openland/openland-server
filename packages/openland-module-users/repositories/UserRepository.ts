@@ -1,4 +1,3 @@
-import { Events } from 'openland-module-hyperlog/Events';
 import { inTx } from '@openland/foundationdb';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { Sanitizer } from 'openland-utils/Sanitizer';
@@ -158,7 +157,7 @@ export class UserRepository {
         });
         await profile.flush(ctx);
         await this.markForIndexing(ctx, uid);
-        Events.UserProfileCreated.event(ctx, { uid: uid });
+        // Events.UserProfileCreated.event(ctx, { uid: uid });
         return profile;
     }
 
