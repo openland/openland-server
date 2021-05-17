@@ -11,14 +11,14 @@ import { boolean, date, integer, nullable, schema, string } from './schema';
 import { subspaceReader } from '../openland-module-workers/subspaceReader';
 import { encoders, inReadOnlyTx, inTx } from '@openland/foundationdb';
 
-function startPresenceExport(client: DatabaseClient) {
-    updateReader('ch-exporter-reader', 3, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
-        let presences = src.filter((v) => v.type === 'presence' && v.body.online === true);
-        if (presences.length > 0) {
-            await client.insert(ctx, 'presences', ['time', 'eid', 'uid', 'platform'], presences.map((v) => [Math.round(v.date / 1000), v.id, v.body.uid, v.body.platform]));
-        }
-    });
-}
+// function startPresenceExport(client: DatabaseClient) {
+//     updateReader('ch-exporter-reader', 3, Store.HyperLog.created.stream({ batchSize: 5000 }), async (src, first, ctx) => {
+//         let presences = src.filter((v) => v.type === 'presence' && v.body.online === true);
+//         if (presences.length > 0) {
+//             await client.insert(ctx, 'presences', ['time', 'eid', 'uid', 'platform'], presences.map((v) => [Math.round(v.date / 1000), v.id, v.body.uid, v.body.platform]));
+//         }
+//     });
+// }
 
 function startMessagesExport(client: DatabaseClient) {
     updateReader('ch-exporter-messages', 1, Store.Message.created.stream({ batchSize: 1000 }), async (src, first, ctx) => {
@@ -197,7 +197,7 @@ export function startExporters(parent: Context) {
     // tslint:disable-next-line:no-floating-promises
     (async () => {
         let client = container.get<DatabaseClient>('ClickHouse');
-        startPresenceExport(client);
+        // startPresenceExport(client);
         startMessagesExport(client);
         startSuperAdminsExport(client);
         startBotsExport(client);
