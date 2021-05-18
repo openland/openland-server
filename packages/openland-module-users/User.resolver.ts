@@ -252,6 +252,8 @@ export const Resolver: GQLResolver = {
                 return 'steve';
             } else if (id === 'rAOV7EVRLzSOMqmmaQBRUo7rdq') {
                 return 'narek';
+            } else if (id === '3YkjQVj01Pi4xwjLzALRfyj71w') {
+                return 'Julia';
             }
             return null;
         }, true)

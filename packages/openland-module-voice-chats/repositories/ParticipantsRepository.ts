@@ -124,8 +124,10 @@ export class ParticipantsRepository {
 
         await this.#changeStatus(ctx, cid, uid, 'speaker');
         participant.promotedBy = by;
-        participant.handRaised = false;
-        await this.#counter(cid, 'handRaised').decrement(ctx);
+        if (participant.handRaised) {
+            await this.#counter(cid, 'handRaised').decrement(ctx);
+            participant.handRaised = false;
+        }
 
         await this.events.postParticipantUpdated(ctx, cid, uid, chat.isPrivate || false);
 
