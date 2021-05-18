@@ -4,12 +4,13 @@ import { singletonWorker } from '@openland/foundationdb-singleton';
 import { Store } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
 import { BoundedConcurrencyPool } from 'openland-utils/ConcurrencyPool';
+import { UserDialogMessageReceivedEvent, UserDialogMessageUpdatedEvent } from 'openland-module-db/store';
 
 const logger = createLogger('compactor');
 
 export function declareDialogCompactorWorker() {
     singletonWorker({ db: Store.storage.db, name: 'dialog-compactor', delay: 10000 }, async (parent) => {
-        
+
         const concurrency = new BoundedConcurrencyPool(() => Modules.Super.getNumber('concurrency-dialog-compactor', 20));
 
         // Iterate for each user
@@ -26,6 +27,7 @@ export function declareDialogCompactorWorker() {
                 let totalDeleted = 0;
                 let cursor: Buffer | undefined;
                 const previous = new Map<string, Buffer>();
+                const maxReceivedMid = new Map<number, number>();
 
                 //
                 // For each event
@@ -48,6 +50,18 @@ export function declareDialogCompactorWorker() {
                         const added = new Map<string, Buffer>();
                         const deleted = new Set<string>();
                         for (let e of bb) {
+
+                            // Messages compactor - ignore updates to older messages
+                            if (e.event instanceof UserDialogMessageReceivedEvent || e.event instanceof UserDialogMessageUpdatedEvent) {
+                                let ex = maxReceivedMid.get(e.event.cid);
+                                if (ex && ex > e.event.mid) {
+                                    // Remove event
+                                    Store.UserDialogEventStore.deleteKey(ctx, u.id, e.key);
+                                    continue;
+                                }
+                                maxReceivedMid.set(e.event.cid, e.event.mid);
+                            }
+
                             const eventKey = Modules.Messaging.userState.calculateDialogEventKey(e.event);
                             addedEvents++;
 
