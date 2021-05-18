@@ -21,9 +21,9 @@ import { encoders, inReadOnlyTx, inTx } from '@openland/foundationdb';
 // }
 
 function startMessagesExport(client: DatabaseClient) {
-    updateReader('ch-exporter-messages', 1, Store.Message.created.stream({ batchSize: 1000 }), async (src, first, ctx) => {
+    updateReader('ch-exporter-messages', 1, Store.Message.created.stream({ batchSize: 1000 }), async (args, ctx) => {
         let data: any[][] = [];
-        for (let v of src) {
+        for (let v of args.items) {
             let time = Math.round(v.metadata.createdAt / 1000);
             let id = v.id.toString();
             let uid = v.uid;
@@ -59,9 +59,9 @@ function startSuperAdminsExport(client: DatabaseClient) {
 }
 
 function startSignupsExport(client: DatabaseClient) {
-    updateReader('ch-exporter-signups', 1, Store.UserProfile.created.stream({ batchSize: 1000 }), async (src, first, ctx) => {
+    updateReader('ch-exporter-signups', 1, Store.UserProfile.created.stream({ batchSize: 1000 }), async (args, ctx) => {
         let data: any[][] = [];
-        for (let v of src) {
+        for (let v of args.items) {
             let time = Math.round(v.metadata.createdAt / 1000);
             let uid = v.id;
             data.push([time, uid]);
@@ -71,8 +71,8 @@ function startSignupsExport(client: DatabaseClient) {
 }
 
 function startBotsExport(client: DatabaseClient) {
-    updateReader('ch-exporter-bots', 1, Store.User.created.stream({ batchSize: 1000 }), async (src, first, ctx) => {
-        for (let u of src) {
+    updateReader('ch-exporter-bots', 1, Store.User.created.stream({ batchSize: 1000 }), async (args, ctx) => {
+        for (let u of args.items) {
             if (!u.isBot) {
                 continue;
             }
@@ -86,8 +86,8 @@ function startBotsExport(client: DatabaseClient) {
 }
 
 function startHyperlogExport(client: DatabaseClient) {
-    updateReader('clickhouse-hyperlog-modern', 1, Store.HyperLogStore.createStream({ batchSize: 5000 }), async (src, first, ctx) => {
-        let eventsByType = src.reduce<Map<string, HyperLogEvent[]>>((acc, val) => {
+    updateReader('clickhouse-hyperlog-modern', 1, Store.HyperLogStore.createStream({ batchSize: 5000 }), async (args, ctx) => {
+        let eventsByType = args.items.reduce<Map<string, HyperLogEvent[]>>((acc, val) => {
             let event = val.raw as HyperLogEvent;
             if (!acc.has(event.eventType)) {
                 acc.set(event.eventType, [event]);
@@ -116,8 +116,8 @@ const orgUsers = table('org_users', schema({
     primaryKey: '(oid, uid)'
 });
 function startOrgUsersExport(client: DatabaseClient) {
-    updateReader('clickhouse-org-users', 2, Store.OrganizationMember.created.stream({ batchSize: 100 }), async (values, first, ctx) => {
-        await orgUsers.insert(ctx, client, values.filter(a => a.status === 'joined').map(a => ({
+    updateReader('clickhouse-org-users', 2, Store.OrganizationMember.created.stream({ batchSize: 100 }), async (args, ctx) => {
+        await orgUsers.insert(ctx, client, args.items.filter(a => a.status === 'joined').map(a => ({
             uid: a.uid,
             oid: a.oid,
             deleted: false,
@@ -138,8 +138,8 @@ const roomParticipants = table('room_participants', schema({
     primaryKey: '(cid, uid)'
 });
 function startRoomParticipantsExport(client: DatabaseClient) {
-    updateReader('clickhouse-org-room-participants', 1, Store.RoomParticipant.created.stream({ batchSize: 100 }), async (values, first, ctx) => {
-        await roomParticipants.insert(ctx, client, values.filter(a => a.status === 'joined').map(a => ({
+    updateReader('clickhouse-org-room-participants', 1, Store.RoomParticipant.created.stream({ batchSize: 100 }), async (args, ctx) => {
+        await roomParticipants.insert(ctx, client, args.items.filter(a => a.status === 'joined').map(a => ({
             uid: a.uid,
             cid: a.cid,
             deleted: false,
@@ -161,9 +161,9 @@ const rooms = table('room', schema({
     primaryKey: 'id'
 });
 function startRoomExport(client: DatabaseClient) {
-    updateReader('clickhouse-rooms', 1, Store.RoomProfile.created.stream({ batchSize: 100 }), async (values, first, parent) => {
+    updateReader('clickhouse-rooms', 1, Store.RoomProfile.created.stream({ batchSize: 100 }), async (args, parent) => {
         let res = [];
-        for (let a of values) {
+        for (let a of args.items) {
             let convRoom = await inReadOnlyTx(parent, async ctx => Store.ConversationRoom.findById(ctx, a.id));
             if (!convRoom) {
                 continue;

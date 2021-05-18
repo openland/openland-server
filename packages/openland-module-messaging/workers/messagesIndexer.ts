@@ -86,31 +86,31 @@ export function messagesIndexer() {
                 }
             }
         }
-    }).start(async (item, parent) => {
+    }).start(async (args, parent) => {
         return await inTx(parent, async (ctx) => {
-            let room = await Store.Conversation.findById(ctx, item.cid);
-            let convRoom = await Store.ConversationRoom.findById(ctx, item.cid);
-            let userName = await Modules.Users.getUserFullName(ctx, item.uid);
+            let room = await Store.Conversation.findById(ctx, args.item.cid);
+            let convRoom = await Store.ConversationRoom.findById(ctx, args.item.cid);
+            let userName = await Modules.Users.getUserFullName(ctx, args.item.uid);
 
             let haveLinkAttachment = false;
             let haveImageAttachment = false;
             let haveDocumentAttachment = false;
             let haveVideoAttachment = false;
 
-            if (item.augmentation) {
+            if (args.item.augmentation) {
                 haveLinkAttachment = true;
             }
 
-            if (item.fileId) {
-                if (item.fileMetadata && item.fileMetadata.isImage) {
+            if (args.item.fileId) {
+                if (args.item.fileMetadata && args.item.fileMetadata.isImage) {
                     haveImageAttachment = true;
-                } else if (item.fileMetadata && item.fileMetadata.mimeType.startsWith('video/')) {
+                } else if (args.item.fileMetadata && args.item.fileMetadata.mimeType.startsWith('video/')) {
                     haveVideoAttachment = true;
-                } else if (item.fileId) {
+                } else if (args.item.fileId) {
                     haveDocumentAttachment = true;
                 }
-            } else if (item.attachments) {
-                for (let attach of item.attachments) {
+            } else if (args.item.attachments) {
+                for (let attach of args.item.attachments) {
                     if (attach.fileMetadata && attach.fileMetadata.isImage) {
                         haveImageAttachment = true;
                     } else if (attach.fileMetadata && attach.fileMetadata.mimeType.startsWith('video/')) {
@@ -119,8 +119,8 @@ export function messagesIndexer() {
                         haveDocumentAttachment = true;
                     }
                 }
-            } else if (item.attachmentsModern) {
-                for (let attach of item.attachmentsModern) {
+            } else if (args.item.attachmentsModern) {
+                for (let attach of args.item.attachmentsModern) {
                     if (attach.type === 'file_attachment') {
                         if (attach.fileMetadata && attach.fileMetadata.isImage) {
                             haveImageAttachment = true;
@@ -139,8 +139,8 @@ export function messagesIndexer() {
 
             if (room?.kind === 'private') {
                 let privateChat = (await Store.ConversationPrivate.findById(ctx, room.id))!;
-                let copy1 = await Store.PrivateMessage.findById(ctx, item.id, privateChat.uid1);
-                let copy2 = await Store.PrivateMessage.findById(ctx, item.id, privateChat.uid2);
+                let copy1 = await Store.PrivateMessage.findById(ctx, args.item.id, privateChat.uid1);
+                let copy2 = await Store.PrivateMessage.findById(ctx, args.item.id, privateChat.uid2);
 
                 if (!copy1?.deleted) {
                     privateVisibleFor.push(privateChat.uid1);
@@ -151,21 +151,21 @@ export function messagesIndexer() {
             }
 
             return {
-                id: item.id,
+                id: args.item.id,
                 doc: {
-                    id: item.id,
-                    cid: item.cid,
+                    id: args.item.id,
+                    cid: args.item.cid,
                     oid: convRoom?.oid || 0,
-                    uid: item.uid,
+                    uid: args.item.uid,
                     name: userName,
                     roomKind: room ? room.kind : 'unknown',
-                    isService: !!item.isService,
-                    isTest: await Modules.Users.isTest(ctx, item.uid),
-                    deleted: !!item.deleted,
+                    isService: !!args.item.isService,
+                    isTest: await Modules.Users.isTest(ctx, args.item.uid),
+                    deleted: !!args.item.deleted,
                     privateVisibleFor,
-                    text: item.text || undefined,
-                    createdAt: item.metadata.createdAt,
-                    updatedAt: item.metadata.updatedAt,
+                    text: args.item.text || undefined,
+                    createdAt: args.item.metadata.createdAt,
+                    updatedAt: args.item.metadata.updatedAt,
                     haveLinkAttachment,
                     haveImageAttachment,
                     haveDocumentAttachment,
