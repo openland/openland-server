@@ -97,7 +97,11 @@ export function declareDialogCompactorWorker() {
                         return { added, deleted, addedEvents, deletedEvents, next: bb[bb.length - 1].key, totalByTypeRead };
                     });
                     if (!nextCursor) {
-                        logger.log(root, 'Compacting user completed ' + u.id + ' with ' + totalEvents + ' events and deleted ' + totalDeleted + ' events: ', (Object as any).fromEntries(totalByType));
+                        let res: any = {};
+                        for (let key in totalByType) {
+                            res[key] = totalByType.get(key)!;
+                        }
+                        logger.log(root, 'Compacting user completed ' + u.id + ' with ' + totalEvents + ' events and deleted ' + totalDeleted + ' events: ' + JSON.stringify(res));
                         break;
                     }
                     totalEvents += nextCursor.addedEvents;
