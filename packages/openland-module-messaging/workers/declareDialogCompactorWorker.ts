@@ -98,7 +98,7 @@ export function declareDialogCompactorWorker() {
                     });
                     if (!nextCursor) {
                         let res: any = {};
-                        for (let key in totalByType) {
+                        for (let key of totalByType.keys()) {
                             res[key] = totalByType.get(key)!;
                         }
                         logger.log(root, 'Compacting user completed ' + u.id + ' with ' + totalEvents + ' events and deleted ' + totalDeleted + ' events: ' + JSON.stringify(res));
