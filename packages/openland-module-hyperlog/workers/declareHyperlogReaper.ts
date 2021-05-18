@@ -2,6 +2,7 @@ import { inTx } from '@openland/foundationdb';
 import { singletonWorker } from '@openland/foundationdb-singleton';
 import { Store } from 'openland-module-db/FDB';
 import { HyperLogEvent } from 'openland-module-db/store';
+import { Modules } from 'openland-modules/Modules';
 export function declareHyperlogReaper() {
     const whiteList: string[] = [
         'wallet_payment_event',
@@ -17,10 +18,10 @@ export function declareHyperlogReaper() {
         let cursor: Buffer | null = null;
         while (true) {
             await inTx(parent, async (ctx) => {
-                let ex = await Store.HyperLogStore.find(ctx, { batchSize: 10000, after: cursor ? cursor : undefined });
+                let ex = await Store.HyperLogStore.find(ctx, { batchSize: Modules.Super.getNumber('hyperlog-reaper-batch', 1000), after: cursor ? cursor : undefined });
                 for (let e of ex) {
                     cursor = e.key;
-                    
+
                     if (!(e.event instanceof HyperLogEvent)) {
                         Store.HyperLogStore.deleteKey(ctx, e.key);
                         continue;
