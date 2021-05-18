@@ -3,15 +3,19 @@ import { inTx, withoutTransaction } from '@openland/foundationdb';
 import { singletonWorker } from '@openland/foundationdb-singleton';
 import { Store } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
+import { BoundedConcurrencyPool } from 'openland-utils/ConcurrencyPool';
 
 const logger = createLogger('compactor');
 
 export function declareDialogCompactorWorker() {
     singletonWorker({ db: Store.storage.db, name: 'dialog-compactor', delay: 10000 }, async (parent) => {
+        
+        const concurrency = new BoundedConcurrencyPool(() => Modules.Super.getNumber('concurrency-dialog-compactor', 20));
+
         // Iterate for each user
-        await Store.User.iterateAllItems(parent, 100, async (ictx, items) => {
+        await Store.User.iterateAllItems(parent, 1000, async (ictx, items) => {
             const root = withoutTransaction(ictx);
-            for (let u of items) {
+            await Promise.all(items.map((u) => concurrency.run(async () => {
                 logger.log(root, 'Compacting user ' + u.id);
 
                 //
@@ -88,7 +92,7 @@ export function declareDialogCompactorWorker() {
                         previous.set(key, nextCursor.added.get(key)!);
                     }
                 }
-            }
+            })));
         });
     });
 }

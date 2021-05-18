@@ -70,6 +70,15 @@ export class SuperModule {
         }
     }
 
+    getNumber(name: string, fallback: number) {
+        const res = this.getCached<number>(name);
+        if (res === null) {
+            return fallback;
+        } else {
+            return res;
+        }
+    }
+
     prepare = async () => {
         await this.envVarsRepo.start();
     }
