@@ -28,6 +28,7 @@ export function declareDialogCompactorWorker() {
                 let cursor: Buffer | undefined;
                 const previous = new Map<string, Buffer>();
                 const maxReceivedMid = new Map<number, number>();
+                const totalByType = new Map<string, number>();
 
                 //
                 // For each event
@@ -49,7 +50,9 @@ export function declareDialogCompactorWorker() {
                         let deletedEvents = 0;
                         const added = new Map<string, Buffer>();
                         const deleted = new Set<string>();
+                        const totalByTypeRead = new Map<string, number>();
                         for (let e of bb) {
+                            totalByTypeRead.set(e.event.type, (totalByTypeRead.get(e.event.type) || 0) + 1);
 
                             // Messages compactor - ignore updates to older messages
                             if (e.event instanceof UserDialogMessageReceivedEvent || e.event instanceof UserDialogMessageUpdatedEvent || e.event instanceof UserDialogMessageDeletedEvent) {
@@ -91,10 +94,10 @@ export function declareDialogCompactorWorker() {
                             }
                         }
 
-                        return { added, deleted, addedEvents, deletedEvents, next: bb[bb.length - 1].key };
+                        return { added, deleted, addedEvents, deletedEvents, next: bb[bb.length - 1].key, totalByTypeRead };
                     });
                     if (!nextCursor) {
-                        logger.log(root, 'Compacting user completed ' + u.id + ' with ' + totalEvents + ' events and deleted ' + totalDeleted + ' events');
+                        logger.log(root, 'Compacting user completed ' + u.id + ' with ' + totalEvents + ' events and deleted ' + totalDeleted + ' events: ', (Object as any).fromEntries(totalByType));
                         break;
                     }
                     totalEvents += nextCursor.addedEvents;
@@ -105,6 +108,9 @@ export function declareDialogCompactorWorker() {
                     cursor = nextCursor.next;
                     for (let key in nextCursor.added) {
                         previous.set(key, nextCursor.added.get(key)!);
+                    }
+                    for (let key in nextCursor.totalByTypeRead) {
+                        totalByType.set(key, (totalByType.get(key) || 0) + nextCursor.totalByTypeRead.get(key)!);
                     }
                 }
             })));
