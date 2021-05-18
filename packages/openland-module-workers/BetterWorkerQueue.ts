@@ -9,6 +9,7 @@ import { QueueStorage } from './QueueStorage';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import { createTracer } from 'openland-log/createTracer';
 import { batch } from 'openland-utils/batch';
+import { Modules } from 'openland-modules/Modules';
 
 const log = createLogger('worker');
 
@@ -94,14 +95,14 @@ export class BetterWorkerQueue<ARGS> {
             }
         });
         let awaitTask = async () => {
-            let w = delayBreakable(1000);
+            let w = delayBreakable(Modules.Super.getNumber('workers-await-delay', 1000));
             awaiter = w.resolver;
             await w.promise;
         };
 
         let completedAwait: (() => void) | undefined;
         let awaitCompleted = async () => {
-            let w = delayBreakable(1000);
+            let w = delayBreakable(Modules.Super.getNumber('workers-await-delay', 1000));
             completedAwait = w.resolver;
             await w.promise;
         };
