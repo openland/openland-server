@@ -4,7 +4,7 @@ import { singletonWorker } from '@openland/foundationdb-singleton';
 import { Store } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
 import { BoundedConcurrencyPool } from 'openland-utils/ConcurrencyPool';
-import { UserDialogMessageReceivedEvent, UserDialogMessageUpdatedEvent } from 'openland-module-db/store';
+import { UserDialogMessageDeletedEvent, UserDialogMessageReceivedEvent, UserDialogMessageUpdatedEvent } from 'openland-module-db/store';
 
 const logger = createLogger('compactor');
 
@@ -52,11 +52,12 @@ export function declareDialogCompactorWorker() {
                         for (let e of bb) {
 
                             // Messages compactor - ignore updates to older messages
-                            if (e.event instanceof UserDialogMessageReceivedEvent || e.event instanceof UserDialogMessageUpdatedEvent) {
+                            if (e.event instanceof UserDialogMessageReceivedEvent || e.event instanceof UserDialogMessageUpdatedEvent || e.event instanceof UserDialogMessageDeletedEvent) {
                                 let ex = maxReceivedMid.get(e.event.cid);
                                 if (ex && ex > e.event.mid) {
                                     // Remove event
                                     Store.UserDialogEventStore.deleteKey(ctx, u.id, e.key);
+                                    deletedEvents++;
                                     continue;
                                 }
                                 maxReceivedMid.set(e.event.cid, e.event.mid);
