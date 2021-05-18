@@ -1,4 +1,4 @@
-import { UserDialogBumpEvent, UserDialogCallStateChangedEvent, UserDialogGotAccessEvent, UserDialogLostAccessEvent, UserDialogMessageReadEvent, UserDialogMessageReceivedEvent, UserDialogMessageUpdatedEvent, UserDialogMuteChangedEvent, UserDialogPeerUpdatedEvent, UserDialogPhotoUpdatedEvent, UserDialogTitleUpdatedEvent, UserDialogVoiceChatStateChangedEvent } from 'openland-module-db/store';
+import { UserDialogBumpEvent, UserDialogCallStateChangedEvent, UserDialogGotAccessEvent, UserDialogLostAccessEvent, UserDialogMessageDeletedEvent, UserDialogMessageReadEvent, UserDialogMessageReceivedEvent, UserDialogMessageUpdatedEvent, UserDialogMuteChangedEvent, UserDialogPeerUpdatedEvent, UserDialogPhotoUpdatedEvent, UserDialogTitleUpdatedEvent, UserDialogVoiceChatStateChangedEvent } from 'openland-module-db/store';
 import { encoders, inTx, Subspace, TupleItem } from '@openland/foundationdb';
 import { injectable, inject } from 'inversify';
 import { Context } from '@openland/context';
@@ -123,6 +123,9 @@ export class UserStateRepository {
             return 'dialog$received$' + src.cid;
         }
         if (src instanceof UserDialogMessageUpdatedEvent) {
+            return 'message$updated$' + src.mid;
+        }
+        if (src instanceof UserDialogMessageDeletedEvent) {
             return 'message$updated$' + src.mid;
         }
         if (src instanceof UserDialogMessageReadEvent) {

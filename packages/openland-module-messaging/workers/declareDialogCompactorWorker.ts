@@ -68,7 +68,7 @@ export function declareDialogCompactorWorker() {
 
                             const eventKey = Modules.Messaging.userState.calculateDialogEventKey(e.event);
                             addedEvents++;
-
+                            
                             if (eventKey !== null) {
 
                                 // Delete event from current transaction
