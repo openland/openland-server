@@ -27,7 +27,7 @@ export function declareDialogCompactorWorker() {
                 let totalDeleted = 0;
                 let cursor: Buffer | undefined;
                 const previous = new Map<string, Buffer>();
-                const maxReceivedMid = new Map<number, number>();
+                const topMid = new Map<number, { mid: number, receiveKey: Buffer | null, updateKey: Buffer | null, deleteKey: Buffer | null }>();
                 const totalByType = new Map<string, number>();
 
                 //
@@ -52,23 +52,81 @@ export function declareDialogCompactorWorker() {
                         const deleted = new Set<string>();
                         const totalByTypeRead = new Map<string, number>();
                         for (let e of bb) {
+                            let eventKey = Modules.Messaging.userState.calculateDialogEventKey(e.event);
+                            addedEvents++;
                             totalByTypeRead.set(e.event.type, (totalByTypeRead.get(e.event.type) || 0) + 1);
 
                             // Messages compactor - ignore updates to older messages
                             if (e.event instanceof UserDialogMessageReceivedEvent || e.event instanceof UserDialogMessageUpdatedEvent || e.event instanceof UserDialogMessageDeletedEvent) {
-                                let ex = maxReceivedMid.get(e.event.cid);
-                                if (ex && ex > e.event.mid) {
-                                    // Remove event
-                                    Store.UserDialogEventStore.deleteKey(ctx, u.id, e.key);
+                                let ex = topMid.get(e.event.cid);
+                                // Too old event
+                                if (ex && ex.mid > e.event.mid) {
+                                    addedEvents--;
                                     deletedEvents++;
+                                    Store.UserDialogEventStore.deleteKey(ctx, u.id, e.key);
                                     continue;
                                 }
-                                maxReceivedMid.set(e.event.cid, e.event.mid);
+
+                                // Current event
+                                if (ex && ex.mid === e.event.mid) {
+                                    if (e.event instanceof UserDialogMessageReceivedEvent) {
+                                        if (ex.receiveKey) {
+                                            addedEvents--;
+                                            deletedEvents++;
+                                            Store.UserDialogEventStore.deleteKey(ctx, u.id, ex.receiveKey);
+                                        }
+                                        ex.receiveKey = e.key;
+                                    } else if (e.event instanceof UserDialogMessageUpdatedEvent) {
+                                        if (ex.updateKey) {
+                                            addedEvents--;
+                                            deletedEvents++;
+                                            Store.UserDialogEventStore.deleteKey(ctx, u.id, ex.updateKey);
+                                        }
+                                        ex.updateKey = e.key;
+                                    } else {
+                                        if (ex.deleteKey) {
+                                            addedEvents--;
+                                            deletedEvents++;
+                                            Store.UserDialogEventStore.deleteKey(ctx, u.id, ex.deleteKey);
+                                        }
+                                        ex.deleteKey = e.key;
+                                    }
+                                    continue;
+                                }
+
+                                // Delete previous event
+                                //
+                                // There is a chance that updates would be mixed and deletion would be before receiving, or update after deletion and 
+                                // so on. We don't care much since eveything would self-heal on new message.
+                                //
+                                if (ex) {
+                                    if (ex.receiveKey) {
+                                        addedEvents--;
+                                        deletedEvents++;
+                                        Store.UserDialogEventStore.deleteKey(ctx, u.id, ex.receiveKey);
+                                    }
+                                    if (ex.updateKey) {
+                                        addedEvents--;
+                                        deletedEvents++;
+                                        Store.UserDialogEventStore.deleteKey(ctx, u.id, ex.updateKey);
+                                    }
+                                    if (ex.deleteKey) {
+                                        addedEvents--;
+                                        deletedEvents++;
+                                        Store.UserDialogEventStore.deleteKey(ctx, u.id, ex.deleteKey);
+                                    }
+                                }
+
+                                // Register new
+                                topMid.set(e.event.cid, {
+                                    mid: e.event.mid,
+                                    receiveKey: e.event instanceof UserDialogMessageReceivedEvent ? e.key : null,
+                                    deleteKey: e.event instanceof UserDialogMessageDeletedEvent ? e.key : null,
+                                    updateKey: e.event instanceof UserDialogMessageUpdatedEvent ? e.key : null
+                                });
+                                continue;
                             }
 
-                            const eventKey = Modules.Messaging.userState.calculateDialogEventKey(e.event);
-                            addedEvents++;
-                            
                             if (eventKey !== null) {
 
                                 // Delete event from current transaction
