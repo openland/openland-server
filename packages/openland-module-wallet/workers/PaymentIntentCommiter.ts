@@ -21,11 +21,11 @@ import { inTx } from '@openland/foundationdb';
 //
 
 export function startPaymentIntentCommiter(mediator: PaymentMediator) {
-    
+
     const log = createLogger('commiter');
-    
-    updateReader('stripe-payment-intent-' + (mediator.liveMode ? 'live' : 'test'), 1, Store.StripeEventStore.createStream(mediator.liveMode, { batchSize: 10 }), async (items, first, parent) => {
-        for (let i of items) {
+
+    updateReader('stripe-payment-intent-' + (mediator.liveMode ? 'live' : 'test'), 1, Store.StripeEventStore.createStream(mediator.liveMode, { batchSize: 10 }), async (args, parent) => {
+        for (let i of args.items) {
             let e = (i as StripeEventCreated);
             if (e.eventType === 'payment_intent.succeeded' || e.eventType === 'payment_intent.canceled') {
                 let eventData = await inTx(parent, async (ctx) => {

@@ -21,16 +21,16 @@ export function invitesIndexer() {
         updatedAt: {
             type: 'date'
         }
-    }).start(async (item, parent) => {
-        let user = await inTx(parent, async (ctx) => await Store.UserProfile.findById(ctx, item.creatorId));
+    }).start(async (args, parent) => {
+        let user = await inTx(parent, async (ctx) => await Store.UserProfile.findById(ctx, args.item.creatorId));
 
         return {
-            id: item.id!!,
+            id: args.item.id!!,
             doc: {
-                uid: item.creatorId,
+                uid: args.item.creatorId,
                 name: user ? ((user.firstName || '') + ' ' + (user.lastName || '')) : 'unknown',
-                createdAt: (item as any).createdAt,
-                updatedAt: (item as any).updatedAt,
+                createdAt: (args.item as any).createdAt,
+                updatedAt: (args.item as any).updatedAt,
             }
         };
     });

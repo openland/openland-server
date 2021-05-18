@@ -26,13 +26,13 @@ fi
 
 Script
 ```
-wget https://www.foundationdb.org/downloads/6.2.20/ubuntu/installers/foundationdb-clients_6.2.20-1_amd64.deb
-wget https://www.foundationdb.org/downloads/6.2.20/ubuntu/installers/foundationdb-server_6.2.20-1_amd64.deb
+wget https://storage.googleapis.com/openland-distrib/foundationdb-clients_6.2.20-1_amd64.deb
+wget https://storage.googleapis.com/openland-distrib/foundationdb-server_6.2.20-1_amd64.deb
 sudo dpkg -i foundationdb-clients_6.2.20-1_amd64.deb
 sudo dpkg -i foundationdb-server_6.2.20-1_amd64.deb
 
-service foundationdb stop
-sudo echo "LfYwBoAP:CJKgoyyf5r9egRead2kVPeGNfB25GVoh@10.138.0.15:4500,10.138.0.16:4500,10.138.0.17:4500,10.138.0.18:4500,10.138.0.19:4500" > /etc/foundationdb/fdb.cluster
+sudo service foundationdb stop
+sudo echo "LfYwBoAP:MNrUxed7DA2LrkoAD817TejtsL5j84vX@10.128.0.33:4500,10.138.0.9:4500,10.168.0.7:4500,10.180.0.2:4500,10.182.0.2:4500" > /etc/foundationdb/fdb.cluster
 ```
 
 Config
@@ -52,3 +52,31 @@ logdir = /mnt/disks/data/foundationdb
 [fdbserver.4500]
 class=storage
 ```
+
+### Install Node Exporter
+
+wget https://github.com/prometheus/node_exporter/releases/download/v1.1.2/node_exporter-1.1.2.linux-amd64.tar.gz
+tar -xvf node_exporter*
+sudo mv node_exporter*/node_exporter /usr/local/bin
+sudo useradd -rs /bin/false node_exporter
+sudo nano /etc/systemd/system/node_exporter.service
+
+```
+[Unit]
+Description=Node Exporter
+After=network.target
+
+[Service]
+User=node_exporter
+Group=node_exporter
+Type=simple
+ExecStart=/usr/local/bin/node_exporter
+
+[Install]
+WantedBy=multi-user.target
+```
+
+sudo systemctl daemon-reload
+sudo systemctl start node_exporter
+sudo systemctl enable node_exporter
+sudo systemctl status node_exporter

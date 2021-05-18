@@ -123,3 +123,4 @@ Mission DC:
 * Mission openland-elastic-1: 10.12.126.50
 * Mission staging-elastic: 10.12.55.42
 * Mission infra-nsolid: 10.12.202.146
+* Mission prometheus: 10.12.0.15

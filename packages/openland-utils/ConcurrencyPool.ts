@@ -11,16 +11,20 @@ export const UnboundedConcurrencyPool: ConcurrencyPool = {
 };
 
 export class BoundedConcurrencyPool implements ConcurrencyPool {
-    readonly concurrencyFactor: number;
+    private concurrencyFactor: () => number;
     private inFlight = 0;
     private pending: (() => void)[] = [];
 
-    constructor(concurrencyFactor: number) {
-        this.concurrencyFactor = concurrencyFactor;
+    constructor(concurrencyFactor: number | (() => number)) {
+        if (typeof concurrencyFactor === 'number') {
+            this.concurrencyFactor = () => concurrencyFactor;
+        } else {
+            this.concurrencyFactor = concurrencyFactor;
+        }
     }
 
     async run<T>(src: () => Promise<T>): Promise<T> {
-        if (this.inFlight >= this.concurrencyFactor) {
+        if (this.inFlight >= this.concurrencyFactor()) {
             await new Promise<void>((resolve) => this.pending.push(resolve));
         }
         this.inFlight++;

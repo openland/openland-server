@@ -90,18 +90,18 @@ export function userProfileIndexer() {
             }
         }
     })
-        .start(async (item, parent) => {
+        .start(async (args, parent) => {
         return await inTx(parent, async (ctx) => {
-            let profile = (await Store.UserProfile.findById(ctx, item.id));
-            let user = await Store.User.findById(ctx, item.id);
-            let userSettings = await Store.UserSettings.findById(ctx, item.id);
+            let profile = (await Store.UserProfile.findById(ctx, args.item.id));
+            let user = await Store.User.findById(ctx, args.item.id);
+            let userSettings = await Store.UserSettings.findById(ctx, args.item.id);
 
             if (!profile || !user) {
                 return null;
             }
 
-            let shortName = await Modules.Shortnames.findShortnameByOwner(ctx, 'user', item.id);
-            let orgs = await Modules.Orgs.findUserOrganizations(ctx, item.id);
+            let shortName = await Modules.Shortnames.findShortnameByOwner(ctx, 'user', args.item.id);
+            let orgs = await Modules.Orgs.findUserOrganizations(ctx, args.item.id);
 
             let searchData: (string | undefined | null)[] = [];
             searchData.push(profile.firstName);
@@ -125,17 +125,17 @@ export function userProfileIndexer() {
                     about = m.join(' ');
                 }
             }
-            let chats = (await Store.RoomParticipant.userActive.findAll(ctx, item.id)).map(p => p.cid);
+            let chats = (await Store.RoomParticipant.userActive.findAll(ctx, args.item.id)).map(p => p.cid);
 
             return {
-                id: item.id!!,
+                id: args.item.id!!,
                 doc: {
                     firstName: profile.firstName,
                     lastName: profile.lastName || undefined,
                     name: (profile.firstName || '') + ' ' + (profile.lastName || ''),
                     nameKeyword: ((profile.firstName || '') + ' ' + (profile.lastName || '')).toLowerCase(),
                     shortName: shortName ? shortName.shortname : undefined,
-                    userId: item.id,
+                    userId: args.item.id,
                     search: searchData.join(' '),
                     about: about,
                     primaryOrganization: profile.primaryOrganization || undefined,
@@ -145,8 +145,8 @@ export function userProfileIndexer() {
                     letInvitedByName: invitedByName,
                     ivitedByName: invitedByName,
                     status: user!.status,
-                    createdAt: item.metadata.createdAt,
-                    updatedAt: item.metadata.updatedAt
+                    createdAt: args.item.metadata.createdAt,
+                    updatedAt: args.item.metadata.updatedAt
                 }
             };
         });

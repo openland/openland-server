@@ -20,14 +20,14 @@ export function badgeIndexer() {
         banned: {
             type: 'boolean',
         },
-    }).start(async (item) => {
+    }).start(async (args) => {
         return {
             doc: {
-                emoji: item.emoji,
-                text: item.text,
-                global: item.global,
-                banned: item.banned,
-            }, id: item.id,
+                emoji: args.item.emoji,
+                text: args.item.text,
+                global: args.item.global,
+                banned: args.item.banned,
+            }, id: args.item.id,
         };
     });
 }

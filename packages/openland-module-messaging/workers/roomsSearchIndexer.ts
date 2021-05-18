@@ -67,10 +67,10 @@ export function roomsSearchIndexer() {
             }
         }
     })
-        .start(async (item, parent) => {
+        .start(async (args, parent) => {
         return await inTx(parent, async (ctx) => {
-            let room = await Store.ConversationRoom.findById(ctx, item.id);
-            let conv = await Store.Conversation.findById(ctx, item.id);
+            let room = await Store.ConversationRoom.findById(ctx, args.item.id);
+            let conv = await Store.Conversation.findById(ctx, args.item.id);
 
             if (!room) {
                 throw new Error('Room not found');
@@ -92,12 +92,12 @@ export function roomsSearchIndexer() {
             }
 
             return {
-                id: item.id,
+                id: args.item.id,
                 doc: {
-                    title: item.title,
-                    cid: item.id,
-                    createdAt: item.metadata.createdAt,
-                    updatedAt: item.metadata.updatedAt,
+                    title: args.item.title,
+                    cid: args.item.id,
+                    createdAt: args.item.metadata.createdAt,
+                    updatedAt: args.item.metadata.updatedAt,
                     featured: room.featured === true,
                     listed: isListed || false,
                     membersCount: membersCount,
@@ -105,7 +105,7 @@ export function roomsSearchIndexer() {
                     orgKind: org ? org.kind : undefined,
                     isChannel: room.isChannel || false,
                     isPremium: room.isPremium || false,
-                    messagesCount: await Store.RoomMessagesCounter.get(ctx, item.id)
+                    messagesCount: await Store.RoomMessagesCounter.get(ctx, args.item.id)
                 }
             };
         });

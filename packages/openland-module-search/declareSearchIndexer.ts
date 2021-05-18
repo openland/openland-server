@@ -32,6 +32,7 @@ export class SearchIndexer<T, P extends SearchIndexerProperties, S> {
     settings?: any;
     readonly excludedClusters: string[];
     readonly includedClusters: string[];
+    afterProcessed?: (cursor: string, ctx: Context) => void | Promise<void>;
 
     constructor(opts: { name: string, version: number, index: string, stream: Stream<T>, excludedClusters?: string[], includedClusters?: string[] }) {
         this.name = opts.name;
@@ -40,6 +41,11 @@ export class SearchIndexer<T, P extends SearchIndexerProperties, S> {
         this.stream = opts.stream;
         this.excludedClusters = opts.excludedClusters || [];
         this.includedClusters = opts.includedClusters || [];
+    }
+
+    withAfterHandler(handler: (cursor: string, ctx: Context) => void | Promise<void>) {
+        this.afterProcessed = handler;
+        return this;
     }
 
     withProperties<Pr extends SearchIndexerProperties>(properties: Pr) {
@@ -70,7 +76,7 @@ export class SearchIndexer<T, P extends SearchIndexerProperties, S> {
         return indexer;
     }
 
-    start(handler: (item: T, ctx: Context) => Promise<{ id: string | number, doc: HandlerReturnType<P> } | null>) {
+    start(handler: (args: { item: T, cursor: string | null }, ctx: Context) => Promise<{ id: string | number, doc: HandlerReturnType<P> } | null>) {
         let clusters: string[] = Modules.Search.elastic.clusters;
 
         // Start indexer for each cluster
@@ -102,8 +108,8 @@ export class SearchIndexer<T, P extends SearchIndexerProperties, S> {
 
             log.log(rootCtx, 'Start indexer: ' + name + '(' + cluster + ')');
 
-            updateReader('index-' + name, this.version, this.stream, async (items, first, ctx) => {
-                if (first) {
+            updateReader('index-' + name, this.version, this.stream, async (args, ctx) => {
+                if (args.first) {
                     if (await client.indices.exists({ index: this.index }) !== true) {
                         log.log(ctx, 'Creating index ' + name);
                         await client.indices.create({ index: this.index });
@@ -154,10 +160,10 @@ export class SearchIndexer<T, P extends SearchIndexerProperties, S> {
                     }
                 }
                 let converted: any[] = [];
-                for (let i of items) {
+                for (let i of args.items) {
                     // TODO: Reimplement
                     // log.log(ctx, this.name, 'Indexing ' + i.rawId.join('.'));
-                    let c = await handler(i, ctx);
+                    let c = await handler({ item: i, cursor: args.cursor }, ctx);
                     if (c) {
                         converted.push({
                             index: {
@@ -184,6 +190,9 @@ export class SearchIndexer<T, P extends SearchIndexerProperties, S> {
                         log.warn(ctx, e);
                         throw e;
                     }
+                }
+                if (this.afterProcessed && args.cursor) {
+                    await this.afterProcessed(args.cursor, ctx);
                 }
             }, { delay: 0 });
         }

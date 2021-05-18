@@ -1,8 +1,10 @@
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 import { Store } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
-import { inTx } from '@openland/foundationdb';
+import { inTx, keyIncrement } from '@openland/foundationdb';
 import { DialogNeedReindexEvent } from '../../openland-module-db/store';
+
+const ZERO = Buffer.from([]);
 
 export function dialogSearchIndexer() {
     declareSearchIndexer({
@@ -29,13 +31,19 @@ export function dialogSearchIndexer() {
         uid2: {
             type: 'integer'
         }
-    }).start(async (event, parent) => {
-        if (event.type !== 'dialogNeedReindexEvent') {
+    }).withAfterHandler(async (cursor, parent) => {
+        // Delete all previous
+        let bc = Buffer.from(cursor, 'base64');
+        await inTx(parent, async (ctx) => {
+            Store.DialogIndexEventStore.descriptor.subspace.clearRange(ctx, ZERO, keyIncrement(bc));
+        });
+    }).start(async (args, parent) => {
+        if (args.item.type !== 'dialogNeedReindexEvent') {
             return null;
         }
 
         return await inTx(parent, async (ctx) => {
-            let item = event.raw as DialogNeedReindexEvent;
+            let item = args.item.raw as DialogNeedReindexEvent;
 
             let title: string;
             try {
