@@ -110,10 +110,10 @@ export function declareDialogCompactorWorker() {
                         logger.log(root, 'Deleted from user ' + u.id + ' ' + nextCursor.deletedEvents + ' events');
                     }
                     cursor = nextCursor.next;
-                    for (let key in nextCursor.added) {
+                    for (let key of nextCursor.added.keys()) {
                         previous.set(key, nextCursor.added.get(key)!);
                     }
-                    for (let key in nextCursor.totalByTypeRead) {
+                    for (let key of nextCursor.totalByTypeRead.keys()) {
                         totalByType.set(key, (totalByType.get(key) || 0) + nextCursor.totalByTypeRead.get(key)!);
                     }
                 }
