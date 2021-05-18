@@ -26,10 +26,10 @@ fi
 
 Script
 ```
-wget https://storage.googleapis.com/openland-distrib/foundationdb-clients_6.2.20-1_amd64.deb
-wget https://storage.googleapis.com/openland-distrib/foundationdb-server_6.2.20-1_amd64.deb
-sudo dpkg -i foundationdb-clients_6.2.20-1_amd64.deb
-sudo dpkg -i foundationdb-server_6.2.20-1_amd64.deb
+wget https://storage.googleapis.com/openland-distrib/foundationdb-clients_6.3.12-1_amd64.deb
+wget https://storage.googleapis.com/openland-distrib/foundationdb-server_6.3.12-1_amd64.deb
+sudo dpkg -i foundationdb-clients_6.3.12-1_amd64.deb
+sudo dpkg -i foundationdb-server_6.3.12-1_amd64.deb
 
 sudo service foundationdb stop
 sudo echo "LfYwBoAP:MNrUxed7DA2LrkoAD817TejtsL5j84vX@10.128.0.33:4500,10.138.0.9:4500,10.168.0.7:4500,10.180.0.2:4500,10.182.0.2:4500" > /etc/foundationdb/fdb.cluster
