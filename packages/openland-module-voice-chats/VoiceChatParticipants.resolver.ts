@@ -51,7 +51,11 @@ export const Resolver: GQLResolver = {
     },
     Query: {
         voiceChatListeners: async (root, args, ctx) => {
-            let query = await Store.VoiceChatParticipant.listeners.query(ctx, IDs.Conversation.parse(args.id), { afterCursor: args.after });
+            let query = await Store.VoiceChatParticipant.listeners.query(ctx, IDs.Conversation.parse(args.id), {
+                afterCursor: args.after,
+                limit: args.first
+            });
+
             return {
                 cursor: query.cursor,
                 items: query.items,
@@ -59,7 +63,11 @@ export const Resolver: GQLResolver = {
             };
         },
         voiceChatHandRaised: async (root, args, ctx) => {
-            let query = await Store.VoiceChatParticipant.handRaised.query(ctx, IDs.Conversation.parse(args.id), { afterCursor: args.after });
+            let query = await Store.VoiceChatParticipant.handRaised.query(ctx, IDs.Conversation.parse(args.id), {
+                afterCursor: args.after,
+                limit: args.first
+            });
+
             return {
                 cursor: query.cursor,
                 items: query.items,
