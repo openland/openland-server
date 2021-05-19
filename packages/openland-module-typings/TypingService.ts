@@ -20,12 +20,12 @@ export class TypingService {
         // Add new groups
         for (let g of groups) {
             if (!this.groups.has(g)) {
-                this.groups.set(g, EventBus.subscribe('group.' + g + '.typings', (body) => {
+                this.groups.set(g, EventBus.subscribe('ephemeral', 'group.' + g + '.typings', (body) => {
                     let cid = body.cid as number;
                     let uid = body.uid as number;
                     let type = body.type as TypingTypeRoot;
                     let cancel = body.type as boolean;
-                    EventBus.publish('user.' + this.user.uid + '.typings', { cid, type, uid, cancel });
+                    EventBus.publish('ephemeral', 'user.' + this.user.uid + '.typings', { cid, type, uid, cancel });
                 }));
             }
         }

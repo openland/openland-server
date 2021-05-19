@@ -20,7 +20,7 @@ export class PresenceUserService {
 
     async start() {
         this.sync.invalidate();
-        this.subscription = EventBus.subscribe(`presences.users-notify.${this.user.uid}`, () => {
+        this.subscription = EventBus.subscribe('ephemeral', `presences.users-notify.${this.user.uid}`, () => {
             this.sync.invalidate();
         });
     }
@@ -35,7 +35,7 @@ export class PresenceUserService {
             return { online: onlineData, readVersiion };
         });
 
-        EventBus.publish(`presences.user.${this.user.uid}`, online.online);
+        EventBus.publish('ephemeral', `presences.user.${this.user.uid}`, online.online);
 
         if (!online.online.lastSeen) {
             return;
@@ -45,7 +45,7 @@ export class PresenceUserService {
         }
         let groups = this.user.getActiveGroups();
         for (let g of groups) {
-            EventBus.publish(`presences.groups-notify.${g}`, { uid: this.user.uid, timeout: online.online.lastSeen.timeout, readVersiion: online.readVersiion.toString('hex') });
+            EventBus.publish('ephemeral', `presences.groups-notify.${g}`, { uid: this.user.uid, timeout: online.online.lastSeen.timeout, readVersiion: online.readVersiion.toString('hex') });
         }
     }
 

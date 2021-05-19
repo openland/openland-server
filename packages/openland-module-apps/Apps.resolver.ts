@@ -147,7 +147,7 @@ export const Resolver: GQLResolver = {
             });
         }),
         userEventBusPublish: withAccount(async (parent, args, uid) => {
-            EventBus.publish(`user_bus.${uid}.${args.topic}`, { message: args.message });
+            EventBus.publish('ephemeral', `user_bus.${uid}.${args.topic}`, { message: args.message });
             return true;
         }),
         globalEventBusPublish: withAccount(async (parent, args, uid) => {
@@ -168,7 +168,7 @@ export const Resolver: GQLResolver = {
                 }
 
                 let iterator = createIterator<any>(() => 0);
-                let sub = EventBus.subscribe(`user_bus.${uid}.${args.topic}`, data => iterator.push(data));
+                let sub = EventBus.subscribe('ephemeral', `user_bus.${uid}.${args.topic}`, data => iterator.push(data));
                 onContextCancel(ctx, () => sub.cancel());
 
                 return iterator;

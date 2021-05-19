@@ -225,7 +225,7 @@ export class DistributedCollector {
 
     constructor(factory: MetricFactory) {
         this.#factory = factory;
-        EventBus.subscribe('metric', this.#onMetric);
+        EventBus.subscribe('metrics', 'metric', this.#onMetric);
 
         let metrics = this.#factory.getAllMetrics();
         for (let gauge of metrics.gauges) {

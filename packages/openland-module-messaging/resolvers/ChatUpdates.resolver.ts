@@ -129,7 +129,7 @@ export const Resolver: GQLResolver = {
                 // New event source
                 let generator = Store.ConversationEventStore.createLiveStream(ctx, chatId, { batchSize: 20, after: after || undefined });
                 let haveAccess = true;
-                let subscription = EventBus.subscribe(`chat_leave_${chatId}`, (ev: { uid: number, cid: number }) => {
+                let subscription = EventBus.subscribe('default', `chat_leave_${chatId}`, (ev: { uid: number, cid: number }) => {
                     if (ev.uid === uid) {
                         haveAccess = false;
                     }

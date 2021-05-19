@@ -3,12 +3,13 @@ import { createLogger } from '@openland/log';
 import { delayBreakable, foreverBreakable, currentRunningTime } from 'openland-utils/timer';
 import { Shutdown } from 'openland-utils/Shutdown';
 import { EventBus } from 'openland-module-pubsub/EventBus';
-import { getTransaction, inTx, TransactionCache } from '@openland/foundationdb';
+import { getTransaction, inTx, TransactionCache, withTxPriority } from '@openland/foundationdb';
 import { Context, createNamedContext } from '@openland/context';
 import { QueueStorage } from './QueueStorage';
 import { Metrics } from 'openland-module-monitoring/Metrics';
 import { createTracer } from 'openland-log/createTracer';
 import { batch } from 'openland-utils/batch';
+import { Modules } from 'openland-modules/Modules';
 
 const log = createLogger('worker');
 
@@ -68,7 +69,7 @@ export class BetterWorkerQueue<ARGS> {
             getTransaction(ctx).afterCommit(() => {
                 // tslint:disable-next-line:no-floating-promises
                 versionStamp.promise.then((vt) => {
-                    EventBus.publish(this.topic, { vs: vt.toString('hex') });
+                    EventBus.publish('default', this.topic, { vs: vt.toString('hex') });
                 });
             });
         }
@@ -87,21 +88,21 @@ export class BetterWorkerQueue<ARGS> {
 
         // Task Awaiting
         let awaiter: (() => void) | undefined;
-        EventBus.subscribe(this.topic, () => {
+        EventBus.subscribe('default', this.topic, () => {
             if (awaiter) {
                 awaiter();
                 awaiter = undefined;
             }
         });
         let awaitTask = async () => {
-            let w = delayBreakable(1000);
+            let w = delayBreakable(Modules.Super.getNumber('workers-await-delay', 1000));
             awaiter = w.resolver;
             await w.promise;
         };
 
         let completedAwait: (() => void) | undefined;
         let awaitCompleted = async () => {
-            let w = delayBreakable(1000);
+            let w = delayBreakable(Modules.Super.getNumber('workers-await-delay', 1000));
             completedAwait = w.resolver;
             await w.promise;
         };
@@ -133,6 +134,7 @@ export class BetterWorkerQueue<ARGS> {
         let seed = Buffer.alloc(16);
         uuid(undefined, seed);
         let root = createNamedContext('worker-' + this.queue.name);
+        root = withTxPriority(root, 'batch');
         let rootExec = createNamedContext('task-' + this.queue.name);
         let workLoop = foreverBreakable(root, async () => {
 

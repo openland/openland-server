@@ -43,7 +43,7 @@ export class FeedRepository {
 
             // Subscribe for own topic
             await this.subscribe(parent, key, key);
-            
+
             return res;
         });
     }
@@ -227,7 +227,7 @@ export class FeedRepository {
             if (!feedEvent) {
                 throw new NotFoundError();
             }
-            getTransaction(ctx).afterCommit(() => EventBus.publish('edit_post', { id: feedEvent!.id, tid: feedEvent!.tid }));
+            getTransaction(ctx).afterCommit(() => EventBus.publish('default', 'edit_post', { id: feedEvent!.id, tid: feedEvent!.tid }));
             return true;
         });
     }

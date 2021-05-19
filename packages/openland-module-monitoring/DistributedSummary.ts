@@ -19,7 +19,7 @@ export class DistributedSummary {
     report = (value: number) => {
         if (Config.enableReporting) {
             let time = Date.now();
-            EventBus.publish('metric', {
+            EventBus.publish('metrics', 'metric', {
                 type: 'summary',
                 name: this.name,
                 value: value,

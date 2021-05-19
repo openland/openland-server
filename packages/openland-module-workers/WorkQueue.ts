@@ -34,7 +34,7 @@ export class WorkQueue<ARGS> {
         return await inTx(parent, async (ctx) => {
             getTransaction(ctx).afterCommit(() => {
                 if (!startAt) {
-                    EventBus.publish(this.pubSubTopic, {});
+                    EventBus.publish('default', this.pubSubTopic, {});
                 }
             });
             // Do UNSAFE task creation since there won't be conflicts because our is is guaranteed to be unique (uuid)
@@ -57,7 +57,7 @@ export class WorkQueue<ARGS> {
         let working = true;
         const lockSeed = uuid();
         let awaiter: (() => void) | undefined;
-        EventBus.subscribe(this.pubSubTopic, () => {
+        EventBus.subscribe('default', this.pubSubTopic, () => {
             if (awaiter) {
                 awaiter();
                 awaiter = undefined;
@@ -120,7 +120,7 @@ export class WorkQueue<ARGS> {
                 // let start = currentTime();
                 let breakDelay: (() => void) | undefined;
                 let lockLoop = foreverBreakable(root, async () => {
-                    let d = await delayBreakable(10000);
+                    let d = delayBreakable(10000);
                     breakDelay = d.resolver;
                     await d.promise;
                     await inTx(root, async ctx => {

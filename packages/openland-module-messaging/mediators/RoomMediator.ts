@@ -940,7 +940,7 @@ export class RoomMediator {
             let muted = (await this.userState.getRoomSettings(ctx, uid, cid)).mute;
             await this.messaging.counters.subscribe(ctx, { cid, uid, seq: chatLastSeq, muted });
 
-            EventBus.publish(`chat_join_${cid}`, { uid, cid });
+            EventBus.publish('default', `chat_join_${cid}`, { uid, cid });
             // Events.MembersLog.event(ctx, { rid: cid, delta: 1 });
 
             let room = await Store.ConversationRoom.findById(ctx, cid);
@@ -1044,7 +1044,7 @@ export class RoomMediator {
             if (await this.repo.isPublicCommunityChat(ctx, cid)) {
                 Store.UserAudienceCounter.add(ctx, uid, (roomProfile!.activeMembersCount ? (roomProfile!.activeMembersCount) : 0) * -1);
             }
-            EventBus.publish(`chat_leave_${cid}`, { uid, cid });
+            EventBus.publish('default', `chat_leave_${cid}`, { uid, cid });
 
             let userRoomBadge = await Store.UserRoomBadge.findById(ctx, uid, cid);
 

@@ -5,7 +5,7 @@ import { container } from 'openland-modules/Modules.container';
 
 export async function createBroker() {
     const broker = new ServiceBroker({
-        transporter: Config.redis ? Config.redis.endpoint : 'TCP',
+        transporter: Config.redisMoleculer ? Config.redisMoleculer.endpoint : 'TCP',
         serializer: 'ProtoBuf'
     });
     container.bind('Broker').toConstantValue(broker);

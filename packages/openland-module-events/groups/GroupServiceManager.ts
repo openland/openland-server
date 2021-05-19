@@ -22,7 +22,7 @@ export class GroupServiceShard {
     }
 
     async init() {
-        this.subscription = EventBus.subscribe('groups.shard.' + this.shard + '.keep-alive', (src) => {
+        this.subscription = EventBus.subscribe('ephemeral', 'groups.shard.' + this.shard + '.keep-alive', (src) => {
             let cid = src.cid as number;
             this.services.keepAlive(cid);
         });
@@ -100,7 +100,7 @@ export class GroupServiceManager {
             return;
         }
         let shard = getShardId(cid, ringSize);
-        EventBus.publish('groups.shard.' + shard + '.keep-alive', { cid });
+        EventBus.publish('ephemeral', 'groups.shard.' + shard + '.keep-alive', { cid });
         // log.debug(root, 'Report keepalive for user #' + uid + ' -> ' + shard);
     }
 

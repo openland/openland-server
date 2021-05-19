@@ -117,7 +117,7 @@ export class UserPresenceMediator {
         };
 
         // Create subscription
-        state.subscription = EventBus.subscribe(`presences.user.${uid}`, (data) => {
+        state.subscription = EventBus.subscribe('ephemeral', `presences.user.${uid}`, (data) => {
             if (state.completed) {
                 return;
             }
@@ -260,7 +260,7 @@ export class UserPresenceMediator {
             let now = Date.now();
             await this.repo.setOnline(ctx, uid, tid, now, now + timeout, active);
             getTransaction(ctx).afterCommit(() => {
-                EventBus.publish(`presences.users-notify.${uid}`, {});
+                EventBus.publish('ephemeral', `presences.users-notify.${uid}`, {});
             });
         });
     }
@@ -270,7 +270,7 @@ export class UserPresenceMediator {
             let now = Date.now();
             await this.repo.setOffline(ctx, uid, tid, now);
             getTransaction(ctx).afterCommit(() => {
-                EventBus.publish(`presences.users-notify.${uid}`, {});
+                EventBus.publish('ephemeral', `presences.users-notify.${uid}`, {});
             });
         });
     }

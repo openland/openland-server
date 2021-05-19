@@ -38,7 +38,7 @@ export class GroupPresenceMediator {
         };
 
         // Create subscription
-        state.subscription = EventBus.subscribe(`presences.group.${cid}`, (data) => {
+        state.subscription = EventBus.subscribe('ephemeral', `presences.group.${cid}`, (data) => {
             if (state.completed) {
                 return;
             }

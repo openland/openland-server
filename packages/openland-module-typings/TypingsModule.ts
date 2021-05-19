@@ -17,16 +17,16 @@ export class TypingsModule {
     public async setTyping(parent: Context, uid: number, cid: number, type: TypingTypeRoot) {
         let privateUid = await Modules.Messaging.room.isPrivate(parent, cid, uid);
         if (privateUid !== false) {
-            EventBus.publish('user.' + privateUid + '.typings', { cid, uid, type });
+            EventBus.publish('ephemeral', 'user.' + privateUid + '.typings', { cid, uid, type });
         } else {
-            EventBus.publish('group.' + cid + '.typings', { cid, uid, type });
+            EventBus.publish('ephemeral', 'group.' + cid + '.typings', { cid, uid, type });
         }
     }
 
     public createTypingStream(forUser: number) {
         let sub: EventBusSubcription | undefined;
         let iterator = createIterator<TypingEvent>(() => sub ? sub.cancel() : {});
-        sub = EventBus.subscribe('user.' + forUser + '.typings', (ev) => {
+        sub = EventBus.subscribe('ephemeral', 'user.' + forUser + '.typings', (ev) => {
             let cid = ev.cid as number;
             let uid = ev.uid as number;
             let type = ev.type as TypingTypeRoot;

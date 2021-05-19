@@ -3,6 +3,7 @@ import { Context } from '@openland/context';
 import { getTransaction, TransactionCache, withoutTransaction } from '@openland/foundationdb';
 import { onContextCancel, isContextCancelled } from '@openland/lifetime';
 import { Store } from './FDB';
+import { EventBus } from 'openland-module-pubsub/EventBus';
 
 const cache = new TransactionCache<Set<string>>('fast-watc-notify');
 
@@ -10,9 +11,9 @@ export function notifyFastWatch(ctx: Context, key: string) {
     let notifications = cache.get(ctx, 'fast-watch');
     if (!notifications) {
         notifications = new Set();
-        getTransaction(ctx).beforeCommit((ctx2) => {
+        getTransaction(ctx).afterCommit(() => {
             for (let n of notifications!) {
-                Store.storage.eventBus.publish(ctx2, 'fast-watch-' + n, {});
+                EventBus.publish('default', 'fast-watch-' + n, {});
             }
         });
     }
@@ -23,7 +24,7 @@ export async function fastWatch(parent: Context, key: string, lastVersion: numbe
     let aborted = false;
     let changed = false;
     let awaiter: (() => void) | undefined = undefined;
-    let subscription = Store.storage.eventBus.subscibe('fast-watch-' + key, () => {
+    let subscription = EventBus.subscribe('default', 'fast-watch-' + key, () => {
         if (awaiter) {
             awaiter();
             awaiter = undefined;

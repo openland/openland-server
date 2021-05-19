@@ -14,7 +14,7 @@ export class PresenceGroupService {
     }
 
     async start() {
-        this.subscription = EventBus.subscribe(`presences.groups-notify.${this.group.cid}`, (data) => {
+        this.subscription = EventBus.subscribe('ephemeral', `presences.groups-notify.${this.group.cid}`, (data) => {
             let uid = data.uid as number;
             let timeout = (data.timeout as number) - Date.now();
             if (timeout <= 0) {
@@ -59,7 +59,7 @@ export class PresenceGroupService {
         if (this.stopped) {
             return;
         }
-        EventBus.publish(`presences.group.${this.group.cid}`, { online: this.online });
+        EventBus.publish('ephemeral', `presences.group.${this.group.cid}`, { online: this.online });
     });
 
     async stop() {

@@ -55,7 +55,7 @@ export class TokenRepository {
 
             if (authToken) {
                 authToken.enabled = false;
-                EventBus.publish('auth_token_revoke', { tokens: [{ uuid: authToken.uuid, salt: authToken.salt }] });
+                EventBus.publish('default', 'auth_token_revoke', { tokens: [{ uuid: authToken.uuid, salt: authToken.salt }] });
             }
             this.loader.clear(token);
         });
@@ -67,7 +67,7 @@ export class TokenRepository {
 
             if (authToken) {
                 authToken.enabled = false;
-                await EventBus.publish('auth_token_revoke', { tokens: [{ uuid: authToken.uuid, salt: authToken.salt }] });
+                EventBus.publish('default', 'auth_token_revoke', { tokens: [{ uuid: authToken.uuid, salt: authToken.salt }] });
                 this.loader.clear(authToken.salt);
             }
         });
@@ -79,7 +79,7 @@ export class TokenRepository {
             tokens = tokens.filter(a => a.uuid !== exceptId);
             tokens.forEach(t => t.enabled = false);
             tokens.forEach(t => this.loader.clear(t.salt));
-            await EventBus.publish('auth_token_revoke', { tokens: tokens.map(t => ({ uuid: t.uuid, salt: t.salt })) });
+            await EventBus.publish('default', 'auth_token_revoke', { tokens: tokens.map(t => ({ uuid: t.uuid, salt: t.salt })) });
         });
     }
 }
