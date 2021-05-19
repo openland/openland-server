@@ -113,6 +113,10 @@ export class VoiceChatsRepository {
     #onChatActive = async (ctx: Context, id: number) => {
         let chat = await this.#getChatOrFail(ctx, id);
         if (chat.parentChat) {
+            // ignore already closed rooms
+            if (chat.duration) {
+                return;
+            }
             // Deliver event to users
             await this.delivery.onVoiceChatStateChanged(ctx, chat.parentChat, true);
 
