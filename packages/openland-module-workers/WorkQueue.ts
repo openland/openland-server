@@ -120,7 +120,7 @@ export class WorkQueue<ARGS> {
                 // let start = currentTime();
                 let breakDelay: (() => void) | undefined;
                 let lockLoop = foreverBreakable(root, async () => {
-                    let d = await delayBreakable(10000);
+                    let d = delayBreakable(10000);
                     breakDelay = d.resolver;
                     await d.promise;
                     await inTx(root, async ctx => {

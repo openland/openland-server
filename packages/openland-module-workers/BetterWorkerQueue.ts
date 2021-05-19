@@ -3,7 +3,7 @@ import { createLogger } from '@openland/log';
 import { delayBreakable, foreverBreakable, currentRunningTime } from 'openland-utils/timer';
 import { Shutdown } from 'openland-utils/Shutdown';
 import { EventBus } from 'openland-module-pubsub/EventBus';
-import { getTransaction, inTx, TransactionCache } from '@openland/foundationdb';
+import { getTransaction, inTx, TransactionCache, withTxPriority } from '@openland/foundationdb';
 import { Context, createNamedContext } from '@openland/context';
 import { QueueStorage } from './QueueStorage';
 import { Metrics } from 'openland-module-monitoring/Metrics';
@@ -134,6 +134,7 @@ export class BetterWorkerQueue<ARGS> {
         let seed = Buffer.alloc(16);
         uuid(undefined, seed);
         let root = createNamedContext('worker-' + this.queue.name);
+        root = withTxPriority(root, 'batch');
         let rootExec = createNamedContext('task-' + this.queue.name);
         let workLoop = foreverBreakable(root, async () => {
 
