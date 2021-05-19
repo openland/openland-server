@@ -43,6 +43,7 @@ import { UserReadSeqsDirectory } from '../openland-module-messaging/repositories
 import fetch from 'node-fetch';
 import { CacheRepository } from '../openland-module-cache/CacheRepository';
 import { IndexMaintainer } from '@openland/foundationdb-entity/lib/indexes/IndexMaintainer';
+import { RequestContext } from '../openland-module-api/RequestContext';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -426,6 +427,10 @@ export const Resolver: GQLResolver = {
                 email: user?.email || null,
                 phone: user?.phone || null
             };
+        }),
+        debugGeo: withPermission('super-admin', async (ctx, args) => {
+            let data = RequestContext.get(ctx);
+            return `ip: ${data.ip}, location: ${data.location}, latLong: ${data.latLong}`;
         })
     },
     Mutation: {
