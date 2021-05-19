@@ -2651,6 +2651,15 @@ export const Resolver: GQLResolver = {
                         await Store.VoiceChatParticipantCounter.byId(item.id, 'admin').set(ctx, 0);
 
                         await Modules.VoiceChats.chats.endChat(ctx, item.startedBy!, item.id);
+
+                        if (item.parentChat) {
+                            // Deliver event to users
+                            await Modules.Messaging.delivery.onVoiceChatStateChanged(ctx, item.parentChat, false);
+
+                            // Deliver event to chat
+                            await Modules.Messaging.room.markConversationAsUpdated(ctx, item.parentChat, item.startedBy!);
+                            await Modules.Messaging.room.notifyRoomUpdated(ctx, item.parentChat);
+                        }
                     }
                 });
                 return 'done';
