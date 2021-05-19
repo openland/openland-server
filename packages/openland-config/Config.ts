@@ -46,6 +46,9 @@ const codec = t.type({
     redis: t.union([t.type({
         endpoint: t.string
     }), t.null, t.undefined]),
+    redisMoleculer: t.union([t.type({
+        endpoint: t.string
+    }), t.null, t.undefined]),
 
     pushWeb: t.union([
         t.type({
@@ -210,6 +213,17 @@ class ConfigProvider {
     get redis() {
         loadConfigIfNeeded();
         if (configuration!.redis) {
+            return configuration!.redis;
+        } else {
+            return null;
+        }
+    }
+
+    get redisMoleculer() {
+        loadConfigIfNeeded();
+        if (configuration!.redisMoleculer) {
+            return configuration!.redisMoleculer;
+        } else if (configuration!.redis) {
             return configuration!.redis;
         } else {
             return null;
