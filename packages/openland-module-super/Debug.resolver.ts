@@ -2650,7 +2650,7 @@ export const Resolver: GQLResolver = {
                         await Store.VoiceChatParticipantCounter.byId(item.id, 'speaker').set(ctx, 0);
                         await Store.VoiceChatParticipantCounter.byId(item.id, 'admin').set(ctx, 0);
 
-                        item.active = false;
+                        await Modules.VoiceChats.chats.endChat(ctx, item.startedBy!, item.id);
                     }
                 });
                 return 'done';
