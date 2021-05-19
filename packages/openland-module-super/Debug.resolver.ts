@@ -430,7 +430,7 @@ export const Resolver: GQLResolver = {
         }),
         debugGeo: withPermission('super-admin', async (ctx, args) => {
             let data = RequestContext.get(ctx);
-            return `ip: ${data.ip}, location: ${data.location}, latLong: ${data.latLong}`;
+            return `ip: ${data.ip}, location: ${JSON.stringify(data.location)}, latLong: ${JSON.stringify(data.latLong)}`;
         })
     },
     Mutation: {
