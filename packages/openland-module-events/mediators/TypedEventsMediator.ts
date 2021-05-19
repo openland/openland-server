@@ -20,7 +20,7 @@ const logger = createLogger('events');
 export class TypedEventsMediator {
 
     readonly registry = new RegistrationRepository(Store.EventRegistrationsDirectory);
-    readonly events = new EventsMediator(new EventsRepository(Store.EventStorageDirectory), EventBus);
+    readonly events = new EventsMediator(new EventsRepository(Store.EventStorageDirectory), EventBus.withShard('default'));
 
     //
     // User

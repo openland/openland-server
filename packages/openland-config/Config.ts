@@ -49,6 +49,12 @@ const codec = t.type({
     redisMoleculer: t.union([t.type({
         endpoint: t.string
     }), t.null, t.undefined]),
+    redisEphemeral: t.union([t.type({
+        endpoint: t.string
+    }), t.null, t.undefined]),
+    redisMetrics: t.union([t.type({
+        endpoint: t.string
+    }), t.null, t.undefined]),
 
     pushWeb: t.union([
         t.type({
@@ -223,6 +229,27 @@ class ConfigProvider {
         loadConfigIfNeeded();
         if (configuration!.redisMoleculer) {
             return configuration!.redisMoleculer;
+        } else if (configuration!.redis) {
+            return configuration!.redis;
+        } else {
+            return null;
+        }
+    }
+    get redisEphemeral() {
+        loadConfigIfNeeded();
+        if (configuration!.redisEphemeral) {
+            return configuration!.redisEphemeral;
+        } else if (configuration!.redis) {
+            return configuration!.redis;
+        } else {
+            return null;
+        }
+    }
+
+    get redisMetrics() {
+        loadConfigIfNeeded();
+        if (configuration!.redisMetrics) {
+            return configuration!.redisMetrics;
         } else if (configuration!.redis) {
             return configuration!.redis;
         } else {

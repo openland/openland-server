@@ -19,7 +19,7 @@ export class UserServiceShard {
     }
 
     async init() {
-        this.subscription = EventBus.subscribe('users.shard.' + this.shard + '.keep-alive', (src) => {
+        this.subscription = EventBus.subscribe('ephemeral', 'users.shard.' + this.shard + '.keep-alive', (src) => {
             let uid = src.uid as number;
             this.services.keepAlive(uid);
         });
@@ -69,7 +69,7 @@ export class UserServiceManager {
             return;
         }
         let shard = getShardId(uid, ringSize);
-        EventBus.publish('users.shard.' + shard + '.keep-alive', { uid });
+        EventBus.publish('ephemeral', 'users.shard.' + shard + '.keep-alive', { uid });
         // log.debug(root, 'Report keepalive for user #' + uid + ' -> ' + shard);
     }
 

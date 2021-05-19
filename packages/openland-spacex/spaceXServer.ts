@@ -179,7 +179,7 @@ export async function createSpaceXServer(params: SpaceXServerParams) {
         }
     });
 
-    EventBus.subscribe('auth_token_revoke', (data: { tokens: { uuid: string, salt: string }[] }) => {
+    EventBus.subscribe('default', 'auth_token_revoke', (data: { tokens: { uuid: string, salt: string }[] }) => {
         for (let token of data.tokens) {
             for (let entry of SpaceXConnections.entries()) {
                 let [, session] = entry;

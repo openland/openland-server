@@ -16,13 +16,13 @@ export class UnreliableEvents<T extends BaseEvent> {
 
     post = (topic: string, ev: T) => {
         let coded = Store.eventFactory.encode(ev);
-        EventBus.publish(this.#getSubTopicKey(topic), coded);
+        EventBus.publish('ephemeral', this.#getSubTopicKey(topic), coded);
     }
 
     createLiveStream = (ctx: Context, topic: string) => {
         let iterator = createIterator<T>(() => 0);
 
-        let subscription = EventBus.subscribe(this.#getSubTopicKey(topic), (data) => {
+        let subscription = EventBus.subscribe('ephemeral', this.#getSubTopicKey(topic), (data) => {
             iterator.push(Store.eventFactory.decode(data) as T);
         });
 
@@ -37,7 +37,7 @@ export class UnreliableEvents<T extends BaseEvent> {
     createCollapsingLiveStream = (ctx: Context, topic: string, config: { getCollapseKey: (ev: T) => string, delay?: number }) => {
         let iterator = createCollapsingIterator<T>(config, () => 0);
 
-        let subscription = EventBus.subscribe(this.#getSubTopicKey(topic), (data) => {
+        let subscription = EventBus.subscribe('ephemeral', this.#getSubTopicKey(topic), (data) => {
             iterator.push(Store.eventFactory.decode(data) as T);
         });
 

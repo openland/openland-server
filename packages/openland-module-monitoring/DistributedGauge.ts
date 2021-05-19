@@ -25,7 +25,7 @@ export class DistributedGauge {
     add = (value: number, key: string, timeout: number) => {
         if (Config.enableReporting) {
             let time = Date.now();
-            EventBus.publish('metric', {
+            EventBus.publish('metrics', 'metric', {
                 type: 'gauge',
                 name: this.name,
                 key: key,

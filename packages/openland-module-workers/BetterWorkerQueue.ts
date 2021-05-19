@@ -69,7 +69,7 @@ export class BetterWorkerQueue<ARGS> {
             getTransaction(ctx).afterCommit(() => {
                 // tslint:disable-next-line:no-floating-promises
                 versionStamp.promise.then((vt) => {
-                    EventBus.publish(this.topic, { vs: vt.toString('hex') });
+                    EventBus.publish('default', this.topic, { vs: vt.toString('hex') });
                 });
             });
         }
@@ -88,7 +88,7 @@ export class BetterWorkerQueue<ARGS> {
 
         // Task Awaiting
         let awaiter: (() => void) | undefined;
-        EventBus.subscribe(this.topic, () => {
+        EventBus.subscribe('default', this.topic, () => {
             if (awaiter) {
                 awaiter();
                 awaiter = undefined;
