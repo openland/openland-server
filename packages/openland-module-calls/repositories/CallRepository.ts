@@ -96,7 +96,7 @@ export class CallRepository {
     private _asyncKitchen: AsyncCallScheduler | null = null;
     get asyncKitchen(): AsyncCallScheduler {
         if (!this._asyncKitchen) {
-            this._asyncKitchen = new AsyncCallScheduler(Config.environment === 'production' ? this.schedulerKitchen : this.schedulerMesh, this);
+            this._asyncKitchen = new AsyncCallScheduler(Config.environment === 'production' ? this.schedulerKitchenGen2 : this.schedulerMesh, this);
         }
         return this._asyncKitchen;
     }
@@ -104,7 +104,7 @@ export class CallRepository {
     private _loggedKitchen: CallScheduler | null = null;
     get loggedKitchen(): CallScheduler {
         if (!this._loggedKitchen) {
-            this._loggedKitchen = new LoggedCallScheduler(Config.environment === 'production' ? this.schedulerKitchen : this.schedulerMesh);
+            this._loggedKitchen = new LoggedCallScheduler(Config.environment === 'production' ? this.schedulerKitchenGen2 : this.schedulerMesh);
         }
         return this._loggedKitchen;
     }
