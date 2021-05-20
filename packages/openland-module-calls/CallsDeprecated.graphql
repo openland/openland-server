@@ -71,6 +71,7 @@ enum ConferenceStrategy {
   MESH
   SFU
   ASYNC
+  SCALABLE
 }
 
 extend type Conference {

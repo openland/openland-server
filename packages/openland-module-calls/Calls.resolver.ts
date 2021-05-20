@@ -509,6 +509,8 @@ export const Resolver: GQLResolver = {
                         conf.scheduler = 'basic-sfu';
                     } else if (args.settings.strategy === 'ASYNC') {
                         conf.scheduler = 'async-sfu';
+                    } else if (args.settings.strategy === 'SCALABLE') {
+                        conf.scheduler = 'scalable-sfu';
                     } else {
                         conf.scheduler = null;
                     }

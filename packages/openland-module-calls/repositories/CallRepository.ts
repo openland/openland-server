@@ -1,4 +1,4 @@
-import { CallSchedulerKitchenGen2 } from './CallSchedulerKitchenGen2';
+import { CallSchedulerKitchenScalable } from './CallSchedulerKitchenScalable';
 import { Config } from 'openland-config/Config';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { CallSchedulerKitchen } from './CallSchedulerKitchen';
@@ -78,7 +78,7 @@ type AddPeerInput = {
 @injectable()
 export class CallRepository {
 
-    readonly defaultScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' = Config.environment === 'production' ? 'basic-sfu' : 'mesh';
+    readonly defaultScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | 'scalable-sfu' = Config.environment === 'production' ? 'basic-sfu' : 'mesh';
     readonly schedulerMesh = new CallSchedulerMesh('relay', this);
     readonly schedulerMeshNoRelay = new CallSchedulerMesh('all', this);
     readonly endStreamDirectory = new EndStreamDirectory(Store.EndStreamDirectory);
@@ -87,8 +87,8 @@ export class CallRepository {
 
     @lazyInject('CallSchedulerKitchen')
     readonly schedulerKitchen!: CallSchedulerKitchen;
-    @lazyInject('CallSchedulerKitchenGen2')
-    readonly schedulerKitchenGen2!: CallSchedulerKitchenGen2;
+    @lazyInject('CallSchedulerKitchenScalable')
+    readonly schedulerKitchenScalable!: CallSchedulerKitchenScalable;
     @lazyInject('DeliveryMediator')
     readonly delivery!: DeliveryMediator;
 
@@ -132,7 +132,7 @@ export class CallRepository {
         return res.active || false;
     }
 
-    getScheduler(kind: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null): CallScheduler {
+    getScheduler(kind: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | 'scalable-sfu' | null): CallScheduler {
         if (kind === 'mesh' || kind === null) {
             return this.schedulerMesh;
         } else if (kind === 'mesh-no-relay') {
@@ -144,6 +144,8 @@ export class CallRepository {
             return this.loggedKitchen;
         } else if (kind === 'async-sfu') {
             return this.asyncKitchen;
+        } else if (kind === 'scalable-sfu') {
+            return this.schedulerKitchenScalable;
         } else {
             throw Error('Unsupported scheduler: ' + kind);
         }

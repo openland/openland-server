@@ -8841,8 +8841,8 @@ export class CommentEventGlobalFactory extends EntityFactory<CommentEventGlobalS
 
 export interface ConferenceRoomShape {
     id: number;
-    scheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null;
-    currentScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null;
+    scheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | 'scalable-sfu' | null;
+    currentScheduler: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | 'scalable-sfu' | null;
     startTime: number | null;
     kind: 'conference' | 'stream' | null;
     screenSharingPeerId: number | null;
@@ -8851,8 +8851,8 @@ export interface ConferenceRoomShape {
 }
 
 export interface ConferenceRoomCreateShape {
-    scheduler?: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null | undefined;
-    currentScheduler?: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null | undefined;
+    scheduler?: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | 'scalable-sfu' | null | undefined;
+    currentScheduler?: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | 'scalable-sfu' | null | undefined;
     startTime?: number | null | undefined;
     kind?: 'conference' | 'stream' | null | undefined;
     screenSharingPeerId?: number | null | undefined;
@@ -8862,8 +8862,8 @@ export interface ConferenceRoomCreateShape {
 
 export class ConferenceRoom extends Entity<ConferenceRoomShape> {
     get id(): number { return this._rawValue.id; }
-    get scheduler(): 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null { return this._rawValue.scheduler; }
-    set scheduler(value: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null) {
+    get scheduler(): 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | 'scalable-sfu' | null { return this._rawValue.scheduler; }
+    set scheduler(value: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | 'scalable-sfu' | null) {
         let normalized = this.descriptor.codec.fields.scheduler.normalize(value);
         if (this._rawValue.scheduler !== normalized) {
             this._rawValue.scheduler = normalized;
@@ -8871,8 +8871,8 @@ export class ConferenceRoom extends Entity<ConferenceRoomShape> {
             this.invalidate();
         }
     }
-    get currentScheduler(): 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null { return this._rawValue.currentScheduler; }
-    set currentScheduler(value: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | null) {
+    get currentScheduler(): 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | 'scalable-sfu' | null { return this._rawValue.currentScheduler; }
+    set currentScheduler(value: 'mesh' | 'mesh-no-relay' | 'basic-sfu' | 'async-sfu' | 'scalable-sfu' | null) {
         let normalized = this.descriptor.codec.fields.currentScheduler.normalize(value);
         if (this._rawValue.currentScheduler !== normalized) {
             this._rawValue.currentScheduler = normalized;
@@ -8935,8 +8935,8 @@ export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, Co
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
-        fields.push({ name: 'scheduler', type: { type: 'optional', inner: { type: 'enum', values: ['mesh', 'mesh-no-relay', 'basic-sfu', 'async-sfu'] } }, secure: false });
-        fields.push({ name: 'currentScheduler', type: { type: 'optional', inner: { type: 'enum', values: ['mesh', 'mesh-no-relay', 'basic-sfu', 'async-sfu'] } }, secure: false });
+        fields.push({ name: 'scheduler', type: { type: 'optional', inner: { type: 'enum', values: ['mesh', 'mesh-no-relay', 'basic-sfu', 'async-sfu', 'scalable-sfu'] } }, secure: false });
+        fields.push({ name: 'currentScheduler', type: { type: 'optional', inner: { type: 'enum', values: ['mesh', 'mesh-no-relay', 'basic-sfu', 'async-sfu', 'scalable-sfu'] } }, secure: false });
         fields.push({ name: 'startTime', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
         fields.push({ name: 'kind', type: { type: 'optional', inner: { type: 'enum', values: ['conference', 'stream'] } }, secure: false });
         fields.push({ name: 'screenSharingPeerId', type: { type: 'optional', inner: { type: 'integer' } }, secure: false });
@@ -8944,8 +8944,8 @@ export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, Co
         fields.push({ name: 'active', type: { type: 'optional', inner: { type: 'boolean' } }, secure: false });
         let codec = c.struct({
             id: c.integer,
-            scheduler: c.optional(c.enum('mesh', 'mesh-no-relay', 'basic-sfu', 'async-sfu')),
-            currentScheduler: c.optional(c.enum('mesh', 'mesh-no-relay', 'basic-sfu', 'async-sfu')),
+            scheduler: c.optional(c.enum('mesh', 'mesh-no-relay', 'basic-sfu', 'async-sfu', 'scalable-sfu')),
+            currentScheduler: c.optional(c.enum('mesh', 'mesh-no-relay', 'basic-sfu', 'async-sfu', 'scalable-sfu')),
             startTime: c.optional(c.integer),
             kind: c.optional(c.enum('conference', 'stream')),
             screenSharingPeerId: c.optional(c.integer),

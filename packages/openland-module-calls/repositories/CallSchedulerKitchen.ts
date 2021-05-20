@@ -47,7 +47,7 @@ export class CallSchedulerKitchen implements CallScheduler {
             // Create peer
             let existing = await Store.ConferenceKitchenPeer.conferenceProducers.findAll(ctx, cid);
             let producerTransport = role === 'speaker' ? await this.transport.createProducerTransport(ctx, routerId, cid, pid, sources, capabilities) : null;
-            let consumerTransport = await this.transport.createConsumerTransport(ctx, routerId, cid, pid, existing.filter((v) => !!v.producerTransport).map((v) => v.producerTransport!), capabilities);
+            let consumerTransport = await this.transport.createConsumerTransport(ctx, routerId, cid, pid, existing.filter((v) => !!v.producerTransport).map((v) => v.producerTransport!), capabilities, true);
             await Store.ConferenceKitchenPeer.create(ctx, pid, {
                 cid,
                 capabilities,

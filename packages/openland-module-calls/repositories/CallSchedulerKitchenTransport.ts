@@ -281,7 +281,7 @@ export class CallSchedulerKitchenTransport {
         return id;
     }
 
-    createConsumerTransport = async (ctx: Context, router: string, cid: number, pid: number, consumes: string[], capabilities: Capabilities) => {
+    createConsumerTransport = async (ctx: Context, router: string, cid: number, pid: number, consumes: string[], capabilities: Capabilities, paused: boolean) => {
         // transport id
         let id = uuid();
 
@@ -305,7 +305,7 @@ export class CallSchedulerKitchenTransport {
             }
             if (producerTransport.audioProducer) {
                 if (producerTransport.produces.audioStream) {
-                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.audioProducer, { rtpCapabilities: getAudioRtpCapabilities(capabilities), paused: true });
+                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.audioProducer, { rtpCapabilities: getAudioRtpCapabilities(capabilities), paused });
                     consumers.push({
                         pid: producerTransport.pid,
                         consumer,
@@ -318,7 +318,7 @@ export class CallSchedulerKitchenTransport {
 
             if (producerTransport.videoProducer) {
                 if (producerTransport.produces.videoStream) {
-                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.videoProducer, { rtpCapabilities: getVideoCapabilities(capabilities), paused: true });
+                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.videoProducer, { rtpCapabilities: getVideoCapabilities(capabilities), paused });
                     consumers.push({
                         pid: producerTransport.pid,
                         consumer,
@@ -331,7 +331,7 @@ export class CallSchedulerKitchenTransport {
 
             if (producerTransport.screencastProducer) {
                 if (producerTransport.produces.screenCastStream) {
-                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.screencastProducer, { rtpCapabilities: getVideoCapabilities(capabilities), paused: true });
+                    let consumer = await this.repo.createConsumer(ctx, id, producerTransport.screencastProducer, { rtpCapabilities: getVideoCapabilities(capabilities), paused });
                     consumers.push({
                         pid: producerTransport.pid,
                         consumer,
