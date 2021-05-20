@@ -13,6 +13,39 @@ import { EventBus } from '../../openland-module-pubsub/EventBus';
 import { BaseEvent } from '@openland/foundationdb-entity';
 import { MessageReceivedEvent, MessageUpdatedEvent } from 'openland-module-db/store';
 import { isContextCancelled, onContextCancel } from '@openland/lifetime';
+import { batch } from '../../openland-utils/batch';
+
+function eventCollapseKey(obj: BaseEvent) {
+    if (obj instanceof MessageUpdatedEvent) {
+        return `message_updated_${obj.mid}`;
+    } if (obj instanceof ChatUpdatedEvent) {
+        return `chat_updated`;
+    } else {
+        return null;
+    }
+}
+
+function collapseEvents(events: BaseEvent[]) {
+    let seenEvents = new Set();
+    let res = [];
+
+    for (let i = events.length - 1; i >= 0; i--) {
+        let event = events[i];
+
+        let key = eventCollapseKey(event);
+        if (key === null) {
+            res.unshift(event);
+            continue;
+        }
+        if (seenEvents.has(key)) {
+            continue;
+        }
+        seenEvents.add(key);
+        res.unshift(event);
+    }
+
+    return res;
+}
 
 export const Resolver: GQLResolver = {
     ChatUpdateContainer: {
@@ -126,6 +159,33 @@ export const Resolver: GQLResolver = {
                     after = IDs.ChatUpdatesCursor.parse(args.fromState);
                 }
 
+                // Fetch old events
+                if (after) {
+                    let oldEvents: BaseEvent[] = [];
+                    let stream = Store.ConversationEventStore.createStream(chatId, { batchSize: 100, after });
+                    // Read all old events
+                    while (true) {
+                        let res = await stream.next(ctx);
+                        if (res.length === 0) {
+                            break;
+                        }
+
+                        oldEvents.push(...res);
+                    }
+
+                    let collapsedEvents = collapseEvents(oldEvents);
+
+                    for (let b of batch(collapsedEvents, 20)) {
+                        yield Store.ConversationEventStore.encodeRawLiveStreamItem({
+                            items: b,
+                            cursor: stream.cursor
+                        });
+                        await delay(100);
+                    }
+
+                    after = stream.cursor;
+                }
+
                 // New event source
                 let generator = Store.ConversationEventStore.createLiveStream(ctx, chatId, { batchSize: 20, after: after || undefined });
                 let haveAccess = true;
@@ -143,25 +203,7 @@ export const Resolver: GQLResolver = {
                 });
 
                 for await (let event of generator) {
-                    if (haveAccess) {
-                        let events: BaseEvent[] = [];
-                        for (let ev of event.items) {
-                            if (
-                                ev instanceof MessageReceivedEvent ||
-                                ev instanceof MessageUpdatedEvent ||
-                                ev instanceof MessageDeletedEvent
-                            ) {
-                                if (ev.visibleOnlyForUids && ev.visibleOnlyForUids.length > 0 && !ev.visibleOnlyForUids.includes(uid)) {
-                                    continue;
-                                }
-                            }
-                            events.push(ev);
-                        }
-                        yield Store.ConversationEventStore.encodeRawLiveStreamItem({
-                            items: events,
-                            cursor: event.cursor
-                        });
-                    } else {
+                    if (!haveAccess) {
                         subscription.cancel();
                         yield lostAccessEvent;
                         while (!isContextCancelled(ctx)) {
@@ -169,6 +211,24 @@ export const Resolver: GQLResolver = {
                         }
                         return;
                     }
+
+                    let events: BaseEvent[] = [];
+                    for (let ev of event.items) {
+                        if (
+                            ev instanceof MessageReceivedEvent ||
+                            ev instanceof MessageUpdatedEvent ||
+                            ev instanceof MessageDeletedEvent
+                        ) {
+                            if (ev.visibleOnlyForUids && ev.visibleOnlyForUids.length > 0 && !ev.visibleOnlyForUids.includes(uid)) {
+                                continue;
+                            }
+                        }
+                        events.push(ev);
+                    }
+                    yield Store.ConversationEventStore.encodeRawLiveStreamItem({
+                        items: collapseEvents(events),
+                        cursor: event.cursor
+                    });
                 }
             }
         },
