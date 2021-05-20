@@ -1,6 +1,8 @@
-import { MediaKitchenService } from '../kitchen/MediaKitchenService';
-import { MediaKitchenRepository } from '../kitchen/MediaKitchenRepository';
+import { CallRepository } from './../repositories/CallRepository';
+import { Context } from '@openland/context';
 
-export function declareScalableProdcucerWorker(service: MediaKitchenService, repo: MediaKitchenRepository) {
-    // Producer workers
+export function declareScalableWorker(repo: CallRepository) {
+    repo.schedulerScalable.producersWorker.addWorker(10, async (ctx: Context, items) => {
+        await repo.schedulerScalable.mediator.onProducerJob(ctx, items[0].cid, items);
+    });
 }
