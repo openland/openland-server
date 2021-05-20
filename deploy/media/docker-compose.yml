@@ -1,0 +1,25 @@
+services:
+  mediakitchen:
+    image: openland/mediakitchen:v10
+    network_mode: host
+    restart: always
+    environment:
+      - MEDIAKITCHEN_DC=europe-west2
+      - MEDIAKITCHEN_DETECT_IP=true
+      - DEBUG=*
+      - MEDIAKITCHEN_NATS=nats://nats.services.openlandservers.com:4222
+  coturn:
+    image: instrumentisto/coturn:4.5.1.1
+    network_mode: host
+    restart: always
+    command:
+      - -n
+      - --log-file=stdout
+      - --lt-cred-mech
+      - --no-tlsv1
+      - --no-tlsv1_1
+      - --fingerprint
+      - --realm=openland.com
+      - --user=user:emFsdXBhCg
+      - --listening-ip=0.0.0.0
+      - --external-ip=$$(detect-external-ip)
