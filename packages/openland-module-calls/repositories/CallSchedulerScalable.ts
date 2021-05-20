@@ -94,7 +94,7 @@ export class CallSchedulerScalable implements CallScheduler {
     onStreamOffer = async (parent: Context, cid: number, pid: number, sid: string, offer: string, hints: StreamHint[] | null) => {
         logger.log(parent, 'Peer stream offer in ' + cid + ': ' + pid);
         await inTx(parent, async (ctx) => {
-            await this.producersWorker.pushWork(ctx, cid, { type: 'offer', cid, pid, sid, sdp: offer });
+            await this.producersWorker.pushWork(ctx, cid, { type: 'offer', cid, pid, sid, sdp: JSON.parse(offer).sdp });
         });
     }
 

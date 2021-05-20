@@ -1,3 +1,4 @@
+import { createLogger } from '@openland/log';
 import { EndStreamDirectory } from './../repositories/EndStreamDirectory';
 import { randomKey } from 'openland-utils/random';
 import { Context } from '@openland/context';
@@ -10,6 +11,8 @@ import { TRANSPORT_PARAMETERS } from 'openland-module-calls/kitchen/MediaKitchen
 import { extractOpusRtpParameters } from 'openland-module-calls/kitchen/extract';
 import { extractFingerprints } from 'openland-module-calls/sdp/extractFingerprints';
 import { createMediaDescription, generateSDP } from 'openland-module-calls/kitchen/sdp';
+
+const logger = createLogger('scalable');
 
 export type ScalableProducerPeerTask =
     | { type: 'add', cid: number, pid: number }
@@ -109,9 +112,17 @@ export class ScalableMediator {
         // Process offers
         let answers: { pid: number, id: string, sdp: string }[] = [];
         for (let offer of def.offers) {
-            let sdp = parseSDP(offer.sdp);
-            let fingerprints = extractFingerprints(sdp);
-            let rtpParameters = extractOpusRtpParameters(sdp.media[0]);
+            let sdp;
+            let fingerprints;
+            let rtpParameters;
+            try {
+                sdp = parseSDP(offer.sdp);
+                fingerprints = extractFingerprints(sdp);
+                rtpParameters = extractOpusRtpParameters(sdp.media[0]);
+            } catch (e) {
+                logger.warn(parent, e);
+                continue;
+            }
             let mid = rtpParameters.mid! + ''; // Why?
             let port = sdp.media[0].port;
 
