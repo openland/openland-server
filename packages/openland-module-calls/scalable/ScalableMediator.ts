@@ -144,7 +144,7 @@ export class ScalableMediator {
         this.endStreamDirectory.createStream(ctx, id, {
             pid,
             seq: 1,
-            state: 'wait-offer',
+            state: 'need-offer',
             localCandidates: [],
             remoteCandidates: [],
             localSdp: null,
