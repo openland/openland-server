@@ -47,6 +47,24 @@ function collapseEvents(events: BaseEvent[]) {
     return res;
 }
 
+function shouldIgnoreEventForUser(uid: number, event: BaseEvent) {
+    if (
+        event instanceof MessageReceivedEvent ||
+        event instanceof MessageUpdatedEvent ||
+        event instanceof MessageDeletedEvent
+    ) {
+        if (
+            event.visibleOnlyForUids &&
+            event.visibleOnlyForUids.length > 0 &&
+            !event.visibleOnlyForUids.includes(uid)
+        ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 export const Resolver: GQLResolver = {
     ChatUpdateContainer: {
         __resolveType(obj: ChatUpdateContainerRoot) {
@@ -172,6 +190,8 @@ export const Resolver: GQLResolver = {
 
                         oldEvents.push(...res);
                     }
+                    // Filter events not visible for current user
+                    oldEvents = oldEvents.filter(ev => !shouldIgnoreEventForUser(uid, ev));
 
                     let collapsedEvents = collapseEvents(oldEvents);
 
@@ -214,14 +234,8 @@ export const Resolver: GQLResolver = {
 
                     let events: BaseEvent[] = [];
                     for (let ev of event.items) {
-                        if (
-                            ev instanceof MessageReceivedEvent ||
-                            ev instanceof MessageUpdatedEvent ||
-                            ev instanceof MessageDeletedEvent
-                        ) {
-                            if (ev.visibleOnlyForUids && ev.visibleOnlyForUids.length > 0 && !ev.visibleOnlyForUids.includes(uid)) {
-                                continue;
-                            }
+                        if (shouldIgnoreEventForUser(uid, ev)) {
+                            continue;
                         }
                         events.push(ev);
                     }
