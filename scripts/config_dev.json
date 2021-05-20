@@ -9,6 +9,9 @@
     },
     "foundationdb": null,
     "nats": null,
+    "redis": {
+        "endpoint": "redis://localhost:6379/"
+    },
     "elasticsearch": {
         "primary": "default",
         "clusters": [

@@ -87,6 +87,7 @@ import { loadVoiceChatsModule } from '../openland-module-voice-chats/VoiceChats.
 import { VoiceChatsModule } from '../openland-module-voice-chats/VoiceChatsModule';
 import { createBroker } from 'openland-server/broker';
 import { EventBus } from 'openland-module-pubsub/EventBus';
+import { createHandyClient } from 'handy-redis';
 
 const logger = createLogger('starting');
 
@@ -114,6 +115,23 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
         });
         logger.log(ctx, 'NATS connected');
 
+        // Load Redis
+        const redis = createHandyClient({ url: Config.redis.endpoint });
+        container.bind('Redis').toConstantValue(redis);
+
+        if (Config.redisEphemeral) {
+            let redisEndpoint = new URL(Config.redisEphemeral.endpoint);
+            let host = redisEndpoint.hostname;
+            let port = parseInt(redisEndpoint.port, 10);
+            EventBus.registerShard('ephemeral', new RedisBusProvider(port, host));
+        }
+        if (Config.redisMetrics) {
+            let redisEndpoint = new URL(Config.redisMetrics.endpoint);
+            let host = redisEndpoint.hostname;
+            let port = parseInt(redisEndpoint.port, 10);
+            EventBus.registerShard('metrics', new RedisBusProvider(port, host));
+        }
+
         // Load Database
         let start = currentTime();
         let db = await openDatabase();
@@ -134,20 +152,6 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
                     logger.log(ctx, 'ClickHouse connected');
                 });
             });
-        }
-
-        // Load event bus
-        if (Config.redisEphemeral) {
-            let redis = new URL(Config.redisEphemeral.endpoint);
-            let host = redis.hostname;
-            let port = parseInt(redis.port, 10);
-            EventBus.registerShard('ephemeral', new RedisBusProvider(port, host));
-        }
-        if (Config.redisMetrics) {
-            let redis = new URL(Config.redisMetrics.endpoint);
-            let host = redis.hostname;
-            let port = parseInt(redis.port, 10);
-            EventBus.registerShard('metrics', new RedisBusProvider(port, host));
         }
     }
 

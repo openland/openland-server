@@ -15,6 +15,8 @@ import { createLogger } from '@openland/log';
 import { StatsModule } from '../openland-module-stats/StatsModule';
 import { loadMonitoringModule } from 'openland-module-monitoring/loadMonitoringModule';
 import { Modules } from './Modules';
+import { createHandyClient } from 'handy-redis';
+import { Config } from 'openland-config/Config';
 
 const logger = createLogger('environment');
 
@@ -25,6 +27,10 @@ export async function testEnvironmentStart(name: string) {
     // Reset container
     container.snapshot();
     container.unbindAll();
+
+    // Redis
+    const redis = createHandyClient({ url: Config.redis.endpoint });
+    container.bind('Redis').toConstantValue(redis);
 
     // Set Mock Email
     container.bind('EmailModule').toConstantValue(new EmailModuleMock());
@@ -59,7 +65,7 @@ const randStr = () => (Math.random() * Math.pow(2, 55)).toString(16);
 export async function randomTestUser(ctx: Context) {
     let users = container.get<UsersModule>(UsersModule);
     let email = 'test' + randStr() + '@openland.com';
-    let uid = (await users.createUser(ctx, {email})).id;
+    let uid = (await users.createUser(ctx, { email })).id;
     await users.createUserProfile(ctx, uid, { firstName: 'User Name' + Math.random() });
     await Modules.Events.mediator.prepareUser(ctx, uid);
     return { uid, email };
