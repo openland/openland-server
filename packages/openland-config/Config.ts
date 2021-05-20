@@ -43,9 +43,9 @@ const codec = t.type({
         user: t.string,
         password: t.string
     }),
-    redis: t.union([t.type({
+    redis: t.type({
         endpoint: t.string
-    }), t.null, t.undefined]),
+    }),
     redisMoleculer: t.union([t.type({
         endpoint: t.string
     }), t.null, t.undefined]),
@@ -218,11 +218,7 @@ class ConfigProvider {
 
     get redis() {
         loadConfigIfNeeded();
-        if (configuration!.redis) {
-            return configuration!.redis;
-        } else {
-            return null;
-        }
+        return configuration!.redis;
     }
 
     get redisMoleculer() {
