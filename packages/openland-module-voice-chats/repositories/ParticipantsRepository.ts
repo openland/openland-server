@@ -58,6 +58,11 @@ export class ParticipantsRepository {
     joinChat = async (ctx: Context, cid: number, uid: number, tid: string, role: 'admin' | 'speaker' | 'listener' | null = null) => {
         let chat = await this.#getChatOrFail(ctx, cid);
 
+        // ignore closed chats
+        if (!chat.active && chat.duration) {
+            return;
+        }
+
         let p = await this.#getOrCreateParticipant(ctx, cid, uid, tid);
         if (p.status === 'joined') {
             return p;

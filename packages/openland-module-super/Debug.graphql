@@ -133,6 +133,7 @@ extend type Query {
     debugUnreadChatsAsync(user: ID): [String!]!
     debugUnreadChatsDirect(user: ID): [String!]!
     debugUserAuthPoints(id: ID!): AuthPoint
+    debugGeo: String!
 }
 
 enum SuperNotificationType {

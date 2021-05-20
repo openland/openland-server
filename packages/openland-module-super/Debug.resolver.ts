@@ -43,6 +43,7 @@ import { UserReadSeqsDirectory } from '../openland-module-messaging/repositories
 import fetch from 'node-fetch';
 import { CacheRepository } from '../openland-module-cache/CacheRepository';
 import { IndexMaintainer } from '@openland/foundationdb-entity/lib/indexes/IndexMaintainer';
+import { RequestContext } from '../openland-module-api/RequestContext';
 
 const URLInfoService = createUrlInfoService();
 const rootCtx = createNamedContext('resolver-debug');
@@ -426,6 +427,10 @@ export const Resolver: GQLResolver = {
                 email: user?.email || null,
                 phone: user?.phone || null
             };
+        }),
+        debugGeo: withPermission('super-admin', async (ctx, args) => {
+            let data = RequestContext.get(ctx);
+            return `ip: ${data.ip}, location: ${JSON.stringify(data.location)}, latLong: ${JSON.stringify(data.latLong)}`;
         })
     },
     Mutation: {
@@ -2645,7 +2650,16 @@ export const Resolver: GQLResolver = {
                         await Store.VoiceChatParticipantCounter.byId(item.id, 'speaker').set(ctx, 0);
                         await Store.VoiceChatParticipantCounter.byId(item.id, 'admin').set(ctx, 0);
 
-                        item.active = false;
+                        await Modules.VoiceChats.chats.endChat(ctx, item.startedBy!, item.id);
+
+                        if (item.parentChat) {
+                            // Deliver event to users
+                            await Modules.Messaging.delivery.onVoiceChatStateChanged(ctx, item.parentChat, false);
+
+                            // Deliver event to chat
+                            await Modules.Messaging.room.markConversationAsUpdated(ctx, item.parentChat, item.startedBy!);
+                            await Modules.Messaging.room.notifyRoomUpdated(ctx, item.parentChat);
+                        }
                     }
                 });
                 return 'done';
