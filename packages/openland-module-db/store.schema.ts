@@ -129,6 +129,7 @@ import { messagingStore } from '../openland-module-messaging/Messaging.store';
 import { socialStore } from '../openland-module-social/Social.store';
 import { voiceChatsStore } from '../openland-module-voice-chats/VoiceChats.store';
 import { usersStore } from '../openland-module-users/Users.store';
+import { scalableStore } from '../openland-module-calls/scalable/ScalableRepository.store';
 
 export default declareSchema(() => {
 
@@ -1217,6 +1218,12 @@ export default declareSchema(() => {
     taskQueue('KitchenConsumerCreate');
     taskQueue('KitchenConsumerUnpause');
     taskQueue('KitchenConsumerDelete');
+
+    //
+    // Kitchen Scallable
+    //
+
+    scalableStore();
 
     //
     // Experience

@@ -31,6 +31,10 @@ export class ConversationLastSeqFactory extends AtomicIntegerFactory {
         return this._get(ctx, [cid]);
     }
 
+    snapshotGet(ctx: Context, cid: number) {
+        return this._snapshotGet(ctx, [cid]);
+    }
+
     set(ctx: Context, cid: number, value: number) {
         return this._set(ctx, [cid], value);
     }
@@ -67,6 +71,10 @@ export class AutoSubscribeWasExecutedForUserFactory extends AtomicBooleanFactory
         return this._get(ctx, [uid, targetType, targetId]);
     }
 
+    snapshotGet(ctx: Context, uid: number, targetType: 'room' | 'org', targetId: number) {
+        return this._snapshotGet(ctx, [uid, targetType, targetId]);
+    }
+
     set(ctx: Context, uid: number, targetType: 'room' | 'org', targetId: number, value: boolean) {
         return this._set(ctx, [uid, targetType, targetId], value);
     }
@@ -93,6 +101,10 @@ export class RoomParticipantsVersionFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, cid: number) {
         return this._get(ctx, [cid]);
+    }
+
+    snapshotGet(ctx: Context, cid: number) {
+        return this._snapshotGet(ctx, [cid]);
     }
 
     set(ctx: Context, cid: number, value: number) {
@@ -131,6 +143,10 @@ export class VoiceChatParticipantCounterFactory extends AtomicIntegerFactory {
         return this._get(ctx, [cid, role]);
     }
 
+    snapshotGet(ctx: Context, cid: number, role: 'listener' | 'speaker' | 'admin' | 'handRaised') {
+        return this._snapshotGet(ctx, [cid, role]);
+    }
+
     set(ctx: Context, cid: number, role: 'listener' | 'speaker' | 'admin' | 'handRaised', value: number) {
         return this._set(ctx, [cid, role], value);
     }
@@ -165,6 +181,10 @@ export class VoiceChatParticipantActiveFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, uid: number) {
         return this._get(ctx, [uid]);
+    }
+
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
     }
 
     set(ctx: Context, uid: number, value: number) {
@@ -203,6 +223,10 @@ export class ChatMediaCounterFactory extends AtomicIntegerFactory {
         return this._get(ctx, [cid, mediaType, forUid]);
     }
 
+    snapshotGet(ctx: Context, cid: number, mediaType: 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'LINK', forUid: number) {
+        return this._snapshotGet(ctx, [cid, mediaType, forUid]);
+    }
+
     set(ctx: Context, cid: number, mediaType: 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'LINK', forUid: number, value: number) {
         return this._set(ctx, [cid, mediaType, forUid], value);
     }
@@ -237,6 +261,10 @@ export class UserDialogReadMessageIdFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, uid: number, cid: number) {
         return this._get(ctx, [uid, cid]);
+    }
+
+    snapshotGet(ctx: Context, uid: number, cid: number) {
+        return this._snapshotGet(ctx, [uid, cid]);
     }
 
     set(ctx: Context, uid: number, cid: number, value: number) {
@@ -275,6 +303,10 @@ export class ConferenceRoomVersionFactory extends AtomicIntegerFactory {
         return this._get(ctx, [id]);
     }
 
+    snapshotGet(ctx: Context, id: number) {
+        return this._snapshotGet(ctx, [id]);
+    }
+
     set(ctx: Context, id: number, value: number) {
         return this._set(ctx, [id], value);
     }
@@ -309,6 +341,10 @@ export class ConferencePeerVersionFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, id: number) {
         return this._get(ctx, [id]);
+    }
+
+    snapshotGet(ctx: Context, id: number) {
+        return this._snapshotGet(ctx, [id]);
     }
 
     set(ctx: Context, id: number, value: number) {
@@ -347,6 +383,10 @@ export class ConferenceKitchenPeersCountFactory extends AtomicIntegerFactory {
         return this._get(ctx, [id]);
     }
 
+    snapshotGet(ctx: Context, id: string) {
+        return this._snapshotGet(ctx, [id]);
+    }
+
     set(ctx: Context, id: string, value: number) {
         return this._set(ctx, [id], value);
     }
@@ -381,6 +421,10 @@ export class ConferenceKitchenConsumersCountFactory extends AtomicIntegerFactory
 
     get(ctx: Context, id: string) {
         return this._get(ctx, [id]);
+    }
+
+    snapshotGet(ctx: Context, id: string) {
+        return this._snapshotGet(ctx, [id]);
     }
 
     set(ctx: Context, id: string, value: number) {
@@ -419,6 +463,10 @@ export class ConferenceKitchenProducersCountFactory extends AtomicIntegerFactory
         return this._get(ctx, [id]);
     }
 
+    snapshotGet(ctx: Context, id: string) {
+        return this._snapshotGet(ctx, [id]);
+    }
+
     set(ctx: Context, id: string, value: number) {
         return this._set(ctx, [id], value);
     }
@@ -455,6 +503,10 @@ export class ConferenceKitchenTransportsCountFactory extends AtomicIntegerFactor
         return this._get(ctx, [id]);
     }
 
+    snapshotGet(ctx: Context, id: string) {
+        return this._snapshotGet(ctx, [id]);
+    }
+
     set(ctx: Context, id: string, value: number) {
         return this._set(ctx, [id], value);
     }
@@ -469,6 +521,110 @@ export class ConferenceKitchenTransportsCountFactory extends AtomicIntegerFactor
 
     decrement(ctx: Context, id: string) {
         return this._decrement(ctx, [id]);
+    }
+}
+
+export class ConferenceScalableStartedFactory extends AtomicBooleanFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('conferenceScalableStarted');
+        return new ConferenceScalableStartedFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(id: number) {
+        return this._findById([id]);
+    }
+
+    get(ctx: Context, id: number) {
+        return this._get(ctx, [id]);
+    }
+
+    snapshotGet(ctx: Context, id: number) {
+        return this._snapshotGet(ctx, [id]);
+    }
+
+    set(ctx: Context, id: number, value: boolean) {
+        return this._set(ctx, [id], value);
+    }
+
+    invert(ctx: Context, id: number) {
+        return this._invert(ctx, [id]);
+    }
+}
+
+export class ConferenceScalablePeersCountFactory extends AtomicIntegerFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('conferenceScalablePeersCount');
+        return new ConferenceScalablePeersCountFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(id: number) {
+        return this._findById([id]);
+    }
+
+    get(ctx: Context, id: number) {
+        return this._get(ctx, [id]);
+    }
+
+    snapshotGet(ctx: Context, id: number) {
+        return this._snapshotGet(ctx, [id]);
+    }
+
+    set(ctx: Context, id: number, value: number) {
+        return this._set(ctx, [id], value);
+    }
+
+    add(ctx: Context, id: number, value: number) {
+        return this._add(ctx, [id], value);
+    }
+
+    increment(ctx: Context, id: number) {
+        return this._increment(ctx, [id]);
+    }
+
+    decrement(ctx: Context, id: number) {
+        return this._decrement(ctx, [id]);
+    }
+}
+
+export class ConferenceScalablePeersFactory extends AtomicBooleanFactory {
+
+    static async open(storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory('conferenceScalablePeers');
+        return new ConferenceScalablePeersFactory(storage, directory);
+    }
+
+    private constructor(storage: EntityStorage, subspace: Subspace) {
+        super(storage, subspace);
+    }
+
+    byId(cid: number, pid: number) {
+        return this._findById([cid, pid]);
+    }
+
+    get(ctx: Context, cid: number, pid: number) {
+        return this._get(ctx, [cid, pid]);
+    }
+
+    snapshotGet(ctx: Context, cid: number, pid: number) {
+        return this._snapshotGet(ctx, [cid, pid]);
+    }
+
+    set(ctx: Context, cid: number, pid: number, value: boolean) {
+        return this._set(ctx, [cid, pid], value);
+    }
+
+    invert(ctx: Context, cid: number, pid: number) {
+        return this._invert(ctx, [cid, pid]);
     }
 }
 
@@ -489,6 +645,10 @@ export class FeedChannelMembersCountFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, channelId: number) {
         return this._get(ctx, [channelId]);
+    }
+
+    snapshotGet(ctx: Context, channelId: number) {
+        return this._snapshotGet(ctx, [channelId]);
     }
 
     set(ctx: Context, channelId: number, value: number) {
@@ -527,6 +687,10 @@ export class FeedChannelPostsCountFactory extends AtomicIntegerFactory {
         return this._get(ctx, [channelId]);
     }
 
+    snapshotGet(ctx: Context, channelId: number) {
+        return this._snapshotGet(ctx, [channelId]);
+    }
+
     set(ctx: Context, channelId: number, value: number) {
         return this._set(ctx, [channelId], value);
     }
@@ -561,6 +725,10 @@ export class UserCounterFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, uid: number) {
         return this._get(ctx, [uid]);
+    }
+
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
     }
 
     set(ctx: Context, uid: number, value: number) {
@@ -599,6 +767,10 @@ export class UserMessagesSentCounterFactory extends AtomicIntegerFactory {
         return this._get(ctx, [uid]);
     }
 
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
+    }
+
     set(ctx: Context, uid: number, value: number) {
         return this._set(ctx, [uid], value);
     }
@@ -633,6 +805,10 @@ export class UserMessagesSentWeeklyCounterFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, uid: number) {
         return this._get(ctx, [uid]);
+    }
+
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
     }
 
     set(ctx: Context, uid: number, value: number) {
@@ -671,6 +847,10 @@ export class UserMessagesSentInDirectChatTotalCounterFactory extends AtomicInteg
         return this._get(ctx, [uid]);
     }
 
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
+    }
+
     set(ctx: Context, uid: number, value: number) {
         return this._set(ctx, [uid], value);
     }
@@ -705,6 +885,10 @@ export class UserMessagesReceivedCounterFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, uid: number) {
         return this._get(ctx, [uid]);
+    }
+
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
     }
 
     set(ctx: Context, uid: number, value: number) {
@@ -743,6 +927,10 @@ export class UserMessagesChatsCounterFactory extends AtomicIntegerFactory {
         return this._get(ctx, [uid]);
     }
 
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
+    }
+
     set(ctx: Context, uid: number, value: number) {
         return this._set(ctx, [uid], value);
     }
@@ -777,6 +965,10 @@ export class UserMessagesChannelsCounterFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, uid: number) {
         return this._get(ctx, [uid]);
+    }
+
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
     }
 
     set(ctx: Context, uid: number, value: number) {
@@ -815,6 +1007,10 @@ export class UserMessagesDirectChatsCounterFactory extends AtomicIntegerFactory 
         return this._get(ctx, [uid]);
     }
 
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
+    }
+
     set(ctx: Context, uid: number, value: number) {
         return this._set(ctx, [uid], value);
     }
@@ -849,6 +1045,10 @@ export class UserSuccessfulInvitesCounterFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, uid: number) {
         return this._get(ctx, [uid]);
+    }
+
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
     }
 
     set(ctx: Context, uid: number, value: number) {
@@ -887,6 +1087,10 @@ export class UserSuccessfulInvitesPrevWeekCounterFactory extends AtomicIntegerFa
         return this._get(ctx, [uid]);
     }
 
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
+    }
+
     set(ctx: Context, uid: number, value: number) {
         return this._set(ctx, [uid], value);
     }
@@ -921,6 +1125,10 @@ export class UserEmailSentCounterFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, uid: number) {
         return this._get(ctx, [uid]);
+    }
+
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
     }
 
     set(ctx: Context, uid: number, value: number) {
@@ -959,6 +1167,10 @@ export class UserBrowserPushSentCounterFactory extends AtomicIntegerFactory {
         return this._get(ctx, [uid]);
     }
 
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
+    }
+
     set(ctx: Context, uid: number, value: number) {
         return this._set(ctx, [uid], value);
     }
@@ -993,6 +1205,10 @@ export class UserMobilePushSentCounterFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, uid: number) {
         return this._get(ctx, [uid]);
+    }
+
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
     }
 
     set(ctx: Context, uid: number, value: number) {
@@ -1031,6 +1247,10 @@ export class UserEmailSentWeeklyCounterFactory extends AtomicIntegerFactory {
         return this._get(ctx, [uid]);
     }
 
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
+    }
+
     set(ctx: Context, uid: number, value: number) {
         return this._set(ctx, [uid], value);
     }
@@ -1065,6 +1285,10 @@ export class UserBrowserPushSentWeeklyCounterFactory extends AtomicIntegerFactor
 
     get(ctx: Context, uid: number) {
         return this._get(ctx, [uid]);
+    }
+
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
     }
 
     set(ctx: Context, uid: number, value: number) {
@@ -1103,6 +1327,10 @@ export class UserMobilePushSentWeeklyCounterFactory extends AtomicIntegerFactory
         return this._get(ctx, [uid]);
     }
 
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
+    }
+
     set(ctx: Context, uid: number, value: number) {
         return this._set(ctx, [uid], value);
     }
@@ -1137,6 +1365,10 @@ export class UserDialogCounterFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, uid: number, cid: number) {
         return this._get(ctx, [uid, cid]);
+    }
+
+    snapshotGet(ctx: Context, uid: number, cid: number) {
+        return this._snapshotGet(ctx, [uid, cid]);
     }
 
     set(ctx: Context, uid: number, cid: number, value: number) {
@@ -1175,6 +1407,10 @@ export class UserDialogHaveMentionFactory extends AtomicBooleanFactory {
         return this._get(ctx, [uid, cid]);
     }
 
+    snapshotGet(ctx: Context, uid: number, cid: number) {
+        return this._snapshotGet(ctx, [uid, cid]);
+    }
+
     set(ctx: Context, uid: number, cid: number, value: boolean) {
         return this._set(ctx, [uid, cid], value);
     }
@@ -1201,6 +1437,10 @@ export class NotificationCenterCounterFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, ncid: number) {
         return this._get(ctx, [ncid]);
+    }
+
+    snapshotGet(ctx: Context, ncid: number) {
+        return this._snapshotGet(ctx, [ncid]);
     }
 
     set(ctx: Context, ncid: number, value: number) {
@@ -1239,6 +1479,10 @@ export class UserAudienceCounterFactory extends AtomicIntegerFactory {
         return this._get(ctx, [uid]);
     }
 
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
+    }
+
     set(ctx: Context, uid: number, value: number) {
         return this._set(ctx, [uid], value);
     }
@@ -1273,6 +1517,10 @@ export class UserMessagesSentInDirectChatCounterFactory extends AtomicIntegerFac
 
     get(ctx: Context, uid: number, cid: number) {
         return this._get(ctx, [uid, cid]);
+    }
+
+    snapshotGet(ctx: Context, uid: number, cid: number) {
+        return this._snapshotGet(ctx, [uid, cid]);
     }
 
     set(ctx: Context, uid: number, cid: number, value: number) {
@@ -1311,6 +1559,10 @@ export class User2WayDirectChatsCounterFactory extends AtomicIntegerFactory {
         return this._get(ctx, [uid]);
     }
 
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
+    }
+
     set(ctx: Context, uid: number, value: number) {
         return this._set(ctx, [uid], value);
     }
@@ -1345,6 +1597,10 @@ export class GlobalStatisticsCountersFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, name: string) {
         return this._get(ctx, [name]);
+    }
+
+    snapshotGet(ctx: Context, name: string) {
+        return this._snapshotGet(ctx, [name]);
     }
 
     set(ctx: Context, name: string, value: number) {
@@ -1383,6 +1639,10 @@ export class UserGlobalCounterAllUnreadMessagesFactory extends AtomicIntegerFact
         return this._get(ctx, [uid]);
     }
 
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
+    }
+
     set(ctx: Context, uid: number, value: number) {
         return this._set(ctx, [uid], value);
     }
@@ -1417,6 +1677,10 @@ export class UserGlobalCounterUnreadMessagesWithoutMutedFactory extends AtomicIn
 
     get(ctx: Context, uid: number) {
         return this._get(ctx, [uid]);
+    }
+
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
     }
 
     set(ctx: Context, uid: number, value: number) {
@@ -1455,6 +1719,10 @@ export class UserGlobalCounterAllUnreadChatsFactory extends AtomicIntegerFactory
         return this._get(ctx, [uid]);
     }
 
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
+    }
+
     set(ctx: Context, uid: number, value: number) {
         return this._set(ctx, [uid], value);
     }
@@ -1489,6 +1757,10 @@ export class UserGlobalCounterUnreadChatsWithoutMutedFactory extends AtomicInteg
 
     get(ctx: Context, uid: number) {
         return this._get(ctx, [uid]);
+    }
+
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
     }
 
     set(ctx: Context, uid: number, value: number) {
@@ -1527,6 +1799,10 @@ export class UserHasFilledAboutFactory extends AtomicBooleanFactory {
         return this._get(ctx, [uid]);
     }
 
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
+    }
+
     set(ctx: Context, uid: number, value: boolean) {
         return this._set(ctx, [uid], value);
     }
@@ -1553,6 +1829,10 @@ export class UserReactionsGotFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, uid: number) {
         return this._get(ctx, [uid]);
+    }
+
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
     }
 
     set(ctx: Context, uid: number, value: number) {
@@ -1591,6 +1871,10 @@ export class UserReactionsGivenFactory extends AtomicIntegerFactory {
         return this._get(ctx, [uid]);
     }
 
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
+    }
+
     set(ctx: Context, uid: number, value: number) {
         return this._set(ctx, [uid], value);
     }
@@ -1625,6 +1909,10 @@ export class StatsRecordsFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, metricName: string) {
         return this._get(ctx, [metricName]);
+    }
+
+    snapshotGet(ctx: Context, metricName: string) {
+        return this._snapshotGet(ctx, [metricName]);
     }
 
     set(ctx: Context, metricName: string, value: number) {
@@ -1663,6 +1951,10 @@ export class RoomMessagesCounterFactory extends AtomicIntegerFactory {
         return this._get(ctx, [rid]);
     }
 
+    snapshotGet(ctx: Context, rid: number) {
+        return this._snapshotGet(ctx, [rid]);
+    }
+
     set(ctx: Context, rid: number, value: number) {
         return this._set(ctx, [rid], value);
     }
@@ -1697,6 +1989,10 @@ export class RoomActiveMembersPrevWeekCounterFactory extends AtomicIntegerFactor
 
     get(ctx: Context, rid: number) {
         return this._get(ctx, [rid]);
+    }
+
+    snapshotGet(ctx: Context, rid: number) {
+        return this._snapshotGet(ctx, [rid]);
     }
 
     set(ctx: Context, rid: number, value: number) {
@@ -1735,6 +2031,10 @@ export class StickerPackWasAddedFactory extends AtomicBooleanFactory {
         return this._get(ctx, [uid, pid]);
     }
 
+    snapshotGet(ctx: Context, uid: number, pid: number) {
+        return this._snapshotGet(ctx, [uid, pid]);
+    }
+
     set(ctx: Context, uid: number, pid: number, value: boolean) {
         return this._set(ctx, [uid, pid], value);
     }
@@ -1761,6 +2061,10 @@ export class ReaderEstimateFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, id: string) {
         return this._get(ctx, [id]);
+    }
+
+    snapshotGet(ctx: Context, id: string) {
+        return this._snapshotGet(ctx, [id]);
     }
 
     set(ctx: Context, id: string, value: number) {
@@ -1799,6 +2103,10 @@ export class LastAuthEmailSentTimeFactory extends AtomicIntegerFactory {
         return this._get(ctx, [email]);
     }
 
+    snapshotGet(ctx: Context, email: string) {
+        return this._snapshotGet(ctx, [email]);
+    }
+
     set(ctx: Context, email: string, value: number) {
         return this._set(ctx, [email], value);
     }
@@ -1833,6 +2141,10 @@ export class AuthEmailsSentCountFactory extends AtomicIntegerFactory {
 
     get(ctx: Context, email: string) {
         return this._get(ctx, [email]);
+    }
+
+    snapshotGet(ctx: Context, email: string) {
+        return this._snapshotGet(ctx, [email]);
     }
 
     set(ctx: Context, email: string, value: number) {
@@ -1871,6 +2183,10 @@ export class PhonebookJoinMessageSentForPhoneFactory extends AtomicBooleanFactor
         return this._get(ctx, [phone]);
     }
 
+    snapshotGet(ctx: Context, phone: string) {
+        return this._snapshotGet(ctx, [phone]);
+    }
+
     set(ctx: Context, phone: string, value: boolean) {
         return this._set(ctx, [phone], value);
     }
@@ -1897,6 +2213,10 @@ export class PhonebookUserImportedContactsFactory extends AtomicBooleanFactory {
 
     get(ctx: Context, uid: number) {
         return this._get(ctx, [uid]);
+    }
+
+    snapshotGet(ctx: Context, uid: number) {
+        return this._snapshotGet(ctx, [uid]);
     }
 
     set(ctx: Context, uid: number, value: boolean) {
@@ -25625,6 +25945,9 @@ export interface Store extends BaseStore {
     readonly ConferenceKitchenConsumersCount: ConferenceKitchenConsumersCountFactory;
     readonly ConferenceKitchenProducersCount: ConferenceKitchenProducersCountFactory;
     readonly ConferenceKitchenTransportsCount: ConferenceKitchenTransportsCountFactory;
+    readonly ConferenceScalableStarted: ConferenceScalableStartedFactory;
+    readonly ConferenceScalablePeersCount: ConferenceScalablePeersCountFactory;
+    readonly ConferenceScalablePeers: ConferenceScalablePeersFactory;
     readonly FeedChannelMembersCount: FeedChannelMembersCountFactory;
     readonly FeedChannelPostsCount: FeedChannelPostsCountFactory;
     readonly UserCounter: UserCounterFactory;
@@ -25849,6 +26172,7 @@ export interface Store extends BaseStore {
     readonly ConferencePeerKeepAliveDirectory: Subspace;
     readonly EndStreamDirectory: Subspace;
     readonly ConferenceSchedulingDirectory: Subspace;
+    readonly ConferenceScalableDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
     readonly EventStorageDirectory: Subspace;
@@ -25960,6 +26284,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ConferenceKitchenConsumersCountPromise = ConferenceKitchenConsumersCountFactory.open(storage);
     let ConferenceKitchenProducersCountPromise = ConferenceKitchenProducersCountFactory.open(storage);
     let ConferenceKitchenTransportsCountPromise = ConferenceKitchenTransportsCountFactory.open(storage);
+    let ConferenceScalableStartedPromise = ConferenceScalableStartedFactory.open(storage);
+    let ConferenceScalablePeersCountPromise = ConferenceScalablePeersCountFactory.open(storage);
+    let ConferenceScalablePeersPromise = ConferenceScalablePeersFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
     let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(storage);
     let UserCounterPromise = UserCounterFactory.open(storage);
@@ -26171,6 +26498,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ConferencePeerKeepAliveDirectoryPromise = storage.resolveCustomDirectory('conferencePeerKeepAlive');
     let EndStreamDirectoryPromise = storage.resolveCustomDirectory('endStream');
     let ConferenceSchedulingDirectoryPromise = storage.resolveCustomDirectory('conferenceScheduling');
+    let ConferenceScalableDirectoryPromise = storage.resolveCustomDirectory('conferenceScalable');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
     let EventStorageDirectoryPromise = storage.resolveCustomDirectory('eventStorage');
@@ -26239,6 +26567,9 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ConferenceKitchenConsumersCount: await ConferenceKitchenConsumersCountPromise,
         ConferenceKitchenProducersCount: await ConferenceKitchenProducersCountPromise,
         ConferenceKitchenTransportsCount: await ConferenceKitchenTransportsCountPromise,
+        ConferenceScalableStarted: await ConferenceScalableStartedPromise,
+        ConferenceScalablePeersCount: await ConferenceScalablePeersCountPromise,
+        ConferenceScalablePeers: await ConferenceScalablePeersPromise,
         FeedChannelMembersCount: await FeedChannelMembersCountPromise,
         FeedChannelPostsCount: await FeedChannelPostsCountPromise,
         UserCounter: await UserCounterPromise,
@@ -26450,6 +26781,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ConferencePeerKeepAliveDirectory: await ConferencePeerKeepAliveDirectoryPromise,
         EndStreamDirectory: await EndStreamDirectoryPromise,
         ConferenceSchedulingDirectory: await ConferenceSchedulingDirectoryPromise,
+        ConferenceScalableDirectory: await ConferenceScalableDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
         EventStorageDirectory: await EventStorageDirectoryPromise,
