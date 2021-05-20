@@ -82,11 +82,11 @@ describe('ScalableRepository', () => {
         });
 
         // Trying unregister
-        let total = 0;
+        // let total = 0;
         let p: Promise<void>[] = [];
         for (let i = 0; i < 100; i++) {
             p.push(inTx(parent, async (ctx) => {
-                total++;
+                // total++;
                 await repo.removePeer(ctx, 2, i);
             }));
         }
