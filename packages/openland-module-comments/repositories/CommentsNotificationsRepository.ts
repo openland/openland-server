@@ -66,10 +66,10 @@ export class CommentsNotificationsRepository {
             }
 
             let subscriptions = await Store.CommentsSubscription.peer.findAll(ctx, comment.peerType, comment.peerId);
-            for (let subscription of subscriptions) {
+            await Promise.all(subscriptions.map(async subscription => {
                 if (comment.uid === subscription.uid) {
                     // ignore self comment
-                    continue;
+                    return;
                 }
 
                 if (comment.peerType === 'message') {
@@ -78,11 +78,11 @@ export class CommentsNotificationsRepository {
                     let isMember = await Modules.Messaging.room.isRoomMember(ctx, subscription.uid, message.cid);
                     let conv = await Store.Conversation.findById(ctx, message.cid);
                     if (!conv) {
-                        continue;
+                        return;
                     }
 
                     if (conv.kind === 'room' && !isPublicChat && !isMember) {
-                        continue;
+                        return;
                     }
                 }
 
@@ -93,15 +93,15 @@ export class CommentsNotificationsRepository {
                 }
                 if (areNotificationsDisabled) {
                     // ignore disabled notifications
-                    continue;
+                    return;
                 }
                 if (subscription.status !== 'active') {
                     // ignore inactive subscription
-                    continue;
+                    return;
                 }
 
                 await Modules.NotificationCenter.sendNotification(ctx, subscription.uid, { content: [{ type: 'new_comment', commentId: comment.id }] });
-            }
+            }));
         });
     }
 
